@@ -1021,16 +1021,11 @@ class RenderBudgetEvidence {
     private static final List<RenderLayer> RUN_LAYERS =
             List.of(RenderLayer.DOODADS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS, RenderLayer.HAZARDS);
 
-    /** Whether this run drains paged runs ({@code BattleRenderer.PAGED_BATCH_PROPERTY}), which the breakdown models. */
-    private static final boolean PAGED =
-            Boolean.parseBoolean(System.getProperty(BattleRenderer.PAGED_BATCH_PROPERTY, "true"));
-
     /**
      * What one layer's command stream is made of: each texture with the quads drawn from it, how many times the
      * run broke and on what, and every whole sprite by image. A run breaks wherever the drain must flush, and the
-     * binds column cannot say which of those it was. Under paged runs (law 27) a sheet change and a fill are not
-     * breaks; a blend change, a line, a ribbon, a whole sprite, a custom pass and a ninth page are. With the
-     * control on, every sheet change and fill is one, as the per-sheet drain flushes them.
+     * binds column cannot say which of those it was. Under paged runs (law 27) a sheet change, a blend change and a
+     * fill are not breaks; a line, a ribbon, a whole sprite, a custom pass and a ninth page are.
      */
     private static String runBreakdown(DrawList list, RenderLayer layer, BattleRenderer renderer) {
         DrawCommand[] buffer = list.buffer(layer);
@@ -1049,15 +1044,14 @@ class RenderBudgetEvidence {
             Object page = null;
             switch (c.kind()) {
                 case SHEET_QUAD -> {
-                    boolean inRun = PAGED;
-                    key = inRun ? paged : c.additive() ? "additive@" + System.identityHashCode(c.sprite()) : c.sprite();
-                    reason = c.additive() ? "additive quad" : "sheet change";
-                    if (inRun) page = c.sprite();
+                    key = paged;
+                    reason = "sheet change";
+                    page = c.sprite();
                     quadsBySheet.merge(sheetName(c.sprite(), renderer) + (c.additive() ? " (additive)" : ""),
                             1, Integer::sum);
                 }
                 case MESH -> {
-                    boolean inRun = PAGED && c.sprite() != null;
+                    boolean inRun = c.sprite() != null;
                     key = inRun ? paged : c.sprite() != null ? c.sprite() : c.mesh();
                     reason = "mesh";
                     if (inRun) page = c.sprite();
@@ -1065,9 +1059,9 @@ class RenderBudgetEvidence {
                             1, Integer::sum);
                 }
                 case SOLID_RECT, POLY -> {
-                    key = PAGED ? paged : "solid";
+                    key = paged;
                     reason = "solid fill";
-                    if (PAGED) page = "white";
+                    page = "white";
                 }
                 case LINE -> { key = "line@" + c.angleDegrees(); reason = "line"; }
                 case RIBBON -> { key = "ribbon"; reason = "ribbon"; }
