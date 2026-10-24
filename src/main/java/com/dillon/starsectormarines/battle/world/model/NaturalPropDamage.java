@@ -66,6 +66,23 @@ public final class NaturalPropDamage {
         return null;
     }
 
+    /**
+     * The footprint of the standing natural object owning this cell, {cellX, cellY, width, height} in cells, into
+     * {@code out}; false, and {@code out} untouched, when none stands here.
+     */
+    public boolean standingFootprintAt(int x, int y, int[] out) {
+        if (!grid.inBounds(x, y)) return false;
+        List<Entry> at = owners.get(grid.index(x, y));
+        if (at == null) return false;
+        for (Entry entry : at) {
+            if (entry.hp <= 0) continue;
+            Doodad d = entry.original;
+            out[0] = d.cellX; out[1] = d.cellY; out[2] = d.footprintCellsX; out[3] = d.footprintCellsY;
+            return true;
+        }
+        return false;
+    }
+
     /** Attack identity deduplicates a blast visiting several cells of the same object. */
     public Result damage(int x, int y, int amount, long attack, ClearedCell cleared) {
         if (!grid.inBounds(x, y)) return Result.NOT_NATURAL_PROP;
