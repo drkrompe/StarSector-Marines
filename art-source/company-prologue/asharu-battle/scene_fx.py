@@ -189,7 +189,12 @@ class SceneFx:
             sh.flux(ctx, up, 0.0)
             sh.flux(ctx, self.now - 2, float(s.get('flux', .3)))
             if s.get('overload_s') is not None:
-                d = self.local(key, self.world(s['toward'])) if s.get('toward') in self.placed else Vector((1, 0, 0))
+                fo = self.now - round(s['overload_s'] * self.fps)
+                if s.get('toward') in self.placed and self.matrix_at is not None:
+                    # the ripple faces the attacker where both are at the overload, not at the kit's build
+                    d = self.matrix_at(key, fo).inverted() @ self.matrix_at(s['toward'], fo).translation
+                else:
+                    d = self.local(key, self.world(s['toward'])) if s.get('toward') in self.placed else Vector((1, 0, 0))
                 az = math.degrees(math.atan2(d.y, d.x))
                 el = math.degrees(math.atan2(d.z, math.hypot(d.x, d.y)))
                 sh.overload(ctx, self.now - round(s['overload_s'] * self.fps), az, el, fps=self.fps)

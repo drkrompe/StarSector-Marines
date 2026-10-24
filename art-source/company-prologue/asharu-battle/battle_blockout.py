@@ -369,6 +369,7 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 # 34 s of it (only the Falcon showing a light) and S4 picks the same flights up mid-climb at 40 s.
 K1B_T = 34
 K2_T = 40
+LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -3096,14 +3097,34 @@ def blender_main(cfg):
                 # The kit's drives follow this frame's throttle, not the one the kit was built at: under
                 # --kit-once the build sets it once, at the shot's opening, and S3's pirates stayed dark
                 # through the whole shot although each lights her drives inside it (audit, 2026-10-23).
-                thr_ = {}
+                # So does everything else that changes over a shot and the build sets only once (state
+                # audit, 2026-10-23): a pirate's lamps come on as she wakes, before her drives, and a raised
+                # shield faces her attacker where he is now. Each value is checked against this plan once
+                # the frame is set (ASHARU state below), so a key or driver that overrides it stops the run.
+                state_plan_ = {}
                 for key, pl in placed.items():
-                    if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
-                        pl['fx'].set('thr_throttle', pl['throttle'])
-                        thr_[key] = round(pl['throttle'], 2)
+                    if pl['fx'] is None or pl['fx'].fx is None:
+                        continue
+                    if not pl['lib']['swfx']:
+                        state_plan_[(key, 'thr_throttle')] = pl['throttle']
+                    if key in LAUNCH:
+                        try:
+                            pl['fx'].get('lit_ship_master')
+                        except KeyError:
+                            print(f'ASHARU state {kf}: {key} has no ship lamps to wake', flush=True)
+                        else:
+                            wake_ = (spec['span_t'] - (LAUNCH[key] - LAMPS_LEAD_S)) / .3
+                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_))
+                for key, sh in spec.get('shields', {}).items():
+                    if key in placed and sh.get('toward') in placed and placed[key]['fx'] is not None:
+                        d_ = placed[key]['matrix'].inverted() @ placed[sh['toward']]['matrix'].translation
+                        state_plan_[(key, 'shield_facing')] = math.degrees(math.atan2(d_.y, d_.x))
+                for (key, knob), val in state_plan_.items():
+                    placed[key]['fx'].set(knob, val)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
-                print(f'ASHARU throttle {kf}: {thr_}', flush=True)
+                print(f"ASHARU state plan {kf}: "
+                      f"{ {f'{k} {n}': round(v, 2) for (k, n), v in sorted(state_plan_.items())} }", flush=True)
             if not step:
                 built_for[0] = span_of
             else:
@@ -3178,6 +3199,15 @@ def blender_main(cfg):
                 scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
                 print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
                       f"from the key)", flush=True)
+                if cfg.get('kit_once'):
+                    # what the frame evaluates to, against this frame's plan: a value the build set once, or
+                    # one a key or driver overrides, shows here (the S3 pirates' drives stayed dark unseen)
+                    off_ = sorted(((abs(float(placed[k_]['fx'].get(n_)) - v_), k_, n_, v_)
+                                   for (k_, n_), v_ in state_plan_.items()), reverse=True)
+                    w_ = off_[0] if off_ else (0.0, None, None, None)
+                    print(f'ASHARU state {kf}: {len(off_)} values, worst {w_[0]:.4f} ({w_[1]} {w_[2]})', flush=True)
+                    if w_[0] > 1e-3 and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                        raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:

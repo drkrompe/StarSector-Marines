@@ -166,8 +166,10 @@ def _vent_material(ctx, name, seed, length):
     # Asharu's sun read as two solid white lobes on the Lasher in S6 (frame 1349). Gas in vacuum
     # thins at once, so it is a third as dense, broken into wisps, and absorbs as much as it scatters.
     shape = g.m('MULTIPLY', g.m('MULTIPLY', g.gauss(r, 1.0, 1.6), along), g.mr(n, .45, .8))
-    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .3/units(1.0)), amount)
-    volume_output(g, dens, (0.55, 0.57, 0.6, 1), (0.35, 0.36, 0.38, 1), .35)
+    # Rebuilt on the Phaeton wreck (revent) it was still two pale lobes in Asharu's sun at .3 and a .55
+    # albedo (diag-blob6, 2026-10-23): a fifth of the old density, and a dull grey that reads as vapour.
+    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .18/units(1.0)), amount)
+    volume_output(g, dens, (0.26, 0.27, 0.29, 1), (0.2, 0.2, 0.21, 1), .35)
     return m
 
 
