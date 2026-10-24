@@ -603,6 +603,22 @@ change the physical crash corridor.
     which this is not: this asks a fixed rectangle about every body, not a body
     about its neighbours.
 
+27. A run closes for what a program cannot carry, not for which texture or
+    which fill. Every textured quad and solid fill drains through one GLSL 1.20
+    program (`PagedQuadRun`): a run binds up to eight textures as **pages**, each
+    vertex names its page, and a fill is a quad of one opaque white texel on a
+    page of its own, so a flame and the ember over it, or a body on the unit
+    atlas and a prop on another sheet, are one draw. Painter order is untouched;
+    what still closes a run is a blend change, a line, a ribbon, a whole sprite
+    or a custom pass, and a full page table. The shader is fixed-function
+    `GL_MODULATE`, accepted on pixel equality against the per-sheet path
+    (`PagedQuadRunGlEvidence`), and a context that cannot build it or offers
+    fewer than two units drains one run per sheet, as before. GL 2.1 with no
+    extension, because that is the Mac's floor; a texture array would need more.
+    The page rides in the position's z rather than a generic attribute, because
+    the fixed-function arrays are what an async-renderer bridge is known to
+    carry.
+
 Authored spline roads retain a `RoadSurface` beside their grid footprint. The
 surface samples signed distances at cell corners and clips each cell's two
 triangles to the carriageway. Asphalt/concrete joins use the same clipping,
