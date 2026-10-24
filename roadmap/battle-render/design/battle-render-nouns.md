@@ -512,6 +512,26 @@ change the physical crash corridor.
     An image first drawn mid-battle goes into rows the plan kept free, so it costs
     one upload rather than a rebuild on the frame a marine first falls.
 
+    **A whole image is held as far as its art reaches.** A body part is drawn on
+    a canvas sized for every pose, and a station arm's 150x240 holds art of
+    about 48x97, so the unit atlas keeps an image's alpha bounds and one texel of
+    its own transparent margin, and a draw of the whole image becomes a draw of
+    that part over the matching part of the destination, its corners taken from
+    the whole quad's own. Every texel left out is transparent and beyond the one
+    texel a bilinear tap reaches, so what is drawn is what the whole quad drew.
+    The bounds are read from the image's file when the atlas is planned, because
+    the plan runs before any GL, and checked against the texels the texture
+    really holds at upload, where a miss is logged rather than drawn short. **A
+    side is trimmed only while the two sides across from it hold no art at the
+    image's edge.** Trimming a side moves the ends of the edges that meet it, and
+    an edge rasterized between other ends lies a fraction of a subpixel away: a
+    pixel centred on it can change sides. Along a transparent border nobody can
+    see that; along an edge the art reaches, it is a pixel the sprite path left
+    out, drawn faintly. So a rifle whose barrel runs the canvas's height keeps
+    its side columns. What remains between a trimmed and an untrimmed image is
+    the one-level rounding residue below, which a smaller triangle and a moved
+    slot each reshuffle.
+
     **A cut carries its neighbourhood.** A whole image's edge was always an
     edge, so a transparent gutter changes nothing there; a rectangle cut from a
     sheet had the next cell's art one texel away, and bilinear reads it. So a
@@ -582,6 +602,22 @@ change the physical crash corridor.
     already pays. It remains the right instrument for a proximity question,
     which this is not: this asks a fixed rectangle about every body, not a body
     about its neighbours.
+
+27. A run closes for what a program cannot carry, not for which texture or
+    which fill. Every textured quad and solid fill drains through one GLSL 1.20
+    program (`PagedQuadRun`): a run binds up to eight textures as **pages**, each
+    vertex names its page, and a fill is a quad of one opaque white texel on a
+    page of its own, so a flame and the ember over it, or a body on the unit
+    atlas and a prop on another sheet, are one draw. Painter order is untouched;
+    what still closes a run is a blend change, a line, a ribbon, a whole sprite
+    or a custom pass, and a full page table. The shader is fixed-function
+    `GL_MODULATE`, accepted on pixel equality against the per-sheet path
+    (`PagedQuadRunGlEvidence`), and a context that cannot build it or offers
+    fewer than two units drains one run per sheet, as before. GL 2.1 with no
+    extension, because that is the Mac's floor; a texture array would need more.
+    The page rides in the position's z rather than a generic attribute, because
+    the fixed-function arrays are what an async-renderer bridge is known to
+    carry.
 
 Authored spline roads retain a `RoadSurface` beside their grid footprint. The
 surface samples signed distances at cell corners and clips each cell's two

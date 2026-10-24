@@ -64,6 +64,23 @@ public final class DrawCommand {
     public float[] patch() { return patch; }
     public void setPatch(float[] value) { patch=value; }
 
+    /**
+     * Whether this sheet quad draws only part of its destination: the fractions {@code partX0..partX1} across it
+     * and {@code partY0..partY1} down it, {@code y} from its source's top. Its source rectangle is that part's; its
+     * centre, size and angle are still the whole quad's, so the part's corners are taken from the whole quad's own
+     * ({@link QuadBatch#appendRotatedPart}) and an edge the part shares with it is the same edge to the last bit.
+     */
+    boolean part;
+    float partX0, partX1, partY0, partY1;
+
+    /** Draws only the part of this sheet quad's destination its source covers; see {@link #part}. */
+    public void setPart(float x0, float x1, float y0, float y1) {
+        part = true;
+        partX0 = x0; partX1 = x1; partY0 = y0; partY1 = y1;
+    }
+
+    public boolean hasPart() { return part; }
+
     Kind kind;
     SpriteAPI sprite;
     int srcX, srcY, srcW, srcH;
@@ -130,6 +147,7 @@ public final class DrawCommand {
                              float r, float g, float b, float a) {
         this.kind = Kind.SHEET_QUAD;
         this.patch = null;
+        this.part = false;
         this.sprite = sheet;
         this.srcX = srcX; this.srcY = srcY; this.srcW = srcW; this.srcH = srcH;
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;

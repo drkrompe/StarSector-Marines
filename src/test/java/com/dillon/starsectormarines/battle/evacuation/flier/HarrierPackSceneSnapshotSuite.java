@@ -72,6 +72,13 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                 },
                 placement -> List.of(LookReview.View.follow("close", placement, STRIKE_CELLS, "line")),
                 WINGS_TICKS, 1, 4, WINGS_STILLS));
+        // The blood close up, at the rule's own throw rate: the spray as the bites land, then the spatter left on
+        // the ground once the pack has climbed out.
+        shots.add(new LookReview.Shot("harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-') + "-blood",
+                LookGround.verdant(), 70, 40,
+                placement -> stage(placement, HarrierLook.DEFAULT, false),
+                placement -> List.of(LookReview.View.follow("close", placement, BLOOD_CELLS, "line")),
+                BLOOD_TICKS, 1, 4, BLOOD_STILLS));
         return shots;
     }
 
@@ -79,6 +86,10 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
     static final float WINGS_CELLS = 9f;
     static final int WINGS_TICKS = 720;
     static final int[] WINGS_STILLS = {60, 150, 240, 330, 420, 510, 600};
+    /** The blood close-up: cells across, ticks played, and its stills (the bites land near tick 216). */
+    static final float BLOOD_CELLS = 8f;
+    static final int BLOOD_TICKS = 360;
+    static final int[] BLOOD_STILLS = {216, 300};
     /** The strike close-up: cells across, and the lift chance it plays at so a throw shows. */
     static final float STRIKE_CELLS = 14f;
     static final float STRIKE_LIFT_CHANCE = 0.35f;

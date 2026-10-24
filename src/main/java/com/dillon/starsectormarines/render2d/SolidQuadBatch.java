@@ -146,6 +146,30 @@ public final class SolidQuadBatch {
         quadCount = 0;
     }
 
+    /**
+     * Moves every queued fill into {@code run} as quads of page {@code page}, every vertex sampling the texel at
+     * {@code (u, v)}: how a paged run takes a solid fill, as a quad of one opaque white texel tinted by its colour,
+     * which is the colour a fill draws untextured.
+     */
+    void moveQueuedTo(PagedQuadRun run, int page, float u, float v) {
+        if (quadCount == 0) return;
+        run.ensureCapacity(quadCount);
+        int verts = quadCount * VERTS_PER_QUAD;
+        int base = run.quadCount * VERTS_PER_QUAD;
+        float z = page;
+        for (int i = 0; i < verts; i++) {
+            int to = (base + i) * 3;
+            run.posData[to] = posData[i * 2];
+            run.posData[to + 1] = posData[i * 2 + 1];
+            run.posData[to + 2] = z;
+            run.uvData[(base + i) * 2] = u;
+            run.uvData[(base + i) * 2 + 1] = v;
+        }
+        System.arraycopy(colData, 0, run.colData, base * 4, verts * 4);
+        run.quadCount += quadCount;
+        quadCount = 0;
+    }
+
     private void ensureCapacity(int neededQuads) {
         if (posData.length >= neededQuads * POS_FLOATS_PER_QUAD) return;
         int newQuads = posData.length / POS_FLOATS_PER_QUAD;

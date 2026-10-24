@@ -112,7 +112,12 @@ fire three times as far. Every igniter (an incendiary's splash, a burning
 wreck, a shell's blast on dry fuel) lights at distance nought, so a second
 burst further on starts a second patch. `-Dbattle.fire.spreadScale` scales
 every limited spread, `0` being the old unbounded fire, while the owner picks
-how far grass carries it.
+how far grass carries it. `-Dbattle.fire.spread.<fuel>` (`brush`, `crown`, ...) sets one
+fuel's spread, for the owner's fire-flamer-woods pick: a flamer throws only
+where its fire cannot come back (Starting fires), which on grass needs the
+target about 6.5 cells off (two cells lit, three carried, one beside), so a
+7-cell flamer standing on any fuel has half a cell to throw in; from bare
+ground it throws freely.
 
 **Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
 firebreak by definition. It stays scorched for the battle (it does not

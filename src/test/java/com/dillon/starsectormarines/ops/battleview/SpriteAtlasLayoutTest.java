@@ -97,6 +97,21 @@ class SpriteAtlasLayoutTest {
     }
 
     @Test
+    void aTrimmedImageIsPackedAtItsArtAndPlacedAsTheWholeImage() {
+        Fixture atlas = new Fixture(1024);
+        List<SpriteAtlas.Source> sources = plates(4, 64, 64);
+        SpriteAtlas.Source arm = new SpriteAtlas.Source(token(), 150, 240, "arm").trimmedTo(50, 70, 50, 99);
+        sources.add(arm);
+        assertTrue(atlas.layOut(sources, 4));
+        SpriteAtlas.Placement at = atlas.placement(arm.sheet());
+        assertEquals(new SpriteAtlas.Placement(at.x(), at.y(), 50, 99, 50, 70, 150, 240), at,
+                "the slot holds the art; the placement still names the image it is part of");
+        assertTrue(at.trimmed());
+        assertFalse(atlas.placement(sources.get(0).sheet()).trimmed());
+        assertTrue(atlas.report().contains("1 trimmed to their art (4950 of 36000 texels held)"), atlas.report());
+    }
+
+    @Test
     void aRegionIsFoundByItsExactRectangleAndSitsInsideItsApron() {
         Fixture atlas = new Fixture(1024);
         SpriteAPI sheet = token();
