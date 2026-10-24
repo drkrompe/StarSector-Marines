@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.cordon.CordonSupplyStreets;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.BarrageScreen;
 import com.dillon.starsectormarines.battle.command.HeartAssaultCommand;
@@ -153,13 +157,50 @@ public final class BloomHeartSetup {
         Precinct landing = plan.landingPlace();
         return HeartBores.plan(map.grid, map.topology, form,
                 new int[]{workings.seedX(), workings.seedY()},
-                new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map), battleSeed ^ BORE_SALT);
+                new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map, plan), battleSeed ^ BORE_SALT);
     }
 
-    /** The supply road's cells as the map laid them, or none. */
-    private static List<int[]> supplyRoad(MapResult map) {
+    /**
+     * The supply road's cells as the map laid them; where none could be laid (a city's ground, every pooled city map),
+     * the streets are the supply road, as the Cordon's are (`cordon-nouns.md`, Logistics base): the way a truck drives
+     * from the landing to the settlement, over the ground as the vehicle router prices it, a street cheapest, widened
+     * to a laid road's width. None where a truck has no way at all.
+     */
+    public static List<int[]> supplyRoad(MapResult map, PrecinctPlan plan) {
         Laid road = map.layout.find(HeartLayout.SUPPLY_ROAD);
-        return road == null || !road.isLaid() ? List.of() : road.cells();
+        if (road != null && road.isLaid()) return road.cells();
+        Precinct landing = plan.landingPlace();
+        Precinct settlement = HeartCountry.place(plan, HeartCountry.SETTLEMENT);
+        if (settlement == null) return List.of();
+        VehicleClearance truck = VehicleClearance.erode(map.grid,
+                VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
+        int[] a = VehicleRoutePlanner.snapToMask(truck, landing.seedX(), landing.seedY(), STREET_SNAP);
+        int[] b = VehicleRoutePlanner.snapToMask(truck, settlement.seedX(), settlement.seedY(), STREET_SNAP);
+        if (a == null || b == null) return List.of();
+        float[][] route = VehicleRoutePlanner.route(a[0], a[1], b[0], b[1], map.grid, TerrainCostField.from(map.topology), truck);
+        if (route == null) return List.of();
+        return widened(CordonSupplyStreets.cells(route[0], route[1]), STREET_ROAD_REACH,
+                map.grid.getWidth(), map.grid.getHeight());
+    }
+
+    /** Cells round a way's ends a truck's footprint is looked for. */
+    static final int STREET_SNAP = 8;
+    /** Cells either side of a street way the supply road takes in: a laid road's half width. */
+    static final int STREET_ROAD_REACH = 2;
+
+    /** Every in-bounds cell within {@code reach} (Chebyshev) of a cell of {@code way}, each once, in way order. */
+    static List<int[]> widened(List<int[]> way, int reach, int width, int height) {
+        boolean[] seen = new boolean[width * height];
+        List<int[]> out = new ArrayList<>();
+        for (int[] c : way) {
+            for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
+                int x = c[0] + dx, y = c[1] + dy;
+                if (x < 0 || y < 0 || x >= width || y >= height || seen[y * width + x]) continue;
+                seen[y * width + x] = true;
+                out.add(new int[]{x, y});
+            }
+        }
+        return out;
     }
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
@@ -251,7 +292,7 @@ public final class BloomHeartSetup {
         HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
         if (lanes != null && park != null) {
             lanes.sentFrom(park);
-            lanes.road(supplyRoad(built.map()));
+            lanes.road(supplyRoad(built.map(), built.plan()));
             // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
             int n = lanes.grounds().size();
             // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
