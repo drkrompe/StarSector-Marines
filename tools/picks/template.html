@@ -58,15 +58,26 @@ header p{margin:8px 0 0;color:var(--muted);max-width:64ch}
 .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent) inset}
 .opt[aria-pressed="true"] .key::after{content:" ✓";color:var(--done)}
 .comment input{width:100%;box-sizing:border-box;font:14px var(--body);padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.previews{display:grid;gap:22px}
+.previews>h2{margin:0;font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pv{display:grid;gap:10px;border-top:2px solid var(--accent);padding-top:12px}
+.pv h3{margin:0;font:600 20px/1.25 var(--display);text-wrap:balance}
+.pv p{margin:0;color:var(--muted);max-width:72ch}
+.pv-shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.pv-shots .lead{grid-column:1/-1}
+.pv figure{margin:0;display:grid;gap:6px;min-width:0}
+.pv figcaption{font-size:13px;color:var(--muted)}
+.pv img{width:100%;height:auto;display:block;border-radius:6px;background:#0d0b10}
 .empty{border:1px dashed var(--line);border-radius:10px;padding:20px;color:var(--muted);background:var(--surface)}
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 </style>
 <div class="wrap">
   <header>
     <h1>__TITLE__</h1>
-    <p>Open look decisions for Colony Breach, as pictures. Tap the option you want under each question; tap it again to clear it. Add a note if none is quite right. Choices save as you go and go back to the session that owns each piece.</p>
+    <p>__BLURB__</p>
   </header>
   <div class="bar" role="region" aria-label="Progress"><span><b id="n-done">0</b> of <span id="n-all">0</span> decided</span><span class="store" id="store">Connecting to saved choices…</span></div>
+  <section class="previews" id="previews" hidden aria-label="Previews"></section>
   <main id="list" style="display:grid;gap:36px"></main>
 </div>
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Zoomed image">
@@ -75,6 +86,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 </div>
 <script>
 const QUESTIONS = __QUESTIONS__;
+const PREVIEWS = __PREVIEWS__;
 const picks = {};
 const pending = {};
 let order = null;
@@ -103,7 +115,17 @@ function render(){
   $("n-all").textContent = QUESTIONS.length;
   $("n-done").textContent = QUESTIONS.filter(q => picks[q.id]?.choice).length;
 }
-const LKEY = "rav-picks";
+function renderPreviews(){
+  const el = $("previews");
+  el.hidden = !PREVIEWS.length;
+  el.innerHTML = PREVIEWS.length ? `<h2>To look at · newest first</h2>` + PREVIEWS.map(v => `<article class="pv" id="pv-${esc(v.id)}">
+    <span class="owner">${esc(v.area)}${v.date ? " · " + esc(v.date) : ""}</span><h3>${esc(v.title)}</h3>
+    ${v.note ? `<p>${esc(v.note)}</p>` : ""}
+    <div class="pv-shots">${(v.shots || []).map((x, i) => `<figure class="${i === 0 && v.lead ? "lead" : ""}"><button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(v.title + (x.label ? " — " + x.label : ""))}" aria-label="Zoom ${esc(x.label || v.title)}"><img src="${esc(x.file)}" alt="${esc(x.label || v.title)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>${x.label ? `<figcaption>${esc(x.label)}</figcaption>` : ""}</figure>`).join("")}</div>
+  </article>`).join("") : "";
+}
+renderPreviews();
+const LKEY = "__LKEY__";
 async function write(id){
   const v = picks[id];
   if (local || !db) { try { localStorage.setItem(LKEY, JSON.stringify(picks)); } catch {} return; }

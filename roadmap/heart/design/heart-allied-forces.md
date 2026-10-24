@@ -1,8 +1,9 @@
 # The Heart — allied forces and their tools
 
-Status: DRAFT — options out to the owner (question `heart-allied-tool`); armour up the road, the recommended one, is built.
+Status: DRAFT — the owner's answer to `heart-allied-tool`: all four tools, the commander choosing by need (`heart-allied-commander.md`). Armour, mech lances and the gunship are built; ammunition trucks are next.
 
 Written: 2026-10-23
+Updated: 2026-10-23 — owner picked all four tools.
 
 Step 3 of `heart-mission-depth.md`. `heart-nouns.md` is the model; the laws
 still hold: allies never end the battle, the guns cannot take the heart, and a
@@ -52,11 +53,14 @@ the same swarm pack, so the four pictures read side by side.
 - **Mech lance** (`allies-mechs`): a pair of Hounds walks with a lane in the
   town and the city, where armour is roadbound. Exists in `HeartLanes`.
 
-Recommended first: armour up the road, because it gives the logistics base a
-body on the map now, F6 a reason, and the allied commander (step 4) something
-to aim. The gunship and the trucks follow on the same base.
+The owner's answer: offer all four, and let the commander choose by need. The
+trucks may also rearm turrets and flak pits at the bases. The base stocks the
+tools as one `AlliedToolShed`:
+- armour pairs, one per lane, restocking at the old wave pace;
+- one gunship, gated on open air;
+- mech lances, in town and city.
 
 ## Open
 
-The owner's pick. Then the base itself: where it stands, what it costs to
-lose, and its pace by density.
+The trucks as a shed tool, rearming guns through `GunStock`. Then what it
+costs to lose the base.

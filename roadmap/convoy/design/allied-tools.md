@@ -119,9 +119,13 @@ delivers nothing.
 
 The Cordon's `CordonLogistics` is an `AlliedDepot` (a machine sent from it
 sets out from the threshold outside the shed's machine door, and nothing is
-sent while the swarm is on the apron). It is still one base shape: a shed building a
-fixed line of hulls (`CordonSetup.BASE_LINE`, `FabricationService`), carriers
-staged on its apron, columns mustering in its yard. The heart schedules its
+sent while the swarm is on the apron). It is still one base shape: a shed building its
+density's line (`CordonAlliedTable`), carriers staged on its apron, columns
+mustering in its yard. The shed's line is a list of machines, each a hull or a
+mech chassis (`FabricationService.Machine`), walked by position, so the same
+berths build a Hound where the table says (a town's every third machine, a
+city's every one); a finished Hound walks out under the allied command's
+mech station (`AlliedCommand.enlistMech`, `deployMech`). The heart schedules its
 armour separately (`HeartLanes.scheduleArmour`).
 
 The producer's seam is `AlliedProducer` (an `AlliedDepot` that also takes
@@ -143,7 +147,7 @@ any tool kind from its own origin:
 
 - a hull from a shed's berth (what `CordonLogistics` does today);
 - a hull from a park, or a column, off the rear edge or a supply road;
-- a mech from a gantry;
+- a mech from a gantry (today, from the shed's berths: see above);
 - a sortie (a gunship orbit), behind the mission's air gate;
 - a delivery, through the hook above.
 

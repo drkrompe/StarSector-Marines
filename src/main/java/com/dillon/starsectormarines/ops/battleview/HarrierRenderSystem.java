@@ -60,7 +60,7 @@ public final class HarrierRenderSystem implements RenderSystem {
                 if (cache == null) continue;
                 float scale = 1f + ALTITUDE_SCALE_GAIN * m.altitude;
                 out.addSprite(RenderLayer.DRONES, cache.sprite, cam.cellToScreenX(m.body.x), cam.cellToScreenY(m.body.y),
-                        cache.pxW / HarrierLook.PX_PER_CELL * cellPx * scale * pose.widthScale(),
+                        cache.pxW / HarrierLook.PX_PER_CELL * cellPx * scale,
                         cache.pxH / HarrierLook.PX_PER_CELL * cellPx * scale,
                         m.body.facingDegrees, 1f, 1f, 1f, alpha);
             }

@@ -10,13 +10,17 @@ public enum HarrierLook {
 
     private static final String ROOT = "graphics/battle/rav-harrier/";
     /**
-     * Every drawing is cut at this many pixels to a cell, so the three poses keep one body size and
+     * Every drawing is cut at this many pixels to a cell, so every frame keeps one body size and
      * a sprite's drawn size is its pixel size over this.
      */
     public static final float PX_PER_CELL = 64f;
+    /** Frames in one wingbeat: frame 0 is the glide drawing, then up, over the top, down and back. */
+    public static final int BEAT_FRAMES = 8;
+    /** Frames between the glide and the dive drawing as the wings fold back along the flanks. */
+    public static final int FOLD_FRAMES = 2;
 
     private final String folder;
-    /** Wingspan in cells with the wings spread: the glide drawing's width, which the exporter cuts it to. */
+    /** Wingspan in cells with the wings spread: the glide drawing's width, which the exporter scales it to. */
     public final float spanCells;
 
     HarrierLook(String folder, float spanCells) {
@@ -28,6 +32,14 @@ public enum HarrierLook {
     public static final HarrierLook DEFAULT = LILAC_GLIDER;
 
     public String glide() { return ROOT + folder + "/glide.png"; }
-    public String flap() { return ROOT + folder + "/flap.png"; }
     public String dive() { return ROOT + folder + "/dive.png"; }
+
+    /**
+     * Wingbeat frame {@code i} of {@link #BEAT_FRAMES}; frame 0 is the glide. The beat frames share the glide's
+     * canvas and pivot, and its body to the pixel: only the wings move.
+     */
+    public String beat(int i) { return i == 0 ? glide() : ROOT + folder + "/beat-" + i + ".png"; }
+
+    /** Fold frame {@code i}, 1 to {@link #FOLD_FRAMES}: the wings part way from the glide to the dive. */
+    public String fold(int i) { return ROOT + folder + "/fold-" + i + ".png"; }
 }

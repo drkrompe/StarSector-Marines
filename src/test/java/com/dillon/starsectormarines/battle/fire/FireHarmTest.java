@@ -18,7 +18,7 @@ class FireHarmTest {
         fuel[y * W + x] = FireFuel.CROWN.bit;
         FireField f = new FireField(W, H, 1L, idx -> fuel[idx]);
         f.addHeat(x, y, 5000);
-        for (int t = 0; t < 60; t++) f.tick(t);
+        for (int t = 0; t < (FireField.RAMP_STEPS + 2) * FireField.STEP_TICKS; t++) f.tick(t);
         return f;
     }
 

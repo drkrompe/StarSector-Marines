@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  */
 public final class HarrierFlight {
 
+    /** Seconds to fold the wings from spread to the dive, or open them again. */
+    public static final float FOLD_SECONDS = 0.3f;
+
     public final long id;
     public final AirBody body;
     /** Which drawing it wears ({@link HarrierLook}); presentation only. */
@@ -20,6 +23,11 @@ public final class HarrierFlight {
     public int slot;
     /** Wingbeat clock, seconds; seeded per body so a pack does not flap in step. Presentation only. */
     public float wingClock;
+    /**
+     * How far its wings are folded for the dive, 0 spread to 1 folded: it folds over {@link #FOLD_SECONDS} as it
+     * goes into a dive and opens again as it climbs out. Presentation only.
+     */
+    public float fold;
     /** Whether it went low on the dive in hand: the dive half of dive-and-pull-up. */
     public boolean wentLow;
 
