@@ -123,7 +123,17 @@
     "data/tilesets/ship-bulkheads.tileset.json",
     "data/tilesets/ship-interior-materials.tileset.json",
     "data/tilesets/deck-motion.tileset.json",
-    "data/tilesets/deck-prop-motions.tileset.json"
+    "data/tilesets/deck-prop-motions.tileset.json",
+    "data/tilesets/origin-workings-shaft.tileset.json",
+    "data/tilesets/origin-workings-yard.tileset.json",
+    "data/tilesets/origin-freight-split.tileset.json",
+    "data/tilesets/origin-freight-boxes.tileset.json",
+    "data/tilesets/origin-freight-crane.tileset.json",
+    "data/tilesets/origin-lab-annex.tileset.json",
+    "data/tilesets/origin-lab-kit.tileset.json",
+    "data/tilesets/origin-park-bandstand.tileset.json",
+    "data/tilesets/origin-park-pond.tileset.json",
+    "data/tilesets/origin-park-play.tileset.json"
   ],
   "tileMappings": [
     "data/tilesets/urban.mapping.json"

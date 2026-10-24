@@ -1,0 +1,6 @@
+Sheet: the freight yard's stack. Three columns, one object each: a rust-red container, a steel-blue container, and a pallet of seafood crates; four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.
+- CONTAINERS (4x2 cells): a closed 40-foot corrugated steel shipping container from above, corner castings at the four corners, roof corrugations across its width, darker end frames, weathered paint, closed and intact.
+- SEAFOOD CRATES (2x2): a timber pallet carrying four shallow grey-blue plastic seafood crates seen from above, each packed with crushed ice and a pair of dark red-brown crustaceans (tail, body, two claws). Plain crates, no logos, no lettering.
+Row 2 GROWN: the containers intact, creep from the ground climbed over one corner, veins over the roof, a few plates. The seafood crates burst and EMPTY: no ice, nothing alive, only a few pale cast shells left in the dark crate bottoms, creep spreading from the pallet.
+Row 3 DAMAGED: row 2 after a fight: dents, bullet holes, scorch, torn creep.
+Row 4 DESTROYED: low separated pieces in each object's own colours, transparent between, no slab beneath.

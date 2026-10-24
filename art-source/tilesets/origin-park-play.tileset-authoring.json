@@ -1,0 +1,333 @@
+{
+ "sheetName": "origin-park-play",
+ "sheet": "art-source/tilesets/origin-park-play.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-park-play",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-park-play.png",
+ "note": "The park's swings, slide, climbing frame, roundabout and bench. Geometry-first ImageGen reskin of art-source/templates/heart-park-play-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1501x1048 against a 2016x1408 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + park-play.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    36,
+    36,
+    286,
+    191
+   ],
+   "id": "origin-park.swings-clean",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    36,
+    298,
+    286,
+    191
+   ],
+   "id": "origin-park.swings",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    36,
+    560,
+    286,
+    191
+   ],
+   "id": "origin-park.swings-damaged",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    36,
+    822,
+    286,
+    191
+   ],
+   "id": "origin-park.swings-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    393,
+    83,
+    286,
+    95
+   ],
+   "id": "origin-park.slide-clean",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    393,
+    345,
+    286,
+    95
+   ],
+   "id": "origin-park.slide",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    393,
+    607,
+    286,
+    95
+   ],
+   "id": "origin-park.slide-damaged",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    393,
+    869,
+    286,
+    95
+   ],
+   "id": "origin-park.slide-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    750,
+    36,
+    191,
+    191
+   ],
+   "id": "origin-park.climber-clean",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    750,
+    298,
+    191,
+    191
+   ],
+   "id": "origin-park.climber",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    750,
+    560,
+    191,
+    191
+   ],
+   "id": "origin-park.climber-damaged",
+   "cover": "light",
+   "ballisticHalfHeight": 0.3,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    750,
+    822,
+    191,
+    191
+   ],
+   "id": "origin-park.climber-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1013,
+    36,
+    191,
+    191
+   ],
+   "id": "origin-park.roundabout-clean",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1013,
+    298,
+    191,
+    191
+   ],
+   "id": "origin-park.roundabout",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1013,
+    560,
+    191,
+    191
+   ],
+   "id": "origin-park.roundabout-damaged",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1013,
+    822,
+    191,
+    191
+   ],
+   "id": "origin-park.roundabout-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1275,
+    83,
+    191,
+    95
+   ],
+   "id": "origin-park.bench-clean",
+   "cover": "light",
+   "ballisticHalfHeight": 0.25,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1275,
+    345,
+    191,
+    95
+   ],
+   "id": "origin-park.bench",
+   "cover": "light",
+   "ballisticHalfHeight": 0.25,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1275,
+    607,
+    191,
+    95
+   ],
+   "id": "origin-park.bench-damaged",
+   "cover": "light",
+   "ballisticHalfHeight": 0.25,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1275,
+    869,
+    191,
+    95
+   ],
+   "id": "origin-park.bench-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  }
+ ]
+}
