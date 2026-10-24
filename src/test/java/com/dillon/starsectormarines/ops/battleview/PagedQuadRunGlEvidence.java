@@ -55,7 +55,7 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 
 /**
  * What a real driver draws out of one paged run against the one run per sheet it replaces
- * ({@code programmable-quad-batch.md}).
+ * ({@code battle-render-nouns.md}, law 27).
  *
  * <p>The frame is built to be the paged run's hard case: overlapping quads from ten sheets in turn, so painter
  * order decides every overlap and a run of eight pages has to close and open again; quads turned, mirrored, tinted
@@ -237,6 +237,60 @@ class PagedQuadRunGlEvidence {
                 System.out.println("[shader-evidence] hit flash: worst channel " + worst
                         + " levels from colour mixed toward white");
                 assertTrue(worst <= 2, "a flash mixes the colour toward white by its share; worst " + worst);
+            } finally {
+                paged.dispose();
+                glDeleteFramebuffers(target[0]);
+                glDeleteTextures(target[1]);
+            }
+        }
+    }
+
+    /**
+     * The light and wear channels (law 27): a lit fill is its colour plus the light times its colour lifted off black
+     * (an opaque fill has no silhouette edge inside it, so no rim); a charred one is darker in every channel; a fully
+     * dissolved one draws nothing.
+     */
+    @Test
+    void lightAndWearDrawWhatTheyCarry() throws Exception {
+        try (HeadlessGl gl = HeadlessGl.createOrNull(W, H)) {
+            if (gl == null) {
+                System.out.println("[shader-evidence] SKIPPED: " + HeadlessGl.unavailableReason());
+                return;
+            }
+            int[] target = target();
+            PagedQuadRun paged = new PagedQuadRun();
+            try {
+                assertTrue(paged.ready(), "a GL 2.1 context has to page");
+                float r = .2f, g = .5f, b = .4f;
+                float[] light = {.8f, .5f, .2f};
+                DrawList frame = new DrawList();
+                frame.setLight(light[0], light[1], light[2], 1f);
+                frame.addSolidRect(RenderLayer.UNITS, 20, 20, 100, 100, r, g, b, 1f);
+                frame.clearEffects();
+                frame.setWear(1f, 0f, 0f);
+                frame.addSolidRect(RenderLayer.UNITS, 120, 20, 200, 100, r, g, b, 1f);
+                frame.setWear(0f, 0f, 1f);
+                frame.addSolidRect(RenderLayer.UNITS, 220, 20, 300, 100, r, g, b, 1f);
+                frame.clearEffects();
+                byte[] pixels = draw(target[0], frame, new IdentityHashMap<>(), paged, new DrawCensus());
+
+                float[] colour = {r, g, b};
+                int worstLit = 0;
+                boolean darker = true;
+                int lit = (60 * W + 60) * 4, charred = (60 * W + 160) * 4, gone = (60 * W + 260) * 4;
+                for (int k = 0; k < 3; k++) {
+                    float carried = Math.round(light[k] / 2f * 255f) * 2f / 255f;
+                    float expected = Math.min(1f, colour[k] + (.1f + colour[k]) * carried * .6f);
+                    worstLit = Math.max(worstLit, Math.abs((pixels[lit + k] & 0xFF) - Math.round(expected * 255f)));
+                    darker &= (pixels[charred + k] & 0xFF) < Math.round(colour[k] * 255f) - 10;
+                }
+                boolean dissolved = (pixels[gone] & 0xFF) == 255 && (pixels[gone + 1] & 0xFF) == 0
+                        && (pixels[gone + 2] & 0xFF) == 255;
+                System.out.println("[shader-evidence] body effects: lit worst " + worstLit + " levels, charred darker "
+                        + darker + ", dissolved leaves the ground " + dissolved);
+                assertTrue(worstLit <= 2, "a lit fill adds the light times its lifted colour; worst " + worstLit);
+                assertTrue(darker, "a charred fill is darker in every channel");
+                assertTrue(dissolved, "a fully dissolved fill draws nothing");
             } finally {
                 paged.dispose();
                 glDeleteFramebuffers(target[0]);

@@ -31,6 +31,16 @@ public final class LayoutRoads {
      */
     public static List<Laid> carve(PrecinctPlan plan, int[][] claim, int[][] owner,
                                    RuralLayout rural, int width, int height) {
+        return carve(plan, claim, owner, rural, width, height, null);
+    }
+
+    /**
+     * As above, with ground no layout road is laid across ({@code barred}, or null for none): sealed ground and the
+     * knolls' rings ({@code elevation-nouns.md}), which a road reaches beyond only by the passes and gates already
+     * cut through them.
+     */
+    public static List<Laid> carve(PrecinctPlan plan, int[][] claim, int[][] owner,
+                                   RuralLayout rural, int width, int height, boolean[][] barred) {
         List<Laid> out = new ArrayList<>();
         boolean[][] held = plan.layout().keepClear(width, height);
         int[][] bounds = null;
@@ -70,6 +80,7 @@ public final class LayoutRoads {
                 if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
                 if (rural != null && rural.inCountry(x, y)) continue;
                 if (held != null && held[x][y]) continue;
+                if (barred != null && barred[x][y] && owner[x][y] == GrownTrunkPlan.UNOWNED) continue;
                 if (owner[x][y] != GrownTrunkPlan.UNOWNED) {
                     onRoad++;
                     continue;

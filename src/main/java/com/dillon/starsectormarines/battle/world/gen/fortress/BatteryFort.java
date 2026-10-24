@@ -17,8 +17,8 @@ import java.util.List;
  * <ul>
  *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line and fence line, with nests, standing
  *       off the main works across an open killing ground;</li>
- *   <li>the <b>main works</b>: a chamfered trace two cells thick with a pointed bastion at each corner, a gatehouse and
- *       baffle at each gate;</li>
+ *   <li>the <b>main works</b>: a chamfered trace two cells thick with a pointed bastion at each corner, and at each gate
+ *       a baffle and two towers set into the wall ({@link GateTowers}) that the garrison fights from;</li>
  *   <li>the <b>interior</b>: a hardened fire-control bunker, a bermed magazine standing apart, a power plant with its
  *       yard, and the battery in a revetted gun pit.</li>
  * </ul>
@@ -30,7 +30,7 @@ import java.util.List;
  */
 public final class BatteryFort {
 
-    /** Strength of every wall cell of the main works, gatehouse towers included. */
+    /** Strength of every wall cell of the main works, the gate towers' walls included. */
     public static final int WALL_HP = 400;
 
     /** Local width and height of the footprint, belt and fence included. */
@@ -59,6 +59,13 @@ public final class BatteryFort {
 
     /** The open cell just outside the middle of each gate, which is where the way out to the road network begins. */
     public static final List<int[]> GATE_MOUTHS = List.of(new int[]{OX - 1, OY + 17}, new int[]{OX + 23, OY - 1});
+
+    /** The main gate faces west, the postern north. */
+    private static final List<FortPlan.Gate> GATES = List.of(
+            new FortPlan.Gate(OX - 1, OY + 17, -1, 0), new FortPlan.Gate(OX + 23, OY - 1, 0, -1));
+
+    /** The towers either side of each gate, set into the wall and standing proud of it over the approach. */
+    private static final List<FortRoom> TOWERS = GateTowers.flanking(GATES);
 
     /** The middle of the battery platform's three-by-three footprint. */
     public static final int[] PLATFORM = {OX + 36, OY + 28};
@@ -89,15 +96,11 @@ public final class BatteryFort {
     private static final int BATTERY_POCKET_STEPS = 2;
 
     /**
-     * The gatehouse pieces: a tower either side of each gate, and the gate leaves over each passage. A west-facing gate
-     * is authored as drawn; the postern on the north is the same art turned one quarter.
+     * The gatehouse pieces: the gate leaves over each passage. A west-facing gate is authored as drawn; the postern on
+     * the north is the same art turned one quarter.
      */
     public static final List<FortPlan.Piece> GATEHOUSE = List.of(
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 13, 2, 3, 0),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 19, 2, 3, 0),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX, OY + 16, 2, 3, 0),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 19, OY + 2, 3, 2, 1),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 25, OY + 2, 3, 2, 1),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + 22, OY, 3, 2, 1));
 
     /** The optional anti-air yard: the open ground between the platform's pit and the bunker, off every lane. */
@@ -130,13 +133,11 @@ public final class BatteryFort {
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) INSIDE[x][y] = trace(x - OX, y - OY);
         }
-        // Gatehouse towers and baffles stand inside the trace as solid blocks.
+        // The gate towers are part of the works where they stand proud of the trace.
+        for (FortRoom tower : TOWERS) for (int[] c : GateTowers.footprint(tower)) INSIDE[c[0]][c[1]] = true;
+        // The baffles stand inside the trace as solid blocks.
         boolean[][] block = new boolean[WIDTH][HEIGHT];
-        mark(block, OX + 2, OY + 13, 2, 3);
-        mark(block, OX + 2, OY + 19, 2, 3);
         mark(block, OX + 6, OY + 13, 2, 7);
-        mark(block, OX + 19, OY + 2, 3, 2);
-        mark(block, OX + 25, OY + 2, 3, 2);
         mark(block, OX + 20, OY + 6, 7, 2);
         boolean[][] layer1 = new boolean[WIDTH][HEIGHT];
         for (int x = 0; x < WIDTH; x++) {
@@ -153,6 +154,8 @@ public final class BatteryFort {
             }
         }
         for (int[] gate : GATE_CELLS) WALL[gate[0]][gate[1]] = false;
+        // A tower is a building: its ring is stamped as one, and its floor is open.
+        for (FortRoom tower : TOWERS) for (int[] c : GateTowers.footprint(tower)) WALL[c[0]][c[1]] = false;
         List<int[]> nests = new ArrayList<>();
         for (int[] b : BASTIONS) {
             int[] nest = BastionSites.embrasure(INSIDE, OX + b[0], OY + b[1], b[4], b[5]);
@@ -195,6 +198,7 @@ public final class BatteryFort {
         @Override public List<FortBelt.Cell> belt() { return FortBelt.cells(); }
         @Override public List<FortAspect> aspects() { return ASPECTS; }
         @Override public List<FortRoom> rooms() { return ROOMS; }
+        @Override public List<FortRoom> towers() { return TOWERS; }
         @Override public int[] floor(FortAspect aspect) { return BatteryFort.floor(aspect); }
         @Override public int[] door(FortAspect aspect) { return BatteryFort.door(aspect); }
         @Override public int[] coreCentre(FortAspect aspect) { return BatteryFort.coreCentre(aspect); }
@@ -231,10 +235,6 @@ public final class BatteryFort {
     }
 
     private static final List<FortAspect> ASPECTS = List.of(FortAspect.FIRE_CONTROL, FortAspect.MAGAZINE, FortAspect.POWER);
-
-    /** The main gate faces west, the postern north. */
-    private static final List<FortPlan.Gate> GATES = List.of(
-            new FortPlan.Gate(OX - 1, OY + 17, -1, 0), new FortPlan.Gate(OX + 23, OY - 1, 0, -1));
 
     private static void mark(boolean[][] grid, int x, int y, int w, int h) {
         for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++) grid[x + dx][y + dy] = true;
@@ -281,10 +281,13 @@ public final class BatteryFort {
         return x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT && WALL[x][y];
     }
 
-    /** The layout: every room of every aspect's suite. Walls, belt, lanes and dressing are the host's to stamp from this frame. */
+    /**
+     * The layout: every room of every aspect's suite, then the gate towers. Walls, belt, lanes and dressing are the
+     * host's to stamp from this frame.
+     */
     public static CompoundLayout layout() {
         List<Building> core = new ArrayList<>();
-        for (FortRoom room : ROOMS) core.add(room.building());
+        for (FortRoom room : PLAN.buildings()) core.add(room.building());
         return new CompoundLayout(RoomShape.rectangle(WIDTH, HEIGHT), List.of(
                 new Cluster("Fort buildings", core)), List.of(), List.of());
     }

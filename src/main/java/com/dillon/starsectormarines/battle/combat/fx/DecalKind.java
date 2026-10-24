@@ -3,8 +3,8 @@ package com.dillon.starsectormarines.battle.combat.fx;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 
 /**
- * Semantic names for the 14 frames in {@code mod/graphics/decals/decals.png}.
- * Sheet is a 2048×160 horizontal strip; frame index in this enum matches the
+ * Semantic names for the frames in {@code mod/graphics/decals/decals.png}.
+ * Sheet is a horizontal strip 160 px tall, appended to on the right; frame index in this enum matches the
  * sliced frame index from {@link SpriteSheetSlicer}.
  *
  * <p>Use these to pick a decal kind by intent ("a small bullet hole") rather
@@ -41,7 +41,16 @@ public enum DecalKind {
      * Soot fanned forward from a heavy gun's muzzle, pointing along the frame's +x with the muzzle at its left edge
      * ({@code art-source/fx/build_muzzle_scorch.py}). Faint on its own; overlapping stamps darken it.
      */
-    MUZZLE_SCORCH(13);
+    MUZZLE_SCORCH(13),
+    /**
+     * Spitter acid splashed on the ground: a star of dark venom-green spatter. This and the next two are appended by
+     * {@code art-source/rav-redesign/spitter/export_spitter_rig.py}.
+     */
+    ACID_SPLASH(14),
+    /** Spitter acid that landed at a slant: an elongated spatter. */
+    ACID_SPLASH_LONG(15),
+    /** A settled pool of Spitter acid eating into the ground, with a scorched rim. */
+    ACID_POOL(16);
 
     public final int index;
     DecalKind(int index) { this.index = index; }

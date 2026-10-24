@@ -1,6 +1,6 @@
 # The Heart — where it came up
 
-Status: PLANNED
+Status: ACTIVE
 
 Written: 2026-10-24
 
@@ -79,6 +79,18 @@ and the first mother opens in its core building.
   reach them.
 
 ## Plan
+
+Done: steps 1 to 3 as a first pass (`HeartOrigin`): three fenced facilities
+from building programs, the first mother at the core building, its damage
+layer. First look (`heart-origin-look`): the breach reads, but the freight
+terminal and the research compound read alike, a fence round roofless boxes,
+and every building reads as the same rubble. The battering is now kept to the
+core building, and across the facility the fence is torn down in five
+well-spread sections and three other buildings' walls holed (owner: torn-down
+wall sections across a large compound). The roofless rubble interiors are not
+the origin's damage but the matured creep's (`CreepRoofCollapse`), map-wide.
+Next: each facility's own ground (the freight yard's container rows from the
+props session's clean tiles, the annex's inner fence); the park.
 
 1. The origin as a plan choice: `HeartCountry` picks it from the seed and
    gives the far place a facility (a program or character) instead of the

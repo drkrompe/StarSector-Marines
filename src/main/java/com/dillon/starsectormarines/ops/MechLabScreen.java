@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -168,7 +169,9 @@ public final class MechLabScreen implements Screen {
                     .withSideShift(() -> cameraController.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             dollCanvas.installedInternals(viewModel::installedInternal);
-        dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            dollCanvas.installedKits(viewModel::installedKits);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
@@ -369,6 +372,13 @@ public final class MechLabScreen implements Screen {
         if (event.button() != PointerButton.PRIMARY) return;
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
+        VehicleKit stripKit = dollCanvas.stripKitAt(point.x(), point.y());
+        if (stripKit != null) {
+            viewModel.removeKit(stripKit);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
         MechInternal stripPart = dollCanvas.stripPartAt(point.x(), point.y());
         SocketId strip = dollCanvas.stripAt(point.x(), point.y());
         if (strip != null) {

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16eeb-740e-7fc1-a653-f4c426804e86",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16eeb-740e-7fc1-a653-f4c426804e86\\exec-7f96ff36-dc22-4af5-9ba1-23ca36cdf385.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\part-head-open.png",
+    "sha256": "0974056459cdf5884402d7009bdaca6e5f150654640237c8377df8913bf422e9",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\part-head-open.prompt.txt",
+  "promptSha256": "281b86bf5b516423d984541ec4badb41f80df525dc4a811a468686e9f87fcd7c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: the part's exact position, outline and scale on the canvas; complete it in place\nImage 2: Identity, colours and plate finish only; not layout\n\nA single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter, an upright serpentine beast, with its cobra hood FLARED, as its own separate part. Reference image 1 shows the part's exact position, outline and scale: complete it in place. Reference image 2 is the whole creature, for identity, colours and plate finish only.\n\nThe part is ONLY the head, facing up, jaws open, and the cobra hood flared wide around it, ribbed with ivory bone spines, its inner membrane glowing deep venom green; below the hood, a short neck that ends in a rounded closed stump, which tucks under the body. No shoulders, no arms, no body, no tail.\n\nStrict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1, the part in exactly the position and at exactly the scale it occupies there. Plain flat light grey background (#afafaf), no shadow, no ground, no other body parts, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\guides\\part-head.png",
+      "sha256": "d242f60d051e524f5b04ae6f479d2c6bee025f330ce3a935e32e178da7247c24",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry authority: the part's exact position, outline and scale on the canvas; complete it in place"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, colours and plate finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to complete the isolated head and flared hood in place, matching Image 1’s position and scale."
+  ],
+  "usage": {
+    "input_tokens": 44677,
+    "cached_input_tokens": 37376,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 492,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.0
+}

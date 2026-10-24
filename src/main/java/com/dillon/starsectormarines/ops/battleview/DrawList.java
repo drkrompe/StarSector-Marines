@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
+import com.dillon.starsectormarines.render2d.PagedQuadRun;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.QuadMesh;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
@@ -73,12 +74,50 @@ public final class DrawList {
             buf[c] = cmd;
         }
         counts[li] = c + 1;
-        cmd.setFlash(flash);
+        cmd.setEffects(flash, light, PagedQuadRun.packDirection(lightAngle, light != 0f, outline), wear);
         return cmd;
     }
 
     /** The hit flash stamped on every command added until it is set again; see {@link #setFlash}. */
     private float flash;
+    /** The packed light, its direction and the packed wear stamped likewise; see {@link #setLight}, {@link #setWear}. */
+    private float light, lightAngle, wear;
+    /** The outline kind stamped likewise ({@code PagedQuadRun.OUTLINE_*}); see {@link #setOutline}. */
+    private int outline;
+
+    /**
+     * Stamps every command added from now on with an outline of {@code kind} ({@code PagedQuadRun.OUTLINE_*}): the
+     * silhouette's edge painted in the selection's colour (law 27). Paged runs draw it.
+     */
+    public void setOutline(int kind) {
+        outline = kind;
+    }
+
+    /**
+     * Stamps every command added from now on with the light on it, each channel a multiple of its own colour added
+     * to it, coming from {@code angleRadians} on screen (law 27); zero is none. Paged runs draw it.
+     */
+    public void setLight(float r, float g, float b, float angleRadians) {
+        light = PagedQuadRun.packLight(r, g, b);
+        lightAngle = angleRadians;
+    }
+
+    /**
+     * Stamps every command added from now on with its wear (law 27), each 0 to 1: {@code charred} by fire, glowing
+     * {@code embers} while it burns, and {@code dissolved}, eaten away until gone at one. Paged runs draw it.
+     */
+    public void setWear(float charred, float embers, float dissolved) {
+        wear = PagedQuadRun.packWear(charred, embers, dissolved);
+    }
+
+    /** Clears every per-quad effect: flash, light, outline and wear. */
+    public void clearEffects() {
+        flash = 0f;
+        light = 0f;
+        lightAngle = 0f;
+        outline = 0;
+        wear = 0f;
+    }
 
     /**
      * Stamps every command added from now on with a hit flash of {@code amount}, the share of white in its colour
@@ -388,6 +427,6 @@ public final class DrawList {
     /** Resets every layer's count to 0, retaining the pooled command objects. Call once per frame. */
     public void clear() {
         Arrays.fill(counts, 0);
-        flash = 0f;
+        clearEffects();
     }
 }

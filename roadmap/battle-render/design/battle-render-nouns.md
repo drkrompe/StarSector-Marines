@@ -281,7 +281,9 @@ Coverage grants neither observation nor an illuminated patch of unseen ground.
 
 The shade itself is one function of the light pools, sampled bilinearly at
 half-cell resolution: the lamps' pools baked once per map, fire's refilled each
-frame. A host that can run a custom pass owning its own GL evaluates it on the
+frame. The battle's event lights (muzzles, impacts, blasts, bolts) add to fire's
+pools while they last, on their own side of a roof, so gunfire and blasts light
+the night as they light the ground composite by day. A host that can run a custom pass owning its own GL evaluates it on the
 card, per pixel, with the pools as textures (`NightShadeField`); a Java2D host
 builds it as tinted quads at a grid of points in each cell. Both evaluate the
 same function (`NightLightingRenderSystem.shade`), which the field's GL evidence
@@ -646,12 +648,26 @@ change the physical crash corridor.
     the fixed-function arrays are what an async-renderer bridge is known to
     carry, and per-quad effects ride in z's fraction for the same reason (a
     secondary-colour or normal array wants entry points the Mac's headless
-    binding does not keep). The first is the **hit flash**: a body is mixed
-    toward white for a moment from the tick a hit lands on it (`HitFlash`,
-    read off `CombatService.ticksSinceDamaged`, before cover and armour have
-    their say), a pure function of simulation state. Only the paged run draws
-    it; the per-sheet fallback and the Java2D review drain draw the body
-    unflashed.
+    binding does not keep): positions and texture coordinates go at four
+    components, and the spare ones carry the effects, zero for an ordinary
+    quad, which then draws exactly as before. A body is stamped with them as
+    it is emitted, every one a pure function of simulation state and the
+    lights the screen already keeps: the **hit flash**, mixed toward white for
+    a moment from the tick a hit lands (`HitFlash`, read off
+    `CombatService.ticksSinceDamaged`, before cover and armour have their
+    say); the **light** on it from the event lights, brightest on the
+    silhouette edge facing them (`BodyEffects`); and its **wear**: embers
+    while the ground under it burns, char once it has burnt, and a dissolve
+    in blotches as the body cap retires it, edged in dust, or in fire for a
+    body still burning; and the **outline** of a selected or hovered Marine,
+    its silhouette's edge in the selection ring's colours. The outline is
+    found where alpha changes fastest inside the quad, never by sampling
+    round it, because a tightly packed atlas cut would bleed its neighbour in.
+    There is no faction recolour: it needs an authored mask the art does not
+    have, and each faction's art already carries its own colours. Only the
+    paged run draws these; the per-sheet fallback and the Java2D review drain
+    draw the body plain, and a retiring body there fades by alpha over the
+    last of its retirement.
 
 Authored spline roads retain a `RoadSurface` beside their grid footprint. The
 surface samples signed distances at cell corners and clips each cell's two

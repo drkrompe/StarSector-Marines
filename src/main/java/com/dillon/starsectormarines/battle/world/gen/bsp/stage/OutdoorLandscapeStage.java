@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
@@ -77,7 +78,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
         if (!ridges.isEmpty() && c.grid.elevation() == null) {
-            ridges(c, reserved, ridges, false, List.of(), new boolean[c.width * c.height]);
+            ridges(c, reserved, reserved, ridges, false, List.of(), new boolean[c.width * c.height],
+                    landscape.sealed().isEmpty() ? null : mainBody(c));
         }
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
@@ -105,7 +107,7 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     private static List<RidgePlanner.Band> landscapeBands(GenContext c, Landscape landscape) {
         List<RidgePlanner.Band> bands = new ArrayList<>(landscape.ridges());
-        bands.addAll(landscape.held());
+        bands.addAll(landscape.allHeld());
         bands.addAll(valleySides(c, landscape));
         return bands;
     }
@@ -127,7 +129,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     public static Raised raiseRidges(GenContext c, List<RidgePlanner.Band> bands, boolean[][] also,
                                      List<TerracePlanner.Terrace> terraces) {
-        if (bands.isEmpty() || c.grid.elevation() != null || c.width < 32 || c.height < 32
+        if ((bands.isEmpty() && terraces.isEmpty()) || c.grid.elevation() != null || c.width < 32 || c.height < 32
                 || TileRegistry.installed() == null
                 || !Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) {
             List<TerracePlanner.Planned> refused = new ArrayList<>();
@@ -160,7 +162,12 @@ public final class OutdoorLandscapeStage implements GenStage {
         IntPredicate free = ridgeFree(c, reservedRound, true);
         List<TerracePlanner.Planned> planned = new ArrayList<>(), standing = new ArrayList<>();
         boolean[] taken = new boolean[c.width * c.height];
-        boolean[] main = terraces.isEmpty() ? null : mainBody(c);
+        // A sealed ring's inside joins the country only through its passes, which may lie far from any box round a
+        // segment's faces, so its segments are proved over the whole map as a terrace's are.
+        boolean sealed = false;
+        PrecinctPlan precincts = c.get(BspKeys.PRECINCTS);
+        if (precincts != null) for (RidgePlanner.Band band : precincts.landscape().sealed()) sealed |= bands.contains(band);
+        boolean[] main = terraces.isEmpty() && !sealed ? null : mainBody(c);
         for (TerracePlanner.Terrace terrace : terraces) {
             TerracePlanner.Planned p = TerracePlanner.plan(c.width, c.height, seed, terrace, road, open, free,
                     i -> c.topology.getBuildingId(i % w, i / w) == 0 && !c.topology.isWall(i % w, i / w));
@@ -311,16 +318,25 @@ public final class OutdoorLandscapeStage implements GenStage {
             if (point != null) anchors.add(point);
         }
         for (int i = 0; i < hostAnchors.length; i += 2) anchors.add(new int[]{hostAnchors[i], hostAnchors[i + 1]});
+        boolean[][] stops = trackStops(c);
         for (var pad : c.landingPads) {
             anchors.add(new int[]{pad.centerX, pad.centerY});
             int l = pad.left() - 4, r = pad.right() + 4, b = pad.bottom() - 4, t = pad.top() + 4;
+            int l0 = l, r0 = r, b0 = b, t0 = t;
             switch (pad.approach) {
                 case WEST -> l = 0;
                 case EAST -> r = c.width - 1;
                 case SOUTH -> b = 0;
                 case NORTH -> t = c.height - 1;
             }
-            reserve(c, reserved, l, b, r, t);
+            if (stops == null) {
+                reserve(c, reserved, l, b, r, t);
+                continue;
+            }
+            // The approach is kept clear of trees and rises out to the edge, but a sealed band or a knoll stands across it.
+            for (int y = Math.max(0, b); y <= Math.min(c.height - 1, t); y++)
+                for (int x = Math.max(0, l); x <= Math.min(c.width - 1, r); x++)
+                    if (!stops[x][y] || (x >= l0 && x <= r0 && y >= b0 && y <= t0)) reserved[y * c.width + x] = true;
         }
         for (var poi : c.pois) {
             if (ownCell(c, own, poi.interiorAnchorX, poi.interiorAnchorY)) {
@@ -370,8 +386,41 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
         }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
-        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved);
+        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c));
         return reserved;
+    }
+
+    /**
+     * Ground a track, and a landing's approach, stops at: the sealed ground and each standing knoll's top and ring;
+     * null when there is none.
+     */
+    private static boolean[][] trackStops(GenContext c) {
+        boolean[][] sealed = c.get(BspKeys.SEALED_GROUND);
+        List<KnollGround.Resolved> knolls = c.get(BspKeys.KNOLLS);
+        if (knolls == null || knolls.stream().noneMatch(KnollGround.Resolved::stands)) return sealed;
+        boolean[][] out = new boolean[c.width][c.height];
+        for (int x = 0; x < c.width; x++) for (int y = 0; y < c.height; y++) {
+            out[x][y] = sealed != null && sealed[x][y];
+            for (KnollGround.Resolved k : knolls) out[x][y] |= k.stands() && k.onGround(x, y);
+        }
+        return out;
+    }
+
+    /** Cells a route keeps off a sealed band's apron: the two either side of its line it reserves, and one more. */
+    static final int ROUTE_CLEARANCE = 3;
+
+    /**
+     * The cells of the plan's sealed bands, their faces and aprons and {@link #ROUTE_CLEARANCE} beyond, which the
+     * access routes go round
+     * ({@code elevation-nouns.md}, Sealed ground); null when the landscape seals none.
+     */
+    private static boolean[] sealedBands(GenContext c) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        if (plan == null || plan.landscape().sealed().isEmpty()) return null;
+        boolean[][] band = RidgePlanner.sideGround(plan.landscape().sealed(), c.width, c.height, ROUTE_CLEARANCE);
+        boolean[] out = new boolean[c.width * c.height];
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) out[y * c.width + x] = band[x][y];
+        return out;
     }
 
     private static boolean ownCell(GenContext c, boolean[] own, int x, int y) {
@@ -452,8 +501,8 @@ public final class OutdoorLandscapeStage implements GenStage {
     /**
      * @param stamped the reservations the brush is held to: {@code reserved} less the margins round the terraces'
      *                own built ground, which their cliffs may stand in
-     * @param main    with terraces, the map's main body, and every segment is proved over the whole map
-     *                ({@link #keepsWholeAccess}); null proves each segment's faces locally, as ever
+     * @param main    with terraces or sealed bands, the map's main body, and every segment is proved over the whole
+     *                map ({@link #keepsWholeAccess}); null proves each segment's faces locally, as ever
      */
     private static ElevationPlan ridges(GenContext c, boolean[] reserved, boolean[] stamped,
                                         List<RidgePlanner.Band> bands, boolean overLawns,
@@ -767,10 +816,13 @@ public final class OutdoorLandscapeStage implements GenStage {
      * through, so a track is unbroken bare earth across farmland (a firebreak).
      */
     private static void clearTracks(GenContext c, Landscape landscape) {
+        boolean[][] stops = trackStops(c);
         for (Landscape.Track track : landscape.tracks()) {
             for (int y = Math.max(0, track.y0()); y <= Math.min(c.height - 1, track.y1()); y++)
                 for (int x = Math.max(0, track.x0()); x <= Math.min(c.width - 1, track.x1()); x++) {
                     if (!naturalGround(c, x, y)) continue;
+                    // A track stops at sealed ground, crossed only at its passes, and at a knoll, climbed only at its gates.
+                    if (stops != null && stops[x][y]) continue;
                     c.topology.setSurface(x, y, 0);
                     c.topology.setGroundKind(x, y, GroundKind.DIRT);
                     c.topology.setNatureOverlayIndex(x, y, -1);
@@ -848,10 +900,18 @@ public final class OutdoorLandscapeStage implements GenStage {
                 && (c.topology.roadSurface() == null || c.topology.roadSurface().underlay(x, y) == null);
     }
 
-    /** No tree, hill or formation stands on a track or the cell beside it. */
+    /** No tree, hill or formation stands on a track or the cell beside it, short of sealed ground and knolls. */
     private static void reserveTracks(GenContext c, Landscape landscape, boolean[] reserved) {
-        for (Landscape.Track track : landscape.tracks())
-            reserve(c, reserved, track.x0() - 1, track.y0() - 1, track.x1() + 1, track.y1() + 1);
+        boolean[][] stops = trackStops(c);
+        for (Landscape.Track track : landscape.tracks()) {
+            if (stops == null) {
+                reserve(c, reserved, track.x0() - 1, track.y0() - 1, track.x1() + 1, track.y1() + 1);
+                continue;
+            }
+            for (int y = Math.max(0, track.y0() - 1); y <= Math.min(c.height - 1, track.y1() + 1); y++)
+                for (int x = Math.max(0, track.x0() - 1); x <= Math.min(c.width - 1, track.x1() + 1); x++)
+                    if (!stops[x][y]) reserved[y * c.width + x] = true;
+        }
     }
 
     private static void trees(GenContext c, boolean[] reserved, float woodland) {

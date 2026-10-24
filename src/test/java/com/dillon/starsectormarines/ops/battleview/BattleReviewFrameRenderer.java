@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -164,6 +165,15 @@ public final class BattleReviewFrameRenderer {
         return this;
     }
 
+    /** Draws this review's frames with {@code selection} as the player's; null, the default, selects nothing. */
+    public BattleReviewFrameRenderer withSelection(Selection selection) {
+        this.selection = selection;
+        return this;
+    }
+
+    /** What the player has selected in this review's frames. */
+    private Selection selection;
+
     /** Moves a close-view camera: for a recording that follows the fight rather than framing the whole map. */
     public BattleReviewFrameRenderer refocus(float focusX, float focusY, float cellsAcross) {
         this.focusX = focusX; this.focusY = focusY; this.focusWidth = cellsAcross;
@@ -202,7 +212,7 @@ public final class BattleReviewFrameRenderer {
                                 ReviewImpactFx impacts) throws IOException {
         long start = System.nanoTime();
         BufferedImage image = backend.draw(new ReviewSceneBackend.Scene(simulation,
-                cameraFor(width, height, simulation), layers(), clockSeconds, impacts), width, height);
+                cameraFor(width, height, simulation), layers(), clockSeconds, impacts, selection), width, height);
         long scene = System.nanoTime();
         if (impacts != null) {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
