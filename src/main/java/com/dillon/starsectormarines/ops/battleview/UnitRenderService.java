@@ -116,9 +116,12 @@ public final class UnitRenderService implements RenderSystem {
     static final float LIFTED_SCALE_PER_CELL = 0.14f;
     /** The size a Harrier bite's stain spreads to, cells, and how long it takes to fade at the end. */
     static final float STRIKE_STAIN_CELLS = 0.5f;
+    /** How many fine droplets a spatter strings out besides its splash, and how far along the stroke, cells. */
+    static final int SPATTER_MIN_DROPS = 5, SPATTER_MAX_DROPS = 9;
+    static final float SPATTER_REACH_CELLS = 0.8f;
     static final float STRIKE_STAIN_FADE_SECONDS = 5f;
     /** A bite's stain is thinner than a body's pool: blood thrown, not drained. */
-    static final float STRIKE_STAIN_ALPHA = 0.7f;
+    static final float STRIKE_STAIN_ALPHA = 0.8f;
     /**
      * A sleeper against the live shoulder scale: the same as a fallen body. At 0.9 a marine in
      * bed read as a giant beside the standing figure, whose head and shoulders are all that shows.
@@ -1063,6 +1066,52 @@ public final class UnitRenderService implements RenderSystem {
                 size, size * splat.pxHeight / splat.pxWidth, facing, 1f, 1f, 1f, alpha);
     }
 
+    /**
+     * A bite's spatter: a small streaked splash where the claws opened the body, and a string of finer droplets
+     * thrown on along the stroke, mostly small, thinning and shrinking with distance, each a pool drawing squeezed
+     * along its flight. Seeded off the stain, so it is the same drop pattern every frame and every replay.
+     */
+    private static void emitSpatter(DrawList out, BattleCamera cam, List<LayeredSpriteCache> pools,
+                                    SwarmFliers.Stain stain, float spread, float alpha) {
+        double rad = Math.toRadians(stain.facing());
+        float dirX = (float) Math.cos(rad), dirY = (float) Math.sin(rad);
+        long seed = (stain.tick() * 0x9E3779B97F4A7C15L) ^ Float.floatToIntBits(stain.x()) * 31L
+                ^ Float.floatToIntBits(stain.y());
+        float cellPx = cam.cellPxSize();
+        int drops = 1 + SPATTER_MIN_DROPS + (int) (unit(seed, 0) * (SPATTER_MAX_DROPS - SPATTER_MIN_DROPS + 1));
+        for (int i = 0; i < drops; i++) {
+            float along, across, size, stretch;
+            if (i == 0) {
+                along = 0f;
+                across = 0f;
+                size = STRIKE_STAIN_CELLS * .45f * spread;
+                stretch = 1.6f;
+            } else {
+                float u = unit(seed, 4 * i + 1);
+                along = .08f + (float) Math.pow(u, .7) * SPATTER_REACH_CELLS;
+                across = (unit(seed, 4 * i + 2) - .5f) * .3f * (1f + along);
+                float heft = unit(seed, 4 * i + 3);
+                size = (.035f + .1f * heft * heft) * (1f - .5f * along / SPATTER_REACH_CELLS);
+                stretch = 1.2f + 1.4f * unit(seed, 4 * i + 4);
+            }
+            float x = stain.x() + dirX * along - dirY * across;
+            float y = stain.y() + dirY * along + dirX * across;
+            LayeredSpriteCache pool = pools.get((int) Math.floorMod(seed + i, (long) pools.size()));
+            float px = size * cellPx;
+            out.addSprite(RenderLayer.UNITS, pool.sprite, cam.cellToScreenX(x), cam.cellToScreenY(y),
+                    px * stretch, px * pool.pxHeight / pool.pxWidth, stain.facing(), 1f, 1f, 1f, alpha);
+        }
+    }
+
+    /** A number in [0, 1) from {@code seed} and {@code salt}: the spatter's drop pattern, the same every frame. */
+    private static float unit(long seed, int salt) {
+        long h = (seed + salt * 0xD6E8FEB86659FD93L) * 0x9E3779B97F4A7C15L;
+        h ^= h >>> 29;
+        h *= 0xBF58476D1CE4E5B9L;
+        h ^= h >>> 32;
+        return (float) ((h >>> 40) & 0xFFFFFF) / 0x1000000;
+    }
+
     /** Heaves a second a carrier hauls its load with, and how far each heave jolts and rocks the body. */
     private static final float DRAG_HEAVE_HZ = 1.8f;
     private static final float DRAG_JOLT_CELLS = 0.05f;
@@ -1116,17 +1165,12 @@ public final class UnitRenderService implements RenderSystem {
         List<LayeredSpriteCache> pools = sprites.bloodPools();
         if (!pools.isEmpty()) {
             int now = ctx.sim.getSimTickIndex();
-            // Blood a Harrier's bite left on the ground: a small pool that spreads as a body's does, then fades.
+            // Blood a Harrier's bite left on the ground: a spatter thrown on along the stroke, then fading.
             for (SwarmFliers.Stain stain : ctx.sim.swarmFliers().stains()) {
-                if (!view.visible(stain.x(), stain.y(), STRIKE_STAIN_CELLS)) continue;
+                if (!view.visible(stain.x(), stain.y(), STRIKE_STAIN_CELLS + SPATTER_REACH_CELLS)) continue;
                 float age = (now - stain.tick()) * BattleSimulation.TICK_DT;
                 float fade = Math.max(0f, Math.min(1f, (HarrierRules.STAIN_SECONDS - age) / STRIKE_STAIN_FADE_SECONDS));
-                LayeredSpriteCache pool = pools.get(Math.floorMod(stain.tick(), pools.size()));
-                float size = cam.cellPxSize() * STRIKE_STAIN_CELLS * bloodSpread(age);
-                out.addSprite(RenderLayer.UNITS, pool.sprite,
-                        cam.cellToScreenX(stain.x()), cam.cellToScreenY(stain.y()),
-                        size, size * pool.pxHeight / pool.pxWidth, stain.facing(),
-                        1f, 1f, 1f, alphaMult * STRIKE_STAIN_ALPHA * fade);
+                emitSpatter(out, cam, pools, stain, bloodSpread(age), alphaMult * STRIKE_STAIN_ALPHA * fade);
             }
             for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
                 Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
