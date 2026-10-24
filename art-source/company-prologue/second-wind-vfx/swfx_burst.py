@@ -129,7 +129,7 @@ def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, r
         # Notched from its own generator seeded off the caller's state without drawing from it, so
         # every later draw of the burst (size, stretch, shrapnel, smoke) is what it was untorn.
         verts = tear_verts(verts, random.Random(hash(rnd.getstate())))
-    faces =[(0, 1 + (k + 1) % segs, 1 + k) for k in range(segs)]
+    faces = [(0, 1 + (k + 1) % segs, 1 + k) for k in range(segs)]
     for r in range(rings - 2):
         a0, b0 = 1 + r * segs, 1 + (r + 1) * segs
         for k in range(segs):

@@ -40,6 +40,11 @@ for p in (HERE, KIT):
 
 FPS = 24
 MATCH_M = 15.0          # a shot's fx entry this close to a ledger hit is the shot drawing that hit
+# A hit inside a shot's span exists only if a drawn round, missile or beam causes it in that shot
+# (coordinator, 2026-10-24): it links to a drawn impact on her within LINK_S seconds and LINK_M
+# metres (a kill, anywhere on her), or the build fails. Fires, blasts and debris are consequences.
+LINK_S = .1
+LINK_M = 5.0
 MAX_FIRES = 2           # persistent fire volumes per ship per shot (volumes are the render's cost)
 MAX_VENTS = 1           # persistent vents per ship per shot
 MAX_SMOKE = 2           # persistent smoke threads per ship per shot
@@ -83,7 +88,8 @@ class Hit:
     opens), 'debris' (plating torn off), 'cut' (a mining laser's seam at -> to), 'kill'.
     frm: the side the hit came from (outward, ship frame); the hit is cast onto the hull along it.
     by: the shot fx kind that draws its moment ('tracer', 'blast_on', 'fire_on', 'smoke',
-    'debris', 'mining'), or None for a story hit this module keys itself.
+    'debris', 'mining'), 'missile' (a drawn missile's own burst is the moment; the hit is placed on
+    where it met her), or None for a story hit this module keys itself.
     burn_until: when its fire is out (seconds), None = still burning at the end.
     vent_s: seconds of venting (default the level's)."""
 
@@ -125,12 +131,11 @@ def H(*a, **kw):
 # 1.5 s before, smoke 5 s before, a tracer's strikes through the shot.
 LEDGER = [
     # ---- WARDEN LEAD, the lead Lasher: hit turning back in S6, smoking into S9b, finished there
-    H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5),
-      src='story (S6; the Manticore at range, unseen)', note="the Manticore's light guns walk along her port bow as she comes about"),
-    H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), src='story (S6; the Falcon at 3.8 km is past the kit 6 s round limit)',
-      note="a Falcon (P) bolt holes her port quarter; she vents"),
-    H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 missiles manticore-p',
-      note='the hit that turns her: her forward deck opens and burns; smoking from here to S9b'),
+    # (her 53.8 s rake is cut: no drawn round or Harpoon reaches her then)
+    H('lasher-lead', 55.8, 'he', 2, (18, -2, -3), (.7, .7, 0), by='missile', src='S6 k3 missiles manticore-p',
+      note="the first Harpoon of the second salvo holes her bow; she vents"),
+    H('lasher-lead', 55.9, 'breach', 3, (15, -8, -9), (.2, .6, 1), by='missile', src='S6 k3 missiles manticore-p',
+      note='the hit that turns her: the next Harpoon opens her forward hull and it burns; smoking from here to S9b'),
     H('lasher-lead', 103.5, 'breach', 3, (-20, 10, 6), (-.2, .5, 1), by='fire_on', src='S9b k4b fire_on',
       note="the Falcon's point guns as she rolls in: her aft deck catches"),
     H('lasher-lead', 104.6, 'debris', 2, (-10, 8, 0), (0, 1, 0), by='debris', src='S9b k4b debris',
@@ -140,15 +145,10 @@ LEDGER = [
     H('lasher-lead', 106.9, 'rake', 1, (12, -4, 6), (0, 0, 1), to=(-18, -6, 6), by='tracer',
       src='S9b k4b tracer falcon-p', note='the rest of the broadside walks her deck'),
 
-    # ---- Lasher A: burns in S6
-    H('lasher-a', 52.8, 'he', 2, (-12, 10, 5), (-.3, 1, .5), src='story (S6)',
-      note="a Falcon (P) bolt opens her port quarter before S6's still"),
-    H('lasher-a', 54.5, 'breach', 3, (-20, 10, 6), (-.2, .5, 1), by='fire_on', src='S6 k3 fire_on',
-      note='Lasher A burns'),
+    # ---- Lasher A: untouched in S6 (her 52.8 and 54.5 s hits are cut: nothing drawn reaches her)
 
     # ---- WARDEN THREE, Lasher B: scored, gets away
-    H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3),
-      src='story (S6; the Falcon at range, unseen)', note="the Falcon's fire scores her starboard bow"),
+    # (her S6 rake from the Falcon is cut: the Falcon's guns draw nothing at that range)
     # (her S6b deck rake from the Buffalo Mk.II is cut with its fire: no hit without a visible shooter)
 
     # ---- WARDEN FOUR, the merchant Wolf: gets away unhit
@@ -158,8 +158,8 @@ LEDGER = [
     # timed to the second Hound (P)'s drawn rounds: her first burst lands on her from 76.2 to 77.25 s
     H('hound-m', 76.2, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
       src='S6d k3e tracer hound-p-b', note="the second Hound (P)'s guns from below as she rolls"),
-    H('hound-m', 76.5, 'breach', 3, (-12, 4, 3), (-.6, .3, .7), by='fire_on', src='S6d k3e fire_on',
-      note='drives hit: her drive deck burns'),
+    H('hound-m', 76.5, 'breach', 3, (16, 10, -4), (-.6, .3, .7), by='tracer', src='S6d k3e tracer hound-p-b',
+      note="the burst breaks through her belly plating: it burns"),
     H('hound-m', 77.25, 'he', 2, (-24, -3, 1), (-1, 0, .2), by='tracer', src='S6d k3e tracer hound-p-b', vent_s=20.0,
       note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
 
@@ -198,11 +198,10 @@ LEDGER = [
       note="the Lasher's last rounds hole her further aft, venting"),
 
     # ---- the Manticore (P): scored by the lead's guns
-    H('manticore-p', 55.5, 'rake', 1, (25, 8, 4), (.4, 1, .3), to=(10, 10, 4),
-      src='story (S6; the lead at 3.4 km is past the kit 6 s round limit)', note="the lead's light MGs as she turns back"),
+    # (her S6 rake from the lead is cut: the lead's guns draw nothing at that range)
 
     # ---- Wolf (P) A: grazed, then cut by a Borer
-    H('wolf-p-a', 56.8, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
+    H('wolf-p-a', 57.5, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
       src='S6 k3 tracer lasher-b', note="Lasher B's fire"),
     H('wolf-p-a', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
@@ -235,7 +234,7 @@ LEDGER = [
       note="Lasher B's Ammo Feeder burst lands and breaks her up"),
     H('hound-p-a', 75.75, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
       src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
-    H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
+    H('hound-p-a', 76.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note="killed at close range by the convoy Hound's burst: she cooks off"),
 ]
 # Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
@@ -248,11 +247,11 @@ SHOOTER_SIDE = {
     'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@76.5:breach': (0.94, 0.01, -0.33),
     'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
-    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.8:rake': (0.99, -0.08, 0.12), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
-    'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
+    'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.8:rake': (0.99, -0.08, 0.12), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
+    'tarsus@84.0:rake': (-0.27, 0.78, 0.57),
     'hound-p-c@61.1:rake': (0.89, 0.14, 0.44), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
     'hound-p-c@62.9:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
-    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
+    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@57.5:rake': (0.62, 0.55, -0.56),
     'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
 }
 _orphans = sorted(set(SHOOTER_SIDE) - {_h.id for _h in LEDGER})
@@ -270,7 +269,9 @@ CLEAN = ('phaeton', 'mule', 'buffalo-a', 'buffalo-b', 'dram', 'buffalo2-a', 'kit
 
 # Shot fx on a ship that are not damage (none now: Morrow's Borers fight the attackers, they do not
 # cut at their own ship; owner, 2026-10-23).
-NOT_DAMAGE = set()
+# fx entries on a ship that land no hit in their shot: S6's Falcon on Lasher B and the lead on the
+# Manticore fire at a range their rounds do not close in the shot, so nothing of theirs lands
+NOT_DAMAGE = {('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p')}
 
 
 def hits(ship, until=None, since=None):
@@ -716,8 +717,48 @@ class _Builder:
         self.made['keyed'] += 1
 
 
+def _seg_dist(p, a, b):
+    """Metres from point p to the segment a-b (a point when b is None)."""
+    from mathutils import Vector
+    p, a = Vector(p), Vector(a)
+    if b is None:
+        return (p - a).length
+    b = Vector(b)
+    ab = b - a
+    u = max(0.0, min(1.0, (p - a).dot(ab) / max(ab.length_squared, 1e-9)))
+    return (p - (a + ab * u)).length
+
+
+def drawn_impacts(h, frame, impacts, fps=FPS):
+    """The drawn impacts that may cause hit h landing on `frame`: [(metres off her line, impact)],
+    nearest first. impacts: [(ship, first frame, last frame, (x, y, z) her frame metres, what)]."""
+    tol = LINK_S * fps + 1e-6
+    out = [(0.0 if h.kind == 'kill' else _seg_dist(im[3], h.at, h.to), im) for im in impacts
+           if im[0] == h.ship and im[1] - tol <= frame <= im[2] + tol]
+    return sorted(out, key=lambda x: x[0])
+
+
+def link_check(events, impacts, fps=FPS):
+    """Every in-shot hit (apply's events) against the drawn impacts: (rows, fails)."""
+    rows, fails = [], []
+    for ev in events:
+        h, f = ev['hit'], ev['frame']
+        got = [x for x in drawn_impacts(h, f, impacts, fps) if x[0] <= LINK_M]
+        if got:
+            rows.append(f'link {h.id}: {got[0][1][4]} at {got[0][0]:.1f} m')
+        else:
+            near = drawn_impacts(h, f, impacts, fps)
+            mine = sorted((min(abs(im[1] - f), abs(im[2] - f)), im) for im in impacts if im[0] == h.ship)
+            why = (f'nearest drawn impact in time is {near[0][0]:.1f} m off ({near[0][1][4]} at ' + '({:.0f}, {:.0f}, {:.0f}))'.format(*near[0][1][3]) if near
+                   else f'no drawn impact on her within {LINK_S:g} s; nearest on her '
+                        + (f'{mine[0][0] / fps:.2f} s off at {mine[0][1][1] / fps:+.2f} s from the key ({mine[0][1][4]})'
+                           if mine else 'none in the shot'))
+            fails.append(f'{h.id} ({h.src}): {why}')
+    return rows, fails
+
+
 def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print, shot_fx=None,
-          max_fires=MAX_FIRES, max_vents=MAX_VENTS, ctx_kit=None, look=None, max_smoke=MAX_SMOKE):
+          max_fires=MAX_FIRES, max_vents=MAX_VENTS, ctx_kit=None, look=None, max_smoke=MAX_SMOKE, impacts=None):
     """Every ledger hit on `ship_key` up to t_shot1, on that ship's ShipFx copy for one shot build.
 
     ship_fx: the placed ship's ShipFx (battle_blockout's placed[key]['fx']); a ship without a kit copy
@@ -729,7 +770,9 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
       persistent fire and vent volumes this ship may carry in this shot (0 for a shot that cannot
       afford volumes). ctx_kit: an open (ctx, kit) of this ship's kit() to build into, else one is
       opened here. look: 'v2' (the default, LOOK) or 'v1' (the control). max_smoke: how many smoke
-      threads (a volume each) this ship may trail in this shot.
+      threads (a volume each) this ship may trail in this shot. impacts: the shot's drawn impacts
+      (drawn_impacts): a hit a tracer draws is placed where a drawn round met her then, not where
+      the ledger authored it.
 
     Hits before t_shot0 are persistent: their scars (embers cooling by their age), their fires if
     still burning and their vents if still venting, up to the caps, the most severe and newest first.
@@ -748,7 +791,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     if ctx_kit is None:
         with ship_fx.kit() as ck:
             return apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix, log, shot_fx,
-                         max_fires, max_vents, ctx_kit=ck, look=look, max_smoke=max_smoke)
+                         max_fires, max_vents, ctx_kit=ck, look=look, max_smoke=max_smoke, impacts=impacts)
     ctx, _kit = ctx_kit
     b = _Builder(ctx, ship_key, ship_fx, matrix, frame_of, log, look or LOOK)
 
@@ -778,11 +821,25 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
             b.smoke(h, f, at, n)
             tag.append('smoke')
         rows.append(f'{h.t:6.1f} {h.kind:6} sev{h.sev} past' + (f' ({", ".join(tag)})' if tag else ''))
+    events = []
     for h in now:
         f = b.frame(h.t)
-        at, n = b.scars(h, f)
         tag = []
-        if drawn(h, on):
+        if impacts is not None and ('tracer' in h.bys or 'missile' in h.bys):
+            got = drawn_impacts(h, f, impacts)
+            if got and got[0][0] > LINK_M:      # where the drawn round met her, the burst's walk kept
+                import copy
+                from mathutils import Vector
+                d_ = Vector(got[0][1][3]) - Vector(h.at)
+                h0, h = h, copy.copy(h)
+                h.at = tuple(got[0][1][3])
+                h.to = tuple(Vector(h0.to) + d_) if h0.to else None
+                tag.append(f'placed on a drawn round {d_.length:.0f} m from its authored point')
+        at, n = b.scars(h, f)
+        events.append(dict(hit=h, frame=f))
+        if 'missile' in h.bys:
+            tag.append('moment drawn by its missile')
+        elif drawn(h, on):
             tag.append(f'moment drawn by the shot ({h.by})')
         else:
             b.moment(h, f, at, n)
@@ -803,7 +860,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     for r in rows:
         log(f'ASHARU damage {ship_key} {r}')
     log(f'ASHARU damage {ship_key} {t_shot0:g}-{t_shot1:g} s: {len(past)} past, {len(now)} in shot, {b.made}')
-    return dict(ship=ship_key, past=len(past), now=len(now), **b.made)
+    return dict(ship=ship_key, past=len(past), now=len(now), events=events, **b.made)
 
 
 def apply_all(placed, t_shot0, t_shot1, frame_of, log=print, shot_fx=None, **kw):

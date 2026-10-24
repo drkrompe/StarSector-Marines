@@ -616,7 +616,7 @@ K3E_SHIPS = {
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
         dict(t=74, hd=8, pt=21, rl=-10, thr=1.0), dict(t=76, hd=9, pt=20, rl=0, thr=1.0), dict(t=79, v=50)], v=200,
         hits=[dict(t=76.3, spin=(15, 4, 6), decay=.8, thr=.4),
-              dict(t=77.0, spin=(110, 40, 70), push=(-15, 8, 10), decay=2.0, thr=0.0)]),
+              dict(t=76.88, spin=(110, 40, 70), push=(-15, 8, 10), decay=2.0, thr=0.0)]),     # from the cook-off
     'hound-p-b': fly('hound-p-b', (-1680, -380, 20, 30, 16, 0, 1), K3E_T, [
         dict(t=74, hd=22, pt=18, rl=10), dict(t=78.5, hd=45, pt=14, rl=-30), dict(t=80, hd=70, pt=8, rl=-60)], v=200,
         hits=recoil([74.6], every=.2, until=76.7) + recoil([79.0], every=.2, until=80.0)),     # her two bursts
@@ -896,9 +896,7 @@ KEYFRAMES = {
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
             # the second salvo: the lead Lasher's 55.9 s breach is a Harpoon's (fire-control plan)
-            ('missiles', 'manticore-p', 'lasher-lead', 55.9),
-            ('fire_on', 'lasher-a', (-20, 10, 6)),
-            ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
+            ('missiles', 'manticore-p', 'lasher-lead', 55.9)],
         cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
               'manticore-p': {'fire': ['t1_1']}, 'phaeton': {'impacts': 'cookoff'}},
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
@@ -950,15 +948,16 @@ KEYFRAMES = {
         # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
-                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.25, 1.0)]),
+                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(76.83, .7), (77.25, 1.0)]),
         ships=K3E_SHIPS,
         # the hero shot (owner): her turret on the first Hound (P) through the shot, already trained on her
-        # as it opens (she rolled over onto them at 72-74 s), walking bursts on until she dies at 76.9 s
-        fx=[('tracer', 'hound-m', 'hound-p-a', (0, 0, 0), dict(trained=True, cease_t=76.9)), ('tracer', 'hound-p-b', 'hound-m'),
-            ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
+        # as it opens (she rolled over onto them at 72-74 s), walking bursts on until she dies at 76.83 s, on the last round that lands
+        fx=[('tracer', 'hound-m', 'hound-p-a', (0, 0, 0), dict(trained=True, cease_t=77.0, walk=2.0, sure_t=76.83)), ('tracer', 'hound-p-b', 'hound-m'),
+            ('blast_on', 'hound-p-a', 14, (0, 0, 0), 76.83), ('debris', 'hound-p-a', 40, (0, 0, 0), 76.83),
             # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
-            # 2026-10-23: flares need a visible cause, an inbound seeker on screen)
-            ('fire_on', 'hound-m', (-12, 4, 3), (-1, .4, .3), .5)],     # lit at 76.5 s, as the breach lands
+            # 2026-10-23: flares need a visible cause, an inbound seeker on screen); her 76.5 s breach
+            # burns where the second Hound (P)'s rounds land (the damage ledger keys that fire)
+            ],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
@@ -2064,13 +2063,10 @@ def blender_main(cfg):
         """A point on a placed ship, local in metres in its own frame."""
         return placed[key]['matrix'] @ Vector(local)
 
-    def mining(drone, target, local=None):
-        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating: aimed at
-        `local` on the target (metres, its frame) or at its middle, and landed where a ray from the
-        emitter meets the target's real hull, with that face's normal."""
-        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
-            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
-        import swfx_mining
+    def mining_hit(drone, target, local=None):
+        """Where a Borer's mining laser meets the target: (emitter, point, normal, met her hull), world
+        metres. Aimed at `local` on the target (metres, its frame) or at its middle, landed where a ray
+        from the emitter meets the target's real hull."""
         d = at(drone)
         aim = at(target, local) if local is not None else at(target)
         emit = d + (aim - d).normalized() * placed[drone]['length'] * .55
@@ -2085,6 +2081,15 @@ def blender_main(cfg):
             start = loc + ray * .05
         if not hit:             # past the hull: stop at the aim point, facing the drone
             loc, nrm = aim, (emit - aim).normalized()
+        return emit, loc, nrm, hit
+
+    def mining(drone, target, local=None):
+        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating
+        (mining_hit), with that face's normal."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import swfx_mining
+        emit, loc, nrm, hit = mining_hit(drone, target, local)
         swfx_mining.laser(f'Mining {drone}', emit, loc, nrm, stage_fx, lights=stage_ships,
                           seed=zlib.crc32(drone.encode()) % 997, width_m=.3)
         print(f'ASHARU mining {drone} -> {target}: {(loc - emit).length:.0f} m, '
@@ -3049,6 +3054,8 @@ def blender_main(cfg):
                         fr_ = lambda t_: anchor + round((t_ - spec['key_t']) * fps_s)
                         if 'cease_t' in opts:
                             opts['cease'] = fr_(opts.pop('cease_t'))
+                        if 'sure_t' in opts:     # a round must land then (the kill): laid dead on
+                            opts['sure'] = fr_(opts.pop('sure_t'))
                         if 'bursts_t' in opts:
                             opts['bursts'] = [(fr_(t0_), fr_(t1_)) for t0_, t1_ in opts.pop('bursts_t')]
                         done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,
@@ -3087,8 +3094,23 @@ def blender_main(cfg):
                 if kt is not None:
                     import asharu_damage
                     t0_, t1_ = spec['shot_t'] if 'span_t' in spec else (kt, kt)
-                    asharu_damage.apply_all(placed, t0_, t1_, lambda t_, kt=kt: anchor + round((t_ - kt) * fps_s),
-                                            log=lambda t: print(t, flush=True), shot_fx=spec.get('fx'))
+                    fr_of_ = lambda t_, kt=kt: anchor + round((t_ - kt) * fps_s)
+                    impacts_ = list(sfx_.impacts)
+                    for fx in spec.get('fx', ()):    # a mining beam meets her hull the whole shot
+                        if fx[0] == 'mining' and fx[2] in placed:
+                            _e, loc_, _n, met_ = mining_hit(fx[1], fx[2], fx[3] if len(fx) > 3 else None)
+                            if met_:
+                                impacts_.append((fx[2], fr_of_(t0_), fr_of_(t1_),
+                                                 tuple(placed[fx[2]]['matrix'].inverted() @ loc_), f'{fx[1]} beam'))
+                    dmg_ = asharu_damage.apply_all(placed, t0_, t1_, fr_of_, log=lambda t: print(t, flush=True),
+                                                   shot_fx=spec.get('fx'), impacts=impacts_)
+                    if 'span_t' in spec:
+                        rows_, fails_ = asharu_damage.link_check([e for r in dmg_.values() for e in r['events']],
+                                                                 impacts_)
+                        for row in rows_ + [f'LINK FAIL {f_}' for f_ in fails_]:
+                            print(f'ASHARU damage {kf} {row}', flush=True)
+                        if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                            raise RuntimeError(f'{kf}: {len(fails_)} in-shot hits with no drawn cause, e.g. {fails_[:3]}')
                 else:
                     print(f'ASHARU damage {kf}: no key time (no flown ship), ledger not applied', flush=True)
                 try:
