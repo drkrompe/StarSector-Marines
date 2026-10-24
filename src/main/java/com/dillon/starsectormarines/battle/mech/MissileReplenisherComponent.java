@@ -8,8 +8,9 @@ import java.util.List;
 /**
  * Installed onboard subsystem that controls how quickly finite missile mounts
  * fabricate and load replacement trigger packs. The component is independent
- * of chassis and weapon hardware so a future mech-upgrade item can replace it
- * without rewriting either authority.
+ * of chassis and weapon hardware. In the campaign it is a loader part in the
+ * auxiliary compartment ({@code MechInternal.STANDARD_LOADER} and its kin);
+ * a mech frozen without one carries {@link #NONE}, whose cadence never completes.
  */
 public record MissileReplenisherComponent(
         String id,
@@ -28,8 +29,14 @@ public record MissileReplenisherComponent(
                     "accelerated_feed", "@gearReplenisherAccelerated",
                     9f, 13.5f);
 
+    /** No loader fitted: racks keep what they launched with. */
+    public static final MissileReplenisherComponent NONE =
+            new MissileReplenisherComponent(
+                    "no_loader", "@gearReplenisherNone",
+                    Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+
     private static final List<MissileReplenisherComponent> CATALOG =
-            List.of(STANDARD, ACCELERATED_FEED);
+            List.of(STANDARD, ACCELERATED_FEED, NONE);
 
     public MissileReplenisherComponent {
         if (id == null || id.isBlank()) {
@@ -38,13 +45,12 @@ public record MissileReplenisherComponent(
         if (displayName == null || displayName.isBlank()) {
             throw new IllegalArgumentException("Replenisher display name is required");
         }
-        if (!(srmReplenishmentSeconds > 0f)
-                || !Float.isFinite(srmReplenishmentSeconds)) {
-            throw new IllegalArgumentException("SRM replenishment cadence must be finite and positive");
+        // Infinity is allowed and means the pack never comes back.
+        if (!(srmReplenishmentSeconds > 0f)) {
+            throw new IllegalArgumentException("SRM replenishment cadence must be positive");
         }
-        if (!(lrmReplenishmentSeconds > 0f)
-                || !Float.isFinite(lrmReplenishmentSeconds)) {
-            throw new IllegalArgumentException("LRM replenishment cadence must be finite and positive");
+        if (!(lrmReplenishmentSeconds > 0f)) {
+            throw new IllegalArgumentException("LRM replenishment cadence must be positive");
         }
     }
 

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e9d-311f-7eb2-8dec-35535e4790f0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e9d-311f-7eb2-8dec-35535e4790f0\\exec-4a330ec0-d514-475f-af23-6a1ac4c930bb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\raw\\flux-device-modular.raw.png",
+    "sha256": "6c889b7b3be81998ef69f255ecaab30f0b7c85c573c872dd5c57aac372b25c97",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\prompts\\flux-device-modular.prompt.txt",
+  "promptSha256": "aaec3905804cb6fb282a021f9c3363ad581434c5a6d532c93f8f3df7b4628257",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every shape exactly\nImage 2: Material, palette and finish reference only; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It shows the same small machine twice, seen from directly above, for a sci-fi strategy-game hardpoint (a heavy gun on a raised one-storey plinth; the plinth itself is NOT drawn, it is a separate layer underneath, and this one machine bolts onto its west wall). The machine is a single compact shield flux unit, a tall narrow slab about one by two: at its north end a capacitor as a round steel can seen end-on with a ring of bolts and a round glass core window, ringed by six small round charge-lamp sockets; at its south end a radiator: five flat steel fins in a bolted rail frame over a dark well, on a bolted steel skid. Left frame: the unit COLD and idle: radiator fins dull unlit metal, the capacitor's core window dark. Right frame: the SAME unit, identical in every shape, at full charge just before overload: the radiator fins and the capacitor's core window glow with stored field energy, warm orange light through the fins and core window, whitening to pale yellow at the hottest middle. In BOTH frames the six charge-lamp sockets stay small, dark and unlit (they are lit separately in the game). Everything else in the right frame (housing, bolts, frame, sockets) stays exactly as in the left frame. Material and style: Mid-tech League-standard military: olive-grey and slate painted steel plate, panel seams, hazard-stripe chips, practical bolted modular hardware, scuffed and serviceable. Image 2 is the hardpoint the unit bolts onto: material, palette and finish reference only, not layout. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left. Hand-painted gritty science-fiction game-sprite look like Starsector, physical believable machinery (real radiator fins, a heavy capacitor housing, bolts), restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. Exactly one unit per frame, nothing else. No text, no letters, no numbers, no labels, no watermark, no UI, no plinth, no gun, no cables leaving the unit, no ground or terrain, no cast shadow outside the object, no extra slab, apron or border. Transparent background outside the silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\guides\\flux-device-modular-guide.png",
+      "sha256": "befc3ee57637101fa8e25436a2304835a2d85830ab1f2061752f80e2997bf34d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every shape exactly"
+    },
+    {
+      "path": "art-source\\ground-turrets\\raw\\league-standard-prepared-hardpoint.raw.png",
+      "sha256": "98a630577460e6197bf9712dcaf2149290d7f691896fdbd7fa8ba73e5e2ddbce",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette and finish reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll reskin the geometry guide with the referenced steel finish, preserving both layouts and adding heat glow only to the right unit’s core and radiator fins.\n"
+  ],
+  "usage": {
+    "input_tokens": 44630,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 718,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.3
+}
