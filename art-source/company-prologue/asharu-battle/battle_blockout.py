@@ -2315,6 +2315,19 @@ def blender_main(cfg):
             return Vector(c['loc']), 2.0 * math.atan(18.0 / c['lens'])
         return cam_at
 
+    def cam_view_of(spec):
+        """scene frame -> (camera world location, rotation quaternion, lens) along a span's camera
+        path, as aim() sets the camera (the motion audit's out-of-frame test)."""
+        path = spec['camera'].get('at')
+
+        def view(f):
+            c = path(spec['key_t'] + (f - anchor) / fps_s) if path is not None else spec['camera']
+            loc = Vector(c['loc'])
+            d = (Vector(c['target']) - loc) if c.get('target') is not None else Vector(c['look'])
+            q = d.normalized().to_track_quat('-Z', 'Y') @ Quaternion((0, 0, 1), math.radians(c.get('roll', 0.0)))
+            return loc, q, c['lens']
+        return view
+
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
         for i in range(n):
@@ -3020,6 +3033,13 @@ def blender_main(cfg):
                 finally:
                     for row in sfx_.rows:
                         print(f'ASHARU kit {kf} {row}', flush=True)
+                if 'span_t' in spec and cfg.get('kit_once'):
+                    import motion_audit      # every effect the kit made, moving as the camera will see it
+                    rows_, fails_ = motion_audit.audit(sfx_, cam_view_of(spec))
+                    for row in rows_:
+                        print(f'ASHARU kit {kf} {row}', flush=True)
+                    if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                        raise RuntimeError(f'{kf}: the motion audit failed {len(fails_)} effects, e.g. {fails_[:4]}')
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
             if build_at is not None:     # back to this frame's own poses, before anything else reads them
@@ -3089,6 +3109,16 @@ def blender_main(cfg):
                 for s_ in ships_fx.values():
                     s_.vacuum()
                 ship_fx.refresh(scene)
+            if 'span_t' in spec and cfg.get('kit_once'):
+                # each ship drawn this frame where the kit's planner has her (the rounds it fired leave
+                # the muzzle there): her placement against her flight evaluated at this frame
+                f_ = anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
+                m_at = ship_matrix_at(spec)
+                worst = max((((placed[k_]['matrix'].translation - m_at(k_, f_).translation).length, k_)
+                             for k_ in placed if hasattr(spec['ships'].get(k_), 'at')), default=(0.0, None))
+                print(f'ASHARU placement {kf}: worst {worst[0] * 100:.2f} cm ({worst[1]}) from the planner', flush=True)
+                if worst[0] > .03:
+                    raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.3f} m from where the kit planned her')
             if 'span_t' in spec:         # a motion span: the effects built at the key instant play on to this one
                 scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
                 print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
