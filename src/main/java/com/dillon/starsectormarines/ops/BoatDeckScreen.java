@@ -165,7 +165,8 @@ public final class BoatDeckScreen implements Screen {
             built.canvases().set(bayElement, bayCanvas);
             ghostElement = candidate.requireElement("boat-drag-ghost");
             built.canvases().set(ghostElement, dragGhost);
-            specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
+            specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built))
+                    .heldWhile(boardHover::held);
             // A fitted part on the doll opens the sheet its stores card does, beside the part.
             BoatDeckSpecSheets.bindDoll(specSheets, built, bayElement, () -> bayCanvas);
             wireStores(candidate, built);
