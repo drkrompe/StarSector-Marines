@@ -399,7 +399,8 @@ run through a redoubt rather than beside it: the redoubt then guards that
 road's way through the line. A map on which a redoubt has no wall, or the
 landing's field of fire is not clear, re-rolls; so does one whose logistics
 base packed no shed, or whose apron a carrier cannot drive from to every
-redoubt (a base fenced too narrowly for a carrier kept every one it built
+redoubt, onto its level (a redoubt on the crest is reached on its top, not
+under its cliff) (a base fenced too narrowly for a carrier kept every one it built
 standing on its apron, refused a route, with the shed's lane jammed behind).
 That proof keeps clear of walls along cell edges as well as walled cells, as a
 hull's body does.
