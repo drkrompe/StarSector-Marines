@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-24
 
-Updated: 2026-10-24 — origins are real facilities broken open by the damage layer, not scattered story props (owner).
+Updated: 2026-10-24 — yards dressed with whole groups of clean props; origins are real facilities broken open by the damage layer, not scattered story props (owner).
 
 `heart-nouns.md` is the model, `heart-map-intent.md` the map direction and
 `swarm-lore-guide.md` the lore this stays inside.
@@ -89,8 +89,15 @@ core building, and across the facility the fence is torn down in five
 well-spread sections and three other buildings' walls holed (owner: torn-down
 wall sections across a large compound). The roofless rubble interiors are not
 the origin's damage but the matured creep's (`CreepRoofCollapse`), map-wide.
-Next: each facility's own ground (the freight yard's container rows from the
-props session's clean tiles, the annex's inner fence); the park.
+Each yard is now dressed (`HeartLayout.originDressing`, a `Props` layout
+piece) with a few of its origin's groups of clean props, each set down whole:
+the freight yard a truck stopped with its seafood crates by the warehouse and
+container stacks, the research yard rows of tank racks and freezers carried
+out, the pump yard a shed and its pipeline. The first group sits nearest the
+core and the rest spread across the yard. A first lattice of single props read as a
+placed grid and was dropped. Every pooled map is dressed. Next: the annex's
+inner fence; the park; damaged states of the clean props without creep, if
+the dressing stays.
 
 1. The origin as a plan choice: `HeartCountry` picks it from the seed and
    gives the far place a facility (a program or character) instead of the

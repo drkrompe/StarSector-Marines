@@ -1,11 +1,11 @@
 # Mission layout
 
-Status: ACTIVE — lines of works, sites, roads, structures, blocks and ridges are
+Status: ACTIVE — lines of works, sites, roads, structures, blocks, props and ridges are
 built.
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — a Ridge may carry terraces, places stood on its crest.
+Updated: 2026-10-24 — props set down by hand; a Ridge may carry terraces, places stood on its crest.
 
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
@@ -61,6 +61,11 @@ optional (reported, and the map stands).
   crates, which fire breaks and a dozer blade pushes), a wreck across a road
   (closed to vehicles until a dozer clears it; laid as crate stacks until
   there is wreck art), or sandbag positions facing a direction.
+- **Props.** Props set down by hand, each a doodad by id at a cell and turn,
+  laid with the works through the ordinary prop placement, which skips one
+  whose ground is not open. One piece, laid when any prop stood and reporting
+  how many did: set dressing that says what a place was (a freight yard's
+  containers, a lab's tank racks), never a building or cover a beat relies on.
 - **Ridge.** High ground the works stand on: a band along a path
   (`elevation-nouns.md`, Ridges), raised at the start of the works phase,
   before any line is laid, so a line resolved along it is dug on its crest. It
