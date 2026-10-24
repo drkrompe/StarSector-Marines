@@ -1,0 +1,11 @@
+{
+  "trimmedFrom": "marines_breach_runner_clatter_4.mp3",
+  "sourceCommit": "85c28261e",
+  "sourceAudioSha256": "bb1ed0582ed92f1d20bc9568fd50758d8686c893db0c329548d17db5673ac3e5",
+  "sourceRequestId": null,
+  "trim": "atrim=0.055:0.335,asetpts=PTS-STARTPTS,afade=t=in:d=0.01,afade=t=out:st=0.180:d=0.1,volume=9.87dB,alimiter=limit=0.9:level=false",
+  "note": "The Harrier's wingbeat: the loudest 0.28 s of a Runner clatter take, levelled so a stroke is heard (owner, 2026-10-24: 'I couldn't hear the wing beats').",
+  "audioSha256": "5ca8d813bddc3589acd80563bdeceb16660a92eee61c34a343946d90e39d1d2b",
+  "durationSeconds": 0.28,
+  "outputFormat": "mp3_44100_128"
+}

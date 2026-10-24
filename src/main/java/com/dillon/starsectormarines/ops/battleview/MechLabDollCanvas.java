@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
+import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -225,6 +226,46 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     selected, selectedSocket.get(), candidateWeapon.get(), width, height);
         } else {
             lastSocketTargets = List.of();
+            lastStripTargets = List.of();
+            Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
+            if (preview instanceof MechVariant pattern) drawPatternSchematic(context, pattern, width, height);
+        }
+    }
+
+    /**
+     * A previewed pattern's doll, where a built mech's stands: the same schematic on the left of
+     * the view, as the chassis is bought: a bare frame, its engine and capacitor sockets warning
+     * empty and only factory-locked hardware fitted. Read-only; a vehicle has no sockets and so
+     * draws none.
+     */
+    private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
+        MechDeploymentSpec stock = new MechDeploymentSpec(variant, variant.defaultRole,
+                MissileReplenisherComponent.STANDARD);
+        MechFrameBudget.Fit frame = MechFrameBudget.Fit.frame(variant);
+        MechFittingLayout layout = MechFittingLayout.forVariant(variant);
+        float panelWidth = width * SCHEMATIC_SHARE;
+        drawSchematicPanel(c, panelWidth, height);
+        List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, height);
+        SocketDropTarget core = null;
+        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
+        for (SocketDropTarget target : targets) {
+            if (core == null || target == core) continue;
+            Color wire = HardpointBricks.tone(layout.socket(target.id()).type());
+            List<float[]> path = wireToCore(target, core);
+            for (int i = 0; i < path.size() - 1; i++) {
+                float[] a = path.get(i), b = path.get(i + 1);
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f);
+            }
+            float[] end = path.get(path.size() - 1);
+            drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
+        }
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = layout.socket(target.id());
+            MechMountSlot mount = mountFor(socket.id());
+            MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
+                    stock.missileReplenisher(), null, assets.get(),
+                    false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
 
@@ -361,8 +402,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float centerY = target.y() + target.height() * 0.5f;
         if (preview instanceof MechVariant variant) {
             if (previewMech == null || previewMech.variant() != variant) {
-                previewMech = new CampaignMech("pad-preview", variant.displayName(), variant,
-                        variant.defaultRole, MissileReplenisherComponent.STANDARD.id());
+                previewMech = CampaignMech.frame("pad-preview", variant);
                 previewMechArt = new MechChassisPreviewCanvas(previewMech, assets);
             }
             previewMechArt.drawAt(context, centerX, centerY,
@@ -621,7 +661,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final Color PANEL_EDGE = new Color(0x8e, 0x9a, 0x8c, 120);
 
     /** A dark drafting board under the schematic, so the cards read against one ground, not the deck. */
-    static void drawSchematicPanel(CanvasContext c, float width, float height) {
+    private static void drawSchematicPanel(CanvasContext c, float width, float height) {
         c.fillRect(0f, 0f, width, height, PANEL);
         for (float x = 24f; x < width; x += 24f) c.line(x, 0f, x, height, PANEL_GRID, 1f);
         for (float y = 24f; y < height; y += 24f) c.line(0f, y, width, y, PANEL_GRID, 1f);

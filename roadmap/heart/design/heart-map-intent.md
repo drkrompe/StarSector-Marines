@@ -75,10 +75,9 @@ Built (`HeartCountry.Density`, chosen from the world's market size as the
 Cordon's is): a town world adds a second market town across the approach and
 grows the settlement bigger; a city grows the settlement as a city and lays
 suburbs across the middle of the approach. Works yield to what is built, so
-the forward line runs in pieces between a city's streets. The pools still hold
-open-country maps only: a town or city heart is the first country from its
-seed whose bores seat (a fixture's `density`), and pooling all three per biome
-is open.
+the forward line runs in pieces between a city's streets. Each density has its
+own pool, three seeds per biome like the open-country one (`story-map-pools.md`,
+Density), and a campaign heart takes its pool from the world's market size.
 
 Each pooled map should carry its density, so the pool can offer all three on
 each biome. The layout's placements are measured against density's ground: a

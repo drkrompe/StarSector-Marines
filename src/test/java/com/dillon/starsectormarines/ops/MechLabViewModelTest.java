@@ -298,7 +298,13 @@ class MechLabViewModelTest {
         viewModel.buildAction().run();
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
-        assertTrue(viewModel.feedbackText().get().contains("standard roll-out fit"));
+        assertTrue(viewModel.feedbackText().get().contains("bare frame"));
+        // A bought chassis is a frame: nothing removable fitted, and it cannot drop yet.
+        CampaignMech frame = bay.activeSquad().mechs().get(1);
+        assertEquals(CampaignMech.Readiness.INCOMPLETE, frame.readiness(0f));
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            assertTrue(frame.weaponAt(slot) == null || MechFrameBudget.integral(MechVariant.HOUND, slot));
+        }
     }
 
     @Test

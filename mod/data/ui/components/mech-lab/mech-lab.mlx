@@ -144,8 +144,7 @@
                   </div>
                 </div>
                 <div id="mech-build-kind" class="label heading tone-edge build-kind">{buildKind}</div>
-                <!-- The standard fit's doll, and its figures on the specifications' scales. -->
-                <canvas id="mech-build-doll" class="build-doll" width="640" height="520" />
+                <!-- The standard fit's figures on the specifications' scales; its doll is in the view. -->
                 <div id="mech-build-meters" class="build-meters">
                   <div each="meter in buildMeters" key="{meter.id}" id="{meter.id}" class="performance-meter">
                     <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
@@ -370,7 +369,6 @@
   .drag-drop-note { flex-direction: column; width: 100%; height: 42px; padding: 4px; gap: 1px; }
   .build-card { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 6px; gap: 6px; border-width: 1px; overflow: hidden; }
   .build-materials { width: 100%; flex-grow: 0; }
-  .build-doll { width: 100%; height: 250px; border-width: 1px; border-color: #2a3437; }
   .build-meters { flex-direction: column; width: 100%; gap: 1px; }
   .build-kind { height: 16px; }
   .build-header { flex-direction: row; align-items: center; width: 100%; height: 52px; gap: 10px; }

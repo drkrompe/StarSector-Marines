@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
+import com.dillon.starsectormarines.ops.battleview.CapacitorMotifs;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Opt-in look study for the ground turrets: the point emplacements the generator stands (the Vulcan, Arbalest and
@@ -41,6 +44,9 @@ import java.util.Map;
  * cannon hardpoint that shoots back and a marine on its flank, for {@code -Dsnapshot.groundTurrets.shieldSeconds=}
  * (twenty by default): the arc rising to face the squad, its blocks, its break and its return, and the flank's rounds
  * going through. {@code -Dsnapshot.groundTurrets.shield=false} leaves it out.
+ *
+ * <p>{@code -Dsnapshot.groundTurrets.capacitors=all} (or a list of motifs) adds a {@code capacitors-<motif>} still
+ * per capacitor motif, the hardpoint's capacitors at about 80%, for choosing between them.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
@@ -83,6 +89,18 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             for (String look : looks) {
                 if (heavy.fluxShieldIn(EmplacementStyle.valueOf(look.toUpperCase())) == null) continue;
                 artifacts.addAll(LookReview.record(context.modRoot(), shieldUnderFire(look)));
+            }
+        }
+        String motifs = System.getProperty("snapshot.groundTurrets.capacitors", "");
+        if (!motifs.isBlank()) {
+            String[] names = motifs.equals("all") ? CapacitorMotifs.names() : motifs.split(",");
+            for (String motif : names) {
+                String was = CapacitorMotifs.use(motif.trim());
+                try {
+                    artifacts.addAll(LookReview.record(context.modRoot(), capacitors(motif.trim())));
+                } finally {
+                    CapacitorMotifs.use(was);
+                }
             }
         }
         return artifacts;
@@ -211,6 +229,47 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 // battle is deterministic, so these hold until the shield's numbers or the squad's kit change.
                 .withStills(60, 177, 220, 290);
     }
+
+    /**
+     * The composite cannon hardpoint on arid ground with its capacitors at about 80% in {@code motif}: a still for
+     * choosing between motifs. A target stands in front so the shield is raised toward it, and the capacitors are
+     * charged by rounds credited to it, so nothing in the frame is firing. Play and close views.
+     */
+    private static LookReview.Shot capacitors(String motif) {
+        LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
+        return new LookReview.Shot("capacitors-" + motif, ground, 40, 22, placement -> {
+            SceneBuilder builder = placement.builder();
+            placement.holdouts(builder);
+            BattleSimulation sim = builder.build().sim();
+            float[] at = placement.openNear(16f, 11f);
+            int x = (int) at[0];
+            int y = (int) at[1];
+            long gun = sim.spawn(MapTurret.create("shielded", Faction.DEFENDER, ROLES.get("heavy"), x, y));
+            sim.setStructureStyle(gun, EmplacementStyle.COMPOSITE);
+            sim.getGrid().setWalkable(x, y, false);
+            float[] there = placement.openNear(32f, 11f);
+            EntitySpec target = new EntitySpec("target", Faction.MARINE, UnitType.MARINE, (int) there[0], (int) there[1]);
+            target.moveSpeed = 0f;
+            target.hp = target.maxHp = 4000f;
+            target.attackRange = 0f;
+            long dummy = sim.spawn(target);
+            for (int t = 0; t < 45; t++) sim.advance(BattleSimulation.TICK_DT);
+            TurretShieldService.Fitted fitted = sim.turretShields().fitted(gun);
+            float want = 0.8f * fitted.shield.spec().fluxCapacity() - fitted.shield.flux();
+            sim.turretShields().absorbs(gun, dummy, want / fitted.shield.spec().fluxPerDamage(), POSITIONS.apply(sim));
+            return sim;
+        }, placement -> List.of(
+                LookReview.View.play(placement.site().x(18f), placement.site().y(11f)),
+                LookReview.View.close("close", placement.site().x(18f), placement.site().y(11f), 16f)),
+                1, 1, 1);
+    }
+
+    /** A shield's view of where things are, read off {@code sim}'s world. */
+    private static final Function<BattleSimulation, TurretShieldService.Positions> POSITIONS =
+            sim -> new TurretShieldService.Positions() {
+                @Override public float x(long id) { return sim.world().x(id); }
+                @Override public float y(long id) { return sim.world().y(id); }
+            };
 
     /** The recorded frames {@code -Dsnapshot.groundTurrets.firingStills} asks for; none keeps the busiest. */
     private static int[] firingStills() {
