@@ -906,9 +906,12 @@ class SceneFx:
             if fd <= fl.ignite + 2 or not live:
                 continue
             fr = min(live, key=lambda x: (chase_of(x)(fd) - fl.at(fd)).length)
+            kept = ([p.copy() for p in fl.pos], dict(fl.end))       # divert rewrites only these
             fl.divert(fd, chase_of(fr), by='flare')
             if fl.end['kind'] == 'decoy':
                 out.append((fl.label, fd, fl.end['frame']))
+            else:            # it never reached the flare (S8-S9: one chased on 7 s past the cut): it flies its own line
+                fl.pos, fl.end = kept
         return out
 
     # ------------------------------------------------------------------ damage
