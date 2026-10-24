@@ -55,7 +55,7 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 
 /**
  * What a real driver draws out of one paged run against the one run per sheet it replaces
- * ({@code programmable-quad-batch.md}).
+ * ({@code battle-render-nouns.md}, law 27).
  *
  * <p>The frame is built to be the paged run's hard case: overlapping quads from ten sheets in turn, so painter
  * order decides every overlap and a run of eight pages has to close and open again; quads turned, mirrored, tinted

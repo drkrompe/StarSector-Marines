@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.render2d.PagedQuadRun;
 
 /**
  * What a body's per-quad effects are this frame (law 27): the light from the battle's event lights falling on it, and
@@ -43,6 +46,27 @@ final class BodyEffects {
         lights.lightAt(x, y, light);
         // Cell space and screen space run the same way up (BattleCamera), so the angle carries over as it is.
         out.setLight(light[0], light[1], light[2], light[3]);
+    }
+
+    /**
+     * Stamps a standing body's outline: the selection's colours on the silhouette of a Marine whose squad is selected
+     * or hovered, as the ring under it has them; none while the player steers a body directly.
+     */
+    void stampOutline(DrawList out, RenderContext ctx, long unit) {
+        Selection selection = ctx.selection;
+        BattleSimulation sim = ctx.sim;
+        int kind = PagedQuadRun.OUTLINE_NONE;
+        if (ENABLED && selection != null && !sim.directControl().active()
+                && sim.identity().faction(unit) == Faction.MARINE && sim.squad().hasSquad(unit)) {
+            int squad = sim.squad().squadId(unit);
+            if (selection.isSquadSelected(squad)) {
+                kind = unit == selection.getSelectedUnitEntityId()
+                        ? PagedQuadRun.OUTLINE_PRIMARY : PagedQuadRun.OUTLINE_SELECTED;
+            } else if (squad == selection.getHoveredSquadId()) {
+                kind = PagedQuadRun.OUTLINE_HOVERED;
+            }
+        }
+        out.setOutline(kind);
     }
 
     /** Stamps a standing body's wear: embers while the cell under it burns. */

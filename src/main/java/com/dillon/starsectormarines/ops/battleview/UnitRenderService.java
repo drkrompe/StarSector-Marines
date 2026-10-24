@@ -1620,6 +1620,7 @@ public final class UnitRenderService implements RenderSystem {
                 out.setFlash(HitFlash.amount(combat, entityId, tick));
                 effects.stampLight(out, rx[r], ry[r]);
                 effects.stampLiveWear(out, ctx.sim, rx[r], ry[r]);
+                effects.stampOutline(out, ctx, entityId);
 
                 UnitType type = (UnitType) types[r];
                 LayeredMechAssets mechAssets = hasMechLayered

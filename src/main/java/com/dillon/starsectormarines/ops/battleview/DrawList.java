@@ -74,7 +74,7 @@ public final class DrawList {
             buf[c] = cmd;
         }
         counts[li] = c + 1;
-        cmd.setEffects(flash, light, lightAngle, wear);
+        cmd.setEffects(flash, light, PagedQuadRun.packDirection(lightAngle, light != 0f, outline), wear);
         return cmd;
     }
 
@@ -82,6 +82,16 @@ public final class DrawList {
     private float flash;
     /** The packed light, its direction and the packed wear stamped likewise; see {@link #setLight}, {@link #setWear}. */
     private float light, lightAngle, wear;
+    /** The outline kind stamped likewise ({@code PagedQuadRun.OUTLINE_*}); see {@link #setOutline}. */
+    private int outline;
+
+    /**
+     * Stamps every command added from now on with an outline of {@code kind} ({@code PagedQuadRun.OUTLINE_*}): the
+     * silhouette's edge painted in the selection's colour (law 27). Paged runs draw it.
+     */
+    public void setOutline(int kind) {
+        outline = kind;
+    }
 
     /**
      * Stamps every command added from now on with the light on it, each channel a multiple of its own colour added
@@ -89,7 +99,7 @@ public final class DrawList {
      */
     public void setLight(float r, float g, float b, float angleRadians) {
         light = PagedQuadRun.packLight(r, g, b);
-        lightAngle = light == 0f ? 0f : angleRadians;
+        lightAngle = angleRadians;
     }
 
     /**
@@ -100,11 +110,12 @@ public final class DrawList {
         wear = PagedQuadRun.packWear(charred, embers, dissolved);
     }
 
-    /** Clears every per-quad effect: flash, light and wear. */
+    /** Clears every per-quad effect: flash, light, outline and wear. */
     public void clearEffects() {
         flash = 0f;
         light = 0f;
         lightAngle = 0f;
+        outline = 0;
         wear = 0f;
     }
 
