@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.LineBatch;
@@ -1362,6 +1363,8 @@ public class BattleRenderer {
         this.rc = rc;
         growUnitAtlas();
         drawList.clear();
+        drawList.setClosestZoomFactor(rc.camera == null || !(rc.camera.zoom() > 0f)
+                ? Float.NaN : BattleCamera.MAX_ZOOM / rc.camera.zoom());
         if (TextureUsage.isEnabled() && rc.camera != null) {
             TextureUsage.beginWorld(rc.camera.cellPxSize(), rc.camera.worldCellsW(), rc.camera.worldCellsH());
         }
