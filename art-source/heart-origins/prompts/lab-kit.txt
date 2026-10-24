@@ -1,0 +1,6 @@
+Sheet: the research site's equipment. Two columns, one object each; four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.
+- SPECIMEN TANK RACK, 3x1 cells: a dark steel frame holding three round water-filled specimen tanks seen from above, glass lids over teal water, and in each tank one dark red-brown crustacean (tail, body, two claws). Clinical, no labels.
+- SAMPLE FREEZER, 2x1: a white sealed sample freezer chest from above, a hazard-yellow band at its west end, two dark locking bars across the lid.
+Row 2 GROWN: the tanks' glass broken FROM INSIDE (dark holes, shards bent outward), the tanks drained and EMPTY, the freezer lid forced open from inside (dark gap); creep spreading from them, veins over the frame.
+Row 3 DAMAGED: row 2 after a fight: scorch, holes, torn creep.
+Row 4 DESTROYED: low separated frame, glass and white panel pieces, transparent between, no slab beneath.

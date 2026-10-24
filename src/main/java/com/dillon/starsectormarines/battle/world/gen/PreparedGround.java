@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -107,6 +108,33 @@ public final class PreparedGround {
         ctx.topology.setFixture(x, y, true);
         ctx.doodads.add(new Doodad(x, y, def));
         ctx.markMadeGround(x, y);
+        return true;
+    }
+
+    /**
+     * A prop of any footprint at the world cell, its anchor the footprint's low corner after {@code quarterTurns}.
+     * What it does to the ground follows from its cover: medium or heavy cover closes its cells to movement, and
+     * a prop standing taller than a man ({@code ballisticHalfHeight} of 1 or more: a shed, a container) closes them
+     * to sight too; light cover is stepped over like sandbags. A coverless prop is an overhead piece (a crane's span)
+     * that lies over whatever is beneath it, so it needs only to be on the map. All or nothing: refused quietly where
+     * any cell of a covering prop is not {@linkplain #open open}.
+     */
+    public static boolean prop(GenContext ctx, int x, int y, DoodadDef def, int quarterTurns) {
+        if (def == null) return false;
+        Doodad prop = new Doodad(x, y, def, quarterTurns);
+        boolean covers = def.cover.level() > 0;
+        for (int dy = 0; dy < prop.footprintCellsY; dy++) for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+            if (!ctx.grid.inBounds(x + dx, y + dy) || covers && !open(ctx, x + dx, y + dy)) return false;
+        }
+        boolean solid = def.cover.level() >= DoodadCover.MED.level();
+        boolean tall = def.ballisticHalfHeight >= 1f;
+        if (covers) for (int dy = 0; dy < prop.footprintCellsY; dy++) for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+            if (solid) ctx.grid.setWalkable(x + dx, y + dy, false);
+            ctx.grid.setSeeThrough(x + dx, y + dy, !tall);
+            ctx.topology.setFixture(x + dx, y + dy, true);
+            ctx.markMadeGround(x + dx, y + dy);
+        }
+        ctx.doodads.add(prop);
         return true;
     }
 

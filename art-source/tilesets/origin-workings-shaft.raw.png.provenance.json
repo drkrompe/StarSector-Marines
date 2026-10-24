@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16eda-2332-7ce1-817b-6d4f14646fd6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16eda-2332-7ce1-817b-6d4f14646fd6\\exec-bc62b5c5-2e0b-4bc0-ab08-817c07819d35.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-workings-shaft.raw.png",
+    "sha256": "16ba948760c7eef3de337baae23abbb82d9088c89dd66e1205d4ddc485c4f18f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\workings-shaft.prompt.txt",
+  "promptSha256": "c81a8f659563739448f0aa911b58066b10f845d83cf6faca18192d1c1001a27f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the old reservoir workings' capped shaft, 3x3 cells, five states of ONE object, laid out left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.\n(1) CLEAN: a square cast-concrete shaft collar with a chamfered rim and a hazard-yellow edge bar, a massive round bolted steel cap with a cross brace, a yellow-painted service hatch strip on the east side. Sealed, quiet, municipal.\n(2) GROWN: the same shaft BURST FROM BELOW. The collar is broken into heaved concrete slabs tilted outward, rebar ends showing; the steel cap has been torn off and flung to the north-east corner, bent; a black mouth gapes in the middle. Thick old creep pours out of the mouth and spreads south over the slabs, veins running from the hole. This must read, wordlessly, as \"something came up out of here\".\n(3) SWALLOWED: the same burst shaft with the growth thickest: the west half buried under a raised creep mound with plates and spurs, the east half's slabs and the bent cap still visible.\n(4) DAMAGED: state (2) after a fight: scorched, creep torn and burnt in patches, more cracks.\n(5) DESTROYED: low separated broken collar fragments and a bent cap shard round the dark hole, transparent ground between pieces, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-workings-shaft-guide.png",
+      "sha256": "2627439ae289df1dd9bb478d5afbd31c83e3de346fd1c6305dc93c4c5b435f3b",
+      "dimensions": [
+        1440,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent atlas, using Image 1 for the exact geometry and Images 2–3 only for materials."
+  ],
+  "usage": {
+    "input_tokens": 49859,
+    "cached_input_tokens": 37376,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 774,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 82.0
+}
