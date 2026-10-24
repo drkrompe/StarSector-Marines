@@ -429,7 +429,7 @@ public final class CordonSetup {
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
         }
-        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
+        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density()),
                 CordonCommand.disclosure(sequence));
         CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,
                 cordon.corridor(), cordon.battleSeed());

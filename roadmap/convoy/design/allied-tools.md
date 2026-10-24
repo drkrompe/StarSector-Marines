@@ -104,6 +104,14 @@ delivers nothing.
   recipient is gone first. **The Cordon owns it.**
 - The Cordon's L2 (`GunsDryBeat`) is the first user: the recipient is the
   dry redoubt, and its truck's arrival restores the guns to their own rate.
+- **What a truck rearms** (owner, 2026-10-23: trucks "might also rearm turrets
+  or other things at the bases"): any place's guns through a `GunStock`, the
+  rounds a place's gun towers, nests, turrets and field mortar tubes have on
+  hand. A shot spends a round; a dry gun fires rationed (four times its
+  cooldown) rather than not at all; a truck's arrival refills every gun and
+  tube there. A mission declares the stocks, sizes them and decides when a
+  place is low enough to ask its producer for a truck. L2 is a stock drained
+  on the beat's tick.
 - The heart's B5 is the second: a truck's arrival adds rounds to the
   walking barrage (`WalkingBarrage`), through the same hook.
 
@@ -115,6 +123,19 @@ sent while the swarm is on the apron). It is still one base shape: a shed buildi
 fixed line of hulls (`CordonSetup.BASE_LINE`, `FabricationService`), carriers
 staged on its apron, columns mustering in its yard. The heart schedules its
 armour separately (`HeartLanes.scheduleArmour`).
+
+The producer's seam is `AlliedProducer` (an `AlliedDepot` that also takes
+`request(AlliedRequest)`, a tool to a named place for a reason, and answers
+`onRoad(tool, place)`), so a commander draws on its stock by need rather than
+every machine coming on a timer. The heart's commander and the Cordon's both
+call it. `AlliedToolShed` is the producer: per tool a stock, a cap and a
+restock pace, an optional gate (a sortie behind the air gate), and a maker
+that sets one down at the depot's cell and sends it on; it refuses a request
+with none in stock, the gate shut or the depot unable to send, and counts what
+is on the road where until it arrives or is lost. `AlliedMakers` has the shared
+makers (an armour pair or more, a Hound lance, an ammunition truck as a
+`SupplyDelivery`); a mission with its own way of setting a tool down (a lane's
+ground, a shed's berths and tug) supplies its own maker.
 
 Proposed: one mission-neutral **producer** (working name `AlliedToolShed`)
 that takes a mission's table and a base found on the layout, and schedules

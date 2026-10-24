@@ -741,7 +741,7 @@ public final class MechLabViewModel {
     public boolean socketOccupied(SocketId id) {
         CampaignMech mech = selectedMech();
         return mech != null && (installedWeapon(id) != null
-                || id == SocketId.CORE || id == SocketId.CAPACITORS
+                || (id == SocketId.CORE || id == SocketId.CAPACITORS) && installedInternal(id) != null
                 || id == SocketId.MINI_FAB);
     }
 
@@ -866,10 +866,9 @@ public final class MechLabViewModel {
     }
 
     /**
-     * Drags an internal off the doll back to stores. The vent array leaves its socket empty;
-     * an engine or capacitor bank cannot, so the stock part is refitted from stores in its
-     * place, and the drag is refused when the fitted part is already stock or no spare stock
-     * part is in stores.
+     * Drags an internal off the doll back to stores, leaving its socket empty. An empty engine
+     * or capacitor socket is allowed: the mech reads {@link CampaignMech.Readiness#INCOMPLETE}
+     * and stays off the drop manifest until one is fitted.
      */
     public boolean removeInstalledInternal(SocketId source) {
         CampaignMech mech = selectedMech();
@@ -878,31 +877,15 @@ public final class MechLabViewModel {
         selectedSlot.set(source);
         platingSelected.set(false);
         if (role == MechInternal.Role.VENT_ARRAY) return stripVentArray();
-        MechInternal current = mech.internal(role);
-        MechInternal stock = role.stock();
-        if (current == stock) {
-            return refuse(Strings.format("openingMechLabInternalStockRequired", current.displayName()));
-        }
-        if (!inStores(stock)) {
-            return refuse(Strings.format("openingMechLabInternalNoStockSpare",
-                    stock.displayName(), current.displayName()));
-        }
-        MechFrameBudget.Fit proposed = mech.fit().withInternal(role, stock);
-        MechWorkshop.Result result = workshop.fitInternal(mech.id(), stock);
-        if (result.status() != MechWorkshop.Status.INSTALLED_FROM_STORES) {
-            return applyFitResult(result, stock.displayName(), proposed);
-        }
-        feedbackText.set(Strings.format("openingMechLabInternalReturned",
-                current.displayName(), stock.displayName()));
+        MechInternal previous = mech.internal(role);
+        MechWorkshop.Result result = workshop.stripInternal(mech.id(), role);
+        feedbackText.set(switch (result.status()) {
+            case STRIPPED -> Strings.format("openingMechLabInternalStripped", previous.displayName());
+            case ALREADY_STRIPPED -> Strings.get("openingMechLabSocketAlreadyEmpty");
+            default -> Strings.get("openingMechLabUnequipBlockedCampaignHardwareWasNotChanged");
+        });
         finishWeaponCommand(result);
-        return true;
-    }
-
-    private boolean refuse(String feedback) {
-        feedbackText.set(feedback);
-        feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
-        revision.update(value -> value + 1);
-        return false;
+        return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
     public void cancelWeaponDrag() {
@@ -1183,9 +1166,13 @@ public final class MechLabViewModel {
             boolean locked = definition.factoryLocked();
             MechInternal internal = roleFor(slot) != null ? mech.internal(roleFor(slot)) : null;
             boolean internalSocket = roleFor(slot) != null;
-            boolean armed = weapon != null || internalSocket;
-            String badge = locked ? Strings.get("openingMechLabLocked") : internalSocket ? Strings.get("openingMechLabFitted") : armed ? Strings.get("openingMechLabArmed") : Strings.get("openingMechLabEmpty");
-            String badgeClasses = locked ? "slot-badge locked" : armed ? "slot-badge armed" : "slot-badge empty";
+            // An empty engine or capacitor well keeps the mech off the drop manifest.
+            boolean missing = internalSocket && internal == null && slot != SocketId.MINI_FAB;
+            boolean armed = weapon != null || internalSocket && !missing;
+            String badge = locked ? Strings.get("openingMechLabLocked") : missing ? Strings.get("mechLabSlotRequired")
+                    : internalSocket ? Strings.get("openingMechLabFitted") : armed ? Strings.get("openingMechLabArmed") : Strings.get("openingMechLabEmpty");
+            String badgeClasses = locked ? "slot-badge locked" : missing ? "slot-badge required"
+                    : armed ? "slot-badge armed" : "slot-badge empty";
 
             String telemetry;
             if (weapon != null) {
@@ -1194,12 +1181,13 @@ public final class MechLabViewModel {
                 telemetry = internalTelemetry(mech.fit(), internal);
             } else if (slot == SocketId.MINI_FAB) {
                 telemetry = Strings.format("openingMechLabSrmSLrmS", number(mech.missileReplenisher().srmReplenishmentSeconds()), number(mech.missileReplenisher().lrmReplenishmentSeconds()));
+            } else if (missing) {
+                telemetry = Strings.get("mechLabSlotRequiredTelemetry");
             } else {
                 telemetry = Strings.get("openingMechLabUnfittedHardpoint");
             }
 
-            boolean canStrip = !locked && (weapon != null
-                    || slot == SocketId.MINI_FAB && internal != null);
+            boolean canStrip = !locked && (weapon != null || internal != null);
             String stripClasses = canStrip ? "slot-strip-action" : "slot-strip-action hidden";
 
             String base = "mech-slot:" + slot.name().toLowerCase(Locale.ROOT);
@@ -1651,7 +1639,7 @@ public final class MechLabViewModel {
         }
         String status = readinessText(mech);
         String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
-        if (readiness == CampaignMech.Readiness.UNDER_REPAIR) {
+        if (readiness == CampaignMech.Readiness.UNDER_REPAIR || readiness == CampaignMech.Readiness.INCOMPLETE) {
             return new Repair("mech-repair-card surface-dark", "height: 30px;", status, statusClasses,
                     "", "mech-repair-order hidden", "", List.of(), () -> { });
         }
@@ -1687,6 +1675,7 @@ public final class MechLabViewModel {
         return switch (mech.readiness(now)) {
             case DAMAGED -> Strings.get("mechLabReadinessDamaged");
             case UNDER_REPAIR -> Strings.format("mechLabReadinessUnderRepair", tenths(mech.repairDaysRemaining(now)));
+            case INCOMPLETE -> Strings.format("mechLabReadinessIncomplete", missingNames(mech));
             case READY -> Strings.get("openingUiMechLabOpenGantry");
         };
     }
@@ -1695,8 +1684,18 @@ public final class MechLabViewModel {
         return switch (mech.readiness(day.get())) {
             case DAMAGED -> base + " tone-danger";
             case UNDER_REPAIR -> base + " tone-accent";
+            case INCOMPLETE -> base + " tone-danger";
             case READY -> base;
         };
+    }
+
+    /** The required internals a mech is missing, named for its readiness line. */
+    private static String missingNames(CampaignMech mech) {
+        List<String> names = new ArrayList<>();
+        for (MechInternal.Role role : mech.missingInternals()) {
+            names.add(Strings.get(role == MechInternal.Role.ENGINE ? "mechLabMissingEngine" : "mechLabMissingCapacitors"));
+        }
+        return String.join(Strings.get("separatorDot"), names);
     }
 
     /** Days rounded up to the tenth, so a clock never reads 0.0 while it still holds a mech. */
@@ -2020,6 +2019,10 @@ public final class MechLabViewModel {
             stripVentArray();
             return;
         }
+        if (slot != null && roleFor(slot) != null) {
+            removeInstalledInternal(slot);
+            return;
+        }
         CampaignMech mech = selectedMech();
         MechMountSlot mount = mountFor(slot);
         if (mech == null || mount == null) return;
@@ -2268,18 +2271,23 @@ public final class MechLabViewModel {
     private static String slotComponent(CampaignMech mech, SocketId slot) {
         if (mech == null) return Strings.get("openingMechLabNoAsset");
         return switch (slot) {
-            case CORE -> mech.internal(MechInternal.Role.ENGINE).displayName();
+            case CORE -> internalName(mech, MechInternal.Role.ENGINE);
             case ARMS -> componentName(mech.arms());
             case LEFT_ARM -> componentName(mech.leftArm());
             case RIGHT_ARM -> componentName(mech.rightArm());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
-            case CAPACITORS -> mech.internal(MechInternal.Role.CAPACITOR_BANK).displayName();
+            case CAPACITORS -> internalName(mech, MechInternal.Role.CAPACITOR_BANK);
             case MINI_FAB -> mech.internal(MechInternal.Role.VENT_ARRAY) != null
                     ? mech.internal(MechInternal.Role.VENT_ARRAY).displayName()
                     : mech.missileReplenisherId().equals(MissileReplenisherComponent.ACCELERATED_FEED.id())
                     ? Strings.get("openingMechLabAcceleratedFeed") : Strings.get("openingMechLabStandardReplenisher");
         };
+    }
+
+    private static String internalName(CampaignMech mech, MechInternal.Role role) {
+        MechInternal internal = mech.internal(role);
+        return internal != null ? internal.displayName() : Strings.get("mechLabSocketRequired");
     }
 
     private SocketDef selectedSocketDefinition() {

@@ -1084,9 +1084,8 @@ not read in a soft shadow at play zoom.
   - **Where it comes from** (design, not built). A Matriarch's brood: a pack
     rises from her as she emerges and flies as her escort. Wiring it into a
     mission is open work (`stories.md`).
-  - **Look.** Three round-one looks are in game while the owner picks one
-    (`HarrierLook`): the Runner's lilac with bat wings grown from its spike
-    arms, a plum manta, and the Matriarch's charcoal brood with blade wings.
+  - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
+    the Runner's lilac carapace with bat wings grown from its spike arms.
     Glide, wingbeat and dive drawings, drawn over the roofs, larger the higher
     it flies, with its own silhouette cast down-sun as its shadow, nearer under
     it as it dives.
