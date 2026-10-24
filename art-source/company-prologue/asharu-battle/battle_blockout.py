@@ -216,10 +216,10 @@ TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
 HIDES = {
     'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
-    # her stern and drive block clear of the hulk, turned three-quarters stern-on to S3's camera so her
-    # plume reads along her flank at the crash zoom (coordinator, 2026-10-23: was hd -30, nose-on)
-    'falcon-p': dict(at=(-950, -420, -180), hd=float(os.environ.get('ASHARU_S3_FALCON_HD', 30)), pt=-4, rl=12,
-                     cover='hulk', cover_size=(230, 201, 112), peek=-.75),
+    # nose-on to S3's camera, sunlit, lamps on her face: she slides out toward the lens as her drives
+    # light behind her, the hulk lying behind her lit orange by them (peek +1.6; coordinator, 2026-10-24)
+    'falcon-p': dict(at=(-950, -420, -180), hd=30, pt=-4, rl=12,
+                     cover='hulk', cover_size=(230, 201, 112), peek=1.6),
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
@@ -373,9 +373,11 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 K1B_T = 34
 K2_T = 40
 LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
-# S3's subject eases out on her thrusters from the moment her lamps wake, and faster, so her stern and
-# drive block are out in the open by 35 s (coordinator, 2026-10-24)
+# S3's subject slides out toward the camera on her thrusters from the moment her lamps wake, and
+# faster, clear of anything by 34 s (coordinator, 2026-10-24)
 EARLY_EASE = {'falcon-p'}
+# The keep-outs the seeded debris field was laid against, where a ship has since moved (_field)
+FIELD_LAID_AS = {'falcon-p': dict(peek=-.75)}
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -387,7 +389,7 @@ def _near(a, b):
     return a + ((b - a + 180.0) % 360.0 - 180.0)
 
 
-def launch(key, hide, t_light, climb):
+def launch(key, hide, t_light, climb, early=None):
     """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
     four and a half seconds until she is clear of the structure, then turning onto her climb attitude
     (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed.
@@ -395,14 +397,15 @@ def launch(key, hide, t_light, climb):
     x, y, z, hd, pt, rl, _ = hide
     chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
     v = CLIMB_SPEED[mass_class(key)]
-    if key in EARLY_EASE:
+    early = key in EARLY_EASE if early is None else early
+    if early:
         keys = [dict(t=t_light - LAMPS_LEAD_S, v=0.0, thr=0.0), dict(t=t_light - .05, v=10.0, thr=0.0),
                 dict(t=t_light + .6, v=20.0, thr=.25), dict(t=t_light + 1.2, v=32.0, thr=.5),
                 dict(t=t_light + 2.4, v=.3 * v, thr=.8)]
     else:
         keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
                 dict(t=t_light + 2.4, v=18.0, thr=.6)]
-    keys += [dict(t=t_light + 4.6, v=(.4 if key in EARLY_EASE else .3) * v, thr=1.0),     # still on her nose, clear
+    keys += [dict(t=t_light + 4.6, v=(.4 if early else .3) * v, thr=1.0),     # still on her nose, clear
             dict(t=t_light + 7.0, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
             dict(t=t_light + 9.5, hd=chd, pt=cpt, rl=crl, v=.8 * v),
             dict(t=t_light + 13.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
@@ -506,21 +509,38 @@ K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_FLIGHT.items()}
 def _field():
     """The debris field: a cover wreck per hidden ship, then seeded wreckage across the field kept
     out of every launch corridor, the station's body and S4's camera."""
-    cover = []
-    for n, (k, h) in enumerate(HIDES.items()):
-        if h.get('cover'):
-            cover.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
-                                                  SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], h.get('peek', 0.0),
-                                                  seed=n, t0=K1B_T, size=h.get('cover_size')))
-            cover[-1].cover_for = k
+    def covers(laid):
+        out = []
+        for n, (k, h) in enumerate(HIDES.items()):
+            if h.get('cover'):
+                peek = FIELD_LAID_AS.get(k, {}).get('peek', h.get('peek', 0.0)) if laid else h.get('peek', 0.0)
+                out.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
+                                                    SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], peek,
+                                                    seed=n, t0=K1B_T, size=h.get('cover_size')))
+                out[-1].cover_for = k
+        return out
+
+    def corridors(laid):
+        out = []
+        for k, f in PIRATE_LAUNCH.items():
+            if laid and k in FIELD_LAID_AS:
+                f = launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k], early=False)
+            for i in range(0, 25):
+                t = LAUNCH[k] + i * .5
+                out.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
+        return out
+    cover = covers(False)
     keep = [(to_platform(K2_CAM), 450.0)]
     keep += [((x, 0.0, 0.0), 160.0) for x in range(-450, 451, 150)]
-    for k, f in PIRATE_LAUNCH.items():
-        for i in range(0, 25):
-            t = LAUNCH[k] + i * .5
-            keep.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
-    keep += [(c.centre, c.radius() + 20.0) for c in cover]
-    wrecks = debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), keep, t0=K1B_T)
+    # The seeded field is laid against the keep-outs it was first laid against (FIELD_LAID_AS): a
+    # rejection sampler reshuffles every later piece when one keep-out moves (66 of 80 pieces, for the
+    # Falcon (P)'s S3 rework). Then any piece in a moved ship's new cover or corridor is dropped.
+    laid_keep = keep + corridors(True) + [(c.centre, c.radius() + 20.0) for c in covers(True)]
+    keep = keep + corridors(False) + [(c.centre, c.radius() + 20.0) for c in cover]
+    wrecks = debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), laid_keep, t0=K1B_T)
+    moved = [(p, r) for p, r in keep if (p, r) not in laid_keep]
+    wrecks = [w for w in wrecks if not any(sum((a - b) ** 2 for a, b in zip(w.centre, p)) ** .5 < r + w.radius()
+                                           for p, r in moved)]
     # Sized to the wreck kit's hull-derived sections (wreck_kit.hulks), so a real hulk drops in. The
     # ids stay put: a resize keeps its piece, and the big hulks are appended after the seeded field.
     for w in wrecks:
