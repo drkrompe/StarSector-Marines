@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.vision.RevealChangeLog;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.testsupport.GlSurface;
@@ -35,8 +36,9 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
  * Real-driver evidence that {@link NightShadeField} draws {@link NightLightingRenderSystem#shade} at every pixel:
  * the lamps' and fire's pools sampled bilinearly at half-cell resolution as the CPU path samples them, a hidden cell
  * losing its lamp light but keeping fire's, and an empty cell left unshaded. Checked over a grey ground with the
- * screen's blend, and premultiplied into a cleared target as the coverage composite takes it. Opt-in under
- * {@code shaderEvidence}.
+ * screen's blend, and premultiplied into a cleared target as the coverage composite takes it; then again after fire,
+ * fog and ground have each changed in a corner, over two frames with one draw, so the resident textures take only
+ * those boxes and still hold the whole picture. Opt-in under {@code shaderEvidence}.
  */
 @Tag("shader-evidence")
 class NightShadeFieldGlEvidence {
@@ -75,55 +77,81 @@ class NightShadeFieldGlEvidence {
             boolean[] shown = new boolean[CELLS * CELLS];
             Arrays.fill(shown, true);
             shown[2 * CELLS + 1] = false;
+            RevealChangeLog shownChanges = new RevealChangeLog();
+            shownChanges.init(CELLS, CELLS);
             BattleCamera camera = new BattleCamera(CELLS, CELLS);
             camera.setViewport(0, 0, SIZE, SIZE, SIZE / (float) CELLS);
 
             NightShadeField field = new NightShadeField();
             try {
                 field.bakeLamps(pools, reds, greens, blues, w, w);
-                field.frame(0, 0, CELLS - 1, CELLS - 1, fire, ground, shown, DARKNESS, 1f, camera);
-                byte[] over = draw(field, false);
-                byte[] premultiplied = draw(field, true);
+                field.fire(fire, true, 0, 0, w - 1, w - 1);
+                field.cells(ground, shown, shownChanges);
+                field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
+                check("whole upload", field, camera, ground, shown, pools, reds, greens, blues, fire, w);
 
-                float s0x = camera.cellToScreenX(0), s1x = camera.cellToScreenX(1);
-                float s0y = camera.cellToScreenY(0), s1y = camera.cellToScreenY(1);
-                float[] c = new float[4];
-                int worst = 0, shaded = 0;
-                for (int py = 0; py < SIZE; py++) {
-                    for (int px = 0; px < SIZE; px++) {
-                        float cx = (px + .5f - s0x) / (s1x - s0x), cy = (py + .5f - s0y) / (s1y - s0y);
-                        int cellX = (int) Math.floor(cx), cellY = (int) Math.floor(cy);
-                        float[] expectOver = {.5f, .5f, .5f}, expectPremultiplied = {0f, 0f, 0f, 0f};
-                        boolean solid = ground.getGroundKind(cellX, cellY) != CellTopology.GroundKind.VOID;
-                        float pool = shown[cellY * CELLS + cellX] ? sample(pools, w, cx, cy) : 0f;
-                        if (solid && NightLightingRenderSystem.shade(DARKNESS, pool, sample(fire, w, cx, cy),
-                                sample(reds, w, cx, cy), sample(greens, w, cx, cy), sample(blues, w, cx, cy), 1f, c)) {
-                            shaded++;
-                            for (int k = 0; k < 3; k++) {
-                                expectOver[k] = c[k] * c[3] + .5f * (1 - c[3]);
-                                expectPremultiplied[k] = c[k] * c[3];
-                            }
-                            expectPremultiplied[3] = c[3];
-                        }
-                        for (int k = 0; k < 3; k++) {
-                            worst = Math.max(worst, delta(over, px, py, k, expectOver[k]));
-                            worst = Math.max(worst, delta(premultiplied, px, py, k, expectPremultiplied[k]));
-                        }
-                        worst = Math.max(worst, delta(premultiplied, px, py, 3, expectPremultiplied[3]));
-                    }
-                }
-                System.out.println("[shader-evidence] night shade field: " + shaded + " of " + SIZE * SIZE
-                        + " pixels shaded, worst channel " + worst + " levels from the CPU shade; pools stored at "
-                        + field.storedBits() + " bits");
-                assertTrue(field.storedBits() >= NightShadeField.MIN_BITS,
-                        "this driver keeps the pools at " + field.storedBits() + " bits, which bands the shade");
-                assertTrue(shaded > SIZE * SIZE / 2, "the frame has to be shaded to say anything");
-                assertTrue(worst <= TOLERANCE, "the field draws the CPU shade function; worst " + worst);
-                assertTrue(!field.broken(), "and it drew without a GL error");
+                // Fire dims and goes out in one corner; the next frame, before any draw, a cell is hidden and
+                // another's ground goes. Only those boxes are uploaded.
+                for (int y = 3; y <= 7; y++)
+                    for (int x = 4; x <= 8; x++) fire[y * w + x] = x >= 7 ? 0f : fire[y * w + x] * .5f;
+                field.fire(fire, true, 4, 3, 8, 7);
+                field.cells(ground, shown, shownChanges);
+                field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
+                shown[0] = false;
+                shownChanges.note(0);
+                shownChanges.seal();
+                ground.setGroundKind(0, 3, CellTopology.GroundKind.VOID);
+                field.fire(fire, true, 0, 0, -1, -1);
+                field.cells(ground, shown, shownChanges);
+                field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
+                check("changed boxes", field, camera, ground, shown, pools, reds, greens, blues, fire, w);
             } finally {
                 field.dispose();
             }
         }
+    }
+
+    private static void check(String what, NightShadeField field, BattleCamera camera, CellTopology ground,
+                              boolean[] shown, float[] pools, float[] reds, float[] greens, float[] blues,
+                              float[] fire, int w) {
+        byte[] over = draw(field, false);
+        byte[] premultiplied = draw(field, true);
+
+        float s0x = camera.cellToScreenX(0), s1x = camera.cellToScreenX(1);
+        float s0y = camera.cellToScreenY(0), s1y = camera.cellToScreenY(1);
+        float[] c = new float[4];
+        int worst = 0, shaded = 0;
+        for (int py = 0; py < SIZE; py++) {
+            for (int px = 0; px < SIZE; px++) {
+                float cx = (px + .5f - s0x) / (s1x - s0x), cy = (py + .5f - s0y) / (s1y - s0y);
+                int cellX = (int) Math.floor(cx), cellY = (int) Math.floor(cy);
+                float[] expectOver = {.5f, .5f, .5f}, expectPremultiplied = {0f, 0f, 0f, 0f};
+                boolean solid = ground.getGroundKind(cellX, cellY) != CellTopology.GroundKind.VOID;
+                float pool = shown[cellY * CELLS + cellX] ? sample(pools, w, cx, cy) : 0f;
+                if (solid && NightLightingRenderSystem.shade(DARKNESS, pool, sample(fire, w, cx, cy),
+                        sample(reds, w, cx, cy), sample(greens, w, cx, cy), sample(blues, w, cx, cy), 1f, c)) {
+                    shaded++;
+                    for (int k = 0; k < 3; k++) {
+                        expectOver[k] = c[k] * c[3] + .5f * (1 - c[3]);
+                        expectPremultiplied[k] = c[k] * c[3];
+                    }
+                    expectPremultiplied[3] = c[3];
+                }
+                for (int k = 0; k < 3; k++) {
+                    worst = Math.max(worst, delta(over, px, py, k, expectOver[k]));
+                    worst = Math.max(worst, delta(premultiplied, px, py, k, expectPremultiplied[k]));
+                }
+                worst = Math.max(worst, delta(premultiplied, px, py, 3, expectPremultiplied[3]));
+            }
+        }
+        System.out.println("[shader-evidence] night shade field, " + what + ": " + shaded + " of " + SIZE * SIZE
+                + " pixels shaded, worst channel " + worst + " levels from the CPU shade; pools stored at "
+                + field.storedBits() + " bits");
+        assertTrue(field.storedBits() >= NightShadeField.MIN_BITS,
+                "this driver keeps the pools at " + field.storedBits() + " bits, which bands the shade");
+        assertTrue(shaded > SIZE * SIZE / 2, "the frame has to be shaded to say anything");
+        assertTrue(worst <= TOLERANCE, what + ": the field draws the CPU shade function; worst " + worst);
+        assertTrue(!field.broken(), "and it drew without a GL error");
     }
 
     private static byte[] draw(NightShadeField field, boolean premultiplied) {

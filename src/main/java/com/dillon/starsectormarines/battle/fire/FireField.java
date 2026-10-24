@@ -81,6 +81,13 @@ public final class FireField {
      * as far, so they grow to it sooner.
      */
     static final int BLAZE_MASS = 96;
+    /**
+     * The share of a room, in quarters, that must have caught for the rest of it to flash over (`fire-nouns.md`,
+     * Buildings). A room is the furnished floor walls close round, cut off at doorways; one of more than
+     * {@link #ROOM_MAX} cells is a hall, and burns as a floor does.
+     */
+    static final int FLASHOVER_QUARTERS = 2;
+    static final int ROOM_MAX = 400;
     /** Side of a change-tracking tile, in cells. */
     public static final int TILE = 32;
 
@@ -116,6 +123,16 @@ public final class FireField {
     private final boolean[] blazeBorn, heatFromBlaze;
     /** Scratch for the blaze count: a summed-area table over the burning cells' bounding box. */
     private int[] areaSum = new int[0];
+    /**
+     * Per cell, its room as of {@link #barrierRevision}: {@code 0} not yet asked, {@code -1} none (not furnished
+     * floor, a doorway, or a hall), else an index into {@link #rooms} plus one. Cleared when the walls change.
+     */
+    private final int[] roomOf;
+    private final List<int[]> rooms = new ArrayList<>();
+    private final List<Boolean> flashed = new ArrayList<>();
+    /** Furnished cells caught this step, whose rooms are asked whether they flash over. */
+    private int[] caughtFloor = new int[64];
+    private int caughtFloorSize;
     /**
      * A burning cell's distance, in quarter cells ({@link #QUARTERS}), from where its fire was lit ({@code 0} where it was lit and on fuel of
      * {@link FireFuel#UNLIMITED} spread); for a warm cell, the nearest of the fires heating it, plus the way.
@@ -167,6 +184,7 @@ public final class FireField {
         this.mass = new byte[cells];
         this.blaze = new boolean[cells];
         this.blazeBorn = new boolean[cells];
+        this.roomOf = new int[cells];
         this.heatFromBlaze = new boolean[cells];
         this.distance = new short[cells];
         this.heatDistance = new short[cells];
@@ -323,6 +341,7 @@ public final class FireField {
         }
         burnDown();
         coolAndCatch();
+        flashOver();
         weighMass();
         weighBlaze();
         if (dirtyThisStep) {
@@ -427,6 +446,9 @@ public final class FireField {
         long rev = terrain.barrierRevision();
         if (rev == barrierRevision) return;
         barrierRevision = rev;
+        Arrays.fill(roomOf, 0);
+        rooms.clear();
+        flashed.clear();
         boolean any = false;
         for (int i = 0; i < cells; i++) {
             boolean b = terrain.blocksHeat(i);
@@ -522,7 +544,85 @@ public final class FireField {
         if (burningSize == burning.length) burning = Arrays.copyOf(burning, burningSize * 2);
         burning[burningSize++] = idx;
         markDirty(idx);
+        if (FireFuel.FURNISHING.in(m)) {
+            if (caughtFloorSize == caughtFloor.length) caughtFloor = Arrays.copyOf(caughtFloor, caughtFloorSize * 2);
+            caughtFloor[caughtFloorSize++] = idx;
+        }
         listener.ignited(idx, m);
+    }
+
+    /**
+     * Flashes over every room enough of which has caught: the rest of its floor catches at once, so a room burns whole
+     * once a fire has a hold in it and its walls are held in the heat of all of it. What flashes over has a cell of
+     * carry left, so it scorches its doorways and walls but takes no other room with it.
+     */
+    private void flashOver() {
+        for (int i = 0; i < caughtFloorSize; i++) {
+            int r = roomAt(caughtFloor[i]);
+            if (r < 0 || flashed.get(r)) continue;
+            int[] room = rooms.get(r);
+            int caught = 0;
+            for (int c : room) if (state[c] != UNBURNT) caught++;
+            if (caught * 4 < room.length * FLASHOVER_QUARTERS) continue;
+            flashed.set(r, true);
+            for (int c : room) {
+                if (state[c] != UNBURNT) continue;
+                int m = terrain.fuelMask(c);
+                if (m == 0) continue;
+                // A cell's carry less one cell: the room's walls are held in its heat and a doorway's edge scorches,
+                // but a flashed room does not carry its fire on through the rest of the house.
+                int limit = spreadLimitAt(c, m);
+                heatDistance[c] = (short) (limit == Integer.MAX_VALUE ? 0 : Math.max(0, limit - QUARTERS));
+                heatFromBlaze[c] = false;
+                heat[c] = 0;
+                catchFire(c, m);
+            }
+        }
+        caughtFloorSize = 0;
+    }
+
+    /** A cell's room index, finding it the first time it is asked; {@code -1} for none. */
+    private int roomAt(int idx) {
+        int known = roomOf[idx];
+        if (known != 0) return known - 1;
+        if (!isRoomFloor(idx)) { roomOf[idx] = -1; return -1; }
+        int[] queue = new int[64];
+        int head = 0, size = 0;
+        queue[size++] = idx;
+        roomOf[idx] = Integer.MIN_VALUE;
+        boolean hall = false;
+        while (head < size) {
+            int c = queue[head++];
+            int x = c % width, y = c / width;
+            for (int k = 0; k < 4; k++) {
+                int nx = x + (k == 0 ? 1 : k == 1 ? -1 : 0), ny = y + (k == 2 ? 1 : k == 3 ? -1 : 0);
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                int n = ny * width + nx;
+                if (roomOf[n] != 0 || !isRoomFloor(n)) continue;
+                roomOf[n] = Integer.MIN_VALUE;
+                if (size == queue.length) queue = Arrays.copyOf(queue, size * 2);
+                queue[size++] = n;
+                if (size > ROOM_MAX) hall = true;
+            }
+        }
+        int id = hall ? -1 : rooms.size();
+        if (!hall) {
+            rooms.add(Arrays.copyOf(queue, size));
+            flashed.add(false);
+        }
+        for (int i = 0; i < size; i++) roomOf[queue[i]] = id < 0 ? -1 : id + 1;
+        return id;
+    }
+
+    /** Furnished floor that is not a doorway: a cell walls close on from both sides is a gap between rooms. */
+    private boolean isRoomFloor(int idx) {
+        if (barrier[idx] || !FireFuel.FURNISHING.in(terrain.fuelMask(idx))) return false;
+        int x = idx % width, y = idx / width;
+        return !(walled(x - 1, y) && walled(x + 1, y)) && !(walled(x, y - 1) && walled(x, y + 1));
+    }
+
+    private boolean walled(int x, int y) {
+        return x < 0 || y < 0 || x >= width || y >= height || barrier[y * width + x];
     }
 
     /**

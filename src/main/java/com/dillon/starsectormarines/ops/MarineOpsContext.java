@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger;
 import com.dillon.starsectormarines.campaign.systems.PolityThreatQuery;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem.RaidThreat;
+import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -210,6 +211,7 @@ public class MarineOpsContext {
                 MarineOpsContext::companyMarines,
                 MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks)
                 .groundedBoats(MarineOpsContext::companyBoatsGrounded)
+                .doorGuns(MarineOpsContext::companyDoorGuns)
                 .leasedFrom(TextureLedger.shared());
         // The deck laid out again keeps what is on the card rather than unloading it and loading it back.
         if (previous != null) {
@@ -274,6 +276,14 @@ public class MarineOpsContext {
         for (int i = 0; i < boats.size(); i++)
             grounded[i] = boats.get(i) != null && !boats.get(i).airworthy(day);
         return grounded;
+    }
+
+    /** @see BoatDeck#doorGuns() */
+    static String[][] companyDoorGuns() {
+        if (Global.getSector() == null) return null;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        if (script == null || script.roster() == null) return null;
+        return script.roster().boatDeck().doorGuns();
     }
 
     static boolean[] companyBoatWrecks() {

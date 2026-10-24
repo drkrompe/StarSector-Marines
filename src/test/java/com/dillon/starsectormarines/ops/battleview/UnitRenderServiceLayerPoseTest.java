@@ -33,6 +33,30 @@ class UnitRenderServiceLayerPoseTest {
     }
 
     @Test
+    void aCarriedSpecialWalksInItsOwnClipAndBlendsBackToTheAim() throws Exception {
+        UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
+                Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));
+        SpecialEquipmentDef rifle = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
+        var clips = rifle.presentation().layerClips();
+        int carriedFlags = LayeredAppearance.FLAG_MOVING | LayeredAppearance.FLAG_SPECIAL_CARRIED;
+        float stride = 0.3f;
+
+        LayerPose carried = UnitRenderService.infantryPoseDef(layouts, true, rifle,
+                LayeredAppearance.POSE_AMR_AIM, stride, 1f, carriedFlags);
+        LayerPose walking = layouts.clip("marine-line", clips.variant(), clips.walking()).sample(stride);
+        for (String id : new String[] {"left-foot", "body", "special"}) {
+            assertEquals(walking.layer(id).offsetY(), carried.layer(id).offsetY(), 1e-6f, id);
+            assertEquals(walking.layer(id).angleDegrees(), carried.layer(id).angleDegrees(), 1e-6f, id);
+        }
+
+        LayerPose raised = UnitRenderService.infantryPoseDef(layouts, true, rifle,
+                LayeredAppearance.POSE_AMR_AIM, stride, 0f, LayeredAppearance.FLAG_SPECIAL_CARRIED);
+        assertEquals(layouts.clip("marine-line", clips.variant(), clips.using()).sample(1f)
+                .layer("body").angleDegrees(), raised.layer("body").angleDegrees(), 1e-6f,
+                "no longer carried, it is at the aim");
+    }
+
+    @Test
     void secondaryEntrySettlesOutOfThePreservedStridePose() throws Exception {
         UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
                 Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));

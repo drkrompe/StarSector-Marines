@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
@@ -77,10 +78,10 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
                     if (berth.grounded != (day < 11.5f) || (day < 11.5f && berth.airworthy()))
                         throw new AssertionError("Grounded aircraft is eligible for ambient sorties");
                     var bay = ship.rooms(RoomPurpose.HANGAR).get(0);
-                    var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
+                    var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), FittingComponents.with(List.of(
                             "data/ui/components/company/company-resource-stock.mlx",
                             "data/ui/components/company/company-resource-cost.mlx",
-                            "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx"));
+                            "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx")));
                     try (var markup = loader.reloadAndBuild(reactor, "boat-deck", UiSnapshotSuite.props(model, ship, bay, 1))) {
                         var document = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
                         markup.styles().forEach(document::addStyleSheet);

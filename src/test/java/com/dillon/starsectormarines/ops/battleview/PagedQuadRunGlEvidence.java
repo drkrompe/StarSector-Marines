@@ -59,8 +59,8 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
  *
  * <p>The frame is built to be the paged run's hard case: overlapping quads from ten sheets in turn, so painter
  * order decides every overlap and a run of eight pages has to close and open again; quads turned, mirrored, tinted
- * and faded; additive quads among the normal ones, which share the run premultiplied; and an additive sprite and a
- * solid fill in the middle. Colour is compared within {@link #COLOUR_TOLERANCE}, the premultiplied rounding, and
+ * and faded; additive quads among the normal ones, which share the run premultiplied; whole sprites of either blend,
+ * turned and tinted, which join the run as quads of their own texture; and a solid fill in the middle. Colour is compared within {@link #COLOUR_TOLERANCE}, the premultiplied rounding, and
  * alpha is reported rather than compared. Every pixel of the paged frame is compared with the fixed-function one.
  *
  * <p>It carries the {@link UnitAtlasGlEvidence} controls against measuring nothing: the frame has to be painted,
@@ -129,7 +129,8 @@ class PagedQuadRunGlEvidence {
                         + displaced.differingPixels() + " against the frame moved one column");
                 assertEquals(perSheet.sheetQuads(), pagedCensus.sheetQuads(), "the same quads either way");
                 assertTrue(pagedCensus.drawCalls() < perSheet.drawCalls() / 4,
-                        "a paged run closes only for the additive sprite and a full page table");
+                        "a paged run closes only for a full page table");
+                assertEquals(perSheet.sprites(), pagedCensus.sprites(), "and the same whole sprites");
                 assertTrue(same.painted() > 20_000, "the frame has to have art in it; painted " + same.painted());
                 assertTrue(displaced.differingPixels() > 20 * Math.max(1, same.differingPixels()),
                         "a metric that cannot tell a displaced frame from a matching one measures nothing");
@@ -166,6 +167,16 @@ class PagedQuadRunGlEvidence {
                     out.addAdditiveSprite(RenderLayer.UNITS, sheets.get(s), cx, cy, w, h, 20f, 1f, 0.8f, 0.5f, 0.8f);
                     continue;
                 }
+                if (n % 7 == 3) {
+                    // A whole sprite, normal or additive, turned and tinted among the sheet quads: a shot.
+                    if (n % 2 == 0) {
+                        out.addSprite(RenderLayer.UNITS, sheets.get(s), cx, cy, w, h, n * 17f, tint, 1f, tint, alpha);
+                    } else {
+                        out.addAdditiveSprite(RenderLayer.UNITS, sheets.get(s), cx, cy, w, h, n * 13f,
+                                1f, tint, 0.6f, alpha);
+                    }
+                    continue;
+                }
                 if (n >= 20 && n % 3 == 0) {
                     // A glow over what came before it: an additive quad, as a held additive image is drawn.
                     out.addSheetQuad(RenderLayer.UNITS, sheets.get(s), 0, 0, size[0], size[1],
@@ -186,6 +197,52 @@ class PagedQuadRunGlEvidence {
             }
         }
         return out;
+    }
+
+    /**
+     * A hit flash on a real driver: fills at several flash amounts over a grey ground, each read back as its colour
+     * mixed toward white by exactly that share and then blended by its alpha, and an unflashed fill unchanged.
+     */
+    @Test
+    void aFlashedQuadIsItsColourMixedTowardWhite() throws Exception {
+        try (HeadlessGl gl = HeadlessGl.createOrNull(W, H)) {
+            if (gl == null) {
+                System.out.println("[shader-evidence] SKIPPED: " + HeadlessGl.unavailableReason());
+                return;
+            }
+            int[] target = target();
+            PagedQuadRun paged = new PagedQuadRun();
+            try {
+                assertTrue(paged.ready(), "a GL 2.1 context has to page");
+                float[] flashes = {0f, .25f, .5f, .75f, 1f};
+                float r = .2f, g = .5f, b = .9f, a = .8f;
+                DrawList frame = new DrawList();
+                for (int i = 0; i < flashes.length; i++) {
+                    frame.setFlash(flashes[i]);
+                    frame.addSolidRect(RenderLayer.UNITS, 20 + i * 100, 20, 100 + i * 100, 100, r, g, b, a);
+                }
+                frame.setFlash(0f);
+                byte[] pixels = draw(target[0], frame, new IdentityHashMap<>(), paged, new DrawCensus());
+                int worst = 0;
+                for (int i = 0; i < flashes.length; i++) {
+                    int at = (60 * W + 60 + i * 100) * 4;
+                    float[] colour = {r, g, b};
+                    float[] ground = {1f, 0f, 1f};
+                    for (int k = 0; k < 3; k++) {
+                        float flashed = colour[k] + (1f - colour[k]) * flashes[i];
+                        int expected = Math.round((flashed * a + ground[k] * (1f - a)) * 255f);
+                        worst = Math.max(worst, Math.abs((pixels[at + k] & 0xFF) - expected));
+                    }
+                }
+                System.out.println("[shader-evidence] hit flash: worst channel " + worst
+                        + " levels from colour mixed toward white");
+                assertTrue(worst <= 2, "a flash mixes the colour toward white by its share; worst " + worst);
+            } finally {
+                paged.dispose();
+                glDeleteFramebuffers(target[0]);
+                glDeleteTextures(target[1]);
+            }
+        }
     }
 
     private static byte[] draw(int fbo, DrawList frame, Map<SpriteAPI, QuadBatch> batches, PagedQuadRun paged,
