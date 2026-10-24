@@ -2581,7 +2581,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
                 "support_mech_03", "Warden 03", MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        bay.addInternal(MechInternal.ACCELERATED_LOADER.id, 1);
         if ("long-name".equals(materialHint)) {
             if (!bay.mechById(MechBay.STARTER_MECH_ID)
                     .rename("Ironclad of the Persean Expeditionary Vanguard 1")) {
@@ -2663,7 +2663,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
-            viewModel.selectSlot(SocketId.CAPACITORS);
+            viewModel.selectSlot(SocketId.AUXILIARY);
         }
         // The engine dragged back to stores: the empty, required socket warns on the doll, and
         // the stores' engine category lists the engine that came out at full strength.
@@ -2716,6 +2716,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .withSideShift(() -> camera.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
+            fittingCanvas.installedCompartment(viewModel::installedCompartment);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
@@ -2736,11 +2737,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 } else if (row.vehiclePreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             new VehiclePreviewCanvas(row.vehiclePreview()));
-                } else if (row.weaponPreview() != null || row.replenisherPreview() != null
-                        || row.internalPreview() != null) {
+                } else if (row.weaponPreview() != null || row.internalPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
-                            MechEquipmentGridCanvas.catalog(row.weaponPreview(),
-                                    row.replenisherPreview(), row.internalPreview(),
+                            MechEquipmentGridCanvas.catalog(row.weaponPreview(), row.internalPreview(),
                                     MechLabDollCanvas::headlessAssets));
                 }
             }
@@ -2749,7 +2748,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         new MechEquipmentGridCanvas(
                                 () -> viewModel.socketDefinition(row.socketId()),
                                 () -> viewModel.installedWeapon(row.socketId()),
-                                () -> viewModel.installedReplenisher(row.socketId()),
+                                () -> row.socketId() == SocketId.AUXILIARY
+                                        ? viewModel.installedCompartment() : List.of(),
                                 () -> viewModel.installedInternal(row.socketId()),
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));

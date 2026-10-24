@@ -1,17 +1,18 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.i18n.Strings;
 
 /**
- * A non-weapon fitting that changes the frame: engine, plating, capacitor bank or vent array. Each
- * internal replaces one stock part and none is a multiplier on the chassis; the chassis's
- * own band ({@link MechFrameBudget}) bounds what an engine or plating can buy back.
+ * A non-weapon fitting that changes the frame: engine, plating, capacitor bank, vent array or
+ * missile loader. Each internal replaces or adds one part and none is a multiplier on the
+ * chassis; the chassis's own band ({@link MechFrameBudget}) bounds what an engine or plating
+ * can buy back.
  *
- * <p>Higher tiers take more room: a larger footprint in their socket, or more mass against
- * the engine's output. Plating is frame-wide and has no socket; every other role has one.
- * The missile replenisher is the loader and stays its own component, but a non-standard
- * loader competes with a vent array for the one {@link SocketId#MINI_FAB} socket.</p>
+ * <p>Higher tiers take more room: a larger footprint, or more mass against the engine's output.
+ * Plating is frame-wide and has no socket, the engine has the core, and the rest share the one
+ * {@link SocketId#AUXILIARY} compartment, whose rules are {@link MechCompartment}'s.</p>
  */
 public enum MechInternal {
 
@@ -49,15 +50,23 @@ public enum MechInternal {
             EquipmentAccessTier.PRESTIGE, 2, 2, 5f, 0f, 0f, 0f, 120f, 8f),
 
     AUXILIARY_VENT_ARRAY("internal.vent-array-auxiliary", "@gearInternalAuxiliaryVentArray", Role.VENT_ARRAY,
-            EquipmentAccessTier.ADVANCED, 2, 1, 2f, 0f, 0f, 0f, 0f, 1f);
+            EquipmentAccessTier.ADVANCED, 2, 1, 2f, 0f, 0f, 0f, 0f, 1f),
+
+    // Loaders are the missile replenishers as parts: replenisherId names the battle cadence.
+    STANDARD_LOADER("internal.loader-standard", "@gearInternalStandardLoader", Role.LOADER,
+            EquipmentAccessTier.COMMON, 2, 1, 0f, 0f, 0f, 0f, 0f, 0f),
+    ACCELERATED_LOADER("internal.loader-accelerated", "@gearInternalAcceleratedLoader", Role.LOADER,
+            EquipmentAccessTier.ADVANCED, 2, 1, 1f, 0f, 0f, 0f, 0f, 0f);
 
     /** What part of the frame an internal replaces. */
     public enum Role {
         ENGINE(SocketId.CORE),
         PLATING(null),
-        CAPACITOR_BANK(SocketId.CAPACITORS),
-        /** Optional: the stock frame leaves this socket empty. */
-        VENT_ARRAY(SocketId.MINI_FAB);
+        CAPACITOR_BANK(SocketId.AUXILIARY),
+        /** Optional, and they stack: the stock frame fits none. */
+        VENT_ARRAY(SocketId.AUXILIARY),
+        /** Optional: a mech without one never refills its racks. */
+        LOADER(SocketId.AUXILIARY);
 
         private final SocketId socket;
 
@@ -66,6 +75,9 @@ public enum MechInternal {
         /** Null for plating, which covers the whole frame. */
         public SocketId socket() { return socket; }
 
+        /** Whether this role's parts share the auxiliary compartment. */
+        public boolean compartment() { return socket == SocketId.AUXILIARY; }
+
         /** The stock part for this role; null where the stock frame fits nothing. */
         public MechInternal stock() {
             return switch (this) {
@@ -73,6 +85,7 @@ public enum MechInternal {
                 case PLATING -> FACTORY_PLATING;
                 case CAPACITOR_BANK -> FACTORY_CAPACITOR_BANK;
                 case VENT_ARRAY -> null;
+                case LOADER -> STANDARD_LOADER;
             };
         }
     }
@@ -120,6 +133,25 @@ public enum MechInternal {
     }
 
     public String displayName() { return Strings.resolve(displayName); }
+
+    /** A loader's battle cadence; null for every other role. */
+    public MissileReplenisherComponent replenisher() {
+        return switch (this) {
+            case STANDARD_LOADER -> MissileReplenisherComponent.STANDARD;
+            case ACCELERATED_LOADER -> MissileReplenisherComponent.ACCELERATED_FEED;
+            default -> null;
+        };
+    }
+
+    /** The loader part a persisted replenisher id names: the save-migration seam. */
+    public static MechInternal loaderFor(String replenisherId) {
+        MissileReplenisherComponent replenisher = MissileReplenisherComponent.findById(replenisherId);
+        if (replenisher == null) return null;
+        for (MechInternal internal : values()) {
+            if (replenisher.equals(internal.replenisher())) return internal;
+        }
+        return null;
+    }
 
     /** A stock part: known by every company and fitted to every new or migrated frame. */
     public boolean stock() { return role.stock() == this; }
