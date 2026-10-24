@@ -55,10 +55,15 @@ place: its walls, gates, barricades, parapets, sandbags and gun emplacements all
 - **Walls are dressed where they are drawn.** The ground pass draws a wall cell from its
   surface's look in the cell's works style (`GroundRenderSystem`), since its surface id is a
   fact rules read.
-- **So is the gate.** The fort's gatehouse (tower caps and gate leaves) is building art rather
-  than a catalog piece: the renderer draws it in the works style of the fort's lot
-  (`FortGatehouseArt.inStyle`), from the same file names in a folder named for the style, for
-  every style the gatehouse's `looks` list names.
+- **Fort buildings are kit buildings in the lot's style** (owner's pick). A fort building (fire
+  control, magazine, power plant and their rooms) is an ordinary installation-kit building: its
+  walls, doors and windows are drawn from the light installation wall in the lot's style, and it
+  takes the ordinary liftable roof, opened like any other. Fort building art (`FortBuildingArt`)
+  adds only the holder's banner and the blast door over the main door.
+- **So is the gate.** The gate leaves are building art rather than a catalog piece: the renderer
+  draws them in the works style of the fort's lot (`FortGatehouseArt.inStyle`), from the same
+  file names in a folder named for the style, for every style the gatehouse's `looks` list names.
+  The flanking towers are drawn by the works, as the wall they stand in.
 
 ## Art
 
@@ -72,7 +77,9 @@ through the authoring tools. One ring piece serves both barricade families.
 Each look's damaged and destroyed sheets (`fortworks-<style>-damaged`, `-destroyed`) are image
 edits of its accepted intact sheet, cut with the intact sheet's measurements so every state
 registers with the piece it replaces; they carry no wall tiles, since a broken wall cell is
-rubble. The gatehouse of each style is painted over the fort-buildings gatehouse guide with the
+rubble. Each intact sheet carries wall blocks for both the dark perimeter wall and the light
+building wall, so a fort's buildings are its walls' material. The gate leaves of each style are
+painted over the fort-buildings gatehouse guide with the
 style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 `export_gatehouse.py`). Brutalist uses the base gatehouse.
 
@@ -92,5 +99,9 @@ style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 ## Open
 
 - Pieces still drawn in the base art on every lot: the light post's vent ring (road-sheet
-  frames with no catalog id), the fort's building shells (bunker, magazine, power plant and
-  their annexes), door and window openings, wall rubble, hedgehogs, trench and fence.
+  frames with no catalog id), door and window openings, wall rubble, hedgehogs, trench and
+  fence.
+- Fort buildings take the ordinary brick roof; a roof in each style's material is unpainted.
+- Gate towers become enterable gatehouse rooms (owner's pick): set into the wall line and
+  projecting over the approach, each with a door from the yard and firing slits outward and
+  along the wall face, garrisoned like any building.

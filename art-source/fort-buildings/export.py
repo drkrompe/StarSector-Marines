@@ -1,15 +1,18 @@
-"""Mechanical export of the fort building sheets: crop each frame at the guide's own coordinates and resize it to
-64 px per cell. Nothing is alpha-trimmed or recentred, so intact, damaged and destroyed share one registration.
+"""Mechanical export of the fort part sheets: crop each frame at the guide's own coordinates and resize it to 64 px
+per cell. Nothing is alpha-trimmed or recentred, so intact and damaged share one registration.
+
+Fort buildings are kit buildings drawn by the works (`fort-works.md`); their old roof slabs and rotors are retired and
+no longer exported. What still ships from here: the core pieces, the blast door and the base gate leaves.
 
     python art-source/fort-buildings/export.py            # all sheets that have a raw
-    python art-source/fort-buildings/export.py bunker     # one
+    python art-source/fort-buildings/export.py blastdoor  # one
 
 Frame geometry is the contract in art-source/templates/fort-buildings-guide.py (read its header).
 
 The sheets are drawn on the local frame, which runs y DOWN (row 0 is the north wall), but the battle draws cell +y up the
-screen; so every building and blast-door frame is written flipped top to bottom, which is what makes a sprite drawn upright
-land on the cells of the plan it was authored for. Rotor, banner and door coordinates in the catalog stay in the authored
-(y-down) frame. The gatehouse pieces and the parts are symmetric across that axis and are written as cropped.
+screen; so every blast-door frame is written flipped top to bottom, which is what makes a sprite drawn upright land on
+the cells of the plan it was authored for. Banner and door coordinates in the catalog stay in the authored (y-down)
+frame. The gate leaves and the core pieces are symmetric across that axis and are written as cropped.
 Outputs: mod/graphics/fort/<name>.png
 """
 from pathlib import Path
@@ -22,12 +25,7 @@ OUT = ROOT / 'mod/graphics/fort'
 PX = 64  # runtime pixels per cell
 QW, QH = 768, 512
 
-# name -> (cells wide, cells high, guide px per cell); the ante-room sheets (opshall, bay, ctrlhall) and the anti-air control
-# room (aircontrol) are drawn over one room's floor in the footprint frame, like the main buildings.
-BUILDINGS = {'bunker': (7, 5, 92), 'magazine': (8, 6, 77), 'power': (11, 5, 65), 'opshall': (5, 5, 100),
-             'bay': (8, 3, 90), 'ctrlhall': (3, 5, 100), 'aircontrol': (7, 5, 92)}
 DOOR_PX = 200  # blastdoor guide px per cell (a 3 x 1 piece, intact then damaged)
-SLOTS = ['roof', 'damaged', 'wreck', 'lights']
 
 
 def panel_box(quadrant, cw, ch, s):
@@ -54,19 +52,8 @@ def load(name):
     return im
 
 
-def building(name):
-    cw, ch, s = BUILDINGS[name]
-    im = load(name)
-    for q, slot in enumerate(SLOTS):
-        flip_v(crop(im, panel_box(q, cw, ch, s), (cw * PX, ch * PX))).save(OUT / f'{name}-{slot}.png')
-
-
 def parts():
     im = load('parts')
-    names = ['rotor-radar', 'rotor-turbine', 'rotor-vent']
-    for slot, name in enumerate(names):
-        x, y = (slot % 3) * 512, (slot // 3) * 512
-        crop(im, (x, y, x + 512, y + 512), (256, 256)).save(OUT / f'{name}.png')
     for slot, name in ((3, 'core-console'), (4, 'core-ordnance'), (5, 'core-reactor')):
         cx, cy = (slot % 3) * 512 + 256, (slot // 3) * 512 + 256
         crop(im, (cx - 200, cy - 200, cx + 200, cy + 200), (3 * PX, 3 * PX)).save(OUT / f'{name}.png')
@@ -80,18 +67,15 @@ def blastdoor():
 
 def gatehouse():
     im = load('gatehouse')
-    for q, name in ((0, 'gate-tower'), (1, 'gate-leaves'), (2, 'gate-tower-damaged')):
-        crop(im, panel_box(q, 2, 3, 150), (2 * PX, 3 * PX)).save(OUT / f'{name}.png')
+    crop(im, panel_box(1, 2, 3, 150), (2 * PX, 3 * PX)).save(OUT / 'gate-leaves.png')
 
 
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
-    wanted = sys.argv[1:] or [*BUILDINGS, 'parts', 'gatehouse', 'blastdoor']
+    wanted = sys.argv[1:] or ['parts', 'gatehouse', 'blastdoor']
     for w in wanted:
         if not (HERE / 'raw' / f'{w}.raw.png').exists():
             print('skip (no raw):', w)
-        elif w in BUILDINGS:
-            building(w)
         elif w == 'parts':
             parts()
         elif w == 'gatehouse':
