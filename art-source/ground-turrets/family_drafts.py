@@ -1,4 +1,8 @@
-"""Midline and high-tech emplacement styles, phase A: guides, briefs and draft cuts for six art-direction options.
+"""Midline and high-tech emplacement styles: guides, briefs and generations for six art-direction options.
+
+Phase A drew every option as a draft (collar, autogun, cannon, plinth, heavy head). The CHOSEN options (phase B) add
+the second point sheet (round collar, grenade-launcher and point-defence heads) and a stepped militia plinth
+(hardpoint-v2), and export_ship.py cuts them into the shipped styles (modular, barrier, composite, deployed).
 
 Each tech family (`tech-families.md`) gets a prepared and a militia variant, and each family is drawn three ways
 (OPTIONS). A family owns its silhouette, so its heads and bases have their own guide geometry here; the three options
@@ -15,7 +19,8 @@ Commands:
   python art-source/ground-turrets/family_drafts.py generate [option ...]   one Codex generation per missing raw
   python art-source/ground-turrets/family_drafts.py export        cuts raws into build/ground-turret-art/<option>-<variant>/
 
-The cut is draft art for the `ground-turret-family-draft` snapshot suite only; nothing in mod/ changes.
+The `export` cut is draft art for the `ground-turret-family-draft` snapshot suite only; the shipped sets come from
+export_ship.py.
 """
 import math
 import subprocess
@@ -218,28 +223,33 @@ def ml_plinth(c, ox, oy, ppc, variant):
         for x0, y0, x1, y1 in ((d0 + 0.2, d0 + 0.03, d0 + 0.8, d0 + 0.06), (d0 + 0.03, d0 + 0.2, d0 + 0.06, d0 + 0.8)):
             c.poly([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)], g(238))  # recessed strip lamps on the parapet
     else:
-        # Barrier-cell bastion: walls of stacked square mesh bins round a plated deck.
-        c.poly([P(o0, o0), P(o1, o0), P(o1, o1), P(o0, o1)], g(110))
-        n = 9
-        step = (o1 - o0) / n
-        for i in range(n):
-            for j in range(n):
-                ring = min(i, j, n - 1 - i, n - 1 - j)
-                if ring > 1:
-                    continue
-                x, y = o0 + i * step, o0 + j * step
-                if j <= 1 or i <= 1:
-                    lit = 200 if ring == 1 else 168
-                else:
-                    lit = 112 if ring == 1 else 88
-                c.poly([P(x + 0.015, y + 0.015), P(x + step - 0.015, y + 0.015), P(x + step - 0.015, y + step - 0.015),
-                        P(x + 0.015, y + step - 0.015)], g(lit))
-                for k in (0.33, 0.66):
-                    seam(c, *P(x + step * k, y + 0.02), *P(x + step * k, y + step - 0.02), ppc / 2, v=lit - 40, w=0.01)
-        e0, e1 = o0 + 2 * step, o1 - 2 * step
-        c.poly([P(e0, e0), P(e1, e0), P(e1, e1), P(e0, e1)], g(150))
+        # Barrier-cell bastion, stepped so it reads as height: three courses of mesh bins, each set back from the one
+        # below, every course showing a lit top on the north and west and a dark face on the south and east, over a
+        # cast-shadow band at the foot (phase B: the flat grid of phase A read as a paved square, not a tower).
+        courses = 3
+        for k in range(courses):
+            t0 = o0 + (d0 - o0) * k / courses
+            t1 = o0 + (d0 - o0) * (k + 1) / courses
+            u0, u1 = o1 - (o1 - d1) * k / courses, o1 - (o1 - d1) * (k + 1) / courses
+            c.poly([P(t0, t0), P(u0, t0), P(u1, t1), P(t1, t1)], g(150 + 12 * k))  # north top
+            c.poly([P(t0, t0), P(t1, t1), P(t1, u1), P(t0, u0)], g(170 + 12 * k))  # west top
+            c.poly([P(u0, t0), P(u0, u0), P(u1, u1), P(u1, t1)], g(76 + 6 * k))    # east face, shade
+            c.poly([P(t0, u0), P(t1, u1), P(u1, u1), P(u0, u0)], g(58 + 6 * k))    # south face, shade
+            cells = 9 - 2 * k
+            for side in range(4):
+                for j in range(1, cells):
+                    f = j / cells
+                    if side == 0:
+                        seam(c, *P(t0 + (u0 - t0) * f, t0), *P(t1 + (u1 - t1) * f, t1), ppc / 2, v=110, w=0.012)
+                    elif side == 1:
+                        seam(c, *P(t0, t0 + (u0 - t0) * f), *P(t1, t1 + (u1 - t1) * f), ppc / 2, v=130, w=0.012)
+                    elif side == 2:
+                        seam(c, *P(u0, t0 + (u0 - t0) * f), *P(u1, t1 + (u1 - t1) * f), ppc / 2, v=45, w=0.012)
+                    else:
+                        seam(c, *P(t0 + (u0 - t0) * f, u0), *P(t1 + (u1 - t1) * f, u1), ppc / 2, v=35, w=0.012)
+        c.poly([P(d0, d0), P(d1, d0), P(d1, d1), P(d0, d1)], g(150))
         for t in (1.0, 2.0):
-            seam(c, *P(e0, t), *P(e1, t), ppc / 2, v=110)
+            seam(c, *P(d0, t), *P(d1, t), ppc / 2, v=110)
     c.ellipse(*P(1.5, 1.5), 0.62 * ppc, g(110))
     c.ellipse(*P(1.5, 1.5), 0.55 * ppc, g(55))
     sx0, sx1 = 1.12, 1.72
@@ -408,9 +418,12 @@ def ht_plinth(c, ox, oy, ppc, variant):
             c.ellipse(ax, ay, 0.05 * ppc, g(240))
         dx0, dy0 = P(d0 - 0.10, d0 - 0.10)
         dx1, dy1 = P(d1 + 0.10, d1 + 0.10)
-        c.rect(dx0, dy0, dx1, dy1, g(95), radius=0.32 * ppc)  # deck edge band (its thickness, shaded)
-        c.rect(dx0, dy0, dx1 - 0.06 * ppc, dy1 - 0.06 * ppc, g(176), radius=0.30 * ppc)
-        c.rect(dx0 + 0.07 * ppc, dy0 + 0.07 * ppc, dx1 - 0.10 * ppc, dy1 - 0.10 * ppc, g(150), radius=0.26 * ppc)
+        # The deck's thickness as a deep skirt below its south and east edges, and the dark of the space under it,
+        # so the platform reads as standing a storey up rather than lying on the ground (phase B height cue).
+        c.rect(dx0 + 0.22 * ppc, dy0 + 0.22 * ppc, dx1 + 0.10 * ppc, dy1 + 0.10 * ppc, g(40), radius=0.32 * ppc)
+        c.rect(dx0, dy0, dx1 + 0.06 * ppc, dy1 + 0.06 * ppc, g(78), radius=0.32 * ppc)
+        c.rect(dx0, dy0, dx1 - 0.08 * ppc, dy1 - 0.08 * ppc, g(176), radius=0.30 * ppc)
+        c.rect(dx0 + 0.07 * ppc, dy0 + 0.07 * ppc, dx1 - 0.14 * ppc, dy1 - 0.14 * ppc, g(150), radius=0.26 * ppc)
         sx0, sx1 = 1.22, 1.68
         top, foot = d1 + 0.02, 2.96
         c.poly([P(sx0, top), P(sx1, top), P(sx1, foot), P(sx0, foot)], g(100))
@@ -422,6 +435,137 @@ def ht_plinth(c, ox, oy, ppc, variant):
             c.rect(*P(x - 0.06, y - 0.015), *P(x + 0.06, y + 0.015), g(240))
     c.ellipse(*P(1.5, 1.5), 0.62 * ppc, g(110))
     c.ellipse(*P(1.5, 1.5), 0.55 * ppc, g(55))
+
+
+# ---- second point sheet (phase B): the round collar, grenade-launcher and point-defence heads ---------------
+
+def ml_round_collar(c, cx, cy, ppc, variant):
+    if variant == "prepared":
+        # Round precast ring of eight panels, a recessed lamp arc on the north-west, four bolted lifting plates.
+        c.ellipse(cx, cy, 0.47 * ppc, g(118))
+        c.ellipse(cx - 0.015 * ppc, cy - 0.015 * ppc, 0.45 * ppc, g(176))
+        c.ellipse(cx, cy, 0.41 * ppc, g(148))
+        for i in range(8):
+            a = math.radians(22.5 + 45 * i)
+            seam(c, cx + 0.33 * ppc * math.cos(a), cy + 0.33 * ppc * math.sin(a),
+                 cx + 0.45 * ppc * math.cos(a), cy + 0.45 * ppc * math.sin(a), ppc)
+        c.d.arc([(cx - 0.43 * ppc) * SS, (cy - 0.43 * ppc) * SS, (cx + 0.43 * ppc) * SS, (cy + 0.43 * ppc) * SS],
+                200, 250, fill=g(238), width=int(0.025 * ppc * SS))
+        for i in range(4):
+            a = math.radians(90 * i)
+            x, y = cx + 0.375 * ppc * math.cos(a), cy + 0.375 * ppc * math.sin(a)
+            c.rect(x - 0.035 * ppc, y - 0.035 * ppc, x + 0.035 * ppc, y + 0.035 * ppc, g(105))
+        c.ellipse(cx, cy, 0.33 * ppc, g(98))
+        c.ellipse(cx, cy, 0.30 * ppc, g(45))
+    else:
+        # A ring of ten barrier bins set round a dug well, each turned to the ring.
+        c.ellipse(cx, cy, 0.36 * ppc, g(70))
+        for i in range(10):
+            a = 2 * math.pi * i / 10
+            bx, by = cx + 0.375 * ppc * math.cos(a), cy + 0.375 * ppc * math.sin(a)
+            lit = 182 if math.cos(a - math.radians(225)) > 0 else 120
+            ca, sa = math.cos(a), math.sin(a)
+            for r, v in ((0.10 * ppc, lit - 35), (0.08 * ppc, lit)):
+                c.poly([(bx + x * ca - y * sa, by + x * sa + y * ca) for x, y in ((-r, -r), (r, -r), (r, r), (-r, r))],
+                       g(v))
+        c.ellipse(cx, cy, 0.29 * ppc, g(55))
+        c.ellipse(cx, cy, 0.23 * ppc, g(40))
+
+
+def ml_grenade(c, cx, cy, ppc):
+    """Panelled box housing with two short wide tubes in a flat cradle, a square side magazine and a roof hatch."""
+    c.ellipse(cx, cy, 0.25 * ppc, g(85))
+    for sx in (-0.08, 0.08):
+        c.rect(cx + (sx - 0.045) * ppc, cy - 0.44 * ppc, cx + (sx + 0.045) * ppc, cy - 0.12 * ppc, g(95))
+        c.rect(cx + (sx - 0.058) * ppc, cy - 0.47 * ppc, cx + (sx + 0.058) * ppc, cy - 0.40 * ppc, g(70))
+        c.ellipse(cx + sx * ppc, cy - 0.435 * ppc, 0.03 * ppc, g(30))
+    c.rect(cx - 0.15 * ppc, cy - 0.27 * ppc, cx + 0.15 * ppc, cy - 0.20 * ppc, g(125))  # cradle band
+    c.rect(cx - 0.22 * ppc, cy - 0.19 * ppc, cx + 0.20 * ppc, cy + 0.24 * ppc, g(150), radius=0.04 * ppc)
+    c.rect(cx - 0.22 * ppc, cy - 0.19 * ppc, cx + 0.20 * ppc, cy - 0.11 * ppc, g(192), radius=0.03 * ppc)
+    c.rect(cx - 0.22 * ppc, cy - 0.11 * ppc, cx - 0.17 * ppc, cy + 0.20 * ppc, g(172))
+    seam(c, cx - 0.17 * ppc, cy + 0.06 * ppc, cx + 0.20 * ppc, cy + 0.06 * ppc, ppc)
+    c.rect(cx - 0.12 * ppc, cy + 0.10 * ppc, cx + 0.02 * ppc, cy + 0.20 * ppc, g(128), radius=0.02 * ppc)
+    c.rect(cx + 0.20 * ppc, cy - 0.06 * ppc, cx + 0.34 * ppc, cy + 0.16 * ppc, g(120), radius=0.02 * ppc)  # magazine
+    seam(c, cx + 0.20 * ppc, cy + 0.05 * ppc, cx + 0.34 * ppc, cy + 0.05 * ppc, ppc)
+
+
+def ml_pd(c, cx, cy, ppc):
+    """Small square housing with a sensor box on its flank and a cluster of three thin tubes in a clamp."""
+    c.ellipse(cx, cy, 0.21 * ppc, g(85))
+    for sx in (-0.035, 0.0, 0.035):
+        c.rect(cx + (sx - 0.012) * ppc, cy - 0.40 * ppc, cx + (sx + 0.012) * ppc, cy - 0.12 * ppc, g(75))
+    c.rect(cx - 0.06 * ppc, cy - 0.30 * ppc, cx + 0.06 * ppc, cy - 0.24 * ppc, g(110))
+    c.rect(cx - 0.18 * ppc, cy - 0.16 * ppc, cx + 0.16 * ppc, cy + 0.20 * ppc, g(150), radius=0.04 * ppc)
+    c.rect(cx - 0.18 * ppc, cy - 0.16 * ppc, cx + 0.16 * ppc, cy - 0.09 * ppc, g(190), radius=0.03 * ppc)
+    seam(c, cx - 0.01 * ppc, cy - 0.09 * ppc, cx - 0.01 * ppc, cy + 0.20 * ppc, ppc)
+    c.rect(cx + 0.06 * ppc, cy + 0.0 * ppc, cx + 0.20 * ppc, cy + 0.12 * ppc, g(60), radius=0.02 * ppc)  # sensor box
+    c.ellipse(cx + 0.13 * ppc, cy + 0.06 * ppc, 0.03 * ppc, g(215))
+
+
+def ht_round_collar(c, cx, cy, ppc, variant):
+    if variant == "prepared":
+        # A seamless disc cut into three arcs by glowing gaps, with a thin emitter ring at the well.
+        c.ellipse(cx, cy, 0.47 * ppc, g(120))
+        c.ellipse(cx - 0.015 * ppc, cy - 0.015 * ppc, 0.45 * ppc, g(184))
+        c.ellipse(cx, cy, 0.41 * ppc, g(162))
+        for i in range(3):
+            a = math.radians(-90 + 120 * i)
+            c.d.line([((cx + 0.32 * ppc * math.cos(a)) * SS, (cy + 0.32 * ppc * math.sin(a)) * SS),
+                      ((cx + 0.46 * ppc * math.cos(a)) * SS, (cy + 0.46 * ppc * math.sin(a)) * SS)],
+                     fill=g(242), width=int(0.03 * ppc * SS))
+        c.ellipse(cx, cy, 0.335 * ppc, g(236))
+        c.ellipse(cx, cy, 0.315 * ppc, g(100))
+        c.ellipse(cx, cy, 0.29 * ppc, g(45))
+    else:
+        # A square drop pad on four splayed outrigger feet, a beacon on one corner.
+        for i in range(4):
+            a = math.radians(45 + 90 * i)
+            ex, ey = cx + 0.46 * ppc * math.cos(a), cy + 0.46 * ppc * math.sin(a)
+            px, py = -math.sin(a) * 0.035 * ppc, math.cos(a) * 0.035 * ppc
+            c.poly([(cx + px, cy + py), (ex + px, ey + py), (ex - px, ey - py), (cx - px, cy - py)], g(110))
+            c.ellipse(ex, ey, 0.05 * ppc, g(150))
+        c.rect(cx - 0.34 * ppc, cy - 0.34 * ppc, cx + 0.34 * ppc, cy + 0.34 * ppc, g(128), radius=0.09 * ppc)
+        c.rect(cx - 0.34 * ppc, cy - 0.34 * ppc, cx + 0.31 * ppc, cy + 0.31 * ppc, g(175), radius=0.09 * ppc)
+        c.rect(cx - 0.31 * ppc, cy - 0.31 * ppc, cx + 0.31 * ppc, cy + 0.31 * ppc, g(150), radius=0.08 * ppc)
+        c.ellipse(cx, cy, 0.29 * ppc, g(100))
+        c.ellipse(cx, cy, 0.26 * ppc, g(45))
+        c.ellipse(cx + 0.27 * ppc, cy - 0.27 * ppc, 0.03 * ppc, g(245))
+
+
+def ht_grenade(c, cx, cy, ppc):
+    """Smooth capsule housing with two short wide tubes in a faired nose, a glowing strip and a flush side pod."""
+    c.ellipse(cx, cy, 0.25 * ppc, g(85))
+    for sx in (-0.08, 0.08):
+        c.rect(cx + (sx - 0.042) * ppc, cy - 0.44 * ppc, cx + (sx + 0.042) * ppc, cy - 0.14 * ppc, g(95))
+        c.rect(cx + (sx - 0.052) * ppc, cy - 0.47 * ppc, cx + (sx + 0.052) * ppc, cy - 0.43 * ppc, g(205))
+        c.ellipse(cx + sx * ppc, cy - 0.445 * ppc, 0.028 * ppc, g(30))
+    c.poly([(cx - 0.17 * ppc, cy - 0.14 * ppc), (cx + 0.17 * ppc, cy - 0.14 * ppc), (cx + 0.10 * ppc, cy - 0.28 * ppc),
+            (cx - 0.10 * ppc, cy - 0.28 * ppc)], g(148))
+    c.rect(cx - 0.21 * ppc, cy - 0.18 * ppc, cx + 0.21 * ppc, cy + 0.25 * ppc, g(150), radius=0.18 * ppc)
+    c.rect(cx - 0.19 * ppc, cy - 0.17 * ppc, cx + 0.12 * ppc, cy + 0.18 * ppc, g(190), radius=0.15 * ppc)
+    c.rect(cx - 0.012 * ppc, cy - 0.08 * ppc, cx + 0.012 * ppc, cy + 0.18 * ppc, g(240))
+    c.ellipse(cx + 0.25 * ppc, cy + 0.04 * ppc, 0.07 * ppc, g(125), ry=0.12 * ppc)
+    c.ellipse(cx + 0.25 * ppc, cy + 0.04 * ppc, 0.02 * ppc, g(235))
+
+
+def ht_pd(c, cx, cy, ppc):
+    """A small smooth dome with a glowing ring, a dark sensor lens and three thin tubes in a faired clamp."""
+    c.ellipse(cx, cy, 0.21 * ppc, g(85))
+    for sx in (-0.035, 0.0, 0.035):
+        c.rect(cx + (sx - 0.011) * ppc, cy - 0.40 * ppc, cx + (sx + 0.011) * ppc, cy - 0.12 * ppc, g(75))
+    c.rect(cx - 0.055 * ppc, cy - 0.30 * ppc, cx + 0.055 * ppc, cy - 0.25 * ppc, g(200))
+    c.ellipse(cx, cy + 0.02 * ppc, 0.19 * ppc, g(150))
+    c.ellipse(cx - 0.04 * ppc, cy - 0.02 * ppc, 0.13 * ppc, g(188))
+    c.d.ellipse([(cx - 0.15 * ppc) * SS, (cy - 0.13 * ppc) * SS, (cx + 0.15 * ppc) * SS, (cy + 0.17 * ppc) * SS],
+                outline=g(240), width=int(0.018 * ppc * SS))
+    c.ellipse(cx + 0.09 * ppc, cy + 0.06 * ppc, 0.05 * ppc, g(35))
+    c.ellipse(cx + 0.09 * ppc, cy + 0.06 * ppc, 0.02 * ppc, g(235))
+
+
+POINTS2 = {
+    "midline": (ml_round_collar, ml_grenade, ml_pd),
+    "hightech": (ht_round_collar, ht_grenade, ht_pd),
+}
 
 
 GEOMETRY = {
@@ -449,8 +593,46 @@ def hardpoint_sheet(family, variant):
     return c
 
 
+def points2_sheet(family, variant):
+    collar, grenade, pd = POINTS2[family]
+    c = Canvas()
+    cxs = [18 + 500 * i + 250 for i in range(3)]
+    collar(c, cxs[0], 512, 400, variant)
+    grenade(c, cxs[1], 512, 400)
+    pd(c, cxs[2], 512, 400)
+    return c
+
+
+def collar2_sheet(family, variant):
+    c = Canvas()
+    POINTS2[family][0](c, 18 + 250, 512, 400, variant)
+    return c
+
+
 def guide_path(family, variant, sheet):
     return GUIDES / f"{family}-{variant}-{sheet}-guide.png"
+
+
+# The directions taken on to full sets (phase B). Their militia hardpoint is the stepped 'hardpoint-v2' geometry
+# (the phase-A militia plinths read flat at play zoom), and they carry the second point sheet.
+CHOSEN = ("league-standard", "tritach-white")
+
+
+# The image tool refused the League militia's second point sheet three times running (violence filter), so that
+# variant generates its round collar alone ('collar2') and its grenade and point-defence heads are the prepared
+# variant's, dressed in the militia heads' paint by export_ship (field_dress.colour_transfer), as earthwork's were.
+COLLAR_ONLY = {("league-standard", "militia")}
+
+
+def sheets(option, variant):
+    if option not in CHOSEN:
+        return ("points", "hardpoint")
+    second = "collar2" if (option, variant) in COLLAR_ONLY else "points2"
+    return ("points", "hardpoint-v2" if variant == "militia" else "hardpoint", second)
+
+
+def hardpoint_sheet_name(option, variant):
+    return [s for s in sheets(option, variant) if s.startswith("hardpoint")][0]
 
 
 # ---- options and briefs ----------------------------------------------------------------------
@@ -465,10 +647,10 @@ OPTIONS = {
         "recessed white strip lamps where the guide shows the brightest thin bars; housings in the same painted slate "
         "blue-grey with grey hatches and darker charcoal pipes; scuffed paint at edges, clean repairs, reads serviced "
         "not old",
-        "Persean League standard kit set up quickly by local volunteers: the same slate blue-grey standard-pattern housings, scuffed and "
-        "patched, sitting on collapsible wire-mesh barrier cells lined with grey geotextile and filled with earth, "
-        "ratchet straps, stacked standard grey ammunition cases, a sun-faded blue tarp lashed over part of the deck; "
-        "bins and mesh where the guide shows square cells; unit chevrons half painted over"),
+        "Persean League civil-engineering kit assembled on site: the same slate blue-grey standard-pattern machinery housings, scuffed and "
+        "patched, sitting on collapsible wire-mesh bins lined with grey geotextile and filled with earth, "
+        "ratchet straps, stacked grey storage cases, a sun-faded blue tarp lashed over part of the deck; "
+        "bins and mesh where the guide shows square cells; painted markings faded"),
     "diktat-export": ("midline",
         "Sindrian Diktat export grade: pressed ceramic-steel modular panels with rounded chamfers and sealed seams, "
         "painted warm sand-ochre with bold rust-red and dark brown stripe bands as unit markings (no letters), polished "
@@ -566,6 +748,21 @@ PLINTHS = {
                              "folding ladder down the south (keep everything as drawn); seen from straight above, "
                              "lit from the upper left; it must read as a platform standing high above the ground",
 }
+# The stepped militia plinths of phase B (hardpoint-v2), described as built in courses so the height reads.
+PLINTHS_V2 = {
+    ("midline", "militia"): "a raised platform about one storey (four metres) tall built up in three stepped courses "
+                            "of square earth-filled mesh bins, each course set back from the one below: every course shows "
+                            "a lit top on the north and west and a dark shaded face on the south and east, darkest at "
+                            "the foot; it must read clearly as a tall stepped tower standing above the ground, not a "
+                            "flat floor. A plated deck on top, a narrow staircase down the south side (keep the steps "
+                            "as drawn), crates on three deck corners",
+    ("hightech", "militia"): "a raised deployable platform about one storey (four metres) tall: a rounded deck with a "
+                             "deep dark skirt of its own thickness showing below its south and east edges and deep "
+                             "shadow underneath, held up by four splayed struts to round foot pads at the corners, "
+                             "curved barrier shells round its foot on the north, west and east, and a folding ladder "
+                             "down the south (keep everything as drawn); seen from straight above, lit from the "
+                             "upper left; it must read as a platform standing high above the ground",
+}
 HEAVY = {
     "midline": "the heavy rotating machinery house that sits on it: a slab-sided panelled housing with a chamfered front, "
                "a square front box, bolted side bins along both flanks, a hatch, a cupola, a rear grille, and one long "
@@ -573,6 +770,26 @@ HEAVY = {
     "hightech": "the heavy rotating machinery house that sits on it: a large smooth oval shell with two swept rear fins, a "
                 "glowing ring on its crown, a flush lens, and one long pipe wound with ring coils and ending in a "
                 "glowing tip, pointing straight up the image",
+}
+
+POINTS2_OBJECTS = {
+    "midline": ("left, a {collar}, sunk flush into the ground, with an empty dark circular socket in the middle "
+                "(leave the well interior dark and plain: a separate housing sits over it); middle, a panelled box "
+                "machinery housing with a square side box and two short wide pipes side by side in a flat cradle, "
+                "sticking straight up the image; right, a small square machinery housing with a dark sensor box on "
+                "its side and a cluster of three thin pipes sticking straight up the image"),
+    "hightech": ("left, a {collar}, sunk flush into the ground, with an empty dark circular socket in the middle "
+                 "(leave the well interior dark and plain: a separate housing sits over it); middle, a smooth capsule "
+                 "machinery pod with a glowing spine strip, a flush side pod and two short wide pipes with glowing "
+                 "rims sticking straight up the image; right, a small smooth dome with a glowing ring, a dark lens "
+                 "and a cluster of three thin pipes sticking straight up the image"),
+}
+ROUND_COLLARS = {
+    ("midline", "prepared"): "round precast collar of joined panels with a recessed lamp arc and four bolted plates",
+    ("midline", "militia"): "ring of ten square earth-filled mesh bins round a sunken pit",
+    ("hightech", "prepared"): "flush seamless round disc collar cut into three arcs by glowing gaps, with a glowing "
+                              "ring round the well",
+    ("hightech", "militia"): "square drop-deployed pad on four splayed outrigger feet with a beacon light",
 }
 
 COMMON_TAIL = ("Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no "
@@ -594,9 +811,19 @@ def brief(option, variant, sheet):
         body = ("It holds three separate objects for small sci-fi strategy-game building props (like a tabletop "
                 "miniature terrain set), each seen from directly above: "
                 + POINTS_OBJECTS[family].format(collar=COLLARS[(family, variant)]) + ". ")
+    elif sheet == "collar2":
+        body = ("It holds one object for a small sci-fi strategy-game building prop (like a tabletop miniature "
+                "terrain set), seen from directly above, at the left: a " + ROUND_COLLARS[(family, variant)]
+                + ", sunk flush into the ground, with an empty dark circular socket in the middle (leave it dark and "
+                "plain). ")
+    elif sheet == "points2":
+        body = ("It holds three separate objects for small sci-fi strategy-game building props (like a tabletop "
+                "miniature terrain set), each seen from directly above: "
+                + POINTS2_OBJECTS[family].format(collar=ROUND_COLLARS[(family, variant)]) + ". ")
     else:
         body = ("It holds two separate objects for a sci-fi strategy-game building prop (like a tabletop miniature "
-                "terrain set), each seen from directly above. Left: " + PLINTHS[(family, variant)]
+                "terrain set), each seen from directly above. Left: "
+                + (PLINTHS_V2 if sheet == "hardpoint-v2" else PLINTHS)[(family, variant)]
                 + "; the deck holds an empty dark circular ring well (leave the well dark and plain: a separate "
                 "rotating house sits over it). Right: " + HEAVY[family] + ". ")
     return head + body + "Material and style: " + material + ". " + COMMON_TAIL
@@ -617,7 +844,13 @@ def cmd_guides():
     for family in FAMILIES:
         for variant in VARIANTS:
             points_sheet(family, variant).save(guide_path(family, variant, "points"))
-            hardpoint_sheet(family, variant).save(guide_path(family, variant, "hardpoint"))
+            points2_sheet(family, variant).save(guide_path(family, variant, "points2"))
+            if any(OPTIONS[o][0] == family and v == variant for o, v in COLLAR_ONLY):
+                collar2_sheet(family, variant).save(guide_path(family, variant, "collar2"))
+            # The phase-A militia hardpoint guides stay as generated (their raws' provenance hashes them); the
+            # stepped militia geometry is written as hardpoint-v2.
+            name = "hardpoint" if variant == "prepared" else "hardpoint-v2"
+            hardpoint_sheet(family, variant).save(guide_path(family, variant, name))
     print("wrote guides")
 
 
@@ -625,7 +858,7 @@ def cmd_prompts():
     PROMPTS.mkdir(parents=True, exist_ok=True)
     for option in OPTIONS:
         for variant in VARIANTS:
-            for sheet in ("points", "hardpoint"):
+            for sheet in sheets(option, variant):
                 prompt_path(option, variant, sheet).write_text(brief(option, variant, sheet) + "\n", encoding="utf-8")
     print("wrote prompts")
 
@@ -634,7 +867,7 @@ def jobs(options):
     for option in options or OPTIONS:
         family = OPTIONS[option][0]
         for variant in VARIANTS:
-            for sheet in ("points", "hardpoint"):
+            for sheet in sheets(option, variant):
                 yield option, family, variant, sheet
 
 
@@ -682,7 +915,8 @@ def cmd_export():
     for option, family, variant, sheet in jobs(None):
         if sheet != "points":
             continue
-        pts_raw, hp_raw = raw_path(option, variant, "points"), raw_path(option, variant, "hardpoint")
+        hp_sheet = hardpoint_sheet_name(option, variant)
+        pts_raw, hp_raw = raw_path(option, variant, "points"), raw_path(option, variant, hp_sheet)
         if not (pts_raw.exists() and hp_raw.exists()):
             print("skip", option, variant, "(raw missing)")
             continue
@@ -695,7 +929,7 @@ def cmd_export():
         head_piece(pts, guide, (cx[1] - 250, 262, cx[1] + 250, 762), 160, 0.22, "autogun") \
             .save(target / "autogun.png")
         head_piece(pts, guide, (cx[2] - 250, 262, cx[2] + 250, 762), 160, 0.24, "cannon").save(target / "cannon.png")
-        guide = Image.open(guide_path(family, variant, "hardpoint"))
+        guide = Image.open(guide_path(family, variant, hp_sheet))
         hp = masked(Image.open(hp_raw), guide)
         plinth_with_shadow(fitted(hp, guide, (0, 128, 768, 896)), 3 * PPC).save(target / "plinth.png")
         head_piece(hp, guide, (768, 128, 1536, 896), 3 * PPC, 0.2, "heavy").save(target / "heavy.png")
