@@ -1069,6 +1069,10 @@ M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'mo
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
 M5_T = 47.0
+# The effects the finished kit (scene_fx) draws; under --swfx none of them falls back to a stand-in.
+KIT_FX = ('tracer', 'missiles', 'blast_on', 'debris', 'fire_on', 'smoke', 'flares')
+
+
 def at_time(pose, t):
     """A flight keyed at another shot's key time, stilled at t instead: the same motion, so a camera
     tracking it and the preview's key frame both register at t."""
@@ -2901,8 +2905,21 @@ def blender_main(cfg):
             rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
             span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
             span_now['span'] = 'span_t' in spec
-            for key, sp in spec['ships'].items():
-                place(key, sp, spec.get('states', {}).get(key))
+            # The kit is the shot's, not the chunk's: under --kit-once it is built with every ship where
+            # she is as the shot opens, whichever chunk this run renders, so every chunk plans the same
+            # guns, rounds and hits and nothing pops at a chunk boundary (2026-10-23: S7's chunks
+            # planned 0, 5, 5 and 6 rounds for one gun); the ships are then put back at this frame.
+            build_at = spec['shot_t'][0] if (not step and cfg.get('kit_once') and 'span_t' in spec) else None
+            if build_at is not None:
+                span_now['dt'] = build_at - spec['key_t']
+                staged = set(stage.all_objects)
+                for key, sp in KEYFRAMES[spec['span_of']]['ships'].items():
+                    place(key, at_time(sp, build_at) if hasattr(sp, 'at') else sp, spec.get('states', {}).get(key))
+                build_placed = [o for o in stage.all_objects if o not in staged]
+                print(f"ASHARU kit {kf}: built at the shot's opening, {build_at:.3f} s", flush=True)
+            else:
+                for key, sp in spec['ships'].items():
+                    place(key, sp, spec.get('states', {}).get(key))
             if not step:                     # the kit's build: once per run under --kit-once
                 for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
                     if lib.get('ctl') is not None:
@@ -3005,6 +3022,13 @@ def blender_main(cfg):
                         print(f'ASHARU kit {kf} {row}', flush=True)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
+            if build_at is not None:     # back to this frame's own poses, before anything else reads them
+                for o in build_placed:
+                    bpy.data.objects.remove(o)
+                span_now['dt'] = spec['span_t'] - spec['key_t']
+                for key, sp in spec['ships'].items():
+                    place(key, sp, spec.get('states', {}).get(key))
+                bpy.context.view_layer.update()
             if not step:
                 built_for[0] = span_of
             else:
@@ -3016,6 +3040,11 @@ def blender_main(cfg):
                 if i in kit_drew:
                     continue
                 kind = fx[0]
+                if cfg.get('swfx') and kind in KIT_FX:
+                    # no stand-in under the kit (owner, 2026-10-23, S7: a stand-in stream is a still
+                    # picture of rounds, held for the length of a burst, that no projectile check sees):
+                    # an effect the kit should draw and did not stops the render
+                    raise RuntimeError(f'{kf}: the kit did not draw {fx}, and a kit render draws no stand-ins')
                 if kind == 'tracer':
                     tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None, muzzle=muzzles.get(fx[:3]))
                 elif kind == 'missiles':

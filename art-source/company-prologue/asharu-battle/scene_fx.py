@@ -169,7 +169,7 @@ class SceneFx:
             if target is not None and hit_l is not None:
                 self.strikes(b, [self.now - k * 3 for k in range(4)], hit_l, normal, 'kinetic')
             return False
-        landed, fired, placed_hits = [], [], []
+        landed, fired, placed_hits, planned_any = [], [], [], False
         with self.fired(a), shooter.kit() as (ctx, kit):
             turrets = []
             for m in muzzles:
@@ -198,6 +198,7 @@ class SceneFx:
                         recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
                                             feeder, aim_at)
                         if recs is not None:
+                            planned_any = True       # the plan owns this gun, firing or holding
                             placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
                                             if r.get('hit_frame') is not None and r.get('hit_l') is not None]
                             if recs:
@@ -216,7 +217,11 @@ class SceneFx:
                 if recs:             # a degenerate gun fires nothing: the stand-in draws the shot
                     fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
-            return False
+            # a planned gun that holds fire draws nothing; it never falls back to the blockout's
+            # stand-in streaks, which are a still picture of a stream (owner, 2026-10-23, S7)
+            if planned_any:
+                self.rows.append(f'tracer {a} -> {b}: planned, no round on target in this shot')
+            return planned_any
         if placed_hits:      # planned rounds: each strike where its own straight line met her hull
             he = self.hit_kind(a, fired)
             placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
@@ -544,7 +549,56 @@ class SceneFx:
         if bad and self.matrix_at is not None and self.span:
             raise RuntimeError(f'{len(bad)} projectiles still in the space of the ship that fired them '
                                f'(owner, 2026-10-23: projectiles fly in world space), e.g. {bad[:6]}')
+        if self.span and self.cur is None:      # the whole shot's rounds, built once (--kit-once)
+            flight, checked = self.flight_check()
+            self.rows.append(f'flight check: {checked} rounds checked, {len(flight)} pop in, freeze or blink')
+            if flight:
+                raise RuntimeError(f'{len(flight)} rounds do not fly from the muzzle onward every frame '
+                                   f'(owner, 2026-10-23, S7: streaks held still for ten frames): {flight[:6]}')
         return bad
+
+    # The round bodies themselves: a round's corona and core, a tracer. Not its halo or light, which
+    # sit at the muzzle for the first frames by design, nor an ion bolt's one-frame jag pieces (the
+    # bolt's corona round carries its flight).
+    MOVERS = re.compile(r' (round(?! halo| light)|tracer) .* f-?\d{3,}$')
+
+    def flight_check(self):
+        """Every round in a shot flies: it shows first on the frame it was fired (or on the shot's
+        first frame, if it was fired before the cut), shows on every frame until it is gone, and
+        moves on every one of them. Anything else is a streak that pops in mid-flight, holds still
+        or blinks."""
+        import swfx_core
+        f_lo, f_hi = self.span
+        bad, checked = [], 0
+        for o in bpy.data.objects:
+            if o in self.before or o.parent is not None or not o.name.startswith('SWFX') or not self.MOVERS.search(o.name):
+                continue
+            fcs = [swfx_core.find_fcurve(o, 'location', i) for i in range(3)]
+            vis = swfx_core.find_fcurve(o, 'hide_render')
+            if vis is None or not len(vis.keyframe_points):
+                continue
+            keys = [kp.co.x for kp in vis.keyframe_points]
+            lo, hi = max(f_lo, int(min(keys))), min(f_hi, int(max(keys)) + 1)
+            shown = [f for f in range(lo, hi + 1) if vis.evaluate(f) < .5]
+            if not shown:
+                continue
+            checked += 1
+            birth = self._birth(o, swfx_core)
+            if birth is not None and shown[0] > max(birth, f_lo) + 1:
+                bad.append(f'{o.name}: first shown f{shown[0]}, fired f{birth}')
+                continue
+            if shown[-1] - shown[0] + 1 != len(shown):
+                bad.append(f'{o.name}: blinks between f{shown[0]} and f{shown[-1]}')
+                continue
+            if len(shown) > 1 and not all(fc is not None and len(fc.keyframe_points) for fc in fcs):
+                bad.append(f'{o.name}: shown {len(shown)} frames with no flight keys')
+                continue
+            for f in shown[1:]:
+                d = sum((fc.evaluate(f) - fc.evaluate(f - 1)) ** 2 for fc in fcs) ** .5
+                if d < 1e-3:
+                    bad.append(f'{o.name}: holds still at f{f}')
+                    break
+        return bad, checked
 
     def add_elevation(self, a, piv, guns):
         """A mount the build gave only a traverse pivot (the Hound's WS 002): an elevation joint made
