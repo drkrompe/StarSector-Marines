@@ -65,6 +65,11 @@ public final class StructureDef {
      * ({@link StructureLook#shield}), or null for a structure that never carries one.
      */
     public final FluxShieldSpec fluxShield;
+    /**
+     * What a post built in a style puts up in this structure's place, by style key ({@code builtIn} in the catalog):
+     * a high-tech builder fits a laser where others fit a gun. Empty for a structure every style builds as itself.
+     */
+    public final Map<String, String> builds;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
@@ -74,8 +79,9 @@ public final class StructureDef {
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
                          StructureArt art, TurretRole targetRole, FortAspect fortAspect,
                          FortBuildingArt buildingArt, FortGatehouseArt gatehouseArt,
-                         Map<String, StructureLook> looks, FluxShieldSpec fluxShield) {
+                         Map<String, StructureLook> looks, FluxShieldSpec fluxShield, Map<String, String> builds) {
         this.looks = Map.copyOf(looks);
+        this.builds = Map.copyOf(builds);
         this.fluxShield = fluxShield;
         this.buildingArt = buildingArt;
         this.gatehouseArt = gatehouseArt;
@@ -138,6 +144,14 @@ public final class StructureDef {
         if (fluxShield == null) return null;
         StructureLook look = look(style);
         return look != null && look.shield() != null ? fluxShield : null;
+    }
+
+    /**
+     * The structure a post built in {@code style} puts up in this one's place ({@link #builds}): this structure's id
+     * unless that style builds another.
+     */
+    public String builtIn(EmplacementStyle style) {
+        return builds.getOrDefault(style.key, id);
     }
 
     /**
@@ -242,6 +256,17 @@ public final class StructureDef {
                         shield, TurretMountDef.optionalText(look, "fluxDevice")));
             }
         }
+        Map<String, String> builds = new HashMap<>();
+        JSONObject buildsJson = json.optJSONObject("builtIn");
+        if (buildsJson != null) {
+            for (Iterator<?> keys = buildsJson.keys(); keys.hasNext(); ) {
+                String key = (String) keys.next();
+                boolean known = false;
+                for (EmplacementStyle style : EmplacementStyle.values()) known |= style.key.equals(key);
+                if (!known) throw new JSONException("Structure '" + id + "' is built in unknown style '" + key + "'");
+                builds.put(key, buildsJson.getString(key));
+            }
+        }
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));
         if (mount.weapon.guidance != null && role != TurretRole.AA)
             throw new JSONException("Air-guided weapon requires an AA structure: " + id);
@@ -253,6 +278,6 @@ public final class StructureDef {
                 role,
                 json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null,
                 buildingArt, gatehouseArt, looks,
-                json.has("fluxShield") ? FluxShieldSpec.parse(id, json.getJSONObject("fluxShield")) : null);
+                json.has("fluxShield") ? FluxShieldSpec.parse(id, json.getJSONObject("fluxShield")) : null, builds);
     }
 }
