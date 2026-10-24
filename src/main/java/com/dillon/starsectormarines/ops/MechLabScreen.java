@@ -238,6 +238,8 @@ public final class MechLabScreen implements Screen {
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
+        props.put("allPartsClasses", viewModel.allPartsClasses());
+        props.put("showAllParts", (Runnable) viewModel::showAllParts);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 context::roomAboard,
                 this::close,
@@ -279,6 +281,7 @@ public final class MechLabScreen implements Screen {
         MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get(), viewModel);
         wireLancePictures(instance, target);
         MechLabSpecSheets.bindMaterials(sheets, instance, viewModel);
+        MechLabSpecSheets.bindFilterPills(sheets, instance, viewModel.categoryFilterPills().get());
         MechLabSpecSheets.bindActions(sheets, instance, viewModel);
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
             UiElement canvas = instance.requireElement(row.previewId());
