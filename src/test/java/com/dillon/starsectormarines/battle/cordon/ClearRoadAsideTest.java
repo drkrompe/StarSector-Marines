@@ -59,9 +59,11 @@ class ClearRoadAsideTest {
 
     @Test
     void aDozerNoNearerItsAsidePlaceForAWhileIsWedgedAndTriesTheNext() {
-        assertFalse(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS - 1));
-        assertTrue(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS));
+        assertFalse(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS - 1, true));
+        assertTrue(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS, true));
         // There: nothing to retry.
-        assertFalse(ClearRoadBeat.asideStalled(2f, 10 * ClearRoadBeat.ASIDE_STALL_TICKS));
+        assertFalse(ClearRoadBeat.asideStalled(2f, 10 * ClearRoadBeat.ASIDE_STALL_TICKS, true));
+        // Its order done, it stopped as near as it stops: not sent on.
+        assertFalse(ClearRoadBeat.asideStalled(9f, 10 * ClearRoadBeat.ASIDE_STALL_TICKS, false));
     }
 }

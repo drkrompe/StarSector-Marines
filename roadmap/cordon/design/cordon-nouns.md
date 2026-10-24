@@ -648,8 +648,8 @@ dozer standing at a shut road cell pushes it at the blade's rate even where
 its move order stopped it short of the blade bearing; it pulls aside onto
 the first cell square to the road past the wreck, either side and further out
 in turn, that keeps six cells clear of the corridor and that it can drive to,
-and tries the next when its move order gives up on one or it comes no nearer
-for eight seconds (a fixed step off the road put it in a wall, and it stood
+and tries the next when its move order gives up on one or, still under way, it comes no
+nearer for eight seconds, four places at most (a fixed step off the road put it in a wall, and it stood
 wedged in the convoys' way); R4's militia
 stay allied; R6 waits for a natural fall, since a scripted one would spend the
 briefing's one allowed redoubt. A beat that never got its trigger lapses.

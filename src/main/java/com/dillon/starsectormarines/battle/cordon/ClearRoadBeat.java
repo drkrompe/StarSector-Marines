@@ -197,7 +197,13 @@ final class ClearRoadBeat extends CordonBeat {
                 asideSince = tick;
             }
             boolean gaveUp = refused != null && refused.requestedX() == aside[0] && refused.requestedY() == aside[1];
-            if (gaveUp || asideStalled(d, tick - asideSince)) pullAside(sim);
+            VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
+            VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(dozer);
+            boolean underWay = orders.pending(dozer)
+                    || order != null && order.requestedX() == aside[0] && order.requestedY() == aside[1];
+            if (asideTried.size() < ASIDE_TRIES && (gaveUp || asideStalled(d, tick - asideSince, underWay))) {
+                pullAside(sim);
+            }
             return;
         }
         if (road.isEmpty() || beats.sequence().convoys() == null) return;
@@ -248,12 +254,17 @@ final class ClearRoadBeat extends CordonBeat {
     /** Ticks the dozer may go without coming nearer its aside place before the next is tried. */
     static final int ASIDE_STALL_TICKS = Math.round(8f / BattleSimulation.TICK_DT);
 
+    /** Aside places the dozer is sent to at most: after that it stays where the last one left it. */
+    static final int ASIDE_TRIES = 4;
+
     /**
-     * Whether the dozer is wedged short of its aside place: not there yet and no nearer for {@link #ASIDE_STALL_TICKS}.
-     * A move order pinned against a fence neither progresses nor is given up on, and the dozer stood on the road.
+     * Whether the dozer is wedged short of its aside place: still under way to it, not there, and no nearer for
+     * {@link #ASIDE_STALL_TICKS}. A move order pinned against a fence neither progresses nor is given up on, and the
+     * dozer stood on the road. One whose order is done has arrived as near as it stops, and is not sent on: re-sent
+     * every few seconds, it wandered beside the road among the trucks.
      */
-    static boolean asideStalled(float distance, int ticksSinceProgress) {
-        return distance > ASIDE_REACHED && ticksSinceProgress >= ASIDE_STALL_TICKS;
+    static boolean asideStalled(float distance, int ticksSinceProgress, boolean underWay) {
+        return underWay && distance > ASIDE_REACHED && ticksSinceProgress >= ASIDE_STALL_TICKS;
     }
 
     /** Cells round the dozer its footprint is looked for when it plans its pull-aside. */
