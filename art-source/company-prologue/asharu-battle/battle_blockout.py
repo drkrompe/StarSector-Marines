@@ -216,7 +216,10 @@ TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
 HIDES = {
     'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
-    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112)),
+    # her stern and drive block clear of the hulk, turned three-quarters stern-on to S3's camera so her
+    # plume reads along her flank at the crash zoom (coordinator, 2026-10-23: was hd -30, nose-on)
+    'falcon-p': dict(at=(-950, -420, -180), hd=30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112),
+                     peek=-.75),
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
@@ -369,6 +372,7 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 # 34 s of it (only the Falcon showing a light) and S4 picks the same flights up mid-climb at 40 s.
 K1B_T = 34
 K2_T = 40
+LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -409,7 +413,7 @@ PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) f
 REJOIN = {
     'manticore-p': (44.0, (-29.3, -565.0, 622.2)),
     'colossus3': (88.0, (-6730.2, -5615.4, -3326.8)),
-    'falcon-p': (50.0, (-452.3, -1837.3, 930.3)),
+    'falcon-p': (50.0, (-673.7, -2003.1, 930.3)),
     'buffalo2-a': (50.0, (-1075.1, -147.2, 1026.1)),
     'hound-p-c': (58.0, (-2472.7, 524.4, 100.3)),
     'wolf-p-a': (50.0, (413.2, -2007.3, 1033.5)),
@@ -851,6 +855,9 @@ KEYFRAMES = {
                                    lens=122)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
+        # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
+        knobs={'falcon-p': {'thr_glow': 4.0}},
+        lamp_gain={'falcon-p': 3.0},     # the crash zoom's subject: her lamps read at 300 mm before her drives
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
@@ -903,8 +910,9 @@ KEYFRAMES = {
                                    target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
                               for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.0, .6)]),
         ships=K3C_SHIPS,
+        # the Buffalo Mk.II no longer fires on Lasher B: a stand-in hull has no kit guns to draw it, and
+        # no hit lands without a visible shooter (coordinator, 2026-10-23; kit rounds from stand-ins is open)
         fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
-            ('tracer', 'buffalo2-a', 'lasher-b'),
             ('blast_on', 'hound-p-c', 18, (0, 0, 0)), ('debris', 'hound-p-c', 50, (0, 0, 0))],
         labels=['lasher-b', 'wolf-m', 'hound-p-c', 'buffalo2-a']),
     'k3d': dict(
@@ -918,11 +926,12 @@ KEYFRAMES = {
                               dict(t=74, loc=(-420, -740, 80), target=(-330, 40, -10), lens=26)], K3D_T, shake=.2,
                       kicks=[(72.3, .3)]),
         ships=K3D_SHIPS,
-        # shields flare on both sides: the raiders' fronts under the Mule's and the Wolf's fire
-        shields={'wolf-p-b': dict(toward='mule', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
+        # shields flare on both sides: the raiders' fronts under the Colossus's and the Wolf's fire (the
+        # Mule, a stand-in with no kit guns, no longer fires: coordinator, 2026-10-23)
+        shields={'wolf-p-b': dict(toward='colossus', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
-            ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
+            ('tracer', 'wolf-m', 'wolf-p-a'),
             # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
             # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
             ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
@@ -2005,6 +2014,7 @@ def blender_main(cfg):
     def place(key, spec, state=None):
         """state names another FINISHED build of the same hull (a condition state) for this frame."""
         x, y, z, hd, pt, rl, thr = spec
+        thr = min(1.0, max(0.0, thr))    # a keyed throttle eased between keys can overshoot (S3 Falcon: -0.24)
         m = {**members[key], 'finished': state} if state else members[key]
         lib = hull(m)
         sfx = ship_fx_for(key, m, lib)
@@ -2992,6 +3002,7 @@ def blender_main(cfg):
                             import swfx_fire
                             with pl['fx'].kit() as (ctx, _kit):
                                 print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
+                                print(f'ASHARU vents rebuilt {key}: {swfx_fire.revent(ctx)}', flush=True)
                     ship_fx.refresh(scene)
                     bpy.context.view_layer.update()
             extra3d = {}
@@ -3067,10 +3078,14 @@ def blender_main(cfg):
                     if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
                         raise RuntimeError(f'{kf}: the motion audit failed {len(fails_)} effects, e.g. {fails_[:4]}')
                 if os.environ.get('ASHARU_DIAG_HIDE'):
-                    # diagnosis only: which effect a picture shows, by rendering without it
+                    # diagnosis only: which effect a picture shows, by rendering without it. The pattern
+                    # must match a whole object name (fullmatch), never a substring: 'vent' once hid the
+                    # Wolf's ventral docking lamps and a wreck's scar vents along with the vent it meant.
                     import swfx_core as swfx_core_
                     rx_ = re.compile(os.environ['ASHARU_DIAG_HIDE'])
-                    hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.search(o.name)]
+                    hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.fullmatch(o.name)]
+                    if not hid_:
+                        raise RuntimeError(f"ASHARU_DIAG_HIDE {os.environ['ASHARU_DIAG_HIDE']!r} matches no whole object name")
                     for o in hid_:
                         fc_ = swfx_core_.find_fcurve(o, 'hide_render')
                         if fc_ is not None:
@@ -3087,6 +3102,38 @@ def blender_main(cfg):
                 for key, sp in spec['ships'].items():
                     place(key, sp, spec.get('states', {}).get(key))
                 bpy.context.view_layer.update()
+            if cfg.get('kit_once') and 'span_t' in spec:
+                # The kit's drives follow this frame's throttle, not the one the kit was built at: under
+                # --kit-once the build sets it once, at the shot's opening, and S3's pirates stayed dark
+                # through the whole shot although each lights her drives inside it (audit, 2026-10-23).
+                # So does everything else that changes over a shot and the build sets only once (state
+                # audit, 2026-10-23): a pirate's lamps come on as she wakes, before her drives, and a raised
+                # shield faces her attacker where he is now. Each value is checked against this plan once
+                # the frame is set (ASHARU state below), so a key or driver that overrides it stops the run.
+                state_plan_ = {}
+                for key, pl in placed.items():
+                    if pl['fx'] is None or pl['fx'].fx is None:
+                        continue
+                    if not pl['lib']['swfx']:
+                        state_plan_[(key, 'thr_throttle')] = pl['throttle']
+                    if key in LAUNCH:
+                        try:
+                            pl['fx'].get('lit_ship_master')
+                        except KeyError:
+                            print(f'ASHARU state {kf}: {key} has no ship lamps to wake', flush=True)
+                        else:
+                            wake_ = (spec['span_t'] - (LAUNCH[key] - LAMPS_LEAD_S)) / .3
+                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_)) * spec.get('lamp_gain', {}).get(key, 1.0)
+                for key, sh in spec.get('shields', {}).items():
+                    if key in placed and sh.get('toward') in placed and placed[key]['fx'] is not None:
+                        d_ = placed[key]['matrix'].inverted() @ placed[sh['toward']]['matrix'].translation
+                        state_plan_[(key, 'shield_facing')] = math.degrees(math.atan2(d_.y, d_.x))
+                for (key, knob), val in state_plan_.items():
+                    placed[key]['fx'].set(knob, val)
+                ship_fx.refresh(scene)
+                bpy.context.view_layer.update()
+                print(f"ASHARU state plan {kf}: "
+                      f"{ {f'{k} {n}': round(v, 2) for (k, n), v in sorted(state_plan_.items())} }", flush=True)
             if not step:
                 built_for[0] = span_of
             else:
@@ -3161,6 +3208,15 @@ def blender_main(cfg):
                 scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
                 print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
                       f"from the key)", flush=True)
+                if cfg.get('kit_once'):
+                    # what the frame evaluates to, against this frame's plan: a value the build set once, or
+                    # one a key or driver overrides, shows here (the S3 pirates' drives stayed dark unseen)
+                    off_ = sorted(((abs(float(placed[k_]['fx'].get(n_)) - v_), k_, n_, v_)
+                                   for (k_, n_), v_ in state_plan_.items()), reverse=True)
+                    w_ = off_[0] if off_ else (0.0, None, None, None)
+                    print(f'ASHARU state {kf}: {len(off_)} values, worst {w_[0]:.4f} ({w_[1]} {w_[2]})', flush=True)
+                    if w_[0] > 1e-3 and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                        raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -3168,6 +3224,8 @@ def blender_main(cfg):
                 else:
                     lab[key] = ship_label(key)
             labels[kf] = lab
+            if 'span_t' in spec:
+                print(f'ASHARU on screen {kf}: {lab}', flush=True)
             if cfg.get('motion_preview'):     # --motion-preview: play this shot in Workbench (asharu_preview.py)
                 import asharu_preview
                 asharu_preview.shot(locals(), kf)

@@ -166,8 +166,10 @@ def _vent_material(ctx, name, seed, length):
     # Asharu's sun read as two solid white lobes on the Lasher in S6 (frame 1349). Gas in vacuum
     # thins at once, so it is a third as dense, broken into wisps, and absorbs as much as it scatters.
     shape = g.m('MULTIPLY', g.m('MULTIPLY', g.gauss(r, 1.0, 1.6), along), g.mr(n, .45, .8))
-    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .3/units(1.0)), amount)
-    volume_output(g, dens, (0.55, 0.57, 0.6, 1), (0.35, 0.36, 0.38, 1), .35)
+    # Rebuilt on the Phaeton wreck (revent) it was still two pale lobes in Asharu's sun at .3 and a .55
+    # albedo (diag-blob6, 2026-10-23): a fifth of the old density, and a dull grey that reads as vapour.
+    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .18/units(1.0)), amount)
+    volume_output(g, dens, (0.26, 0.27, 0.29, 1), (0.2, 0.2, 0.21, 1), .35)
     return m
 
 
@@ -413,16 +415,20 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
     at = mp.anchor_matrix(anchor).translation
     out_dir = at.normalized() if at.length > 1e-6 else Vector((0, 0, 1))       # away from the wreck's centre
     big = S >= 18.0 and flash_gain >= .8
-    made = swfx_burst.burst(ctx, coll, f'blast {anchor.name}', at, f, mpu, rnd, (1.0, .55, .22),
-                            size_m=(S * .5, S * .72), axis=out_dir, lean=.8,
-                            shrapnel=(12, 18) if big else (6, 10), smoke=.6 if big else .5,
-                            smoke_life=(48, 72) if big else (28, 44), flash_frames=3 if big else 2,
-                            parent=anchor, prefix=PREFIX, tear=True, smoke_drift=1.2)
-    n = rnd.randint(3, 4) if big else rnd.randint(1, 2)
+    # The approved HE recipe scaled by pieces (coordinator, 2026-10-23): a small hot core, torn
+    # tongues, burning debris for over a second and a long smoke, never one big torn flash (which
+    # read as a hard plate and then a patterned solid); the satellites are the secondaries.
+    made = swfx_burst.warhead(ctx, coll, f'blast {anchor.name}', at, f, mpu, rnd, (1.0, .55, .22),
+                              core_m=(S * .2, S * .27), axis=out_dir, tongues=(7, 10) if big else (5, 7),
+                              reach=(.8, 1.8), late=10 if big else 6, late_s=1.6 if big else 1.2,
+                              shrapnel=(12, 18) if big else (6, 10), smoke=.85 if big else .7,
+                              smoke_life=(48, 72) if big else (28, 44), spall=40 if big else 20,
+                              glow_w=8.0e4 if big else 4.0e4, parent=anchor, prefix=PREFIX)
+    n = rnd.randint(3, 5) if big else rnd.randint(1, 2)
     for k in range(n):
         off = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized() * S * rnd.uniform(.25, .5)
         here = at + off / mpu
-        made += swfx_burst.burst(ctx, coll, f'blast {anchor.name} sat {k}', here, f + rnd.randint(1, 5), mpu, rnd,
+        made += swfx_burst.burst(ctx, coll, f'blast {anchor.name} sat {k}', here, f + rnd.randint(2, 14), mpu, rnd,
                                  (1.0, .6, .25), size_m=(S * .14, S * .24),
                                  axis=(out_dir + off.normalized() * .6).normalized(), lean=.9, shrapnel=(2, 4),
                                  smoke=.4, smoke_life=(16, 28), flash_frames=2, parent=anchor, prefix=PREFIX,
@@ -433,6 +439,27 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
 
 
 JAGGED_TAG = 'swfx_jagged_cookoff'
+
+
+def revent(ctx):
+    """Rebuild a ship's built vents on today's vent material, inside its ship.kit(). A hull export
+    bakes its fire group, vents included, into the build file, so a vent built before the material
+    changed keeps the old look however the code moves on: the Phaeton wreck's scar vents stayed two
+    dense white lobes in S6 after the vent was made thin and grey (audit, 2026-10-23). Raises when a
+    vent anchor has no vent built on it. Returns the number rebuilt."""
+    mine = lambda o: '@' not in o.name                  # inside kit(): this ship's copies carry the kit names
+    n = 0
+    for anchor in sorted((o for o in bpy.data.objects if o.type == 'EMPTY' and mine(o) and VENT.search(o.name)
+                          and not o.name.startswith('SWFX')), key=lambda o: o.name):
+        ob = bpy.data.objects.get(f'{PREFIX} vent | {anchor.name}')
+        if ob is None:
+            raise RuntimeError(f'revent: vent anchor {anchor.name!r} has no vent built on it')
+        seed = _seed(anchor)
+        m = _vent_material(ctx, f'{PREFIX} vent {seed} rebuilt', seed, units(float(anchor.get('length_m', VENT_M))))
+        for i in range(len(ob.data.materials)):
+            ob.data.materials[i] = m
+        n += 1
+    return n
 
 
 def jagged_cookoff(ctx):

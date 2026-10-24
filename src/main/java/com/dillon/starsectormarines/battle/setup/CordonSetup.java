@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonAlliedTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
+import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
@@ -402,7 +403,7 @@ public final class CordonSetup {
                 SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
         List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
-        CordonGarrisons.manPickets(sim, map.layout);
+        List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
         CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
             throw new IllegalStateException("Cordon swarm director configuration failed");
@@ -437,6 +438,8 @@ public final class CordonSetup {
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
         }
+        sequence.attachLine(new CordonLineCommand(sim, sequence, armour, logistics, cordon.density(), table, pickets,
+                map.layout));
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density()),
                 CordonCommand.disclosure(sequence));
         CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,

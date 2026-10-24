@@ -91,6 +91,7 @@ public final class CordonSequence implements Objective {
     private CordonArmour armour;
     private CordonLogistics logistics;
     private CordonConvoys convoys;
+    private CordonLineCommand line;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
@@ -136,6 +137,14 @@ public final class CordonSequence implements Objective {
     /** Gives the line its allied armour; at setup, before the first tick. */
     public void attachArmour(CordonArmour armour) {
         this.armour = armour;
+    }
+
+    /** The allied line command's draw on its base (requests, ammunition, the radio's allied items), or {@code null}. */
+    public CordonLineCommand line() { return line; }
+
+    /** Gives the line its allied line command; at setup, after the armour and the base. */
+    public void attachLine(CordonLineCommand line) {
+        this.line = line;
     }
 
     /** The Road's relief convoys, or {@code null}. */
@@ -255,6 +264,7 @@ public final class CordonSequence implements Objective {
         if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
         if (armour != null) armour.advance(sim, redoubts);
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
+        if (line != null) line.advance(sim);
         if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));
         // Columns muster at the base where carriers lift them up; in a city they walk the whole way.
         AlliedColumns.Orders orders = logistics != null && logistics.musters() ? logistics.columnOrders() : new ColumnOrders();

@@ -30,9 +30,10 @@ import java.util.function.Function;
  * of reach of the front (a redoubt is deeper than a heavy machine gun's range) and shot at nothing.
  * Several on one redoubt take turns on the two sides, each a step further back.
  *
- * <p>On the Road the armour also escorts the convoys: while a convoy is on the road near or past the
- * gap, the hulls nearest the place it wants its escort leave their sectors and drive there, a few
- * cells ahead of its lead truck, and go back to their sectors when it is out.
+ * <p>On the Road the armour also escorts the convoys, and on either line an ammunition truck or a beat's dozer on
+ * the road: the hulls nearest the place it wants its escort leave their sectors and drive there, out of the surplus
+ * only ({@link CordonAlliedRules#escorts}: above their sector's floor, one a sector, never a calling redoubt's last),
+ * and go back to their sectors when it is out. A road hull with none is not Escorted, and the company walks with it.
  */
 public final class CordonArmour {
 
@@ -82,6 +83,24 @@ public final class CordonArmour {
     private final Map<CordonRedoubt, int[]> gateOf = new HashMap<>();
     /** Each convoy's escort posts, or {@code null} off the Road. */
     private Function<BattleSimulation, List<int[][]>> escorts;
+    /** The hulls on the road that want an escort beside them: ammunition trucks, a beat's dozer; or {@code null}. */
+    private Function<BattleSimulation, List<Long>> hullEscorts;
+    /** Machines each manned redoubt keeps on its posts ({@link CordonAlliedRules#coverFloor}). */
+    private int floor = 1;
+    /** Redoubts whose sector has had a machine at some look: the radio's Uncovered needs a sector that had cover. */
+    private final Set<CordonRedoubt> everCovered = new HashSet<>();
+    /** Each redoubt's Uncovered at the last look. */
+    private final Set<CordonRedoubt> uncoveredNow = new HashSet<>();
+    /** Ticks each redoubt has stood uncovered, by number, for evidence. */
+    private final Map<Integer, Integer> uncoveredTicks = new LinkedHashMap<>();
+    /** The road hulls that had an escort hull at the last look. */
+    private final Set<Long> escortedHulls = new HashSet<>();
+    /** Each escort hull sent beside a road hull at the last look, and the road hull it is with. */
+    private final Map<Long, Long> escortOf = new LinkedHashMap<>();
+    /** Road hulls that ever wanted an escort, and those that ever had one, for evidence. */
+    private final Set<Long> hullsWanting = new HashSet<>(), hullsEscorted = new HashSet<>();
+    /** Escort places a look filled and left short, summed over looks, for evidence. */
+    private long escortLooksTaken, escortLooksShort;
 
     /** @param frontward which way the front lies from the line: +1 toward high y, -1 toward low */
     public CordonArmour(AlliedCommand command, int frontward) {
@@ -94,6 +113,48 @@ public final class CordonArmour {
     /** Has the armour escort convoys: each convoy's posts want one hull each. */
     public void escortConvoys(Function<BattleSimulation, List<int[][]>> escorts) {
         this.escorts = escorts;
+    }
+
+    /** Has the armour escort single hulls on the road (a truck, a dozer): each wants one hull beside it. */
+    public void escortHulls(Function<BattleSimulation, List<Long>> hulls) {
+        this.hullEscorts = hulls;
+    }
+
+    /** Sets the cover each manned redoubt keeps, {@link CordonAlliedRules#coverFloor} for the density. */
+    public void setCoverFloor(int floor) {
+        this.floor = floor;
+    }
+
+    /** Whether a road hull had an armed allied hull sent beside it at the last look (the radio's Escorted). */
+    public boolean escorted(long hull) {
+        return escortedHulls.contains(hull);
+    }
+
+    /** Each hull escorting a road hull at the last look, and the road hull it is with, for review frames. */
+    public Map<Long, Long> roadEscorts() {
+        return Map.copyOf(escortOf);
+    }
+
+    /** Whether a redoubt's sector had machines and has none left, at the last look (the radio's Uncovered). */
+    public boolean uncovered(CordonRedoubt r) {
+        return uncoveredNow.contains(r);
+    }
+
+    /** Seconds each redoubt has stood uncovered so far, by number. */
+    public Map<Integer, Float> uncoveredSeconds() {
+        Map<Integer, Float> out = new LinkedHashMap<>();
+        for (Map.Entry<Integer, Integer> e : uncoveredTicks.entrySet()) out.put(e.getKey(), e.getValue() * BattleSimulation.TICK_DT);
+        return out;
+    }
+
+    /**
+     * Escorts for evidence: {@code [road hulls that wanted one, road hulls that had one, hull-seconds of escort taken,
+     * hull-seconds gone short]}, the seconds summed over convoys' posts and road hulls alike.
+     */
+    public float[] escortReadings() {
+        float perLook = REVIEW_TICKS * BattleSimulation.TICK_DT;
+        return new float[]{hullsWanting.size(), hullsEscorted.size(), escortLooksTaken * perLook,
+                escortLooksShort * perLook};
     }
 
     /**
@@ -182,9 +243,11 @@ public final class CordonArmour {
     }
 
     /**
-     * One tick: keeps each hull on the flank of its own redoubt. A hull without one, or whose
-     * redoubt fell, is given the standing redoubt with the fewest hulls (a calling one first, then the
-     * nearest); with none standing it goes home.
+     * One tick: keeps each hull on the flank of its own redoubt and each mech in its street mouths
+     * ({@code cordon-allied-command.md}, The allied line command's rules). A machine without a redoubt, or whose
+     * redoubt fell, is given the one {@link CordonAlliedRules#nextPost} names: furthest under its floor, an uncovered
+     * one first, then a calling one, then the fewest machines, the nearest breaking a tie. With none standing a hull
+     * goes home. Escorts are taken out of the surplus ({@link CordonAlliedRules#escorts}).
      *
      * <p>Sectors, not a reserve that chases calls. On a front hundreds of cells wide a hull sent to
      * whichever redoubt called last spent the battle driving, mostly to calls that had ended by the
@@ -193,53 +256,143 @@ public final class CordonArmour {
     public void advance(BattleSimulation sim, List<CordonRedoubt> redoubts) {
         command.advance(sim);
         if (sim.getSimTickIndex() % REVIEW_TICKS != 0) return;
-        advanceMechs(sim, redoubts);
         List<Long> hulls = new ArrayList<>(command.hulls());
         home.keySet().retainAll(hulls);
         answering.keySet().retainAll(hulls);
         answering.values().removeIf(r -> !r.manned());
-        Set<Long> escorting = escort(sim, hulls);
+        mechSector.keySet().removeIf(m -> sim.resolveUnit(m) == 0L || !sim.world().isAlive(m));
+        for (Map.Entry<Long, CordonRedoubt> e : mechSector.entrySet()) {
+            if (e.getValue() != null && !e.getValue().manned()) e.setValue(null);
+        }
+        Map<CordonRedoubt, Integer> count = new HashMap<>();
+        for (CordonRedoubt r : answering.values()) count.merge(r, 1, Integer::sum);
+        for (CordonRedoubt r : mechSector.values()) if (r != null) count.merge(r, 1, Integer::sum);
+        // New machines first, so the floor and the escorts read where they are going.
+        for (Map.Entry<Long, CordonRedoubt> e : mechSector.entrySet()) {
+            if (e.getValue() != null) continue;
+            CordonRedoubt to = nextPost(sim, redoubts, count, sim.world().x(e.getKey()), sim.world().y(e.getKey()));
+            e.setValue(to);
+            if (to != null) count.merge(to, 1, Integer::sum);
+        }
+        for (long hull : hulls) {
+            if (command.carrying(hull) || !home.containsKey(hull) || answering.containsKey(hull)) continue;
+            GroundBody body = sim.convoy().body(hull);
+            CordonRedoubt to = nextPost(sim, redoubts, count, body.x, body.y);
+            if (to == null) continue;
+            answering.put(hull, to);
+            count.merge(to, 1, Integer::sum);
+        }
+        for (CordonRedoubt r : redoubts) {
+            CordonAlliedRules.Post post = post(sim, r, count);
+            if (post.machines() > 0) everCovered.add(r);
+            if (CordonAlliedRules.uncovered(post)) {
+                uncoveredNow.add(r);
+                uncoveredTicks.merge(r.number(), REVIEW_TICKS, Integer::sum);
+            } else {
+                uncoveredNow.remove(r);
+            }
+        }
+        Map<CordonRedoubt, Integer> rank = new HashMap<>();
+        for (Map.Entry<Long, CordonRedoubt> e : mechSector.entrySet()) {
+            if (e.getValue() == null) continue;
+            int[] post = mouthPost(sim, e.getValue(), rank.merge(e.getValue(), 1, Integer::sum) - 1);
+            command.stationMech(sim, e.getKey(), post[0], post[1]);
+        }
+        Set<Long> escorting = escort(sim, hulls, redoubts, count);
         for (long hull : hulls) {
             if (command.carrying(hull) || !home.containsKey(hull) || escorting.contains(hull)) continue;
             CordonRedoubt sector = answering.get(hull);
-            if (sector == null) {
-                sector = emptiest(sim.convoy().body(hull), redoubts);
-                if (sector != null) answering.put(hull, sector);
-            }
             int[] post = sector == null ? home.get(hull) : flank(sector, rankIn(hull, sector));
             command.station(sim, hull, post[0], post[1]);
         }
     }
 
+    /** The redoubt a new machine at {@code (x, y)} goes to ({@link CordonAlliedRules#nextPost}), or {@code null}. */
+    private CordonRedoubt nextPost(BattleSimulation sim, List<CordonRedoubt> redoubts, Map<CordonRedoubt, Integer> count,
+                                  float x, float y) {
+        List<CordonRedoubt> byDistance = new ArrayList<>(redoubts);
+        // nextPost keeps the first of equals, so the nearest breaks a tie.
+        byDistance.sort(Comparator.comparingDouble(r -> Math.hypot(r.centreX() - x, r.centreY() - y)));
+        List<CordonAlliedRules.Post> posts = new ArrayList<>();
+        for (CordonRedoubt r : byDistance) posts.add(post(sim, r, count));
+        int number = CordonAlliedRules.nextPost(posts, floor);
+        for (CordonRedoubt r : redoubts) if (r.number() == number) return r;
+        return null;
+    }
+
+    /** A redoubt as the allied line command's rules see it, with {@code count} machines in its sector. */
+    private CordonAlliedRules.Post post(BattleSimulation sim, CordonRedoubt r, Map<CordonRedoubt, Integer> count) {
+        int machines = count.getOrDefault(r, 0);
+        return new CordonAlliedRules.Post(r.number(), r.manned(), r.state() == CordonRedoubt.State.CALLING,
+                CordonSequence.standing(sim, r), machines, machines > 0 || everCovered.contains(r));
+    }
+
     /**
-     * Sends the hulls nearest each convoy's escort posts to them, one a post.
+     * Sends escorts out of the surplus ({@code cordon-allied-command.md}, rule 3): a convoy's posts first, then each
+     * road hull, each taking the nearest hulls above their sector's floor, at most one from any one sector and never
+     * a calling redoubt's last ({@link CordonAlliedRules#escorts}). What it cannot take that way it goes without.
      *
      * @return the hulls sent
      */
-    private Set<Long> escort(BattleSimulation sim, List<Long> hulls) {
+    private Set<Long> escort(BattleSimulation sim, List<Long> hulls, List<CordonRedoubt> redoubts,
+                             Map<CordonRedoubt, Integer> count) {
         Set<Long> sent = new HashSet<>();
-        if (escorts == null) return sent;
-        for (int[][] posts : escorts.apply(sim)) {
+        escortedHulls.clear();
+        escortOf.clear();
+        if (escorts == null && hullEscorts == null) return sent;
+        List<int[][]> needs = new ArrayList<>(escorts == null ? List.of() : escorts.apply(sim));
+        int convoyNeeds = needs.size();
+        List<Long> roadHulls = hullEscorts == null ? List.of() : hullEscorts.apply(sim);
+        for (long h : roadHulls) {
+            GroundBody body = sim.convoy().body(h);
+            needs.add(new int[][]{{(int) body.x + ESCORT_BESIDE, (int) body.y}});
+        }
+        Map<CordonRedoubt, Integer> left = new HashMap<>(count);
+        for (int n = 0; n < needs.size(); n++) {
+            int[][] posts = needs.get(n);
+            if (posts.length == 0) continue;
+            List<CordonAlliedRules.Hull> free = new ArrayList<>();
+            for (long h : hulls) {
+                if (command.carrying(h) || !home.containsKey(h) || sent.contains(h)) continue;
+                CordonRedoubt sector = answering.get(h);
+                GroundBody body = sim.convoy().body(h);
+                free.add(new CordonAlliedRules.Hull(h, body.x, body.y, sector == null ? -1 : sector.number()));
+            }
+            List<CordonAlliedRules.Post> lines = new ArrayList<>();
+            for (CordonRedoubt r : redoubts) lines.add(post(sim, r, left));
+            List<CordonAlliedRules.Hull> got = CordonAlliedRules.escorts(posts[0][0], posts[0][1], posts.length, free,
+                    lines, floor);
+            escortLooksTaken += got.size();
+            escortLooksShort += posts.length - got.size();
+            long wanting = n >= convoyNeeds ? roadHulls.get(n - convoyNeeds) : 0L;
+            if (wanting != 0L) hullsWanting.add(wanting);
+            List<CordonAlliedRules.Hull> unplaced = new ArrayList<>(got);
             for (int[] post : posts) {
-                long hull = 0L;
-                float best = Float.MAX_VALUE;
-                for (long h : hulls) {
-                    if (command.carrying(h) || !home.containsKey(h) || sent.contains(h)) continue;
-                    float d = sim.convoy().body(h).distanceTo(post[0], post[1]);
-                    if (d < best) {
-                        best = d;
-                        hull = h;
-                    }
+                if (unplaced.isEmpty()) break;
+                CordonAlliedRules.Hull nearest = unplaced.get(0);
+                for (CordonAlliedRules.Hull h : unplaced) {
+                    if (Math.hypot(h.x() - post[0], h.y() - post[1])
+                            < Math.hypot(nearest.x() - post[0], nearest.y() - post[1])) nearest = h;
                 }
-                if (hull == 0L) return sent;
-                int[] cell = drivable(sim, sim.convoy().vehicleType(hull), post[0], post[1]);
+                unplaced.remove(nearest);
+                int[] cell = drivable(sim, sim.convoy().vehicleType(nearest.id()), post[0], post[1]);
                 if (cell == null) cell = post;
-                command.station(sim, hull, cell[0], cell[1]);
-                sent.add(hull);
+                command.station(sim, nearest.id(), cell[0], cell[1]);
+                sent.add(nearest.id());
+                if (wanting != 0L) escortOf.put(nearest.id(), wanting);
+                CordonRedoubt sector = answering.get(nearest.id());
+                if (sector != null) left.merge(sector, -1, Integer::sum);
+            }
+            if (wanting != 0L && !got.isEmpty()) {
+                escortedHulls.add(wanting);
+                hullsEscorted.add(wanting);
             }
         }
         return sent;
     }
+
+    /** Cells to the side of a road hull its escort keeps. */
+    static final int ESCORT_BESIDE = 4;
 
     /**
      * Takes an allied mech standing on the field under the allied command (one the base's shed has finished): it is
@@ -248,6 +401,67 @@ public final class CordonArmour {
     public void adoptMech(BattleSimulation sim, long mech) {
         command.enlistMech(sim, mech);
         mechSector.put(mech, null);
+    }
+
+    /**
+     * Sends up to {@code count} new hulls of {@code type} out from the base's dispatch cell to a redoubt's sector, which
+     * is theirs from now on (a request's armour pair). Returns those set down: none where the ground there is taken.
+     */
+    public List<Long> sendHulls(BattleSimulation sim, VehicleType type, int count, int[] from, CordonRedoubt to) {
+        List<Long> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            int[] cell = drivable(sim, type, from[0] + (i - (count - 1) / 2) * SEND_SPACING, from[1]);
+            if (cell == null || crowded(sim, cell)) continue;
+            long hull = command.deploy(sim, type, cell[0], cell[1], frontward > 0 ? 0f : 180f);
+            home.put(hull, behind(to));
+            answering.put(hull, to);
+            command.station(sim, hull, flank(to, rankIn(hull, to))[0], flank(to, rankIn(hull, to))[1]);
+            out.add(hull);
+        }
+        return out;
+    }
+
+    /** Sends up to {@code count} new Hounds walking out from the base's dispatch cell to a redoubt's street mouths. */
+    public List<Long> sendMechs(BattleSimulation sim, int count, int[] from, CordonRedoubt to, String name) {
+        List<Long> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            long mech = command.deployMech(sim, MechVariant.HOUND, from[0] + i * SEND_SPACING, from[1], name + " " + (i + 1));
+            if (mech == 0L) continue;
+            mechSector.put(mech, to);
+            int[] post = mouthPost(sim, to, mechsAt(to) - 1);
+            command.stationMech(sim, mech, post[0], post[1]);
+            out.add(mech);
+        }
+        return out;
+    }
+
+    /** Whether a machine sent to a redoubt is gone or has reached its sector ({@link #SECTOR_REACH} cells of its wall). */
+    public boolean arrivedOrGone(BattleSimulation sim, long machine, CordonRedoubt to) {
+        float x, y;
+        if (sim.convoy().isVehicle(machine)) {
+            if (sim.convoy().structure(machine) <= 0f) return true;
+            x = sim.convoy().body(machine).x;
+            y = sim.convoy().body(machine).y;
+        } else {
+            if (sim.resolveUnit(machine) == 0L || !sim.world().isAlive(machine)) return true;
+            x = sim.world().x(machine);
+            y = sim.world().y(machine);
+        }
+        return !to.manned() || to.contains((int) x, (int) y, SECTOR_REACH);
+    }
+
+    /** Cells between machines of one request, set down side by side. */
+    static final int SEND_SPACING = 5;
+    /** Cells from a redoubt's wall a machine sent to it has arrived in its sector. */
+    static final int SECTOR_REACH = 16;
+
+    /** Whether another hull stands too near this cell to set one down on it. */
+    private static boolean crowded(BattleSimulation sim, int[] at) {
+        for (long other : sim.convoy().entityIds()) {
+            if (sim.convoy().structure(other) <= 0f) continue;
+            if (sim.convoy().body(other).distanceTo(at[0] + .5f, at[1] + .5f) < SEND_SPACING - 1) return true;
+        }
+        return false;
     }
 
     /** Sets a new Hound down in a redoubt's street mouths: that redoubt is its sector. Returns 0 where no ground near takes one. */
@@ -291,37 +505,6 @@ public final class CordonArmour {
     /** Live allied mechs on the line, in the order they came. */
     public List<Long> mechs() {
         return new ArrayList<>(mechSector.keySet());
-    }
-
-    /**
-     * Keeps each mech in the street mouths of its own redoubt. One without a redoubt, or whose redoubt fell, is given
-     * the standing one with the fewest mechs (a calling one first, then the nearest): sectors, as the hulls have.
-     */
-    private void advanceMechs(BattleSimulation sim, List<CordonRedoubt> redoubts) {
-        mechSector.keySet().removeIf(m -> sim.resolveUnit(m) == 0L || !sim.world().isAlive(m));
-        for (Map.Entry<Long, CordonRedoubt> e : mechSector.entrySet()) {
-            if (e.getValue() != null && e.getValue().manned()) continue;
-            e.setValue(null);
-            long mech = e.getKey();
-            CordonRedoubt best = null;
-            float bestScore = Float.MAX_VALUE;
-            for (CordonRedoubt r : redoubts) {
-                if (!r.manned()) continue;
-                float score = mechsAt(r) * 10_000f - (r.state() == CordonRedoubt.State.CALLING ? 5_000f : 0f)
-                        + (float) Math.hypot(sim.world().x(mech) - r.centreX(), sim.world().y(mech) - r.centreY());
-                if (score < bestScore) {
-                    bestScore = score;
-                    best = r;
-                }
-            }
-            e.setValue(best);
-        }
-        Map<CordonRedoubt, Integer> rank = new HashMap<>();
-        for (Map.Entry<Long, CordonRedoubt> e : mechSector.entrySet()) {
-            if (e.getValue() == null) continue;
-            int[] post = mouthPost(sim, e.getValue(), rank.merge(e.getValue(), 1, Integer::sum) - 1);
-            command.stationMech(sim, e.getKey(), post[0], post[1]);
-        }
     }
 
     private int mechsAt(CordonRedoubt r) {
@@ -459,23 +642,6 @@ public final class CordonArmour {
             if (e.getValue() == sector) rank++;
         }
         return rank;
-    }
-
-    /** The standing redoubt with the fewest hulls; a calling one, then the nearest, breaks a tie. */
-    private CordonRedoubt emptiest(GroundBody body, List<CordonRedoubt> redoubts) {
-        CordonRedoubt best = null;
-        float bestScore = Float.MAX_VALUE;
-        for (CordonRedoubt r : redoubts) {
-            if (!r.manned()) continue;
-            long held = answering.values().stream().filter(x -> x == r).count();
-            float score = held * 10_000f - (r.state() == CordonRedoubt.State.CALLING ? 5_000f : 0f)
-                    + body.distanceTo(r.centreX(), r.centreY());
-            if (score < bestScore) {
-                bestScore = score;
-                best = r;
-            }
-        }
-        return best;
     }
 
     static CordonRedoubt nearestCalling(GroundBody body, List<CordonRedoubt> redoubts) {

@@ -32,7 +32,8 @@ sector beside the garrison is what changes with density.
 | Opening carrier | one on the apron | one on the apron | none |
 | Columns | walk in to the muster yard; carriers lift them up | walk in to the muster yard; carriers lift them up | walk the whole way up, two teams each, to the redoubt that needs them most |
 | Carriers forward | yes: lift, then stay on the flanks of a calling redoubt as support | yes, roadbound: set down outside the rear gate only, and wait there | no |
-| Ammunition (L2) | truck up the supply road | truck through the town's streets | truck along the cleared street to the rear gate |
+| Ammunition | a truck up the supply road when a redoubt runs low (L2 empties one) | the same, through the town's streets | the same, along the cleared street to the rear gate |
+| Reserve, asked by need | an armour pair of technicals for an uncovered sector | the same | a Hound pair walking up |
 | Air and guns | deferred to `heart-allied-tool` | deferred | deferred; matters most here |
 
 The pace, counts and lines are starting values to balance on `cordon-line`
@@ -40,7 +41,8 @@ evidence at each density, not settled numbers. The table is one value per
 density (`CordonAlliedTable`): the opening armour, whether the base opens with
 a carrier, the shed's line and its pace, whether carriers go forward and where they set
 down, the mechs and rifle team in each redoubt's mouths, and the mortar team in its
-yard. Nothing fields an
+yard, and the base's reserve the allied line command asks for by need (`cordon-allied-command.md`, The producer).
+Nothing fields an
 ally the table does not list, except a beat through the same producer (L2's
 truck).
 

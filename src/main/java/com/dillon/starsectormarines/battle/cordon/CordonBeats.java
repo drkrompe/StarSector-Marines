@@ -88,6 +88,22 @@ public final class CordonBeats {
         return out;
     }
 
+    /** The running beats' own hulls that want an allied escort, in roll order. */
+    public List<Long> escortHulls(BattleSimulation sim) {
+        List<Long> out = new ArrayList<>();
+        for (CordonBeat beat : running) {
+            if (!beat.active()) continue;
+            long hull = beat.escortHull(sim);
+            if (hull != 0L) out.add(hull);
+        }
+        return out;
+    }
+
+    /** Whether the allied armour sent a hull beside this one at its last look. */
+    boolean escorted(long hull) {
+        return sequence.armour() != null && sequence.armour().escorted(hull);
+    }
+
     /** Each running beat's status and what it is doing, one line each, for evidence. */
     public List<String> describe(BattleSimulation sim) {
         List<String> out = new ArrayList<>();

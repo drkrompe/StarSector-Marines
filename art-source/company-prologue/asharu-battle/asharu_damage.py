@@ -149,8 +149,7 @@ LEDGER = [
     # ---- WARDEN THREE, Lasher B: scored, gets away
     H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3),
       src='story (S6; the Falcon at range, unseen)', note="the Falcon's fire scores her starboard bow"),
-    H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8),
-      src='story (S6b; the Buffalo Mk.II at 3.8 km is past the kit 6 s round limit)', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
+    # (her S6b deck rake from the Buffalo Mk.II is cut with its fire: no hit without a visible shooter)
 
     # ---- WARDEN FOUR, the merchant Wolf: a graze, gets away
     H('wolf-m', 73.0, 'he', 1, (5, -8, 3), (0, -1, .2), src='story (S6c)',
@@ -213,7 +212,7 @@ LEDGER = [
 
     # ---- Wolf (P) B: a graze through her shield
     H('wolf-p-b', 72.4, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
-      src='S6c k3d tracer mule', note="the Mule's guns, mostly on her shield"),
+      src='S6c k3d tracer colossus', note="the Colossus's guns, mostly on her shield"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
     H('kite-p-b', 96.5, 'he', 2, (-10, -10, 3), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
