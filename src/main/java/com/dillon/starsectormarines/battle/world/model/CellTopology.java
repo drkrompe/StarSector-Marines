@@ -261,6 +261,10 @@ public class CellTopology {
     private final byte[] surface;
     /** Explicit floor finish beneath a structural wall; distinct from its visible wall material. */
     private final Map<Integer, String> wallGroundSurfaces = new HashMap<>();
+    /** Whole tiers a standing structure's plinth rises above the ground, by cell; null until one is raised. */
+    private byte[] plinthTiers;
+    /** The tallest plinth ever raised on this map, in tiers; never lowered, because it sizes the sun's march. */
+    private int highestPlinthTiers;
 
     public String getWallGroundSurfaceId(int x, int y) {
         return inBounds(x, y) ? wallGroundSurfaces.get(y * width + x) : null;
@@ -359,7 +363,8 @@ public class CellTopology {
      * <p>What counts as a change is what a consumer could <em>draw</em>
      * differently: ground kind, wall tag, crosswalk tags, wall-direction mask,
      * nature overlay, authored surface, wall remnant, and — because the relief composite's
-     * height field is resident too — a caved-in roof and a wall aperture. Not
+     * height field is resident too — a caved-in roof, a wall aperture and a
+     * structure's plinth. Not
      * building ids or room purposes, which nothing paints from.
      */
     public long changeCount() {
@@ -594,6 +599,42 @@ public class CellTopology {
     public void setRoomPurpose(int x, int y, RoomPurpose purpose) {
         if (!inBounds(x, y)) return;
         roomPurpose[index(x, y)] = (byte) (purpose == null ? 0 : (purpose.ordinal() + 1));
+    }
+
+    // ----- Plinths -----
+
+    /**
+     * Whole elevation tiers the plinth of a standing structure rises above the
+     * ground in this cell: the concrete block a hardpoint stands its gun on
+     * ({@code StructureDef.plinthTiers}), over its whole footprint. Zero
+     * everywhere else, and again once the structure is destroyed and its
+     * footprint is rubble. Presentation: the relief composite casts the block's
+     * sun shadow from it. Sight from the gun is the navigation grid's raised
+     * eye, not this.
+     */
+    public int getPlinthTiers(int x, int y) {
+        if (plinthTiers == null || !inBounds(x, y)) return 0;
+        return plinthTiers[index(x, y)];
+    }
+
+    /** Raises a plinth of {@code tiers} in one cell, or clears it with zero; see {@link #getPlinthTiers}. */
+    public void setPlinthTiers(int x, int y, int tiers) {
+        if (!inBounds(x, y)) return;
+        int value = Math.max(0, Math.min(Byte.MAX_VALUE, tiers));
+        if (plinthTiers == null) {
+            if (value == 0) return;
+            plinthTiers = new byte[width * height];
+        }
+        int idx = index(x, y);
+        if (plinthTiers[idx] == value) return;
+        plinthTiers[idx] = (byte) value;
+        highestPlinthTiers = Math.max(highestPlinthTiers, value);
+        markChanged(idx);
+    }
+
+    /** The tallest plinth ever raised on this map, in tiers; zero on a map that never had one. */
+    public int highestPlinthTiers() {
+        return highestPlinthTiers;
     }
 
     /**

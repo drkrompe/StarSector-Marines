@@ -69,11 +69,11 @@ public final class TurretDemolitionSystem {
     public List<Remains> remains() { return remainsView; }
 
     /** Guns standing on a plinth, whose raised eye is lowered when they die. */
-    private final LongOpenHashSet plinths = new LongOpenHashSet();
+    private final Long2ObjectOpenHashMap<StructureDef> plinths = new Long2ObjectOpenHashMap<>();
 
-    /** Records that {@code turretId} sees from a plinth ({@code StructureDef.plinthTiers}), to be lowered when it dies. */
-    public void registerPlinth(long turretId) {
-        plinths.add(turretId);
+    /** Records that {@code turretId} sees from a plinth ({@code StructureDef.plinthTiers}), to be lowered, with the block under it, when it dies. */
+    public void registerPlinth(long turretId, StructureDef structure) {
+        plinths.put(turretId, structure);
     }
 
     /** Records that {@code turretId} stands on a multi-cell footprint, to be cleared when it dies. */
@@ -123,8 +123,14 @@ public final class TurretDemolitionSystem {
                 }
             }
         }
-        // The height was the gun's: its cell sees from the ground again.
-        if (plinths.remove(u)) mapEditor.setRaisedEye(cx, cy, 0);
+        // The height was the gun's: its cell sees from the ground again, and the
+        // block it stood on is rubble at ground level, casting nothing.
+        StructureDef plinth = plinths.remove(u);
+        if (plinth != null) {
+            mapEditor.setRaisedEye(cx, cy, 0);
+            mapEditor.setPlinth(StructureFootprint.minX(plinth, cx), StructureFootprint.minY(plinth, cy),
+                    plinth.footprintCellsX, plinth.footprintCellsY, 0);
+        }
         StructureDef left = leavesRemains.remove(u);
         if (left != null) remains.add(new Remains(left, left.art.variantFor(u), event.x(), event.y()));
         // Mount cell keeps smoking for a while so the player can see the
