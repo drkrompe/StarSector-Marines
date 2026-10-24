@@ -665,18 +665,22 @@ def burst(ctx, coll, prof, what, tag, here, f, mpu, axis=None, rnd=None):
     if what == 'ignition':
         kw.update(flash=prof['engine'], size_m=(prof['glare_m'] * .9, prof['glare_m'] * 1.3), lean=1.4,
                   shrapnel=None, smoke=0, light_w=8000.0)
-    elif what in ('hit', 'shield'):
-        k = .8 if what == 'shield' else 1.0
-        kw.update(flash=prof['blast'], size_m=(B * .45 * k, B * .65 * k), lean=1.0, shrapnel=(4, 7), smoke=.6,
-                  smoke_life=(16, 24), light_w=1.2e5 if what == 'shield' else 2.5e5, flash_frames=4)
-    elif what == 'pop':
-        kw.update(flash=srgb((255, 190, 120)), size_m=(B * .35, B * .5), lean=.6, smoke=.45, light_w=4.0e4)
-    elif what == 'decoy':
-        kw.update(flash=prof['blast'], size_m=(B * .4, B * .55), smoke=.5, light_w=6.0e4, axis=None)
+    elif what in ('hit', 'shield', 'pop', 'decoy'):
+        # A warhead is the approved HE recipe scaled by pieces (coordinator, 2026-10-23): a
+        # Hellbore-sized core, torn tongues and burning debris round it, smoke held about a second.
+        # Never one big torn flash, which read as a hard plate and then a patterned solid.
+        k = {'hit': 1.0, 'shield': .8, 'pop': .6, 'decoy': .7}[what]
+        return swfx_burst.warhead(
+            ctx, coll, f'{what} {tag}', here, f, mpu, rnd, srgb((255, 190, 120)) if what == 'pop' else prof['blast'],
+            core_m=(B * .16 * k, B * .22 * k), axis=None if what == 'decoy' else axis,
+            tongues=(5, 7) if what == 'hit' else (3, 5), late=6 if what == 'hit' else (3 if what == 'shield' else 0),
+            late_s=1.0, shrapnel=(4, 7) if what in ('hit', 'shield') else (2, 4), smoke=.6 if what == 'hit' else .5,
+            smoke_life=(24, 32) if what in ('hit', 'shield') else (16, 22),
+            light_w={'hit': 2.5e5, 'shield': 1.2e5, 'pop': 4.0e4, 'decoy': 6.0e4}[what],
+            spall={'hit': 24, 'shield': 14, 'pop': 8, 'decoy': 6}[what],
+            glow_w={'hit': 5.0e4, 'shield': 2.4e4, 'pop': 8.0e3, 'decoy': 0.0}[what], prefix=PREFIX)
     else:
         raise ValueError(what)
-    if what != 'ignition':      # a warhead tears like an HE shell (owner, 2026-10-23: no held white blob)
-        kw.update(tear=True, smoke_drift=1.2)
     flash = kw.pop('flash')
     return swfx_burst.burst(ctx, coll, f'{what} {tag}', here, f, mpu, rnd, flash, **kw)
 
