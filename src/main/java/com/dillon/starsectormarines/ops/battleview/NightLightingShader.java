@@ -65,14 +65,14 @@ final class NightLightingShader {
             glDisable(GL_CULL_FACE); glDisable(GL_LIGHTING); glDisable(GL_FOG);
             glDisable(GL_STENCIL_TEST); glDisable(GL_COLOR_LOGIC_OP);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            if (!broken && program.ensure() && coverageProgram.ensure()) {
+            if (pass.masked() && !broken && program.ensure() && coverageProgram.ensure()) {
                 float scaleX = Display.isCreated() ? (float) Display.getWidth() / Global.getSettings().getScreenWidth() : 1f;
                 float scaleY = Display.isCreated() ? (float) Display.getHeight() / Global.getSettings().getScreenHeight() : 1f;
                 int w = Math.max(1, (int)Math.ceil(pass.viewportWidth() * scaleX));
                 int h = Math.max(1, (int)Math.ceil(pass.viewportHeight() * scaleY));
                 ensureTargets(w, h);
-                renderTarget(pass, 0, () -> drawMesh(pass.fogShade(), true));
-                renderTarget(pass, 1, () -> drawMesh(pass.litShade(), true));
+                renderTarget(pass, 0, () -> drawShade(pass, pass.fogShade(), true, true));
+                renderTarget(pass, 1, () -> drawShade(pass, pass.litShade(), false, true));
                 renderTarget(pass, 2, () -> drawCoverage(pass));
                 glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldFbo);
             glBindFramebuffer(GL_READ_FRAMEBUFFER, oldReadFbo);
@@ -119,7 +119,7 @@ final class NightLightingShader {
                 glDisable(GL_STENCIL_TEST); glDisable(GL_COLOR_LOGIC_OP);
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 glDisable(GL_ALPHA_TEST); glEnable(GL_BLEND); glBlendEquation(GL_FUNC_ADD); glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-                drawMesh(pass.fogShade(), false);
+                drawShade(pass, pass.fogShade(), pass.fieldFog() || pass.masked(), false);
             } finally { glBindBuffer(GL_ARRAY_BUFFER,oldArray); glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,oldElements); glUseProgram(oldProgram); glPopAttrib(); }
         }
     }
@@ -141,6 +141,17 @@ final class NightLightingShader {
         } finally {
             glMatrixMode(GL_MODELVIEW); glPopMatrix(); glMatrixMode(GL_PROJECTION); glPopMatrix(); glMatrixMode(matrix);
         }
+    }
+
+    /** The shade from the pass's field where it has one, {@code fog} saying whether hidden cells lose lamp light. */
+    private void drawShade(NightLightingPass pass, PolyMesh mesh, boolean fog, boolean premultiplied) {
+        NightShadeField field = pass.field();
+        if (field == null) {
+            drawMesh(mesh, premultiplied);
+            return;
+        }
+        if (premultiplied) glDisable(GL_BLEND);
+        field.draw(fog, premultiplied);
     }
 
     private void drawMesh(PolyMesh mesh, boolean premultiplied) {

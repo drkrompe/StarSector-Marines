@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.fort.FortKind;
@@ -204,7 +205,8 @@ class BattleFixtureJsonTest {
     @Test
     void roundTripsTheFittingsOnTheCompanysOwnBoats() throws Exception {
         FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE,
-                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, "boat_04");
+                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, BoatFitting.STANDARD_LIFT, "boat_04",
+                new String[]{BoatGun.ARBALEST.structureId()});
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 17L,
                 List.of(
@@ -229,6 +231,8 @@ class BattleFixtureJsonTest {
         assertSame(ShuttleType.AEROSHUTTLE, manifest.get(0).airframe,
                 "an employer's craft carries no fitting ids and reads back plain");
         assertEquals(armoured, manifest.get(1).airframe);
+        assertEquals(List.of(BoatGun.ARBALEST.structureId()), ((FittedBoat) manifest.get(1).airframe).guns(),
+                "a refitted door gun is part of the boat that flew");
         assertEquals("boat_04", ((FittedBoat) manifest.get(1).airframe).boatId(),
                 "a replay of a mission that lost a boat has to lose the same one");
         assertEquals(FittedBoat.standard(ShuttleType.AEROSHUTTLE),

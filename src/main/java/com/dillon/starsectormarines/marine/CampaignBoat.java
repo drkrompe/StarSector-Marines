@@ -29,6 +29,12 @@ public final class CampaignBoat implements Serializable {
     private String driveId;
     /** Null on saves from before the lift slot: reads as the standard hold. */
     private String liftId;
+    /**
+     * The door gun on each hardpoint, by {@link BoatGun} id. Null, or a null or
+     * unknown entry, reads as the hardpoint's yard-standard gun — which is what
+     * every boat saved before hardpoints could be refitted is carrying.
+     */
+    private String[] gunIds;
     private float repairUntilDay;
 
     /** Zero on legacy saves. Recovery is read from campaign time, not screen visits. */
@@ -106,7 +112,34 @@ public final class CampaignBoat implements Serializable {
      * what it was flying as, and the campaign works out afterwards whose it was.
      */
     public FittedBoat freezeForDeployment() {
-        return new FittedBoat(pattern, plating(), drive(), lift(), id);
+        String[] guns = new String[pattern.hardpoints()];
+        for (int index = 0; index < guns.length; index++) {
+            BoatGun gun = gunOn(index);
+            guns[index] = gun != null ? gun.structureId() : null;
+        }
+        return new FittedBoat(pattern, plating(), drive(), lift(), id, guns);
+    }
+
+    /**
+     * The door gun on hardpoint {@code index}, or null for a hardpoint the
+     * pattern does not have. A hardpoint nobody refitted carries the yard's
+     * own gun.
+     */
+    public BoatGun gunOn(int index) {
+        if (index < 0 || index >= pattern.hardpoints()) return null;
+        BoatGun fitted = gunIds != null && index < gunIds.length ? BoatGun.findById(gunIds[index]) : null;
+        return fitted != null ? fitted : BoatGun.standardFor(pattern, index);
+    }
+
+    /** Puts a gun on one hardpoint. Package-private for the reason {@link #install} is. */
+    void installGun(int index, BoatGun gun) {
+        if (gun == null || index < 0 || index >= pattern.hardpoints()) return;
+        if (gunIds == null || gunIds.length != pattern.hardpoints()) {
+            String[] grown = new String[pattern.hardpoints()];
+            if (gunIds != null) System.arraycopy(gunIds, 0, grown, 0, Math.min(gunIds.length, grown.length));
+            gunIds = grown;
+        }
+        gunIds[index] = gun.id();
     }
 
     /**

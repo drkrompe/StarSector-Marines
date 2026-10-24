@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDra
 
 import org.json.JSONObject;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
+import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import org.json.JSONArray;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
@@ -45,6 +46,8 @@ import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -443,6 +446,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("boat-deck-hardpoint-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
                 new SnapshotArtifact("boat-deck-vacant-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, true)),
@@ -2859,6 +2865,31 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean openBoat, boolean strikeABoat, int departure)
             throws Exception {
+        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, departure, -1);
+    }
+
+    /**
+     * @param hardpoint the hardpoint the opened boat is shown on, with an
+     *     Arbalest fitted there so the doll reads a refit; -1 for her plating
+     */
+    private static BufferedImage renderBoatDeck(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean openBoat, boolean strikeABoat, int departure, int hardpoint)
+            throws Exception {
+        // The doll draws each turret spot where the hull's weapon slot is, which needs the install's specs.
+        InstalledWeaponSlots.install();
+        try {
+            return renderBoatDeckWithSlots(context, renderer, width, height, openBoat, strikeABoat,
+                    departure, hardpoint);
+        } finally {
+            TurretSlotResolver.useHullSpecs(null);
+        }
+    }
+
+    private static BufferedImage renderBoatDeckWithSlots(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean openBoat, boolean strikeABoat, int departure, int hardpoint)
+            throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck[] campaign = new BoatDeck[1];
         // The berth struck has to be one the camera is looking at, and the page
@@ -2895,7 +2926,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 ? snapshotHoldShortOfMetals() : snapshotMechResources();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 reactor, deck, resources, "Valkyrie");
+        if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
+            workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
+        }
         if (openBoat) viewModel.selectBoatAction(0).run();
+        if (hardpoint >= 0) viewModel.selectHardpointAction(hardpoint).run();
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
@@ -2913,7 +2948,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     new BoatDeckCanvas(ship, () -> bay,
                             viewModel::selectedBerthIndex, () -> 0,
                             berth -> berth < 0 || berth >= deck.berths()
-                                    || deck.boats().get(berth) != null));
+                                    || deck.boats().get(berth) != null)
+                            .doll(() -> viewModel.doll().get(), () -> 0d));
+            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get());
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -3298,6 +3335,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("stageTitle", viewModel.stageTitle());
+        props.put("stageStatus", viewModel.stageStatus());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
         props.put("fabricationClasses", viewModel.fabricationClasses());

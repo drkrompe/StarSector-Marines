@@ -37,11 +37,19 @@ public final class SwarmCues {
         /** The Matriarch out of the mother bore: her first roar. */
         ROAR,
         /** A Matriarch's scythe begins its sweep; the whoosh leads the cut. */
-        REAP
+        REAP,
+        /**
+         * A thrown body hit the ground: one a Brute trampled, a Matriarch's reap threw or a Harrier dropped. Posted by
+         * the body that landed, not by what threw it, so the thud is the body's.
+         */
+        THROWN
     }
 
-    /** One act by a body of {@code strain} at {@code stage} at a world position; the stage pitches its voice. */
-    public record Cue(Kind kind, UnitType strain, SwarmStage stage, float x, float y) { }
+    /**
+     * One act by {@code body}, of {@code strain} at {@code stage}, at a world position; the stage pitches its voice,
+     * and the body keeps one body from repeating itself.
+     */
+    public record Cue(Kind kind, long body, UnitType strain, SwarmStage stage, float x, float y) { }
 
     private final ConcurrentLinkedQueue<Cue> frame = new ConcurrentLinkedQueue<>();
     private final Collection<Cue> view = Collections.unmodifiableCollection(frame);
@@ -54,13 +62,13 @@ public final class SwarmCues {
 
     /** Thread-safe: {@code body} did {@code kind} where it stands. */
     public void post(Kind kind, long body, BattleSimulation sim) {
-        frame.add(new Cue(kind, sim.identity().type(body), sim.identity().swarmStage(body),
+        frame.add(new Cue(kind, body, sim.identity().type(body), sim.identity().swarmStage(body),
                 sim.world().x(body), sim.world().y(body)));
     }
 
     /** Thread-safe: {@code body} did {@code kind} to the cell at {@code cellX, cellY}. */
     public void postAt(Kind kind, long body, int cellX, int cellY, BattleSimulation sim) {
-        frame.add(new Cue(kind, sim.identity().type(body), sim.identity().swarmStage(body),
+        frame.add(new Cue(kind, body, sim.identity().type(body), sim.identity().swarmStage(body),
                 cellX + 0.5f, cellY + 0.5f));
     }
 }

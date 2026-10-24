@@ -8,11 +8,23 @@ package com.dillon.starsectormarines.battle.turret;
  * <p>{@code shield}, when not null, fits the structure's directional flux shield ({@code StructureDef.fluxShield}),
  * drawn in that tint: the field-emitter styles' builders fit the generator, the others do not. It is the one thing a
  * look decides that a battle reads; the shield's strength is the structure's.
+ *
+ * <p>{@code fluxBankPath}, when not null, is the style's flux hardware for a shielded structure: the capacitor banks
+ * and radiators bolted to its plinth, painted cold, with the same hardware at full charge beside it as
+ * {@code <name>-hot.png}. It is drawn only while a shield is fitted, heating with its flux.
  */
-public record StructureLook(String basePath, String spritePath, String recoilSpritePath, ShieldTint shield) {
+public record StructureLook(String basePath, String spritePath, String recoilSpritePath, ShieldTint shield,
+                            String fluxBankPath) {
 
     /** A look with no shield. */
     public StructureLook(String basePath, String spritePath, String recoilSpritePath) {
-        this(basePath, spritePath, recoilSpritePath, null);
+        this(basePath, spritePath, recoilSpritePath, null, null);
+    }
+
+    /** The flux hardware at full charge: {@link #fluxBankPath} with {@code -hot} before its extension. */
+    public String fluxBankHotPath() {
+        if (fluxBankPath == null) return null;
+        int dot = fluxBankPath.lastIndexOf('.');
+        return dot < 0 ? fluxBankPath + "-hot" : fluxBankPath.substring(0, dot) + "-hot" + fluxBankPath.substring(dot);
     }
 }

@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -435,6 +436,7 @@ public final class BattleFixtureJson {
                 encoded.put("platingId", boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
                 if (!boat.lift().standard()) encoded.put("liftId", boat.lift().id());
+                putRefittedGuns(encoded, boat);
                 // Which of the company's boats this was, when it was one of
                 // theirs at all. A replay of a mission that lost a boat has to
                 // lose the same one, and the fit alone cannot say which of two
@@ -470,7 +472,7 @@ public final class BattleFixtureJson {
                                     BoatFittingSlot.DRIVE),
                             BoatFitting.resolve(encoded.optString("liftId", null),
                                     BoatFittingSlot.LIFT),
-                            encoded.optString("boatId", null))
+                            encoded.optString("boatId", null), gunsFromJson(encoded))
                     : type;
             shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
                     encoded.has("embarkedPersonnel")
@@ -883,7 +885,26 @@ public final class BattleFixtureJson {
         encoded.put("driveId", boat.drive().id());
         encoded.put("liftId", boat.lift().id());
         if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
+        putRefittedGuns(encoded, boat);
         return encoded;
+    }
+
+    /**
+     * The door guns, only when a yard changed one: a boat at its sortie kit
+     * writes nothing, so every fixture from before hardpoints were refittable
+     * still reads, and still writes, the way it did.
+     */
+    private static void putRefittedGuns(JSONObject encoded, FittedBoat boat) throws Exception {
+        if (boat.guns().equals(List.of(FittedBoat.standard(boat.pattern()).kitFor(TurretRole.A2G)))) return;
+        encoded.put("guns", new JSONArray(boat.guns()));
+    }
+
+    private static String[] gunsFromJson(JSONObject encoded) throws Exception {
+        JSONArray guns = encoded.optJSONArray("guns");
+        if (guns == null) return null;
+        String[] decoded = new String[guns.length()];
+        for (int index = 0; index < decoded.length; index++) decoded[index] = guns.optString(index, null);
+        return decoded;
     }
 
     private static FittedBoat boatFromJson(JSONObject encoded) throws Exception {
@@ -892,7 +913,7 @@ public final class BattleFixtureJson {
                 BoatFitting.resolve(encoded.optString("platingId", null), BoatFittingSlot.PLATING),
                 BoatFitting.resolve(encoded.optString("driveId", null), BoatFittingSlot.DRIVE),
                 BoatFitting.resolve(encoded.optString("liftId", null), BoatFittingSlot.LIFT),
-                encoded.optString("boatId", null));
+                encoded.optString("boatId", null), gunsFromJson(encoded));
     }
 
     private static void putNullable(JSONObject object, String key, String value)
