@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.BayDoor;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -126,9 +127,8 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private DoubleSupplier seconds = () -> 0d;
     private List<BoatDollPanel.CardTarget> cards = List.of();
     private String hoveredCard;
-    /** Where the pointer was last seen on the canvas, for the board tooltip. */
-    private float pointerX = Float.NaN;
-    private float pointerY = Float.NaN;
+    /** The pointer on the board, shared with the room's drag; @see BoardHover */
+    private BoardHover hover = new BoardHover();
     private BoatDollPanel.Drop drop;
 
     /** Lights the socket a carried catalog piece is over: green where it would fit, red where not. */
@@ -322,7 +322,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         BoatDoll shown = doll.get();
         if (shown != null && focused != null && focus > 0.5f) {
             markTurrets(context, projection, focused, shown);
-            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, pointerX, pointerY,
+            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, hover,
                     seconds.getAsDouble());
             recoveryTargets = List.of();
         } else {
@@ -528,10 +528,15 @@ public final class BoatDeckCanvas implements CanvasProducer {
         context.fillQuad(p.x(x0), p.y(y0), p.x(x1), p.y(y1), p.x(x2), p.y(y2), p.x(x3), p.y(y3), color);
     }
 
+    /** The board's pointer, which the room's drag holds while a part is in hand. */
+    public BoatDeckCanvas hover(BoardHover hover) {
+        this.hover = hover;
+        return this;
+    }
+
     /** Records hover over the berths drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
-        pointerX = canvasX;
-        pointerY = canvasY;
+        hover.at(canvasX, canvasY);
         hoveredCard = slotAt(canvasX, canvasY);
         hovered = hoveredCard != null ? -1 : localBerthAt(canvasX, canvasY);
     }

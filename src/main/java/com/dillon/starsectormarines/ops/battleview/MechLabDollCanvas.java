@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -99,9 +100,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private StripTarget hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
-    /** Where the pointer was last seen on the canvas, for the board tooltip; NaN when it is not over it. */
-    private float pointerX = Float.NaN;
-    private float pointerY = Float.NaN;
+    /** The pointer on the board, shared with the room's drag; @see BoardHover */
+    private BoardHover hover = new BoardHover();
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
     private Supplier<List<MechInternal>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
@@ -310,6 +310,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return view.lookingAt(view.centerCellX() - share * width / cellPx, view.centerCellY(), view.zoomNotches());
     }
 
+    /** The board's pointer, which the room's drag holds while a part is in hand. */
+    public MechLabDollCanvas withHover(BoardHover hover) {
+        this.hover = hover;
+        return this;
+    }
+
     /** Where the subject stands across the view, from the lab camera's eased pose. */
     public MechLabDollCanvas withSideShift(DoubleSupplier shift) {
         this.sideShift = shift;
@@ -324,8 +330,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
-        pointerX = canvasX;
-        pointerY = canvasY;
+        hover.at(canvasX, canvasY);
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
         hoveredStrip = stripTargetAt(canvasX, canvasY);
@@ -601,15 +606,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawStrips(c, strips);
         lastStripTargets = List.copyOf(strips);
         lastPartBoxes = partBoxes;
-        if (dragPreview == null && hoveredSocket != null && layout.hasSocket(hoveredSocket)) {
+        if (hoveredSocket != null && layout.hasSocket(hoveredSocket)) {
             SocketDef socket = layout.socket(hoveredSocket);
-            MechInternal part = socket.id().compartment() ? partAt(pointerX, pointerY)
+            MechInternal part = socket.id().compartment() ? partAt(hover.x(), hover.y())
                     : installedInternals.apply(socket.id());
             MechWeaponComponent weapon = weaponAt(deployment, socket.id());
             String grid = socket.type().label() + " / " + socket.gridColumns() + "x" + socket.gridRows();
             String title = part != null ? part.displayName() : weapon != null ? weapon.displayName()
                     : socket.id().compartment() ? null : socket.label();
-            BoardTooltip.draw(c, pointerX, pointerY, canvasWidth, canvasHeight, title,
+            BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, title,
                     part != null || weapon != null ? socket.label() : grid);
         }
     }
@@ -661,7 +666,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         lastStripTargets = List.copyOf(strips);
         lastPartBoxes = Map.of();
         for (SocketDropTarget target : targets) {
-            if (!target.contains(pointerX, pointerY)) continue;
+            if (!target.contains(hover.x(), hover.y())) continue;
             SocketDef socket = socketById(sockets, target.id());
             String title = VehicleDoll.caption(type, socket.id(), kits);
             if (socket.id() == SocketId.AUXILIARY) {
@@ -669,12 +674,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 title = null;
                 for (int row = 0; row < kits.size(); row++) {
                     float[] box = MechSocketConsole.kitBox(target, socket, row);
-                    if (pointerX >= box[0] && pointerX <= box[2] && pointerY >= box[1] && pointerY <= box[3]) {
+                    if (hover.x() >= box[0] && hover.x() <= box[2] && hover.y() >= box[1] && hover.y() <= box[3]) {
                         title = kits.get(row).displayName();
                     }
                 }
             }
-            BoardTooltip.draw(c, pointerX, pointerY, canvasWidth, canvasHeight, title, socket.label());
+            BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, title, socket.label());
             break;
         }
     }

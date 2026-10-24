@@ -15,13 +15,22 @@ public final class PointerDrag<T> {
     public static final float THRESHOLD_SQUARED = 16f;
 
     private T carried;
+    /** The board this drag hides the tooltip on, or null. */
+    private BoardHover hover;
     private float startX;
     private float startY;
     private boolean moved;
 
+    /** Holds {@code hover} for every drag: from the press to the drop its board names nothing. */
+    public PointerDrag<T> holding(BoardHover hover) {
+        this.hover = hover;
+        return this;
+    }
+
     /** Picks {@code carried} up at the press, capturing the pointer so the drag follows it anywhere. */
     public void begin(UiPointerEvent event, T carried) {
         this.carried = carried;
+        if (hover != null) hover.hold();
         startX = event.x();
         startY = event.y();
         moved = false;
@@ -56,6 +65,7 @@ public final class PointerDrag<T> {
 
     /** Forgets what is carried without a release, as when the room is closed under the pointer. */
     public void cancel() {
+        if (carried != null && hover != null) hover.release();
         carried = null;
         moved = false;
     }

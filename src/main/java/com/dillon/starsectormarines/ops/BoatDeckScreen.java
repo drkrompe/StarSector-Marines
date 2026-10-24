@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.PointerButton;
 import com.dillon.starsectormarines.ops.battleview.BoatHardware;
+import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.ops.fitting.PointerDrag;
 import com.dillon.starsectormarines.ops.fitting.FittingDragGhost;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
@@ -83,7 +84,10 @@ public final class BoatDeckScreen implements Screen {
     private UiElement ghostElement;
     private final FittingDragGhost dragGhost = new FittingDragGhost();
     /** A stores part on the end of the pointer, on its way to a socket on the board. */
-    private final PointerDrag<BoatDeckViewModel.CatalogRow> drag = new PointerDrag<>();
+    /** The board's pointer; the drag holds it, so nothing covers the socket a part is going into. */
+    private final BoardHover boardHover = new BoardHover();
+    private final PointerDrag<BoatDeckViewModel.CatalogRow> drag =
+            new PointerDrag<BoatDeckViewModel.CatalogRow>().holding(boardHover);
     /**
      * Whether the ship has to be looked up again because what is standing in
      * her berths changed. Answered on the next advance rather than where the
@@ -379,7 +383,8 @@ public final class BoatDeckScreen implements Screen {
         BoatDeckCanvas canvas = new BoatDeckCanvas(ship, this::currentBay,
                 viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld)
                 .recovery(viewModel::berthRecovery)
-                .doll(() -> viewModel.doll().get(), () -> elapsedSeconds);
+                .doll(() -> viewModel.doll().get(), () -> elapsedSeconds)
+                .hover(boardHover);
         canvas.snap();
         return canvas;
     }

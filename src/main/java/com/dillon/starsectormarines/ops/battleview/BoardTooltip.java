@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
@@ -11,7 +12,8 @@ import java.awt.Color;
  * than a caption on every socket.
  *
  * <p>Set in the pages' own type: the part's name in the heading face, a detail line in the body
- * face, on the dark plate the stores sit on.
+ * face, on the dark plate the stores sit on. Whether to show at all is {@link BoardHover}'s:
+ * never while a part is held, so it cannot cover the socket the part is going into.
  */
 final class BoardTooltip {
 
@@ -27,11 +29,14 @@ final class BoardTooltip {
 
     /**
      * Draws {@code title}, and {@code detail} beneath it when there is one, beside the pointer
-     * and kept inside the canvas. Nothing is drawn without a title or a pointer.
+     * and kept inside the canvas. Nothing is drawn without a title, or while the board may
+     * name nothing.
      */
-    static void draw(CanvasContext c, float pointerX, float pointerY, float canvasWidth, float canvasHeight,
+    static void draw(CanvasContext c, BoardHover hover, float canvasWidth, float canvasHeight,
                      String title, String detail) {
-        if (title == null || title.isEmpty() || !Float.isFinite(pointerX) || !Float.isFinite(pointerY)) return;
+        if (title == null || title.isEmpty() || !hover.names()) return;
+        float pointerX = hover.x();
+        float pointerY = hover.y();
         boolean hasDetail = detail != null && !detail.isEmpty();
         float width = Fonts.ORBITRON_12_BOLD.measureWidth(title);
         if (hasDetail) width = Math.max(width, Fonts.INSIGNIA_15_AA.measureWidth(detail));
