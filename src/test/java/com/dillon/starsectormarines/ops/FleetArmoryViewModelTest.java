@@ -293,6 +293,41 @@ class FleetArmoryViewModelTest {
         assertEquals("", viewModel.transactionSummary().get());
     }
 
+    /**
+     * A card's tier chip and check box are centred by layout (an align-items row and growing
+     * spacers), not by padding sums, so they stay centred at any document size: the smallest
+     * the screen fits and a large panel that lays out wider.
+     */
+    @Test
+    void cardTierChipAndCheckBoxStayCentredAtAnyDocumentSize() throws Exception {
+        MarineRoster roster = fullSquad();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel model = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
+        try (MarkupInstance instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
+            UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
+            instance.styles().forEach(document::addStyleSheet);
+            SpecSheetLayer.install(document);
+            for (float[] size : new float[][] {{1744f, 938f}, {2560f, 1440f}}) {
+                document.layout(size[0], size[1]);
+                for (FleetArmoryViewModel.DoctrineTile tile : model.weaponDoctrineTiles().get()) {
+                    UiElement heading = instance.requireElement(tile.headerId());
+                    UiElement chip = instance.requireElement(tile.id() + ":tier");
+                    UiElement chevrons = instance.requireElement(tile.id() + ":tier-icon");
+                    UiElement box = instance.requireElement(tile.id() + ":issue-box");
+                    UiElement tick = instance.requireElement(tile.id() + ":issue-check");
+                    String at = tile.id() + " at " + (int) size[0] + "x" + (int) size[1];
+                    assertEquals(centerX(chip), centerX(chevrons), 0.01f, "chevrons centred across the chip, " + at);
+                    assertEquals(centerY(chip), centerY(chevrons), 0.01f, "chevrons centred down the chip, " + at);
+                    assertEquals(centerY(heading), centerY(chip), 0.01f, "chip centred on the heading, " + at);
+                    assertEquals(centerY(heading), centerY(box), 0.01f, "box centred on the heading, " + at);
+                    assertEquals(centerX(box), centerX(tick), 0.01f, "tick centred across the box, " + at);
+                    assertEquals(centerY(box), centerY(tick), 0.01f, "tick centred down the box, " + at);
+                }
+            }
+        }
+    }
+
     @Test
     void shippedComponentsKeepKeyedIdentityAcrossBilletInspection() throws Exception {
         MarineRoster roster = fullSquad();
@@ -302,6 +337,7 @@ class FleetArmoryViewModelTest {
         try (MarkupInstance instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
             UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
             instance.styles().forEach(document::addStyleSheet);
+            SpecSheetLayer.install(document);
             document.layout(1920, 1080);
             UiElement list = instance.requireElement("weapon-doctrine-list");
             UiElement first = list.childAt(0);
