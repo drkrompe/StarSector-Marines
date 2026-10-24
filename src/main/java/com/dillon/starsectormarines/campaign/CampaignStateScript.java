@@ -38,7 +38,6 @@ import com.dillon.starsectormarines.campaign.systems.StationingLapseSystem;
 import com.dillon.starsectormarines.campaign.systems.GarrisonMarketLossSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
 import com.dillon.starsectormarines.campaign.systems.StrandedDetachmentSystem;
-import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
@@ -126,7 +125,6 @@ public class CampaignStateScript implements EveryFrameScript {
                 new StrandedDetachmentSystem(),
                 new DiscoveryPropagationSystem(),
                 new DefectorAsylumSpawnSystem(),
-                new SilentColonySpawnSystem(),
                 new CivilWarParticipationOfferSystem(),
                 new ThreatInterventionOfferSystem(),
                 // Before the stationed-strength write, so the day's derived polity roster
