@@ -93,11 +93,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
-    private List<StripTarget> lastStripTargets = List.of();
+    /** Each rack kit's box from the last frame, for lifting it off. */
+    private List<KitBox> lastKitBoxes = List.of();
     /** Each compartment part's box from the last frame, {left, top, right, bottom}, for lifting it off. */
     private Map<MechInternal, float[]> lastPartBoxes = Map.of();
-    private static final float STRIP_SIZE = MechSocketConsole.STRIP_SIZE;
-    private StripTarget hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
     /** The fitted part under the pointer in the last frame, or null. */
@@ -259,7 +258,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawVehicleSchematic(context, vehicle, installedKits.get(), width, height);
         } else {
             lastSocketTargets = List.of();
-            lastStripTargets = List.of();
+            lastKitBoxes = List.of();
             Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
             if (preview instanceof MechVariant pattern) drawPatternSchematic(context, pattern, width, height);
         }
@@ -349,7 +348,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
         hover.at(canvasX, canvasY);
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
-        hoveredStrip = stripTargetAt(canvasX, canvasY);
     }
 
     /** The socket dock target at this canvas-local point, or null outside all sockets. */
@@ -361,12 +359,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return null;
     }
 
-    /** The socket whose strip X is at this canvas-local point, or null when no X is there. */
-    public SocketId stripAt(float canvasX, float canvasY) {
-        StripTarget target = stripTargetAt(canvasX, canvasY);
-        return target != null ? target.id() : null;
-    }
-
     /** The compartment part drawn at this canvas-local point, or null. */
     public MechInternal partAt(float canvasX, float canvasY) {
         for (Map.Entry<MechInternal, float[]> part : lastPartBoxes.entrySet()) {
@@ -376,23 +368,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return null;
     }
 
-    /** The rack kit whose X is at this canvas-local point, or null for any other X. */
-    public VehicleKit stripKitAt(float canvasX, float canvasY) {
-        StripTarget target = stripTargetAt(canvasX, canvasY);
-        return target != null ? target.kit() : null;
-    }
-
-    /** The compartment part whose X is at this canvas-local point, or null for any other X. */
-    public MechInternal stripPartAt(float canvasX, float canvasY) {
-        StripTarget target = stripTargetAt(canvasX, canvasY);
-        return target != null ? target.part() : null;
-    }
-
-    private StripTarget stripTargetAt(float canvasX, float canvasY) {
-        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
-        for (StripTarget target : lastStripTargets) {
-            if (canvasX >= target.left() && canvasX <= target.left() + STRIP_SIZE
-                    && canvasY >= target.top() && canvasY <= target.top() + STRIP_SIZE) return target;
+    /** The rack kit drawn at this canvas-local point, or null. */
+    public VehicleKit kitAt(float canvasX, float canvasY) {
+        for (KitBox kit : lastKitBoxes) {
+            float[] box = kit.box();
+            if (canvasX >= box[0] && canvasX <= box[2] && canvasY >= box[1] && canvasY <= box[3]) return kit.kit();
         }
         return null;
     }
@@ -603,30 +583,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     elapsedSeconds.getAsDouble());
         }
         lastSocketTargets = List.copyOf(targets);
-        List<StripTarget> strips = new ArrayList<>();
+        // A part comes off by being dragged off; each compartment part is lifted by its own box.
         Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
-            if (socket.factoryLocked() || dragPreview != null) continue;
-            if (socket.id().compartment()) {
-                // Each part comes out on its own, from an X just right of it, however many share the socket.
-                for (MechCompartment.Placement part : MechCompartment.in(packed(layout), socket.id())) {
-                    float[] box = MechSocketConsole.partBox(target, socket, part);
-                    partBoxes.putIfAbsent(part.part(), box);
-                    float[] at = MechSocketConsole.stripAt(box);
-                    strips.add(new StripTarget(socket.id(), part.part(), null, at[0], at[1]));
-                }
-            } else {
-                MechWeaponComponent weapon = weaponAt(deployment, socket.id());
-                MechInternal internal = weapon == null ? installedInternals.apply(socket.id()) : null;
-                if (weapon != null || internal != null) {
-                    float[] at = MechSocketConsole.stripAt(MechSocketConsole.fittedBox(target, socket, weapon, internal));
-                    strips.add(new StripTarget(socket.id(), null, null, at[0], at[1]));
-                }
+            if (socket.factoryLocked() || dragPreview != null || !socket.id().compartment()) continue;
+            for (MechCompartment.Placement part : MechCompartment.in(packed(layout), socket.id())) {
+                partBoxes.putIfAbsent(part.part(), MechSocketConsole.partBox(target, socket, part));
             }
         }
-        drawStrips(c, strips);
-        lastStripTargets = List.copyOf(strips);
         lastPartBoxes = partBoxes;
         if (hoveredSocket != null && layout.hasSocket(hoveredSocket)) {
             SocketDef socket = layout.socket(hoveredSocket);
@@ -673,7 +638,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float[] end = path.get(path.size() - 1);
             drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
         }
-        List<StripTarget> strips = new ArrayList<>();
+        List<KitBox> kitBoxes = new ArrayList<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             boolean rack = socket.id() == SocketId.AUXILIARY;
@@ -684,17 +649,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     elapsedSeconds.getAsDouble());
             if (!rack) continue;
             for (int row = 0; row < kits.size(); row++) {
-                float[] box = MechSocketConsole.kitBox(target, socket, row);
-                float[] at = MechSocketConsole.stripAt(box);
-                strips.add(new StripTarget(socket.id(), null, kits.get(row), at[0], at[1]));
+                kitBoxes.add(new KitBox(kits.get(row), MechSocketConsole.kitBox(target, socket, row)));
             }
         }
-        drawStrips(c, strips);
         // Only the rack answers the pointer: sealed cards take no drops and no selection.
         List<SocketDropTarget> live = new ArrayList<>();
         for (SocketDropTarget target : targets) if (target.id() == SocketId.AUXILIARY) live.add(target);
         lastSocketTargets = List.copyOf(live);
-        lastStripTargets = List.copyOf(strips);
+        lastKitBoxes = List.copyOf(kitBoxes);
         lastPartBoxes = Map.of();
         for (SocketDropTarget target : targets) {
             if (!target.contains(hover.x(), hover.y())) continue;
@@ -720,22 +682,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         throw new IllegalArgumentException("no card " + id);
     }
 
-    private void drawStrips(CanvasContext c, List<StripTarget> strips) {
-        for (StripTarget strip : strips) {
-            boolean hot = strip.equals(hoveredStrip);
-            c.fillRect(strip.left(), strip.top(), STRIP_SIZE, STRIP_SIZE,
-                    hot ? new Color(0x45, 0x1a, 0x1a, 235) : new Color(0x2a, 0x15, 0x15, 215));
-            Color ink = hot ? new Color(0xff, 0x6e, 0x6e) : new Color(0xe9, 0x8b, 0x83);
-            float inset = 3.5f;
-            c.line(strip.left() + inset, strip.top() + inset,
-                    strip.left() + STRIP_SIZE - inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
-            c.line(strip.left() + STRIP_SIZE - inset, strip.top() + inset,
-                    strip.left() + inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
-        }
-    }
-
-    /** An X on the doll: a socket's, one compartment part's, or one rack kit's. */
-    private record StripTarget(SocketId id, MechInternal part, VehicleKit kit, float left, float top) { }
+    /** One kit on the rack and the box it is drawn in, {left, top, right, bottom}. */
+    private record KitBox(VehicleKit kit, float[] box) { }
 
     /** The selected machine's compartment at its packed places, every bay; empty if it somehow does not pack. */
     private List<MechCompartment.Placement> packed(MechFittingLayout layout) {
