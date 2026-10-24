@@ -1,6 +1,6 @@
 # The Heart — the allied commander
 
-Status: DRAFT — the lane formation is out to the owner (question `heart-lane-formation`).
+Status: DRAFT. The lane formation is out to the owner (question `heart-lane-formation`). Built, on the recommended answers: lanes as screened advances by country, and armour called by need from the vehicle park.
 
 Written: 2026-10-23
 
@@ -27,7 +27,7 @@ its next bore, re-routed when that bore falls.
 - **Late waves** from the vehicle park join the main where they catch it up.
 - **A broken screen** hands the lead to the main.
 
-The pictures compare the two screens with today's control.
+The pictures compare the two screens with today's control. Built behind `battle.heart.laneFormation`: a lane forms only once it has armour, and after it rallies on its bore it attacks the bore as before.
 
 **When to call armour up the road.** It replaces the timer with need, read
 with the Cordon commander's signal names (`cordon-allied-command.md`). The
@@ -37,7 +37,7 @@ place) for the lane whose armour is weakest, when that lane is:
 - broken: its screen broke (F2's `lane_broken_N`);
 - stalled: its formation stalled at the cap twice running.
 
-There is never more than one pair on the road per lane (`onRoad`). The base
+There is never more than one pair on the road per lane (`onRoad`). Built before the shared producer, behind `battle.heart.armourByNeed`: the lanes' timed waves become the vehicle park's stock, a lane that is uncovered or broken calls its next pair, and `heart.armour_called_<lane>_<n>` marks each call. Stalled does not call yet. The base
 keeps its pace by density as stock, and requests draw on it
 (`allied-tools.md`).
 

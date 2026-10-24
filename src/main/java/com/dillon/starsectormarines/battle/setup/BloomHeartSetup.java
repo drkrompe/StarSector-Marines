@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
+import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
+import com.dillon.starsectormarines.battle.evacuation.HeartGunship;
 import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
@@ -194,7 +197,20 @@ public final class BloomHeartSetup {
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
         // The armour waves come up the supply road from the vehicle park the layout laid, while it stands.
         HeartVehiclePark park = form == Form.BROAD_FRONT ? HeartVehiclePark.of(built.map().layout) : null;
-        if (lanes != null && park != null) lanes.sentFrom(park);
+        if (lanes != null && park != null) {
+            lanes.sentFrom(park);
+            // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
+            int n = lanes.grounds().size();
+            // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
+            AlliedToolShed shed = new AlliedToolShed(park)
+                    .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
+                            Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
+                    .stock(AlliedTool.GUNSHIP, HeartGunship.maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT))
+                    .gated(AlliedTool.GUNSHIP, HeartGunship::airOpen);
+            if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
+                    Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
+            lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
+        }
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);
@@ -387,6 +403,8 @@ public final class BloomHeartSetup {
     /** Broad Front's armour waves, the same pairs from the opening, eight for the same reason ({@code -Dbattle.heart.broadArmourWaves}). */
     static final int BROAD_ARMOUR_WAVES = Integer.getInteger("battle.heart.broadArmourWaves", 8);
     static final int ARMOUR_WAVE_SECONDS = 120;
+    /** Seconds after a gunship sortie leaves the shed before the next is ready. */
+    static final int GUNSHIP_RESTOCK_SECONDS = 240;
     /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
     static final float ARMOUR_DEPTH = 0.12f;
 

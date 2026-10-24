@@ -1,7 +1,12 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.allied.AdvanceRoute;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
+import com.dillon.starsectormarines.battle.command.allied.AlliedRequest;
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
+import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
+import com.dillon.starsectormarines.battle.command.allied.ScreenedAdvance;
 import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
@@ -24,7 +29,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.Random;
 
@@ -67,6 +74,17 @@ public final class HeartLanes {
         /** The lane's armour (The Burn's battlegroups): hulls and mechs both stationed by the allied command. */
         final List<Long> hulls = new ArrayList<>();
         final List<Long> mechs = new ArrayList<>();
+        /** The lane's formation onto its next bore, while it is going there; {@code null} when it fights where it is. */
+        ScreenedAdvance advance;
+        /** Whether the lane's armour screens its militia in the current advance (open ground), or the reverse. */
+        boolean armourLeads;
+        /** Members already given to the current advance, so later waves and machines join it once. */
+        final Set<Integer> formedSquads = new HashSet<>();
+        final Set<Long> formedMachines = new HashSet<>();
+        /** The most machines the lane has had standing: one fewer standing now is a lane uncovered. */
+        int machinesHeld;
+        /** How many times the lane has called armour up. */
+        int calls;
 
         Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
@@ -205,11 +223,13 @@ public final class HeartLanes {
     /** One tick; the lanes' beats go into {@code beats}. */
     public void tick(BattleSimulation sim, List<String> beats) {
         int tick = sim.getSimTickIndex();
+        // A formation drives the allied command, so it moves before the command carries its orders out.
+        for (Lane lane : lanes) if (lane.advance != null && lane.advance.active()) lane.advance.advance(sim);
         allied.advance(sim);
         boolean refreshed = false;
         for (var due = armourDue.iterator(); due.hasNext(); ) {
             int[] a = due.next();
-            if (a[0] > tick) continue;
+            if (a[0] > tick || byNeed()) continue;
             int[] from = depot == null ? new int[]{a[3], a[4]} : depot.dispatchCell(sim);
             if (from == null) continue;
             due.remove();
@@ -226,8 +246,16 @@ public final class HeartLanes {
             }
             addArmour(sim, a[1], a[2] < 0 ? null : VehicleType.values()[a[2]], from[0], from[1], a[5]);
         }
+        if (byNeed()) {
+            shed.advance(sim);
+            if (tick % RETARGET_TICKS == 0) {
+                for (Lane lane : lanes) callArmour(sim, lane, beats);
+                sorties = HeartGunship.call(sim, shed, this, beats, sorties);
+            }
+        }
         for (Lane lane : lanes) {
-            if (tick % RETARGET_TICKS == 0) driveArmour(sim, lane);
+            boolean formed = lane.squads != null && !lane.squads.isEmpty() && formation(sim, lane, tick);
+            if (tick % RETARGET_TICKS == 0 && !formed) driveArmour(sim, lane);
             lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
                 if (beat.equals("column_arrived_1")) beats.add("lane_arrived_" + lane.number);
             });
@@ -239,7 +267,7 @@ public final class HeartLanes {
                 lane.broken = true;
                 beats.add("lane_broken_" + lane.number);
             }
-            if (lane.squads.isEmpty() || tick % RETARGET_TICKS != 0) continue;
+            if (formed || lane.squads.isEmpty() || tick % RETARGET_TICKS != 0) continue;
             if (screen == null && livingBoreAt(sim, lane.targetX, lane.targetY)) continue;
             KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
             if (next == null) continue;
@@ -252,6 +280,261 @@ public final class HeartLanes {
                         CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " goes on to " + next.key());
             }
         }
+    }
+
+    /**
+     * Whether Broad Front's lanes go on to each next bore as one formation (`heart-allied-commander.md`): militia
+     * and armour as a screened advance, the screen picked by the country. Removal condition: the owner's
+     * {@code heart-lane-formation} pick; {@code false} is the control, every squad and hull straight to the bore.
+     */
+    static final boolean LANE_FORMATION = Boolean.parseBoolean(System.getProperty("battle.heart.laneFormation", "true"));
+    /** Share of the way to the next bore a tank can drive for the armour to screen the militia. */
+    static final float ARMOUR_LEADS_OPEN = 0.85f;
+    /** A swarm contact never lets up: a lane faces it this long before it pushes through. */
+    static final float LANE_CONTACT_HOLD_SECONDS = 20f;
+
+    /**
+     * Broad Front's lane between bores: when the bore it was on is down, the lane forms up where it stands and goes
+     * on to the next as a screened advance, armour screening across open ground and militia screening through woods
+     * and streets. Returns whether the formation has the lane this tick; once it has rallied on the bore, the lane
+     * attacks it as before.
+     */
+    private boolean formation(BattleSimulation sim, Lane lane, int tick) {
+        if (!LANE_FORMATION || screen != null) return false;
+        if (tick % RETARGET_TICKS == 0 && (lane.advance == null || !lane.advance.active())
+                && (lane.targetX < 0 || !livingBoreAt(sim, lane.targetX, lane.targetY))) {
+            KnownBore next = lane.ground.target(known(sim), lane.targetX, lane.targetY);
+            if (next != null) {
+                int[] aim = aim(sim, lane.ground, next);
+                if (aim[0] != lane.targetX || aim[1] != lane.targetY) {
+                    lane.targetX = aim[0];
+                    lane.targetY = aim[1];
+                    lane.advance = form(sim, lane, aim);
+                    if (lane.advance == null) {
+                        for (int squad : lane.squads) {
+                            sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, aim[0], aim[1]),
+                                    CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " goes on to " + next.key());
+                        }
+                    }
+                }
+            }
+        }
+        ScreenedAdvance advance = lane.advance;
+        if (advance == null) return false;
+        if (!advance.active()) {
+            // Rallied on the bore (or halted): the lane attacks it from where the formation brought it.
+            lane.advance = null;
+            for (int squad : lane.squads) {
+                sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, lane.targetX, lane.targetY),
+                        CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " attacks its bore");
+            }
+            return false;
+        }
+        for (int squad : lane.squads) if (lane.formedSquads.add(squad)) advance.joinInfantry(squad, lane.armourLeads);
+        for (long hull : lane.hulls) if (lane.formedMachines.add(hull)) advance.joinMachine(hull, false, lane.armourLeads);
+        for (long mech : lane.mechs) if (lane.formedMachines.add(mech)) advance.joinMachine(mech, true, lane.armourLeads);
+        return true;
+    }
+
+    /** The lane's formation from where it stands to {@code aim}, or {@code null} when it has no armour to form with. */
+    private ScreenedAdvance form(BattleSimulation sim, Lane lane, int[] aim) {
+        List<Long> hulls = new ArrayList<>(), mechs = new ArrayList<>();
+        for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f) hulls.add(hull);
+        for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech)) mechs.add(mech);
+        if (hulls.isEmpty() && mechs.isEmpty()) return null;
+        int[] from = laneBody(sim, lane, hulls);
+        if (from == null) return null;
+        lane.armourLeads = openShare(sim, from, aim) >= ARMOUR_LEADS_OPEN;
+        lane.formedSquads.clear();
+        lane.formedMachines.clear();
+        lane.formedSquads.addAll(lane.squads);
+        lane.formedMachines.addAll(hulls);
+        lane.formedMachines.addAll(mechs);
+        ScreenedAdvance.Element infantry = new ScreenedAdvance.Element().squads(lane.squads);
+        ScreenedAdvance.Element armour = new ScreenedAdvance.Element().hulls(hulls).mechs(mechs);
+        return ScreenedAdvance.builder("lane-" + lane.number, ISSUER, allied,
+                        AdvanceRoute.straight(from[0], from[1], aim[0], aim[1]))
+                .screen(lane.armourLeads ? armour : infantry)
+                .main(lane.armourLeads ? infantry : armour)
+                .side(Faction.ALLY)
+                .frontage(2f * lane.ground.halfWidth())
+                .startWhen(ScreenedAdvance.Trigger.now())
+                .onStalled(ScreenedAdvance.Stalled.PUSH_THROUGH)
+                .onScreenBroken(ScreenedAdvance.Broken.MAIN_LEADS)
+                .contactTimes(ScreenedAdvance.CONTACT_CLEAR_SECONDS, LANE_CONTACT_HOLD_SECONDS)
+                .build();
+    }
+
+    /** The middle of the lane's squad leaders and hulls: where its formation forms up. */
+    private static int[] laneBody(BattleSimulation sim, Lane lane, List<Long> hulls) {
+        float sx = 0, sy = 0;
+        int n = 0;
+        for (int squad : lane.squads) {
+            long leader = sim.getSquad(squad).leaderId;
+            if (leader == 0L || sim.resolveUnit(leader) == 0L || !sim.world().isAlive(leader)) continue;
+            sx += sim.world().x(leader);
+            sy += sim.world().y(leader);
+            n++;
+        }
+        for (long hull : hulls) {
+            sx += sim.convoy().body(hull).x;
+            sy += sim.convoy().body(hull).y;
+            n++;
+        }
+        return n == 0 ? null : new int[]{(int) (sx / n), (int) (sy / n)};
+    }
+
+    /** Share of the straight way from {@code from} to {@code to} a tank can drive: how open the country is. */
+    private float openShare(BattleSimulation sim, int[] from, int[] to) {
+        VehicleClearance clearance = clearance(sim, VehicleType.BREAKTHROUGH_TANK);
+        int steps = Math.max(1, Math.max(Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]))), open = 0;
+        for (int i = 0; i <= steps; i++) {
+            int x = from[0] + Math.round((to[0] - from[0]) * (float) i / steps);
+            int y = from[1] + Math.round((to[1] - from[1]) * (float) i / steps);
+            if (clearance.isPassable(x, y)) open++;
+        }
+        return open / (float) (steps + 1);
+    }
+
+    /**
+     * Whether a lane with a tool shed calls its armour up by need rather than on the waves' timetable
+     * (`heart-allied-commander.md`): the shed's stock replaces the waves. Removal condition: the first played
+     * comparison of the two at the owner's pick of the allied tool (`heart-allied-tool`); {@code false} is the
+     * control, the timetable.
+     */
+    static final boolean ARMOUR_BY_NEED = Boolean.parseBoolean(System.getProperty("battle.heart.armourByNeed", "true"));
+    /** A machine this close to its lane's aim has arrived, and is off the road. */
+    static final int ARRIVED_CELLS = 20;
+
+    /** The base the lanes call their armour from, or {@code null} when their waves keep the timetable. */
+    private AlliedToolShed shed;
+    /** Whether an uncovered lane asks for a mech lance before an armour pair: built-up country, where hulls are roadbound. */
+    private boolean mechsFirst;
+    /** Gunship sorties the commander has called. */
+    private int sorties;
+
+    /** In built-up country an uncovered lane asks the base for a mech lance first, and an armour pair if none is free. */
+    public HeartLanes mechsFirst(boolean first) {
+        this.mechsFirst = first;
+        return this;
+    }
+
+    /** Brings a pair of Hounds on for the lane a request names, joining the lane's walkers. */
+    public AlliedToolShed.Maker mechMaker() {
+        return (sim, from, request) -> {
+            Lane lane = laneFor(request);
+            if (lane == null || from == null) return null;
+            int index = lanes.indexOf(lane);
+            int mechs = lane.mechs.size();
+            addArmour(sim, index, null, from[0], from[1], 0f);
+            addArmour(sim, index, null, from[0], from[1], 0f);
+            if (lane.mechs.size() == mechs) return null;
+            List<Long> sent = new ArrayList<>(lane.mechs.subList(mechs, lane.mechs.size()));
+            return s -> {
+                for (long id : sent) if (onTheRoad(s, lane, id)) return false;
+                return true;
+            };
+        };
+    }
+
+    private Lane laneFor(AlliedRequest request) {
+        for (Lane l : lanes) if (place(l.number).equals(request.toPlace())) return l;
+        return null;
+    }
+
+    /** Where every lane machine stands now, hulls and walkers. */
+    List<float[]> machinePositions(BattleSimulation sim) {
+        List<float[]> out = new ArrayList<>();
+        for (Lane lane : lanes) {
+            for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f)
+                out.add(new float[]{sim.convoy().body(hull).x, sim.convoy().body(hull).y});
+            for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech))
+                out.add(new float[]{sim.world().x(mech), sim.world().y(mech)});
+        }
+        return out;
+    }
+
+    /** The bore the first broken lane is aimed at, or {@code null} when no lane is broken. */
+    int[] brokenLaneTarget() {
+        for (Lane lane : lanes) if (lane.broken && lane.targetX >= 0) return new int[]{lane.targetX, lane.targetY};
+        return null;
+    }
+
+    /**
+     * The lanes call their armour from {@code shed} by need (`allied-tools.md`), and the timed waves no longer come.
+     * Stock the shed's armour pairs with {@link #armourMaker()}, so the machines it sends join their lane.
+     */
+    public HeartLanes calledFrom(AlliedToolShed shed) {
+        this.shed = shed;
+        return this;
+    }
+
+    private boolean byNeed() {
+        return ARMOUR_BY_NEED && shed != null;
+    }
+
+    /** The place a lane's requests name: {@code lane-<number>}. */
+    static String place(int number) {
+        return "lane-" + number;
+    }
+
+    /**
+     * Brings an armour pair on for the lane a request names: a breakthrough tank and a technical set down from the
+     * depot cell, joining the lane's armour so it is driven with the rest; on the road until both are within
+     * {@link #ARRIVED_CELLS} of the lane's aim, or gone.
+     */
+    public AlliedToolShed.Maker armourMaker() {
+        return (sim, from, request) -> {
+            Lane lane = laneFor(request);
+            if (lane == null || from == null) return null;
+            int index = lanes.indexOf(lane);
+            int hulls = lane.hulls.size();
+            float facing = lane.ground.advancesAlongY() ? (advanceSign >= 0 ? 90f : -90f) : (advanceSign >= 0 ? 0f : 180f);
+            addArmour(sim, index, VehicleType.BREAKTHROUGH_TANK, from[0], from[1], facing);
+            addArmour(sim, index, VehicleType.MILITIA_TECHNICAL, from[0], from[1], facing);
+            if (lane.hulls.size() == hulls) return null;
+            List<Long> sent = new ArrayList<>(lane.hulls.subList(hulls, lane.hulls.size()));
+            Lane to = lane;
+            return s -> {
+                for (long id : sent) if (onTheRoad(s, to, id)) return false;
+                return true;
+            };
+        };
+    }
+
+    /**
+     * The lane's call for armour, by need (the Cordon commander's signal names, `cordon-allied-command.md`): a lane
+     * is <b>uncovered</b> when it has fewer machines standing than it has had, or broken when its militia are. It
+     * asks the shed for a pair, never with a pair of its own still on the road; the shed refuses while it has none
+     * in stock or its depot cannot send.
+     */
+    private void callArmour(BattleSimulation sim, Lane lane, List<String> beats) {
+        int standing = 0;
+        for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f) standing++;
+        for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech)) standing++;
+        lane.machinesHeld = Math.max(lane.machinesHeld, standing);
+        boolean uncovered = standing < lane.machinesHeld;
+        if (!(uncovered || lane.broken) || shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0) return;
+        int tx = lane.targetX >= 0 ? lane.targetX : lane.entryX, ty = lane.targetY >= 0 ? lane.targetY : lane.entryY;
+        if (shed.onRoad(AlliedTool.MECH_LANCE, place(lane.number)) > 0) return;
+        int before = lane.hulls.size() + lane.mechs.size();
+        String reason = uncovered ? "uncovered" : "broken";
+        boolean granted = mechsFirst
+                && shed.request(sim, new AlliedRequest(AlliedTool.MECH_LANCE, place(lane.number), tx, ty, reason));
+        if (!granted) granted = shed.request(sim, new AlliedRequest(AlliedTool.ARMOUR_PAIR, place(lane.number), tx, ty, reason));
+        if (!granted) return;
+        // What the lane is to have once its call is up: the pair replaces what it lost.
+        lane.machinesHeld = standing + lane.hulls.size() + lane.mechs.size() - before;
+        lane.calls++;
+        beats.add("armour_called_" + lane.number + "_" + lane.calls);
+    }
+
+    /** Whether a machine sent to the lane is alive and still short of its lane's aim. */
+    private static boolean onTheRoad(BattleSimulation sim, Lane lane, long id) {
+        if (sim.convoy().structure(id) <= 0f) return false;
+        float x = sim.convoy().body(id).x, y = sim.convoy().body(id).y;
+        int tx = lane.targetX >= 0 ? lane.targetX : lane.entryX, ty = lane.targetY >= 0 ? lane.targetY : lane.entryY;
+        return Math.max(Math.abs(x - tx), Math.abs(y - ty)) > ARRIVED_CELLS;
     }
 
     /** Cells between neighbouring machines across a lane, and by default how far behind the lane's aim they stand. */
