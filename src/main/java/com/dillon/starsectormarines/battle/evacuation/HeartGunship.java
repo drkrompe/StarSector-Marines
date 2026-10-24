@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,8 +35,8 @@ public final class HeartGunship {
     static final float ON_ARMOUR_CELLS = 20f;
     /** Seconds between the base's shoots on the colonies keeping the air shut. */
     static final float SHOOT_SECONDS = 90f;
-    /** Shells a shoot puts on each living colony. */
-    static final int SHELLS_PER_COLONY = 4;
+    /** The most shells a shoot puts on one target. */
+    static final int MOST_SHELLS = 8;
     /** The shoot's shell: a field gun's high explosive, landing a second apart. */
     static final float SHELL_RADIUS = 2.5f, SHELL_DAMAGE = 80f, SHELL_PENETRATION = 20f, FIRST_FLIGHT = 3f;
     static final int SHELL_WALL_DAMAGE = 40;
@@ -44,11 +45,11 @@ public final class HeartGunship {
     private int shoots;
     private int nextShoot;
 
-    /** Whether the air over the approach is open: no spore colony stands on the satellites nearest the company. */
+    /** Whether the air over the approach is open: no spore colony or outpost stands on the satellites nearest the company. */
     public static boolean airOpen(BattleSimulation sim) {
         for (SwarmBore bore : HeartObjectives.approachSatellites(sim)) {
             if (bore.collapsed()) continue;
-            for (long colony : bore.colonies()) {
+            for (long colony : antiAir(bore)) {
                 if (standing(sim, colony)) return false;
             }
         }
@@ -95,14 +96,15 @@ public final class HeartGunship {
         beats.add("gunship_called_" + sorties);
     }
 
-    /** Puts {@link #SHELLS_PER_COLONY} shells on each living colony of the approach satellites; returns the colonies shot at. */
+    /** Puts on each living colony and outpost of the approach satellites the shells that kill it ({@link #shellsFor}); returns how many it shot at. */
     static int shootTheAirOpen(BattleSimulation sim) {
         int colonies = 0;
         for (SwarmBore bore : HeartObjectives.approachSatellites(sim)) {
-            for (long colony : bore.colonies()) {
+            for (long colony : antiAir(bore)) {
                 if (!standing(sim, colony)) continue;
                 float x = sim.world().x(colony), y = sim.world().y(colony);
-                for (int i = 0; i < SHELLS_PER_COLONY; i++) {
+                int shells = shellsFor(sim.world().hp(colony), sim.world().armor(colony));
+                for (int i = 0; i < shells; i++) {
                     PendingDetonation shell = new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y,
                             FIRST_FLIGHT + i, SHELL_RADIUS, SHELL_DAMAGE, SHELL_PENETRATION, SHELL_WALL_DAMAGE,
                             Faction.ALLY, true);
@@ -115,7 +117,15 @@ public final class HeartGunship {
         return colonies;
     }
 
-    /** The most pressing target: a living Matriarch on a lane's armour, else the bore a broken lane is on. */
+    /**
+     * Shells sized to kill a target of {@code hp} structure behind {@code armor}: enough to strip both at a shell's
+     * damage, and one over, at most {@link #MOST_SHELLS}. A shoot that leaves the target standing opens nothing.
+     */
+    static int shellsFor(float hp, float armor) {
+        return Math.min(MOST_SHELLS, (int) Math.ceil((hp + armor) / SHELL_DAMAGE) + 1);
+    }
+
+    /** The most pressing target: a living Matriarch on a lane's armour, else the bore a broken lane is on, else the bore the most stalled lanes are on. */
     static int[] target(BattleSimulation sim, HeartLanes lanes) {
         List<float[]> armour = lanes.machinePositions(sim);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
@@ -128,7 +138,18 @@ public final class HeartGunship {
                 }
             }
         }
-        return lanes.brokenLaneTarget();
+        int[] broken = lanes.brokenLaneTarget();
+        return broken != null ? broken : lanes.stalledLaneTarget();
+    }
+
+    /**
+     * What on a bore shoots at aircraft: its spore colonies and its spore outposts. The first played sortie flew into
+     * an air the colonies alone called open and was shot down by two outposts of the bore it was sent to.
+     */
+    static List<Long> antiAir(SwarmBore bore) {
+        List<Long> out = new ArrayList<>(bore.colonies());
+        out.addAll(bore.outposts());
+        return out;
     }
 
     private static boolean standing(BattleSimulation sim, long colony) {

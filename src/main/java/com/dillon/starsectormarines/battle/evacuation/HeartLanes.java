@@ -459,6 +459,34 @@ public final class HeartLanes {
         return out;
     }
 
+    /** The bore the most stalled lanes are aimed at, or {@code null} when no lane is stalling. */
+    int[] stalledLaneTarget() {
+        int[] best = null;
+        int most = 0;
+        for (Lane lane : lanes) {
+            if (lane.pushesRunning == 0 || lane.targetX < 0) continue;
+            int n = 0;
+            for (Lane other : lanes) if (other.pushesRunning > 0 && other.targetX == lane.targetX && other.targetY == lane.targetY) n++;
+            if (n > most) {
+                most = n;
+                best = new int[]{lane.targetX, lane.targetY};
+            }
+        }
+        return best;
+    }
+
+    /** Whether the company's middle stands inside a lane's band. */
+    private static boolean companyIn(BattleSimulation sim, HeartLane ground) {
+        float[] company = HeartObjectives.companyCentre(sim);
+        return company != null && inBand(ground, company[0], company[1]);
+    }
+
+    /** Whether {@code (x, y)} lies inside the band {@code ground} runs along. */
+    static boolean inBand(HeartLane ground, float x, float y) {
+        float across = ground.advancesAlongY() ? x : y;
+        return Math.abs(across - ground.across()) <= ground.halfWidth();
+    }
+
     /** The bore the first broken lane is aimed at, or {@code null} when no lane is broken. */
     int[] brokenLaneTarget() {
         for (Lane lane : lanes) if (lane.broken && lane.targetX >= 0) return new int[]{lane.targetX, lane.targetY};
@@ -540,6 +568,9 @@ public final class HeartLanes {
         lane.machinesHeld = Math.max(lane.machinesHeld, standing);
         boolean uncovered = standing < lane.machinesHeld;
         boolean stalled = lane.pushesRunning >= STALL_PUSHES;
+        // The company has gone into a broken lane's gap: it is plugging it, and the commander does not send a wave on top.
+        boolean plugged = lane.broken && !uncovered && !stalled && companyIn(sim, lane.ground);
+        if (plugged) return;
         if (!(uncovered || lane.broken || stalled) || shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0) return;
         int tx = lane.targetX >= 0 ? lane.targetX : lane.entryX, ty = lane.targetY >= 0 ? lane.targetY : lane.entryY;
         if (shed.onRoad(AlliedTool.MECH_LANCE, place(lane.number)) > 0) return;
