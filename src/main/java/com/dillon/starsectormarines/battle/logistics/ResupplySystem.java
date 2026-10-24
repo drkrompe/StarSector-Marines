@@ -81,6 +81,7 @@ public final class ResupplySystem {
         World world = roster.world();
         if (world.hasSecondaryWeapon(unit)
                 && world.secondaryAmmo(unit) < world.specialEquipment(unit).startingAmmo()) return true;
+        if (world.hasBelt(unit) && world.beltAmmo(unit) < world.beltEquipment(unit).startingAmmo()) return true;
         MechLoadoutComponent mech = world.mechLoadout(unit);
         return mech != null && mech.needsSupply();
     }
@@ -94,6 +95,11 @@ public final class ResupplySystem {
                 world.setSecondaryAmmo(unit, current + 1);
                 return true;
             }
+        }
+        // The belt's throw refills after the hand's item, one use a transfer like it.
+        if (world.hasBelt(unit) && world.beltAmmo(unit) < world.beltEquipment(unit).startingAmmo()) {
+            world.setBeltAmmo(unit, world.beltAmmo(unit) + 1);
+            return true;
         }
         MechLoadoutComponent mech = world.mechLoadout(unit);
         return mech != null && mech.resupplyOne();

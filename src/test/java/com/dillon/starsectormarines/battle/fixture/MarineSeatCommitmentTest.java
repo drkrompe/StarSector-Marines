@@ -43,7 +43,8 @@ class MarineSeatCommitmentTest {
                 0.92f,
                 0.81f,
                 new CampaignSquadTag("squad-3", "Harrier", true, 9, 2),
-                MarineArmorCatalogRegistry.require("armor.aegis-composite").integralSystem()).withArmorClass(ArmorClass.POWER_SUIT);
+                MarineArmorCatalogRegistry.require("armor.aegis-composite").integralSystem()).withArmorClass(ArmorClass.POWER_SUIT)
+                .withBelt(SpecialEquipmentRegistry.FRAG_GRENADE_ID, 2);
 
         MarineSeatCommitment commitment = MarineSeatCommitment.capture(loadout);
         MarineLoadout restored = commitment.toLoadout();
@@ -54,6 +55,7 @@ class MarineSeatCommitmentTest {
         assertEquals(profile, restored.soldierProfile);
         assertEquals(SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
                 restored.specialDef().id());
+        assertEquals(SpecialEquipmentRegistry.FRAG_GRENADE_ID, restored.beltDef().id(), "the belt's throw travels too");
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, restored.armorFamily);
         assertEquals(ArmorClass.POWER_SUIT, restored.armorClass);
         assertEquals(loadout.integralSystem, restored.integralSystem);
