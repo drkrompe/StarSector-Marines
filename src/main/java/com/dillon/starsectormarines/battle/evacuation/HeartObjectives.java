@@ -633,7 +633,7 @@ public final class HeartObjectives {
     }
 
     /** The middle of the company's people, or null before any is on the map. */
-    private static float[] companyCentre(BattleSimulation sim) {
+    static float[] companyCentre(BattleSimulation sim) {
         float sx = 0, sy = 0;
         int n = 0;
         for (int i = 0, count = sim.liveUnitCount(); i < count; i++) {

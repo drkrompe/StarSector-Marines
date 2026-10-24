@@ -1,11 +1,11 @@
 # The Heart — allied forces and their tools
 
-Status: DRAFT — the owner's answer to `heart-allied-tool`: all four tools, the commander choosing by need (`heart-allied-commander.md`). All four are built.
+Status: SHIPPED — the owner's answer to `heart-allied-tool`: all four tools, the commander choosing by need (`heart-allied-commander.md`). The standing model is `heart-nouns.md` (Logistics base, Rounds on hand).
 
 Written: 2026-10-23
-Updated: 2026-10-23 — owner picked all four tools.
+Updated: 2026-10-23 — all four built; folded into `heart-nouns.md`.
 
-Step 3 of `heart-mission-depth.md`. `heart-nouns.md` is the model; the laws
+`heart-nouns.md` is the model; the laws
 still hold: allies never end the battle, the guns cannot take the heart, and a
 Harrier pack flies only where the company or an ally has anti-air.
 
@@ -69,4 +69,6 @@ tools as one `AlliedToolShed`:
 
 ## Open
 
-What it costs to lose the base.
+- What it costs to lose the base.
+- The armour drives cross-country, not along the supply road, and F6's
+  road-cutting satellite is not placed yet (`heart-map-intent.md`).

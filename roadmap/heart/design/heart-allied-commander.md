@@ -1,11 +1,11 @@
 # The Heart — the allied commander
 
-Status: DRAFT. Built: lanes as screened advances by country, and the tools called by need from the vehicle park's tool shed.
+Status: SHIPPED. The owner's list is built: all four tools, chosen by need. Open: the gunship's road-satellite rung (waits for F6's map placement) and re-aiming waves.
 
 Written: 2026-10-23
-Updated: 2026-10-23 — commander built on the shared `AlliedToolShed`; mechs first in town and city; gunship gated on open air.
+Updated: 2026-10-23 — company-in-the-gap and stalled-bore rules built; the standing model folded into `heart-nouns.md` (Allied commander).
 
-Step 4 of `heart-mission-depth.md`. The lanes' commander is the heart's
+The lanes' commander is the heart's
 mission, carrying out its choices through the shared machinery:
 - `allied-command.md` (station, carry, the screened advance);
 - `allied-tools.md` (the logistics base and its catalogue);
@@ -28,7 +28,8 @@ its next bore, re-routed when that bore falls.
 - **Late waves** from the vehicle park join the main where they catch it up.
 - **A broken screen** hands the lead to the main.
 
-The pictures compare the two screens with today's control. Built behind `battle.heart.laneFormation`: a lane forms only once it has armour, and after it rallies on its bore it attacks the bore as before.
+Behind `battle.heart.laneFormation`: a lane forms only once it has armour, and
+after it rallies on its bore it attacks the bore as before.
 
 **When to call armour up the road.** It replaces the timer with need, read
 with the Cordon commander's signal names (`cordon-allied-command.md`). The
@@ -57,8 +58,9 @@ calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
 
 It comes off station at half structure, and the next sortie waits for the
 base. The air gate sits inside the base's `request`, so the commander may ask
-and be refused. Built (`HeartGunship`) for the first rung and for a broken
-lane's bore, gated on the colonies of the approach satellites. Nothing in play
+and be refused. Built (`HeartGunship`): rungs 1, 2 (the bore the broken lane is
+on) and 4; rung 3 waits for the road satellite F6 places. The gate is the
+colonies of the approach satellites. Nothing in play
 reaches those colonies: the company and the lanes stop well short of the
 satellites. So while the commander wants a sortie and the air is shut, the
 base shoots the air open, a shoot on the living colonies at most every ninety
@@ -66,11 +68,19 @@ seconds (`heart.air_shoot_<n>`), and the sortie follows once they are dead.
 
 **Where the company stands in it.** The company is not under this commander.
 The commander reads the company's position as one more fact:
-- it does not send a wave to plug a gap the company has gone into (F2);
-- it keeps a lane's screen off the company's satellite.
+- it does not send a wave to plug a gap the company has gone into (F2): a
+  broken lane with the company inside its band does not call;
+- it keeps a lane's screen off the company's satellite: by construction, since
+  a lane only takes the bores in its own band and the company's sector is
+  not one.
 
 ## Open
 
+- The gunship's rung 3, the satellite against the road, once F6's satellite
+  is placed (`heart-map-intent.md`).
+- A sortie dies fast over the bores: the first played one took two hits from
+  the colonies round its target, eight seconds apart, and was down to 2 of 60
+  structure before it could turn home. A reading, not tuned.
 - Whether the commander should also re-aim the next infantry wave (F2's "the
   allied commander re-aims the next wave to close it"), which needs the
   militia column to accept a new target mid-march.

@@ -1,6 +1,6 @@
 # The Heart — maps with intent
 
-Status: ACTIVE. Direction for step 2 of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the hollow's rim is held and partly raised; the cordon's works, the beats' set pieces and the three densities are laid.
+Status: ACTIVE. Direction for the map work of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the hollow's rim is held and partly raised; the cordon's works, the beats' set pieces and the three densities are laid.
 
 Written: 2026-10-23
 

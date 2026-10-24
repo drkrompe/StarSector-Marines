@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — the owner's flow picks settled; the battle as built (sleeping mothers, wake rules, beats).
+Updated: 2026-10-23 — the logistics base, rounds on hand and the allied commander folded in from `heart-mission-depth.md`.
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -125,7 +125,40 @@ about a sixth, a third, two thirds and five sixths of the way across, with the
 country road out of the middle of the farmland as the company's own. A lane is
 ground, not a corridor: a column may leave it, and the creep has grown over it.
 
-**Logistics base** (Broad Front). The allies' tool shed behind the start line: the layout's vehicle park, ammunition dumps and supply road (`heart-map-intent.md`). The lanes' armour waves set out from the park and drive up to their lanes, and none sets out while the swarm is on it, so losing the base is what stops the reinforcements. It never fights and never ends the battle. Which tools it sends beyond armour is `heart-allied-forces.md`, over the shared catalogue in `allied-tools.md`.
+**Logistics base.** The allies' tool shed behind the start line: the layout's
+vehicle park, ammunition dumps and supply road (`heart-map-intent.md`), run as
+one producer over the shared catalogue (`allied-tools.md`). It holds each tool
+as stock and restocks it at a pace, and nothing sets out while the swarm is on
+the park, so losing the base is what stops the help. It never fights and never
+ends the battle.
+- On Broad Front it holds all four of the owner's tools: armour pairs (one per
+  lane, at the old wave pace), mech lances in town and city, one gunship gated
+  on open air, and one ammunition truck.
+- On The Burn, which has no lanes, it holds ammunition trucks alone.
+Every truck in the heart comes from it, the B5 beat's included.
+
+**Rounds on hand.** The heart's own guns, the Burn's battery and the flak pits
+the beats dig, keep a stock of rounds per place (`GunStock`). Every barrage
+shell is a round off its gun, and a dry gun fires one shell in four. A place
+under half its rounds calls a truck from the base, and the truck's arrival
+refills it, so a base the swarm has cut off shows as a barrage thinning out.
+
+**Allied commander** (Broad Front). The lanes' own commander
+(`heart-allied-commander.md`): authored rules, not a general that weighs the
+field. It never orders the company and never ends the battle.
+- **How a lane goes forward:** from bore to bore as a screened advance, with
+  armour screening on open ground and militia screening through woods and
+  streets.
+- **When to call help:** a lane calls its next machines when it is
+  **uncovered** (it has lost a machine), broken, or **stalled** (its formation
+  pushed through two contacts at the cap in a row, clearing neither). In town
+  and city it asks for a mech lance first; elsewhere, an armour pair. A lane
+  never has two calls on the road. A broken lane the company has gone into does
+  not call: the company is plugging that gap.
+- **When to commit the gunship:** onto a Matriarch on a lane's armour, else the
+  bore a broken lane is on, else the bore the most stalled lanes are on. Only
+  with the air open. While the air is shut, the base shoots the colonies
+  keeping it shut instead, since nothing else in play reaches them.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
@@ -192,9 +225,10 @@ worse, because the front is held back behind the guns for longer.
 holds its fire while a friend stands in its lane, so armour posted behind its
 own militia mostly waits. The Burn's battlegroup armour posts four cells
 ahead of its infantry rather than four behind
-(`-Dbattle.heart.burnArmourBehind`), and on both forms a fresh tank and
-technical come up eight times, two minutes apart
-(`-Dbattle.heart.burnFrontArmourWaves`, `-Dbattle.heart.broadArmourWaves`).
+(`-Dbattle.heart.burnArmourBehind`), and a fresh tank and technical come up
+eight times, two minutes apart (`-Dbattle.heart.burnFrontArmourWaves`). On
+Broad Front those waves are the logistics base's stock, called up by need
+(Allied commander; `-Dbattle.heart.armourByNeed=false` is the timetable).
 Broad Front's armour stays behind (`-Dbattle.heart.broadArmourBehind`),
 because its lanes march into the overgrowth before the armour can follow.
 

@@ -1,3 +1,4 @@
+| `heart-commander-look` | Opt-in, minutes: plays the Broad Front town battle (seed 2) unrecorded to the allied commander's first call for machines and to its gunship call, and records each through the look preset from the call, the camera on what the base sent: `commander-armour`, `commander-gunship` (`heart-allied-commander.md`) | `build/snapshots/heart-commander-look/` |
 # Snapshot suites
 
 Status: ACTIVE
