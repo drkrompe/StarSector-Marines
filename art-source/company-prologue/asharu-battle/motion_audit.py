@@ -156,7 +156,7 @@ def audit(sfx, cam_view=None):
 
     for o in list(sfx_objects(sfx)):
         kind = kind_of(o.name)
-        if kind is None:
+        if kind is None or o.type == 'EMPTY':     # a locator (a shield hit's pivot) draws nothing
             continue
         key = owners.get(o)
         lo_k = f_lo - flight_max

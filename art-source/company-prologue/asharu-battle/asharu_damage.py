@@ -151,9 +151,8 @@ LEDGER = [
       src='story (S6; the Falcon at range, unseen)', note="the Falcon's fire scores her starboard bow"),
     # (her S6b deck rake from the Buffalo Mk.II is cut with its fire: no hit without a visible shooter)
 
-    # ---- WARDEN FOUR, the merchant Wolf: a graze, gets away
-    H('wolf-m', 73.0, 'he', 1, (5, -8, 3), (0, -1, .2), src='story (S6c)',
-      note='a blaster graze as she chases the Wolves (P) through the gap'),
+    # ---- WARDEN FOUR, the merchant Wolf: gets away unhit
+    # (her S6c blaster graze is cut: nothing in S6c fires on her, and no hit lands without a visible shooter)
 
     # ---- WARDEN FIVE, the convoy's Hound: crippled in S6d
     # timed to the second Hound (P)'s drawn rounds: her first burst lands on her from 76.2 to 77.25 s
@@ -228,12 +227,12 @@ LEDGER = [
       note='a second burst as she swings her grapples away'),
 
     # ---- the Hounds (P) the convoy kills
-    H('hound-p-c', 60.0, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4),
-      src='story (S6b; Lasher B is out of reach until after the kill)', note='bare armour soaks the first burst'),
+    H('hound-p-c', 61.1, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4), by='tracer',
+      src='S6b k3c tracer wolf-m', note="bare armour soaks the merchant Wolf's first rounds to land"),
     H('hound-p-c', 61.6, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
       src='S6b k3c tracer wolf-m'),
-    H('hound-p-c', 61.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
-      note='the Ammo Feeder burst breaks her up'),
+    H('hound-p-c', 62.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
+      note="Lasher B's Ammo Feeder burst lands and breaks her up"),
     H('hound-p-a', 75.75, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
       src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
     H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
@@ -243,19 +242,22 @@ LEDGER = [
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
-    'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
+    'hound-m@76.2:rake': (0.96, 0.04, -0.27), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
     'lasher-lead@106.9:rake': (-0.70, -0.64, 0.31), 'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
     'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
-    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
+    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@76.5:breach': (0.94, 0.01, -0.33),
     'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
-    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.0:rake': (0.97, 0.15, 0.18),
+    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.8:rake': (0.99, -0.08, 0.12), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
     'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
-    'hound-p-c@60.0:rake': (0.92, 0.27, 0.30), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
-    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
+    'hound-p-c@61.1:rake': (0.89, 0.14, 0.44), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
+    'hound-p-c@62.9:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
     'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
     'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
 }
+_orphans = sorted(set(SHOOTER_SIDE) - {_h.id for _h in LEDGER})
+if _orphans:        # a retimed hit keeps its id's old time here and would silently lose its side
+    raise RuntimeError(f'SHOOTER_SIDE names no ledger hit: {_orphans}')
 for _h in LEDGER:
     _h.frm = SHOOTER_SIDE.get(_h.id, _h.frm)
 LEDGER.sort(key=lambda h: (h.ship, h.t))

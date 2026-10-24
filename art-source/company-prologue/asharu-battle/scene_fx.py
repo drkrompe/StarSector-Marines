@@ -205,11 +205,12 @@ class SceneFx:
         return True
 
     # ------------------------------------------------------------------ guns
-    def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4, trained=False, cease=None):
+    def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4, trained=False, cease=None, walk=1.0):
         """a's guns on b: every bearing gun with a clear line (muzzles, the blockout's pick first), up
         to `most` turrets. True when the kit drew it (a has a kit copy). A planned gun (planned()):
         trained, it is already on b when its plan opens (she was fighting before the cut); cease, the
-        scene frame from which it fires no more (b is dead)."""
+        scene frame from which it fires no more (b is dead); walk, the share of WALK_R and LEAD_ERR its
+        bursts walk and misjudge by (below 1: the burst that kills her lands on her)."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -247,7 +248,7 @@ class SceneFx:
                     aim_at = self.tracking(a, b, self.local(a, mz), hit_l, speed)
                     if self.cur is None:      # the whole shot, built once: planned aim, bursts, real shots
                         recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
-                                            feeder, aim_at, trained=trained, cease=cease)
+                                            feeder, aim_at, trained=trained, cease=cease, walk=walk)
                         if recs is not None:
                             planned_any = True       # the plan owns this gun, firing or holding
                             placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
@@ -339,7 +340,7 @@ class SceneFx:
     LEAD_ERR = .07
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track, trained=False,
-                cease=None):
+                cease=None, walk=1.0):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
         None for a mount with no pivot (the caller fires it the old way). trained: the gun opens on
         its target, not at rest; cease: no round from that scene frame on."""
@@ -395,7 +396,7 @@ class SceneFx:
             bursts.append((t, t + on))
             t += on + rnd.uniform(*gap_s) * fps
         bm = self.placed[b]['matrix']
-        reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R
+        reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R * walk
         walks = []
         for t0, t1 in bursts:
             th = rnd.uniform(0, 2 * math.pi)
@@ -403,7 +404,7 @@ class SceneFx:
             ph = th + math.pi + rnd.uniform(-.8, .8)
             r1 = reach * rnd.uniform(-.2, .6)
             walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
-                          rnd.gauss(0, self.LEAD_ERR)))
+                          rnd.gauss(0, self.LEAD_ERR * walk)))
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -846,27 +847,27 @@ class SceneFx:
     # 'big' cluster (18 m and up: seven to ten tongues, three to five satellites, a long smoke)
     KILL_SIZE = 1.7
 
-    def blast_on(self, key, radius, at):
-        """An HE blast on key's hull at `at` (her frame, metres). At her origin it is her kill: the
-        whole ship cooks off (kill())."""
+    def blast_on(self, key, radius, at, frame=None):
+        """An HE blast on key's hull at `at` (her frame, metres), on `frame` (default two frames before
+        the key). At her origin it is her kill: the whole ship cooks off (kill())."""
         ship = self.ship(key)
         if ship is None:
             return False
+        f = self.now - 2 if frame is None else frame
         if Vector(at).length < 1e-6:
-            return self.kill(key, radius)
+            return self.kill(key, radius, f)
         with ship.kit() as (ctx, kit):
-            self.m['swfx_impacts'].he(ctx, self.now - 2, tuple(at), tuple(self.outward(key, at)), size_m=radius * .6)
+            self.m['swfx_impacts'].he(ctx, f, tuple(at), tuple(self.outward(key, at)), size_m=radius * .6)
         self.rows.append(f'blast on {key} r{radius}')
         return True
 
-    def kill(self, key, radius):
+    def kill(self, key, radius, f):
         """Her kill: swfx_fire's cook-off cluster (the bench-passed warhead recipe with its satellites)
         on the face of her hull toward the camera. An HE burst at her origin sat inside her hull and
         drew only sparks (S6d audit, 2026-10-23: no core to the kill)."""
         import swfx_core
         import swfx_fire
         swfx_fire = importlib.reload(swfx_fire)
-        f = self.now - 2
         centre = self.world(key)
         face = None
         if self.cam_at is not None:
@@ -896,12 +897,14 @@ class SceneFx:
                          f'{tuple(round(c, 1) for c in face)} (her face toward the camera), {len(made)} pieces')
         return True
 
-    def debris(self, key, count, at):
+    def debris(self, key, count, at, frame=None):
+        """Plates thrown off key's hull, from `frame` (default ten frames before the key)."""
         ship = self.ship(key)
         if ship is None:
             return False
+        f = self.now - 10 if frame is None else frame
         with ship.kit() as (ctx, kit):
-            self.m['swfx_impacts'].debris(ctx, self.now - 10, tuple(at), tuple(self.outward(key, at)), count=count)
+            self.m['swfx_impacts'].debris(ctx, f, tuple(at), tuple(self.outward(key, at)), count=count)
         self.rows.append(f'debris {key} x{count}')
         return True
 

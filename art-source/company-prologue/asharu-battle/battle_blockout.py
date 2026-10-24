@@ -562,7 +562,7 @@ K3_SHIPS = {
 }
 
 # S6b: Lasher B rolls over to starboard (150) and the merchant Wolf to port (-140), both onto the
-# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up at the key time
+# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up as Lasher B's lands (62.9 s)
 K3C_T = 62
 K3C_SHIPS = {
     'lasher-b': fly('lasher-b', (-1300, 450, -150, -175, -15, 150, 1), K3C_T, [
@@ -577,7 +577,7 @@ K3C_SHIPS = {
         dict(t=58, hd=3, pt=14, rl=4, thr=1.0), dict(t=60.8, hd=4, pt=13, rl=0, thr=1.0),
         dict(t=63, v=120), dict(t=66, hd=15, pt=0, rl=-60, v=50)], v=200,     # the wreck slows, tumbling
         hits=[dict(t=61.0, spin=(25, 6, 10), push=(2, 0, -3), decay=1.0, thr=.4),
-              dict(t=62.0, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),
+              dict(t=62.9, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),
     'buffalo2-a': jinking('buffalo2-a', (-4200, -1200, -1500, 3, 10, 3, 1), K3C_T, 58, 66,
                           hits=recoil([59.0], kick=.2, shove=.3, every=.5, until=66)),
     'manticore-p': jinking('manticore-p', (-3000, -800, -900, 8, 6, 4, 1), K3C_T, 58, 66),
@@ -909,12 +909,17 @@ KEYFRAMES = {
         # CHASE: behind Lasher B over her roll, looking down past her; jolted as the Hound (P) breaks up
         camera=camera('k3c', [dict(t=t, loc=track(K3C_SHIPS['lasher-b'], (-900, 700, 150), .9, .2),
                                    target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
-                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.0, .6)]),
+                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.9, .6)]),
         ships=K3C_SHIPS,
         # the Buffalo Mk.II no longer fires on Lasher B: a stand-in hull has no kit guns to draw it, and
         # no hit lands without a visible shooter (coordinator, 2026-10-23; kit rounds from stand-ins is open)
-        fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
-            ('blast_on', 'hound-p-c', 18, (0, 0, 0)), ('debris', 'hound-p-c', 50, (0, 0, 0))],
+        # Lasher B's Ammo Feeder burst kills her: it is in flight about a second at this range, so both
+        # guns cease at 62.0 s and she breaks up at 62.9 s as its last rounds land (S6b audit12: her kill
+        # at 61.9 came before any of them, and the guns fired on into the wreck). walk .35: the killing
+        # burst lands on her rather than walking past
+        fx=[('tracer', 'lasher-b', 'hound-p-c', (0, 0, 0), dict(cease_t=62.0, walk=.35)),
+            ('tracer', 'wolf-m', 'hound-p-c', (0, 0, 0), dict(cease_t=62.0)),
+            ('blast_on', 'hound-p-c', 18, (0, 0, 0), 62.9), ('debris', 'hound-p-c', 50, (0, 0, 0), 62.9)],
         labels=['lasher-b', 'wolf-m', 'hound-p-c', 'buffalo2-a']),
     'k3d': dict(
         shot='S6c', title='The column is cut',
@@ -3052,10 +3057,13 @@ def blender_main(cfg):
                         if not done and len(fx) > 4:
                             print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
                                   f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
-                    elif kind == 'blast_on':
-                        done = sfx_.blast_on(fx[1], fx[2], fx[3])
-                    elif kind == 'debris':
-                        done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0))
+                    elif kind == 'blast_on':     # optional 5th: its sequence time (default 2 frames before the key)
+                        done = sfx_.blast_on(fx[1], fx[2], fx[3], frame=anchor + round((fx[4] - spec['key_t']) * fps_s)
+                                             if len(fx) > 4 else None)
+                    elif kind == 'debris':       # optional 5th: the blast's time; its plates are 8 frames ahead of it
+                        done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0),
+                                           frame=anchor + round((fx[4] - spec['key_t']) * fps_s) - 8
+                                           if len(fx) > 4 else None)
                     elif kind == 'fire_on':
                         # optional 5th: how long before the key time it was lit (default 1.5 s)
                         done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3),
