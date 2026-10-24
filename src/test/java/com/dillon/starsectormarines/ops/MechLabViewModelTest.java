@@ -624,6 +624,14 @@ class MechLabViewModelTest {
             MechLabSpecSheets.bindActions(binder, instance, viewModel);
             document.layout(1920, 1080);
             UiElement fab = instance.requireElement("mech-catalog:" + MechWeaponComponent.PULSE_LASER.id + ":action");
+            // Scroll the stores to the card, as a player would; how far down it sits follows the brick size.
+            UiElement list = instance.requireElement("mech-catalog-list");
+            float overflow = fab.box().contentBox().y() + fab.box().contentBox().height()
+                    - (list.box().contentBox().y() + list.box().contentBox().height());
+            if (overflow > 0f) {
+                list.scrollTop(overflow + 4f);
+                document.layout(1920, 1080);
+            }
             document.pointerMoved(centerX(fab), centerY(fab));
             binder.update();
             document.advance(0f);

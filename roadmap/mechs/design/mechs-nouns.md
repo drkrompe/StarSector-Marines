@@ -481,9 +481,13 @@ increasing an encounter's total armored threat.
   already has is drawn with that machine's icon (a vehicle's heavy MG is the boat
   door gun, its cannon the mech's). Size reads from shape, not text: every
   grid cell is a chamfered brick narrower than it is tall, and a footprint is its
-  bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. On the doll
-  every brick is the same size, so a socket's card grows with its capacity and a
-  2x3 piece is physically larger than a 2x2. An empty doll socket wears its type's colour on its rim
+  bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. There is one
+  brick size in both fitting rooms (`FittingBricks`): the board, the stores
+  pictures, the selected-mount card and a part being dragged all draw at it, for
+  every machine, so a part looks exactly like the socket it drops into. It follows
+  the screen's height rather than a fixed pixel count, and the card boxes grow
+  with it; a socket's card grows with its capacity and a 2x3 piece is physically
+  larger than a 2x2. An empty doll socket wears its type's colour on its rim
   over dim bricks; fitted hardware fills its bricks in its own colour and fuses
   them into one solid piece, notched only along its outside edge. The piece's
   face is a painted icon (`HardwareArt`): a flat pictogram in a dark shade and a

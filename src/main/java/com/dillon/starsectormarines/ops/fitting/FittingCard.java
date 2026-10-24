@@ -27,6 +27,8 @@ public record FittingCard(String id, String classes, String previewClasses,
         implements MarkupPropertySource {
 
     private static final Runnable NO_ACTION = () -> { };
+    /** The name, its badge and three lines of figures. */
+    private static final int MIN_BODY_HEIGHT = 98;
 
     public FittingCard {
         materials = materials == null ? List.of() : List.copyOf(materials);
@@ -40,6 +42,12 @@ public record FittingCard(String id, String classes, String previewClasses,
 
     /** The strip under the card: material costs and the button, when there is either. */
     private boolean hasFooter() { return hasAction() || !materials.isEmpty(); }
+
+    /** The picture and the lines beside it: three lines of figures, or the picture where that is taller. */
+    private int bodyHeight() {
+        boolean picture = previewClasses != null && !previewClasses.contains("hidden");
+        return picture ? Math.max(MIN_BODY_HEIGHT, FittingBricks.pictureHeight()) : MIN_BODY_HEIGHT;
+    }
 
     @Override public Object markupProperty(String p) { return switch (p) {
         case "id" -> id; case "classes" -> classes;
@@ -55,7 +63,9 @@ public record FittingCard(String id, String classes, String previewClasses,
         case "detail" -> detail; case "actionLabel" -> actionLabel;
         case "actionDisabled" -> actionDisabled; case "materials" -> materials;
         case "materialsStyle" -> CompanyResources.billHeight(materials);
-        case "cardStyle" -> hasFooter() ? "height: 138px;" : "height: 110px;";
+        case "cardStyle" -> "height: " + (bodyHeight() + (hasFooter() ? 40 : 12)) + "px;";
+        case "bodyStyle" -> "height: " + bodyHeight() + "px;";
+        case "previewStyle" -> FittingBricks.pictureStyle();
         case "footerId" -> id + ":footer";
         case "footerClasses" -> hasFooter() ? "catalog-card-footer" : "hidden";
         case "actionClasses" -> !hasAction() ? "hidden"

@@ -138,6 +138,13 @@ them.
   the stamp, in the same colours. The stamp is flavour drawn from the
   card's issuing tradition; the Restricted mark is derived from what the card
   carries, never authored beside it.
+- A **rating row** draws a loadout card's rating as ten symbols on an absolute
+  scale: each symbol is a tenth of the catalog ceiling and lights in quarters,
+  floored, so a card never shows more than it holds and the same rating looks
+  the same everywhere. The symbol names the aspect rated — swords for firepower,
+  shields for protection, and a symbol of its own for any later aspect, such as
+  equipment's offensive capability. A card's tier stays its chevrons; symbols
+  never mean tier. The card and its spec sheet draw the same row.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,
   a squad, or a doctrine template is a dossier rather than a subject: it is
   described by its own screen, and only the catalog items it names carry

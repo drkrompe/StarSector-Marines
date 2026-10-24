@@ -31,6 +31,6 @@ public final class MechHardware {
     }
 
     private static HardpointBricks.Layout bricks(float x, float y, int columns, int rows) {
-        return HardpointBricks.at(x, y, columns, rows, MechSocketConsole.BRICK_HEIGHT, MechSocketConsole.BRICK_GAP);
+        return HardpointBricks.at(x, y, columns, rows, HardpointBricks.brickHeight(), HardpointBricks.BRICK_GAP);
     }
 }

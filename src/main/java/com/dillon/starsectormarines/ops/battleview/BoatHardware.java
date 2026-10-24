@@ -53,7 +53,7 @@ public final class BoatHardware {
     public static void drawCarried(CanvasContext c, BoatDoll.Kind kind, String itemId, float x, float y) {
         Piece piece = piece(kind, itemId);
         HardpointBricks.Layout bricks = HardpointBricks.at(x, y, piece.columns(), piece.rows(),
-                BoatDollPanel.BRICK_HEIGHT, BoatDollPanel.BRICK_GAP);
+                HardpointBricks.brickHeight(), HardpointBricks.BRICK_GAP);
         draw(c, bricks, piece, 255);
     }
 

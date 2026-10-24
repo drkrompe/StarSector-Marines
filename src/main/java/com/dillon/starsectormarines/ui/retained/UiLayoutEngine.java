@@ -276,6 +276,17 @@ public final class UiLayoutEngine {
             }
             return height + padding.vertical() + element.borderWidth() * 2f;
         }
+        // A content-sized row likewise spans its in-flow children, so a row of fixed
+        // pieces takes its own width instead of collapsing under the next sibling.
+        if (horizontal && element.layout() == UiLayout.ROW && !element.children().isEmpty()) {
+            List<UiElement> children = inFlow(element.children());
+            float width = element.resolvedGap(textWidth) * Math.max(0, children.size() - 1);
+            for (UiElement child : children) {
+                float childWidth = preferredAxis(child, true, textWidth, heightBasis);
+                width += Float.isNaN(childWidth) ? 0f : Math.max(0f, childWidth);
+            }
+            return width + padding.horizontal() + element.borderWidth() * 2f;
+        }
         UiTextMeasurer.Measurement measured = text.measure(element, textWidth);
         if (measured.font() == null) return Float.NaN;
         float frame = (horizontal ? padding.horizontal() : padding.vertical())
