@@ -574,7 +574,10 @@ and stops short of the first wall on its bearing by the structural rule direct f
 follows (smoke does not stop it); it lands and burns through the same release an
 autonomous flamer uses, with its accuracy scatter. A jet that could land only in the
 Marine's own cell, because the cursor is on the Marine or a wall is at the nozzle, is
-refused without spending fuel. Its row counts fuel as a tank of cells, one a charge,
+refused without spending fuel. **The player's flamer can burn its own Marine**
+(owner, 2026-10-23): fire it starts spreads through grass like any other, and the
+manual path deliberately has none of the autonomous flamer's own-side reach guard,
+so a Marine who keeps standing in a burning meadow pays for it. Its row counts fuel as a tank of cells, one a charge,
 and its reticle tick is grey on an empty tank or a refused jet and red past its
 range, where the jet lands short. It has no held art of its own: the Marine stands
 in the primary's aim pose while it is picked and in the primary's firing clip while
