@@ -523,10 +523,10 @@ The print-stock economy they fed — owned counts, per-soldier allocation agains
 those counts, and fabrication materials — has been deleted along with the
 retired fire-team refit APIs that were its only readers. Equipment is owned as
 cards, and fitting is free. **Victory milestones grant authored cards**, each paid
-once and recorded so a load never pays it again: Checkpoint Issue at two victories,
-the Sindrian Security sheet at three, Trench-Clearing Issue at four, and Line
-Infantry Issue at five victories with one of them high-risk
-(`VictoryMilestones`). Story copy may call such a reward access to military
+once and recorded so a load never pays it again: the Sindrian Security sheet at
+three victories, Trench-Clearing Issue at four, and Line Infantry Issue at five
+with one of them high-risk (`VictoryMilestones`). Nothing is paid at two: the
+Wayline opening's cards are A Proper Issue's choice and Checkpoint Issue on sale. Story copy may call such a reward access to military
 equipment; what the company receives is the card. The ladder is deliberately
 modest: a reward, not twelve marines with a delete button. A deterministic **safety
 net** keeps the collection at or above a floor of cards beyond the starter pair: one

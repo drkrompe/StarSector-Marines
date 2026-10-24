@@ -18,9 +18,9 @@ public final class VictoryMilestones {
      */
     public record Milestone(String id, int victories, int highRiskVictories, LoadoutCard card) { }
 
+    // No rung at two victories: the Wayline opening's cards are A Proper Issue's choice
+    // and Checkpoint Issue on sale once Relief settles (ArcIssueListings), never a gift.
     private static final List<Milestone> LADDER = List.of(
-            new Milestone("victories-2", 2, 0,
-                    new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.CHECKPOINT_WEAPONS)),
             new Milestone("victories-3", 3, 0,
                     new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR)),
             new Milestone("victories-4", 4, 0,
