@@ -223,6 +223,59 @@ public final class PagedQuadRun {
     }
 
     /**
+     * Queues the whole of {@code sprite} on {@code lane} ({@link #lane}): the quad {@link SpriteAPI#renderAtCenter}
+     * draws after {@code setSize(w, h)}, {@code setAngle(angleDeg)}, {@code setColor} and {@code setAlphaMult(a)}.
+     * That is the sprite's {@code texX..texX + texWidth} by {@code texY..texY + texHeight}, its padded extent unless
+     * a caller narrowed it, upright from {@code texY} at the bottom, turned counter-clockwise about its middle; and
+     * its colour in bytes as the engine sends it, each channel rounded as {@link java.awt.Color} rounds a float and
+     * the alpha cut down from {@code 255 * a}. A sprite given a centre of its own turns about that instead, and no
+     * caller of the drain sets one, so this does not follow it.
+     */
+    public void appendSprite(SpriteAPI sprite, int lane, float cx, float cy, float w, float h, float angleDeg,
+                             float r, float g, float b, float a) {
+        ensureCapacity(1);
+        float halfW = w * 0.5f;
+        float halfH = h * 0.5f;
+        double rad = Math.toRadians(angleDeg);
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
+        float z = lane;
+        int p = quadCount * POS_FLOATS_PER_QUAD;
+        // BL BR TR TL, as every other quad of the run.
+        p = corner(p, cx, cy, -halfW, -halfH, cos, sin, z);
+        p = corner(p, cx, cy, halfW, -halfH, cos, sin, z);
+        p = corner(p, cx, cy, halfW, halfH, cos, sin, z);
+        corner(p, cx, cy, -halfW, halfH, cos, sin, z);
+
+        float u0 = sprite.getTexX();
+        float v0 = sprite.getTexY();
+        float u1 = u0 + sprite.getTexWidth();
+        float v1 = v0 + sprite.getTexHeight();
+        int t = quadCount * UV_FLOATS_PER_QUAD;
+        uvData[t] = u0; uvData[t + 1] = v0;
+        uvData[t + 2] = u1; uvData[t + 3] = v0;
+        uvData[t + 4] = u1; uvData[t + 5] = v1;
+        uvData[t + 6] = u0; uvData[t + 7] = v1;
+
+        float red = (int) (r * 255f + 0.5f) / 255f;
+        float green = (int) (g * 255f + 0.5f) / 255f;
+        float blue = (int) (b * 255f + 0.5f) / 255f;
+        float alpha = Math.min(255, Math.max(0, (int) (255f * a))) / 255f;
+        int c = quadCount * COL_FLOATS_PER_QUAD;
+        for (int v = 0; v < VERTS_PER_QUAD; v++) {
+            colData[c++] = red; colData[c++] = green; colData[c++] = blue; colData[c++] = alpha;
+        }
+        quadCount++;
+    }
+
+    private int corner(int p, float cx, float cy, float x, float y, float cos, float sin, float z) {
+        posData[p] = cx + x * cos - y * sin;
+        posData[p + 1] = cy + x * sin + y * cos;
+        posData[p + 2] = z;
+        return p + 3;
+    }
+
+    /**
      * Draws the open run in one call and starts a new one. The caller owns the server state around it
      * ({@link GlStateBracket#textured2D()} and the blend); this binds its pages, uses its program, and leaves
      * texture unit 0 active, the other units it touched unbound and no program in use.

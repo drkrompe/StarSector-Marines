@@ -631,8 +631,12 @@ change the physical crash corridor.
     over it are one draw. The alpha channel keeps the normal blend's factors, so
     the destination alpha a normal quad writes is unchanged, because the ground
     composite blends by its target's alpha; an additive quad leaves the alpha
-    under it alone. Painter order is untouched; what still closes a run is a
-    line, a ribbon, a whole sprite or a custom pass, and a full page table. The
+    under it alone. A whole sprite, and each image of a mesh drawn without an
+    atlas, is a quad of its own texture on a page: the quad `renderAtCenter`
+    draws, its texture rectangle (its padded extent) upright, turned about its
+    middle, its colour rounded to bytes as the engine sends it. Painter order is
+    untouched; what still closes a run is a line, a ribbon or a custom pass, and
+    a full page table. The
     shader is fixed-function `GL_MODULATE`, premultiplied, accepted on colour within
     three levels (the premultiplied rounding) against the per-sheet path
     (`PagedQuadRunGlEvidence`), and a context that cannot build it or offers
