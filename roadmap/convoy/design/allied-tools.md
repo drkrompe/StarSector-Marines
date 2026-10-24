@@ -5,7 +5,7 @@ forces; the heart's tool pick (`heart-allied-tool`) and the Cordon's urban
 backbone pick (`cordon-urban-allies`) are out to the owner.
 
 Written: 2026-10-23
-Updated: 2026-10-23 — the Cordon draws on its base through the producer
+Updated: 2026-10-24 — a delivery keeps to its escort (`EscortPace`)
 
 `allied-command.md` is how the allies move and fight a machine once it stands
 on the field (station, carry, the screened advance). This doc is the step
@@ -103,6 +103,17 @@ delivers nothing.
   callback) and the `AlliedDepot` the truck sets out from. The delivery waits
   while the depot cannot send; it is lost when the truck dies or the
   recipient is gone first. **The Cordon owns it.**
+- **An escorted delivery keeps to its escort** (`SupplyDelivery.escortedBy`,
+  `EscortPace`). The mission names the armed hull it has sent beside the
+  truck; "escorted" means alongside, not assigned. The truck waits where it
+  was set down until its escort is within eight cells, the pair drives at the
+  slower one's pace (a little under it, so the escort can close up), and the
+  truck holds whenever the escort falls more than fourteen cells behind. A
+  truck the mission has no escort for sets out alone; one whose escort never
+  comes goes on without it (ninety seconds waiting, thirty holding). The
+  decision is one pure rule (`EscortPace.rule`), applied through the hull's
+  speed cap, so any road hull can be paced: the Cordon paces its trucks and
+  R1's dozer, and the heart's trucks can take the same seam.
 - The Cordon is the first user: each redoubt's `GunStock` is a recipient, and
   its allied line command asks for a truck when the stock runs low; L2
   (`GunsDryBeat`) only empties one redoubt's gun towers, and the same request

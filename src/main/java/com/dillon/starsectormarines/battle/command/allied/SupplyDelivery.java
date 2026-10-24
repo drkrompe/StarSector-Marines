@@ -13,6 +13,11 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * "resupplied" means (a redoubt's guns back to their rate, rounds added to a barrage) is the recipient's.
  *
  * <p>While the depot cannot send, the delivery waits for it rather than setting out from somewhere else.
+ *
+ * <p>A delivery may be {@linkplain #escortedBy escorted}: the mission names the armed hull it has sent beside the
+ * truck, and the truck keeps to it ({@link EscortPace}). It waits where it was set down until the escort is alongside,
+ * the pair drives at the slower one's pace, and the truck holds when its escort falls behind. A truck the mission has
+ * no escort for sets out alone, as an unescorted delivery does.
  */
 public final class SupplyDelivery {
 
@@ -40,6 +45,12 @@ public final class SupplyDelivery {
         void arrived(BattleSimulation sim);
     }
 
+    /** The armed hull a mission has sent beside a delivery's truck. */
+    public interface Escort {
+        /** The hull escorting {@code truck} now, or {@code 0} while none is. */
+        long hull(BattleSimulation sim, long truck);
+    }
+
     /** Where a delivery stands. */
     public enum State {
         /** Not yet set out: the depot cannot send, or there was no ground to set the truck down on. */
@@ -57,6 +68,8 @@ public final class SupplyDelivery {
     private final VehicleType type;
     private long truck;
     private State state = State.WAITING;
+    private Escort escort;
+    private EscortPace pace;
 
     public SupplyDelivery(Recipient recipient, AlliedDepot depot, VehicleType type) {
         this.recipient = recipient;
@@ -67,6 +80,15 @@ public final class SupplyDelivery {
     /** An ammunition truck's delivery, the usual kind. */
     public static SupplyDelivery ammunition(Recipient recipient, AlliedDepot depot) {
         return new SupplyDelivery(recipient, depot, VehicleType.SUPPLY_TRUCK);
+    }
+
+    /**
+     * Has the truck keep to the escort the mission names ({@link EscortPace}). Set before the delivery sets out;
+     * {@code null} sends it unescorted.
+     */
+    public SupplyDelivery escortedBy(Escort escort) {
+        this.escort = escort;
+        return this;
     }
 
     /** The rule: arrival delivers; a dead truck or a gone recipient before that loses it. */
@@ -94,8 +116,17 @@ public final class SupplyDelivery {
             float facing = (float) Math.toDegrees(Math.atan2(to[1] - at[1], to[0] - at[0])) - 90f;
             truck = command.deploy(sim, type, at[0], at[1], facing);
             if (truck == 0L) return state;
-            command.station(sim, truck, to[0], to[1]);
             state = State.ON_ROAD;
+            if (escort == null) {
+                command.station(sim, truck, to[0], to[1]);
+            } else {
+                pace = new EscortPace(sim.getSimTickIndex());
+            }
+        }
+        if (pace != null && to != null && alive(sim, truck)) {
+            boolean out = pace.setOut();
+            pace.step(sim, truck, escort.hull(sim, truck));
+            if (!out && pace.setOut()) command.station(sim, truck, to[0], to[1]);
         }
         boolean alive = alive(sim, truck);
         boolean arrived = false;
@@ -112,6 +143,9 @@ public final class SupplyDelivery {
     }
 
     public State state() { return state; }
+
+    /** How the truck keeps to its escort, or {@code null} for an unescorted delivery or before it set out. */
+    public EscortPace pace() { return pace; }
     public Recipient recipient() { return recipient; }
     /** The truck, once set out; {@code 0} before. */
     public long truck() { return truck; }

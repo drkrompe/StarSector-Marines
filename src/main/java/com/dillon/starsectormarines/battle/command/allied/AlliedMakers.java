@@ -24,7 +24,8 @@ import java.util.function.Function;
  * The makers most missions share, for {@link AlliedToolShed}: an armour pair driven to its place, a mech lance
  * walked to it, an ammunition truck as a {@link SupplyDelivery}. Each is set down on ground near the depot's cell and
  * handed to the mission's {@link AlliedCommand}; it counts as on the road until it is within {@link #ARRIVE} cells of
- * the request's cell or gone. What it does once there stays the mission's command's.
+ * the request's cell or gone. What it does once there stays the mission's command's. An ammunition truck may keep to
+ * an escort the mission names ({@link SupplyDelivery#escortedBy}).
  */
 public final class AlliedMakers {
 
@@ -110,10 +111,19 @@ public final class AlliedMakers {
      */
     public static Maker ammunition(AlliedCommand command, Function<AlliedRequest, SupplyDelivery.Recipient> recipient,
                                    Consumer<SupplyDelivery> sent) {
+        return ammunition(command, recipient, null, sent);
+    }
+
+    /**
+     * As {@link #ammunition(AlliedCommand, Function, Consumer)}, each truck keeping to the escort the mission names
+     * ({@link SupplyDelivery#escortedBy}); {@code null} sends them unescorted.
+     */
+    public static Maker ammunition(AlliedCommand command, Function<AlliedRequest, SupplyDelivery.Recipient> recipient,
+                                   SupplyDelivery.Escort escort, Consumer<SupplyDelivery> sent) {
         return (sim, from, request) -> {
             SupplyDelivery.Recipient to = recipient.apply(request);
             if (to == null) return null;
-            SupplyDelivery delivery = SupplyDelivery.ammunition(to, s -> from);
+            SupplyDelivery delivery = SupplyDelivery.ammunition(to, s -> from).escortedBy(escort);
             if (delivery.advance(sim, command) == SupplyDelivery.State.WAITING) return null;
             sent.accept(delivery);
             return s -> delivery.advance(s, command).done();

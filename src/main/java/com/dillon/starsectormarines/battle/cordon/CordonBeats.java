@@ -99,9 +99,22 @@ public final class CordonBeats {
         return out;
     }
 
-    /** Whether the allied armour sent a hull beside this one at its last look. */
+    /** Whether an armed allied hull stood alongside this one at the armour's last look (the radio's Escorted). */
     boolean escorted(long hull) {
         return sequence.armour() != null && sequence.armour().escorted(hull);
+    }
+
+    /** The hull the allied armour sent to escort this one at its last look, or {@code 0} where none was free. */
+    long escortOf(long hull) {
+        return sequence.armour() == null ? 0L : sequence.armour().escortOf(hull);
+    }
+
+    /**
+     * Whether the company need not walk with a beat's road hull: an armed allied hull is alongside it, or one is on its
+     * way to it, which the hull waits for ({@code EscortPace}). Only a hull the armour had nothing free for asks.
+     */
+    boolean covered(long hull) {
+        return escorted(hull) || escortOf(hull) != 0L;
     }
 
     /** Each running beat's status and what it is doing, one line each, for evidence. */
