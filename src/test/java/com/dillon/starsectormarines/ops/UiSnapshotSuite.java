@@ -2754,8 +2754,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         new MechEquipmentGridCanvas(
                                 () -> viewModel.socketDefinition(row.socketId()),
                                 () -> viewModel.installedWeapon(row.socketId()),
-                                () -> row.socketId() == SocketId.AUXILIARY
-                                        ? viewModel.installedCompartment() : List.of(),
+                                () -> viewModel.compartmentPlacements(row.socketId()),
                                 () -> viewModel.installedInternal(row.socketId()),
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));

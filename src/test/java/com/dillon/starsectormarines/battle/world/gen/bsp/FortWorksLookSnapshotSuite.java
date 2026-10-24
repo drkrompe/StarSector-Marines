@@ -44,7 +44,8 @@ import java.util.List;
  * {@code -Dsnapshot.fortWorks.biome=} the ground ({@code arid} by default). Frames go to {@code look/<style>-<view>.png}.
  * {@code -Dsnapshot.fortWorks.structures=true} adds one close frame per structure a fort and a defence lot stand
  * (each fort building, the gate, a bastion nest, the centrepiece, a light and a medium post) as
- * {@code look/<style>-structure-<piece>.png}.
+ * {@code look/<style>-structure-<piece>.png}. {@code -Dsnapshot.fortWorks.noRoofs=true} draws every still without the
+ * roof layer (building roofs, a fort's building art and its gate caps), to show what the stamp built under them.
  */
 public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
 
@@ -146,6 +147,7 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
                                           float x, float y, float cellsAcross) throws Exception {
         BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y,
                 cellsAcross);
+        if (Boolean.getBoolean("snapshot.fortWorks.noRoofs")) renderer.withoutRoofs();
         return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
     }
 

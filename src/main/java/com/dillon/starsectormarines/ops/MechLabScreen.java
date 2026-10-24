@@ -325,7 +325,7 @@ public final class MechLabScreen implements Screen {
                 target.canvases().set(canvas, new MechEquipmentGridCanvas(
                         () -> viewModel.socketDefinition(row.socketId()),
                         () -> viewModel.installedWeapon(row.socketId()),
-                        () -> row.socketId() == SocketId.AUXILIARY ? viewModel.installedCompartment() : List.of(),
+                        () -> viewModel.compartmentPlacements(row.socketId()),
                         () -> viewModel.installedInternal(row.socketId()),
                         () -> viewModel.socketOccupied(row.socketId()),
                         this::previewMechs));
@@ -385,7 +385,7 @@ public final class MechLabScreen implements Screen {
             return;
         }
         // A compartment part is lifted by itself; the engine is the core's only part.
-        MechInternal internal = socket == SocketId.AUXILIARY ? dollCanvas.partAt(point.x(), point.y())
+        MechInternal internal = socket != null && socket.compartment() ? dollCanvas.partAt(point.x(), point.y())
                 : socket != null ? viewModel.installedInternal(socket) : null;
         if (internal != null) {
             weaponDrag = new WeaponDrag(null, internal, socket, event.x(), event.y());
@@ -492,7 +492,7 @@ public final class MechLabScreen implements Screen {
             if (drag.source() != null) viewModel.selectSocket(drag.source());
         } else if (drag.source() != null && drag.component() == null) {
             if (overInventory(event)) {
-                if (drag.source() == SocketId.AUXILIARY) viewModel.removeCompartmentPart(drag.internal());
+                if (drag.source() != null && drag.source().compartment()) viewModel.removeCompartmentPart(drag.internal());
                 else viewModel.removeInstalledInternal(drag.source());
             }
             else if (target == drag.source()) viewModel.selectSocket(target);

@@ -56,7 +56,8 @@ class MechFittingLayoutTest {
                 assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.ARMS)), ids,
                         "a two-armed chassis has an arm socket each side and no centreline mount");
             } else {
-                assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.LEFT_ARM, SocketId.RIGHT_ARM)), ids);
+                assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.LEFT_ARM, SocketId.RIGHT_ARM,
+                        SocketId.AUXILIARY_2)), ids, "a one-armed chassis has one compartment bay");
             }
         }
     }

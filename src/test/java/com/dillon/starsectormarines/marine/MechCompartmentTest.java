@@ -31,19 +31,25 @@ class MechCompartmentTest {
     private static final MechInternal LOADER = MechInternal.STANDARD_LOADER;
     private static final MechInternal VENT = MechInternal.AUXILIARY_VENT_ARRAY;
 
-    private static SocketDef grid(int columns, int rows) {
-        return new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, columns, rows,
-                0f, 0f, 0f, 1f, 1f, 1f, false);
+    private static List<SocketDef> grid(int columns, int rows) {
+        return List.of(bay(SocketId.AUXILIARY, columns, rows));
     }
 
+    private static SocketDef bay(SocketId id, int columns, int rows) {
+        return new SocketDef(id, SocketType.AUXILIARY, columns, rows, 0f, 0f, 0f, 1f, 1f, 1f, false);
+    }
+
+    /** The Bulwark's shape: two 2x2 flank bays that pool. */
+    private static final List<SocketDef> DUAL = List.of(bay(SocketId.AUXILIARY, 2, 2), bay(SocketId.AUXILIARY_2, 2, 2));
+
     @Test
-    void partsPackWholeWithoutOverlapAndTurnToFit() {
-        // A 2x2 with a 2x1 turned on end beside it fills a 3x2.
-        List<MechCompartment.Placement> placed = MechCompartment.pack(grid(3, 2), List.of(LOADER, BIG_BANK));
+    void partsPackWholeWithoutOverlapAndNeverTurn() {
+        List<MechCompartment.Placement> placed = MechCompartment.pack(grid(2, 3), List.of(LOADER, BIG_BANK));
         assertNotNull(placed);
         assertEquals(BIG_BANK, placed.get(1).part(), "placements come back in the order given");
-        boolean[][] taken = new boolean[2][3];
+        boolean[][] taken = new boolean[3][2];
         for (MechCompartment.Placement part : placed) {
+            assertEquals(part.part().footprintColumns, part.columns(), "a part stands as authored");
             for (int r = part.row(); r < part.row() + part.rows(); r++) {
                 for (int c = part.column(); c < part.column() + part.columns(); c++) {
                     assertFalse(taken[r][c], "overlap at " + c + "," + r);
@@ -51,24 +57,34 @@ class MechCompartmentTest {
                 }
             }
         }
-        assertEquals(1, placed.get(0).columns(), "the loader turns to fit the last column");
+        // A 2x1 part never turns on end, so a one-column strip holds nothing.
+        assertNull(MechCompartment.pack(grid(1, 3), List.of(LOADER)));
 
         assertNotNull(MechCompartment.pack(grid(2, 2), List.of(BANK, LOADER)));
-        assertNull(MechCompartment.pack(grid(2, 2), List.of(BIG_BANK, LOADER)), "five cells into four");
-        // A 3x3 holds the big bank and two more parts, never three: the leftover L is five cells.
-        assertNotNull(MechCompartment.pack(grid(3, 3), List.of(BIG_BANK, LOADER, VENT)));
-        assertNull(MechCompartment.pack(grid(3, 3), List.of(BIG_BANK, LOADER, VENT, VENT)));
-        assertNotNull(MechCompartment.pack(grid(3, 3), List.of(BANK, LOADER, VENT, VENT)), "four 2x1s pack a 3x3");
+        assertNull(MechCompartment.pack(grid(2, 2), List.of(BIG_BANK, LOADER)), "six cells into four");
+        assertNotNull(MechCompartment.pack(grid(2, 3), List.of(BANK, LOADER, VENT)));
         assertEquals(List.of(), MechCompartment.pack(grid(2, 2), List.of()));
-        assertNull(MechCompartment.pack(null, List.of(BANK)));
+        assertNull(MechCompartment.pack(List.of(), List.of(BANK)));
+    }
+
+    @Test
+    void twoBaysPoolButAPartLandsWholeInOne() {
+        // The big bank fills one bay, two small parts the other; a third small part has no room.
+        List<MechCompartment.Placement> placed = MechCompartment.pack(DUAL, List.of(BIG_BANK, LOADER, VENT));
+        assertNotNull(placed);
+        assertEquals(List.of(BIG_BANK), MechCompartment.in(placed, SocketId.AUXILIARY).stream()
+                .map(MechCompartment.Placement::part).toList());
+        assertEquals(2, MechCompartment.in(placed, SocketId.AUXILIARY_2).size());
+        assertNull(MechCompartment.pack(DUAL, List.of(BIG_BANK, LOADER, VENT, VENT)));
+        assertNotNull(MechCompartment.pack(DUAL, List.of(BANK, LOADER, VENT, VENT)), "four small parts, two a bay");
+        assertEquals(8, MechCompartment.capacity(DUAL));
     }
 
     @Test
     void oneBankAndOneLoaderAtMostWhileVentsStack() {
-        SocketDef big = grid(3, 3);
-        assertFalse(MechCompartment.fits(big, List.of(BANK, MechInternal.DOUBLE_CAPACITOR_BANK)));
-        assertFalse(MechCompartment.fits(big, List.of(BANK, LOADER, MechInternal.ACCELERATED_LOADER)));
-        assertTrue(MechCompartment.fits(big, List.of(BANK, VENT, VENT)));
+        assertFalse(MechCompartment.fits(DUAL, List.of(BANK, MechInternal.DOUBLE_CAPACITOR_BANK)));
+        assertFalse(MechCompartment.fits(DUAL, List.of(BANK, LOADER, MechInternal.ACCELERATED_LOADER)));
+        assertTrue(MechCompartment.fits(DUAL, List.of(BANK, VENT, VENT)));
     }
 
     @Test
@@ -89,7 +105,7 @@ class MechCompartmentTest {
         // A Hound saved with a military bank, a faster loader and a vent: the bank alone fills 2x2.
         CampaignMech hound = legacy(MechVariant.HOUND, BIG_BANK.id, "accelerated_feed", VENT.id);
         assertEquals(List.of(BIG_BANK), hound.compartment());
-        // The same parts fit a Bulwark's 3x3, in the old order: bank, loader, vent.
+        // The same parts fit a Bulwark's two bays, in the old order: bank, loader, vent.
         CampaignMech bulwark = legacy(MechVariant.BULWARK, BIG_BANK.id, "accelerated_feed", VENT.id);
         assertEquals(List.of(BIG_BANK, MechInternal.ACCELERATED_LOADER, VENT), bulwark.compartment());
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED, bulwark.missileReplenisher());

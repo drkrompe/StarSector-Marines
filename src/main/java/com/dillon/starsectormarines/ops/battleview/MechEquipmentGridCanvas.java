@@ -19,14 +19,14 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
 
     private final Supplier<SocketDef> socket;
     private final Supplier<MechWeaponComponent> weapon;
-    private final Supplier<List<MechInternal>> compartment;
+    private final Supplier<List<MechCompartment.Placement>> compartment;
     private final Supplier<MechInternal> internal;
     private final BooleanSupplier occupied;
     private final Supplier<LayeredMechAssets> assets;
 
     public MechEquipmentGridCanvas(Supplier<SocketDef> socket,
                                    Supplier<MechWeaponComponent> weapon,
-                                   Supplier<List<MechInternal>> compartment,
+                                   Supplier<List<MechCompartment.Placement>> compartment,
                                    Supplier<MechInternal> internal,
                                    BooleanSupplier occupied,
                                    Supplier<LayeredMechAssets> assets) {
@@ -74,7 +74,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                 : HardpointBricks.UTILITY;
         if (definition != null) HardpointBricks.drawEmpty(context, layout, tone);
         List<MechCompartment.Placement> packed = definition != null && component == null
-                ? MechCompartment.pack(definition, compartment.get()) : null;
+                ? compartment.get() : null;
         if (packed != null && !packed.isEmpty()) {
             // The compartment draws each part where the packing rule put it.
             for (MechCompartment.Placement placed : packed) {
