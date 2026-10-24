@@ -51,6 +51,48 @@ public class MovementServiceTest {
         assertFalse(movement.atCell(carrier, 0, 0), "a disjoint carrier has no grid-mover arrival");
     }
 
+    @Test void aMoverSteppingWithoutProgressIsReportedStalledOnceAfterThreeSeconds() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.5f);
+        world.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, 3.5f);
+        float dt = 1f / 30f;
+        int stalls = 0, firstStallTick = -1;
+        for (int tick = 1; tick <= 100; tick++) {
+            movement.beginTick(dt);
+            // Shuffling inside a quarter cell is not progress.
+            world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.5f + (tick % 2) * .2f);
+            if (movement.stalledOnRoute(id)) {
+                stalls++;
+                if (firstStallTick < 0) firstStallTick = tick;
+            }
+        }
+        assertEquals(1, stalls);
+        assertTrue(firstStallTick >= 90 && firstStallTick <= 92, "after three seconds of trying: " + firstStallTick);
+        assertEquals(1, movement.routeStalls());
+    }
+
+    @Test void progressOrAPauseInSteppingRestartsTheStallWatch() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long id = world.createEntity(components.POSITION, components.MOVEMENT);
+        float dt = 1f / 30f;
+        for (int tick = 1; tick <= 200; tick++) {
+            movement.beginTick(dt);
+            // A slow walker gets half a cell in well under three seconds.
+            world.setFloat(id, components.POSITION, BattleComponents.POSITION_X, 3.5f + tick * .01f);
+            assertFalse(movement.stalledOnRoute(id), "a walker making progress at tick " + tick);
+        }
+        for (int tick = 1; tick <= 200; tick++) {
+            movement.beginTick(dt);
+            // Standing still, but held by its order every other tick: never continuous trying.
+            if (tick % 6 == 0) assertFalse(movement.stalledOnRoute(id), "held on purpose at tick " + tick);
+        }
+    }
+
     private static BattleSimulation arena() {
         NavigationGrid grid = new NavigationGrid(20, 20);
         CellTopology topology = new CellTopology(20, 20);

@@ -352,6 +352,31 @@ public final class NavigationService implements AutoCloseable {
      * result is still a per-cell density field — semantics unchanged by the
      * continuous-position migration, only the source column did.
      */
+    /**
+     * Occupancy the per-tick rebuild adds for what is not a grid occupant but
+     * still stands on cells a route should go round: a stopped hull's footprint
+     * ({@code VehicleRepulsionSystem.occupyStandingHulls}). Without it a route
+     * runs through a parked truck, the hull pushes the walker back out every
+     * tick, and he stands at its end for good.
+     */
+    @FunctionalInterface
+    public interface OccupancyContributor {
+        void contribute(NavigationService navigation);
+    }
+
+    private OccupancyContributor occupancyContributor;
+
+    public void setOccupancyContributor(OccupancyContributor contributor) {
+        this.occupancyContributor = contributor;
+    }
+
+    /** Adds {@code amount} to a cell's occupancy, saturating at 255; out-of-bounds cells are ignored. */
+    public void addOccupancy(int x, int y, int amount) {
+        if (!grid.inBounds(x, y) || amount <= 0) return;
+        int idx = y * grid.getWidth() + x;
+        occupancyMap[idx] = (byte) Math.min(255, (occupancyMap[idx] & 0xFF) + amount);
+    }
+
     public void rebuildOccupancyMap(UnitRosterService roster) {
         EntityWorld world = roster.entityWorld();
         BattleComponents comps = roster.components();
@@ -387,6 +412,7 @@ public final class NavigationService implements AutoCloseable {
                 }
             }
         }
+        if (occupancyContributor != null) occupancyContributor.contribute(this);
     }
 
     /** Occupancy-aware coarse-to-fine path for ordinary one-off movement. */
