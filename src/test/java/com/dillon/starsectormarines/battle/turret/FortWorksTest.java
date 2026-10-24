@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -59,6 +60,25 @@ class FortWorksTest {
         assertSame(bag, FortWorks.dress(bag, new CellTopology(4, 4), registry));
         FortWorks.mark(topology, 2, 2, EmplacementStyle.MODULAR);
         Doodad other = new Doodad(2, 2, registry.doodad(BAG));
+        assertSame(other, FortWorks.dress(other, topology, registry));
+    }
+
+    @Test
+    void theVentRingWearsItsLookThoughItsCellsHaveNoIdOfTheirOwn() throws Exception {
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(sheet("kit.png", FortWorks.VENT + "@modular"));
+        CellTopology topology = new CellTopology(4, 4);
+        FortWorks.mark(topology, 1, 1, EmplacementStyle.MODULAR);
+        Doodad vent = new Doodad(1, 1, TileManifest.lightPostVent(), true, Doodad.COVER_HEAVY);
+
+        Doodad dressed = FortWorks.dress(vent, topology, registry);
+
+        assertEquals("kit.png", dressed.sheetPath);
+        assertEquals(vent.cover, dressed.cover);
+        assertEquals(vent.ballisticHalfHeight, dressed.ballisticHalfHeight);
+        // Any other road-sheet frame is not the vent ring and keeps its own art.
+        TileManifest.TileFrame vented = TileManifest.lightPostVent();
+        Doodad other = new Doodad(1, 1, new TileManifest.TileFrame(vented.col + 1, vented.row), true, Doodad.COVER_HEAVY);
         assertSame(other, FortWorks.dress(other, topology, registry));
     }
 

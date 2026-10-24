@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -21,6 +22,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
@@ -33,7 +35,9 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Opt-in look study for themed fortification lots (`fort-works.md`): a battery fort the production generator sites on
@@ -111,6 +115,12 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             }
             posts.addAll(small);
         }
+        boolean kit = Boolean.getBoolean("snapshot.fortWorks.kit");
+        int[] yard = null;
+        if (kit) {
+            yard = openField(map, 14, 9, field[0] + 8, field[1] + 5);
+            posts.add(kitYard(map, yard, style));
+        }
         EmplacementStylePolicy.restyle(posts, style);
         BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(), posts, SEED).sim();
         // With no marines on the field the battle is won on its first tick and stops playing; a garrison shot plays on.
@@ -139,6 +149,7 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             if (gate != null) artifacts.add(still(context, sim, fx, style.key + "-gate-close", gate[0], gate[1], 18f));
             if (structures) artifacts.addAll(structureStills(context, sim, fx, style, posts, small));
             if (Boolean.getBoolean("snapshot.fortWorks.garrison")) artifacts.addAll(garrisonStills(context, sim, fx, style));
+            if (kit) artifacts.addAll(kitStills(context, sim, fx, style, yard));
             wear(sim, postX, postY, 9f);
             artifacts.add(still(context, sim, fx, style.key + "-post-worn", postX, postY, 22f));
             System.out.printf("    [fort-works-look/%s] %d posts, fort %s%n", style.key, posts.size(),
@@ -223,6 +234,85 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
         for (DefensePost post : small) {
             out.add(still(context, sim, fx, prefix + post.tier.name().toLowerCase() + "-post",
                     post.anchorX + 0.5f, post.anchorY + 0.5f, 10f));
+        }
+        return out;
+    }
+
+    /**
+     * A yard of the kit's loose pieces on open country, all one lot in {@code style}: a light post (its vent ring), a
+     * fence round a pen, a trench with a branch and a row of hedgehogs. Returns the light post.
+     */
+    private static DefensePost kitYard(MapResult map, int[] at, EmplacementStyle style) {
+        int x0 = at[0], y0 = at[1];
+        for (int x = x0; x < x0 + 14; x++) for (int y = y0; y < y0 + 9; y++) FortWorks.mark(map.topology, x, y, style);
+        DefensePost light = DefensePostStamper.stampPost(map.grid, map.topology, map.doodads,
+                DefensePostLayoutRegistry.requireInstalled().require(DefensePostKind.LIGHT, "default"), x0 + 3, y0 + 4,
+                style);
+        TileRegistry registry = TileRegistry.installed();
+        int left = x0 + 7, right = x0 + 12, bottom = y0, top = y0 + 2;
+        for (int x = left; x <= right; x++) {
+            for (int y = bottom; y <= top; y++) {
+                if (x != left && x != right && y != bottom && y != top) continue;
+                String piece = x == left && y == top ? "corner-nw" : x == right && y == top ? "corner-ne"
+                        : x == left && y == bottom ? "corner-sw" : x == right && y == bottom ? "corner-se"
+                        : y == top || y == bottom ? "straight-h" : "straight-v";
+                map.doodads.add(new Doodad(x, y, registry.doodad("doodad.industrial-fence-" + piece)));
+            }
+        }
+        Set<Long> trench = new HashSet<>();
+        for (int x = left; x <= right; x++) trench.add(key(x, y0 + 5));
+        trench.add(key(x0 + 9, y0 + 6));
+        trench.add(key(x0 + 9, y0 + 7));
+        for (long cell : trench) {
+            int x = (int) (cell >> 32), y = (int) cell;
+            int mask = (trench.contains(key(x, y + 1)) ? 1 : 0) | (trench.contains(key(x + 1, y)) ? 2 : 0)
+                    | (trench.contains(key(x, y - 1)) ? 4 : 0) | (trench.contains(key(x - 1, y)) ? 8 : 0);
+            map.doodads.add(new Doodad(x, y, registry.doodad("doodad.fort-trench-" + mask)));
+        }
+        for (int x = x0 + 1; x <= x0 + 5; x += 2) map.doodads.add(new Doodad(x, y0 + 8, registry.doodad("doodad.fort-hedgehog")));
+        return light;
+    }
+
+    private static long key(int x, int y) {
+        return ((long) x << 32) | (y & 0xFFFFFFFFL);
+    }
+
+    /**
+     * The kit's pieces in place: the yard ({@link #kitYard}), the fort's wall breached beside its gate, and the first
+     * fort building with a hole in its wall, so its openings and both walls' rubble show.
+     */
+    private static List<SnapshotArtifact> kitStills(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx,
+                                                    EmplacementStyle style, int[] yard) throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        out.add(still(context, sim, fx, style.key + "-kit-yard", yard[0] + 7f, yard[1] + 4.5f, 16f));
+        float[] gate = gateCentre(sim);
+        CellTopology topology = sim.getTopology();
+        if (gate != null) {
+            int broken = 0;
+            for (int r = 4; r <= 7 && broken < 6; r++) {
+                for (int dx = -r; dx <= r && broken < 6; dx++) {
+                    for (int dy = -r; dy <= r && broken < 6; dy++) {
+                        int x = (int) gate[0] + dx, y = (int) gate[1] + dy;
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r || !topology.isWall(x, y)
+                                || FortWorks.styleAt(topology, x, y) == null) continue;
+                        sim.mapEditor().damageWall(x, y, Integer.MAX_VALUE / 2);
+                        broken++;
+                    }
+                }
+            }
+            out.add(still(context, sim, fx, style.key + "-kit-breach", gate[0], gate[1], 16f, true));
+        }
+        for (Fort fort : sim.forts().forts()) {
+            FortFrame frame = fort.frame();
+            if (frame == null || !fort.places().iterator().hasNext()) continue;
+            int[] b = fort.places().iterator().next().floorBounds(frame);
+            int midX = (b[0] + b[2]) / 2;
+            for (int x = midX - 1; x <= midX; x++) {
+                if (topology.isWall(x, b[1] - 1)) sim.mapEditor().damageWall(x, b[1] - 1, Integer.MAX_VALUE / 2);
+            }
+            out.add(still(context, sim, fx, style.key + "-kit-building", (b[0] + b[2] + 1) * 0.5f,
+                    (b[1] + b[3] + 1) * 0.5f, 16f, true));
+            break;
         }
         return out;
     }
