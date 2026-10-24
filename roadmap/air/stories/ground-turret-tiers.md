@@ -103,10 +103,12 @@ Presentation only, so a battle plays the same with or without them:
 
 ## Open
 
-- Incoming fire at a raised gun still meets the low cover round its plinth as if the
-  gun stood on the ground.
-- Missions choose the derelict style (nothing selects it yet).
-- A scorch mark on the ground in front of the heavy cannon: the decal sheet has no scorch frame yet.
+- A scorch mark on the ground in front of the heavy cannon (in progress; its look goes on the picks page).
+- Midline and high-tech emplacement families (in progress; their looks go on the picks page).
+
+Settled: a raised gun takes no low cover at its foot (`UnitRosterService.standsAboveLowCover`);
+pirate worlds build derelict, and a mission picks derelict for an old work through
+`EmplacementStylePolicy.restyle`; a hardpoint's plinth casts a sun shadow from its height.
 
 ## Acceptance
 
