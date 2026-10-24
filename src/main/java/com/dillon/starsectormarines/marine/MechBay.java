@@ -362,6 +362,18 @@ public final class MechBay implements Serializable {
     }
 
     /** Builds one standard-fit chassis into a vacant gantry in the selected lance. */
+    /**
+     * A bought chassis: {@link #fabricateChassis} stripped to its frame. Every weapon that is not
+     * factory-locked, the engine and the capacitor bank come off; none of them was ever in stores,
+     * so stripping them makes no spares. It stays in its gantry until an engine and a capacitor
+     * bank are fitted ({@link CampaignMech#missingInternals}).
+     */
+    public CampaignMech fabricateFrame(String squadId, MechVariant variant) {
+        CampaignMech mech = fabricateChassis(squadId, variant);
+        if (mech != null) mech.stripToFrame();
+        return mech;
+    }
+
     public CampaignMech fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || !canAddMech(squadId)) return null;
         int serial = nextAvailableSerial();

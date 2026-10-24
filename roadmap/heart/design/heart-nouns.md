@@ -104,7 +104,9 @@ named pieces of the heart's mission layout: the forward line of trench and
 wire along the cordon ridge's crest, broken at every lane; an observation post forward
 of it in each half of the front; and on the farmland behind it the logistics
 base's ammunition dumps and vehicle park, with a supply road up to the
-settlement. Each beat's set piece is laid the
+settlement. Where no road can be laid (a city's ground) the streets are the
+supply road, as the Cordon's are: the way a truck drives from the landing to the
+settlement, a street priced cheapest. Each beat's set piece is laid the
 same way (the lost column's holdout, the reservoir yard, the battery's flank
 works, the village holdout, the company's ford). The heart's runtime holds
 what was laid by name, so a beat that needs a place asks whether it is there

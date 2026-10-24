@@ -222,4 +222,19 @@ class FireFieldTest {
         assertTrue(axis >= 2, "the patch spreads: " + axis);
         assertTrue(diagonal < axis, "a box would reach its corners as far as its sides: axis " + axis + ", diagonal " + diagonal);
     }
+
+    @Test
+    void aCellsMassCountsTheBurningCellsRoundIt() {
+        FireField lone = field(grass(), 3L);
+        lone.addHeat(20, 10, 2000);
+        run(lone, 0, FireField.STEP_TICKS * 2);
+        assertTrue(lone.isBurning(20, 10));
+        assertTrue(lone.massAt(10 * W + 20) <= 8, "a fire just lit is small: " + lone.massAt(10 * W + 20));
+
+        FireField wide = field(grass(), 3L);
+        for (int y = 5; y <= 15; y++) for (int x = 14; x <= 26; x++) wide.addHeat(x, y, 2000);
+        run(wide, 0, FireField.STEP_TICKS * 2);
+        assertEquals(FireField.MASS_MAX, wide.massAt(10 * W + 20), "the heart of a wide fire has every cell round it burning");
+        assertEquals(0, wide.massAt(0), "a cell not burning has no mass");
+    }
 }

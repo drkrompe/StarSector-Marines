@@ -46,12 +46,12 @@ public final class MechRepairs {
         };
     }
 
-    /** Every line of the chassis bill, scaled by wear and rounded up; never less than one. */
+    /** Every line of the standard-fit bill, scaled by wear and rounded up; never less than one. */
     static FabricationCost bill(MechVariant variant, float wear) {
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.chassis(variant);
-        if (recipe == null) throw new IllegalStateException("no chassis bill for " + variant);
+        FabricationCost standard = MechFabricationCatalog.standardFitCost(variant);
+        if (standard == null) throw new IllegalStateException("no chassis bill for " + variant);
         List<FabricationCost.Line> lines = new ArrayList<>();
-        for (FabricationCost.Line line : recipe.cost().lines()) {
+        for (FabricationCost.Line line : standard.lines()) {
             int quantity = Math.max(1, (int) Math.ceil(line.quantity() * BILL_AT_FULL_WEAR * wear));
             lines.add(new FabricationCost.Line(line.commodityId(), quantity));
         }

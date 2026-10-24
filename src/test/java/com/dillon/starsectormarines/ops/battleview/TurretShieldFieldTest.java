@@ -19,7 +19,7 @@ class TurretShieldFieldTest {
     private static boolean describe(FluxShield shield, ShieldDomeDraw draw) {
         BattleCamera camera = new BattleCamera(100, 100);
         camera.setViewport(0, 0, 800, 600, 10);
-        return TurretShieldField.describe(draw, 50f, 50f, shield, ShieldTint.BLUE, camera, camera.cellPxSize(), 1f);
+        return TurretShieldField.describe(draw, 1L, 50f, 50f, shield, ShieldTint.BLUE, camera, camera.cellPxSize(), 0L, 1f);
     }
 
     private static FluxShield raisedFacingWest() {
