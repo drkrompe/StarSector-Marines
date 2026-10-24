@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
-import com.dillon.starsectormarines.battle.turret.StructureDef;
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
@@ -229,10 +227,10 @@ public final class FortSystem {
         place.markRoofOpened();
         int[] b = place.floorBounds(fort.frame());
         if (b != null) sim.openRoofs(b[0], b[1], b[2], b[3]);
-        // The ante-rooms drawn by the building's own roof art lose theirs with it.
-        StructureDef def = TurretCatalogRegistry.installed().getStructure(place.structureId());
-        if (def == null || def.buildingArt == null || fort.frame() == null) return;
-        for (FortRoom room : def.buildingArt.annexRooms(fort.frame().plan(), place.aspect())) {
+        // The rest of the building's suite (its ante-rooms) loses its roof with it.
+        if (fort.frame() == null) return;
+        for (FortRoom room : fort.frame().plan().rooms()) {
+            if (room.aspect() != place.aspect() || room.main()) continue;
             int[] f = room.floor();
             int[] a = fort.frame().bounds(f[0], f[1], f[2], f[3]);
             sim.openRoofs(a[0], a[1], a[2], a[3]);

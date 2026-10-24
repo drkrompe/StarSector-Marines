@@ -86,13 +86,24 @@ public record HeartBores(List<Site> sites) {
      */
     public static HeartBores plan(NavigationGrid grid, CellTopology topology, Form form,
                                   int[] workings, int[] start, List<int[]> road, long seed) {
+        return plan(grid, topology, form, workings, null, start, road, seed);
+    }
+
+    /**
+     * As {@link #plan(NavigationGrid, CellTopology, Form, int[], int[], List, long)}, the first mother opening on the
+     * open ground nearest {@code first}, the origin's core building (`heart-origins.md`), within
+     * {@link #FIRST_REACH}; null, or no such ground, leaves her round the workings with the rest.
+     */
+    public static HeartBores plan(NavigationGrid grid, CellTopology topology, Form form,
+                                  int[] workings, int[] first, int[] start, List<int[]> road, long seed) {
         boolean[] reachable = reachableFrom(grid, start);
         if (reachable == null) return null;
         SplittableRandom rng = new SplittableRandom(seed ^ SALT);
         List<Site> sites = new ArrayList<>();
         int mothers = 2 + rng.nextInt(2);
         for (int m = 1; m <= mothers; m++) {
-            int[] cell = pick(grid, topology, reachable, sites, rng, MOTHER_SPACING,
+            int[] nearest = m == 1 && first != null ? nearest(grid, topology, reachable, first, FIRST_REACH) : null;
+            int[] cell = nearest != null ? nearest : pick(grid, topology, reachable, sites, rng, MOTHER_SPACING,
                     workings[0] - MOTHER_RADIUS, workings[1] - MOTHER_RADIUS,
                     workings[0] + MOTHER_RADIUS, workings[1] + MOTHER_RADIUS, workings);
             if (cell == null) return null;
@@ -222,6 +233,26 @@ public record HeartBores(List<Site> sites) {
             if (spaced(taken, x, y, spacing)) return new int[]{x, y};
         }
         return null;
+    }
+
+    /** Cells from the origin's core building the first mother may open. */
+    static final int FIRST_REACH = 16;
+
+    /** The reachable open ground a bore can open on nearest {@code to}, within {@code reach}; null where none is. */
+    static int[] nearest(NavigationGrid grid, CellTopology topology, boolean[] reachable, int[] to, int reach) {
+        int width = grid.getWidth(), height = grid.getHeight();
+        int[] best = null;
+        long bestD = Long.MAX_VALUE;
+        for (int y = Math.max(EDGE_MARGIN, to[1] - reach); y <= Math.min(height - 1 - EDGE_MARGIN, to[1] + reach); y++) {
+            for (int x = Math.max(EDGE_MARGIN, to[0] - reach); x <= Math.min(width - 1 - EDGE_MARGIN, to[0] + reach); x++) {
+                long d = (long) (x - to[0]) * (x - to[0]) + (long) (y - to[1]) * (y - to[1]);
+                if (d > (long) reach * reach || d >= bestD) continue;
+                if (!reachable[y * width + x] || !clearGround(grid, topology, x, y)) continue;
+                best = new int[]{x, y};
+                bestD = d;
+            }
+        }
+        return best;
     }
 
     /** At least {@code spacing} from every site so far. */

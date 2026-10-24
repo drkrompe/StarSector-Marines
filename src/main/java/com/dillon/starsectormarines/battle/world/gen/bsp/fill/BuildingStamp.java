@@ -179,6 +179,10 @@ public enum BuildingStamp {
     }
 
     int width(int turns) { return (turns & 1) == 0 ? width : height; }
+    /** Cells across the footprint at {@code turns} quarter turns. */
+    public int footprintWidth(int turns) { return width(turns); }
+    /** Cells along the footprint at {@code turns} quarter turns. */
+    public int footprintHeight(int turns) { return height(turns); }
     int height(int turns) { return (turns & 1) == 0 ? height : width; }
 
     /** Canonical y-up coordinate into the north-first authored rows. */

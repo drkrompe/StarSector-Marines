@@ -88,11 +88,7 @@ public final class OverwatchPosture implements Action {
         // clearing a squadmate out of his own muzzle, not a marine going
         // somewhere, and cancelling it on the tick it was authored would leave
         // him standing in the same lane having moved a fraction of a cell.
-        if (LaneSidestep.isStepping(member, sim)) {
-            sim.advanceMovement(member);
-        } else if (!Paths.isEmpty(sim.world().path(member))) {
-            sim.clearPath(member);
-        }
+        LaneSidestep.holdGround(member, sim);
         // Target selection remains centralized in the dispatcher's opportunity
         // fire pass. This action owns the positional intent: stay planted —
         // an empty path is what makes the unit read settled/stanced.

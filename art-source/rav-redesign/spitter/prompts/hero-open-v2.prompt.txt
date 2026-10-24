@@ -1,0 +1,5 @@
+The SAME image as reference image 1, pixel for pixel in every part (same creature, same scale, same position, same flared cobra hood, head, chest, shoulders, tail, colours, lighting and background), with ONE change: the FOREARMS.
+
+Replace each long scything crescent blade with a SHORT forearm ending in a SINGLE hooked TALON CLAW: one curved pale ivory bone talon, about as long as the head, hooking forward and inward like a raptor's killing claw. Each forelimb is a whole arm, upper arm and forearm, reaching out from the shoulder to the left and right, held slightly forward, with background clearly visible between the arm and the body, so it can be cut away and swung as its own part. The two arms are exact mirror images about the vertical centre line. The tail still hangs STRAIGHT DOWN, unchanged.
+
+Strict overhead orthographic view, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.

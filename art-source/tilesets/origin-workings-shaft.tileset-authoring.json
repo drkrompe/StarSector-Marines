@@ -1,0 +1,93 @@
+{
+ "sheetName": "origin-workings-shaft",
+ "sheet": "art-source/tilesets/origin-workings-shaft.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-workings-shaft",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-workings-shaft.png",
+ "note": "The reservoir workings' capped shaft, burst from below: the workings origin's telling object. Geometry-first ImageGen reskin of art-source/templates/heart-workings-shaft-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1536x1024 against a 1440x960 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + workings-shaft.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    51,
+    51,
+    410,
+    410
+   ],
+   "id": "origin-workings.shaft-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    3,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    563,
+    51,
+    410,
+    410
+   ],
+   "id": "origin-workings.shaft",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    3,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1075,
+    51,
+    410,
+    410
+   ],
+   "id": "origin-workings.shaft-swallowed",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    3,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    51,
+    563,
+    410,
+    410
+   ],
+   "id": "origin-workings.shaft-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    3,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    563,
+    563,
+    410,
+    410
+   ],
+   "id": "origin-workings.shaft-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    3,
+    3
+   ],
+   "included": true
+  }
+ ]
+}

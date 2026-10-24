@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -40,9 +41,10 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * target, and must not put him into a squadmate's lane — the firing-line case
  * is everybody shooting at the same thing, so clearing your own lane by masking
  * the man behind you is the same fault moved one cell back. No candidate means
- * no move: the step runs exactly as it does today, fires, and the ballistic
- * model's discipline roll decides, which is the status quo rather than a
- * regression.
+ * no move: the step runs as it would have, and the firing gate holds the
+ * trigger until the lane clears. Both the lane he steps out of and the lanes he
+ * must not step into are the gate's own ({@link FiringLane#blocked}); a wider
+ * lane here than the gate holds on left a packed squad no cell to step to.
  *
  * <p><b>Where the man stands decides whether a step can help.</b> A lane
  * converges on its target, so two cells of movement at the muzzle is worth two
@@ -127,8 +129,8 @@ public final class LaneSidestep {
 
     /**
      * How far the marine will look for a cell to stand in, in cells, Chebyshev.
-     * A sidestep is a step: two cells is enough to clear a lane a cell and a
-     * half wide from either side, and a marine who walks further than that to
+     * A sidestep is a step: two cells is enough to clear a squadmate's body
+     * from either side of the lane, and a marine who walks further than that to
      * shoot has left his place in the line.
      */
     static final int SEARCH_RADIUS = 2;
@@ -234,8 +236,11 @@ public final class LaneSidestep {
 
         Scratch scratch = SCRATCH.get();
         FiringLane.Friendlies allies = scratch.allies;
+        // Far enough to hold everybody in the lane from any candidate cell,
+        // the stretch just past the target included.
         sim.getTacticalScoring().gatherFriendlies(unit,
-                TacticalScoring.cellDistance(fromX, fromY, toX, toY) + SEARCH_RADIUS,
+                TacticalScoring.cellDistance(fromX, fromY, toX, toY)
+                        + 2 * SEARCH_RADIUS + BallisticResolver.FRIENDLY_LANE_OVERSHOOT,
                 scratch.ids, allies);
         if (allies.size() == 0) return false;
         if (!FiringLane.blocked(allies, fromX, fromY, toX, toY)) return false;
@@ -310,6 +315,7 @@ public final class LaneSidestep {
      * {@code AbstractZoneAction} already had the answer for the post-fire
      * cover reposition — advance the short move rather than cancel it, while
      * its owner says it is live — and this is the same rule for this move.
+     * {@link #holdGround} is that rule as one call, for a step that plants.
      *
      * <p>It reads the sidestep timer rather than the reposition cooldown the
      * zone action uses, deliberately. The cooldown is shared with
@@ -323,11 +329,36 @@ public final class LaneSidestep {
      * off run exactly.
      */
     public static boolean isStepping(long unit, BattleControl sim) {
-        World world = sim.world();
+        return isStepping(unit, sim.world());
+    }
+
+    /** {@link #isStepping(long, BattleControl)} from the world alone. */
+    public static boolean isStepping(long unit, World world) {
         return world.hasAiState(unit)
                 && world.sidestepTimer(unit) > 0f
                 && stillWalking(unit, world)
                 && isStepPath(world, unit);
+    }
+
+    /**
+     * Plants a marine where he stands, unless he is part-way through a
+     * step-aside, which is walked instead: the rule every step that plants a
+     * shooter by clearing his path has to follow.
+     *
+     * <p>The reflex authors its move and hands the tick to the step, so a step
+     * that clears the path whenever its marine has a shot throws the move away
+     * on the tick after it was authored. The marine has then moved a fraction
+     * of a cell, still has his own man in his lane, and the firing gate holds
+     * his trigger through the whole of the cooldown the move stamped before the
+     * reflex may try again. That was a base-of-fire squad on an attack move:
+     * its men held fire for most of every second and a half.
+     */
+    public static void holdGround(long unit, BattleControl sim) {
+        if (isStepping(unit, sim)) {
+            sim.advanceMovement(unit);
+        } else if (!Paths.isEmpty(sim.world().path(unit))) {
+            sim.clearPath(unit);
+        }
     }
 
     /** Whether the path in hand is short enough to be a step-aside rather than a replacement. */

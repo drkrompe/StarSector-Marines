@@ -606,7 +606,9 @@ public final class BspCityGenerator implements MapGenerator {
         // omits the conquest-only stages rather than running them as no-ops).
         GenRecipe recipe = recipeFor(axis, profile, precincts);
         if (openingPlan != null) recipe = openingOperationRecipe(recipe);
-        if (precincts != null && !precincts.layout().isEmpty()) recipe = missionLayoutRecipe(recipe);
+        if (precincts != null && (!precincts.layout().isEmpty() || !precincts.landscape().knolls().isEmpty())) {
+            recipe = missionLayoutRecipe(recipe);
+        }
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
         if (precincts != null && precincts.objective() != null) {

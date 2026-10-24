@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -168,7 +171,9 @@ public final class MechLabScreen implements Screen {
                     .withSideShift(() -> cameraController.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             dollCanvas.installedInternals(viewModel::installedInternal);
-        dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            dollCanvas.installedKits(viewModel::installedKits);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
@@ -369,6 +374,13 @@ public final class MechLabScreen implements Screen {
         if (event.button() != PointerButton.PRIMARY) return;
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
+        VehicleKit stripKit = dollCanvas.stripKitAt(point.x(), point.y());
+        if (stripKit != null) {
+            viewModel.removeKit(stripKit);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
         MechInternal stripPart = dollCanvas.stripPartAt(point.x(), point.y());
         SocketId strip = dollCanvas.stripAt(point.x(), point.y());
         if (strip != null) {
@@ -571,7 +583,13 @@ public final class MechLabScreen implements Screen {
 
     private void syncGantryScene() {
         if (deck == null || viewModel == null) return;
-        deck.scene().syncGantries(viewModel.gantryDeployments());
+        List<MechDeploymentSpec> mechs = viewModel.gantryDeployments();
+        List<VehicleDeploymentSpec> vehicles = viewModel.gantryVehicles();
+        deck.scene().syncGantries(mechs);
+        deck.scene().parkVehicles(mechs.size(), vehicles);
+        // A hull built since the deck mustered is a line her sprites have not loaded yet.
+        BattleSprites sprites = previewSprites();
+        if (sprites != null) for (VehicleDeploymentSpec vehicle : vehicles) sprites.loadConvoySprite(vehicle.type());
     }
 
     /** The berths standing in that bay, in the order the deck authored them. */

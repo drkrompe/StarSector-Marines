@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -1405,8 +1405,8 @@ tuning. What the measurement does not condemn is the lane test itself, and the
 answer tried next was a different verb: **step aside rather than switch**, which
 keeps the squad's fire concentrated and stops shooting its own man, where
 retargeting trades the second for the first. The retargeting penalty was
-removed; the lane geometry (`FiringLane`) stays, shared by stepping aside and the
-mech overwatch position search.
+removed; the lane geometry (`FiringLane`) stays, and is now the firing gate's
+own (the mech overwatch position search keeps a wider clearance of its own).
 
 **Stepping aside is built, measured, and off as well.** A masked marine moves a
 cell rather than firing through his own man: the individual-tier `LaneSidestep`
@@ -1440,6 +1440,28 @@ back has a matching obligation, which is where the remaining sharp edge is —
 marine who can fire from where he stands will otherwise throw the authored move
 away on the tick it was made. Both are pinned by the scene rather than left to
 be rediscovered.
+
+**Since the lane gate, the law has a second half.** The gate (fire discipline,
+`ballistics-nouns.md`) holds a trained shooter's trigger while a friend is in
+his lane, so a masked shooter no longer fires through his man: he does not fire
+at all. Two things followed. The step-aside asks the gate's own lane
+(`FiringLane` is `BallisticResolver.inLane` per body) rather than a wider one of
+its own, which had left a packed squad no cell to step to and missed a friend in
+melee just past the target; and every step that plants a shooter walks a live
+step-aside rather than clearing it (`LaneSidestep.holdGround`). What a step
+cannot answer is a friend further down the lane, and a militia crowd is made of
+them: no cell within two clears it, and militia held their fire on twelve of
+every thirteen ready shots. So **a shooter whose lane stays blocked, and who is not
+stepping aside, switches to the nearest enemy with a clear lane** (`LaneRetarget`,
+asked where fire is queued). The switch costs a registration, so it is made only
+once the hold has lasted as long as the shooter's own reflex delay, and the
+alternative is then finished while it stays shootable rather than dropped the
+moment the first lane clears; without those two rules the switching restarted
+registration on every flicker and fired fewer rounds than holding. This is the
+switching verb the measurements above rejected, readmitted because what it is
+traded against changed: then a shot through a friend, now no shot. On Broad
+Front it raises rounds fired for militia and marines alike (+5 to +11% and +5 to
++25% over two seeds to tick 5,860); Conquest has not been re-measured under it.
 
 **It ships on, and which column is the outcome is the reason.** Compounds held
 at the end is what a Conquest is won or lost on; captures is throughput, and a

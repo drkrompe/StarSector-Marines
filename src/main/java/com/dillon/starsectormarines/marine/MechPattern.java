@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
@@ -12,13 +13,13 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The permanent right to fabricate one mech chassis, weapon component, internal or vehicle. A company that
+ * The permanent right to fabricate one mech chassis, weapon component, internal, vehicle or vehicle kit. A company that
  * knows a pattern may build as many assemblies as it can pay for; the assemblies are finite
  * and losable, the pattern is neither. The id is the cargo payload of a mech pattern card.
  */
 public record MechPattern(Kind kind, String definitionId) {
 
-    public enum Kind { CHASSIS, WEAPON, INTERNAL, VEHICLE }
+    public enum Kind { CHASSIS, WEAPON, INTERNAL, VEHICLE, KIT }
 
     public enum WeightClass { LIGHT, MEDIUM, HEAVY }
 
@@ -29,6 +30,7 @@ public record MechPattern(Kind kind, String definitionId) {
     private static final Map<MechWeaponComponent, EquipmentAccessTier> WEAPON_TIERS =
             new EnumMap<>(MechWeaponComponent.class);
     private static final Map<VehicleType, EquipmentAccessTier> VEHICLE_TIERS = new EnumMap<>(VehicleType.class);
+    private static final Map<VehicleKit, EquipmentAccessTier> KIT_TIERS = new EnumMap<>(VehicleKit.class);
 
     static {
         CHASSIS_TIERS.put(MechVariant.HOUND, EquipmentAccessTier.COMMON);
@@ -82,6 +84,12 @@ public record MechPattern(Kind kind, String definitionId) {
         // Tri-Tachyon's hover line: a screen first, the drone carrier above it.
         VEHICLE_TIERS.put(VehicleType.HOVER_SCOUT, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DRONE_SKIMMER, EquipmentAccessTier.PRESTIGE);
+
+        // Vehicle kits: bolt-on plate, liner and magazine any workshop makes; skirts are a military pattern.
+        KIT_TIERS.put(VehicleKit.APPLIQUE_PLATE, EquipmentAccessTier.COMMON);
+        KIT_TIERS.put(VehicleKit.SPALL_LINER, EquipmentAccessTier.COMMON);
+        KIT_TIERS.put(VehicleKit.READY_RACK, EquipmentAccessTier.COMMON);
+        KIT_TIERS.put(VehicleKit.SPACED_SKIRTS, EquipmentAccessTier.ADVANCED);
     }
 
     /**
@@ -115,12 +123,17 @@ public record MechPattern(Kind kind, String definitionId) {
         return new MechPattern(Kind.VEHICLE, type.name().toLowerCase(Locale.ROOT));
     }
 
+    public static MechPattern of(VehicleKit kit) {
+        return new MechPattern(Kind.KIT, kit.id);
+    }
+
     public String id() {
         return PREFIX + switch (kind) {
             case CHASSIS -> "chassis:";
             case WEAPON -> "weapon:";
             case INTERNAL -> "internal:";
             case VEHICLE -> "vehicle:";
+            case KIT -> "kit:";
         } + definitionId;
     }
 
@@ -140,12 +153,17 @@ public record MechPattern(Kind kind, String definitionId) {
         return kind == Kind.VEHICLE ? safeVehicle(definitionId) : null;
     }
 
+    public VehicleKit kit() {
+        return kind == Kind.KIT ? VehicleKit.findById(definitionId) : null;
+    }
+
     public EquipmentAccessTier accessTier() {
         return switch (kind) {
             case CHASSIS -> CHASSIS_TIERS.get(variant());
             case WEAPON -> WEAPON_TIERS.get(component());
             case INTERNAL -> internal().tier;
             case VEHICLE -> VEHICLE_TIERS.get(vehicleType());
+            case KIT -> KIT_TIERS.get(kit());
         };
     }
 
@@ -191,6 +209,7 @@ public record MechPattern(Kind kind, String definitionId) {
             case WEAPON -> component().displayName();
             case INTERNAL -> internal().displayName();
             case VEHICLE -> CampaignVehicle.typeName(vehicleType());
+            case KIT -> kit().displayName();
         };
     }
 
@@ -210,6 +229,10 @@ public record MechPattern(Kind kind, String definitionId) {
             VehicleType type = safeVehicle(rest.substring("vehicle:".length()));
             return type != null && VEHICLE_TIERS.containsKey(type) ? of(type) : null;
         }
+        if (rest.startsWith("kit:")) {
+            VehicleKit kit = VehicleKit.findById(rest.substring("kit:".length()));
+            return kit != null && KIT_TIERS.containsKey(kit) ? of(kit) : null;
+        }
         if (rest.startsWith("internal:")) {
             MechInternal internal = MechInternal.findById(rest.substring("internal:".length()));
             return internal != null ? of(internal) : null;
@@ -224,6 +247,7 @@ public record MechPattern(Kind kind, String definitionId) {
         for (MechWeaponComponent component : WEAPON_TIERS.keySet()) patterns.add(of(component));
         for (MechInternal internal : MechInternal.values()) patterns.add(of(internal));
         for (VehicleType type : VEHICLE_TIERS.keySet()) patterns.add(of(type));
+        for (VehicleKit kit : KIT_TIERS.keySet()) patterns.add(of(kit));
         return Collections.unmodifiableList(patterns);
     }
 

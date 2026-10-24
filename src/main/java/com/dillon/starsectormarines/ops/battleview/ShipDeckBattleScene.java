@@ -33,6 +33,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -65,6 +67,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -155,6 +158,10 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** The berth registered for the company's k-th boat, or null where she has none. */
     private final List<AirfieldService.Berth> boatBerths = new ArrayList<>();
     private final long[] berthedMachines;
+    /** The vehicle hull parked in each berth, by index into {@link #gantries}; 0 where none is. */
+    private final long[] berthedVehicles;
+    /** Which campaign vehicle each parked hull is, so a re-sync leaves one where it stands. */
+    private final String[] berthedVehicleIds;
     /**
      * Which of the deck's berths hold machines, by index into {@link #gantries}.
      *
@@ -292,6 +299,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
         berthedMachines = new long[gantries.size()];
+        berthedVehicles = new long[gantries.size()];
+        berthedVehicleIds = new String[gantries.size()];
         machineBerths = machineBerthsIn(gantries);
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
@@ -654,6 +663,38 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             MechLoadoutComponent loadout = deployment.createLoadout(deployment.role());
             loadout.installMissileReplenisher(deployment.missileReplenisher());
             simulation.world().attachMechLoadout(mech, loadout);
+        }
+    }
+
+    /**
+     * Parks the company's vehicles in the machine berths after the lance's {@code mechs}, the order
+     * the Mech Lab numbers its pads in: one hull per vehicle, set down with its kits and facing down
+     * its berth as a mech does. A hull already parked for the same vehicle stays where it stands; a
+     * berth whose vehicle has gone, or that a mech now takes, gives its hull up.
+     */
+    public void parkVehicles(int mechs, List<VehicleDeploymentSpec> vehicles) {
+        for (int seat = 0; seat < machineBerths.length; seat++) {
+            int index = machineBerths[seat];
+            int slot = seat - mechs;
+            VehicleDeploymentSpec vehicle = vehicles != null && slot >= 0 && slot < vehicles.size()
+                    ? vehicles.get(slot) : null;
+            if (vehicle != null && berthedVehicles[index] != 0L
+                    && Objects.equals(vehicle.campaignId(), berthedVehicleIds[index])) continue;
+            if (berthedVehicles[index] != 0L) {
+                simulation.convoy().despawn(berthedVehicles[index]);
+                berthedVehicles[index] = 0L;
+                berthedVehicleIds[index] = null;
+                occupiedBerths[index] = berthedMachines[index] != 0L;
+            }
+            if (vehicle == null) continue;
+            Gantry gantry = gantries.get(index);
+            float x = gantry.worldCenterX(), y = gantry.worldCenterY();
+            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.kits(), Faction.MARINE,
+                    VehicleMission.deployed(x, y));
+            simulation.convoy().body(hull).teleport(x, y, parkedFacing(gantry));
+            berthedVehicles[index] = hull;
+            berthedVehicleIds[index] = vehicle.campaignId();
+            occupiedBerths[index] = true;
         }
     }
 

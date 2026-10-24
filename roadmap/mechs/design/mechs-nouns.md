@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-24 — capacitor banks, vent arrays and loaders share one auxiliary compartment, two columns wide (the Bulwark's in two flank bays); loaders are inventory parts.
+Updated: 2026-10-24 — vehicles get a sealed doll and a kit rack (vehicle kits); the auxiliary compartment, two columns wide, holds banks, vents and loaders.
 
 ## Purpose
 
@@ -175,13 +175,34 @@ increasing an encounter's total armored threat.
   offered, and unlearned items with no stock are absent from the Mech Lab catalog.
 - A **gantry** is one of the support squad's four bay spaces, and it holds a mech
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
-  `VehicleType`. The gantry is the only thing the two share. A vehicle has no
-  chassis, sockets, flux, replenisher or weapon components; its hull, turret and
-  kinematics are its type's, so there is nothing to fit until a vehicle doll
-  exists (`mech-lab-data-authored-dolls.md`). Mechs and vehicles count against
+  `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
+  two share. A vehicle has no chassis, flux, engine budget or weapon components:
+  its gun, plate, drive and bay are its type's and never come off. Mechs and vehicles count against
   the same four gantries and the same restored berths, fabricate from the same
   material currency against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
+- A **vehicle kit** (`VehicleKit`) is the one thing a company fits to a vehicle:
+  a bolt-on part from stores, in a **kit rack** of fixed slots. A vehicle is
+  locked down otherwise, and its doll in the Mech Lab says so: the same schematic
+  as a mech's, with the drive in the middle, the turret ahead, the secondary
+  mounts and the bay (seats, supply stock or drones) either side and the kit rack
+  behind, every card but the rack **sealed** with its factory part drawn in it,
+  readable and never draggable. The rack holds one kit per slot: a Light hull has
+  one slot, a Medium two, a Heavy three (`VehicleType.weight`). A vehicle carries
+  at most one of each kit, and a kit may need something of the hull (a magazine to
+  extend, tracks to skirt). Kits are inventory parts exactly as internals are:
+  learned as patterns, built from the bill into stores, dragged onto the rack and
+  off it again, lost with the hull and spared by a scrap. A kit changes the
+  vehicle's numbers when it is frozen for a drop and nothing else, so it adds no
+  behaviour and no balance surface beyond its own effect:
+  - **Appliqué plate** (Common): a quarter more armor capacity on every plate.
+  - **Spall liner** (Common): a fifth more structure.
+  - **Ready rack** (Common, armed hulls): half again the turret's magazine.
+  - **Spaced skirts** (Advanced, tracked hulls): +2 armor rating.
+  A new kit joins by taking a slot and a spawn-time effect; anything that needs a
+  behaviour or a system of its own (active protection, a blade, a mortar) stays a
+  **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
+  A vehicle saved before kits has an empty rack; a bought hull comes with one.
 - The **bay manifest** is the active squad's bay spaces frozen at launch: its
   mechs in gantry order, then its vehicles, each with chassis or hull, weight
   class and callsign. Vehicles carry their campaign id across the launch-fixture
@@ -454,7 +475,11 @@ increasing an encounter's total armored threat.
   missile green, ballistic yellow, omni grey. The frame's own mounts have their
   own colours: the engine socket blue and the auxiliary compartment steel; an
   engine is a blue piece, a capacitor bank flux violet, and a vent array or
-  missile loader utility teal, each a brick piece like any weapon. Size reads from shape, not text: every
+  missile loader utility teal, each a brick piece like any weapon. Every machine's
+  doll has its engine as the blue card in the centre, wired to the rest: a mech's
+  engine core, a vehicle's sealed engine, a boat's drive. A part another machine
+  already has is drawn with that machine's icon (a vehicle's heavy MG is the boat
+  door gun, its cannon the mech's). Size reads from shape, not text: every
   grid cell is a chamfered brick narrower than it is tall, and a footprint is its
   bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. On the doll
   every brick is the same size, so a socket's card grows with its capacity and a

@@ -14,7 +14,8 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
  *   <li><b>Bearing.</b> A round is judged by where it came from, its shooter's bearing from the gun. A burst
  *   credited to a shooter in front of the gun is stopped by a front arc wherever it landed; damage credited to
  *   no one (a crash, a fire) is never stopped.</li>
- *   <li><b>Silence.</b> An overloaded shield's gun holds fire until the overload is over.</li>
+ *   <li><b>Silence.</b> An overloaded shield's gun holds fire until the overload is over, and an energy gun while
+ *   it lets the capacitors it draws on bleed down ({@link FluxShield#gunHeld}).</li>
  * </ul>
  *
  * <p>Ticked, and its blocks decided, on the serial passes; a gun's own update reads {@link #silenced} and calls
@@ -105,10 +106,10 @@ public final class TurretShieldService {
         return f.shield.absorb(bearing, damage);
     }
 
-    /** Whether turret {@code id}'s gun is silent because its shield is overloaded. */
+    /** Whether turret {@code id}'s gun is silent: its shield is overloaded, or its energy gun is letting flux bleed. */
     public boolean silenced(long id) {
         Fitted f = byId.get(id);
-        return f != null && f.shield.overloaded();
+        return f != null && (f.shield.overloaded() || f.shield.gunHeld());
     }
 
     /** Turret {@code id} fired a round. */

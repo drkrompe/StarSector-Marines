@@ -1,0 +1,6 @@
+Sheet: the old reservoir workings' capped shaft, 3x3 cells, five states of ONE object, laid out left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.
+(1) CLEAN: a square cast-concrete shaft collar with a chamfered rim and a hazard-yellow edge bar, a massive round bolted steel cap with a cross brace, a yellow-painted service hatch strip on the east side. Sealed, quiet, municipal.
+(2) GROWN: the same shaft BURST FROM BELOW. The collar is broken into heaved concrete slabs tilted outward, rebar ends showing; the steel cap has been torn off and flung to the north-east corner, bent; a black mouth gapes in the middle. Thick old creep pours out of the mouth and spreads south over the slabs, veins running from the hole. This must read, wordlessly, as "something came up out of here".
+(3) SWALLOWED: the same burst shaft with the growth thickest: the west half buried under a raised creep mound with plates and spurs, the east half's slabs and the bent cap still visible.
+(4) DAMAGED: state (2) after a fight: scorched, creep torn and burnt in patches, more cracks.
+(5) DESTROYED: low separated broken collar fragments and a bent cap shard round the dark hole, transparent ground between pieces, no slab beneath.

@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,16 @@ public final class TileRegistry {
             "data/tilesets/fortworks-patchwork.tileset.json",
             "data/tilesets/fortworks-patchwork-damaged.tileset.json",
             "data/tilesets/fortworks-patchwork-destroyed.tileset.json",
+            "data/tilesets/fortworks-brutalist-kit.tileset.json",
+            "data/tilesets/fortworks-earthwork-kit.tileset.json",
+            "data/tilesets/fortworks-derelict-kit.tileset.json",
+            "data/tilesets/fortworks-patchwork-kit.tileset.json",
+            "data/tilesets/fortworks-modular-kit.tileset.json",
+            "data/tilesets/fortworks-barrier-kit.tileset.json",
+            "data/tilesets/fortworks-export-kit.tileset.json",
+            "data/tilesets/fortworks-blockwork-kit.tileset.json",
+            "data/tilesets/fortworks-composite-kit.tileset.json",
+            "data/tilesets/fortworks-deployed-kit.tileset.json",
             "data/tilesets/fort-hedgehog-damage.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
@@ -162,16 +173,28 @@ public final class TileRegistry {
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json",
             "data/tilesets/deck-motion.tileset.json",
-            "data/tilesets/deck-prop-motions.tileset.json");
+            "data/tilesets/deck-prop-motions.tileset.json",
+            "data/tilesets/origin-workings-shaft.tileset.json",
+            "data/tilesets/origin-workings-yard.tileset.json",
+            "data/tilesets/origin-freight-split.tileset.json",
+            "data/tilesets/origin-freight-boxes.tileset.json",
+            "data/tilesets/origin-freight-crane.tileset.json",
+            "data/tilesets/origin-lab-annex.tileset.json",
+            "data/tilesets/origin-lab-kit.tileset.json",
+            "data/tilesets/origin-park-bandstand.tileset.json",
+            "data/tilesets/origin-park-pond.tileset.json",
+            "data/tilesets/origin-park-play.tileset.json");
 
     private static volatile TileRegistry installed;
 
     private final Map<String, TileDef> byId = new LinkedHashMap<>();
-    /** Parallel to {@link #byId} insertion order — {@code byIndex.get(i).index == i}. The dense-handle reverse lookup. */
+    /** Parallel to {@link #byId} insertion order â€” {@code byIndex.get(i).index == i}. The dense-handle reverse lookup. */
     private final List<TileDef> byIndex = new ArrayList<>();
-    /** Fixed-grid autotile/single blocks (grid sheets), addressed by id — separate namespace from the sliced {@link TileDef}s. */
+    /** Fixed-grid autotile/single blocks (grid sheets), addressed by id â€” separate namespace from the sliced {@link TileDef}s. */
     private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
-    /** Decorative props (Phase 2), addressed by id — one source cell + an intrinsic tactical cover. */
+    /** Each block's looks ({@code <base id>@<look>}, `fort-works.md`) by base id, then look name. */
+    private final Map<String, Map<String, GridBlockDef>> blockLooks = new HashMap<>();
+    /** Decorative props (Phase 2), addressed by id â€” one source cell + an intrinsic tactical cover. */
     private final Map<String, DoodadDef> doodadsById = new LinkedHashMap<>();
     /** Moving parts drawn over a prop's static base, by the base doodad's id. */
     private final Map<String, PropMotion> motionsByDoodad = new LinkedHashMap<>();
@@ -180,7 +203,7 @@ public final class TileRegistry {
     /**
      * Folded-in per-cell viewer annotations from each sheet's {@code "cells"}
      * array, keyed by {@code sheetPath} then a packed {@code (col,row)} key. The
-     * successor to the old {@code .catalog.json} sidecars — doc-only, read solely
+     * successor to the old {@code .catalog.json} sidecars â€” doc-only, read solely
      * by the dev viewer via {@link #cellLabel}.
      */
     private final Map<String, Map<Long, CellLabel>> cellsBySheet = new LinkedHashMap<>();
@@ -193,7 +216,7 @@ public final class TileRegistry {
     public Collection<TileDef> all()    { return byId.values(); }
     public int size()                   { return byId.size(); }
 
-    /** Reverse lookup by dense {@link TileDef#index}. Throws on an out-of-range handle — a stale index is a bug, not a silent miss. */
+    /** Reverse lookup by dense {@link TileDef#index}. Throws on an out-of-range handle â€” a stale index is a bug, not a silent miss. */
     public TileDef byIndex(int index) {
         if (index < 0 || index >= byIndex.size()) {
             throw new IndexOutOfBoundsException("TileRegistry: no tile at index " + index + " (size " + byIndex.size() + ")");
@@ -201,7 +224,7 @@ public final class TileRegistry {
         return byIndex.get(index);
     }
 
-    /** Dense index for {@code id}. Throws if unknown — callers resolving a built-in id should never miss. */
+    /** Dense index for {@code id}. Throws if unknown â€” callers resolving a built-in id should never miss. */
     public int indexOf(String id) {
         return Objects.requireNonNull(byId.get(id), () -> "TileRegistry: unknown tile id '" + id + "'").index;
     }
@@ -210,6 +233,15 @@ public final class TileRegistry {
     public GridBlockDef block(String id)        { return blocksById.get(id); }
     public boolean hasBlock(String id)          { return blocksById.containsKey(id); }
     public Collection<GridBlockDef> blocks()    { return blocksById.values(); }
+
+    /**
+     * Block {@code baseId}'s look named {@code look} (the block {@code <baseId>@<look>}), or null when it has none.
+     * Allocation-free, for render passes that ask per cell.
+     */
+    public GridBlockDef blockLook(String baseId, String look) {
+        Map<String, GridBlockDef> looks = baseId == null ? null : blockLooks.get(baseId);
+        return looks == null ? null : looks.get(look);
+    }
 
     /** Doodad def by id (decorative props, Phase 2), or {@code null} if unknown. */
     public DoodadDef doodad(String id)          { return doodadsById.get(id); }
@@ -240,7 +272,7 @@ public final class TileRegistry {
      * {@code null} if unlabelled. Grid sheets resolve from the folded-in
      * {@code "cells"} array; sliced sheets fall back to the tile whose
      * {@link TileDef#frame} equals {@code col} (their cells are a single
-     * left-to-right strip, {@code row == 0}). Doc-only — for the dev viewer.
+     * left-to-right strip, {@code row == 0}). Doc-only â€” for the dev viewer.
      */
     public CellLabel cellLabel(String sheetPath, int col, int row) {
         Map<Long, CellLabel> sheet = cellsBySheet.get(sheetPath);
@@ -273,7 +305,7 @@ public final class TileRegistry {
 
     /**
      * Parses one tileset JSON document and adds its tiles. Fails loud on a
-     * duplicate id — the registry is authoritative, so a colliding sheet is a
+     * duplicate id â€” the registry is authoritative, so a colliding sheet is a
      * bug to surface, not a tile to silently drop. Cross-provider catalogs are
      * additive and retain this same no-override law.
      */
@@ -378,7 +410,7 @@ public final class TileRegistry {
             JSONObject o = tiles.getJSONObject(i);
             String id = o.getString("id");
             requireUniqueId(id, source);
-            // Sliced tiles must pin a frame explicitly — a missing 'frame' must
+            // Sliced tiles must pin a frame explicitly â€” a missing 'frame' must
             // fail loud, not silently default to the -1 block sentinel (grid
             // blocks carry origin+layout instead, parsed by ingestBlocks).
             if (!o.has("frame")) {
@@ -407,7 +439,7 @@ public final class TileRegistry {
     /**
      * Per-cell viewer annotations (folded in from the former {@code .catalog.json}).
      * Doc-only: not validated against block/tile coverage and never read by sim or
-     * render — only {@link #cellLabel}. Duplicate {@code (col,row)} annotations
+     * render â€” only {@link #cellLabel}. Duplicate {@code (col,row)} annotations
      * fail rather than becoming a hidden provider-order override.
      */
     private void ingestCells(JSONArray cells, String sheet, CatalogSource source) throws JSONException {
@@ -448,7 +480,7 @@ public final class TileRegistry {
             requireUniqueId(id, source);
             JSONArray cellsArr = o.optJSONArray("cells");
             if (cellsArr != null) {
-                // Variant pool — explicit {col,row} cells, hash-picked.
+                // Variant pool â€” explicit {col,row} cells, hash-picked.
                 if (cellsArr.length() == 0) {
                     throw new IllegalStateException("TileRegistry: block '" + id + "' has empty 'cells' (sheet " + sheet + ")");
                 }
@@ -461,6 +493,7 @@ public final class TileRegistry {
                         o.optString("windowBlock", null), o.optString("doorBlock", null),
                         o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
                 sourceById.put(id, source);
+                indexLook(id);
                 continue;
             }
             JSONArray origin = o.getJSONArray("origin");
@@ -472,7 +505,14 @@ public final class TileRegistry {
                     o.optString("windowBlock", null), o.optString("doorBlock", null),
                     o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
             sourceById.put(id, source);
+            indexLook(id);
         }
+    }
+
+    private void indexLook(String id) {
+        int at = id.lastIndexOf('@');
+        if (at <= 0) return;
+        blockLooks.computeIfAbsent(id.substring(0, at), k -> new HashMap<>()).put(id.substring(at + 1), blocksById.get(id));
     }
 
     private void validateOpening(String owner, String id) {
@@ -484,7 +524,7 @@ public final class TileRegistry {
         }
     }
 
-    /** Ids share one namespace across sliced tiles, grid blocks, and doodads — a collision is a bug to surface. */
+    /** Ids share one namespace across sliced tiles, grid blocks, and doodads â€” a collision is a bug to surface. */
     private void requireUniqueId(String id, CatalogSource source) {
         if (byId.containsKey(id) || blocksById.containsKey(id) || doodadsById.containsKey(id)) {
             throw new IllegalStateException("TileRegistry: duplicate id '" + id
@@ -531,7 +571,7 @@ public final class TileRegistry {
                 String ref = sel.startsWith("!") ? sel.substring(1) : sel;
                 if (ref.startsWith("layer:")) {
                     // A bad layer token (e.g. "layer:grund") silently degrades the
-                    // tile to "overlays nothing" at eval time — validate it here so
+                    // tile to "overlays nothing" at eval time â€” validate it here so
                     // the typo fails at load, not as an unexplained render diff.
                     String token = ref.substring("layer:".length());
                     try {
@@ -552,7 +592,7 @@ public final class TileRegistry {
 
     /**
      * Loads every {@link #BUILTIN_TILESETS} resource via the modded-JSON path
-     * and installs the result as {@link #installed()}. Fully defensive — a
+     * and installs the result as {@link #installed()}. Fully defensive â€” a
      * failure logs and leaves any prior install in place rather than throwing
      * out of {@code onApplicationLoad}.
      */
@@ -568,7 +608,7 @@ public final class TileRegistry {
             LOG.info("TileRegistry: loaded " + reg.size() + " tiles from "
                     + BUILTIN_TILESETS.size() + " built-in tilesets");
         } catch (Exception e) {
-            LOG.error("TileRegistry: failed to load built-in tilesets — registry not installed", e);
+            LOG.error("TileRegistry: failed to load built-in tilesets â€” registry not installed", e);
         }
     }
 

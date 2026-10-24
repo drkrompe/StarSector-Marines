@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
@@ -156,7 +158,7 @@ public final class BloomHeartSetup {
         Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
         Precinct landing = plan.landingPlace();
         return HeartBores.plan(map.grid, map.topology, form,
-                new int[]{workings.seedX(), workings.seedY()},
+                new int[]{workings.seedX(), workings.seedY()}, originCore(map, plan, battleSeed),
                 new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map, plan), battleSeed ^ BORE_SALT);
     }
 
@@ -203,6 +205,31 @@ public final class BloomHeartSetup {
         return out;
     }
 
+    /** The middle of the origin's core building, or null when the far place packed none. */
+    public static int[] originCore(MapResult map, PrecinctPlan plan, long battleSeed) {
+        Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
+        return workings == null ? null
+                : HeartOrigin.core(map.topology, HeartOrigin.of(battleSeed), workings.seedX(), workings.seedY());
+    }
+
+    /**
+     * The map carrying the origin's damage as one more initial-damage layer (`heart-origins.md`): its core building
+     * broken open from the first mother's side, the facility battered round it.
+     */
+    private static MapResult originDamage(MapResult map, PrecinctPlan plan, HeartBores heart, long battleSeed) {
+        int[] core = originCore(map, plan, battleSeed);
+        if (core == null || heart.mothers().isEmpty()) return map;
+        HeartBores.Site first = heart.mothers().get(0);
+        Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
+        List<DamagePlan.Layer> layers = new ArrayList<>();
+        if (map.initialDamage != null) layers.addAll(map.initialDamage.layers());
+        layers.add(new DamagePlan.Layer(HeartOrigin.DAMAGE_LAYER, true,
+                HeartOrigin.damage(map.topology, core, new int[]{first.x(), first.y()}, workings.seedX(), workings.seedY(),
+                        battleSeed)));
+        long seed = map.initialDamage != null ? map.initialDamage.seed() : battleSeed;
+        return map.withInitialDamage(new DamagePlan(map.grid.getWidth(), map.grid.getHeight(), seed, layers));
+    }
+
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
     private static Built build(Form form, SurfacePalette biome, Density density, long battleSeed, MapPatch patch) {
         TargetProfile profile = world(biome);
@@ -210,7 +237,7 @@ public final class BloomHeartSetup {
         MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
         HeartBores heart = bores(form, map, plan, battleSeed);
         if (heart == null) return null;
-        map = patch.ruined(map, battleSeed);
+        map = originDamage(patch.ruined(map, battleSeed), plan, heart, battleSeed);
         BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(),
                 Collections.emptyList(), battleSeed).sim();
         sim.setSurface(profile.surface());

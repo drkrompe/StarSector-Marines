@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
@@ -14,11 +15,14 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
+import com.dillon.starsectormarines.battle.world.gen.fortress.GateTowers;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationFloors;
 import com.dillon.starsectormarines.battle.world.gen.fortress.ShieldFort;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -87,7 +91,7 @@ class FortRoomStampTest {
                 GenContext ctx = field();
                 CompoundLayout.Placement at = plan.layout().at(60, 40, turn);
                 FortStage.stamp(ctx, plan, at, 0, true);
-                List<FortRoom> rooms = new ArrayList<>(plan.rooms());
+                List<FortRoom> rooms = new ArrayList<>(plan.buildings());
                 rooms.add(plan.airDefence().room());
                 for (FortRoom room : rooms) {
                     assertEquals(expectedFixtures(room), doodadsInRoom(ctx, at, room),
@@ -104,7 +108,7 @@ class FortRoomStampTest {
                 GenContext ctx = field();
                 CompoundLayout.Placement at = plan.layout().at(60, 40, turn);
                 FortStage.stamp(ctx, plan, at, 0, true);
-                List<FortRoom> rooms = new ArrayList<>(plan.rooms());
+                List<FortRoom> rooms = new ArrayList<>(plan.buildings());
                 rooms.add(plan.airDefence().room());
                 int crewed = 0;
                 for (FortRoom room : rooms) {
@@ -145,5 +149,60 @@ class FortRoomStampTest {
             }
         }
         assertTrue(banks >= 2, "the operations hall is a room of stations");
+    }
+
+    @Test
+    void aGateTowersSlitIsFloorUnderAWindowAsAnyBuildingsIs() {
+        GenContext ctx = field();
+        CompoundLayout.Placement at = BatteryFort.PLAN.layout().at(60, 40, 1);
+        FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
+        FortRoom tower = BatteryFort.PLAN.towers().get(0);
+        int floor = ctx.topology.surfaceIndex(InstallationFloors.material(tower.purpose()));
+        for (int[] slit : GateTowers.slits(tower, BatteryFort.PLAN::isWorks)) {
+            int[] c = at.cell(slit[0], slit[1]);
+            assertTrue(ctx.grid.isWalkable(c[0], c[1]), "a slit is stood in");
+            assertFalse(ctx.topology.isWall(c[0], c[1]), "a slit draws no wall under whoever stands in it");
+            assertEquals(floor, ctx.topology.getSurface(c[0], c[1]), "a slit is laid in the tower's floor");
+            assertTrue(ctx.grid.getEdgeBarriers().stream().anyMatch(b -> b.kind() == SharedEdgeBarrier.Kind.WINDOW
+                    && b.structureCellX() == c[0] && b.structureCellY() == c[1]), "a slit is a window");
+        }
+    }
+
+    @Test
+    void everyFortBuildingButTheMagazineStoreIsWindowedNeverBesideADoorOrAnotherWindow() {
+        for (FortPlan plan : List.of(BatteryFort.PLAN, ShieldFort.PLAN)) {
+            GenContext ctx = field();
+            CompoundLayout.Placement at = plan.layout().at(60, 40, 0);
+            FortStage.stamp(ctx, plan, at, 0);
+            for (FortRoom room : plan.buildings()) {
+                if (room.purpose() == RoomPurpose.GATE_TOWER) continue;
+                List<int[]> windows = new ArrayList<>();
+                for (SharedEdgeBarrier b : ctx.grid.getEdgeBarriers()) {
+                    if (b.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+                    for (int x = room.x() - 1; x <= room.x() + room.width(); x++) {
+                        for (int y = room.y() - 1; y <= room.y() + room.height(); y++) {
+                            boolean ring = x < room.x() || y < room.y() || x == room.x() + room.width()
+                                    || y == room.y() + room.height();
+                            int[] c = at.cell(x, y);
+                            if (ring && b.structureCellX() == c[0] && b.structureCellY() == c[1]) windows.add(c);
+                        }
+                    }
+                }
+                if (room.purpose() == RoomPurpose.ARMORY) {
+                    assertTrue(windows.isEmpty(), "the magazine's store is blind");
+                    continue;
+                }
+                assertFalse(windows.isEmpty(), room.purpose() + " is a building a squad fires out of");
+                for (int[] w : windows) {
+                    for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        assertFalse(ctx.grid.isDoorway(w[0] + d[0], w[1] + d[1]), "a window is never beside a door");
+                        for (int[] other : windows) {
+                            assertFalse(other[0] == w[0] + d[0] && other[1] == w[1] + d[1],
+                                    "a wall cell stands between two windows");
+                        }
+                    }
+                }
+            }
+        }
     }
 }

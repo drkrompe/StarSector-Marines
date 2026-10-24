@@ -1,0 +1,674 @@
+{
+  "blocks": [
+    {
+      "id": "installation.dark-concrete-window@composite",
+      "layout": "cardinal-2x2",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "installation.light-concrete-window@composite",
+      "layout": "cardinal-2x2",
+      "origin": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-door@composite",
+      "layout": "cardinal-2x2",
+      "origin": [
+        4,
+        0
+      ]
+    },
+    {
+      "id": "installation.light-concrete-door@composite",
+      "layout": "cardinal-2x2",
+      "origin": [
+        6,
+        0
+      ]
+    },
+    {
+      "id": "installation.dark-concrete-rubble@composite",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        8,
+        0
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble@composite",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        12,
+        0
+      ]
+    }
+  ],
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "opening facing n",
+      "name": "installation.dark-concrete-window@composite facing-n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "opening facing n",
+      "name": "installation.light-concrete-window@composite facing-n",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "opening facing n",
+      "name": "installation.dark-concrete-door@composite facing-n",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "opening facing n",
+      "name": "installation.light-concrete-door@composite facing-n",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "opening facing e",
+      "name": "installation.dark-concrete-window@composite facing-e",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "opening facing e",
+      "name": "installation.light-concrete-window@composite facing-e",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "opening facing e",
+      "name": "installation.dark-concrete-door@composite facing-e",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "opening facing e",
+      "name": "installation.light-concrete-door@composite facing-e",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "opening facing s",
+      "name": "installation.dark-concrete-window@composite facing-s",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "opening facing s",
+      "name": "installation.light-concrete-window@composite facing-s",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "opening facing s",
+      "name": "installation.dark-concrete-door@composite facing-s",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "opening facing s",
+      "name": "installation.light-concrete-door@composite facing-s",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "opening facing w",
+      "name": "installation.dark-concrete-window@composite facing-w",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "opening facing w",
+      "name": "installation.light-concrete-window@composite facing-w",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "opening facing w",
+      "name": "installation.dark-concrete-door@composite facing-w",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "opening facing w",
+      "name": "installation.light-concrete-door@composite facing-w",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.dark-concrete-rubble@composite faces-0",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.light-concrete-rubble@composite faces-0",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north",
+      "name": "installation.dark-concrete-rubble@composite faces-1",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north",
+      "name": "installation.light-concrete-rubble@composite faces-1",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east",
+      "name": "installation.dark-concrete-rubble@composite faces-2",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east",
+      "name": "installation.light-concrete-rubble@composite faces-2",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.dark-concrete-rubble@composite faces-3",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.light-concrete-rubble@composite faces-3",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south",
+      "name": "installation.dark-concrete-rubble@composite faces-4",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on south",
+      "name": "installation.light-concrete-rubble@composite faces-4",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.dark-concrete-rubble@composite faces-5",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.light-concrete-rubble@composite faces-5",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.dark-concrete-rubble@composite faces-6",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.light-concrete-rubble@composite faces-6",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.dark-concrete-rubble@composite faces-7",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.light-concrete-rubble@composite faces-7",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on west",
+      "name": "installation.dark-concrete-rubble@composite faces-8",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on west",
+      "name": "installation.light-concrete-rubble@composite faces-8",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.dark-concrete-rubble@composite faces-9",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.light-concrete-rubble@composite faces-9",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.dark-concrete-rubble@composite faces-10",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.light-concrete-rubble@composite faces-10",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.dark-concrete-rubble@composite faces-11",
+      "row": 2
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.light-concrete-rubble@composite faces-11",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.dark-concrete-rubble@composite faces-12",
+      "row": 3
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.light-concrete-rubble@composite faces-12",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.dark-concrete-rubble@composite faces-13",
+      "row": 3
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.light-concrete-rubble@composite faces-13",
+      "row": 3
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.dark-concrete-rubble@composite faces-14",
+      "row": 3
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.light-concrete-rubble@composite faces-14",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.dark-concrete-rubble@composite faces-15",
+      "row": 3
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.light-concrete-rubble@composite faces-15",
+      "row": 3
+    },
+    {
+      "col": 0,
+      "description": "Composite look of doodad.fort-trench-0.",
+      "name": "doodad.fort-trench-0@composite",
+      "row": 4
+    },
+    {
+      "col": 1,
+      "description": "Composite look of doodad.fort-trench-1.",
+      "name": "doodad.fort-trench-1@composite",
+      "row": 4
+    },
+    {
+      "col": 2,
+      "description": "Composite look of doodad.fort-trench-2.",
+      "name": "doodad.fort-trench-2@composite",
+      "row": 4
+    },
+    {
+      "col": 3,
+      "description": "Composite look of doodad.fort-trench-3.",
+      "name": "doodad.fort-trench-3@composite",
+      "row": 4
+    },
+    {
+      "col": 4,
+      "description": "Composite look of doodad.fort-trench-4.",
+      "name": "doodad.fort-trench-4@composite",
+      "row": 4
+    },
+    {
+      "col": 5,
+      "description": "Composite look of doodad.fort-trench-5.",
+      "name": "doodad.fort-trench-5@composite",
+      "row": 4
+    },
+    {
+      "col": 6,
+      "description": "Composite look of doodad.fort-trench-6.",
+      "name": "doodad.fort-trench-6@composite",
+      "row": 4
+    },
+    {
+      "col": 7,
+      "description": "Composite look of doodad.fort-trench-7.",
+      "name": "doodad.fort-trench-7@composite",
+      "row": 4
+    },
+    {
+      "col": 8,
+      "description": "Composite look of doodad.fort-trench-8.",
+      "name": "doodad.fort-trench-8@composite",
+      "row": 4
+    },
+    {
+      "col": 9,
+      "description": "Composite look of doodad.fort-trench-9.",
+      "name": "doodad.fort-trench-9@composite",
+      "row": 4
+    },
+    {
+      "col": 10,
+      "description": "Composite look of doodad.fort-trench-10.",
+      "name": "doodad.fort-trench-10@composite",
+      "row": 4
+    },
+    {
+      "col": 11,
+      "description": "Composite look of doodad.fort-trench-11.",
+      "name": "doodad.fort-trench-11@composite",
+      "row": 4
+    },
+    {
+      "col": 12,
+      "description": "Composite look of doodad.fort-trench-12.",
+      "name": "doodad.fort-trench-12@composite",
+      "row": 4
+    },
+    {
+      "col": 13,
+      "description": "Composite look of doodad.fort-trench-13.",
+      "name": "doodad.fort-trench-13@composite",
+      "row": 4
+    },
+    {
+      "col": 14,
+      "description": "Composite look of doodad.fort-trench-14.",
+      "name": "doodad.fort-trench-14@composite",
+      "row": 4
+    },
+    {
+      "col": 15,
+      "description": "Composite look of doodad.fort-trench-15.",
+      "name": "doodad.fort-trench-15@composite",
+      "row": 4
+    },
+    {
+      "col": 0,
+      "description": "Composite look of doodad.fort-hedgehog.",
+      "name": "doodad.fort-hedgehog@composite",
+      "row": 5
+    },
+    {
+      "col": 1,
+      "description": "Composite look of doodad.light-post-vent.",
+      "name": "doodad.light-post-vent@composite",
+      "row": 5
+    },
+    {
+      "col": 2,
+      "description": "Composite look of doodad.industrial-fence-straight-h.",
+      "name": "doodad.industrial-fence-straight-h@composite",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "description": "Composite look of doodad.industrial-fence-straight-v.",
+      "name": "doodad.industrial-fence-straight-v@composite",
+      "row": 5
+    },
+    {
+      "col": 4,
+      "description": "Composite look of doodad.industrial-fence-corner-nw.",
+      "name": "doodad.industrial-fence-corner-nw@composite",
+      "row": 5
+    },
+    {
+      "col": 5,
+      "description": "Composite look of doodad.industrial-fence-corner-ne.",
+      "name": "doodad.industrial-fence-corner-ne@composite",
+      "row": 5
+    },
+    {
+      "col": 6,
+      "description": "Composite look of doodad.industrial-fence-corner-sw.",
+      "name": "doodad.industrial-fence-corner-sw@composite",
+      "row": 5
+    },
+    {
+      "col": 7,
+      "description": "Composite look of doodad.industrial-fence-corner-se.",
+      "name": "doodad.industrial-fence-corner-se@composite",
+      "row": 5
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 0,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-0@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 1,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-1@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 2,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-2@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 3,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-3@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 4,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-4@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 5,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-5@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 6,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-6@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 7,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-7@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 8,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-8@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-9@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 10,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-10@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 11,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-11@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 12,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-12@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 13,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-13@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 14,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-14@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 15,
+      "cover": "heavy",
+      "fightingPosition": "trench",
+      "id": "doodad.fort-trench-15@composite",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "light",
+      "id": "doodad.fort-hedgehog@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.light-post-vent@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 2,
+      "cover": "light",
+      "id": "doodad.industrial-fence-straight-h@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 3,
+      "cover": "light",
+      "id": "doodad.industrial-fence-straight-v@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 4,
+      "cover": "light",
+      "id": "doodad.industrial-fence-corner-nw@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 5,
+      "cover": "light",
+      "id": "doodad.industrial-fence-corner-ne@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 6,
+      "cover": "light",
+      "id": "doodad.industrial-fence-corner-sw@composite",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 7,
+      "cover": "light",
+      "id": "doodad.industrial-fence-corner-se@composite",
+      "row": 5
+    }
+  ],
+  "sheet": "graphics/tilesets/fortworks-composite-kit.png"
+}

@@ -61,6 +61,24 @@ public final class RoadSurface {
         return new RoadSurface(width,patches,next);
     }
 
+    /**
+     * The same pavement with nothing over the {@code cleared} cells (indexed {@code y * width + x}): no patch of any
+     * material, no paint and no underlay, so each shows the ground the topology gives it. Ground a later hand has
+     * rebuilt (a yard laid over a street's kerb) loses the kerb with the street.
+     */
+    public RoadSurface without(boolean[] cleared) {
+        if(cleared.length!=underlays.length) throw new IllegalArgumentException("cleared mask is "+cleared.length+" cells, the surface "+underlays.length);
+        Patch[][] next=new Patch[patches.length][];
+        for(int m=0;m<patches.length;m++)next[m]=patches[m].clone();
+        Underlay[] ground=underlays.clone();
+        for(int cell=0;cell<cleared.length;cell++) {
+            if(!cleared[cell])continue;
+            for(int m=0;m<next.length;m++)next[m][cell]=null;
+            ground[cell]=null;
+        }
+        return new RoadSurface(width,next,ground);
+    }
+
     /** Sample signed distances at cell corners, preserving first-authored-road precedence. */
     public static RoadSurface build(RoadPlan plan,RoadRasterizer.Raster raster,CellTopology topology) {
         return build(plan.routes(),plan.width(),plan.height(),raster,topology);

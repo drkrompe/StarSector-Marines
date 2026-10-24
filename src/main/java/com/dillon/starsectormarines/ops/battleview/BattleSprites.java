@@ -117,6 +117,7 @@ public class BattleSprites {
     private RavRunnerAssets ravRunner;
     private RavBruteAssets ravBrute;
     private RavMatriarchAssets ravMatriarch;
+    private RavSpitterAssets ravSpitter;
     /** Loaded families; asking for one not loaded loads it, once the shared layers have been. */
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class) {
@@ -190,6 +191,7 @@ public class BattleSprites {
     private final SheetTexture tileTex       = SheetTexture.grid(TileManifest.SHEET);
     private final SheetTexture roadTex       = SheetTexture.grid(TileManifest.ROAD_SHEET);
     private final SheetTexture floorsTex     = SheetTexture.grid(TileManifest.FLOORS_SHEET);
+    private final SheetTexture roofTex       = SheetTexture.grid(RoofTiles.SHEET);
     private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
@@ -271,6 +273,8 @@ public class BattleSprites {
     public RavBruteAssets ravBruteSprites() { return ravBrute; }
     /** The Matriarch's rig sprites, or null when incomplete (it then wears the Brute's layered art). */
     public RavMatriarchAssets ravMatriarchSprites() { return ravMatriarch; }
+    /** The Spitter's rig sprites, or null when incomplete (the Spitter then keeps its layered art). */
+    public RavSpitterAssets ravSpitterSprites() { return ravSpitter; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
@@ -341,6 +345,9 @@ public class BattleSprites {
     public SpriteAPI floorsSheet()                 { return floorsTex.sprite(); }
     public int floorsSheetPxW()                    { return floorsTex.pxW(); }
     public int floorsSheetPxH()                    { return floorsTex.pxH(); }
+    public SpriteAPI roofSheet()                   { return roofTex.sprite(); }
+    public int roofSheetPxW()                      { return roofTex.pxW(); }
+    public int roofSheetPxH()                      { return roofTex.pxH(); }
     public SpriteAPI waterSheet()                  { return waterTex.sprite(); }
     public int waterSheetPxW()                     { return waterTex.pxW(); }
     public int waterSheetPxH()                     { return waterTex.pxH(); }
@@ -407,6 +414,7 @@ public class BattleSprites {
             else ensureUrbanSheet();
             ensureRoadSheet();
             ensureFloorsSheet();
+            ensureRoofSheet();
             ensureNatureSheet();
         }));
         steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> {
@@ -583,6 +591,9 @@ public class BattleSprites {
 
     /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
+
+    /** Lazy-loads the roof sheet ({@link RoofTiles}): a row of field, eave trims and damage frames per roof style. */
+    public void ensureRoofSheet()       { roofTex.ensureLoaded(lease); }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }
@@ -1207,7 +1218,7 @@ public class BattleSprites {
                 shared.masterworkDmr());
     }
 
-    /** The Rav Bloom's Runner, Brute and Matriarch rigs. */
+    /** The Rav Bloom's Runner, Brute, Spitter and Matriarch rigs. */
     public void ensureRavRigs() {
         if (ravRigsAttempted) return;
         ravRigsAttempted = true;
@@ -1218,6 +1229,10 @@ public class BattleSprites {
         ravBrute = RavBruteAssets.load(this::loadLayeredSprite);
         if (ravBrute == null) {
             LOG.warn("BattleSprites: Rav Brute rig sprites incomplete; the Brute keeps its layered art");
+        }
+        ravSpitter = RavSpitterAssets.load(this::loadLayeredSprite);
+        if (ravSpitter == null) {
+            LOG.warn("BattleSprites: Rav Spitter rig sprites incomplete; the Spitter keeps its layered art");
         }
         ravMatriarch = RavMatriarchAssets.load(this::loadLayeredSprite);
         if (ravMatriarch == null) {

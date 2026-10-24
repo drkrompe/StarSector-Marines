@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan.Layer;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan.Mode;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan.Point;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.RoofDamage;
 import java.util.BitSet;
 
 /** Deterministic brush coverage and one structural hit per object per layer. No battle RNG draws. */
@@ -50,7 +51,10 @@ public final class DamageBrush {
             for (int at = 0; at < cells.length; at++) if (cells[at] > 0) {
                 int x = at % plan.width(), y = at / plan.width();
                 if (cells[at] == Mode.RUIN.ordinal()) {
-                    editor.destroyRoof(x, y);
+                    // An old ruin has fallen in, and here and there burnt: in patches of a few cells, not cell by cell.
+                    long burn = plan.seed() ^ ((x >> 2) * 0x7FEB352DL) ^ ((y >> 2) * 0x846CA68BL);
+                    burn ^= burn >>> 15; burn *= 0x2C1B3C6DL; burn ^= burn >>> 12;
+                    editor.destroyRoof(x, y, (burn & 3) == 0 ? RoofDamage.BURNT : RoofDamage.COLLAPSED);
                     for (Direction side : Direction.CARDINALS) editor.damageEdgeBarrier(x, y, side, 100000);
                 }
                 // Old impacts are scattered marks, not a uniformly stamped damage carpet.

@@ -116,6 +116,12 @@ GLYPHS = {
     'F': ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
     'N': ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
     'V': ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+    'I': ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'],
+    'O': ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+    'U': ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+    'W': ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
+    'X': ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'],
+    'Y': ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'],
 }
 
 
@@ -417,6 +423,7 @@ def build():
 
     internals(f)
     boats(f)
+    vehicles(f)
     return f
 
 
@@ -575,6 +582,159 @@ def boats(f):
     f['boat-hold-standard'] = banded(150, 200, hold('seats'), 'HLD')
     f['boat-hold-cradle'] = banded(150, 200, hold('cradle'), 'LFT')
     f['boat-hold-heavy-cradle'] = banded(150, 200, hold('heavy'), 'LFT')
+
+# --- vehicle hardware -----------------------------------------------------------------------
+
+def mortar(y, x0, x1, s):
+    """A breech-loaded turret mortar: a short, very wide tube on its recoil slide, banded, with
+    a flared muzzle ring."""
+    g = hbar(x0, x0 + s * .5, y - s * .55, s * .16, MID, rx=0)
+    g += hbar(x0, x0 + s * .5, y + s * .55, s * .16, MID, rx=0)
+    g += block(x0, y - s * .38, x0 + s * .5, y + s * .38, s * .08)
+    g += rect(x0 + s * .08, y - s * .3, s * .34, max(2, s * .05), L)
+    tx0 = x0 + s * .54
+    g += poly([(tx0, y - s * .4), (x1 - s * .2, y - s * .46), (x1 - s * .2, y + s * .46), (tx0, y + s * .4)], D)
+    for k in range(2):
+        bx = tx0 + (x1 - s * .2 - tx0) * (k + 1) / 3
+        g += block(bx - s * .05, y - s * .52, bx + s * .05, y + s * .52, s * .03)
+    g += block(x1 - s * .17, y - s * .56, x1, y + s * .56, s * .06)
+    g += rect(x1 - s * .08, y - s * .4, max(2, s * .04), s * .8, L)
+    g += hbar(tx0 + 4, x1 - s * .24, y - s * .24, max(1.5, s * .04), LS, rx=0)
+    return g
+
+
+def bay_supply():
+    """A supply bay from above: lashed crates in two stacks, ramp at the foot."""
+    s = block(14, 10, 136, 176, 8, MID)
+    s += poly([(30, 176), (120, 176), (110, 194), (40, 194)], D)
+    for col in (22, 80):
+        for row in range(4):
+            y = 20 + row * 38
+            s += block(col, y, col + 48, y + 32, 3)
+            s += rect(col + 4, y + 4, 40, 3, L)
+            s += rect(col + 21, y + 2, 6, 28, LS)
+    return s
+
+
+def bay_drones():
+    """A drone bay from above: four launch cradles, each holding a quad-rotor drone."""
+    s = block(14, 10, 136, 186, 8, MID)
+    for cx in (48, 102):
+        for cy in (52, 140):
+            s += stroke(f'M {cx - 16} {cy - 16} L {cx + 16} {cy + 16} M {cx + 16} {cy - 16} L {cx - 16} {cy + 16}',
+                        '#000000', .58, 5)
+            for dx, dy in ((-18, -18), (18, -18), (-18, 18), (18, 18)):
+                s += ell(cx + dx, cy + dy, 11, 11, D)
+                s += ell(cx + dx, cy + dy, 3, 3, L)
+            s += block(cx - 8, cy - 8, cx + 8, cy + 8, 3, L)
+    return s
+
+
+def systems_blade():
+    """A dozer blade face-on: the curved moldboard with its cutting edge, and the push arms and
+    rams that hold it to the hull."""
+    s = path('M 10 40 Q 75 20 140 40 L 140 92 Q 75 76 10 92 Z', D)
+    s += path('M 10 96 Q 75 82 140 96 L 140 106 Q 75 92 10 106 Z', MID)
+    s += path('M 18 46 Q 75 30 132 46 L 132 50 Q 75 34 18 50 Z', L)
+    for x in (34, 104):
+        s += rect(x, 112, 12, 72, D, rx=2)
+        s += rect(x + 3, 118, 3, 50, LS)
+    s += rect(56, 118, 9, 50, MID, rx=2) + rect(85, 118, 9, 50, MID, rx=2)
+    return s
+
+
+def systems_aps():
+    """An active protection suite: a radar panel over a bank of countermeasure tubes."""
+    s = block(18, 14, 132, 64, 6)
+    for x in range(28, 124, 10):
+        s += rect(x, 22, 5, 34, LS)
+    s += rect(68, 66, 14, 14, MID)
+    for row in range(3):
+        for col in range(3):
+            cx, cy = 38 + col * 37, 102 + row * 32
+            s += ell(cx, cy, 14, 13, D)
+            s += ell(cx, cy, 6, 5, L)
+    return s
+
+
+def systems_mast():
+    """A sight mast: a sensor head with two lenses on a telescoping mast."""
+    s = block(22, 16, 128, 66, 8)
+    s += ell(52, 41, 13, 13, L) + ell(52, 41, 5, 5, D)
+    s += ell(98, 41, 13, 13, L) + ell(98, 41, 5, 5, D)
+    s += rect(30, 22, 90, 3, LS)
+    y = 70
+    for k, wdt in enumerate((14, 20, 26)):
+        s += rect(75 - wdt / 2, y, wdt, 36, D if k % 2 == 0 else MID)
+        y += 38
+    s += rect(40, 184, 70, 8, D, rx=2)
+    return s
+
+
+def kit_plate():
+    """Applique armour: two riveted plates hung over the hull's own skin, stepped."""
+    s = ''
+    for k in range(2):
+        y0 = 12 + k * 36
+        x0 = 8 + k * 6
+        s += block(x0, y0, 142 - k * 6, y0 + 32, 5)
+        s += rect(x0 + 6, y0 + 3, 122 - k * 12, 2.5, LS)
+        for x in range(int(x0 + 12), int(142 - k * 6 - 6), 22):
+            s += ell(x, y0 + 18, 2.6, 2.6, L)
+    return s
+
+
+def kit_liner():
+    """A spall liner: a quilted blanket of layered aramid, stitched in diamonds."""
+    s = block(8, 12, 142, 84, 6, MID)
+    s += rect(14, 18, 122, 3, L)
+    for x in range(14, 136, 20):
+        for y in (32, 52, 72):
+            s += poly([(x + 10, y - 8), (x + 18, y), (x + 10, y + 8), (x + 2, y)], D)
+    return s
+
+
+def kit_ready_rack():
+    """A ready rack: rounds stood in a clamped frame beside the gun."""
+    s = hbar(8, 142, 88, 6, MID, rx=1)
+    for k in range(6):
+        x = 13 + k * 21
+        s += rect(x, 36, 14, 48, D, rx=1)
+        s += path(f'M {x} 34 Q {x + 7} 6 {x + 14} 34 Z', D)
+        s += rect(x + 2, 42, 3, 34, LS)
+        s += rect(x, 72, 14, 4, L)
+    return s
+
+
+def kit_skirts():
+    """Spaced skirts: armour panels hung clear of the road wheels on their hangers."""
+    s = ''
+    for k in range(3):
+        x0 = 8 + k * 46
+        s += block(x0, 12, x0 + 42, 56, 4)
+        s += rect(x0 + 4, 16, 34, 3, L)
+        s += ell(x0 + 10, 25, 2.4, 2.4, L) + ell(x0 + 32, 25, 2.4, 2.4, L)
+    for x in range(22, 140, 28):
+        s += ell(x, 74, 12, 12, MID)
+        s += ell(x, 74, 4, 4, LS)
+    return s
+
+
+def vehicles(f):
+    """The Mech Lab's sealed vehicle doll, where no mech or boat drawing already shows the part: the
+    turret mortar, the supply and drone bays, the systems cards, and the
+    bolt-on kits for the rack. A turret gun or a seats bay draws the weapon's or the hold's own icon."""
+    f['vehicle-turret-mortar'] = banded(150, 200, upright2(mortar(75, 10, 190, 100)), 'MOR')
+    f['vehicle-bay-supply'] = banded(150, 200, bay_supply(), 'SUP')
+    f['vehicle-bay-drones'] = banded(150, 200, bay_drones(), 'DRN')
+    f['vehicle-systems-blade'] = banded(150, 200, systems_blade(), 'BLD')
+    f['vehicle-systems-aps'] = banded(150, 200, systems_aps(), 'APS')
+    f['vehicle-systems-mast'] = banded(150, 200, systems_mast(), 'OPT')
+    f['vehicle-systems-secondary'] = banded(150, 200, upright2(autogun(75, 10, 190, 34)), 'AUX')
+    f['kit-applique-plate'] = banded(150, 100, kit_plate(), 'APP')
+    f['kit-spall-liner'] = banded(150, 100, kit_liner(), 'SPL')
+    f['kit-ready-rack'] = banded(150, 100, kit_ready_rack(), 'RDY')
+    f['kit-spaced-skirts'] = banded(150, 100, kit_skirts(), 'SKT')
 
 
 def fabricator_icon():

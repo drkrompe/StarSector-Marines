@@ -120,6 +120,12 @@ public final class TileManifest {
         return single("road.vent", 11, 2);
     }
 
+    /** True for the light post's vent-ring frame on the road sheet ({@link #lightPostVent}). */
+    public static boolean isLightPostVent(TileFrame tile) {
+        TileFrame vent = lightPostVent();
+        return tile != null && tile.col == vent.col && tile.row == vent.row;
+    }
+
     /**
      * Tile frame for one cell of a MEDIUM/LARGE defense-post embankment ring,
      * keyed by the cell's position relative to the post's center turret.

@@ -1,0 +1,5 @@
+A single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter, an upright serpentine beast, with its cobra hood FLARED, as its own separate part. Reference image 1 shows the part's exact position, outline and scale: complete it in place. Reference image 2 is the whole creature, for identity, colours and plate finish only.
+
+The part is ONLY the head, facing up, jaws open, and the cobra hood flared wide around it, ribbed with ivory bone spines, its inner membrane glowing deep venom green; below the hood, a short neck that ends in a rounded closed stump, which tucks under the body. No shoulders, no arms, no body, no tail.
+
+Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1, the part in exactly the position and at exactly the scale it occupies there. Plain flat light grey background (#afafaf), no shadow, no ground, no other body parts, no text, no border.

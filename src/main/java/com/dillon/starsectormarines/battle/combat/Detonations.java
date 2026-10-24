@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.RoofCover;
+import com.dillon.starsectormarines.battle.world.model.RoofDamage;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
@@ -298,9 +300,10 @@ public class Detonations {
                     float cdy = (cy + 0.5f) - det.endpointY;
                     if (cdx * cdx + cdy * cdy > r2) continue;
                     if (!grid.hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
-                    if (topology.getBuildingId(cx, cy) == 0) continue;
-                    if (topology.isRoofDestroyed(cx, cy)) continue;
-                    mapEditor.destroyRoof(cx, cy);
+                    if (!RoofCover.isRoofed(topology, cx, cy)) continue;
+                    // A heavy blast's core brings the roof down; anything lighter, or the edge of it, holes it.
+                    mapEditor.destroyRoof(cx, cy, RoofDamage.ofBlast(det.aoeRadius,
+                            (float) Math.sqrt(cdx * cdx + cdy * cdy)));
                 }
             }
         }

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
@@ -156,6 +157,13 @@ public final class BspKeys {
      * only when the landscape holds some; {@code [x][y]}.
      */
     public static final GenKey<boolean[][]> HELD_GROUND = GenKey.of("heldGround");
+    /**
+     * The ground the plan's landscape seals ({@code Landscape.sealed}): held from growth and gone round by the welds,
+     * the road off the map, the tracks and the access routes. Bound only when the landscape seals some.
+     */
+    public static final GenKey<boolean[][]> SEALED_GROUND = GenKey.of("sealedGround");
+    /** The plan's knolls as they stand on this map ({@code KnollGround}). Bound only when the landscape asks for one. */
+    public static final GenKey<List<KnollGround.Resolved>> KNOLLS = GenKey.of("knolls");
 
     /**
      * Per-cell road ownership by precinct index. Kept beside the claim because

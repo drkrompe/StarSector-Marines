@@ -1,0 +1,5 @@
+A single sprite LAYER for a top-down tactical game: the LEFT ARM of the Rav Bloom Spitter, an upright serpentine beast, as its own separate part. Reference image 1 shows the part's exact position, outline and scale: complete it in place. Reference image 2 is the whole creature, for identity, colours and plate finish only (near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone).
+
+The part is ONLY the whole left arm: a rounded armoured shoulder ball at its inner end (closed off, it tucks under the body's shoulder), the plated upper arm and forearm reaching out to the left and a little forward, and at its end a SINGLE short hooked ivory bone TALON claw, about as long as the head, hooking forward and inward. No body, no head, no tail.
+
+Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1, the part in exactly the position and at exactly the scale it occupies there. Plain flat light grey background (#afafaf), no shadow, no ground, no other body parts, no text, no border.

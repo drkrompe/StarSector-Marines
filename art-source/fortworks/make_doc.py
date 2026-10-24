@@ -21,6 +21,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 import make_guide as guide  # noqa: E402
+import trim  # noqa: E402
 
 ALPHA = 128
 # Pixels cut off each side of a painted wall tile (about 4% of it).
@@ -38,6 +39,9 @@ BARRICADES = [('doodad.fort-sandbag-%s', lambda shape: shape, 'heavy', 0.4),
               ('doodad.sandbag-%s', lambda shape: shape if shape.startswith('corner') else 'straight-' + shape,
                'heavy', 0.3)]
 WALL = 'installation.dark-concrete-wall'
+# The wall surfaces a lot's walls wear the look on, each with the openings and rubble of its own kind: the fort's
+# perimeter, and the walls of the buildings inside it, so a fort's rooms are built of the same stuff as its wall.
+WALLS = [(WALL, 'dark'), ('installation.light-concrete-wall', 'light')]
 
 
 def opaque_box(alpha, x0, y0, x1, y1):
@@ -98,17 +102,18 @@ def document(look, style, raw, state=None):
     blocks = []
     if state is None:
         cols, rows = runs(alpha, 976, 600, 1536, 1024)
-        for mask in range(16):
-            (x0, x1), (y0, y1) = cols[mask % 4], rows[mask // 4]
-            # ImageGen outlines each separate tile; cut inside it, or every joint between wall cells draws a dark seam.
-            box = [x0 + WALL_INSET, y0 + WALL_INSET, x1 - WALL_INSET, y1 - WALL_INSET]
-            entries.append({'id': '%s@%s.faces-%d' % (WALL, style, mask), 'block': '%s@%s' % (WALL, style),
-                            'slot': 'faces-%d' % mask, 'included': True, 'cover': 'none', 'footprintCells': [1, 1],
-                            'rect': [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
-        blocks.append({'id': '%s@%s' % (WALL, style), 'layout': 'wall-faces-4x4',
-                       'windowBlock': 'installation.dark-concrete-window',
-                       'doorBlock': 'installation.dark-concrete-door',
-                       'rubbleBlock': 'installation.dark-concrete-rubble'})
+        for wall, kind in WALLS:
+            for mask in range(16):
+                (x0, x1), (y0, y1) = cols[mask % 4], rows[mask // 4]
+                # ImageGen outlines each separate tile; cut inside it, or every joint between wall cells draws a seam.
+                box = [x0 + WALL_INSET, y0 + WALL_INSET, x1 - WALL_INSET, y1 - WALL_INSET]
+                entries.append({'id': '%s@%s.faces-%d' % (wall, style, mask), 'block': '%s@%s' % (wall, style),
+                                'slot': 'faces-%d' % mask, 'included': True, 'cover': 'none', 'footprintCells': [1, 1],
+                                'rect': [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
+            blocks.append({'id': '%s@%s' % (wall, style), 'layout': 'wall-faces-4x4',
+                           'windowBlock': 'installation.%s-concrete-window' % kind,
+                           'doorBlock': 'installation.%s-concrete-door' % kind,
+                           'rubbleBlock': 'installation.%s-concrete-rubble' % kind})
     name = look if state is None else look + '-' + state
     note = ("Fortification works of the %s emplacement style%s, look '%s': every piece a lot's walls, parapets and "
             "barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png "
@@ -141,8 +146,21 @@ def main():
     state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
     raw = HERE / 'raw' / (look + ('' if state is None else '-' + state) + '.raw.png')
     name = 'fortworks-' + style + ('' if state is None else '-' + state)
-    authoring('tileset_write_document', {'name': name, 'document': document(look, style, raw, state)})
+    doc = document(look, style, raw, state)
+    if style not in trim.STYLES:
+        authoring('tileset_write_document', {'name': name, 'document': doc})
+        authoring('tileset_export', {'name': name})
+        return
+    # The style's grade (trim.py) goes on a copy of the master under build/, which the atlas is cut from; the document
+    # then names the master again, since the copy is regenerated and never tracked.
+    doc['note'] += (' Graded by art-source/fortworks/trim.py at export: export through make_doc.py, never'
+                    ' tileset_export alone, or the atlas ships ungraded.')
+    graded = ROOT / 'build' / 'fortworks-graded' / raw.name
+    graded.parent.mkdir(parents=True, exist_ok=True)
+    trim.graded(Image.open(raw), style).save(graded)
+    authoring('tileset_write_document', {'name': name, 'document': dict(doc, sheet=graded.relative_to(ROOT).as_posix())})
     authoring('tileset_export', {'name': name})
+    authoring('tileset_write_document', {'name': name, 'document': doc})
 
 
 if __name__ == '__main__':

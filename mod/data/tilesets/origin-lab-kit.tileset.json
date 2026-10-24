@@ -1,0 +1,136 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "origin-lab.tank-rack-clean",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "origin-lab.tank-rack",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "origin-lab.tank-rack-damaged",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "origin-lab.tank-rack-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "origin-lab.sample-freezer-clean",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "origin-lab.sample-freezer",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "origin-lab.sample-freezer-damaged",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "name": "origin-lab.sample-freezer-destroyed",
+      "row": 1
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "origin-lab.tank-rack-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 3,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "origin-lab.tank-rack",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "origin-lab.tank-rack-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "origin-lab.tank-rack-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 12,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "origin-lab.sample-freezer-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 14,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "origin-lab.sample-freezer",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "origin-lab.sample-freezer-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "origin-lab.sample-freezer-destroyed",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/doodads/origin-lab-kit.png"
+}

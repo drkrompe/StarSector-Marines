@@ -1,0 +1,88 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "origin-park.bandstand-clean",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "origin-park.bandstand",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "origin-park.bandstand-swallowed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "origin-park.bandstand-damaged",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "origin-park.bandstand-destroyed",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "origin-park.bandstand-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "origin-park.bandstand",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 8,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "origin-park.bandstand-swallowed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 12,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "origin-park.bandstand-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "origin-park.bandstand-destroyed",
+      "row": 4
+    }
+  ],
+  "sheet": "graphics/doodads/origin-park-bandstand.png"
+}

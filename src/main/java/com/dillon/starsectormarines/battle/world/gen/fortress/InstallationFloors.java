@@ -44,7 +44,8 @@ public final class InstallationFloors {
             ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(material));
     }
 
-    static String material(RoomPurpose purpose) {
+    /** The floor finish a room of {@code purpose} is laid in, its apertures included. */
+    public static String material(RoomPurpose purpose) {
         return switch (purpose) {
             case BARRACKS, CREW_QUARTERS, MESS_HALL, CREW_LOUNGE -> "installation.accommodation-floor";
             case KEEP_THRONE, CONTROL_ROOM, CIVIC_RECEPTION, CIVIC_OFFICE, CONFERENCE_ROOM,
