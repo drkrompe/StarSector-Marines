@@ -78,7 +78,8 @@ is approved; every look step is shown to the owner as renders.
    launcher and both flak positions the grenade head) on a collar, each with its
    earthwork and derelict look. The carried point-defence pod takes the new head with no
    collar, since it is set down in the field. The heavy mortar keeps its vanilla sprite.
-   The light post is four concrete parapets and a paved apron round its gun.
+   The light post is a closed ring of eight concrete parapets round its gun, corner pieces
+   included; a militia style sandbags the ring and leaves the gun's pit unpaved earth.
 5. **Hardpoints** (built): `structure.hardpoint-cannon` (heavy head) and
    `structure.hardpoint-locust` (the vanilla Locust head) on the 3x3 plinth. A large post
    may draw the 5x5 hardpoint layout (plinth plus paved apron); the artillery post is

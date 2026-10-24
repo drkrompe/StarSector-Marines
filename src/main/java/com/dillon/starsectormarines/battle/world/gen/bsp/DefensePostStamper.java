@@ -91,6 +91,9 @@ public final class DefensePostStamper implements GenStage {
 
     /** Minimum center-to-center distance between any two placed posts. Stops clumping. */
     private static final int POST_MIN_SEPARATION = 14;
+
+    /** The ground under a field-works gun: dug earth, as a trench's floor. */
+    private static final String FIELD_PAD = "floors.dirt";
     /** Anchor offset from the attacker-facing edge of FORTRESS_DISTRICT — 1-cell biome-edge gap + 1-cell footprint margin. Cells right at the biome boundary would half-spill into PORT. */
     private static final int FORTRESS_EDGE_BUFFER_NEAR = 2;
     /** Anchor max-offset from the attacker-facing biome edge — keeps posts in the kill-zone strip ahead of the wall (the wall sits ~12 cells in via {@code FortressWallStamper.SETBACK_CELLS}; post footprint reaches 1 cell past anchor). Cells inside the wall fail walkability validation anyway, but bounding the search keeps placement attempts efficient. */
@@ -630,7 +633,7 @@ public final class DefensePostStamper implements GenStage {
 
         boolean concreteRing = !fieldWorks && layout.hasApron();
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
-            concreteRing |= cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
+            concreteRing |= !fieldWorks && cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
                     && cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE;
         }
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
@@ -656,6 +659,9 @@ public final class DefensePostStamper implements GenStage {
                 // the same concrete the fort paves. Surface only; the cell's kind and topology are untouched.
                 topology.setSurface(x, y, topology.surfaceIndex(
                         Material.CONCRETE.block(RoadRasterizer.age(.55, 0L, x, y))));
+            } else if (fieldWorks && grid.inBounds(x, y)) {
+                // Field works pave nothing: the gun's pit is the dug earth of its sandbag ring, not a grey square.
+                topology.setSurface(x, y, topology.surfaceIndex(FIELD_PAD));
             }
         }
 
