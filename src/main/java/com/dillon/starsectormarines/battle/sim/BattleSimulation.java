@@ -2228,8 +2228,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Claw strikes queued this tick; see {@code EffectsService.emitClawStrike}. Drained by the host into {@code ImpactFx.spawnClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
     /** Queues the look of a claw strike on a body; see {@code EffectsService.emitClawStrike}. */
-    public void emitClawStrike(float x, float y, float dirX, float dirY, boolean bleeds) {
-        effects.emitClawStrike(x, y, dirX, dirY, bleeds);
+    public void emitClawStrike(float x, float y, float dirX, float dirY, float blood) {
+        effects.emitClawStrike(x, y, dirX, dirY, blood);
     }
     public List<RollingBlast> getRollingBlastsThisFrame() { return effects.getRollingBlastsThisFrame(); }
     /** Rounds an aircraft (or any other carrier) put on the ground during the last advance. Presentation only — the delivery itself already resolved. */

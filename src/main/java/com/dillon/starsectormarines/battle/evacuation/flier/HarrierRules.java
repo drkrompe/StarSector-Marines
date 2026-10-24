@@ -26,6 +26,9 @@ public final class HarrierRules {
     /** What the ground does to a thrown marine when it comes down: a heavier blow than the claws, unarmoured. */
     public static final float LIFT_LANDING_DAMAGE = 8f;
     public static final float LIFT_LANDING_MORALE = 2.5f;
+    /** How long a bite's blood stays on the ground, seconds, and how many stains a battle keeps at once. */
+    public static final float STAIN_SECONDS = 20f;
+    public static final int MAX_STAINS = 48;
     /** Body radius for hits; the drawn wings are wider than what a round has to find. */
     public static final float RADIUS = 0.35f;
     /** Walls within this of the flier do not block a line to or from it, as for a drone. */
