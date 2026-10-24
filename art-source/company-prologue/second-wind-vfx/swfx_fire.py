@@ -413,16 +413,19 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
     at = mp.anchor_matrix(anchor).translation
     out_dir = at.normalized() if at.length > 1e-6 else Vector((0, 0, 1))       # away from the wreck's centre
     big = S >= 18.0 and flash_gain >= .8
-    made = swfx_burst.burst(ctx, coll, f'blast {anchor.name}', at, f, mpu, rnd, (1.0, .55, .22),
-                            size_m=(S * .5, S * .72), axis=out_dir, lean=.8,
-                            shrapnel=(12, 18) if big else (6, 10), smoke=.6 if big else .5,
-                            smoke_life=(48, 72) if big else (28, 44), flash_frames=3 if big else 2,
-                            parent=anchor, prefix=PREFIX, tear=True, smoke_drift=1.2)
-    n = rnd.randint(3, 4) if big else rnd.randint(1, 2)
+    # The approved HE recipe scaled by pieces (coordinator, 2026-10-23): a small hot core, torn
+    # tongues, burning debris for over a second and a long smoke, never one big torn flash (which
+    # read as a hard plate and then a patterned solid); the satellites are the secondaries.
+    made = swfx_burst.warhead(ctx, coll, f'blast {anchor.name}', at, f, mpu, rnd, (1.0, .55, .22),
+                              core_m=(S * .2, S * .27), axis=out_dir, tongues=(7, 10) if big else (5, 7),
+                              reach=(.8, 1.8), late=10 if big else 6, late_s=1.6 if big else 1.2,
+                              shrapnel=(12, 18) if big else (6, 10), smoke=.6 if big else .5,
+                              smoke_life=(48, 72) if big else (28, 44), parent=anchor, prefix=PREFIX)
+    n = rnd.randint(3, 5) if big else rnd.randint(1, 2)
     for k in range(n):
         off = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized() * S * rnd.uniform(.25, .5)
         here = at + off / mpu
-        made += swfx_burst.burst(ctx, coll, f'blast {anchor.name} sat {k}', here, f + rnd.randint(1, 5), mpu, rnd,
+        made += swfx_burst.burst(ctx, coll, f'blast {anchor.name} sat {k}', here, f + rnd.randint(2, 14), mpu, rnd,
                                  (1.0, .6, .25), size_m=(S * .14, S * .24),
                                  axis=(out_dir + off.normalized() * .6).normalized(), lean=.9, shrapnel=(2, 4),
                                  smoke=.4, smoke_life=(16, 28), flash_frames=2, parent=anchor, prefix=PREFIX,
