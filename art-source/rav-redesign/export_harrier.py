@@ -2,21 +2,19 @@
 
 python art-source/rav-redesign/export_harrier.py
 
-Two sources. The round-1 concept sheet (glide, flap, dive on grey) gives the glide drawing, which is wingbeat frame 0,
-and the dive drawing; exploration/flier/cut_flier.py cuts it. The wingbeat sheet (exploration/flier/wingbeat/, an
-ImageGen reskin of make_guide.py's guide) gives the other beat frames and the two frames folding into the dive.
+Three sources. The round-1 concept sheet (glide, flap, dive on grey) gives the glide drawing, which is wingbeat frame
+0; exploration/flier/cut_flier.py cuts it. Two ImageGen reskins of make_guide.py's guides (exploration/flier/wingbeat/)
+give the rest: raw/wingbeat.png the other beat frames, raw/dive.png the two frames sweeping the wings back, the dive
+itself (wings still showing, owner 2026-10-23), four tumbling fall frames and two corpses, which are graded duller.
 
 Every drawing is scaled by one factor, the one that makes the glide drawing `span` cells wide at PX_PER_CELL (the
 renderer's `HarrierLook.PX_PER_CELL`), so the body keeps one size from frame to frame.
 
-The beat and fold frames are body-locked: each is cut from its guide cell by the guide's own numbers (never by
+Every frame but the glide is body-locked: each is cut from its guide cell by the guide's own numbers (never by
 looking for gaps), registered on its guide, and only its wings are kept (the generated pixels inside the guide's
 wings, grown a little); the glide drawing's own body is laid over them. So the body is the same pixels in every
-frame and only the wings move. They and the glide share one canvas, centred on the glide's spine centroid, so the
+frame and only the wings move. All of them share one canvas, centred on the glide's spine centroid, so the
 renderer, which turns a sprite about its centre, turns every frame about the same point of the body.
-
-The dive is a different drawing of the body; it is padded so the centroid of its own spine strip (the middle sixth of
-its width) sits at the image centre.
 """
 import sys
 from pathlib import Path
@@ -34,6 +32,7 @@ import make_guide  # noqa: E402
 ROOT = HERE.parents[1]
 SHEETS = FLIER / "round-1" / "raw"
 WINGBEAT = FLIER / "wingbeat" / "raw" / "wingbeat.png"
+DIVE = FLIER / "wingbeat" / "raw" / "dive.png"
 OUT = ROOT / "mod" / "graphics" / "battle" / "rav-harrier"
 PX_PER_CELL = 64
 # folder, sheet, span in cells: HarrierLook's values.
@@ -42,6 +41,15 @@ LOOKS = [("lilac", "a.png", 2.4)]
 # How far round a guide's wings a generated frame's pixels are kept, and how far it may be shifted to register.
 WING_GROW = 12
 REGISTER = 10
+# Where the body is cut into segments, sheet rows down the spine: the neck, the waist, the tail's root and its two
+# joints; the tail segments are this wide either side of the centre line, and every segment runs this far past its
+# cuts.
+JOINTS = (222, 395, 568, 640, 710)
+TAIL_HALF = 28
+OVERLAP = 9
+# The corpse grade.
+DEAD_DESATURATE = 0.35
+DEAD_DARKEN = 0.78
 
 
 def poses(sheet):
@@ -83,15 +91,49 @@ def register(gen_alpha, guide_alpha):
     return best
 
 
-def beat_frames():
-    """Each beat and fold frame at guide-cell scale: the generated wings under the glide body."""
-    guide = Image.open(FLIER / "wingbeat" / "guide-all.png")
-    raw = cut_flier.key(Image.open(WINGBEAT)).resize(guide.size, Image.LANCZOS)
+def segment_layers():
+    """The glide body cut into the segments the renderer articulates, each a soft-edged layer in sheet coordinates.
+
+    Cut across the spine at the neck, the waist and the tail's joints (JOINTS); the tail segments only within
+    TAIL_HALF of the centre line, so the hind legs stay on the abdomen. Each segment runs OVERLAP past its cuts,
+    so a turned segment tucks under its neighbour instead of opening a gap.
+    """
+    body = make_guide.body_layer()
+    a = np.asarray(body).astype(float)
+    h, w = a.shape[:2]
+    ys, xs = np.mgrid[0:h, 0:w]
+    tail = np.abs(xs - make_guide.CX) < TAIL_HALF
+    neck, waist, root, t2, t3 = JOINTS
+    o = OVERLAP
+    bands = {
+        "head": ys < neck + o,
+        "thorax": (ys > neck - o) & (ys < waist + o),
+        "abdomen": (ys > waist - o) & ((ys < root + o) | ~tail),
+        "tail-1": tail & (ys > root - o) & (ys < t2 + o),
+        "tail-2": tail & (ys > t2 - o) & (ys < t3 + o),
+        "tail-3": tail & (ys > t3 - o),
+    }
+    out = {}
+    for name, m in bands.items():
+        soft = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(2))) / 255.0
+        seg = a.copy()
+        seg[..., 3] *= soft
+        out[name] = Image.fromarray(seg.astype(np.uint8), "RGBA")
+    return out
+
+
+def sheet_frames(sheet, raw_path, keep_names, thorax):
+    """The named frames of one guide sheet at guide-cell scale: the generated wings under the glide body, or under
+    only its thorax for the live frames, whose head, abdomen and tail the renderer lays on as segments."""
+    guide = Image.open(FLIER / "wingbeat" / f"guide-{sheet}.png")
+    raw = cut_flier.key(Image.open(raw_path)).resize(guide.size, Image.LANCZOS)
     body = make_guide.to_cell(make_guide.body_layer())
     cw, ch = make_guide.CELL
-    names = make_guide.SHEETS[0][1]
+    names = dict(make_guide.SHEETS)[sheet]
     frames = {}
     for i, name in enumerate(names):
+        if name not in keep_names:
+            continue
         x0, y0 = (i % make_guide.COLUMNS) * cw, (i // make_guide.COLUMNS) * ch
         cell = raw.crop((x0, y0, x0 + cw, y0 + ch))
         wings = make_guide.wings_cell(name)
@@ -105,10 +147,23 @@ def beat_frames():
         a = np.asarray(shifted).astype(float)
         a[..., 3] *= np.asarray(keep).astype(float) / 255.0
         out = Image.fromarray(a.astype(np.uint8), "RGBA")
-        out.alpha_composite(body)
+        whole = name.startswith("fall") or name.startswith("corpse")
+        out.alpha_composite(body if whole else thorax)
+        if name.startswith("corpse"):
+            out = dead(out)
         frames[name] = out
         print(f"{name}: registered by ({dx}, {dy}), IoU {iou:.3f} against its guide")
     return frames
+
+
+def dead(img):
+    """A corpse's grade: the colour drained a third and the whole darkened, so it lies dull under the living."""
+    a = np.asarray(img).astype(float)
+    rgb = a[..., :3]
+    grey = rgb @ np.array([0.299, 0.587, 0.114])
+    rgb = (rgb * (1 - DEAD_DESATURATE) + grey[..., None] * DEAD_DESATURATE) * DEAD_DARKEN
+    a[..., :3] = np.clip(rgb, 0, 255)
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
 
 
 def main():
@@ -119,15 +174,19 @@ def main():
         dest = OUT / folder
         dest.mkdir(parents=True, exist_ok=True)
 
-        dive, _, _ = cut["dive"]
-        small = dive.resize((max(1, round(dive.width * factor)), max(1, round(dive.height * factor))), Image.LANCZOS)
-        centred(small)[0].save(dest / "dive.png", optimize=True)
-        print(f"{folder}/dive.png {small.size}")
-
-        # Frame 0 is the glide drawing itself, placed in a guide cell like the others.
-        keyed = cut_flier.key(Image.open(SHEETS / sheet)).crop((0, 0, 1100, 809))
-        frames = {"glide": make_guide.to_cell(keyed)}
-        frames.update(beat_frames())
+        segments = {k: make_guide.to_cell(v) for k, v in segment_layers().items()}
+        # Frame 0 is the glide drawing itself, placed in a guide cell like the others: its own wings, the
+        # body's thorax over them.
+        keyed = np.asarray(cut_flier.key(Image.open(SHEETS / sheet)).crop((0, 0, 1100, 809))).astype(float)
+        keyed[..., 3] *= 1.0 - make_guide.body_mask(keyed[..., 3])
+        glide_frame = make_guide.to_cell(Image.fromarray(keyed.astype(np.uint8), "RGBA"))
+        glide_frame.alpha_composite(segments["thorax"])
+        frames = {"glide": glide_frame}
+        frames.update(sheet_frames("all", WINGBEAT, [f"beat-{i}" for i in range(1, 8)], segments["thorax"]))
+        frames.update(sheet_frames("dive", DIVE, ["fold-1", "fold-2", "dive", "fall-1", "fall-2", "fall-3",
+                                                  "fall-4", "corpse-1", "corpse-2"], segments["thorax"]))
+        for name in ("head", "abdomen", "tail-1", "tail-2", "tail-3"):
+            frames[name] = segments[name]
 
         # The shared pivot: the glide's spine centroid, in cell coordinates.
         _, _, cy = centred(glide)
@@ -145,6 +204,9 @@ def main():
             window = img.crop((int(ax - half_w), int(ay - half_h), int(ax + half_w), int(ay + half_h)))
             window.resize(size, Image.LANCZOS).save(dest / f"{name}.png", optimize=True)
             print(f"{folder}/{name}.png {size}")
+        # The joints for HarrierLook.JOINT_PX: how far behind the canvas centre each lies, in exported pixels.
+        for label, row in zip(("neck", "waist", "tail root", "tail 2", "tail 3"), JOINTS):
+            print(f"joint {label}: {((row - make_guide.BODY_TOP) * make_guide.SCALE - ay) * k:.2f} px behind centre")
 
 
 if __name__ == "__main__":

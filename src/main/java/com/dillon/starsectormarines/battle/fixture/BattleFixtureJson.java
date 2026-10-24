@@ -591,6 +591,7 @@ public final class BattleFixtureJson {
             profile.put("experienceXp", seat.soldierProfile().experienceXp());
             encoded.put("soldierProfile", profile);
             putNullable(encoded, "specialEquipmentId", seat.specialEquipmentId());
+            putNullable(encoded, "beltEquipmentId", seat.beltEquipmentId());
             putNullable(encoded, "armorFamily",
                     seat.armorFamily() != null ? seat.armorFamily().name() : null);
             encoded.put("armorCapacity", seat.armorCapacity());
@@ -702,7 +703,8 @@ public final class BattleFixtureJson {
                     squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
                     hullWelfareFromJson(squad),
                     encoded.has("armorClass") ? ArmorClass.parse(encoded.optString("armorClass", null), "committed seat")
-                            : ArmorClass.STANDARD, integralSystemFromJson(encoded)));
+                            : ArmorClass.STANDARD, integralSystemFromJson(encoded),
+                    nullableString(encoded, "beltEquipmentId")));
         }
         return List.copyOf(seats);
     }

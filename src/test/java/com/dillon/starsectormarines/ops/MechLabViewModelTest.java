@@ -669,6 +669,14 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void spareCountsReadAsACappedXCount() {
+        assertEquals("x0", MechLabViewModel.spareCount(0));
+        assertEquals("x7", MechLabViewModel.spareCount(7));
+        assertEquals("x99", MechLabViewModel.spareCount(99));
+        assertEquals("x99", MechLabViewModel.spareCount(250), "a large store still reads x99");
+    }
+
+    @Test
     void categoryFiltersControlCatalogDisplay() {
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
@@ -826,6 +834,15 @@ class MechLabViewModelTest {
         assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
         assertEquals(CampaignMech.Readiness.INCOMPLETE, mech.readiness(0f));
         assertFalse(viewModel.socketOccupied(SocketId.CORE));
+        // The panel reports the gap rather than the stock engine the budget check stands in.
+        MechLabViewModel.PerformanceMeter mobility = viewModel.performanceMeters().get().stream()
+                .filter(meter -> meter.id().endsWith("mobility")).findFirst().orElseThrow();
+        assertEquals("0 CELLS/S", mobility.value());
+        assertTrue(mobility.fillStyle().contains("width: 0"), mobility.fillStyle());
+        MechLabViewModel.PerformanceMeter dissipation = viewModel.performanceMeters().get().stream()
+                .filter(meter -> meter.id().endsWith("dissipation")).findFirst().orElseThrow();
+        assertEquals("0 FLUX/S", dissipation.value(), "nothing powers the vents");
+        assertTrue(viewModel.budgetText().get().endsWith("/ 0"), viewModel.budgetText().get());
         assertEquals("slot-badge required", viewModel.slotRows().get().stream()
                 .filter(row -> row.socketId() == SocketId.CORE).findFirst().orElseThrow().badgeClasses());
         assertFalse(viewModel.removeInstalledInternal(SocketId.CORE), "the socket is already empty");

@@ -161,13 +161,18 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
     private static final int SWEEP_FRAME_TICKS = 5;
     /** Long enough to ready the flamer and empty its eight-charge tank on its cooldown. */
     private static final int SWEEP_TICKS = 390;
+    /** Thirty seconds after the tank is empty, so the frames show whether the fire goes out or keeps running. */
+    private static final int SWEEP_AFTER_TICKS = 30 * 30;
+    /** The aftermath is a time-lapse: a frame each half second, played at the sweep's frame delay. */
+    private static final int SWEEP_AFTER_FRAME_TICKS = 15;
     /** The sweep's arc about due east, in degrees either side, and its radius in cells. */
     private static final float SWEEP_HALF_ARC = 40f;
     private static final float SWEEP_RADIUS = 6.5f;
 
     /**
      * The flamer in action: a standing Marine picks it and holds the left button while the cursor sweeps an arc
-     * across a line of defenders, so each charge lands further along and the tank empties cell by cell.
+     * across a line of defenders, so each charge lands further along and the tank empties cell by cell; then it lets
+     * go and the frames run on, faster, for half a minute while the fire burns down.
      */
     static SnapshotArtifact flamerSweep(HeadlessUiRenderer renderer, Path modRoot) throws Exception {
         LookGround ground = LookGround.verdant();
@@ -207,6 +212,16 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 if (tick % SWEEP_FRAME_TICKS == 0) {
                     frames.add(compose(renderer, modRoot, sim, marine, aimX, aimY, fx, focusX, focusY,
                             CELLS_ACROSS));
+                }
+            }
+            float restX = sim.world().renderX(marine) + SWEEP_RADIUS;
+            float restY = sim.world().renderY(marine);
+            for (int tick = 0; tick < SWEEP_AFTER_TICKS && sim.world().isAlive(marine); tick++) {
+                sim.directControl().submit(new ManualIntent(0, 0, restX, restY, false));
+                sim.advance(BattleSimulation.TICK_DT);
+                fx.feed(sim);
+                if (tick % SWEEP_AFTER_FRAME_TICKS == 0 && sim.world().isAlive(marine)) {
+                    frames.add(compose(renderer, modRoot, sim, marine, restX, restY, fx, focusX, focusY));
                 }
             }
         }

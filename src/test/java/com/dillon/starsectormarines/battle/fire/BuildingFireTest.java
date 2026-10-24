@@ -120,13 +120,14 @@ class BuildingFireTest {
 
     @Test
     void heatDoesNotPassOverAStandingWall() {
-        // Brush either side of a one-cell wall: a fire on the west must not reach the east.
+        // Dead creep either side of a one-cell wall: a fire on the west must not reach the east. It carries a fire
+        // as far as it stands, so the front reaches the wall from the far edge.
         int w = 20, h = 5, wallX = 10;
         FireTerrain walled = new FireTerrain() {
-            @Override public int fuelMask(int i) { return i % w == wallX ? 0 : FireFuel.BRUSH.bit; }
+            @Override public int fuelMask(int i) { return i % w == wallX ? 0 : FireFuel.DEAD_CREEP.bit; }
             @Override public boolean blocksHeat(int i) { return i % w == wallX; }
         };
-        FireTerrain open = i -> i % w == wallX ? 0 : FireFuel.BRUSH.bit;
+        FireTerrain open = i -> i % w == wallX ? 0 : FireFuel.DEAD_CREEP.bit;
         assertTrue(crossed(new FireField(w, h, 3L, open), wallX), "control: without the wall the fire jumps the gap");
         assertFalse(crossed(new FireField(w, h, 3L, walled), wallX), "heat stops at the wall");
     }

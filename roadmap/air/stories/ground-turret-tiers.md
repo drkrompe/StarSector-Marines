@@ -99,6 +99,10 @@ Presentation only, so a battle plays the same with or without them:
   (`TurretFx`, fed by the live screen and the review frames alike).
 - **Brass.** A mount with `render.casings` throws a glint of brass to its right on every round,
   which lands as a casing decal beside the gun.
+- **Flak plume.** A dual-flak burst in the air leaves a dark smoke puff about the size of
+  its burst, with lighter wisps trailing off it for a second or two: authored as the
+  weapon's impact and aftermath layers, so the AA emplacement and the dug flak positions
+  in the Heart missions share it.
 - **Scorch.** A mount with `render.scorch` (a length in cells: the hardpoint cannon and the
   Hephaestus point gun) lays a fan of soot on the ground ahead of its muzzle on every round
   (`DecalKind.MUZZLE_SCORCH`, drawn by `art-source/fx/build_muzzle_scorch.py`). Each fan is

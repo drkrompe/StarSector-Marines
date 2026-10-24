@@ -157,6 +157,8 @@ public final class RavRunnerRig {
     private float twist;
     /** Degrees of bend per degree a second of turning, and the most the spine bends. */
     private static final float BEND_PER_YAW_RATE = 0.12f, MAX_BEND = 40f;
+    /** How quickly the spine takes the bend up, seconds. */
+    private static final float BEND_SECONDS = 0.12f;
     private final float[] feet = new float[12];          // rig frame
     private final float[] pinnedWorld = new float[8];     // world x,y of each pinned foot
     private final float[] pinStart = new float[12];       // rig frame when the pin began
@@ -261,9 +263,8 @@ public final class RavRunnerRig {
         dx /= scale;
         dy /= scale;
         moved /= scale;
-        float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
-        float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
-        bend += (bendTarget - bend) * Math.min(1f, dt / 0.12f);
+        float yawRate = SpineBend.yawRate(facingDeg, facing, dt);
+        bend = SpineBend.ease(bend, yawRate, BEND_PER_YAW_RATE, MAX_BEND, BEND_SECONDS, dt);
         facingDeg = facing;
         double rad = Math.toRadians(facing);
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);
