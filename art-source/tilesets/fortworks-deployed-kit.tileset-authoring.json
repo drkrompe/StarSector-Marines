@@ -1272,7 +1272,7 @@
   "gridCols": 8,
   "gridRows": 6,
   "idPrefix": "doodad",
-  "note": "The rest of the deployed works style's kit, look 'deployed': window and door openings, wall rubble, trench, hedgehog, fence and the light post's vent ring, painted in ONE ImageGen pass over art-source/fortworks/guides/kit-guide.png (kit.py: the base art drawn grey) with the style's works sheet as material reference; prompt art-source/fortworks/prompts/kit-deployed.prompt.txt, raw retained unmodified. Cuts are registered against the guide (kit.py). Every id is a look <base id>@deployed: art only, cover and blocking stay the base piece's (fort-works.md).",
-  "sheet": "art-source/fortworks/raw/kit-deployed.raw.png",
+  "note": "The rest of the deployed works style's kit, look 'deployed-ceramic': window and door openings, wall rubble, trench, hedgehog, fence and the light post's vent ring, painted in ONE ImageGen pass over art-source/fortworks/guides/kit-guide.png (kit.py: the base art drawn grey) with the style's works sheet as material reference; prompt art-source/fortworks/prompts/kit-deployed-ceramic.prompt.txt, raw retained unmodified. Cuts are registered against the guide (kit.py). Every id is a look <base id>@deployed: art only, cover and blocking stay the base piece's (fort-works.md).",
+  "sheet": "art-source/fortworks/raw/kit-deployed-ceramic.raw.png",
   "sheetName": "fortworks-deployed-kit"
 }

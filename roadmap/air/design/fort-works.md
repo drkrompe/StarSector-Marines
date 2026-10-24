@@ -117,7 +117,7 @@ of their value; the masters stay as generated.
 | Export | Diktat sand-ochre ceramic-steel with red unit bands |
 | Blockwork | Diktat interlocking orange-red and white moulded blocks |
 | Composite | Tri-Tachyon pearl composite in hex plating with blue light lines |
-| Deployed | Tri-Tachyon graphite pylons and pads with hard-light panes |
+| Deployed | Tri-Tachyon field-set matte ceramic armour slabs in graphite frames, in the Paragon finish with no light lines (`deployed-ceramic`, the owner found hard-light panes too cartoonish); the `deployed` hard-light raw is retained |
 
 ## Open
 
