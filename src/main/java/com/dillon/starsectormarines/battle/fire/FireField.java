@@ -68,6 +68,10 @@ public final class FireField {
      * ragged and clumped rather than ruled.
      */
     static final float CARRY_LOW = 0.65f, CARRY_SPAN = 0.5f, CATCH_LOW = 0.85f, CATCH_SPAN = 0.35f;
+    /** Cells round a burning cell, in a square, that its {@link #massAt mass} counts. */
+    static final int MASS_RADIUS = 3;
+    /** The most a cell's mass can be: every other cell of its square burning. */
+    public static final int MASS_MAX = (2 * MASS_RADIUS + 1) * (2 * MASS_RADIUS + 1) - 1;
     /** Side of a change-tracking tile, in cells. */
     public static final int TILE = 32;
 
@@ -92,6 +96,8 @@ public final class FireField {
     private final byte[] state;
     private final short[] fuel, load;
     private final byte[] peak, age, intensity, mask, reach;
+    /** Per burning cell, as of the last step: how many cells round it are burning too ({@link #massAt}). */
+    private final byte[] mass;
     /**
      * A burning cell's distance, in quarter cells ({@link #QUARTERS}), from where its fire was lit ({@code 0} where it was lit and on fuel of
      * {@link FireFuel#UNLIMITED} spread); for a warm cell, the nearest of the fires heating it, plus the way.
@@ -140,6 +146,7 @@ public final class FireField {
         this.intensity = new byte[cells];
         this.mask = new byte[cells];
         this.reach = new byte[cells];
+        this.mass = new byte[cells];
         this.distance = new short[cells];
         this.heatDistance = new short[cells];
         this.burntTick = new int[cells];
@@ -291,9 +298,25 @@ public final class FireField {
         }
         burnDown();
         coolAndCatch();
+        weighMass();
         if (dirtyThisStep) {
             dirtyThisStep = false;
             revision = revision + 1;
+        }
+    }
+
+    /** Counts, for every burning cell, the burning cells in the square round it: a small fire's or a big one's. */
+    private void weighMass() {
+        for (int i = 0; i < burningSize; i++) {
+            int idx = burning[i];
+            int x = idx % width, y = idx / width, n = 0;
+            for (int ny = Math.max(0, y - MASS_RADIUS); ny <= Math.min(height - 1, y + MASS_RADIUS); ny++) {
+                int row = ny * width;
+                for (int nx = Math.max(0, x - MASS_RADIUS); nx <= Math.min(width - 1, x + MASS_RADIUS); nx++) {
+                    if (state[row + nx] == BURNING) n++;
+                }
+            }
+            mass[idx] = (byte) (n - 1);
         }
     }
 
@@ -510,6 +533,11 @@ public final class FireField {
     public boolean canBurn(int x, int y) { return inBounds(x, y) && state[y * width + x] == UNBURNT && terrain.fuelMask(y * width + x) != 0; }
     /** 0..255 while burning, else 0. */
     public int intensityAt(int idx) { return intensity[idx] & 0xFF; }
+    /**
+     * 0..{@link #MASS_MAX} while burning: how many of the cells within {@link #MASS_RADIUS} burn with it, as of the
+     * last step. A flamer's patch is a few; the heart of a big fire is most of them.
+     */
+    public int massAt(int idx) { return state[idx] == BURNING ? mass[idx] : 0; }
     public int intensityAt(int x, int y) { return inBounds(x, y) ? intensity[y * width + x] & 0xFF : 0; }
     /** The fuel mask a burning or burnt cell caught with; 0 for an unburnt one. */
     public int burnedMaskAt(int idx) { return mask[idx] & 0xFF; }

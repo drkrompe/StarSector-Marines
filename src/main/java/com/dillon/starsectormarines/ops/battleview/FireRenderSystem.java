@@ -24,6 +24,8 @@ public final class FireRenderSystem {
 
     /** The glow's opacity under a burning cell. */
     private static final float GLOW_ALPHA = 0.34f;
+    /** The glow disc's width in cells, and how much stronger its middle is drawn, since its edge fades to nothing. */
+    private static final float GLOW_CELLS = 1.8f, GLOW_DISC_ALPHA = 1.2f;
 
     /** The smoke-and-fire sheet's columns and rows; the smoke frames are its upper two rows. */
     private static final int SHEET_COLS = 4, SHEET_ROWS = 4, SMOKE_FRAMES = 8;
@@ -42,6 +44,11 @@ public final class FireRenderSystem {
     private static final float SMOKE_GREY = 0.30f;
     /** A low fire's haze against a brush fire's smoke. */
     private static final float HAZE_ALPHA = 0.35f;
+    /**
+     * A cell's fire mass ({@link FireField#massAt}) at or below which it draws as a small fire, small flame tufts and
+     * embers, and at or above which as a big one, full flame beds; between, it grows from the one into the other.
+     */
+    static final int SMALL_MASS = 22, BIG_MASS = 42;
     private static final float TOP_FPS = 7f, TURN_DEG_PER_SEC = 6f, FLAME_ALPHA_TOP = 0.9f, INTERIOR_ALPHA = 0.55f;
 
     private final BattleSprites sprites;
@@ -73,15 +80,23 @@ public final class FireRenderSystem {
             framePxH = (int) (sheet.getHeight() / SHEET_ROWS);
         }
         int w = field.width();
-        // Glow first, under every flame of the frame.
+        // Glow first, under every flame of the frame: a soft disc a little wider than the cell, so a small fire's
+        // ground glows round rather than in squares.
+        SpriteAPI blob = sprites == null ? null : sprites.shadowBlobSprite();
         for (int i = 0, n = field.burningCount(); i < n; i++) {
             int idx = field.burningCell(i);
             int x = idx % w, y = idx / w;
             if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
             float heat = field.intensityAt(idx) / 255f;
-            out.addSolidRect(RenderLayer.HAZARDS, camera.cellToScreenX(x), camera.cellToScreenY(y),
-                    camera.cellToScreenX(x + 1f), camera.cellToScreenY(y + 1f),
-                    1f, 0.42f, 0.10f, GLOW_ALPHA * heat * ctx.alphaMult);
+            float a = GLOW_ALPHA * heat * ctx.alphaMult;
+            if (blob != null) {
+                float size = cellPx * GLOW_CELLS;
+                out.addSprite(RenderLayer.HAZARDS, blob, camera.cellToScreenX(x + 0.5f), camera.cellToScreenY(y + 0.5f),
+                        size, size, 0f, 1f, 0.42f, 0.10f, a * GLOW_DISC_ALPHA);
+            } else {
+                out.addSolidRect(RenderLayer.HAZARDS, camera.cellToScreenX(x), camera.cellToScreenY(y),
+                        camera.cellToScreenX(x + 1f), camera.cellToScreenY(y + 1f), 1f, 0.42f, 0.10f, a);
+            }
         }
         SpriteAPI flameSheet = sprites == null ? null : sprites.flameSheet();
         if (flameSheet != null) collectTopDown(ctx, out, field, flameSheet, view, cellPx, detail);
@@ -107,6 +122,10 @@ public final class FireRenderSystem {
      * is turned to its own angle, starts its loop at its own frame and turns slowly as it burns; at play zoom and
      * closer it fades from one frame into the next, so the eight-frame loop never shows. Heat sets size and
      * strength, and a cell with fire on all four sides draws fewer, smaller and fainter beds.
+     *
+     * <p>How big the fire round a cell is ({@link FireField#massAt}) sets which flames it draws: a small fire, a
+     * flamer's patch or a smouldering edge, is one small tuft and a scatter of embers; the large beds are a big
+     * fire's, and a cell grows from the one into the other as more burns round it ({@link #bigness}).
      */
     private void collectTopDown(RenderContext ctx, DrawList out, FireField field, SpriteAPI sheet,
                                 VisibleCellRect view, float cellPx, boolean detail) {
@@ -129,8 +148,11 @@ public final class FireRenderSystem {
             boolean interior = field.isBurning(x - 1, y) && field.isBurning(x + 1, y)
                     && field.isBurning(x, y - 1) && field.isBurning(x, y + 1);
             if (interior) beds = Math.max(1, beds - 1);
-            float scale = crown ? 2.3f : building ? 2.0f : grass ? 1.9f : 1.8f;
-            int first = grass ? TUFT_FIRST : 0;
+            float big = bigness(field.massAt(idx));
+            boolean small = big < 0.5f;
+            if (small) beds = 1;
+            float scale = (crown ? 2.3f : building ? 2.0f : grass ? 1.9f : 1.8f) * (0.55f + 0.45f * big);
+            int first = grass || small ? TUFT_FIRST : 0;
             for (int k = 0; k < beds; k++) {
                 int h = hash(idx, 0x70D + k * 977);
                 float spread = beds == 1 ? 0.25f : 0.6f;
@@ -147,7 +169,8 @@ public final class FireRenderSystem {
                 emitFlame(out, sheet, framePx, first + frame, cx, cy, size, angle, a * (1f - blend));
                 if (blend > 0f) emitFlame(out, sheet, framePx, first + (frame + 1) % FLAME_LOOP, cx, cy, size, angle, a * blend);
             }
-            if (detail && intensity > 200) emitEmber(out, camera, idx, x, y, cellPx, ctx.alphaMult);
+            if (detail && (intensity > 200 || small)) emitEmber(out, camera, idx, 0xE1B, x, y, cellPx, ctx.alphaMult);
+            if (detail && small) emitEmber(out, camera, idx, 0x5E1B, x, y, cellPx, ctx.alphaMult);
         }
     }
 
@@ -158,14 +181,27 @@ public final class FireRenderSystem {
                 framePx, framePx, cx, cy, size, size, angle, 1f, 1f, 1f, alpha);
     }
 
+    /** 0 for a small fire's cell, 1 for a big one's: its {@link FireField#massAt mass} between {@link #SMALL_MASS} and {@link #BIG_MASS}. */
+    static float bigness(int mass) {
+        return Math.max(0f, Math.min(1f, (mass - SMALL_MASS) / (float) (BIG_MASS - SMALL_MASS)));
+    }
+
     /** A spark lifting off a hot cell. */
-    private void emitEmber(DrawList out, BattleCamera camera, int idx, int x, int y, float cellPx, float alphaMult) {
-        int h = hash(idx, 0xE1B);
+    private void emitEmber(DrawList out, BattleCamera camera, int idx, int salt, int x, int y, float cellPx,
+                           float alphaMult) {
+        int h = hash(idx, salt);
         float life = (clock * 0.9f + (h & 0xFF) / 255f) % 1f;
         float ex = x + 0.5f + (((h >>> 8) & 0xFF) / 255f - 0.5f) * 0.9f;
         float ey = y + 0.5f + (((h >>> 16) & 0xFF) / 255f - 0.5f) * 0.6f;
         float s = cellPx * 0.07f;
         float sx = camera.cellToScreenX(ex), sy = camera.cellToScreenY(ey) + life * cellPx * 1.2f;
+        SpriteAPI blob = sprites == null ? null : sprites.shadowBlobSprite();
+        if (blob != null) {
+            // A glowing mote rather than a square: twice the size, since the disc fades out toward its edge.
+            out.addAdditiveSprite(RenderLayer.HAZARDS, blob, sx, sy, s * 4f, s * 4f, 0f, 1f, 0.70f, 0.28f,
+                    (1f - life) * alphaMult);
+            return;
+        }
         out.addSolidRect(RenderLayer.HAZARDS, sx - s, sy - s, sx + s, sy + s,
                 1f, 0.75f, 0.30f, (1f - life) * alphaMult);
     }
