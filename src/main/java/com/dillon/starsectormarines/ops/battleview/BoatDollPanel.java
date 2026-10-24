@@ -29,8 +29,6 @@ final class BoatDollPanel {
     private static final float MARGIN = 18f;
     private static final float GAP_X = 18f;
     private static final float GAP_Y = 30f;
-    /** @see HardpointBricks#BRICK_HEIGHT */
-    static final float BRICK_HEIGHT = HardpointBricks.BRICK_HEIGHT;
     static final float BRICK_GAP = HardpointBricks.BRICK_GAP;
     private static final float HEADER = 22f;
     /** Below the bricks: a margin, not a caption. A part's name is the board tooltip's. */
@@ -149,7 +147,7 @@ final class BoatDollPanel {
 
     private static HardpointBricks.Layout bricks(BoatDoll.Kind kind, float x, float y) {
         int[] capacity = BoatHardware.capacity(kind);
-        return HardpointBricks.at(x, y, capacity[0], capacity[1], BRICK_HEIGHT, BRICK_GAP);
+        return HardpointBricks.at(x, y, capacity[0], capacity[1], HardpointBricks.brickHeight(), BRICK_GAP);
     }
 
     /** A socket's card: its bricks, or its header where that is wider, as on the Mech Lab's board. */

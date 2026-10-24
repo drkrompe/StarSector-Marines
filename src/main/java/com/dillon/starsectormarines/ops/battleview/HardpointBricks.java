@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.ops.fitting.FittingBricks;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
@@ -29,17 +30,20 @@ final class HardpointBricks {
     static final Color AUXILIARY = new Color(0x8a, 0xa4, 0xb8);
 
     /** Width over height of one brick: narrower than tall, so even a square footprint stands upright. */
-    static final float BRICK_ASPECT = 0.75f;
-    /**
-     * One brick's height in document pixels, everywhere a brick is drawn: the Mech Lab's and
-     * the Boat Deck's boards, their stores cards, the selected-mount card and a part being
-     * dragged. A part is the same size wherever it is shown, and a socket's size follows its
-     * capacity. Sized so the tallest part, two by three, fits a stores card.
-     */
-    static final float BRICK_HEIGHT = 30f;
-    static final float BRICK_GAP = 2f;
+    static final float BRICK_ASPECT = FittingBricks.ASPECT;
+    static final float BRICK_GAP = FittingBricks.GAP;
 
     private HardpointBricks() { }
+
+    /**
+     * One brick's height in document pixels, everywhere a brick is drawn: the boards, the
+     * stores pictures, the selected-mount card and a part being dragged.
+     *
+     * @see FittingBricks#height()
+     */
+    static float brickHeight() {
+        return FittingBricks.height();
+    }
 
     static Color tone(HardpointType type) {
         if (type == null) return OMNI;
@@ -81,8 +85,8 @@ final class HardpointBricks {
         float scaleY = metrics != null && metrics.scaleY() > 0f ? metrics.scaleY() : 1f;
         columns = Math.max(1, columns);
         rows = Math.max(1, rows);
-        float brickHeight = BRICK_HEIGHT / scaleY;
-        float brickWidth = Math.round(BRICK_HEIGHT * BRICK_ASPECT) / scaleX;
+        float brickHeight = brickHeight() / scaleY;
+        float brickWidth = Math.round(brickHeight() * BRICK_ASPECT) / scaleX;
         float gap = BRICK_GAP / scaleY;
         float totalWidth = columns * brickWidth + (columns - 1) * gap;
         float totalHeight = rows * brickHeight + (rows - 1) * gap;

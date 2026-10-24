@@ -1,7 +1,7 @@
 <template props="card">
   <div id="{card.id}" class="{card.classes}" style="{card.cardStyle}">
-    <div id="{card.bodyId}" class="catalog-card-body">
-      <canvas id="{card.previewId}" class="{card.previewClasses}" width="220" height="280" />
+    <div id="{card.bodyId}" class="catalog-card-body" style="{card.bodyStyle}">
+      <canvas id="{card.previewId}" class="{card.previewClasses}" style="{card.previewStyle}" width="220" height="280" />
       <div id="{card.copyId}" class="catalog-item-copy">
         <div id="{card.headerId}" class="catalog-card-header">
           <div id="{card.nameId}" class="label heading catalog-name">{card.name}</div>
@@ -47,7 +47,7 @@
   .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #dfc588; }
   .catalog-badge.unavailable { background-color: #20241f; border-color: #596052; color: #979c90; }
   .catalog-badge.chassis { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
-  /* Room for the tallest part, two by three, at the board's own brick. */
+  /* Sized from the board's brick (FittingBricks): room for the tallest part, two by three. */
   .catalog-preview { width: 76px; height: 98px; border-width: 1px; }
   .catalog-stock, .catalog-detail { height: 16px; }
   /* A chassis or vehicle's weight class is its weight block on the class tone, not a word. */

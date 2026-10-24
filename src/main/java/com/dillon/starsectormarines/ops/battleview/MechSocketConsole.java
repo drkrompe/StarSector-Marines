@@ -22,8 +22,6 @@ final class MechSocketConsole {
     private static final Color FITS = new Color(0xc8eef4);
     private static final Color RED = new Color(0xe98b83);
 
-    /** @see HardpointBricks#BRICK_HEIGHT */
-    static final float BRICK_HEIGHT = HardpointBricks.BRICK_HEIGHT;
     static final float BRICK_GAP = HardpointBricks.BRICK_GAP;
     private static final float HEADER = 22f;
     /** Below the bricks: a margin, not a caption. A part's name is the board tooltip's. */
@@ -69,7 +67,7 @@ final class MechSocketConsole {
     }
 
     private static HardpointBricks.Layout bricks(SocketDef socket, float x, float y) {
-        return HardpointBricks.at(x, y, socket.gridColumns(), socket.gridRows(), BRICK_HEIGHT, BRICK_GAP);
+        return HardpointBricks.at(x, y, socket.gridColumns(), socket.gridRows(), HardpointBricks.brickHeight(), BRICK_GAP);
     }
 
     /**

@@ -1,5 +1,5 @@
 <template props="slot">
-  <div id="{slot.id}" class="{slot.classes}">
+  <div id="{slot.id}" class="{slot.classes}" style="{slot.cardStyle}">
     <div id="{slot.contentId}" class="slot-row-content">
       <button id="{slot.buttonId}" class="slot-select-button" onclick="{slot.select}">
         <div id="{slot.copyId}" class="slot-row-copy">
@@ -10,9 +10,9 @@
           <div id="{slot.telemetryId}" class="label heading tone-muted slot-telemetry">{slot.telemetry}</div>
           <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
         </div>
-        <div id="{slot.hardwareId}" class="slot-hardware">
+        <div id="{slot.hardwareId}" class="slot-hardware" style="{slot.hardwareStyle}">
           <div id="{slot.badgeId}" class="{slot.badgeClasses}">{slot.badge}</div>
-          <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
+          <canvas id="{slot.gridId}" class="slot-grid" style="{slot.gridStyle}" width="180" height="112" />
         </div>
       </button>
     </div>
@@ -35,7 +35,7 @@
   .slot-component { height: 16px; }
   .slot-type { height: 15px; }
   .slot-hardware { flex-direction: column; align-items: center; width: 62px; height: 118px; gap: 4px; }
-  /* Room for the tallest socket, two by three, at the board's own brick. */
+  /* Sized from the board's brick (FittingBricks): room for the tallest socket, two by three. */
   .slot-grid { width: 58px; height: 98px; border-width: 1px; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }

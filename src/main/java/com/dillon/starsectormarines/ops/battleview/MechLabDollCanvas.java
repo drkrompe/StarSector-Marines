@@ -877,7 +877,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDef socket : sockets) byId.put(socket.id(), socket);
         if (byId.isEmpty()) return List.of();
         float coreW = cardWidth(byId.get(SocketId.CORE));
-        float coreH = cardHeight(byId.get(SocketId.CORE));
+        SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
+        SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
+        // The middle row is as tall as its tallest card, so a deep shoulder rack never reaches
+        // into the arm or compartment row whatever the brick size.
+        float coreH = Math.max(cardHeight(byId.get(SocketId.CORE)), Math.max(cardHeight(left), cardHeight(right)));
         SocketDef leftArm = byId.get(SocketId.LEFT_ARM);
         SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
         float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
@@ -896,8 +900,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
         place(targets, byId.get(SocketId.ARMS), centerX, armsY);
         place(targets, leftArm, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
         place(targets, rightArm, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
-        SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
-        SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
         place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);
         place(targets, right, centerX + coreW * 0.5f + SCHEMATIC_GAP_X + cardWidth(right) * 0.5f, coreY);
         float backY = coreY + coreH * 0.5f + SCHEMATIC_GAP_Y + backH * 0.5f;

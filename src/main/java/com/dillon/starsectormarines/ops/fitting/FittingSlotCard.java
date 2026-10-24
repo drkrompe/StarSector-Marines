@@ -15,6 +15,11 @@ public record FittingSlotCard(String id, String classes, String name, String bad
 
     public String gridId() { return id + ":grid"; }
 
+    private static int gridWidth() { return Math.round(FittingBricks.across(2) + 10f); }
+
+    /** The badge, a gap and the picture. */
+    private static int hardwareHeight() { return FittingBricks.pictureHeight() + 20; }
+
     @Override public Object markupProperty(String p) { return switch (p) {
         case "id" -> id; case "classes" -> classes;
         case "contentId" -> id + ":content"; case "buttonId" -> id + ":select"; case "stripId" -> id + ":strip";
@@ -27,5 +32,9 @@ public record FittingSlotCard(String id, String classes, String name, String bad
         case "canStrip" -> canStrip; case "stripClasses" -> stripClasses;
         case "stripDisabled" -> !canStrip;
         case "select" -> select; case "stripAction" -> stripAction;
+        // The picture holds the tallest socket at the board's brick; the card grows around it.
+        case "gridStyle" -> "width: " + gridWidth() + "px; height: " + FittingBricks.pictureHeight() + "px;";
+        case "hardwareStyle" -> "width: " + (gridWidth() + 4) + "px; height: " + hardwareHeight() + "px;";
+        case "cardStyle" -> "height: " + Math.max(128, hardwareHeight() + 10) + "px;";
         default -> throw new IllegalArgumentException("Unknown fitting-slot-card property: " + p); }; }
 }
