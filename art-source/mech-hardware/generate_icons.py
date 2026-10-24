@@ -603,53 +603,6 @@ def mortar(y, x0, x1, s):
     return g
 
 
-def hull_tracked():
-    """A tracked hull from above, nose up: two track runs with their links, the hull between
-    them with its glacis, driver's hatch, turret ring and the engine deck's grille aft."""
-    s = ''
-    for x in (8, 112):
-        s += block(x, 14, x + 30, 188, 6)
-        for y in range(22, 182, 11):
-            s += rect(x + 4, y, 22, 3, LS)
-    s += block(42, 18, 108, 184, 10)
-    s += poly([(50, 24), (100, 24), (96, 36), (54, 36)], MID)
-    s += rect(52, 26, 46, 3, L)
-    s += ell(62, 48, 7, 5, L)
-    s += stroke('M 51 92 a 24 24 0 1 0 48 0 a 24 24 0 1 0 -48 0', '#ffffff', .3, 3)
-    for y in range(140, 176, 7):
-        s += hbar(52, 98, y, 3, MID, rx=0)
-    return s
-
-
-def hull_wheeled():
-    """A wheeled hull from above, nose up: a cab with its windscreen, the load bed behind, and
-    two axles of wheels outboard."""
-    s = ''
-    for y in (34, 132):
-        for x in (8, 118):
-            s += rect(x, y, 24, 40, D, rx=5)
-            s += rect(x + 4, y + 6, 4, 28, LS, rx=1)
-    s += block(36, 16, 114, 78, 12)
-    s += poly([(46, 30), (104, 30), (98, 44), (52, 44)], L)
-    s += rect(48, 56, 54, 14, MID, rx=2)
-    s += block(36, 82, 114, 188, 6, MID)
-    for y in range(96, 180, 14):
-        s += hbar(44, 106, y, 4, D, rx=0)
-    return s
-
-
-def hull_hover():
-    """A hover hull from above, nose up: the lift skirt's ring, the hull riding inside it, a
-    canopy forward and two lift fans aft."""
-    s = stroke('M 34 14 L 116 14 Q 140 14 140 40 L 140 160 Q 140 186 116 186 L 34 186 '
-               'Q 10 186 10 160 L 10 40 Q 10 14 34 14 Z', '#000000', .58, 12)
-    s += block(30, 30, 120, 170, 16, MID)
-    s += path('M 56 40 L 94 40 Q 104 44 102 60 L 48 60 Q 46 44 56 40 Z', L)
-    s += rect(60, 72, 30, 3, LS)
-    s += turbine_fan(55, 136, 18, 18, 5) + turbine_fan(95, 136, 18, 18, 5)
-    return s
-
-
 def bay_supply():
     """A supply bay from above: lashed crates in two stacks, ramp at the foot."""
     s = block(14, 10, 136, 176, 8, MID)
@@ -768,12 +721,9 @@ def kit_skirts():
 
 
 def vehicles(f):
-    """The Mech Lab's sealed vehicle doll, where no mech or boat drawing already shows the part: a
-    hull per running gear, the turret mortar, the supply and drone bays, the systems cards, and the
+    """The Mech Lab's sealed vehicle doll, where no mech or boat drawing already shows the part: the
+    turret mortar, the supply and drone bays, the systems cards, and the
     bolt-on kits for the rack. A turret gun or a seats bay draws the weapon's or the hold's own icon."""
-    f['vehicle-hull-tracked'] = banded(150, 200, hull_tracked(), 'TRK')
-    f['vehicle-hull-wheeled'] = banded(150, 200, hull_wheeled(), 'WHL')
-    f['vehicle-hull-hover'] = banded(150, 200, hull_hover(), 'HOV')
     f['vehicle-turret-mortar'] = banded(150, 200, upright2(mortar(75, 10, 190, 100)), 'MOR')
     f['vehicle-bay-supply'] = banded(150, 200, bay_supply(), 'SUP')
     f['vehicle-bay-drones'] = banded(150, 200, bay_drones(), 'DRN')

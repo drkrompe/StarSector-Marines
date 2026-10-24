@@ -2,9 +2,12 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.fort.GateTowerGarrison;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -14,6 +17,10 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.FortWorks;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -148,7 +155,10 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             float[] gate = gateCentre(sim);
             if (gate != null) artifacts.add(still(context, sim, fx, style.key + "-gate-close", gate[0], gate[1], 18f));
             if (structures) artifacts.addAll(structureStills(context, sim, fx, style, posts, small));
-            if (Boolean.getBoolean("snapshot.fortWorks.garrison")) artifacts.addAll(garrisonStills(context, sim, fx, style));
+            if (Boolean.getBoolean("snapshot.fortWorks.garrison")) {
+                artifacts.addAll(buildingGarrisonStills(context, sim, fx, style));
+                artifacts.addAll(garrisonStills(context, sim, fx, style));
+            }
             if (kit) artifacts.addAll(kitStills(context, sim, fx, style, yard));
             wear(sim, postX, postY, 9f);
             artifacts.add(still(context, sim, fx, style.key + "-post-worn", postX, postY, 22f));
@@ -171,6 +181,48 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
                 cellsAcross);
         if (noRoofs) renderer.withoutRoofs();
         return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+    }
+
+    /**
+     * The fort's power hall garrisoned: a defender fixed in each of its windows and a file of unarmed targets out in front
+     * of the windows, framed once they have been firing a while, roofed and with the roof lifted.
+     */
+    private static List<SnapshotArtifact> buildingGarrisonStills(SnapshotContext context, BattleSimulation sim,
+                                                                 ReviewImpactFx fx, EmplacementStyle style)
+            throws Exception {
+        if (sim.forts().forts().isEmpty()) return List.of();
+        Fort fort = sim.forts().forts().get(0);
+        FortFrame frame = fort.frame();
+        int[] b = null;
+        for (Fort.Place place : fort.places()) {
+            if (place.aspect() == FortAspect.POWER) b = place.floorBounds(frame);
+        }
+        if (b == null) return List.of();
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        int targetSquad = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        int held = 0, shot = 0;
+        for (SharedEdgeBarrier barrier : sim.getGrid().getEdgeBarriers()) {
+            if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+            int x = barrier.structureCellX(), y = barrier.structureCellY();
+            if (x < b[0] - 1 || x > b[2] + 1 || y < b[1] - 1 || y > b[3] + 1) continue;
+            boolean owner = x == barrier.cellX() && y == barrier.cellY();
+            int outX = (owner ? 1 : -1) * barrier.direction().dx, outY = (owner ? 1 : -1) * barrier.direction().dy;
+            EntitySpec holder = new EntitySpec("window-" + held++, Faction.DEFENDER, UnitType.MARINE, x, y);
+            new MarineLoadout(UnitRole.COMBATANT, null, "weapon.smg", null, 0).seedInto(holder);
+            sim.spawn(holder.squad(squadId).moveSpeed(0f));
+            EntitySpec target = new EntitySpec("target-" + shot++, Faction.MARINE, UnitType.MARINE, x + outX * 5,
+                    y + outY * 5);
+            sim.spawn(target.squad(targetSquad).moveSpeed(0f).health(1_000_000f).attackDamage(0f).attackRange(0f));
+        }
+        sim.getSquad(squadId).originalSize = sim.getSquad(squadId).aliveMembers = held;
+        sim.getSquad(targetSquad).originalSize = sim.getSquad(targetSquad).aliveMembers = shot;
+        for (int tick = 0; tick < GARRISON_TICKS; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            fx.feed(sim);
+        }
+        float x = (b[0] + b[2] + 1) * 0.5f, y = (b[1] + b[3] + 1) * 0.5f;
+        return List.of(still(context, sim, fx, style.key + "-building-garrison", x, y, 30f, false),
+                still(context, sim, fx, style.key + "-building-garrison-open", x, y, 30f, true));
     }
 
     /**
