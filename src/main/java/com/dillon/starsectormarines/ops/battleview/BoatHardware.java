@@ -60,20 +60,9 @@ public final class BoatHardware {
     /** The bricks a socket of this kind holds. */
     static int[] capacity(BoatDoll.Kind kind) {
         return switch (kind) {
-            case HARDPOINT, DRIVE, LIFT -> new int[]{2, 2};
-            case PLATING -> new int[]{3, 1};
+            // Nothing is wider than two bricks, in either room.
+            case HARDPOINT, PLATING, DRIVE, LIFT -> new int[]{2, 2};
         };
-    }
-
-    /** Columns and rows of the largest socket of any kind: the scale every stores picture shares. */
-    static int[] largestSocket() {
-        int columns = 1, rows = 1;
-        for (BoatDoll.Kind kind : BoatDoll.Kind.values()) {
-            int[] capacity = capacity(kind);
-            columns = Math.max(columns, capacity[0]);
-            rows = Math.max(rows, capacity[1]);
-        }
-        return new int[]{columns, rows};
     }
 
     static Color tone(BoatDoll.Kind kind) {
@@ -94,9 +83,9 @@ public final class BoatHardware {
             case "door_grenade_launcher" -> new Piece("boat-door-grenade", 2, 1, tone);
             case "door_arbalest" -> new Piece("boat-door-arbalest", 2, 2, tone);
             case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, 2, tone);
-            case "standard_plating" -> new Piece("boat-plating-standard", 3, 1, tone);
-            case "reinforced_plating" -> new Piece("boat-plating-reinforced", 3, 1, tone);
-            case "armoured_plating" -> new Piece("boat-plating-armoured", 3, 1, tone);
+            case "standard_plating" -> new Piece("boat-plating-standard", 2, 1, tone);
+            case "reinforced_plating" -> new Piece("boat-plating-reinforced", 2, 2, tone);
+            case "armoured_plating" -> new Piece("boat-plating-armoured", 2, 2, tone);
             case "standard_drive" -> new Piece("engine-industrial", 2, 1, tone);
             case "tuned_drive" -> new Piece("engine-uprated", 2, 2, tone);
             case "uprated_drive" -> new Piece("engine-military", 2, 2, tone);

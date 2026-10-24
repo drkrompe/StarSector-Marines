@@ -48,7 +48,7 @@ public enum VehicleKit {
         if (type == null) return false;
         return switch (this) {
             case READY_RACK -> type.hasTurretWeapon();
-            case SPACED_SKIRTS -> type.hasAnimatedTreads();
+            case SPACED_SKIRTS -> type.isTank();
             case APPLIQUE_PLATE, SPALL_LINER -> true;
         };
     }

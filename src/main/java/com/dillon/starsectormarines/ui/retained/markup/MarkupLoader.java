@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.ui.retained.markup;
 
 import com.dillon.starsectormarines.ui.retained.reactive.BindingScope;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,7 +86,27 @@ public final class MarkupLoader {
             scope.close();
             throw failure;
         }
-        return new MarkupInstance(result[0].root(), result[0].styles(), result[0].ids(), reactor, scope);
+        return new MarkupInstance(result[0].root(), withEveryComponent(result[0].styles(), sourceRegistry),
+                result[0].ids(), reactor, scope);
+    }
+
+    /**
+     * The sheets the build used, then every other loaded component's.
+     *
+     * <p>A component first instantiated after the build — a row of a list that was empty when
+     * the room opened — still needs its style in the document, and the document only takes
+     * sheets once. Each sheet is scoped to its own component's elements, so carrying one that
+     * is never used changes nothing.
+     */
+    private static List<StyleSheet> withEveryComponent(List<StyleSheet> used, MarkupRegistry registry) {
+        List<StyleSheet> sheets = new ArrayList<>(used);
+        List<String> names = new ArrayList<>(registry.names());
+        Collections.sort(names);
+        for (String name : names) {
+            StyleSheet sheet = registry.template(name).style();
+            if (!sheets.contains(sheet)) sheets.add(sheet);
+        }
+        return sheets;
     }
 
     public final class PreparedReload {

@@ -19,6 +19,8 @@ package com.dillon.starsectormarines.battle.turret;
  *   <li><b>Overload.</b> Full capacitors break the shield at once (the round that filled them is still stopped).
  *   For {@link FluxShieldSpec#overloadSeconds} it is down, the gun is silent and the capacitors vent to empty;
  *   then it may go up again.</li>
+ *   <li><b>Energy gun.</b> A gun that draws on the capacitors ({@link FluxShieldSpec#gunDraw}) charges them every
+ *   round, shield up or down, and holds fire once they pass its high mark until they bleed down to its low one.</li>
  * </ul>
  *
  * <p>Bearings are degrees in map space ({@code atan2(dy, dx)}). Not thread-safe beyond this: the serial passes
@@ -43,6 +45,7 @@ public final class FluxShield {
     private final float[] hitAge = new float[HIT_MEMORY];
     private final float[] hitWeight = new float[HIT_MEMORY];
     private int hitCount;
+    private boolean gunHeld;
 
     public FluxShield(FluxShieldSpec spec, float facingDegrees) {
         this.spec = spec;
@@ -68,6 +71,7 @@ public final class FluxShield {
         if (overloadLeft > 0f) {
             overloadLeft = Math.max(0f, overloadLeft - dt);
             flux = spec.fluxCapacity() * overloadLeft / spec.overloadSeconds();
+            gunHeld = false;
             return;
         }
         boolean wantUp = sinceThreat <= spec.lingerSeconds();
@@ -77,6 +81,12 @@ public final class FluxShield {
         if (extent > 0f) flux += spec.upkeepPerSecond() * dt;
         flux = Math.max(0f, flux - spec.dissipationPerSecond() * dt);
         if (flux >= spec.fluxCapacity()) overload();
+        FluxShieldSpec.GunDraw draw = spec.gunDraw();
+        if (draw != null) {
+            float share = fluxShare();
+            if (share >= draw.holdAbove()) gunHeld = true;
+            else if (share <= draw.resumeBelow()) gunHeld = false;
+        }
     }
 
     /** Whether a round arriving on {@code bearing} from the gun meets the shield. */
@@ -98,9 +108,19 @@ public final class FluxShield {
         return true;
     }
 
-    /** The gun fired a round; with the shield up it costs {@link FluxShieldSpec#fluxPerRound}, charged next tick. */
+    /**
+     * The gun fired a round, charged next tick: with the shield up it costs {@link FluxShieldSpec#fluxPerRound}, and an
+     * energy gun's draw ({@link FluxShieldSpec#gunDraw}) is charged on top, shield up or down.
+     */
     public void noteRound() {
-        if (extent > 0f && overloadLeft <= 0f) pendingRoundFlux += spec.fluxPerRound();
+        if (overloadLeft > 0f) return;
+        if (extent > 0f) pendingRoundFlux += spec.fluxPerRound();
+        if (spec.gunDraw() != null) pendingRoundFlux += spec.gunDraw().perRound();
+    }
+
+    /** Whether an energy gun is holding fire to let the capacitors bleed down ({@link FluxShieldSpec#gunDraw}). */
+    public boolean gunHeld() {
+        return gunHeld;
     }
 
     private void overload() {

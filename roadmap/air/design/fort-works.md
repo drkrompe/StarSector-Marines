@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-24
-Updated: 2026-10-24 — the modular look's white trim is graded down to pale slate; fort buildings are kit buildings in the lot's style and the gate towers are rooms in the wall's; earlier: pirates build in their own patchwork style; derelict is colony steel
+Updated: 2026-10-24 — every style has a full kit: openings, rubble, trench, hedgehog, fence and vent ring (owner: "full kits"); the modular look's white trim is graded down to pale slate; fort buildings are kit buildings in the lot's style and the gate towers are rooms in the wall's; earlier: pirates build in their own patchwork style; derelict is colony steel
 
 Read `ground-turret-tiers.md` (emplacement styles) and `tech-families.md` (the families) first;
 `forts.md` is the fort these works belong to.
@@ -22,10 +22,14 @@ place: its walls, gates, barricades, parapets, sandbags and gun emplacements all
   guns: one style per lot, and a post that stands alone is a lot of its own.
 - The lot's **works** are the pieces drawn in that style: the perimeter wall, the parapet collar
   round a gun pad (`doodad.fort-emplacement-*`), and the barricade runs (the fort's
-  `doodad.fort-sandbag-*` lines and a militia post's `doodad.sandbag-*` ring).
+  `doodad.fort-sandbag-*` lines and a militia post's `doodad.sandbag-*` ring), and the rest of its
+  **kit**: the window and door openings and the rubble of its walls, its trenches
+  (`doodad.fort-trench-*`), hedgehogs, fences (`doodad.industrial-fence-*`) and the light post's
+  vent ring.
 - A **look** is one piece's art in one style: a catalog entry named `<base id>@<style key>`, a
-  doodad for a piece and a wall-faces block for a wall surface. One painted sheet per style holds
-  its looks (`fortworks-<style>`).
+  doodad for a piece and a grid block for a wall surface, an opening or a wall's rubble. Two
+  painted sheets per style hold its looks: its works (`fortworks-<style>`) and the rest of its kit
+  (`fortworks-<style>-kit`).
 
 ## Laws
 
@@ -52,6 +56,11 @@ place: its walls, gates, barricades, parapets, sandbags and gun emplacements all
   its posts' style (`FortWorks.settle`: a flood over the lot's cells from the post's guns), and
   `addDoodad` dresses each piece standing on a lot in that lot's look (`FortWorks.dress`).
   `CoverPropDamage` dresses each damage state the same way.
+- **Openings and rubble are dressed where they are drawn.** A window, a doorway or a broken
+  wall's rubble on a lot draws the look, in the lot's style, of the block its wall names
+  (`TileRegistry.blockLook`), so both the perimeter and a fort building's walls open and break in
+  the style. The light post's vent ring is road-sheet frames with no id of their own; it is
+  dressed as `doodad.light-post-vent` (`FortWorks.VENT`).
 - **Walls are dressed where they are drawn.** The ground pass draws a wall cell from its
   surface's look in the cell's works style (`GroundRenderSystem`), since its surface id is a
   fact rules read.
@@ -84,6 +93,13 @@ painted over the fort-buildings gatehouse guide with the
 style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 `export_gatehouse.py`). Brutalist uses the base gatehouse.
 
+The rest of each style's kit (`kit.py`) is painted in one pass over a guide that is the base art
+drawn grey, each piece in its own slot (`guides/kit-guide.png`), with the style's works sheet as
+the material reference (`generate.py <look> --kit`): the openings, the sixteen rubble masks, the
+sixteen trench masks, the hedgehog, the six fence pieces and the vent panel. A painted look so
+keeps the base piece's geometry, and the exporter registers the raw against the guide before
+cutting. One painting serves both the dark and the light wall, as a style's wall tiles do.
+
 A style may take a grade between its master and its cut (`art-source/fortworks/trim.py`), run
 by every exporter of the style's art, so its walls, parapets, barricades, gate leaves and
 turret pieces stay one material. Modular's near-white strip lamps and trim glared beside its
@@ -101,12 +117,13 @@ of their value; the masters stay as generated.
 | Export | Diktat sand-ochre ceramic-steel with red unit bands |
 | Blockwork | Diktat interlocking orange-red and white moulded blocks |
 | Composite | Tri-Tachyon pearl composite in hex plating with blue light lines |
-| Deployed | Tri-Tachyon graphite pylons and pads with hard-light panes |
+| Deployed | Tri-Tachyon field-set matte ceramic armour slabs in graphite frames, in the Paragon finish with no light lines (`deployed-ceramic`, the owner found hard-light panes too cartoonish); the `deployed` hard-light raw is retained |
 
 ## Open
 
-- Pieces still drawn in the base art on every lot: the light post's vent ring (road-sheet
-  frames with no catalog id), door and window openings, wall rubble, hedgehogs, trench and
-  fence.
+- The kit's damage states: a hedgehog or a fence hit on a lot shows the base art's damaged and
+  destroyed pieces, since the kit sheets carry only intact looks.
+- A closed door's leaf (`SwingDoorRenderSystem`) is the base art in every style; the opening
+  round it is the style's.
 - Fort buildings and gate towers take the ordinary kit roof and get no roof of their own: roof
   styles are the kit-roof work's (owner), and a fort building wears whatever style that gives it.

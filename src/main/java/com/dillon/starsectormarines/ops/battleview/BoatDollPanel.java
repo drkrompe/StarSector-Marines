@@ -29,14 +29,15 @@ final class BoatDollPanel {
     private static final float MARGIN = 18f;
     private static final float GAP_X = 18f;
     private static final float GAP_Y = 30f;
-    /** @see HardpointBricks#BOARD_BRICK_HEIGHT */
-    static final float BRICK_HEIGHT = HardpointBricks.BOARD_BRICK_HEIGHT;
-    static final float BRICK_GAP = HardpointBricks.BOARD_BRICK_GAP;
+    /** @see HardpointBricks#BRICK_HEIGHT */
+    static final float BRICK_HEIGHT = HardpointBricks.BRICK_HEIGHT;
+    static final float BRICK_GAP = HardpointBricks.BRICK_GAP;
     private static final float HEADER = 22f;
-    private static final float CAPTION = 22f;
+    /** Below the bricks: a margin, not a caption. A part's name is the board tooltip's. */
+    private static final float FOOT = 10f;
     private static final float SIDE = 12f;
-    private static final float MIN_WIDTH = 150f;
-    private static final float WIDE = 180f;
+    private static final float HEADER_INSET = 16f;
+    private static final float HEADER_END = 10f;
     private static final float CORE_WIDTH = 150f;
     private static final float CORE_HEIGHT = 96f;
     private static final float CUT = 6f;
@@ -75,11 +76,9 @@ final class BoatDollPanel {
      * @param drop    the socket a carried piece is over, or null
      */
     static List<CardTarget> draw(CanvasContext c, BoatDoll doll, float canvasWidth, float canvasHeight,
-                                 String hovered, Drop drop, double seconds) {
+                                 String hovered, Drop drop, float pointerX, float pointerY, double seconds) {
         float width = canvasWidth * SHARE;
         board(c, width, canvasHeight);
-        c.text(Fonts.ORBITRON_12_BOLD, Strings.get("boatDeckDollAirframe") + "  //  " + doll.pattern(),
-                MARGIN, MARGIN, MUTED);
 
         List<BoatDoll.Slot> guns = new ArrayList<>();
         BoatDoll.Slot plating = null, drive = null, lift = null;
@@ -95,8 +94,8 @@ final class BoatDollPanel {
         guns.sort(Comparator.comparingDouble(BoatDoll.Slot::localX));
 
         float gunHeight = guns.isEmpty() ? 0f : height(BoatDoll.Kind.HARDPOINT);
-        float flankHeight = Math.max(CORE_HEIGHT, Math.max(plating != null ? height(plating.kind()) : 0f,
-                drive != null ? height(drive.kind()) : 0f));
+        float flankHeight = Math.max(drive == null ? CORE_HEIGHT : 0f,
+                Math.max(plating != null ? height(plating.kind()) : 0f, drive != null ? height(drive.kind()) : 0f));
         float liftHeight = lift != null ? height(lift.kind()) : 0f;
         float total = gunHeight + (gunHeight > 0f ? GAP_Y : 0f) + flankHeight
                 + (liftHeight > 0f ? GAP_Y + liftHeight : 0f);
@@ -104,40 +103,51 @@ final class BoatDollPanel {
         float centerX = width * 0.5f;
         float flankY = top + gunHeight + (gunHeight > 0f ? GAP_Y : 0f) + flankHeight * 0.5f;
 
+        // The drive is the board's centre, as the engine is on every machine's doll. Only a boat
+        // with no drive keeps a plain airframe plate there for the other sockets to wire into.
         CardTarget core = new CardTarget(null, centerX - CORE_WIDTH * 0.5f, flankY - CORE_HEIGHT * 0.5f,
                 CORE_WIDTH, CORE_HEIGHT);
+        boolean plainCore = drive == null;
         List<Placed> placed = new ArrayList<>();
-        float room = width - MARGIN * 2f;
-        float gunWidth = guns.isEmpty() ? 0f : Math.max(width(BoatDoll.Kind.HARDPOINT, 0f),
-                Math.min(WIDE, (room - GAP_X * (guns.size() - 1)) / guns.size()));
+        if (drive != null) {
+            float w = width(drive), h = height(drive.kind());
+            core = new CardTarget(drive.key(), centerX - w * 0.5f, flankY - h * 0.5f, w, h);
+            placed.add(new Placed(drive, core));
+        }
+        float gunWidth = 0f;
+        for (BoatDoll.Slot gun : guns) gunWidth = Math.max(gunWidth, width(gun));
         float gunSpan = gunWidth * guns.size() + GAP_X * Math.max(0, guns.size() - 1);
         for (int i = 0; i < guns.size(); i++) {
             float left = centerX - gunSpan * 0.5f + i * (gunWidth + GAP_X);
             placed.add(new Placed(guns.get(i), new CardTarget(guns.get(i).key(), left, top, gunWidth, gunHeight)));
         }
         if (plating != null) {
-            float w = width(plating.kind(), MIN_WIDTH), h = height(plating.kind());
+            float w = width(plating), h = height(plating.kind());
             placed.add(new Placed(plating, new CardTarget(plating.key(), core.left() - GAP_X - w,
                     flankY - h * 0.5f, w, h)));
         }
-        if (drive != null) {
-            float w = width(drive.kind(), MIN_WIDTH), h = height(drive.kind());
-            placed.add(new Placed(drive, new CardTarget(drive.key(), core.right() + GAP_X,
-                    flankY - h * 0.5f, w, h)));
-        }
         if (lift != null) {
-            float w = width(lift.kind(), MIN_WIDTH), h = height(lift.kind());
+            float w = width(lift), h = height(lift.kind());
             placed.add(new Placed(lift, new CardTarget(lift.key(), centerX - w * 0.5f,
                     core.bottom() + GAP_Y, w, h)));
         }
 
-        for (int i = 0; i < placed.size(); i++) wire(c, placed.get(i), core, seconds, i);
-        core(c, core, doll);
+        for (int i = 0; i < placed.size(); i++) {
+            if (placed.get(i).target() != core) wire(c, placed.get(i), core, seconds, i);
+        }
+        if (plainCore) core(c, core, doll);
         List<CardTarget> targets = new ArrayList<>(placed.size());
+        BoatDoll.Slot pointedAt = null;
         for (Placed socket : placed) {
             console(c, socket.target(), socket.slot(), socket.slot().key().equals(hovered), seconds);
             if (drop != null && socket.slot().key().equals(drop.key())) dropMark(c, socket.target(), drop.valid());
+            if (socket.slot().key().equals(hovered)) pointedAt = socket.slot();
             targets.add(socket.target());
+        }
+        // The fitted part's name is a hover away, as on the Mech Lab's board, not a caption.
+        if (drop == null && pointedAt != null) {
+            BoardTooltip.draw(c, pointerX, pointerY, canvasWidth, canvasHeight, pointedAt.fitted(),
+                    pointedAt.title() + "  ·  " + pointedAt.tier());
         }
         return List.copyOf(targets);
     }
@@ -149,12 +159,14 @@ final class BoatDollPanel {
         return HardpointBricks.at(x, y, capacity[0], capacity[1], BRICK_HEIGHT, BRICK_GAP);
     }
 
-    private static float width(BoatDoll.Kind kind, float minimum) {
-        return Math.max(minimum, bricks(kind, 0f, 0f).width() + SIDE * 2f);
+    /** A socket's card: its bricks, or its header where that is wider, as on the Mech Lab's board. */
+    private static float width(BoatDoll.Slot slot) {
+        float header = HEADER_INSET + Fonts.ORBITRON_12_BOLD.measureWidth(slot.title()) + HEADER_END;
+        return Math.max(header, bricks(slot.kind(), 0f, 0f).width() + SIDE * 2f);
     }
 
     private static float height(BoatDoll.Kind kind) {
-        return HEADER + bricks(kind, 0f, 0f).height() + CAPTION;
+        return HEADER + bricks(kind, 0f, 0f).height() + FOOT;
     }
 
     /** A dark drafting board, so the sockets read against one ground and not the deck. */
@@ -182,9 +194,8 @@ final class BoatDollPanel {
     }
 
     /**
-     * One socket: the plate, its name, its bricks with the fitted piece over
-     * them, and what that piece is. Selected or under the pointer, it wears the
-     * lab's amber brackets.
+     * One socket: the plate, its name, and its bricks with the fitted piece over
+     * them. Selected or under the pointer, it wears the lab's amber brackets.
      */
     private static void console(CanvasContext c, CardTarget t, BoatDoll.Slot slot, boolean hot, double seconds) {
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
@@ -198,9 +209,6 @@ final class BoatDollPanel {
         bricks = bricks(slot.kind(), x + (w - bricks.width()) * .5f, y + HEADER);
         HardpointBricks.drawEmpty(c, bricks, tone);
         BoatHardware.draw(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 255);
-        c.text(Fonts.ORBITRON_12_BOLD, clip(slot.fitted(), w - 20f, Fonts.ORBITRON_12_BOLD), x + 10f,
-                y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
-                slot.selected() ? AMBER : SILVER);
         if (slot.selected() || hot) {
             float pulse = (float) (.5 + .5 * Math.sin(seconds * 3.5));
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,

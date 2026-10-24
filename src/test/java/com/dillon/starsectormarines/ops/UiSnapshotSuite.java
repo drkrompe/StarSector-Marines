@@ -2504,6 +2504,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return String.valueOf(row.markupProperty("actionClasses")).contains("hidden") ? row.nameId() : row.actionId();
     }
 
+    /** The Boat Deck's refit board alone: its doll fitting and a hardpoint selected. */
+    static List<SnapshotArtifact> renderBoatConsole(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        HeadlessUiRenderer boatRenderer = new HeadlessUiRenderer(
+                new HeadlessBattleSceneRenderer(context.modRoot(), true),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("boat-deck-fitting-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("boat-deck-hardpoint-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)));
+    }
+
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
@@ -2718,7 +2733,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
         // would be evidence about a room the player never sees.
-        CompanyDeck ship = companyShip(viewModel::gantryVariants, List::of);
+        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED, null, viewModel::gantryVariants,
+                List::of, () -> null).vehicles(viewModel::gantryVehicles);
+        readied(ship);
+        ship.advance(18f);
         DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
         if (weldingEvidence) seekMachineService(ship, vehicleBay, viewModel.selectedGantryIndex());
         ShipDeckBattleScene.RoomView framing =
@@ -2991,6 +3009,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             .doll(() -> viewModel.doll().get(), () -> 0d));
             BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
                     viewModel.slotRows().get());
+            // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
+            document.layout(width, height);
+            BoatDeckCanvas.fitSurface(instance.requireElement("boat-deck-canvas"));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -3201,6 +3222,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());

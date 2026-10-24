@@ -19,7 +19,7 @@
   </div>
 </template>
 <style>
-  .doll-slot { flex-direction: row; width: 100%; height: 86px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
+  .doll-slot { flex-direction: row; width: 100%; height: 128px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
   .doll-slot.selected { background-color: #2a3632; border-color: #dfc588; }
   .slot-row-content { flex-direction: row; align-items: center; width: 100%; height: 100%; gap: 3px; }
   .slot-select-button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 100%; padding: 2px; gap: 4px; border-width: 0px; background-color: transparent; text-align: left; }
@@ -34,8 +34,9 @@
   .slot-telemetry { font-family: body; height: 15px; }
   .slot-component { height: 16px; }
   .slot-type { height: 15px; }
-  .slot-hardware { flex-direction: column; align-items: center; width: 62px; height: 66px; gap: 4px; }
-  .slot-grid { width: 58px; height: 44px; border-width: 1px; }
+  .slot-hardware { flex-direction: column; align-items: center; width: 62px; height: 118px; gap: 4px; }
+  /* Room for the tallest socket, two by three, at the board's own brick. */
+  .slot-grid { width: 58px; height: 98px; border-width: 1px; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }
   .heading { font-family: heading; }

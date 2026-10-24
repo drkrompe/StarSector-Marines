@@ -14,10 +14,10 @@
       "included": true,
       "note": "Parapet collar piece s, deployed look, destroyed.",
       "rect": [
-        407,
-        45,
-        183,
-        187
+        400,
+        58,
+        186,
+        186
       ]
     },
     {
@@ -31,10 +31,10 @@
       "included": true,
       "note": "Parapet collar piece n, deployed look, destroyed.",
       "rect": [
-        407,
-        793,
-        183,
-        187
+        400,
+        802,
+        186,
+        186
       ]
     },
     {
@@ -48,10 +48,10 @@
       "included": true,
       "note": "Parapet collar piece e, deployed look, destroyed.",
       "rect": [
-        42,
-        419,
-        183,
-        187
+        27,
+        430,
+        186,
+        186
       ]
     },
     {
@@ -65,10 +65,10 @@
       "included": true,
       "note": "Parapet collar piece w, deployed look, destroyed.",
       "rect": [
-        772,
-        419,
-        183,
-        187
+        773,
+        430,
+        186,
+        186
       ]
     },
     {
@@ -82,10 +82,10 @@
       "included": true,
       "note": "Parapet collar piece inner-se, deployed look, destroyed.",
       "rect": [
-        42,
-        45,
-        183,
-        187
+        27,
+        58,
+        186,
+        186
       ]
     },
     {
@@ -99,10 +99,10 @@
       "included": true,
       "note": "Parapet collar piece inner-sw, deployed look, destroyed.",
       "rect": [
-        772,
-        45,
-        183,
-        187
+        773,
+        58,
+        186,
+        186
       ]
     },
     {
@@ -116,10 +116,10 @@
       "included": true,
       "note": "Parapet collar piece inner-ne, deployed look, destroyed.",
       "rect": [
-        42,
-        793,
-        183,
-        187
+        27,
+        802,
+        186,
+        186
       ]
     },
     {
@@ -133,10 +133,10 @@
       "included": true,
       "note": "Parapet collar piece inner-nw, deployed look, destroyed.",
       "rect": [
-        772,
-        793,
-        183,
-        187
+        773,
+        802,
+        186,
+        186
       ]
     },
     {
@@ -150,10 +150,10 @@
       "included": true,
       "note": "Barricade piece n, deployed look, destroyed.",
       "rect": [
-        1161,
-        41,
-        164,
-        186
+        1165,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -167,10 +167,10 @@
       "included": true,
       "note": "Barricade piece n, deployed look, destroyed.",
       "rect": [
-        1161,
-        41,
-        164,
-        186
+        1165,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -184,10 +184,10 @@
       "included": true,
       "note": "Barricade piece s, deployed look, destroyed.",
       "rect": [
-        1161,
-        414,
-        164,
-        186
+        1165,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -201,10 +201,10 @@
       "included": true,
       "note": "Barricade piece s, deployed look, destroyed.",
       "rect": [
-        1161,
-        414,
-        164,
-        186
+        1165,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -218,10 +218,10 @@
       "included": true,
       "note": "Barricade piece w, deployed look, destroyed.",
       "rect": [
-        998,
-        227,
-        163,
-        187
+        992,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -235,10 +235,10 @@
       "included": true,
       "note": "Barricade piece w, deployed look, destroyed.",
       "rect": [
-        998,
-        227,
-        163,
-        187
+        992,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -252,10 +252,10 @@
       "included": true,
       "note": "Barricade piece e, deployed look, destroyed.",
       "rect": [
-        1325,
-        227,
-        163,
-        187
+        1338,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -269,10 +269,10 @@
       "included": true,
       "note": "Barricade piece e, deployed look, destroyed.",
       "rect": [
-        1325,
-        227,
-        163,
-        187
+        1338,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -286,10 +286,10 @@
       "included": true,
       "note": "Barricade piece corner-nw, deployed look, destroyed.",
       "rect": [
-        998,
-        41,
-        163,
-        186
+        992,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -303,10 +303,10 @@
       "included": true,
       "note": "Barricade piece corner-nw, deployed look, destroyed.",
       "rect": [
-        998,
-        41,
-        163,
-        186
+        992,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -320,10 +320,10 @@
       "included": true,
       "note": "Barricade piece corner-ne, deployed look, destroyed.",
       "rect": [
-        1325,
-        41,
-        163,
-        186
+        1338,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -337,10 +337,10 @@
       "included": true,
       "note": "Barricade piece corner-ne, deployed look, destroyed.",
       "rect": [
-        1325,
-        41,
-        163,
-        186
+        1338,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -354,10 +354,10 @@
       "included": true,
       "note": "Barricade piece corner-sw, deployed look, destroyed.",
       "rect": [
-        998,
-        414,
-        163,
-        186
+        992,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -371,10 +371,10 @@
       "included": true,
       "note": "Barricade piece corner-sw, deployed look, destroyed.",
       "rect": [
-        998,
-        414,
-        163,
-        186
+        992,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -388,10 +388,10 @@
       "included": true,
       "note": "Barricade piece corner-se, deployed look, destroyed.",
       "rect": [
-        1325,
-        414,
-        163,
-        186
+        1338,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -405,17 +405,17 @@
       "included": true,
       "note": "Barricade piece corner-se, deployed look, destroyed.",
       "rect": [
-        1325,
-        414,
-        163,
-        186
+        1338,
+        371,
+        173,
+        167
       ]
     }
   ],
   "gridCols": 12,
   "gridRows": 8,
   "idPrefix": "doodad",
-  "note": "Fortification works of the deployed emplacement style, destroyed state, look 'deployed': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference, then edited into its destroyed state with the intact raw as edit target; prompt art-source/fortworks/prompts/deployed-destroyed.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@deployed of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
-  "sheet": "art-source/fortworks/raw/deployed-destroyed.raw.png",
+  "note": "Fortification works of the deployed emplacement style, destroyed state, look 'deployed-ceramic': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference, then edited into its destroyed state with the intact raw as edit target; prompt art-source/fortworks/prompts/deployed-ceramic-destroyed.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@deployed of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/deployed-ceramic-destroyed.raw.png",
   "sheetName": "fortworks-deployed-destroyed"
 }

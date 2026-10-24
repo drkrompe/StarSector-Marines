@@ -34,6 +34,7 @@ com.dillon.starsectormarines.battle.squad.SquadTrafficSceneSnapshotSuite
 com.dillon.starsectormarines.ops.MissionUiSnapshotSuite
 
 com.dillon.starsectormarines.ops.MechConsoleSnapshotSuite
+com.dillon.starsectormarines.ops.BoatConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksCommandSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksMedicSnapshotSuite
 com.dillon.starsectormarines.ops.OfficerDossierSnapshotSuite

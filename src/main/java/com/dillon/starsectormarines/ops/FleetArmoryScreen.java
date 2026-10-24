@@ -216,6 +216,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("lesson", firstRefit.row());
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -272,7 +273,7 @@ public final class FleetArmoryScreen implements Screen {
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "fireteam-breadcrumb", "armory-first-refit", "fireteam-body",
+                "armory-first-refit", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
