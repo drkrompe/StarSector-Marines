@@ -241,8 +241,9 @@ open country and towns, its Hound pair in a city. A new machine goes to the
 redoubt furthest under its floor, a sector that lost its machines first, then
 a calling one, then the fewest, the nearest breaking a tie; a machine whose
 redoubt falls is given another the same way. In a town hulls are
-**roadbound**: each flank post is moved to the nearest street cell within
-reach, the street nearest where it would have stood; not on the Road, where
+**roadbound**: a sector's first hull stands on the street through or past its
+redoubt, and each later hull's flank post is moved to the nearest street cell
+within reach, the street nearest where it would have stood; not on the Road, where
 the town's main street is the convoys' road and a hull parked beside it stood
 in their way. They do not chase calls: on a front
 hundreds of cells wide a reserve sent to whichever redoubt called last spent

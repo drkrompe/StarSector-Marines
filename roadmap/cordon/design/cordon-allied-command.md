@@ -154,9 +154,10 @@ convoys and beat hulls on the road; the density), returning tasks the
    neediest redoubt (calling first, then fewest standing, today's `neediest`),
    and while it is on its way that redoubt has *Help coming*. Only a carrier
    with no allied squad waiting may take a Marine (the company's lift, below).
-5. **Density shapes the posts, not the rules.** Town: every post is moved to
-   the nearest street cell within reach (roadbound; not on the Road, whose
-   streets are the convoys'), and carriers set down at
+5. **Density shapes the posts, not the rules.** Town: a sector's first hull
+   stands on the street through or past its redoubt, and every other post is
+   moved to the nearest street cell within reach (roadbound; not on the Road,
+   whose streets are the convoys'), and carriers set down at
    the rear gate only. Urban: no carriers; columns walk to the redoubt with the
    fewest standing; mechs stand in the street mouths the swarm comes through.
 6. **The allies never end the battle and never take the company's work.** They
@@ -170,7 +171,9 @@ where `nextPost` says, the nearest breaking a tie, and takes escorts through
 `escorts`; `CordonLogistics` keeps carriers behind the redoubt they fed and
 sends waiting squads by `carrierDuty`). Rule 5: the town's rear gate for
 carriers, the city's walking columns and mechs in the mouths, and in a town
-every hull's flank post moved to the nearest street cell within sixteen
+the sector's first hull on the street through or past its redoubt (within
+twelve of its walls, `CordonArmour.throughStreet`) and every later hull's flank
+post moved to the nearest street cell within sixteen
 (`CordonAlliedRules.roadbound`), but not on the Road: there the town's main
 street is the convoys' road, and hulls parked on the streets beside it stood
 in their way and the dozer's. A beat's hull (L2's ammunition truck, R1's

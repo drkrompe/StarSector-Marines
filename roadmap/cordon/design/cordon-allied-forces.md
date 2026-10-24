@@ -25,7 +25,7 @@ sector beside the garrison is what changes with density.
 
 | | Rural | Town | Urban |
 | --- | --- | --- | --- |
-| Beside each redoubt | a car or technical on each flank, out past the side wall | technicals on the street nearest each flank post (built); *not built:* a technical on the street through the redoubt, riflemen in the house fronts | **a Hound pair in the street mouths and a walking rifle team, a mortar team in the yard** (built; the owner's pick `cordon-urban-allies`, the mech lance, with mortars added) |
+| Beside each redoubt | a car or technical on each flank, out past the side wall | a technical on the street through or past the redoubt, and later ones on the street nearest each flank post (built, the Line only: on the Road, hulls beside the main street block the convoys); *not built:* riflemen in the house fronts | **a Hound pair in the street mouths and a walking rifle team, a mortar team in the yard** (built; the owner's pick `cordon-urban-allies`, the mech lance, with mortars added) |
 | Opening armour | two cars, two technicals | four technicals | none |
 | Base | a fenced yard on the main road; the shed builds | the base the map lays; the shed builds (*not built:* the town's goods yard) | the base the map lays; the shed's berths build the Hounds (*not built:* a depot in a warehouse block with a mech gantry) |
 | Base produces | carrier, car, carrier, technical, round again | technical, carrier, Hound, round again | Hounds, one at a time at the shed's pace; no carriers |
@@ -80,9 +80,8 @@ is in.
   `cordon-allies-look` (opt-in `createSnapshots` suite);
   `-Dsnapshot.cordonAllies.options=town,urban` renders the built table at a
   redoubt instead.
-- Town: a technical on the street through the redoubt and riflemen in the
-  house fronts. The town's technicals hold the street nearest their flank
-  posts; a sector of one hull would have to give its flank up for the street
-  through the redoubt, so that waits for a second hull in the sector.
+- Town: riflemen in the house fronts. A sector's first technical holds the
+  street through or past its redoubt rather than a flank (a sector of one hull
+  gives its flank up for it); a second takes a flank.
 - The base's own ground by density: a town's goods yard, a city's depot and
   mech gantry. The shed's berths build Hounds meanwhile.

@@ -921,21 +921,53 @@ public final class CordonArmour {
 
     /**
      * Where a hull holds its sector: the {@code rank}th place on the redoubt's flanks ({@link #flank}), moved onto the
-     * nearest street its footprint fits where hulls are roadbound.
+     * nearest street its footprint fits where hulls are roadbound. Roadbound, the sector's first hull stands on the street
+     * through or past the redoubt instead ({@link #throughStreet}, {@code cordon-allied-forces.md}, Town), and the
+     * others take the flanks in turn; where no street runs within reach of the redoubt it takes a flank too.
      */
     int[] post(BattleSimulation sim, long hull, CordonRedoubt r, int rank) {
-        int[] flank = flank(r, rank);
-        if (!roadbound) return flank;
+        if (!roadbound) return flank(r, rank);
         VehicleType type = sim.convoy().vehicleType(hull);
-        if (type == null) return flank;
+        if (type == null) return flank(r, rank);
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
         boolean[] street = streetGround.computeIfAbsent(radius, k -> {
             boolean[] main = mainGround.computeIfAbsent(k, m -> mainGround(sim.getGrid(), m));
             return streets(sim.getTopology(), main, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         });
+        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+        int[] through = throughStreet(street, w, h, r.left(), r.top(), r.right(), r.bottom(), THROUGH_REACH);
+        int flankRank = through == null ? rank : rank - 1;
+        if (flankRank < 0) return through;
+        int[] flank = flank(r, flankRank);
         int[] cell = nearest(sim.getGrid(), street, flank[0], flank[1], STREET_REACH);
         return cell == null ? flank : cell;
     }
+
+    /**
+     * The street through or past a redoubt, where a town's first hull in its sector stands: the cell of {@code street}
+     * nearest the redoubt's middle within its box grown by {@code reach} on every side, the first in row order between
+     * two as near; {@code null} where none is.
+     */
+    static int[] throughStreet(boolean[] street, int width, int height, int left, int top, int right, int bottom,
+                               int reach) {
+        int cx = (left + right) / 2, cy = (top + bottom) / 2;
+        int[] best = null;
+        long bestD = Long.MAX_VALUE;
+        for (int y = Math.max(0, top - reach); y <= Math.min(height - 1, bottom + reach); y++) {
+            for (int x = Math.max(0, left - reach); x <= Math.min(width - 1, right + reach); x++) {
+                if (!street[y * width + x]) continue;
+                long d = (long) (x - cx) * (x - cx) + (long) (y - cy) * (y - cy);
+                if (d < bestD) {
+                    bestD = d;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    /** Cells past a redoubt's walls a street runs within to count as running past it. */
+    static final int THROUGH_REACH = 12;
 
     /** The cells of {@code ground} that are street. */
     static boolean[] streets(CellTopology topology, boolean[] ground, int width, int height) {
