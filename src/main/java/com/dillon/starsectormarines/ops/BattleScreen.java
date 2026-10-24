@@ -1467,8 +1467,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getBeamFx().spawn(s);
             renderer.getGroundLights().spawnMuzzle(s);
             // Every shooting marine / militia / alien ejects a casing where
-            // they're standing (skip rockets — tube-launched, no brass).
-            if (s.specialEquipmentDef == null && s.turretStructureDef == null) {
+            // they're standing (skip rockets — tube-launched, no brass — and
+            // a Spitter's acid, which is spat, not fired).
+            if (s.specialEquipmentDef == null && s.turretStructureDef == null && !firedBySwarm(sim, s)) {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
             WeaponFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
@@ -1482,7 +1483,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
             // A burst in the air (an anti-air round at a craft's drawn height) marks no ground.
-            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
+            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.toX, s.toY, isWall);
             playImpactCue(s, rng, zeroVel);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
@@ -1493,7 +1494,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             playImpactCue(s, rng, zeroVel);
             // A burst in the air (an anti-air round at a craft's drawn height) marks no ground.
-            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
+            if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.toX, s.toY, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
         // Warheads a point-defence emplacement stopped come apart in the air.
@@ -1521,6 +1522,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
+    /** Whether a swarm body fired the shot: a Spitter's lob, which leaves no casing. */
+    private static boolean firedBySwarm(BattleSimulation sim, ShotEvent s) {
+        return s.shooterId != 0L && sim.world().isAlive(s.shooterId) && sim.identity().type(s.shooterId).isSwarm();
+    }
+
     private static boolean isWallAt(NavigationGrid grid, float x, float y) {
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);

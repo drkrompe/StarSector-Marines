@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 /**
@@ -53,6 +55,7 @@ public final class ReviewImpactFx {
     /** Fixed, so the same battle drawn twice jitters its smoke and blasts the same way. */
     private static final long REVIEW_SEED = 0x5EEDFACEL;
     private final ImpactFx fx = new ImpactFx(REVIEW_SEED);
+    private final Random decalRng = new Random(REVIEW_SEED);
     private final ContrailFxService contrails = new ContrailFxService();
     private final ProjectileTrailFxService trails = new ProjectileTrailFxService();
     private final BeamFxService beams = new BeamFxService();
@@ -115,6 +118,9 @@ public final class ReviewImpactFx {
             if (!ShotFx.of(shot).travels() || !shot.impacts()) continue;
             WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
             lights.spawnImpact(WeaponFxRuntime.definition(shot), shot.toX, shot.visualToY());
+            // A weapon's own authored ground mark (Spitter acid) as the screen drops it; the stock craters and
+            // casings the screen also drops stay out of review frames, as they always have.
+            if (shot.toZ <= 0f) ImpactDecals.spawnAuthored(sim, decalRng, shot.weaponDef(), shot.toX, shot.toY);
         }
         for (float[] point : sim.getShots().getInterceptPointsThisFrame()) {
             fx.spawnHeavyImpact(point[0], point[1], BattleScreen.INTERCEPT_BURST_CELLS);

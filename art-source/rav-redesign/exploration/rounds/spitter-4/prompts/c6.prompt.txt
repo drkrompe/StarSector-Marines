@@ -1,0 +1,11 @@
+Top-down concept for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's fragile ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners, denies open ground and the low sky by lobbing arcing globs of acid that splash infantry. Original design, not StarCraft. It must look clearly DIFFERENT from the Runner (reference image 1, a pale lilac blade-armed hound): its own colour scheme and a rounder, heavier mass, so a player tells them apart at a glance from far above. Keep only the Runner's tissue STRUCTURE (glossy armour plates over muscled flesh, sinew visible in every gap, bone claws, small amber eyes), NOT its colours. Beast first, never insect-like: no wings, no antennae, no thin waist, no arm blades. Bilaterally SYMMETRIC.
+
+LEGS (strict): it walks on TWO strong muscled digitigrade legs set directly UNDER its body, like a big flightless bird's or a hound's hind legs, swinging forward and back. The legs must NOT sprawl out to the sides like a lizard's or a toad's; from above, the feet sit inside the body's outline or just beside it. A short heavy armoured TAIL behind, which it plants on the ground as a third prop when it braces to fire. Small clawed forelimbs folded under the chest.
+
+ACID: a deep, dark VENOM GREEN that glows from inside a translucent acid organ on its back; the only bright note on the body. The organ is the read from above: a big ROUND mass on the back.
+
+COLOURS: BONE-WHITE: pale ivory bone plates (not cream, slightly cool) over deep crimson sinew that shows in every gap, dark claws tipped ivory.
+
+BODY AND FIRING (HUNCHBACK): low and long like a hunched hound standing on its hind legs, head carried forward and low. A huge round translucent acid reservoir over the hips, much wider than the shoulders, banded by bone plates, with a ring-shaped bone VENT on top. It rocks back onto its tail and the reservoir heaves a glob up out of the vent.
+
+Strict overhead orthographic view, camera looking straight down at its back, standing at rest, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.

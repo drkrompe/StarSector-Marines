@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
+import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.WorkMotion;
@@ -1231,8 +1232,9 @@ public final class UnitRenderService implements RenderSystem {
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets deadBruteArt = sprites.ravBruteSprites();
-            Object[] ravRigs = (ravArt != null || deadBruteArt != null) && t.has(c.RAV_RIG)
-                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
+            RavSpitterAssets deadSpitterArt = sprites.ravSpitterSprites();
+            Object[] ravRigs = (ravArt != null || deadBruteArt != null || deadSpitterArt != null)
+                    && t.has(c.RAV_RIG) ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
@@ -1266,6 +1268,12 @@ public final class UnitRenderService implements RenderSystem {
                     QuadMesh settled = settledBodies.brute(deadBrute, bruteArt, splat, drop);
                     if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
                     else RavBruteComposer.emitDead(out, bruteArt, splat, drop, deadBrute, bx, by, ppc, alpha);
+                    continue;
+                }
+                if (deadSpitterArt != null && ravRigs != null && ravRigs[r] instanceof RavSpitterRig deadSpitter) {
+                    // A dead Spitter lies dulled where it fell, in the acid its burst dome spilled.
+                    RavSpitterComposer.emitDead(out, deadSpitterArt, cam.cellToScreenX(rx[r]),
+                            cam.cellToScreenY(ry[r]), corpseFacing[r], cam.cellPxSize() * deadSpitter.scale() * shrink, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
@@ -1429,7 +1437,9 @@ public final class UnitRenderService implements RenderSystem {
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets bruteArt = sprites.ravBruteSprites();
             RavMatriarchAssets matriarchArt = sprites.ravMatriarchSprites();
-            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null) && t.has(c.RAV_RIG)
+            RavSpitterAssets spitterArt = sprites.ravSpitterSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null || spitterArt != null)
+                    && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1562,6 +1572,13 @@ public final class UnitRenderService implements RenderSystem {
                     RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
                             cam.cellPxSize() * bruteRig.scale(), unitAlpha);
+                    continue;
+                }
+                if (spitterArt != null && rig instanceof RavSpitterRig spitterRig && spitterRig.posed()) {
+                    // The Spitter too, sized in cells like the Brute.
+                    RavSpitterComposer.emit(out, spitterArt, spitterRig,
+                            cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
+                            cam.cellPxSize() * spitterRig.scale(), unitAlpha);
                     continue;
                 }
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {

@@ -1,0 +1,3 @@
+The SAME image as reference image 1, pixel for pixel in every part (same creature, same scale, same position, same chest, forelimbs, tail, colours, lighting and background), with ONE change: the cobra HOOD is FOLDED SHUT. The hood's ribs lie flat and close along the sides of the neck, so the neck is narrow, about as wide as the head; the glowing green membrane is hidden, showing only a thin dark green seam between the folded ribs. The jaws are CLOSED. Head still at the top, facing up.
+
+Strict overhead orthographic view, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.
