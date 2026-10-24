@@ -611,7 +611,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
         for (SocketDropTarget target : targets) {
             if (core == null || target == core) continue;
-            Color wire = HardpointBricks.tone(socketById(sockets, target.id()).type());
+            Color wire = VehicleDoll.tone(type, target.id());
             List<float[]> path = wireToCore(target, core);
             for (int i = 0; i < path.size() - 1; i++) {
                 float[] a = path.get(i), b = path.get(i + 1);
@@ -625,7 +625,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             boolean rack = socket.id() == SocketId.AUXILIARY;
-            MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.mark(socket.id()),
+            MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
+                    VehicleDoll.art(type, socket.id()),
                     VehicleDoll.caption(type, socket.id(), kits), rack ? kits : List.of(),
                     rack && selectedSocket.get() == SocketId.AUXILIARY, hoveredSocket == socket.id(),
                     elapsedSeconds.getAsDouble());
