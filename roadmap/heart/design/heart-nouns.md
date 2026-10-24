@@ -74,8 +74,11 @@ country of an open-field landing (`mapgen-nouns.md`, Rural country), where the
 company comes down and which the creep has not yet taken. Past it, **woods**
 thicker than any other map's, the **dark settlement** (Broad Front's market town
 in the middle of the map; The Burn's village near the start, at the infection's
-edge), and the **workings** against the far edge, a few sheds and a yard on
-short roads, where the mothers stand.
+edge), and the **origin** against the far edge, where the mothers stand: the
+facility the bloom came up in, drawn from the seed (`HeartOrigin`,
+`heart-origins.md`): the reservoir's pump station, a freight terminal or a
+research compound, fenced, its core building broken open by the authored damage
+layer from the side the first mother came up on.
 
 **Matured bloom.** The heart's creep is the bores' own, grown to full reach at
 setup as creep weeks old (`colony-breach-nouns.md`, Creep can be matured): it
