@@ -145,9 +145,10 @@ The three chassis are stand-ins for a grid of mech lines, tech family by weight 
 ### Ground emplacements
 
 Each family builds a prepared and a militia emplacement style (`EmplacementStyle`,
-`ground-turret-tiers.md`): low-tech brutalist concrete and earthwork, midline modular panels
-and barrier cells, high-tech composite shells and deployed kit. The defenders' faction picks
-the family (`EmplacementStylePolicy`).
+`ground-turret-tiers.md`): low-tech brutalist concrete and earthwork; midline League modular panels
+and barrier cells, or Diktat export kit and blockwork; high-tech field-emitter composite shells
+in hex plating and deployed kit, under a drawn flux shield. The defenders' faction picks the
+family (`EmplacementStylePolicy`).
 
 ### Interiors
 

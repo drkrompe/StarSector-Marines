@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fire;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Burning as simulation state the battle owns (`fire-nouns.md`, Fire field).
@@ -51,6 +52,13 @@ public final class FireField {
      * (`fire-nouns.md`, Spread), folding the pick into {@link FireFuel}.
      */
     public static final String SPREAD_SCALE_PROPERTY = "battle.fire.spreadScale";
+    /**
+     * Temporary A/B switch, composed with a fuel's lower-case name ({@code battle.fire.spread.brush=3}): how many cells
+     * that fuel carries a fire, in place of its {@link FireFuel#spread}; unset keeps it. Remove it with its losing arm
+     * once the owner answers the fire-flamer-woods pick (whether a flamer squad can be used in a wood), folding the
+     * answer into {@link FireFuel}.
+     */
+    public static final String SPREAD_PROPERTY_PREFIX = "battle.fire.spread.";
     /** How many times its spread a fire carries in dry country ({@link #setTinder}). */
     static final int TINDER_SPREAD = 3;
     /** Wind strength at or above which a fire reaches a ring further downwind. */
@@ -73,6 +81,7 @@ public final class FireField {
     private final FireTerrain terrain;
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
     private final float spreadScale = spreadScale(System.getProperty(SPREAD_SCALE_PROPERTY));
+    private final int[] fuelSpread = fuelSpread();
     private Listener listener = new Listener() { };
 
     private final int[] heat;
@@ -419,10 +428,20 @@ public final class FireField {
 
     /** How far from its ignition a fire may be and still catch a cell of this fuel. */
     int spreadLimit(int m) {
-        int spread = FireFuel.spread(m);
+        int spread = 0;
+        for (FireFuel f : FireFuel.values()) if (f.in(m)) spread = Math.max(spread, fuelSpread[f.ordinal()]);
         if (spread >= FireFuel.UNLIMITED || spreadScale <= 0f) return FireFuel.UNLIMITED;
         float limit = spread * spreadScale * (tinder ? TINDER_SPREAD : 1);
         return Math.min(FireFuel.UNLIMITED, Math.round(limit));
+    }
+
+    private static int[] fuelSpread() {
+        FireFuel[] fuels = FireFuel.values();
+        int[] out = new int[fuels.length];
+        for (FireFuel f : fuels) {
+            out[f.ordinal()] = Integer.getInteger(SPREAD_PROPERTY_PREFIX + f.name().toLowerCase(Locale.ROOT), f.spread);
+        }
+        return out;
     }
 
     static float spreadScale(String value) {
@@ -454,6 +473,9 @@ public final class FireField {
     public byte stateAt(int idx) { return state[idx]; }
     public boolean isBurning(int x, int y) { return inBounds(x, y) && state[y * width + x] == BURNING; }
     public boolean isBurnt(int x, int y) { return inBounds(x, y) && state[y * width + x] == BURNT; }
+
+    /** The fuel standing on a cell, burnt or not; {@code 0} off the field. */
+    int fuelMaskAt(int x, int y) { return inBounds(x, y) ? terrain.fuelMask(y * width + x) : 0; }
 
     /** Whether a cell could still catch: unburnt, with fuel standing on it. */
     public boolean canBurn(int x, int y) { return inBounds(x, y) && state[y * width + x] == UNBURNT && terrain.fuelMask(y * width + x) != 0; }

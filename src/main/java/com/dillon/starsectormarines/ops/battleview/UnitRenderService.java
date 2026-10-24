@@ -20,7 +20,10 @@ import com.dillon.starsectormarines.battle.air.GroundWreck;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLift;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
+import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService.PodLaunch;
@@ -109,6 +112,13 @@ public final class UnitRenderService implements RenderSystem {
      * about 1.2 cells long: plainly a person on the ground, not a giant.
      */
     static final float DOWNED_BODY_SCALE = 0.65f;
+    /** How much larger a body a Harrier threw is drawn per cell it is off the ground. */
+    static final float LIFTED_SCALE_PER_CELL = 0.14f;
+    /** The size a Harrier bite's stain spreads to, cells, and how long it takes to fade at the end. */
+    static final float STRIKE_STAIN_CELLS = 0.5f;
+    static final float STRIKE_STAIN_FADE_SECONDS = 5f;
+    /** A bite's stain is thinner than a body's pool: blood thrown, not drained. */
+    static final float STRIKE_STAIN_ALPHA = 0.7f;
     /**
      * A sleeper against the live shoulder scale: the same as a fallen body. At 0.9 a marine in
      * bed read as a giant beside the standing figure, whose head and shoulders are all that shows.
@@ -1106,6 +1116,18 @@ public final class UnitRenderService implements RenderSystem {
         List<LayeredSpriteCache> pools = sprites.bloodPools();
         if (!pools.isEmpty()) {
             int now = ctx.sim.getSimTickIndex();
+            // Blood a Harrier's bite left on the ground: a small pool that spreads as a body's does, then fades.
+            for (SwarmFliers.Stain stain : ctx.sim.swarmFliers().stains()) {
+                if (!view.visible(stain.x(), stain.y(), STRIKE_STAIN_CELLS)) continue;
+                float age = (now - stain.tick()) * BattleSimulation.TICK_DT;
+                float fade = Math.max(0f, Math.min(1f, (HarrierRules.STAIN_SECONDS - age) / STRIKE_STAIN_FADE_SECONDS));
+                LayeredSpriteCache pool = pools.get(Math.floorMod(stain.tick(), pools.size()));
+                float size = cam.cellPxSize() * STRIKE_STAIN_CELLS * bloodSpread(age);
+                out.addSprite(RenderLayer.UNITS, pool.sprite,
+                        cam.cellToScreenX(stain.x()), cam.cellToScreenY(stain.y()),
+                        size, size * pool.pxHeight / pool.pxWidth, stain.facing(),
+                        1f, 1f, 1f, alphaMult * STRIKE_STAIN_ALPHA * fade);
+            }
             for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
                 Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
                 int[] poseIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
@@ -1556,6 +1578,16 @@ public final class UnitRenderService implements RenderSystem {
                     if (hauled != null) {
                         float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
                         emitDragged(ctx, out, hauled, entityId, carrier, rx[r], ry[r], scale, unitAlpha);
+                        continue;
+                    }
+                    // Thrown by a Harrier: the lying picture, turning over, drawn larger the higher it is.
+                    HarrierLift thrown = lying != null ? ctx.sim.swarmFliers().lift(entityId) : null;
+                    if (thrown != null) {
+                        float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX
+                                * (1f + LIFTED_SCALE_PER_CELL * thrown.height());
+                        out.addSprite(RenderLayer.UNITS, lying.sprite, cx, cy,
+                                lying.pxWidth * scale, lying.pxHeight * scale, layeredFacing[r] + thrown.spin(),
+                                1f, 1f, 1f, unitAlpha);
                         continue;
                     }
                     if (lying != null) {

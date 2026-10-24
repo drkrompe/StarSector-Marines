@@ -35,6 +35,8 @@ public final class QuadMesh {
     private SpriteAPI atlasSheet;
     private Object atlasOwner;
     private int[] atlasRects;
+    /** {@link #corners} with each quad whose image the atlas holds trimmed drawn over the part it holds; null when none is. */
+    private float[] atlasCorners;
     private boolean atlasMissing;
     /** The atlas texture coordinates, worked out for the batch that last drew the mesh. */
     private QuadBatch uvBatch;
@@ -94,7 +96,11 @@ public final class QuadMesh {
     public float blue(int i) { return tint[i * 4 + 2]; }
     public float alpha(int i) { return tint[i * 4 + 3]; }
 
-    /** Resolves an image to its rectangle in an atlas: {@code {x, y, w, h}}, or null for one it does not hold. */
+    /**
+     * Resolves an image to its rectangle in an atlas: {@code {x, y, w, h}}, or null for one it does not hold. An
+     * atlas that holds only part of an image answers {@code {x, y, w, h, trimX, trimY, fullW, fullH}}: the held
+     * {@code w x h} starts {@code trimX, trimY} into an image of {@code fullW x fullH}, {@code y} down from the top.
+     */
     public interface AtlasAddress {
         int[] rect(SpriteAPI image);
     }
@@ -112,6 +118,7 @@ public final class QuadMesh {
         uvBatch = null;
         atlasMissing = false;
         if (atlasRects == null || atlasRects.length < size * 4) atlasRects = new int[size * 4];
+        atlasCorners = null;
         for (int i = 0; i < size; i++) {
             int[] rect = address.rect(images[i]);
             if (rect == null) {
@@ -119,8 +126,17 @@ public final class QuadMesh {
                 break;
             }
             System.arraycopy(rect, 0, atlasRects, i * 4, 4);
+            if (rect.length >= 8 && (rect[2] != rect[6] || rect[3] != rect[7])) trimCorners(i, rect);
         }
         return !atlasMissing;
+    }
+
+    /** Quad {@code i}'s corners over the part of its image the atlas holds, {@code rect} as {@link AtlasAddress} has it. */
+    private void trimCorners(int i, int[] rect) {
+        if (atlasCorners == null) atlasCorners = Arrays.copyOf(corners, size * 8);
+        QuadBatch.partCorners(corners, i * 8, atlasCorners, i * 8,
+                rect[4] / (float) rect[6], (rect[4] + rect[2]) / (float) rect[6],
+                rect[5] / (float) rect[7], (rect[5] + rect[3]) / (float) rect[7], false);
     }
 
     /** Writes the mesh into {@code batch}, whose sheet is the atlas resolved by {@link #addressAtlas}. */
@@ -129,6 +145,6 @@ public final class QuadMesh {
             uvs = batch.meshUvs(atlasRects, size);
             uvBatch = batch;
         }
-        batch.appendMesh(uvs, corners, tint, size, x, y, scale, alphaMult);
+        batch.appendMesh(uvs, atlasCorners != null ? atlasCorners : corners, tint, size, x, y, scale, alphaMult);
     }
 }

@@ -277,7 +277,8 @@ public final class BruteChargeSystem {
     }
 
     /**
-     * Thread-safe; posted by a Matriarch's reap for each body it cut. Lands next serial pass: a body that
+     * Thread-safe; posted by a Matriarch's reap for each body it cut, and by a Harrier for a body it threw as
+     * that body comes down ({@code HarrierLift}). Lands next serial pass: a body that
      * lived through the cut is knocked down for {@code holdSeconds} and thrown {@code cells} along
      * {@code (dx, dy)}, sliding to rest as a trampled one does.
      */
@@ -432,6 +433,9 @@ public final class BruteChargeSystem {
     }
 
     /** What {@code id} is to a charge, or null for something it does not hit (fliers, drones, swarm). */
+    /** Whether {@code id} is a body on foot, which a blow knocks down and a toss throws. */
+    public static boolean isInfantry(long id, BattleSimulation sim) { return kind(id, sim) == Kind.INFANTRY; }
+
     static Kind kind(long id, BattleSimulation sim) {
         if (sim.convoy().isVehicle(id)) return BruteChargeRules.vehicleKind(sim.convoy().vehicleType(id).weight());
         UnitType type = sim.identity().type(id);

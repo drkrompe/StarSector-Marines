@@ -33,7 +33,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from make_guide import Canvas, SS, g, W, H, PLINTH_OUT, PLINTH_DECK  # noqa: E402
 from export import OUT as ART, PPC, contact_shadow, fitted, masked, plinth_with_shadow  # noqa: E402
-from export_ship import fill_pit, match_extent  # noqa: E402
+from export_ship import fill_pit  # noqa: E402
 
 ROOT = HERE.parent.parent
 GUIDES = HERE / "guides"
@@ -615,7 +615,19 @@ def guide_path(family, variant, sheet):
 
 # The directions taken on to full sets (phase B). Their militia hardpoint is the stepped 'hardpoint-v2' geometry
 # (the phase-A militia plinths read flat at play zoom), and they carry the second point sheet.
-CHOSEN = ("league-standard", "tritach-white")
+CHOSEN = ("league-standard", "diktat-export", "field-emitter")
+# Options whose shells carry the Paragon's hex ablative armour (owner, phase C): their sheets are generated again with
+# the hex reference, as '<sheet>-hex' on the same guides.
+HEX = ("field-emitter",)
+HEX_REF = GUIDES / "paragon-hex-reference.png"
+PARAGON_REFERENCE = ROOT / "art-source" / "company-prologue" / "paragon-surface" / "guide" / "reference-guide.png"
+# A strip of the Paragon's clean review render that holds hex plating and nothing else, enlarged threefold.
+HEX_CROP = (640, 668, 1040, 760)
+
+
+def guide_sheet(sheet):
+    """The guide a sheet is drawn over: a '-hex' sheet reuses its plain sheet's guide."""
+    return sheet[:-4] if sheet.endswith("-hex") else sheet
 
 
 # The image tool refused the League militia's second point sheet three times running (violence filter), so that
@@ -628,7 +640,8 @@ def sheets(option, variant):
     if option not in CHOSEN:
         return ("points", "hardpoint")
     second = "collar2" if (option, variant) in COLLAR_ONLY else "points2"
-    return ("points", "hardpoint-v2" if variant == "militia" else "hardpoint", second)
+    names = ("points", "hardpoint-v2" if variant == "militia" else "hardpoint", second)
+    return tuple(n + "-hex" for n in names) if option in HEX else names
 
 
 def hardpoint_sheet_name(option, variant):
@@ -802,9 +815,23 @@ COMMON_TAIL = ("Straight 90-degree overhead orthographic camera, top-down like a
                "subtle shading, never placement, size or silhouette.")
 
 
+HEX_BRIEF = ("Surface: every composite shell, housing and deck is armoured in a fine regular pattern of small "
+             "hexagonal ceramic plates with thin dark seams, as on the hex-armoured warship hull in the hex reference "
+             "image: one continuous honeycomb across each surface, plates a few pixels across at sprite size, "
+             "slightly crowned, a little paler on lit faces; glass, glowing rings and pipes stay smooth. ")
+
+
+# Where an option's militia works are not the family's default material, the geometry wording follows its material.
+BASE_WORDS = {
+    "diktat-export": (("earth-filled mesh bins", "interlocking moulded plastic blocks"),),
+}
+
+
 def brief(option, variant, sheet):
     family, prepared, militia = OPTIONS[option]
     material = prepared if variant == "prepared" else militia
+    hex_armour = sheet.endswith("-hex")
+    sheet = guide_sheet(sheet)
     head = ("Use case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit "
             "target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. ")
     if sheet == "points":
@@ -826,7 +853,9 @@ def brief(option, variant, sheet):
                 + (PLINTHS_V2 if sheet == "hardpoint-v2" else PLINTHS)[(family, variant)]
                 + "; the deck holds an empty dark circular ring well (leave the well dark and plain: a separate "
                 "rotating house sits over it). Right: " + HEAVY[family] + ". ")
-    return head + body + "Material and style: " + material + ". " + COMMON_TAIL
+    for words, instead in BASE_WORDS.get(option, ()):
+        body = body.replace(words, instead)
+    return head + body + "Material and style: " + material + ". " + (HEX_BRIEF if hex_armour else "") + COMMON_TAIL
 
 
 def prompt_path(option, variant, sheet):
@@ -851,6 +880,8 @@ def cmd_guides():
             # stepped militia geometry is written as hardpoint-v2.
             name = "hardpoint" if variant == "prepared" else "hardpoint-v2"
             hardpoint_sheet(family, variant).save(guide_path(family, variant, name))
+    strip = Image.open(PARAGON_REFERENCE).convert("RGB").crop(HEX_CROP)
+    strip.resize((strip.width * 3, strip.height * 3), Image.LANCZOS).save(HEX_REF)
     print("wrote guides")
 
 
@@ -880,9 +911,12 @@ def cmd_generate(options):
             continue
         cmd = [sys.executable, str(ROOT / "tools" / "codex_imagegen.py"),
                "--prompt", str(prompt_path(option, variant, sheet)), "--out", str(out),
-               "--ref", f"{guide_path(family, variant, sheet)}=Geometry/layout authority and edit target: keep every "
-                        "silhouette, position and size",
+               "--ref", f"{guide_path(family, variant, guide_sheet(sheet))}=Geometry/layout authority and edit "
+                        "target: keep every silhouette, position and size",
                "--ref", f"{STYLE_REF}=Painting style and rendering finish only; not layout, not material colour"]
+        if sheet.endswith("-hex"):
+            cmd += ["--ref", f"{HEX_REF}=Hex reference: the hexagonal armour-plate surface pattern only; not layout, "
+                             "not shapes, not colour"]
         procs.append((out.name, subprocess.Popen(cmd, cwd=ROOT)))
         while sum(1 for _, p in procs if p.poll() is None) >= 4:
             procs[[i for i, (_, p) in enumerate(procs) if p.poll() is None][0]][1].wait()
@@ -902,9 +936,10 @@ def shipped_head(role):
 
 
 def head_piece(sheet, guide, box, size, shadow_frac, role):
-    """A head cut to its guide, then moved and scaled to the shipped brutalist head's opaque box (export_ship's
-    match_extent), so a draft is drawn at the shipped heads' size and one set of muzzles would serve it."""
-    piece = match_extent(fitted(sheet, guide, box).resize((size, size), Image.LANCZOS), shipped_head(role))
+    """A head cut to its guide box, so its turret ring sits on the pivot as the guide draws it. (Phase A also
+    stretched it per axis onto the shipped brutalist head's box, which moved every family's ring off the pivot.)"""
+    del role
+    piece = fitted(sheet, guide, box).resize((size, size), Image.LANCZOS)
     out = contact_shadow(size, shadow_frac)
     out.alpha_composite(piece)
     return out
@@ -913,10 +948,10 @@ def head_piece(sheet, guide, box, size, shadow_frac, role):
 def cmd_export():
     cx = [18 + 500 * i + 250 for i in range(3)]
     for option, family, variant, sheet in jobs(None):
-        if sheet != "points":
+        if guide_sheet(sheet) != "points":
             continue
         hp_sheet = hardpoint_sheet_name(option, variant)
-        pts_raw, hp_raw = raw_path(option, variant, "points"), raw_path(option, variant, hp_sheet)
+        pts_raw, hp_raw = raw_path(option, variant, sheet), raw_path(option, variant, hp_sheet)
         if not (pts_raw.exists() and hp_raw.exists()):
             print("skip", option, variant, "(raw missing)")
             continue
@@ -929,7 +964,7 @@ def cmd_export():
         head_piece(pts, guide, (cx[1] - 250, 262, cx[1] + 250, 762), 160, 0.22, "autogun") \
             .save(target / "autogun.png")
         head_piece(pts, guide, (cx[2] - 250, 262, cx[2] + 250, 762), 160, 0.24, "cannon").save(target / "cannon.png")
-        guide = Image.open(guide_path(family, variant, hp_sheet))
+        guide = Image.open(guide_path(family, variant, guide_sheet(hp_sheet)))
         hp = masked(Image.open(hp_raw), guide)
         plinth_with_shadow(fitted(hp, guide, (0, 128, 768, 896)), 3 * PPC).save(target / "plinth.png")
         head_piece(hp, guide, (768, 128, 1536, 896), 3 * PPC, 0.2, "heavy").save(target / "heavy.png")

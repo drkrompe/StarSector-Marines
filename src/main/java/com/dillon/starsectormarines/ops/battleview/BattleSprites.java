@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -752,6 +753,53 @@ public class BattleSprites {
      */
     public BufferedImage readPixels(String path) throws IOException {
         return ModTextures.readImage(path);
+    }
+
+    /** Each path's {@link #alphaBounds}, or {@link #NO_BOUNDS} where none could be read. */
+    private final Map<String, int[]> alphaBounds = new HashMap<>();
+    private static final int[] NO_BOUNDS = new int[0];
+
+    /**
+     * The smallest rectangle holding every texel of {@code sprite}'s image that is not fully transparent, in its
+     * logical pixels with {@code y} down from the top, as {@code {x0, y0, x1, y1}} (ends exclusive); null for an
+     * image this host did not load, one it cannot read, or one with nothing in it.
+     *
+     * <p>Read from the image's file the first time it is asked, because what asks it plans a texture before any GL
+     * runs ({@link UnitAtlas}), and kept for the host's life: a file's art does not move.
+     */
+    public synchronized int[] alphaBounds(SpriteAPI sprite) {
+        ModTextures.Loaded loaded = loadedImage(sprite);
+        if (loaded == null || loaded.path() == null) return null;
+        int[] bounds = alphaBounds.get(loaded.path());
+        if (bounds == null) {
+            bounds = NO_BOUNDS;
+            try {
+                BufferedImage image = readPixels(loaded.path());
+                if (image != null) bounds = opaqueBounds(image);
+            } catch (IOException | RuntimeException unreadable) {
+                LOG.warn("No alpha bounds for " + loaded.path() + ": " + unreadable);
+            }
+            alphaBounds.put(loaded.path(), bounds);
+        }
+        return bounds.length == 4 ? bounds : null;
+    }
+
+    /** {@link #alphaBounds} of decoded pixels; {@link #NO_BOUNDS} when every texel is transparent. */
+    static int[] opaqueBounds(BufferedImage image) {
+        int w = image.getWidth(), h = image.getHeight();
+        int x0 = w, y0 = h, x1 = 0, y1 = 0;
+        int[] row = new int[w];
+        for (int y = 0; y < h; y++) {
+            image.getRGB(0, y, w, 1, row, 0, w);
+            for (int x = 0; x < w; x++) {
+                if ((row[x] >>> 24) == 0) continue;
+                if (x < x0) x0 = x;
+                if (x >= x1) x1 = x + 1;
+                if (y < y0) y0 = y;
+                y1 = y + 1;
+            }
+        }
+        return x1 > x0 ? new int[]{x0, y0, x1, y1} : NO_BOUNDS;
     }
 
     /** One vehicle line's sheet, once. */

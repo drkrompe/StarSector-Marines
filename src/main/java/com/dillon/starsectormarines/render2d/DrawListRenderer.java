@@ -298,7 +298,10 @@ public final class DrawListRenderer {
 
     /** Queues one {@code SHEET_QUAD} into its sheet's batch, by the shape it asks for. */
     private static void appendSheetQuad(QuadBatch batch, DrawCommand c) {
-        if (c.patch() != null) {
+        if (c.part) {
+            batch.appendRotatedPart(c.srcX, c.srcY, c.srcW, c.srcH, c.cx, c.cy, c.w, c.h,
+                    c.angleDeg, c.flipV, c.partX0, c.partX1, c.partY0, c.partY1, c.r, c.g, c.b, c.a);
+        } else if (c.patch() != null) {
             batch.appendPatch(c.srcX, c.srcY, c.srcW, c.srcH, c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a, c.patch());
         } else if (c.angleDeg != 0f) {
             batch.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,

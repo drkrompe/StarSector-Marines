@@ -309,7 +309,9 @@ public final class AirPoolService {
     /**
      * As {@link #request(BattleSimulation, Faction, AirPoolKind, float, float, boolean, LongPredicate)} for a bomber
      * carrying firebombs ({@link AirOrdnance#INCENDIARY_BOMBS}): from the same stock as any bomber, and loaded with the
-     * ordinary stick instead when a fire lit at the point could come to the side's own ({@link FireReach}).
+     * ordinary stick instead when a fire lit at the point could come to the side's own ({@link FireReach}). A stick
+     * runs along the bomber's pass, so the ground it may light is taken to be the director's danger-close ring round
+     * the point ({@link AirStrikeDirector#DANGER_CLOSE_CELLS}).
      */
     public Outcome requestIncendiary(BattleSimulation sim, Faction side, float x, float y, boolean believes,
                                      LongPredicate operators) {
@@ -319,7 +321,8 @@ public final class AirPoolService {
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
         boolean safe = !FireReach.enabled()
-                || !FireReach.reachesSide(sim.fireField(), (int) Math.floor(x), (int) Math.floor(y), side, sim);
+                || !FireReach.reachesSide(sim.fireField(), (int) Math.floor(x), (int) Math.floor(y),
+                        (int) AirStrikeDirector.DANGER_CLOSE_CELLS, side, sim);
         return call(sim, side, AirPoolKind.BOMBER, AirMission.strikeOf(AirPoolKind.BOMBER), operator, x, y, ready,
                 safe ? AirOrdnance.INCENDIARY_BOMBS : null);
     }
