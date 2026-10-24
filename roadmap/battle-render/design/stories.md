@@ -6,7 +6,8 @@ Written: 2026-08-23
 
 | Story | State | Intent |
 |---|---|---|
-| `programmable-quad-batch.md` | IN PROGRESS | Quad batch on a GLSL 1.20 program: paged runs and fills in the run landed; additive blends in the run and per-quad effects open. |
+| `programmable-quad-batch.md` | IN PROGRESS | Quad batch on a GLSL 1.20 program: paged runs, fills and additive blends in the run landed; per-quad effects open. |
+| `gpu-night-shade.md` | IN PROGRESS | Night shade computed per pixel from the light pools as textures; landed behind `battle.render.gpuNightShade`, awaiting the owner's read of the stills to retire the control. |
 | `dense-render-tiles.md` | PARKED | Add view-resident, invalidatable baked cell tiles for **decals**. Static ground is settled — it is a resident mesh, and the baked-tile answer was measured against and rejected for it. |
 | `unified-sprite-registry.md` | PROPOSED | Consolidate duplicate render-tier asset cache lifecycles behind stable path-based asset resolution without putting graphics handles into simulation state. |
 | `ground-collector-allocation.md` | PROPOSED | Hoist stable ground-kind mappings and colors out of the per-frame collector after profiling confirms the allocation path matters. |
