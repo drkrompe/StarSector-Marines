@@ -466,19 +466,67 @@ final class BattleDirectControlHudModel {
         String detail = active ? seconds(ability.activeSeconds())
                 : ability.ability() == DirectControlAbility.GRENADE ? ability.name()
                 : label(shield ? "Directional" : "CursorThrow");
+        List<RoundBlock> items = itemBlocks("direct-hud-ability-" + ability.ability().name(), ability, broken, active);
+        // Drawn throws need no count beside them; a load too long to draw keeps its number.
         String resource = shield ? (active ? Math.round(ability.soakRemaining()) + " / "
                 + Math.round(ability.soakCapacity()) : "")
-                : ability.remaining() + " / " + ability.capacity();
+                : items.isEmpty() ? ability.remaining() + " / " + ability.capacity() : "";
         float fill = broken ? 0f : shield && active ? fraction(ability.soakRemaining(), ability.soakCapacity())
                 : active ? 1f - fraction(ability.activeSeconds(), ability.durationSeconds())
                 : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
                 : ability.ready() ? 1f : 0f;
         String key = shield ? "C" : ability.ability() == DirectControlAbility.SMOKE ? "G" : "";
         return new WeaponRow("direct-hud-ability-" + ability.ability().name(),
-                "weapon ability" + (picked ? " weapon-selected selected" : ""),
-                rowStyle(picked, 1f), !clickable, key, key.isEmpty() ? "key key-none" : "key",
+                "weapon ability" + (picked ? " weapon-selected selected" : "") + (items.isEmpty() ? "" : " weapon-magazine"),
+                rowStyle(picked, 1f) + (items.isEmpty() ? "" : " height: 74px;"), !clickable, key,
+                key.isEmpty() ? "key key-none" : "key",
                 abilityName(ability), detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
-                : !ability.ready() ? " weapon-busy" : ""), width(fill), action);
+                : !ability.ready() ? " weapon-busy" : ""), width(fill), action, items,
+                items.isEmpty() ? "weapon-rounds weapon-rounds-none" : "weapon-rounds");
+    }
+
+    /**
+     * A right-button item drawn under its row, as a magazine's rounds are: each smoke or hand grenade carried, the
+     * ones thrown as outlines and the rest dimmed while a throw is under way or the button is not free; the shield
+     * as one plate, up or ready lit, recharging dimmed, broken an outline. A load too long to draw keeps its count.
+     */
+    static List<RoundBlock> itemBlocks(String rowId, BattleDirectControlStatus.AbilityStatus ability,
+                                       boolean broken, boolean active) {
+        String kind = switch (ability.ability()) {
+            case SHIELD -> "shield";
+            case SMOKE -> "smoke";
+            case GRENADE -> "grenade";
+            default -> null;
+        };
+        if (kind == null) return List.of();
+        boolean shield = ability.ability() == DirectControlAbility.SHIELD;
+        int count = shield ? 1 : ability.capacity();
+        if (count <= 0 || count > MAX_ITEM_ICONS) return List.of();
+        String held = shield
+                ? broken ? "spent" : active || ability.ready() ? "live" : "loading"
+                : active || !ability.ready() ? "loading" : "live";
+        List<RoundIcon> icons = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            String state = !shield && i >= ability.remaining() ? "spent" : held;
+            icons.add(new RoundIcon(rowId + "-round-" + i, "round round-" + kind,
+                    "graphics/ui/direct-control/round-" + kind + "-" + state + ".svg"));
+        }
+        int width = count * itemWidth(kind) + (count - 1) * ITEM_GAP;
+        return List.of(new RoundBlock(rowId + "-block-0", "round-block round-block-" + kind,
+                "width: " + width + "px; gap: " + ITEM_GAP + "px;", icons));
+    }
+
+    /** Items a right-button row draws as icons; more than this keeps its count. */
+    static final int MAX_ITEM_ICONS = 8;
+    private static final int ITEM_GAP = 4;
+
+    /** An item icon's width in the strip, as the component's sheet sizes it. */
+    static int itemWidth(String kind) {
+        return switch (kind) {
+            case "shield" -> 16;
+            case "grenade" -> 12;
+            default -> 10;
+        };
     }
 
     /**

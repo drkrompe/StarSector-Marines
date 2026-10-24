@@ -89,7 +89,9 @@ farmland: a band of hill segments across the whole front, each climbed by a
 ramp from the cordon's side, with a pass wherever a road, a lane, a ride or a
 settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
 it, and it looks down into the overgrowth. The Burn's village stands across most of its
-band, so The Burn's ridge is short.
+band, so The Burn's ridge is short. A city's cordon has no ridge: a city's
+height is its buildings (`elevation-nouns.md`), its blocks fill the band, and
+the line is dug on the last open ground before the streets instead.
 
 **Hollow.** The low ground the workings sit in: a rim of high ground wrapped
 round them on the attack's side, climbed from outside, its inner face a cliff

@@ -56,6 +56,7 @@ import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFireGroups;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
@@ -235,8 +236,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-marine-pulse-rifle-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, pulseRifle(),
                         marinePlate(context.modRoot(), true).document(), false)));
-        // One Marine carrying smoke in hand and a frag on the belt: both throws on the RMB rows, the frag picked,
-        // and both in the doll's kit column.
+        // One Marine carrying smoke in hand, a frag on the belt and a shield: every RMB item, the frag picked,
+        // and all three in the doll's kit column.
         artifacts.add(new SnapshotArtifact("active-marine-smoke-and-grenade-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, smokeAndGrenade(),
                         smokeAndGrenadePlate(context.modRoot()).document(), false)));
@@ -558,7 +559,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 base.durability(), List.of(status), List.of(), MarineSprint.EMPTY);
     }
 
-    /** A rifleman with a smoke grenade and, in the second special slot, a frag: the frag picked on the right button. */
+    /** A rifleman with a smoke grenade, a frag in the second special slot and a breaching assist's shield: the frag picked. */
     private static BattleDirectControlStatus.Snapshot smokeAndGrenade() {
         var smoke = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
         var frag = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
@@ -570,20 +571,26 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 base.durability(), List.of(rifle), List.of(
                         BattleDirectControlStatus.smokeAbility(smoke, smoke.startingAmmo(), null, 0f, true),
                         BattleDirectControlStatus.grenadeAbility(frag, frag.startingAmmo() - 1, false, 0f, true)
-                                .withPicked(true)),
+                                .withPicked(true),
+                        new BattleDirectControlStatus.AbilityStatus(DirectControlAbility.SHIELD, "Breaching assist",
+                                true, 0f, 6f, 0f, 12f, -1, -1, 0f, 120f, false, 90f, 120f)),
                 MarineSprint.EMPTY);
     }
 
     private static BattleMarineDollPlate smokeAndGrenadePlate(Path modRoot) {
         var smoke = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
         var frag = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
-        var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)),
-                ModStrings.fromDisk(modRoot), true);
+        var copy = ModStrings.fromDisk(modRoot);
+        var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)), copy, true);
         plate.update(new BattleMarineDollPlate.MarineDoll(false, true, 35f / 60f, .74f, 0, 0, List.of(
                 new BattleMarineDollPlate.Kit(smoke.displayName(),
-                        smoke.startingAmmo() + "/" + smoke.startingAmmo(), false),
+                        smoke.startingAmmo() + "/" + smoke.startingAmmo(), false,
+                        BattleMarineDollPlate.Kit.round(smoke), smoke.startingAmmo(), smoke.startingAmmo()),
                 new BattleMarineDollPlate.Kit(frag.displayName(),
-                        (frag.startingAmmo() - 1) + "/" + frag.startingAmmo(), false))));
+                        (frag.startingAmmo() - 1) + "/" + frag.startingAmmo(), false,
+                        BattleMarineDollPlate.Kit.round(frag), frag.startingAmmo() - 1, frag.startingAmmo()),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
+                        copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true))));
         return plate;
     }
 
@@ -878,7 +885,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/3", false,
                         "missile", 1, 3),
                 new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
-                        copy.apply("battleMarineDollReady"), false),
+                        copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true),
                 new BattleMarineDollPlate.Kit(copy.apply("battleMarineDollMedic"), "0/3", true));
         return new BattleMarineDollPlate.MarineDoll(suit, true, armor, health, arms, legs, items);
     }

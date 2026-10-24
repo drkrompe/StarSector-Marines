@@ -155,8 +155,17 @@ class BattleDirectControlHudTest {
                         fixture.weapons.requireElement("direct-hud-ability-SHIELD-state").text());
                 assertEquals(new String[]{"READY", "THROW", "EMPTY", "READY"}[state],
                         fixture.weapons.requireElement("direct-hud-ability-SMOKE-state").text());
-                assertEquals(state == 2 ? "0 / 2" : "2 / 2",
-                        fixture.weapons.requireElement("direct-hud-ability-SMOKE-ammo").text());
+                assertEquals("", fixture.weapons.requireElement("direct-hud-ability-SMOKE-ammo").text(),
+                        "drawn throws need no count");
+                String smoke = new String[]{"live", "loading", "spent", "live"}[state];
+                for (int i = 0; i < 2; i++) {
+                    assertEquals("graphics/ui/direct-control/round-smoke-" + smoke + ".svg", fixture.weapons
+                            .requireElement("direct-hud-ability-SMOKE-round-" + i).imageSource());
+                }
+                assertEquals("graphics/ui/direct-control/round-shield-"
+                                + new String[]{"live", "live", "loading", "spent"}[state] + ".svg",
+                        fixture.weapons.requireElement("direct-hud-ability-SHIELD-round-0").imageSource(),
+                        "the shield is lit up or ready, dimmed recharging, an outline broken");
                 assertEquals(new String[]{"100%", "RUN", "REST", "REST"}[state],
                         fixture.status.requireElement("direct-status-stamina-value").text());
                 var stamina = fixture.status.requireElement("direct-status-stamina-fill");
@@ -206,7 +215,11 @@ class BattleDirectControlHudTest {
             assertEquals("[E]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
             assertEquals("", fixture.weapons.requireElement("direct-hud-ability-GRENADE-key").text(),
                     "a grenade has no hotkey of its own; E and the right button reach it");
-            assertEquals("2 / 3", fixture.weapons.requireElement("direct-hud-ability-GRENADE-ammo").text());
+            assertEquals("", fixture.weapons.requireElement("direct-hud-ability-GRENADE-ammo").text());
+            assertEquals(List.of("live", "live", "spent"), List.of(0, 1, 2).stream()
+                    .map(i -> fixture.weapons.requireElement("direct-hud-ability-GRENADE-round-" + i).imageSource())
+                    .map(src -> src.substring(src.lastIndexOf('-') + 1, src.length() - 4)).toList(),
+                    "two grenades left of three, the thrown one an outline");
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-ability-SHIELD");
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-group-rmb-header");
             assertEquals(List.of("RIGHT 1", "cycle RIGHT"), picks,

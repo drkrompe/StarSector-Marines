@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,6 +30,13 @@ class HeartLayoutTest {
                 }
             }
         }
+    }
+
+    @Test
+    void aCitysEdgeIsTheFirstMostlyBuiltRow() {
+        // Rows 0-5 open but for a farmhouse; the streets start at row 6, a yard left open in them.
+        assertEquals(6, HeartLayout.builtUpDepth((d, a) -> d < 6 ? a != 3 : a == 1, 10, 0, 20));
+        assertEquals(20, HeartLayout.builtUpDepth((d, a) -> true, 10, 0, 20));
     }
 
     private static int along(Form form, int[] cell) {

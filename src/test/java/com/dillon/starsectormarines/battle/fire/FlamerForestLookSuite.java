@@ -189,10 +189,21 @@ public class FlamerForestLookSuite implements SnapshotSuite {
      * cells east of the squad; or, among the trees, across the whole window but the squad's own file.
      */
     private static void plantWood(MapResult map, LookGround.Site site, boolean amongTrees, int squadX) {
+        int from = amongTrees ? 0 : squadX + 12;
+        int openFrom = amongTrees ? squadX - 1 : Integer.MIN_VALUE, openTo = amongTrees ? squadX + 2 : Integer.MIN_VALUE;
+        plantWood(map, site, squadX + 4, 0, WINDOW_W, WINDOW_H, from, openFrom, openTo);
+    }
+
+    /**
+     * Brush over window cells {@code [x0, x1) x [y0, y1)} and trees from {@code treesFrom} east within it, leaving no
+     * tree overlapping the open file {@code [openFrom, openTo)}.
+     */
+    static void plantWood(MapResult map, LookGround.Site site, int x0, int y0, int x1, int y1, int treesFrom,
+                          int openFrom, int openTo) {
         TileRegistry registry = TileRegistry.installed();
         int shrub = registry != null && registry.has("nature.shrub-1") ? registry.indexOf("nature.shrub-1") : -1;
-        for (int ly = 0; ly < WINDOW_H; ly++) {
-            for (int lx = squadX + 4; lx < WINDOW_W; lx++) {
+        for (int ly = y0; ly < y1; ly++) {
+            for (int lx = x0; lx < x1; lx++) {
                 int x = site.x(lx), y = site.y(ly);
                 if (!map.grid.isWalkable(x, y) || map.topology.getBuildingId(x, y) != 0) continue;
                 map.topology.setGroundKind(x, y, CellTopology.GroundKind.GRASS);
@@ -203,11 +214,9 @@ public class FlamerForestLookSuite implements SnapshotSuite {
         List<ForestField.Tree> trees = new ArrayList<>();
         TreeCanopy[] kinds = {TreeCanopy.OAK, TreeCanopy.PINE_LARGE, TreeCanopy.BIRCH, TreeCanopy.PINE, TreeCanopy.OAK_SMALL};
         int k = 0;
-        int from = amongTrees ? 0 : squadX + 12;
-        for (int ly = 1; ly + 6 < WINDOW_H; ly += 6) {
-            for (int lx = from + (ly / 6 % 2) * 3; lx + 6 < WINDOW_W; lx += 7) {
-                // Among the trees, the squad's own file and the cells beside it stay open to stand on.
-                if (amongTrees && lx + 6 > squadX - 1 && lx < squadX + 2) continue;
+        for (int ly = y0 + 1; ly + 6 < y1; ly += 6) {
+            for (int lx = treesFrom + ((ly - y0) / 6 % 2) * 3; lx + 6 < x1; lx += 7) {
+                if (lx + 6 > openFrom && lx < openTo) continue;
                 trees.add(new ForestField.Tree(site.x(lx), site.y(ly), kinds[k % kinds.length], k % 4));
                 k++;
             }

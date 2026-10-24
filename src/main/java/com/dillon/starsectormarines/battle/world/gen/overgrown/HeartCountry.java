@@ -190,7 +190,7 @@ public final class HeartCountry {
         Precinct workings = place(plan, WORKINGS);
         Landscape landscape = landscapeFor(form, seed);
         if (workings != null) landscape = landscape.withHeld(hollow(form, workings.seedX(), workings.seedY()));
-        return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, seed));
+        return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, density, seed));
     }
 
     /** A placement given as depth and across shares, whichever way the form advances. */
