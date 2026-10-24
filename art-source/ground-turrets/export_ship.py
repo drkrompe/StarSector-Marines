@@ -33,6 +33,8 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from export import contact_shadow, masked, plinth_with_shadow  # noqa: E402
+sys.path.insert(0, str(HERE.parent / "fortworks"))
+from trim import graded  # noqa: E402
 
 ROOT = HERE.parent.parent
 OUT = ROOT / "mod" / "graphics" / "structures" / "ground-turrets"
@@ -296,7 +298,8 @@ def export_look(look, reference):
             raw_name, fallback = raw_name.replace("earthwork-", "brutalist-"), True
         image, guide = sheet(raw_name, guide_name)
         fit = fit_registered if look in GUIDE_FIT else fit_object
-        fitted_piece = fit(image, guide, index, box)
+        # A style's grade (fortworks/trim.py) goes on every piece, so its guns are the same stuff as its works.
+        fitted_piece = graded(fit(image, guide, index, box), look)
         if piece.startswith("collar"):
             collar = fitted_piece.resize((PPC, PPC), Image.LANCZOS)
             collar = fill_pit(collar)

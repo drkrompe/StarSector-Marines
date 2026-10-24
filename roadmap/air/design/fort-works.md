@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-24
-Updated: 2026-10-24 — fort buildings are kit buildings in the lot's style and the gate towers are rooms in the wall's; earlier: pirates build in their own patchwork style; derelict is colony steel
+Updated: 2026-10-24 — the modular look's white trim is graded down to pale slate; fort buildings are kit buildings in the lot's style and the gate towers are rooms in the wall's; earlier: pirates build in their own patchwork style; derelict is colony steel
 
 Read `ground-turret-tiers.md` (emplacement styles) and `tech-families.md` (the families) first;
 `forts.md` is the fort these works belong to.
@@ -84,6 +84,12 @@ painted over the fort-buildings gatehouse guide with the
 style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 `export_gatehouse.py`). Brutalist uses the base gatehouse.
 
+A style may take a grade between its master and its cut (`art-source/fortworks/trim.py`), run
+by every exporter of the style's art, so its walls, parapets, barricades, gate leaves and
+turret pieces stay one material. Modular's near-white strip lamps and trim glared beside its
+slate (owner), so bright unsaturated pixels are toned to a pale blue-grey at about two thirds
+of their value; the masters stay as generated.
+
 | Style | Look |
 |---|---|
 | Brutalist | Board-formed pale concrete; precast barrier blocks for barricades |
@@ -102,4 +108,5 @@ style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 - Pieces still drawn in the base art on every lot: the light post's vent ring (road-sheet
   frames with no catalog id), door and window openings, wall rubble, hedgehogs, trench and
   fence.
-- Fort buildings take the ordinary brick roof; a roof in each style's material is unpainted.
+- Fort buildings and gate towers take the ordinary kit roof and get no roof of their own: roof
+  styles are the kit-roof work's (owner), and a fort building wears whatever style that gives it.

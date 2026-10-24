@@ -297,8 +297,9 @@ passage and each open sally port in the lot's style; the gate towers beside them
 kind adds data and a layout, not renderer code. The garrison's stations are furnished with a round operator seat
 (`fort-fittings.seat`, `FortRoomKit.STOOL`): single-cell, so it turns with the fort pose. A hardened building stands
 inside no ring of bags: its door carries one short offset screen and the room is its own protection (see "Rooms").
-A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. Not yet made:
-a roof in each style's material, a bolder belt fence and a purpose-drawn Ridgewatch launcher.
+A taken plant keeps running for its new holder: only a contested point or a destroyed battery stops it. Its roof is the kit's, styled
+by the kit-roof work and never per fort (owner). Not yet made: a bolder belt fence and a purpose-drawn Ridgewatch
+launcher.
 
 ## Built: siting (mission-owned)
 
