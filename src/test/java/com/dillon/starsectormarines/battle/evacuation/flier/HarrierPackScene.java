@@ -16,9 +16,11 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A pack of Rav fliers attacks a gun line (`colony-breach-nouns.md`, Harrier).
@@ -33,7 +35,8 @@ import java.util.Map;
  *       anti-air binds missions; this loop breaks it on purpose.</li>
  * </ul>
  *
- * <p>Verdicts assert the mechanics: every dive's strikes land on the one target the pack committed to; a flier that
+ * <p>Verdicts assert the mechanics: every dive's strikes land in the place the pack committed to (within
+ * {@link HarrierRules#SPREAD_RADIUS} of the body it chose, each diver on its own body there); a flier that
  * went low climbed back out; nothing whose weapon cannot track a flier ever held one as a target or hit one; and,
  * with anti-air, the flak hit a flier once one came into its reach. Who won, how many fliers died and what the line
  * lost are metrics.
@@ -45,6 +48,8 @@ public final class HarrierPackScene implements BehaviorScene {
     static final int LINE_X = 22;
     static final int LINE_Y = 30;
     static final int PACK = 10;
+    /** How far a struck body may have moved from the place the pack chose by the time it is bitten. */
+    static final float AREA_SLACK_CELLS = 3f;
     static final int TICKS = 1800;
     static final String FLAK = "structure.turret-anti-air-flak";
     static final String CANNON = "structure.hardpoint-cannon";
@@ -130,8 +135,40 @@ public final class HarrierPackScene implements BehaviorScene {
             }
         }
 
+        /** Events read so far, where each pack's dive was aimed, and the bodies each dive struck. */
+        int eventsRead;
+        final Map<Integer, float[]> aimedAt = new HashMap<>();
+        final Map<Integer, Set<Long>> struckThisDive = new HashMap<>();
+        int strikesOutside, dives, spreadDives;
+
         void observe(BattleSimulation sim) {
             int tick = sim.getSimTickIndex();
+            List<SwarmFliers.Event> events = sim.swarmFliers().events();
+            for (; eventsRead < events.size(); eventsRead++) {
+                SwarmFliers.Event e = events.get(eventsRead);
+                switch (e.kind()) {
+                    case COMMIT -> {
+                        aimedAt.put(e.pack(), new float[]{sim.world().x(e.target()), sim.world().y(e.target())});
+                        struckThisDive.put(e.pack(), new HashSet<>());
+                    }
+                    case STRIKE -> {
+                        float[] at = aimedAt.get(e.pack());
+                        float d = at == null ? Float.MAX_VALUE
+                                : (float) Math.hypot(sim.world().x(e.target()) - at[0], sim.world().y(e.target()) - at[1]);
+                        if (d > HarrierRules.SPREAD_RADIUS + AREA_SLACK_CELLS) strikesOutside++;
+                        Set<Long> struck = struckThisDive.get(e.pack());
+                        if (struck != null) struck.add(e.target());
+                    }
+                    case PULL_UP_DONE -> {
+                        Set<Long> struck = struckThisDive.remove(e.pack());
+                        if (struck != null && !struck.isEmpty()) {
+                            dives++;
+                            if (struck.size() > 1) spreadDives++;
+                        }
+                    }
+                    default -> { }
+                }
+            }
             for (HarrierPack p : sim.swarmFliers().packs()) {
                 for (HarrierFlight m : p.members) {
                     Integer since = lowSince.get(m.id);
@@ -176,20 +213,10 @@ public final class HarrierPackScene implements BehaviorScene {
 
         SceneReport report(String sceneId, String loop, boolean antiAir, BattleSimulation sim, HitLog log) {
             List<SwarmFliers.Event> events = sim.swarmFliers().events();
-            // Every strike between a pack's commit and its pull-up names the committed target.
-            Map<Integer, Long> committed = new HashMap<>();
-            int commits = 0, strikes = 0, offTarget = 0;
+            int commits = 0, strikes = 0;
             for (SwarmFliers.Event e : events) {
-                switch (e.kind()) {
-                    case COMMIT -> { committed.put(e.pack(), e.target()); commits++; }
-                    case STRIKE -> {
-                        strikes++;
-                        Long t = committed.get(e.pack());
-                        if (t == null || t != e.target()) offTarget++;
-                    }
-                    case PULL_UP_DONE -> committed.remove(e.pack());
-                    default -> { }
-                }
+                if (e.kind() == SwarmFliers.Event.Kind.COMMIT) commits++;
+                if (e.kind() == SwarmFliers.Event.Kind.STRIKE) strikes++;
             }
             int limitTicks = Math.round((HarrierRules.MAX_DIVE_SECONDS + HarrierRules.PULL_UP_SECONDS + 3f) * 30f);
             int now = sim.getSimTickIndex();
@@ -211,8 +238,9 @@ public final class HarrierPackScene implements BehaviorScene {
                 }
             }
             List<Verdict> verdicts = new ArrayList<>();
-            verdicts.add(Verdict.of("commits-to-one-target", commits > 0 && offTarget == 0,
-                    commits + " commits, " + strikes + " strikes, " + offTarget + " off the committed target"));
+            verdicts.add(Verdict.of("strikes-where-it-committed", commits > 0 && strikesOutside == 0,
+                    commits + " commits, " + strikes + " strikes, " + strikesOutside
+                            + " outside the place the pack chose"));
             verdicts.add(Verdict.of("dives-and-pulls-up", lows > 0 && stuckLow == 0,
                     lows + " fliers went low, " + recoveries + " climbed back to loiter height, "
                             + stuckLow + " stayed low past a dive and a pull-up"));
@@ -230,6 +258,8 @@ public final class HarrierPackScene implements BehaviorScene {
             Map<String, Number> metrics = new LinkedHashMap<>();
             metrics.put("commits", commits);
             metrics.put("strikes", strikes);
+            metrics.put("divesThatStruck", dives);
+            metrics.put("divesSpreadOverSeveralBodies", spreadDives);
             metrics.put("hitsOnFliers", hitsOnFliers);
             metrics.put("aaHits", aaHits);
             metrics.put("fliersKilled", killed);

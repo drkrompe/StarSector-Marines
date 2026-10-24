@@ -16,8 +16,12 @@ public enum HarrierLook {
     public static final float PX_PER_CELL = 64f;
     /** Frames in one wingbeat: frame 0 is the glide drawing, then up, over the top, down and back. */
     public static final int BEAT_FRAMES = 8;
-    /** Frames between the glide and the dive drawing as the wings fold back along the flanks. */
+    /** Frames between the glide and the dive drawing as the wings sweep back. */
     public static final int FOLD_FRAMES = 2;
+    /** Frames a shot flier tumbles through as it falls. */
+    public static final int FALL_FRAMES = 4;
+    /** Drawings of a dead flier on the ground. */
+    public static final int CORPSE_VARIANTS = 2;
 
     private final String folder;
     /** Wingspan in cells with the wings spread: the glide drawing's width, which the exporter scales it to. */
@@ -32,6 +36,7 @@ public enum HarrierLook {
     public static final HarrierLook DEFAULT = LILAC_GLIDER;
 
     public String glide() { return ROOT + folder + "/glide.png"; }
+    /** The dive: wings swept back along the flanks, still open, so the wings read on the way down. */
     public String dive() { return ROOT + folder + "/dive.png"; }
 
     /**
@@ -42,4 +47,20 @@ public enum HarrierLook {
 
     /** Fold frame {@code i}, 1 to {@link #FOLD_FRAMES}: the wings part way from the glide to the dive. */
     public String fold(int i) { return ROOT + folder + "/fold-" + i + ".png"; }
+
+    /** Fall frame {@code i}, 1 to {@link #FALL_FRAMES}: limp wings thrown about by the tumble. */
+    public String fall(int i) { return ROOT + folder + "/fall-" + i + ".png"; }
+
+    /** Corpse drawing {@code variant}, 0 to {@link #CORPSE_VARIANTS} - 1: wings sprawled and crumpled on the ground. */
+    public String corpse(int variant) { return ROOT + folder + "/corpse-" + (variant + 1) + ".png"; }
+
+    /** The corpse sprite index that names this look's drawing {@code variant} ({@link #corpseAt}). */
+    public int corpseIndex(int variant) { return ordinal() * CORPSE_VARIANTS + variant; }
+
+    /** The corpse drawing a Harrier corpse's sprite index names ({@link #corpseIndex}). */
+    public static String corpseAt(int index) {
+        HarrierLook[] looks = values();
+        HarrierLook look = looks[Math.floorMod(index / CORPSE_VARIANTS, looks.length)];
+        return look.corpse(Math.floorMod(index, CORPSE_VARIANTS));
+    }
 }
