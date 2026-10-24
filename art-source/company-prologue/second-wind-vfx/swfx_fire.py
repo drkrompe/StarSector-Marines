@@ -438,6 +438,27 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
 JAGGED_TAG = 'swfx_jagged_cookoff'
 
 
+def revent(ctx):
+    """Rebuild a ship's built vents on today's vent material, inside its ship.kit(). A hull export
+    bakes its fire group, vents included, into the build file, so a vent built before the material
+    changed keeps the old look however the code moves on: the Phaeton wreck's scar vents stayed two
+    dense white lobes in S6 after the vent was made thin and grey (audit, 2026-10-23). Raises when a
+    vent anchor has no vent built on it. Returns the number rebuilt."""
+    mine = lambda o: '@' not in o.name                  # inside kit(): this ship's copies carry the kit names
+    n = 0
+    for anchor in sorted((o for o in bpy.data.objects if o.type == 'EMPTY' and mine(o) and VENT.search(o.name)
+                          and not o.name.startswith('SWFX')), key=lambda o: o.name):
+        ob = bpy.data.objects.get(f'{PREFIX} vent | {anchor.name}')
+        if ob is None:
+            raise RuntimeError(f'revent: vent anchor {anchor.name!r} has no vent built on it')
+        seed = _seed(anchor)
+        m = _vent_material(ctx, f'{PREFIX} vent {seed} rebuilt', seed, units(float(anchor.get('length_m', VENT_M))))
+        for i in range(len(ob.data.materials)):
+            ob.data.materials[i] = m
+        n += 1
+    return n
+
+
 def jagged_cookoff(ctx):
     """Switch a ship's built explosions to bursts (owner rule, 2026-10-21: no orbs) on its own
     copy, inside its ship.kit(): each explosion anchor's volume fireball and shock ring are

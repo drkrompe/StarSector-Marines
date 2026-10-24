@@ -2992,6 +2992,7 @@ def blender_main(cfg):
                             import swfx_fire
                             with pl['fx'].kit() as (ctx, _kit):
                                 print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
+                                print(f'ASHARU vents rebuilt {key}: {swfx_fire.revent(ctx)}', flush=True)
                     ship_fx.refresh(scene)
                     bpy.context.view_layer.update()
             extra3d = {}
