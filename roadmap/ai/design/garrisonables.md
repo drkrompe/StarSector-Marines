@@ -36,7 +36,10 @@ expected to arrive:
   frontage and standing to): every compound place (command post, barracks,
   armory) and every held place whose shell has a frontage. It is manned by
   holding the building, so the squad on it stands to at the apertures by the
-  frontage laws and walks the rooms when they are quiet or entered;
+  frontage laws and walks the rooms when they are quiet or entered. A fort's gate
+  towers are such buildings: slit only where they look out of the works, so a
+  squad holding one stands to in its slits over the approach (`forts.md`, scene
+  `gate-tower`);
 - a **compound perimeter** — the outer envelope at compound scope, which frontage
   also already derives;
 - an **emplacement** — a crewed structure, later and outside this direction's

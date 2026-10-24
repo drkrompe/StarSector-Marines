@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 
@@ -101,18 +102,70 @@ public enum HeartOrigin {
 
     /** The damage layer an origin is applied as. */
     public static final String DAMAGE_LAYER = "origin";
-    /** Radius of the collapse at the core and on the mother's side of it, and of the battering round the place. */
-    static final double RUIN_RADIUS = 5, BATTERED_RADIUS = 16, SCAR_RADIUS = 9;
+    /**
+     * Radius of the collapse at the core and on the mother's side of it, of the battering kept to the core building,
+     * and of the scar at her mouth.
+     */
+    static final double RUIN_RADIUS = 5, BATTERED_RADIUS = 8, SCAR_RADIUS = 9;
+    /** Torn-down sections of the facility's fence and of its other buildings' walls, and each one's radius. */
+    static final int FENCE_BREACHES = 5, WALL_BREACHES = 3;
+    static final double FENCE_BREACH_RADIUS = 2.5, WALL_BREACH_RADIUS = 2;
 
     /**
      * The origin's damage: the core building collapsed from the side the mother came up on, a stroke from her mouth
-     * into its middle, the facility round it battered by weeks of the swarm, and the ground scarred at her mouth.
+     * into its middle, battered round it and the ground scarred at her mouth; and across the facility, weeks of the
+     * swarm: torn-down sections of the fence and holes in the other buildings' walls, spread apart, while the rest of
+     * the place keeps its roofs, so the ruin reads against what still stands.
      */
-    public static List<DamagePlan.Stroke> damage(int[] core, int[] mouth) {
+    public static List<DamagePlan.Stroke> damage(CellTopology topology, int[] core, int[] mouth, int seedX, int seedY,
+                                                 long seed) {
         DamagePlan.Point c = new DamagePlan.Point(core[0], core[1]), m = new DamagePlan.Point(mouth[0], mouth[1]);
-        return List.of(
+        List<DamagePlan.Stroke> out = new ArrayList<>(List.of(
                 new DamagePlan.Stroke(DamagePlan.Mode.BATTERED, BATTERED_RADIUS, List.of(c)),
                 new DamagePlan.Stroke(DamagePlan.Mode.RUIN, RUIN_RADIUS, List.of(m, c)),
-                new DamagePlan.Stroke(DamagePlan.Mode.SCAR, SCAR_RADIUS, List.of(m)));
+                new DamagePlan.Stroke(DamagePlan.Mode.SCAR, SCAR_RADIUS, List.of(m))));
+        int coreBuilding = topology.getBuildingId(core[0], core[1]);
+        List<int[]> fence = new ArrayList<>(), walls = new ArrayList<>();
+        int width = topology.getWidth(), height = topology.getHeight();
+        for (int y = Math.max(0, seedY - CORE_SEARCH); y <= Math.min(height - 1, seedY + CORE_SEARCH); y++) {
+            for (int x = Math.max(0, seedX - CORE_SEARCH); x <= Math.min(width - 1, seedX + CORE_SEARCH); x++) {
+                if (!topology.isWall(x, y)) continue;
+                int building = topology.getBuildingId(x, y);
+                if (building == 0) fence.add(new int[]{x, y});
+                else if (building != coreBuilding) walls.add(new int[]{x, y});
+            }
+        }
+        SplittableRandom rng = new SplittableRandom(seed ^ SALT);
+        for (int[] at : spread(fence, FENCE_BREACHES, rng)) {
+            out.add(new DamagePlan.Stroke(DamagePlan.Mode.RUIN, FENCE_BREACH_RADIUS,
+                    List.of(new DamagePlan.Point(at[0], at[1]))));
+        }
+        for (int[] at : spread(walls, WALL_BREACHES, rng)) {
+            out.add(new DamagePlan.Stroke(DamagePlan.Mode.RUIN, WALL_BREACH_RADIUS,
+                    List.of(new DamagePlan.Point(at[0], at[1]))));
+        }
+        return out;
+    }
+
+    /**
+     * Up to {@code n} of {@code cells} spread as far apart as they go: the first at random, each next the cell
+     * farthest from every one taken so far.
+     */
+    static List<int[]> spread(List<int[]> cells, int n, SplittableRandom rng) {
+        List<int[]> out = new ArrayList<>();
+        if (cells.isEmpty()) return out;
+        out.add(cells.get(rng.nextInt(cells.size())));
+        while (out.size() < Math.min(n, cells.size())) {
+            int[] best = null;
+            long bestD = -1;
+            for (int[] c : cells) {
+                long near = Long.MAX_VALUE;
+                for (int[] t : out) near = Math.min(near, (long) (c[0] - t[0]) * (c[0] - t[0]) + (long) (c[1] - t[1]) * (c[1] - t[1]));
+                if (near > bestD) { bestD = near; best = c; }
+            }
+            if (bestD == 0) break;
+            out.add(best);
+        }
+        return out;
     }
 }

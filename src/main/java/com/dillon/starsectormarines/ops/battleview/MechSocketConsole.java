@@ -181,10 +181,9 @@ final class MechSocketConsole {
      * mark and a SEALED tag; or the kit rack, one kit to a row, each with an X for the caller to hang.
      */
     static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
-                            String mark, String caption, List<VehicleKit> kits,
+                            Color tone, String art, String caption, List<VehicleKit> kits,
                             boolean selected, boolean hovered, double time) {
         boolean rack = socket.id() == SocketId.AUXILIARY;
-        Color tone = HardpointBricks.tone(socket.type());
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         plate(c, x, y, w, h, PLATE);
@@ -203,16 +202,14 @@ final class MechSocketConsole {
         HardpointBricks.drawEmpty(c, bricks, tone);
         if (rack) {
             for (int row = 0; row < kits.size() && row < bricks.rows(); row++) {
-                HardpointBricks.drawFilled(c, bricks, 0, row, 2, 1, tone);
-                // Left of the kit's X, which hangs in its top-right corner.
-                float room = bricks.width() - 18f;
-                centred(c, Strings.get("vehicleKitShort" + kits.get(row).name()), bricks.left() + room * .5f,
-                        bricks.brickY(row) + bricks.brickHeight() * .5f, room);
+                HardpointBricks.drawFilled(c, bricks, 0, row, 2, 1, VehicleDoll.tone(kits.get(row)));
+                HardwareArt.draw(c, kits.get(row), bricks.left(), bricks.brickY(row), bricks.width(),
+                        bricks.brickHeight(), 255);
             }
         } else {
             HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
                     HardpointBricks.mix(tone, 0x101311, .35f));
-            centred(c, mark, bricks.centerX(), bricks.centerY(), bricks.width() - 12f);
+            HardwareArt.drawVehicle(c, art, bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
         }
         c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
                 y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
@@ -230,12 +227,6 @@ final class MechSocketConsole {
         bricks = bricks(socket, t.left() + (t.width() - bricks.width()) * .5f, t.top() + HEADER);
         float top = bricks.brickY(row);
         return new float[] {bricks.left(), top, bricks.left() + bricks.width(), top + bricks.brickHeight()};
-    }
-
-    private static void centred(CanvasContext c, String text, float centerX, float centerY, float width) {
-        String shown = fit(text, width);
-        c.text(Fonts.ORBITRON_12_BOLD, shown, centerX - Fonts.ORBITRON_12_BOLD.measureWidth(shown) * .5f,
-                centerY - Fonts.ORBITRON_12_BOLD.getLineHeight() * .5f, SILVER);
     }
 
     /** A red warning triangle with an exclamation mark, 18 px square at its top-left corner. */
