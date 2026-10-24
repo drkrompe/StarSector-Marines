@@ -36,6 +36,8 @@ public final class HarrierFlight {
      * goes into a dive and opens again as it climbs out. Presentation only.
      */
     public float fold;
+    /** Its body under the wings: waist, tail, head and pump ({@link HarrierBodyRig}). Presentation only. */
+    public final HarrierBodyRig rig = new HarrierBodyRig();
     /** Whether it went low on the dive in hand: the dive half of dive-and-pull-up. */
     public boolean wentLow;
 
