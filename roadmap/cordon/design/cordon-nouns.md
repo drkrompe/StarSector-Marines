@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-24 — the redoubts stand on the ridge's crest; escorted means alongside; a city's streets are its supply road
+Updated: 2026-10-24 — redoubts and the city base are built from a mix of constructions; the base publishes no capture beacon
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -61,6 +61,29 @@ runs, floodlights at its corners. Its wall is field grade: a Brute, a charge or
 a ground colony's spines open it. Each redoubt is numbered across the line from
 west to east, from 1.
 
+**Construction.** What a redoubt is built from (`CordonConstruction`; owner,
+2026-10-24). In open country every redoubt is the allies' **compound** above.
+A town's line mixes it with a **fortified farm** (a farmhouse and a barn making
+the front face, a second barn the flank, a stone yard wall round a worked
+farmyard) and a **fortified school** (its courtyard block the front face, its
+hall the flank, a ceramic yard wall round the paved playground with a sandbag
+firing step along its open front); a city's line mixes it with a **walled-up
+block** (a building on each corner of the crossroads, a double blast wall
+across each street arm with a gate on the road, a gun in the wall's line beside
+each gate and hedgehogs outside) and a **fortified tenement** (four courtyard
+tenements built as one block behind the crossing, sandbags along the pavement
+in front, a gun nest at each front corner). The compound is the proper military
+post; the others are troops making do with what stood there. Each redoubt's
+pick is a pure function of the density, its place in the line and the map's
+seed, every choice equally likely except that the redoubt nearest the base
+counts the compound twice, so most lines mix two or three kinds. A built
+redoubt is raised on the finished map in place of the generated compound
+(`CordonConstructions`), on the compound's own ground and never across the
+terrace's cliff or ramps, and is recorded in the map's layout (`cordon-works-N`:
+its construction, its bounds, its gun cells) for the battle to read. A city
+redoubt with no crossroads worth walling up stays the compound, and a map whose
+mix would cost it its Cordon is the same map with every redoubt the compound.
+
 **Picket line.** The ground between two neighbouring redoubts, held by works
 rather than walls, run from one redoubt's claimed edge to the next's at their
 depth and facing the front, with a nest at each end of every run
@@ -94,10 +117,17 @@ where the swarm is funnelled and where columns come up.
 **Garrison.** The allied troops in a redoubt (`ALLY`, under garrison
 authority, never in the player's command pool, as the colony militia are). A
 redoubt's garrison is three **wall teams** at the posts behind its slits, the
-wall facing the front first, and the guns in its gate towers. The wall is
-dressed exactly as the colony's civil-defence compound is
+wall facing the front first, and the guns in its gate towers. A compound's wall
+is dressed exactly as the colony's civil-defence compound is
 (`CivilDefenceCompound.dress`); a wall the dressing cannot read as closed is
-still manned, its teams inside it with no towers. The teams hold the redoubt's
+still manned, its teams inside it with no towers. Any other construction is
+manned from its record: a gun seated in each nest its builders laid, and its
+teams at its loopholes (the windows its buildings look out of) and its
+sandbags, the front first, the rest of the seats in its yard. Wherever the
+battle asks for a redoubt's gate, its guns or its yard (a truck's rear gate, the
+gun-to-gun reading, a city redoubt's mortar team) it asks the same of every
+construction: a built redoubt's rear gate is the gap in whatever walls its rear,
+buildings and blast walls alike. The teams hold the redoubt's
 ground and fight from the slits: an order that draws them to the middle of the
 yard leaves the wall empty and the gates open. The garrison is kitted as the
 colony's best (troops dug in for weeks). A garrison is what makes a redoubt
@@ -167,7 +197,21 @@ system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
 **Logistics base.** The allies' depot behind the middle of the line: a
 fenced compound with a vehicle shed, stores and a muster yard
-(`FortressProgram.logisticsBase`). Its shed's berths build what the density's
+(`FortressProgram.logisticsBase`). A city's base mixes that **shed** with two
+constructions (`CordonConstruction`, picked from the seed, each equally
+likely): a **warehouse depot** (two freight warehouses on the road's front side
+with trucks on their apron, an industrial fence round the yard) and a **car
+park depot** (the lot under asphalt, vehicles parked in marked rows, a stockade
+of crate stacks with sandbagged ways in). Either keeps the main road's
+carriageway through it and paves the rest, kerbs and all, and works behind the
+road from two open-air **gantries** (the auto shop's bay between lift columns),
+machine berths in one vehicle bay, so it builds one machine at a time as the
+shed does, its technicians working them from their flanks and heads. The ammo
+dump a beat stands in the base is left where it was laid. No base publishes a
+capture beacon: the shed's motor pool reads as an armoury to the conquest's
+compound layer, which put a defender's compound marker on the allies' depot
+and would have sent the swarm's side its technicians' replacements; the
+Cordon takes it off. Its shed's berths build what the density's
 allied table lists (`cordon-allied-forces.md`), one machine at a time and round
 again, at the pace its allied technicians weld them: cars, technicals and
 carriers in open country, technicals and carriers with every third machine a

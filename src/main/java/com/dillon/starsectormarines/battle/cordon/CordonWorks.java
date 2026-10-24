@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
@@ -24,16 +24,18 @@ import java.util.Random;
 import java.util.function.BiPredicate;
 
 /**
- * Hand-built works on a finished Cordon map, for {@link CordonStructureLookSuite}: ground cleared back to a sampled
- * floor, production building stamps, the redoubt's own perimeter wall cell copied from the one the generator laid,
- * and the generator's own prop helpers ({@link PreparedGround}: sandbags, fences, obstacles, worked earth). Everything
- * goes through the same cell writes generation makes, so a picture of it is a picture of what the pieces can build.
+ * The hand that rebuilds a redoubt's or the base's ground on a finished Cordon map ({@link CordonConstructions}):
+ * ground cleared back to a sampled floor, production building stamps, walls in the colony's and the installation's
+ * own materials with the redoubt perimeter's hit points, and the generator's own prop helpers ({@link PreparedGround}:
+ * sandbags, fences, obstacles, worked earth). Everything goes through the cell writes generation makes, so the battle
+ * reads the works as generated ground.
  *
- * <p>Edits are made before the battle is stood up, so the simulation reads them as generated ground. The roof
- * registry is rebuilt over the touched cells ({@link #buildings}): the generator's buildings that were cleared lose
- * their roofs, the stamped ones get theirs.
+ * <p>Two kinds of ground are never touched: the terrain's height (a cliff face, a ramp, or a cell on another tier than
+ * the works' own), so a redoubt on the crest stays on its terrace, and any rectangle {@linkplain #protect protected}
+ * (the ammo dump a beat stands in the base). The roof registry is rebuilt over the touched cells ({@link #buildings}),
+ * and the road surface's kerbs and sidewalks are taken off every cleared cell that is not kept as road.
  */
-final class CordonStructureWorks {
+final class CordonWorks {
 
     /** What a floor cell looks like: its ground kind, surface block and nature overlay. */
     record Ground(GroundKind kind, int surface, int nature) {
@@ -43,34 +45,61 @@ final class CordonStructureWorks {
         }
     }
 
-    final MapResult map;
     final NavigationGrid grid;
     final CellTopology topology;
     final GenContext ctx;
+    final List<Doodad> doodads;
     private final int perimeterHp;
     private final GroundKind perimeterGround;
+    private final List<int[]> protectedBoxes = new ArrayList<>();
+    private final int tier;
+    private boolean[] stripped;
     private int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+    private int sMinX = Integer.MAX_VALUE, sMinY = Integer.MAX_VALUE, sMaxX = Integer.MIN_VALUE, sMaxY = Integer.MIN_VALUE;
 
-    CordonStructureWorks(MapResult map, long seed) {
-        this.map = map;
-        this.grid = map.grid;
-        this.topology = map.topology;
+    /**
+     * Works on this map's ground, standing at {@code (x, y)}: their tier is that cell's.
+     *
+     * @param doodads the map's own prop list, edited in place
+     */
+    CordonWorks(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, long seed, int x, int y) {
+        this.grid = grid;
+        this.topology = topology;
+        this.doodads = doodads;
         this.ctx = new GenContext(grid, topology, new Random(seed), grid.getWidth(), grid.getHeight(), seed);
+        ElevationMap elevation = grid.elevation();
+        this.tier = elevation == null ? 0 : elevation.tier(x, y);
         // The redoubts' own wall cell is the prototype: its hit points and the ground drawn under it.
         int hp = CordonPlan.REDOUBT_WALL_HP;
         GroundKind ground = GroundKind.STRIPED;
         outer:
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
-                if (topology.isWall(x, y) && InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y))) {
-                    if (grid.getWallHp(x, y) > 0) hp = grid.getWallHp(x, y);
-                    ground = topology.getGroundKind(x, y);
+        for (int cy = 0; cy < grid.getHeight(); cy++) {
+            for (int cx = 0; cx < grid.getWidth(); cx++) {
+                if (topology.isWall(cx, cy) && InstallationWalls.PERIMETER.equals(topology.getSurfaceId(cx, cy))) {
+                    if (grid.getWallHp(cx, cy) > 0) hp = grid.getWallHp(cx, cy);
+                    ground = topology.getGroundKind(cx, cy);
                     break outer;
                 }
             }
         }
         perimeterHp = hp;
         perimeterGround = ground;
+    }
+
+    /** Keeps the rectangle {@code [x0, y0, x1, y1]} as it stands: nothing is cleared or built on it. */
+    void protect(int[] box) {
+        if (box != null) protectedBoxes.add(box.clone());
+    }
+
+    /** Whether the works may change this cell: in bounds, on the works' own level ground, and not protected. */
+    boolean free(int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        ElevationMap elevation = grid.elevation();
+        if (elevation != null && (elevation.isFace(x, y) || elevation.isRamp(x, y) || elevation.tier(x, y) != tier)) {
+            return false;
+        }
+        for (int[] b : protectedBoxes) if (x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3]) return false;
+        return true;
     }
 
     /** The open, unbuilt cell nearest {@code (x, y)} that {@code wanted} accepts, as a floor to copy. */
@@ -102,18 +131,23 @@ final class CordonStructureWorks {
     /**
      * Clears the rectangle back to open ground: walls, buildings, windows, props and roofs go. A cell {@code keep}
      * accepts keeps its ground (a street the works are built round) and loses only what stood on it; every other
-     * cell gets {@code ground}.
+     * cell gets {@code ground}, and the road surface's kerbs and sidewalks over it go too.
      */
     void clear(int x0, int y0, int x1, int y1, Ground ground, BiPredicate<Integer, Integer> keep) {
         int lx = Math.min(x0, x1), hx = Math.max(x0, x1), ly = Math.min(y0, y1), hy = Math.max(y0, y1);
-        map.doodads.removeIf(d -> d.cellX <= hx && d.cellX + d.footprintCellsX - 1 >= lx
-                && d.cellY <= hy && d.cellY + d.footprintCellsY - 1 >= ly);
+        doodads.removeIf(d -> overlaps(d, lx, ly, hx, hy) && freeFootprint(d));
         for (int y = ly; y <= hy; y++) {
             for (int x = lx; x <= hx; x++) {
-                if (!grid.inBounds(x, y)) continue;
-                for (Direction side : Direction.CARDINALS) grid.removeEdgeBarrier(x, y, side);
+                if (!free(x, y)) continue;
+                for (Direction side : Direction.CARDINALS) {
+                    if (free(x + side.dx, y + side.dy)) grid.removeEdgeBarrier(x, y, side);
+                }
                 boolean kept = keep != null && keep.test(x, y) && !topology.isWall(x, y);
-                grid.setWalkableFloor(x, y);
+                grid.setWalkable(x, y, true);
+                // Open to every neighbour the works own; an edge onto a cliff or a protected cell stays as it was.
+                for (Direction side : Direction.ALL) {
+                    if (free(x + side.dx, y + side.dy)) grid.setEdgePassable(x, y, side, true);
+                }
                 grid.setSeeThrough(x, y, true);
                 grid.setDoorway(x, y, false);
                 grid.setWallHp(x, y, 0);
@@ -134,6 +168,7 @@ final class CordonStructureWorks {
                     topology.setSurface(x, y, ground.surface());
                     topology.setNatureOverlayIndex(x, y, ground.nature());
                     topology.setCrosswalk(x, y, false);
+                    strip(x, y);
                 }
             }
         }
@@ -144,71 +179,81 @@ final class CordonStructureWorks {
     void floor(int x0, int y0, int x1, int y1, Ground ground) {
         for (int y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
             for (int x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
-                if (!grid.inBounds(x, y) || topology.isWall(x, y) || topology.getBuildingId(x, y) != 0
+                if (!free(x, y) || topology.isWall(x, y) || topology.getBuildingId(x, y) != 0
                         || topology.hasBuildingKindHint(x, y)) continue;
                 topology.setGroundKind(x, y, ground.kind());
                 topology.setSurface(x, y, ground.surface());
                 topology.setNatureOverlayIndex(x, y, ground.nature());
+                strip(x, y);
             }
         }
     }
 
     /**
-     * One cell of standing wall in {@code material} (a surface block id: the redoubt's perimeter, a building's
-     * masonry), with the hit points and under-floor of the perimeter the generator laid.
+     * One cell of standing wall in {@code material} (a surface block id: a building's masonry, a blast wall), with
+     * the hit points and under-floor of the redoubt perimeter the generator laid.
      */
     void wall(int x, int y, String material) {
-        if (!grid.inBounds(x, y)) return;
+        if (!free(x, y)) return;
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, false);
         grid.setDoorway(x, y, false);
         grid.setWallHp(x, y, perimeterHp);
         topology.setWall(x, y, true);
+        topology.setFixture(x, y, false);
         topology.setGroundKind(x, y, perimeterGround);
         topology.setSurface(x, y, topology.surfaceIndex(material));
         topology.setWallGroundSurface(x, y, "installation.concrete-floor");
+        doodads.removeIf(d -> overlaps(d, x, y, x, y));
+        strip(x, y);
         touch(x, y, x, y);
+        structure(x, y, x, y);
     }
 
-    /** A straight run of perimeter wall, ends inclusive; {@code gaps} are {lo, hi} spans along it left open. */
-    void wallLine(String material, int x0, int y0, int x1, int y1, int[]... gaps) {
-        boolean horizontal = y0 == y1;
-        int a = horizontal ? Math.min(x0, x1) : Math.min(y0, y1), b = horizontal ? Math.max(x0, x1) : Math.max(y0, y1);
-        for (int i = a; i <= b; i++) {
-            boolean open = false;
-            for (int[] gap : gaps) open |= i >= gap[0] && i <= gap[1];
-            if (!open) wall(horizontal ? i : x0, horizontal ? y0 : i, material);
-        }
-    }
-
-    /** A production building stamp, its footprint's bottom-left at {@code (left, bottom)}. */
-    void stamp(BuildingStamp stamp, int left, int bottom, int turns) {
-        stamp.place(ctx, left, bottom, turns);
+    /**
+     * A production building stamp, its footprint's bottom-left at {@code (left, bottom)}. Refused (false) where any
+     * cell of the footprint and the ring round it is not the works' to build on.
+     */
+    boolean stamp(BuildingStamp stamp, int left, int bottom, int turns) {
         int[] size = size(stamp, turns);
+        for (int y = bottom - 1; y <= bottom + size[1]; y++) {
+            for (int x = left - 1; x <= left + size[0]; x++) if (!free(x, y)) return false;
+        }
+        if (left < 1 || bottom < 1 || left + size[0] >= grid.getWidth() || bottom + size[1] >= grid.getHeight()) {
+            return false;
+        }
+        stamp.place(ctx, left, bottom, turns);
+        for (int y = bottom; y < bottom + size[1]; y++) for (int x = left; x < left + size[0]; x++) strip(x, y);
         touch(left - 1, bottom - 1, left + size[0], bottom + size[1]);
+        structure(left, bottom, left + size[0] - 1, bottom + size[1] - 1);
+        return true;
     }
 
     /** A sandbag piece facing {@code toward} (a corner also faces {@code corner}), through the generator's own helper. */
     boolean sandbag(int x, int y, int[] toward, int[] corner) {
+        if (!free(x, y)) return false;
         touch(x, y, x, y);
         return PreparedGround.sandbag(ctx, x, y, toward, corner);
     }
 
     /** A one-cell obstacle prop: a hedgehog, a crate stack. */
     boolean obstacle(int x, int y, String id) {
+        if (!free(x, y)) return false;
         touch(x, y, x, y);
         return PreparedGround.obstacle(ctx, x, y, id);
     }
 
     /** One piece of industrial fence. */
     boolean fence(int x, int y, boolean horizontal) {
+        if (!free(x, y)) return false;
         touch(x, y, x, y);
         return PreparedGround.fence(ctx, x, y, horizontal);
     }
 
     /** Bare worked earth. */
     void worked(int x, int y) {
-        PreparedGround.workedGround(ctx, x, y);
+        if (!free(x, y)) return;
+        if (PreparedGround.workedGround(ctx, x, y)) strip(x, y);
     }
 
     /**
@@ -217,15 +262,12 @@ final class CordonStructureWorks {
      */
     boolean prop(int x, int y, String id, int turns, boolean blocking) {
         DoodadDef def = TileRegistry.installed().doodad(id);
-        if (def == null) {
-            System.out.printf("    [cordon-structure-look] no art for %s%n", id);
-            return false;
-        }
+        if (def == null) return false;
         boolean odd = (turns & 1) == 1;
         int w = odd ? def.footprintCellsY : def.footprintCellsX, h = odd ? def.footprintCellsX : def.footprintCellsY;
         for (int cy = y; cy < y + h; cy++) {
             for (int cx = x; cx < x + w; cx++) {
-                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy) || topology.isWall(cx, cy)
+                if (!free(cx, cy) || !grid.isWalkable(cx, cy) || topology.isWall(cx, cy)
                         || topology.isFixture(cx, cy) || grid.isDoorway(cx, cy)) return false;
             }
         }
@@ -253,11 +295,14 @@ final class CordonStructureWorks {
 
     /**
      * Hands the new props to the map and squares the touched cells: wall faces drawn where a wall meets open
-     * ground, and cover recomputed round them.
+     * ground, cover recomputed round them, and the road surface stripped off the cleared cells.
      */
     void finish() {
-        map.doodads.addAll(ctx.doodads);
+        doodads.addAll(ctx.doodads);
         ctx.doodads.clear();
+        if (stripped != null && topology.roadSurface() != null) {
+            topology.setRoadSurface(topology.roadSurface().without(stripped));
+        }
         if (minX > maxX) return;
         for (int y = minY - 1; y <= maxY + 1; y++) {
             for (int x = minX - 1; x <= maxX + 1; x++) {
@@ -279,10 +324,10 @@ final class CordonStructureWorks {
      * The map's roof registry with the works in it: a generated building keeps its roof over the cells it still
      * has, and every room the stamps built inside the touched cells is a new building with a roof of its own.
      */
-    Buildings buildings() {
+    Buildings buildings(Buildings current) {
         Buildings out = new Buildings();
         int next = 1;
-        List<Building> kept = new ArrayList<>(map.buildings.all());
+        List<Building> kept = new ArrayList<>(current.all());
         for (Building b : kept) {
             next = Math.max(next, b.id + 1);
             int n = 0;
@@ -301,8 +346,8 @@ final class CordonStructureWorks {
             }
             out.add(building(b.id, b.kind, xs, ys, b.tintR, b.tintG, b.tintB));
         }
+        if (minX > maxX) return out;
         // New rooms: connected open cells a stamp hinted, not yet in any building.
-        List<Building> palette = kept.isEmpty() ? List.of() : kept;
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
                 if (!seed(x, y) || topology.getBuildingId(x, y) != 0) continue;
@@ -340,7 +385,7 @@ final class CordonStructureWorks {
                     ys[i] = cells.get(i)[1];
                 }
                 // The tint of a generated building, so a stamped roof sits in the map's own roof palette.
-                Building like = palette.isEmpty() ? null : palette.get(next % palette.size());
+                Building like = kept.isEmpty() ? null : kept.get(next % kept.size());
                 out.add(building(next, kind, xs, ys, like == null ? 0.78f : like.tintR, like == null ? 0.7f : like.tintG,
                         like == null ? 0.6f : like.tintB));
                 next++;
@@ -349,14 +394,36 @@ final class CordonStructureWorks {
         return out;
     }
 
-    /** The bounds the works have touched, {@code [minX, minY, maxX, maxY]}. */
+    /** The bounds the works have touched, {@code [minX, minY, maxX, maxY]}, or {@code null} for none. */
     int[] touched() {
-        return new int[]{minX, minY, maxX, maxY};
+        return minX > maxX ? null : new int[]{minX, minY, maxX, maxY};
+    }
+
+    /** The bounds of what the works built (walls and buildings), {@code [minX, minY, maxX, maxY]}, or {@code null}. */
+    int[] structure() {
+        return sMinX > sMaxX ? null : new int[]{sMinX, sMinY, sMaxX, sMaxY};
     }
 
     private boolean seed(int x, int y) {
         return grid.inBounds(x, y) && x >= minX && x <= maxX && y >= minY && y <= maxY
                 && topology.hasBuildingKindHint(x, y) && !topology.isWall(x, y);
+    }
+
+    private boolean freeFootprint(Doodad d) {
+        for (int y = d.cellY; y < d.cellY + d.footprintCellsY; y++) {
+            for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) if (!free(x, y)) return false;
+        }
+        return true;
+    }
+
+    private static boolean overlaps(Doodad d, int lx, int ly, int hx, int hy) {
+        return d.cellX <= hx && d.cellX + d.footprintCellsX - 1 >= lx
+                && d.cellY <= hy && d.cellY + d.footprintCellsY - 1 >= ly;
+    }
+
+    private void strip(int x, int y) {
+        if (stripped == null) stripped = new boolean[grid.getWidth() * grid.getHeight()];
+        stripped[y * grid.getWidth() + x] = true;
     }
 
     private static Building building(int id, BuildingKind kind, int[] xs, int[] ys, float r, float g, float b) {
@@ -381,20 +448,15 @@ final class CordonStructureWorks {
         maxY = Math.max(maxY, Math.max(y0, y1));
     }
 
-    /** A stamp's footprint {@code {width, height}} at {@code turns}: the authored plans' sizes. */
+    private void structure(int x0, int y0, int x1, int y1) {
+        sMinX = Math.min(sMinX, x0);
+        sMinY = Math.min(sMinY, y0);
+        sMaxX = Math.max(sMaxX, x1);
+        sMaxY = Math.max(sMaxY, y1);
+    }
+
+    /** A stamp's footprint {@code {width, height}} at {@code turns}: its authored plan's size. */
     static int[] size(BuildingStamp stamp, int turns) {
-        int[] s = switch (stamp) {
-            case CORNER_HOME -> new int[]{11, 11};
-            case COURT_HOUSE -> new int[]{13, 10};
-            case CORNER_SHOP -> new int[]{11, 10};
-            case MARKET_HALL -> new int[]{13, 8};
-            case T_WORKSHOP -> new int[]{13, 11};
-            case OFFSET_DEPOT -> new int[]{11, 10};
-            case FREIGHT_L -> new int[]{20, 17};
-            case FREIGHT_T -> new int[]{19, 19};
-            case FARMHOUSE -> new int[]{9, 7};
-            case BARN -> new int[]{13, 8};
-        };
-        return (turns & 1) == 0 ? s : new int[]{s[1], s[0]};
+        return new int[]{stamp.footprintWidth(turns), stamp.footprintHeight(turns)};
     }
 }
