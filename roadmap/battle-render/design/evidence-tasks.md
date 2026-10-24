@@ -114,7 +114,10 @@ than `createSnapshots` to check verdicts: a GIF cannot fail.
 
 Stands up every story mission at tick zero and inventories what each map
 offers a squad to hold: per tactical node, windows, entrances, distinct stand
-cells and fighting-position runs, plus what no node covers. Writes
+cells and fighting-position runs, plus what no node covers. Each fort kind
+stands on its own look-study map (`FORT_BATTERY_FORT`, `FORT_SHIELD_FORT`) with
+a table of its buildings' floor, exterior wall, doors and windows.
+`-Pcases=<name>,...` surveys only those cases. Writes
 `build/reports/garrison/summary.md`. See `garrisonables.md`.
 
 ### `generatedSpaceEvidence`

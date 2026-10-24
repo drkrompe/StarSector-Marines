@@ -353,6 +353,8 @@ tasks.register('garrisonEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    // -Pcases=FORT_BATTERY_FORT,FORT_SHIELD_FORT surveys only those cases.
+    systemProperty 'garrison.cases', (findProperty('cases') ?: '').toString()
     forwardBattleSwitches(delegate)
     testLogging {
         showStandardStreams = true
