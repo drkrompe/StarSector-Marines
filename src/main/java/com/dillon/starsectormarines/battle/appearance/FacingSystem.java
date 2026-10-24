@@ -554,6 +554,14 @@ public final class FacingSystem {
             if (fired && held.sinceFired() <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
                 authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
             }
+        } else if (held != null && !sprinting && secondarySpec[row] instanceof SpecialEquipmentDef special
+                && special.isHeldStream()) {
+            // The flamer has no held art of its own: the Marine stands in the primary's aim, raised over the
+            // wind-up, and in its firing clip while a charge of the jet is leaving. The jet is the flash.
+            float followThrough = Math.max(TICK_FLOOR, special.weaponDef().flightSec);
+            boolean streaming = held.sinceFired() <= followThrough;
+            authoredPose = streaming ? LayeredAppearance.POSE_FIRING : LayeredAppearance.POSE_AIMED;
+            authoredPhase = streaming ? clamp01(held.sinceFired() / followThrough) : clamp01(held.readiness());
         } else if (treating && !moving) {
             // Kneeling over the patient. A medic following a moving patient
             // walks normally and only the battlefield mark says they are treating.

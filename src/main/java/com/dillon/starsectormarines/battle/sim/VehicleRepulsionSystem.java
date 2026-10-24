@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -14,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.HullRam;
 import com.dillon.starsectormarines.battle.vehicle.HullShove;
+import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -80,6 +82,10 @@ public final class VehicleRepulsionSystem {
     static final float CLEARANCE = 0.12f;
     /** Below this speed a hull is parked: contact still pushes, no bow wave. */
     static final float MOVING_SPEED = 0.15f;
+    /** How far beyond a stopped hull routes keep clear, cells: about a body's radius. */
+    static final float HULL_ROUTE_MARGIN = 0.3f;
+    /** Occupancy a stopped hull's cell carries: sixteen bodies' worth, so a route takes a detour of several cells first. */
+    static final int HULL_OCCUPANCY = 16;
     /** Push-speed ceiling for a parked hull, in cells per second. */
     static final float BASE_PUSH_SPEED = 2.5f;
     /** Additional push-speed ceiling per cell per second of hull speed. */
@@ -137,6 +143,36 @@ public final class VehicleRepulsionSystem {
         touched = touching;
         touching = swap;
         touching.clear();
+    }
+
+    /**
+     * Marks every stopped hull's footprint, widened by a body's reach, as
+     * heavily occupied, so routes go round a parked vehicle instead of through
+     * it. A hull stamps no walkability, so without this a route crosses it and
+     * {@link #tick} pushes the walker back out at the same rate he walks in.
+     * Moving hulls are left to the bow wave: their cells change every tick.
+     */
+    public void occupyStandingHulls(NavigationService navigation) {
+        if (!ENABLED || convoy.vehicleCount() == 0) return;
+        for (long vehicle : convoy.entityIds()) {
+            VehicleMission mission = convoy.mission(vehicle);
+            GroundBody body = convoy.body(vehicle);
+            VehicleType type = convoy.vehicleType(vehicle);
+            if (mission == null || body == null || type == null || !mission.isVisible()
+                    || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE
+                    || !type.repelsBodies()) continue;
+            standingHullCells(body.x, body.y, body.facingDegrees, body.speed,
+                    type.visualLengthCells, type.visualWidthCells, grid,
+                    (x, y) -> navigation.addOccupancy(x, y, HULL_OCCUPANCY));
+        }
+    }
+
+    /** The cells a route keeps off for one hull: its footprint widened by {@link #HULL_ROUTE_MARGIN}, none while it moves. */
+    static void standingHullCells(float x, float y, float facingDegrees, float speed, float lengthCells,
+                                  float widthCells, NavigationGrid grid, VehicleFootprint.CellConsumer cells) {
+        if (Math.abs(speed) >= MOVING_SPEED) return;
+        VehicleFootprint.forEachOverlappedCell(x, y, facingDegrees, 0f, lengthCells + 2f * HULL_ROUTE_MARGIN,
+                widthCells + 2f * HULL_ROUTE_MARGIN, grid, cells);
     }
 
     private void repel(long vehicle, GroundBody body, VehicleType type, float dt) {

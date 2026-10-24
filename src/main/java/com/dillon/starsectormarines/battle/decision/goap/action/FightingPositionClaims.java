@@ -55,6 +55,11 @@ public final class FightingPositionClaims {
 
         /** Cover at the cell against fire from {@code (fromDx, fromDy)}; {@code (0, 0)} asks for omnidirectional cover. */
         int cover(int x, int y, int fromDx, int fromDy);
+
+        /** Whether a shot from the centre of the first cell reaches the point; a bare test grid has no walls. */
+        default boolean lineOfFire(int x, int y, float toX, float toY) {
+            return true;
+        }
     }
 
     /**
@@ -93,12 +98,13 @@ public final class FightingPositionClaims {
             return run >= 0 && inGround && (runId < 0 || runId == run);
         }
 
-        /** Cover a cell gives against the believed threat, else against the line's front, else all round. */
+        /**
+         * Cover a cell gives against the line's front, which the player drew and which outranks
+         * whatever the squad happens to believe; else against the believed threat, else all round.
+         */
         int cover(Probe probe, int x, int y) {
+            if (line != null) return Math.round(LinePlacement.frontCover(probe, x, y, line));
             if (hasThreat()) return probe.cover(x, y, threatX - x, threatY - y);
-            if (line != null) {
-                return probe.cover(x, y, Math.round(line.frontX() * 8f), Math.round(line.frontY() * 8f));
-            }
             return probe.cover(x, y, 0, 0);
         }
 
@@ -124,6 +130,14 @@ public final class FightingPositionClaims {
 
     private record LinePosts(FrontageLine line, long revision, Map<Long, Integer> posts) { }
 
+    /**
+     * Where each line-holding marine with no position stands on open ground ({@link LinePlacement#openCells}),
+     * settled here with the positions so two squadmates never pick the same sandbag; and the
+     * reverse lookup. Published with the claims.
+     */
+    private volatile Map<Long, int[]> openByMember = Map.of();
+    private volatile Map<Integer, Long> openByCell = Map.of();
+
     /** A cell as a map key; posts are keyed this way because the order does not know the map's width. */
     static long key(int x, int y) {
         return ((long) x << 32) ^ (y & 0xffffffffL);
@@ -134,9 +148,16 @@ public final class FightingPositionClaims {
         return byMember.get(member);
     }
 
-    /** Whether a marine other than {@code member} holds this cell. */
+    /** The open-ground cell this line-holding marine was given, or {@code null}. The array is shared; do not modify it. */
+    public int[] openCellOf(long member) {
+        return openByMember.get(member);
+    }
+
+    /** Whether a marine other than {@code member} holds this cell, as a position or as his place on a line. */
     public boolean isClaimedByOther(int x, int y, int width, long member) {
-        Long holder = byCell.get(y * width + x);
+        int cell = y * width + x;
+        Long holder = byCell.get(cell);
+        if (holder == null) holder = openByCell.get(cell);
         return holder != null && holder != member;
     }
 
@@ -163,12 +184,15 @@ public final class FightingPositionClaims {
         linePosts.keySet().retainAll(lineSquads);
         if (squads.isEmpty()) {
             publish(Map.of(), Map.of());
+            publishOpen(Map.of(), Map.of());
             return;
         }
         squads.sort(Comparator.comparingInt(s -> s.id));
 
         Map<Long, int[]> previous = byMember;
+        Map<Long, int[]> previousOpen = openByMember;
         int n = squads.size();
+        boolean[] recuts = new boolean[n];
         long[][] members = new long[n][];
         Order[] orders = new Order[n];
         int[][] cells = new int[n][];
@@ -199,6 +223,7 @@ public final class FightingPositionClaims {
             LineCut cut = orders[s].line() == null ? null : new LineCut(orders[s].line(), squadTeams.get(s));
             boolean recut = cut != null && !cut.equals(lineCuts.get(squad.id));
             if (cut != null) nextLineCuts.put(squad.id, cut);
+            recuts[s] = recut;
             for (int i = 0; i < size; i++) {
                 long member = available.get(i);
                 members[s][i] = member;
@@ -227,8 +252,30 @@ public final class FightingPositionClaims {
                 nextByCell.put(cell, members[s][i]);
             }
         }
+        // Open ground last, once every squad's positions are out, so a line's leftover men take
+        // cover round the trenches rather than in them.
+        Map<Long, int[]> nextOpenByMember = new HashMap<>();
+        Map<Integer, Long> nextOpenByCell = new HashMap<>();
+        for (int s = 0; s < n; s++) {
+            FrontageLine line = orders[s].line();
+            if (line == null) continue;
+            int[] before = new int[members[s].length];
+            for (int i = 0; i < before.length; i++) {
+                int[] held = recuts[s] ? null : previousOpen.get(members[s][i]);
+                before[i] = held == null ? -1 : held[1] * width + held[0];
+            }
+            int count = Math.max(1, squads.get(s).autonomousMemberCount(sim));
+            int[] open = LinePlacement.openCells(line, count, cells[s], before, width, probe, claimed,
+                    orders[s].threatX(), orders[s].threatY());
+            for (int i = 0; i < open.length; i++) {
+                if (open[i] < 0) continue;
+                nextOpenByMember.put(members[s][i], new int[]{open[i] % width, open[i] / width});
+                nextOpenByCell.put(open[i], members[s][i]);
+            }
+        }
         lineCuts = nextLineCuts;
         publish(nextByMember, nextByCell);
+        publishOpen(nextOpenByMember, nextOpenByCell);
     }
 
     /**
@@ -260,6 +307,28 @@ public final class FightingPositionClaims {
         fillLine(index, sim.getGrid().getWidth(), order, probe(sim), cells, teams, squadTeams(squad, sim), claimed,
                 along(line, ids, sim));
         return cells;
+    }
+
+    /**
+     * The open-ground cells {@code squad}'s members would take on {@code line} now, parallel to
+     * {@code members}, given the positions {@code cells} {@link #previewLine} found for them (-1
+     * where a member holds a position). The tick's own open-ground pass for a freshly cut line,
+     * against every cell another squad holds.
+     */
+    public int[] previewOpen(BattleView sim, Squad squad, FrontageLine line, List<Long> members, int[] cells) {
+        Set<Long> own = new HashSet<>(members);
+        Set<Integer> taken = new HashSet<>();
+        for (Map.Entry<Integer, Long> held : byCell.entrySet()) {
+            if (!own.contains(held.getValue())) taken.add(held.getKey());
+        }
+        for (Map.Entry<Integer, Long> held : openByCell.entrySet()) {
+            if (!own.contains(held.getValue())) taken.add(held.getKey());
+        }
+        for (int cell : cells) if (cell >= 0) taken.add(cell);
+        int count = Math.max(1, squad.autonomousMemberCount(sim));
+        int[] threat = threatOf(squad);
+        return LinePlacement.openCells(line, count, cells, null, sim.getGrid().getWidth(), probe(sim), taken,
+                threat[0], threat[1]);
     }
 
     /** Where each member stands along {@code line}, parallel to {@code members}. */
@@ -325,6 +394,12 @@ public final class FightingPositionClaims {
                 return grid.getCoverAt(x, y, fromDx, fromDy)
                         + sim.getDoodadCoverAt(x, y, fromDx, fromDy);
             }
+
+            @Override public boolean lineOfFire(int x, int y, float toX, float toY) {
+                float endX = Math.max(0.5f, Math.min(grid.getWidth() - 0.5f, toX + 0.5f));
+                float endY = Math.max(0.5f, Math.min(grid.getHeight() - 0.5f, toY + 0.5f));
+                return grid.hasLineOfFire(x + 0.5f, y + 0.5f, endX, endY);
+            }
         };
     }
 
@@ -372,6 +447,11 @@ public final class FightingPositionClaims {
         byCell = cells;
     }
 
+    private void publishOpen(Map<Long, int[]> members, Map<Integer, Long> cells) {
+        openByMember = members;
+        openByCell = cells;
+    }
+
     /**
      * The run this squad's claims are scoped to: the run a player's occupy order named, else the run its commander's
      * garrison order names, else -1 for an ordinary area.
@@ -413,7 +493,9 @@ public final class FightingPositionClaims {
             int x = cell % width;
             int y = cell / width;
             if (!order.admits(index, x, y) || !probe.walkable(x, y)) continue;
-            if (order.hasThreat() && probe.cover(x, y, order.threatX() - x, order.threatY() - y) <= 0) continue;
+            // A line's front is fixed with the order, so a held cell keeps its cover until the ground changes.
+            if (order.line() == null && order.hasThreat()
+                    && probe.cover(x, y, order.threatX() - x, order.threatY() - y) <= 0) continue;
             cells[i] = cell;
             claimed.add(cell);
         }

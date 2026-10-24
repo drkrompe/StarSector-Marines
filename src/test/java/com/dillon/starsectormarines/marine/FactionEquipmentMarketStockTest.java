@@ -109,7 +109,9 @@ class FactionEquipmentMarketStockTest {
     @Test
     void authoredWeightsAffectLongRunSelection() {
         Map<String, Integer> appearances = new HashMap<>();
-        for (long month = 0; month < 4_000; month++) {
+        // Plans are seeded by month, so the count is a fixed sample rather than a chance: 500
+        // months separate the heaviest and lightest common cards several times over.
+        for (long month = 0; month < 500; month++) {
             String selected = plan("independent", "weight-audit", 3, month,
                     false, Set.of()).marketCardIds().get(0);
             appearances.merge(selected, 1, Integer::sum);
@@ -134,7 +136,8 @@ class FactionEquipmentMarketStockTest {
         }
         assertTrue(heavy > light, "the fixture needs two distinct authored weights");
         assertTrue(appearances.getOrDefault(heaviest, 0)
-                > appearances.getOrDefault(lightest, 0));
+                > appearances.getOrDefault(lightest, 0),
+                heaviest + " x" + appearances.getOrDefault(heaviest, 0) + " vs " + lightest + " x" + appearances.getOrDefault(lightest, 0));
     }
 
     @Test

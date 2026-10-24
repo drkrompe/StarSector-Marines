@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.tools.snapshot.CompressedFrameList;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -59,7 +60,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
      * One frame: the special the Marine carries (null for a rifleman), its rounds, how many Q presses, whether the
      * Marine is walking at the moment of the frame, and a click before it.
      */
-    private record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) { }
+    record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) { }
+
+    /** The flamer picked and held: a charge of the jet on its way, a charge spent from the tank. */
+    static final Case FLAMER_STREAMING = new Case("flamer-streaming", SpecialEquipmentRegistry.FLAMER_ID, 8, 1,
+            false, true);
 
     private static final List<Case> CASES = List.of(
             new Case("rifle", null, 0, 0, true, false),
@@ -68,7 +73,9 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("rocket-fired", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, false, true),
             new Case("amr-walking", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
             new Case("amr-standing", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false),
-            new Case("rocket-empty", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 0, 1, true, false));
+            new Case("rocket-empty", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 0, 1, true, false),
+            new Case("flamer-walking", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, true, false),
+            FLAMER_STREAMING);
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -82,10 +89,18 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 artifacts.add(new SnapshotArtifact(c.name() + "-1920x1080-ui100.png",
                         frame(renderer, context.modRoot(), c)));
             }
+            artifacts.add(flamerSweep(renderer, context.modRoot()));
             return artifacts;
         } finally {
             SvgAsset.setSource(previous);
         }
+    }
+
+    /** The flamer-streaming frame for another suite, with the armoury catalogs this one installs. */
+    static BufferedImage flamerFrame(HeadlessUiRenderer renderer, SnapshotContext context) throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        SceneRegistries.installArmoury(context.projectRoot());
+        return frame(renderer, context.modRoot(), FLAMER_STREAMING);
     }
 
     private static BufferedImage frame(HeadlessUiRenderer renderer, Path modRoot, Case c) throws Exception {
@@ -122,25 +137,85 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 sim.advance(BattleSimulation.TICK_DT);
                 fx.feed(sim);
             }
-            float focusX = sim.world().renderX(marine) + 2.5f;
-            float focusY = sim.world().renderY(marine) + 0.5f;
-            BufferedImage battle = BattleReviewFrameRenderer.look(modRoot, WIDTH, HEIGHT, focusX, focusY, CELLS_ACROSS)
-                    .render(sim, "", ReviewAnnotations.NONE, fx);
-            BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
-            camera.setViewport(0, 0, WIDTH, HEIGHT, (float) Math.floor(WIDTH / CELLS_ACROSS));
-            camera.centerOn(focusX, focusY);
-            var snapshot = BattleDirectControlStatus.snapshot(sim);
-            var copy = ModStrings.fromDisk(modRoot);
-            var doll = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)), copy, true);
-            doll.update(BattleMarineDollPlate.MarineDoll.read(sim, marine, copy));
-            float cursorX = aimX;
-            float cursorY = aimY;
-            return DirectControlUiSnapshotSuite.activeComposite(renderer, modRoot, WIDTH, HEIGHT, 1f, snapshot,
-                    doll.document(), false, false, graphics -> {
-                        graphics.drawImage(battle, 0, 0, null);
-                        drawAim(graphics, sim, camera, cursorX, cursorY);
-                    });
+            return compose(renderer, modRoot, sim, marine, aimX, aimY, fx,
+                    sim.world().renderX(marine) + 2.5f, sim.world().renderY(marine) + 0.5f);
         }
+    }
+
+    /** Ticks between the frames of the sweep: six a second, few enough to keep a GIF of a field on fire small. */
+    private static final int SWEEP_FRAME_TICKS = 5;
+    /** Long enough to ready the flamer and empty its eight-charge tank on its cooldown. */
+    private static final int SWEEP_TICKS = 390;
+    /** The sweep's arc about due east, in degrees either side, and its radius in cells. */
+    private static final float SWEEP_HALF_ARC = 40f;
+    private static final float SWEEP_RADIUS = 6.5f;
+
+    /**
+     * The flamer in action: a standing Marine picks it and holds the left button while the cursor sweeps an arc
+     * across a line of defenders, so each charge lands further along and the tank empties cell by cell.
+     */
+    static SnapshotArtifact flamerSweep(HeadlessUiRenderer renderer, Path modRoot) throws Exception {
+        LookGround ground = LookGround.verdant();
+        MapResult map = ground.generate();
+        LookGround.Site site = LookGround.openSite(map, 40, 24);
+        LookReview.Placement placement = new LookReview.Placement(ground, map, site);
+        var builder = placement.builder()
+                .unit("marine", Faction.MARINE, UnitType.MARINE, 8, 12, spec -> {
+                    spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
+                    spec.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FLAMER_ID), 8);
+                });
+        int[][] line = {{13, 8}, {14, 11}, {14, 13}, {13, 16}};
+        for (int i = 0; i < line.length; i++) {
+            // Held in place and unable to answer, so the sweep runs to an empty tank whatever the fire does.
+            builder.unit("defender" + i, Faction.DEFENDER, UnitType.MARINE, line[i][0], line[i][1],
+                    spec -> spec.moveSpeed(0f).attackRange(1f).accuracy(0f));
+        }
+        SceneWorld world = builder.build();
+        CompressedFrameList frames = new CompressedFrameList();
+        try (BattleSimulation sim = world.sim()) {
+            sim.random().setSeed(20261023L);
+            long marine = world.unit("marine");
+            if (!sim.directControl().enter(marine)) throw new IllegalStateException("could not take the Marine");
+            sim.directControl().cycle(FireTrigger.LEFT);
+            ReviewImpactFx fx = new ReviewImpactFx(modRoot);
+            float focusX = sim.world().renderX(marine) + 3f;
+            float focusY = sim.world().renderY(marine);
+            for (int tick = 0; tick < SWEEP_TICKS; tick++) {
+                float t = tick / (float) (SWEEP_TICKS - 1);
+                double bearing = Math.toRadians(-SWEEP_HALF_ARC + 2f * SWEEP_HALF_ARC * t);
+                float aimX = sim.world().renderX(marine) + SWEEP_RADIUS * (float) Math.cos(bearing);
+                float aimY = sim.world().renderY(marine) + SWEEP_RADIUS * (float) Math.sin(bearing);
+                sim.directControl().submit(new ManualIntent(0, 0, aimX, aimY, true));
+                sim.advance(BattleSimulation.TICK_DT);
+                fx.feed(sim);
+                if (!sim.world().isAlive(marine)) break;
+                if (tick % SWEEP_FRAME_TICKS == 0) {
+                    frames.add(compose(renderer, modRoot, sim, marine, aimX, aimY, fx, focusX, focusY));
+                }
+            }
+        }
+        return SnapshotArtifact.animation("flamer-sweep-1920x1080-ui100.gif", frames,
+                SWEEP_FRAME_TICKS * Math.round(BattleSimulation.TICK_DT * 1000f));
+    }
+
+    /** The battle through the look preset with the aim drawn over it, under the production HUD and doll. */
+    private static BufferedImage compose(HeadlessUiRenderer renderer, Path modRoot, BattleSimulation sim, long marine,
+                                         float cursorX, float cursorY, ReviewImpactFx fx,
+                                         float focusX, float focusY) throws Exception {
+        BufferedImage battle = BattleReviewFrameRenderer.look(modRoot, WIDTH, HEIGHT, focusX, focusY, CELLS_ACROSS)
+                .render(sim, "", ReviewAnnotations.NONE, fx);
+        BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        camera.setViewport(0, 0, WIDTH, HEIGHT, (float) Math.floor(WIDTH / CELLS_ACROSS));
+        camera.centerOn(focusX, focusY);
+        var snapshot = BattleDirectControlStatus.snapshot(sim);
+        var copy = ModStrings.fromDisk(modRoot);
+        var doll = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)), copy, true);
+        doll.update(BattleMarineDollPlate.MarineDoll.read(sim, marine, copy));
+        return DirectControlUiSnapshotSuite.activeComposite(renderer, modRoot, WIDTH, HEIGHT, 1f, snapshot,
+                doll.document(), false, false, graphics -> {
+                    graphics.drawImage(battle, 0, 0, null);
+                    drawAim(graphics, sim, camera, cursorX, cursorY);
+                });
     }
 
     /** The aim lane and the reticle as the panel draws them, flipped from its y-up frame into this y-down one. */

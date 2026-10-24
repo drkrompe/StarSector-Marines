@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
@@ -13,7 +14,6 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
-import java.util.ArrayDeque;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -71,6 +71,8 @@ public final class CordonLogistics implements AlliedDepot {
     static final int SHED_MARGIN = 12;
 
     private final CordonArmour armour;
+    /** What this density's allies field ({@link CordonAlliedTable}): whether carriers go forward, and where they set down. */
+    private final CordonAlliedTable table;
     private final int musterX, musterY;
     private final int doorX, doorY;
     private final List<int[]> slots;
@@ -94,9 +96,10 @@ public final class CordonLogistics implements AlliedDepot {
     private int exitingSince;
     private int carried, built, homed;
 
-    private CordonLogistics(CordonArmour armour, int[] door, List<int[]> slots, List<int[]> armourHomes,
-                            RiskLevel risk, Random rng) {
+    private CordonLogistics(CordonArmour armour, CordonAlliedTable table, int[] door, List<int[]> slots,
+                            List<int[]> armourHomes, RiskLevel risk, Random rng) {
         this.armour = armour;
+        this.table = table;
         this.doorX = door[0];
         this.doorY = door[1];
         this.slots = List.copyOf(slots);
@@ -118,10 +121,11 @@ public final class CordonLogistics implements AlliedDepot {
      * no open ground at all.
      *
      * @param redoubts the line; cars and technicals off the stocks are posted behind its redoubts in turn
+     * @param table    what this density's allies field: whether carriers lift columns up, and where they set down
      */
     public static CordonLogistics at(BattleSimulation sim, CordonArmour armour, List<Gantry> berths,
                                      int fallbackX, int fallbackY, List<CordonRedoubt> redoubts,
-                                     RiskLevel risk, Random rng) {
+                                     CordonAlliedTable table, RiskLevel risk, Random rng) {
         List<int[]> armourHomes = new ArrayList<>();
         for (CordonRedoubt r : redoubts) armourHomes.add(armour.behind(r));
         NavigationGrid grid = sim.getGrid();
@@ -143,7 +147,7 @@ public final class CordonLogistics implements AlliedDepot {
             slots.add(cell);
             door = new int[]{cell[0], cell[1], 0, 0};
         }
-        return new CordonLogistics(armour, door, slots, armourHomes, risk, rng);
+        return new CordonLogistics(armour, table, door, slots, armourHomes, risk, rng);
     }
 
     /** Cells from a redoubt's middle the apron's carriers must be able to drive to. */
@@ -281,10 +285,25 @@ public final class CordonLogistics implements AlliedDepot {
         armour.command().station(sim, hull, slot[0], slot[1]);
     }
 
-    /** A machine off the shed's stocks: it waits on its berth to be let out. */
-    public void rolledOut(BattleSimulation sim, long hull) {
+    /**
+     * A machine off the shed's stocks. A hull waits on its berth to be let out; a mech walks out on its own and
+     * joins the mechs in the street mouths ({@code cordon-allied-forces.md}).
+     */
+    public void rolledOut(BattleSimulation sim, long machine) {
         built++;
-        leaving.add(hull);
+        if (!sim.convoy().isVehicle(machine)) {
+            armour.adoptMech(sim, machine);
+            return;
+        }
+        leaving.add(machine);
+    }
+
+    /**
+     * Whether columns on the timetable muster at the base for a carrier to lift them up; otherwise they walk the
+     * whole way to the redoubt that needs them most ({@link CordonAlliedTable#carriersForward}).
+     */
+    public boolean musters() {
+        return table.carriersForward();
     }
 
     /** The orders a column on the timetable marches under: to the base's apron, where it waits. */
@@ -347,7 +366,7 @@ public final class CordonLogistics implements AlliedDepot {
             CordonRedoubt to = neediest(sim, redoubts);
             if (to == null || waiting.isEmpty()) continue;
             int squad = waiting.poll();
-            int[] drop = armour.behind(to);
+            int[] drop = dropAt(sim, to);
             // Each carrier its own place behind the wall, so two sent to one redoubt do not stack.
             int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
             int dropX = drop[0] + lane * DROP_SPACING, dropY = drop[1];
@@ -386,9 +405,21 @@ public final class CordonLogistics implements AlliedDepot {
         CordonRedoubt call = CordonArmour.nearestCalling(sim.convoy().body(hull), redoubts);
         if (call == null || call == supporting.get(hull)) return;
         supporting.put(hull, call);
+        if (table.drop() == CordonAlliedTable.CarrierDrop.REAR_GATE) {
+            // Roadbound: it answers at the calling redoubt's rear gate, beside any other carrier there.
+            int[] gate = dropAt(sim, call);
+            int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
+            armour.command().station(sim, hull, gate[0] + lane * DROP_SPACING, gate[1]);
+            return;
+        }
         // Behind the first two armour places on each side, by its own rank among the carriers.
         int[] post = armour.flank(call, 4 + carriers.indexOf(hull));
         armour.command().station(sim, hull, post[0], post[1]);
+    }
+
+    /** Where a carrier sets its squad down at a redoubt: behind its rear wall, or, roadbound, outside its rear gate. */
+    private int[] dropAt(BattleSimulation sim, CordonRedoubt r) {
+        return table.drop() == CordonAlliedTable.CarrierDrop.REAR_GATE ? armour.rearGate(sim, r) : armour.behind(r);
     }
 
     /** One hull through the door at a time: the next goes once the last is clear of it, or gone. */
@@ -460,6 +491,8 @@ public final class CordonLogistics implements AlliedDepot {
         VehicleType type = sim.convoy().vehicleType(hull);
         int radius = VehicleClearance.radiusForWidth(type == null ? 1f : type.visualWidthCells);
         if (!VehicleClearance.fitsAt(sim.getGrid(), (int) x, (int) y, radius)) return true;
+        // A mech the shed finished before it walks out down the same lane: the hull waits for it to pass.
+        if (mechNear(sim, x, y, LANE_CLEAR)) return false;
         for (long other : sim.convoy().entityIds()) {
             if (other == hull || sim.convoy().structure(other) <= 0f) continue;
             GroundBody blocker = sim.convoy().body(other);
@@ -515,6 +548,16 @@ public final class CordonLogistics implements AlliedDepot {
         for (long other : sim.convoy().entityIds()) {
             if (other == hull || sim.convoy().structure(other) <= 0f) continue;
             if (sim.convoy().body(other).distanceTo(x, y) < LANE_CLEAR) return true;
+        }
+        return mechNear(sim, x, y, LANE_CLEAR);
+    }
+
+    /** Whether a living mech stands within {@code reach} cells of a point. */
+    private static boolean mechNear(BattleSimulation sim, float x, float y, float reach) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().type(unit) != UnitType.HEAVY_MECH || !sim.world().hasPosition(unit)) continue;
+            if (Math.hypot(sim.world().x(unit) - x, sim.world().y(unit) - y) < reach) return true;
         }
         return false;
     }

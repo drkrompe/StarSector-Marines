@@ -142,6 +142,13 @@ The three chassis are stand-ins for a grid of mech lines, tech family by weight 
 - **High-tech:** the Tri-Tachyon composite lines (aegis composite, Janus scout, specter
   heavy, riot shell).
 
+### Ground emplacements
+
+Each family builds a prepared and a militia emplacement style (`EmplacementStyle`,
+`ground-turret-tiers.md`): low-tech brutalist concrete and earthwork, midline modular panels
+and barrier cells, high-tech composite shells and deployed kit. The defenders' faction picks
+the family (`EmplacementStylePolicy`).
+
 ### Interiors
 
 Low-tech exists. Midline and high-tech are open (`interior-tech-styles.md`).

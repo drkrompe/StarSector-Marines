@@ -1086,9 +1086,14 @@ not read in a soft shadow at play zoom.
     mission is open work (`stories.md`).
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
     the Runner's lilac carapace with bat wings grown from its spike arms.
-    Glide, wingbeat and dive drawings, drawn over the roofs, larger the higher
-    it flies, with its own silhouette cast down-sun as its shadow, nearer under
-    it as it dives.
+    It animates frame by frame (`HarrierPose`): an eight-frame wingbeat whose
+    first frame is the glide, flown in short bursts while it circles and
+    steadily, faster, as it climbs out; two frames folding the wings back into
+    the dive drawing as it goes down, and the same two opening them again as it
+    pulls up. Every beat and fold frame carries the glide's body to the pixel
+    and only the wings move. Drawn over the roofs, larger the higher it flies,
+    with its own silhouette cast down-sun as its shadow, nearer under it as it
+    dives.
 
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never

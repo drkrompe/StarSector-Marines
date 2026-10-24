@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
+import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
@@ -40,10 +41,12 @@ final class BattleDirectControlStatus {
 
     enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
     /** {@code ROTARY} fires while held, off a belt, at the rate its spin has reached. */
-    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY }
+    /** {@code STREAM}: a flamer, which sends a charge each time it can for as long as the button is held. */
+    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY, STREAM }
     /** {@code SPINNING}: a rotary gun's barrels turning, its cycle fields carrying the spin. */
     enum WeaponState { BURST, RELOADING, CYCLING, LOADED, EMPTY, TOO_CLOSE, SPINNING }
-    enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
+    /** {@code FUEL} is a flamer's tank, counted in the charges a held button spends one at a time. */
+    enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS, FUEL }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                     List<WeaponStatus> weapons, List<AbilityStatus> abilities,
@@ -317,18 +320,20 @@ final class BattleDirectControlStatus {
 
     /**
      * A direct-fire special as a left-button row: its rounds left of what it was issued, and its clock, which
-     * is the readying while it is raised and its cooldown after a round.
+     * is the readying while it is raised and its cooldown after a round. The flamer counts fuel, not rounds.
      */
     static WeaponStatus marineSpecial(int number, SpecialEquipmentDef special, int ammo, float cooldown,
                                       float readiness, float aimDistance) {
         WeaponDef weapon = special.weaponDef();
         float windup = (1f - Math.max(0f, Math.min(1f, readiness))) * special.aimDuration();
         boolean readying = windup > cooldown;
+        boolean stream = special.isHeldStream();
         return new WeaponStatus(number, "SPECIAL" + (number - 2), special.displayName(),
-                behavior(weapon, 1), true,
+                stream ? new Behavior(FireKind.STREAM, 1, 0f, 1, null, Ordnance.of(weapon)) : behavior(weapon, 1), true,
                 readying ? windup : Math.max(0f, cooldown), readying ? special.aimDuration() : special.cooldown(),
-                0, 0f, new Ammo(ammo, special.startingAmmo(), AmmoUnit.ROUNDS, false),
-                false, "", "", ManualPointFire.tooClose(weapon, aimDistance), false);
+                0, 0f, new Ammo(ammo, special.startingAmmo(),
+                        special.isHeldStream() ? AmmoUnit.FUEL : AmmoUnit.ROUNDS, false),
+                false, "", "", !stream && ManualPointFire.tooClose(weapon, aimDistance), false);
     }
 
     static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,
@@ -346,14 +351,20 @@ final class BattleDirectControlStatus {
         World world = roster.world();
         if (!world.isAlive(id) || roster.identity().type(id) != UnitType.MARINE) return List.of();
         IntegralSystemDef system = roster.integralSystems().spec(id);
-        SpecialEquipmentDef special = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
+        SpecialEquipmentDef hand = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
+        SpecialEquipmentDef belt = world.hasBelt(id) ? world.beltEquipment(id) : null;
         List<AbilityStatus> abilities = new ArrayList<>(3);
-        for (MarineRightTrigger.Item item : MarineRightTrigger.members(special, system)) {
+        for (MarineRightTrigger.Item item : MarineRightTrigger.members(hand, belt, system)) {
+            // Each throw reads the slot it rides in; its channel is the hand's, so only the one in hand runs a clock.
+            SpecialEquipmentDef carried = CarriedSpecials.item(world, id, item::is);
+            boolean inHand = item.is(hand);
+            float channel = inHand ? world.secondaryActionTimer(id) : 0f;
             AbilityStatus status = switch (item) {
-                case SMOKE -> smokeAbility(special, world.secondaryAmmo(id), world.smokeThrowCommit(id),
-                        world.secondaryActionTimer(id), available.test(DirectControlAbility.SMOKE));
-                case GRENADE -> grenadeAbility(special, world.secondaryAmmo(id), manualThrow,
-                        world.secondaryActionTimer(id), available.test(DirectControlAbility.GRENADE));
+                case SMOKE -> smokeAbility(carried, CarriedSpecials.ammo(world, id, item::is),
+                        inHand ? world.smokeThrowCommit(id) : null, channel,
+                        available.test(DirectControlAbility.SMOKE));
+                case GRENADE -> grenadeAbility(carried, CarriedSpecials.ammo(world, id, item::is),
+                        inHand && manualThrow, channel, available.test(DirectControlAbility.GRENADE));
                 case SHIELD -> shieldAbility(system, roster.integralSystems(), roster.mitigations(), id,
                         available.test(DirectControlAbility.SHIELD));
             };

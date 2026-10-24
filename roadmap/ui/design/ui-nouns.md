@@ -333,6 +333,11 @@ their portrait with their name and readable dialogue to draw attention to the
 speaker; audio alone is not the character presentation. This convention applies
 to future tutorial and conversation surfaces as well as existing story subtitles.
 
+**Tutorial copy is short** (owner, 2026-10-23). A lesson step says what to do in
+at most a few plain sentences, roughly 200 characters: the control to use and
+what it does. Too much text is simply not read. Rationale, lore and edge cases
+belong in hover notes, dossiers or the noun doc, never in the lesson callout.
+
 ## Intrinsic text and typography
 
 Text is measured through one document-owned seam used by both layout and paint. The

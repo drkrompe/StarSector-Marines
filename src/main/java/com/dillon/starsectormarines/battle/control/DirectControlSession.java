@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.infantry.FlameJet;
 import com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
@@ -161,7 +162,7 @@ public final class DirectControlSession {
                 || roster.identity().type(unitId) != UnitType.MARINE) return List.of();
         World world = roster.world();
         return MarineRightTrigger.members(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
-                roster.integralSystems().spec(unitId));
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null, roster.integralSystems().spec(unitId));
     }
 
     /** What the controlled Marine's right button uses now, or null when it has nothing on it. */
@@ -187,7 +188,9 @@ public final class DirectControlSession {
     public List<SpecialEquipmentDef> marineSpecials() {
         if (!controllingMarine()) return List.of();
         World world = roster.world();
-        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null);
+        // Both slots, so a launcher swapped onto the belt for a belt throw stays on the list.
+        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null);
     }
 
     /** Puts a Marine's left button on {@code member}: the primary (0), or a special, which it readies. */
@@ -702,20 +705,33 @@ public final class DirectControlSession {
 
     /**
      * The left button on a special: a press fires one round at the cursor through the special's own
-     * point-fire path once it is readied, off cooldown and loaded. The primary holds meanwhile.
+     * point-fire path once it is readied, off cooldown and loaded. The flamer is a held stream instead: while
+     * the button is down it sends a charge toward the cursor, short of the first wall and no further than its
+     * range, each time its cooldown allows. The primary holds meanwhile.
      */
     private void fireLeftSpecial(long id, ManualIntent input, boolean sprinting) {
         primaryHeld = input.firing();
         roster.combat().clearPrimaryFire(id);
         SpecialEquipmentDef special = leftSpecial();
         World world = roster.world();
-        boolean canFire = special != null && world.secondaryCooldownTimer(id) <= 0f
+        boolean canFire = special != null && world.specialEquipment(id) == special
+                && world.secondaryCooldownTimer(id) <= 0f
                 && world.secondaryAmmo(id) > 0 && Float.isFinite(input.aimX()) && Float.isFinite(input.aimY());
-        if (marineLeft.tick(input.firing(), sprinting, canFire, BattleSimulation.TICK_DT)
-                && battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
-            world.setSecondaryCooldownTimer(id, special.cooldown());
-            marineLeft.fired();
+        boolean stream = special != null && special.isHeldStream();
+        float[] jet = canFire && stream ? FlameJet.point(battle.getGrid(), world.renderX(id), world.renderY(id),
+                input.aimX(), input.aimY(), special.range()) : null;
+        if (stream) canFire &= jet != null;
+        if (!marineLeft.tick(input.firing(), sprinting, canFire, stream, BattleSimulation.TICK_DT)) return;
+        if (stream) {
+            // The flamer's own release spends one charge of fuel; a held button sends the next on its cooldown.
+            int fuel = world.secondaryAmmo(id);
+            battle.throwFragmentationGrenade(id, jet[0], jet[1]);
+            if (world.secondaryAmmo(id) >= fuel) return;
+        } else if (!battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
+            return;
         }
+        world.setSecondaryCooldownTimer(id, special.cooldown());
+        marineLeft.fired();
     }
 
     /**

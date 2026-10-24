@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — manual Mech momentum uses shared clearance and actual-motion feedback.
+Updated: 2026-10-23 — nothing holds a walker still on his route: reached radius, stall watch, formation slowdown cap.
 
 ## Vocabulary
 
@@ -167,7 +167,19 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    terrain. A brief movement-derived heading may finish settling infantry that
    already share one authored destination; it expires and never applies across
    distinct posts. Formation does not grant units a shared destination or
-   override individual orders.
+   override individual orders. It may slow a walker, which is how depth forms
+   among men walking at one speed, but never take back more than half of the
+   step he took that tick, so a pull toward a distant slot cannot hold him still.
+10. Nothing holds a walker still on his route for good. Pushes the follower
+   cannot see (formation, a crowd, a hull, a wall edge) can cancel its step
+   exactly, and a route still in progress is never replanned on its own. So the
+   cell-path follower counts a waypoint within a short radius as reached, since
+   at a sharp bend its look-ahead folds back beside the body and any steady
+   push could hold the body there. And a mover that keeps stepping along its
+   route for seconds without getting half a cell from where it stood has the
+   route dropped, so its order plans a fresh one from where it stands. Only
+   continuous trying counts: an order or a fire's edge that holds a mover on
+   purpose restarts the watch.
 
 Squad traffic extends that preference across nearby
 friendly infantry squads during quiet travel. A retained lateral route offset
