@@ -323,7 +323,7 @@ public final class AlliedCommand {
     }
 
     /**
-     * A refused goal is pulled back toward the hull and asked again: to the last corner of the way
+     * A refused goal is pulled back toward the hull and asked again: to the corner halfway along the way
      * there, where one is known, so the hull goes a leg at a time; else a step back along the
      * straight line, never past the hull itself. After {@link #PULLBACK_LIMIT} refusals the hull
      * stays where it is.
@@ -342,7 +342,7 @@ public final class AlliedCommand {
         // Out of steps: a station stays put; a carrier sets its riders down where it stands.
         if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION;
         GroundBody body = sim.convoy().body(hull);
-        int[] corner = lastCorner(sim, hull, task.goalX, task.goalY);
+        int[] corner = wayCorner(sim, hull, task.goalX, task.goalY);
         if (corner != null) {
             task.goalX = corner[0];
             task.goalY = corner[1];
@@ -362,10 +362,32 @@ public final class AlliedCommand {
     }
 
     /**
-     * The corner before the goal on the hull's way there, footprint-clear but not yet proved
-     * drivable, or {@code null} where the way is one straight leg or there is none.
+     * The corner nearest halfway along the hull's way to the goal, footprint-clear but not yet proved
+     * drivable, or {@code null} where the way is one straight leg or there is none. Halving the way at
+     * each refusal reaches back to the drivable first leg of a long route within {@link #PULLBACK_LIMIT}
+     * refusals; stepping back one corner at a time ran out of refusals deep in a town whose every corner
+     * was refused, and left the hull standing at its start.
      */
-    private static int[] lastCorner(BattleSimulation sim, long hull, int goalX, int goalY) {
+    static int[] midCorner(float[] xs, float[] ys) {
+        if (xs.length < 3) return null;
+        float total = 0f;
+        for (int i = 1; i < xs.length; i++) total += (float) Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+        float run = 0f;
+        int best = 1;
+        float bestGap = Float.MAX_VALUE;
+        for (int i = 1; i < xs.length - 1; i++) {
+            run += (float) Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+            float gap = Math.abs(run - total / 2f);
+            if (gap < bestGap) {
+                bestGap = gap;
+                best = i;
+            }
+        }
+        return new int[]{(int) xs[best], (int) ys[best]};
+    }
+
+    /** The {@link #midCorner} of the hull's footprint-clear way to the goal, or {@code null} where there is none. */
+    private static int[] wayCorner(BattleSimulation sim, long hull, int goalX, int goalY) {
         VehicleType type = sim.convoy().vehicleType(hull);
         if (type == null) return null;
         GroundBody body = sim.convoy().body(hull);
@@ -376,9 +398,7 @@ public final class AlliedCommand {
         if (from == null || to == null) return null;
         float[][] way = VehicleRoutePlanner.route(from[0], from[1], to[0], to[1], sim.getGrid(),
                 TerrainCostField.from(sim.getTopology()), clearance);
-        if (way == null || way[0].length < 3) return null;
-        int last = way[0].length - 2;
-        return new int[]{(int) way[0][last], (int) way[1][last]};
+        return way == null ? null : midCorner(way[0], way[1]);
     }
 
     /**

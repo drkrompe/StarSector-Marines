@@ -17,8 +17,16 @@ public final class HarrierFlight {
     public final HarrierLook look;
     /** 0 at the bottom of a dive, 1 loitering. */
     public float altitude = 1f;
-    /** Whether it has landed its strike on this dive. */
+    /** Whether it is done with this dive: its strike landed, or its prey was lost. */
     public boolean struck;
+    /**
+     * Its own prey on this dive, and where that prey is: each member of a pack dives on its own body, near the
+     * one the pack chose ({@link HarrierTargeting#assign}). 0 for the pack's own target.
+     */
+    public long prey;
+    public float preyX, preyY, preyRadius;
+    /** Seconds into a dive it keeps circling before it goes in, so a pack comes in staggered. Seeded. */
+    public float diveDelay;
     /** Its place round the loiter ring. */
     public int slot;
     /** Wingbeat clock, seconds; seeded per body so a pack does not flap in step. Presentation only. */
