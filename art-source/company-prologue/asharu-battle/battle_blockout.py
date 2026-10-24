@@ -1023,7 +1023,7 @@ KEYFRAMES = {
                              dict(t=91, loc=(-260, 260, 60), target=(-50, 28, 6), lens=40),
                              dict(t=95, loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
                              dict(t=102, loc=(-480, 540, 160), target=(-30, 15, 40), lens=20)], K4_T, shake=.12,
-                     kicks=[(90.3, .7), (95.3, .3)]),
+                     kicks=[(90.3, .7), (95.5, .3)]),
         # the kit's own beam stays dark: every Borer shares one build's knobs, so raising it for two lit all
         # four (one of them a "tether" to Morrow), and it is a turret beam ending in orbs. The lasers
         # are the 'mining' effects below (swfx_mining)
@@ -1031,12 +1031,13 @@ KEYFRAMES = {
         ships=K4_SHIPS,
         rakes=K4_RAKES,      # the sortie Borers' mining lasers swept along the attackers' hulls
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
-        fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
+        # the port pod shot out by the Wolf (P)'s Harpoons (95.5 s), and burning from them
+        fx=[('blast_on', 'colossus', 12, (-64, 36, -7), 95.5), ('fire_on', 'colossus', (-60, 36, -2), (-1, .4, .3), 95 - 95.55),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             # the Colossus's fire on the Mk.III walks wide: about a quarter to a third lands, the rest
             # flies on past her (coordinator, 2026-10-24)
-            ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
-            ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0)),
+            ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.5)),
+            ('flares', 'colossus'), ('debris', 'colossus', 45, (-64, 36, -7), 95.5),
             # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
             # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
             # one of them pulled off onto a flare

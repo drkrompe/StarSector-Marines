@@ -828,10 +828,18 @@ class SceneFx:
                       target_name=b, width=.18)
         for _settle in range(4 if self.matrix_at is not None and self.span else 1):
             fl = self._salvo_world(a, b, starts, frames, shift, fl, arrive, mp, shooter, aim)
-            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit']
+            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit'
+                    and f.end['frame'] <= arrive + self.fps]
             if not ends or abs(max(ends) - arrive) <= 1:
                 break
             shift += arrive - max(ends)       # the world re-plan moved the arrivals: shift the launch
+        # a seeker the world re-plan sends the long way round (S8-S9: one of four arriving 7 s late,
+        # still circling at the cut) is not launched: a salvo lands together or not at all
+        late = [f for f in fl if f.end and f.end['kind'] == 'hit' and f.end['frame'] > arrive + self.fps]
+        fl = [f for f in fl if f not in late]
+        if late:
+            self.rows.append(f'missiles {a} -> {b}: {len(late)} seeker(s) arriving over a second late not launched '
+                             f'({[f.end["frame"] for f in late]})')
         taken = self._decoy(a, b, fl, decoys) if decoys else []
         for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
             if f.end and f.end['kind'] == 'hit':
