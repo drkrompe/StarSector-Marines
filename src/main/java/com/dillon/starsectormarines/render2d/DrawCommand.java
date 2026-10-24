@@ -97,6 +97,11 @@ public final class DrawCommand {
     float r, g, b, a;
     /** The hit flash this command draws with, the share of white in its colour; zero for most. Paged runs only. */
     float flash;
+    /**
+     * The light on it ({@code PagedQuadRun.packLight}), the direction that light comes from in radians on screen,
+     * and its wear ({@code PagedQuadRun.packWear}); zero for most. Paged runs only.
+     */
+    float light, lightAngle, wear;
     /** {@code RIBBON} only: the contrail sample history the drain expands. */
     ContrailTrail trail;
     /** {@code POLY} only: the tessellated solid-quad fan (annulus / arc) the drain replays. */
@@ -123,6 +128,16 @@ public final class DrawCommand {
     public float flash() { return flash; }
     /** Set by the list that hands this slot out, from its current flash ({@code DrawList.setFlash}). */
     public void setFlash(float flash) { this.flash = flash; }
+    public float light() { return light; }
+    public float lightAngle() { return lightAngle; }
+    public float wear() { return wear; }
+    /** Set by the list that hands this slot out, from its current effects ({@code DrawList.setLight}, {@code setWear}). */
+    public void setEffects(float flash, float light, float lightAngle, float wear) {
+        this.flash = flash;
+        this.light = light;
+        this.lightAngle = lightAngle;
+        this.wear = wear;
+    }
     public PolyMesh polygon() { return poly; }
     /** {@code MESH} only: the recorded quads, drawn at {@link #centerX}, {@link #centerY} by {@link #meshScale}. */
     public QuadMesh mesh() { return mesh; }

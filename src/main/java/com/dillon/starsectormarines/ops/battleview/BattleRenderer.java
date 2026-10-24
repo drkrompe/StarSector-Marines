@@ -263,6 +263,8 @@ public class BattleRenderer {
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
+    /** The bodies, lit by {@link #groundLights} or a review's own (law 27). */
+    private final UnitRenderService units;
     /** Barrel smoke, ejected brass and damage smoke off map turrets; fed by the screen with the simulation's shots. */
     private final TurretFx turretFx = new TurretFx(0x7A11E7L);
 
@@ -310,6 +312,9 @@ public class BattleRenderer {
         PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
         this.nightLighting = new NightLightingRenderSystem(sprites);
         this.aircraft = new ShuttleRenderSystem(sprites);
+        this.units = new UnitRenderService(sprites);
+        units.useLights(groundLights);
+        nightLighting.useLights(groundLights);
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
@@ -363,7 +368,7 @@ public class BattleRenderer {
                         out.addCustom(RenderLayer.UNITS, unitAtlas::sync);
                     }
                 }),
-                new UnitRenderService(sprites),
+                units,
                 // Over the bodies, like the health bars: who the medic is and what they are doing.
                 new MedicMarkerRenderSystem(sprites),
                 new SatchelRenderSystem(sprites),
@@ -648,11 +653,13 @@ public class BattleRenderer {
     public TurretFx getTurretFx() { return turretFx; }
 
     /**
-     * Lights the ground composite from {@code lights} instead of this renderer's own; null restores its own. A
+     * Lights the ground composite and the bodies from {@code lights} instead of this renderer's own; null restores its own. A
      * headless review keeps the presentation state the screen feeds every tick in a feed of its own, lights among it.
      */
     void useGroundLights(GroundLightService lights) {
         groundParallax.useLights(lights != null ? lights : groundLights);
+        units.useLights(lights != null ? lights : groundLights);
+        nightLighting.useLights(lights != null ? lights : groundLights);
     }
 
     /**
