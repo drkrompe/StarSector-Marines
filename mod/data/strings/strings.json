@@ -1121,6 +1121,8 @@
     "gearCatalogWeaponTankBurstLaserModelName": "BL-G ground-mount burst laser",
     "gearCatalogWeaponTankPdLaserDisplayName": "PD Laser Turret",
     "gearCatalogWeaponTankPdLaserModelName": "PDL-G ground-mount PD laser",
+    "gearCatalogWeaponHardpointPdLaserDisplayName": "Hardpoint PD Laser",
+    "gearCatalogWeaponHardpointPdLaserModelName": "PDL-H shield-fed hardpoint PD laser",
     "gearCatalogWeaponPostPdLaserDisplayName": "PD Laser Emplacement",
     "gearCatalogWeaponPostPdLaserModelName": "Tri-Tachyon PDL-E emplaced PD laser",
     "gearCatalogWeaponPostBurstLaserDisplayName": "Burst Laser Emplacement",

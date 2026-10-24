@@ -159,8 +159,12 @@ graphite and cyan (`art-source/ground-turrets/laser/`):
   plays ten pulses a burst and engages fliers.
 - **Burst:** the Burst PD Laser (`structure.turret-burst-laser`, twin emitters) for the Arbalest,
   Hephaestus and grenade launcher: four quick blue pulses.
-- **Hardpoint:** the laser tank's own red PD laser, turret and weapon, at hardpoint size
-  (`structure.hardpoint-laser`) for the cannon hardpoint, behind its flux shield.
+- **Hardpoint:** the laser tank's own red PD laser turret at hardpoint size
+  (`structure.hardpoint-laser`) for the cannon hardpoint, behind its flux shield. Its weapon is the
+  tank's beam made less accurate and slower to cycle (`weapon.hardpoint-pd-laser`), and it is fed
+  from the shield's own capacitors (`gunDraw` on the shield): every pulse charges them, shield up or
+  down, so firing spends the shield's headroom, and past 80% the gun holds fire until they bleed
+  to 50%. It fires in spells and rests, and a hardpoint under fire and firing back breaks sooner.
 
 Every post laser rakes as a tank's lance does: a beam opens up to 20 degrees off its target, lands
 short along the mount's facing and drags across onto it as the mount comes round, striking and

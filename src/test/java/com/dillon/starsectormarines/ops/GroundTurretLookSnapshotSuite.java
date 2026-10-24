@@ -192,7 +192,8 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
      * A 40x22 window on arid ground: the cannon hardpoint built in {@code look} at the west, laid north, and a line of
      * eight marines across open ground twenty cells east of it, north to south (bodies, not squads, so only the gun
      * fires). Each dies in a few hits, so the gun comes round from one to the next: a beam opens off target and rakes
-     * along the line, scorching the ground it crosses. Played eight seconds at one frame a tick.
+     * along the line, scorching the ground it crosses. Played twenty-four seconds at one frame a tick, long enough for a
+     * gun that rests to let its flux bleed to fire, rest and fire again.
      */
     private static LookReview.Shot rake(String look) {
         LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
@@ -215,7 +216,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             return sim;
         }, placement -> List.of(
                 LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 30f)),
-                Math.round(8f / BattleSimulation.TICK_DT), 1, 3).withStills(70, 100, 130, 200);
+                Math.round(24f / BattleSimulation.TICK_DT), 1, 3).withStills(90, 250, 420, 600);
     }
 
     /**

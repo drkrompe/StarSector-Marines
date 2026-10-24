@@ -23,11 +23,34 @@ import org.json.JSONObject;
  * @param overloadSeconds      how long an overloaded shield is down, its gun silent, while the capacitors vent
  * @param turnDegPerSecond     how fast the arc swings round to face a new threat
  * @param lingerSeconds        how long the shield stays up after the last threat
+ * @param gunDraw              how an energy gun draws on the same capacitors, or null for a gun that does not
  */
 public record FluxShieldSpec(float radiusCells, float arcDegrees, float fluxCapacity, float dissipationPerSecond,
                              float upkeepPerSecond, float fluxPerDamage, float fluxPerRound, float raiseSeconds,
                              float lowerSeconds, float overloadSeconds, float turnDegPerSecond,
-                             float lingerSeconds) {
+                             float lingerSeconds, GunDraw gunDraw) {
+
+    /**
+     * An energy gun fed from the shield's capacitors: every round it fires charges them {@code perRound}, shield up
+     * or down, so firing spends the shield's headroom. Once they pass {@code holdAbove} of capacity the gun holds fire
+     * until they have bled down to {@code resumeBelow}: its rest between spells of fire.
+     */
+    public record GunDraw(float perRound, float holdAbove, float resumeBelow) {
+        public GunDraw {
+            positive(perRound, "gunDraw.perRound");
+            if (!(resumeBelow >= 0f && resumeBelow < holdAbove && holdAbove <= 1f)) {
+                throw new IllegalArgumentException("fluxShield gunDraw needs 0 <= resumeBelow < holdAbove <= 1");
+            }
+        }
+    }
+
+    /** A shield whose gun does not draw on its capacitors. */
+    public FluxShieldSpec(float radiusCells, float arcDegrees, float fluxCapacity, float dissipationPerSecond,
+                          float upkeepPerSecond, float fluxPerDamage, float fluxPerRound, float raiseSeconds,
+                          float lowerSeconds, float overloadSeconds, float turnDegPerSecond, float lingerSeconds) {
+        this(radiusCells, arcDegrees, fluxCapacity, dissipationPerSecond, upkeepPerSecond, fluxPerDamage,
+                fluxPerRound, raiseSeconds, lowerSeconds, overloadSeconds, turnDegPerSecond, lingerSeconds, null);
+    }
 
     public FluxShieldSpec {
         positive(radiusCells, "radiusCells");
@@ -61,7 +84,11 @@ public record FluxShieldSpec(float radiusCells, float arcDegrees, float fluxCapa
                     (float) json.getDouble("lowerSeconds"),
                     (float) json.getDouble("overloadSeconds"),
                     (float) json.getDouble("turnDegPerSecond"),
-                    (float) json.getDouble("lingerSeconds"));
+                    (float) json.getDouble("lingerSeconds"),
+                    json.has("gunDraw") ? new GunDraw(
+                            (float) json.getJSONObject("gunDraw").getDouble("perRound"),
+                            (float) json.getJSONObject("gunDraw").getDouble("holdAbove"),
+                            (float) json.getJSONObject("gunDraw").getDouble("resumeBelow")) : null);
         } catch (IllegalArgumentException e) {
             throw new JSONException("Structure '" + structureId + "': " + e.getMessage());
         }
