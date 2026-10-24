@@ -97,7 +97,10 @@ chooses what the button fires without a key per weapon.
 
 ## Art note (step 3)
 
-The flamer has no carried or firing art at all: its sprite slots name the frag
+The flamer's charge flies as a flame jet (a puff cropped from the fire sheet by
+`art-source/fx/flamer-jet/export.py`, a fire-and-glow trail, and a nozzle
+emitter spraying fire forward for the length of each charge), but it has no
+carried or firing art: its carried prop and armoury icon still name the frag
 grenade, and the Marine holds the primary's aim and firing clips while it is
 picked. A held flamer wand and a firing clip are part of the same art question.
 
