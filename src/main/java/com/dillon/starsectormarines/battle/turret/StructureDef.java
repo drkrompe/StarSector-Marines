@@ -206,8 +206,13 @@ public final class StructureDef {
                 for (EmplacementStyle style : EmplacementStyle.values()) known |= style.key.equals(key);
                 if (!known) throw new JSONException("Structure '" + id + "' has a look for unknown style '" + key + "'");
                 JSONObject look = looksJson.getJSONObject(key);
+                float shieldCells = (float) look.optDouble("shieldCells", 0.0);
+                if (!Float.isFinite(shieldCells) || shieldCells < 0f) {
+                    throw new JSONException("Structure '" + id + "' look '" + key + "' has an invalid shieldCells");
+                }
                 looks.put(key, new StructureLook(TurretMountDef.optionalText(look, "base"),
-                        TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite")));
+                        TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite"),
+                        shieldCells));
             }
         }
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));

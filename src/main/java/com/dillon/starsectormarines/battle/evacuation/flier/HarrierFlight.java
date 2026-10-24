@@ -17,6 +17,11 @@ public final class HarrierFlight {
     public final HarrierLook look;
     /** 0 at the bottom of a dive, 1 loitering. */
     public float altitude = 1f;
+    /**
+     * The height it is drawn and shadowed at, following {@link #altitude} smoothly ({@link HarrierAltitude}),
+     * and how fast that is changing. Presentation only.
+     */
+    public float shownAltitude = 1f, shownRate;
     /** Whether it is done with this dive: its strike landed, or its prey was lost. */
     public boolean struck;
     /**

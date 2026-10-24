@@ -3,7 +3,7 @@
 Status: IN PROGRESS
 
 Written: 2026-10-23
-Updated: 2026-10-23 — midline and high-tech emplacement styles built (directions pending the owner's picks).
+Updated: 2026-10-24 — owner picks applied: League and Diktat midline pairs, field-emitter high tech with a drawn flux shield, heads registered to their guides.
 
 Read `ground-defences.md` (defence nests, multi-cell structures), `elevation-nouns.md`
 (tiers, sight) and `ballistics-nouns.md` (muzzle height, catch bands) first.
@@ -60,11 +60,21 @@ is approved; every look step is shown to the owner as renders.
    style's base and head art; brutalist is its default art. Presentation only, as a tech
    family is: no rule reads a style. Midline and high-tech each add a prepared and a
    militia style, as their own design language (`tech-families.md`), not a recolour:
-   modular (League-standard pressed panels in slate blue-grey, strip lamps) and barrier
-   (the same heads on stepped, earth-filled mesh barrier cells); composite (seamless white
-   shells, graphite gaps, cyan emitter seams, a rounded ramped pedestal) and deployed (the
-   same pods on drop pads and a strutted platform). Every look's heads fill the brutalist
-   heads' boxes, so one set of muzzles serves all. A militia style's plinth must read as a
+   midline has two pairs, the League's and the Diktat's: modular (League-standard pressed
+   panels in slate blue-grey, strip lamps) and barrier (the same heads on stepped,
+   earth-filled mesh barrier cells); export (the Diktat's sand-and-rust export kit) and
+   blockwork (the same heads on interlocking moulded blocks). High-tech is the field
+   emitter: composite (pearl composite shells in the Paragon's hex ablative plating, glass
+   domes, blue projector rings) and deployed (the same heads on a skirted deck). A
+   composite or deployed gun carries a light flux shield (`shieldCells` on the look): a
+   faint hex bubble drawn by the shield-dome shader that flares where hostile rounds end
+   inside it and collapses below a quarter of the structure (`TurretShieldField`). It is
+   drawn, not simulated: rounds pass it and do full damage, since stopping them would need
+   a hook in the damage pipeline. Heads are cut by registering each piece to its own guide
+   (`export_ship.fit_registered`): a family's guide puts its turret ring on the pivot and
+   its barrel tips where the brutalist guide does, so heads sit centred on their collars
+   and the brutalist muzzles serve every look. Never stretch one family's head onto another
+   head's box; that moved the rings off the pivot. A militia style's plinth must read as a
    storey from above (stepped courses, a deep deck skirt), not as a paved square.
 4. **Point emplacement family** (built): the existing one-cell structures carry the new
    art (Vulcan and heavy MG the autogun, Arbalest and Hephaestus the cannon, grenade
@@ -81,9 +91,9 @@ is approved; every look step is shown to the owner as renders.
    compared in `createSnapshots -Psnapshot=large-post-look`.
 
 A generated post takes its style from the defenders' market at generation
-(`EmplacementStylePolicy`): the faction's tech family picks the language (Persean League,
-Diktat and Lion's Guard midline, Tri-Tachyon high-tech, everyone else low-tech, pirates
-derelict), and prepared defences (ground defences, heavy batteries or a defence level
+(`EmplacementStylePolicy`): the faction's tech family picks the language (the Persean
+League builds League standard, the Diktat and Lion's Guard Diktat export, Tri-Tachyon the
+field emitter, everyone else low-tech, pirates derelict), and prepared defences (ground defences, heavy batteries or a defence level
 above one) pick its prepared style, the rest its militia one; no market builds brutalist.
 A militia post's parapets are sandbags and it is not paved.
 
@@ -122,9 +132,12 @@ Presentation only, so a battle plays the same with or without them:
 
 ## Open
 
-- The midline and high-tech directions (League standard, Tri-Tachyon white) are the
-  recommended options on the picks page; the alternatives' drafts stay in
-  `family_drafts.py` / `createSnapshots -Psnapshot=ground-turret-family-draft`.
+- The League militia set borrows its grenade and point-defence heads from the prepared
+  set, recoloured: their own sheet was refused by the image generator three times.
+- Whether the flux shield should become a real mechanic (absorbing small arms until it
+  drops) is open; it needs a damage-pipeline hook.
+- The alternatives' drafts stay in `family_drafts.py` /
+  `createSnapshots -Psnapshot=ground-turret-family-draft`.
 
 Settled: a raised gun takes no low cover at its foot (`UnitRosterService.standsAboveLowCover`);
 pirate worlds build derelict, and a mission picks derelict for an old work through
