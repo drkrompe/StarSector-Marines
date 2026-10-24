@@ -320,7 +320,7 @@ public final class HeadlessUiRenderer {
         document.render(new RasterTarget(graphics, resources, hostPassRenderer,
                 deviceScale), alphaMult);
         graphics.dispose();
-        LayoutLint.observe(document, documentWidth, documentHeight, lintPolicy);
+        LayoutLint.observe(document, documentWidth, documentHeight, lintPolicy, output);
         return output;
     }
 

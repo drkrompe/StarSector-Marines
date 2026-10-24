@@ -16,8 +16,15 @@ class LayoutLintTest {
     void wrappedTextTallerThanItsFixedBoxIsClippedText() {
         UiElement body = new UiElement("body").text("ONE TWO THREE")
                 .style("width: 50px; height: 20px; white-space: normal");
-        List<LayoutLint.Finding> findings = lint(new UiElement("root").style("align-items: start").child(body));
-        assertEquals(List.of(new LayoutLint.Finding(LayoutLint.Kind.TEXT_CLIP, "#root > #body", 40f)), findings);
+        List<String> findings = lint(new UiElement("root").style("align-items: start").child(body));
+        assertEquals(List.of("text-clip #root > #body 40.0"), findings);
+    }
+
+    @Test
+    void oneLineAQuarterOfItsHeightTooTallStillReadsAndIsOnlyTight() {
+        UiElement label = new UiElement("label").text("ONE").style("width: 50px; height: 15px");
+        assertEquals(List.of("text-tight #root > #label 5.0"),
+                lint(new UiElement("root").style("align-items: start").child(label)));
     }
 
     @Test
@@ -25,7 +32,7 @@ class LayoutLintTest {
         UiElement inner = new UiElement("inner").style("height: 80px");
         UiElement card = new UiElement("card").style("height: 70px; flex-direction: column").child(inner);
         UiElement panel = new UiElement("panel").style("width: 100px; height: 50px; overflow: hidden; flex-direction: column").child(card);
-        assertEquals(List.of(new LayoutLint.Finding(LayoutLint.Kind.CLIP_SPILL, "#root > #panel > #card", 20f)),
+        assertEquals(List.of("clip-spill #root > #panel > #card 20.0"),
                 lint(new UiElement("root").style("align-items: start").child(panel)));
     }
 
@@ -35,7 +42,7 @@ class LayoutLintTest {
                 .child(new UiElement("shown").style("height: 10px"))
                 .child(new UiElement("hidden").style("width: 0px; height: 0px; opacity: 0"))
                 .child(new UiElement("after").style("height: 10px"));
-        assertEquals(List.of(new LayoutLint.Finding(LayoutLint.Kind.HIDDEN_GAP, "#root > #column > #hidden", 6f)),
+        assertEquals(List.of("hidden-gap #root > #column > #hidden 6.0"),
                 lint(new UiElement("root").style("align-items: start").child(column)));
     }
 
@@ -45,11 +52,14 @@ class LayoutLintTest {
                 LayoutLint.pattern("#stock > #transfer-stock:rare_metals > #shade-3"));
     }
 
-    private static List<LayoutLint.Finding> lint(UiElement root) {
+    /** Each finding as kind, element and overflow; where it sits is the box the layout gave it. */
+    private static List<String> lint(UiElement root) {
         UiDocument document = new UiDocument(root).theme(new UiTheme(
                 StyleSheet.parse("test-theme", ":root { font-family: body; }"), Map.of("body", new FixedFont())));
         document.layout(200f, 100f);
-        return LayoutLint.inspect(document);
+        return LayoutLint.inspect(document).stream()
+                .map(finding -> finding.kind().label() + " " + finding.element() + " " + finding.overflow())
+                .toList();
     }
 
     /** Ten px per character, twenty px per line, one word per line once a string does not fit. */

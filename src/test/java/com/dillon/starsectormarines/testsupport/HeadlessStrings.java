@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.testsupport;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
+import com.dillon.starsectormarines.ui.retained.LayoutLint;
 import org.json.JSONObject;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
@@ -12,11 +13,18 @@ import java.util.function.UnaryOperator;
 /** Loads the shipped localization catalog at the same SettingsAPI seam used in game. */
 public final class HeadlessStrings implements AutoCloseable {
     private final SettingsAPI previous = Global.getSettings();
+    private final boolean translated;
     public HeadlessStrings(Path modRoot) throws Exception {
-        this(modRoot, UnaryOperator.identity());
+        this(modRoot, UnaryOperator.identity(), false);
     }
     /** Translation overlays exercise the same lookup without rewriting production assets. */
     public HeadlessStrings(Path modRoot, UnaryOperator<String> translation) throws Exception {
+        this(modRoot, translation, true);
+    }
+    private HeadlessStrings(Path modRoot, UnaryOperator<String> translation, boolean translated) throws Exception {
+        // The layout lint counts pages drawn under an overlay apart from the shipped strings.
+        this.translated = translated;
+        if (translated) LayoutLint.translated(true);
         String source = Files.readString(modRoot.resolve("data/strings/strings.json"));
         String uncommented = source.lines().filter(line -> !line.stripLeading().startsWith("#"))
                 .collect(Collectors.joining("\n"));
@@ -33,5 +41,8 @@ public final class HeadlessStrings implements AutoCloseable {
                     return null;
                 }));
     }
-    @Override public void close() { Global.setSettings(previous); }
+    @Override public void close() {
+        Global.setSettings(previous);
+        if (translated) LayoutLint.translated(false);
+    }
 }

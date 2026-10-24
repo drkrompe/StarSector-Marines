@@ -2,7 +2,13 @@ package com.dillon.starsectormarines.ui.retained;
 
 import com.dillon.starsectormarines.ui.BitmapFont;
 
+import javax.imageio.ImageIO;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,8 +34,10 @@ import java.util.regex.Pattern;
  *
  * <p>Three findings, each measured in document px:
  * <ul>
- *   <li>{@link Kind#TEXT_CLIP}: wrapped text taller than its content box (or one line taller than a box
- *       too short for it). {@link Kind#TEXT_WIDE} is the horizontal twin for unwrapped text.</li>
+ *   <li>{@link Kind#TEXT_CLIP}: wrapped text whose lines do not all fit its content box, or one line
+ *       cut by more than a quarter of its line height. A single line only a little taller than its box
+ *       still reads, and is the low-severity {@link Kind#TEXT_TIGHT}. {@link Kind#TEXT_WIDE} is the
+ *       horizontal twin for unwrapped text.</li>
  *   <li>{@link Kind#CLIP_SPILL}: a border box that crosses the padding box of its nearest clipping
  *       ancestor (the rectangle paint actually cuts to), reported once per spilling subtree. A
  *       {@code overflow: scroll} ancestor's vertical extent is not a spill. An absolutely positioned
@@ -54,7 +62,8 @@ public final class LayoutLint {
         TEXT_CLIP("text-clip"),
         TEXT_WIDE("text-wide"),
         CLIP_SPILL("clip-spill"),
-        HIDDEN_GAP("hidden-gap");
+        HIDDEN_GAP("hidden-gap"),
+        TEXT_TIGHT("text-tight");
 
         private final String label;
 
@@ -67,7 +76,7 @@ public final class LayoutLint {
         }
     }
 
-    public record Finding(Kind kind, String element, float overflow) {}
+    public record Finding(Kind kind, String element, float overflow, Rect box) {}
 
     /** How a full-screen document was fitted to the physical screen. */
     public record Policy(float uiScale, float referenceWidth, float referenceHeight) {}
@@ -75,7 +84,13 @@ public final class LayoutLint {
     private static final Map<String, Map<String, float[]>> RECORDED = new TreeMap<>();
     private static final Map<String, int[]> DOCUMENTS = new TreeMap<>();
     private static final Map<String, Set<String>> SUITES = new TreeMap<>();
+    private static final Map<String, Integer> MARKED = new TreeMap<>();
+    private static final Map<String, String> MARKED_SUITE = new TreeMap<>();
+    /** Outline colour per {@link Kind}, in declaration order: red, orange, magenta, cyan, and a dim grey for tight text. */
+    private static final Color[] MARK_COLOURS = {
+            new Color(0xFF3B30), new Color(0xFF9F0A), new Color(0xFF2DD4), new Color(0x2DE1FF), new Color(0x8A8F80) };
     private static volatile String suite = "unlabelled";
+    private static volatile int translations;
 
     private LayoutLint() {}
 
@@ -98,7 +113,7 @@ public final class LayoutLint {
      * marks a panel painted at its own size.
      */
     public static void observe(UiDocument document, float documentWidth, float documentHeight,
-                               Policy policy) {
+                               Policy policy, BufferedImage painted) {
         if (!enabled() || document.root() == null) return;
         UiLayoutEngine engine = new UiLayoutEngine(new UiTextMeasurer(document.styles()));
         String screen = screen(document.root(), policy);
@@ -111,11 +126,54 @@ public final class LayoutLint {
                     SIZES[index][0] / policy.uiScale(), SIZES[index][1] / policy.uiScale(),
                     policy.uiScale(), policy.referenceWidth(), policy.referenceHeight());
             engine.layout(document.root(), viewport.documentWidth(), viewport.documentHeight());
-            boolean painted = Math.abs(viewport.documentWidth() - documentWidth) < 0.5f
+            boolean atPaintedSize = Math.abs(viewport.documentWidth() - documentWidth) < 0.5f
                     && Math.abs(viewport.documentHeight() - documentHeight) < 0.5f;
-            record(screen, index, inspect(document, painted));
+            List<Finding> findings = inspect(document, atPaintedSize);
+            record(screen, index, findings);
+            if (atPaintedSize && SIZES[index][0] == 1920 && policy.uiScale() == 1f && painted != null
+                    && painted.getWidth() == 1920 && painted.getHeight() == 1080) {
+                mark(screen, painted, findings);
+            }
         }
         engine.layout(document.root(), documentWidth, documentHeight);
+    }
+
+    /**
+     * Keeps, per screen, the 1920x1080 frame with the most findings, each outlined in its kind's colour, under
+     * {@code <dir>/marked/}. Written when a frame beats the last, so the run holds no frames in memory.
+     */
+    private static void mark(String screen, BufferedImage painted, List<Finding> findings) {
+        // Ranked by the faults that cost the reader something, so a frame of tight labels never wins.
+        int faults = (int) findings.stream().filter(finding -> finding.kind() != Kind.TEXT_TIGHT).count();
+        synchronized (LayoutLint.class) {
+            if (faults == 0 || faults <= MARKED.getOrDefault(screen, 0)) return;
+            MARKED.put(screen, faults);
+            MARKED_SUITE.put(screen, suite);
+        }
+        BufferedImage marked = new BufferedImage(painted.getWidth(), painted.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = marked.createGraphics();
+        graphics.drawImage(painted, 0, 0, null);
+        graphics.setStroke(new BasicStroke(2f));
+        for (Finding finding : findings) {
+            graphics.setColor(MARK_COLOURS[finding.kind().ordinal()]);
+            Rect box = finding.box();
+            // A zero-size hide has no box to outline; a small square marks the slot it holds.
+            int width = Math.max(6, Math.round(box.width()));
+            int height = Math.max(6, Math.round(box.height()));
+            graphics.drawRect(Math.round(box.x()), Math.round(box.y()), width, height);
+        }
+        graphics.dispose();
+        try {
+            Path file = reportDirectory().resolve("marked").resolve(fileName(screen) + ".png");
+            Files.createDirectories(file.getParent());
+            ImageIO.write(marked, "png", file.toFile());
+        } catch (IOException failure) {
+            throw new UncheckedIOException(failure);
+        }
+    }
+
+    private static String fileName(String screen) {
+        return screen.replaceAll("[^A-Za-z0-9.-]+", "_").replaceAll("^_+|_+$", "");
     }
 
     /** Every finding in the document's current boxes. */
@@ -143,7 +201,7 @@ public final class LayoutLint {
             if (!spilled && clip != null) {
                 float spill = spill(border, clip, clipper.overflow() == Overflow.SCROLL);
                 if (spill > EPSILON) {
-                    findings.add(new Finding(Kind.CLIP_SPILL, label(element), spill));
+                    findings.add(new Finding(Kind.CLIP_SPILL, label(element), spill, border));
                     spilled = true;
                 }
             }
@@ -169,9 +227,12 @@ public final class LayoutLint {
         Rect content = element.box().contentBox();
         UiTextMeasurer.Measurement measured = text.measure(element, content.width());
         float tall = measured.height() - content.height();
-        if (tall > EPSILON) findings.add(new Finding(Kind.TEXT_CLIP, label(element), tall));
+        if (tall > EPSILON) {
+            boolean lost = measured.lines().size() > 1 || tall > font.getLineHeight() * 0.25f;
+            findings.add(new Finding(lost ? Kind.TEXT_CLIP : Kind.TEXT_TIGHT, label(element), tall, content));
+        }
         float wide = measured.width() - content.width();
-        if (wide > EPSILON) findings.add(new Finding(Kind.TEXT_WIDE, label(element), wide));
+        if (wide > EPSILON) findings.add(new Finding(Kind.TEXT_WIDE, label(element), wide, content));
     }
 
     private static float spill(Rect box, Rect clip, boolean scrolls) {
@@ -195,7 +256,7 @@ public final class LayoutLint {
         for (UiElement child : flow) {
             Rect box = child.box().borderBox();
             if ((horizontal ? box.width() : box.height()) <= 0.01f) {
-                findings.add(new Finding(Kind.HIDDEN_GAP, label(child), gap));
+                findings.add(new Finding(Kind.HIDDEN_GAP, label(child), gap, box));
             }
         }
     }
@@ -220,9 +281,18 @@ public final class LayoutLint {
         return out.isEmpty() ? null : out.toString();
     }
 
+    /**
+     * Marks pages drawn under a translation overlay (a localization suite's stretched strings), which are
+     * counted as their own screens so they never inflate or hide what the shipped strings do.
+     */
+    public static synchronized void translated(boolean entering) {
+        translations = Math.max(0, translations + (entering ? 1 : -1));
+    }
+
     private static String screen(UiElement root, Policy policy) {
         String label = segment(root);
         String screen = label == null ? "(root)" : label;
+        if (translations > 0) screen += " [translated]";
         if (policy != null && policy.uiScale() != 1f) {
             screen += String.format(Locale.ROOT, " @%.2gx", policy.uiScale());
         }
@@ -324,7 +394,14 @@ public final class LayoutLint {
         }
         out.append("| **total** | **").append(rows.size()).append("** | **").append(patternTotal).append("** |");
         for (int value : totals) out.append(" **").append(value).append("** |");
-        out.append(" | |\n\n## Worst 80 by overflow\n\n| screen | element | kind |");
+        out.append(" | |\n\n## Marked frames\n\nThe 1920x1080 frame with the most findings per screen, under `marked/`:")
+                .append(" red clipped text, orange unwrapped text too wide, magenta clip spill, cyan hidden gap slot, grey tight text.\n\n");
+        for (var entry : MARKED.entrySet()) {
+            out.append("- `").append(entry.getKey()).append("`: `marked/").append(fileName(entry.getKey()))
+                    .append(".png`, ").append(entry.getValue()).append(" faults (tight text not counted), from `")
+                    .append(MARKED_SUITE.get(entry.getKey())).append("`\n");
+        }
+        out.append("\n## Worst 80 by overflow\n\n| screen | element | kind |");
         for (String column : COLUMNS) out.append(' ').append(column).append(" |");
         out.append("\n|---|---|---|").append("---:|".repeat(COLUMNS.size())).append('\n');
         Set<String> shown = new TreeSet<>();
