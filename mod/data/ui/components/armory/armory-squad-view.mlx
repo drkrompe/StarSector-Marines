@@ -55,9 +55,9 @@
   .loadout-member-name { height: 16px; overflow: hidden; }
   .loadout-member-state { height: 14px; overflow: hidden; }
   .loadout-member-portrait { width: 100%; height: 0px; flex-grow: 1; pointer-events: none; background-color: #0c1213; }
-  /* Each kit line is a Mech Lab mount: a stores card's frame, the slot's accent on a tick,
+  /* The kit lines sit in a black well, as the Mech Lab stores do; each is a mount: a stores card's frame, the slot's accent on a tick,
      the item sunk in a dark socket; an empty slot fades into the card, a changing one is brass. */
-  .loadout-member-parts { flex-direction: column; height: 134px; gap: 2px; }
+  .loadout-member-parts { flex-direction: column; height: 134px; gap: 2px; padding: 3px; border-width: 1px; border-color: #050809; background-color: #0d1214; }
   .loadout-part { flex-direction: row; align-items: center; height: 32px; gap: 4px; padding: 0px 3px 0px 0px; border-width: 1px; border-color: #2a3437; background-color: #172023; }
   .loadout-part.empty { background-color: #17202366; border-color: #2a343770; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
