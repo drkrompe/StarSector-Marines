@@ -131,6 +131,11 @@ one producer over the shared catalogue (`allied-tools.md`). It holds each tool
 as stock and restocks it at a pace, and nothing sets out while the swarm is on
 the park, so losing the base is what stops the help. It never fights and never
 ends the battle.
+Fresh armour and ammunition reach it up the supply road: while the satellite
+beside the road has its swarm on the road (a **cut**, `heart.road_cut_<n>`, held
+ten seconds past the last body seen), the base restocks no armour pair, mech
+lance or truck, though what it holds can still go. Taking that satellite opens
+the road for good (F6). The gunship is not road-borne.
 - On Broad Front it holds all four of the owner's tools: armour pairs (one per
   lane, at the old wave pace), mech lances in town and city, one gunship gated
   on open air, and one ammunition truck.

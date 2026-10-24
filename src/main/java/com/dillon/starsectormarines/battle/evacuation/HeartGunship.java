@@ -68,8 +68,7 @@ public final class HeartGunship {
     static final float STANDOFF = 2f;
 
     private Policy policy = DEFAULT_POLICY;
-    private List<int[]> road = List.of();
-    private boolean[] roadMask;
+    private HeartSupplyRoad road = new HeartSupplyRoad(List.of());
     private int sorties;
     private int shoots;
     private int nextShoot;
@@ -82,10 +81,9 @@ public final class HeartGunship {
 
     public Policy policy() { return policy; }
 
-    /** The supply road's cells, whose satellite is rung 3 (F6); none leaves the rung out. */
-    public HeartGunship road(List<int[]> cells) {
-        this.road = cells == null ? List.of() : cells;
-        this.roadMask = null;
+    /** The supply road, whose satellite is rung 3 while it cuts the road (F6). */
+    HeartGunship road(HeartSupplyRoad road) {
+        this.road = road;
         return this;
     }
 
@@ -238,36 +236,8 @@ public final class HeartGunship {
         }
         int[] broken = lanes.brokenLaneTarget();
         if (broken != null) return broken;
-        SwarmBore cutter = roadSatellite(sim, road);
-        if (cutter != null && !roadCut(sim)) cutter = null;
+        SwarmBore cutter = road.cut() ? road.satellite(sim) : null;
         return cutter != null ? new int[]{cutter.x(), cutter.y()} : lanes.stalledLaneTarget();
-    }
-
-    /** Whether a swarm body stands on the supply road now. */
-    boolean roadCut(BattleSimulation sim) {
-        if (road.isEmpty()) return false;
-        int width = sim.getGrid().getWidth();
-        if (roadMask == null) {
-            roadMask = new boolean[width * sim.getGrid().getHeight()];
-            for (int[] cell : road) roadMask[cell[1] * width + cell[0]] = true;
-        }
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != Faction.DEFENDER || sim.identity().type(unit).isTurret()) continue;
-            int x = (int) sim.world().x(unit), y = (int) sim.world().y(unit);
-            if (x >= 0 && y >= 0 && x < width && y * width + x < roadMask.length && roadMask[y * width + x]) return true;
-        }
-        return false;
-    }
-
-    /** The standing satellite within {@link HeartBores#ROAD_REACH} of the road, the one cutting it; null when none is. */
-    static SwarmBore roadSatellite(BattleSimulation sim, List<int[]> road) {
-        SwarmBore nearest = road.isEmpty() ? null : HeartObjectives.nearestToRoad(sim, road);
-        if (nearest == null) return null;
-        for (int[] cell : road) {
-            if (Math.hypot(cell[0] - nearest.x(), cell[1] - nearest.y()) <= HeartBores.ROAD_REACH) return nearest;
-        }
-        return null;
     }
 
     /**

@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.evacuation.HeartGuns;
 import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.evacuation.HeartSupplyRoad;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRoll;
@@ -216,7 +217,7 @@ public final class BloomHeartSetup {
         HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
         if (lanes != null && park != null) {
             lanes.sentFrom(park);
-            lanes.gunship().road(supplyRoad(built.map()));
+            lanes.road(supplyRoad(built.map()));
             // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
             int n = lanes.grounds().size();
             // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
@@ -229,6 +230,11 @@ public final class BloomHeartSetup {
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
             shed.stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS);
+            // Fresh hulls and ammunition come up the supply road: while its satellite cuts it, none reaches the park (F6).
+            HeartSupplyRoad road = lanes.road();
+            for (AlliedTool upTheRoad : new AlliedTool[]{AlliedTool.ARMOUR_PAIR, AlliedTool.MECH_LANCE, AlliedTool.AMMO_TRUCK}) {
+                shed.suppliedWhile(upTheRoad, s -> road.open());
+            }
             heartGuns.calledFrom(shed, !lanes.callsByNeed());
         } else if (park != null) {
             heartGuns.calledFrom(new AlliedToolShed(park)

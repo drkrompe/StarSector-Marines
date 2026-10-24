@@ -3,7 +3,7 @@
 Status: ACTIVE. Beats, allied forces and the allied commander shipped; the maps' last pieces are left, then tuning. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
-Updated: 2026-10-24 — F6's road satellite placed (`heart-map-intent.md`); the hollow, the knoll, pooling and tuning remain.
+Updated: 2026-10-24 — F6 road satellite, road cuts and F2 wave re-aiming in; the hollow, the knoll, pooling and tuning remain.
 
 ## Why
 

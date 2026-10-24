@@ -78,6 +78,13 @@ public final class AlliedColumns {
         return n;
     }
 
+    /** Columns still to come or still marching: not joined, not wiped out. */
+    public int remaining() {
+        int n = 0;
+        for (Column c : columns) if (!c.done) n++;
+        return n;
+    }
+
     /** Where each column on the march is bound, {x, y}: entered, not yet joined, with someone left in it. */
     public List<int[]> marching() {
         List<int[]> out = new ArrayList<>();

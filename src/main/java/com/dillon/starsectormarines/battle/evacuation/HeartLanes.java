@@ -60,6 +60,10 @@ public final class HeartLanes {
     static final int ARRIVE_CELLS = 12;
     /** A marching column's destination this far from its lane's current aim is stale, and it is sent on. */
     static final int REAIM_CELLS = 3;
+    /** Cells back from a broken lane's bore toward its foot that its gap is taken to be, when none of it stands. */
+    static final int GAP_STANDOFF = 24;
+    /** Cells from the gap within which a re-aimed wave standing in the broken lane's band has closed it. */
+    static final int GAP_REACH = 36;
     static final int RETARGET_TICKS = Math.round(1f / BattleSimulation.TICK_DT);
 
     private final class Lane implements AlliedColumns.Orders {
@@ -89,6 +93,12 @@ public final class HeartLanes {
         int calls;
         /** Contacts the lane's formation has pushed through at the cap with none cleared between: two is stalled. */
         int pushesRunning;
+        /** The broken lane whose gap this lane's next wave is re-aimed to close (F2), or {@code null}. */
+        Lane reaimedTo;
+        /** Where the re-aimed wave goes: the broken lane's ground as it stood when the commander re-aimed. */
+        int[] gapAt;
+        /** Times the commander has re-aimed a wave at this lane's gap: the count its re-aim beats carry. */
+        int reaims;
 
         Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
@@ -102,11 +112,19 @@ public final class HeartLanes {
         }
 
         @Override public int[] destination(BattleSimulation sim) {
+            int[] gap = gapToClose();
+            if (gap != null && !boundTo(gap)) {
+                // Asked as a column steps off (or as a marching one finds its bore gone): it goes for the gap.
+                laneBeats.add("wave_sent_" + reaimedTo.number + "_from_" + number + "_" + reaimedTo.reaims);
+                return gap;
+            }
             KnownBore bore = ground.target(known(sim), entryX, entryY);
             return bore == null ? null : aim(sim, ground, bore);
         }
 
         @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
+            int[] gap = gapToClose();
+            if (gap != null && near(gap, x, y)) return true;
             if (screen == null) return livingBoreAt(sim, x, y);
             // Following the guns, a column marches to where its lane is aimed now: the hold moves up as each
             // line lifts, and the bore it was sent for may have fallen.
@@ -115,10 +133,21 @@ public final class HeartLanes {
         }
 
         @Override public boolean arrived(int x, int y, int destX, int destY) {
+            // A wave sent to close a gap has closed it once it stands in the broken lane's ground near the gap: the swarm
+            // that broke the lane is still there, and an attack-moving column fights its way in rather than arriving.
+            if (gapAt != null && reaimedTo != null && near(gapAt, destX, destY)
+                    && inBand(reaimedTo.ground, x, y) && Math.hypot(x - destX, y - destY) <= GAP_REACH) return true;
             return Math.max(Math.abs(x - destX), Math.abs(y - destY)) <= ARRIVE_CELLS;
         }
 
         @Override public void joined(BattleSimulation sim, int ignored, List<Integer> joined, int destX, int destY) {
+            if (reaimedTo != null && gapAt != null && near(gapAt, destX, destY)) {
+                reaimedTo.reinforce(sim, joined);
+                closedGaps.add(reaimedTo.number + "_" + reaimedTo.reaims);
+                reaimedTo = null;
+                gapAt = null;
+                return;
+            }
             // A later wave joins the lane where it stands: the lane's own retarget sends it on with the rest.
             if (squads == null) {
                 squads = new ArrayList<>();
@@ -128,9 +157,65 @@ public final class HeartLanes {
             squads.addAll(joined);
             joinedMembers += teams * ColonyMilitia.POST_SIZE;
         }
+
+        /**
+         * Where a broken lane's gap is: where its survivors stand, or, with none, {@link #GAP_STANDOFF} back from its
+         * aim toward its foot. Its aim on Broad Front is the bore itself, whose mouth no column walks into.
+         */
+        int[] gapCell(BattleSimulation sim) {
+            float x = 0f, y = 0f;
+            int n = 0;
+            if (squads != null) for (int squad : squads) {
+                for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
+                    long member = sim.squadMemberAt(squad, i);
+                    x += sim.world().x(member);
+                    y += sim.world().y(member);
+                    n++;
+                }
+            }
+            if (n > 0) return walkableNear(sim, Math.round(x / n), Math.round(y / n));
+            if (targetX < 0) return new int[]{entryX, entryY};
+            float dx = entryX - targetX, dy = entryY - targetY, d = (float) Math.hypot(dx, dy);
+            float t = d <= GAP_STANDOFF ? 1f : GAP_STANDOFF / d;
+            return walkableNear(sim, Math.round(targetX + dx * t), Math.round(targetY + dy * t));
+        }
+
+        /** The gap this lane's next wave is to close, while the lane it is re-aimed at is still broken. */
+        int[] gapToClose() {
+            return reaimedTo != null && reaimedTo.broken ? gapAt : null;
+        }
+
+        /** Whether one of this lane's columns is already marching for {@code gap}. */
+        boolean boundTo(int[] gap) {
+            for (int[] dest : column.marching()) if (near(gap, dest[0], dest[1])) return true;
+            return false;
+        }
+
+        /**
+         * Another lane's re-aimed wave has come into this broken lane: its squads are this lane's, sent on to its aim,
+         * and the lane is whole again, measured from what stands now.
+         */
+        void reinforce(BattleSimulation sim, List<Integer> joined) {
+            if (squads == null) squads = new ArrayList<>();
+            int alive = 0;
+            for (int squad : squads) alive += sim.squadMemberCount(squad);
+            for (int squad : joined) alive += sim.squadMemberCount(squad);
+            squads.addAll(joined);
+            joinedMembers = alive;
+            broken = false;
+            for (int squad : joined) {
+                int[] at = targetX >= 0 ? new int[]{targetX, targetY} : new int[]{entryX, entryY};
+                sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, at[0], at[1]),
+                        CommandAuthority.GARRISON, ISSUER, "a wave closes lane " + number + "'s gap");
+            }
+        }
     }
 
     private final List<Lane> lanes = new ArrayList<>();
+    /** Broken lanes a re-aimed wave has closed since the beats last went out. */
+    private final List<String> closedGaps = new ArrayList<>();
+    /** Beats the lanes' orders raised between ticks, for the next tick's beats. */
+    private final List<String> laneBeats = new ArrayList<>();
     private BarrageScreen screen;
     /** Where scheduled armour sets out from; {@code null} sets it down at its own lane's foot. */
     private AlliedDepot depot;
@@ -250,11 +335,13 @@ public final class HeartLanes {
             }
             addArmour(sim, a[1], a[2] < 0 ? null : VehicleType.values()[a[2]], from[0], from[1], a[5]);
         }
+        road.tick(sim, beats);
         if (byNeed()) {
             shed.advance(sim);
             if (tick % RETARGET_TICKS == 0) {
                 for (Lane lane : lanes) callArmour(sim, lane, beats);
                 gunship.call(sim, shed, this, beats);
+                reaim(sim, beats);
             }
         }
         for (Lane lane : lanes) {
@@ -420,6 +507,17 @@ public final class HeartLanes {
 
     /** The commander's gunship on call: its maker and gate stock the shed. */
     public HeartGunship gunship() { return gunship; }
+    /** The supply road the base's armour and ammunition come up (F6). */
+    private HeartSupplyRoad road = new HeartSupplyRoad(List.of());
+
+    /** Lays the supply road from its cells: its cuts hold back the base's restock and give the gunship its rung 3. */
+    public HeartLanes road(List<int[]> cells) {
+        road = new HeartSupplyRoad(cells);
+        gunship.road(road);
+        return this;
+    }
+
+    public HeartSupplyRoad road() { return road; }
 
     /** In built-up country an uncovered lane asks the base for a mech lance first, and an armour pair if none is free. */
     public HeartLanes mechsFirst(boolean first) {
@@ -590,6 +688,60 @@ public final class HeartLanes {
         if (stalled) lane.pushesRunning = 0;
         beats.add("armour_called_" + lane.number + "_" + lane.calls);
         if (reason.equals("stalled")) beats.add("lane_stalled_" + lane.number);
+    }
+
+    /**
+     * F2: a broken lane the company has not gone into gets the next wave of its nearest whole neighbour with waves to
+     * come, re-aimed at its gap even on the march ({@code wave_reaimed_<lane>_from_<lane>}); once that wave is in, the
+     * lane is whole again ({@code gap_closed_<lane>}). The company going into the gap calls the wave back to its own lane.
+     */
+    void reaim(BattleSimulation sim, List<String> beats) {
+        for (Lane gap : lanes) {
+            Lane sent = null;
+            for (Lane lane : lanes) if (lane.reaimedTo == gap) sent = lane;
+            if (!gap.broken || companyIn(sim, gap.ground)) {
+                if (sent != null) {
+                    sent.reaimedTo = null;
+                    sent.gapAt = null;
+                    if (gap.broken) beats.add("wave_recalled_" + gap.number + "_" + gap.reaims);
+                }
+                continue;
+            }
+            if (sent != null) continue;
+            Lane nearest = null;
+            for (Lane lane : lanes) {
+                if (lane == gap || lane.broken || lane.reaimedTo != null || lane.column.remaining() == 0) continue;
+                if (nearest == null || entryDistance(lane, gap) < entryDistance(nearest, gap)) nearest = lane;
+            }
+            if (nearest == null) continue;
+            nearest.reaimedTo = gap;
+            nearest.gapAt = gap.gapCell(sim);
+            gap.reaims++;
+            beats.add("wave_reaimed_" + gap.number + "_from_" + nearest.number + "_" + gap.reaims);
+        }
+        for (String closed : closedGaps) beats.add("gap_closed_" + closed);
+        closedGaps.clear();
+        beats.addAll(laneBeats);
+        laneBeats.clear();
+    }
+
+    /** How far {@code from}'s waves step off from {@code gap}'s aim. */
+    private static double entryDistance(Lane from, Lane gap) {
+        int[] at = gap.targetX >= 0 ? new int[]{gap.targetX, gap.targetY} : new int[]{gap.entryX, gap.entryY};
+        return Math.hypot(from.entryX - at[0], from.entryY - at[1]);
+    }
+
+    /** The walkable cell nearest {@code (x, y)} within eight cells, or {@code (x, y)} itself. */
+    static int[] walkableNear(BattleSimulation sim, int x, int y) {
+        for (int r = 0; r <= 8; r++)
+            for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++)
+                if (sim.getGrid().inBounds(x + dx, y + dy) && sim.getGrid().isWalkable(x + dx, y + dy)) return new int[]{x + dx, y + dy};
+        return new int[]{x, y};
+    }
+
+    /** Whether {@code (x, y)} is within {@link #REAIM_CELLS} of {@code cell}. */
+    static boolean near(int[] cell, int x, int y) {
+        return Math.max(Math.abs(cell[0] - x), Math.abs(cell[1] - y)) <= REAIM_CELLS;
     }
 
     /** Whether a machine sent to the lane is alive and still short of its lane's aim. */
