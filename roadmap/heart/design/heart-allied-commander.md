@@ -78,9 +78,12 @@ The commander reads the company's position as one more fact:
 
 - The gunship's rung 3, the satellite against the road, once F6's satellite
   is placed (`heart-map-intent.md`).
-- A sortie dies fast over the bores: the first played one took two hits from
-  the colonies round its target, eight seconds apart, and was down to 2 of 60
-  structure before it could turn home. A reading, not tuned.
+- Every played sortie so far was shot down by spore anti-air, three hits each
+  against 60 structure and 30 armour. The first flew into bore 4's outposts
+  (which is why the gate counts outposts now); the second, with the approach
+  clear, flew into mother-1's colonies, which the gate does not look at. Whether
+  the commander should only send a sortie where no standing anti-air reaches
+  the target is a design question. A reading, not tuned.
 - Whether the commander should also re-aim the next infantry wave (F2's "the
   allied commander re-aims the next wave to close it"), which needs the
   militia column to accept a new target mid-march.
