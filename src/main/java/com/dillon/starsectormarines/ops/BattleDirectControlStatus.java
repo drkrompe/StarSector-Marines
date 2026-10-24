@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
+import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
@@ -350,14 +351,20 @@ final class BattleDirectControlStatus {
         World world = roster.world();
         if (!world.isAlive(id) || roster.identity().type(id) != UnitType.MARINE) return List.of();
         IntegralSystemDef system = roster.integralSystems().spec(id);
-        SpecialEquipmentDef special = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
+        SpecialEquipmentDef hand = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
+        SpecialEquipmentDef belt = world.hasBelt(id) ? world.beltEquipment(id) : null;
         List<AbilityStatus> abilities = new ArrayList<>(3);
-        for (MarineRightTrigger.Item item : MarineRightTrigger.members(special, system)) {
+        for (MarineRightTrigger.Item item : MarineRightTrigger.members(hand, belt, system)) {
+            // Each throw reads the slot it rides in; its channel is the hand's, so only the one in hand runs a clock.
+            SpecialEquipmentDef carried = CarriedSpecials.item(world, id, item::is);
+            boolean inHand = item.is(hand);
+            float channel = inHand ? world.secondaryActionTimer(id) : 0f;
             AbilityStatus status = switch (item) {
-                case SMOKE -> smokeAbility(special, world.secondaryAmmo(id), world.smokeThrowCommit(id),
-                        world.secondaryActionTimer(id), available.test(DirectControlAbility.SMOKE));
-                case GRENADE -> grenadeAbility(special, world.secondaryAmmo(id), manualThrow,
-                        world.secondaryActionTimer(id), available.test(DirectControlAbility.GRENADE));
+                case SMOKE -> smokeAbility(carried, CarriedSpecials.ammo(world, id, item::is),
+                        inHand ? world.smokeThrowCommit(id) : null, channel,
+                        available.test(DirectControlAbility.SMOKE));
+                case GRENADE -> grenadeAbility(carried, CarriedSpecials.ammo(world, id, item::is),
+                        inHand && manualThrow, channel, available.test(DirectControlAbility.GRENADE));
                 case SHIELD -> shieldAbility(system, roster.integralSystems(), roster.mitigations(), id,
                         available.test(DirectControlAbility.SHIELD));
             };

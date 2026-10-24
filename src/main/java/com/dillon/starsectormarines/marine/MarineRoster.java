@@ -1150,7 +1150,7 @@ public class MarineRoster implements Serializable {
             billets.add(new SquadEquipmentBillet(
                     weapon.role(), weapon.primaryId(), primaryGrades != null
                             ? primaryGrades.get(index) : weapon.grade(),
-                    weapon.specialEquipmentId(), armor.issueId(index)));
+                    weapon.specialEquipmentId(), weapon.beltEquipmentId(), armor.issueId(index)));
         }
         return billets;
     }
@@ -1182,6 +1182,7 @@ public class MarineRoster implements Serializable {
                 SquadEquipmentBillet billet = billets.get(index);
                 soldier.setPrimary(billet.primaryId(), billet.grade());
                 soldier.setSpecialEquipment(billet.specialEquipmentId());
+                soldier.setBeltEquipment(billet.beltEquipmentId());
                 soldier.setArmor(billet.armorId());
             }
         }

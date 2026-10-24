@@ -163,7 +163,9 @@ public final class CampaignMarineDeployment {
                     armor.armorCapacity(), armor.armorRating(),
                     armor.moveSpeedMult(), armor.incomingAccuracyMult(),
                     tag(roster, owners.get(i), soldier, strengths),
-                    armor.integralSystem()).withArmorClass(armor.armorClass()));
+                    armor.integralSystem()).withArmorClass(armor.armorClass())
+                    .withBelt(soldier.beltEquipmentId(),
+                            soldier.beltEquipmentDef() != null ? soldier.beltEquipmentDef().startingAmmo() : 0));
         }
         return new CampaignMarineDeployment(frozen);
     }

@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — a company learns cards, never suits.
+Updated: 2026-10-23 — a billet may carry a second, thrown special on the belt.
 
 ## Purpose
 
@@ -849,7 +849,13 @@ may mix recovered traditions. Provenance never rewrites the marine's weapon
 family, grade, aptitude, or experience, and faction identity never supplies a
 hidden universal combat bonus.
 
-Each billet has at most one special-equipment slot. The item is a stable
+Each billet has one special-equipment slot and may have a second, the **belt**,
+which holds only a thrown item: smoke or a hand grenade. The belt exists so one
+marine can carry a screen and a frag together (owner, 2026-10-23). It has no
+action of its own: a belt item is swapped into the special slot to be used and
+the slot's own item comes back once that action ends, so every channel, aim and
+throw still runs through the one slot. A card that issues a belt item teaches
+it like any other special. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
 weapon catalog that owns their payload and any traveling round, while utility
 specials own their battle action without becoming zero-damage weapons. A
@@ -1529,7 +1535,8 @@ The following are direction, not current behavior:
   marine. None is a synonym for another.
 - A cargo loadout card is consumed only by successful Armory learning. It never
   becomes player-faction ship-production knowledge.
-- A billet carries at most one special item; utilities do not become
+- A billet carries at most one special item and one thrown belt item; nothing
+  but smoke or a hand grenade rides the belt. Utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.
 - Contact damage exists only as a carried item. No marine has a fallback melee
   attack, and no future close-contact family may grant one.
