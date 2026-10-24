@@ -50,6 +50,7 @@ public final class FragGrenadeTactics {
         if (squad == null || blockedByHigherPriorityWork(carrier, squad)) return false;
         cleanupReservations(sim);
         FireField fire = grenade.weaponDef().incendiaryHeat() > 0 && FireReach.enabled() ? sim.fireField() : null;
+        int lit = FireReach.litCells(grenade.aoeRadius(), grenade.hitSpread());
 
         Candidate best = null;
         for (BelievedContact anchor : squad.believedContacts()) {
@@ -69,7 +70,7 @@ public final class FragGrenadeTactics {
             boolean inFuel = fire != null && fire.canBurn(anchor.lastSeenCellX(), anchor.lastSeenCellY());
             if (softTargets < (inFuel ? 1 : MIN_SOFT_TARGETS)) continue;
             if (!friendlyFootprintClear(carrier, targetX, targetY, grenade, sim)) continue;
-            if (fire != null && FireReach.reachesSide(fire, anchor.lastSeenCellX(), anchor.lastSeenCellY(),
+            if (fire != null && FireReach.reachesSide(fire, anchor.lastSeenCellX(), anchor.lastSeenCellY(), lit,
                     sim.identity().faction(carrier), sim)) continue;
             if (overlapsCommittedGrenade(targetX, targetY, grenade.aoeRadius(),
                     grenade.weaponId(),
