@@ -49,6 +49,7 @@ public final class AlliedToolShed implements AlliedProducer {
     private final AlliedDepot depot;
     private final Map<AlliedTool, Line> lines = new EnumMap<>(AlliedTool.class);
     private final Map<AlliedTool, Predicate<BattleSimulation>> gates = new EnumMap<>(AlliedTool.class);
+    private final Map<AlliedTool, Predicate<BattleSimulation>> supplies = new EnumMap<>(AlliedTool.class);
     private final List<Dispatch> onRoad = new ArrayList<>();
     private final List<Dispatch> log = new ArrayList<>();
 
@@ -68,6 +69,15 @@ public final class AlliedToolShed implements AlliedProducer {
     /** A tool sent only while {@code gate} is open (a sortie behind the mission's air gate). */
     public AlliedToolShed gated(AlliedTool tool, Predicate<BattleSimulation> gate) {
         gates.put(tool, gate);
+        return this;
+    }
+
+    /**
+     * A tool whose fresh stock reaches the base only while {@code supplied} holds (a supply road the enemy can cut):
+     * while it does not, the tool's restock clock stands still, and what is in stock can still be sent.
+     */
+    public AlliedToolShed suppliedWhile(AlliedTool tool, Predicate<BattleSimulation> supplied) {
+        supplies.put(tool, supplied);
         return this;
     }
 
@@ -116,9 +126,16 @@ public final class AlliedToolShed implements AlliedProducer {
     }
 
     void advance(BattleSimulation sim, int tick) {
-        for (Line line : lines.values()) {
+        for (Map.Entry<AlliedTool, Line> e : lines.entrySet()) {
+            Line line = e.getValue();
             if (line.restockTicks <= 0 || line.stock >= line.cap) continue;
             if (line.nextRestock == 0) line.nextRestock = tick + line.restockTicks;
+            Predicate<BattleSimulation> supplied = supplies.get(e.getKey());
+            if (supplied != null && !supplied.test(sim)) {
+                // Cut off: the clock stands still, so the restock lands as late as the cut lasted.
+                line.nextRestock = Math.max(line.nextRestock, tick) + 1;
+                continue;
+            }
             if (tick >= line.nextRestock) {
                 line.stock++;
                 line.nextRestock = tick + line.restockTicks;

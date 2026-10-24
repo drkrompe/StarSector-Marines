@@ -131,6 +131,11 @@ one producer over the shared catalogue (`allied-tools.md`). It holds each tool
 as stock and restocks it at a pace, and nothing sets out while the swarm is on
 the park, so losing the base is what stops the help. It never fights and never
 ends the battle.
+Fresh armour and ammunition reach it up the supply road: while the satellite
+beside the road has its swarm on the road (a **cut**, `heart.road_cut_<n>`, held
+ten seconds past the last body seen), the base restocks no armour pair, mech
+lance or truck, though what it holds can still go. Taking that satellite opens
+the road for good (F6). The gunship is not road-borne.
 - On Broad Front it holds all four of the owner's tools: armour pairs (one per
   lane, at the old wave pace), mech lances in town and city, one gunship gated
   on open air, and one ammunition truck.
@@ -294,7 +299,7 @@ a biome, never a market.
 | Woods | 70% of the wild ground | 80%: the fuel the burn runs through |
 | Cleared ground | a track along each of four allied lanes | two rides across the approach |
 | Water | none | the brook, about three fifths of the way in |
-| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front | 2-3 mothers, 3 satellites from 44% to 74% depth |
+| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6) | 2-3 mothers, 3 satellites from 44% to 74% depth |
 
 A plan states its country through its **landscape** (`mapgen-nouns.md`,
 Authored forests: a plan's landscape): how much of the wild ground is wood,

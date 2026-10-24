@@ -43,6 +43,23 @@ class AlliedToolShedTest {
     }
 
     @Test
+    void aCutSupplyLineStopsTheRestockClockForAsLongAsItLasts() {
+        AtomicBoolean supplied = new AtomicBoolean(true);
+        AlliedToolShed shed = new AlliedToolShed(sim -> new int[]{0, 0})
+                .stock(AlliedTool.ARMOUR_PAIR, (sim, from, r) -> s -> true, 1, 1, 100)
+                .suppliedWhile(AlliedTool.ARMOUR_PAIR, sim -> supplied.get());
+        assertTrue(shed.request(null, PAIR, 0));
+        for (int tick = 1; tick < 50; tick++) shed.advance(null, tick);
+        supplied.set(false);
+        for (int tick = 50; tick < 80; tick++) shed.advance(null, tick);
+        supplied.set(true);
+        for (int tick = 80; tick < 130; tick++) shed.advance(null, tick);
+        assertEquals(0, shed.stock(AlliedTool.ARMOUR_PAIR), "thirty ticks cut, thirty ticks late");
+        shed.advance(null, 130);
+        assertEquals(1, shed.stock(AlliedTool.ARMOUR_PAIR));
+    }
+
+    @Test
     void anOverrunDepotAClosedGateOrAFailedMakerSendsNothing() {
         AlliedToolShed overrun = new AlliedToolShed(sim -> null)
                 .stock(AlliedTool.ARMOUR_PAIR, (sim, from, r) -> s -> true, 1, 1, 0);

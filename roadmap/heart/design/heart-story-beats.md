@@ -30,8 +30,9 @@ as allies (step 3). Beat `holdout_reached` / `holdout_fallen`.
 **F2. A lane breaks.** The heart's waking surge falls hardest on one lane. Its
 column breaks and the front has a hole beside the company. The company is
 told; plugging the gap or holding its own line is the player's choice. The
-allied commander re-aims the next wave to close it. Builds on the existing
-`lane_broken_N`. Needs: the commander re-aiming waves (step 4).
+allied commander re-aims the next wave to close it (`heart-allied-commander.md`,
+Re-aiming a wave). Builds on `lane_broken_N`; beats `wave_reaimed_N_from_M_n`,
+`wave_sent_N_from_M_n`, `gap_closed_N_n`.
 
 **F3. Spores ground the air.** Close air support is promised but grounded
 while the satellites' spore colonies stand over the approach. Each colony
@@ -53,8 +54,9 @@ lanes converge on (step 2). Beat `linkup`.
 **F6. The supply road.** The country road is the front's one metalled road,
 and the armour waves and ammunition come up it. A satellite near the road
 cuts it with surges until it falls, so taking that bore is what keeps the
-fresh armour coming. Needs: a logistics base on the farmland that sends
-hulls up the road (step 3). Beat `road_cut` / `road_open`.
+fresh armour coming: while it cuts the road the base restocks no armour or
+trucks (`heart-nouns.md`, Logistics base), and the gunship counts it a target.
+Beats `road_cut_N` / `road_open`.
 
 ## The Burn: fire and the guns
 
@@ -135,7 +137,7 @@ heart; the company's screen keeps to the plan it was given, so it does not
 follow the extra line.
 
 Not fully staged yet:
-- F2's re-aimed wave and F4's hull-seeking Matriarch need the commander and the swarm-side behaviour they name. Their objectives run without them.
+- F4's hull-seeking Matriarch needs the swarm-side behaviour it names. Its objective runs without it.
 - F3's close air support is step 3.
 - The lost column's survivors do not join a lane yet.
 

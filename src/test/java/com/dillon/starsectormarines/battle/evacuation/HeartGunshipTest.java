@@ -13,4 +13,10 @@ class HeartGunshipTest {
         assertEquals(2, HeartGunship.shellsFor(40f, 0f));
         assertEquals(HeartGunship.MOST_SHELLS, HeartGunship.shellsFor(2000f, 500f));
     }
+
+    @Test
+    void aDefenceCoversTheWayWhenItsReachMeetsTheSegment() {
+        assertEquals(5f, HeartGunship.segmentDistance(5f, 5f, 0f, 0f, 10f, 0f), 1e-4f);
+        assertEquals(5f, HeartGunship.segmentDistance(13f, 4f, 0f, 0f, 10f, 0f), 1e-4f, "past the end it is the distance to the end");
+    }
 }

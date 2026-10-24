@@ -3,7 +3,7 @@
 Status: ACTIVE. Beats, allied forces and the allied commander shipped; the maps' last pieces are left, then tuning. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
-Updated: 2026-10-23 — steps 2 to 4 shipped and folded (`heart-nouns.md`, `heart-story-beats.md`, `heart-allied-forces.md`, `heart-allied-commander.md`); only the map work and tuning remain.
+Updated: 2026-10-24 — F6 road satellite, road cuts and F2 wave re-aiming in; the hollow, the knoll, pooling and tuning remain.
 
 ## Why
 
@@ -17,11 +17,9 @@ using them. The beats, the forces and the commander are built.
 
 1. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
    brook valley, the hollow's rim, the cordon's works, every beat's set piece
-   that needs ground, and the town and city densities. Open:
+   that needs ground (F6's road satellite with it), and the town and city densities. Open:
    - a full hollow;
    - the knoll;
-   - a satellite placed against the supply road (F6). The allied commander's
-     third gunship rung and the armour's road both wait on it;
    - pooling the denser maps.
 2. **Tuning win rates**, only after the map work (owner: no overtuning yet).
 
