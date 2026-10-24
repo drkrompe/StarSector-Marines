@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +126,37 @@ public final class MechWorkshop {
         }
         bay.addInternal(internal.id, 1);
         return Result.of(Status.FABRICATED);
+    }
+
+    /** Builds one vehicle kit into the bay's stores against its known pattern. */
+    public Result fabricateKit(VehicleKit kit) {
+        if (kit == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(kit)) return Result.of(Status.PATTERN_LOCKED);
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.kit(kit);
+        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+            return Result.of(Status.INSUFFICIENT_MATERIALS);
+        }
+        bay.addKit(kit.id, 1);
+        return Result.of(Status.FABRICATED);
+    }
+
+    /** Puts a spare kit on a vehicle's rack. Kits fit from stores only; building one is its own step. */
+    public Result fitKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || kit == null) return Result.of(Status.INVALID);
+        if (vehicle.kits().contains(kit)) return Result.of(Status.ALREADY_INSTALLED);
+        if (!vehicle.canFit(kit)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableKit(kit.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitKit(vehicleId, kit) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /** Takes a kit off a vehicle's rack back to stores. */
+    public Result stripKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || kit == null) return Result.of(Status.INVALID);
+        if (!vehicle.kits().contains(kit)) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripKit(vehicleId, kit) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
     }
 
     /** Takes the first vent array out of the compartment. */

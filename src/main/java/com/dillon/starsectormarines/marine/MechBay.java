@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 
@@ -44,6 +45,8 @@ public final class MechBay implements Serializable {
     private Map<String, Integer> ownedWeapons = new HashMap<>();
     /** Owned internal assemblies by {@link MechInternal#id}, installed copies included. */
     private Map<String, Integer> ownedInternals = new HashMap<>();
+    /** Vehicle kits owned, fitted and spare alike; null in a save from before kits. */
+    private Map<String, Integer> ownedKits = new HashMap<>();
     private String activeSquadId;
     private int nextFabricatedSerial = 1;
     private int nextVehicleSerial = 1;
@@ -76,6 +79,10 @@ public final class MechBay implements Serializable {
 
     public boolean canFabricate(MechInternal internal) {
         return internal != null && knowsPattern(MechPattern.of(internal).id());
+    }
+
+    public boolean canFabricate(VehicleKit kit) {
+        return kit != null && knowsPattern(MechPattern.of(kit).id());
     }
 
     public boolean knowsPattern(String patternId) {
@@ -230,15 +237,22 @@ public final class MechBay implements Serializable {
         if (vehicleIds == null) return 0;
         int lost = 0;
         for (String vehicleId : vehicleIds) {
-            for (CampaignMechSquad squad : squads) {
-                CampaignVehicle vehicle = squad.vehicleById(vehicleId);
-                if (vehicle != null && squad.remove(vehicle)) {
-                    lost++;
-                    break;
-                }
-            }
+            CampaignVehicle vehicle = removeVehicle(vehicleId);
+            if (vehicle == null) continue;
+            // The kits on its rack go down with it.
+            for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+            lost++;
         }
         return lost;
+    }
+
+    /** Takes a vehicle off its gantry; null when no gantry holds it. */
+    private CampaignVehicle removeVehicle(String vehicleId) {
+        for (CampaignMechSquad squad : squads) {
+            CampaignVehicle vehicle = squad.vehicleById(vehicleId);
+            if (vehicle != null && squad.remove(vehicle)) return vehicle;
+        }
+        return null;
     }
 
     /**
@@ -296,9 +310,9 @@ public final class MechBay implements Serializable {
         return false;
     }
 
-    /** Breaks a vehicle up; it carries nothing the bay counts, so only the berth comes back. */
+    /** Breaks a vehicle up; its kits stay owned and are spares in stores again. */
     public boolean scrapVehicle(String vehicleId) {
-        return vehicleId != null && loseVehicles(List.of(vehicleId)) == 1;
+        return vehicleId != null && removeVehicle(vehicleId) != null;
     }
 
     /** The chassis and everything fitted to it leave the bay; its gantry stands empty. */
@@ -454,6 +468,44 @@ public final class MechBay implements Serializable {
         ownedInternals.merge(internalId, quantity, Integer::sum);
     }
 
+    public int ownedKit(String kitId) {
+        return Math.max(0, ownedKits.getOrDefault(kitId, 0));
+    }
+
+    /** Kits of {@code kitId} on a vehicle's rack, across every lance. */
+    public int installedKit(String kitId) {
+        VehicleKit kit = VehicleKit.findById(kitId);
+        if (kit == null) return 0;
+        int installed = 0;
+        for (CampaignMechSquad squad : squads) {
+            for (CampaignVehicle vehicle : squad.vehicles()) if (vehicle.kits().contains(kit)) installed++;
+        }
+        return installed;
+    }
+
+    public int availableKit(String kitId) {
+        return Math.max(0, ownedKit(kitId) - installedKit(kitId));
+    }
+
+    /** Acquisition seam for fabricated or recovered kits. */
+    public void addKit(String kitId, int quantity) {
+        if (VehicleKit.findById(kitId) == null || quantity <= 0) return;
+        ownedKits.merge(kitId, quantity, Integer::sum);
+    }
+
+    /** Puts a spare {@code kit} on a vehicle's rack; false with no spare, no slot, or a hull it does not suit. */
+    public boolean fitKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        if (vehicle == null || kit == null || availableKit(kit.id) <= 0) return false;
+        return vehicle.fit(kit);
+    }
+
+    /** Takes {@code kit} off a vehicle's rack back to stores. */
+    public boolean stripKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && vehicle.remove(kit);
+    }
+
     /**
      * Whether {@code internal} physically fits this mech. An engine needs the core to hold its
      * footprint; plating covers the frame and needs no socket; a compartment part needs the
@@ -542,6 +594,12 @@ public final class MechBay implements Serializable {
             destroyed += Math.max(0, ownedInternal(internalId) - installed);
             if (installed <= 0) ownedInternals.remove(internalId);
             else ownedInternals.put(internalId, installed);
+        }
+        for (String kitId : new ArrayList<>(ownedKits.keySet())) {
+            int installed = installedKit(kitId);
+            destroyed += Math.max(0, ownedKit(kitId) - installed);
+            if (installed <= 0) ownedKits.remove(kitId);
+            else ownedKits.put(kitId, installed);
         }
         return destroyed;
     }
@@ -705,6 +763,7 @@ public final class MechBay implements Serializable {
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
         if (ownedWeapons == null) ownedWeapons = new HashMap<>();
         if (ownedInternals == null) ownedInternals = new HashMap<>();
+        if (ownedKits == null) ownedKits = new HashMap<>();
         if (knownPatternIds == null) {
             knownPatternIds = starterPatternsOnly ? starterPatternIds() : allPatternIds();
         }
