@@ -1311,9 +1311,12 @@ adds dissipation. A mech's flux and a warship's flux share one gauge on the dire
 HUD. Never call it heat, which reads as a separate mod mechanic.
 
 A weapon component owns its mechanical trigger-to-trigger period and its flux
-reservation. A rotary gun commits its flux round by round instead (0.75 a round
-for the stock chaingun), small enough that a long hold runs the belt dry before it
-vents a single-gun frame, while a Bulwark holding both arm guns still runs hot.
+reservation. A rotary gun commits its flux round by round instead (1.25 a round
+for the stock chaingun). That is enough that even a single-gun frame cannot empty
+its belt in one hold: a stock Hound, venting 6 a second against 15 at full rate,
+reaches its 100-flux cap about 140 rounds into a 200-round belt (owner,
+2026-10-23, after 0.75 let it dump the whole belt with almost no flux). A Bulwark
+holding both arm guns runs hot within seconds.
 SRM-5 loads every 1.8 seconds for a two-rocket packet
 costing 28 flux. Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components

@@ -471,9 +471,10 @@ resetting cooldown. A magazine-fed primary spends one round per release from
 the same load its AI fire uses, and an empty load reloads on its own; manual
 fire grants no separate supply. R asks for a reload of a part-spent load (an
 autonomous marine tops up after a short lull instead). A semi-automatic
-magazine fires one round per press of the trigger rather than on a hold; a
-press that lands a moment before the action has cycled stays armed briefly so
-it is not lost, and a reload drops it.
+magazine fires one round per press of the trigger rather than on a hold, and
+under control there is no cycle between rounds: every press with a round loaded
+fires at once, so the player's finger sets the rate of fire (owner,
+2026-10-23). It reloads on its own only when the load runs dry.
 
 A handheld point request is consumed once whether it fires or is held by a gate.
 It requires a live equipped direct primary, a finite noncoincident world bearing,
