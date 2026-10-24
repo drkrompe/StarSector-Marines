@@ -576,7 +576,10 @@ a special no longer carried returns it there. The controlled Marine **holds the
 picked special** in place of the primary, the launcher on the shoulder or the
 rifle in the hands: raised over the wind-up, through its firing clip for the
 follow-through after a round, and carried in the item's own walking clip while
-it walks with the special readied, coming back up to the aim when it stops.
+it walks with the special readied, coming back up to the aim when it stops. The
+walking clip moves the arms and shoulders with the stride, so a walking Marine
+is never frozen in a firing stance from the waist up; going between the carry and
+the aim takes a fifth of a second each way, and a round snaps it to the aim.
 Autonomous Marines use their specials through their AI policy as before.
 
 The **flamer is a held stream** rather than a single round. Picked, it readies over
@@ -592,9 +595,11 @@ refused without spending fuel. **The player's flamer can burn its own Marine**
 manual path deliberately has none of the autonomous flamer's own-side reach guard,
 so a Marine who keeps standing in a burning meadow pays for it. Its row counts fuel as a tank of cells, one a charge,
 and its reticle tick is grey on an empty tank or a refused jet and red past its
-range, where the jet lands short. It has no held art of its own: the Marine stands
-in the primary's aim pose while it is picked and in the primary's firing clip while
-a charge is leaving.
+range, where the jet lands short. Its kit is its own art: a fuel pack of twin tanks
+and a pressure bottle worn on the back and always visible, and a wand corded to it by
+a hose, held at the hip in place of the primary while the flamer is picked, as the
+comms radio's handset is corded to its pack. The jet leaves from the wand's nozzle,
+ahead of the Marine and drawn in front of the body.
 
 The right button holds the
 Marine's **thrown and utility items** (owner, 2026-10-23): grenades are a throw, not

@@ -107,7 +107,7 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("amr-held-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false));
 
     /**
-     * The carry options put to the owner ({@code weapon-cycling.md}): each walking clip of the launcher and the
+     * The carry options put to the owner ({@code direct-control-nouns.md}): each walking clip of the launcher and the
      * rifle, at play zoom, close, and as a close walk. The shipped clip is one of them; the rest go once the owner
      * has picked.
      */
