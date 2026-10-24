@@ -720,7 +720,11 @@ yet creates one when it has its first question and adds a row to
   once, about 180 bodies round one point (four infantry families, every mech
   chassis on both sides, runners, brutes, spitters and a matriarch) with a
   third of them killed where they stand, 45 ticks so the dead fall and shots
-  are in flight, then a fire lit across 20 cells and stepped on its own field.
+  are in flight, then a fire stepped on its own field to The Burn's shape:
+  centred on trees and walls, which alone burn hot enough to throw embers, aged
+  45 steps (grass burnt out, crowns and walls at full heat and smoking), plus a
+  fresh patch. Its HAZARDS at mid is about 1,360 draws on the old per-sheet
+  path (`-Dbattle.render.pagedBatch=false`), near The Burn's 1,323.
   Its counts are asserted to repeat across two stand-ups, as Conquest's are.
   A render-cost fixture only, with no balance meaning. Compare a lever against
   its own control with the same `-PrenderMaps=stress`. A map selection runs
