@@ -46,7 +46,10 @@ public final class DrawList {
     /** {@link #spriteAtlas}'s rectangles, as a mesh resolves them once. */
     private final QuadMesh.AtlasAddress atlasAddress = image -> {
         SpriteAtlas.Placement at = spriteAtlas.placement(image);
-        return at == null ? null : new int[]{at.x(), at.y(), at.width(), at.height()};
+        if (at == null) return null;
+        return at.trimmed()
+                ? new int[]{at.x(), at.y(), at.width(), at.height(), at.trimX(), at.trimY(), at.fullW(), at.fullH()}
+                : new int[]{at.x(), at.y(), at.width(), at.height()};
     };
 
     public DrawList() {
@@ -96,16 +99,45 @@ public final class DrawList {
         ModTextures.Loaded loaded = spriteAtlas.loadedImage(sheet);
         if (loaded == null || loaded.width() <= 0 || loaded.height() <= 0) return false;
         // A fitted image's slot is its shipped size, so logical pixels scale into it.
-        float sx = at.width() / (float) loaded.width();
-        float sy = at.height() / (float) loaded.height();
-        int x = at.x() + Math.round(srcX * sx);
-        int y = at.y() + Math.round(srcY * sy);
-        int cutW = Math.round(srcW * sx);
-        int cutH = Math.round(srcH * sy);
-        DrawCommand cmd = slot(layer);
-        if (flipV) cmd.setSheetQuadFlippedV(spriteAtlas.sheet(), x, y, cutW, cutH, cx, cy, w, h, angleDeg, r, g, b, a);
-        else cmd.setSheetQuad(spriteAtlas.sheet(), x, y, cutW, cutH, cx, cy, w, h, angleDeg, r, g, b, a);
+        float sx = at.fullW() / (float) loaded.width();
+        float sy = at.fullH() / (float) loaded.height();
+        emitHeld(layer, at, Math.round(srcX * sx), Math.round(srcY * sy), Math.round(srcW * sx), Math.round(srcH * sy),
+                cx, cy, w, h, angleDeg, flipV, false, r, g, b, a);
         return true;
+    }
+
+    /**
+     * The {@code srcX, srcY, srcW x srcH} rectangle of a held image's slot (slot texels, {@code y} down from the top)
+     * drawn over {@code w x h} at {@code (cx, cy)}, as a quad of the atlas sheet.
+     *
+     * <p>An image the atlas holds trimmed has only part of its slot in the texture, and every texel outside that is
+     * transparent and out of reach of a bilinear tap that could colour a pixel. So the rectangle is clipped to the
+     * part held and drawn over the matching part of its destination, turned with it, which paints what the whole
+     * rectangle painted; a rectangle that lies wholly in the margin paints nothing and is not emitted.
+     */
+    private void emitHeld(RenderLayer layer, SpriteAtlas.Placement at, int srcX, int srcY, int srcW, int srcH,
+                          float cx, float cy, float w, float h, float angleDeg, boolean flipV, boolean additive,
+                          float r, float g, float b, float a) {
+        int x0 = srcX, y0 = srcY, x1 = srcX + srcW, y1 = srcY + srcH;
+        if (at.trimmed() && srcW > 0 && srcH > 0) {
+            x0 = Math.max(x0, at.trimX());
+            y0 = Math.max(y0, at.trimY());
+            x1 = Math.min(x1, at.trimX() + at.width());
+            y1 = Math.min(y1, at.trimY() + at.height());
+            if (x1 <= x0 || y1 <= y0) return;
+        }
+        int ax = at.x() + x0 - at.trimX();
+        int ay = at.y() + y0 - at.trimY();
+        DrawCommand cmd = slot(layer);
+        SpriteAPI sheet = spriteAtlas.sheet();
+        if (additive) cmd.setAdditiveSheetQuad(sheet, ax, ay, x1 - x0, y1 - y0, cx, cy, w, h, angleDeg, r, g, b, a);
+        else if (flipV) cmd.setSheetQuadFlippedV(sheet, ax, ay, x1 - x0, y1 - y0, cx, cy, w, h, angleDeg, r, g, b, a);
+        else cmd.setSheetQuad(sheet, ax, ay, x1 - x0, y1 - y0, cx, cy, w, h, angleDeg, r, g, b, a);
+        if (x0 != srcX || y0 != srcY || x1 != srcX + srcW || y1 != srcY + srcH) {
+            // The destination stays the whole quad's, so the part's corners come from its corners.
+            cmd.setPart((x0 - srcX) / (float) srcW, (x1 - srcX) / (float) srcW,
+                    (y0 - srcY) / (float) srcH, (y1 - srcY) / (float) srcH);
+        }
     }
 
     /** A convex clipped part of a tile; vertices are normalized within its uncut destination. */
@@ -142,11 +174,10 @@ public final class DrawList {
         TextureUsage.sheet(image, srcW, srcH, w, h);
         if (at != null) {
             // A fitted image's slot is its shipped size, so logical pixels scale into it.
-            float sx = at.width() / (float) imageW;
-            float sy = at.height() / (float) imageH;
-            slot(layer).setSheetQuad(spriteAtlas.sheet(),
-                    at.x() + Math.round(srcX * sx), at.y() + Math.round(srcY * sy),
-                    Math.round(srcW * sx), Math.round(srcH * sy), cx, cy, w, h, angleDeg, r, g, b, a);
+            float sx = at.fullW() / (float) imageW;
+            float sy = at.fullH() / (float) imageH;
+            emitHeld(layer, at, Math.round(srcX * sx), Math.round(srcY * sy), Math.round(srcW * sx),
+                    Math.round(srcH * sy), cx, cy, w, h, angleDeg, false, false, r, g, b, a);
             return;
         }
         slot(layer).setSheetQuad(image, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
@@ -194,9 +225,7 @@ public final class DrawList {
         TextureUsage.sprite(sprite, w, h);
         SpriteAtlas.Placement at = held(layer, sprite, w, h);
         if (at != null) {
-            slot(layer).setSheetQuad(spriteAtlas.sheet(),
-                    at.x(), at.y(), at.width(), at.height(),
-                    cx, cy, w, h, angleDeg, r, g, b, a);
+            emitHeld(layer, at, 0, 0, at.fullW(), at.fullH(), cx, cy, w, h, angleDeg, false, false, r, g, b, a);
             return;
         }
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a);
@@ -301,9 +330,7 @@ public final class DrawList {
         TextureUsage.sprite(sprite, w, h);
         SpriteAtlas.Placement at = held(layer, sprite, w, h);
         if (at != null) {
-            slot(layer).setAdditiveSheetQuad(spriteAtlas.sheet(),
-                    at.x(), at.y(), at.width(), at.height(),
-                    cx, cy, w, h, angleDeg, r, g, b, a);
+            emitHeld(layer, at, 0, 0, at.fullW(), at.fullH(), cx, cy, w, h, angleDeg, false, true, r, g, b, a);
             return;
         }
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a, true);

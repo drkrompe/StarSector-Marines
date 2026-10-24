@@ -94,7 +94,10 @@ public final class DrawListRenderer {
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
                     if (additiveBlend != c.additive) { GlStateBracket.applyBlend(c.additive); additiveBlend = c.additive; }
                     if (activeSheet != null) {
-                        if(c.patch()!=null) {
+                        if (c.part) {
+                            activeSheet.appendRotatedPart(c.srcX, c.srcY, c.srcW, c.srcH, c.cx, c.cy, c.w, c.h,
+                                    c.angleDeg, c.flipV, c.partX0, c.partX1, c.partY0, c.partY1, c.r, c.g, c.b, c.a);
+                        } else if(c.patch()!=null) {
                             activeSheet.appendPatch(c.srcX,c.srcY,c.srcW,c.srcH,c.cx,c.cy,c.w,c.h,c.r,c.g,c.b,c.a,c.patch());
                         } else if (c.angleDeg != 0f) {
                             activeSheet.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
