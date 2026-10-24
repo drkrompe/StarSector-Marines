@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
  * Emits the Rav fliers on {@link RenderLayer#DRONES}, over the roofs as a drone is: each Harrier in its pose
- * ({@link HarrierPose}), drawn a little larger the higher it flies, and the fallen tumbling through their fall
+ * ({@link HarrierPose}) with its body laid on in segments ({@link HarrierBodyComposer}), drawn a little larger the higher it flies, and the fallen tumbling through their fall
  * frames ({@link HarrierFall}) until their bodies lie on the ground. The shadow is {@link UnitShadowRenderSystem}'s, which is what makes the height read.
  */
 public final class HarrierRenderSystem implements RenderSystem {
@@ -56,13 +56,11 @@ public final class HarrierRenderSystem implements RenderSystem {
                 float alpha = ctx.alphaMult * visibility(ctx, vis, m.id);
                 if (alpha <= 0f || !view.visible(m.body.x, m.body.y, 3f)) continue;
                 HarrierPose pose = HarrierPose.of(m, pack.phase());
-                ShuttleSpriteCache cache = sprites.spriteByPath(pose.sprite());
-                if (cache == null) continue;
                 float scale = 1f + ALTITUDE_SCALE_GAIN * m.altitude;
-                out.addSprite(RenderLayer.DRONES, cache.sprite, cam.cellToScreenX(m.body.x), cam.cellToScreenY(m.body.y),
-                        cache.pxW / HarrierLook.PX_PER_CELL * cellPx * scale,
-                        cache.pxH / HarrierLook.PX_PER_CELL * cellPx * scale,
-                        m.body.facingDegrees, 1f, 1f, 1f, alpha);
+                HarrierBodyComposer.compose(sprites, m, pose.sprite(), m.body.x, m.body.y, scale,
+                        (part, x, y, degrees, w, h) -> out.addSprite(RenderLayer.DRONES, part.sprite,
+                                cam.cellToScreenX(x), cam.cellToScreenY(y), w * cellPx, h * cellPx, degrees,
+                                1f, 1f, 1f, alpha));
             }
         }
     }
