@@ -26,7 +26,7 @@ import swfx_impacts  # noqa: E402
 
 HIT = 4
 THROW = (0.0, -.35, .94)
-SPACING = 28.0
+SPACING = 40.0
 
 
 def main(argv):
@@ -104,7 +104,7 @@ def main(argv):
     scene.collection.objects.link(cam)
     scene.camera = cam
     cam.data.lens = 35.0
-    cam.location = Vector([u(c) for c in (0, -95, 6)])
+    cam.location = Vector([u(c) for c in (0, -230, 6)])
     cam.rotation_euler = (Vector([u(c) for c in (0, 0, 6)]) - cam.location).to_track_quat('-Z', 'Y').to_euler()
     for j in range(a.frames):
         scene.frame_set(HIT + j)
