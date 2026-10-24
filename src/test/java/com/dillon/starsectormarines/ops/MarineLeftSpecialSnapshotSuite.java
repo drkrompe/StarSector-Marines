@@ -90,7 +90,13 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("flamer-streaming-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true),
             // The first frames of a jet, two and four ticks after the click: it leaves the wand's nozzle.
             new Case("flamer-first-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 2),
-            new Case("flamer-first-later-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 4));
+            new Case("flamer-first-later-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 4),
+            // The launcher and the anti-materiel rifle carried in their walking clips, and held at the aim.
+            new Case("rocket-walking-close", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, true, false),
+            new Case("rocket-held-close", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, false, false),
+            new Case("amr-walking-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
+            new Case("amr-held-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false));
+
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -109,6 +115,12 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                         frame(renderer, context.modRoot(), c, CLOSE_CELLS_ACROSS)));
             }
             artifacts.add(flamerSweep(renderer, context.modRoot()));
+            artifacts.add(walkCycle(renderer, context.modRoot(), new Case("rocket-walk",
+                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, true, false),
+                    "rocket-walk-close-1920x1080-ui100.gif"));
+            artifacts.add(walkCycle(renderer, context.modRoot(), new Case("amr-walk",
+                    SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
+                    "amr-walk-close-1920x1080-ui100.gif"));
             return artifacts;
         } finally {
             SvgAsset.setSource(previous);
@@ -124,19 +136,7 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
 
     private static BufferedImage frame(HeadlessUiRenderer renderer, Path modRoot, Case c, float cellsAcross)
             throws Exception {
-        LookGround ground = LookGround.verdant();
-        MapResult map = ground.generate();
-        LookGround.Site site = LookGround.openSite(map, 40, 24);
-        SceneWorld world = new LookReview.Placement(ground, map, site)
-                .builder()
-                .unit("marine", Faction.MARINE, UnitType.MARINE, 8, 12, spec -> {
-                    spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
-                    if (c.specialId() != null) {
-                        spec.specialEquipment(SpecialEquipmentRegistry.require(c.specialId()), c.ammo());
-                    }
-                })
-                .unit("target", Faction.DEFENDER, UnitType.MARINE, 34, 10, spec -> spec.moveSpeed(0f))
-                .build();
+        SceneWorld world = world(c);
         try (BattleSimulation sim = world.sim()) {
             sim.random().setSeed(20261023L);
             long marine = world.unit("marine");
@@ -162,6 +162,59 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                     sim.world().renderX(marine) + lead, sim.world().renderY(marine) + 0.5f * lead / 2.5f,
                     cellsAcross);
         }
+    }
+
+    /** The Marine on look ground with the case's kit, and a defender far off to the east. */
+    private static SceneWorld world(Case c) {
+        LookGround ground = LookGround.verdant();
+        MapResult map = ground.generate();
+        LookGround.Site site = LookGround.openSite(map, 40, 24);
+        return new LookReview.Placement(ground, map, site)
+                .builder()
+                .unit("marine", Faction.MARINE, UnitType.MARINE, 8, 12, spec -> {
+                    spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
+                    if (c.specialId() != null) spec.specialEquipment(SpecialEquipmentRegistry.require(c.specialId()), c.ammo());
+                })
+                .unit("target", Faction.DEFENDER, UnitType.MARINE, 34, 10, spec -> spec.moveSpeed(0f))
+                .build();
+    }
+
+    /** Ticks the walk is played before the cycle is recorded: long enough to ready either special. */
+    private static final int WALK_READY_TICKS = 60;
+    /** The recorded walk, a frame each two ticks; the Marine stops three quarters of the way through. */
+    private static final int WALK_CYCLE_TICKS = 60;
+    private static final int WALK_FRAME_TICKS = 2;
+
+    /**
+     * A Marine with the special readied walking east at the close framing, the camera following, then stopping:
+     * the stride in the carry, and the special coming back up to the aim at the end.
+     */
+    private static SnapshotArtifact walkCycle(HeadlessUiRenderer renderer, Path modRoot, Case c, String file)
+            throws Exception {
+        SceneWorld world = world(c);
+        CompressedFrameList frames = new CompressedFrameList();
+        try (BattleSimulation sim = world.sim()) {
+            sim.random().setSeed(20261023L);
+            long marine = world.unit("marine");
+            if (!sim.directControl().enter(marine)) throw new IllegalStateException("could not take the Marine");
+            for (int i = 0; i < c.cycles(); i++) sim.directControl().cycle(FireTrigger.LEFT);
+            ReviewImpactFx fx = new ReviewImpactFx(modRoot);
+            int stopAt = WALK_READY_TICKS + WALK_CYCLE_TICKS * 3 / 4;
+            for (int tick = 0; tick < WALK_READY_TICKS + WALK_CYCLE_TICKS; tick++) {
+                float aimX = sim.world().renderX(marine) + 5f;
+                float aimY = sim.world().renderY(marine) + 1.5f;
+                sim.directControl().submit(new ManualIntent(tick < stopAt ? 1 : 0, 0, aimX, aimY, false));
+                sim.advance(BattleSimulation.TICK_DT);
+                fx.feed(sim);
+                if (tick >= WALK_READY_TICKS && tick % WALK_FRAME_TICKS == 0) {
+                    frames.add(compose(renderer, modRoot, sim, marine, aimX, aimY, fx,
+                            sim.world().renderX(marine) + 0.6f, sim.world().renderY(marine) + 0.12f,
+                            CLOSE_CELLS_ACROSS));
+                }
+            }
+        }
+        return SnapshotArtifact.animation(file, frames,
+                WALK_FRAME_TICKS * Math.round(BattleSimulation.TICK_DT * 1000f));
     }
 
     /** Ticks between the frames of the sweep: six a second, few enough to keep a GIF of a field on fire small. */

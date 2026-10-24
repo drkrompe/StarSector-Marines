@@ -1,0 +1,93 @@
+{
+ "sheetName": "origin-lab-annex",
+ "sheet": "art-source/tilesets/origin-lab-annex.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-lab-annex",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-lab-annex.png",
+ "note": "A sealed laboratory annex blown outward from inside: the research site origin's telling object. Geometry-first ImageGen reskin of art-source/templates/heart-lab-annex-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1690x931 against a 2208x1216 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + lab-annex.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    37,
+    37,
+    490,
+    392
+   ],
+   "id": "origin-lab.annex-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    5,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    600,
+    37,
+    490,
+    392
+   ],
+   "id": "origin-lab.annex",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    5,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1163,
+    37,
+    490,
+    392
+   ],
+   "id": "origin-lab.annex-swallowed",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    5,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    37,
+    502,
+    490,
+    392
+   ],
+   "id": "origin-lab.annex-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 0.6,
+   "footprintCells": [
+    5,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    600,
+    502,
+    490,
+    392
+   ],
+   "id": "origin-lab.annex-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    5,
+    4
+   ],
+   "included": true
+  }
+ ]
+}

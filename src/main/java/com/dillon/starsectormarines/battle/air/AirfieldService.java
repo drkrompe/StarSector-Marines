@@ -159,6 +159,12 @@ public final class AirfieldService {
         public ShipBayRoute shipRoute;
         /** Host grounding is independent of tactical servicing. */
         public boolean grounded;
+        /**
+         * The door guns on her mounts, mount by mount as {@link Airframe#kitFor} lists them, or
+         * null for her airframe's own. Set by a host whose yard refits the boat while she stands
+         * here, so the parked hull carries what was just fitted to her.
+         */
+        public String[] doorGuns;
 
         /** Whether this berth's craft has somewhere off this map to go. */
         public boolean hasOffship() {

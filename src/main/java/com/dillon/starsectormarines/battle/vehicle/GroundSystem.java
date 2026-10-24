@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -187,9 +188,10 @@ public class GroundSystem {
      * fixed-tick contract as {@link com.dillon.starsectormarines.battle.air.AirSystem#tick}
      * — caller is responsible for matching {@code dt} to its tick cadence.
      */
-    public void tick(float dt) { tick(dt, 0L, ManualIntent.NEUTRAL); }
+    public void tick(float dt) { tick(dt, 0L, ManualIntent.NEUTRAL, TriggerPicks.LINKED); }
 
-    public void tick(float dt, long controlledId, ManualIntent input) {
+    /** As above, with the driven hull's hands: its movement, aim, both buttons and what each button is on. */
+    public void tick(float dt, long controlledId, ManualIntent input, TriggerPicks picks) {
         if (!Float.isFinite(dt) || dt <= 0f) return;
         long stageStart = VehicleWorkProfile.start();
         moveOrderSystem.tickPending();
@@ -307,7 +309,7 @@ public class GroundSystem {
         PointFireAim aim = Float.isFinite(input.aimX()) && Float.isFinite(input.aimY())
                 ? new PointFireAim(input.aimX(), input.aimY()) : null;
         stageStart = VehicleWorkProfile.start();
-        turrets.tick(dt, controlledId, aim, input.firing());
+        turrets.tick(dt, controlledId, aim, input.firing(), input.secondary(), picks);
         VehicleWorkProfile.finish(Bucket.GROUND_TURRETS, stageStart);
         reapGoneVehicles();
     }

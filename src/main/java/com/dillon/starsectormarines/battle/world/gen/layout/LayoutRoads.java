@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
@@ -58,6 +60,10 @@ public final class LayoutRoads {
                 continue;
             }
             int who = index(plan, r.from().place());
+            // A road to a walled square place's gate ends at the place's ground, which the place's wall opens onto
+            // or the place's arms reach out to: that is where it joins the network, even where no other road runs
+            // near. (Carried on into the place, onto its outline, it gave the wall a gap it could not dress.)
+            int toGate = entered(plan, r.to());
             List<int[]> path = new ArrayList<>(RoadCourse.path(a, r.from().side(), v == null ? b : v));
             if (v != null) {
                 List<int[]> on = RoadCourse.path(v, r.from().side(), b);
@@ -65,6 +71,7 @@ public final class LayoutRoads {
             }
             List<int[]> course = RoadCourse.cells(path, r.width());
             List<int[]> carved = new ArrayList<>();
+            List<int[]> anchors = new ArrayList<>();
             int planned = 0, onRoad = 0;
             for (int[] c : course) {
                 int x = c[0], y = c[1];
@@ -80,10 +87,11 @@ public final class LayoutRoads {
                 }
                 owner[x][y] = who;
                 carved.add(c);
+                if (toGate >= 0 && beside(claim, toGate, x, y, width, height)) anchors.add(c);
             }
             // A stretch the places' ground cut off from the network is not left as a stranded road, nor welded
             // across somebody's ground to reach it: it is not laid.
-            carved = connected(owner, carved, width, height);
+            carved = connected(owner, carved, anchors, width, height);
             if (carved.isEmpty()) {
                 out.add(Laid.refused(r.name(), Laid.Kind.ROAD, r.required(), "no open country on its course"));
                 continue;
@@ -98,14 +106,20 @@ public final class LayoutRoads {
     }
 
     /**
-     * The carved cells joined to the rest of the network through road; the others are given back to open ground.
-     * Pre-existing road is every road cell not carved.
+     * The carved cells joined to the rest of the network through road, or to an {@code anchor}: a cell carved against
+     * the ground of the walled place the road leads to, whose gate or arms it meets there. The others are given back
+     * to open ground. Pre-existing road is every road cell not carved.
      */
-    static List<int[]> connected(int[][] owner, List<int[]> carved, int width, int height) {
+    static List<int[]> connected(int[][] owner, List<int[]> carved, List<int[]> anchors, int width, int height) {
         boolean[][] mine = new boolean[width][height];
         for (int[] c : carved) mine[c[0]][c[1]] = true;
         boolean[][] seen = new boolean[width][height];
         ArrayDeque<int[]> open = new ArrayDeque<>();
+        for (int[] c : anchors) {
+            if (!mine[c[0]][c[1]] || seen[c[0]][c[1]]) continue;
+            seen[c[0]][c[1]] = true;
+            open.add(c);
+        }
         for (int[] c : carved) {
             for (int[] d : STEPS) {
                 int x = c[0] + d[0], y = c[1] + d[1];
@@ -134,6 +148,29 @@ public final class LayoutRoads {
     }
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    /**
+     * The index of the walled square place ({@link Fortification#square}) an endpoint leads to through its gate: a
+     * road that reaches its ground is joined to it, since its wall opens onto the road or its arms reach out to it;
+     * {@code -1} for any other endpoint.
+     */
+    static int entered(PrecinctPlan plan, Endpoint e) {
+        if (!e.gate()) return -1;
+        int who = index(plan, e.place());
+        if (who < 0) return -1;
+        Precinct place = plan.precincts().get(who);
+        return place.boundary() == Precinct.Boundary.WALLED && place.fortification() != null
+                && place.fortification().square() ? who : -1;
+    }
+
+    /** Whether {@code (x, y)} touches {@code who}'s ground along an edge. */
+    static boolean beside(int[][] claim, int who, int x, int y, int width, int height) {
+        for (int[] d : STEPS) {
+            int nx = x + d[0], ny = y + d[1];
+            if (nx >= 0 && ny >= 0 && nx < width && ny < height && claim[nx][ny] == who) return true;
+        }
+        return false;
+    }
 
     private static int[] resolve(PrecinctPlan plan, int[][] claim, int[][] owner, int[][] bounds, Endpoint e,
                                  int width, int height) {

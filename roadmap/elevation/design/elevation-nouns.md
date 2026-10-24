@@ -4,8 +4,8 @@ Status: ACTIVE — StarCraft-style raised ground: a few discrete tiers, impassab
 
 Written: 2026-10-22
 
-Updated: 2026-10-24 — terraces stand built ground on a ridge's crest, its roads ramped down; kept ground;
-sealed ground, which every route goes round; knolls, a place grown on a terrace of its own.
+Updated: 2026-10-24 — terraces stand built ground on a ridge's crest, its roads and its supply side ramped
+down; kept ground; sealed ground, which every route goes round; knolls, a place grown on a terrace of its own.
 
 Read `stories.md` for open work.
 
@@ -296,7 +296,13 @@ Generators place plateaus where a mission wants them:
   width carries the road down. A side whose outline a road runs along, or
   whose cliff would land on built ground, is pushed out a cell at a time, so a
   road beside the place runs on the top and is ramped where it leaves; a
-  terrace with no road over its edge has no way up and does not stand. The
+  terrace with no road over its edge has no way up and does not stand. A
+  terrace may name its **supply side**: that side is ramped whether or not a
+  road was laid across it, the ramp cut from open ground below the side as
+  near its middle as the ground allows, and a terrace whose supply side has
+  no such ground does not stand. Without it a place whose own road was not
+  laid could be climbed only from wherever another road happened to cross,
+  and what was sent up from behind it stood below the cliff. The
   terraces are planned first, each kept only when the whole map's ground stays
   one body once its cliff closes (a terrace's top joins the low ground through
   ramps that may lie far from any box round its faces, so the proof is the

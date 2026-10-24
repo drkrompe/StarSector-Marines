@@ -1,9 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.FireGroups;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
@@ -21,8 +22,12 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
+import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleFireGroups;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -267,19 +272,12 @@ final class BattleDirectControlStatus {
                 world.hasArmor(id) ? world.armorRating(id) : 0f);
         String name = sim.identity().name(id);
         if (sim.directControl().controlledVehicleId() == id) {
-            var turret = sim.convoy().turret(id);
-            var type = sim.convoy().vehicleType(id);
-            var structure = type.turretStructure();
-            List<WeaponStatus> weapons = turret != null && structure != null && !turret.destroyed()
-                    ? List.of(vehicleWeapon(turret, structure.mount,
-                            vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(type, sim.convoy().body(id)))))
-                    : List.of();
-            return new Snapshot(id, name, Carrier.VEHICLE, durability, weapons);
+            return new Snapshot(id, name, Carrier.VEHICLE, durability, vehicleWeapons(sim, id));
         }
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
                     mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).flux,
-                    sim.directControl().mechPicks(), aimDistance(sim, id)), List.of(),
+                    sim.directControl().triggerPicks(), aimDistance(sim, id)), List.of(),
                     MarineSprint.EMPTY, new MechFluxStatus(world.mechLoadout(id).flux.value(),
                     world.mechLoadout(id).flux.venting(),
                     world.mechLoadout(id).flux.capacity()));
@@ -436,10 +434,10 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux) {
-        return mechWeapons(mounts, flux, MechTriggerPicks.LINKED);
+        return mechWeapons(mounts, flux, TriggerPicks.LINKED);
     }
 
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, MechTriggerPicks picks) {
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, TriggerPicks picks) {
         return mechWeapons(mounts, flux, picks, Float.NaN);
     }
 
@@ -451,7 +449,7 @@ final class BattleDirectControlStatus {
     }
 
     /** {@code aimDistance} is the cursor's distance from the chassis centre; NaN reads as no cursor. */
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, MechTriggerPicks picks,
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, TriggerPicks picks,
                                           float aimDistance) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
@@ -485,7 +483,7 @@ final class BattleDirectControlStatus {
      * the row's bar fills as the barrels come up to speed), and the flux of one round as its hold.
      */
     private static WeaponStatus rotaryWeapon(MechWeaponMount mount, MechWeaponMount[] mounts, MechFlux flux,
-                                             MechTriggerPicks picks, float aimDistance) {
+                                             TriggerPicks picks, float aimDistance) {
         RotaryFeed feed = mount.rotary;
         WeaponDef weapon = mount.weaponDef();
         float spinUp = feed.def().spinUpSeconds();
@@ -503,6 +501,38 @@ final class BattleDirectControlStatus {
         return vehicleWeapon(turret, mount, Float.NaN);
     }
 
+    /**
+     * The driven hull's guns: its main turret, then each secondary mount, numbered by their pick
+     * ({@link VehicleFireGroups}) and badged with the button that fires each under the current picks. A hull
+     * with one gun badges nothing: its gun is simply the left button's. A crewed mount is on no button.
+     */
+    private static List<WeaponStatus> vehicleWeapons(BattleSimulation sim, long id) {
+        GroundTurret turret = sim.convoy().turret(id);
+        VehicleType type = sim.convoy().vehicleType(id);
+        GroundBody body = sim.convoy().body(id);
+        if (turret == null || type == null || type.turretStructure() == null) return List.of();
+        FireGroups.Mount[] mounts = VehicleFireGroups.mounts(type, turret);
+        TriggerPicks picks = sim.directControl().triggerPicks();
+        boolean grouped = !turret.secondaries.isEmpty();
+        List<WeaponStatus> weapons = new ArrayList<>();
+        if (!turret.destroyed()) {
+            int index = VehicleFireGroups.MAIN;
+            weapons.add(vehicleWeapon(turret, type.turretStructure().mount,
+                    vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(type, body)), index + 1, "TURRET",
+                    grouped ? FireGroups.badge(mounts, picks, index) : "",
+                    grouped ? FireGroups.group(mounts, index) : ""));
+        }
+        for (int i = 0; i < turret.secondaries.size(); i++) {
+            MountedGun gun = turret.secondaries.get(i);
+            int index = i + 1;
+            weapons.add(vehicleWeapon(gun.turret(), gun.mount().structure().mount,
+                    vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(body, gun.mount().mountX(),
+                            gun.mount().mountY())), index + 1, "MOUNT",
+                    FireGroups.badge(mounts, picks, index), FireGroups.group(mounts, index)));
+        }
+        return List.copyOf(weapons);
+    }
+
     /** The cursor's distance from the turret ring, or NaN without a finite aim. */
     private static float vehicleAimDistance(BattleSimulation sim, TurretMountGeometry.Point ring) {
         var intent = sim.directControl().intent();
@@ -516,12 +546,18 @@ final class BattleDirectControlStatus {
      * the same rules the turret fires by.
      */
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount, float aimDistance) {
+        return vehicleWeapon(turret, mount, aimDistance, 1, "TURRET", "", "");
+    }
+
+    /** As above, numbered and badged as the mount {@code number} on a hull with more than one gun. */
+    static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount, float aimDistance, int number,
+                                      String slotKey, String trigger, String group) {
         WeaponDef weapon = mount.weapon;
-        return new WeaponStatus(1, "TURRET", weapon.displayName(), behavior(weapon, weapon.burstCount),
+        return new WeaponStatus(number, slotKey, weapon.displayName(), behavior(weapon, weapon.burstCount),
                 ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,
                 new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
-                false, "", "", ManualPointFire.tooClose(weapon, aimDistance), false, "", turret.holdRounds);
+                false, "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group, turret.holdRounds);
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {

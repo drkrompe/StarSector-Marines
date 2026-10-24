@@ -311,10 +311,16 @@ public final class CordonPlan {
             int[] b = ground.claimBounds(REDOUBT_PLACE + n);
             if (b == null) return List.of();
             bounds.add(b);
+            // Supplied from the rear: its cliff there is ramped whether or not the supply road was laid to it.
             terraces.add(new TerracePlanner.Terrace(CREST + REDOUBT_PLACE + n, b[0] + CREST_INSET, b[1] + CREST_INSET,
-                    b[2] - CREST_INSET, b[3] - CREST_INSET, true));
+                    b[2] - CREST_INSET, b[3] - CREST_INSET, true, rear(front)));
         }
         return List.of(new Ridge(RIDGE, ridgeBand(bounds, front, ground.width()), false, terraces));
+    }
+
+    /** The side of a redoubt facing the rear, where its supply comes from: y is up, so a front up the map is a rear down it. */
+    static TerracePlanner.Edge rear(int[] front) {
+        return front[1] > 0 ? TerracePlanner.Edge.SOUTH : TerracePlanner.Edge.NORTH;
     }
 
     /** The layout's picket courses, resolved once the redoubts have claimed their ground. */

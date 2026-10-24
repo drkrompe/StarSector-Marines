@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan.Ram
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.IntPredicate;
 
 /**
@@ -43,15 +44,28 @@ public final class TerracePlanner {
     /** Cells either side of the outline a road is looked for: road there crosses the cliff and is ramped. */
     static final int ROAD_SCAN = 1;
 
+    /** A side of a terrace's box. Y is up, so south is the low-y side. */
+    public enum Edge { WEST, EAST, SOUTH, NORTH }
+
     /**
      * Built ground to stand on a crest: the inclusive box of a place's ground. A
      * required terrace that cannot stand fails its map; an optional one leaves
      * its place in a pass, as a ridge does any place.
+     *
+     * <p>{@code supply} is the side the place is supplied from, or {@code null}. That side always carries a ramp a
+     * tank can climb: where no road crosses its cliff, one is cut from the open ground below the side, as near its
+     * middle as that ground allows, so a machine coming up from that side never has to go round the place to find a
+     * way onto the top. A terrace whose supply side has no open ground below it for a ramp does not stand.
      */
-    public record Terrace(String name, int x0, int y0, int x1, int y1, boolean required) {
+    public record Terrace(String name, int x0, int y0, int x1, int y1, boolean required, Edge supply) {
         public Terrace {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("a terrace needs a name");
             if (x1 < x0 || y1 < y0) throw new IllegalArgumentException("a terrace's box is inclusive and ordered");
+        }
+
+        /** A terrace climbed only where its roads cross its cliff. */
+        public Terrace(String name, int x0, int y0, int x1, int y1, boolean required) {
+            this(name, x0, y0, x1, y1, required, null);
         }
     }
 
@@ -117,11 +131,11 @@ public final class TerracePlanner {
         }
         List<Plateau> plateaus = fill(rx0, ry0, rx1, ry1, terrace);
         List<Ramp> ramps = new ArrayList<>();
-        int[][] sides = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-        for (int side = 0; side < sides.length; side++) {
-            int[] out = sides[side];
+        boolean[] ramped = new boolean[SIDES.length];
+        for (int side = 0; side < SIDES.length; side++) {
+            int[] out = SIDES[side];
             boolean alongY = out[0] != 0;
-            int edge = out[0] < 0 ? rx0 : out[0] > 0 ? rx1 : out[1] < 0 ? ry0 : ry1;
+            int edge = edge(side, rx0, ry0, rx1, ry1);
             // The outline is straight between its rounded corners.
             int from = (alongY ? ry0 : rx0) + (int) Math.ceil(FILL_RADIUS);
             int to = (alongY ? ry1 : rx1) - (int) Math.ceil(FILL_RADIUS);
@@ -136,17 +150,20 @@ public final class TerracePlanner {
                     return new Attempt(Planned.refused(terrace, "a road " + span + " cells wide runs along its edge"),
                             side);
                 }
-                double middle = (start + t - 1) / 2.0;
-                // A face looking down the screen is drawn deeper, so a ramp climbing it is cut deeper too.
-                double south = Math.max(0, -out[1]) * PlateauPlanner.SOUTH_FACE;
-                double foot = edge + (alongY ? out[0] : out[1]) * 3.0;
-                // Its head on the margin, short of the place's own ground.
-                double head = edge - (alongY ? out[0] : out[1]) * Math.min(4.0 + south, margins[side] - 1);
-                ramps.add(alongY
-                        ? new Ramp(new Point(foot, middle), new Point(head, middle), rampWidth)
-                        : new Ramp(new Point(middle, foot), new Point(middle, head), rampWidth));
+                ramps.add(ramp(side, edge, (start + t - 1) / 2.0, rampWidth, margins[side]));
+                ramped[side] = true;
                 start = Integer.MIN_VALUE;
             }
+        }
+        if (terrace.supply() != null && !ramped[terrace.supply().ordinal()]) {
+            // No road crosses the side it is supplied from: a ramp is cut there anyway, from open ground.
+            int side = terrace.supply().ordinal();
+            Ramp ramp = supplyRamp(side, rx0, ry0, rx1, ry1, margins[side], width, height, open);
+            if (ramp == null) {
+                return new Attempt(Planned.refused(terrace, "no open ground below its " + terrace.supply().name()
+                        .toLowerCase(Locale.ROOT) + " side for a ramp"), -1);
+            }
+            ramps.add(ramp);
         }
         if (ramps.isEmpty()) return new Attempt(Planned.refused(terrace, "no road crosses its edge to be ramped"), -1);
         ElevationLayout layout;
@@ -206,6 +223,70 @@ public final class TerracePlanner {
             }
         }
         return new Attempt(new Planned(terrace, plateaus, List.copyOf(ramps), built, zone, null), -1);
+    }
+
+    /** Outward steps of the box's sides, in {@link Edge} order. */
+    private static final int[][] SIDES = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+    /** The outline's coordinate on {@code side}: x for west and east, y for south and north. */
+    private static int edge(int side, int rx0, int ry0, int rx1, int ry1) {
+        int[] out = SIDES[side];
+        return out[0] < 0 ? rx0 : out[0] > 0 ? rx1 : out[1] < 0 ? ry0 : ry1;
+    }
+
+    /** A ramp up {@code side}'s cliff centred at {@code middle} along it: its foot below, its head on the margin. */
+    private static Ramp ramp(int side, int edge, double middle, double rampWidth, int margin) {
+        int[] out = SIDES[side];
+        boolean alongY = out[0] != 0;
+        // A face looking down the screen is drawn deeper, so a ramp climbing it is cut deeper too.
+        double south = Math.max(0, -out[1]) * PlateauPlanner.SOUTH_FACE;
+        double foot = edge + (alongY ? out[0] : out[1]) * 3.0;
+        // Its head on the margin, short of the place's own ground.
+        double head = edge - (alongY ? out[0] : out[1]) * Math.min(4.0 + south, margin - 1);
+        return alongY
+                ? new Ramp(new Point(foot, middle), new Point(head, middle), rampWidth)
+                : new Ramp(new Point(middle, foot), new Point(middle, head), rampWidth);
+    }
+
+    /** Cells below a supply ramp's foot that must be open too, so a hull reaching the foot has room to turn up it. */
+    static final int SUPPLY_APPROACH = 3;
+
+    /**
+     * A ramp up the supply side where no road crosses it: the one nearest the side's middle whose cells, from the
+     * outline out past its foot, are all open ground. {@code null} where the side has no such stretch.
+     */
+    static Ramp supplyRamp(int side, int rx0, int ry0, int rx1, int ry1, int margin, int width, int height,
+                           IntPredicate open) {
+        int[] out = SIDES[side];
+        boolean alongY = out[0] != 0;
+        int edge = edge(side, rx0, ry0, rx1, ry1);
+        int half = MIN_RAMP_WIDTH / 2;
+        int from = (alongY ? ry0 : rx0) + (int) Math.ceil(FILL_RADIUS) + half;
+        int to = (alongY ? ry1 : rx1) - (int) Math.ceil(FILL_RADIUS) - half;
+        if (to < from) return null;
+        int middle = (from + to) / 2;
+        // The middle first, then a step either side of it in turn.
+        for (int k = 0; k <= 2 * Math.max(middle - from, to - middle); k++) {
+            int t = middle + (k % 2 == 0 ? k / 2 : -(k + 1) / 2);
+            if (t < from || t > to) continue;
+            if (openBelow(edge, t, half, alongY, out, width, height, open)) {
+                return ramp(side, edge, t, MIN_RAMP_WIDTH, margin);
+            }
+        }
+        return null;
+    }
+
+    /** Whether every cell across a ramp at {@code t}, from the outline out past its foot, is open ground. */
+    private static boolean openBelow(int edge, int t, int half, boolean alongY, int[] out, int width, int height,
+                                     IntPredicate open) {
+        int step = alongY ? out[0] : out[1];
+        for (int d = 0; d <= 3 + SUPPLY_APPROACH; d++) {
+            for (int a = t - half; a <= t + half; a++) {
+                int x = alongY ? edge + step * d : a, y = alongY ? a : edge + step * d;
+                if (x < 0 || y < 0 || x >= width || y >= height || !open.test(y * width + x)) return false;
+            }
+        }
+        return true;
     }
 
     /**

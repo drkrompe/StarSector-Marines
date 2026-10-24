@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Puts guns on an air craft that has just been spawned.
  *
@@ -64,15 +67,25 @@ public final class AirArmament {
      */
     public static MountedTurret[] mounts(Airframe airframe, TurretRole role, float noseFacing) {
         if (airframe == null || airframe.hardpoints() <= 0) return new MountedTurret[0];
+        return mounts(airframe.kitFor(role), airframe.renderHullId(), noseFacing);
+    }
+
+    /**
+     * {@code kit} put on {@code hullId}'s weapon slots, gun {@code i} on slot {@code i}, each
+     * aligned to {@code noseFacing}; a mount left empty in the kit stays empty.
+     */
+    public static MountedTurret[] mounts(String[] kit, String hullId, float noseFacing) {
+        if (kit == null) return new MountedTurret[0];
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        String[] kit = airframe.kitFor(role);
-        float[][] slots = TurretSlotResolver.resolve(airframe.renderHullId());
+        float[][] slots = TurretSlotResolver.resolve(hullId);
         int fitted = Math.min(kit.length, slots.length);
-        MountedTurret[] turrets = new MountedTurret[Math.max(0, fitted)];
-        for (int i = 0; i < turrets.length; i++) {
-            turrets[i] = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
-            turrets[i].facingDegrees = noseFacing;
+        List<MountedTurret> turrets = new ArrayList<>(Math.max(0, fitted));
+        for (int i = 0; i < fitted; i++) {
+            if (kit[i] == null) continue;
+            MountedTurret turret = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
+            turret.facingDegrees = noseFacing;
+            turrets.add(turret);
         }
-        return turrets;
+        return turrets.toArray(new MountedTurret[0]);
     }
 }

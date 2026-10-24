@@ -95,9 +95,18 @@ public record SpecialEquipmentPresentationDef(
     public record Preview(String state, float phase) implements Serializable {
     }
 
-    /** Unit-layer variant and clips used while this item owns the actor pose. */
+    /**
+     * Unit-layer variant and clips used while this item owns the actor pose. {@code walking}, when named, is the
+     * carry a Marine walks with while the item is readied in place of the primary; null keeps the aim clip over
+     * walking feet.
+     */
     public record LayerClips(String variant, String using,
-                             String firing) implements Serializable {
+                             String firing, String walking) implements Serializable {
+
+        /** Clips with no walking carry of their own. */
+        public LayerClips(String variant, String using, String firing) {
+            this(variant, using, firing, null);
+        }
     }
 
     static SpecialEquipmentPresentationDef parse(JSONObject json, String equipmentId)
@@ -146,7 +155,8 @@ public record SpecialEquipmentPresentationDef(
         LayerClips layerClips = layerClipsJson != null
                 ? new LayerClips(requireText(layerClipsJson, "variant", equipmentId),
                         requireText(layerClipsJson, "using", equipmentId),
-                        optionalText(layerClipsJson, "firing"))
+                        optionalText(layerClipsJson, "firing"),
+                        optionalText(layerClipsJson, "walking"))
                 : null;
         JSONObject handsetJson = json.optJSONObject("handsetLayer");
         HandsetLayer handset = handsetJson != null ? parseHandset(handsetJson, equipmentId) : null;

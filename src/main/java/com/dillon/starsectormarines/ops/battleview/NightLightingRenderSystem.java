@@ -36,6 +36,8 @@ final class NightLightingRenderSystem implements RenderSystem {
     static final int MAX_FILLED = 160;
     private int[] filled = new int[MAX_FILLED * 4];
     private int filledCount;
+    /** Half-cell box fire's pools changed in this frame, the boxes cleared and filled; empty when x1 < x0. */
+    private int changedX0, changedY0, changedX1, changedY1;
     private int[] inView = new int[64];
 
     public RenderLayer layer() { return RenderLayer.NIGHT_LIGHTING; }
@@ -50,14 +52,16 @@ final class NightLightingRenderSystem implements RenderSystem {
         boolean burning = fillFire(ground, FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
                 FireLight.clock(ctx.animationTimeSeconds),
                 visible.minX(), visible.minY(), visible.maxX(), visible.maxY());
+        field.fire(firePools, burning, changedX0, changedY0, changedX1, changedY1);
         var fog=ctx.sim.getFogOfWar();
         boolean useFog=ctx.hostProfile.fogClipsLighting() && fog.isInitialized();
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
         if (ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
-            field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), burning ? firePools : null,
-                    ground, useFog ? fog.cellShownArray() : null, night.darkness(), ctx.alphaMult, camera);
+            field.cells(ground, useFog ? fog.cellShownArray() : null, useFog ? fog.revealChanges() : null);
+            field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), night.darkness(),
+                    ctx.alphaMult, camera);
             pass.useField(field, masked, useFog);
             out.addCustom(layer(), pass);
             lamps(ctx, out, night, visible, useFog, fog);
@@ -255,9 +259,13 @@ final class NightLightingRenderSystem implements RenderSystem {
             firePools = new float[pools.length];
             filledCount = 0;
         }
-        for (int i = 0; i < filledCount; i += 4)
+        changedX0 = changedY0 = Integer.MAX_VALUE;
+        changedX1 = changedY1 = -1;
+        for (int i = 0; i < filledCount; i += 4) {
             for (int y = filled[i + 1]; y <= filled[i + 3]; y++)
                 Arrays.fill(firePools, y * width + filled[i], y * width + filled[i + 2] + 1, 0f);
+            changed(filled[i], filled[i + 1], filled[i + 2], filled[i + 3]);
+        }
         filledCount = 0;
         if (fire.count() == 0) return false;
         int height = pools.length / width;
@@ -296,8 +304,16 @@ final class NightLightingRenderSystem implements RenderSystem {
             filled[filledCount++] = gy0;
             filled[filledCount++] = gx1;
             filled[filledCount++] = gy1;
+            changed(gx0, gy0, gx1, gy1);
         }
         return true;
+    }
+
+    private void changed(int x0, int y0, int x1, int y1) {
+        changedX0 = Math.min(changedX0, x0);
+        changedY0 = Math.min(changedY0, y0);
+        changedX1 = Math.max(changedX1, x1);
+        changedY1 = Math.max(changedY1, y1);
     }
 
     private void bake(CellTopology ground, NightLighting night) {

@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
@@ -450,6 +451,21 @@ class GroundVehicleTurretSystemTest {
         long enemy(int x, int y) {
             return roster.spawn(new EntitySpec("turret target", Faction.DEFENDER, UnitType.MARINE, x, y));
         }
+    }
+
+    @Test
+    void aSecondMountFiresFromTheRightButtonOnItsOwnMagazineAndHoldsOtherwise() {
+        Fixture f = new Fixture();
+        f.turret.secondaries.add(MountedGun.of(new VehicleMount(f.mount.id, .3f, -.3f, false)));
+        GroundTurret coax = f.turret.secondaries.get(0).turret();
+        int coaxRounds = coax.ammo;
+        f.system.tick(DT, f.id, f.north(), true, false, TriggerPicks.LINKED);
+        assertEquals(1, f.shots.getActiveShots().size(), "the left button fires the main gun alone");
+        assertEquals(coaxRounds, coax.ammo);
+        int mainRounds = f.turret.ammo;
+        f.system.tick(DT, f.id, f.north(), false, true, TriggerPicks.LINKED);
+        assertEquals(coaxRounds - 1, coax.ammo, "the right button fires the second mount");
+        assertEquals(mainRounds, f.turret.ammo);
     }
 
     @Test

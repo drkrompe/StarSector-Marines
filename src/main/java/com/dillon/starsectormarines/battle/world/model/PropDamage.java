@@ -77,11 +77,33 @@ public final class PropDamage {
             Map.entry("sickbay-clinic.sink", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("sickbay-clinic.trolley", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("sickbay-clinic.exam", new Profile(Effect.NONE, Effect.DUST)),
-            Map.entry("sickbay-clinic.screen", new Profile(Effect.NONE, Effect.DUST)));
+            Map.entry("sickbay-clinic.screen", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-workings.shaft", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-workings.pipe-run", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-workings.pipe-elbow", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-workings.pipe-mouth", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-freight.split-container", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-freight.container-rust", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-freight.container-blue", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-freight.gantry-leg", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-lab.annex", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-lab.sample-freezer", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.bandstand", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.pond", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-freight.seafood-crates", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.swings", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.slide", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.climber", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.roundabout", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-park.bench", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-workings.pump-shed", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("origin-lab.tank-rack", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("origin-freight.unloading-truck", new Profile(Effect.SMOKE, Effect.FIRE)));
     /** Zero-cover layers and walkable seating still have visual damage states. */
     public static final Set<String> DECORATIONS = Set.of("armory-workshop.rifles", "armory-workshop.rack-frame",
             "armory-workshop.bench-tools", "main-stores.frame", "main-stores.cartons",
-            "main-stores.cases", "sickbay-clinic.linen-high", "sickbay-clinic.linen-low", "mess-galley.stool");
+            "main-stores.cases", "sickbay-clinic.linen-high", "sickbay-clinic.linen-low", "mess-galley.stool",
+            "origin-freight.gantry-span");
     private static final Profile SILENT = new Profile(Effect.NONE, Effect.NONE);
     @FunctionalInterface public interface EffectSink { void accept(float x, float y, Effect effect, float footprintSize); }
     public static final int STARTING_HP = 100;
