@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a damaged live hull smokes where it is hurt (worn hull, lost drive, lost turret); a hull crew caught in crossfire (two machines hitting it from 90° apart) shoots at a moving shooter's accuracy; a hull holds damage where it lands (four plates, a drive, the hull; located armor ships); earlier: the laser tank splits into two cards: the burst laser tank (Tri-Tachyon) and the PD laser tank (League), each with its own beam; a gun's capacitor bank becomes flux (built per round, dissipated, an overload vents with the trigger held), shown as a haze on the hull's vents; a beam leaves along its turret and drags onto its target; earlier: the heavy-gun tank is removed; the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-23 — a stopped hull carries heavy occupancy over its footprint, so routes go round a parked vehicle.
 
 ## Purpose and boundary
 
@@ -164,10 +164,16 @@ is going and the nearer they are. The shove is physical and faction-blind, and
 runs after separation so a shove apart cannot put anybody back under a hull.
 Emplacements, aircraft and drones do not take part. Every displacement passes
 the same topology guard as separation, so a body pinned against a wall stays
-where it is and the hull passes. The push is applied to positions, not plans:
-infantry still path as if hulls were absent, and a body walking into a parked
-hull is pushed out again each tick. `-Dbattle.vehicle.repulsion=false` is the
-control. Everything else the ECS skips by membership-narrowing — no `COMBAT`, no
+where it is and the hull passes. The push is applied to positions; plans learn
+of a hull through occupancy instead. A **stopped** hull's footprint, widened by
+a body's reach, carries heavy occupancy in the per-tick occupancy map, so every
+occupancy-aware route goes round a parked truck rather than through it. A
+route into one used to hold its walker at the hull's end for good, stepping in
+as fast as the contact pushed him out. A moving hull claims no cells: its bow
+wave clears the road, and its cells would change every tick. Hulls still stamp
+no walkability, so a route has a way through when nothing else is left.
+`-Dbattle.vehicle.repulsion=false` is the control, and takes the occupancy with
+it. Everything else the ECS skips by membership-narrowing — no `COMBAT`, no
 `MOVEMENT`, no `ROLE`, no `AI_STATE`, so the fire system, the mover, separation
 and the planner never see it.
 

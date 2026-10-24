@@ -162,6 +162,15 @@ public final class SeparationSystem {
     public static final float FORMATION_STIFFNESS = 0.08f;
     /** Formation correction cap, below the slowest formed unit's authored move speed. */
     public static final float FORMATION_MAX_SPEED = 0.75f;
+    /**
+     * The largest share of a walker's own step this tick that formation
+     * steering may take back. Slotting needs to slow a member down (that is how
+     * depth forms among men walking at one speed), but a pull that cancels the
+     * whole step holds him still: at a bend in his route, where the follower's
+     * step shrinks, a straggler pulled toward a slot well ahead once stood for
+     * a quarter of a minute.
+     */
+    static final float FORMATION_MAX_SLOWDOWN = 0.5f;
     /** Fully walkable square radius that qualifies the local footprint as open ground. */
     static final int MECH_FORMATION_OPEN_CLEARANCE = 3;
     /** Infantry needs less clear ground before it can resume normal interval. */
@@ -908,8 +917,23 @@ public final class SeparationSystem {
                     FORMATION_MAX_SPEED * dt);
             int denseIndex = roster.indexOf(member);
             if (denseIndex == UnitRosterService.INVALID_INDEX) continue;
-            impulseX[denseIndex] += dx / distance * correction;
-            impulseY[denseIndex] += dy / distance * correction;
+            float pullX = dx / distance * correction;
+            float pullY = dy / distance * correction;
+            // This tick's own step, as the follower applied it before separation runs.
+            float stepX = movement.velX(member) * dt;
+            float stepY = movement.velY(member) * dt;
+            float step = (float) Math.sqrt(stepX * stepX + stepY * stepY);
+            if (step > 0f) {
+                float back = -(pullX * stepX + pullY * stepY) / step;
+                float limit = FORMATION_MAX_SLOWDOWN * step;
+                if (back > limit) {
+                    float restore = (back - limit) / step;
+                    pullX += stepX * restore;
+                    pullY += stepY * restore;
+                }
+            }
+            impulseX[denseIndex] += pullX;
+            impulseY[denseIndex] += pullY;
         }
     }
 

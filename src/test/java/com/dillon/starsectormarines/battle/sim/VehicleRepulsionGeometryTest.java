@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Facing -90 puts the chassis nose on +x, the way the Thunder Run column drives. */
@@ -59,5 +64,20 @@ class VehicleRepulsionGeometryTest {
         float behind = 10 - HALF_L - R - VehicleRepulsionSystem.CLEARANCE - .5f;
         assertTrue(VehicleRepulsionSystem.displacement(10, 10, -90f, -1.5f, HALF_L, HALF_W, behind, 10.2f, R, DT, 1L, true, out));
         assertTrue(out[1] > 0f);
+    }
+
+    @Test void aStoppedHullKeepsRoutesOffItsFootprintAndAMovingOneDoesNot() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        Set<Integer> cells = new HashSet<>();
+        // Nose on +x: 4.8 long on x, 1.6 wide on y, widened by the margin to x 7.3..12.7, y 8.9..11.1.
+        VehicleRepulsionSystem.standingHullCells(10, 10, -90f, 0f, 2 * HALF_L, 2 * HALF_W, grid,
+                (x, y) -> cells.add(y * 20 + x));
+        assertTrue(cells.contains(10 * 20 + 7) && cells.contains(10 * 20 + 12), "end to end");
+        assertTrue(cells.contains(8 * 20 + 10) && cells.contains(11 * 20 + 10), "side to side");
+        assertFalse(cells.contains(10 * 20 + 6) || cells.contains(10 * 20 + 13) || cells.contains(12 * 20 + 10));
+        cells.clear();
+        VehicleRepulsionSystem.standingHullCells(10, 10, -90f, 3f, 2 * HALF_L, 2 * HALF_W, grid,
+                (x, y) -> cells.add(y * 20 + x));
+        assertTrue(cells.isEmpty(), "a moving hull is left to its bow wave");
     }
 }
