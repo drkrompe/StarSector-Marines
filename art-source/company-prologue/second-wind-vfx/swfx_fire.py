@@ -423,7 +423,7 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
                                  (1.0, .6, .25), size_m=(S * .14, S * .24),
                                  axis=(out_dir + off.normalized() * .6).normalized(), lean=.9, shrapnel=(2, 4),
                                  smoke=.4, smoke_life=(16, 28), flash_frames=2, parent=anchor, prefix=PREFIX,
-                                 tear=True, smoke_drift=1.2)
+                                 tear=True, smoke_drift=1.2, white=False)
     for ob in made:
         ob['swfx_burst_base'] = f
     return made

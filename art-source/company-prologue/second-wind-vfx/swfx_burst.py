@@ -139,8 +139,8 @@ def flash_material(ctx, rgb):
     give the shape; the emission stays modest, so the extra brightness is left to the camera's
     glare and bloom rather than to a large bright solid. Object colour R is the intensity
     (keyed), G pushes the grade toward the core while the flash is young, and B is how whole the
-    flash still is: 1 (the default, unkeyed) a whole lobed body; below 1 it tears into radial
-    tongues and loses its white heart (owner, 2026-10-23: an HE blast is a short bright flash
+    flash still is, stored as (whole + 1) / 2: 1 (the default, unkeyed) a whole lobed body; below 1
+    it tears into radial tongues and loses its white heart (owner, 2026-10-23: an HE blast is a short bright flash
     that breaks into ragged, directional debris and fire, no white body that holds)."""
     bpy = _bpy()
     import swfx_core
@@ -159,7 +159,7 @@ def flash_material(ctx, rgb):
     lw.inputs['Blend'].default_value = .35
     c = g.clamp01(g.sub(1.0, lw.outputs['Facing']))          # 1 facing the camera, 0 at the silhouette
     feather = g.pow(c, 2.4)                                  # soft to the edge, no rim
-    whole = sep.outputs[2]
+    whole = g.sub(g.mul(sep.outputs[2], 2.0), 1.0)           # B 1 is 1; B below .5 tears past 1
     tear = g.sub(1.0, whole)
     grade = g.clamp01(g.add(g.mul(g.pow(c, 1.6), g.add(g.mul(whole, .55), .45)), g.mul(sep.outputs[1], .35)))
     # Tongues: noise over the direction from the centre, so the holes run out radially and what
@@ -175,7 +175,7 @@ def flash_material(ctx, rgb):
     links.new(tc.outputs['Object'], ray.inputs[2])
     n = g.noise(ray.outputs[0], g.mul(info.outputs['Random'], 40.0), 1.7, 4.0, .65)
     keep = g.clamp01(g.mul(g.sub(n, g.add(g.mul(tear, .42), .22)), 5.0))
-    holes = g.sub(1.0, g.mul(tear, g.sub(1.0, keep)))
+    holes = g.clamp01(g.sub(1.0, g.mul(tear, g.sub(1.0, keep))))
     ramp = nodes.new('ShaderNodeValToRGB')
     els = ramp.color_ramp.elements
     rim = tuple(.5 * a + .5 * b for a, b in zip((1.0, .30, .05), rgb))   # orange leaning to the blast colour
@@ -266,7 +266,7 @@ def shrapnel_material(ctx):
 
 def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=None, lean=1.1, light_w=0.0,
           shrapnel=(2, 4), smoke=.55, smoke_life=(10, 14), smoke_rgb=SMOKE_RGB, flash_frames=3, parent=None,
-          prefix=PREFIX, tear=False, smoke_drift=0.0):
+          prefix=PREFIX, tear=False, smoke_drift=0.0, white=True):
     """One burst at `here` (collection space, hull units) on frame f. size_m: the flash's
     radius range in metres (the scale everything else follows). axis: a collection-space
     direction the burst throws along (a surface normal; None all round), with `lean` how far.
@@ -274,7 +274,8 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     puff's peak opacity (0 none) over smoke_life frames. light_w: a flash light (W, hull-unit
     file). parent: an object to hang everything from (it then rides with it). tear: the flash is
     whole and white-hot for its first frame only, then tears into orange tongues thrown outward
-    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. smoke_drift: the
+    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. white: with tear,
+    False opens already torn, with no white frame. smoke_drift: the
     smoke fades in over three frames and flies out along the throw by that many flash radii over its
     life, so it is torn off the blast rather than a body left where the flash was. Returns objects."""
     bpy = _bpy()
@@ -307,11 +308,15 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     fr = [f + j for j in range(n_fl + 1)]
     if tear:
         # One whole white-hot frame, then torn orange tongues flying out and fading.
+        # Whole goes below zero by the third frame so the tear keeps eating the body: a big
+        # burst (a Harpoon's, a cook-off) left at a part-torn .4 read as a solid mottled plate for
+        # two frames (bench, 2026-10-23). white=False skips the white frame (a cook-off's
+        # satellites, which otherwise pop white one after another).
         grow = [.6 + 1.0 * (1 - math.exp(-2.0 * j / n_fl)) for j in range(n_fl + 1)]
-        heat = [1.7] + [1.0 * (1 - j / n_fl) ** 1.2 for j in range(1, n_fl + 1)]
-        young = [.35] + [0.0] * n_fl
-        whole = [1.0] + [max(0.0, .4 - .2 * (j - 1)) for j in range(1, n_fl + 1)]
-        swfx_guns._bake(fl, 'color', 2, fr, whole)
+        heat = [1.7 if white else 1.1] + [1.0 * (1 - j / n_fl) ** 1.2 for j in range(1, n_fl + 1)]
+        young = [.35 if white else 0.0] + [0.0] * n_fl
+        whole = [1.0 if white else .1] + [.1 - .2 * (j - 1) for j in range(1, n_fl + 1)]
+        swfx_guns._bake(fl, 'color', 2, fr, [(w + 1) / 2 for w in whole])     # stored as (whole + 1) / 2
     else:
         grow = [.55 + .65 * (1 - math.exp(-2.5 * j / n_fl)) for j in range(n_fl + 1)]
         heat = [1.7 * (1 - j / n_fl) ** 1.3 for j in range(n_fl + 1)]
