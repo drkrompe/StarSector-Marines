@@ -293,7 +293,7 @@
   .catalog-copy { height: 32px; white-space: normal; }
   .catalog-rule { height: 16px; padding: 7px 5px; }
   .category-filters { flex-direction: row; align-items: center; width: 100%; height: 26px; gap: 3px; }
-  .catalog-filter-pill { flex-direction: row; justify-content: center; align-items: center; width: 0px; flex-grow: 1; height: 24px; padding: 1px 2px; font-family: heading; text-align: center; background-color: #121719; border-width: 1px; border-color: #596052; }
+  .catalog-filter-pill { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 24px; padding: 1px 2px; font-family: heading; text-align: center; background-color: #121719; border-width: 1px; border-color: #596052; }
   .catalog-filter-icon { width: 20px; height: 20px; pointer-events: none; }
   .catalog-filter-text { width: 100%; height: 16px; text-align: center; pointer-events: none; }
   .catalog-kicker-row { flex-direction: row; align-items: center; width: 100%; height: 20px; gap: 6px; }
