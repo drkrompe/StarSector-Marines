@@ -1024,7 +1024,11 @@ KEYFRAMES = {
         ships=K4B_SHIPS,
         # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
         shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
-        fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead'),
+        fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead', (0, 0, 0),
+                                                         # her guns bear only until 105 s (then the Lasher swings 60-87
+                                                         # deg off them, past their turn rate): the bolts that land her
+                                                         # 103.5 s breach and 104.6 s plating loss
+                                                         dict(trained=True, bursts_t=[(102.5, 105.0)], walk=.35)),
             ('blast_on', 'falcon-p', 18, (-20, -14, 4)), ('fire_on', 'lasher-lead', (-20, 10, 6)),
             ('debris', 'lasher-lead', 25, (-10, 8, 0))],
         labels=['falcon-p', 'lasher-lead']),
@@ -3038,11 +3042,15 @@ def blender_main(cfg):
                 for i, fx in enumerate(spec.get('fx', ())):
                     kind, done = fx[0], False
                     if kind == 'tracer':
-                        # ('tracer', a, b, aim, opts): opts trained=True (on b when the shot opens) and
-                        # cease_t (sequence time b dies; no round after it)
+                        # ('tracer', a, b, aim, opts): opts trained=True (on b when the shot opens), cease_t
+                        # (sequence time b dies; no round after it), walk (scene_fx.tracer) and bursts_t
+                        # [(first, last)] sequence times the trigger is held (a story broadside)
                         opts = dict(fx[4]) if len(fx) > 4 else {}
+                        fr_ = lambda t_: anchor + round((t_ - spec['key_t']) * fps_s)
                         if 'cease_t' in opts:
-                            opts['cease'] = anchor + round((opts.pop('cease_t') - spec['key_t']) * fps_s)
+                            opts['cease'] = fr_(opts.pop('cease_t'))
+                        if 'bursts_t' in opts:
+                            opts['bursts'] = [(fr_(t0_), fr_(t1_)) for t0_, t1_ in opts.pop('bursts_t')]
                         done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,
                                            muzzles=CLEAR_GUNS.get(fx[:3]) or [muzzles.get(fx[:3])], **opts)
                     elif kind == 'missiles':
@@ -3141,7 +3149,13 @@ def blender_main(cfg):
                             print(f'ASHARU state {kf}: {key} has no ship lamps to wake', flush=True)
                         else:
                             wake_ = (spec['span_t'] - (LAUNCH[key] - LAMPS_LEAD_S)) / .3
-                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_)) * spec.get('lamp_gain', {}).get(key, 1.0)
+                            if pl['fx'].keyed('lit_ship_master'):
+                                # the kit keys them itself (S9b: the Falcon's shield overload stutters her
+                                # lamps): those keys are the picture, and the plan would only contradict them
+                                print(f'ASHARU state {kf}: {key} lamps keyed by the kit, not planned', flush=True)
+                            else:
+                                state_plan_[(key, 'lit_ship_master')] = (min(1.0, max(0.0, wake_))
+                                                                         * spec.get('lamp_gain', {}).get(key, 1.0))
                 for key, sh in spec.get('shields', {}).items():
                     if key in placed and sh.get('toward') in placed and placed[key]['fx'] is not None:
                         d_ = placed[key]['matrix'].inverted() @ placed[sh['toward']]['matrix'].translation

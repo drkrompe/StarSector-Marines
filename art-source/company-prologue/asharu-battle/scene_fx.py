@@ -205,12 +205,14 @@ class SceneFx:
         return True
 
     # ------------------------------------------------------------------ guns
-    def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4, trained=False, cease=None, walk=1.0):
+    def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4, trained=False, cease=None, walk=1.0,
+               bursts=None):
         """a's guns on b: every bearing gun with a clear line (muzzles, the blockout's pick first), up
         to `most` turrets. True when the kit drew it (a has a kit copy). A planned gun (planned()):
         trained, it is already on b when its plan opens (she was fighting before the cut); cease, the
         scene frame from which it fires no more (b is dead); walk, the share of WALK_R and LEAD_ERR its
-        bursts walk and misjudge by (below 1: the burst that kills her lands on her)."""
+        bursts walk and misjudge by (below 1: the burst that kills her lands on her); bursts, [(first, last)]
+        scene frames the trigger is held, in place of the weapon's seeded rhythm (a story broadside)."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -248,7 +250,8 @@ class SceneFx:
                     aim_at = self.tracking(a, b, self.local(a, mz), hit_l, speed)
                     if self.cur is None:      # the whole shot, built once: planned aim, bursts, real shots
                         recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
-                                            feeder, aim_at, trained=trained, cease=cease, walk=walk)
+                                            feeder, aim_at, trained=trained, cease=cease, walk=walk,
+                                            held=bursts)
                         if recs is not None:
                             planned_any = True       # the plan owns this gun, firing or holding
                             placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
@@ -340,10 +343,11 @@ class SceneFx:
     LEAD_ERR = .07
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track, trained=False,
-                cease=None, walk=1.0):
+                cease=None, walk=1.0, held=None):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
         None for a mount with no pivot (the caller fires it the old way). trained: the gun opens on
-        its target, not at rest; cease: no round from that scene frame on."""
+        its target, not at rest; cease: no round from that scene frame on; held: [(first, last)]
+        scene frames the trigger is held, in place of the seeded bursts."""
         g = kit.guns
         fps = self.fps
         guns = sorted((x for x in ctx.anchors.guns if x.turret == turret), key=g.gun_index)
@@ -395,6 +399,8 @@ class SceneFx:
             on = rnd.uniform(*burst_s) * fps
             bursts.append((t, t + on))
             t += on + rnd.uniform(*gap_s) * fps
+        if held is not None:     # a story broadside: the trigger held exactly when the shot needs it
+            bursts = [(float(t0), float(t1)) for t0, t1 in held]
         bm = self.placed[b]['matrix']
         reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R * walk
         walks = []
