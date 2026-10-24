@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** R1's dozer pulling aside once the road is open ({@link ClearRoadBeat#aside}). */
 class ClearRoadAsideTest {
@@ -53,5 +55,13 @@ class ClearRoadAsideTest {
     @Test
     void noneWhereNothingIsReachable() {
         assertNull(ClearRoadBeat.aside(road(), 20, (x, y) -> false));
+    }
+
+    @Test
+    void aDozerNoNearerItsAsidePlaceForAWhileIsWedgedAndTriesTheNext() {
+        assertFalse(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS - 1));
+        assertTrue(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS));
+        // There: nothing to retry.
+        assertFalse(ClearRoadBeat.asideStalled(2f, 10 * ClearRoadBeat.ASIDE_STALL_TICKS));
     }
 }
