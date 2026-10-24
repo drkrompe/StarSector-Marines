@@ -86,7 +86,7 @@ chooses what the button fires without a key per weapon.
    frames in `marine-left-special`. Open: whether the owner wants dedicated
    carry-and-walk art for the launcher and the rifle (see the art note below).
    The flamer joined as a held stream (`FlameJet`, a fuel tank of cells on its
-   row); frames `flamer-walking` and `flamer-streaming` in `marine-left-special`
+   row); frames `flamer-walking`, `flamer-streaming` and the `flamer-sweep` GIF in `marine-left-special`
    and `active-marine-flamer` in `direct-control-ui`.
 4. ~~Marine grenades~~ (shipped): the right button's list (smoke, a hand grenade,
    the shield) on E, and the grenade's committed manual throw; the flamer is a
