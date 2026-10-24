@@ -198,7 +198,9 @@ rule in `CordonAlliedRules`:
   (`CordonSupplyStreets`), and the truck sets out from the first street cell
   on it outside the base from which it can drive the rest. Every way is proved
   at setup as a move order is planned, every bend one a truck can make
-  forward; a redoubt with no such way is never sent a truck (one sent anyway
+  forward, and the truck is set down facing along the way's first leg (set
+  down facing the redoubt, it stood at a street's edge facing a wall: the two
+  city trucks that sat at their start all battle); a redoubt with no such way is never sent a truck (one sent anyway
   stood where its way ran out), and evidence names each redoubt's way (road,
   streets or none).
 

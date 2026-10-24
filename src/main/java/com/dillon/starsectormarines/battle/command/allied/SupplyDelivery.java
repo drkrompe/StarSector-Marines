@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.command.allied;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -11,6 +12,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * named {@link Recipient}; its arrival resupplies the recipient through the recipient's own callback. A truck lost
  * on the road delivers nothing, and so does one whose recipient is gone before it arrives. Mission-neutral: what
  * "resupplied" means (a redoubt's guns back to their rate, rounds added to a barrage) is the recipient's.
+ *
+ * <p>A truck is set down facing along its way's first leg ({@link #facing}), the way its move order will drive.
  *
  * <p>While the depot cannot send, the delivery waits for it rather than setting out from somewhere else.
  *
@@ -91,6 +94,34 @@ public final class SupplyDelivery {
         return this;
     }
 
+    /** Cells along its way a truck is set down facing: the way's first point at least this far off. */
+    static final float FACING_LEAD = 4f;
+
+    /**
+     * The heading a truck is set down on, in a hull's facing degrees: along its way's first leg, toward the way's first
+     * point at least {@link #FACING_LEAD} cells off (its last point where none is that far), and toward its destination
+     * where it has no way. Set down facing the destination as the crow flies, a truck at the edge of a street that runs
+     * the other way had a bend from a standing start no trajectory could make, and stood there all battle.
+     *
+     * @param way the route's points ({@code way[0]} xs, {@code way[1]} ys), or {@code null}
+     */
+    static float facing(float[][] way, float x, float y, float toX, float toY) {
+        float aimX = toX, aimY = toY;
+        if (way != null && way[0].length > 1) {
+            int n = way[0].length;
+            aimX = way[0][n - 1];
+            aimY = way[1][n - 1];
+            for (int i = 1; i < n; i++) {
+                if (Math.hypot(way[0][i] - x, way[1][i] - y) >= FACING_LEAD) {
+                    aimX = way[0][i];
+                    aimY = way[1][i];
+                    break;
+                }
+            }
+        }
+        return (float) Math.toDegrees(Math.atan2(aimY - y, aimX - x)) - 90f;
+    }
+
     /** The rule: arrival delivers; a dead truck or a gone recipient before that loses it. */
     static State rule(State state, boolean truckAlive, boolean recipientThere, boolean arrived) {
         if (state.done() || state == State.WAITING) return state;
@@ -113,7 +144,10 @@ public final class SupplyDelivery {
             VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
             int[] at = VehicleRoutePlanner.snapToMask(mask, from[0], from[1], STAND_REACH);
             if (at == null) return state;
-            float facing = (float) Math.toDegrees(Math.atan2(to[1] - at[1], to[0] - at[0])) - 90f;
+            int[] goal = VehicleRoutePlanner.snapToMask(mask, to[0], to[1], STAND_REACH);
+            float[][] way = goal == null ? null : VehicleRoutePlanner.routeDrivable(at[0], at[1], goal[0], goal[1],
+                    sim.getGrid(), TerrainCostField.from(sim.getTopology()), mask, type);
+            float facing = facing(way, at[0] + .5f, at[1] + .5f, to[0] + .5f, to[1] + .5f);
             truck = command.deploy(sim, type, at[0], at[1], facing);
             if (truck == 0L) return state;
             state = State.ON_ROAD;

@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.testsupport;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
+import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.power.CommandPowerResources;
@@ -17,9 +20,12 @@ import com.dillon.starsectormarines.ops.ThunderRunEvidenceBattle;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,7 +56,8 @@ public final class HeadlessBattles {
     }
 
     /**
-     * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]} or {@code relief[:seed=N,surface=S]}.
+     * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]}, {@code relief[:seed=N,surface=S]} or
+     * {@code cordon[:variant=line|road,density=rural|town|urban,biome=VERDANT,seed=N]}.
      */
     public static BattleSimulation build(String source) throws Exception {
         int colon = source.indexOf(':');
@@ -67,6 +74,7 @@ public final class HeadlessBattles {
                 yield relief(options.optLong("seed", 1L), SurfacePalette.valueOf(options.optString("surface", "VERDANT")));
             }
             case "fixture" -> fixture(new JSONObject(Files.readString(Path.of(rest))));
+            case "cordon" -> cordon(options(rest));
             default -> throw new IllegalArgumentException("unknown battle source: " + kind);
         };
     }
@@ -79,6 +87,25 @@ public final class HeadlessBattles {
             options.put(kv[0].trim(), JSONObject.stringToValue(kv.length > 1 ? kv[1].trim() : "true"));
         }
         return options;
+    }
+
+    /**
+     * A Cordon at one pooled seed, built as {@code CordonCommandEvidenceTest} builds each seed of a pool: the checked-in
+     * fixture of the variant standing in for everything but the seed, biome and density.
+     */
+    private static BattleSimulation cordon(JSONObject options) throws Exception {
+        CordonVariant variant = CordonVariant.valueOf(options.optString("variant", "line").toUpperCase(Locale.ROOT));
+        String resource = "/battle-fixtures/cordon-" + variant.name().toLowerCase(Locale.ROOT) + "-v1.json";
+        String json;
+        try (InputStream stream = HeadlessBattles.class.getResourceAsStream(resource)) {
+            if (stream == null) throw new IllegalStateException("missing Cordon fixture " + resource);
+            json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        }
+        CordonBattleFixture template = (CordonBattleFixture) BattleFixtureJson.fromJson(new JSONObject(json));
+        CordonPlan.Density density = CordonPlan.Density.valueOf(options.optString("density", "rural").toUpperCase(Locale.ROOT));
+        SurfacePalette biome = SurfacePalette.valueOf(options.optString("biome", "VERDANT").toUpperCase(Locale.ROOT));
+        long seed = options.optLong("seed", template.seed());
+        return new CordonBattleFixture(seed, variant, biome, density, template.manifest()).build();
     }
 
     /** The Relief ground start: twelve named starter recruits ashore at tick zero, the employer's shuttle flying. */

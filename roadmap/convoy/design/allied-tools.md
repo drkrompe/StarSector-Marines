@@ -5,7 +5,7 @@ forces; the heart's tool pick (`heart-allied-tool`) and the Cordon's urban
 backbone pick (`cordon-urban-allies`) are out to the owner.
 
 Written: 2026-10-23
-Updated: 2026-10-24 — a delivery keeps to its escort (`EscortPace`)
+Updated: 2026-10-24 — a delivery keeps to its escort (`EscortPace`); a truck sets out facing its way
 
 `allied-command.md` is how the allies move and fight a machine once it stands
 on the field (station, carry, the screened advance). This doc is the step
@@ -102,7 +102,11 @@ delivers nothing.
   cell the truck drives to, when it counts as arrived, and an `arrived`
   callback) and the `AlliedDepot` the truck sets out from. The delivery waits
   while the depot cannot send; it is lost when the truck dies or the
-  recipient is gone first. **The Cordon owns it.**
+  recipient is gone first. **The Cordon owns it.** A truck is set down
+  facing along its way's first leg (`SupplyDelivery.facing`), the route its
+  move order drives, not toward the recipient as the crow flies: set down at
+  the edge of a street that runs the other way, it had a bend from a
+  standing start that no trajectory makes, and stood there all battle.
 - **An escorted delivery keeps to its escort** (`SupplyDelivery.escortedBy`,
   `EscortPace`). The mission names the armed hull it has sent beside the
   truck; "escorted" means alongside, not assigned. The truck waits where it
