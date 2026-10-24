@@ -44,7 +44,11 @@ class EquipmentLocalizationTest {
         var catalog = new JSONObject(json.lines().filter(line -> !line.stripLeading().startsWith("#"))
                 .collect(Collectors.joining("\n"))).getJSONObject(Strings.NS);
         var references = Pattern.compile("\"@(gear[A-Za-z0-9]+)\"");
-        for (String root : List.of("mod/data/marines", "mod/data/mechs", "src/main/java/com/dillon/starsectormarines")) {
+        // Equipment catalogs: the data and the three packages that declare gear. Walking the whole
+        // source tree read ~2,900 files for the ten that hold references and cost two seconds.
+        String source = "src/main/java/com/dillon/starsectormarines/";
+        for (String root : List.of("mod/data/marines", "mod/data/mechs",
+                source + "battle/infantry", source + "battle/mech", source + "marine")) {
             try (var files = Files.walk(Path.of(root))) {
                 for (var file : files.filter(Files::isRegularFile).toList()) {
                     var matcher = references.matcher(Files.readString(file));

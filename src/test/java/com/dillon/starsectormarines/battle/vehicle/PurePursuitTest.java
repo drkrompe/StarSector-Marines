@@ -79,4 +79,18 @@ class PurePursuitTest {
         assertEquals(0, carrot.nextIdx);
         assertEquals(7.5f, carrot.x, 1e-4f);
     }
+
+    @Test
+    @DisplayName("a waypoint at a sharp bend counts as reached within its radius, though the body is short of it")
+    void aBendWaypointCloseByIsReachedBeforeItIsCrossed() {
+        // The Relief start's dog-leg: down to (25,43) and back up to (26,42). Held short of the
+        // bend's perpendicular, the look-ahead folded back onto the body and the step it allowed was ~0.02.
+        int[] path = {24, 42, 25, 43, 26, 42, 27, 42};
+
+        PurePursuit.Carrot carrot = PurePursuit.pick(25.65f, 43.32f, path, 1, 0.45f);
+
+        assertEquals(2, carrot.nextIdx, "within the reached radius of waypoint 1");
+        float step = (float) Math.hypot(carrot.x - 25.65f, carrot.y - 43.32f);
+        assertEquals(0.45f, step, 1e-3f, "the carrot is a full look-ahead away again");
+    }
 }

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b43-5364-7440-9fa8-b8c7d6fbd085",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b43-5364-7440-9fa8-b8c7d6fbd085\\exec-d7998b28-6dc2-4aac-9300-459825af95b1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\raw\\graphite-stealth-militia-hardpoint.raw.png",
+    "sha256": "fd007c51021de20f36ff5d3f68dd2e7fc934f5c8a1fa70aea1d408dde902441f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\prompts\\graphite-stealth-militia-hardpoint.prompt.txt",
+  "promptSha256": "ccf07bbc5fd125cbac1201131bbe8254b7d7c84d19d890452d66b04a9734683b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette, position and size\nImage 2: Painting style and rendering finish only; not layout, not material colour\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It holds two separate objects for a sci-fi strategy-game building prop (like a tabletop miniature terrain set), each seen from directly above. Left: a raised deployable gun platform about one storey (four metres) tall: a rounded deck with a thick edge band, held up by four splayed struts to round foot pads at the corners, curved barrier shells round its foot on the north, west and east, and a folding ladder down the south (keep everything as drawn); seen from straight above, lit from the upper left; it must read as a platform standing high above the ground; the deck holds an empty dark circular ring well (leave the well dark and plain: a separate rotating house sits over it). Right: the heavy rotating gun house that sits on it: a large smooth oval shell with two swept rear fins, a glowing ring on its crown, a flush lens, and one long pipe wound with ring coils and ending in a glowing tip, pointing straight up the image. Material and style: Graphite field deployment: the same matte graphite housings with white edge stripes and cyan pinpricks, on folding graphite struts and pads, wrapped in dark grey adaptive camouflage mesh panels and sealed hard cases, a few cyan status lights. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: keep the guide's lit and shaded faces exactly where they are. Hand-painted gritty science-fiction game-sprite look like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no letters, no numbers, no labels, no watermark, no UI, no ground or terrain, no grass, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\guides\\hightech-militia-hardpoint-guide.png",
+      "sha256": "e9f355b44653d302eadd97b1bca99a980b9abb9354f9186927c3e75924cb6f66",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette, position and size"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\mod\\graphics\\structures\\missile-aa-base.png",
+      "sha256": "c4fd9bbc087b3bcc64c613cc676461ab1f9b79c3bce36ae6d5ecc9c589ff176e",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Painting style and rendering finish only; not layout, not material colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to apply the graphite finish while preserving the guide’s layout and silhouettes.\n"
+  ],
+  "usage": {
+    "input_tokens": 42316,
+    "cached_input_tokens": 32896,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 720,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.9
+}

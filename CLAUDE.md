@@ -238,6 +238,12 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   delivering a set. A session started by another session gives its
   coordinating session the image paths, and the coordinator shows them.
   The folder path may follow as a footnote, never in place of the pictures.
+  **A finished-work preview that asks nothing (a GIF of a feature, a set of
+  stills) goes on the parent's picks page too** (owner, 2026-10-23), in its
+  Previews section: a `previews.json` of `[{id, area, date, title, note, lead?,
+  shots:[{file,label}]}]`, newest first, passed to `build.py --previews`, with
+  the media under `media/<preview id>/`. Sending it into the chat as well is
+  fine; the page is where the owner looks.
   Look and design choices go to the owner the same way: as labelled pictures
   (an `options.json` of `{id, question, options:[{key,label,file,note}]}`
   for the picks page), not as a description in words.

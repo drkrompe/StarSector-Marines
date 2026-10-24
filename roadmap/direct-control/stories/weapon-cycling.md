@@ -4,7 +4,7 @@
 
 Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials and the flamer; Marine right button with grenades); step 5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — the flamer joins the left button as a held stream (step 3); held-weapon art question open
+Updated: 2026-10-23 — the flamer joins the left button as a held stream (step 3); a second special slot (the belt) puts smoke and a grenade on one Marine; held-weapon art question open
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -86,7 +86,7 @@ chooses what the button fires without a key per weapon.
    frames in `marine-left-special`. Open: whether the owner wants dedicated
    carry-and-walk art for the launcher and the rifle (see the art note below).
    The flamer joined as a held stream (`FlameJet`, a fuel tank of cells on its
-   row); frames `flamer-walking` and `flamer-streaming` in `marine-left-special`
+   row); frames `flamer-walking`, `flamer-streaming` and the `flamer-sweep` GIF in `marine-left-special`
    and `active-marine-flamer` in `direct-control-ui`.
 4. ~~Marine grenades~~ (shipped): the right button's list (smoke, a hand grenade,
    the shield) on E, and the grenade's committed manual throw; the flamer is a
@@ -97,7 +97,10 @@ chooses what the button fires without a key per weapon.
 
 ## Art note (step 3)
 
-The flamer has no carried or firing art at all: its sprite slots name the frag
+The flamer's charge flies as a flame jet (a puff cropped from the fire sheet by
+`art-source/fx/flamer-jet/export.py`, a fire-and-glow trail, and a nozzle
+emitter spraying fire forward for the length of each charge), but it has no
+carried or firing art: its carried prop and armoury icon still name the frag
 grenade, and the Marine holds the primary's aim and firing clips while it is
 picked. A held flamer wand and a firing clip are part of the same art question.
 
@@ -117,8 +120,9 @@ firing stance from the waist up.
 - A Marine with a rocket launcher presses Q, fires one rocket at the cursor,
   presses Q again and is back on the rifle.
 - A Marine with a throw (smoke or a grenade) and a shield cycles the right trigger
-  between them (shipped). A Marine carries one special item, so smoke and a grenade
-  together would need a second special slot first.
+  between them (shipped). A Marine with smoke and a frag on the belt, the second special
+  slot, lists both throws and the shield, and either throw is used from the slot it rides
+  in (shipped; frame `active-marine-smoke-and-grenade` in `direct-control-ui`).
 - Nothing unpicked fires, except crewed defences, which keep intercepting.
 - The noun doc's "Mouse buttons and weapon groups" describes the cycle, and
   this story is folded and deleted.

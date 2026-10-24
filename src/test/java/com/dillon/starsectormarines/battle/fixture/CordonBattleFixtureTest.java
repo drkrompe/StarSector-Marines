@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import org.json.JSONObject;
@@ -24,6 +25,15 @@ class CordonBattleFixtureTest {
         assertEquals(SurfacePalette.FROZEN, decoded.biome());
         assertEquals(1, decoded.manifest().size());
         assertEquals(ShuttleType.AEROSHUTTLE, decoded.manifest().get(0).type);
+        assertEquals(CordonPlan.Density.RURAL, decoded.density());
         assertEquals(json.toString(), BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
+    void roundTripsItsDensity() throws Exception {
+        CordonBattleFixture fixture = new CordonBattleFixture(7L, CordonVariant.LINE, SurfacePalette.ARID,
+                CordonPlan.Density.URBAN, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)));
+        CordonBattleFixture decoded = (CordonBattleFixture) BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
+        assertEquals(CordonPlan.Density.URBAN, decoded.density());
     }
 }

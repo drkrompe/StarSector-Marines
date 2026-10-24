@@ -2,11 +2,15 @@ package com.dillon.starsectormarines.battle.command.allied;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
@@ -168,6 +172,43 @@ public final class AlliedCommand {
         if (stand == null) return;
         sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad.id, stand.cellX(), stand.cellY()),
                 CommandAuthority.GARRISON, issuer, "allied mech to its post");
+    }
+
+    /** Cells from the asked-for cell a new mech is looked for standable, unoccupied ground. */
+    public static final int MECH_SET_DOWN_REACH = 10;
+
+    /**
+     * Sets down a new allied mech on standable ground clear of every other body, as near {@code (x, y)} as
+     * there is some within {@link #MECH_SET_DOWN_REACH}, and puts it under this command. Returns 0 where no
+     * ground near takes it. It stands where it was set down until it is stationed.
+     */
+    public long deployMech(BattleSimulation sim, MechVariant variant, int x, int y, String name) {
+        MechSpawnPlacement.Point at = null;
+        for (int r = 0; at == null && r <= MECH_SET_DOWN_REACH; r++)
+            for (int dy = -r; at == null && dy <= r; dy++) for (int dx = -r; at == null && dx <= r; dx++)
+                if (Math.max(Math.abs(dx), Math.abs(dy)) == r)
+                    at = MechSpawnPlacement.nearCell(sim.getGrid(), variant.radius, x + dx, y + dy, ANYWHERE,
+                            (px, py) -> MechSpawnPlacement.unoccupied(sim.getRoster(), px, py, variant.radius, 0L));
+        if (at == null) return 0L;
+        int squad = sim.mintSquad(Faction.ALLY, UnitType.HEAVY_MECH);
+        long mech = sim.spawn(new EntitySpec(name, Faction.ALLY, UnitType.HEAVY_MECH, at.cellX(), at.cellY())
+                .atPosition(at.x(), at.y()).mechVariant(variant).squad(squad));
+        sim.world().attachMechLoadout(mech, FactionMechLoadouts.create(variant, variant.defaultRole, "independent"));
+        Squad s = sim.getSquad(squad);
+        s.leaderId = mech;
+        s.originalSize = 1;
+        enlistMech(sim, mech);
+        return mech;
+    }
+
+    /**
+     * Puts an allied mech standing on the field (one a shed has just finished) under this command: its squad
+     * is claimed under garrison authority, so nothing but this command moves it. It is stationed after.
+     */
+    public void enlistMech(BattleSimulation sim, long mech) {
+        Squad squad = sim.squadOf(mech);
+        if (squad == null) return;
+        sim.claimSquadCommand(squad.id, CommandAuthority.GARRISON, issuer, "allied mech");
     }
 
     /** Live mechs under this command, in the order they were first stationed. */

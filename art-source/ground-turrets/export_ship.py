@@ -1,4 +1,4 @@
-"""Cut the shipped ground-turret sets into mod/graphics/structures/ground-turrets/<look>/ (brutalist, earthwork, derelict).
+"""Cut the shipped ground-turret sets into mod/graphics/structures/ground-turrets/<look>/ (every emplacement style).
 
 Mechanical, from the retained raws and their guides (make_guide.py), at 128 px a cell. Every look has the same pieces
 at the same sizes, and every look's heads are fitted to the brutalist head's opaque box, so one set of muzzles serves
@@ -17,6 +17,8 @@ painted piece exactly at rest.
 
 Muzzles are measured off the barrel layer: one per separate tube, at its tip, in cells from the pivot
 ([lateral, forward], lateral positive to the right of the bearing), and written to muzzles.json beside this file.
+
+Midline and high-tech looks (modular, barrier, composite, deployed) come from family_drafts.py's sheets.
 
 Usage: python art-source/ground-turrets/export_ship.py
 """
@@ -218,14 +220,51 @@ LOOKS = {
 }
 
 
+def _family_look(option, variant, family, hardpoint="hardpoint", second="points2", dressed=False):
+    """A midline or high-tech look from family_drafts.py's sheets (guides named by family, raws by option)."""
+    pts = (f"{option}-{variant}-points.raw.png", f"{family}-{variant}-points-guide.png")
+    hp = (f"{option}-{variant}-{hardpoint}.raw.png", f"{family}-{variant}-{hardpoint}-guide.png")
+    if dressed:
+        # The second point sheet was refused for this variant: its round collar was generated alone, and its grenade
+        # and point-defence heads are the prepared variant's in this variant's paint (dress source: its autogun).
+        collar = (f"{option}-{variant}-collar2.raw.png", f"{family}-{variant}-collar2-guide.png")
+        heads = (f"{option}-prepared-points2.raw.png", f"{family}-prepared-points2-guide.png")
+        grenade = heads + (1, frame(1), "autogun")
+        pd = heads + (2, frame(2), "autogun")
+    else:
+        collar = heads = (f"{option}-{variant}-{second}.raw.png", f"{family}-{variant}-{second}-guide.png")
+        grenade, pd = heads + (1, frame(1)), heads + (2, frame(2))
+    return {
+        "collar-octagon": pts + (0, COLLAR_BOX),
+        "collar-round": collar + (0, COLLAR_BOX),
+        "autogun": pts + (1, frame(1)),
+        "cannon": pts + (2, frame(2)),
+        "grenade": grenade,
+        "pd": pd,
+        "plinth": hp + (0, PLINTH_BOX),
+        "heavy": hp + (1, HEAVY_BOX),
+    }
+
+
+# Midline (League standard) and high-tech (Tri-Tachyon white), each prepared and militia (`ground-turret-tiers.md`).
+LOOKS["modular"] = _family_look("league-standard", "prepared", "midline")
+LOOKS["barrier"] = _family_look("league-standard", "militia", "midline", hardpoint="hardpoint-v2", dressed=True)
+LOOKS["composite"] = _family_look("tritach-white", "prepared", "hightech")
+LOOKS["deployed"] = _family_look("tritach-white", "militia", "hightech", hardpoint="hardpoint-v2")
+
+
 def export_look(look, reference):
     """Writes OUT/<look>/; returns this look's composed heads (before the split) and its measured muzzles."""
     target = OUT / look
     target.mkdir(parents=True, exist_ok=True)
     composed, measured = {}, {}
-    order = sorted(LOOKS[look], key=lambda name: name not in ("grenade", "pd"))  # dress sources first
+    # Dress sources first: earthwork's grenade and pd paint its autogun and cannon; a dressed family look's autogun
+    # paints its borrowed grenade and pd.
+    order = sorted(LOOKS[look], key=lambda name: (len(LOOKS[look][name]) > 4,
+                                                  look == "earthwork" and name not in ("grenade", "pd")))
     for piece in order:
-        raw_name, guide_name, index, box = LOOKS[look][piece]
+        raw_name, guide_name, index, box = LOOKS[look][piece][:4]
+        dress_from = LOOKS[look][piece][4] if len(LOOKS[look][piece]) > 4 else None
         raw_path = HERE / "raw" / raw_name
         fallback = False
         if not raw_path.exists() and look == "earthwork":
@@ -248,6 +287,9 @@ def export_look(look, reference):
         if look == "earthwork" and piece in ("autogun", "cannon"):
             from field_dress import dress
             composed_piece = dress(composed_piece, composed["grenade"])
+        if dress_from is not None:
+            from field_dress import colour_transfer
+            composed_piece = colour_transfer(composed_piece, composed[dress_from])
         if reference is not None:
             composed_piece = match_extent(composed_piece, reference[piece])
         composed[piece] = composed_piece
@@ -263,7 +305,7 @@ def export_look(look, reference):
 def main():
     reference, measured = export_look("brutalist", None)
     report = {"brutalist": measured}
-    for look in ("earthwork", "derelict"):
+    for look in ("earthwork", "derelict", "modular", "barrier", "composite", "deployed"):
         report[look] = export_look(look, reference)[1]
     (HERE / "muzzles.json").write_text(json.dumps(report, indent=2) + "\n")
     for look, pieces in report.items():

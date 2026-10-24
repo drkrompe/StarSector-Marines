@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
@@ -148,6 +149,7 @@ public final class BattleFixtureJson {
             root.put("seed", cordon.seed());
             root.put("variant", cordon.variant().name());
             root.put("biome", cordon.biome().name());
+            if (cordon.density() != CordonPlan.Density.RURAL) root.put("density", cordon.density().name());
             root.put("shuttles", shuttlesToJson(cordon.manifest()));
             return root;
         }
@@ -271,7 +273,9 @@ public final class BattleFixtureJson {
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
             case CordonBattleFixture.KIND -> new CordonBattleFixture(root.getLong("seed"),
                     enumValue(CordonVariant.class, root.getString("variant"), "variant"),
-                    storyBiome(root), shuttlesFromJson(root.getJSONArray("shuttles")));
+                    storyBiome(root), root.has("density")
+                            ? enumValue(CordonPlan.Density.class, root.getString("density"), "density")
+                            : CordonPlan.Density.RURAL, shuttlesFromJson(root.getJSONArray("shuttles")));
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
