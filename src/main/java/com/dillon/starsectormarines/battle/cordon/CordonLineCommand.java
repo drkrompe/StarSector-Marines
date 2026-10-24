@@ -48,6 +48,8 @@ public final class CordonLineCommand {
     private final AlliedToolShed shed;
     private final Map<CordonRedoubt, GunStock> stocks = new LinkedHashMap<>();
     private final Map<CordonRedoubt, int[]> truckCell = new HashMap<>();
+    /** Where a truck for each redoubt sets out: the base's end of its supply road, where one was laid. */
+    private final Map<CordonRedoubt, int[]> truckStart = new HashMap<>();
     private final Map<SupplyDelivery, CordonRedoubt> deliveries = new LinkedHashMap<>();
     /** The tick each place may be asked for again after a refusal, by tool and place. */
     private final Map<String, Integer> retryAt = new HashMap<>();
@@ -75,6 +77,8 @@ public final class CordonLineCommand {
             for (long gun : r.guns()) stock.add(gun);
             stocks.put(r, stock);
             truckCell.put(r, truckCell(sim, r, laid));
+            int[] start = roadStart(r, laid);
+            if (start != null) truckStart.put(r, start);
         }
         for (long gun : pickets) {
             CordonRedoubt near = nearest(redoubts, sim.world().x(gun), sim.world().y(gun));
@@ -106,13 +110,20 @@ public final class CordonLineCommand {
                     return hulls.isEmpty() ? null : arrived(hulls, to);
                 }, reserve.cover(), reserve.cover(), restockCover);
             }
-            shed.stock(AlliedTool.AMMO_TRUCK, AlliedMakers.ammunition(supply, request -> {
+            AlliedToolShed.Maker truck = AlliedMakers.ammunition(supply, request -> {
                 CordonRedoubt to = redoubt(request.toPlace());
                 return to == null ? null : stocks.get(to).recipient(truckCell.get(to), to::manned);
             }, delivery -> {
                 CordonRedoubt to = redoubt(delivery.recipient().name());
                 if (to != null) deliveries.put(delivery, to);
-            }), reserve.trucks(), reserve.trucks(), CordonSequence.ticks(reserve.truckRestockSeconds()));
+            });
+            // Loaded at the dump, it comes out of the base's gate onto the redoubt's supply road: from the shed's door
+            // a truck had to find its own way out of the yard, and in a city's streets found none.
+            shed.stock(AlliedTool.AMMO_TRUCK, (s, from, request) -> {
+                CordonRedoubt to = redoubt(request.toPlace());
+                int[] start = to == null ? null : truckStart.get(to);
+                return truck.make(s, start != null ? start : from, request);
+            }, reserve.trucks(), reserve.trucks(), CordonSequence.ticks(reserve.truckRestockSeconds()));
         }
         armour.escortHulls(this::roadHulls);
     }
@@ -282,6 +293,14 @@ public final class CordonLineCommand {
             return dist(a, r) <= dist(b, r) ? a : b;
         }
         return armour.rearGate(sim, r);
+    }
+
+    /** The base's end of a redoubt's supply road, or {@code null} where none was laid. */
+    private static int[] roadStart(CordonRedoubt r, LaidLayout laid) {
+        Laid road = laid == null ? null : laid.find(CordonPlan.SUPPLY_ROAD + r.number());
+        if (road == null || !road.isLaid() || road.gaps().size() < 2) return null;
+        int[] a = road.gaps().get(0), b = road.gaps().get(1);
+        return dist(a, r) <= dist(b, r) ? b : a;
     }
 
     private static long dist(int[] c, CordonRedoubt r) {

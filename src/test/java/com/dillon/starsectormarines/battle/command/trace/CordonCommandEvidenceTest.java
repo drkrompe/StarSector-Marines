@@ -374,6 +374,8 @@ class CordonCommandEvidenceTest {
                                 + " to " + refused.requestedX() + "," + refused.requestedY(), NL));
             }
             for (long mech : cordon.armour().mechs()) {
+                // The armour forgets the dead at its next look; one killed since is not reported.
+                if (sim.resolveUnit(mech) == 0L || !sim.world().isAlive(mech)) continue;
                 out.append(String.format(Locale.ROOT, "  - Hound %d (%s) at %.0f,%.0f, structure %.0f/%.0f%s",
                         mech, sim.identity().name(mech), sim.world().x(mech), sim.world().y(mech), sim.world().hp(mech),
                         sim.world().maxHp(mech), NL));
