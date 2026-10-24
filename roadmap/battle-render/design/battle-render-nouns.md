@@ -644,7 +644,14 @@ change the physical crash corridor.
     extension, because that is the Mac's floor; a texture array would need more.
     The page rides in the position's z rather than a generic attribute, because
     the fixed-function arrays are what an async-renderer bridge is known to
-    carry.
+    carry, and per-quad effects ride in z's fraction for the same reason (a
+    secondary-colour or normal array wants entry points the Mac's headless
+    binding does not keep). The first is the **hit flash**: a body is mixed
+    toward white for a moment from the tick a hit lands on it (`HitFlash`,
+    read off `CombatService.ticksSinceDamaged`, before cover and armour have
+    their say), a pure function of simulation state. Only the paged run draws
+    it; the per-sheet fallback and the Java2D review drain draw the body
+    unflashed.
 
 Authored spline roads retain a `RoadSurface` beside their grid footprint. The
 surface samples signed distances at cell corners and clips each cell's two
