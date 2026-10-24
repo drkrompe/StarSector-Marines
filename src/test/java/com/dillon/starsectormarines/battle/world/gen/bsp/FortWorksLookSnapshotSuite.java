@@ -42,6 +42,9 @@ import java.util.List;
  *
  * <p>{@code -Dsnapshot.fortWorks.styles=} names the styles (keys, comma-separated; default every style) and
  * {@code -Dsnapshot.fortWorks.biome=} the ground ({@code arid} by default). Frames go to {@code look/<style>-<view>.png}.
+ * {@code -Dsnapshot.fortWorks.structures=true} adds one close frame per structure a fort and a defence lot stand
+ * (each fort building, the gate, a bastion nest, the centrepiece, a light and a medium post) as
+ * {@code look/<style>-structure-<piece>.png}.
  */
 public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
 
@@ -93,6 +96,17 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
                 DefensePostLayoutRegistry.requireInstalled().require(DefensePostKind.LARGE, POST_VARIANT),
                 field[0] + 8, field[1] + 5, style);
         posts.add(alone);
+        boolean structures = Boolean.getBoolean("snapshot.fortWorks.structures");
+        List<DefensePost> small = new ArrayList<>();
+        if (structures) {
+            for (DefensePostKind tier : List.of(DefensePostKind.LIGHT, DefensePostKind.MEDIUM)) {
+                int[] at = openField(map, 10, 10, field[0] + 8, field[1] + 5);
+                small.add(DefensePostStamper.stampPost(map.grid, map.topology, map.doodads,
+                        DefensePostLayoutRegistry.requireInstalled().require(tier, "default"), at[0] + 5, at[1] + 5,
+                        style));
+            }
+            posts.addAll(small);
+        }
         EmplacementStylePolicy.restyle(posts, style);
         BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(), posts, SEED).sim();
         try {
@@ -117,6 +131,7 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             artifacts.add(still(context, sim, fx, style.key + "-post-close", postX, postY, 22f));
             float[] gate = gateCentre(sim);
             if (gate != null) artifacts.add(still(context, sim, fx, style.key + "-gate-close", gate[0], gate[1], 18f));
+            if (structures) artifacts.addAll(structureStills(context, sim, fx, style, posts, small));
             wear(sim, postX, postY, 9f);
             artifacts.add(still(context, sim, fx, style.key + "-post-worn", postX, postY, 22f));
             System.out.printf("    [fort-works-look/%s] %d posts, fort %s%n", style.key, posts.size(),
@@ -132,6 +147,42 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y,
                 cellsAcross);
         return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+    }
+
+    /**
+     * One close frame on each structure a fort and a defence lot stand: the fort's buildings by aspect, its first gate,
+     * the bastion nest farthest from its middle, its centrepiece, and the light and medium posts in {@code small}.
+     */
+    private static List<SnapshotArtifact> structureStills(SnapshotContext context, BattleSimulation sim,
+                                                          ReviewImpactFx fx, EmplacementStyle style,
+                                                          List<DefensePost> posts, List<DefensePost> small)
+            throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        String prefix = style.key + "-structure-";
+        for (Fort fort : sim.forts().forts()) {
+            FortFrame frame = fort.frame();
+            if (frame == null) continue;
+            for (Fort.Place place : fort.places()) {
+                int[] b = place.floorBounds(frame);
+                out.add(still(context, sim, fx, prefix + place.aspect().name().toLowerCase().replace('_', '-'),
+                        (b[0] + b[2] + 1) * 0.5f, (b[1] + b[3] + 1) * 0.5f, 18f));
+            }
+            int[] centre = frame.plan().centrepiece();
+            float[] at = frame.point(centre[0] + 0.5f, centre[1] + 0.5f);
+            out.add(still(context, sim, fx, prefix + "centrepiece", at[0], at[1], 16f));
+            break;
+        }
+        float[] gate = gateCentre(sim);
+        if (gate != null) out.add(still(context, sim, fx, prefix + "gate", gate[0], gate[1], 14f));
+        float[] fort = fortCentre(posts);
+        if (fort != null) {
+            out.add(still(context, sim, fx, prefix + "bastion-nest", 2 * fort[2] - fort[0], 2 * fort[3] - fort[1], 12f));
+        }
+        for (DefensePost post : small) {
+            out.add(still(context, sim, fx, prefix + post.tier.name().toLowerCase() + "-post",
+                    post.anchorX + 0.5f, post.anchorY + 0.5f, 10f));
+        }
+        return out;
     }
 
     /** The middle of the fort's first gate, between its towers; null when no fort stood. */
