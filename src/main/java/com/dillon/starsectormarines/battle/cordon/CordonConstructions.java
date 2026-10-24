@@ -115,6 +115,8 @@ public final class CordonConstructions {
                 // A work point stands on open floor: what the builder put down after the gantries may have taken one.
                 for (CordonBuilders.Berth b : built.berths()) {
                     b.service().removeIf(s -> !map.grid.isWalkable(s[0], s[1]) || map.topology.isFixture(s[0], s[1]));
+                    b.work().removeIf(t -> !map.grid.isWalkable(t.cellX(), t.cellY())
+                            || map.topology.isFixture(t.cellX(), t.cellY()));
                 }
                 List<Gantry> keptGantries = new ArrayList<>();
                 List<FixtureTask> keptTasks = new ArrayList<>();
@@ -222,6 +224,7 @@ public final class CordonConstructions {
             int index = outGantries.size();
             outGantries.add(b.gantry());
             for (int[] s : b.service()) outTasks.add(FixtureTask.servingBerth(s[0], s[1], index, s[2], s[3]));
+            outTasks.addAll(b.work());
         }
     }
 

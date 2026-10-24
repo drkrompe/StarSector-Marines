@@ -83,7 +83,7 @@ class CordonWorksReadingTest {
                 FixtureTask.at(5, 5, Affordance.SERVICE, 6, 5));
         CordonBuilders.Built built = CordonBuilders.Built.at(0f, 0f);
         Gantry gantry = Gantry.covering(60, 60, 5, 7, Gantry.Facing.NORTH, Gantry.Holds.MACHINE);
-        built.berths().add(new CordonBuilders.Berth(gantry, List.of(new int[]{59, 63, 60, 63})));
+        built.berths().add(new CordonBuilders.Berth(gantry, List.of(new int[]{59, 63, 60, 63}), List.of()));
         built.bayCells().add(new int[]{59, 63});
         built.bayCells().add(new int[]{60, 63});
         CellTopology topology = new CellTopology(200, 200);

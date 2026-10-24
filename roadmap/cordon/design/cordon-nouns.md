@@ -206,7 +206,9 @@ of crate stacks with sandbagged ways in). Either keeps the main road's
 carriageway through it and paves the rest, kerbs and all, and works behind the
 road from two open-air **gantries** (the auto shop's bay between lift columns),
 machine berths in one vehicle bay, so it builds one machine at a time as the
-shed does, its technicians working them from their flanks and heads. The ammo
+shed does, its technicians working them from their flanks and heads and
+turning, as a shed's do, to the tool chest, diagnostic and service run beside
+each between spells of welding. The ammo
 dump a beat stands in the base is left where it was laid. No base publishes a
 capture beacon: the shed's motor pool reads as an armoury to the conquest's
 compound layer, which put a defender's compound marker on the allies' depot

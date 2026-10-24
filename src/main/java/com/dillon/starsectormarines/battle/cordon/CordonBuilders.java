@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
@@ -34,8 +36,12 @@ final class CordonBuilders {
     static final String HEDGEHOG = "doodad.fort-hedgehog";
     static final String CRATES = "doodad.industrial-crate-stack";
 
-    /** One machine berth a base builder laid: the gantry, and the cells it is serviced from, each {x, y, fx, fy}. */
-    record Berth(Gantry gantry, List<int[]> service) { }
+    /**
+     * One machine berth a base builder laid: the gantry, the cells it is serviced from (each {x, y, fx, fy}), and
+     * the bench work beside it (its tool chest, diagnostic and service run), which a technician's watch rotates
+     * through as it does a shed's stores, terminals and benches.
+     */
+    record Berth(Gantry gantry, List<int[]> service, List<FixtureTask> work) { }
 
     /**
      * What a builder leaves for the battle: where it is centred (for the look), the gun cells, the cells behind
@@ -316,6 +322,7 @@ final class CordonBuilders {
         for (int du : new int[]{-1, BAY_W}) for (int dv : new int[]{-1, BAY_D}) f.prop(w, u0 + du, v0 + dv, "auto-shop.lift-column", 0, true);
         f.prop(w, u0 + BAY_W + 1, v0, "auto-shop.service-run", 0, true);
         f.prop(w, u0 - 2, v0 + 2, "auto-shop.tool-chest", 0, true);
+        f.prop(w, u0 - 2, v0 + 4, "auto-shop.diagnostic", 0, true);
         int[] a = f.cell(u0, v0), b = f.cell(u0 + BAY_W - 1, v0 + BAY_D - 1);
         Gantry gantry = Gantry.covering(Math.min(a[0], b[0]), Math.min(a[1], b[1]), BAY_W, BAY_D,
                 Gantry.Facing.of(0, f.f), Gantry.Holds.MACHINE);
@@ -330,7 +337,22 @@ final class CordonBuilders {
                     || w.topology.isWall(at[0], at[1])) continue;
             service.add(new int[]{at[0], at[1], on[0], on[1]});
         }
-        built.berths().add(new Berth(gantry, service));
+        // The rest of a technician's watch: without it every hand would weld all shift, four times a shed's pace.
+        List<FixtureTask> work = new ArrayList<>();
+        work(w, f, work, u0 - 1, v0 + 2, u0 - 2, v0 + 2, Affordance.STOW);
+        work(w, f, work, u0 - 1, v0 + 4, u0 - 2, v0 + 4, Affordance.READOUT);
+        work(w, f, work, u0 + BAY_W, v0 + 1, u0 + BAY_W + 1, v0 + 1, Affordance.REPAIR);
+        built.berths().add(new Berth(gantry, service, work));
+    }
+
+    /** A work point standing at {@code (u, v)} on the fixture at {@code (fu, fv)}, where both are there. */
+    private static void work(CordonWorks w, Frame f, List<FixtureTask> out, int u, int v, int fu, int fv,
+                             Affordance job) {
+        int[] at = f.cell(u, v), on = f.cell(fu, fv);
+        if (!w.grid.inBounds(at[0], at[1]) || !w.grid.isWalkable(at[0], at[1]) || w.topology.isFixture(at[0], at[1])
+                || w.topology.isWall(at[0], at[1]) || !w.grid.inBounds(on[0], on[1])
+                || !w.topology.isFixture(on[0], on[1])) return;
+        out.add(FixtureTask.at(at[0], at[1], job, on[0], on[1]));
     }
 
     /** A sandbagged gun nest: the gun at {@code (u, v)}, bags across the side facing {@code (du, dv)} and its flanks. */
