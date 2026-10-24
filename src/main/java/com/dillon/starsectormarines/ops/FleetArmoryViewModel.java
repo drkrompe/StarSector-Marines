@@ -717,7 +717,7 @@ public final class FleetArmoryViewModel {
         for (LoadoutFilter filter : LoadoutFilter.values()) {
             String id = "loadout-filter:" + filter.name().toLowerCase(Locale.ROOT);
             filters.add(new FittingFilterPill(id, filter.label(), filter.icon(), filter.tone(),
-                    FittingFilterPill.classes(filter == selected), showLoadoutFilterAction(filter)));
+                    FittingFilterPill.classes(filter == selected) + " tier-pill", showLoadoutFilterAction(filter)));
         }
         return List.copyOf(filters);
     }
@@ -1621,6 +1621,7 @@ public final class FleetArmoryViewModel {
                 case "issueReasonId" -> id + ":issue-reason";
                 case "linesId" -> id + ":lines";
                 // The tier as the filter strip draws it: one chevron a tier on the tier's tone.
+                case "tierSlotId" -> id + ":tier-slot";
                 case "tierId" -> id + ":tier";
                 case "tierIconId" -> id + ":tier-icon";
                 case "tierIcon" -> LoadoutFilter.of(tier).icon();

@@ -14,6 +14,10 @@
   .catalog-filter-icon { width: 24px; height: 24px; pointer-events: none; }
   .catalog-filter-text { width: 100%; height: 16px; text-align: center; pointer-events: none; }
   .catalog-filter-pill.selected { background-color: #343a30; border-color: #d3d0c5; color: #d3d0c5; }
+  /* A tier pill's chip is the same chip a loadout card wears (armory-loadout-card), at full colour and
+     true proportion, so the two read as one symbol; the pill's frame says which tier is chosen. */
+  .tier-pill .catalog-filter-chip { opacity: 1; }
+  .tier-pill .catalog-filter-icon { width: 36px; height: 24px; }
   .catalog-filter-pill:hover { background-color: #34382e; border-color: #dfc588; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }

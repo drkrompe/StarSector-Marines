@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 
 import java.util.ArrayList;
@@ -21,6 +25,7 @@ public final class DebugMechRoster {
     };
 
     private final List<MechVariant> variants;
+    private final List<VehicleType> vehicles;
     private final boolean recoveredHound;
 
     public static DebugMechRoster recoveredHound() {
@@ -28,13 +33,24 @@ public final class DebugMechRoster {
     }
 
     private MechSupport support() {
-        return recoveredHound ? MechSupport.configured(List.of(WaylineHound.deployment())) : new MechSupport(variants);
+        if (recoveredHound) return MechSupport.configured(List.of(WaylineHound.deployment()));
+        if (vehicles.isEmpty()) return new MechSupport(variants);
+        List<MechDeploymentSpec> mechs = new ArrayList<>();
+        for (MechVariant variant : variants) mechs.add(MechDeploymentSpec.standard(variant));
+        List<VehicleDeploymentSpec> bay = new ArrayList<>();
+        for (VehicleType type : vehicles) bay.add(VehicleDeploymentSpec.standard(type));
+        return MechSupport.configured(mechs, bay, null, true);
     }
 
     private DebugMechRoster(List<MechVariant> variants) { this(variants, false); }
 
     private DebugMechRoster(List<MechVariant> variants, boolean recoveredHound) {
+        this(variants, List.of(), recoveredHound);
+    }
+
+    private DebugMechRoster(List<MechVariant> variants, List<VehicleType> vehicles, boolean recoveredHound) {
         this.recoveredHound = recoveredHound;
+        this.vehicles = List.copyOf(vehicles);
         this.variants = Collections.unmodifiableList(new ArrayList<>(variants));
     }
 
@@ -48,8 +64,32 @@ public final class DebugMechRoster {
         return new DebugMechRoster(variants);
     }
 
+    /** The roster the briefing's bay slots name, in slot order; empty slots add nothing. */
+    public static DebugMechRoster ofSlots(List<DebugBaySlot> slots) {
+        List<MechVariant> mechs = new ArrayList<>();
+        List<VehicleType> bay = new ArrayList<>();
+        for (DebugBaySlot slot : slots) {
+            if (slot.mech != null) mechs.add(slot.mech);
+            else if (slot.vehicle != null) bay.add(slot.vehicle);
+        }
+        return new DebugMechRoster(mechs, bay, false);
+    }
+
+    /** The slots a roster fills, for editing; at most {@link DebugBaySlot#SLOTS}. */
+    public List<DebugBaySlot> slots() {
+        List<DebugBaySlot> out = new ArrayList<>();
+        for (MechVariant variant : variants) out.add(DebugBaySlot.of(variant));
+        for (VehicleType type : vehicles) out.add(DebugBaySlot.of(type));
+        return out.size() > DebugBaySlot.SLOTS ? out.subList(0, DebugBaySlot.SLOTS) : out;
+    }
+
+    /** Powers only a debug mission's briefing offers, whatever its roster. */
+    public static List<CommandPower> easterEggPowers() {
+        return List.of(new SpawnInOnslaught());
+    }
+
     public int count() {
-        return variants.size();
+        return variants.size() + vehicles.size();
     }
 
     public List<MechVariant> variants() {
@@ -63,7 +103,7 @@ public final class DebugMechRoster {
         if (powers != null) {
             for (CommandPower power : powers) {
                 if (MechSupport.ID.equals(power.id)) {
-                    if (!inserted && !variants.isEmpty()) {
+                    if (!inserted && count() > 0) {
                         configured.add(support());
                         inserted = true;
                     }
@@ -72,7 +112,7 @@ public final class DebugMechRoster {
                 }
             }
         }
-        if (!inserted && !variants.isEmpty()) configured.add(support());
+        if (!inserted && count() > 0) configured.add(support());
         return configured;
     }
 
@@ -80,5 +120,13 @@ public final class DebugMechRoster {
         if (detachment == null) return Detachment.EMPTY;
         return new Detachment(detachment.shuttleManifest, detachment.marineWings,
                 applyTo(detachment.powers));
+    }
+
+    /** A debug detachment with the easter-egg powers added, whatever the bay holds. */
+    public static Detachment withEasterEggs(Detachment detachment) {
+        List<CommandPower> powers = new ArrayList<>(detachment.powers);
+        for (CommandPower egg : easterEggPowers())
+            if (powers.stream().noneMatch(p -> p.id.equals(egg.id))) powers.add(egg);
+        return new Detachment(detachment.shuttleManifest, detachment.marineWings, powers);
     }
 }

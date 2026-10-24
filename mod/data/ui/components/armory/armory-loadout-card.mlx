@@ -10,8 +10,10 @@
         <div id="{tile.nameId}" class="spec-sheet-title">{tile.name}</div>
         <div id="{tile.metadataId}" class="spec-sheet-subtitle">{tile.metadata}</div>
       </div>
-      <div id="{tile.tierId}" class="loadout-card-tier" style="{tile.tierStyle}">
-        <img id="{tile.tierIconId}" class="loadout-card-tier-icon" src="{tile.tierIcon}" />
+      <div id="{tile.tierSlotId}" class="loadout-card-tier-slot">
+        <div id="{tile.tierId}" class="loadout-card-tier" style="{tile.tierStyle}">
+          <img id="{tile.tierIconId}" class="loadout-card-tier-icon" src="{tile.tierIcon}" />
+        </div>
       </div>
       <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">
         <div id="{tile.issueBoxId}" class="doctrine-issue-box">
@@ -74,16 +76,21 @@
      theme); what is here is only the lines a whole card has and a hover sheet does not. */
   .loadout-card-team-rows { flex-direction: column; height: 116px; gap: 4px; }
   /* The card's tier as the filter strip draws it: its chevrons on the tier's tone. */
-  .loadout-card-tier { flex-direction: column; align-items: center; width: 36px; height: 24px; padding: 1px 0px; pointer-events: none; }
-  .loadout-card-tier-icon { width: 33px; height: 22px; pointer-events: none; }
+  /* The same chip as the tier filter's pill (fitting-filter-pill's .tier-pill), so the two match. */
+  /* The heading row stretches what it holds to its 34px; the slot takes that and keeps the chip at
+     its own 26px, centred, so the chevrons sit in the middle of the heading. */
+  .loadout-card-tier-slot { flex-direction: column; width: 40px; padding: 4px 0px; pointer-events: none; }
+  .loadout-card-tier { flex-direction: column; align-items: center; width: 40px; height: 26px; padding: 1px 0px; pointer-events: none; }
+  .loadout-card-tier-icon { width: 36px; height: 24px; pointer-events: none; }
   .loadout-card-lines { flex-direction: column; gap: 0px; }
   .loadout-card-line { height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
   /* The card the squad wears is a ticked box, one ticked a kind; every other card's box is empty,
      and ticking it puts the squad in that card. No word: the box is the whole control. */
-  .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 3px; border-width: 0px; }
+  .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 5px 3px; border-width: 0px; }
   .doctrine-issue-button:hover .doctrine-issue-box { border-color: #dfc588; }
-  .doctrine-issue-box { flex-direction: column; align-items: center; width: 18px; height: 18px; padding: 1px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
+  /* The box's inner area is exactly the tick's size, padded evenly, so the tick sits dead centre. */
+  .doctrine-issue-box { flex-direction: column; align-items: center; width: 12px; height: 12px; padding: 4px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
   .doctrine-issue-button.issued .doctrine-issue-box { border-color: #78d494; background-color: #1d5a38; }
   .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
   .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
