@@ -2163,10 +2163,15 @@ squad.
 - **Packs up, relocates, can be lost.** An idle tube, an empty magazine or an enemy inside the danger distance
   packs the tube (carried rounds survive packing). A tube shot out leaves the gunner alive but unarmed for a
   cooldown; **a dead gunner is replaced by a nearby squadmate, and only when none can the tube is lost**.
-- **Friendly fire is vetoed** at launch: a round is not fired while a friendly stands under its impact.
+- **Friendly fire is vetoed** at launch: a round is not fired while a friendly stands under its impact (the
+  warhead's radius, the scatter at that range and a margin, round where the target will be when it lands). Friendly is
+  `Faction.friendlyTo`, so an allied tube holds for marines and for its own side's men and mechs alike; a held round is
+  counted for the side (`FieldMortarService.roundsWithheldBy`).
 
 **An assigned fire mission** is part of the squad's order (a cell and a radius). The tube fires at the best body
 on that ground, a structure without a sighting (its works are disclosed) and a man only when the side believes in him,
+and never a body with one of the side's own under where its round would fall, so a mission over ground its own stand
+near picks the target clear of them rather than refusing every target,
 and fires on the section's own belief when nothing there is eligible; a plan's base of fire and the commander's
 standing missions both assign one (`phased-assault.md`).
 

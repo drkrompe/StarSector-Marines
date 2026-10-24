@@ -429,12 +429,17 @@ increasing an encounter's total armored threat.
   compatibility therefore uses a colour outside that palette. The doll is the
   location picker: clicking a socket selects it, the right column describes only
   that socket, and a fitted weapon is stripped from the X on its doll card.
-- **Stores and fabrication are separate gestures.** The left column lists the
-  selected mount's stores: spares the bay holds, and patterns the company can
-  build. A fitted part is on the mech, not in that list. Fitting is a drag from a
+- **Stores and fabrication are separate gestures.** The left column lists
+  stores: spares the bay holds, and patterns the company can build. Opening a
+  mech lists **all parts**, every kind whichever mount it would go on, and
+  dragging one lights the mounts that take it; selecting a mount narrows the
+  list to what fits there, and ALL PARTS returns to everything. Stores are
+  sorted by **category toggles** drawn as part symbols on their brick colours
+  (ballistic, missile, energy, engine, capacitor, utility): none chosen lists
+  everything, and a mount whose socket already decides the kind offers none. A fitted part is on the mech, not in that list. Fitting is a drag from a
   spare onto a mount, and taking a part off is a drag back to stores (or the X);
   there is no install button. A known pattern with no spare in stores carries a
-  BUY button (a cog icon) and its material cost on the right of its piece;
+  build strip under its piece: its material cost and a wide BUY button;
   it builds one into stores and fits nothing, and is dimmed while the materials are
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
