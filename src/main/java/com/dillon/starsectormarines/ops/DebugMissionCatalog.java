@@ -80,6 +80,13 @@ public final class DebugMissionCatalog {
             };
         }
         /** The four Rav Bloom missions, whose density, biome and seed come from {@link RavBloomDebugChoice}. */
+        /** Whether the picker lists it: the campaign's story and repeatable work, and the Rav Bloom missions. */
+        public boolean offered() {
+            return switch (this) {
+                case LAST_LIFT, CREW_RECOVERY, RELAY_NINE, MISSILE_AA, SILENT_COLONY -> false;
+                default -> true;
+            };
+        }
         public boolean ravBloom() { return this == CORDON_LINE || this == CORDON_ROAD || this == BROAD_FRONT || this == THE_BURN; }
         StoryMap poolMap() {
             CordonVariant variant = this == CORDON_ROAD ? CordonVariant.ROAD : CordonVariant.LINE;
@@ -197,8 +204,8 @@ public final class DebugMissionCatalog {
     }
     public static List<Mission> missions(PlanetAPI planet) {
         List<Mission> result = new ArrayList<>();
-        for (Scenario scenario : Scenario.values()) result.add(scenario.mission());
-        result.addAll(MissionGenerator.generateDebugGrid(planet, client()));
+        for (Scenario scenario : Scenario.values()) if (scenario.offered()) result.add(scenario.mission());
+        for (Mission m : MissionGenerator.generateDebugGrid(planet, client())) if (m.type == MissionType.CONQUEST) result.add(m);
         return List.copyOf(result);
     }
     public static Client client() { return new Client(MarineOpsContext.DEBUG_CLIENT_FACTION_ID, "DEBUG Missions", null, RepLevel.NEUTRAL, false, null); }

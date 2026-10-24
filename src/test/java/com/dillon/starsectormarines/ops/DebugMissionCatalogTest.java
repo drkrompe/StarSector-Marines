@@ -56,7 +56,7 @@ class DebugMissionCatalogTest {
         var missions = DebugMissionCatalog.missions(null);
         assertEquals(missions.size(), missions.stream().map(m -> m.id).distinct().count());
         assertTrue(missions.stream().allMatch(m -> m.source.isDebug()));
-        for (var type : MissionType.values()) for (var tier : OperationTier.values())
+        for (var type : List.of(MissionType.CONQUEST)) for (var tier : OperationTier.values())
             if (tier.atLeast(type.tierFloor)) assertTrue(missions.stream().anyMatch(m ->
                     DebugMissionCatalog.scenario(m) == null && m.type == type && m.tier == tier), type + " / " + tier);
     }
@@ -96,15 +96,15 @@ class DebugMissionCatalogTest {
     }
     @Test void locationGroupsKeepStoryOrderAndSeparateShelvedConcepts() {
         var catalog = DebugMissionCatalog.missions(null);
-        assertEquals(List.of("Jangala", "Unfixed site", "Asharu", "Warion", "Garnir", "Bloomed world", Strings.get("missileAaTestLocation")), DebugMissionScreen.locations(catalog, 0));
+        assertEquals(List.of("Jangala", "Asharu", "Warion", "Garnir", "Unfixed site", "Bloomed world"), DebugMissionScreen.locations(catalog, 0));
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
-        assertEquals(List.of("01", "02", "03", "MAP", "04", "R1", "R2", "R3"),
+        assertEquals(List.of("01", "02", "03", "04", "R1", "R2", "R3"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         assertEquals(List.of("01", "02", "03", "04"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
                 .map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         var grouped = DebugMissionScreen.visible(catalog, 0, "All locations");
         assertEquals(jangala, grouped.subList(0, jangala.size()));
-        assertEquals("Unfixed site", DebugMissionScreen.locationOf(grouped.get(jangala.size())));
+        assertEquals("Asharu", DebugMissionScreen.locationOf(grouped.get(jangala.size())));
     }
     @Test void recoveredHoundIsItsCampaignChaingunFit() {
         var support = (MechSupport) DebugMechRoster.recoveredHound().applyTo(List.of()).get(0);
