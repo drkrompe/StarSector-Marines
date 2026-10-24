@@ -162,6 +162,11 @@ graphite and cyan (`art-source/ground-turrets/laser/`):
 - **Hardpoint:** the laser tank's own red PD laser, turret and weapon, at hardpoint size
   (`structure.hardpoint-laser`) for the cannon hardpoint, behind its flux shield.
 
+Every post laser rakes as a tank's lance does: a beam opens up to 20 degrees off its target, lands
+short along the mount's facing and drags across onto it as the mount comes round, striking and
+scorching whatever it crosses (`TurretBehavior`, `TurretFireSystem.fireBeam`). A line of infantry
+is raked from one to the next; `-Dsnapshot.groundTurrets.rake=true` renders it.
+
 Laser heads have no recoil and no barrel layer. A first-pass balance, matched to the damage per
 second of the guns they replace, to be moved by play. Missions that spawn guns directly (not
 through a post) are unchanged; the Locust hardpoint keeps its missiles.

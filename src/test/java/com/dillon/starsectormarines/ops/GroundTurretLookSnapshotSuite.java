@@ -44,6 +44,7 @@ import java.util.function.Function;
  * cannon hardpoint that shoots back and a marine on its flank, for {@code -Dsnapshot.groundTurrets.shieldSeconds=}
  * (twenty by default): the arc rising to face the squad, its blocks, its break and its return, and the flank's rounds
  * going through. {@code -Dsnapshot.groundTurrets.shield=false} leaves it out.
+ * {@code -Dsnapshot.groundTurrets.rake=true} adds a {@code rake-<look>} shot: the hardpoint raking a line of marines.
  *
  * <p>{@code -Dsnapshot.groundTurrets.fluxHardware=brutalist,modular,composite} adds a {@code flux-<style>} shot per
  * style named: three cannon hardpoints with their flux hardware cold, at about 80% and just broken.
@@ -90,6 +91,9 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 if (heavy.fluxShieldIn(EmplacementStyle.valueOf(look.toUpperCase())) == null) continue;
                 artifacts.addAll(LookReview.record(context.modRoot(), shieldUnderFire(look)));
             }
+        }
+        if (Boolean.parseBoolean(System.getProperty("snapshot.groundTurrets.rake", "false"))) {
+            for (String look : looks) artifacts.addAll(LookReview.record(context.modRoot(), rake(look)));
         }
         String hardware = System.getProperty("snapshot.groundTurrets.fluxHardware", "");
         if (!hardware.isBlank()) {
@@ -182,6 +186,36 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         }, placement -> List.of(
                 LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 26f)),
                 firingTicks(), 1, 3).withStills(firingStills());
+    }
+
+    /**
+     * A 40x22 window on arid ground: the cannon hardpoint built in {@code look} at the west, laid north, and a line of
+     * eight marines across open ground twenty cells east of it, north to south (bodies, not squads, so only the gun
+     * fires). Each dies in a few hits, so the gun comes round from one to the next: a beam opens off target and rakes
+     * along the line, scorching the ground it crosses. Played eight seconds at one frame a tick.
+     */
+    private static LookReview.Shot rake(String look) {
+        LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
+        return new LookReview.Shot("rake-" + look, ground, 40, 22, placement -> {
+            SceneBuilder builder = placement.builder();
+            placement.holdouts(builder);
+            BattleSimulation sim = builder.build().sim();
+            float[] at = placement.openNear(11f, 11f);
+            long id = sim.spawn(MapTurret.create("raker", Faction.DEFENDER, built("heavy", look), (int) at[0], (int) at[1]));
+            sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
+            sim.getGrid().setWalkable((int) at[0], (int) at[1], false);
+            sim.turretState().setFacingDegrees(id, 0f);
+            for (int t = 0; t < 8; t++) {
+                float[] cell = placement.openNear(31f, 4f + t * 2f);
+                EntitySpec target = new EntitySpec("line" + t, Faction.MARINE, UnitType.MARINE, (int) cell[0], (int) cell[1]);
+                target.moveSpeed = 0f;
+                target.attackRange = 0f;
+                sim.spawn(target);
+            }
+            return sim;
+        }, placement -> List.of(
+                LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 30f)),
+                Math.round(8f / BattleSimulation.TICK_DT), 1, 3).withStills(70, 100, 130, 200);
     }
 
     /**

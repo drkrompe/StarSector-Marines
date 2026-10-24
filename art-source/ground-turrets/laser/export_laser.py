@@ -29,7 +29,7 @@ PPC = 128
 HEADS = {
     "pd-laser": (ROOT / "art-source" / "vehicles" / "tank-laser" / "pd-skin-tt-raw.png", -90, 160, 0.78, 0.24),
     "burst-laser": (HERE / "burstpd-raw.png", 0, 160, 0.86, 0.26),
-    "heavy-laser": (ROOT / "art-source" / "vehicles" / "tank-laser" / "pd-skin-red-raw.png", -90, 384, 1.8, 0.22),
+    "heavy-laser": (ROOT / "art-source" / "vehicles" / "tank-laser" / "pd-skin-red-raw.png", -90, 384, 1.44, 0.18),
 }
 
 
