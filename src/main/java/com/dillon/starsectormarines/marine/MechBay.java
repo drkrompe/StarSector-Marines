@@ -106,12 +106,13 @@ public final class MechBay implements Serializable {
 
     /**
      * What a pre-pattern save's unrestricted workshop could build: every chassis and weapon.
-     * Internals did not exist then, so it gets only the stock ones.
+     * Internals and vehicle kits did not exist then, so it gets only the stock internals and no kits.
      */
     private static Set<String> allPatternIds() {
         Set<String> ids = new LinkedHashSet<>();
         for (MechPattern pattern : MechPattern.all()) {
-            if (pattern.kind() != MechPattern.Kind.INTERNAL || pattern.starter()) ids.add(pattern.id());
+            boolean later = pattern.kind() == MechPattern.Kind.INTERNAL || pattern.kind() == MechPattern.Kind.KIT;
+            if (!later || pattern.starter()) ids.add(pattern.id());
         }
         return ids;
     }

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.refit.RefitBand;
 import com.dillon.starsectormarines.campaign.refit.RefitTrack;
@@ -355,7 +356,7 @@ class MechLabViewModelTest {
         assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
         assertEquals(VehicleType.ESCORT_APC.capacity + " SEATS",
                 viewModel.performanceMeters().get().get(3).value());
-        assertTrue(viewModel.selectedSlotRule().get().contains("NO FLUX"));
+        assertTrue(viewModel.selectedSlotRule().get().contains("SEALED HULL"));
 
         assertNull(viewModel.selectedVariant());
         assertEquals(1, viewModel.gantryDeployments().size());
@@ -954,6 +955,27 @@ class MechLabViewModelTest {
                 if (row.actionLabel().equals("FIT")) assertEquals(!within, row.actionDisabled(), internal.id);
             }
         }
+    }
+
+    @Test
+    void aVehicleListsKitsForItsRackAndFitsAndStripsThem() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+        bay.addKit(VehicleKit.APPLIQUE_PLATE.id, 1);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, TestResources.stocked(2_000));
+        viewModel.gantryRows().get().get(1).select().run();
+        assertEquals(VehicleType.BREAKTHROUGH_TANK, viewModel.selectedVehicleType());
+
+        MechLabViewModel.CatalogRow plate = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals(VehicleKit.APPLIQUE_PLATE.displayName()))
+                .findFirst().orElseThrow();
+        assertFalse(plate.actionDisabled(), plate.actionHint());
+        plate.action().run();
+        assertEquals(List.of(VehicleKit.APPLIQUE_PLATE), viewModel.installedKits());
+        assertTrue(viewModel.removeKit(VehicleKit.APPLIQUE_PLATE));
+        assertTrue(tank.kits().isEmpty());
+        assertEquals(1, bay.availableKit(VehicleKit.APPLIQUE_PLATE.id), "the kit is a spare again");
     }
 
     @Test

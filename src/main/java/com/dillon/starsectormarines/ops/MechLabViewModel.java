@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
@@ -291,7 +292,7 @@ public final class MechLabViewModel {
                 : slotRows.get().stream().filter(row -> row.socketId() == selectedSlot.get()).toList());
         selectedSlotTitle = reactor.computed(() -> {
             if (fabricatingChassis()) return Strings.get("openingMechLabChassisPatterns");
-            if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleHull");
+            if (selectedVehicle() != null) return Strings.get("openingMechLabKitRack");
             CampaignMech mech = selectedMech();
             if (mech != null && platingSelected.get()) return Strings.get("openingMechLabFramePlating");
             if (mech != null && browsingStores.get()) return Strings.get("openingMechLabAllParts");
@@ -1147,7 +1148,7 @@ public final class MechLabViewModel {
     private List<PerformanceMeter> buildPerformanceMeters() {
         revision.get();
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicleMeters(vehicle.type(), "");
+        if (vehicle != null) return vehicleMeters(vehicle.type(), "", VehicleKit.Effect.of(vehicle.kits()));
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechFrameBudget.Fit fit = mech.fit();
@@ -1332,7 +1333,7 @@ public final class MechLabViewModel {
 
     private String buildSelectedSlotCopy() {
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicleSummary(vehicle.type());
+        if (vehicle != null) return vehicleSummary(vehicle.type(), VehicleKit.Effect.of(vehicle.kits()));
         CampaignMech mech = selectedMech();
         if (mech == null) return fabricatingChassis()
                 ? Strings.get("openingMechLabFabricateACompleteStandardFitWalkerHere")
@@ -1353,7 +1354,10 @@ public final class MechLabViewModel {
         if (fabricatingChassis()) {
             return Strings.get("openingMechLabPlayerCargoStandardFitVacantGantry");
         }
-        if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleNoFitting");
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) {
+            return Strings.format("openingMechLabVehicleKitRule", vehicle.kits().size(), VehicleKit.slots(vehicle.type()));
+        }
         if (selectedMech() != null && platingSelected.get()) return Strings.get("openingMechLabPlatingRule");
         if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
         SocketDef definition = selectedSocketDefinition();
@@ -1367,8 +1371,8 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMech mech = selectedMech();
         if (fabricatingChassis()) return chassisCatalog();
-        // A vehicle's hull and turret are its type's: nothing on it is fitted.
-        if (selectedVehicle() != null) return List.of();
+        // A vehicle's gun, plate and drive are sealed: only its kit rack is fitted.
+        if (selectedVehicle() != null) return kitCatalog(selectedVehicle());
         if (mech != null && platingSelected.get()) return internalCatalog(mech, MechInternal.Role.PLATING);
         if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
         if (selectedSlot.get().compartment() && mech != null) {
@@ -1637,6 +1641,91 @@ public final class MechLabViewModel {
                     fitFromRow ? () -> fitInternal(internal) : () -> fabricateInternal(internal)));
         }
         return List.copyOf(rows);
+    }
+
+    /**
+     * The kits a vehicle's rack can take: every kit with a spare or a known pattern. A spare is fitted
+     * from its row (a rack has no mount to drop on, as plating has none), a pattern built from it.
+     */
+    private List<CatalogRow> kitCatalog(CampaignVehicle vehicle) {
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.kits()) {
+            VehicleKit kit = recipe.kit();
+            int free = bay.availableKit(kit.id);
+            boolean locked = !bay.canFabricate(kit);
+            if (locked && free == 0) continue;
+            boolean installed = vehicle.kits().contains(kit);
+            boolean suits = kit.suits(vehicle.type());
+            boolean fits = vehicle.canFit(kit);
+            boolean inCargo = free > 0;
+            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
+            boolean fitFromRow = inCargo && !installed;
+            boolean offerFab = !locked && !inCargo;
+            String actionLabel = fitFromRow ? Strings.get("openingMechLabFit")
+                    : offerFab ? Strings.get("openingMechLabFab") : "";
+            String actionHint = installed ? Strings.get("openingMechLabKitOnRack")
+                    : !suits ? Strings.get("openingMechLabKitUnsuited")
+                    : fitFromRow && !fits ? Strings.get("openingMechLabKitRackFull")
+                    : fitFromRow ? Strings.get("openingMechLabKitSpareHint")
+                    : affordable ? Strings.get("openingMechLabFabHint")
+                    : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor");
+            boolean disabled = fitFromRow ? !fits : !offerFab || !affordable;
+
+            String base = "mech-catalog:" + kit.id;
+            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : List.of();
+            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
+                    base + ":stock", base + ":telemetry", base + ":delta",
+                    base + ":detail", base + ":action", base + ":materials", base + ":body",
+                    base + ":preview", "catalog-preview hidden",
+                    null, null, null, null,
+                    offerFab ? "catalog-row requires-fabrication" : "catalog-row", kit.displayName(),
+                    installed ? Strings.get("openingMechLabFitted") : stockBadge(free),
+                    inCargo || installed ? "catalog-badge in-cargo" : "catalog-badge fabrication",
+                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
+                    Strings.get("vehicleKitEffect" + kit.name()), "", "catalog-delta hidden",
+                    Strings.get("openingMechLabKitDetail"), actionLabel, actionHint,
+                    disabled, materials, offerFab ? "material-costs" : "material-costs hidden",
+                    fitFromRow ? () -> fitKit(kit) : () -> fabricateKit(kit)));
+        }
+        return List.copyOf(rows);
+    }
+
+    /** The kits on the selected vehicle's rack, in fitted order; empty for a mech or nothing. */
+    public List<VehicleKit> installedKits() {
+        CampaignVehicle vehicle = selectedVehicle();
+        return vehicle != null ? vehicle.kits() : List.of();
+    }
+
+    /** The selected vehicle's hull, for the sealed doll; null when a mech or nothing is selected. */
+    public VehicleType selectedVehicleType() {
+        CampaignVehicle vehicle = selectedVehicle();
+        return vehicle != null ? vehicle.type() : null;
+    }
+
+    /** Bolts a spare kit to the selected vehicle's rack. */
+    public boolean fitKit(VehicleKit kit) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || kit == null) return false;
+        MechWorkshop.Result result = workshop.fitKit(vehicle.id(), kit);
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabKitBolted", kit.displayName())
+                : Strings.get("openingMechLabKitBlocked"));
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
+    }
+
+    /** Takes a kit off the selected vehicle's rack back to stores, from its X on the doll. */
+    public boolean removeKit(VehicleKit kit) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || kit == null) return false;
+        MechWorkshop.Result result = workshop.stripKit(vehicle.id(), kit);
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabKitUnbolted", kit.displayName())
+                : Strings.get("openingMechLabKitBlocked"));
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.STRIPPED;
+    }
+
+    private void fabricateKit(VehicleKit kit) {
+        applyFabricated(workshop.fabricateKit(kit), kit.displayName());
     }
 
     /** Spares in stores, or that the row is a known pattern with none built. */
@@ -2373,20 +2462,29 @@ public final class MechLabViewModel {
         return structure != null ? structure.displayName : Strings.get("openingMechLabVehicleTurretGeneric");
     }
 
-    private static String vehicleSummary(VehicleType type) {
-        return Strings.format("openingMechLabVehicleSummary", number(type.maxStructure),
-                number(type.maxArmor), number(type.armorRating), number(type.maxSpeed), type.capacity);
+    private static String vehicleSummary(VehicleType type, VehicleKit.Effect kits) {
+        return Strings.format("openingMechLabVehicleSummary", number(Math.round(type.maxStructure * kits.structureFactor())),
+                number(Math.round(type.maxArmor * kits.armorFactor())), number(type.armorRating + kits.armorRatingBonus()),
+                number(type.maxSpeed), type.capacity);
     }
 
     /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
     /** @param prefix keeps the pattern card's bars apart from the specifications' own ids */
     private static List<PerformanceMeter> vehicleMeters(VehicleType type, String prefix) {
+        return vehicleMeters(type, prefix, VehicleKit.Effect.NONE);
+    }
+
+    /** As above, with what the kits on its rack add over the bare hull. */
+    private static List<PerformanceMeter> vehicleMeters(VehicleType type, String prefix, VehicleKit.Effect kits) {
+        float structure = Math.round(type.maxStructure * kits.structureFactor());
+        float armor = Math.round(type.maxArmor * kits.armorFactor());
         return List.of(
-                meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(type.maxStructure),
-                        type.maxStructure, vehicleMaximum(t -> t.maxStructure), type.maxStructure),
+                meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(structure),
+                        structure, vehicleMaximum(t -> t.maxStructure), structure, type.maxStructure, NEUTRAL_TONE),
                 meter(prefix + "armor", Strings.get("openingMechLabArmor"),
-                        Strings.format("openingMechLabVehicleArmor", number(type.maxArmor), number(type.armorRating)),
-                        type.maxArmor, vehicleMaximum(t -> t.maxArmor), type.maxArmor),
+                        Strings.format("openingMechLabVehicleArmor", number(armor),
+                                number(type.armorRating + kits.armorRatingBonus())),
+                        armor, vehicleMaximum(t -> t.maxArmor), armor, type.maxArmor, NEUTRAL_TONE),
                 meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(type.maxSpeed)),
                         type.maxSpeed, vehicleMaximum(t -> t.maxSpeed), type.maxSpeed),
                 meter(prefix + "capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", type.capacity),
