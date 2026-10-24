@@ -31,11 +31,6 @@ final class MechSocketConsole {
     private static final float HEADER_END = 10f;
     /** What a header keeps beside its name: the tick and inset before it, a warning mark after. */
     private static final float LABEL_RESERVE = 40f;
-    /** A fitted part's removal X, and its gap from the part it hangs beside. */
-    static final float STRIP_SIZE = 14f;
-    private static final float STRIP_GAP = 3f;
-    /** The column right of the bricks every card keeps for its parts' X. */
-    private static final float STRIP_ROOM = STRIP_GAP + STRIP_SIZE;
     private static final float SEALED_HEIGHT = 48f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
@@ -44,13 +39,13 @@ final class MechSocketConsole {
     private MechSocketConsole() { }
 
     /**
-     * The card a socket needs at the one brick size: its bricks with the column their parts'
-     * X stand in, or its header where that is wider. How full it is the bricks show, not the header.
+     * The card a socket needs at the one brick size: its bricks, or its header where that is
+     * wider. How full it is the bricks show, not the header.
      */
     static float width(SocketDef socket) {
         float header = Fonts.ORBITRON_12_BOLD.measureWidth(socket.label()) + LABEL_RESERVE;
         if (socket.factoryLocked()) return Math.max(header, HEADER_INSET + Fonts.ORBITRON_12_BOLD.measureWidth("SEALED") + HEADER_END);
-        return Math.max(header, bricks(socket, 0, 0).width() + STRIP_ROOM + SIDE * 2f);
+        return Math.max(header, bricks(socket, 0, 0).width() + SIDE * 2f);
     }
 
     static float height(SocketDef socket) {
@@ -58,35 +53,10 @@ final class MechSocketConsole {
         return HEADER + bricks(socket, 0, 0).height() + FOOT;
     }
 
-    /**
-     * A card's bricks where they are drawn: under the header, centred together with the column
-     * on their right that their parts' X stand in.
-     */
+    /** A card's bricks where they are drawn: centred under the header. */
     private static HardpointBricks.Layout placed(MechLabDollCanvas.SocketDropTarget t, SocketDef socket) {
         float width = bricks(socket, 0, 0).width();
-        return bricks(socket, t.left() + (t.width() - width - STRIP_ROOM) * .5f, t.top() + HEADER);
-    }
-
-    /**
-     * Where a fitted part's removal X stands, as {left, top}: just right of the part's own box,
-     * level with its top. One rule for every part, whether its socket holds one or several.
-     */
-    static float[] stripAt(float[] box) {
-        return new float[] {box[2] + STRIP_GAP, box[1]};
-    }
-
-    /**
-     * The box the part fitted in a single-part socket is drawn in, as {left, top, right,
-     * bottom}: a weapon centred on the socket grid, an internal from its first brick.
-     */
-    static float[] fittedBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
-                             MechWeaponComponent weapon, MechInternal internal) {
-        HardpointBricks.Layout bricks = placed(t, socket);
-        int[] block = block(socket, bricks, weapon, internal);
-        float left = bricks.brickX(block[0]);
-        float top = bricks.brickY(block[1]);
-        return new float[] {left, top, left + bricks.span(block[2], bricks.brickWidth()),
-                top + bricks.span(block[3], bricks.brickHeight())};
+        return bricks(socket, t.left() + (t.width() - width) * .5f, t.top() + HEADER);
     }
 
     /** The bricks a single-part socket's part covers, as {column, row, columns, rows}. */
@@ -202,7 +172,7 @@ final class MechSocketConsole {
 
     /**
      * Where one compartment part is drawn on the card {@code t}, as {left, top, right, bottom}:
-     * the doll hangs each part's X just right of it ({@link #stripAt}).
+     * the box the doll lifts it off by.
      */
     static float[] partBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, MechCompartment.Placement part) {
         HardpointBricks.Layout bricks = placed(t, socket);
@@ -214,7 +184,7 @@ final class MechSocketConsole {
 
     /**
      * A vehicle's card ({@link VehicleDoll}): sealed, its bricks filled as one factory piece under its
-     * mark and a SEALED tag; or the kit rack, one kit to a row, each with an X for the caller to hang.
+     * mark and a SEALED tag; or the kit rack, one kit to a row, each lifted off by being dragged.
      */
     static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
                             Color tone, String art, List<VehicleKit> kits,
@@ -250,7 +220,7 @@ final class MechSocketConsole {
         }
     }
 
-    /** One kit's row on the rack card {@code t}, as {left, top, right, bottom}: its X stands just right of it. */
+    /** One kit's row on the rack card {@code t}, as {left, top, right, bottom}: the box the doll lifts it off by. */
     static float[] kitBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, int row) {
         HardpointBricks.Layout bricks = placed(t, socket);
         float top = bricks.brickY(row);

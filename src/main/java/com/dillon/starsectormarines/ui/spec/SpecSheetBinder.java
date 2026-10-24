@@ -9,6 +9,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -39,6 +40,7 @@ public final class SpecSheetBinder {
     private final Set<UiElement> liveBindings = Collections.newSetFromMap(new IdentityHashMap<>());
     /** Where a many-subject element's sheet opens, by element; @see #bindLive(UiElement, Supplier, Supplier) */
     private final Map<UiElement, Supplier<Rect>> anchors = new IdentityHashMap<>();
+    private BooleanSupplier held = () -> false;
     private UiElement open;
     private SpecSheet shown;
     private Rect shownAnchor;
@@ -92,6 +94,15 @@ public final class SpecSheetBinder {
         return this;
     }
 
+    /**
+     * Opens nothing while {@code held} answers true, closing what is open: a fitting
+     * room's part in hand, so no sheet covers the socket it is going into.
+     */
+    public SpecSheetBinder heldWhile(BooleanSupplier held) {
+        this.held = Objects.requireNonNull(held, "held");
+        return this;
+    }
+
     public SpecSheetBinder bind(UiElement target, SpecSheet sheet) {
         Objects.requireNonNull(sheet, "sheet");
         return bind(target, () -> sheet);
@@ -134,6 +145,10 @@ public final class SpecSheetBinder {
      * and idempotent: call it once per resolved input pass.
      */
     public void update() {
+        if (held.getAsBoolean()) {
+            closeOpen();
+            return;
+        }
         UiElement next = null;
         if (!bindings.isEmpty()) {
             for (UiElement element : document.hoverChain()) {
