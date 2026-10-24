@@ -5,6 +5,10 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.Rect;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -53,15 +57,44 @@ final class MechLabSpecSheets {
             if (binder.isBound(name)) continue;
             if (row.chassisPreview() != null) {
                 binder.bind(name, SpecSheets.mech(row.chassisPreview()));
-            } else if (row.weaponPreview() != null) {
-                MechWeaponComponent weapon = row.weaponPreview();
-                if (viewModel == null) binder.bind(name, SpecSheets.mechWeapon(weapon));
-                else binder.bind(name, () -> SpecSheets.mechWeapon(weapon,
-                        viewModel.selectedFluxCapacity(), viewModel.selectedDissipationPerSecond()));
-            } else if (row.internalPreview() != null) {
-                binder.bind(name, internalSheet(row.internalPreview()));
+            } else if (row.weaponPreview() != null || row.internalPreview() != null) {
+                binder.bind(name, () -> partSheet(row.weaponPreview(), row.internalPreview(), viewModel));
             }
         }
+    }
+
+    /**
+     * The doll answers like the stores: a fitted part under the pointer opens its
+     * {@link #partSheet}, beside the part rather than the whole board. While a part is in hand
+     * the doll points at nothing, so no sheet covers the socket it is going into.
+     */
+    static void bindDoll(SpecSheetBinder binder, UiDocument document, UiElement dollElement,
+                         MechLabDollCanvas doll, MechLabViewModel viewModel) {
+        binder.bindLive(dollElement, () -> {
+            MechLabDollCanvas.PointedPart part = doll.pointedPart();
+            return part == null ? null : partSheet(part.weapon(), part.internal(), viewModel);
+        }, () -> {
+            MechLabDollCanvas.PointedPart part = doll.pointedPart();
+            if (part == null) return null;
+            CanvasMetrics metrics = document.canvasMetrics(dollElement, 1f);
+            float left = metrics.toDocumentX(part.left());
+            float top = metrics.toDocumentY(part.top());
+            return new Rect(left, top, metrics.toDocumentX(part.right()) - left,
+                    metrics.toDocumentY(part.bottom()) - top);
+        });
+    }
+
+    /**
+     * A weapon's or an internal's sheet: the same in stores and fitted on the doll, so a part
+     * reads alike wherever the player points at it. With a view model, a weapon's flux lines read
+     * against the selected mech's own capacitors and dissipation. Null when there is no part.
+     */
+    static SpecSheet partSheet(MechWeaponComponent weapon, MechInternal internal, MechLabViewModel viewModel) {
+        if (weapon != null) {
+            return viewModel == null ? SpecSheets.mechWeapon(weapon) : SpecSheets.mechWeapon(weapon,
+                    viewModel.selectedFluxCapacity(), viewModel.selectedDissipationPerSecond());
+        }
+        return internal != null ? internalSheet(internal) : null;
     }
 
     /** One internal's own numbers; what it does to a particular frame is the catalog row's. */

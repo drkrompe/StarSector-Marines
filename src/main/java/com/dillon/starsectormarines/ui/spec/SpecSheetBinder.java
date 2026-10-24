@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.spec;
 
+import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 
@@ -36,8 +37,11 @@ public final class SpecSheetBinder {
     private final Map<UiElement, Supplier<SpecSheet>> bindings = new IdentityHashMap<>();
 
     private final Set<UiElement> liveBindings = Collections.newSetFromMap(new IdentityHashMap<>());
+    /** Where a many-subject element's sheet opens, by element; @see #bindLive(UiElement, Supplier, Supplier) */
+    private final Map<UiElement, Supplier<Rect>> anchors = new IdentityHashMap<>();
     private UiElement open;
     private SpecSheet shown;
+    private Rect shownAnchor;
 
     public SpecSheetBinder(UiDocument document, SpecSheetLayer layer) {
         this(document, layer, false);
@@ -65,6 +69,7 @@ public final class SpecSheetBinder {
         Objects.requireNonNull(target, "target");
         Objects.requireNonNull(sheet, "sheet");
         liveBindings.remove(target);
+        anchors.remove(target);
         bindings.put(target, sheet);
         return this;
     }
@@ -76,6 +81,17 @@ public final class SpecSheetBinder {
         return this;
     }
 
+    /**
+     * A live binding on an element that holds many subjects, such as a fitting board: the
+     * sheet opens beside {@code anchor}, the subject's own box in document pixels, rather
+     * than beside the whole element. Both suppliers are asked each pass.
+     */
+    public SpecSheetBinder bindLive(UiElement target, Supplier<SpecSheet> sheet, Supplier<Rect> anchor) {
+        bindLive(target, sheet);
+        anchors.put(target, Objects.requireNonNull(anchor, "anchor"));
+        return this;
+    }
+
     public SpecSheetBinder bind(UiElement target, SpecSheet sheet) {
         Objects.requireNonNull(sheet, "sheet");
         return bind(target, () -> sheet);
@@ -83,6 +99,7 @@ public final class SpecSheetBinder {
 
     public void unbind(UiElement target) {
         liveBindings.remove(target);
+        anchors.remove(target);
         if (bindings.remove(target) != null && open == target) closeOpen();
     }
 
@@ -90,6 +107,7 @@ public final class SpecSheetBinder {
     public void clear() {
         bindings.clear();
         liveBindings.clear();
+        anchors.clear();
         closeOpen();
     }
 
@@ -136,10 +154,14 @@ public final class SpecSheetBinder {
         }
         if (next == open && !liveBindings.contains(next)) return;
         SpecSheet sheet = next == null ? null : bindings.get(next).get();
-        if (next == open && Objects.equals(sheet, shown)) return;
+        Supplier<Rect> anchor = next == null ? null : anchors.get(next);
+        Rect where = sheet == null || anchor == null ? null : anchor.get();
+        if (next == open && Objects.equals(sheet, shown) && Objects.equals(where, shownAnchor)) return;
         open = next;
         shown = sheet;
+        shownAnchor = where;
         if (sheet == null) layer.hide();
+        else if (where != null) layer.show(sheet, where);
         else layer.show(sheet, next);
     }
 
@@ -147,6 +169,7 @@ public final class SpecSheetBinder {
         if (open == null) return;
         open = null;
         shown = null;
+        shownAnchor = null;
         layer.hide();
     }
 }

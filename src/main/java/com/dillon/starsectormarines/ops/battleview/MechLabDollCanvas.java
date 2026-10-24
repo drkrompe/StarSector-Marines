@@ -100,6 +100,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private StripTarget hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
+    /** The fitted part under the pointer in the last frame, or null. */
+    private PointedPart pointed;
     /** The pointer on the board, shared with the room's drag; @see BoardHover */
     private BoardHover hover = new BoardHover();
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
@@ -199,6 +201,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     @Override
     public void draw(CanvasContext context) {
+        pointed = null;
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         List<MechDeploymentSpec> lance = deployments.get();
@@ -309,6 +312,19 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (!(cellPx > 0f)) return view;
         return view.lookingAt(view.centerCellX() - share * width / cellPx, view.centerCellY(), view.zoomNotches());
     }
+
+    /**
+     * The fitted weapon or internal under the pointer and its box in canvas pixels, for the
+     * room to open that part's spec sheet beside; null while a part is in hand or nothing
+     * fitted is pointed at.
+     */
+    public PointedPart pointedPart() {
+        return hover.names() ? pointed : null;
+    }
+
+    /** A fitted part on the board: one of {@code weapon} and {@code internal}, and where it is drawn. */
+    public record PointedPart(MechWeaponComponent weapon, MechInternal internal,
+                              float left, float top, float right, float bottom) { }
 
     /** The board's pointer, which the room's drag holds while a part is in hand. */
     public MechLabDollCanvas withHover(BoardHover hover) {
@@ -611,11 +627,19 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechInternal part = socket.id().compartment() ? partAt(hover.x(), hover.y())
                     : installedInternals.apply(socket.id());
             MechWeaponComponent weapon = weaponAt(deployment, socket.id());
-            String grid = socket.type().label() + " / " + socket.gridColumns() + "x" + socket.gridRows();
-            String title = part != null ? part.displayName() : weapon != null ? weapon.displayName()
-                    : socket.id().compartment() ? null : socket.label();
-            BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, title,
-                    part != null || weapon != null ? socket.label() : grid);
+            if (part != null || weapon != null) {
+                // A fitted part is described by its spec sheet, the one its stores card opens.
+                float[] box = socket.id().compartment() ? partBoxes.get(part) : null;
+                for (SocketDropTarget target : targets) {
+                    if (target.id() != socket.id()) continue;
+                    pointed = box != null ? new PointedPart(weapon, part, box[0], box[1], box[2], box[3])
+                            : new PointedPart(weapon, part, target.left(), target.top(), target.right(), target.bottom());
+                }
+            } else if (!socket.id().compartment()) {
+                // An empty socket has no sheet of its own; the board names what it takes.
+                BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, socket.label(),
+                        socket.type().label() + " / " + socket.gridColumns() + "x" + socket.gridRows());
+            }
         }
     }
 

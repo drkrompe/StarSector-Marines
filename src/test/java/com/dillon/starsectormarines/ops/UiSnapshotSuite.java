@@ -127,6 +127,7 @@ import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 
@@ -1784,6 +1785,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             roster.add(captain);
             MarineCaptain second = new MarineCaptain("Rafael Kade", "graphics/portraits/portrait_mercenary04.png", Rank.CAPTAIN, 0f);
             roster.add(second);
+            // Part-way to promotion each; Kade has spent his points, so only Vale's card wears the badge.
+            captain.addXp(2600);
+            second.addXp(1450);
+            second.train(OfficerSpecialty.TACTICAL_COVER);
+            second.train(OfficerSpecialty.FIELD_MEDICINE);
             var squads = roster.squads().stream().filter(q -> !q.reserve()).toList();
             for (int i = 0; i < squads.size(); i++) {
                 if (i < 8) roster.assignCaptainToSquad(captain.id(), squads.get(i).id());
@@ -2843,8 +2849,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     }
                 }
                 if (at == null) throw new IllegalStateException("No fitted missile pod drawn on the doll");
+                UiElement doll = instance.requireElement("mech-doll-canvas");
+                SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
+                MechLabSpecSheets.bindDoll(binder, document, doll, fittingCanvas, viewModel);
+                // The point, back in document pixels, is where the screen's pointer would be.
+                CanvasMetrics metrics = document.canvasMetrics(doll, 1f);
+                document.pointerMoved(metrics.toDocumentX(at[0]), metrics.toDocumentY(at[1]));
                 fittingCanvas.pointAt(at[0], at[1]);
-                document.canvases().invalidate(instance.requireElement("mech-doll-canvas"));
+                document.canvases().invalidate(doll);
+                renderRelative(renderer, document, width, height, uiScale);
+                binder.update();
+                if (binder.openTarget() != doll) throw new IllegalStateException("No spec sheet for the pointed pod");
+                document.advance(0f);
             }
             renderRelative(renderer, document, width, height, uiScale);
             guide.update();
