@@ -15,7 +15,7 @@ import java.util.List;
  * as well as every street, most of it narrower than a truck and much of it across yards. Ways found over it ran round
  * redoubts through back lots, and missed a gate a straight street led to.
  */
-final class CordonSupplyStreets {
+public final class CordonSupplyStreets {
 
     private CordonSupplyStreets() { }
 
@@ -25,7 +25,7 @@ final class CordonSupplyStreets {
     }
 
     /** A router's corner points ({@code xs}, {@code ys}) as the cells between them, in order, each a step from the last. */
-    static List<int[]> cells(float[] xs, float[] ys) {
+    public static List<int[]> cells(float[] xs, float[] ys) {
         List<int[]> out = new ArrayList<>();
         for (int i = 0; i < xs.length; i++) {
             int x1 = (int) Math.floor(xs[i]), y1 = (int) Math.floor(ys[i]);

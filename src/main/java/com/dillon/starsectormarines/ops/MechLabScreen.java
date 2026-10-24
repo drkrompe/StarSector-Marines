@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
@@ -20,7 +21,6 @@ import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
-import com.dillon.starsectormarines.ops.battleview.MechSchematicPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
 import org.lwjgl.input.Keyboard;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -169,8 +169,6 @@ public final class MechLabScreen implements Screen {
                     .withPadPreview(viewModel::padPreview);
             dollCanvas.installedInternals(viewModel::installedInternal);
             built.canvases().set(dollElement, dollCanvas);
-            built.canvases().set(candidate.requireElement("mech-build-doll"),
-                    new MechSchematicPreviewCanvas(viewModel::padPreview, this::previewMechs));
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
             ghostElement = candidate.requireElement("mech-drag-ghost");
@@ -291,7 +289,7 @@ public final class MechLabScreen implements Screen {
             if (target.canvases().producerOf(canvas) == null) {
                 if (row.chassisPreview() != null) {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
-                            row.chassisPreview(), this::previewMechs));
+                            CampaignMech.frame(row.id(), row.chassisPreview()), this::previewMechs));
                 } else if (row.vehiclePreview() != null) {
                     target.canvases().set(canvas, new VehiclePreviewCanvas(row.vehiclePreview()));
                 } else if (row.weaponPreview() != null || row.replenisherPreview() != null

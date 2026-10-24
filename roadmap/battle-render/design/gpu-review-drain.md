@@ -193,7 +193,7 @@ above the most battles a suite draws in turn: `aircraft-crash` draws six side
 by side every frame, and at a cap of four it evicted and rebuilt atlases every
 view (233s against Java2D's 36s).
 
-**What a GL frame gains** over the Java2D table in CLAUDE.md ("What a review
+**What a GL frame gains** over the Java2D table in `snapshot-suites.md` ("What a Java2D review
 frame draws"): every GL custom pass drawn by the code that ships rather than a
 CPU model of it (creep, scorch, night lighting, shield domes, engine plumes,
 hull lights, roofs and the fort's building art), and the sprite and ribbon

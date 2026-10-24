@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechFrame;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -98,6 +99,19 @@ public final class MechFrameBudget {
     }
 
     /** One fit's budget and frame, computed from what is installed; nothing is stored. */
+    /** Whether {@code slot}'s hardware on this chassis is factory-locked: part of the frame. */
+    public static boolean integral(MechVariant variant, MechMountSlot slot) {
+        MechFittingLayout.SocketId socket = switch (slot) {
+            case ARMS -> MechFittingLayout.SocketId.ARMS;
+            case LEFT_ARM -> MechFittingLayout.SocketId.LEFT_ARM;
+            case RIGHT_ARM -> MechFittingLayout.SocketId.RIGHT_ARM;
+            case LEFT_SHOULDER -> MechFittingLayout.SocketId.LEFT_SHOULDER;
+            case RIGHT_SHOULDER -> MechFittingLayout.SocketId.RIGHT_SHOULDER;
+        };
+        MechFittingLayout.SocketDef def = MechFittingLayout.forVariant(variant).socket(socket);
+        return def != null && def.factoryLocked();
+    }
+
     public record Fit(MechVariant variant,
                       MechWeaponComponent arms,
                       MechWeaponComponent leftArm, MechWeaponComponent rightArm,
@@ -147,6 +161,20 @@ public final class MechFrameBudget {
         }
 
         /** The chassis's factory fit on industrial parts. */
+        /**
+         * A bought chassis as it leaves the fabricator: its plating and any factory-locked
+         * hardware, which are the frame, and nothing else. Its engine and capacitor bank here are
+         * only the budget's stand-ins; the frame itself has none and cannot drop until fitted.
+         */
+        public static Fit frame(MechVariant variant) {
+            return new Fit(variant, integral(variant, MechMountSlot.ARMS) ? variant.arms : null,
+                    integral(variant, MechMountSlot.LEFT_ARM) ? variant.leftArm : null,
+                    integral(variant, MechMountSlot.RIGHT_ARM) ? variant.rightArm : null,
+                    integral(variant, MechMountSlot.LEFT_SHOULDER) ? variant.leftShoulder : null,
+                    integral(variant, MechMountSlot.RIGHT_SHOULDER) ? variant.rightShoulder : null,
+                    null, null, null, null);
+        }
+
         public static Fit stock(MechVariant variant) {
             return new Fit(variant, variant.arms, variant.leftArm, variant.rightArm,
                     variant.leftShoulder, variant.rightShoulder, null, null, null, null);
