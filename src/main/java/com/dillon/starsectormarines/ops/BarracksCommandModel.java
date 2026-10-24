@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
 import com.dillon.starsectormarines.marine.OfficerCareer;
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -136,6 +137,10 @@ public final class BarracksCommandModel {
                 ? "graphics/ui/console/service-plate.svg" : selectedOfficer().portraitSprite());
         bind(reactor, "officerStatus", this::officerStatus);
         bind(reactor, "officerProgress", this::officerProgress);
+        bind(reactor, "officerLevel", () -> selectedOfficer() == null ? "" : level(selectedOfficer()));
+        bind(reactor, "officerXpStyle", () -> selectedOfficer() == null ? "width: 0%;" : xpStyle(selectedOfficer()));
+        bind(reactor, "officerPointClasses", () -> selectedOfficer() != null && canTrain(selectedOfficer())
+                ? "training-point officer-point" : "hidden");
         bind(reactor, "officerService", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandOperationsVictoriesMissionXpRecorded", selectedOfficer().career().deployments(), selectedOfficer().career().victories(), selectedOfficer().career().earnedXp()));
         bind(reactor, "officerSquads", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandHomeCommand", lineSquads().stream()
                 .filter(squad -> command.equals(squad.homeCaptainId())).map(MarineSquad::name)
@@ -293,6 +298,21 @@ public final class BarracksCommandModel {
         return officer.rank().isTerminal() ? Strings.get("openingBarracksCommandColonelHighestCommandRank")
                 : Strings.format("openingBarracksCommandXpTo", officer.xp(), officer.rank().xpToNext(), officer.rank().promote().displayName());
     }
+    /** The officer's rank as a level, counted from one at the bottom of the ladder. */
+    private static String level(MarineCaptain officer) {
+        return Strings.format("openingBarracksCommandLevel", officer.rank().ordinal() + 1);
+    }
+
+    /** XP toward the next rank as a fill width; the top rank reads full. */
+    private static String xpStyle(MarineCaptain officer) {
+        return "width: " + Math.round(100f * xpFraction(officer.xp(), officer.rank())) + "%;";
+    }
+
+    static float xpFraction(int xp, Rank rank) {
+        if (rank.isTerminal()) return 1f;
+        return Math.max(0f, Math.min(1f, (float) xp / rank.xpToNext()));
+    }
+
     private static final String TREE_LINE = "#738578";
     private static final String TREE_LINE_TRAINED = "#dec58a";
 
@@ -447,6 +467,15 @@ public final class BarracksCommandModel {
                 "reason", assignment.reason(),
                 "name", id.equals("all") ? Strings.get("openingBarracksCommandAllFormations") : captainName(captain),
                 "portrait", captain != null && captain.portraitSprite() != null ? captain.portraitSprite() : "graphics/ui/console/service-plate.svg",
+                "commanderbadgeId", "command:" + id + ":badge", "portraitframeId", "command:" + id + ":portrait-frame",
+                "pointId", "command:" + id + ":point",
+                "pointClasses", captain != null && canTrain(captain) ? "training-point" : "hidden",
+                "levelId", "command:" + id + ":level",
+                "levelClasses", captain == null ? "hidden" : "label heading warm commander-level",
+                "level", captain == null ? "" : level(captain),
+                "xpTrackId", "command:" + id + ":xp", "xpFillId", "command:" + id + ":xp-fill",
+                "xpTrackClasses", captain == null ? "hidden" : "xp-track commander-xp",
+                "xpStyle", captain == null ? "" : xpStyle(captain),
                 "summary", Strings.format("openingBarracksCommandReadyAssigned", ready, squads.size()),
                 "capacity", captain == null ? Strings.get("openingBarracksCommandCompanyRoll")
                         : Strings.format("openingBarracksCommandOfCommandSlots", captain.status(), squads.size(), captain.rank().squadCommandCap()),
