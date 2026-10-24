@@ -778,12 +778,13 @@ K4B_T = 105
 K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
     dict(t=102, hd=-150, pt=-4, rl=25, v=170), dict(t=103.8, hd=-157, pt=-16, rl=120),
     dict(t=106.6, hd=-163, pt=-25, rl=172), dict(t=110, hd=-170, pt=-30, rl=190, v=130)], v=165,
-    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])
+    hits=recoil([103.5], every=.15, until=106.8)
+    + [dict(t=107.6, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])     # the cook-off's own impulse
 K4B_SHIPS = {
     'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
         dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
         hits=recoil([106.0], kick=.12, shove=.2, every=.3, until=108.5)
-        + [dict(t=105.0, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
+        + [dict(t=104.79, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
     'lasher-lead': K4B_LEAD,
 }
 
@@ -1022,7 +1023,7 @@ KEYFRAMES = {
         camera=camera('k4b', [dict(t=102, loc=(-500, 880, -40), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=26),
                               dict(t=105, loc=(-560, 900, -60), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=28),
                               dict(t=110, loc=(-640, 930, -90), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=24)],
-                      K4B_T, shake=.35, kicks=[(105.0, .5), (107.2, .9)]),
+                      K4B_T, shake=.35, kicks=[(104.79, .5), (107.6, .9)]),
         ships=K4B_SHIPS,
         # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
         shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
@@ -1031,8 +1032,20 @@ KEYFRAMES = {
                                                          # deg off them, past their turn rate): the bolts that land her
                                                          # 103.5 s breach and 104.6 s plating loss
                                                          dict(trained=True, bursts_t=[(102.5, 105.0)], walk=.35)),
-            ('blast_on', 'falcon-p', 18, (-20, -14, 4)), ('fire_on', 'lasher-lead', (-20, 10, 6)),
-            ('debris', 'lasher-lead', 25, (-10, 8, 0))],
+            # the Lasher's burst that opens the Falcon's flank (104.79 s, on its round)
+            ('blast_on', 'falcon-p', 18, (14, -5, -5), 104.79),
+            # option (c), coordinator 2026-10-24: the Falcon's two drawn bursts (103.71 and 104.5 s) set her
+            # forward deck burning and tear plating off her bow; the fire spreads aft along her deck,
+            # venting, with small secondary pops, until it reaches her magazine at 107.6 s and she breaks up
+            ('fire_on', 'lasher-lead', (49, -5, 5), (-.2, .5, 1), 105 - 103.71),
+            ('debris', 'lasher-lead', 25, (53, -3, -4), 104.5),
+            ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
+            ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
+            ('fire_on', 'lasher-lead', (16, 4, 6), (-.4, .4, 1), 105 - 106.9),
+            ('blast_on', 'lasher-lead', 4, (40, -3, 5), 105.9),
+            ('blast_on', 'lasher-lead', 4, (28, 1, 6), 106.6),
+            ('blast_on', 'lasher-lead', 5, (17, 3, 6), 107.2),
+            ('blast_on', 'lasher-lead', 16, (8, 4, 6), 107.6), ('debris', 'lasher-lead', 40, (8, 4, 6), 107.6)],
         labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
         shot='S10', title='The prize taken',
@@ -1048,7 +1061,7 @@ KEYFRAMES = {
         ships=K5_SHIPS,
         fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
             ('debris', 'colossus', 70, (-30, 0, 10)),
-            ('fire_on', 'falcon-p', (-20, -14, 4), (-.3, -.6, .7)), ('smoke', 'falcon-p', (-20, -14, 4), (-.6, -.4, .6))],
+            ('fire_on', 'falcon-p', (14, -5, -5), (-.3, -.6, .7)), ('smoke', 'falcon-p', (14, -5, -5), (-.6, -.4, .6))],
         labels=['colossus', 'morrow', 'falcon-p', 'colossus3', 'tarsus']),
     'k6': dict(
         shot='S12', title='Two trails toward the northern canyons',
