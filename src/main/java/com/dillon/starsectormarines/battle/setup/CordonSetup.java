@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonGround;
 import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
+import com.dillon.starsectormarines.battle.cordon.CordonGapNests;
 import com.dillon.starsectormarines.battle.cordon.CordonGarrisons;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -70,6 +71,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -282,7 +284,9 @@ public final class CordonSetup {
      */
     private static MapResult constructed(MapResult map, PrecinctPlan plan, CordonPlan.Density density, long battleSeed,
                                          boolean mixed) {
-        return CordonConstructions.build(map, plan, density, battleSeed, mixed);
+        MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed);
+        // The line's gaps closed with picket nests once the redoubts' guns stand where they will be manned.
+        return CordonGapNests.lay(built, plan, density, battleSeed);
     }
 
     /** What this map lacks, or {@code null} when it carries the whole Cordon. */
@@ -304,6 +308,11 @@ public final class CordonSetup {
         }
         List<String> layout = MissionLayoutCheck.problems(map.grid, map.layout);
         if (!layout.isEmpty()) return "the layout: " + layout.get(0);
+        CordonGapLaw.Gap broken = CordonGapLaw.broken(gaps(map, plan));
+        if (broken != null) {
+            return String.format(Locale.ROOT, "the gap law: redoubts %d-%d leave a step of %.1f cells (law %.1f)",
+                    broken.west(), broken.east(), broken.widestStep(), CordonGapLaw.LIMIT);
+        }
         if (variant == CordonVariant.ROAD) {
             for (Precinct precinct : plan.precincts()) {
                 if (precinct.name().equals(CivilDefenceCompound.PLACE) && !walled(map.topology, precinct)) {
@@ -321,9 +330,8 @@ public final class CordonSetup {
 
     /**
      * The line's gaps, west to east ({@link CordonGapLaw}): each neighbouring pair of redoubts' gun towers as their
-     * walls will be dressed, with the picket course's nests between them. A reading, not part of {@link #missing}:
-     * on the maps as laid the law fails on most of them (the courses' nests stand forty cells apart and a road gap
-     * or a redoubt's wide lawn leaves a longer step), and closing it moves guns, which is a balance decision.
+     * walls will be dressed, with the picket course's nests between them, those {@link CordonGapNests} added to close
+     * the gaps included. Part of {@link #missing}: a map whose line still breaks the law is not a Cordon map.
      */
     public static List<CordonGapLaw.Gap> gaps(MapResult map, PrecinctPlan plan) {
         List<Precinct> redoubts = CordonPlan.redoubts(plan);
