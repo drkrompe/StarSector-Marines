@@ -1076,9 +1076,11 @@ KEYFRAMES = {
             ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
             ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
             ('fire_on', 'lasher-lead', (16, 4, 6), (-.4, .4, 1), 105 - 106.9),
-            ('blast_on', 'lasher-lead', 8, (40, -3, 5), 105.9),
-            ('blast_on', 'lasher-lead', 8, (28, 1, 6), 106.6),
-            ('blast_on', 'lasher-lead', 9, (17, 3, 6), 107.2),
+            # each pop on the face toward the camera, growing toward the break-up and never rivalling it, with
+            # its own spray of plating (24 fps checks, 2026-10-24: r11 facing outshone the cook-off two to one)
+            ('blast_on', 'lasher-lead', 6, (40, -3, 5), 105.9, 'facing'), ('debris', 'lasher-lead', 10, (40, -3, 5), 105.9),
+            ('blast_on', 'lasher-lead', 7, (28, 1, 6), 106.6, 'facing'), ('debris', 'lasher-lead', 10, (28, 1, 6), 106.6),
+            ('blast_on', 'lasher-lead', 8, (17, 3, 6), 107.2, 'facing'), ('debris', 'lasher-lead', 12, (17, 3, 6), 107.2),
             ('blast_on', 'lasher-lead', 16, (8, 4, 6), 107.6), ('debris', 'lasher-lead', 40, (8, 4, 6), 107.6)],
         labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
@@ -3124,9 +3126,10 @@ def blender_main(cfg):
                         if not done and len(fx) > 4:
                             print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
                                   f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
-                    elif kind == 'blast_on':     # optional 5th: its sequence time (default 2 frames before the key)
+                    elif kind == 'blast_on':     # optional 5th: its sequence time (default 2 frames before the key);
+                        # optional 6th 'facing': on the face of her hull toward the camera (scene_fx.blast_on)
                         done = sfx_.blast_on(fx[1], fx[2], fx[3], frame=anchor + round((fx[4] - spec['key_t']) * fps_s)
-                                             if len(fx) > 4 else None)
+                                             if len(fx) > 4 else None, facing=len(fx) > 5 and fx[5] == 'facing')
                     elif kind == 'debris':       # optional 5th: the blast's time; its plates are 8 frames ahead of it
                         done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0),
                                            frame=anchor + round((fx[4] - spec['key_t']) * fps_s) - 8
