@@ -170,8 +170,11 @@ class UnitAtlasGlEvidence {
                             "a unit layer through the atlas binds once per interruption of "
                                     + "the run, not once per layer; got "
                                     + atlasCounts.textureBinds());
-                    assertTrue(atlasCounts.drawCalls() < spriteCounts.drawCalls(),
-                            "and takes fewer draws than the whole-sprite path did");
+                    // Whole sprites join the paged run too (law 27), so both paths can be one draw; what
+                    // the atlas still saves is the binds.
+                    assertTrue(atlasCounts.drawCalls() <= spriteCounts.drawCalls()
+                                    && atlasCounts.textureBinds() < spriteCounts.textureBinds(),
+                            "and takes no more draws and fewer binds than the whole-sprite path did");
                     // Bodies, not commands: the control frame also carries the
                     // one custom pass that builds the atlas, and the frame after
                     // it deliberately does not.
@@ -207,7 +210,7 @@ class UnitAtlasGlEvidence {
                     assertTrue(same.differingPixels() < same.painted() / 50,
                             "and the atlas has to draw the same picture, not a similar one: "
                                     + same.differingPixels() + " of " + same.painted()
-                                    + " painted pixels differ at all");
+                                    + " painted pixels differ by more than rounding");
 
                     // The same host keeps its sprite caches across battles.
                     // The control frame has resized the sprites, so rebuilding
@@ -253,9 +256,15 @@ class UnitAtlasGlEvidence {
     private record Difference(int painted, int differingPixels, String byLargestDelta) { }
 
     /**
+     * Levels a channel may differ by and still be the same picture: the atlas draws through the paged run, which is
+     * premultiplied (law 27) and rounds colour times alpha once where the sprite path's blend unit multiplied.
+     */
+    private static final int ROUNDING = 3;
+
+    /**
      * Compares two RGBA read-backs, counting what was drawn over the magenta clear, and how far apart the differing
-     * pixels are: a delta of one is the last bit the comparison's own documentation allows for, and anything larger
-     * is a pixel drawn differently rather than rounded differently.
+     * pixels are: up to {@link #ROUNDING} is the premultiplied rounding, and anything larger is a pixel drawn
+     * differently rather than rounded differently. The spread reports every delta, rounding included.
      */
     private static Difference compare(byte[] control, byte[] subject) {
         int painted = 0;
@@ -270,10 +279,8 @@ class UnitAtlasGlEvidence {
             for (int channel = 0; channel < 4; channel++) {
                 delta = Math.max(delta, Math.abs((control[pixel + channel] & 0xFF) - (subject[pixel + channel] & 0xFF)));
             }
-            if (delta > 0) {
-                differing++;
-                byDelta[delta]++;
-            }
+            if (delta > ROUNDING) differing++;
+            if (delta > 0) byDelta[delta]++;
         }
         StringBuilder spread = new StringBuilder();
         for (int d = 1; d < 256; d++) if (byDelta[d] > 0) spread.append(' ').append(d).append(':').append(byDelta[d]);
