@@ -11,7 +11,7 @@ import java.util.EnumSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** Who builds what: militia digs in, a prepared garrison pours concrete, pirates hold old works. */
+/** Who builds what: militia digs in, a prepared garrison builds properly, each in its faction's tech family; pirates hold old works. */
 class EmplacementStylePolicyTest {
 
     private static TargetProfile world(String faction, int defenseLevel) {
@@ -24,5 +24,13 @@ class EmplacementStylePolicyTest {
         assertEquals(EmplacementStyle.BRUTALIST, EmplacementStylePolicy.forDefenders(world("independent", 3)));
         assertEquals(EmplacementStyle.DERELICT, EmplacementStylePolicy.forDefenders(world("pirates", 3)));
         assertEquals(EmplacementStyle.BRUTALIST, EmplacementStylePolicy.forDefenders(null), "no market behind the battle");
+    }
+
+    @Test void factionsBuildInTheirTechFamily() {
+        assertEquals(EmplacementStyle.MODULAR, EmplacementStylePolicy.forDefenders(world("persean", 3)));
+        assertEquals(EmplacementStyle.BARRIER, EmplacementStylePolicy.forDefenders(world("sindrian_diktat", 1)));
+        assertEquals(EmplacementStyle.COMPOSITE, EmplacementStylePolicy.forDefenders(world("tritachyon", 3)));
+        assertEquals(EmplacementStyle.DEPLOYED, EmplacementStylePolicy.forDefenders(world("tritachyon", 1)));
+        assertEquals(EmplacementStyle.BRUTALIST, EmplacementStylePolicy.forDefenders(world("hegemony", 3)), "low-tech");
     }
 }

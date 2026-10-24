@@ -63,6 +63,10 @@ public final class DrawListRenderer {
         GlStateBracket bracket = null;
         QuadBatch activeSheet = null;     // sheet batch with pending appends (else null)
         SpriteAPI activeSheetKey = null;
+        boolean activeAdditive = false;   // whether the active sheet run adds light
+        // The blend inside the open bracket: an additive SHEET_QUAD run switches it, and every
+        // other batch kind switches it back before it appends, so one bracket serves both runs.
+        boolean additiveBlend = false;
         boolean solidPending = false;     // solidBatch has pending appends
         boolean linePending = false;      // lineBatch has pending appends
         boolean ribbonPending = false;    // ribbonBatch has pending appends
@@ -77,16 +81,18 @@ public final class DrawListRenderer {
             if (census != null) census.recordCommand(c.kind);
             switch (c.kind) {
                 case SHEET_QUAD: {
-                    if (c.sprite != activeSheetKey) {
+                    if (c.sprite != activeSheetKey || c.additive != activeAdditive) {
                         if (activeSheet != null) flushSheet(activeSheet, census);
                         if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
                         if (linePending) { flushLines(lineBatch, census); linePending = false; }
                         if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                         activeSheetKey = c.sprite;
+                        activeAdditive = c.additive;
                         activeSheet = batchBySheet.get(c.sprite);
                     }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
-                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                    if (additiveBlend != c.additive) { GlStateBracket.applyBlend(c.additive); additiveBlend = c.additive; }
                     if (activeSheet != null) {
                         if(c.patch()!=null) {
                             activeSheet.appendPatch(c.srcX,c.srcY,c.srcW,c.srcH,c.cx,c.cy,c.w,c.h,c.r,c.g,c.b,c.a,c.patch());
@@ -107,8 +113,9 @@ public final class DrawListRenderer {
                     if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
                     if (linePending) { flushLines(lineBatch, census); linePending = false; }
                     if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
-                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                    if (additiveBlend) { GlStateBracket.applyBlend(false); additiveBlend = false; }
                     solidBatch.appendRect(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1)
                     solidPending = true;
                     break;
@@ -117,8 +124,9 @@ public final class DrawListRenderer {
                     if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
                     if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
                     if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
-                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                    if (additiveBlend) { GlStateBracket.applyBlend(false); additiveBlend = false; }
                     // Line width is per-flush GL state — flush the run before it changes.
                     if (linePending && c.angleDeg != lineBatch.width()) { flushLines(lineBatch, census); }
                     lineBatch.setWidth(c.angleDeg);
@@ -130,8 +138,9 @@ public final class DrawListRenderer {
                     if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
                     if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
                     if (linePending) { flushLines(lineBatch, census); linePending = false; }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
-                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                    if (additiveBlend) { GlStateBracket.applyBlend(false); additiveBlend = false; }
                     // RibbonBatch expands cell→screen itself, so it needs the camera; a sub-2-sample
                     // trail appends nothing. INVARIANT: ribbon styles drained here must be normal-blend
                     // — they share the textured2D() bracket (normal alpha blend). An additive ribbon
@@ -146,8 +155,9 @@ public final class DrawListRenderer {
                     if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
                     if (linePending) { flushLines(lineBatch, census); linePending = false; }
                     if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
-                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                    if (additiveBlend) { GlStateBracket.applyBlend(false); additiveBlend = false; }
                     if (c.poly != null) c.poly.appendTo(solidBatch);
                     solidPending = true;
                     break;
@@ -156,16 +166,18 @@ public final class DrawListRenderer {
                     if (c.mesh == null) break;
                     if (c.sprite != null) {
                         // Addressed into an atlas: one more run of that sheet's batch.
-                        if (c.sprite != activeSheetKey) {
+                        if (c.sprite != activeSheetKey || activeAdditive) {
                             if (activeSheet != null) flushSheet(activeSheet, census);
                             if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
                             if (linePending) { flushLines(lineBatch, census); linePending = false; }
                             if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                             activeSheetKey = c.sprite;
+                            activeAdditive = false;
                             activeSheet = batchBySheet.get(c.sprite);
                         }
-                        if (bracket == null) bracket = GlStateBracket.textured2D();
-                        else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                        if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                        else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                        if (additiveBlend) { GlStateBracket.applyBlend(false); additiveBlend = false; }
                         if (activeSheet != null) {
                             c.mesh.appendTo(activeSheet, c.cx, c.cy, c.w, c.a);
                             if (census != null) census.recordMeshQuads(c.mesh.size(), false);
@@ -177,7 +189,7 @@ public final class DrawListRenderer {
                     if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
                     if (linePending) { flushLines(lineBatch, census); linePending = false; }
                     if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
                     QuadMesh m = c.mesh;
                     for (int q = 0, n = m.size(); q < n; q++) {
                         drawSprite(m.image(q), c.cx + m.centerX(q) * c.w, c.cy + m.centerY(q) * c.w,
@@ -194,7 +206,7 @@ public final class DrawListRenderer {
                     if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
                     if (linePending) { flushLines(lineBatch, census); linePending = false; }
                     if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
-                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
                     drawSprite(c);
                     if (census != null) census.recordTexturedDraw();
                     spritePolluted = true;

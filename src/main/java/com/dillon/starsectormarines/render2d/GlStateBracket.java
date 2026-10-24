@@ -107,6 +107,16 @@ public final class GlStateBracket implements AutoCloseable {
     }
 
     /**
+     * Switches the blend function inside an open {@link #textured2D()} bracket:
+     * {@code GL_SRC_ALPHA, GL_ONE} for a run that adds light, the bracket's own
+     * normal alpha blend otherwise. The bracket's pop restores whatever came
+     * before it either way, so this is only ever the state between two flushes.
+     */
+    public static void applyBlend(boolean additive) {
+        glBlendFunc(GL_SRC_ALPHA, additive ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    /**
      * Push + set additive blending suitable for emitting radial light
      * kernels into a lightmap. Source alpha (the kernel's falloff) gates
      * the contribution so overlapping lights stack toward white rather
