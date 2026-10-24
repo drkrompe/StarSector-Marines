@@ -45,6 +45,7 @@ import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.SquadLoadoutRarity;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
+import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
@@ -79,9 +80,12 @@ public final class FleetArmoryViewModel {
         ARMOR
     }
 
-    /** The browser's filter: by the tier a card shows, which is how cards are compared. */
+    /**
+     * The browser's filter: by the tier a card shows, which is how cards are compared. None
+     * chosen shows every tier, so there is no "all" to choose; choosing the chosen one clears it,
+     * as the Mech Lab's weight filter does.
+     */
     public enum LoadoutFilter {
-        ALL("openingLoadoutFilterAll", 0),
         TIER_1("openingLoadoutFilterTier1", 1),
         TIER_2("openingLoadoutFilterTier2", 2),
         TIER_3("openingLoadoutFilterTier3", 3),
@@ -95,10 +99,26 @@ public final class FleetArmoryViewModel {
             this.tier = tier;
         }
 
-        private boolean accepts(int shownTier) {
-            return this == ALL || tier == shownTier;
-        }
         String label() { return Strings.get(labelKey); }
+
+        /** The filter a card of {@code tier} answers to; a tier past the last reads as the last. */
+        static LoadoutFilter of(int tier) {
+            LoadoutFilter[] all = values();
+            return all[Math.max(0, Math.min(all.length - 1, tier - 1))];
+        }
+
+        /** Its symbol: one chevron a tier, dark on the tier's tone. */
+        String icon() { return "graphics/ui/equipment/tier-" + tier + ".svg"; }
+
+        /** The tier's tone, on the stores' ramp from pale to amber to red. */
+        String tone() {
+            return switch (this) {
+                case TIER_1 -> "#c9c3a0";
+                case TIER_2 -> "#e2c068";
+                case TIER_3 -> "#e2a248";
+                case TIER_4 -> "#d8604c";
+            };
+        }
     }
 
     private final MarineRoster roster;
@@ -132,16 +152,12 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<SquadEquipmentPreview> squadEquipmentPreview;
     private final ComputedSignal<List<Row>> issueCargoRows;
     private final ComputedSignal<String> issueCargoClasses;
-    private final ComputedSignal<String> weaponDoctrineSummary;
-    private final ComputedSignal<String> armorDoctrineSummary;
     private final ComputedSignal<String> weaponPickerTabClasses;
     private final ComputedSignal<String> armorPickerTabClasses;
     private final ComputedSignal<String> weaponPickerPanelClasses;
     private final ComputedSignal<String> armorPickerPanelClasses;
-    private final ComputedSignal<List<LoadoutFilterOption>> loadoutFilters;
+    private final ComputedSignal<List<FittingFilterPill>> loadoutFilters;
     private final ComputedSignal<String> loadoutBrowserSummary;
-    private final ComputedSignal<List<ArmorComparisonCard>> armorComparisonCards;
-    private final ComputedSignal<String> armorComparisonSummary;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
         this(reactor, roster, () -> 0d, EquipmentIssueResources.UNLIMITED);
@@ -177,7 +193,7 @@ public final class FleetArmoryViewModel {
                 ? initialSquad.armorDoctrineId()
                 : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         equipmentPickerKind = reactor.signal(EquipmentPickerKind.WEAPON);
-        loadoutFilter = reactor.signal(LoadoutFilter.ALL);
+        loadoutFilter = reactor.signal(null);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
                 Strings.get("openingFleetArmoryHoverEquipmentNamesForFieldNotesAssign")));
@@ -210,8 +226,6 @@ public final class FleetArmoryViewModel {
         selectedSquadReadiness = reactor.computed(this::buildSelectedSquadReadiness);
         weaponDoctrineTiles = reactor.computed(this::buildWeaponDoctrineTiles);
         armorDoctrineTiles = reactor.computed(this::buildArmorDoctrineTiles);
-        weaponDoctrineSummary = reactor.computed(this::buildWeaponDoctrineSummary);
-        armorDoctrineSummary = reactor.computed(this::buildArmorDoctrineSummary);
         weaponPickerTabClasses = reactor.computed(() -> equipmentPickerKind.get()
                 == EquipmentPickerKind.WEAPON
                 ? "equipment-picker-tab spec-tab selected" : "equipment-picker-tab spec-tab");
@@ -226,8 +240,6 @@ public final class FleetArmoryViewModel {
                 ? "doctrine-slot" : "doctrine-slot picker-hidden");
         loadoutFilters = reactor.computed(this::buildLoadoutFilters);
         loadoutBrowserSummary = reactor.computed(this::buildLoadoutBrowserSummary);
-        armorComparisonCards = reactor.computed(this::buildArmorComparisonCards);
-        armorComparisonSummary = reactor.computed(this::buildArmorComparisonSummary);
     }
 
     public MarineRoster roster() { return roster; }
@@ -250,16 +262,12 @@ public final class FleetArmoryViewModel {
     public Signal<List<DoctrineTile>> armorDoctrineTiles() { return armorDoctrineTiles; }
     public Signal<List<Row>> issueCargoRows() { return issueCargoRows; }
     public Signal<String> issueCargoClasses() { return issueCargoClasses; }
-    public Signal<String> weaponDoctrineSummary() { return weaponDoctrineSummary; }
-    public Signal<String> armorDoctrineSummary() { return armorDoctrineSummary; }
     public Signal<String> weaponPickerTabClasses() { return weaponPickerTabClasses; }
     public Signal<String> armorPickerTabClasses() { return armorPickerTabClasses; }
     public Signal<String> weaponPickerPanelClasses() { return weaponPickerPanelClasses; }
     public Signal<String> armorPickerPanelClasses() { return armorPickerPanelClasses; }
-    public Signal<List<LoadoutFilterOption>> loadoutFilters() { return loadoutFilters; }
+    public Signal<List<FittingFilterPill>> loadoutFilters() { return loadoutFilters; }
     public Signal<String> loadoutBrowserSummary() { return loadoutBrowserSummary; }
-    public Signal<List<ArmorComparisonCard>> armorComparisonCards() { return armorComparisonCards; }
-    public Signal<String> armorComparisonSummary() { return armorComparisonSummary; }
     public String selectedSquadId() { return selectedSquadId.peek(); }
     public int selectedTeamIndex() { return selectedTeamIndex.peek(); }
     public String selectedWeaponDoctrineId() { return selectedWeaponDoctrineId.peek(); }
@@ -290,9 +298,15 @@ public final class FleetArmoryViewModel {
         return () -> equipmentPickerKind.set(EquipmentPickerKind.ARMOR);
     }
 
+    /** Chooses a tier, or clears it when it is already chosen. */
     public Runnable showLoadoutFilterAction(LoadoutFilter filter) {
         if (filter == null) throw new IllegalArgumentException("filter is required");
-        return () -> loadoutFilter.set(filter);
+        return () -> loadoutFilter.set(filter == loadoutFilter.peek() ? null : filter);
+    }
+
+    private boolean filterAccepts(int shownTier) {
+        LoadoutFilter filter = loadoutFilter.get();
+        return filter == null || filter.tier == shownTier;
     }
 
     /** Reprojects campaign time, personnel, and cargo authority. */
@@ -441,7 +455,7 @@ public final class FleetArmoryViewModel {
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON,
                     maximumWeaponTier(doctrine), doctrine.description());
-            if (!loadoutFilter.get().accepts(presentation.tier())) continue;
+            if (!filterAccepts(presentation.tier())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
             SquadEquipmentPreview candidate = roster.previewSquadEquipment(
                     selectedSquadId.get(), doctrine.id(), selectedArmorDoctrineId.get(),
@@ -461,7 +475,7 @@ public final class FleetArmoryViewModel {
                 SquadLoadoutPresentationDef.Kind.WEAPON, maximumWeaponTier(doctrine), doctrine.description());
         List<DoctrineSpan> issue = weaponDistributionSpans(id, doctrine);
         return doctrineTile(id, selected, doctrine.displayName(), LoadoutEffectiveness.weaponRating(doctrine),
-                presentation, doctrineMetadata(presentation), weaponComposition(doctrine),
+                presentation, presentation.provenance(), presentation.tier(), weaponComposition(doctrine),
                 joinSpans(issue), issue, "", List.of(),
                 cardStamp(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()),
                         traditionByCrest(presentation.factionLogo())), weaponSeats(doctrine),
@@ -615,7 +629,7 @@ public final class FleetArmoryViewModel {
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
                     maximumArmorTier(issued), plan.description());
-            if (!loadoutFilter.get().accepts(maximumArmorTier(issued))) continue;
+            if (!filterAccepts(maximumArmorTier(issued))) continue;
             String id = "armor-doctrine:" + plan.id();
             SquadEquipmentPreview candidate = roster.previewSquadEquipment(
                     selectedSquadId.get(), selectedWeaponDoctrineId.get(), plan.id(),
@@ -624,12 +638,13 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), plan.tradition().displayName(), tierMark(maximumArmorTier(issued)));
+            // The card shows the fielded tier as its chevrons, not in words.
+            String metadata = Strings.join("separatorDot", plan.armorClassDisplayName(), plan.tradition().displayName());
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
                     plan.displayName(), LoadoutEffectiveness.armorRating(issued),
-                    presentation, metadata,
+                    presentation, metadata, maximumArmorTier(issued),
                     roleComposition(plan), joinSpans(patterns), patterns,
                     armorCapabilities(capabilities), capabilities,
                     cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition()),
@@ -656,7 +671,7 @@ public final class FleetArmoryViewModel {
 
     private static DoctrineTile doctrineTile(
             String id, boolean selected, String name, int rating,
-            SquadLoadoutPresentationDef presentation, String metadata,
+            SquadLoadoutPresentationDef presentation, String metadata, int tier,
             String composition, String distribution, List<DoctrineSpan> distributionSpans,
             String carries, List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp,
             List<SpecSheet.Seat> seats, List<SpecSheet> seatSheets, Runnable select) {
@@ -672,7 +687,7 @@ public final class FleetArmoryViewModel {
                 name, presentation.rarity().displayName(), rating,
                 Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
-                carries, carriesSpans, stamp, seats, seatSheets, select, null, true, "", false, false);
+                carries, carriesSpans, stamp, seats, seatSheets, select, null, true, "", false, false, tier);
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -696,14 +711,13 @@ public final class FleetArmoryViewModel {
         return Strings.format("openingFleetArmoryTier", tierMark(presentation.tier()), presentation.provenance());
     }
 
-    private List<LoadoutFilterOption> buildLoadoutFilters() {
+    private List<FittingFilterPill> buildLoadoutFilters() {
         LoadoutFilter selected = loadoutFilter.get();
-        List<LoadoutFilterOption> filters = new ArrayList<>();
+        List<FittingFilterPill> filters = new ArrayList<>();
         for (LoadoutFilter filter : LoadoutFilter.values()) {
             String id = "loadout-filter:" + filter.name().toLowerCase(Locale.ROOT);
-            filters.add(new LoadoutFilterOption(id, filter.label(),
-                    filter == selected ? "loadout-filter spec-tab selected" : "loadout-filter spec-tab",
-                    showLoadoutFilterAction(filter)));
+            filters.add(new FittingFilterPill(id, filter.label(), filter.icon(), filter.tone(),
+                    FittingFilterPill.classes(filter == selected), showLoadoutFilterAction(filter)));
         }
         return List.copyOf(filters);
     }
@@ -741,86 +755,6 @@ public final class FleetArmoryViewModel {
         return List.copyOf(choices.values());
     }
 
-    /**
-     * Every armor pattern <b>this company owns a template card for</b>, side by
-     * side, sorted by tier then name so the frontier baseline reads before the
-     * battlesuits regardless of catalog declaration order. This is a read
-     * surface: comparing patterns does not select one, because a squad's armor
-     * is issued as a doctrine bundling twelve billets, not as one pattern chosen
-     * in isolation.
-     *
-     * <p>Owned rather than catalogued. The screen exists to answer "what is my
-     * kit and which of it should the section be in", and a table where most rows
-     * are suits the company has never held answers a different question badly —
-     * the twenty-seventh pattern is not an option, it is a rumour. The summary
-     * beneath still names the whole catalog's size, so the fact that there is
-     * more out there survives without pretending it is choosable.
-     */
-    private List<ArmorComparisonCard> buildArmorComparisonCards() {
-        domainRevision.get();
-        List<MarineArmorCatalogDef> patterns = new ArrayList<>();
-        for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
-            if (roster.armory().ownsArmorTemplate(pattern.id())) patterns.add(pattern);
-        }
-        patterns.sort(Comparator.comparingInt(MarineArmorCatalogDef::tier)
-                .thenComparing(MarineArmorCatalogDef::displayName));
-        List<ArmorComparisonCard> cards = new ArrayList<>();
-        for (MarineArmorCatalogDef armor : patterns) {
-            String id = "armor-comparison:" + armor.id();
-            cards.add(new ArmorComparisonCard(
-                    id, id + ":header", id + ":name", id + ":tier", id + ":class",
-                    id + ":stats", id + ":system-row", id + ":system-icon", id + ":system",
-                    id + ":description",
-                    "comparison-card",
-                    armor.displayName(),
-                    Strings.format("openingFleetArmoryTier2", tierMark(armor.tier())),
-                    armor.armorClass().displayName(),
-                    armorComparisonStats(id, armor),
-                    IntegralSystemCopy.tile(armor),
-                    IntegralSystemCopy.iconPath(armor),
-                    comparisonSystemClasses(armor),
-                    Strings.format("openingFleetArmoryRole", armor.role().displayName(), armor.description())));
-        }
-        return List.copyOf(cards);
-    }
-
-    private String buildArmorComparisonSummary() {
-        int owned = armorComparisonCards.get().size();
-        int catalogued = MarineArmorCatalogRegistry.installed().all().size();
-        return Strings.format("openingFleetArmoryOfArmorPatternsHeldSortedByTier", owned, catalogued);
-    }
-
-    private static List<StatMeter> armorComparisonStats(String cardId, MarineArmorCatalogDef armor) {
-        float evasion = CatalogCeilings.evasionOf(armor);
-        return List.of(
-                StatMeter.of(cardId + ":armor-value", Strings.get("openingFleetArmoryArmor"),
-                        String.format(Strings.locale(), "%.0f", armor.armorCapacity()),
-                        armor.armorCapacity(), CatalogCeilings.armorCapacity()),
-                StatMeter.of(cardId + ":resist", Strings.get("openingFleetArmoryResist"),
-                        String.format(Strings.locale(), "%.0f", armor.armorRating()),
-                        armor.armorRating(), CatalogCeilings.armorRating()),
-                StatMeter.of(cardId + ":move", Strings.get("openingFleetArmoryMove"),
-                        String.format(Strings.locale(), "%.0f%%", armor.moveSpeedMult() * 100f),
-                        armor.moveSpeedMult(), CatalogCeilings.moveSpeedMult()),
-                StatMeter.of(cardId + ":evasion", Strings.get("openingFleetArmoryEvasion"),
-                        signedPercent(evasion), evasion, CatalogCeilings.armorEvasion()));
-    }
-
-    private static String signedPercent(float value) {
-        int percent = Math.round(value * 100f);
-        return (percent > 0 ? "+" : "") + percent + "%";
-    }
-
-    /**
-     * Comparison-card styling for the integral-system line, kept independent
-     * of {@link #systemClasses} so the comparison surface never depends on the
-     * fire-team card's local CSS classes.
-     */
-    private static String comparisonSystemClasses(MarineArmorCatalogDef armor) {
-        return "comparison-system label surface-dark "
-                + (IntegralSystemCopy.carried(armor) ? "tone-accent" : "tone-muted");
-    }
-
     private static SquadLoadoutPresentationDef loadoutPresentation(
             String id, SquadLoadoutPresentationDef.Kind kind, int tier, String fallbackLore) {
         SquadLoadoutPresentationDef authored = SquadLoadoutPresentationRegistry.get(id);
@@ -851,22 +785,6 @@ public final class FleetArmoryViewModel {
             case 4 -> "IV";
             default -> "V";
         };
-    }
-
-    private String buildWeaponDoctrineSummary() {
-        SquadWeaponDoctrine doctrine = roster.armory().weaponDoctrineById(
-                selectedWeaponDoctrineId.get());
-        return doctrine != null
-                ? Strings.format("openingFleetArmorySelected", doctrine.displayName())
-                : Strings.get("openingFleetArmoryChooseWeaponEquipment");
-    }
-
-    private String buildArmorDoctrineSummary() {
-        SquadArmorDoctrine doctrine = roster.armory().armorDoctrineById(
-                selectedArmorDoctrineId.get());
-        return doctrine != null
-                ? Strings.format("openingFleetArmorySelected", doctrine.displayName())
-                : ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get());
     }
 
     private List<MarineViewerCard> buildMarineCards() {
@@ -1596,7 +1514,7 @@ public final class FleetArmoryViewModel {
             List<DoctrineSpan> distributionSpans, String carries,
             List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp, List<SpecSheet.Seat> seats,
             List<SpecSheet> seatSheets, Runnable select, Runnable issue, boolean issueDisabled,
-            String issueReason, boolean issued, boolean compact) implements MarkupPropertySource {
+            String issueReason, boolean issued, boolean compact, int tier) implements MarkupPropertySource {
         /** Inert click handler for a card shown where nothing can be issued; its button is hidden. */
         private static final Runnable NO_ISSUE = () -> { };
 
@@ -1607,6 +1525,15 @@ public final class FleetArmoryViewModel {
         /** A weapon card wears the spec sheet's weapon accent and an Equipment card its armour one. */
         private String accent() {
             return id.startsWith("armor-doctrine:") ? "armor" : "weapon";
+        }
+
+        /**
+         * The card's own hover sheet: its field note, which the card face leaves out to keep the
+         * catalogue short. Null for a card with no note; its seats and lines keep their own sheets.
+         */
+        public SpecSheet loreSheet() {
+            if (description == null || description.isBlank()) return null;
+            return new SpecSheet(name, metadata, factionLogo, accent(), List.of(), List.of(description));
         }
 
         /** A card whose seats carry nothing beside their weapon or suit prints no carries line. */
@@ -1670,7 +1597,7 @@ public final class FleetArmoryViewModel {
                     carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
                     rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
                     distribution, distributionSpans, carries, carriesSpans, stamp, seats, seatSheets, select, action,
-                    disabled, reason, alreadyIssued, compact);
+                    disabled, reason, alreadyIssued, compact, tier);
         }
 
         /**
@@ -1683,7 +1610,7 @@ public final class FleetArmoryViewModel {
                     carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
                     rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
                     distribution, distributionSpans, carries, carriesSpans, stamp, seats, seatSheets, select, issue,
-                    issueDisabled, issueReason, issued, true);
+                    issueDisabled, issueReason, issued, true, tier);
         }
 
         @Override
@@ -1692,12 +1619,22 @@ public final class FleetArmoryViewModel {
                 case "id" -> id;
                 case "issueId" -> id + ":issue";
                 case "issueReasonId" -> id + ":issue-reason";
-                case "issue" -> issue != null ? issue : NO_ISSUE;
-                case "issueDisabled" -> issueDisabled || issued;
-                case "issueLabel" -> Strings.get(issued ? "loadoutIssuedState" : "loadoutIssueAction");
+                case "linesId" -> id + ":lines";
+                // The tier as the filter strip draws it: one chevron a tier on the tier's tone.
+                case "tierId" -> id + ":tier";
+                case "tierIconId" -> id + ":tier-icon";
+                case "tierIcon" -> LoadoutFilter.of(tier).icon();
+                case "tierStyle" -> "background-color: " + LoadoutFilter.of(tier).tone() + ";";
+                // The issued card's box stays lit rather than greyed out; ticking it again does nothing.
+                case "issue" -> issue != null && !issued ? issue : NO_ISSUE;
+                case "issueDisabled" -> issueDisabled && !issued;
+                // A check box, one ticked a kind: the issued card's is ticked, every other is empty.
                 case "issueButtonClasses" -> issue == null ? "doctrine-issue-button-hidden"
-                        : issued ? "doctrine-issue-button spec-action issued"
-                        : "doctrine-issue-button spec-action";
+                        : issued ? "doctrine-issue-button issued"
+                        : "doctrine-issue-button";
+                case "issueBoxId" -> id + ":issue-box";
+                case "issueCheckId" -> id + ":issue-check";
+                case "issueCheckClasses" -> issued ? "doctrine-issue-check" : "doctrine-issue-check doctrine-issue-check-empty";
                 case "issueReason" -> issueReason;
                 case "issueReasonClasses" -> issueReason.isEmpty() || issue == null
                         ? "doctrine-issue-reason-empty"
@@ -1720,8 +1657,10 @@ public final class FleetArmoryViewModel {
                 case "carriesGridId" -> carriesId + "-grid";
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
+                // The chosen card is the only one at full strength: with no "Selected" line above
+                // the list, the card itself says which it is.
                 case "cardClasses" -> "spec-card spec-sheet-" + accent()
-                        + (classes.contains(" selected") ? " selected" : "");
+                        + (classes.contains(" selected") ? " selected" : " resting");
                 case "cardStyle" -> compact ? "height: " + cardHeight() + "px;" : "";
                 case "headingCopyId" -> id + ":heading-copy";
                 case "crestClasses" -> factionLogo == null || factionLogo.isBlank()
@@ -1812,65 +1751,6 @@ public final class FleetArmoryViewModel {
                 case "textId" -> id + ":text";
                 case "text" -> text;
                 default -> throw new IllegalArgumentException("Unknown doctrine-span property");
-            };
-        }
-    }
-
-    public record LoadoutFilterOption(
-            String id, String label, String classes, Runnable select)
-            implements MarkupPropertySource {
-        @Override
-        public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id;
-                case "label" -> label;
-                case "classes" -> classes;
-                case "select" -> select;
-                default -> throw new IllegalArgumentException("Unknown loadout-filter property");
-            };
-        }
-    }
-
-    /**
-     * One pattern's row in the side-by-side comparison surface: role/class,
-     * tier, protection and mobility meters, its integral system if it carries
-     * one — named, quantified, and shown with its family icon — and the
-     * provenance copy authored on the catalog entry. See
-     * {@code powered-assault-armor-roles.md}'s comparison-presentation
-     * acceptance and {@code progression-nouns.md}'s presentation law: this
-     * reads existing catalog and simulation data, never selects or mutates it.
-     */
-    public record ArmorComparisonCard(
-            String id, String headerId, String nameId, String tierId, String classId,
-            String statsId, String systemRowId, String systemIconId, String systemId,
-            String descriptionId, String classes,
-            String name, String tier, String unitClass, List<StatMeter> stats,
-            String system, String systemIcon, String systemClasses, String description)
-            implements MarkupPropertySource {
-        @Override
-        public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id;
-                case "headerId" -> headerId;
-                case "nameId" -> nameId;
-                case "tierId" -> tierId;
-                case "classId" -> classId;
-                case "statsId" -> statsId;
-                case "systemRowId" -> systemRowId;
-                case "systemIconId" -> systemIconId;
-                case "systemId" -> systemId;
-                case "descriptionId" -> descriptionId;
-                case "classes" -> classes;
-                case "name" -> name;
-                case "tier" -> tier;
-                case "unitClass" -> unitClass;
-                case "stats" -> stats;
-                case "system" -> system;
-                case "systemIcon" -> systemIcon;
-                case "systemClasses" -> systemClasses;
-                case "description" -> description;
-                default -> throw new IllegalArgumentException(
-                        "Unknown armor-comparison-card property");
             };
         }
     }
