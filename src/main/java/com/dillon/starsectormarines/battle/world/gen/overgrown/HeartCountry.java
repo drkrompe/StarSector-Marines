@@ -177,7 +177,7 @@ public final class HeartCountry {
         List<PrecinctBrief> places = new ArrayList<>(List.of(
                 PrecinctBrief.settlement(SETTLEMENT, broad ? MapPlacement.CENTRE : VILLAGE_PLACE,
                         settlementGrowth, PrecinctCharacter.TOWN),
-                origin(form, HeartOrigin.of(seed))));
+                origin(form, HeartOrigin.of(seed, form, density))));
         // Rural places stay first and alone, so an open-country plan draws exactly what it always drew.
         if (density == Density.TOWN) {
             places.add(PrecinctBrief.settlement(SECOND_TOWN, placement(form, 0.35f, 0.6f, 0.7f, 0.92f),

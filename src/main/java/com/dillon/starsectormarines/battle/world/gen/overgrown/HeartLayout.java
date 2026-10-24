@@ -24,10 +24,11 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Dens
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiPredicate;
 
 /**
@@ -130,7 +131,7 @@ public final class HeartLayout {
         pieces.add(new Deferred(LOGISTICS, Phase.STRUCTURES, ground -> ammoDumps(ground, form), false));
         pieces.add(new Deferred(VEHICLE_PARK, Phase.WORKS, ground -> vehiclePark(ground, form), false));
         pieces.add(new Deferred(RESERVOIR_YARD, Phase.WORKS, ground -> reservoirYard(ground, form), false));
-        HeartOrigin origin = HeartOrigin.of(seed);
+        HeartOrigin origin = HeartOrigin.of(seed, form, density);
         pieces.add(new Deferred(ORIGIN_DRESSING, Phase.WORKS, ground -> originDressing(ground, origin), false));
         if (form == Form.BROAD_FRONT) {
             pieces.add(new Deferred(HOLDOUT, Phase.WORKS,
@@ -155,7 +156,8 @@ public final class HeartLayout {
         int[] claim = ground.claimBounds(HeartCountry.WORKINGS);
         Precinct workings = HeartCountry.place(ground.plan(), HeartCountry.WORKINGS);
         if (claim == null || workings == null) return List.of();
-        int[] core = HeartOrigin.core(ground.topology(), origin, workings.seedX(), workings.seedY());
+        int[] core = origin.opensAt != null ? null
+                : HeartOrigin.core(ground.topology(), origin, workings.seedX(), workings.seedY());
         int[] near = core != null ? core : new int[]{workings.seedX(), workings.seedY()};
         List<int[]> taken = new ArrayList<>();
         List<Props.Placement> out = new ArrayList<>();
@@ -206,7 +208,7 @@ public final class HeartLayout {
         static DressingGroup of(Part... parts) {
             int w = 0, h = 0;
             for (Part p : parts) {
-                int[] size = FOOTPRINTS.get(p.prop());
+                int[] size = footprint(p.prop());
                 w = Math.max(w, p.dx() + size[0]);
                 h = Math.max(h, p.dy() + size[1]);
             }
@@ -214,15 +216,16 @@ public final class HeartLayout {
         }
     }
 
-    /** The clean props' footprints in cells (their tileset entries), so a group knows its box before any is placed. */
-    private static final Map<OriginProp, int[]> FOOTPRINTS = Map.of(
-            OriginProp.CONTAINER_RUST, new int[]{4, 2}, OriginProp.CONTAINER_BLUE, new int[]{4, 2},
-            OriginProp.SEAFOOD_CRATES, new int[]{2, 2}, OriginProp.UNLOADING_TRUCK, new int[]{3, 2},
-            OriginProp.TANK_RACK, new int[]{3, 1}, OriginProp.SAMPLE_FREEZER, new int[]{2, 1},
-            OriginProp.PUMP_SHED, new int[]{3, 2}, OriginProp.PIPE_RUN, new int[]{3, 1},
-            OriginProp.PIPE_ELBOW, new int[]{2, 2}, OriginProp.PIPE_MOUTH, new int[]{2, 1});
+    /** A clean prop's footprint in cells, from its tileset entry; one cell where no tiles are installed. */
+    private static int[] footprint(OriginProp prop) {
+        DoodadDef def = TileRegistry.installed() == null ? null : prop.def(OriginProp.State.CLEAN);
+        return def == null ? new int[]{1, 1} : new int[]{def.footprintCellsX, def.footprintCellsY};
+    }
 
-    /** What an origin's yard holds, the first group set down nearest the core building. */
+    /**
+     * What an origin's yard holds, the first group set down nearest the core building; the park's first is its pond,
+     * set down nearest the place's seed, where the first mother opens.
+     */
     static List<DressingGroup> dressing(HeartOrigin origin) {
         return switch (origin) {
             case FREIGHT -> {
@@ -254,6 +257,19 @@ public final class HeartLayout {
                         new DressingGroup.Part(OriginProp.PIPE_RUN, 3, 0),
                         new DressingGroup.Part(OriginProp.PIPE_MOUTH, 6, 0));
                 yield List.of(pumping, outfall, pumping);
+            }
+            case PARK -> {
+                DressingGroup pondside = DressingGroup.of(new DressingGroup.Part(OriginProp.POND, 0, 0),
+                        new DressingGroup.Part(OriginProp.BENCH, 0, 4),
+                        new DressingGroup.Part(OriginProp.BENCH, 3, 4));
+                DressingGroup bandstand = DressingGroup.of(new DressingGroup.Part(OriginProp.BANDSTAND, 0, 0));
+                DressingGroup playground = DressingGroup.of(new DressingGroup.Part(OriginProp.SWINGS, 0, 0),
+                        new DressingGroup.Part(OriginProp.SLIDE, 4, 0),
+                        new DressingGroup.Part(OriginProp.CLIMBER, 0, 3),
+                        new DressingGroup.Part(OriginProp.ROUNDABOUT, 4, 3));
+                DressingGroup benches = DressingGroup.of(new DressingGroup.Part(OriginProp.BENCH, 0, 0),
+                        new DressingGroup.Part(OriginProp.BENCH, 3, 0));
+                yield List.of(pondside, bandstand, playground, benches);
             }
         };
     }
