@@ -467,6 +467,11 @@ class SceneFx:
             if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
                 hit = (Vector(got[0]), Vector(got[1]))
                 aim_w = mt @ hit[0]
+            if os.environ.get('ASHARU_SHOT_DEBUG') == f'{a}>{b}':      # why a gun's rounds miss
+                print(f'ASHARU shot {a}>{b} f{f}: hit_l {tuple(round(c) for c in hit_l)} reach {reach:.0f} '
+                      f'offset ({ox:.0f}, {oy:.0f}) err {err:+.2f} cast '
+                      + ('none' if got is None else f'{(Vector(got[0]) - Vector(hit_l)).length:.0f} m from hit_l'),
+                      flush=True)
             shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ aim_w, hit)
             return shots[f]
         others = [k for k in self.placed if k not in (a, b)]
@@ -816,6 +821,30 @@ class SceneFx:
         shift = arrive - max(f.end['frame'] for f in fl if f.end)
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
                       target_name=b, width=.18)
+        for _settle in range(4 if self.matrix_at is not None and self.span else 1):
+            fl = self._salvo_world(a, b, starts, frames, shift, fl, arrive, mp, shooter)
+            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit']
+            if not ends or abs(max(ends) - arrive) <= 1:
+                break
+            shift += arrive - max(ends)       # the world re-plan moved the arrivals: shift the launch
+        taken = self._decoy(a, b, fl, decoys) if decoys else []
+        for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
+            if f.end and f.end['kind'] == 'hit':
+                self.riding[(f.label, int(f.frame))] = (b, int(f.end['frame']))
+        with self.fired(a), shooter.kit() as (ctx, kit):
+            kit.guns.launch_flights(ctx, fl)
+        self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
+                         f'arriving {[f.end["frame"] for f in fl if f.end]} (asked {arrive})'
+                         + (f'; decoyed {taken}' if decoys else ''))
+        if decoys and not taken:
+            self.log(f'WARNING missiles {a} -> {b}: asked for {decoys} decoyed, none took a flare '
+                     f'({len(self.flared.get(b, ()))} flares thrown by {b} in this shot)')
+        return True
+
+    def _salvo_world(self, a, b, starts, frames, shift, fl, arrive, mp, shooter):
+        """The salvo launched `shift` frames on, each seeker re-planned in the world (below)."""
+        fl = mp.salvo('harpoon', starts, self.world(b), mp.space_of(shooter), frames=[f + shift for f in frames],
+                      target_name=b, width=.18)
         if self.matrix_at is not None and self.span:
             # A seeker flies to where she will be when it arrives, in the world: the flights are
             # held in the shooter's space as it stood at launch (to_world), so the target goes
@@ -835,19 +864,7 @@ class SceneFx:
                     end = one[0].end['frame'] if one and one[0].end else end
                 out += one
             fl = out
-        taken = self._decoy(a, b, fl, decoys) if decoys else []
-        for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
-            if f.end and f.end['kind'] == 'hit':
-                self.riding[(f.label, int(f.frame))] = (b, int(f.end['frame']))
-        with self.fired(a), shooter.kit() as (ctx, kit):
-            kit.guns.launch_flights(ctx, fl)
-        self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
-                         f'arriving {[f.end["frame"] for f in fl if f.end]}'
-                         + (f'; decoyed {taken}' if decoys else ''))
-        if decoys and not taken:
-            self.log(f'WARNING missiles {a} -> {b}: asked for {decoys} decoyed, none took a flare '
-                     f'({len(self.flared.get(b, ()))} flares thrown by {b} in this shot)')
-        return True
+        return fl
 
     def _decoy(self, a, b, flights, count):
         """Divert up to `count` of a's planned flights onto flares b threw, about a second before
