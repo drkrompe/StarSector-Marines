@@ -621,7 +621,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final Color PANEL_EDGE = new Color(0x8e, 0x9a, 0x8c, 120);
 
     /** A dark drafting board under the schematic, so the cards read against one ground, not the deck. */
-    private static void drawSchematicPanel(CanvasContext c, float width, float height) {
+    static void drawSchematicPanel(CanvasContext c, float width, float height) {
         c.fillRect(0f, 0f, width, height, PANEL);
         for (float x = 24f; x < width; x += 24f) c.line(x, 0f, x, height, PANEL_GRID, 1f);
         for (float y = 24f; y < height; y += 24f) c.line(0f, y, width, y, PANEL_GRID, 1f);
