@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
+import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -35,8 +36,14 @@ import java.util.function.Consumer;
  * hull waits on its berth until the one before it has driven clear of the door, so two never meet in
  * the lane; a carrier waits on its own slot, never in the doorway; and a car or technical leaves the
  * apron for its home behind the line at once.
+ *
+ * <p>It is the Cordon's {@link AlliedDepot}: a machine sent from it (a beat's truck or dozer) sets out
+ * from the threshold outside the machine door, and nothing is sent while the swarm is on the apron.
  */
-public final class CordonLogistics {
+public final class CordonLogistics implements AlliedDepot {
+
+    /** Cells round the apron the swarm must be clear of for the base to send. */
+    static final int OVERRUN_REACH = 10;
 
     /** Cells from a slot a column counts as at the base, and a carrier as home. */
     static final int AT_BASE = 8;
@@ -234,6 +241,17 @@ public final class CordonLogistics {
             }
         }
         return best;
+    }
+
+    @Override
+    public int[] dispatchCell(BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.DEFENDER) continue;
+            if (Math.abs(sim.world().x(unit) - musterX) <= OVERRUN_REACH
+                    && Math.abs(sim.world().y(unit) - musterY) <= OVERRUN_REACH) return null;
+        }
+        return new int[]{thresholdX, thresholdY};
     }
 
     public int musterX() { return musterX; }
@@ -516,7 +534,7 @@ public final class CordonLogistics {
         CordonRedoubt best = null;
         int bestScore = Integer.MAX_VALUE;
         for (CordonRedoubt r : redoubts) {
-            if (r.state() == CordonRedoubt.State.FALLEN) continue;
+            if (!r.manned()) continue;
             int score = CordonSequence.standing(sim, r) - (r.state() == CordonRedoubt.State.CALLING ? 1000 : 0);
             if (score < bestScore) {
                 bestScore = score;

@@ -674,7 +674,9 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
         viewModel.gantryRows().get().get(0).select().run();
-        assertTrue(viewModel.categoryFilterPills().get().isEmpty(), "Mini-fabs have no weapon categories");
+        assertEquals(List.of("mech-filter:all", "mech-filter:in_stock"),
+                viewModel.categoryFilterPills().get().stream().map(MechLabViewModel.FilterPill::id).toList(),
+                "Mini-fabs have no weapon categories, only stock");
         viewModel.selectSlot(SocketId.LEFT_ARM);
         assertFalse(viewModel.categoryFilterPills().get().isEmpty());
 
@@ -806,6 +808,24 @@ class MechLabViewModelTest {
         assertEquals(mech.internal(MechInternal.Role.ENGINE).displayName(),
                 viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
                         .findFirst().orElseThrow().component());
+
+        // Dragged off the doll, the engine goes back to stores and leaves its socket empty:
+        // the mech is incomplete and off the drop manifest until an engine is fitted again.
+        assertTrue(viewModel.removeInstalledInternal(SocketId.CORE), viewModel.feedbackText().get());
+        assertNull(mech.internal(MechInternal.Role.ENGINE));
+        assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
+        assertEquals(CampaignMech.Readiness.INCOMPLETE, mech.readiness(0f));
+        assertFalse(viewModel.socketOccupied(SocketId.CORE));
+        assertEquals("slot-badge required", viewModel.slotRows().get().stream()
+                .filter(row -> row.socketId() == SocketId.CORE).findFirst().orElseThrow().badgeClasses());
+        assertFalse(viewModel.removeInstalledInternal(SocketId.CORE), "the socket is already empty");
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
+        assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
+
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.IN_STOCK);
+        assertTrue(viewModel.catalogRows().get().stream()
+                .allMatch(row -> bay.availableInternal(row.internalPreview().id) > 0));
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.ALL);
 
         viewModel.selectSlot(SocketId.CAPACITORS);
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->

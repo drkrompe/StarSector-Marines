@@ -11,10 +11,12 @@ import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRoll;
+import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -158,6 +160,15 @@ public final class BloomHeartSetup {
     /** As {@link #mission(Form, SurfacePalette, long, List)} in country as built-up as {@code density}. */
     public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
                                            List<ShuttleAssignment> manifest) {
+        return mission(form, biome, density, seed, manifest, List.of());
+    }
+
+    /**
+     * As {@link #mission(Form, SurfacePalette, Density, long, List)}, running the named optional objectives instead
+     * of the draw when {@code objectives} is not empty; each still runs only where its place was laid.
+     */
+    public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
+                                           List<ShuttleAssignment> manifest, List<String> objectives) {
         if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
         Built built = country(form, biome, density, seed);
         BattleSimulation sim = built.sim();
@@ -181,16 +192,24 @@ public final class BloomHeartSetup {
             sim.addObjective(new BatteryObjective(guns));
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
+        // The armour waves come up the supply road from the vehicle park the layout laid, while it stands.
+        HeartVehiclePark park = form == Form.BROAD_FRONT ? HeartVehiclePark.of(built.map().layout) : null;
+        if (lanes != null && park != null) lanes.sentFrom(park);
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
-        ObjectiveBoard objectives = new ObjectiveBoard(ObjectiveRoll.pick(HeartObjectives.pool(form),
+        List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));
+        if (!objectives.isEmpty()) {
+            pool.removeIf(o -> !objectives.contains(o.key()));
+            count = new int[]{pool.size(), pool.size()};
+        }
+        ObjectiveBoard board = new ObjectiveBoard(ObjectiveRoll.pick(pool,
                 built.map().layout, built.battleSeed(), count[0], count[1]),
                 ObjectiveContext.forBattle(sim, built.map().layout, built.battleSeed(), HeartSequence.BEAT_PREFIX));
-        sim.installOptionalObjectives(objectives);
-        objectives.start(0);
+        sim.installOptionalObjectives(board);
+        board.start(0);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT

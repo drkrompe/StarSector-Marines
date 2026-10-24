@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.cordon.CordonReviewAnnotations;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
@@ -48,6 +49,7 @@ public final class BattleReviewAnnotations {
         if (simulation == null) return ReviewAnnotations.NONE;
         if (simulation.getColonyBreach() != null) return forColonyBreach(simulation);
         if (simulation.getHeart() != null) return forHeart(simulation);
+        if (simulation.getCordon() != null) return CordonReviewAnnotations.forBattle(simulation);
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         // Routes first, so the compound boxes and their words draw over them
         // rather than under: a lane runs through the places it joins, and the

@@ -225,7 +225,7 @@ public final class CloseContactTactics {
     private static boolean isLivingInfantry(long target, BattleView sim) {
         if (sim.isHardenedTarget(target) || !sim.identity().has(target)) return false;
         UnitType type = sim.identity().type(target);
-        return type.combatant && !type.isDrone() && !type.isStatic();
+        return type.combatant && !type.isDrone() && !type.isFlier() && !type.isStatic();
     }
 
     /**

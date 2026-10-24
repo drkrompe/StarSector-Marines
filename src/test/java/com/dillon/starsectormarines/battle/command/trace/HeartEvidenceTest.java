@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BloomHeartBattleFixture;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
@@ -111,6 +113,9 @@ class HeartEvidenceTest {
                     if (landfallTick < 0 && marinesAshore(sim)) landfallTick = sim.getSimTickIndex();
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+                // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
+                ObjectiveBoard board = sim.getOptionalObjectives();
+                if (board != null) board.end(sim.getSimTickIndex());
                 String trace = sim.getCommandTraceJsonLines();
                 if (firstTrace == null) {
                     firstTrace = trace;
@@ -204,7 +209,19 @@ class HeartEvidenceTest {
                 .put("marinesAlive", marines)
                 .put("directorReason", director == null ? "" : director.pressureReason())
                 .put("liveSwarm", director == null ? 0 : director.liveRunners())
-                .put("bores", bores).put("beats", beats);
+                .put("bores", bores).put("beats", beats).put("objectives", objectives(sim));
+    }
+
+    /** How each optional objective came out, by key. */
+    private static JSONObject objectives(BattleSimulation sim) throws Exception {
+        JSONObject out = new JSONObject();
+        ObjectiveBoard board = sim.getOptionalObjectives();
+        if (board != null) {
+            for (ObjectiveResult result : board.results()) {
+                out.put(result.key(), result.status().name().toLowerCase(Locale.ROOT));
+            }
+        }
+        return out;
     }
 
     private static String markdown(JSONObject s) throws Exception {
@@ -222,6 +239,14 @@ class HeartEvidenceTest {
                     .append(String.format(Locale.ROOT, "%.2f", b.getDouble("integrity")))
                     .append(" | ").append(b.getInt("surges")).append(" | ").append(b.getInt("bodiesSpawned"))
                     .append(" | ").append(b.getBoolean("matriarchReleased")).append(" | ").append(b.getInt("collapsedTick")).append(" |\n");
+        }
+        JSONObject objectives = s.getJSONObject("objectives");
+        if (objectives.length() > 0) {
+            md.append("\n## Objectives\n\n");
+            List<String> keys = new ArrayList<>();
+            for (var it = objectives.keys(); it.hasNext(); ) keys.add(String.valueOf(it.next()));
+            keys.sort(null);
+            for (String key : keys) md.append("- `").append(key).append("` ").append(objectives.getString(key)).append('\n');
         }
         md.append("\n## Beats\n\n");
         JSONArray beats = s.getJSONArray("beats");

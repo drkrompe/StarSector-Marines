@@ -100,5 +100,9 @@ public enum UnitRole {
      * registered rescue civilians, then marines; it never enters squad GOAP or
      * broad civilian-faction targeting.
      */
-    SWARM_PRESSURE
+    SWARM_PRESSURE,
+    /**
+     * A Rav flier. No per-unit behaviour: its pack flies it, serially, in {@code SwarmFliers}.
+     */
+    SWARM_FLIER
 }

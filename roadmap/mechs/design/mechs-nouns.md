@@ -438,7 +438,18 @@ increasing an encounter's total armored threat.
   it builds one into stores and fits nothing, and is dimmed while the materials are
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
-  has no mount to drop on, so a spare plate is fitted from its row. The fitting
+  has no mount to drop on, so a spare plate is fitted from its row. Internals
+  drag off like weapons (or come off by the X) and leave their socket empty. An
+  engine and a capacitor bank are **required**: a mech missing either is
+  `INCOMPLETE`, a readiness beside damaged and under repair, and stays off the
+  drop manifest until both are fitted; its empty sockets warn on the doll and in
+  the slot list. Plating covers the frame and is only ever replaced. Until a
+  refit, an empty socket reads as the stock part for the engine budget, the
+  lightest real fit, so nothing fitted meanwhile can exceed a budget a refit
+  would honour. The stores filters follow the
+  socket: a weapon mount sorts by hardpoint type, and every other socket offers
+  All and In stock. The whole stores row is the drag handle and the hover target
+  for its spec sheet. The fitting
   view has no call-sign or status bars: a BACK button returns to the lance
   overview, as the Mech Lab tab itself does.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
@@ -1304,9 +1315,12 @@ adds dissipation. A mech's flux and a warship's flux share one gauge on the dire
 HUD. Never call it heat, which reads as a separate mod mechanic.
 
 A weapon component owns its mechanical trigger-to-trigger period and its flux
-reservation. A rotary gun commits its flux round by round instead (0.75 a round
-for the stock chaingun), small enough that a long hold runs the belt dry before it
-vents a single-gun frame, while a Bulwark holding both arm guns still runs hot.
+reservation. A rotary gun commits its flux round by round instead (1.25 a round
+for the stock chaingun). That is enough that even a single-gun frame cannot empty
+its belt in one hold: a stock Hound, venting 6 a second against 15 at full rate,
+reaches its 100-flux cap about 140 rounds into a 200-round belt (owner,
+2026-10-23, after 0.75 let it dump the whole belt with almost no flux). A Bulwark
+holding both arm guns runs hot within seconds.
 SRM-5 loads every 1.8 seconds for a two-rocket packet
 costing 28 flux. Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components

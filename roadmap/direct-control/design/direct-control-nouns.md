@@ -471,9 +471,10 @@ resetting cooldown. A magazine-fed primary spends one round per release from
 the same load its AI fire uses, and an empty load reloads on its own; manual
 fire grants no separate supply. R asks for a reload of a part-spent load (an
 autonomous marine tops up after a short lull instead). A semi-automatic
-magazine fires one round per press of the trigger rather than on a hold; a
-press that lands a moment before the action has cycled stays armed briefly so
-it is not lost, and a reload drops it.
+magazine fires one round per press of the trigger rather than on a hold, and
+under control there is no cycle between rounds: every press with a round loaded
+fires at once, so the player's finger sets the rate of fire (owner,
+2026-10-23). It reloads on its own only when the load runs dry.
 
 A handheld point request is consumed once whether it fires or is held by a gate.
 It requires a live equipped direct primary, a finite noncoincident world bearing,
@@ -545,7 +546,7 @@ cooldown.
 
 A Marine's left button **toggles into a secondary weapon** (owner, 2026-10-23).
 Its list is the primary and then each direct-fire special the Marine carries that
-spends ammunition, rockets before anti-materiel rifles, with no LINKED: one pair
+spends ammunition, rockets before anti-materiel rifles before the flamer, with no LINKED: one pair
 of hands fires one weapon. Q steps through it and wraps to the primary; key 1 is
 the primary and key 2 the special. A picked special is under a **manual
 contract**. Picking it readies it over its authored aim time, and a press then
@@ -563,6 +564,20 @@ picked special** in place of the primary, the launcher on the shoulder or the
 rifle in the hands: raised over the wind-up, through its firing clip for the
 follow-through after a round, and in its aim pose on walking feet while moving.
 Autonomous Marines use their specials through their AI policy as before.
+
+The **flamer is a held stream** rather than a single round. Picked, it readies over
+its aim time like the others; then for as long as the button is held it sends one
+charge of its own fuel each time its cooldown allows, and letting go stops it. Each
+charge flies toward the cursor, pulled in to the flamer's range and kept on the map,
+and stops short of the first wall on its bearing by the structural rule direct fire
+follows (smoke does not stop it); it lands and burns through the same release an
+autonomous flamer uses, with its accuracy scatter. A jet that could land only in the
+Marine's own cell, because the cursor is on the Marine or a wall is at the nozzle, is
+refused without spending fuel. Its row counts fuel as a tank of cells, one a charge,
+and its reticle tick is grey on an empty tank or a refused jet and red past its
+range, where the jet lands short. It has no held art of its own: the Marine stands
+in the primary's aim pose while it is picked and in the primary's firing clip while
+a charge is leaving.
 
 The right button holds the
 Marine's **thrown and utility items** (owner, 2026-10-23): grenades are a throw, not
@@ -583,7 +598,7 @@ list holds at most one throw beside the shield. **The flamer is not a throw**:
 it shares the grenades' arcing activation in data, but it sprays a short flat jet
 (its weapon is not indirect fire) and is aimed and held like a gun, so its manual
 contract belongs to the left button with the direct-fire specials. Items with no
-manual contract (grenade launchers, satchels, the flamer for now) stay autonomous
+manual contract (grenade launchers, satchels) stay autonomous
 and never join the list.
 
 A held rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a

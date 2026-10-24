@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The armor-drop manifest leaves damaged mechs and mechs under repair in their gantries. */
+/** The armor-drop manifest leaves damaged, repairing and incomplete mechs in their gantries. */
 class MechBayDropManifestTest {
 
     @Test void damagedAndRepairingMechsAreHeldBackWithTheirReason() {
@@ -45,6 +47,25 @@ class MechBayDropManifestTest {
         assertEquals(List.of(), bay.activeDeployment(11.9f));
         assertEquals(1, bay.activeDeployment(12f).size());
         assertEquals(List.of(), bay.heldBack(12f));
+    }
+
+    @Test void aMechMissingAnEngineOrCapacitorsStaysOffTheManifestUntilRefitted() {
+        MechBay bay = new MechBay();
+        CampaignMech mech = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
+        MechInternal engine = mech.internal(MechInternal.Role.ENGINE);
+
+        assertTrue(bay.stripInternal(mech.id(), MechInternal.Role.ENGINE));
+        assertTrue(bay.stripInternal(mech.id(), MechInternal.Role.CAPACITOR_BANK));
+
+        assertNull(mech.internal(MechInternal.Role.ENGINE));
+        assertEquals(List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK), mech.missingInternals());
+        assertEquals(List.of(), bay.activeDeployment(0f));
+        assertEquals(CampaignMech.Readiness.INCOMPLETE, bay.heldBack(0f).get(0).reason());
+        assertEquals(1, bay.availableInternal(engine.id));
+
+        assertTrue(bay.installInternal(mech.id(), engine));
+        assertTrue(bay.installInternal(mech.id(), MechInternal.FACTORY_CAPACITOR_BANK));
+        assertEquals(1, bay.activeDeployment(0f).size());
     }
 
     @Test void theManifestCarriesEachMechsCampaignIdentity() {

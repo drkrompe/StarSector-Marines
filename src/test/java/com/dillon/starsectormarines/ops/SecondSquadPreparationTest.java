@@ -52,8 +52,10 @@ class SecondSquadPreparationTest {
     @Test void preparedCompanyNeedsNoExtraSquadAndAcknowledgementSurvivesSave() throws Exception {
         var roster = new MarineRoster();
         for (int i = 0; i < 2; i++) { var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12); }
-        var lesson = SecondSquadPreparation.lesson(junction(), roster, SquadFoundingResources.NONE, false, () -> {});
+        assertNull(SecondSquadPreparation.lesson(junction(), roster, SquadFoundingResources.NONE, false, () -> {}));
+        var lesson = SecondSquadPreparation.lesson(junction(), roster, SquadFoundingResources.NONE, true, () -> {});
         assertTrue(lesson.copy().contains("no need to raise another"));
+        assertFalse(lesson.copy().contains("Short by"));
         roster.acknowledgeSecondSquadPreparation();
         var bytes = new ByteArrayOutputStream();
         try (var out = new ObjectOutputStream(bytes)) { out.writeObject(roster); }

@@ -65,7 +65,7 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
                 CordonSetup.CordonMap cordon = CordonSetup.map(variant, CordonSetup.densityOf(map), biome, entry);
                 try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
-                    return whole.render(sim, head, CordonMapgenSnapshotSuite.annotations(sim, cordon));
+                    return whole.render(sim, head, CordonMapgenSnapshotSuite.annotations(sim));
                 }
             }
             default -> {

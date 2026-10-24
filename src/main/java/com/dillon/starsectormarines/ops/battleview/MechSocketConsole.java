@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -29,6 +31,7 @@ final class MechSocketConsole {
     private static final float SEALED_HEIGHT = 48f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
+    private static final Color MISSING_PLATE = new Color(0x1c, 0x08, 0x08, 214);
 
     private MechSocketConsole() { }
 
@@ -66,14 +69,19 @@ final class MechSocketConsole {
         Color socketTone = HardpointBricks.tone(socket.type());
         boolean empty = installed == null && preview == null && internal == null
                 && !(socket.type() == SocketType.UTILITY && replenisher != null);
+        // An engine or capacitor well left empty keeps the mech off the drop manifest; it warns.
+        boolean missing = empty && !fixed && (socket.id() == SocketId.CORE || socket.id() == SocketId.CAPACITORS);
+        float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
-        plate(c, x, y, w, h, PLATE);
+        plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
         // An empty socket wears its hardpoint colour on the rim, so what it takes reads at a glance.
-        HardpointBricks.rim(c, x, y, w, h, CUT, empty && !fixed ? socketTone
-                : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), 1.2f);
-        c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : socketTone);
+        HardpointBricks.rim(c, x, y, w, h, CUT, missing ? new Color(RED.getRed(), RED.getGreen(), RED.getBlue(),
+                (int) (150 + pulse * 105)) : empty && !fixed ? socketTone
+                : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), missing ? 2f : 1.2f);
+        c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : missing ? RED : socketTone);
         c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 40), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
+        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f);
 
         if (fixed) {
             c.text(Fonts.ORBITRON_12_BOLD, rejected ? "CANNOT FIT" : "SEALED", x + 16, y + HEADER,
@@ -114,6 +122,7 @@ final class MechSocketConsole {
                 }
             }
             String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
+                    : missing ? Strings.get("mechLabSocketRequired")
                     : internal != null ? internal.displayName()
                     : socket.type() == SocketType.UTILITY
                     ? replenisher != null ? replenisher.displayName() : "SELECT TO REFIT"
@@ -121,14 +130,21 @@ final class MechSocketConsole {
                     + socket.gridColumns() + "x" + socket.gridRows();
             c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
                     y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
-                    draggingHere ? accent : empty ? AMBER : SILVER);
+                    draggingHere ? accent : missing ? RED : empty ? AMBER : SILVER);
         }
         if (selected || hovered || compatible || rejected) {
-            float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
             MechLabDollCanvas.drawCornerBrackets(c, x - 2, y - 2, w + 4, h + 4,
                     new Color(accent.getRed(), accent.getGreen(), accent.getBlue(),
                             (int) (180 + pulse * 65)), selected || draggingHere ? 2.4f : 1.4f, 17, 5);
         }
+    }
+
+    /** A red warning triangle with an exclamation mark, 18 px square at its top-left corner. */
+    private static void drawWarningBadge(CanvasContext c, float left, float top) {
+        float size = 18f;
+        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, RED);
+        c.fillRect(left + size * .5f - 1f, top + 6f, 2f, 6f, MISSING_PLATE);
+        c.fillRect(left + size * .5f - 1f, top + 14f, 2f, 2f, MISSING_PLATE);
     }
 
     /** A footprint in the orientation this socket accepts it, clamped to the socket grid. */

@@ -11,74 +11,87 @@ import com.dillon.starsectormarines.battle.command.CommandSquadState;
 import com.dillon.starsectormarines.battle.command.CommandStabilityBreak;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Duty;
+import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Kind;
+import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Squad;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * The company as the mobile reserve ({@code cordon-nouns.md}, Flow): the
- * minimum autonomous Marine commander the evidence needs. The company stands
- * behind the middle of the line; each squad answers the calling redoubt
- * nearest it, and returns to the reserve when no redoubt calls. Posture and
- * strikes are {@code cordon-company-command.md}.
- *
- * <p>The company hears the calls and knows where the redoubts stand; it does
- * not see the swarm beyond what its own squads see.
+ * The company commander ({@code cordon-allied-command.md}, The company commander's rules): stands in for the player
+ * in evidence and decides when to lean on the allies and when to act itself. It hears the allies' radio
+ * ({@link CordonRadio}) and the convoys' and beats' calls, and sees the swarm only through its own squads. The rules
+ * are {@link CordonCompanyRules}; this freezes the picture and issues what they decide. Posture and strikes are
+ * {@code cordon-company-command.md}.
  */
 public final class CordonCommand implements AutonomousMissionCommand<CordonCommand.Frame, String> {
 
     public static final String ISSUER = "cordon-company";
     /** Squads of the reserve stand this far apart along the line. */
-    static final int RESERVE_SPACING = 8;
+    static final int RESERVE_SPACING = CordonCompanyRules.POST_SPACING;
     /** How near the asked-for cell a squad's ground is looked for. */
     private static final int SNAP = 5;
-    /** Squads sent to clear the road ahead of each halted convoy. */
-    static final int ROAD_SQUADS = 2;
-    /** Squads that walk ahead of each convoy past the gap. */
-    static final int ESCORT_SQUADS = 3;
-
-    /** A redoubt as the company knows it: where it is and whether it is calling. */
-    public record Call(int number, int x, int y, boolean calling) { }
 
     public static final class Frame extends CommandFrame {
-        final List<Call> redoubts;
+        final List<CordonRadio> radio;
         /** On the Road, where a halted convoy's road is blocked; empty otherwise. */
         final List<int[]> roadBlocks;
         /** On the Road, where each convoy on the road no allied armour is with wants its escort; empty otherwise. */
         final List<int[]> escorts;
-        Frame(CommandFrame base, List<Call> redoubts, List<int[]> roadBlocks, List<int[]> escorts) {
+        /** Where the battle's optional objectives want squads, {x, y, squads}; empty without any. */
+        final List<int[]> beats;
+        /** The base's apron while the swarm is on it, else {@code null}. */
+        final int[] baseOverrun;
+        final boolean tide;
+
+        Frame(CommandFrame base, List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> escorts,
+              List<int[]> beats, int[] baseOverrun, boolean tide) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
-            this.redoubts = redoubts;
+            this.radio = radio;
             this.roadBlocks = roadBlocks;
             this.escorts = escorts;
+            this.beats = beats;
+            this.baseOverrun = baseOverrun;
+            this.tide = tide;
         }
     }
 
-    /** What the company is told each frame: the redoubts and their calls. */
+    /** What the company is told each frame: the radio, the road's and the beats' calls, the base, the tide. */
     public static CommandFrameDisclosure<Frame> disclosure(CordonSequence sequence) {
         return (view, faction, topology, assignments) -> {
             CommandFrame base = CommandFrame.freeze(view, faction, topology, assignments);
-            List<Call> calls = new ArrayList<>();
+            BattleSimulation sim = view instanceof BattleSimulation s ? s : null;
+            List<CordonRadio> radio = new ArrayList<>();
             for (CordonRedoubt r : sequence.redoubts()) {
-                calls.add(new Call(r.number(), r.centreX(), r.centreY(), r.state() == CordonRedoubt.State.CALLING));
+                int standing = sim == null ? r.garrison() : CordonSequence.standing(sim, r);
+                // Uncovered and help coming are the allied line command's to say; not wired yet.
+                radio.add(CordonRadio.report(r.number(), r.centreX(), r.centreY(), r.manned(), r.swarmInside(),
+                        standing, r.garrison(), r.quietTicks(base.tick()), false, false));
             }
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
-            List<int[]> escorts = sequence.convoys() == null || !(view instanceof BattleSimulation sim)
-                    ? List.of() : sequence.convoys().unguarded(sim);
-            return new Frame(base, List.copyOf(calls), blocks, escorts);
+            List<int[]> escorts = sequence.convoys() == null || sim == null ? List.of() : sequence.convoys().unguarded(sim);
+            List<int[]> beats = sequence.beats() == null || sim == null ? List.of() : sequence.beats().calls(sim);
+            CordonLogistics logistics = sequence.logistics();
+            int[] overrun = logistics == null || sim == null || logistics.dispatchCell(sim) != null ? null
+                    : new int[]{logistics.musterX(), logistics.musterY()};
+            return new Frame(base, List.copyOf(radio), blocks, escorts, beats, overrun, sequence.inTide());
         };
     }
 
     private final int reserveX, reserveY;
+    private final CordonPlan.Density density;
+    /** The duty each squad was last given, by key, so it keeps it while it stands. */
+    private final Map<Integer, String> onDuty = new HashMap<>();
 
-    public CordonCommand(int reserveX, int reserveY) {
+    public CordonCommand(int reserveX, int reserveY, CordonPlan.Density density) {
         this.reserveX = reserveX;
         this.reserveY = reserveY;
+        this.density = density;
     }
 
     @Override public Faction faction() { return Faction.MARINE; }
@@ -95,32 +108,36 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             else proposals.add(CommandProposal.retain(squad.squadId(), CommandAuthority.MISSION_COMMAND,
                     "EXTERNAL_OWNERSHIP_PRESERVED"));
         }
-        int calling = 0;
-        for (Call call : frame.redoubts) if (call.calling()) calling++;
-        String phase = !frame.roadBlocks.isEmpty() ? "CLEARING_ROAD" : !frame.escorts.isEmpty() ? "ESCORTING"
-                : calling > 0 ? "ANSWERING_CALLS" : "RESERVE";
-        // The convoys first: the nearest squads clear the road ahead of a halted one, and walk ahead
-        // of one on the road past the gap.
-        Map<Integer, int[]> roadDuty = new HashMap<>();
-        for (int[] block : frame.roadBlocks) take(owned, roadDuty, block, ROAD_SQUADS);
-        for (int[] escort : frame.escorts) take(owned, roadDuty, escort, ESCORT_SQUADS);
-        for (int i = 0; i < owned.size(); i++) {
-            CommandSquadState squad = owned.get(i);
-            Call answer = nearestCall(frame.redoubts, squad.centroidX(), squad.centroidY());
-            int[] road = roadDuty.get(squad.squadId());
+        // The base feeds the line where its carriers and shed do; a city's walking columns do not need it saved.
+        int[] base = density == CordonPlan.Density.URBAN ? null : frame.baseOverrun;
+        List<Duty> duties = CordonCompanyRules.duties(frame.radio, frame.roadBlocks, frame.escorts, frame.beats, base);
+        List<Squad> squads = new ArrayList<>();
+        for (CommandSquadState s : owned) {
+            squads.add(new Squad(s.squadId(), s.centroidX(), s.centroidY(), onDuty.get(s.squadId())));
+        }
+        Map<Integer, Duty> assigned = CordonCompanyRules.assign(duties, squads,
+                CordonCompanyRules.reserveFloor(owned.size(), frame.tide));
+        onDuty.clear();
+        for (Map.Entry<Integer, Duty> e : assigned.entrySet()) onDuty.put(e.getKey(), e.getValue().key());
+
+        List<int[]> line = new ArrayList<>();
+        for (CordonRadio r : frame.radio) line.add(new int[]{r.x(), r.y()});
+        List<CommandSquadState> waiting = new ArrayList<>();
+        for (CommandSquadState s : owned) if (!assigned.containsKey(s.squadId())) waiting.add(s);
+        List<int[]> posts = CordonCompanyRules.reservePosts(density, line, reserveX, reserveY, waiting.size(), frame.tide);
+
+        String phase = phase(assigned);
+        for (CommandSquadState squad : owned) {
+            Duty duty = assigned.get(squad.squadId());
             ObjectiveAssignment next;
             String reason;
-            if (road != null) {
-                int[] cell = ground(frame, squad, road[0], road[1]);
+            if (duty != null) {
+                int[] cell = ground(frame, squad, duty.x(), duty.y());
                 next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
-                reason = "CORDON_CLEAR_ROAD";
-            } else if (answer != null) {
-                int[] cell = ground(frame, squad, answer.x(), answer.y());
-                next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
-                reason = "CORDON_RELIEVE_" + answer.number();
+                reason = "CORDON_" + duty.kind() + "_" + duty.key();
             } else {
-                int offset = (i - (owned.size() - 1) / 2) * RESERVE_SPACING;
-                int[] cell = ground(frame, squad, reserveX + offset, reserveY);
+                int[] post = posts.get(waiting.indexOf(squad));
+                int[] cell = ground(frame, squad, post[0], post[1]);
                 next = ObjectiveAssignment.defendArea(squad.squadId(), cell[0], cell[1], SNAP);
                 reason = "CORDON_RESERVE";
             }
@@ -135,12 +152,19 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
                 List.of(phase), proposals, phase);
     }
 
-    /** Gives the {@code count} nearest squads not yet on the road to a place on it. */
-    private static void take(List<CommandSquadState> owned, Map<Integer, int[]> duty, int[] at, int count) {
-        List<CommandSquadState> free = new ArrayList<>();
-        for (CommandSquadState s : owned) if (!duty.containsKey(s.squadId())) free.add(s);
-        free.sort(Comparator.comparingDouble(s -> Math.hypot(s.centroidX() - at[0], s.centroidY() - at[1])));
-        for (int k = 0; k < Math.min(count, free.size()); k++) duty.put(free.get(k).squadId(), at);
+    /** The most urgent duty anyone is on names the phase. */
+    static String phase(Map<Integer, Duty> assigned) {
+        Kind top = null;
+        for (Duty d : assigned.values()) if (top == null || d.kind().ordinal() < top.ordinal()) top = d.kind();
+        if (top == null) return "RESERVE";
+        return switch (top) {
+            case ROAD_BLOCK -> "CLEARING_ROAD";
+            case CONVOY -> "ESCORTING";
+            case BREACHED, BLED -> "ANSWERING_CALLS";
+            case UNCOVERED -> "COVERING";
+            case BEAT -> "OBJECTIVES";
+            case BASE -> "BASE";
+        };
     }
 
     private boolean owned(CommandDirective directive, int tick) {
@@ -148,20 +172,6 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         return directive.authority() == CommandAuthority.MISSION_COMMAND && ISSUER.equals(directive.issuer())
                 || directive.authority() == CommandAuthority.PLAYER_INTERVENTION
                 && directive.leaseUntilTick() >= 0 && directive.leaseUntilTick() < tick;
-    }
-
-    private static Call nearestCall(List<Call> calls, float x, float y) {
-        Call best = null;
-        double bestDistance = Double.MAX_VALUE;
-        for (Call call : calls) {
-            if (!call.calling()) continue;
-            double distance = Math.hypot(call.x() - x, call.y() - y);
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                best = call;
-            }
-        }
-        return best;
     }
 
     /** The reachable open cell nearest the one asked for, or the squad's own ground. */

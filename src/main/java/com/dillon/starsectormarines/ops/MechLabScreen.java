@@ -381,6 +381,14 @@ public final class MechLabScreen implements Screen {
             beginWeaponDrag(event, component, socket);
             return;
         }
+        MechInternal internal = socket != null ? viewModel.installedInternal(socket) : null;
+        if (internal != null) {
+            weaponDrag = new WeaponDrag(null, internal, null, socket, event.x(), event.y());
+            weaponDragMoved = false;
+            event.capturePointer();
+            event.preventDefault();
+            return;
+        }
         if (socket != null) {
             viewModel.selectSocket(socket);
             document.canvases().invalidate(dollElement);
@@ -455,8 +463,9 @@ public final class MechLabScreen implements Screen {
         document.canvases().invalidate(ghostElement);
         CanvasPoint point = canvasPoint(event);
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
+        // An installed internal has only its own socket; it can go back to stores and nowhere else.
         boolean valid = target != null && (drag.source() != null
-                ? viewModel.canMoveInstalledWeapon(drag.source(), target)
+                ? drag.component() != null && viewModel.canMoveInstalledWeapon(drag.source(), target)
                 : drag.component() != null ? viewModel.canDropCatalogWeapon(drag.component(), target)
                 : drag.internal() != null ? viewModel.canDropCatalogInternal(drag.internal(), target)
                 : viewModel.canDropCatalogLoader(drag.loader(), target));
@@ -480,6 +489,10 @@ public final class MechLabScreen implements Screen {
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
         if (!weaponDragMoved) {
             if (drag.source() != null) viewModel.selectSocket(drag.source());
+        } else if (drag.source() != null && drag.component() == null) {
+            if (overInventory(event)) viewModel.removeInstalledInternal(drag.source());
+            else if (target == drag.source()) viewModel.selectSocket(target);
+            else viewModel.cancelWeaponDrag();
         } else if (target != null && target != drag.source()) {
             if (drag.source() == null) {
                 if (drag.component() != null) viewModel.dropCatalogWeapon(drag.component(), target);
