@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneResistance;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctAllowance;
@@ -49,9 +50,11 @@ public final class PrecinctSkeletonStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
         CellTopology topology = ctx.topology;
+        List<KnollGround.Resolved> knolls = FortReservations.knolls(ctx, plan);
         GrownTrunkPlan.Grown grown =
                 GrownTrunkPlan.grow(ctx.width, ctx.height, ctx.rng, plan.seeds(),
-                        FortReservations.keepClear(ctx, plan));
+                        FortReservations.keepClear(ctx, plan), KnollGround.bounds(knolls, plan.precincts().size()),
+                        FortReservations.sealed(ctx, plan));
 
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);
@@ -60,6 +63,8 @@ public final class PrecinctSkeletonStage implements GenStage {
 
         // A mission that sited its forts as barriers keeps open ground for them, before the town has grown into it.
         FortReservations.release(ctx, plan, claim);
+        // Sealed ground and the knolls are kept off whatever else the landscape says, and a knoll's place keeps to its top.
+        FortReservations.releaseBarred(ctx, plan, claim);
 
         // Growth does not stop at a claim, so a place throws a street network
         // across the country around it: measured on a remote map, two thirds of
@@ -67,6 +72,15 @@ public final class PrecinctSkeletonStage implements GenStage {
         // What survives out there is what carries a place off the map, because
         // that is what a road in open country is for.
         PrecinctHighways.prune(grown.owner(), claim, ctx.width, ctx.height);
+
+        // A place on a knoll leaves it by its gates, straight across the ring, so the terrace ramps each one down.
+        for (KnollGround.Resolved knoll : knolls) {
+            Precinct place = knoll.stands() ? plan.precincts().get(knoll.place()) : null;
+            if (place != null) {
+                KnollGround.carveGates(grown.owner(), knoll, place.seedX(), place.seedY(), ctx.width, ctx.height);
+            }
+        }
+        boolean[][] weldBlocked = FortReservations.weldBlocked(ctx, plan);
 
         // A walled place owes a way out, and growth does not always leave one.
         // Do this after highway pruning: pruning may erase the exterior end
@@ -87,16 +101,16 @@ public final class PrecinctSkeletonStage implements GenStage {
         // Measured over four derived maps, three came out whole and one came
         // out in three pieces, which is the kind of intermittent structural
         // fault that has to be solved for rather than hoped about.
-        PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height);
+        PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
 
         // An open-field landing's country is surveyed, not grown.
-        RuralLayout rural = survey(plan, grown, ctx);
+        RuralLayout rural = survey(plan, grown, ctx, weldBlocked);
         if (rural != null) ctx.put(BspKeys.RURAL_LAYOUT, rural);
 
         // The roads the mission's layout asks for, carved into the network as any grown arm is, so its gates, its
         // paving and the road graph come from the stages that do that for every road.
         List<Laid> layoutRoads = LayoutRoads.carve(plan, claim, grown.owner(), rural,
-                ctx.width, ctx.height);
+                ctx.width, ctx.height, FortReservations.barred(ctx, plan));
         if (!layoutRoads.isEmpty()) ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
 
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;
@@ -139,7 +153,8 @@ public final class PrecinctSkeletonStage implements GenStage {
      * reaches it, so a town that was one network through its country is one
      * network still, and the weld is asked again only to make sure of it.
      */
-    private static RuralLayout survey(PrecinctPlan plan, GrownTrunkPlan.Grown grown, GenContext ctx) {
+    private static RuralLayout survey(PrecinctPlan plan, GrownTrunkPlan.Grown grown, GenContext ctx,
+                                      boolean[][] weldBlocked) {
         FieldOfFire field = FieldOfFire.of(plan);
         if (field == null) return null;
         int landing = plan.precincts().indexOf(plan.landingPlace());
@@ -163,7 +178,7 @@ public final class PrecinctSkeletonStage implements GenStage {
                 if (!perimeter) road[x][y] = traffic;
             }
         }
-        PrecinctInterconnect.weld(owner, ctx.width, ctx.height);
+        PrecinctInterconnect.weld(owner, ctx.width, ctx.height, weldBlocked);
         return rural;
     }
 

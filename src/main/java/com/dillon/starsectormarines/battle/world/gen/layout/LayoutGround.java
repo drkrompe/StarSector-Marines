@@ -64,6 +64,16 @@ public final class LayoutGround {
         return claim[x][y] != GrownTrunkPlan.UNOWNED;
     }
 
+    /**
+     * Whether the landscape held the cell before the places grew: a held or sealed ridge's ground, a terrace's
+     * kept ground or a knoll's ring ({@code elevation-nouns.md}, Held ground). A deferred piece that keeps off it
+     * leaves the ridge raised there unbroken.
+     */
+    public boolean isHeld(int x, int y) {
+        boolean[][] held = ctx.get(BspKeys.HELD_GROUND);
+        return held != null && x >= 0 && y >= 0 && x < ctx.width && y < ctx.height && held[x][y];
+    }
+
     public boolean walkable(int x, int y) {
         return ctx.grid.inBounds(x, y) && ctx.grid.isWalkable(x, y);
     }

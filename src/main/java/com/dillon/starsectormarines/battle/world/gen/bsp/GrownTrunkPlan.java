@@ -256,6 +256,19 @@ public final class GrownTrunkPlan {
      * it stops at its edge. It draws no random numbers of its own, so a map with none is the map it always was.
      */
     public static Grown grow(int width, int height, Random rng, List<Seed> seeds, boolean[][] keepClear) {
+        return grow(width, height, rng, seeds, keepClear, null, null);
+    }
+
+    /**
+     * As above, with growth bounds and sealed ground ({@code elevation-nouns.md}, Knolls and Sealed ground).
+     * {@code bounds}, indexed by seed (or null for none), gives a seed's top as {@code {x0, y0, x1, y1, ring}}: that
+     * seed's arms stay inside the top, whole bands and all, and no other seed's arm enters the top or the ring round
+     * it. {@code sealed} (or null) is ground the road off the map does not cross while another way off is open; the
+     * arms keep off it through {@code keepClear}. Neither draws a random number, so with both null the map is the
+     * map it always was.
+     */
+    public static Grown grow(int width, int height, Random rng, List<Seed> seeds, boolean[][] keepClear,
+                             int[][] bounds, boolean[][] sealed) {
         if (seeds.isEmpty()) throw new IllegalArgumentException("nothing to grow");
         Profile profile = seeds.get(0).profile();
         boolean[][] road = new boolean[width][height];
@@ -295,7 +308,8 @@ public final class GrownTrunkPlan {
             for (int d = 0; d < 4; d++) {
                 if (!dirs[d]) continue;
                 int drawn = lenLo + rng.nextInt(lenHi - lenLo + 1);
-                Arm arm = walkArm(road, width, height, j.x, j.y, d, drawn, kind.width, keepClear);
+                Arm arm = walkArm(road, width, height, j.x, j.y, d, drawn, kind.width, keepClear,
+                        bounds == null ? null : bounds[j.owner], bounds, j.owner);
                 if (arm == null) continue;
                 paintBand(road, arm.rect);
                 paintBand(bands, arm.rect);
@@ -313,8 +327,10 @@ public final class GrownTrunkPlan {
             }
         }
 
-        if (profile.link == SettlementLink.ROAD && !anySegmentLeavesMap(trunks, width, height)) {
-            linkOffMap(road, bands, trunks, seedX, seedY, width, height, rng);
+        // A seed on a knoll leaves by its gates, which are cut once the places have claimed their ground.
+        boolean bounded = bounds != null && bounds[0] != null;
+        if (profile.link == SettlementLink.ROAD && !bounded && !anySegmentLeavesMap(trunks, width, height)) {
+            linkOffMap(road, bands, trunks, seedX, seedY, width, height, rng, sealed);
         }
 
         List<SubRect> subRects = new ArrayList<>();
@@ -369,7 +385,8 @@ public final class GrownTrunkPlan {
      * gets that far — see the class note on perimeter exits.
      */
     private static Arm walkArm(boolean[][] road, int w, int h, int cx, int cy,
-                               int dir, int drawn, int bandWidth, boolean[][] keepClear) {
+                               int dir, int drawn, int bandWidth, boolean[][] keepClear,
+                               int[] top, int[][] bounds, int self) {
         int hw = bandWidth / 2;
         int steps = 0;
         int x = cx, y = cy;
@@ -384,6 +401,10 @@ public final class GrownTrunkPlan {
                 break;
             }
             if (keepClear != null && keepClear[nx][ny]) {
+                ranFull = false;
+                break;
+            }
+            if (bounds != null && !withinBounds(top, bounds, self, nx, ny, hw)) {
                 ranFull = false;
                 break;
             }
@@ -408,6 +429,21 @@ public final class GrownTrunkPlan {
         x1 = Math.min(w - 1, x1); y1 = Math.min(h - 1, y1);
         if (x1 - x0 + 1 < MIN_SUBRECT_DIM && y1 - y0 + 1 < MIN_SUBRECT_DIM) return null;
         return new Arm(new SubRect(x0, y0, x1, y1), x, y, ranFull);
+    }
+
+    /**
+     * Whether a band {@code hw} cells either side of an arm's centreline at {@code (x, y)} keeps to the bounds: wholly
+     * inside its own seed's top, when it has one, and clear of every other seed's top and ring.
+     */
+    static boolean withinBounds(int[] top, int[][] bounds, int self, int x, int y, int hw) {
+        if (top != null && (x < top[0] + hw || x > top[2] - hw || y < top[1] + hw || y > top[3] - hw)) return false;
+        for (int i = 0; i < bounds.length; i++) {
+            int[] b = bounds[i];
+            if (i == self || b == null) continue;
+            int r = b[4] + hw;
+            if (x >= b[0] - r && x <= b[2] + r && y >= b[1] - r && y <= b[3] + r) return false;
+        }
+        return true;
     }
 
     /**
@@ -485,11 +521,23 @@ public final class GrownTrunkPlan {
      * centreline of any depth.
      */
     private static void linkOffMap(boolean[][] road, boolean[][] bands, List<TrunkSegment> trunks,
-                                   int cx, int cy, int w, int h, Random rng) {
+                                   int cx, int cy, int w, int h, Random rng, boolean[][] sealed) {
         int hw = TrunkKind.PRIMARY.width / 2;
         int distW = cx, distE = w - 1 - cx, distS = cy, distN = h - 1 - cy;
         int min = Math.min(Math.min(distW, distE), Math.min(distS, distN));
         int dir = (min == distE) ? DIR_E : (min == distW) ? DIR_W : (min == distN) ? DIR_N : DIR_S;
+        if (sealed != null) {
+            // The nearest edge whose road out does not cross sealed ground; the nearest of all when every one does.
+            int[] order = {DIR_E, DIR_W, DIR_N, DIR_S};
+            int[] dist = {distE, distW, distN, distS};
+            int best = Integer.MAX_VALUE;
+            for (int k = 0; k < order.length; k++) {
+                if (dist[k] < best && !crossesSealed(runOut(order[k], cx, cy, cy, cx, hw, w, h), sealed)) {
+                    best = dist[k];
+                    dir = order[k];
+                }
+            }
+        }
 
         boolean horizontal = (dir == DIR_E || dir == DIR_W);
         int span = horizontal ? h : w;
@@ -500,24 +548,40 @@ public final class GrownTrunkPlan {
             int reach = Math.max(1, span / 6);
             bend = clamp(here - reach + rng.nextInt(2 * reach + 1), lo, hi);
         }
+        if (sealed != null && bend != here && (crossesSealed(connector(horizontal, here, bend, cx, cy, hw, span), sealed)
+                || crossesSealed(runOut(dir, cx, cy, bend, bend, hw, w, h), sealed))) {
+            bend = here;
+        }
 
         // The connector along the other axis, when the bend actually moved.
         if (bend != here) {
-            int runLo = Math.max(0, Math.min(here, bend) - hw);
-            int runHi = Math.min(span - 1, Math.max(here, bend) + hw);
-            SubRect connector = horizontal
-                    ? new SubRect(cx - hw, runLo, cx + hw, runHi)
-                    : new SubRect(runLo, cy - hw, runHi, cy + hw);
-            emit(road, bands, trunks, clampRect(connector, w, h), !horizontal);
+            emit(road, bands, trunks, clampRect(connector(horizontal, here, bend, cx, cy, hw, span), w, h), !horizontal);
         }
 
         // The run out to the edge, on the bend's line.
-        SubRect out;
-        if (dir == DIR_E)      out = new SubRect(cx - hw, bend - hw, w - 1,   bend + hw);
-        else if (dir == DIR_W) out = new SubRect(0,       bend - hw, cx + hw, bend + hw);
-        else if (dir == DIR_N) out = new SubRect(bend - hw, cy - hw, bend + hw, h - 1);
-        else                   out = new SubRect(bend - hw, 0,       bend + hw, cy + hw);
-        emit(road, bands, trunks, clampRect(out, w, h), horizontal);
+        emit(road, bands, trunks, clampRect(runOut(dir, cx, cy, bend, bend, hw, w, h), w, h), horizontal);
+    }
+
+    /** The road from the seed's bend out to the edge {@code dir} names, on the bend's line. */
+    private static SubRect runOut(int dir, int cx, int cy, int bendY, int bendX, int hw, int w, int h) {
+        if (dir == DIR_E)      return new SubRect(cx - hw, bendY - hw, w - 1,   bendY + hw);
+        if (dir == DIR_W)      return new SubRect(0,       bendY - hw, cx + hw, bendY + hw);
+        if (dir == DIR_N)      return new SubRect(bendX - hw, cy - hw, bendX + hw, h - 1);
+        return new SubRect(bendX - hw, 0, bendX + hw, cy + hw);
+    }
+
+    /** The road along the other axis from the seed's line to the bend's. */
+    private static SubRect connector(boolean horizontal, int here, int bend, int cx, int cy, int hw, int span) {
+        int runLo = Math.max(0, Math.min(here, bend) - hw);
+        int runHi = Math.min(span - 1, Math.max(here, bend) + hw);
+        return horizontal ? new SubRect(cx - hw, runLo, cx + hw, runHi) : new SubRect(runLo, cy - hw, runHi, cy + hw);
+    }
+
+    private static boolean crossesSealed(SubRect r, boolean[][] sealed) {
+        for (int x = Math.max(0, r.x0); x <= Math.min(sealed.length - 1, r.x1); x++) {
+            for (int y = Math.max(0, r.y0); y <= Math.min(sealed[x].length - 1, r.y1); y++) if (sealed[x][y]) return true;
+        }
+        return false;
     }
 
     private static void emit(boolean[][] road, boolean[][] bands, List<TrunkSegment> trunks,

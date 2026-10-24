@@ -76,7 +76,12 @@ optional (reported, and the map stands).
   roads ramped down, which the band runs on into rather than breaking at.
   Each is reported as a ground piece of its own under its name (its box's
   corners, its ramps' feet as the ways up), and a required one that cannot
-  stand fails the layout check like any required piece.
+  stand fails the layout check like any required piece. A landscape's knolls
+  (`elevation-nouns.md`, Knolls) are terraces raised in the same stamp and
+  reported the same way, and a plan with a knoll runs the works phase even
+  when its layout is empty. A deferred piece can ask whether the landscape
+  held a cell before the places grew (`LayoutGround.isHeld`), to keep a site
+  off a ridge it would otherwise break.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,
