@@ -11,7 +11,8 @@ package com.dillon.starsectormarines.battle.turret;
  * Diktat's {@link #EXPORT} panels or {@link #BLOCKWORK}; high-tech grows {@link #COMPOSITE} field-emitter shells or
  * drops {@link #DEPLOYED} kit. {@link #DERELICT} is old works, outside the families.
  *
- * <p>Presentation only, as a tech family is: no rule reads it.
+ * <p>Presentation, as a tech family is, with one exception: a look may fit its structure's flux shield
+ * ({@link StructureLook#shield}), which a battle reads.
  */
 public enum EmplacementStyle {
     /** Low-tech, prepared: poured concrete collars and plinths, olive cast heads. */
@@ -30,7 +31,7 @@ public enum EmplacementStyle {
     BLOCKWORK("blockwork", true),
     /**
      * High-tech, prepared: pearl-grey hex-armoured composite with glass canopies and blue field-projector rings, each
-     * gun under a light flux shield (drawn, not simulated).
+     * hardpoint under a directional flux shield ({@link StructureLook#shield}).
      */
     COMPOSITE("composite", false),
     /** High-tech, militia: the same pods on folding pylons and pads behind hard-light barrier panes. */
