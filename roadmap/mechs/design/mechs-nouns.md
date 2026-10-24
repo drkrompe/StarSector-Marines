@@ -475,7 +475,11 @@ increasing an encounter's total armored threat.
   missile green, ballistic yellow, omni grey. The frame's own mounts have their
   own colours: the engine socket blue and the auxiliary compartment steel; an
   engine is a blue piece, a capacitor bank flux violet, and a vent array or
-  missile loader utility teal, each a brick piece like any weapon. Size reads from shape, not text: every
+  missile loader utility teal, each a brick piece like any weapon. Every machine's
+  doll has its engine as the blue card in the centre, wired to the rest: a mech's
+  engine core, a vehicle's sealed engine, a boat's drive. A part another machine
+  already has is drawn with that machine's icon (a vehicle's heavy MG is the boat
+  door gun, its cannon the mech's). Size reads from shape, not text: every
   grid cell is a chamfered brick narrower than it is tall, and a footprint is its
   bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. On the doll
   every brick is the same size, so a socket's card grows with its capacity and a

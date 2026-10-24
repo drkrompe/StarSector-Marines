@@ -54,7 +54,7 @@
         <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
       </div>
     </div>
-    <div id="{tile.descriptionId}" class="spec-sheet-note loadout-card-lore" style="{tile.descriptionStyle}">{tile.description}</div>
+    <div id="{tile.descriptionId}" class="spec-sheet-note loadout-card-lore">{tile.description}</div>
     <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
   </button>
 </template>

@@ -307,6 +307,34 @@
       "audio": { "loopSound": "laser_loop" }
     },
     {
+      "id": "weapon.hardpoint-pd-laser",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponHardpointPdLaserDisplayName", "modelName": "@gearCatalogWeaponHardpointPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "sim": {
+        "tracksFliers": true,
+        "range": 26.0, "damage": 7.0, "accuracy": 0.7, "cooldown": 1.5, "penetration": 2.0,
+        "burstCount": 10, "burstSpacing": 0.1, "hitSpread": 0.25,
+        "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": { "coreWidthPx": 2.2, "glowColor": "E01A12", "glowWidthPx": 11.0, "lifetimeSec": 0.105,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 } },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "loopSound": "laser_loop" }
+    },
+    {
       "id": "weapon.post-pd-laser",
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponPostPdLaserDisplayName", "modelName": "@gearCatalogWeaponPostPdLaserModelName", "designation": "PDL", "designationTiered": false },

@@ -270,6 +270,10 @@ public final class FleetArmoryViewModel {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         return squad != null ? squad.name() : Strings.get("openingFleetArmorySquad");
     }
+    /** The page header's path to this squad's issue; it stands in for the breadcrumb the screen once drew. */
+    public String issueContextLabel() {
+        return Strings.format("openingFleetArmoryIssueContext", selectedSquadName().toUpperCase(Locale.ROOT));
+    }
     public SquadEquipmentPreview currentSquadEquipmentPreview() {
         return squadEquipmentPreview.get();
     }
@@ -1615,27 +1619,16 @@ public final class FleetArmoryViewModel {
          * item by its style, not by its content, so the card says how tall it is. The
          * height is the content box: the card's padding and border sit outside it.
          */
+        /**
+         * A compact card's height, which First Refit lines its option tabs up against. A whole
+         * card names none: it is a content-sized column, so its field note measures in the
+         * real face instead of from a character estimate that clipped the longer notes.
+         */
         private int cardHeight() {
-            int height = 38                                       // heading
+            return 38                                              // heading
                     + (stamp == null ? 0 : restricted() ? 52 : 30)  // stamp, with the banner
                     + 29                                           // rating meter
                     + (seats.isEmpty() ? 48 * ((distributionSpans.size() + 1) / 2) : 146);
-            if (compact) return height;
-            height += 24 + 24                              // section and issued lines
-                    + (carriesShown() ? 24 : 0)
-                    + loreHeight() + 6                             // field note
-                    + (issue != null && !issueReason.isEmpty() ? 26 : 0);
-            return height;
-        }
-
-        /**
-         * The field note's height, from its length: a 15px line holds about 66 characters
-         * of the body face across the card, allowing for words that wrap early. A fixed box
-         * clipped the longer notes (Reliquary's runs to four lines).
-         */
-        private int loreHeight() {
-            int length = description == null ? 0 : description.length();
-            return Math.max(1, (length + 65) / 66) * 15 + 4;
         }
 
         private List<Map<String, Object>> seatTeams() {
@@ -1729,7 +1722,7 @@ public final class FleetArmoryViewModel {
                 case "classes" -> classes;
                 case "cardClasses" -> "spec-card spec-sheet-" + accent()
                         + (classes.contains(" selected") ? " selected" : "");
-                case "cardStyle" -> "height: " + cardHeight() + "px;";
+                case "cardStyle" -> compact ? "height: " + cardHeight() + "px;" : "";
                 case "headingCopyId" -> id + ":heading-copy";
                 case "crestClasses" -> factionLogo == null || factionLogo.isBlank()
                         ? "spec-sheet-crest spec-sheet-crest-absent" : "spec-sheet-crest spec-card-crest";
@@ -1773,7 +1766,6 @@ public final class FleetArmoryViewModel {
                 case "factionLogo" -> factionLogo;
                 case "metadata" -> metadata;
                 case "description" -> description;
-                case "descriptionStyle" -> "height: " + loreHeight() + "px;";
                 case "composition" -> composition;
                 case "compositionLine" -> Strings.format("squadDoctrineSectionLine", composition);
                 case "distributionLine" -> Strings.format("squadDoctrineIssuedLine", distribution);

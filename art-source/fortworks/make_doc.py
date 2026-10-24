@@ -51,6 +51,15 @@ def opaque_box(alpha, x0, y0, x1, y1):
     return [int(x0 + xs.min()), int(y0 + ys.min()), int(x0 + xs.max() + 1), int(y0 + ys.max() + 1)]
 
 
+def ring_box(alpha):
+    """The barricade ring's box. The guide's ring is square, and the region it is measured in reaches down to the wall
+    tiles' top edge: a raw whose wall tiles came back a little high had its ring measured 60 pixels too tall, so every
+    lower-row cut slid up and the south piece carried a sliver of the wall tile under it. Its height is its width."""
+    box = opaque_box(alpha, 976, 0, 1536, 600)
+    box[3] = min(box[3], box[1] + (box[2] - box[0]))
+    return box
+
+
 def runs(alpha, x0, y0, x1, y1):
     """The four column spans and four row spans of the wall tiles' 4x4 grid inside the region, from the transparent
     gutters between them: each span is the (start, end) of a run of columns or rows that hold opaque pixels."""
@@ -84,7 +93,7 @@ def document(look, style, raw, state=None):
     intact = HERE / 'raw' / (look + '.raw.png')
     alpha = np.array(Image.open(intact).convert('RGBA'))[:, :, 3]
     plate = grid(opaque_box(alpha, 0, 0, 976, 1024), 5)
-    ring = grid(opaque_box(alpha, 976, 0, 1536, 600), 3)
+    ring = grid(ring_box(alpha), 3)
     prefix = '' if state is None else state + '-'
     gone = state == 'destroyed'
     entries = []

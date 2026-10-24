@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.marine.MechCompartment;
-import com.dillon.starsectormarines.marine.MechFabricationCatalog;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
@@ -51,8 +50,6 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     public void draw(CanvasContext context) {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
-        float inset = Math.max(4f, Math.min(width, height) * 0.07f);
-        float gap = Math.max(2f, Math.min(width, height) * 0.025f);
         context.fillRect(0f, 0f, width, height, BACKGROUND);
 
         SocketDef definition = socket.get();
@@ -65,11 +62,9 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         int gridRows = definition != null ? definition.gridRows()
                 : component != null ? component.footprintRows
                 : part != null ? part.footprintRows : 1;
-        // A part in the stores shares one brick size with every other part, as on the board,
-        // so a 1x1 reads smaller than a 2x3 rather than as fatter bricks; a socket fills its row.
-        int[] scale = definition == null ? largestPart() : new int[]{gridColumns, gridRows};
-        HardpointBricks.Layout layout = HardpointBricks.fitAtScaleOf(inset, inset,
-                width - inset * 2f, height - inset * 2f, gridColumns, gridRows, scale[0], scale[1], gap);
+        // The board's own brick: a part or socket is the same size here as on the doll.
+        HardpointBricks.Layout layout = HardpointBricks.centred(0f, 0f, width, height,
+                gridColumns, gridRows, context.metrics());
 
         // A fitted weapon fills its socket; an internal fills its own footprint.
         Color tone = component != null ? HardpointBricks.tone(component.hardpointType)
@@ -105,25 +100,6 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         }
         drawEquipment(context, component, layout);
     }
-
-    /** Columns and rows of the largest part the stores carry: the scale every stores picture shares. */
-    private static int[] largestPart() {
-        int[] largest = LARGEST_PART;
-        if (largest != null) return largest;
-        int columns = 1, rows = 1;
-        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
-            columns = Math.max(columns, recipe.component().footprintColumns);
-            rows = Math.max(rows, recipe.component().footprintRows);
-        }
-        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
-            columns = Math.max(columns, recipe.internal().footprintColumns);
-            rows = Math.max(rows, recipe.internal().footprintRows);
-        }
-        LARGEST_PART = largest = new int[]{columns, rows};
-        return largest;
-    }
-
-    private static volatile int[] LARGEST_PART;
 
     record GridMetrics(int columns, int rows, float cellWidth, float cellHeight) {}
 

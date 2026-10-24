@@ -53,6 +53,16 @@ class RoofTilesTest {
     }
 
     @Test
+    void anExteriorDoorsEaveStopsShortAtItsLeafWithItsOwnTrim() {
+        CellTopology t = room();
+        t.setWall(3, 5, false);
+        List<Quad> quads = resolve(t, 3, 5, RoofStyle.CLAY, 0);
+        assertEquals(new Quad(RoofTiles.fieldColumn(3, 5, 0), 0, 0, 0f, 0f, 1f, RoofCover.DOOR_EAVE_DEPTH),
+                quads.get(0));
+        assertEquals(new Quad(RoofTiles.TRIM_DOOR, 0, 0, 0f, 0f, 1f, 1f), quads.get(1));
+    }
+
+    @Test
     void aBrokenRoofDrawsWhatBrokeItCutToTheSameShapeWithNoTrim() {
         CellTopology t = room();
         t.setRoofDamage(3, 5, RoofDamage.BURNT);

@@ -274,6 +274,9 @@ LOOKS["blockwork"] = _family_look("diktat-export", "militia", "midline", hardpoi
                                   dressed=not (HERE / "raw" / "diktat-export-militia-points2.raw.png").exists())
 LOOKS["composite"] = _family_look("field-emitter", "prepared", "hightech", raw_suffix="-hex")
 LOOKS["deployed"] = _family_look("field-emitter", "militia", "hightech", hardpoint="hardpoint-v2", raw_suffix="-hex")
+# The deployed plinth wears its works' matte ceramic (fortworks `deployed-ceramic`): an edit of the -hex sheet that
+# repainted only the plinth, its hard-light arcs made solid ceramic shells. The heavy head stays the -hex sheet's.
+LOOKS["deployed"]["plinth"] = ("field-emitter-militia-hardpoint-v2-ceramic.raw.png",) + LOOKS["deployed"]["plinth"][1:]
 # Looks cut by registering each piece to its own guide (fit_registered) rather than fitting it onto the brutalist
 # head's box: their guides already hold the pivot and muzzle geometry, and stretching a differently proportioned head
 # onto another head's box moved its ring off the pivot (the owner's "heads not fit right", phase B).

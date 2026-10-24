@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,16 @@ public final class TileRegistry {
             "data/tilesets/fortworks-patchwork.tileset.json",
             "data/tilesets/fortworks-patchwork-damaged.tileset.json",
             "data/tilesets/fortworks-patchwork-destroyed.tileset.json",
+            "data/tilesets/fortworks-brutalist-kit.tileset.json",
+            "data/tilesets/fortworks-earthwork-kit.tileset.json",
+            "data/tilesets/fortworks-derelict-kit.tileset.json",
+            "data/tilesets/fortworks-patchwork-kit.tileset.json",
+            "data/tilesets/fortworks-modular-kit.tileset.json",
+            "data/tilesets/fortworks-barrier-kit.tileset.json",
+            "data/tilesets/fortworks-export-kit.tileset.json",
+            "data/tilesets/fortworks-blockwork-kit.tileset.json",
+            "data/tilesets/fortworks-composite-kit.tileset.json",
+            "data/tilesets/fortworks-deployed-kit.tileset.json",
             "data/tilesets/fort-hedgehog-damage.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
@@ -181,6 +192,8 @@ public final class TileRegistry {
     private final List<TileDef> byIndex = new ArrayList<>();
     /** Fixed-grid autotile/single blocks (grid sheets), addressed by id â€” separate namespace from the sliced {@link TileDef}s. */
     private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
+    /** Each block's looks ({@code <base id>@<look>}, `fort-works.md`) by base id, then look name. */
+    private final Map<String, Map<String, GridBlockDef>> blockLooks = new HashMap<>();
     /** Decorative props (Phase 2), addressed by id â€” one source cell + an intrinsic tactical cover. */
     private final Map<String, DoodadDef> doodadsById = new LinkedHashMap<>();
     /** Moving parts drawn over a prop's static base, by the base doodad's id. */
@@ -220,6 +233,15 @@ public final class TileRegistry {
     public GridBlockDef block(String id)        { return blocksById.get(id); }
     public boolean hasBlock(String id)          { return blocksById.containsKey(id); }
     public Collection<GridBlockDef> blocks()    { return blocksById.values(); }
+
+    /**
+     * Block {@code baseId}'s look named {@code look} (the block {@code <baseId>@<look>}), or null when it has none.
+     * Allocation-free, for render passes that ask per cell.
+     */
+    public GridBlockDef blockLook(String baseId, String look) {
+        Map<String, GridBlockDef> looks = baseId == null ? null : blockLooks.get(baseId);
+        return looks == null ? null : looks.get(look);
+    }
 
     /** Doodad def by id (decorative props, Phase 2), or {@code null} if unknown. */
     public DoodadDef doodad(String id)          { return doodadsById.get(id); }
@@ -471,6 +493,7 @@ public final class TileRegistry {
                         o.optString("windowBlock", null), o.optString("doorBlock", null),
                         o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
                 sourceById.put(id, source);
+                indexLook(id);
                 continue;
             }
             JSONArray origin = o.getJSONArray("origin");
@@ -482,7 +505,14 @@ public final class TileRegistry {
                     o.optString("windowBlock", null), o.optString("doorBlock", null),
                     o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
             sourceById.put(id, source);
+            indexLook(id);
         }
+    }
+
+    private void indexLook(String id) {
+        int at = id.lastIndexOf('@');
+        if (at <= 0) return;
+        blockLooks.computeIfAbsent(id.substring(0, at), k -> new HashMap<>()).put(id.substring(at + 1), blocksById.get(id));
     }
 
     private void validateOpening(String owner, String id) {

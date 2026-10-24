@@ -16,8 +16,11 @@
             <div class="{billet.stateClasses}" id="{billet.stateId}">{billet.state}</div>
             <canvas id="{billet.portraitId}" class="loadout-member-portrait" width="196" height="110" />
             <div class="loadout-member-parts" id="{billet.partsId}">
-              <div each="part in billet.parts" key="{part.id}" id="{part.id}" class="loadout-part">
-                <img id="{part.iconId}" class="{part.iconClasses}" src="{part.icon}" />
+              <div each="part in billet.parts" key="{part.id}" id="{part.id}" class="{part.classes}">
+                <div id="{part.tickId}" class="loadout-part-tick" />
+                <div id="{part.socketId}" class="loadout-part-socket">
+                  <img id="{part.iconId}" class="{part.iconClasses}" src="{part.icon}" />
+                </div>
                 <div id="{part.textId}" class="loadout-part-text">
                   <div id="{part.nowId}" class="{part.nowClasses}">{part.now}</div>
                   <div id="{part.nextRowId}" class="{part.nextRowClasses}">
@@ -52,10 +55,21 @@
   .loadout-member-name { height: 16px; overflow: hidden; }
   .loadout-member-state { height: 14px; overflow: hidden; }
   .loadout-member-portrait { width: 100%; height: 0px; flex-grow: 1; pointer-events: none; background-color: #0c1213; }
-  .loadout-member-parts { flex-direction: column; height: 126px; gap: 2px; }
-  .loadout-part { flex-direction: row; align-items: center; height: 30px; gap: 4px; padding: 0px 2px; background-color: #101617; }
-  .loadout-part-icon { width: 28px; height: 28px; pointer-events: none; }
-  .loadout-part-icon.loadout-part-icon-absent { width: 28px; height: 0px; }
+  /* The kit lines sit in a black well, as the Mech Lab stores do; each is a mount: a stores card's frame, the slot's accent on a tick,
+     the item sunk in a dark socket; an empty slot fades into the card, a changing one is brass. */
+  .loadout-member-parts { flex-direction: column; height: 134px; gap: 2px; padding: 3px; border-width: 1px; border-color: #050809; background-color: #0d1214; }
+  .loadout-part { flex-direction: row; align-items: center; height: 32px; gap: 4px; padding: 0px 3px 0px 0px; border-width: 1px; border-color: #2a3437; background-color: #172023; }
+  .loadout-part.empty { background-color: #17202366; border-color: #2a343770; }
+  .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
+  .loadout-part-tick { width: 3px; height: 30px; pointer-events: none; }
+  .loadout-part-weapon .loadout-part-tick { background-color: #53c6e8; }
+  .loadout-part-armor .loadout-part-tick { background-color: #dfb84d; }
+  .loadout-part-special .loadout-part-tick { background-color: #71d6c1; }
+  .loadout-part-system .loadout-part-tick { background-color: #c79ce8; }
+  .loadout-part.empty .loadout-part-tick { opacity: 0.35; }
+  .loadout-part-socket { flex-direction: column; align-items: center; width: 28px; height: 28px; padding: 1px; border-width: 1px; border-color: #050809; background-color: #0d1214; pointer-events: none; }
+  .loadout-part-icon { width: 24px; height: 24px; pointer-events: none; }
+  .loadout-part-icon.loadout-part-icon-absent { width: 24px; height: 0px; }
   .loadout-part-text { flex-direction: column; width: 0px; flex-grow: 1; overflow: hidden; }
   .loadout-part-now { height: 14px; overflow: hidden; }
   .loadout-part-next { flex-direction: row; height: 14px; gap: 3px; align-items: center; }

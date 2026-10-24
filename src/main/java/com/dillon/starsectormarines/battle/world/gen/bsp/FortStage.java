@@ -760,12 +760,21 @@ public final class FortStage implements GenStage {
     }
 
     /**
+     * How a fort's buildings are windowed (owner: "more windows on structures to shoot out of"): every building a window
+     * every third cell along each wall that looks out over open ground, so a squad holding one fires out of it from
+     * every side. Two rooms stay blind: the magazine's store, an ammunition vault whose only opening is the door to its
+     * loading bay, and a gate tower, which is slit where it looks out of the works instead ({@link GateTowers#slits}).
+     */
+    private static final FortressInterior.FacadeWindows FORT_WINDOWS =
+            new FortressInterior.FacadeWindows(EnumSet.of(RoomPurpose.ARMORY, RoomPurpose.GATE_TOWER), 3);
+
+    /**
      * Shells a set of rooms: floors, walls, windows and doors by the compound machinery, and every ring cell the machinery
      * left standing made a breachable wall. Finalize tags walls from what is not walkable and it has already run, so the
      * rings are tagged by hand (it would also tag the structures).
      */
     private static void shell(GenContext ctx, List<RoomPacker.Placed> rooms, Runnable fill) {
-        FortressInterior.author(ctx, rooms, rooms, fill);
+        FortressInterior.author(ctx, rooms, rooms, fill, FORT_WINDOWS);
         for (RoomPacker.Placed room : rooms) {
             for (int[] cell : room.shape().wall()) {
                 int x = room.originX() + cell[0];

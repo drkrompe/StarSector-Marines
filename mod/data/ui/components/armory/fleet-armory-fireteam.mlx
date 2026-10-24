@@ -1,20 +1,10 @@
-<template props="testLoadout,rangeDisabled,rangeHint,companySummary,selectedSquadName,inspection,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,feedbackText,feedbackClasses,firstRefitClasses,openFirstRefit,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="testLoadout,rangeDisabled,rangeHint,companySummary,contextLabel,inspection,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,feedbackText,feedbackClasses,firstRefitClasses,openFirstRefit,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="BARRACKS / EQUIPMENT / SQUAD ISSUE" />
-
-    <div id="fireteam-breadcrumb" class="panel console-command-rail">
-      <button id="fireteam-breadcrumb-companies" onclick="{back}">{i18n.openingUiFleetArmoryFireteamBack}</button>
-      <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
-      <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">{i18n.openingUiLoadoutLoadout}</div>
-      <div id="fireteam-breadcrumb-spacer" class="breadcrumb-spacer" />
-      <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">{i18n.openingUiFleetArmoryAProperIssueResumeCastleSTwo}</button>
-    </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="fireteam-body">
       <armory-squad-doctrine weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" weaponPickerTabClasses="{weaponPickerTabClasses}" armorPickerTabClasses="{armorPickerTabClasses}" weaponPickerPanelClasses="{weaponPickerPanelClasses}" armorPickerPanelClasses="{armorPickerPanelClasses}" showWeaponPicker="{showWeaponPicker}" showArmorPicker="{showArmorPicker}" loadoutFilters="{loadoutFilters}" loadoutBrowserSummary="{loadoutBrowserSummary}" showArmorComparison="{showArmorComparison}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" issueCargoRows="{issueCargoRows}" issueCargoClasses="{issueCargoClasses}" />
-      <armory-refit-transaction testLoadout="{testLoadout}" rangeDisabled="{rangeDisabled}" rangeHint="{rangeHint}" inspection="{inspection}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction firstRefitClasses="{firstRefitClasses}" openFirstRefit="{openFirstRefit}" testLoadout="{testLoadout}" rangeDisabled="{rangeDisabled}" rangeHint="{rangeHint}" inspection="{inspection}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 
   </div>
@@ -28,20 +18,6 @@
     border-width: 2px;
     overflow: hidden;
   }
-
-  .label { overflow: hidden; }
-  #fireteam-breadcrumb {
-    flex-direction: row;
-    height: 28px;
-    padding: 3px 4px;
-    gap: 5px;
-  }
-
-  #fireteam-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
-  .breadcrumb-separator { width: 10px; text-align: center; }
-  .breadcrumb-current { padding: 3px 4px; }
-  .breadcrumb-spacer { width: 0px; flex-grow: 1; }
-  .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 
   #fireteam-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
 

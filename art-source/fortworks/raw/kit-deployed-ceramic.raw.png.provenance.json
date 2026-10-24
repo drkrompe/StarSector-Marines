@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f5d-d695-75a3-94c2-7eb33a76cf09",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f5d-d695-75a3-94c2-7eb33a76cf09\\exec-63adcef1-1699-4401-8750-5a7f6952def9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\kit-deployed-ceramic.raw.png",
+    "sha256": "dfd74f5ebe96c2ff5edfea7dd831c372082632a07bbe09e30ecaf6883395c356",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\kit-deployed-ceramic.prompt.txt",
+  "promptSha256": "79e005bc80e7f6b61e90869a3793baae5cb53b11d35fff469fda3cf82845b823",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep every piece where and how big it is\nImage 2: Wall, parapet and barricade material reference only; not layout\nImage 3: Finish reference only, a Tri-Tachyon warship hull: matte faceted ceramic armour plates with dark seams. Take its material and restraint; ignore its glowing lines, its beams, the black space and the perspective; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a 1536x1024 canvas: it is existing game art drawn in plain grey. Reskin every piece into the material of this set, preserving every shape, silhouette, position, size and all transparent empty space exactly: do not move, rescale, rotate, merge, add or remove pieces, and keep every piece inside its own 144-pixel square. Image 2 is the same set's wall, parapet and barricade sheet and image 3 a finish reference (a warship hull): MATERIAL AND STYLE REFERENCES ONLY, never layout. Every piece must look built by the same people out of the same stuff as image 2. The guide is an 8 by 6 grid of 160-pixel slots. TOP-LEFT 4x2 SLOTS, OPENINGS seen from directly above, each lying along ONE edge of its square exactly as the guide draws it. The left 2x2 are WINDOWS: a framed window set into a wall line, a frame of the set's wall material round dark, desaturated glass panes split by a mullion; the glass is dark and quiet with at most a faint cool sheen, never bright cyan or blue. The right 2x2 are OPEN DOORWAYS: two narrow jambs of the wall material at the ends and a low threshold strip between them, the passage between them empty and transparent, no door leaves. LOWER-LEFT 4x4 SLOTS, WALL RUBBLE: broken chunks and slabs of the set's wall material lying exactly where the guide's grey chunks lie, the same sizes, with transparent ground between them; no dust clouds, no ground. TOP-RIGHT 4x4 SLOTS, A TRENCH: a dug fighting trench whose lip and revetment are the set's own material (where the guide has a raised lip of bags, give it the set's barricade or parapet facing instead, same width and position), its floor dug earth with a few duckboards where the guide has them. The channel meets each square's edge where the guide's does, and the lip runs to the square's edge there, so neighbouring squares join. BOTTOM-RIGHT 2x4 SLOTS, PROPS: first an anti-tank HEDGEHOG of crossed beams in the set's material; then one VENT PANEL filling its whole square, a flat armoured vent cover in the set's material with the guide's trim line; then six FENCE pieces, thin posts and rails exactly where the guide's run, in the set's fencing (posts and rails, mesh panels or light barrier as fits the set), still thin and see-through. Material and style: Tri-Tachyon high-tech deployed kit, field-emplaced armour: modular slabs of MATTE off-white and pale warm-grey ceramic composite armour plate, the same stuff as a Tri-Tachyon warship's hull, with faceted chamfered edges, crisp dark recessed panel seams dividing each slab into large plates, a faint coarse hexagonal ceramic tiling on the plate faces, slight dust and scuffing and a few scorch marks; the slabs stand in dark graphite frames with hinge brackets, locking clamps and short anchor feet where they were set down. Accents are restrained: a thin muted slate-blue stripe or small unit stencil block on some plates and tiny dim status pips, nothing more. NO glow, NO light lines, NO translucent or hard-light panes, NO bright cyan or electric blue, no energy effects: every surface is solid matte ceramic or graphite. The parapet a ring of chamfered ceramic armour slabs in graphite frames on a pale composite deck pad, the wall caps the tops of tall ceramic armour slabs, the barricade a run of low chamfered ceramic slabs on graphite feet. Straight 90-degree overhead orthographic camera: no perspective tilt, no visible vertical faces beyond the guide's, no cast or drop shadow outside the pieces, no ground outside the guide shapes, no labels, text, letters, numbers, watermark, grid lines or UI marks. Genuine transparent background everywhere the guide is empty (if transparency is impossible, flat pure white). Coarse readable detail that survives being shrunk to about 32 to 64 pixels per square; hand-painted gritty Starsector-like finish, light from the upper left.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\guides\\kit-guide.png",
+      "sha256": "cb6efd4ccde16e1c635acc410a137886f50690418fb6c07f6332816f2a88aa5d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep every piece where and how big it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\deployed-ceramic.raw.png",
+      "sha256": "b0eb004d184ece278d7d42d281a4284d3e85db8898b705611eeba195e2236e92",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Wall, parapet and barricade material reference only; not layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\guides\\paragon-ceramic-finish.png",
+      "sha256": "4b955a6eff0923c355e3ac4d81f2aa45a54eb9f261f46e63841a33d290e22074",
+      "dimensions": [
+        960,
+        720
+      ],
+      "mode": "RGB",
+      "role": "Finish reference only, a Tri-Tachyon warship hull: matte faceted ceramic armour plates with dark seams. Take its material and restraint; ignore its glowing lines, its beams, the black space and the perspective; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to reskin the guide, preserving its layout and transparent gaps, and generate exactly one image.\n"
+  ],
+  "usage": {
+    "input_tokens": 72417,
+    "cached_input_tokens": 62848,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1230,
+    "reasoning_output_tokens": 31
+  },
+  "elapsedSeconds": 86.4
+}

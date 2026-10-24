@@ -55,7 +55,7 @@ public record FittingCard(String id, String classes, String previewClasses,
         case "detail" -> detail; case "actionLabel" -> actionLabel;
         case "actionDisabled" -> actionDisabled; case "materials" -> materials;
         case "materialsStyle" -> CompanyResources.billHeight(materials);
-        case "cardStyle" -> hasFooter() ? "height: 130px;" : "height: 102px;";
+        case "cardStyle" -> hasFooter() ? "height: 138px;" : "height: 110px;";
         case "footerId" -> id + ":footer";
         case "footerClasses" -> hasFooter() ? "catalog-card-footer" : "hidden";
         case "actionClasses" -> !hasAction() ? "hidden"
