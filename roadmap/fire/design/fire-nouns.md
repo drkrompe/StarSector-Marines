@@ -272,7 +272,9 @@ does not set Conquest alight.
 - **Throwing fire.** A squad spends an incendiary as it does a frag, on soft
   infantry it has seen, with two differences, both because the fire does the
   rest of the work. One man standing in fuel is worth a throw, where a frag
-  wants two in its blast. And a carrier does not throw where the fire could
+  wants two in its blast. It is aimed at fuel that can still catch: on ground
+  already burnt or burning it moves to the nearest unburnt fuel that keeps the
+  target in the blast, and with none there the throw is judged as a frag. And a carrier does not throw where the fire could
   come to its own side (`FireReach`): the fuel the ordnance would light (its
   blast and scatter round the point; for a firebomb stick, the director's
   danger-close ring, since a stick runs along the pass), followed outward
