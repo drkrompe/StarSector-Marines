@@ -3364,6 +3364,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
+        props.put("allPartsClasses", viewModel.allPartsClasses());
+        props.put("showAllParts", (Runnable) viewModel::showAllParts);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
