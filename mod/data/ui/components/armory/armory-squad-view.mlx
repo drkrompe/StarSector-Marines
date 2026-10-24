@@ -52,7 +52,7 @@
   .loadout-team-heading { height: 20px; text-align: center; }
   .loadout-team-rows { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; }
   .loadout-team-row { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; }
-  .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 4px; gap: 4px; border-width: 1px; text-align: left; background-color: #171d1e; overflow: hidden; }
+  .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: left; background-color: #171d1e; overflow: hidden; }
   .loadout-billet.selected { border-color: #e0b957; background-color: #34362c; }
   .loadout-member-name { height: 16px; overflow: hidden; font-family: heading; }
   .loadout-member-head { flex-direction: row; height: 76px; gap: 6px; }
@@ -61,7 +61,7 @@
      the item sunk in a dark socket; an empty slot fades into the card, a changing one is brass. */
   /* A pit sunk into the card: the bevel puts its lip in shadow at the top and left and catches the
      light at the bottom and right, and the floor darkens under the top lip. */
-  .loadout-member-parts { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; padding: 6px 8px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 14%); }
+  .loadout-member-parts { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; padding: 0px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 14%); }
   .loadout-part { flex-direction: row; align-items: center; height: 0px; flex-grow: 1; gap: 4px; padding: 0px 3px 0px 0px; border-width: 2px; border-style: outset; border-color: #3a4745; background-color: #1b2427; }
   .loadout-part.empty { border-style: solid; background-color: #1b242755; border-color: #2a333360; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }

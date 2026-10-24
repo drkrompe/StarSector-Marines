@@ -43,7 +43,7 @@
 </template>
 
 <style>
-  .squad-doctrine-strip { flex-direction: column; width: 566px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
+  .squad-doctrine-strip { flex-direction: column; width: 584px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   #equipment-picker-tabs { flex-direction: row; height: 30px; gap: 6px; }
@@ -58,13 +58,16 @@
   .supply-filter { width: 132px; height: 26px; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
   .supply-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
 
-  .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; overflow: hidden; }
+  .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 0px; gap: 5px; border-width: 0px; overflow: hidden; }
   .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
   #weapon-doctrine-summary { height: 20px; padding: 2px 5px; }
   #armor-doctrine-summary-row { flex-direction: row; height: 20px; gap: 5px; }
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
   #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; }
-  .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
+  /* The catalogue is stores, as the Mech Lab keeps them: a black pit sunk into the panel, its lip
+     in shadow at the top and left and lit at the bottom and right, the floor darkening under the
+     top lip, and the cards standing proud of it with black showing on every side. */
+  .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; padding: 10px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 6%); overflow: scroll; }
 
   .cargo-costs { display: grid; height: 54px; gap: 4px; overflow: hidden; }
   .cargo-costs.empty { height: 0px; gap: 0px; }
