@@ -588,15 +588,27 @@ the hull's hangar as it actually is with the boats standing on their berths, an
 overview card per berth, and — once a berth is chosen — that boat's slots and a
 catalog scoped to the selected one. Choosing a boat moves the camera, the way
 choosing a pad does in the lab: it eases in on her berth and stands her right of
-a drafting board, the **boat doll**, while the yard catalog takes the left of the
-room and her condition, specifications and slot list the right. The doll is the
+a drafting board, the **boat doll**, while the stores take the left of the room
+and her specifications, condition and selected mount the right. The doll is the
 lab's socket schematic, not a picture of the boat: each slot is a socket of
 bricks with the fitted piece drawn over them in its socket's colour, wired to an
 airframe core — door guns across the top, port to starboard, plating and drive on
-its flanks and the hold beneath — and the catalog shows each part on its own
+its flanks and the hold beneath — and the stores show each part on its own
 bricks. Where a gun sits is shown on the boat herself: each hardpoint is ringed on
 the berthed boat where her hull's weapon slot puts it, with its traverse as a
-wedge. A socket, a slot row and the spot it names on the boat are one selection. Selecting the already-open `BOATS` route
+wedge, and the gun fitted there stands on it as its turret, the same sprite at the
+same size it lifts with. A socket, the selected-mount card and the spot it names on
+the boat are one selection.
+
+**Fitting is drag-only, as in the Mech Lab.** The stores list every part the boat
+can take, narrowed by a filter strip of her socket kinds (selecting a socket sets
+it); a card carries its tier, effect, footprint and bill but no fit button. Dragging
+a card onto a doll socket lights it green where the part fits and is affordable,
+red where it does not, and dropping commits the same atomic workshop command a fit
+always ran. The stores cards, filter pills, meters and selected-mount card are the
+shared **fitting kit** (`FittingCard`, `FittingFilterPill`, `FittingMeter`,
+`FittingSlotCard`, `PointerDrag`, `FittingDragGhost`) that the Mech Lab is built on
+too, so the two rooms draw one vocabulary rather than two copies of it. Selecting the already-open `BOATS` route
 puts the deck back rather than acting as a dead control, the way the lab's own
 route does. A hull with more than one hangar gets the same fore-to-aft pager,
 and one with none shows the route greyed, exactly as a hull with no vehicle bay

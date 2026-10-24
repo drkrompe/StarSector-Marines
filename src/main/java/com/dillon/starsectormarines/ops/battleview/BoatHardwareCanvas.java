@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
+import java.util.Objects;
+
 /**
  * One boat fitting or door gun as a catalog thumbnail: its piece on its own
  * bricks, at whatever size the row gives it, the way the Mech Lab's stores
@@ -19,6 +21,11 @@ public final class BoatHardwareCanvas implements CanvasProducer {
         if (kind == null) throw new IllegalArgumentException("a socket kind is required");
         this.kind = kind;
         this.itemId = itemId;
+    }
+
+    /** Whether this already draws that piece, so a picture is replaced only when its part changes. */
+    public boolean shows(BoatDoll.Kind kind, String itemId) {
+        return this.kind == kind && Objects.equals(this.itemId, itemId);
     }
 
     @Override

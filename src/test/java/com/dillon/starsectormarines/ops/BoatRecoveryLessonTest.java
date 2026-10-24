@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.FabricationResources;
@@ -31,9 +32,9 @@ class BoatRecoveryLessonTest {
             var reactor = new Reactor();
             var model = new BoatDeckViewModel(reactor, roster.boatDeck(), resources, "Second Wind", () -> {}, () -> 10f);
             model.inspect(boat.id());
-            var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), List.of(
+            var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), FittingComponents.with(List.of(
                     "data/ui/components/company/company-resource-stock.mlx", "data/ui/components/company/company-resource-cost.mlx",
-                    "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx"));
+                    "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx")));
             try (var markup = loader.reloadAndBuild(reactor, "boat-deck", BoatDeckViewModelTest.props(model))) {
                 var document = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
                 markup.styles().forEach(document::addStyleSheet);

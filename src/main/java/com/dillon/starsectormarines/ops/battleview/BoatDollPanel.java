@@ -29,8 +29,8 @@ final class BoatDollPanel {
     private static final float MARGIN = 18f;
     private static final float GAP_X = 18f;
     private static final float GAP_Y = 30f;
-    private static final float BRICK_HEIGHT = 46f;
-    private static final float BRICK_GAP = 2f;
+    static final float BRICK_HEIGHT = 46f;
+    static final float BRICK_GAP = 2f;
     private static final float HEADER = 22f;
     private static final float CAPTION = 22f;
     private static final float SIDE = 12f;
@@ -48,6 +48,11 @@ final class BoatDollPanel {
     private static final Color MUTED = new Color(0x91, 0x98, 0x8e);
     private static final Color AMBER = new Color(0xed, 0xc2, 0x73);
     private static final Color SHADOW = new Color(0, 0, 0, 190);
+    private static final Color TAKES = new Color(0x7e, 0xe0, 0x9a);
+    private static final Color REFUSES = new Color(0xe8, 0x5a, 0x4a);
+
+    /** A piece being carried over a socket: which socket, and whether it would take it. */
+    record Drop(String key, boolean valid) { }
 
     private BoatDollPanel() { }
 
@@ -66,9 +71,10 @@ final class BoatDollPanel {
      * Draws the board over the left of the canvas and returns its sockets.
      *
      * @param hovered the key of the socket under the pointer, or null
+     * @param drop    the socket a carried piece is over, or null
      */
     static List<CardTarget> draw(CanvasContext c, BoatDoll doll, float canvasWidth, float canvasHeight,
-                                 String hovered, double seconds) {
+                                 String hovered, Drop drop, double seconds) {
         float width = canvasWidth * SHARE;
         board(c, width, canvasHeight);
         c.text(Fonts.ORBITRON_12_BOLD, Strings.get("boatDeckDollAirframe") + "  //  " + doll.pattern(),
@@ -129,6 +135,7 @@ final class BoatDollPanel {
         List<CardTarget> targets = new ArrayList<>(placed.size());
         for (Placed socket : placed) {
             console(c, socket.target(), socket.slot(), socket.slot().key().equals(hovered), seconds);
+            if (drop != null && socket.slot().key().equals(drop.key())) dropMark(c, socket.target(), drop.valid());
             targets.add(socket.target());
         }
         return List.copyOf(targets);
@@ -198,6 +205,15 @@ final class BoatDollPanel {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
                     withAlpha(AMBER, (int) (180 + pulse * 65)), slot.selected() ? 2.4f : 1.4f, 17f, 5f);
         }
+    }
+
+    /** The socket under a carried piece, lit green where it would take it and red where it would not. */
+    private static void dropMark(CanvasContext c, CardTarget t, boolean valid) {
+        Color tone = valid ? TAKES : REFUSES;
+        c.fillRect(t.left(), t.top(), t.width(), t.height(), withAlpha(tone, 34));
+        HardpointBricks.rim(c, t.left(), t.top(), t.width(), t.height(), CUT, tone, 2f);
+        MechLabDollCanvas.drawCornerBrackets(c, t.left() - 3f, t.top() - 3f, t.width() + 6f, t.height() + 6f,
+                tone, 2.6f, 17f, 5f);
     }
 
     /** A wire from a socket into the near face of the core, with the lab's pulse running along it. */

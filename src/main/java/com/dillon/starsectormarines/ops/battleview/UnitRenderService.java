@@ -14,9 +14,11 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.Animation
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
+import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.GroundWreck;
+import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -39,6 +41,7 @@ import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureLook;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
@@ -237,6 +240,8 @@ public final class UnitRenderService implements RenderSystem {
      * the wreck exists.
      */
     private final Map<Object, HullBreakup> wrecks = new IdentityHashMap<>();
+    /** The guns on each parked hull, kept per berth while its kit stays the same. */
+    private final Map<AirfieldService.Berth, ParkedGuns> parkedGuns = new IdentityHashMap<>();
     /** The burst Rav dead that have stopped moving, each drawn from the mesh it was recorded into once. */
     private final SettledBodyMeshes settledBodies = new SettledBodyMeshes();
 
@@ -753,6 +758,7 @@ public final class UnitRenderService implements RenderSystem {
                 continue;
             emitHull(out, cam, berth.airframe, berth.facingDegrees, world.renderX(u), world.renderY(u),
                     cellPx, 1f, 1f, 1f, alphaMult);
+            emitParkedGuns(out, cam, berth, world.renderX(u), world.renderY(u), cellPx, alphaMult);
         }
         for (AirfieldService.Berth berth : airfield.berths()) {
             if (!berth.wreckOnPad) continue;
@@ -974,6 +980,40 @@ public final class UnitRenderService implements RenderSystem {
         return HullFootprintResolver.visualLengthCells(airframe.renderHullId())
                 * AirAppearance.GROUND_SCALE * AUTHORED_EXTENT_SLACK;
     }
+
+    /**
+     * Draws the guns on a parked hull, on its weapon slots and trained along its nose, at the
+     * ground scale its hull is drawn at: the same guns, in the same places, that it lifts with.
+     *
+     * <p>A berth a yard has refitted carries its own {@link AirfieldService.Berth#doorGuns};
+     * any other carries its airframe's kit. Worked out again only when that kit changes.
+     */
+    private void emitParkedGuns(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
+                                float centerCellX, float centerCellY, float cellPx, float alphaMult) {
+        String[] kit = berth.doorGuns != null ? berth.doorGuns : berth.airframe.kitFor(TurretRole.A2G);
+        ParkedGuns guns = parkedGuns.get(berth);
+        if (guns == null || !Arrays.equals(guns.kit(), kit)) {
+            guns = new ParkedGuns(kit.clone(), AirArmament.mounts(kit, berth.airframe.renderHullId(),
+                    berth.facingDegrees));
+            parkedGuns.put(berth, guns);
+        }
+        if (guns.mounts().length == 0) return;
+        float rad = (float) Math.toRadians(berth.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float sn = (float) Math.sin(rad);
+        float scale = AirAppearance.GROUND_SCALE;
+        for (MountedTurret mt : guns.mounts()) {
+            float lx = mt.mount.localOffsetX * scale;
+            float ly = mt.mount.localOffsetY * scale;
+            float screenX = cam.cellToScreenX(centerCellX + lx * c - ly * sn);
+            float screenY = cam.cellToScreenY(centerCellY + lx * sn + ly * c);
+            ShuttleRenderSystem.emitTurret(out, RenderLayer.UNITS, sprites, mt, screenX, screenY, scale,
+                    cellPx, alphaMult);
+        }
+    }
+
+    /** The guns drawn on one parked hull, and the kit they were laid out from. */
+    private record ParkedGuns(String[] kit, MountedTurret[] mounts) {}
 
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,

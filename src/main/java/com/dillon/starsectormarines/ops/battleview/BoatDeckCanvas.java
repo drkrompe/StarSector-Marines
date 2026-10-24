@@ -126,6 +126,14 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private DoubleSupplier seconds = () -> 0d;
     private List<BoatDollPanel.CardTarget> cards = List.of();
     private String hoveredCard;
+    private BoatDollPanel.Drop drop;
+
+    /** Lights the socket a carried catalog piece is over: green where it would fit, red where not. */
+    public void previewDrop(String key, boolean valid) {
+        drop = key == null ? null : new BoatDollPanel.Drop(key, valid);
+    }
+
+    public void clearDropPreview() { drop = null; }
 
     /**
      * Where the camera is and where it is going, eased the way the Mech Lab's
@@ -314,7 +322,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         BoatDoll shown = doll.get();
         if (shown != null && focused != null && focus > 0.5f) {
             markTurrets(context, projection, focused, shown);
-            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, seconds.getAsDouble());
+            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, seconds.getAsDouble());
             recoveryTargets = List.of();
         } else {
             cards = List.of();

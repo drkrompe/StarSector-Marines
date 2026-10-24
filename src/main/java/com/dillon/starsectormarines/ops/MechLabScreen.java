@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -53,10 +54,10 @@ import java.util.Set;
 public final class MechLabScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "mech-lab";
-    private static final List<String> COMPONENT_PATHS = List.of(
+    private static final List<String> COMPONENT_PATHS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/mech-lab/mech-lab.mlx");
+            "data/ui/components/mech-lab/mech-lab.mlx"));
 
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> bayContextLabel = reactor.signal("");

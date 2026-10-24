@@ -171,38 +171,50 @@ public final class ShuttleRenderSystem implements RenderSystem {
         float c = (float) Math.cos(rad);
         float si = (float) Math.sin(rad);
         for (MountedTurret mt : mounts) {
-            ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.structureId);
-            if (base == null) continue;
             // Same world-position helper the sim uses (so a round fires from
             // where the turret is drawn), with the render-only altitude zoom
             // (scaleMult) and the altitude Y-offset layered on top. The mount
             // offset is the real weapon-slot position; no per-ship factor.
             float screenX = cam.cellToScreenX(mt.worldX(body, c, si, scaleMult));
             float screenY = cam.cellToScreenY(mt.worldY(body, c, si, scaleMult) + altOffset);
-            // Turret SIZE is intrinsic to the kind — an ARBALEST is the same
-            // physical size on every hull, exactly like a ground MapTurret
-            // (UnitRenderService draws it at visualCells flat). Only the altitude
-            // visual zoom applies; the hull never scales turret size.
-            float layerVisualCells = mt.mount.mountDef().visualCells * scaleMult;
-            TurretLayerPose pose = TurretLayerPose.resolve(
-                    screenX, screenY, mt.facingDegrees, layerVisualCells, cellPx,
-                    mt.recoilTimer, BattleRenderer.RECOIL_DURATION,
-                    BattleRenderer.RECOIL_DISTANCE_FRAC);
-
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.structureId);
-            if (barrel != null) {
-                emitTurretLayer(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
-                        pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
-            }
-            emitTurretLayer(out, base, pose.facingDegrees(), pose.spriteHeightPx(),
-                    pose.baseCenterX(), pose.baseCenterY(), alphaMult);
+            emitTurret(out, RenderLayer.SHUTTLES, sprites, mt, screenX, screenY, scaleMult, cellPx, alphaMult);
         }
     }
 
-    private static void emitTurretLayer(DrawList out, ShuttleSpriteCache cache, float facingDegrees,
-                                        float spriteHeightPx, float cx, float cy, float alphaMult) {
+    /**
+     * Draws one mounted gun, base and recoiling barrel, centred on its screen point.
+     *
+     * <p>Shared with the parked hulls {@link UnitRenderService} draws, so a gun on a boat in its
+     * berth is the same picture, at the same size, as that gun on her once she lifts.
+     */
+    static void emitTurret(DrawList out, RenderLayer layer, BattleSprites sprites, MountedTurret mt,
+                           float screenX, float screenY, float scaleMult, float cellPx, float alphaMult) {
+        ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.structureId);
+        if (base == null) return;
+        // Turret SIZE is intrinsic to the kind — an ARBALEST is the same
+        // physical size on every hull, exactly like a ground MapTurret
+        // (UnitRenderService draws it at visualCells flat). Only the altitude
+        // visual zoom applies; the hull never scales turret size.
+        float layerVisualCells = mt.mount.mountDef().visualCells * scaleMult;
+        TurretLayerPose pose = TurretLayerPose.resolve(
+                screenX, screenY, mt.facingDegrees, layerVisualCells, cellPx,
+                mt.recoilTimer, BattleRenderer.RECOIL_DURATION,
+                BattleRenderer.RECOIL_DISTANCE_FRAC);
+
+        ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.structureId);
+        if (barrel != null) {
+            emitTurretLayer(out, layer, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
+                    pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
+        }
+        emitTurretLayer(out, layer, base, pose.facingDegrees(), pose.spriteHeightPx(),
+                pose.baseCenterX(), pose.baseCenterY(), alphaMult);
+    }
+
+    private static void emitTurretLayer(DrawList out, RenderLayer layer, ShuttleSpriteCache cache,
+                                        float facingDegrees, float spriteHeightPx, float cx, float cy,
+                                        float alphaMult) {
         float pxW = spriteHeightPx * cache.aspect;
-        out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
+        out.addSprite(layer, cache.sprite,
                 cx, cy, pxW, spriteHeightPx, facingDegrees,
                 1f, 1f, 1f, alphaMult);
     }

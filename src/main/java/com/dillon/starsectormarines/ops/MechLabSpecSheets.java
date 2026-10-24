@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.battleview.MechReplenisherArt;
@@ -141,9 +142,9 @@ final class MechLabSpecSheets {
 
     /** A category symbol names itself on hover, since it carries no word. */
     static void bindFilterPills(SpecSheetBinder binder, MarkupInstance markup,
-                                List<MechLabViewModel.FilterPill> pills) {
+                                List<FittingFilterPill> pills) {
         if (binder == null) return;
-        for (MechLabViewModel.FilterPill pill : pills) {
+        for (FittingFilterPill pill : pills) {
             UiElement element = markup.requireElement(pill.id());
             if (binder.isBound(element) || pill.icon() == null) continue;
             binder.bind(element, new SpecSheet(pill.label(), Strings.get("openingMechLabFilterSubtitle"),

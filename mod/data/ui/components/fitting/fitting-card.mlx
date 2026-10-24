@@ -1,0 +1,81 @@
+<template props="card">
+  <div id="{card.id}" class="{card.classes}" style="{card.cardStyle}">
+    <div id="{card.bodyId}" class="catalog-card-body">
+      <canvas id="{card.previewId}" class="{card.previewClasses}" width="220" height="280" />
+      <div id="{card.copyId}" class="catalog-item-copy">
+        <div id="{card.headerId}" class="catalog-card-header">
+          <div id="{card.nameId}" class="label heading catalog-name">{card.name}</div>
+          <div id="{card.badgeId}" class="{card.badgeClasses}">{card.badge}</div>
+        </div>
+        <div id="{card.stockId}" class="label tone-edge catalog-stock">{card.stock}</div>
+        <div id="{card.telemetryId}" class="label heading tone-muted catalog-telemetry">{card.telemetry}</div>
+        <div id="{card.deltaId}" class="{card.deltaClasses}">{card.delta}</div>
+        <div id="{card.detailRowId}" class="catalog-detail-row">
+          <div id="{card.chipId}" class="{card.chipClasses}" style="{card.chipStyle}">
+            <img id="{card.chipIconId}" class="weight-chip-icon" src="{card.chipIcon}" />
+          </div>
+          <div id="{card.detailId}" class="label tone-muted catalog-detail">{card.detail}</div>
+        </div>
+      </div>
+    </div>
+    <!-- The build strip: what a part costs, and a wide BUY beside it where the room sells
+         spares, so the part's own lines keep the whole width of the card. -->
+    <div id="{card.footerId}" class="{card.footerClasses}">
+      <div id="{card.materialsId}" class="{card.materialsClasses}">
+        <div each="material in card.materials" key="{material.id}" id="{material.id}" class="{material.chipClasses}">
+          <img id="{material.iconId}" class="material-chip-icon" src="{material.icon}" />
+          <div id="{material.labelId}" class="label material-chip-value">{material.required}</div>
+        </div>
+      </div>
+      <button id="{card.actionId}" class="{card.actionClasses}" disabled="{card.actionDisabled}" onclick="{card.action}">
+        <img id="{card.actionIconId}" class="{card.actionIconClasses}" src="graphics/ui/mech-hardware/fab.svg" />
+        <div id="{card.actionTextId}" class="label heading catalog-fab-text">{card.actionText}</div>
+      </button>
+    </div>
+  </div>
+</template>
+<style>
+  .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 128px; padding: 5px; gap: 3px; border-width: 1px; }
+  .catalog-card-body { flex-direction: row; align-items: center; width: 100%; height: 90px; gap: 6px; }
+  .catalog-item-copy { flex-direction: column; width: 0px; height: 90px; flex-grow: 1; gap: 2px; }
+  .catalog-card-header { flex-direction: row; align-items: center; width: 100%; height: 18px; gap: 4px; }
+  .catalog-name { width: 0px; flex-grow: 1; height: 16px; }
+  .catalog-badge { width: 84px; height: 14px; padding: 2px 3px; text-align: center; border-width: 1px; }
+  .catalog-badge.in-cargo { background-color: #102d20; border-color: #52ba7c; color: #78d494; }
+  .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #dfc588; }
+  .catalog-badge.unavailable { background-color: #20241f; border-color: #596052; color: #979c90; }
+  .catalog-badge.chassis { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
+  .catalog-preview { width: 76px; height: 90px; border-width: 1px; }
+  .catalog-stock, .catalog-detail { height: 16px; }
+  /* A chassis or vehicle's weight class is its weight block on the class tone, not a word. */
+  .catalog-detail-row { flex-direction: row; align-items: center; width: 100%; height: 16px; gap: 4px; }
+  .catalog-detail-row .catalog-detail { width: 0px; flex-grow: 1; }
+  .weight-chip { flex-direction: column; align-items: center; width: 24px; height: 16px; padding: 1px 0px; pointer-events: none; }
+  .weight-chip-icon { width: 21px; height: 14px; pointer-events: none; }
+  .catalog-telemetry { height: 16px; }
+  .catalog-delta { height: 16px; }
+  .catalog-delta.positive { color: #78d494; }
+  .catalog-delta.negative { color: #e98b83; }
+  .catalog-delta.neutral { color: #979c90; }
+  .catalog-card-footer { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 4px; }
+  .material-costs { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 24px; gap: 3px; overflow: hidden; }
+  .material-chip { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 1px 4px; gap: 4px; border-width: 1px; border-color: #46554b; background-color: #121719; }
+  .material-chip.short { border-color: #a05d52; background-color: #251419; }
+  .material-chip-icon { width: 16px; height: 16px; }
+  .material-chip-value { width: 0px; flex-grow: 1; height: 16px; text-align: right; color: #dfc588; }
+  .material-chip.short .material-chip-value { color: #eea296; }
+  .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 140px; }
+  .catalog-row { background-color: #172023; border-color: #2a3437; }
+  .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
+  /* No spare in stores (a pattern to build): the card and its picture fade into the well, the words do not. */
+  .catalog-row.requires-fabrication { background-color: #17202366; border-color: #2a343770; }
+  .catalog-row.requires-fabrication .catalog-preview { opacity: 0.45; }
+  .catalog-fab { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; gap: 4px; border-width: 1px; text-align: center; font-family: heading; }
+  .catalog-fab.short { opacity: 0.45; }
+  .catalog-fab-icon { width: 16px; height: 16px; pointer-events: none; }
+  .catalog-fab-text { width: 0px; flex-grow: 1; height: 16px; text-align: center; pointer-events: none; }
+  /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+</style>
