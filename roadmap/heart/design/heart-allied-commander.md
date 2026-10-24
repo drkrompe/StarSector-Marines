@@ -1,8 +1,9 @@
 # The Heart — the allied commander
 
-Status: DRAFT — the lane formation is out to the owner (question `heart-lane-formation`).
+Status: DRAFT. Built: lanes as screened advances by country, and the tools called by need from the vehicle park's tool shed.
 
 Written: 2026-10-23
+Updated: 2026-10-23 — commander built on the shared `AlliedToolShed`; mechs first in town and city; gunship gated on open air.
 
 Step 4 of `heart-mission-depth.md`. The lanes' commander is the heart's
 mission, carrying out its choices through the shared machinery:
@@ -27,7 +28,7 @@ its next bore, re-routed when that bore falls.
 - **Late waves** from the vehicle park join the main where they catch it up.
 - **A broken screen** hands the lead to the main.
 
-The pictures compare the two screens with today's control.
+The pictures compare the two screens with today's control. Built behind `battle.heart.laneFormation`: a lane forms only once it has armour, and after it rallies on its bore it attacks the bore as before.
 
 **When to call armour up the road.** It replaces the timer with need, read
 with the Cordon commander's signal names (`cordon-allied-command.md`). The
@@ -37,9 +38,16 @@ place) for the lane whose armour is weakest, when that lane is:
 - broken: its screen broke (F2's `lane_broken_N`);
 - stalled: its formation stalled at the cap twice running.
 
-There is never more than one pair on the road per lane (`onRoad`). The base
-keeps its pace by density as stock, and requests draw on it
-(`allied-tools.md`).
+There is never more than one call on the road per lane (`onRoad`). Built on
+the shared `AlliedToolShed`, behind `battle.heart.armourByNeed`. The lanes'
+timed waves become the vehicle park's stock, and the base keeps its pace by
+density as restock (`allied-tools.md`). A lane that is uncovered or broken
+calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
+- In town and city, where hulls are roadbound, it asks for a **mech lance**
+  (two Hounds) first, and an armour pair when no lance is in stock.
+- In rural country it asks for an armour pair (a breakthrough tank and a
+  technical).
+- Stalled does not call yet.
 
 **When to commit the gunship.** Only once the air is open (F3's
 `air_corridor_open`), and only onto something worth one sortie, in this order:
@@ -50,7 +58,9 @@ keeps its pace by density as stock, and requests draw on it
 
 It comes off station at half structure, and the next sortie waits for the
 base. The air gate sits inside the base's `request`, so the commander may ask
-and be refused.
+and be refused. Built (`HeartGunship`) for the first rung and for a broken
+lane's bore, gated on the colonies of the approach satellites. In the first
+played Broad town run they never died, so no sortie was called.
 
 **Where the company stands in it.** The company is not under this commander.
 The commander reads the company's position as one more fact:
@@ -59,7 +69,10 @@ The commander reads the company's position as one more fact:
 
 ## Open
 
-- The owner's pick on the formation.
+- **Ammunition trucks** as the shed's fourth tool: the owner asked for them to
+  rearm the bases' turrets and flak pits as well as the Burn's battery
+  (`GunStock`, `SupplyDelivery`). B5 still sends its trucks directly.
+- **Stalled** as a third reason to call.
 - Whether the commander should also re-aim the next infantry wave (F2's "the
   allied commander re-aims the next wave to close it"), which needs the
   militia column to accept a new target mid-march.

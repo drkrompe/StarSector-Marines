@@ -56,7 +56,9 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         List<String> looks = new ArrayList<>();
-        for (String look : System.getProperty("snapshot.groundTurrets.looks", "brutalist,earthwork,derelict").split(",")) {
+        StringBuilder every = new StringBuilder();
+        for (EmplacementStyle style : EmplacementStyle.values()) every.append(every.length() > 0 ? "," : "").append(style.key);
+        for (String look : System.getProperty("snapshot.groundTurrets.looks", every.toString()).split(",")) {
             looks.add(look.trim());
         }
         List<SnapshotArtifact> artifacts = new ArrayList<>();
