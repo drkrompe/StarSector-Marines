@@ -9,7 +9,6 @@ on the same 1024 x 1536 canvas, so every part's pixels share one frame:
              and a rounded haunch; no head, arms or tail;
   head-open  raw/part-head-open.png: the head with the hood flared and jaws open;
   head-shut  raw/part-head-shut.png: the same head with the hood folded (generated over head-open);
-  arm-l/-r   raw/part-arm.png: the whole left arm from its shoulder ball to its single talon, and its mirror;
   tail-0..11 raw/part-tail.png: the straight tail, cut into short slices from the root down, each overlapping the
              next, so it can coil under the haunch and slither in a smooth curve;
   dead       the parts assembled straight, dulled.
@@ -39,13 +38,11 @@ SCALE = 0.25
 CENTRE_COL = 512
 BACK_BOX = (240, 230, 784, 900)
 HEAD_BOX = (220, 10, 804, 490)            # both hood states share it
-ARM_BOX = (90, 330, 630, 875)             # the left arm; the right is its mirror
 TAIL_TOP, TAIL_TIP = 480, 1503            # the tail's root (hidden under the haunch) and its spike's point
 TAIL_SLICES = 12
 TAIL_SEAMS = tuple(round(TAIL_TOP + (TAIL_TIP - TAIL_TOP) * i / TAIL_SLICES) for i in range(TAIL_SLICES + 1))
 TAIL_OVERLAP = 14                         # each slice reaches this far past its seams, so a bend shows no gap
 TAIL_COLS = (380, 644)
-ARM_SCALE = 0.75                          # the arm was generated large; the composer draws it at this share
 DECAL_HEIGHT = 160
 ORIGINAL_DECAL_WIDTH = 2048
 
@@ -79,11 +76,6 @@ def shrink(img, scale=SCALE):
     return img.convert("RGBa").resize((w, h), Image.LANCZOS).convert("RGBA")
 
 
-def mirror_box(box):
-    x0, y0, x1, y1 = box
-    return (2 * CENTRE_COL - x1, y0, 2 * CENTRE_COL - x0, y1)
-
-
 def masked(plate, mask):
     return plate * np.dstack([np.ones(mask.shape + (3,)), mask])
 
@@ -106,25 +98,18 @@ def cut_tail(tail):
 
 
 def parts():
-    back, tail, arm = (keyed(RAW / f"part-{n}.png") for n in ("back", "tail", "arm"))
+    back, tail = (keyed(RAW / f"part-{n}.png") for n in ("back", "tail"))
     layers = {"back": (back, BACK_BOX),
               "head-open": (keyed(RAW / "part-head-open.png"), HEAD_BOX),
-              "head-shut": (keyed(RAW / "part-head-shut.png"), HEAD_BOX),
-              "arm-l": (arm, ARM_BOX),
-              "arm-r": (arm[:, ::-1], mirror_box(ARM_BOX))}
+              "head-shut": (keyed(RAW / "part-head-shut.png"), HEAD_BOX)}
     layers.update(cut_tail(tail))
-    return layers, assembled(back, tail, arm, layers["head-shut"][0])
+    return layers, assembled(back, tail, layers["head-shut"][0])
 
 
-def assembled(back, tail, arm, head):
-    """The parts put together straight, as the dead body lies: tail, arms at their sockets, back, folded head."""
+def assembled(back, tail, head):
+    """The parts put together straight, as the dead body lies: tail, back, folded head."""
     canvas = to_image(np.zeros_like(back))
     canvas.alpha_composite(to_image(tail))
-    a = shrink(to_image(arm), ARM_SCALE)
-    # the arm's shoulder ball (536, 517) onto the back's left socket (320, 370), and its mirror
-    x, y = round(320 - 536 * ARM_SCALE), round(370 - 517 * ARM_SCALE)
-    canvas.alpha_composite(a, (x, y))
-    canvas.alpha_composite(a.transpose(Image.FLIP_LEFT_RIGHT), (2 * CENTRE_COL - x - a.width, y))
     canvas.alpha_composite(to_image(back))
     canvas.alpha_composite(to_image(head))
     return np.asarray(canvas).astype(float)

@@ -3,10 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 
 /**
- * Draws a Spitter from its parts, seen from above: the tail's slices coiled out from under the haunch, the arms
- * about their shoulder sockets, the back over them, and the head on top, turned about its neck, with its
- * hood folded or popped open as the rig fires (the flared hood grows out from the folded one). A dead Spitter lies
- * dulled in a pool of its own acid ({@link #emitDead}).
+ * Draws a Spitter from its parts, seen from above: the tail's slices chained from the body's centre (coiled round the
+ * body standing, trailing behind on the move), the back over them, and the head on top, turned about its
+ * neck, with its hood folded or popped open as the rig fires (the flared hood grows out from the folded one). A dead
+ * Spitter lies dulled in a pool of its own acid ({@link #emitDead}).
  */
 final class RavSpitterComposer {
 
@@ -16,14 +16,12 @@ final class RavSpitterComposer {
     private static final float ANCHOR = RavSpitterRig.ANCHOR_ROW, CENTRE = RavSpitterRig.CENTRE_COL;
     /** Canvas row of each sprite's centre (the export boxes): the back, and the head in either hood state. */
     private static final float BACK_ROW = 565f, HEAD_ROW = 250f;
-    /**
-     * The left arm on its own canvas: its box's centre, its shoulder ball (the pivot set on the back's socket), the
-     * share it is drawn at, and its rest swing off the drawn pose, raised forward (degrees).
-     */
-    private static final float ARM_COL = 360f, ARM_ROW = 602.5f, ARM_PIVOT_COL = 536f, ARM_PIVOT_ROW = 517f;
-    private static final float ARM_SCALE = 0.75f, ARM_REST = -25f;
     /** The flared hood opens out from this share of its width. */
     private static final float HOOD_FROM = 0.55f;
+    /** Tail slices from the root that bend to keep the planted tail joined to the moving body. */
+    private static final int HOOKUP_SLICES = 2;
+    /** A drawn tail slice's length, cells. */
+    private static final float SLICE = RavSpitterRig.SLICE_PX / RavSpitterRig.U_LAYER;
     /** The canvas centre row of the corpse, the corpse's pool across, and the corpse drawn a little flattened. */
     private static final float CANVAS_CENTRE_ROW = 768f, POOL_CELLS = 1.25f, DEAD_SCALE = 0.97f;
 
@@ -54,42 +52,36 @@ final class RavSpitterComposer {
         ax += p[0] * ppc;
         ay += p[1] * ppc;
 
-        // the tail, chained from its root under the chest; drawn tip first so each segment lies over the one behind it
-        float[][] root = new float[RavSpitterRig.TAIL_SEGMENTS][2];
-        float[] angle = new float[RavSpitterRig.TAIL_SEGMENTS];
-        point(CENTRE, RavSpitterRig.COIL_ROOT_ROW, chest, ax, ay, ppc, p);
-        float jx = p[0], jy = p[1], a = chest;
-        for (int i = 0; i < RavSpitterRig.TAIL_SEGMENTS; i++) {
+        // the tail, chained from the body's centre. It is planted: it hangs off the sim position and the facing, so the
+        // chest's rear, lunge and roll leave it where it lies; only its hookup follows the body
+        int n = RavSpitterRig.TAIL_SEGMENTS;
+        float[][] joint = new float[n + 1][2];
+        float tailPx = spritePx * RavSpitterRig.TAIL_SCALE;
+        float jx = cx, jy = cy, a = facing;
+        for (int i = 0; i <= n; i++) {
+            joint[i][0] = jx;
+            joint[i][1] = jy;
+            if (i == n) break;
             a += rig.tailAngle(i);
-            angle[i] = a;
-            root[i][0] = jx;
-            root[i][1] = jy;
-            float length = (RavSpitterRig.TAIL_ROWS[i + 1] - RavSpitterRig.TAIL_ROWS[i]) / U;
-            rotate(0f, -length, a, p);
+            rotate(0f, -SLICE, a, p);
             jx += p[0] * ppc;
             jy += p[1] * ppc;
         }
-        for (int i = RavSpitterRig.TAIL_SEGMENTS - 1; i >= 0; i--) {
-            float back = (RavSpitterRig.TAIL_ROWS[i + 1] - RavSpitterRig.TAIL_ROWS[i]) / 2f / U;
-            rotate(0f, -back, angle[i], p);
-            LayeredSpriteCache s = art.tail[i];
-            out.add(s, root[i][0] + p[0] * ppc, root[i][1] + p[1] * ppc, s.pxWidth * spritePx,
-                    s.pxHeight * spritePx, angle[i], 1f, 1f, 1f, alpha);
+        // the root rides with the body, and the first slices bend and stretch to keep it joined to the planted rest
+        float dx = ax - cx, dy = ay - cy;
+        for (int k = 0; k < HOOKUP_SLICES; k++) {
+            float follow = 1f - (float) k / HOOKUP_SLICES;
+            joint[k][0] += dx * follow;
+            joint[k][1] += dy * follow;
         }
-
-        for (int side = 0; side < 2; side++) {        // arms about their shoulder sockets
-            float sign = side == RavSpitterRig.LEFT ? 1f : -1f;
-            float shoulderCol = CENTRE - sign * (CENTRE - RavSpitterRig.SHOULDER_COL);
-            point(shoulderCol, RavSpitterRig.SHOULDER_ROW, chest, ax, ay, ppc, p);
-            // the left swings back counter-clockwise, the right clockwise
-            float swing = sign * (ARM_REST + rig.clawAngle(side));
-            float ox = sign * (ARM_COL - ARM_PIVOT_COL) * ARM_SCALE / U;
-            float oy = (ARM_PIVOT_ROW - ARM_ROW) * ARM_SCALE / U;
-            float[] o = new float[2];
-            rotate(ox, oy, chest + swing, o);
-            LayeredSpriteCache s = art.arm[side];
-            out.add(s, p[0] + o[0] * ppc, p[1] + o[1] * ppc, s.pxWidth * spritePx * ARM_SCALE,
-                    s.pxHeight * spritePx * ARM_SCALE, chest + swing, 1f, 1f, 1f, alpha);
+        for (int i = n - 1; i >= 0; i--) {             // tip first, so each slice lies over the one behind it
+            float vx = joint[i + 1][0] - joint[i][0], vy = joint[i + 1][1] - joint[i][1];
+            float stretch = (float) Math.hypot(vx, vy) / (SLICE * ppc);
+            float sliceAngle = (float) Math.toDegrees(Math.atan2(vx, -vy));
+            LayeredSpriteCache s = art.tail[RavSpitterRig.TAIL_ART[i]];
+            out.add(s, (joint[i][0] + joint[i + 1][0]) / 2f, (joint[i][1] + joint[i + 1][1]) / 2f,
+                    s.pxWidth * tailPx * RavSpitterRig.tailGirth(i), s.pxHeight * tailPx * stretch, sliceAngle,
+                    1f, 1f, 1f, alpha);
         }
 
         point(CENTRE, BACK_ROW, chest, ax, ay, ppc, p);

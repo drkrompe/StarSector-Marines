@@ -8,9 +8,8 @@ import java.util.function.Function;
 
 /**
  * The Spitter's parts, exported by {@code art-source/rav-redesign/spitter/export_spitter_rig.py}: its haunched back,
- * its head with the hood folded and popped open, its two talon arms and its tail in short slices, all head-up; the
- * parts assembled and dulled for its corpse, and the acid pool it lies in. Arms are indexed left, right; tail slices
- * from the root down.
+ * its head with the hood folded and popped open and its tail in short slices, all head-up; the parts assembled and
+ * dulled for its corpse, and the acid pool it lies in. Tail slices run from the root down.
  */
 public final class RavSpitterAssets {
 
@@ -21,8 +20,7 @@ public final class RavSpitterAssets {
     final LayeredSpriteCache headOpen;
     final LayeredSpriteCache dead;
     final LayeredSpriteCache pool;
-    final LayeredSpriteCache[] arm = new LayeredSpriteCache[2];
-    final LayeredSpriteCache[] tail = new LayeredSpriteCache[RavSpitterRig.TAIL_SEGMENTS];
+    final LayeredSpriteCache[] tail = new LayeredSpriteCache[RavSpitterRig.TAIL_ART_SLICES];
 
     private RavSpitterAssets(LayeredSpriteCache back, LayeredSpriteCache headShut, LayeredSpriteCache headOpen,
                              LayeredSpriteCache dead, LayeredSpriteCache pool) {
@@ -40,9 +38,6 @@ public final class RavSpitterAssets {
                 loader.apply(ROOT + "dead.png"), loader.apply(ROOT + "acid-pool.png"));
         if (assets.back == null || assets.headShut == null || assets.headOpen == null || assets.dead == null
                 || assets.pool == null) return null;
-        assets.arm[0] = loader.apply(ROOT + "arm-l.png");
-        assets.arm[1] = loader.apply(ROOT + "arm-r.png");
-        if (assets.arm[0] == null || assets.arm[1] == null) return null;
         for (int i = 0; i < assets.tail.length; i++) {
             assets.tail[i] = loader.apply(ROOT + "tail-" + i + ".png");
             if (assets.tail[i] == null) return null;
@@ -58,7 +53,6 @@ public final class RavSpitterAssets {
         all.add(headOpen);
         all.add(dead);
         all.add(pool);
-        for (LayeredSpriteCache a : arm) all.add(a);
         for (LayeredSpriteCache t : tail) all.add(t);
         return all;
     }
