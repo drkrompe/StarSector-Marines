@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16edb-7870-7801-91cc-7fabaf85a2a9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16edb-7870-7801-91cc-7fabaf85a2a9\\exec-95d4370d-c591-4e1c-81a0-08d4cb266551.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-freight-crane.raw.png",
+    "sha256": "edcf55a3bdb8c38762f0fc41529b42fde33d74b7995dbf6e013c97e4a6682286",
+    "dimensions": [
+      1179,
+      1334
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\freight-crane.prompt.txt",
+  "promptSha256": "d0d7788aa6767be3836f2516220f6de82074211257701e67110a70f40b9956ac",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the freight yard's gantry crane and the truck caught unloading. Three columns: GANTRY SPAN (7x3 cells), GANTRY LEG (1x3), UNLOADING TRUCK (3x2); four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.\n- GANTRY SPAN: the crane's overhead bridge seen from directly above: two long hazard-yellow box girders with black lattice bracing running the full width, and a grey trolley house straddling them a little east of centre, its hoist block in the middle.\n- GANTRY LEG: one end of the crane: a dark rail bogie with two wheel trucks, the yellow A-frame leg tapering up to it.\n- UNLOADING TRUCK: an overhead flatbed hauler, cab east (yellow cab, dark windscreen strip), grey flat deck, and a rust-red cargo box half slid off the deck's west end onto the ground: stopped mid-unload and abandoned.\nRow 2 GROWN: creep mat under each object as drawn, veins climbing over it, a few plates.\nRow 3 DAMAGED: row 2 after a fight: scorch, holes, torn creep; the truck's cab caved in.\nRow 4 DESTROYED: the span collapsed as two broken girder lengths lying low, the leg in pieces, the truck in low separated pieces; transparent between pieces, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-freight-crane-guide.png",
+      "sha256": "5339050065c9aed3bb02de6c055a3c2271cb74565684dc8e1d85424aea34fd52",
+      "dimensions": [
+        1696,
+        1920
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one atlas reskin using Image 1’s fixed geometry and the other images’ materials, with transparent gaps preserved."
+  ],
+  "usage": {
+    "input_tokens": 50998,
+    "cached_input_tokens": 38144,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1103,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 89.4
+}

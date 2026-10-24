@@ -191,6 +191,34 @@ public final class RidgePlanner {
         return held;
     }
 
+    /**
+     * {@link #heldGround} without the rounded ends: the same ground across the band, but none past either end of its
+     * path, so the gap a mission leaves between two bands (a pass) stays as wide as it was drawn whatever the margin.
+     * What sealed ground holds ({@code elevation-nouns.md}, Sealed ground).
+     */
+    public static boolean[][] sideGround(List<Band> bands, int width, int height, int margin) {
+        boolean[][] held = new boolean[width][height];
+        int apron = PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1;
+        for (Band band : bands) {
+            double reach = Math.ceil(band.thickness() / 2.0) + apron + margin;
+            List<Point> path = band.path();
+            for (int i = 0; i + 1 < path.size(); i++) {
+                Point a = path.get(i), b = path.get(i + 1);
+                double dx = b.x() - a.x(), dy = b.y() - a.y(), len = Math.hypot(dx, dy);
+                if (len < 1e-9) continue;
+                double nx = -dy / len, ny = dx / len;
+                for (double t = 0; t <= len; t += 0.5) {
+                    double px = a.x() + dx * t / len, py = a.y() + dy * t / len;
+                    for (double d = -reach; d <= reach; d += 0.5) {
+                        int x = (int) Math.round(px + nx * d), y = (int) Math.round(py + ny * d);
+                        if (x >= 0 && y >= 0 && x < width && y < height) held[x][y] = true;
+                    }
+                }
+            }
+        }
+        return held;
+    }
+
     /** One step along a band's path: where it is and the unit normal to its left. */
     record Sample(double x, double y, double nx, double ny) { }
 

@@ -54,11 +54,21 @@ public final class PrecinctInterconnect {
      * alone — a map with one network already is not touched.
      */
     public static Result weld(int[][] owner, int width, int height) {
+        return weld(owner, width, height, null);
+    }
+
+    /**
+     * As above, with ground no weld is cut across ({@code blocked}, or null for none): sealed ground and the knolls'
+     * tops and rings ({@code elevation-nouns.md}), which a weld goes round, reaching what lies beyond through the
+     * gaps left in it. Networks that can be joined only across it are then joined as before, so the map is always
+     * one network.
+     */
+    public static Result weld(int[][] owner, int width, int height, boolean[][] blocked) {
         int[][] component = label(owner, width, height);
         int components = count(component, width, height);
         if (components <= 1) return new Result(components, components, 0, 0);
 
-        Flood flood = flood(component, width, height);
+        Flood flood = flood(component, width, height, blocked);
         List<Weld> candidates = candidates(flood, width, height);
         candidates.sort((a, b) -> Integer.compare(a.cost, b.cost));
 
@@ -75,7 +85,11 @@ public final class PrecinctInterconnect {
             parent[a] = b;
             merged++;
             cut++;
-            cells += carve(owner, component, flood, weld, width, height);
+            cells += carve(owner, component, flood, weld, width, height, blocked);
+        }
+        if (blocked != null && merged < components) {
+            Result rest = weld(owner, width, height, null);
+            return new Result(components, rest.componentsAfter(), cut + rest.weldsCut(), cells + rest.cellsCut());
         }
         return new Result(components, components - cut, cut, cells);
     }
@@ -128,7 +142,7 @@ public final class PrecinctInterconnect {
     /** Per-cell nearest component, its distance, and the step back toward it. */
     private record Flood(int[][] nearest, int[][] distance, int[][] fromX, int[][] fromY) { }
 
-    private static Flood flood(int[][] component, int width, int height) {
+    private static Flood flood(int[][] component, int width, int height, boolean[][] blocked) {
         int[][] nearest = new int[width][height];
         int[][] distance = new int[width][height];
         int[][] fromX = new int[width][height];
@@ -154,6 +168,7 @@ public final class PrecinctInterconnect {
                 int ny = at[1] + step[1];
                 if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
                 if (nearest[nx][ny] != -1) continue;
+                if (blocked != null && blocked[nx][ny]) continue;
                 nearest[nx][ny] = nearest[at[0]][at[1]];
                 distance[nx][ny] = distance[at[0]][at[1]] + 1;
                 fromX[nx][ny] = at[0];
@@ -195,13 +210,13 @@ public final class PrecinctInterconnect {
 
     /** Walks both sides of a weld back to their own road, painting as it goes. */
     private static int carve(int[][] owner, int[][] component, Flood flood, Weld weld,
-                             int width, int height) {
-        int cells = walkBack(owner, component, flood, weld.ax, weld.ay, width, height);
-        return cells + walkBack(owner, component, flood, weld.bx, weld.by, width, height);
+                             int width, int height, boolean[][] blocked) {
+        int cells = walkBack(owner, component, flood, weld.ax, weld.ay, width, height, blocked);
+        return cells + walkBack(owner, component, flood, weld.bx, weld.by, width, height, blocked);
     }
 
     private static int walkBack(int[][] owner, int[][] component, Flood flood,
-                                int x, int y, int width, int height) {
+                                int x, int y, int width, int height, boolean[][] blocked) {
         int painted = 0;
         int cx = x;
         int cy = y;
@@ -209,7 +224,7 @@ public final class PrecinctInterconnect {
         // that place's road reaching out rather than as ownerless tarmac.
         int who = ownerOfComponent(owner, component, flood.nearest()[x][y], width, height);
         while (true) {
-            painted += paint(owner, who, cx, cy, width, height);
+            painted += paint(owner, who, cx, cy, width, height, blocked);
             if (component[cx][cy] != -1) return painted;
             int px = flood.fromX()[cx][cy];
             int py = flood.fromY()[cx][cy];
@@ -229,7 +244,7 @@ public final class PrecinctInterconnect {
         return 0;
     }
 
-    private static int paint(int[][] owner, int who, int x, int y, int width, int height) {
+    private static int paint(int[][] owner, int who, int x, int y, int width, int height, boolean[][] blocked) {
         int painted = 0;
         for (int dx = -HALF; dx <= HALF; dx++) {
             for (int dy = -HALF; dy <= HALF; dy++) {
@@ -237,6 +252,7 @@ public final class PrecinctInterconnect {
                 int ny = y + dy;
                 if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
                 if (owner[nx][ny] != GrownTrunkPlan.UNOWNED) continue;
+                if (blocked != null && blocked[nx][ny]) continue;
                 owner[nx][ny] = who;
                 painted++;
             }

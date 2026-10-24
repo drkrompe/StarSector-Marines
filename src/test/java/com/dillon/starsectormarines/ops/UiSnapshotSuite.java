@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.i18n.Strings;
 
@@ -224,14 +229,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx");
-    private static final List<String> MECH_LAB_COMPONENTS = List.of(
+    private static final List<String> MECH_LAB_COMPONENTS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/mech-lab/mech-lab.mlx");
-    private static final List<String> BOAT_DECK_COMPONENTS = List.of(
+            "data/ui/components/mech-lab/mech-lab.mlx"));
+    private static final List<String> BOAT_DECK_COMPONENTS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/boat-deck/boat-deck.mlx");
+            "data/ui/components/boat-deck/boat-deck.mlx"));
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
                     BattleSquadOverlay.COMPONENT_PATH,
@@ -2537,6 +2542,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-long-callsign-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, true, false, false, false, null, "long-name")),
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
+                new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-internal-engine-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
@@ -2587,7 +2594,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
                 "support_mech_03", "Warden 03", MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        bay.addInternal(MechInternal.ACCELERATED_LOADER.id, 1);
         if ("long-name".equals(materialHint)) {
             if (!bay.mechById(MechBay.STARTER_MECH_ID)
                     .rename("Ironclad of the Persean Expeditionary Vanguard 1")) {
@@ -2667,9 +2674,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CORE);
         }
+        // A tank on the fourth pad with two kits bolted on and a third spare in stores: the sealed doll
+        // and the kit rack, with the stores listing the kits.
+        if ("vehicle-kits".equals(materialHint)) {
+            CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
+            for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
+            bay.addKit(VehicleKit.APPLIQUE_PLATE.id, 1);
+            bay.addKit(VehicleKit.SPACED_SKIRTS.id, 1);
+            bay.addKit(VehicleKit.READY_RACK.id, 1);
+            bay.fitKit(tank.id(), VehicleKit.APPLIQUE_PLATE);
+            bay.fitKit(tank.id(), VehicleKit.SPACED_SKIRTS);
+            viewModel.gantryRows().get().get(3).select().run();
+        }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
-            viewModel.selectSlot(SocketId.CAPACITORS);
+            viewModel.selectSlot(SocketId.AUXILIARY);
         }
         // The engine dragged back to stores: the empty, required socket warns on the doll, and
         // the stores' engine category lists the engine that came out at full strength.
@@ -2719,9 +2739,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> seconds[0],
                             viewModel::hoveredWeapon)
+                    .withOccupiedGantries(viewModel::occupiedGantries)
                     .withSideShift(() -> camera.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
+            fittingCanvas.installedCompartment(viewModel::installedCompartment);
+            fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            fittingCanvas.installedKits(viewModel::installedKits);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
@@ -2742,11 +2766,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 } else if (row.vehiclePreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             new VehiclePreviewCanvas(row.vehiclePreview()));
-                } else if (row.weaponPreview() != null || row.replenisherPreview() != null
-                        || row.internalPreview() != null) {
+                } else if (row.weaponPreview() != null || row.internalPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
-                            MechEquipmentGridCanvas.catalog(row.weaponPreview(),
-                                    row.replenisherPreview(), row.internalPreview(),
+                            MechEquipmentGridCanvas.catalog(row.weaponPreview(), row.internalPreview(),
                                     MechLabDollCanvas::headlessAssets));
                 }
             }
@@ -2755,7 +2777,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         new MechEquipmentGridCanvas(
                                 () -> viewModel.socketDefinition(row.socketId()),
                                 () -> viewModel.installedWeapon(row.socketId()),
-                                () -> viewModel.installedReplenisher(row.socketId()),
+                                () -> viewModel.compartmentPlacements(row.socketId()),
                                 () -> viewModel.installedInternal(row.socketId()),
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
@@ -2769,7 +2791,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
-                    && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")) {
+                    && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")
+                    && !materialHint.startsWith("vehicle-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -2784,6 +2807,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         .findFirst().orElseThrow().id() : MechLabSpecSheets.firstSpecSheetAnchorId(rows);
                 openSpecSheet(document, binder, width, height, instance.requireElement(anchor));
             }
+            // Lay out once and fit the bay view's surface to its box, as the screen does each frame.
+            renderRelative(renderer, document, width, height, uiScale);
+            instance.requireElement("mech-doll-canvas").fitCanvasToBox();
             if (motionFrames != null) {
                 MechWeaponDragCanvas ghost = new MechWeaponDragCanvas(MechLabDollCanvas::headlessAssets);
                 UiElement ghostElement = instance.requireElement("mech-drag-ghost");
@@ -2929,8 +2955,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
         }
+        // The parked hulls wear what the yard put on them, as the room's refit hands them over.
+        ship.doorGuns(deck::doorGuns).refitDoorGuns();
         if (openBoat) viewModel.selectBoatAction(0).run();
-        if (hardpoint >= 0) viewModel.selectHardpointAction(hardpoint).run();
+        if (hardpoint >= 0) viewModel.selectDollSlot(BoatDoll.HARDPOINT_KEY + hardpoint);
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
@@ -2950,7 +2978,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             berth -> berth < 0 || berth >= deck.berths()
                                     || deck.boats().get(berth) != null)
                             .doll(() -> viewModel.doll().get(), () -> 0d));
-            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get());
+            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
+                    viewModel.slotRows().get());
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -3336,6 +3365,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
         props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("filterPills", viewModel.filterPills());
+        props.put("filterClasses", viewModel.filterClasses());
+        props.put("backClasses", viewModel.backClasses());
         props.put("stageTitle", viewModel.stageTitle());
         props.put("stageStatus", viewModel.stageStatus());
         props.put("overviewClasses", viewModel.overviewClasses());

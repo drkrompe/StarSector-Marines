@@ -45,7 +45,10 @@ optional (reported, and the map stands).
   only on open country, not across another place's ground or the surveyed
   country (that ground's own streets serve), and only where it joins the
   network: a stretch cut off is left out rather than welded across somebody's
-  ground.
+  ground. A road that reaches the ground of the walled square place it leads
+  to is joined there, since that place's wall opens onto it or its arms reach
+  out to it: in a town no other road need run near (a town's Cordon supply
+  roads touched nothing at either end and were all thrown away).
 - **Structure.** Something raised at a place the mission chose, by kind: a
   farmstead (a farmhouse and a barn on a yard), a granary (a long store on a
   yard), an ammo dump (a sandbag ring round stacked crates), an observation
@@ -76,7 +79,12 @@ optional (reported, and the map stands).
   roads ramped down, which the band runs on into rather than breaking at.
   Each is reported as a ground piece of its own under its name (its box's
   corners, its ramps' feet as the ways up), and a required one that cannot
-  stand fails the layout check like any required piece.
+  stand fails the layout check like any required piece. A landscape's knolls
+  (`elevation-nouns.md`, Knolls) are terraces raised in the same stamp and
+  reported the same way, and a plan with a knoll runs the works phase even
+  when its layout is empty. A deferred piece can ask whether the landscape
+  held a cell before the places grew (`LayoutGround.isHeld`), to keep a site
+  off a ridge it would otherwise break.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,

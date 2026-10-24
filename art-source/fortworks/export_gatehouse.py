@@ -1,9 +1,10 @@
-"""Cut one look's gatehouse sheet (`generate.py <look> --gatehouse`) into its style's gate sprites, at the frames and
+"""Cut one look's gatehouse sheet (`generate.py <look> --gatehouse`) into its style's gate leaves, at the frames and
 size the base gatehouse is cut at (art-source/fort-buildings/export.py), so a look registers with the base art.
 
   python art-source/fortworks/export_gatehouse.py <look> <style>      e.g. derelict-colony-steel derelict
 
-Outputs mod/graphics/fort/<style>/gate-tower.png, gate-leaves.png, gate-tower-damaged.png: the folder
+Outputs mod/graphics/fort/<style>/gate-leaves.png (the sheet's second panel; the tower panels are no longer shipped,
+since the towers are drawn by the works): the folder
 `FortGatehouseArt.inStyle` draws from for a style named in the gatehouse's `looks`.
 """
 import sys
@@ -23,8 +24,7 @@ def main():
         raise SystemExit(f'{look}: gatehouse master has no real transparency')
     out = ROOT / 'mod/graphics/fort' / style
     out.mkdir(parents=True, exist_ok=True)
-    for q, name in ((0, 'gate-tower'), (1, 'gate-leaves'), (2, 'gate-tower-damaged')):
-        fort.crop(im, fort.panel_box(q, 2, 3, 150), (2 * fort.PX, 3 * fort.PX)).save(out / f'{name}.png')
+    fort.crop(im, fort.panel_box(1, 2, 3, 150), (2 * fort.PX, 3 * fort.PX)).save(out / 'gate-leaves.png')
     print('wrote', out)
 
 

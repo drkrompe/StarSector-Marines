@@ -4,7 +4,8 @@ Status: ACTIVE — StarCraft-style raised ground: a few discrete tiers, impassab
 
 Written: 2026-10-22
 
-Updated: 2026-10-24 — terraces stand built ground on a ridge's crest, its roads ramped down; kept ground.
+Updated: 2026-10-24 — terraces stand built ground on a ridge's crest, its roads and its supply side ramped
+down; kept ground; sealed ground, which every route goes round; knolls, a place grown on a terrace of its own.
 
 Read `stories.md` for open work.
 
@@ -270,6 +271,21 @@ Generators place plateaus where a mission wants them:
   hold the ground from the fields alone (`Landscape.withUnploughed`): the
   places grow exactly as they would have and only ploughing yields, for a
   mission whose places must not move.
+- **Sealed ground.** Held ground keeps the places' growth off a band, but what
+  generation routes still crosses it: the welds that join road networks, the
+  access routes the landscape keeps open, a track, a landing's approach, a
+  layout road. A band a mission wants to stand whole (a hollow's rim) is
+  **sealed** (`Landscape.withSealed`): held from growth, claims and fields
+  whatever the landscape says, and gone round by every route, which reaches
+  what lies beyond through the gaps between the bands, the passes the mission
+  drew. Sealed ground holds a band's sides and never past its ends
+  (`RidgePlanner.sideGround`), so a pass stays as wide as it was drawn, and
+  its margin covers a street's half width and a building's reservation, so
+  nothing grown up against it reserves the ridge's own ground. A weld that can
+  join two networks only across it still does, so the map is always one road
+  network; a track and a landing's approach stop at it. Its segments are
+  proved over the whole map, as a terrace is: a ring's inside joins the
+  country only through its passes.
 - **Under works.** A mission layout's ridge (`mission-layout.md`, Ridge) is
   raised before the layout's works are laid, so a trench resolved along it
   is dug on its crest (the Cordon's line). Places are built before it and stay
@@ -280,7 +296,13 @@ Generators place plateaus where a mission wants them:
   width carries the road down. A side whose outline a road runs along, or
   whose cliff would land on built ground, is pushed out a cell at a time, so a
   road beside the place runs on the top and is ramped where it leaves; a
-  terrace with no road over its edge has no way up and does not stand. The
+  terrace with no road over its edge has no way up and does not stand. A
+  terrace may name its **supply side**: that side is ramped whether or not a
+  road was laid across it, the ramp cut from open ground below the side as
+  near its middle as the ground allows, and a terrace whose supply side has
+  no such ground does not stand. Without it a place whose own road was not
+  laid could be climbed only from wherever another road happened to cross,
+  and what was sent up from behind it stood below the cliff. The
   terraces are planned first, each kept only when the whole map's ground stays
   one body once its cliff closes (a terrace's top joins the low ground through
   ramps that may lie far from any box round its faces, so the proof is the
@@ -293,6 +315,19 @@ Generators place plateaus where a mission wants them:
   places' growth, claims, road arms and fields keep off whatever the held
   ground says. A required terrace that cannot stand fails its map (the
   Cordon's redoubts); an optional one leaves its place in a pass.
+- **Knolls.** A place stood on high ground of its own (`Landscape.withKnolls`,
+  `KnollGround`): a flat top round its seed (moved in from the map's edge
+  rather than shrunk), the place growing only on it, and a ring of open country
+  round it that nothing else grows, claims, ploughs, welds or tracks across,
+  for the cliff and its ramps. The place claims nothing in a lane round the
+  top's edge, so the strip of top between its walls and the cliff stays one
+  body. Its roads leave by **gates**: on each side the mission names, a
+  straight road from its streets out across the ring, which the terrace ramps
+  down. The top is raised as a terrace with the map's other elevation, whether
+  or not the layout has a ridge, and reported under the knoll's name. A knoll
+  whose ground would come within a seed's room of another place's seed is
+  refused before anything grows and its place grows as it would have; a
+  required knoll that is refused or cannot stand fails its map.
 - City blocks do not get plateaus; a city's height is its buildings. A city's
   countryside margin may.
 

@@ -105,8 +105,11 @@ pooled seeds it now stands on 11 of 12 Burn maps and every Broad Front map,
 but as one to three arcs rather than a ring: the lane routes, the access
 routes the landscape keeps open and, on Broad Front, the market town growing
 up against the workings still break most of it. A rim that reads as a hollow
-needs those routed round it, or the workings placed clear of the town, and is
-open.
+needs those routed round it, or the workings placed clear of the town.
+Generation now offers that: a sealed rim (`elevation-nouns.md`, Sealed ground)
+is gone round by the welds, routes and tracks and crossed only at its passes.
+The heart's own open sites (the reservoir yard) still break it where they are
+resolved onto the rim.
 
 The knoll under Broad Front's town is not built. Held ground keeps places off
 it; a knoll wants the place on top of it, growing on the plateau with only the
@@ -114,8 +117,9 @@ faces and ramps kept clear, which is a different reservation. A terrace over
 the town's claimed box (the Cordon's redoubt terraces, `elevation-nouns.md`,
 Terraces) was tried and stood on none of the 24 rural and town maps: the claim
 runs to the map's edge, or the cliff lands on built ground just outside it. So
-the town has to grow inside the knoll's top, which is a growth bound mapgen
-does not have yet.
+the town has to grow inside the knoll's top: a knoll (`elevation-nouns.md`,
+Knolls) bounds a place's growth to a top round its seed, keeps a ring open for
+the cliff, and leaves by gates the terrace ramps down.
 
 ## The cordon's works (both forms)
 

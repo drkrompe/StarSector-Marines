@@ -1,0 +1,269 @@
+{
+ "sheetName": "origin-workings-yard",
+ "sheet": "art-source/tilesets/origin-workings-yard.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-workings-yard",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-workings-yard.png",
+ "note": "The workings' pump shed and the pipeline (run, elbow, and the mouth where it goes into the ground). Geometry-first ImageGen reskin of art-source/templates/heart-workings-yard-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1363x1154 against a 1664x1408 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + workings-yard.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    39,
+    39,
+    315,
+    210
+   ],
+   "id": "origin-workings.pump-shed-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    39,
+    328,
+    315,
+    210
+   ],
+   "id": "origin-workings.pump-shed",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    39,
+    616,
+    315,
+    210
+   ],
+   "id": "origin-workings.pump-shed-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    39,
+    905,
+    315,
+    210
+   ],
+   "id": "origin-workings.pump-shed-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    3,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    432,
+    92,
+    315,
+    105
+   ],
+   "id": "origin-workings.pipe-run-clean",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    432,
+    380,
+    315,
+    105
+   ],
+   "id": "origin-workings.pipe-run",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    432,
+    669,
+    315,
+    105
+   ],
+   "id": "origin-workings.pipe-run-damaged",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    432,
+    957,
+    315,
+    105
+   ],
+   "id": "origin-workings.pipe-run-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    826,
+    39,
+    210,
+    210
+   ],
+   "id": "origin-workings.pipe-elbow-clean",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    826,
+    328,
+    210,
+    210
+   ],
+   "id": "origin-workings.pipe-elbow",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    826,
+    616,
+    210,
+    210
+   ],
+   "id": "origin-workings.pipe-elbow-damaged",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    826,
+    905,
+    210,
+    210
+   ],
+   "id": "origin-workings.pipe-elbow-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1114,
+    92,
+    210,
+    105
+   ],
+   "id": "origin-workings.pipe-mouth-clean",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1114,
+    380,
+    210,
+    105
+   ],
+   "id": "origin-workings.pipe-mouth",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1114,
+    669,
+    210,
+    105
+   ],
+   "id": "origin-workings.pipe-mouth-damaged",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1114,
+    957,
+    210,
+    105
+   ],
+   "id": "origin-workings.pipe-mouth-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  }
+ ]
+}

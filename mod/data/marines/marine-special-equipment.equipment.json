@@ -63,7 +63,8 @@
         "layerClips": {
           "variant": "rocket",
           "using": "aiming",
-          "firing": "firing"
+          "firing": "firing",
+          "walking": "walking-port"
         },
         "preview": {
           "state": "using",
@@ -125,7 +126,8 @@
         "layerClips": {
           "variant": "rocket",
           "using": "aiming",
-          "firing": "firing"
+          "firing": "firing",
+          "walking": "walking-port"
         },
         "preview": {
           "state": "using",
@@ -176,7 +178,8 @@
         "layerClips": {
           "variant": "anti-materiel",
           "using": "aiming",
-          "firing": "firing"
+          "firing": "firing",
+          "walking": "walking-low-ready"
         },
         "preview": {
           "state": "using",

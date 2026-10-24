@@ -1,16 +1,17 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
 import java.awt.Color;
+import java.util.List;
 
 /** Mechanical equipment wells; the caller owns geometry, selection and refit authority. */
 final class MechSocketConsole {
@@ -21,9 +22,9 @@ final class MechSocketConsole {
     private static final Color FITS = new Color(0xc8eef4);
     private static final Color RED = new Color(0xe98b83);
 
-    /** One brick's height on the doll; every socket uses it, so card size follows capacity. */
-    static final float BRICK_HEIGHT = 46f;
-    static final float BRICK_GAP = 2f;
+    /** @see HardpointBricks#BOARD_BRICK_HEIGHT */
+    static final float BRICK_HEIGHT = HardpointBricks.BOARD_BRICK_HEIGHT;
+    static final float BRICK_GAP = HardpointBricks.BOARD_BRICK_GAP;
     private static final float HEADER = 22f;
     private static final float CAPTION = 22f;
     private static final float SIDE = 12f;
@@ -55,22 +56,28 @@ final class MechSocketConsole {
      * size, and what is fitted. The plate only keeps the workshop floor from showing through;
      * the bricks and the hardpoint colour carry the meaning.
      *
-     * @param internal the engine, capacitor bank or vent array fitted in this well, drawn as its
-     *                 footprint on the socket grid and named in the caption; null otherwise
+     * @param internal the engine fitted in the core, drawn as its footprint on the socket grid and
+     *                 named in the caption; null otherwise
+     * @param parts    the whole auxiliary compartment's parts at their packed places, across every
+     *                 bay (the card draws those in its own bay); null for any other socket
      */
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
                      SocketDef socket, MechWeaponComponent installed,
-                     MechWeaponComponent preview, MissileReplenisherComponent replenisher,
-                     MechInternal internal, LayeredMechAssets assets,
+                     MechWeaponComponent preview, MechInternal internal,
+                     List<MechCompartment.Placement> parts, LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
                      boolean rejected, boolean draggingHere, double time) {
         boolean fixed = socket.factoryLocked();
         Color accent = rejected ? RED : compatible ? FITS : selected ? AMBER : MUTED;
         Color socketTone = HardpointBricks.tone(socket.type());
+        boolean compartment = socket.id().compartment();
+        List<MechCompartment.Placement> here = compartment ? MechCompartment.in(parts, socket.id()) : null;
         boolean empty = installed == null && preview == null && internal == null
-                && !(socket.type() == SocketType.UTILITY && replenisher != null);
-        // An engine or capacitor well left empty keeps the mech off the drop manifest; it warns.
-        boolean missing = empty && !fixed && (socket.id() == SocketId.CORE || socket.id() == SocketId.CAPACITORS);
+                && (here == null || here.isEmpty());
+        // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the
+        // drop manifest; it warns.
+        boolean missing = !fixed && (socket.id() == SocketId.CORE ? empty
+                : compartment && !holds(parts, MechInternal.Role.CAPACITOR_BANK));
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
@@ -105,9 +112,14 @@ final class MechSocketConsole {
                 HardwareArt.draw(c, internal, bricks.left(), bricks.top(),
                         bricks.span(footprint[0], bricks.brickWidth()),
                         bricks.span(footprint[1], bricks.brickHeight()), 255);
-            } else if (socket.type() == SocketType.UTILITY && replenisher != null) {
-                HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(), HardpointBricks.UTILITY);
-                HardwareArt.draw(c, replenisher, bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
+            } else if (here != null) {
+                for (MechCompartment.Placement part : here) {
+                    HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
+                            HardpointBricks.tone(part.part().role));
+                    HardwareArt.draw(c, part.part(), bricks.brickX(part.column()), bricks.brickY(part.row()),
+                            bricks.span(part.columns(), bricks.brickWidth()),
+                            bricks.span(part.rows(), bricks.brickHeight()), 255);
+                }
             }
             if (shown != null && !HardwareArt.draw(c, shown,
                     bricks.brickX(shownBlock[0]), bricks.brickY(shownBlock[1]),
@@ -124,8 +136,7 @@ final class MechSocketConsole {
             String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
                     : missing ? Strings.get("mechLabSocketRequired")
                     : internal != null ? internal.displayName()
-                    : socket.type() == SocketType.UTILITY
-                    ? replenisher != null ? replenisher.displayName() : "SELECT TO REFIT"
+                    : compartment ? Strings.format("mechLabCompartmentUsed", used(here), socket.capacity())
                     : installed != null ? installed.displayName() : socket.type().label() + " / "
                     + socket.gridColumns() + "x" + socket.gridRows();
             c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
@@ -137,6 +148,94 @@ final class MechSocketConsole {
                     new Color(accent.getRed(), accent.getGreen(), accent.getBlue(),
                             (int) (180 + pulse * 65)), selected || draggingHere ? 2.4f : 1.4f, 17, 5);
         }
+    }
+
+    /** Whether the compartment holds a part of {@code role}. */
+    private static boolean holds(List<MechCompartment.Placement> parts, MechInternal.Role role) {
+        if (parts == null) return false;
+        for (MechCompartment.Placement part : parts) if (part.part().role == role) return true;
+        return false;
+    }
+
+    private static int used(List<MechCompartment.Placement> parts) {
+        int cells = 0;
+        if (parts != null) for (MechCompartment.Placement part : parts) cells += part.columns() * part.rows();
+        return cells;
+    }
+
+    /**
+     * Where one compartment part is drawn on the card {@code t}, as {left, top, right, bottom}:
+     * the doll hangs each part's X off its top-right corner.
+     */
+    static float[] partBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, MechCompartment.Placement part) {
+        HardpointBricks.Layout bricks = bricks(socket, 0, 0);
+        bricks = bricks(socket, t.left() + (t.width() - bricks.width()) * .5f, t.top() + HEADER);
+        float left = bricks.brickX(part.column());
+        float top = bricks.brickY(part.row());
+        return new float[] {left, top, left + bricks.span(part.columns(), bricks.brickWidth()),
+                top + bricks.span(part.rows(), bricks.brickHeight())};
+    }
+
+    /**
+     * A vehicle's card ({@link VehicleDoll}): sealed, its bricks filled as one factory piece under its
+     * mark and a SEALED tag; or the kit rack, one kit to a row, each with an X for the caller to hang.
+     */
+    static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
+                            String mark, String caption, List<VehicleKit> kits,
+                            boolean selected, boolean hovered, double time) {
+        boolean rack = socket.id() == SocketId.AUXILIARY;
+        Color tone = HardpointBricks.tone(socket.type());
+        float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
+        float x = t.left(), y = t.top(), w = t.width(), h = t.height();
+        plate(c, x, y, w, h, PLATE);
+        HardpointBricks.rim(c, x, y, w, h, CUT, rack && kits.isEmpty() ? tone
+                : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), 1.2f);
+        c.fillRect(x + 8, y + 7, 3, 9, rack ? tone : MUTED);
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 90), x + 16,
+                y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
+        if (!rack) {
+            String sealed = Strings.get("vehicleDollSealed");
+            c.text(Fonts.ORBITRON_12_BOLD, sealed, x + w - 10 - Fonts.ORBITRON_12_BOLD.measureWidth(sealed),
+                    y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, MUTED);
+        }
+        HardpointBricks.Layout bricks = bricks(socket, 0, 0);
+        bricks = bricks(socket, x + (w - bricks.width()) * .5f, y + HEADER);
+        HardpointBricks.drawEmpty(c, bricks, tone);
+        if (rack) {
+            for (int row = 0; row < kits.size() && row < bricks.rows(); row++) {
+                HardpointBricks.drawFilled(c, bricks, 0, row, 2, 1, tone);
+                // Left of the kit's X, which hangs in its top-right corner.
+                float room = bricks.width() - 18f;
+                centred(c, Strings.get("vehicleKitShort" + kits.get(row).name()), bricks.left() + room * .5f,
+                        bricks.brickY(row) + bricks.brickHeight() * .5f, room);
+            }
+        } else {
+            HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
+                    HardpointBricks.mix(tone, 0x101311, .35f));
+            centred(c, mark, bricks.centerX(), bricks.centerY(), bricks.width() - 12f);
+        }
+        c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
+                y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
+                rack && kits.isEmpty() ? AMBER : SILVER);
+        if (selected || hovered) {
+            MechLabDollCanvas.drawCornerBrackets(c, x - 2, y - 2, w + 4, h + 4,
+                    new Color(AMBER.getRed(), AMBER.getGreen(), AMBER.getBlue(), (int) (180 + pulse * 65)),
+                    selected ? 2.4f : 1.4f, 17, 5);
+        }
+    }
+
+    /** One kit's row on the rack card {@code t}, as {left, top, right, bottom}: its X hangs off the top right. */
+    static float[] kitBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, int row) {
+        HardpointBricks.Layout bricks = bricks(socket, 0, 0);
+        bricks = bricks(socket, t.left() + (t.width() - bricks.width()) * .5f, t.top() + HEADER);
+        float top = bricks.brickY(row);
+        return new float[] {bricks.left(), top, bricks.left() + bricks.width(), top + bricks.brickHeight()};
+    }
+
+    private static void centred(CanvasContext c, String text, float centerX, float centerY, float width) {
+        String shown = fit(text, width);
+        c.text(Fonts.ORBITRON_12_BOLD, shown, centerX - Fonts.ORBITRON_12_BOLD.measureWidth(shown) * .5f,
+                centerY - Fonts.ORBITRON_12_BOLD.getLineHeight() * .5f, SILVER);
     }
 
     /** A red warning triangle with an exclamation mark, 18 px square at its top-left corner. */

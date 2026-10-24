@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Mutable per-vehicle turret state — the ground twin of the air
  * {@link com.dillon.starsectormarines.battle.air.AirTurrets} bag. Held in the
@@ -71,6 +74,12 @@ public final class GroundTurret {
 
     /** The turret as a section of the hull, or null when the hull authors none (its gun cannot be shot away). */
     public final HullTurretSection section;
+
+    /**
+     * The hull's mounts beside this main turret, in {@link VehicleType#secondaryMounts()} order: seeded at spawn,
+     * and fitted by a scene that stands up a hull with a second weapon. Empty on most hulls.
+     */
+    public final List<MountedGun> secondaries = new ArrayList<>();
 
     /** Who has been hitting the hull, and from where: whether its crew is caught in crossfire. */
     public final Crossfire crossfire = new Crossfire();

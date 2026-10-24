@@ -175,7 +175,7 @@ public class LaneSidestepTest {
     @Test
     public void anUnmaskedMarineIsLeftAlone() {
         BattleSimulation sim = arena();
-        // Six cells off a lane a cell and a half wide: nobody is in the way.
+        // Six cells off the lane: nobody is in the way.
         Masked scene = masked(sim, MATE_X, ROW + 6);
         assertFalse(laneBlocked(sim, scene.shooter(), scene.target()));
 
@@ -233,6 +233,40 @@ public class LaneSidestepTest {
     }
 
     /**
+     * A step that plants its marine by clearing his path walks a step-aside
+     * instead. Clearing it threw the move away on the tick after it was
+     * authored, and the cooldown it stamped then held the marine in the lane,
+     * trigger held, for a second and a half.
+     */
+    @Test
+    public void holdingGroundWalksAStepAsideRatherThanDroppingIt() {
+        BattleSimulation sim = arena();
+        Masked scene = masked(sim, MATE_X, ROW);
+        LaneSidestep.stepOutOfLane(scene.shooter(), sim);
+        int[] authored = sim.world().path(scene.shooter());
+        float x = sim.world().x(scene.shooter());
+        float y = sim.world().y(scene.shooter());
+
+        LaneSidestep.holdGround(scene.shooter(), sim);
+
+        assertArrayEquals(authored, sim.world().path(scene.shooter()), "the step-aside is kept");
+        assertTrue(sim.world().x(scene.shooter()) != x || sim.world().y(scene.shooter()) != y,
+                "and the marine is walked along it");
+    }
+
+    /** Any other path is dropped: a marine holding ground and not stepping aside stands still. */
+    @Test
+    public void holdingGroundPlantsAMarineWhoIsNotSteppingAside() {
+        BattleSimulation sim = arena();
+        Masked scene = masked(sim, MATE_X, ROW);
+        sim.setPath(scene.shooter(), new int[]{SHOOTER_X, ROW + 1, SHOOTER_X, ROW + 2});
+
+        LaneSidestep.holdGround(scene.shooter(), sim);
+
+        assertTrue(Paths.isEmpty(sim.world().path(scene.shooter())));
+    }
+
+    /**
      * The reflex answers the tick on which the step would author fire intent,
      * so out of range there is nothing to answer: the marine is not shooting
      * anybody, through his own man or otherwise.
@@ -251,22 +285,27 @@ public class LaneSidestepTest {
      * the same fault one cell back, and a firing line is exactly the case where
      * everybody is shooting at the same thing.
      *
-     * <p>The two rear marines are placed so that every cell which would clear
-     * the shooter's own lane lies inside one of theirs: they sit level with the
-     * north and south edges of the search, far enough back that the whole
-     * two-cell box is within a cell of their lines onto the same enemy. So the
-     * only moves that would help this marine hurt somebody else, and the right
-     * answer is to stand still and let the discipline roll decide — which is
-     * the status quo rather than a regression.
+     * <p>A corridor three cells wide with three marines in a rank well behind
+     * the shooter, one per row, so every cell the shooter could step to lies in
+     * one of their lanes onto the same enemy. A lane is only a body and a margin
+     * wide and starts clear of its muzzle, so it takes a rank in a passage, far
+     * enough back, to leave no free cell: on open ground a step to the outside
+     * row would be clear of everybody.
      */
     @Test
     public void aCellThatMasksTheManBehindIsRefused() {
-        BattleSimulation sim = arena();
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = ROW - 1; y <= ROW + 1; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(W, H));
+        sim.setMissionCompletionEnabled(false);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         long shooter = marine(sim, squadId, "m0", SHOOTER_X, ROW);
         marine(sim, squadId, "m1", MATE_X, ROW);
-        marine(sim, squadId, "m2", SHOOTER_X - 6, ROW - 2);
-        marine(sim, squadId, "m3", SHOOTER_X - 6, ROW + 2);
+        for (int dy = -1; dy <= 1; dy++) {
+            marine(sim, squadId, "r" + dy, SHOOTER_X - 8, ROW + dy);
+        }
         long target = enemy(sim, "e0", ENEMY_X, ROW);
         sim.combat().setTargetId(shooter, target);
         sim.advance(BattleSimulation.TICK_DT);
@@ -281,8 +320,8 @@ public class LaneSidestepTest {
 
     /**
      * The seam, and what a control run gets. Switched off, a masked marine is
-     * left where he stands and the ballistic model's discipline roll decides,
-     * exactly as it did before any of this existed — which is what makes an
+     * left where he stands and the firing gate decides, exactly as it does
+     * without the reflex — which is what makes an
      * off run a measurement of the tree without the reflex rather than of the
      * reflex declining.
      */

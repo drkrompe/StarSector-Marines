@@ -38,4 +38,15 @@ class TurretFluxHeatTest {
         for (int i = 0; i < 30; i++) shield.tick(DT, 0f);
         assertEquals(0.5f, TurretFluxHeat.heat(shield), 0.02f);
     }
+
+    @Test
+    void theLampsLightInOrderWithTheCharge() {
+        FluxShield shield = raised();
+        shield.absorb(0f, 50f);
+        // Half full: three of six lamps lit, the rest dark.
+        assertEquals(1f, TurretFluxHeat.lamp(1L, shield, 0L, 0), 1e-4f);
+        assertEquals(1f, TurretFluxHeat.lamp(1L, shield, 0L, 2), 1e-4f);
+        assertEquals(0f, TurretFluxHeat.lamp(1L, shield, 0L, 3), 1e-4f);
+        assertEquals(0f, TurretFluxHeat.lamp(1L, shield, 0L, TurretFluxHeat.LAMPS - 1), 1e-4f);
+    }
 }

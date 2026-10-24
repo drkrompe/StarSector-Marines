@@ -438,6 +438,11 @@ tasks.register('loadoutMatchup', Test) {
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     systemProperty 'loadoutMatchup.dir', layout.buildDirectory.dir('reports/loadout-matchups').get().asFile.absolutePath
+    // `-PsnapshotBackend=gl` records the GIFs through the shipping renderer on the GPU (`ReviewSceneBackend`),
+    // which draws what Java2D does not: relief, sun shadows, event lights and per-quad effects such as hit flash.
+    if (providers.gradleProperty('snapshotBackend').isPresent()) {
+        systemProperty 'snapshot.backend', providers.gradleProperty('snapshotBackend').get()
+    }
     ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'gifs', 'gifSeeds', 'fireMission'].each { name ->
         if (providers.gradleProperty(name).isPresent()) {
             systemProperty "loadoutMatchup.${name}", providers.gradleProperty(name).get()
