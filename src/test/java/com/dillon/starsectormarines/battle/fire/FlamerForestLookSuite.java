@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -92,16 +93,17 @@ public class FlamerForestLookSuite implements SnapshotSuite {
                     .health(400f).stationary().done();
             // Each picket man stands in a flamer's own row, at the flamer's range exactly: one row off is out of reach.
             // The picket still fights back with what militia carry; the flamers are made hard enough to outlast it,
-            // so the picture is the fire's and not a firefight's. The picket is hard enough to outlast the squad's
-            // rifles, so the flamers have a target in the brush to throw at.
+            // so the picture is the fire's and not a firefight's. The picket wears plate the squad's rifles and the
+            // flamer's blast cannot get through, so it stands until the fire, which can, reaches it.
             builder.squad("picket").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(4)
-                    .at(picket[0], picket[1]).inFile(picket[0], squad[1] - 3, 0, 2).health(20000f).unarmed()
+                    .at(picket[0], picket[1]).inFile(picket[0], squad[1] - 3, 0, 2).armor(60f, 8f).unarmed()
                     .stationary().done();
             SceneWorld world = builder.build();
             long[] flamers = world.members("flamers");
             int[] spent = {0, 0, 0};
             placement.beforeTick(sim -> countSpent(sim, spent));
-            placement.beforeTick(sim -> log(variant, sim, flamers, spent));
+            long[] pickets = world.members("picket");
+            placement.beforeTick(sim -> log(variant, sim, flamers, pickets, spent));
             return world.sim();
         }, placement -> {
             LookGround.Site site = placement.site();
@@ -142,7 +144,7 @@ public class FlamerForestLookSuite implements SnapshotSuite {
     }
 
     /** Every five seconds: charges left and thrown on spent ground, the fire's size, and the squad's health and distance from it. */
-    private static void log(Variant variant, BattleSimulation sim, long[] flamers, int[] spent) {
+    private static void log(Variant variant, BattleSimulation sim, long[] flamers, long[] picket, int[] spent) {
         if (sim.getSimTickIndex() % 150 != 0) return;
         int ammo = 0, alive = 0;
         float health = 0f;
@@ -160,8 +162,9 @@ public class FlamerForestLookSuite implements SnapshotSuite {
             }
         }
         System.out.printf("    [%s] t=%ds charges left %d (%d of %d thrown landed on spent ground, %d of those with no enemy in the blast), burning %d, burnt %d, flamers alive %d (health %.0f),"
-                        + " nearest fire %s%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], spent[2], fire.burningCount(),
-                fire.burntCount(), alive, health, nearest == Integer.MAX_VALUE ? "none" : nearest + " cells");
+                        + " nearest fire %s, picket standing %d%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], spent[2], fire.burningCount(),
+                fire.burntCount(), alive, health, nearest == Integer.MAX_VALUE ? "none" : nearest + " cells",
+                Arrays.stream(picket).filter(sim.world()::isAlive).count());
     }
 
     /** The bundled weapon catalogs with the flamer's reach set to {@code range}. */

@@ -1,0 +1,699 @@
+{
+  "alphaMin": 16,
+  "blocks": [{
+    "doorBlock": "installation.dark-concrete-door",
+    "id": "installation.dark-concrete-wall@composite",
+    "layout": "wall-faces-4x4",
+    "rubbleBlock": "installation.dark-concrete-rubble",
+    "windowBlock": "installation.dark-concrete-window"
+  }],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s@composite",
+      "included": true,
+      "note": "Parapet collar piece s, composite look.",
+      "rect": [
+        390,
+        63,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n@composite",
+      "included": true,
+      "note": "Parapet collar piece n, composite look.",
+      "rect": [
+        390,
+        774,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e@composite",
+      "included": true,
+      "note": "Parapet collar piece e, composite look.",
+      "rect": [
+        26,
+        419,
+        182,
+        177
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w@composite",
+      "included": true,
+      "note": "Parapet collar piece w, composite look.",
+      "rect": [
+        754,
+        419,
+        182,
+        177
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-se@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-se, composite look.",
+      "rect": [
+        26,
+        63,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-sw@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, composite look.",
+      "rect": [
+        754,
+        63,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-ne@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, composite look.",
+      "rect": [
+        26,
+        774,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, composite look.",
+      "rect": [
+        754,
+        774,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-n@composite",
+      "included": true,
+      "note": "Barricade piece n, composite look.",
+      "rect": [
+        1165,
+        36,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-n@composite",
+      "included": true,
+      "note": "Barricade piece n, composite look.",
+      "rect": [
+        1165,
+        36,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-s@composite",
+      "included": true,
+      "note": "Barricade piece s, composite look.",
+      "rect": [
+        1165,
+        379,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-s@composite",
+      "included": true,
+      "note": "Barricade piece s, composite look.",
+      "rect": [
+        1165,
+        379,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-w@composite",
+      "included": true,
+      "note": "Barricade piece w, composite look.",
+      "rect": [
+        992,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-w@composite",
+      "included": true,
+      "note": "Barricade piece w, composite look.",
+      "rect": [
+        992,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-e@composite",
+      "included": true,
+      "note": "Barricade piece e, composite look.",
+      "rect": [
+        1337,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-e@composite",
+      "included": true,
+      "note": "Barricade piece e, composite look.",
+      "rect": [
+        1337,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-nw@composite",
+      "included": true,
+      "note": "Barricade piece corner-nw, composite look.",
+      "rect": [
+        992,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-nw@composite",
+      "included": true,
+      "note": "Barricade piece corner-nw, composite look.",
+      "rect": [
+        992,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-ne@composite",
+      "included": true,
+      "note": "Barricade piece corner-ne, composite look.",
+      "rect": [
+        1337,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-ne@composite",
+      "included": true,
+      "note": "Barricade piece corner-ne, composite look.",
+      "rect": [
+        1337,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-sw@composite",
+      "included": true,
+      "note": "Barricade piece corner-sw, composite look.",
+      "rect": [
+        992,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-sw@composite",
+      "included": true,
+      "note": "Barricade piece corner-sw, composite look.",
+      "rect": [
+        992,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-se@composite",
+      "included": true,
+      "note": "Barricade piece corner-se, composite look.",
+      "rect": [
+        1337,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-se@composite",
+      "included": true,
+      "note": "Barricade piece corner-se, composite look.",
+      "rect": [
+        1337,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-0",
+      "included": true,
+      "rect": [
+        1010,
+        629,
+        77,
+        80
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-1",
+      "included": true,
+      "rect": [
+        1104,
+        629,
+        77,
+        80
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-2",
+      "included": true,
+      "rect": [
+        1197,
+        629,
+        79,
+        80
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-3",
+      "included": true,
+      "rect": [
+        1293,
+        629,
+        78,
+        80
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-4",
+      "included": true,
+      "rect": [
+        1010,
+        723,
+        77,
+        79
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-5",
+      "included": true,
+      "rect": [
+        1104,
+        723,
+        77,
+        79
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-6",
+      "included": true,
+      "rect": [
+        1197,
+        723,
+        79,
+        79
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-7",
+      "included": true,
+      "rect": [
+        1293,
+        723,
+        78,
+        79
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-8",
+      "included": true,
+      "rect": [
+        1010,
+        818,
+        77,
+        79
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-9",
+      "included": true,
+      "rect": [
+        1104,
+        818,
+        77,
+        79
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-10",
+      "included": true,
+      "rect": [
+        1197,
+        818,
+        79,
+        79
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-11",
+      "included": true,
+      "rect": [
+        1293,
+        818,
+        78,
+        79
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-12",
+      "included": true,
+      "rect": [
+        1010,
+        911,
+        77,
+        78
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-13",
+      "included": true,
+      "rect": [
+        1104,
+        911,
+        77,
+        78
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-14",
+      "included": true,
+      "rect": [
+        1197,
+        911,
+        79,
+        78
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.dark-concrete-wall@composite",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@composite.faces-15",
+      "included": true,
+      "rect": [
+        1293,
+        911,
+        78,
+        78
+      ],
+      "slot": "faces-15"
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the composite emplacement style, look 'composite': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/composite.prompt.txt, raw retained unmodified. Cuts are measured from the raw (make_doc.py). Every id is a look <base id>@composite of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/composite.raw.png",
+  "sheetName": "fortworks-composite"
+}

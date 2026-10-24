@@ -148,7 +148,8 @@ Each family builds a prepared and a militia emplacement style (`EmplacementStyle
 `ground-turret-tiers.md`): low-tech brutalist concrete and earthwork; midline League modular panels
 and barrier cells, or Diktat export kit and blockwork; high-tech field-emitter composite shells
 in hex plating and deployed kit, under a drawn flux shield. The defenders' faction picks the
-family (`EmplacementStylePolicy`).
+family (`EmplacementStylePolicy`). A fortification lot's walls, parapets and barricades are
+drawn in its guns' style (`fort-works.md`).
 
 ### Interiors
 

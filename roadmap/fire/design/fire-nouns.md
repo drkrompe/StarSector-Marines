@@ -328,7 +328,17 @@ nothing is drawn for a battle that never lit anything.
   draws it (`ScorchShader`, a multiply then an overlay, inside the ground's
   colour target with the creep) and its CPU model (`ScorchShading`) draws
   review frames; `shaderEvidence` holds the two to the same pixels.
-- **Glow** is a warm wash over each burning cell, under its flames.
+- **Glow** is a soft warm disc under each burning cell, a little wider than
+  the cell, so a small fire's ground glows round rather than in squares.
+- **Small fires and big ones look different.** The field weighs every burning
+  cell's **mass**, the cells within three of it burning too
+  (`FireField.massAt`, 0 to 48). A small fire (a flamer's patch, a
+  smouldering edge: a mass of 22 or less) draws one small flame tuft and a
+  scatter of glowing embers per cell; a big one (42 and more, the heart of a
+  wide fire) draws the full flame beds below; between, a cell grows from the
+  one into the other. So a squad's flamer work reads as embers and small
+  flames with a few hot cores, and the big flame carpet is kept for a fire
+  that has grown large. The same mass is what a blaze will be judged on.
 - **Flames** are seen from straight above, as the rest of the battle is:
   patches of burning ground, irregular, with several hot spots and a ragged
   rim, never a starburst (a ring of long tongues round one core reads from

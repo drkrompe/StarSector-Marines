@@ -284,6 +284,7 @@ com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
 com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.ops.GroundTurretFamilyDraftSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.LargePostLookSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.FortWorksLookSnapshotSuite
 com.dillon.starsectormarines.battle.turret.RaisedGunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
 com.dillon.starsectormarines.ops.MarineRightButtonSnapshotSuite

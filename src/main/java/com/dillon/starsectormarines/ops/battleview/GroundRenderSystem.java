@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
+
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -471,6 +474,11 @@ public final class GroundRenderSystem implements RenderSystem {
         private final Color wallFill;
         private final GridBlockDef[] surfaceBlock;
         private final Color[] surfaceFill;
+        /**
+         * Each wall surface's look in each works style, by surface index (zero for the default wall) then
+         * {@code EmplacementStyle.ordinal()}; null where the style draws the surface's own art (`fort-works.md`).
+         */
+        private final GridBlockDef[][] styledWall;
         private final int surfaces;
         private final GridBlockDef[][] edgeBlocks;
 
@@ -521,6 +529,17 @@ public final class GroundRenderSystem implements RenderSystem {
             // per pass into an array indexed by the topology's own surface index,
             // for the same reason the default is: a lookup per wall cell would put
             // a map probe in the inner loop of the densest pass on the deck.
+            styledWall = new GridBlockDef[surfaces + 1][];
+            for (int i = 0; i <= surfaces; i++) {
+                String id = i == 0 ? (wallBlock == null ? null : wallBlock.id) : topology.surfaceId(i);
+                if (id == null || tileReg == null) continue;
+                for (EmplacementStyle style : EmplacementStyle.values()) {
+                    GridBlockDef look = tileReg.block(FortWorks.lookId(id, style));
+                    if (look == null) continue;
+                    if (styledWall[i] == null) styledWall[i] = new GridBlockDef[EmplacementStyle.values().length];
+                    styledWall[i][style.ordinal()] = look;
+                }
+            }
             surfaceBlock = surfaces == 0 ? null : new GridBlockDef[surfaces + 1];
             surfaceFill = surfaces == 0 ? null : new Color[surfaces + 1];
             edgeBlocks = new GridBlockDef[surfaces+1][16];
@@ -628,12 +647,18 @@ public final class GroundRenderSystem implements RenderSystem {
         private void resolveWall(int x, int y, GroundMesh.CellSink sink) {
             GridBlockDef block = wallBlock;
             Color fill = wallFill;
+            int surface = topology.getSurface(x, y);
             if (surfaceBlock != null) {
-                int surface = topology.getSurface(x, y);
                 if (surface > 0 && surface < surfaceBlock.length) {
                     block = surfaceBlock[surface];
                     fill = surfaceFill[surface];
                 }
+            }
+            // A fortification lot's wall draws in its works style where the style has a look for it.
+            int works = topology.getWorksStyle(x, y);
+            if (works != 0 && surface >= 0 && surface < styledWall.length && styledWall[surface] != null) {
+                GridBlockDef look = styledWall[surface][works - 1];
+                if (look != null && sheetFor(look.sheetPath) != null) block = look;
             }
             TileManifest.TileFrame tile =
                     WallMasks.pickTile(topology, x, y, block);

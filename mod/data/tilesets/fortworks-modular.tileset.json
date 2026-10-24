@@ -1,0 +1,427 @@
+{
+  "blocks": [{
+    "doorBlock": "installation.dark-concrete-door",
+    "id": "installation.dark-concrete-wall@modular",
+    "layout": "wall-faces-4x4",
+    "origin": [
+      8,
+      1
+    ],
+    "rubbleBlock": "installation.dark-concrete-rubble",
+    "windowBlock": "installation.dark-concrete-window"
+  }],
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Parapet collar piece s, modular look.",
+      "name": "doodad.fort-emplacement-s@modular",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Parapet collar piece n, modular look.",
+      "name": "doodad.fort-emplacement-n@modular",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Parapet collar piece e, modular look.",
+      "name": "doodad.fort-emplacement-e@modular",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Parapet collar piece w, modular look.",
+      "name": "doodad.fort-emplacement-w@modular",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Parapet collar piece inner-se, modular look.",
+      "name": "doodad.fort-emplacement-inner-se@modular",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Parapet collar piece inner-sw, modular look.",
+      "name": "doodad.fort-emplacement-inner-sw@modular",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Parapet collar piece inner-ne, modular look.",
+      "name": "doodad.fort-emplacement-inner-ne@modular",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Parapet collar piece inner-nw, modular look.",
+      "name": "doodad.fort-emplacement-inner-nw@modular",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Barricade piece n, modular look.",
+      "name": "doodad.fort-sandbag-n@modular",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Barricade piece n, modular look.",
+      "name": "doodad.sandbag-straight-n@modular",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Barricade piece s, modular look.",
+      "name": "doodad.fort-sandbag-s@modular",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "Barricade piece s, modular look.",
+      "name": "doodad.sandbag-straight-s@modular",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "Barricade piece w, modular look.",
+      "name": "doodad.fort-sandbag-w@modular",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Barricade piece w, modular look.",
+      "name": "doodad.sandbag-straight-w@modular",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "Barricade piece e, modular look.",
+      "name": "doodad.fort-sandbag-e@modular",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "Barricade piece e, modular look.",
+      "name": "doodad.sandbag-straight-e@modular",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Barricade piece corner-nw, modular look.",
+      "name": "doodad.fort-sandbag-corner-nw@modular",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "Barricade piece corner-nw, modular look.",
+      "name": "doodad.sandbag-corner-nw@modular",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "Barricade piece corner-ne, modular look.",
+      "name": "doodad.fort-sandbag-corner-ne@modular",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "Barricade piece corner-ne, modular look.",
+      "name": "doodad.sandbag-corner-ne@modular",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "Barricade piece corner-sw, modular look.",
+      "name": "doodad.fort-sandbag-corner-sw@modular",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "Barricade piece corner-sw, modular look.",
+      "name": "doodad.sandbag-corner-sw@modular",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "Barricade piece corner-se, modular look.",
+      "name": "doodad.fort-sandbag-corner-se@modular",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "Barricade piece corner-se, modular look.",
+      "name": "doodad.sandbag-corner-se@modular",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.dark-concrete-wall@modular faces-0",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north",
+      "name": "installation.dark-concrete-wall@modular faces-1",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east",
+      "name": "installation.dark-concrete-wall@modular faces-2",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.dark-concrete-wall@modular faces-3",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south",
+      "name": "installation.dark-concrete-wall@modular faces-4",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.dark-concrete-wall@modular faces-5",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.dark-concrete-wall@modular faces-6",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.dark-concrete-wall@modular faces-7",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on west",
+      "name": "installation.dark-concrete-wall@modular faces-8",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.dark-concrete-wall@modular faces-9",
+      "row": 3
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.dark-concrete-wall@modular faces-10",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.dark-concrete-wall@modular faces-11",
+      "row": 3
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.dark-concrete-wall@modular faces-12",
+      "row": 4
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.dark-concrete-wall@modular faces-13",
+      "row": 4
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.dark-concrete-wall@modular faces-14",
+      "row": 4
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.dark-concrete-wall@modular faces-15",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-s@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-n@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-e@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-w@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-se@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-sw@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-ne@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-nw@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 8,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-n@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-n@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 10,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-s@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 11,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-s@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 12,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-w@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 13,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-w@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 14,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-e@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 15,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-e@modular",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-nw@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-nw@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-ne@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-ne@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-sw@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-sw@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-se@modular",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-se@modular",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/tilesets/fortworks-modular.png"
+}
