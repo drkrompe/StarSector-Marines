@@ -43,10 +43,11 @@ class MechBayPatternTest {
     }
 
     @Test
-    void legacyStarterFixtureKnowsEveryChassisAndWeaponButOnlyStockInternals() {
+    void legacyStarterFixtureKnowsEveryChassisAndWeaponButOnlyStockInternalsAndNoKits() {
         MechBay bay = MechBay.legacyStarterFixture();
         for (MechPattern pattern : MechPattern.all()) {
-            boolean upgrade = pattern.kind() == MechPattern.Kind.INTERNAL && !pattern.starter();
+            boolean upgrade = (pattern.kind() == MechPattern.Kind.INTERNAL || pattern.kind() == MechPattern.Kind.KIT)
+                    && !pattern.starter();
             assertEquals(!upgrade, bay.knowsPattern(pattern.id()), pattern.id());
         }
         assertTrue(bay.canFabricate(MechVariant.BULWARK));
