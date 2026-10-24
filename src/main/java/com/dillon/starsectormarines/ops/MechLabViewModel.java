@@ -2449,7 +2449,7 @@ public final class MechLabViewModel {
         for (CategoryFilter f : offeredFilters()) {
             String id = "mech-filter:" + f.name().toLowerCase(Locale.ROOT);
             String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
-            pills.add(new FilterPill(id, f.label(), f.icon(), classes, () -> setFilter(f)));
+            pills.add(new FilterPill(id, f.label(), f.icon(), f.tone(), classes, () -> setFilter(f)));
         }
         return List.copyOf(pills);
     }
@@ -2484,7 +2484,7 @@ public final class MechLabViewModel {
                         case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
                         case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
                         case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
-                    }, null,
+                    }, null, null,
                     weight == current ? "catalog-filter-pill selected" : "catalog-filter-pill",
                     () -> setWeightFilter(weight == weightFilter.get() ? null : weight)));
         }
@@ -2651,32 +2651,41 @@ public final class MechLabViewModel {
      * and choosing it again clears the filter. {@link #ALL} is that cleared state and has no pill.
      */
     public enum CategoryFilter {
-        ALL(null, null),
-        BALLISTIC("openingMechLabBallistic", "graphics/ui/mech-hardware/chaingun.svg"),
-        MISSILE("openingMechLabMissile", "graphics/ui/mech-hardware/srm-5.svg"),
-        ENERGY("openingMechLabEnergy", "graphics/ui/mech-hardware/pulse-laser.svg"),
-        ENGINE("openingMechLabFilterEngine", "graphics/ui/mech-hardware/engine-industrial.svg"),
-        CAPACITORS("openingMechLabFilterCapacitors", "graphics/ui/mech-hardware/capacitor-factory.svg"),
-        UTILITY("openingMechLabFilterUtility", "graphics/ui/mech-hardware/loader-standard.svg");
+        // Each symbol is a part's detail art on its brick colour, the tones the doll draws
+        // (HardpointBricks): the art alone is only the dark detail layer.
+        ALL(null, null, null),
+        BALLISTIC("openingMechLabBallistic", "graphics/ui/mech-hardware/chaingun.svg", "#e2c248"),
+        MISSILE("openingMechLabMissile", "graphics/ui/mech-hardware/srm-5.svg", "#6cc45e"),
+        ENERGY("openingMechLabEnergy", "graphics/ui/mech-hardware/pulse-laser.svg", "#e06a3c"),
+        ENGINE("openingMechLabFilterEngine", "graphics/ui/mech-hardware/engine-industrial.svg", "#5e96d2"),
+        CAPACITORS("openingMechLabFilterCapacitors", "graphics/ui/mech-hardware/capacitor-factory.svg", "#a07edc"),
+        UTILITY("openingMechLabFilterUtility", "graphics/ui/mech-hardware/loader-standard.svg", "#4cb4a6");
 
         private final String labelKey;
         private final String icon;
-        CategoryFilter(String labelKey, String icon) { this.labelKey = labelKey; this.icon = icon; }
+        private final String tone;
+        CategoryFilter(String labelKey, String icon, String tone) {
+            this.labelKey = labelKey; this.icon = icon; this.tone = tone;
+        }
         public String label() { return labelKey == null ? "" : Strings.get(labelKey); }
         public String icon() { return icon; }
+        public String tone() { return tone; }
 
         static final List<CategoryFilter> WEAPONS = List.of(BALLISTIC, MISSILE, ENERGY);
         static final List<CategoryFilter> PARTS = List.of(BALLISTIC, MISSILE, ENERGY, ENGINE, CAPACITORS, UTILITY);
     }
 
     /** One category symbol; {@code label} names it for its hover sheet. */
-    public record FilterPill(String id, String label, String icon, String classes, Runnable select)
+    public record FilterPill(String id, String label, String icon, String tone, String classes, Runnable select)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "label" -> label; case "classes" -> classes;
             case "icon" -> icon == null ? "" : icon;
             case "iconId" -> id + ":icon";
             case "iconClasses" -> icon == null ? "hidden" : "catalog-filter-icon";
+            case "chipId" -> id + ":chip";
+            case "chipClasses" -> icon == null ? "hidden" : "catalog-filter-chip";
+            case "chipStyle" -> tone == null ? "" : "background-color: " + tone + ";";
             case "textId" -> id + ":text";
             case "text" -> icon == null ? label : "";
             case "textClasses" -> icon == null ? "catalog-filter-text" : "hidden";
