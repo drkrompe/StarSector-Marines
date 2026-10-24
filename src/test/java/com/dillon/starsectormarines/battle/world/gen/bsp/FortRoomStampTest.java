@@ -87,7 +87,7 @@ class FortRoomStampTest {
                 GenContext ctx = field();
                 CompoundLayout.Placement at = plan.layout().at(60, 40, turn);
                 FortStage.stamp(ctx, plan, at, 0, true);
-                List<FortRoom> rooms = new ArrayList<>(plan.rooms());
+                List<FortRoom> rooms = new ArrayList<>(plan.buildings());
                 rooms.add(plan.airDefence().room());
                 for (FortRoom room : rooms) {
                     assertEquals(expectedFixtures(room), doodadsInRoom(ctx, at, room),
@@ -104,7 +104,7 @@ class FortRoomStampTest {
                 GenContext ctx = field();
                 CompoundLayout.Placement at = plan.layout().at(60, 40, turn);
                 FortStage.stamp(ctx, plan, at, 0, true);
-                List<FortRoom> rooms = new ArrayList<>(plan.rooms());
+                List<FortRoom> rooms = new ArrayList<>(plan.buildings());
                 rooms.add(plan.airDefence().room());
                 int crewed = 0;
                 for (FortRoom room : rooms) {

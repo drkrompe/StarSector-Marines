@@ -637,8 +637,11 @@ public final class FortressInterior {
         return true;
     }
 
-    /** Turn one wall cell into a window onto the ground beyond it. */
-    private static void openWindow(GenContext ctx, int x, int y, Direction outward) {
+    /**
+     * Turn one wall cell into a window onto the ground beyond it. Public for a host that authors its own apertures (a
+     * fort's gate towers are slit where they look out of the works, not by the facade rule).
+     */
+    public static void openWindow(GenContext ctx, int x, int y, Direction outward) {
         int outsideX = x + outward.dx;
         int outsideY = y + outward.dy;
         if (ctx.grid.getEdgeBarrier(x, y, outward) != null) return;

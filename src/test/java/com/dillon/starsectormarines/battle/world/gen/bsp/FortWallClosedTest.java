@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
@@ -79,10 +80,11 @@ class FortWallClosedTest {
                 seen[1][1] = true;
                 while (!queue.isEmpty()) {
                     int[] c = queue.poll();
-                    int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-                    for (int[] s : steps) {
-                        int x = c[0] + s[0], y = c[1] + s[1];
+                    // A step honours the grid's edges: a window is open floor with a barrier on its outer edge.
+                    for (Direction d : Direction.CARDINALS) {
+                        int x = c[0] + d.dx, y = c[1] + d.dy;
                         if (x < 0 || y < 0 || x >= W || y >= H || seen[x][y] || sealed[x][y] || !ctx.grid.isWalkable(x, y)) continue;
+                        if (!ctx.grid.isEdgePassable(c[0], c[1], d)) continue;
                         seen[x][y] = true;
                         queue.add(new int[]{x, y});
                     }

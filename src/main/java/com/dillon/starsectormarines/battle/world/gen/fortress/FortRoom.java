@@ -17,11 +17,13 @@ import java.util.List;
  * One room of a fort aspect's suite, in the fort's local frame: where its floor is, where its doors are, how it is
  * furnished (an authored {@link RoomLayout}, so it passes through the same circulation guards as any fitted room) and
  * where the garrison stands in it. An aspect is housed in a suite, not at a point: the <em>main</em> room carries the
- * aspect's core structure and the roof art registered to its floor, and an aspect may add ante-rooms (an operations hall
+ * aspect's core structure, and an aspect may add ante-rooms (an operations hall
  * in front of a plotting vault, a loading bay in front of a store). The aspect's place is the union of the suite's floors.
  *
- * @param aspect  the aspect this room belongs to
- * @param main    whether this room holds the aspect's core and its registered roof art
+ * <p>A gatehouse tower ({@link GateTowers}) is a room of no aspect: held and fought from, but no part of any suite.
+ *
+ * @param aspect  the aspect this room belongs to, or null for a gatehouse tower
+ * @param main    whether this room holds the aspect's core
  * @param purpose what the room is for
  * @param x       floor origin, footprint frame
  * @param y       floor origin, footprint frame
@@ -32,11 +34,9 @@ import java.util.List;
  * @param ops     the authored furnishing, in the room's own frame (origin at the floor's top-left)
  * @param stands  floor cells, relative to the floor origin, where the room's garrison stands
  * @param core    for a main room, the middle of the three-by-three core structure relative to the floor origin
- * @param art     for an ante-room, the key of the roof art its aspect's building art names for it, or null for a room
- *                drawn the ordinary way (a main room is drawn by its aspect's own roof art)
  */
 public record FortRoom(FortAspect aspect, boolean main, RoomPurpose purpose, int x, int y, int width, int height,
-                       List<Doorway> doors, List<LayoutOp> ops, List<int[]> stands, int[] core, String art) {
+                       List<Doorway> doors, List<LayoutOp> ops, List<int[]> stands, int[] core) {
 
     public FortRoom {
         doors = List.copyOf(doors);
