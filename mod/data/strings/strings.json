@@ -4996,6 +4996,7 @@
 		"battleDirectHudBURST": "Burst",
 		"battleDirectHudPACKET": "Volley",
 		"battleDirectHudROTARY": "Rotary · hold",
+		"battleDirectHudSTREAM": "Stream · hold",
 		"battleDirectHudTriggerSEMI": "Semi-auto",
 		"battleDirectHudTriggerAUTO": "Auto",
 		"battleDirectHudINDIRECT": "Indirect",

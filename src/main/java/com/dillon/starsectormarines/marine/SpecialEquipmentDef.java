@@ -253,6 +253,15 @@ public record SpecialEquipmentDef(
         return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && weaponDef().indirectFire;
     }
 
+    /**
+     * True for the flamer: an {@link SpecialActivation#ARC_EXPLOSIVE} item whose weapon is not indirect fire,
+     * a short flat jet aimed and held like a gun. Under direct control it fires for as long as the button is
+     * held, one charge of its fuel at a time.
+     */
+    public boolean isHeldStream() {
+        return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && !weaponDef().indirectFire;
+    }
+
     /** True when the item is a tube the carrier sets down, serves and lifts again. */
     public boolean isCrewServed() {
         return aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT;
