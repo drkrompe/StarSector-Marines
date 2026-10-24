@@ -122,6 +122,21 @@ class MarkupRuntimeTest {
     }
 
     @Test
+    void aComponentFirstUsedAfterTheBuildStillBringsItsStyle() {
+        Map<String, String> files = Map.of(
+                "stores-room.mlx", "<template props=\"rows\"><div id=\"root\">"
+                        + "<row-card each=\"row in rows\" key=\"{row}\" /></div></template>",
+                "row-card.mlx", "<template><div id=\"card\" class=\"card\">Row</div></template>"
+                        + "<style>.card { width: 10px; }</style>");
+        MarkupLoader loader = new MarkupLoader(files::get, List.of("row-card.mlx", "stores-room.mlx"));
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build("stores-room", Map.of("rows", List.of()))) {
+            assertEquals(2, instance.styles().size(), "the empty list's card style is in the document");
+        }
+    }
+
+    @Test
     void failedReloadLeavesThePreviousTemplateUsable() {
         AtomicReference<String> source = new AtomicReference<>(
                 "<template><div id=\"root\">Stable</div></template>");
