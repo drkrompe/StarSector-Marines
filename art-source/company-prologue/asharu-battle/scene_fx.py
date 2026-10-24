@@ -26,7 +26,9 @@ import contextlib
 import importlib
 import math
 import random
+import os
 import re
+import zlib
 
 import bpy
 from mathutils import Matrix, Vector
@@ -77,6 +79,10 @@ class SceneFx:
         self.m = _mods()
         self.rows = []
         self.flared = {}                # ship -> the swfx_pd.Flares she threw (flares), for a salvo to take
+        self.riding = {}                # (flight label, launch frame) -> (ship it hit, hit frame): to_world
+        # every drawn round, warhead or beam that meets a hull: (ship, first frame, last frame, her-frame
+        # point in metres, what), the causes asharu_damage.link_check ties each in-shot hit to
+        self.impacts = []
         self.before = set(bpy.data.objects)     # what the builds brought: projectile_check looks past it
         for pl in placed.values():
             if pl['fx'] is not None:
@@ -115,15 +121,56 @@ class SceneFx:
 
     def hit_point(self, target, from_world, aim_world):
         """Where a round from from_world toward aim_world meets the target's hull, in the target's
-        frame (metres), with the surface normal; the aim point and an outward normal on a miss."""
+        frame (metres), with the surface normal. On a miss, the point on her hull nearest the aim
+        point (coordinator, 2026-10-23: every planned impact lands on metal, never in the air)."""
         imp = self.m['swfx_impacts']
         a, b = self.local(target, from_world), self.local(target, aim_world)
         start = b + (a - b).normalized() * 60.0          # cast from just outside her, not from the shooter
         got = imp.ray_to_hull(self.scene, self.placed[target]['matrix'], tuple(start), tuple(b))
+        if got and Vector(got[0]).length > .75 * self.placed[target]['length']:
+            got = None       # it met something else: a boat on her deck, a ship alongside; not her hull
         if got:
             return Vector(got[0]), Vector(got[1])
+        near = self.nearest_on_hull(target, b)
+        if near is not None:
+            self.rows.append(f'hit point on {target}: the line missed her; snapped {(near[0] - b).length:.1f} m '
+                             f'from the aim point onto her hull')
+            return near
+        self.rows.append(f'hit point on {target}: the line missed her and she has no hull mesh to snap to')
         n = (a - b).normalized()
         return b, n
+
+    def nearest_on_hull(self, target, p_m):
+        """(point, normal) on the target's hull meshes nearest p_m, both in her frame (metres), or None.
+        Her copy's objects are in copy space (her matrix x mpu); each mesh is searched in its own space."""
+        pl = self.placed[target]
+        s = pl['fx']
+        hull = getattr(s, 'hull', None) if s is not None else None
+        if hull is None:
+            return None
+        mpu = pl['mpu']
+        p_copy = Vector(p_m) / mpu
+        best = None
+        for o in hull.all_objects:
+            if o.type != 'MESH' or o.name.startswith('SWFX') or not len(o.data.polygons):
+                continue
+            m, par, n_ = o.matrix_basis.copy(), o.parent, o
+            while par is not None:
+                m = par.matrix_basis @ n_.matrix_parent_inverse @ m
+                n_, par = par, par.parent
+            try:
+                ok, loc, nrm, _i = o.closest_point_on_mesh(m.inverted() @ p_copy)
+            except (RuntimeError, ValueError):
+                continue
+            if not ok:
+                continue
+            w = m @ loc
+            d = (w - p_copy).length
+            if best is None or d < best[0]:
+                best = (d, w, (m.to_3x3() @ nrm).normalized())
+        if best is None:
+            return None
+        return best[1] * mpu, best[2]
 
     # ------------------------------------------------------------------ shields
     def shield(self, key, s):
@@ -147,7 +194,12 @@ class SceneFx:
             sh.flux(ctx, up, 0.0)
             sh.flux(ctx, self.now - 2, float(s.get('flux', .3)))
             if s.get('overload_s') is not None:
-                d = self.local(key, self.world(s['toward'])) if s.get('toward') in self.placed else Vector((1, 0, 0))
+                fo = self.now - round(s['overload_s'] * self.fps)
+                if s.get('toward') in self.placed and self.matrix_at is not None:
+                    # the ripple faces the attacker where both are at the overload, not at the kit's build
+                    d = self.matrix_at(key, fo).inverted() @ self.matrix_at(s['toward'], fo).translation
+                else:
+                    d = self.local(key, self.world(s['toward'])) if s.get('toward') in self.placed else Vector((1, 0, 0))
                 az = math.degrees(math.atan2(d.y, d.x))
                 el = math.degrees(math.atan2(d.z, math.hypot(d.x, d.y)))
                 sh.overload(ctx, self.now - round(s['overload_s'] * self.fps), az, el, fps=self.fps)
@@ -156,9 +208,16 @@ class SceneFx:
         return True
 
     # ------------------------------------------------------------------ guns
-    def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4):
+    def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4, trained=False, cease=None, walk=1.0,
+               bursts=None, sure=None):
         """a's guns on b: every bearing gun with a clear line (muzzles, the blockout's pick first), up
-        to `most` turrets. True when the kit drew it (a has a kit copy)."""
+        to `most` turrets. True when the kit drew it (a has a kit copy). A planned gun (planned()):
+        trained, it is already on b when its plan opens (she was fighting before the cut); cease, the
+        scene frame from which it fires no more (b is dead); walk, the share of WALK_R and LEAD_ERR its
+        bursts walk and misjudge by (below 1: the burst that kills her lands on her); bursts, [(first, last)]
+        scene frames the trigger is held, in place of the weapon's seeded rhythm (a story broadside); sure,
+        the scene frame a round of hers must land on (the kill): a round arriving within SURE_F frames
+        of it is laid dead on, without the walk or the lead error."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -169,7 +228,7 @@ class SceneFx:
             if target is not None and hit_l is not None:
                 self.strikes(b, [self.now - k * 3 for k in range(4)], hit_l, normal, 'kinetic')
             return False
-        landed, fired, placed_hits = [], [], []
+        landed, fired, placed_hits, planned_any = [], [], [], False
         with self.fired(a), shooter.kit() as (ctx, kit):
             turrets = []
             for m in muzzles:
@@ -196,8 +255,10 @@ class SceneFx:
                     aim_at = self.tracking(a, b, self.local(a, mz), hit_l, speed)
                     if self.cur is None:      # the whole shot, built once: planned aim, bursts, real shots
                         recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
-                                            feeder, aim_at)
+                                            feeder, aim_at, trained=trained, cease=cease, walk=walk,
+                                            held=bursts, sure=sure)
                         if recs is not None:
+                            planned_any = True       # the plan owns this gun, firing or holding
                             placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
                                             if r.get('hit_frame') is not None and r.get('hit_l') is not None]
                             if recs:
@@ -216,13 +277,20 @@ class SceneFx:
                 if recs:             # a degenerate gun fires nothing: the stand-in draws the shot
                     fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
-            return False
+            # a planned gun that holds fire draws nothing; it never falls back to the blockout's
+            # stand-in streaks, which are a still picture of a stream (owner, 2026-10-23, S7)
+            if planned_any:
+                self.rows.append(f'tracer {a} -> {b}: planned, no round on target in this shot')
+            return planned_any
+        self.impacts += [(b, int(f_), int(f_), tuple(hl_), f'{a} round') for f_, hl_, _n in placed_hits]
         if placed_hits:      # planned rounds: each strike where its own straight line met her hull
             he = self.hit_kind(a, fired)
             placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
                            if h[0] >= self.span[0] - round(1.5 * self.fps)]
             self.strikes_at(b, placed_hits[::2], he)
         landed = sorted(set(landed))
+        if hit_l is not None:
+            self.impacts += [(b, int(f_), int(f_), tuple(hit_l), f'{a} round') for f_ in landed]
         if target is not None and hit_l is not None and landed:
             he = self.hit_kind(a, fired)
             if self.span:        # in motion: the strikes this frame can see (each placed by its own frame)
@@ -270,15 +338,25 @@ class SceneFx:
     # fire weapons around a ship is good"): each burst opens off to one side of the aim point and
     # walks across and past her; a round hits only where its straight line meets her hull, and
     # the rest fly on past her and fade. WALK_R is the walk's reach as a share of her length.
-    WALK_R = .3
+    # Wider than the hull (owner, 2026-10-23, S6b: "NONE of the bursts miss"): a walk opens off her,
+    # crosses her and leaves the far side, so a third to a half of a burst's rounds go wide.
+    WALK_R = .5
     # Each round leaves the bore a little off the gun's line, seeded per round (owner, 2026-10-23,
     # S6: the rounds of a burst should fly roughly parallel, not all converge on one point): the
     # aim point scatters by range x tan(SPREAD_DEG), so the spread grows with distance as a gun's does.
-    SPREAD_DEG = .25
+    SPREAD_DEG = .3
+    # A gunner's lead is a guess at where she will be: each burst leads by its own error (a share of
+    # the flight time), so a moving target slides out from under some bursts and into others.
+    # .12 missed 69% of S6b's rounds (verify12); the owner's mark is a third to a half.
+    LEAD_ERR = .07
+    SURE_F = 1.25       # frames either side of a `sure` frame whose rounds are laid dead on
 
-    def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
+    def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track, trained=False,
+                cease=None, walk=1.0, held=None, sure=None):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
-        None for a mount with no pivot (the caller fires it the old way)."""
+        None for a mount with no pivot (the caller fires it the old way). trained: the gun opens on
+        its target, not at rest; cease: no round from that scene frame on; held: [(first, last)]
+        scene frames the trigger is held, in place of the seeded bursts."""
         g = kit.guns
         fps = self.fps
         guns = sorted((x for x in ctx.anchors.guns if x.turret == turret), key=g.gun_index)
@@ -304,8 +382,11 @@ class SceneFx:
             dy = math.atan2(math.sin(yd - last[0]), math.cos(yd - last[0])) if last else 0.0
             dp = pd - last[1] if last else 0.0
             last = (yd, pd)
-            y += max(-rate, min(rate, ey * .3 + dy))
-            p += max(-rate, min(rate, ep * .3 + dp))
+            if trained and f < self.span[0]:     # unseen before the cut: she is simply on her target
+                y, p = yd, pd
+            else:
+                y += max(-rate, min(rate, ey * .3 + dy))
+                p += max(-rate, min(rate, ep * .3 + dp))
             lim = math.radians(self.ELEV_MAX_DEG)
             if abs(p) > lim:             # past its mount's travel: it cannot bear, so it is off target
                 p = math.copysign(lim, p)
@@ -327,15 +408,18 @@ class SceneFx:
             on = rnd.uniform(*burst_s) * fps
             bursts.append((t, t + on))
             t += on + rnd.uniform(*gap_s) * fps
+        if held is not None:     # a story broadside: the trigger held exactly when the shot needs it
+            bursts = [(float(t0), float(t1)) for t0, t1 in held]
         bm = self.placed[b]['matrix']
-        reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R
+        reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R * walk
         walks = []
         for t0, t1 in bursts:
             th = rnd.uniform(0, 2 * math.pi)
-            r0 = reach * rnd.uniform(.9, 1.6)
+            r0 = reach * rnd.uniform(.8, 1.5)
             ph = th + math.pi + rnd.uniform(-.8, .8)
-            r1 = reach * rnd.uniform(0, 1.3)
-            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1)))
+            r1 = reach * rnd.uniform(-.2, .6)
+            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
+                          rnd.gauss(0, self.LEAD_ERR * walk)))
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -348,28 +432,51 @@ class SceneFx:
             ma = self.matrix_at(a, f)
             src = ma @ Vector(muzzle_l)
             fl = (self.matrix_at(b, f) @ Vector(hit_l) - src).length / max(speed, 1.0) * fps
-            mb = self.matrix_at(b, f + fl)
+            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
+            dead_on = False
+            if sure is not None:     # her true flight: the round keeps the shooter's own velocity
+                aim0 = self.matrix_at(b, f) @ Vector(hit_l)
+                va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
+                fl_true = (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
+                dead_on = abs(f + fl_true - sure) <= self.SURE_F
+            ox = oy = err = 0.0
+            for t0, t1, c, e, le in walks:
+                if dead_on:
+                    break                                           # the killing round: laid dead on
+                if t0 <= f < t1:
+                    k = (f - t0) / max(t1 - t0, 1.0)
+                    ox, oy, err = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k, le
+                    break
+            mt = self.matrix_at(b, f + fl)                          # where she really is when it arrives
+            mt = self.matrix_at(b, f + fl_true) if dead_on else mt
+            mb = mt if dead_on else self.matrix_at(b, f + fl * (1 + err + jr.gauss(0, .03)))   # where the gunner led her
             line = (Vector(hit_l) - mb.inverted() @ src).normalized()
             u = line.orthogonal().normalized()
             v = line.cross(u)
-            ox = oy = 0.0
-            for t0, t1, c, e in walks:
-                if t0 <= f < t1:
-                    k = (f - t0) / max(t1 - t0, 1.0)
-                    ox, oy = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k
-                    break
-            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
             spread = math.hypot(reach * .08, (Vector(hit_l) - mb.inverted() @ src).length
                                 * math.tan(math.radians(self.SPREAD_DEG)))
-            ox += jr.gauss(0, spread)
-            oy += jr.gauss(0, spread)
-            aim_l = Vector(hit_l) + u * ox + v * oy
-            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - line * reach * 4), tuple(aim_l))
+            if not dead_on:
+                ox += jr.gauss(0, spread)
+                oy += jr.gauss(0, spread)
+            aim_w = mb @ (Vector(hit_l) + u * ox + v * oy)          # the round's aim point, in the world
+            real = mt.inverted()                                    # ... in her frame as she really is then
+            aim_l, src_l = real @ aim_w, real @ src
+            ray = (aim_l - src_l).normalized()
+            # cast from no further back than her muzzle: at close range a cast from behind it met the
+            # shooter's own hull and counted the round a miss (S8-S9, 2026-10-24: the Colossus at the
+            # Mk.III, 0 hits from 165)
+            back = min(reach * 4, max((aim_l - src_l).length - 2.0, 1.0))
+            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * back), tuple(aim_l))
             hit = None
             if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
                 hit = (Vector(got[0]), Vector(got[1]))
-                aim_l = hit[0]
-            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ (mb @ aim_l), hit)
+                aim_w = mt @ hit[0]
+            if os.environ.get('ASHARU_SHOT_DEBUG') == f'{a}>{b}':      # why a gun's rounds miss
+                print(f'ASHARU shot {a}>{b} f{f}: hit_l {tuple(round(c) for c in hit_l)} reach {reach:.0f} '
+                      f'offset ({ox:.0f}, {oy:.0f}) err {err:+.2f} cast '
+                      + ('none' if got is None else f'{(Vector(got[0]) - Vector(hit_l)).length:.0f} m from hit_l'),
+                      flush=True)
+            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ aim_w, hit)
             return shots[f]
         others = [k for k in self.placed if k not in (a, b)]
         clear = {}
@@ -389,9 +496,12 @@ class SceneFx:
                         break
                 clear[k] = (ok, seg.length)
             return clear[k]
-        stats = {'on': 0, 'off_target': 0, 'range': 0, 'blocked': 0, 'gap': 0}
+        stats = {'on': 0, 'off_target': 0, 'range': 0, 'blocked': 0, 'gap': 0, 'ceased': 0}
 
         def allow(f):
+            if cease is not None and f >= cease:
+                stats['ceased'] += 1
+                return False
             if not any(t0 <= f < t1 for t0, t1 in bursts):
                 stats['gap'] += 1
                 return False
@@ -410,6 +520,18 @@ class SceneFx:
         recs = g.fire_weapon(ctx, turret, F0, (F1 - F0) / fps, feeder=feeder, target=lambda f: shot(f)[0],
                              train=False, allow=allow, pose=pose, passes=lambda f: shot(f)[1] is None,
                              after=lambda f, objs: g.world_rounds(objs, lambda k, f=f: copy_at(k).inverted() @ copy_at(f)))
+        if not recs and not any(stats.values()):
+            # fire_weapon refused the gun before a single round was asked about (its degenerate-
+            # anchor guard): a broken plan, not a gun holding fire (2026-10-23, S7's Wolf (P))
+            ma = self.matrix_at(a, F0)
+            src = ma @ Vector(muzzle_l)
+            hit_w = self.matrix_at(b, F0) @ Vector(hit_l)
+            raise RuntimeError(
+                f'planned {a} t{turret} -> {b}: fire_weapon refused the gun. At F0={F0}: muzzle_l '
+                f'{tuple(round(c, 1) for c in muzzle_l)} (m, her frame), src {tuple(round(c, 1) for c in src)}, '
+                f'hit_l {tuple(round(c, 1) for c in hit_l)} (m, {b} frame), hit {tuple(round(c, 1) for c in hit_w)}, '
+                f'{a} at {tuple(round(c, 1) for c in ma.translation)}, mpu {mpu}, speed {speed}, '
+                f'target (copy) {tuple(round(c, 1) for c in shot(F0)[0])}')
         hits = 0
         for r in recs:
             got = shots.get(r['frame'], (None, None))[1]
@@ -437,6 +559,8 @@ class SceneFx:
     # (the ship's motion at the fire instant is in that line: it was aimed at where the target
     # would be); a laid trail stays laid. Impacts belong to the target and ride her.
     INHERIT = re.compile(r'flare|puff|casing')
+    RIDE = re.compile(r' missile (?:hit|shield) (\S+) f(-?\d+)\b')
+    ON_HULL = re.compile(r' fire \d+(?: @\S+)?$')      # a burst's late fires: they burn on her and ride her
     PROJECTILE = re.compile(r' (round|bolt|tracer|missile|motor|glare|contrail|flare|canister|puff|casing)\b')
 
     @contextlib.contextmanager
@@ -464,7 +588,30 @@ class SceneFx:
             if f0 is None:
                 continue
             base = copy_at(f0)
-            if self.INHERIT.search(ob.name):
+            hit = self.RIDE.search(ob.name)
+            hit = self.riding.get((hit.group(1), int(hit.group(2)))) if hit else None
+            if hit is not None and hit[0] in self.placed:
+                # a warhead's burst on a ship: held in the world until it meets her, then carried on
+                # with her, so the fires and smoke it leaves burn on her hull (S6 audit, 2026-10-23:
+                # held in the world, they burned 110-200 m behind a Lasher doing 190 m/s)
+                b, fh = hit
+                on = self.matrix_at(b, fh).inverted()
+                if re.search(r' core( @\S+)?$', ob.name):     # the warhead meeting her: a drawn impact
+                    loc_ = (Vector([fc.evaluate(fh) for fc in [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]])
+                            if swfx_core.find_fcurve(ob, 'location', 0) is not None else ob.matrix_basis.translation)
+                    self.impacts.append((b, fh, fh, tuple(on @ (base @ loc_)), f'{a} missile'))
+                if self.ON_HULL.search(ob.name):
+                    delta = lambda k, base=base, b=b, fh=fh, on=on: (copy_at(k).inverted() @ self.matrix_at(b, max(k, fh))
+                                                                      @ on @ base)
+                else:
+                    # thrown off her (flash, tongues, smoke, shrapnel, spall, the hit light): born where
+                    # she was hit, then carried on at her velocity at the hit plus its own throw, so it
+                    # drifts off her rather than standing in the world or riding her (coordinator,
+                    # 2026-10-24, S6)
+                    vb = (self.matrix_at(b, fh + 1).translation - self.matrix_at(b, fh - 1).translation) / 2
+                    delta = lambda k, base=base, vb=vb, fh=fh: (copy_at(k).inverted()
+                                                                @ Matrix.Translation(vb * max(0, k - fh)) @ base)
+            elif self.INHERIT.search(ob.name):
                 # thrown, not aimed (a flare, a puff, a casing): it keeps the ship's velocity at the
                 # instant it left her (owner, 2026-10-23: flares "stay in relation to the hound")
                 v = (self.matrix_at(a, f0 + 1).translation - self.matrix_at(a, f0 - 1).translation) / 2
@@ -519,15 +666,74 @@ class SceneFx:
 
     def projectile_check(self):
         """Fail the build if a projectile still rides its ship: every top-level kit object named as
-        a round, bolt, missile, trail or flare must have been held in the world (to_world)."""
+        a round, bolt, missile, trail or flare must have been held in the world (to_world). Fail it
+        too if any gun had no muzzle (muzzle_world.missing): a round never leaves the hull centre."""
         bad = [o.name for o in bpy.data.objects if o not in self.before and o.parent is None
                and o.name.startswith('SWFX')
                and self.PROJECTILE.search(o.name) and not o.get('world_space')]
         self.rows.append(f'projectile check: {len(bad)} riding a ship')
+        kinds = {}
+        for im in self.impacts:
+            kinds[im[4]] = kinds.get(im[4], 0) + 1
+        self.rows.append(f'drawn impacts: {kinds}')
+        missing = list(getattr(self.muzzle_world, 'missing', ()))
+        self.rows.append(f'muzzle check: {len(missing)} mounts with no muzzle')
+        if missing:      # coordinator, 2026-10-23: every turret fires from a real muzzle, never the hull centre
+            raise RuntimeError(f'{len(missing)} guns have no muzzle anchor and no barrel to take one from, '
+                               f'so they would fire from the hull centre: {missing[:6]}')
         if bad and self.matrix_at is not None and self.span:
             raise RuntimeError(f'{len(bad)} projectiles still in the space of the ship that fired them '
                                f'(owner, 2026-10-23: projectiles fly in world space), e.g. {bad[:6]}')
+        if self.span and self.cur is None:      # the whole shot's rounds, built once (--kit-once)
+            flight, checked = self.flight_check()
+            self.rows.append(f'flight check: {checked} rounds checked, {len(flight)} pop in, freeze or blink')
+            if flight and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                raise RuntimeError(f'{len(flight)} rounds do not fly from the muzzle onward every frame '
+                                   f'(owner, 2026-10-23, S7: streaks held still for ten frames): {flight[:6]}')
         return bad
+
+    # The round bodies themselves: a round's corona and core, a tracer. Not its halo or light, which
+    # sit at the muzzle for the first frames by design, nor an ion bolt's one-frame jag pieces (the
+    # bolt's corona round carries its flight).
+    MOVERS = re.compile(r' (round(?! halo| light)|tracer) .* f-?\d{3,}$')
+
+    def flight_check(self):
+        """Every round in a shot flies: it shows first on the frame it was fired (or on the shot's
+        first frame, if it was fired before the cut), shows on every frame until it is gone, and
+        moves on every one of them. Anything else is a streak that pops in mid-flight, holds still
+        or blinks."""
+        import swfx_core
+        f_lo, f_hi = self.span
+        bad, checked = [], 0
+        for o in bpy.data.objects:
+            if o in self.before or o.parent is not None or not o.name.startswith('SWFX') or not self.MOVERS.search(o.name):
+                continue
+            fcs = [swfx_core.find_fcurve(o, 'location', i) for i in range(3)]
+            vis = swfx_core.find_fcurve(o, 'hide_render')
+            if vis is None or not len(vis.keyframe_points):
+                continue
+            keys = [kp.co.x for kp in vis.keyframe_points]
+            lo, hi = max(f_lo, int(min(keys))), min(f_hi, int(max(keys)) + 1)
+            shown = [f for f in range(lo, hi + 1) if vis.evaluate(f) < .5]
+            if not shown:
+                continue
+            checked += 1
+            birth = self._birth(o, swfx_core)
+            if birth is not None and shown[0] > max(birth, f_lo) + 1:
+                bad.append(f'{o.name}: first shown f{shown[0]}, fired f{birth}')
+                continue
+            if shown[-1] - shown[0] + 1 != len(shown):
+                bad.append(f'{o.name}: blinks between f{shown[0]} and f{shown[-1]}')
+                continue
+            if len(shown) > 1 and not all(fc is not None and len(fc.keyframe_points) for fc in fcs):
+                bad.append(f'{o.name}: shown {len(shown)} frames with no flight keys')
+                continue
+            for f in shown[1:]:
+                d = sum((fc.evaluate(f) - fc.evaluate(f - 1)) ** 2 for fc in fcs) ** .5
+                if d < 1e-3:
+                    bad.append(f'{o.name}: holds still at f{f}')
+                    break
+        return bad, checked
 
     def add_elevation(self, a, piv, guns):
         """A mount the build gave only a traverse pivot (the Hound's WS 002): an elevation joint made
@@ -599,10 +805,11 @@ class SceneFx:
         self.rows.append(f'strikes on {key}: {out}')
 
     # ------------------------------------------------------------------ missiles
-    def missiles(self, a, b, arrive=None, decoys=0):
+    def missiles(self, a, b, arrive=None, decoys=0, aim=(0, 0, 0)):
         """A Harpoon salvo from a's launchers at b, arriving on frame `arrive`. decoys: how many of
         its seekers take one of b's flares instead (flares must already have been thrown by b in
-        this shot): the visible cause a flare needs (owner, 2026-10-23)."""
+        this shot): the visible cause a flare needs (owner, 2026-10-23). aim: the point on b they seek (her
+        frame, metres)."""
         shooter = self.ship(a)
         if shooter is None:
             return False
@@ -612,33 +819,57 @@ class SceneFx:
             starts = [(*mp.tube(shooter, ctx, g.turret, g.tag), kit.guns.gun_label(g)) for g in tubes[:4]]
         if not starts:
             return False
-        target = self.world(b)
+        target = self.world(b, aim)
         arrive = arrive if arrive is not None else self.now + 6
         frames = [3 * i for i in range(len(starts))]
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=frames, target_name=b, width=.18)
         shift = arrive - max(f.end['frame'] for f in fl if f.end)
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
                       target_name=b, width=.18)
-        if self.matrix_at is not None and self.span:
-            # A seeker flies to where she will be when it arrives, in the world: the flights are
-            # held in the shooter's space as it stood at launch (to_world), so the target goes
-            # into that space, then back through the space salvo works in.
-            f0 = min(f.frame for f in fl)
-            launch = self.matrix_at(a, f0) @ Matrix.Scale(self.placed[a]['mpu'], 4)
-            at_end = self.matrix_at(b, max(f.end['frame'] for f in fl if f.end)).translation
-            target = mp.space_of(shooter) @ (launch.inverted() @ at_end)
-            fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
-                          target_name=b, width=.18)
+        for _settle in range(4 if self.matrix_at is not None and self.span else 1):
+            fl = self._salvo_world(a, b, starts, frames, shift, fl, arrive, mp, shooter, aim)
+            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit']
+            if not ends or abs(max(ends) - arrive) <= 1:
+                break
+            shift += arrive - max(ends)       # the world re-plan moved the arrivals: shift the launch
         taken = self._decoy(a, b, fl, decoys) if decoys else []
+        for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
+            if f.end and f.end['kind'] == 'hit':
+                self.riding[(f.label, int(f.frame))] = (b, int(f.end['frame']))
         with self.fired(a), shooter.kit() as (ctx, kit):
             kit.guns.launch_flights(ctx, fl)
         self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
-                         f'arriving {[f.end["frame"] for f in fl if f.end]}'
+                         f'arriving {[f.end["frame"] for f in fl if f.end]} (asked {arrive})'
                          + (f'; decoyed {taken}' if decoys else ''))
         if decoys and not taken:
             self.log(f'WARNING missiles {a} -> {b}: asked for {decoys} decoyed, none took a flare '
                      f'({len(self.flared.get(b, ()))} flares thrown by {b} in this shot)')
         return True
+
+    def _salvo_world(self, a, b, starts, frames, shift, fl, arrive, mp, shooter, aim):
+        """The salvo launched `shift` frames on, each seeker re-planned in the world (below)."""
+        fl = mp.salvo('harpoon', starts, self.world(b, aim), mp.space_of(shooter), frames=[f + shift for f in frames],
+                      target_name=b, width=.18)
+        if self.matrix_at is not None and self.span:
+            # A seeker flies to where she will be when it arrives, in the world: the flights are
+            # held in the shooter's space as it stood at launch (to_world), so the target goes
+            # into that space, then back through the space salvo works in.
+            # Each seeker on its own (2026-10-23, S6: one target for the salvo, where she would be at
+            # the LAST arrival, from the shooter as she stood at the FIRST launch, burst the early
+            # arrivals 60 m off a Lasher doing 190 m/s): from the shooter at its own launch frame, to
+            # where she is on its own arrival frame, settled over two passes.
+            space, mpu_a, out = mp.space_of(shooter), self.placed[a]['mpu'], []
+            for k, (st, fr) in enumerate(zip(starts, [f + shift for f in frames])):
+                one = [fl[k]] if k < len(fl) else []
+                end = fl[k].end['frame'] if k < len(fl) and fl[k].end else arrive
+                for _ in range(2):
+                    launch = self.matrix_at(a, fr) @ Matrix.Scale(mpu_a, 4)
+                    tgt = space @ (launch.inverted() @ (self.matrix_at(b, end) @ Vector(aim)))
+                    one = mp.salvo('harpoon', [st], tgt, space, frames=[fr], seed=k, target_name=b, width=.18)
+                    end = one[0].end['frame'] if one and one[0].end else end
+                out += one
+            fl = out
+        return fl
 
     def _decoy(self, a, b, flights, count):
         """Divert up to `count` of a's planned flights onto flares b threw, about a second before
@@ -677,21 +908,68 @@ class SceneFx:
         v = Vector(at)
         return (v.normalized() if v.length > 1e-3 else Vector((0, 0, 1)))
 
-    def blast_on(self, key, radius, at):
+    # A kill's cook-off: radius x KILL_SIZE is swfx_fire's blast size_m, so a Hound's r14 reaches its
+    # 'big' cluster (18 m and up: seven to ten tongues, three to five satellites, a long smoke)
+    KILL_SIZE = 1.7
+
+    def blast_on(self, key, radius, at, frame=None):
+        """An HE blast on key's hull at `at` (her frame, metres), on `frame` (default two frames before
+        the key). At her origin it is her kill: the whole ship cooks off (kill())."""
         ship = self.ship(key)
         if ship is None:
             return False
+        f = self.now - 2 if frame is None else frame
+        if Vector(at).length < 1e-6:
+            return self.kill(key, radius, f)
         with ship.kit() as (ctx, kit):
-            self.m['swfx_impacts'].he(ctx, self.now - 2, tuple(at), tuple(self.outward(key, at)), size_m=radius * .6)
+            self.m['swfx_impacts'].he(ctx, f, tuple(at), tuple(self.outward(key, at)), size_m=radius * .6)
         self.rows.append(f'blast on {key} r{radius}')
         return True
 
-    def debris(self, key, count, at):
+    def kill(self, key, radius, f):
+        """Her kill: swfx_fire's cook-off cluster (the bench-passed warhead recipe with its satellites)
+        on the face of her hull toward the camera. An HE burst at her origin sat inside her hull and
+        drew only sparks (S6d audit, 2026-10-23: no core to the kill)."""
+        import swfx_core
+        import swfx_fire
+        swfx_fire = importlib.reload(swfx_fire)
+        centre = self.world(key)
+        face = None
+        if self.cam_at is not None:
+            face, _n = self.hit_point(key, self.cam_at(f)[0], centre)
+        if face is None:
+            raise RuntimeError(f'kill {key}: no face of her hull toward the camera to cook off on')
+        with self.ship(key).kit() as (ctx, kit):
+            swfx_fire._knobs(ctx)
+            ctl = ctx.controls
+            names = ('fir_exp', 'fir_exp_scale', 'fir_exp_frame')
+            keep = {n: ctl.get(n) for n in names}
+            ctl['fir_exp'], ctl['fir_exp_scale'], ctl['fir_exp_frame'] = 1.0, 1.0, float(f)
+            try:
+                coll = ctx.collection(swfx_fire.GROUP)
+                e = swfx_core.empty(f'{swfx_fire.PREFIX} kill {key}', coll, size=swfx_core.units(.5))
+                e.location = Vector(face) / swfx_core.METRES_PER_UNIT
+                e['size_m'] = float(radius) * self.KILL_SIZE
+                e.hide_render = True
+                made = swfx_fire._jagged_blast(ctx, coll, e, zlib.crc32(key.encode()) % 997, 0.0, 1.0)
+            finally:
+                for n, v in keep.items():
+                    if v is None:
+                        del ctl[n]
+                    else:
+                        ctl[n] = v
+        self.rows.append(f'kill {key}: cook-off size {radius * self.KILL_SIZE:.1f} m at '
+                         f'{tuple(round(c, 1) for c in face)} (her face toward the camera), {len(made)} pieces')
+        return True
+
+    def debris(self, key, count, at, frame=None):
+        """Plates thrown off key's hull, from `frame` (default ten frames before the key)."""
         ship = self.ship(key)
         if ship is None:
             return False
+        f = self.now - 10 if frame is None else frame
         with ship.kit() as (ctx, kit):
-            self.m['swfx_impacts'].debris(ctx, self.now - 10, tuple(at), tuple(self.outward(key, at)), count=count)
+            self.m['swfx_impacts'].debris(ctx, f, tuple(at), tuple(self.outward(key, at)), count=count)
         self.rows.append(f'debris {key} x{count}')
         return True
 

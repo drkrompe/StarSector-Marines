@@ -132,6 +132,15 @@ public final class FacingSystem {
 
     /** Applied sprint motion keeps the cursor bearing while lowering the weapon pose. */
     public void tick(long controlledUnitId, float aimX, float aimY, boolean sprinting) {
+        tick(controlledUnitId, aimX, aimY, sprinting, null);
+    }
+
+    /**
+     * As above, with the controlled Marine holding the special its left button is on ({@code heldSpecial}),
+     * or null while it is on the primary.
+     */
+    public void tick(long controlledUnitId, float aimX, float aimY, boolean sprinting,
+                     HeldSpecialPose heldSpecial) {
         for (ArchetypeTable t : world.matched(components.liveSprites)) {
             boolean hasCombat = t.has(components.COMBAT);
             boolean hasMovement = t.has(components.MOVEMENT);
@@ -227,6 +236,8 @@ public final class FacingSystem {
                         && (manualDx != 0f || manualDy != 0f);
                 boolean sprintRow = sprinting && t.entityAt(r) == controlledUnitId
                         && type == UnitType.MARINE;
+                HeldSpecialPose heldRow = hasSecondary && t.entityAt(r) == controlledUnitId
+                        && type == UnitType.MARINE ? heldSpecial : null;
                 float manualFacing = manualAim
                         ? AirBody.facingToward(manualDx, manualDy) : Float.NaN;
                 // The grid cell this row occupies — floored locally because target
@@ -279,7 +290,7 @@ public final class FacingSystem {
                             secondaryFired, gaitPhase, haveTargetDelta, targetDx,
                             targetDy, haveTravelDelta, travelDx, travelDy, layeredFacing,
                             locomotionPhase, weaponPhase, headLook, weaponPose,
-                            layeredFlags, manualFacing, sprintRow, treating);
+                            layeredFlags, manualFacing, sprintRow, treating, heldRow);
                 }
                 if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
                     authorLayeredMechRow(r, hasMovement && haveTravelDelta, gaitPhase,
@@ -431,7 +442,8 @@ public final class FacingSystem {
             boolean haveTargetDelta, int targetDx, int targetDy,
             boolean haveTravelDelta, int travelDx, int travelDy,
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
-            int[] pose, int[] flags, float manualFacing, boolean sprinting, boolean treating) {
+            int[] pose, int[] flags, float manualFacing, boolean sprinting, boolean treating,
+            HeldSpecialPose held) {
 
         int previousFlags = flags[row];
         boolean manualAim = Float.isFinite(manualFacing);
@@ -523,6 +535,33 @@ public final class FacingSystem {
                     authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
                 }
             }
+        } else if (held != null && !sprinting && secondarySpec[row] instanceof SpecialEquipmentDef special
+                && special.isDirectFireWeapon()) {
+            // A controlled Marine whose left button is on a special carries it in place of the
+            // primary, walking or standing: raised over the wind-up, then held at the aim, and
+            // through its firing clip for the follow-through after each round.
+            boolean launcher = special.presentation().usePose() == SpecialUsePose.SHOULDER_LAUNCHER;
+            float followThrough = Math.max(TICK_FLOOR, special.aimDuration() * 0.5f);
+            boolean fired = held.sinceFired() <= followThrough;
+            authoredPose = launcher
+                    ? fired ? LayeredAppearance.POSE_ROCKET_FIRE : LayeredAppearance.POSE_ROCKET_AIM
+                    : fired ? LayeredAppearance.POSE_AMR_FIRE : LayeredAppearance.POSE_AMR_AIM;
+            authoredPhase = fired ? clamp01(held.sinceFired() / followThrough) : clamp01(held.readiness());
+            if (!fired && authoredPhase < LayeredAppearance.ACTION_ENTRY_BLEND_PHASE && moving) {
+                authoredFlags |= LayeredAppearance.FLAG_ACTION_FROM_MOVING;
+            }
+            if (fired && launcher) authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
+            if (fired && held.sinceFired() <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
+                authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
+            }
+        } else if (held != null && !sprinting && secondarySpec[row] instanceof SpecialEquipmentDef special
+                && special.isHeldStream()) {
+            // The flamer's wand in place of the primary, through the item's own clips: raised from the hip over
+            // the wind-up, and in its firing clip while a charge of the jet is leaving. The jet is the flash.
+            float followThrough = Math.max(TICK_FLOOR, special.weaponDef().flightSec);
+            boolean streaming = held.sinceFired() <= followThrough;
+            authoredPose = streaming ? LayeredAppearance.POSE_AMR_FIRE : LayeredAppearance.POSE_AMR_AIM;
+            authoredPhase = streaming ? clamp01(held.sinceFired() / followThrough) : clamp01(held.readiness());
         } else if (treating && !moving) {
             // Kneeling over the patient. A medic following a moving patient
             // walks normally and only the battlefield mark says they are treating.
@@ -547,6 +586,9 @@ public final class FacingSystem {
         phase[row] = authoredPhase;
         flags[row] = authoredFlags;
     }
+
+    /** A follow-through never shorter than one tick, so a round always shows its firing frame. */
+    private static final float TICK_FLOOR = BattleSimulation.TICK_DT;
 
     private static float clamp01(float value) {
         return Math.max(0f, Math.min(1f, value));

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
@@ -148,6 +149,7 @@ public final class BattleFixtureJson {
             root.put("seed", cordon.seed());
             root.put("variant", cordon.variant().name());
             root.put("biome", cordon.biome().name());
+            if (cordon.density() != CordonPlan.Density.RURAL) root.put("density", cordon.density().name());
             root.put("shuttles", shuttlesToJson(cordon.manifest()));
             return root;
         }
@@ -199,6 +201,7 @@ public final class BattleFixtureJson {
             root.put("form", heart.form().name());
             root.put("biome", heart.biome().name());
             if (heart.density() != Density.RURAL) root.put("density", heart.density().name());
+            if (!heart.objectives().isEmpty()) root.put("objectives", new JSONArray(heart.objectives()));
             root.put("shuttles", shuttlesToJson(heart.manifest()));
             return root;
         }
@@ -270,7 +273,9 @@ public final class BattleFixtureJson {
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
             case CordonBattleFixture.KIND -> new CordonBattleFixture(root.getLong("seed"),
                     enumValue(CordonVariant.class, root.getString("variant"), "variant"),
-                    storyBiome(root), shuttlesFromJson(root.getJSONArray("shuttles")));
+                    storyBiome(root), root.has("density")
+                            ? enumValue(CordonPlan.Density.class, root.getString("density"), "density")
+                            : CordonPlan.Density.RURAL, shuttlesFromJson(root.getJSONArray("shuttles")));
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
@@ -279,7 +284,7 @@ public final class BattleFixtureJson {
                     enumValue(Form.class, root.getString("form"), "form"),
                     storyBiome(root), root.has("density")
                             ? enumValue(Density.class, root.getString("density"), "density") : Density.RURAL,
-                    shuttlesFromJson(root.getJSONArray("shuttles")));
+                    shuttlesFromJson(root.getJSONArray("shuttles")), heartObjectives(root));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
@@ -586,6 +591,7 @@ public final class BattleFixtureJson {
             profile.put("experienceXp", seat.soldierProfile().experienceXp());
             encoded.put("soldierProfile", profile);
             putNullable(encoded, "specialEquipmentId", seat.specialEquipmentId());
+            putNullable(encoded, "beltEquipmentId", seat.beltEquipmentId());
             putNullable(encoded, "armorFamily",
                     seat.armorFamily() != null ? seat.armorFamily().name() : null);
             encoded.put("armorCapacity", seat.armorCapacity());
@@ -697,7 +703,8 @@ public final class BattleFixtureJson {
                     squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
                     hullWelfareFromJson(squad),
                     encoded.has("armorClass") ? ArmorClass.parse(encoded.optString("armorClass", null), "committed seat")
-                            : ArmorClass.STANDARD, integralSystemFromJson(encoded)));
+                            : ArmorClass.STANDARD, integralSystemFromJson(encoded),
+                    nullableString(encoded, "beltEquipmentId")));
         }
         return List.copyOf(seats);
     }
@@ -1319,5 +1326,13 @@ public final class BattleFixtureJson {
             if (constant.name().equalsIgnoreCase(value)) return constant;
         }
         throw new IllegalArgumentException("Unknown " + field + ": " + value);
+    }
+
+    /** The optional objectives a heart fixture names, or none. */
+    private static List<String> heartObjectives(JSONObject root) throws Exception {
+        List<String> out = new ArrayList<>();
+        JSONArray keys = root.optJSONArray("objectives");
+        if (keys != null) for (int i = 0; i < keys.length(); i++) out.add(keys.getString(i));
+        return out;
     }
 }

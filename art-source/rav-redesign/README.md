@@ -70,3 +70,23 @@ The owner's calls, in order:
 
 **Motion:** `exploration/motion_matriarch.py` runs over `matriarch_skeleton.py`. The layers are in
 `exploration/motion-matriarch/`, with `hero.png` = round 3 #5.
+
+## Harrier wingbeat (exploration/flier/wingbeat/, 2026-10-23)
+
+The lilac glider's frame-by-frame wingbeat (seven frames after the glide) and
+its two fold-into-dive frames. `make_guide.py` poses the glide drawing's wing
+skeleton in 3D for each frame and draws it as flat shaded geometry under the
+glide's own body pixels, nine frames on one 3x3 sheet (`guide-all.png`).
+`raw/wingbeat.png` is the ImageGen reskin of that guide (`wingbeat.brief.txt`,
+the round-1 sheet as identity reference), with provenance. `export_harrier.py`
+cuts each frame from its guide cell, keeps only the generated wings and lays the
+glide body back over them, so the body never changes from frame to frame.
+
+The second sheet, `guide-dive.png` / `raw/dive.png` (`dive.brief.txt`), carries
+the dive with its wings still showing and the two frames sweeping into it, four
+tumbling fall frames, and two corpses that the exporter grades duller. The
+first sheet's own fold frames (`r1-fold-*`) are no longer exported.
+
+The exporter also cuts the glide body into segments (`head`, `abdomen`,
+`tail-1..3`; the live frames keep only the thorax) at the joints in `JOINTS`,
+and prints each joint's offset for `HarrierLook`'s joint constants.

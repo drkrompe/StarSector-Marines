@@ -188,6 +188,7 @@ FILM_KNOBS = [
 ]
 HIT_LIFT = .08          # whole-film brightening per unit of live hit flash: slight, so a volley stays local
 FILM_FACE, FILM_RIM = .45, .8      # the film at rest: fainter than the bubble's face and rim (owner, 2026-10-21)
+FLAT_RIM = .12          # rim left on a flat shell's broad side seen at a graze (1 - flatness of it falls away)
 FILM_HIT_PEAK = 1.2     # a hit's flash on the film: local and dimmer than the bubble's HIT_PEAK (owner, 2026-10-21)
 RING_PEAK = .6          # ripple ring brightness at impact
 RING_REACH = (.35, .8)  # how far a ring runs, in mean radii: at flux 0, and the extra at flux 1
@@ -642,19 +643,29 @@ def _dissolve_order(ctx, g, nodes, links, pos, thin_fac, R):
     return g.add(order, g.mul(g.sub(fine.outputs['Fac'], .5), 2 * DISSOLVE_GRAIN))
 
 
-def _film_material(ctx, s, R, Rm):
+def _film_material(ctx, s, R, Rm, flat=(0.0, 2)):
     """The film: the accepted bubble (same face, rim, ripple, unfold, strength and fortress
     terms) in the bubble's own coordinates, plus hits that lift the film and throw ripple
-    rings, flux thinning with banding and leaks, and the overload tear."""
+    rings, flux thinning with banding and leaks, and the overload tear. flat: (how flat the
+    shell is, 0 round to 1 a sheet; its thin axis): where a flat shell's broad top and bottom
+    are seen at a graze, the rim and the face's grazing thickening fall away (FLAT_RIM), so
+    edge-on it thins to bright arcs at its ends rather than a pale plate (S9b, 2026-10-23)."""
     m, nodes, links = swfx_core.node_material(f'{PREFIX} film')
     g = _G(nodes, links)
     v = lambda name, expr, props: swfx_core.value_node(ctx, nodes, name, expr, props)  # noqa: E731
     fort = v('fortress', 'shield_fortress', ('shield_fortress',))
     lw = nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
-    rim = g.pow(g.clamp01(lw.outputs['Facing']), 4.0)
     tc = nodes.new('ShaderNodeTexCoord')
     pos = tc.outputs['Object']
+    # How much of this point is a flat shell's broad side: its normal along the thin axis,
+    # scaled by the shell's flatness (0 on a round bubble, which keeps its accepted look).
+    flat_k, flat_ax = flat
+    fsep = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(tc.outputs['Normal'], fsep.inputs[0])
+    fn = fsep.outputs[flat_ax]
+    side = g.mul(g.mul(fn, fn), min(1.0, flat_k * 1.6))     # a shell half as thick as long counts fully
+    rim = g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 4.0), g.sub(1.0, g.mul(side, 1.0 - FLAT_RIM)))
     fin = s['finish']
     noise = nodes.new('ShaderNodeTexNoise')
     noise.noise_dimensions = '4D'
@@ -682,7 +693,7 @@ def _film_material(ctx, s, R, Rm):
     rim_f = g.add(1.0, g.mul(fort, RIM_FORTRESS - 1.0))
     rimk = v('rim', 'shield_rim', ('shield_rim',))
     inner_a = g.add(s['inner_alpha'], g.mul(fort, s['fortress_alpha'] - s['inner_alpha']))
-    grad = g.add(.35, g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65))
+    grad = g.add(.35, g.mul(g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65), g.sub(1.0, side)))
     face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3 * fin['face'] * FILM_FACE), ripple), grad)
     rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'] * FILM_RIM)
     sig = v('strength', 'shield_strength', ('shield_strength',))
@@ -767,7 +778,10 @@ def _film_material(ctx, s, R, Rm):
         c = g.add(.5, g.mul(g.op('COSINE', g.mul(g.add(g.mul(h, BANDS), off), 2 * math.pi)), .5))
         links.new(c, bands.inputs[i])
     band_w = g.mul(g.mul(g.mul(thin, h), 4.0 * BAND_PEAK), g.mul(flux, v('band', 'shield_band', ('shield_band',))))
-    band_s = g.mul(g.mul(g.mul(g.mul(band_w, solid), film), cover), env)
+    # Banding is a grazing look (a soap film's colours show toward its edge): weighted like the rim,
+    # so a worn film seen edge-on does not fill with colour like a plate (S9b, 2026-10-23).
+    graze = g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 2.0), g.sub(1.0, g.mul(side, 1.0 - FLAT_RIM)))
+    band_s = g.mul(g.mul(g.mul(g.mul(g.mul(band_w, solid), film), cover), env), graze)
     on = v('shield on', '(shield_t > 0.001) * 1.0', ('shield_t',))
     shade = g.mul(g.mul(g.clamp01(g.mul(g.mul(hit_s, cover), film)), on),
                   g.add(HIT_SHADE, g.mul(fort, HIT_SHADE_FORTRESS - HIT_SHADE)))
@@ -1411,7 +1425,7 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, film=False
         for k in range(1, HITS + 1):
             ctx.prop(f'shield_ring_{k}', 1.0, 0, 1, f'hit {k}: ripple ring phase (0 at impact, 1 spent)')
         ctx.set('shield_hit_size', FILM_HIT_SIZE)
-        bubble.data.materials.append(_film_material(ctx, s, R, R))
+        bubble.data.materials.append(_film_material(ctx, s, R, R, flat=_flatness(bubble)))
     else:
         bubble.data.materials.append(_bubble_material(ctx, s, hits, R, facing))
     # The bubble lights nothing by itself (the node lights do): keeps it clean
@@ -1458,6 +1472,15 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, film=False
     record['centre'] = centre.name
     record['anchor'] = anchor.name
     return record
+
+
+def _flatness(bubble):
+    """(flatness, thin axis) of a shell from its own vertices: 1 - thinnest extent / widest, so
+    a round bubble is 0 and a hull-hugging shell round a flat hull nears 1."""
+    vs = [v.co for v in bubble.data.vertices]
+    ext = [max(v[i] for v in vs) - min(v[i] for v in vs) for i in range(3)] if vs else [1.0, 1.0, 1.0]
+    ax = min(range(3), key=lambda i: ext[i])
+    return max(0.0, min(1.0, 1.0 - ext[ax] / max(max(ext), 1e-9))), ax
 
 
 def _build_film(ctx, coll, rig, centre, bubble, s, Rm, pts, node_objects, find, record):

@@ -5,14 +5,10 @@ import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
-import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
-import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
-import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
-import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -40,62 +36,9 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
 
     @Override public String label() { return "Cordon mapgen: the line, the front and the rear"; }
 
-    /** What a whole-map frame names: each redoubt, the places, the bores and the Road's corridor. */
-    public static ReviewAnnotations annotations(BattleSimulation sim, CordonSetup.CordonMap cordon) {
-        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
-        List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
-        for (int i = 0; i < redoubts.size(); i++) {
-            Precinct r = redoubts.get(i);
-            marks.box(r.seedX() - 16, r.seedY() - 16, r.seedX() + 16, r.seedY() + 16, "redoubt " + (i + 1), ReviewStyle.KEEP);
-        }
-        for (Precinct p : cordon.plan().precincts()) {
-            String text = switch (p.name()) {
-                case "colony" -> "the colony";
-                case "installation" -> "installation";
-                case "suburb" -> "suburb";
-                case "rear-west", "rear-east" -> "rear hamlet";
-                case CivilDefenceCompound.PLACE -> "the town's compound";
-                case CordonPlan.BASE_PLACE -> "logistics base, " + cordon.map().gantries.size() + " berths";
-                default -> null;
-            };
-            if (text != null) marks.label(p.seedX(), p.seedY(), text, ReviewStyle.NOTE);
-        }
-        for (Laid laid : cordon.map().layout.pieces()) {
-            if (!laid.isLaid() || laid.cells().isEmpty()) continue;
-            String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase() + ")";
-            if (laid.kind() == Laid.Kind.ROAD) {
-                // A road's box would be the whole dog-leg: name it at the middle of what was carved.
-                int[] mid = laid.cells().get(laid.cells().size() / 2);
-                marks.label(mid[0], mid[1], laid.name() + state, ReviewStyle.ROUTE);
-                continue;
-            }
-            int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
-            for (int[] c : laid.cells()) {
-                x0 = Math.min(x0, c[0]);
-                y0 = Math.min(y0, c[1]);
-                x1 = Math.max(x1, c[0]);
-                y1 = Math.max(y1, c[1]);
-            }
-            marks.box(x0, y0, x1, y1, laid.name() + state, laid.kind() == Laid.Kind.LINE ? ReviewStyle.ROUTE : ReviewStyle.NOTE);
-            for (int[] nest : laid.nests()) marks.box(nest[0] - 1, nest[1] - 1, nest[0] + 1, nest[1] + 1, "nest", ReviewStyle.OBJECTIVE);
-        }
-        CordonLogistics base = sim.getCordon() == null ? null : sim.getCordon().logistics();
-        if (base != null) {
-            marks.box(base.doorX() - 2, base.doorY() - 2, base.doorX() + 2, base.doorY() + 2, "machine door",
-                    ReviewStyle.ROUTE);
-            for (int[] slot : base.slots()) {
-                marks.box(slot[0] - 1, slot[1] - 1, slot[0] + 1, slot[1] + 1, "staging", ReviewStyle.NOTE);
-            }
-        }
-        for (SwarmBore bore : sim.swarmBores().bores()) {
-            marks.label(bore.x(), bore.y(), "bore " + bore.number() + " (" + bore.tier().name().toLowerCase() + ")", ReviewStyle.OBJECTIVE);
-        }
-        if (cordon.corridor() != null) {
-            List<ReviewAnnotation.Point> points = new ArrayList<>();
-            for (int[] cell : cordon.corridor()) points.add(new ReviewAnnotation.Point(cell[0] + 0.5f, cell[1] + 0.5f));
-            marks.polyline(points, String.format("corridor, %.0f%% on road", 100f * CordonCorridor.pavedShare(sim.getTopology(), cordon.corridor())), ReviewStyle.ROUTE);
-        }
-        return marks.build();
+    /** What a whole-map frame names: the same marks a played Cordon frame draws ({@link CordonReviewAnnotations}). */
+    public static ReviewAnnotations annotations(BattleSimulation sim) {
+        return CordonReviewAnnotations.forBattle(sim);
     }
 
     @Override
@@ -119,7 +62,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
-                            whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim, cordon))));
+                            whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim))));
                     List<Precinct> redoubts = CordonPlan.redoubts(plan);
                     float lineY = 0f;
                     for (Precinct r : redoubts) lineY += r.seedY();
@@ -127,7 +70,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                     near.refocus(CordonSetup.WIDTH / 2f, lineY, 300f);
                     out.add(new SnapshotArtifact(tag + "02-the-line.png",
                             near.render(sim, "the " + name + ", seed " + seed + ", the line, 300 cells across",
-                                    annotations(sim, cordon))));
+                                    annotations(sim))));
                     if (cordon.corridor() != null) {
                         int[] cross = cordon.corridor().get(0);
                         for (int[] cell : cordon.corridor()) {
@@ -166,7 +109,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                             near.refocus(fx, fy, PLAY_ZOOM_CELLS);
                             out.add(new SnapshotArtifact(tag + "08-play-zoom-logistics-base.png",
                                     near.render(sim, "the " + name + ", seed " + seed + ", the logistics base ("
-                                            + cordon.map().gantries.size() + " berths), play zoom", annotations(sim, cordon))));
+                                            + cordon.map().gantries.size() + " berths), play zoom", annotations(sim))));
                         } else if (p.name().equals("rear-west")) {
                             near.refocus(p.seedX() + 0.5f, p.seedY() + 0.5f, 120f);
                             out.add(new SnapshotArtifact(tag + "06-rear-hamlet.png",

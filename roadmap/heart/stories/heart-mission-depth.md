@@ -1,53 +1,47 @@
 # Heart mission depth: from brawl to a thought-through battle
 
-Status: ACTIVE. Beats and densities all picked; maps first (cordon ridge built), then beats as optional objectives. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
+Status: ACTIVE. Beats, allied forces and the allied commander shipped; the maps' last pieces are left, then tuning. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
+Updated: 2026-10-24 — lanes no longer stall (stragglers, columns joining at the front, neighbour-only re-aims); the whole-pool reading added; the company wipe and gunship losses join the open list.
 
 ## Why
 
 Tuning the heart to win most seeds made it work as a brawl, not as a mission
 worth playing (owner, 2026-10-23: "This is how we make this mission fun and not
-just tune it to work as a brawl"). Win rates move with every combat change on
-main. The mission needs authored depth before it needs more tuning, and that
-work is done in this order. Each step builds on the one before it.
+just tune it to work as a brawl"). The owner set the order: maps first, then
+the beats as optional objectives, then the allied forces, then the commander
+using them. The beats, the forces and the commander are built.
 
-## Order of work
+## Reading (2026-10-24, the whole pool, main at 0ff5e8d43)
 
-The owner picked every candidate beat (F1-F6, B1-B6) and every density
-(rural, town, city), and set the order (2026-10-23): "the map created first,
-then likely have sessions work on these objectives and how many would
-activate per map (another way there is variation here)".
+Broad Front: none of 12 won. Five lost, the company wiped between ticks 9,500
+and 12,500 (seed 5 on every biome, seed 2 arid and frozen) with one or two
+satellites down. Seven timed out at 27,000 with four or five satellites down and
+at most one mother. The Burn: four of 12 won, one lost, seven timed out, most
+with one mother down. On Broad Front every tool was called (118 armour calls, 36
+sorties, 70 shoots, 25 road cuts, 67 re-aims, 52 gaps closed). The evidence does
+not record aircraft lost, so how many sorties were shot down is unread.
 
-1. **Maps with intent** (`heart-map-intent.md`, ridge layouts picked). Each
-   map leaves room, and places the structures, for every beat that could run
-   on it, on every density. Built: the cordon ridge, the brook valley, the
-   hollow's rim (held ground, raised in arcs), the cordon's works, every
-   beat's set piece that needs ground, and the town and city densities.
-   Open: a full hollow, the knoll, a satellite placed against the supply
-   road (F6), and pooling the denser maps.
-2. **Beats as optional objectives** (`heart-story-beats.md`). Started: F1,
-   F5, B2, B3 and B4 are rolled and played on the shared board. The beats are a
-   pool. Each battle activates a subset, and how many and which vary by map,
-   seed and density. Each beat declares the structure it needs, so a beat that
-   does not fit a map is never rolled there. Each beat carries a reward on
-   success (materials or credits scavenged after the mission) and a cost on
-   failure (difficulty added downstream). The owner said this on the Cordon
-   question: "We could even have rewards like 'materials'/'credits' scavenged
-   after the mission for these optional objectives and difficulty costs added
-   for failing them". The mechanism is shared with the Cordon (bloom-m2's
-   missions): one system, not two.
-3. **The allied forces.** What the militia would really have brought, by
-   density: armour columns in the country, infantry and mech lances in the
-   city. Close air support, and logistics bases that send up vehicles or call
-   in CAS.
-4. **The allied commander using them** intelligently.
+## What is left
 
-Tuning win rates comes after these steps (owner: no overtuning yet).
+Ranked by what it unblocks:
+
+1. **Broad Front's company wipe.** Five seeds lose the company at about the same
+   time, on every biome for seed 5: a consistent cause (landing, a surge, the
+   lanes leaving it alone), to find with `battleProbe` before any tuning.
+2. **Gunship losses in the evidence.** A beat when an allied aircraft is lost, so
+   the owner's gunship question can be read across the pool.
+3. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
+   brook valley, the hollow's rim, the cordon's works, every beat's set piece
+   that needs ground (F6's road satellite with it), and the town and city densities. Open:
+   - a full hollow;
+   - the knoll;
+   - pooling the denser maps.
+4. **Tuning win rates**, only after the map work (owner: no overtuning yet).
 
 ## Constraints
 
-- `heart-nouns.md` stays the model: new nouns (a logistics base, a CAS call)
-  amend it rather than live here.
+- `heart-nouns.md` stays the model: new nouns amend it rather than live here.
 - Owner choices go to the picks page as pictures, relayed through the
   coordinator.

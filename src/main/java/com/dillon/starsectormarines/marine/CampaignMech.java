@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Persistent identity and installed kit for one player-owned support mech. */
 public final class CampaignMech implements Serializable {
@@ -148,14 +150,14 @@ public final class CampaignMech implements Serializable {
         };
     }
 
-    /** The installed part in {@code role}: the stock part when none was ever fitted. */
+    /**
+     * The installed part in {@code role}: the stock part when none was ever fitted, and null
+     * when the socket is empty (an engine or capacitor bank stripped back to stores, or no
+     * vent array).
+     */
     public MechInternal internal(MechInternal.Role role) {
-        String installed = switch (role) {
-            case ENGINE -> engineId;
-            case PLATING -> platingId;
-            case CAPACITOR_BANK -> capacitorBankId;
-            case VENT_ARRAY -> ventArrayId;
-        };
+        String installed = internalId(role);
+        if (EMPTY_COMPONENT_ID.equals(installed)) return null;
         MechInternal internal = MechInternal.findById(installed);
         return internal != null && internal.role == role ? internal : role.stock();
     }
@@ -185,12 +187,13 @@ public final class CampaignMech implements Serializable {
     }
 
     /**
-     * Whether the mech can go into an armor drop on {@code day}: damaged and awaiting repair, or
-     * in its gantry under repair, it cannot.
+     * Whether the mech can go into an armor drop on {@code day}: damaged and awaiting repair, in
+     * its gantry under repair, or missing an engine or capacitor bank, it cannot.
      */
     public Readiness readiness(float day) {
         if (damage != null) return Readiness.DAMAGED;
-        return repairDaysRemaining(day) > 0f ? Readiness.UNDER_REPAIR : Readiness.READY;
+        if (repairDaysRemaining(day) > 0f) return Readiness.UNDER_REPAIR;
+        return missingInternals().isEmpty() ? Readiness.READY : Readiness.INCOMPLETE;
     }
 
     /** Records battle damage; a mech hit twice before repair keeps the worse of each section. */
@@ -211,12 +214,44 @@ public final class CampaignMech implements Serializable {
         /** Battle damage recorded and no repair ordered yet. */
         DAMAGED,
         /** A paid repair is still running on the campaign clock. */
-        UNDER_REPAIR
+        UNDER_REPAIR,
+        /** An engine or capacitor bank was stripped and nothing fitted in its place. */
+        INCOMPLETE
     }
 
-    /** A null vent array empties the utility socket; every other role always holds a part. */
+    private String internalId(MechInternal.Role role) {
+        return switch (role) {
+            case ENGINE -> engineId;
+            case PLATING -> platingId;
+            case CAPACITOR_BANK -> capacitorBankId;
+            case VENT_ARRAY -> ventArrayId;
+        };
+    }
+
+    /**
+     * The roles this frame must fill before it can drop and has left empty: an engine and a
+     * capacitor bank. A missing vent array is an option, not a gap.
+     */
+    public List<MechInternal.Role> missingInternals() {
+        List<MechInternal.Role> missing = new ArrayList<>();
+        for (MechInternal.Role role : REQUIRED_INTERNALS) {
+            if (EMPTY_COMPONENT_ID.equals(internalId(role))) missing.add(role);
+        }
+        return missing;
+    }
+
+    /** The socketed roles a frame cannot drop without. Plating is frame-wide and never stripped. */
+    public static final List<MechInternal.Role> REQUIRED_INTERNALS =
+            List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK);
+
+    /**
+     * Fits {@code internal} in {@code role}, or empties it on null. An empty engine or capacitor
+     * socket is stored as {@link #EMPTY_COMPONENT_ID}, because a missing id still reads as the
+     * stock part for frames from before internals existed.
+     */
     void installInternal(MechInternal.Role role, MechInternal internal) {
-        String internalId = internal != null ? internal.id : null;
+        String internalId = internal != null ? internal.id
+                : REQUIRED_INTERNALS.contains(role) ? EMPTY_COMPONENT_ID : null;
         switch (role) {
             case ENGINE -> engineId = internalId;
             case PLATING -> platingId = internalId;

@@ -245,6 +245,36 @@ public record SpecialEquipmentDef(
                 || activation == SpecialActivation.DIRECT_PRECISION;
     }
 
+    /**
+     * True for a hand grenade: an arcing explosive thrown over cover to a ground point. The flamer is
+     * also {@link SpecialActivation#ARC_EXPLOSIVE} but sprays a direct, flat jet, so it is not one.
+     */
+    public boolean isThrownGrenade() {
+        return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && weaponDef().indirectFire;
+    }
+
+    /** True for a smoke grenade: a thrown screen, the right button's first item. */
+    public boolean isSmokeThrow() {
+        return activation == SpecialActivation.UTILITY_SMOKE && smokeGrenadeSpec() != null;
+    }
+
+    /**
+     * True for what may ride in a Marine's second special slot, the belt: a thrown item, smoke or a hand
+     * grenade. Every throw runs through the one channel the hand slot owns, so the belt holds nothing else.
+     */
+    public boolean isThrownItem() {
+        return isSmokeThrow() || isThrownGrenade();
+    }
+
+    /**
+     * True for the flamer: an {@link SpecialActivation#ARC_EXPLOSIVE} item whose weapon is not indirect fire,
+     * a short flat jet aimed and held like a gun. Under direct control it fires for as long as the button is
+     * held, one charge of its fuel at a time.
+     */
+    public boolean isHeldStream() {
+        return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && !weaponDef().indirectFire;
+    }
+
     /** True when the item is a tube the carrier sets down, serves and lifts again. */
     public boolean isCrewServed() {
         return aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT;

@@ -44,6 +44,7 @@ plume at its exhaust anchor or the .ship's engine slot.
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import zlib
@@ -215,7 +216,10 @@ TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
 HIDES = {
     'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
-    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112)),
+    # nose-on to S3's camera, sunlit, lamps on her face: she slides out toward the lens as her drives
+    # light behind her, the hulk lying behind her lit orange by them (peek +1.6; coordinator, 2026-10-24)
+    'falcon-p': dict(at=(-950, -420, -180), hd=30, pt=-4, rl=12,
+                     cover='hulk', cover_size=(230, 201, 112), peek=1.6),
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
@@ -269,7 +273,7 @@ def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
             math.degrees(math.atan2(m[2][1], m[2][2])), thr)
 
 
-def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None):
+def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None, hold=0.0):
     """A boarding boat (a Hermes) on its run from under its mother craft to a seat on the prize's deck
     (motion.boarding_run). launch_off and seat_off are metres in the mother's and the prize's frames;
     it leaves down and aft from the mother's belly, where the camera cannot see it launch, and comes in
@@ -280,7 +284,7 @@ def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carr
     n = math.hypot(*down_aft)
     args = (aboard(mother, launch_off)[:3], [c / n for c in down_aft], aboard(prize, seat_off)[:3],
             [p[i][0] for i in range(3)], near(prize, seat_off, hd=180.0, thr=0.0), t0, t1)
-    run = Pose(tuple(boarding_run(*args, t)), t, lambda tt: tuple(boarding_run(*args, tt)))
+    run = Pose(tuple(boarding_run(*args, t, hold=hold)), t, lambda tt: tuple(boarding_run(*args, tt, hold=hold)))
     return run if carrier is None else carried(run, carrier)     # the seat moves with the prize
 
 
@@ -324,19 +328,13 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
     # still gaining on the column: speed builds through the shot, so the drives burn
     keys[0]['v'], keys[-1]['v'] = v * .8, v * 1.15
     return fly(key, pose, t, keys, v=v, **kw)
-
-
 # The convoy's escorts work up and down the column (m/s, relative to it): the lead moving up, the
 # rear ones dropping back, so the column reads as a moving formation rather than a parked one.
-ESCORT_DRIFT = {'lasher-lead': (18, 3, 0), 'wolf-m': (-12, 0, 2), 'lasher-a': (10, -4, 0), 'lasher-b': (-15, 3, 0),
-                'hound-m': (-8, -2, 1)}
 
 
 def convoy_at(t):
     """The convoy at t: freighters weaving on station, escorts working along the column."""
-    out = fleet_at({k: v for k, v in CONVOY.items() if k not in ESCORT_DRIFT}, t)
-    out.update({k: station(k, CONVOY[k], t, vel=ESCORT_DRIFT[k]) for k in ESCORT_DRIFT})
-    return out
+    return fleet_at(CONVOY, t)     # escorts too: each moves along her own nose (S4, S6 notes)
 
 
 def track(pose, point, share=1.0, lag=0.0):
@@ -374,6 +372,12 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 # 34 s of it (only the Falcon showing a light) and S4 picks the same flights up mid-climb at 40 s.
 K1B_T = 34
 K2_T = 40
+LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
+# S3's subject slides out toward the camera on her thrusters from the moment her lamps wake, and
+# faster, clear of anything by 34 s (coordinator, 2026-10-24)
+EARLY_EASE = {'falcon-p'}
+# The keep-outs the seeded debris field was laid against, where a ship has since moved (_field)
+FIELD_LAID_AS = {'falcon-p': dict(peek=-.75)}
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -385,16 +389,23 @@ def _near(a, b):
     return a + ((b - a + 180.0) % 360.0 - 180.0)
 
 
-def launch(key, hide, t_light, climb):
+def launch(key, hide, t_light, climb, early=None):
     """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
     four and a half seconds until she is clear of the structure, then turning onto her climb attitude
-    (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed."""
+    (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed.
+    A ship in EARLY_EASE starts easing out on her thrusters as her lamps wake, and faster."""
     x, y, z, hd, pt, rl, _ = hide
     chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
     v = CLIMB_SPEED[mass_class(key)]
-    keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
-            dict(t=t_light + 2.4, v=18.0, thr=.6),
-            dict(t=t_light + 4.6, v=.3 * v, thr=1.0),          # still on her nose, clear of the structure
+    early = key in EARLY_EASE if early is None else early
+    if early:
+        keys = [dict(t=t_light - LAMPS_LEAD_S, v=0.0, thr=0.0), dict(t=t_light - .05, v=10.0, thr=0.0),
+                dict(t=t_light + .6, v=20.0, thr=.25), dict(t=t_light + 1.2, v=32.0, thr=.5),
+                dict(t=t_light + 2.4, v=.3 * v, thr=.8)]
+    else:
+        keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
+                dict(t=t_light + 2.4, v=18.0, thr=.6)]
+    keys += [dict(t=t_light + 4.6, v=(.4 if early else .3) * v, thr=1.0),     # still on her nose, clear
             dict(t=t_light + 7.0, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
             dict(t=t_light + 9.5, hd=chd, pt=cpt, rl=crl, v=.8 * v),
             dict(t=t_light + 13.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
@@ -414,7 +425,7 @@ PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) f
 REJOIN = {
     'manticore-p': (44.0, (-29.3, -565.0, 622.2)),
     'colossus3': (88.0, (-6730.2, -5615.4, -3326.8)),
-    'falcon-p': (50.0, (-452.3, -1837.3, 930.3)),
+    'falcon-p': (50.0, (-673.7, -2003.1, 930.3)),
     'buffalo2-a': (50.0, (-1075.1, -147.2, 1026.1)),
     'hound-p-c': (58.0, (-2472.7, 524.4, 100.3)),
     'wolf-p-a': (50.0, (413.2, -2007.3, 1033.5)),
@@ -432,17 +443,57 @@ def rejoin_start(t_light, t_next):
 
 
 def rejoined(key, f, t_light):
-    """A launch flight eased onto its REJOIN offset: positions only, her attitude is the launch's."""
+    """A launch flight eased onto its REJOIN offset. The offset moves her; her nose follows where
+    she is actually going, turned from the launch's attitude toward her track by the share of her
+    speed the offset gives her (none at either end of the ease, so every cut keeps its attitude).
+    It used to move positions only, and five S4 hulls crabbed sideways at 30-98 degrees off their
+    noses with their drives at full (owner, 2026-10-23: "ships flying sideways")."""
     if key not in REJOIN:
         return f
     t_next, d = REJOIN[key]
     ta = rejoin_start(t_light, t_next)
+    span = t_next - ta
+
+    def pos(t):
+        p = f.at(t)
+        u = min(1.0, max(0.0, (t - ta) / span))
+        w = u * u * (3 - 2 * u)
+        return p, (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2])
+
+    def want(t):
+        """The nose she should have at t: the launch's, turned toward her track."""
+        p, _ = pos(t)
+        hd0, pt0 = math.radians(p[3]), math.radians(p[4])
+        n0 = (math.cos(pt0) * math.cos(hd0), math.cos(pt0) * math.sin(hd0), math.sin(pt0))
+        u = (t - ta) / span
+        if not 0.0 < u < 1.0:
+            return n0
+        h = .05
+        v = [(pos(t + h)[1][i] - pos(t - h)[1][i]) / (2 * h) for i in range(3)]
+        sp = math.sqrt(sum(c * c for c in v))
+        if sp < 1.0:
+            return n0
+        vo = 6 * u * (1 - u) / span * math.sqrt(sum(c * c for c in d))   # the offset's share of her speed
+        s = min(1.0, vo / sp)
+        s = s * s * (3 - 2 * s)
+        return tuple(n0[i] * (1 - s) + v[i] / sp * s for i in range(3))
 
     def at(t):
-        p = f.at(t)
-        u = min(1.0, max(0.0, (t - ta) / (t_next - ta)))
-        w = u * u * (3 - 2 * u)
-        return (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2], *p[3:])
+        p, q = pos(t)
+        # Her nose comes round over the last 1.5 s of where she should point, not at once: a hull
+        # turns at a hull's rate (a destroyer swung 115 degrees in a second without it).
+        n = [0.0, 0.0, 0.0]
+        for k in range(11):
+            w = 11 - k
+            for i, c in enumerate(want(t - k * .15)):
+                n[i] += c * w
+        ln = math.sqrt(sum(c * c for c in n)) or 1.0
+        n = [c / ln for c in n]
+        if abs(n[2]) > .9999 or max(abs(c) for c in n) < 1e-9:
+            return (*q, *p[3:])
+        hd = _near(p[3], math.degrees(math.atan2(n[1], n[0])))
+        pt = math.degrees(math.asin(max(-1.0, min(1.0, n[2]))))
+        return (*q, hd, pt, *p[5:])
     return Pose(at(f.t), f.t, at)
 
 
@@ -458,21 +509,38 @@ K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_FLIGHT.items()}
 def _field():
     """The debris field: a cover wreck per hidden ship, then seeded wreckage across the field kept
     out of every launch corridor, the station's body and S4's camera."""
-    cover = []
-    for n, (k, h) in enumerate(HIDES.items()):
-        if h.get('cover'):
-            cover.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
-                                                  SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], h.get('peek', 0.0),
-                                                  seed=n, t0=K1B_T, size=h.get('cover_size')))
-            cover[-1].cover_for = k
+    def covers(laid):
+        out = []
+        for n, (k, h) in enumerate(HIDES.items()):
+            if h.get('cover'):
+                peek = FIELD_LAID_AS.get(k, {}).get('peek', h.get('peek', 0.0)) if laid else h.get('peek', 0.0)
+                out.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
+                                                    SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], peek,
+                                                    seed=n, t0=K1B_T, size=h.get('cover_size')))
+                out[-1].cover_for = k
+        return out
+
+    def corridors(laid):
+        out = []
+        for k, f in PIRATE_LAUNCH.items():
+            if laid and k in FIELD_LAID_AS:
+                f = launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k], early=False)
+            for i in range(0, 25):
+                t = LAUNCH[k] + i * .5
+                out.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
+        return out
+    cover = covers(False)
     keep = [(to_platform(K2_CAM), 450.0)]
     keep += [((x, 0.0, 0.0), 160.0) for x in range(-450, 451, 150)]
-    for k, f in PIRATE_LAUNCH.items():
-        for i in range(0, 25):
-            t = LAUNCH[k] + i * .5
-            keep.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
-    keep += [(c.centre, c.radius() + 20.0) for c in cover]
-    wrecks = debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), keep, t0=K1B_T)
+    # The seeded field is laid against the keep-outs it was first laid against (FIELD_LAID_AS): a
+    # rejection sampler reshuffles every later piece when one keep-out moves (66 of 80 pieces, for the
+    # Falcon (P)'s S3 rework). Then any piece in a moved ship's new cover or corridor is dropped.
+    laid_keep = keep + corridors(True) + [(c.centre, c.radius() + 20.0) for c in covers(True)]
+    keep = keep + corridors(False) + [(c.centre, c.radius() + 20.0) for c in cover]
+    wrecks = debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), laid_keep, t0=K1B_T)
+    moved = [(p, r) for p, r in keep if (p, r) not in laid_keep]
+    wrecks = [w for w in wrecks if not any(sum((a - b) ** 2 for a, b in zip(w.centre, p)) ** .5 < r + w.radius()
+                                           for p, r in moved)]
     # Sized to the wreck kit's hull-derived sections (wreck_kit.hulks), so a real hulk drops in. The
     # ids stay put: a resize keeps its piece, and the big hulks are appended after the seeded field.
     for w in wrecks:
@@ -523,7 +591,7 @@ K3_SHIPS = {
 }
 
 # S6b: Lasher B rolls over to starboard (150) and the merchant Wolf to port (-140), both onto the
-# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up at the key time
+# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up as Lasher B's lands (62.83 s)
 K3C_T = 62
 K3C_SHIPS = {
     'lasher-b': fly('lasher-b', (-1300, 450, -150, -175, -15, 150, 1), K3C_T, [
@@ -538,7 +606,7 @@ K3C_SHIPS = {
         dict(t=58, hd=3, pt=14, rl=4, thr=1.0), dict(t=60.8, hd=4, pt=13, rl=0, thr=1.0),
         dict(t=63, v=120), dict(t=66, hd=15, pt=0, rl=-60, v=50)], v=200,     # the wreck slows, tumbling
         hits=[dict(t=61.0, spin=(25, 6, 10), push=(2, 0, -3), decay=1.0, thr=.4),
-              dict(t=62.0, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),
+              dict(t=62.9, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),     # 2 frames after the cook-off
     'buffalo2-a': jinking('buffalo2-a', (-4200, -1200, -1500, 3, 10, 3, 1), K3C_T, 58, 66,
                           hits=recoil([59.0], kick=.2, shove=.3, every=.5, until=66)),
     'manticore-p': jinking('manticore-p', (-3000, -800, -900, 8, 6, 4, 1), K3C_T, 58, 66),
@@ -566,16 +634,21 @@ K3D_SHIPS = {
 K3E_T = 77
 K3E_SHIPS = {
     'hound-m': fly('hound-m', (-1500, -150, 110, -160, -25, 110, 1), K3E_T, [
-        dict(t=74, hd=0, pt=2, rl=5, v=160), dict(t=75.5, hd=-85, pt=-10, rl=75),
+        # She has rolled over onto them before the shot opens (72-74 s), so through S6d she is steady enough
+        # for her turret to stay on the first Hound (P) and fire down onto her: rolling over inside the shot
+        # swung the target 40-93 deg/s across her turret and the 5-degree gate held all but 5 late rounds
+        # (owner, 2026-10-23: "I don't see any shots coming out of our hero Hound")
+        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-18, rl=95),
         dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
-        hits=recoil([75.8], every=.2, until=77.4) + [dict(t=77.4, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
+        # her gun's kick while her burst runs (74.0-76.2 s), then the drive hit at 77.25 s
+        hits=recoil([74.0], every=.2, until=76.2) + [dict(t=77.25, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
         dict(t=74, hd=8, pt=21, rl=-10, thr=1.0), dict(t=76, hd=9, pt=20, rl=0, thr=1.0), dict(t=79, v=50)], v=200,
         hits=[dict(t=76.3, spin=(15, 4, 6), decay=.8, thr=.4),
-              dict(t=77.0, spin=(110, 40, 70), push=(-15, 8, 10), decay=2.0, thr=0.0)]),
+              dict(t=76.88, spin=(110, 40, 70), push=(-15, 8, 10), decay=2.0, thr=0.0)]),     # from the cook-off
     'hound-p-b': fly('hound-p-b', (-1680, -380, 20, 30, 16, 0, 1), K3E_T, [
         dict(t=74, hd=22, pt=18, rl=10), dict(t=78.5, hd=45, pt=14, rl=-30), dict(t=80, hd=70, pt=8, rl=-60)], v=200,
-        hits=recoil([75.0], every=.2, until=78.5)),
+        hits=recoil([74.6], every=.2, until=76.7) + recoil([79.0], every=.2, until=80.0)),     # her two bursts
 }
 
 # S7: the Tarsus adrift, rolling slowly; the Kites (P) hold alongside; the boats come over and the one
@@ -587,9 +660,11 @@ K3B_SHIPS = {
     'kite-p-a': held('kite-p-a', K3B_KITE_A, K3B_T, wobble=1.5),
     'kite-p-b': held('kite-p-b', K3B_KITE_B, K3B_T, wobble=1.5),
     # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
-    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 62, 80, K3B_T, carrier=K3B_TARSUS_FLOWN),
-    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 90, K3B_T, carrier=K3B_TARSUS_FLOWN),
-    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81, 99, K3B_T, carrier=K3B_TARSUS_FLOWN),
+    # S7 (80-88 s) sees all three settle: the first holds over her seat and sets down by the key time, the
+    # second brakes in and keeps station through the shot, the third is still on her way in
+    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 64, 86, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=5.0),
+    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 93, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=7.0),
+    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 74, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=6.0),
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
@@ -603,7 +678,7 @@ K3B_SHIPS = {
 K4_T = 95
 K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
     dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
-    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=0.0, wobble=.5, thrust=None,
+    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
@@ -725,17 +800,20 @@ K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K
 
 
 # S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
-# Falcon is hit and her broadside answers, and the Lasher tumbles away
+# Falcon is hit and her broadside answers, and the Lasher tumbles away: a held roll-dominant tumble of
+# about 20 deg/s, what a heavy round off her centre could plausibly give a 90 m frigate in a film (owner,
+# 2026-10-23: the 150 deg/s pinwheel was overdone; physically it would be under 1 deg/s)
 K4B_T = 105
 K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
     dict(t=102, hd=-150, pt=-4, rl=25, v=170), dict(t=103.8, hd=-157, pt=-16, rl=120),
     dict(t=106.6, hd=-163, pt=-25, rl=172), dict(t=110, hd=-170, pt=-30, rl=190, v=130)], v=165,
-    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(150, 50, 60), push=(0, 20, 8), decay=2.5, thr=.1)])
+    hits=recoil([103.5], every=.15, until=106.8)
+    + [dict(t=107.6, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])     # the cook-off's own impulse
 K4B_SHIPS = {
     'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
         dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
         hits=recoil([106.0], kick=.12, shove=.2, every=.3, until=108.5)
-        + [dict(t=105.0, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
+        + [dict(t=104.79, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
     'lasher-lead': K4B_LEAD,
 }
 
@@ -808,6 +886,9 @@ KEYFRAMES = {
                                    lens=122)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
+        # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
+        knobs={'falcon-p': {'thr_glow': 5.5}},
+        lamp_gain={'falcon-p': 4.0},     # the crash zoom's subject: her lamps read at 300 mm before her drives
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
@@ -846,8 +927,8 @@ KEYFRAMES = {
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
             # the second salvo: the lead Lasher's 55.9 s breach is a Harpoon's (fire-control plan)
             ('missiles', 'manticore-p', 'lasher-lead', 55.9),
-            ('fire_on', 'lasher-a', (-20, 10, 6)),
-            ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
+            # a Lasher burns (S6's beat): a salvo onto Lasher A first, her fire lit where it meets her
+            ('missiles', 'manticore-p', 'lasher-a', 53.2), ('fire_on', 'lasher-a', (-4, 12, -5), (-.2, .5, 1), 56 - 53.2)],
         cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
               'manticore-p': {'fire': ['t1_1']}, 'phaeton': {'impacts': 'cookoff'}},
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
@@ -858,16 +939,22 @@ KEYFRAMES = {
         # CHASE: behind Lasher B over her roll, looking down past her; jolted as the Hound (P) breaks up
         camera=camera('k3c', [dict(t=t, loc=track(K3C_SHIPS['lasher-b'], (-900, 700, 150), .9, .2),
                                    target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
-                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.0, .6)]),
+                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.83, .6)]),
         ships=K3C_SHIPS,
-        fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
-            ('tracer', 'buffalo2-a', 'lasher-b'),
-            ('blast_on', 'hound-p-c', 18, (0, 0, 0)), ('debris', 'hound-p-c', 50, (0, 0, 0))],
+        # the Buffalo Mk.II no longer fires on Lasher B: a stand-in hull has no kit guns to draw it, and
+        # no hit lands without a visible shooter (coordinator, 2026-10-23; kit rounds from stand-ins is open)
+        # Lasher B's Ammo Feeder burst kills her: it is in flight about a second at this range, so both
+        # guns cease at 62.0 s and she breaks up at 62.83 s as its last rounds land (S6b audit12: her kill
+        # at 61.9 came before any of them, and the guns fired on into the wreck). walk .35: the killing
+        # burst lands on her rather than walking past
+        fx=[('tracer', 'lasher-b', 'hound-p-c', (0, 0, 0), dict(cease_t=62.0, walk=.35)),
+            ('tracer', 'wolf-m', 'hound-p-c', (0, 0, 0), dict(cease_t=62.0)),
+            ('blast_on', 'hound-p-c', 18, (0, 0, 0), 62.83), ('debris', 'hound-p-c', 50, (0, 0, 0), 62.83)],
         labels=['lasher-b', 'wolf-m', 'hound-p-c', 'buffalo2-a']),
     'k3d': dict(
         shot='S6c', title='The column is cut',
         caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
-                'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
+                'raking the Tarsus\'s drives as they pass. The Colossus, the Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
         # TRACKING DOLLY: dropping back along the column at 70 m/s, the Wolves (P) passing the lens
         camera=camera('k3d', [dict(t=66, loc=(120, -800, 105), target=(60, 0, 0), lens=28),
@@ -875,27 +962,37 @@ KEYFRAMES = {
                               dict(t=74, loc=(-420, -740, 80), target=(-330, 40, -10), lens=26)], K3D_T, shake=.2,
                       kicks=[(72.3, .3)]),
         ships=K3D_SHIPS,
-        # shields flare on both sides: the raiders' fronts under the Mule's and the Wolf's fire
-        shields={'wolf-p-b': dict(toward='mule', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
+        # shields flare on both sides: the raiders' fronts under the Colossus's and the Wolf's fire (the
+        # Mule, a stand-in with no kit guns, no longer fires: coordinator, 2026-10-23)
+        shields={'wolf-p-b': dict(toward='colossus', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
-        fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
-            ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
-            ('fire_on', 'tarsus', (-40, 0, 6), (-.2, .5, 1))],
+        # the lead Wolf (P)'s guns on the Tarsus's drives, held tight: the round that opens them lands at
+        # 70.5 s on her starboard quarter, the face she shows the Wolves (the fire between it and the
+        # one S7 carries on)
+        fx=[('tracer', 'wolf-p-a', 'tarsus', (-40, 0, 6), dict(walk=.2, bursts_t=[(67.4, 68.6), (69.2, 70.4)])), ('tracer', 'wolf-p-b', 'tarsus'),
+            ('tracer', 'wolf-m', 'wolf-p-a'),
+            # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
+            # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
+            ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
+            ('fire_on', 'tarsus', (-37, -2, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
         shot='S6d', title='The rear guard',
-        caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
+        caption='The convoy\'s Hound, rolled over onto two Hounds (P) climbing at her, fires down on the first and kills her at close range '
                 'and takes the second\'s fire full on as she falls back on the column.',
-        # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
+        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
-                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.4, 1.0)]),
+                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(76.83, .7), (77.25, 1.0)]),
         ships=K3E_SHIPS,
-        fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
-            ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
+        # the hero shot (owner): her turret on the first Hound (P) through the shot, already trained on her
+        # as it opens (she rolled over onto them at 72-74 s), walking bursts on until she dies at 76.83 s, on the last round that lands
+        fx=[('tracer', 'hound-m', 'hound-p-a', (0, 0, 0), dict(trained=True, cease_t=77.0, walk=2.0, sure_t=76.83)), ('tracer', 'hound-p-b', 'hound-m'),
+            ('blast_on', 'hound-p-a', 14, (0, 0, 0), 76.83), ('debris', 'hound-p-a', 40, (0, 0, 0), 76.83),
             # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
-            # 2026-10-23: flares need a visible cause, an inbound seeker on screen)
-            ('fire_on', 'hound-m', (-12, 4, 3))],
+            # 2026-10-23: flares need a visible cause, an inbound seeker on screen); her 76.5 s breach
+            # burns where the second Hound (P)'s rounds land (the damage ledger keys that fire)
+            ],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
@@ -936,12 +1033,14 @@ KEYFRAMES = {
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
+            # the Colossus's fire on the Mk.III walks wide: about a quarter to a third lands, the rest
+            # flies on past her (coordinator, 2026-10-24)
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0)),
             # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
             # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
             # one of them pulled off onto a flare
-            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1),
+            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1, (-62, 30, 0)),     # at her port pod
             # every Borer's laser is on an attacker (owner, 2026-10-23: Borers are not repair ships): the two
             # by the pod both on the Mk.III above her, the bigger threat; two more, out of the bay, on the Wolf
             # and the Kite
@@ -957,13 +1056,29 @@ KEYFRAMES = {
         camera=camera('k4b', [dict(t=102, loc=(-500, 880, -40), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=26),
                               dict(t=105, loc=(-560, 900, -60), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=28),
                               dict(t=110, loc=(-640, 930, -90), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=24)],
-                      K4B_T, shake=.35, kicks=[(105.0, .5), (107.2, .9)]),
+                      K4B_T, shake=.35, kicks=[(104.79, .5), (107.6, .9)]),
         ships=K4B_SHIPS,
         # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
         shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
-        fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead'),
-            ('blast_on', 'falcon-p', 18, (-20, -14, 4)), ('fire_on', 'lasher-lead', (-20, 10, 6)),
-            ('debris', 'lasher-lead', 25, (-10, 8, 0))],
+        fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead', (0, 0, 0),
+                                                         # her guns bear only until 105 s (then the Lasher swings 60-87
+                                                         # deg off them, past their turn rate): the bolts that land her
+                                                         # 103.5 s breach and 104.6 s plating loss
+                                                         dict(trained=True, bursts_t=[(102.5, 105.0)], walk=.35)),
+            # the Lasher's burst that opens the Falcon's flank (104.79 s, on its round)
+            ('blast_on', 'falcon-p', 18, (14, -5, -5), 104.79),
+            # option (c), coordinator 2026-10-24: the Falcon's two drawn bursts (103.71 and 104.5 s) set her
+            # forward deck burning and tear plating off her bow; the fire spreads aft along her deck,
+            # venting, with small secondary pops, until it reaches her magazine at 107.6 s and she breaks up
+            ('fire_on', 'lasher-lead', (49, -5, 5), (-.2, .5, 1), 105 - 103.71),
+            ('debris', 'lasher-lead', 25, (53, -3, -4), 104.5),
+            ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
+            ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
+            ('fire_on', 'lasher-lead', (16, 4, 6), (-.4, .4, 1), 105 - 106.9),
+            ('blast_on', 'lasher-lead', 4, (40, -3, 5), 105.9),
+            ('blast_on', 'lasher-lead', 4, (28, 1, 6), 106.6),
+            ('blast_on', 'lasher-lead', 5, (17, 3, 6), 107.2),
+            ('blast_on', 'lasher-lead', 16, (8, 4, 6), 107.6), ('debris', 'lasher-lead', 40, (8, 4, 6), 107.6)],
         labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
         shot='S10', title='The prize taken',
@@ -979,7 +1094,7 @@ KEYFRAMES = {
         ships=K5_SHIPS,
         fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
             ('debris', 'colossus', 70, (-30, 0, 10)),
-            ('fire_on', 'falcon-p', (-20, -14, 4), (-.3, -.6, .7)), ('smoke', 'falcon-p', (-20, -14, 4), (-.6, -.4, .6))],
+            ('fire_on', 'falcon-p', (14, -5, -5), (-.3, -.6, .7)), ('smoke', 'falcon-p', (14, -5, -5), (-.6, -.4, .6))],
         labels=['colossus', 'morrow', 'falcon-p', 'colossus3', 'tarsus']),
     'k6': dict(
         shot='S12', title='Two trails toward the northern canyons',
@@ -1023,6 +1138,10 @@ M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'mo
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
 M5_T = 47.0
+# The effects the finished kit (scene_fx) draws; under --swfx none of them falls back to a stand-in.
+KIT_FX = ('tracer', 'missiles', 'blast_on', 'debris', 'fire_on', 'smoke', 'flares')
+
+
 def at_time(pose, t):
     """A flight keyed at another shot's key time, stilled at t instead: the same motion, so a camera
     tracking it and the preview's key frame both register at t."""
@@ -1955,6 +2074,7 @@ def blender_main(cfg):
     def place(key, spec, state=None):
         """state names another FINISHED build of the same hull (a condition state) for this frame."""
         x, y, z, hd, pt, rl, thr = spec
+        thr = min(1.0, max(0.0, thr))    # a keyed throttle eased between keys can overshoot (S3 Falcon: -0.24)
         m = {**members[key], 'finished': state} if state else members[key]
         lib = hull(m)
         sfx = ship_fx_for(key, m, lib)
@@ -1992,13 +2112,10 @@ def blender_main(cfg):
         """A point on a placed ship, local in metres in its own frame."""
         return placed[key]['matrix'] @ Vector(local)
 
-    def mining(drone, target, local=None):
-        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating: aimed at
-        `local` on the target (metres, its frame) or at its middle, and landed where a ray from the
-        emitter meets the target's real hull, with that face's normal."""
-        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
-            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
-        import swfx_mining
+    def mining_hit(drone, target, local=None):
+        """Where a Borer's mining laser meets the target: (emitter, point, normal, met her hull), world
+        metres. Aimed at `local` on the target (metres, its frame) or at its middle, landed where a ray
+        from the emitter meets the target's real hull."""
         d = at(drone)
         aim = at(target, local) if local is not None else at(target)
         emit = d + (aim - d).normalized() * placed[drone]['length'] * .55
@@ -2013,6 +2130,15 @@ def blender_main(cfg):
             start = loc + ray * .05
         if not hit:             # past the hull: stop at the aim point, facing the drone
             loc, nrm = aim, (emit - aim).normalized()
+        return emit, loc, nrm, hit
+
+    def mining(drone, target, local=None):
+        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating
+        (mining_hit), with that face's normal."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import swfx_mining
+        emit, loc, nrm, hit = mining_hit(drone, target, local)
         swfx_mining.laser(f'Mining {drone}', emit, loc, nrm, stage_fx, lights=stage_ships,
                           seed=zlib.crc32(drone.encode()) % 997, width_m=.3)
         print(f'ASHARU mining {drone} -> {target}: {(loc - emit).length:.0f} m, '
@@ -2040,23 +2166,76 @@ def blender_main(cfg):
         obj(name, plume_me, mat, Matrix.Translation(p0) @ q.to_matrix().to_4x4()
             @ Matrix.Diagonal((radius, radius, d.length, 1)))
 
+    def chain(o):
+        """An appended object's matrix in its build's root frame (hull units): an object outside the
+        scene has no evaluated matrix_world, so its parent chain is composed."""
+        w = o.matrix_basis
+        while o.parent:
+            w = o.parent.matrix_basis @ o.matrix_parent_inverse @ w
+            o = o.parent
+        return w
+
+    def build_objects(key):
+        """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
+        first, then the shared build."""
+        sfx = placed[key].get('fx')
+        own = list(sfx.hull.all_objects) if sfx is not None and sfx.hull is not placed[key]['lib']['coll'] else []
+        return own + list(placed[key]['lib']['coll'].all_objects)
+
+    def barrel_tip(objs, name):
+        """A muzzle the build does not name, found from the gun itself the way swfx_guns.trainers
+        finds a mount's joints: the mount ('Turret 2', 'Weapon WS 005') from the anchor's name, its
+        elevation (else pivot) for the bore, and the vertex of its gun, recoil or barrel meshes
+        furthest along that bore. None when the mount has no such geometry."""
+        m = re.search(r'(turret \d+|weapon ws \d+)', name, re.I)
+        if m is None:
+            return None
+        stem = m.group(1).lower()
+        joint = next((o for suffix in (' elevation', ' pivot') for o in objs
+                      if ship_fx.base_name(o.name).lower() == stem + suffix), None)
+        meshes = [o for o in objs if o.type == 'MESH' and ship_fx.base_name(o.name).lower().startswith(stem + ' ')
+                  and any(w in ship_fx.base_name(o.name).lower() for w in (' gun', ' recoil', ' barrel'))]
+        if joint is None or not meshes:
+            return None
+        bore = (chain(joint).to_3x3() @ Vector((1.0, 0.0, 0.0))).normalized()
+        best = None
+        for o in meshes:
+            w = chain(o)
+            for v in o.data.vertices:
+                q = w @ v.co
+                if best is None or q.dot(bore) > best.dot(bore):
+                    best = q
+        return best
+
     def muzzle_world(key, muzzle):
-        """A shot's start: the bearing mount's muzzle (bearing()), on the placed ship."""
+        """A shot's start: the bearing mount's muzzle (bearing()), on the placed ship. A named anchor
+        is matched by its kit name (ship_fx.base_name), so it is found in her own hull copy while
+        ShipFx.kit() has the names swapped (that swap made every anchor looked up inside a kit read
+        as missing and fire from the hull centre, animatic 2026-10-23); an anchor the build lacks is
+        taken from the barrel (barrel_tip). One with neither is recorded in muzzle_world.missing,
+        which SceneFx.projectile_check fails on."""
         if muzzle is None:
             return at(key)
         if muzzle[0] == 'anchor':
             lib = placed[key]['lib']
-            o = next((o for o in lib['coll'].all_objects if o.name.split('.')[0] == muzzle[1]), None)
-            if o is None:
-                print('ASHARU muzzle anchor missing, firing from the hull centre:', key, muzzle[1], flush=True)
-                return at(key)
-            # an appended object outside the scene has no evaluated matrix_world: compose its chain
-            w = o.matrix_basis
-            while o.parent:
-                w = o.parent.matrix_basis @ o.matrix_parent_inverse @ w
-                o = o.parent
-            return at(key, w.translation * lib['mpu'])
+            objs = build_objects(key)
+            o = next((o for o in objs if ship_fx.base_name(o.name) == muzzle[1]), None)
+            if o is not None:
+                return at(key, chain(o).translation * lib['mpu'])
+            tip = barrel_tip(objs, muzzle[1])
+            if tip is not None:
+                if (key, muzzle[1]) not in muzzle_world.derived:
+                    muzzle_world.derived.add((key, muzzle[1]))
+                    print('ASHARU muzzle anchor not in the build, taken from its barrel tip:', key, muzzle[1], flush=True)
+                return at(key, tip * lib['mpu'])
+            if (key, muzzle[1]) not in muzzle_world.missing:
+                muzzle_world.missing.append((key, muzzle[1]))
+                print('ASHARU ERROR muzzle anchor missing and no barrel to take it from:', key, muzzle[1], flush=True)
+            return at(key)
         return at(key, muzzle[1])
+
+    muzzle_world.missing = []       # (ship, anchor) with no muzzle at all: fails projectile_check
+    muzzle_world.derived = set()
 
     CLEAR_GUNS = {}     # (kind, shooter, target) -> every bearing muzzle with a clear line, the chosen one first
 
@@ -2211,6 +2390,45 @@ def blender_main(cfg):
             c = path(spec['key_t'] + (f - anchor) / fps_s) if path is not None else spec['camera']
             return Vector(c['loc']), 2.0 * math.atan(18.0 / c['lens'])
         return cam_at
+
+    blob_state = {}
+
+    def white_blob_lint(kf, display, effects_alpha):
+        """blob_lint on a finished span frame: near-white regions the effects own, held too long. The
+        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs."""
+        import blob_lint
+        from bpy_extras.object_utils import world_to_camera_view
+        spec_ = KEYFRAMES[kf]
+        h_, w_ = display.shape[:2]
+        engines = []
+        for key, pl in placed.items():
+            for pos, _d, _r, _s in pl['lib'].get('engines', ()):
+                c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
+                if c.z > 0:
+                    engines.append((c.x * w_, (1.0 - c.y) * h_))
+        span_ = spec_['span_of']
+        st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
+        n_ = int(kf.rsplit('_f', 1)[1])
+        dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
+        rows_, flagged_ = st['lint'].frame(n_, dt, display, effects_alpha, engines)
+        st['last_t'] = spec_['span_t']
+        print(f'ASHARU blob lint {kf}: {len(rows_)} white regions, {len(flagged_)} held'
+              + ''.join(f'; {r_}' for r_ in rows_[:4]), flush=True)
+        if flagged_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+            raise RuntimeError(f'{kf}: a white region holds past a flash (the old HE blob): {flagged_[:3]}')
+
+    def cam_view_of(spec):
+        """scene frame -> (camera world location, rotation quaternion, lens) along a span's camera
+        path, as aim() sets the camera (the motion audit's out-of-frame test)."""
+        path = spec['camera'].get('at')
+
+        def view(f):
+            c = path(spec['key_t'] + (f - anchor) / fps_s) if path is not None else spec['camera']
+            loc = Vector(c['loc'])
+            d = (Vector(c['target']) - loc) if c.get('target') is not None else Vector(c['look'])
+            q = d.normalized().to_track_quat('-Z', 'Y') @ Quaternion((0, 0, 1), math.radians(c.get('roll', 0.0)))
+            return loc, q, c['lens']
+        return view
 
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
@@ -2802,8 +3020,21 @@ def blender_main(cfg):
             rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
             span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
             span_now['span'] = 'span_t' in spec
-            for key, sp in spec['ships'].items():
-                place(key, sp, spec.get('states', {}).get(key))
+            # The kit is the shot's, not the chunk's: under --kit-once it is built with every ship where
+            # she is as the shot opens, whichever chunk this run renders, so every chunk plans the same
+            # guns, rounds and hits and nothing pops at a chunk boundary (2026-10-23: S7's chunks
+            # planned 0, 5, 5 and 6 rounds for one gun); the ships are then put back at this frame.
+            build_at = spec['shot_t'][0] if (not step and cfg.get('kit_once') and 'span_t' in spec) else None
+            if build_at is not None:
+                span_now['dt'] = build_at - spec['key_t']
+                staged = set(stage.all_objects)
+                for key, sp in KEYFRAMES[spec['span_of']]['ships'].items():
+                    place(key, at_time(sp, build_at) if hasattr(sp, 'at') else sp, spec.get('states', {}).get(key))
+                build_placed = [o for o in stage.all_objects if o not in staged]
+                print(f"ASHARU kit {kf}: built at the shot's opening, {build_at:.3f} s", flush=True)
+            else:
+                for key, sp in spec['ships'].items():
+                    place(key, sp, spec.get('states', {}).get(key))
             if not step:                     # the kit's build: once per run under --kit-once
                 for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
                     if lib.get('ctl') is not None:
@@ -2837,6 +3068,7 @@ def blender_main(cfg):
                             import swfx_fire
                             with pl['fx'].kit() as (ctx, _kit):
                                 print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
+                                print(f'ASHARU vents rebuilt {key}: {swfx_fire.revent(ctx)}', flush=True)
                     ship_fx.refresh(scene)
                     bpy.context.view_layer.update()
             extra3d = {}
@@ -2864,8 +3096,19 @@ def blender_main(cfg):
                 for i, fx in enumerate(spec.get('fx', ())):
                     kind, done = fx[0], False
                     if kind == 'tracer':
+                        # ('tracer', a, b, aim, opts): opts trained=True (on b when the shot opens), cease_t
+                        # (sequence time b dies; no round after it), walk (scene_fx.tracer) and bursts_t
+                        # [(first, last)] sequence times the trigger is held (a story broadside)
+                        opts = dict(fx[4]) if len(fx) > 4 else {}
+                        fr_ = lambda t_: anchor + round((t_ - spec['key_t']) * fps_s)
+                        if 'cease_t' in opts:
+                            opts['cease'] = fr_(opts.pop('cease_t'))
+                        if 'sure_t' in opts:     # a round must land then (the kill): laid dead on
+                            opts['sure'] = fr_(opts.pop('sure_t'))
+                        if 'bursts_t' in opts:
+                            opts['bursts'] = [(fr_(t0_), fr_(t1_)) for t0_, t1_ in opts.pop('bursts_t')]
                         done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,
-                                           muzzles=CLEAR_GUNS.get(fx[:3]) or [muzzles.get(fx[:3])])
+                                           muzzles=CLEAR_GUNS.get(fx[:3]) or [muzzles.get(fx[:3])], **opts)
                     elif kind == 'missiles':
                         try:         # a salvo on a ship that breaks arrives on her break_frame (the cook-off)
                             bf = int(placed[fx[2]]['fx'].get('break_frame'))
@@ -2873,17 +3116,24 @@ def blender_main(cfg):
                             bf = None
                         if len(fx) > 3:       # ('missiles', a, b, t): the salvo arrives at sequence time t
                             bf = anchor + round((fx[3] - spec.get('key_t', fx[3])) * fps_s)
-                        # ('missiles', a, b, t, n): n of its seekers take b's flares (thrown earlier in fx)
-                        done = sfx_.missiles(fx[1], fx[2], arrive=bf, decoys=fx[4] if len(fx) > 4 else 0)
+                        # ('missiles', a, b, t, n, aim): n of its seekers take b's flares (thrown earlier in
+                        # fx); aim, the point on b they seek (her frame, metres; default her centre)
+                        done = sfx_.missiles(fx[1], fx[2], arrive=bf, decoys=fx[4] if len(fx) > 4 else 0,
+                                             aim=fx[5] if len(fx) > 5 else (0, 0, 0))
                         if not done and len(fx) > 4:
                             print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
                                   f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
-                    elif kind == 'blast_on':
-                        done = sfx_.blast_on(fx[1], fx[2], fx[3])
-                    elif kind == 'debris':
-                        done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0))
+                    elif kind == 'blast_on':     # optional 5th: its sequence time (default 2 frames before the key)
+                        done = sfx_.blast_on(fx[1], fx[2], fx[3], frame=anchor + round((fx[4] - spec['key_t']) * fps_s)
+                                             if len(fx) > 4 else None)
+                    elif kind == 'debris':       # optional 5th: the blast's time; its plates are 8 frames ahead of it
+                        done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0),
+                                           frame=anchor + round((fx[4] - spec['key_t']) * fps_s) - 8
+                                           if len(fx) > 4 else None)
                     elif kind == 'fire_on':
-                        done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3), 1.5, vent=True)
+                        # optional 5th: how long before the key time it was lit (default 1.5 s)
+                        done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3),
+                                           fx[4] if len(fx) > 4 else 1.5, vent=True)
                     elif kind == 'smoke':
                         done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .2, .5), 5.0, vent=False)
                     elif kind == 'flares':
@@ -2895,8 +3145,23 @@ def blender_main(cfg):
                 if kt is not None:
                     import asharu_damage
                     t0_, t1_ = spec['shot_t'] if 'span_t' in spec else (kt, kt)
-                    asharu_damage.apply_all(placed, t0_, t1_, lambda t_, kt=kt: anchor + round((t_ - kt) * fps_s),
-                                            log=lambda t: print(t, flush=True), shot_fx=spec.get('fx'))
+                    fr_of_ = lambda t_, kt=kt: anchor + round((t_ - kt) * fps_s)
+                    impacts_ = list(sfx_.impacts)
+                    for fx in spec.get('fx', ()):    # a mining beam meets her hull the whole shot
+                        if fx[0] == 'mining' and fx[2] in placed:
+                            _e, loc_, _n, met_ = mining_hit(fx[1], fx[2], fx[3] if len(fx) > 3 else None)
+                            if met_:
+                                impacts_.append((fx[2], fr_of_(t0_), fr_of_(t1_),
+                                                 tuple(placed[fx[2]]['matrix'].inverted() @ loc_), f'{fx[1]} beam'))
+                    dmg_ = asharu_damage.apply_all(placed, t0_, t1_, fr_of_, log=lambda t: print(t, flush=True),
+                                                   shot_fx=spec.get('fx'), impacts=impacts_)
+                    if 'span_t' in spec:
+                        rows_, fails_ = asharu_damage.link_check([e for r in dmg_.values() for e in r['events']],
+                                                                 impacts_)
+                        for row in rows_ + [f'LINK FAIL {f_}' for f_ in fails_]:
+                            print(f'ASHARU damage {kf} {row}', flush=True)
+                        if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                            raise RuntimeError(f'{kf}: {len(fails_)} in-shot hits with no drawn cause, e.g. {fails_[:3]}')
                 else:
                     print(f'ASHARU damage {kf}: no key time (no flown ship), ledger not applied', flush=True)
                 try:
@@ -2904,8 +3169,76 @@ def blender_main(cfg):
                 finally:
                     for row in sfx_.rows:
                         print(f'ASHARU kit {kf} {row}', flush=True)
+                if 'span_t' in spec and cfg.get('kit_once'):
+                    import motion_audit      # every effect the kit made, moving as the camera will see it
+                    rows_, fails_ = motion_audit.audit(sfx_, cam_view_of(spec))
+                    for row in rows_:
+                        print(f'ASHARU kit {kf} {row}', flush=True)
+                    if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                        raise RuntimeError(f'{kf}: the motion audit failed {len(fails_)} effects, e.g. {fails_[:4]}')
+                if os.environ.get('ASHARU_DIAG_HIDE'):
+                    # diagnosis only: which effect a picture shows, by rendering without it. The pattern
+                    # must match a whole object name (fullmatch), never a substring: 'vent' once hid the
+                    # Wolf's ventral docking lamps and a wreck's scar vents along with the vent it meant.
+                    import swfx_core as swfx_core_
+                    rx_ = re.compile(os.environ['ASHARU_DIAG_HIDE'])
+                    hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.fullmatch(o.name)]
+                    if not hid_:
+                        raise RuntimeError(f"ASHARU_DIAG_HIDE {os.environ['ASHARU_DIAG_HIDE']!r} matches no whole object name")
+                    for o in hid_:
+                        fc_ = swfx_core_.find_fcurve(o, 'hide_render')
+                        if fc_ is not None:
+                            fc_.mute = True
+                        o.hide_render = True
+                    print(f'ASHARU DIAG hid {len(hid_)} objects matching {rx_.pattern!r}: '
+                          f'{sorted({ship_fx.base_name(o.name)[:40] for o in hid_})[:30]}', flush=True)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
+            if build_at is not None:     # back to this frame's own poses, before anything else reads them
+                for o in build_placed:
+                    bpy.data.objects.remove(o)
+                span_now['dt'] = spec['span_t'] - spec['key_t']
+                for key, sp in spec['ships'].items():
+                    place(key, sp, spec.get('states', {}).get(key))
+                bpy.context.view_layer.update()
+            if cfg.get('kit_once') and 'span_t' in spec:
+                # The kit's drives follow this frame's throttle, not the one the kit was built at: under
+                # --kit-once the build sets it once, at the shot's opening, and S3's pirates stayed dark
+                # through the whole shot although each lights her drives inside it (audit, 2026-10-23).
+                # So does everything else that changes over a shot and the build sets only once (state
+                # audit, 2026-10-23): a pirate's lamps come on as she wakes, before her drives, and a raised
+                # shield faces her attacker where he is now. Each value is checked against this plan once
+                # the frame is set (ASHARU state below), so a key or driver that overrides it stops the run.
+                state_plan_ = {}
+                for key, pl in placed.items():
+                    if pl['fx'] is None or pl['fx'].fx is None:
+                        continue
+                    if not pl['lib']['swfx']:
+                        state_plan_[(key, 'thr_throttle')] = pl['throttle']
+                    if key in LAUNCH:
+                        try:
+                            pl['fx'].get('lit_ship_master')
+                        except KeyError:
+                            print(f'ASHARU state {kf}: {key} has no ship lamps to wake', flush=True)
+                        else:
+                            wake_ = (spec['span_t'] - (LAUNCH[key] - LAMPS_LEAD_S)) / .3
+                            if pl['fx'].keyed('lit_ship_master'):
+                                # the kit keys them itself (S9b: the Falcon's shield overload stutters her
+                                # lamps): those keys are the picture, and the plan would only contradict them
+                                print(f'ASHARU state {kf}: {key} lamps keyed by the kit, not planned', flush=True)
+                            else:
+                                state_plan_[(key, 'lit_ship_master')] = (min(1.0, max(0.0, wake_))
+                                                                         * spec.get('lamp_gain', {}).get(key, 1.0))
+                for key, sh in spec.get('shields', {}).items():
+                    if key in placed and sh.get('toward') in placed and placed[key]['fx'] is not None:
+                        d_ = placed[key]['matrix'].inverted() @ placed[sh['toward']]['matrix'].translation
+                        state_plan_[(key, 'shield_facing')] = math.degrees(math.atan2(d_.y, d_.x))
+                for (key, knob), val in state_plan_.items():
+                    placed[key]['fx'].set(knob, val)
+                ship_fx.refresh(scene)
+                bpy.context.view_layer.update()
+                print(f"ASHARU state plan {kf}: "
+                      f"{ {f'{k} {n}': round(v, 2) for (k, n), v in sorted(state_plan_.items())} }", flush=True)
             if not step:
                 built_for[0] = span_of
             else:
@@ -2917,6 +3250,11 @@ def blender_main(cfg):
                 if i in kit_drew:
                     continue
                 kind = fx[0]
+                if cfg.get('swfx') and kind in KIT_FX:
+                    # no stand-in under the kit (owner, 2026-10-23, S7: a stand-in stream is a still
+                    # picture of rounds, held for the length of a burst, that no projectile check sees):
+                    # an effect the kit should draw and did not stops the render
+                    raise RuntimeError(f'{kf}: the kit did not draw {fx}, and a kit render draws no stand-ins')
                 if kind == 'tracer':
                     tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None, muzzle=muzzles.get(fx[:3]))
                 elif kind == 'missiles':
@@ -2961,10 +3299,29 @@ def blender_main(cfg):
                 for s_ in ships_fx.values():
                     s_.vacuum()
                 ship_fx.refresh(scene)
+            if 'span_t' in spec and cfg.get('kit_once'):
+                # each ship drawn this frame where the kit's planner has her (the rounds it fired leave
+                # the muzzle there): her placement against her flight evaluated at this frame
+                f_ = anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
+                m_at = ship_matrix_at(spec)
+                worst = max((((placed[k_]['matrix'].translation - m_at(k_, f_).translation).length, k_)
+                             for k_ in placed if hasattr(spec['ships'].get(k_), 'at')), default=(0.0, None))
+                print(f'ASHARU placement {kf}: worst {worst[0] * 100:.2f} cm ({worst[1]}) from the planner', flush=True)
+                if worst[0] > .03 and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                    raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.3f} m from where the kit planned her')
             if 'span_t' in spec:         # a motion span: the effects built at the key instant play on to this one
                 scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
                 print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
                       f"from the key)", flush=True)
+                if cfg.get('kit_once'):
+                    # what the frame evaluates to, against this frame's plan: a value the build set once, or
+                    # one a key or driver overrides, shows here (the S3 pirates' drives stayed dark unseen)
+                    off_ = sorted(((abs(float(placed[k_]['fx'].get(n_)) - v_), k_, n_, v_)
+                                   for (k_, n_), v_ in state_plan_.items()), reverse=True)
+                    w_ = off_[0] if off_ else (0.0, None, None, None)
+                    print(f'ASHARU state {kf}: {len(off_)} values, worst {w_[0]:.4f} ({w_[1]} {w_[2]})', flush=True)
+                    if w_[0] > 1e-3 and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                        raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -2972,6 +3329,8 @@ def blender_main(cfg):
                 else:
                     lab[key] = ship_label(key)
             labels[kf] = lab
+            if 'span_t' in spec:
+                print(f'ASHARU on screen {kf}: {lab}', flush=True)
             if cfg.get('motion_preview'):     # --motion-preview: play this shot in Workbench (asharu_preview.py)
                 import asharu_preview
                 asharu_preview.shot(locals(), kf)
@@ -3028,6 +3387,8 @@ def blender_main(cfg):
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
                                            log=lambda m: print(m, flush=True),
                                            glow=KEYFRAMES.get(kf, {}).get('bloom', 0.0))
+            if cfg.get('swfx') and 'span_t' in KEYFRAMES.get(kf, {}):
+                white_blob_lint(kf, composite_layers.read_png(partial), composite_layers.compose_frame.effects_alpha)
         else:
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'

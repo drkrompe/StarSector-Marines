@@ -728,6 +728,11 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 
 One line each, with its owner. Keep this list current, and remove an item when it closes.
 
+- **Kit rounds from stand-in hulls** (coordinator, 2026-10-23): the Buffalo Mk.II (S6b, on Lasher B)
+  and the Mule (S6c, on Wolf (P) B) have no kit build, so their fire was cut rather than drawn as
+  stand-in streaks. Plan and key their rounds from the stand-in hull's muzzle points (scene_fx.tracer
+  without a shooter copy) if the owner wants them seen firing. Effects session.
+
 - **The last look checks before finals** (owner approved the r10 key frames, 2026-10-22: "I think
   we're good"): S8-S9 (k4) with the Borers' mining lasers (`swfx_mining`) re-rendered and shown; S3/S4
   (k1b, k2) shown; the S12 lit span shown. Then the final render plan (24 fps, layered, per-shot chunk

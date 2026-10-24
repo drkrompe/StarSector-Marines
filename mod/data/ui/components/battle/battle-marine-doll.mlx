@@ -1,4 +1,4 @@
-<template props="padClasses,kitClasses,kit0Classes,kit0Name,kit0Count,kit0Rounds,kit0RoundsStyle,kit1Classes,kit1Name,kit1Count,kit1Rounds,kit1RoundsStyle,kit2Classes,kit2Name,kit2Count,kit2Rounds,kit2RoundsStyle,arm,armClasses,leg,legClasses">
+<template props="padClasses,kitClasses,kit0Classes,kit0Name,kit0Count,kit0Rounds,kit0RoundsStyle,kit1Classes,kit1Name,kit1Count,kit1Rounds,kit1RoundsStyle,kit2Classes,kit2Name,kit2Count,kit2Rounds,kit2RoundsStyle,kit3Classes,kit3Name,kit3Count,kit3Rounds,kit3RoundsStyle,arm,armClasses,leg,legClasses">
   <div id="marine-doll" class="marine-doll" style="background-color: transparent; background-image: none; border-width: 0px;">
     <div id="marine-doll-body" class="doll-body">
       <div id="marine-doll-pad-left" class="{padClasses}"></div>
@@ -25,6 +25,13 @@
           <div id="marine-doll-kit-2-count" class="kit-count">{kit2Count}</div>
           <div id="marine-doll-kit-2-rounds" class="kit-rounds" style="{kit2RoundsStyle}">
             <img each="round in kit2Rounds" key="{round.id}" id="{round.id}" class="{round.classes}" src="{round.src}" />
+          </div>
+        </div>
+        <div id="marine-doll-kit-3" class="{kit3Classes}">
+          <div id="marine-doll-kit-3-name" class="kit-name">{kit3Name}</div>
+          <div id="marine-doll-kit-3-count" class="kit-count">{kit3Count}</div>
+          <div id="marine-doll-kit-3-rounds" class="kit-rounds" style="{kit3RoundsStyle}">
+            <img each="round in kit3Rounds" key="{round.id}" id="{round.id}" class="{round.classes}" src="{round.src}" />
           </div>
         </div>
       </div>

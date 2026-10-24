@@ -1,0 +1,282 @@
+package com.dillon.starsectormarines.battle.cordon;
+
+import com.dillon.starsectormarines.battle.command.allied.AlliedRequest;
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
+import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
+import com.dillon.starsectormarines.battle.command.allied.GunStock;
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
+import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * What a Cordon frame names ({@code cordon-nouns.md}): each redoubt by number with its state (and, on the
+ * Road, whether it stands beside the gap), the logistics base, the town's compound, the landing field, every
+ * bore, the mission layout's pieces (picket lines, the switch line, the set pieces) and the rolled
+ * objectives, each with where it stands and, while it runs, where it wants the company. Never Conquest's
+ * keep, barracks or armory: the generic compound words would say the wrong battle.
+ *
+ * <p>Read off the battle as it was built and as it stands, so the static mapgen frames and the played
+ * evidence frames draw the same words; it lives in the Cordon's own package to read the beats' layout.
+ */
+public final class CordonReviewAnnotations {
+
+    /** Cells a bore's box keeps round its mouth. */
+    private static final int BORE_HALF = 3;
+
+    private CordonReviewAnnotations() { }
+
+    public static ReviewAnnotations forBattle(BattleSimulation sim) {
+        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        add(marks, sim);
+        return marks.build();
+    }
+
+    /** Adds the Cordon's marks to {@code marks}; nothing when the battle is not a Cordon. */
+    public static void add(ReviewAnnotations.Builder marks, BattleSimulation sim) {
+        CordonSequence cordon = sim.getCordon();
+        if (cordon == null) return;
+        CordonBeats beats = cordon.beats();
+        // Routes first, so the places and their words draw over them.
+        List<int[]> corridor = cordon.convoys() != null ? cordon.convoys().corridor() : beats != null ? beats.corridor() : null;
+        if (corridor != null && !corridor.isEmpty()) {
+            List<ReviewAnnotation.Point> points = new ArrayList<>();
+            for (int[] cell : corridor) points.add(new ReviewAnnotation.Point(cell[0] + 0.5f, cell[1] + 0.5f));
+            String detour = cordon.convoys() != null && cordon.convoys().detoured() ? ", detoured" : "";
+            marks.polyline(points, String.format(Locale.ROOT, "corridor, %.0f%% on road%s",
+                    100f * CordonCorridor.pavedShare(sim.getTopology(), corridor), detour), ReviewStyle.ROUTE);
+        }
+        if (beats != null) {
+            addLayout(marks, beats, objectivesByPiece(beats));
+            addPrecincts(marks, beats);
+        }
+        for (int i = 0; i < cordon.redoubts().size(); i++) {
+            CordonRedoubt r = cordon.redoubts().get(i);
+            String gap = cordon.gap().contains(i) ? " · gap" : "";
+            marks.box(r.left(), Math.min(r.top(), r.bottom()), r.right(), Math.max(r.top(), r.bottom()),
+                    "REDOUBT " + r.number() + " · " + stateWord(r.state()) + gap + lineWords(sim, cordon, r),
+                    redoubtStyle(r.state()));
+        }
+        CordonLogistics base = cordon.logistics();
+        if (base != null) {
+            marks.box(base.doorX() - 2, base.doorY() - 2, base.doorX() + 2, base.doorY() + 2, "machine door", ReviewStyle.ROUTE);
+            for (int[] slot : base.slots()) marks.box(slot[0] - 1, slot[1] - 1, slot[0] + 1, slot[1] + 1, "staging", ReviewStyle.NOTE);
+        }
+        for (SwarmBore bore : sim.swarmBores().bores()) {
+            String name = "BORE " + bore.number() + " (" + bore.tier().name().toLowerCase(Locale.ROOT) + ")";
+            marks.box(bore.x() - BORE_HALF, bore.y() - BORE_HALF, bore.x() + BORE_HALF, bore.y() + BORE_HALF,
+                    bore.collapsed() ? name + " · down" : name, bore.collapsed() ? ReviewStyle.NOTE : ReviewStyle.KEEP);
+        }
+        addLandingField(marks, sim);
+        addAllies(marks, sim, cordon);
+        if (beats != null) addCalls(marks, sim, beats);
+    }
+
+    /** Seconds a request the base granted stays named over the base. */
+    private static final int REQUEST_SHOWN_SECONDS = 20;
+
+    /** What the allied line command says of a redoubt: its guns' rounds when they are short, and Uncovered. */
+    private static String lineWords(BattleSimulation sim, CordonSequence cordon, CordonRedoubt r) {
+        CordonLineCommand line = cordon.line();
+        if (line == null || !r.manned()) return "";
+        StringBuilder out = new StringBuilder();
+        GunStock stock = line.stock(r);
+        float share = stock.pooledShare(sim);
+        if (stock.dry() > 0) out.append(" · ").append(stock.dry()).append(" guns dry, rationed");
+        else if (share < 0.999f) out.append(String.format(Locale.ROOT, " · rounds %.0f%%", 100f * share));
+        if (line.uncovered(r)) out.append(" · uncovered");
+        if (line.helpComing(r)) out.append(" · help coming");
+        return out.toString();
+    }
+
+    /**
+     * The allied line command's tools on the field: each ammunition truck on the road with where it is bound and
+     * whether a hull escorts it, each escort hull, and over the base every request it granted in the last
+     * {@link #REQUEST_SHOWN_SECONDS} seconds.
+     */
+    private static void addAllies(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonSequence cordon) {
+        CordonLineCommand line = cordon.line();
+        if (line == null) return;
+        Map<Long, Long> escorts = cordon.armour() == null ? Map.of() : cordon.armour().roadEscorts();
+        for (Map.Entry<SupplyDelivery, CordonRedoubt> e : line.deliveries().entrySet()) {
+            int[] at = e.getKey().truckCell(sim);
+            if (at == null) continue;
+            CordonRedoubt to = e.getValue();
+            boolean escorted = escorts.containsValue(e.getKey().truck());
+            marks.box(at[0] - 2, at[1] - 2, at[0] + 2, at[1] + 2, "AMMO TRUCK to redoubt " + to.number()
+                    + (escorted ? " · escorted" : " · no escort"), ReviewStyle.ALLY);
+            marks.arrow(at[0], at[1], to.centreX(), to.centreY(), "", ReviewStyle.ALLY);
+        }
+        for (Map.Entry<Long, Long> e : escorts.entrySet()) {
+            if (!sim.convoy().isVehicle(e.getKey()) || sim.convoy().structure(e.getKey()) <= 0f) continue;
+            GroundBody body = sim.convoy().body(e.getKey());
+            marks.box((int) body.x - 2, (int) body.y - 2, (int) body.x + 2, (int) body.y + 2,
+                    "ESCORT " + sim.convoy().vehicleType(e.getKey()).name().toLowerCase(Locale.ROOT).replace('_', ' '),
+                    ReviewStyle.ALLY);
+        }
+        AlliedToolShed shed = line.shed();
+        CordonLogistics base = cordon.logistics();
+        if (shed == null || base == null) return;
+        for (AlliedToolShed.Dispatch d : shed.pending()) {
+            AlliedRequest r = d.request();
+            if (r.tool() == AlliedTool.AMMO_TRUCK) continue;
+            marks.label(r.x(), r.y() - 4, r.tool().name().toLowerCase(Locale.ROOT).replace('_', ' ')
+                    + " on its way (" + r.reason() + ")", ReviewStyle.ALLY);
+        }
+        int shown = 0;
+        int since = sim.getSimTickIndex() - Math.round(REQUEST_SHOWN_SECONDS / BattleSimulation.TICK_DT);
+        for (AlliedToolShed.Dispatch d : shed.granted()) {
+            if (d.tick() < since) continue;
+            AlliedRequest r = d.request();
+            // Between the base and where it was asked for, so a frame on either end shows it.
+            float mx = (base.doorX() + r.x()) / 2f, my = (base.doorY() + r.y()) / 2f + 3 * shown++;
+            marks.label(mx, my, String.format(Locale.ROOT,
+                    "REQUEST %s to %s (%s): sent at %d:%02d", r.tool().name().toLowerCase(Locale.ROOT).replace('_', ' '),
+                    r.toPlace(), r.reason(), (int) (d.tick() * BattleSimulation.TICK_DT) / 60,
+                    (int) (d.tick() * BattleSimulation.TICK_DT) % 60), ReviewStyle.ALLY);
+        }
+    }
+
+    /** What the frame says of a redoubt's state. */
+    static String stateWord(CordonRedoubt.State state) {
+        return switch (state) {
+            case HOLDING -> "holding";
+            case CALLING -> "calling";
+            case RELIEVED -> "relieved";
+            case FALLEN -> "fallen";
+            case GIVEN_UP -> "given up";
+        };
+    }
+
+    private static ReviewStyle redoubtStyle(CordonRedoubt.State state) {
+        return switch (state) {
+            case HOLDING, RELIEVED -> ReviewStyle.POSITION;
+            case CALLING -> ReviewStyle.KEEP;
+            case FALLEN, GIVEN_UP -> ReviewStyle.NOTE;
+        };
+    }
+
+    /** Each rolled objective's result, under every laid piece it needs. */
+    private static Map<String, ObjectiveResult> objectivesByPiece(CordonBeats beats) {
+        Map<String, ObjectiveResult> out = new HashMap<>();
+        if (beats.board() == null) return out;
+        Map<String, OptionalObjective> pool = new HashMap<>();
+        for (OptionalObjective o : CordonObjectives.pool(beats.variant(), null)) pool.put(o.key(), o);
+        for (ObjectiveResult result : beats.board().results()) {
+            OptionalObjective o = pool.get(result.key());
+            if (o == null) continue;
+            for (String piece : o.needs()) out.put(piece, result);
+        }
+        return out;
+    }
+
+    /** Every laid piece, boxed and named, with the objective it stages when one was rolled on it. */
+    private static void addLayout(ReviewAnnotations.Builder marks, CordonBeats beats, Map<String, ObjectiveResult> objectives) {
+        for (Laid laid : beats.laid().pieces()) {
+            if (!laid.isLaid() || laid.cells().isEmpty()) continue;
+            String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase(Locale.ROOT) + ")";
+            ObjectiveResult objective = objectives.get(laid.name());
+            String text = laid.name() + state + (objective == null ? "" : " · " + objective.title() + ", " + statusWord(objective.status()));
+            if (laid.kind() == Laid.Kind.ROAD) {
+                // A road's box would be the whole dog-leg: name it at the middle of what was carved.
+                int[] mid = laid.cells().get(laid.cells().size() / 2);
+                marks.label(mid[0], mid[1], text, objective != null ? ReviewStyle.OBJECTIVE : ReviewStyle.ROUTE);
+                continue;
+            }
+            int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+            for (int[] c : laid.cells()) {
+                x0 = Math.min(x0, c[0]);
+                y0 = Math.min(y0, c[1]);
+                x1 = Math.max(x1, c[0]);
+                y1 = Math.max(y1, c[1]);
+            }
+            ReviewStyle style = objective != null ? ReviewStyle.OBJECTIVE
+                    : laid.kind() == Laid.Kind.LINE ? ReviewStyle.ROUTE : ReviewStyle.NOTE;
+            marks.box(x0, y0, x1, y1, text, style);
+            for (int[] nest : laid.nests()) marks.box(nest[0] - 1, nest[1] - 1, nest[0] + 1, nest[1] + 1, "nest", ReviewStyle.OBJECTIVE);
+        }
+    }
+
+    /** The plan's named places at their seeds: the colony, the rear hamlets, the town's compound, the base. */
+    private static void addPrecincts(ReviewAnnotations.Builder marks, CordonBeats beats) {
+        if (beats.plan() == null) return;
+        for (Precinct p : beats.plan().precincts()) {
+            String text = switch (p.name()) {
+                case "colony" -> "the colony";
+                case "installation" -> "installation";
+                case "suburb" -> "suburb";
+                case "rear-west", "rear-east" -> "rear hamlet";
+                case CivilDefenceCompound.PLACE -> "THE TOWN'S COMPOUND";
+                case CordonPlan.BASE_PLACE -> "LOGISTICS BASE";
+                default -> null;
+            };
+            if (text != null) {
+                boolean held = p.name().equals(CivilDefenceCompound.PLACE) || p.name().equals(CordonPlan.BASE_PLACE);
+                marks.label(p.seedX(), p.seedY(), text, held ? ReviewStyle.LANDING : ReviewStyle.NOTE);
+            }
+        }
+    }
+
+    /**
+     * The landing field, once: one box round every berth the company came down on, which on the Cordon
+     * is one field in the rear; the beachhead compound where there are no berths to read.
+     */
+    private static void addLandingField(ReviewAnnotations.Builder marks, BattleSimulation sim) {
+        List<LandingPad> pads = sim.getMarineLandingPads();
+        if (pads != null && !pads.isEmpty()) {
+            int left = Integer.MAX_VALUE, bottom = Integer.MAX_VALUE, right = Integer.MIN_VALUE, top = Integer.MIN_VALUE;
+            for (LandingPad pad : pads) {
+                left = Math.min(left, Math.min(pad.left(), pad.right()));
+                right = Math.max(right, Math.max(pad.left(), pad.right()));
+                bottom = Math.min(bottom, Math.min(pad.bottom(), pad.top()));
+                top = Math.max(top, Math.max(pad.bottom(), pad.top()));
+            }
+            marks.box(left, bottom, right, top, "LANDING FIELD", ReviewStyle.LANDING);
+            return;
+        }
+        CompoundService compounds = sim.getCompoundService();
+        if (compounds == null) return;
+        for (CompoundService.Record record : compounds.getRecords()) {
+            TacticalNode node = record.node;
+            if (node.kind != TacticalNode.Kind.BEACHHEAD) continue;
+            marks.box(node.left, node.top, node.right, node.bottom, "LANDING FIELD", ReviewStyle.LANDING);
+            return;
+        }
+    }
+
+    /** Where each running objective wants the company now, named for the objective. */
+    private static void addCalls(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonBeats beats) {
+        if (beats.board() == null) return;
+        List<ObjectiveResult> results = beats.board().results();
+        List<CordonBeat> running = beats.running();
+        for (int i = 0; i < running.size() && i < results.size(); i++) {
+            CordonBeat beat = running.get(i);
+            if (!beat.active()) continue;
+            int[] call = beat.call(sim);
+            if (call == null) continue;
+            marks.label(call[0], call[1], "objective: " + results.get(i).title() + " (" + call[2] + " squads)", ReviewStyle.OBJECTIVE);
+        }
+    }
+
+    private static String statusWord(Status status) {
+        return status.name().toLowerCase(Locale.ROOT);
+    }
+}

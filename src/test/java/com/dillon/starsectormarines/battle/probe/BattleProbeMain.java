@@ -1,10 +1,7 @@
 package com.dillon.starsectormarines.battle.probe;
 
-import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.ops.ThunderRunEvidenceBattle;
-import com.dillon.starsectormarines.testsupport.HeadlessStrings;
-import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -22,6 +19,10 @@ import java.nio.file.Path;
  * <ul>
  *   <li>{@code thunder-run[:key=value,...]} — the Thunder Run the evidence harness plays
  *       ({@code seed}, default 9301; {@code companySize}; {@code retry=true});</li>
+ *   <li>{@code relief[:seed=N,surface=VERDANT]} — the Relief ground start, the campaign's first mission: the
+ *       starter company already ashore beside the hauler, as {@code ReliefCommandEvidenceTest} stands it up;</li>
+ *   <li>{@code cordon[:variant=line,density=urban,biome=ARID,seed=6]} — one Cordon seed as
+ *       {@code CordonCommandEvidenceTest} stands each pooled seed up;</li>
  *   <li>{@code fixture:<path>} — any battle fixture JSON, rebuilt at tick zero through its production factory.</li>
  * </ul>
  * Each command is echoed as {@code > command} and answered with one line of JSON, so a transcript reads in order and
@@ -40,9 +41,8 @@ public final class BattleProbeMain {
         PrintStream print = out.isBlank() ? System.out
                 : new PrintStream(Files.newOutputStream(Path.of(out)), true, StandardCharsets.UTF_8);
         long started = System.nanoTime();
-        // What the JUnit extensions install before every evidence test: disk catalogs and the mod's strings.
-        TileRegistryTestInstaller.install(Path.of(""));
-        try (var strings = new HeadlessStrings(Path.of("mod")); BattleSimulation sim = build(source)) {
+        // The construction the snapshot suites share, so a reading here reproduces in a clip.
+        try (var strings = HeadlessBattles.install(Path.of("")); BattleSimulation sim = HeadlessBattles.build(source)) {
             print.println("# " + source + " built in " + (System.nanoTime() - started) / 1_000_000 + " ms");
             BattleProbe probe = new BattleProbe(sim);
             BufferedReader reader = script.isBlank()
@@ -67,22 +67,4 @@ public final class BattleProbeMain {
         System.exit(0);
     }
 
-    static BattleSimulation build(String source) throws Exception {
-        int colon = source.indexOf(':');
-        String kind = colon < 0 ? source : source.substring(0, colon);
-        String rest = colon < 0 ? "" : source.substring(colon + 1);
-        return switch (kind) {
-            case "thunder-run" -> {
-                JSONObject fixture = new JSONObject().put("seed", 9301L);
-                for (String pair : rest.split(",")) {
-                    if (pair.isBlank()) continue;
-                    String[] kv = pair.split("=", 2);
-                    fixture.put(kv[0].trim(), JSONObject.stringToValue(kv.length > 1 ? kv[1].trim() : "true"));
-                }
-                yield ThunderRunEvidenceBattle.launched(fixture);
-            }
-            case "fixture" -> BattleFixtureJson.fromJson(new JSONObject(Files.readString(Path.of(rest)))).build();
-            default -> throw new IllegalArgumentException("unknown battle source: " + kind);
-        };
-    }
 }

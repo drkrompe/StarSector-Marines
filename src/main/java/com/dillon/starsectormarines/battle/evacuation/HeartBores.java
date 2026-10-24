@@ -46,6 +46,13 @@ public record HeartBores(List<Site> sites) {
     static final int MOTHER_SPACING = 22;
     /** Any satellite stands at least this far from every other bore. */
     static final int SATELLITE_SPACING = 34;
+    /**
+     * Cells from the supply road within which Broad Front's road satellite stands (`heart-story-beats.md` F6): near
+     * enough that its surges cut the road, so taking it is what keeps the armour and ammunition coming.
+     */
+    static final int ROAD_REACH = 24;
+    /** The road satellite stands no nearer the start than this depth: past the settlement's near gate, in the bloom. */
+    static final float ROAD_SATELLITE_DEPTH = 0.42f;
     /** No bore nearer the map edge than this. */
     static final int EDGE_MARGIN = 10;
     /** Random picks tried per site before the plan gives up on it. */
@@ -74,9 +81,11 @@ public record HeartBores(List<Site> sites) {
      *
      * @param workings the old workings' seed cell, round which the mothers stand
      * @param start    a cell on the start line
+     * @param road     the supply road's cells; on Broad Front the satellite of the band nearest its far end stands
+     *                 within {@link #ROAD_REACH} of it ({@link #roadSatellite}), else where its band puts it
      */
     public static HeartBores plan(NavigationGrid grid, CellTopology topology, Form form,
-                                  int[] workings, int[] start, long seed) {
+                                  int[] workings, int[] start, List<int[]> road, long seed) {
         boolean[] reachable = reachableFrom(grid, start);
         if (reachable == null) return null;
         SplittableRandom rng = new SplittableRandom(seed ^ SALT);
@@ -90,7 +99,11 @@ public record HeartBores(List<Site> sites) {
             sites.add(new Site(m, true, cell[0], cell[1]));
         }
         float[][] bands = satelliteBands(form);
+        int roadBand = form == Form.BROAD_FRONT ? roadBand(form, bands, road) : -1;
+        int[] beside = roadBand < 0 ? null : roadSatellite(grid, topology, reachable, sites, rng, form, road);
+        if (beside != null) sites.add(new Site(roadBand + 1, false, beside[0], beside[1]));
         for (int s = 0; s < bands.length; s++) {
+            if (s == roadBand && beside != null) continue;
             float[] band = bands[s];
             int[] a = form.cellAt(band[0], band[2]), b = form.cellAt(band[1], band[3]);
             int[] cell = pick(grid, topology, reachable, sites, rng, SATELLITE_SPACING,
@@ -98,6 +111,7 @@ public record HeartBores(List<Site> sites) {
             if (cell == null) return null;
             sites.add(new Site(s + 1, false, cell[0], cell[1]));
         }
+        sites.sort((p, q) -> p.mother != q.mother ? (p.mother ? -1 : 1) : Integer.compare(p.number, q.number));
         return new HeartBores(List.copyOf(sites));
     }
 
@@ -118,6 +132,61 @@ public record HeartBores(List<Site> sites) {
                 {0.44f, 0.54f, 0.20f, 0.80f},
                 {0.52f, 0.64f, 0.20f, 0.80f},
                 {0.64f, 0.74f, 0.20f, 0.80f}};
+    }
+
+    /** The band whose across is nearest the road's far end, whose satellite is the road's; -1 with no road. */
+    static int roadBand(Form form, float[][] bands, List<int[]> road) {
+        int[] end = farEnd(form, road);
+        if (end == null) return -1;
+        float across = form.across(end[0], end[1]);
+        int best = -1;
+        float bestGap = Float.MAX_VALUE;
+        for (int s = 0; s < bands.length; s++) {
+            float gap = Math.abs((bands[s][2] + bands[s][3]) / 2f - across);
+            if (gap < bestGap) { bestGap = gap; best = s; }
+        }
+        return best;
+    }
+
+    /** The road cell deepest into the approach: the settlement's near gate; null with no road. */
+    static int[] farEnd(Form form, List<int[]> road) {
+        int[] end = null;
+        for (int[] cell : road) if (end == null || form.depth(cell[0], cell[1]) > form.depth(end[0], end[1])) end = cell;
+        return end;
+    }
+
+    /**
+     * A satellite site beside the road: within {@link #ROAD_REACH} of one of its cells but off it, past
+     * {@link #ROAD_SATELLITE_DEPTH}; null when no such ground can be seated, and the band places it instead.
+     */
+    private static int[] roadSatellite(NavigationGrid grid, CellTopology topology, boolean[] reachable,
+                                       List<Site> taken, SplittableRandom rng, Form form, List<int[]> road) {
+        int[] end = farEnd(form, road);
+        int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+        for (int[] cell : road) {
+            x0 = Math.min(x0, cell[0] - ROAD_REACH);
+            y0 = Math.min(y0, cell[1] - ROAD_REACH);
+            x1 = Math.max(x1, cell[0] + ROAD_REACH);
+            y1 = Math.max(y1, cell[1] + ROAD_REACH);
+        }
+        if (end == null) return null;
+        int width = grid.getWidth(), height = grid.getHeight();
+        List<int[]> fit = new ArrayList<>();
+        for (int y = Math.max(EDGE_MARGIN, y0); y <= Math.min(height - 1 - EDGE_MARGIN, y1); y++) {
+            for (int x = Math.max(EDGE_MARGIN, x0); x <= Math.min(width - 1 - EDGE_MARGIN, x1); x++) {
+                if (form.depth(x, y) < ROAD_SATELLITE_DEPTH || !reachable[y * width + x]) continue;
+                if (!spaced(taken, x, y, SATELLITE_SPACING) || !besideRoad(road, x, y)) continue;
+                if (clearGround(grid, topology, x, y)) fit.add(new int[]{x, y});
+            }
+        }
+        return fit.isEmpty() ? null : fit.get(rng.nextInt(fit.size()));
+    }
+
+    /** Within {@link #ROAD_REACH} of a road cell, and clear of the road by more than a bore's mouth. */
+    static boolean besideRoad(List<int[]> road, int x, int y) {
+        float nearest = Float.MAX_VALUE;
+        for (int[] cell : road) nearest = Math.min(nearest, (float) Math.hypot(cell[0] - x, cell[1] - y));
+        return nearest <= ROAD_REACH && nearest > SwarmBores.MOUTH_RADIUS + 2;
     }
 
     /** Opens every site and feeds it to its starting growth. Call at setup, tick zero. */
@@ -150,14 +219,18 @@ public record HeartBores(List<Site> sites) {
                 if (dx * dx + dy * dy > MOTHER_RADIUS * MOTHER_RADIUS) continue;
             }
             if (!reachable[y * width + x] || !clearGround(grid, topology, x, y)) continue;
-            boolean spaced = true;
-            for (Site site : taken) {
-                int dx = site.x - x, dy = site.y - y;
-                if (dx * dx + dy * dy < spacing * spacing) { spaced = false; break; }
-            }
-            if (spaced) return new int[]{x, y};
+            if (spaced(taken, x, y, spacing)) return new int[]{x, y};
         }
         return null;
+    }
+
+    /** At least {@code spacing} from every site so far. */
+    private static boolean spaced(List<Site> taken, int x, int y, int spacing) {
+        for (Site site : taken) {
+            int dx = site.x - x, dy = site.y - y;
+            if (dx * dx + dy * dy < spacing * spacing) return false;
+        }
+        return true;
     }
 
     /**

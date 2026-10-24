@@ -1,6 +1,6 @@
 # The Heart — story beats (candidates)
 
-Status: ACTIVE. The owner picked every beat (2026-10-23). F1, F5, B2, B3 and B4 are in the heart's optional-objective pool (`HeartObjectives`); the rest wait on their machinery.
+Status: ACTIVE. The owner picked every beat (2026-10-23). Every beat is in the heart's optional-objective pool (`HeartObjectives`).
 
 Written: 2026-10-23
 
@@ -30,8 +30,9 @@ as allies (step 3). Beat `holdout_reached` / `holdout_fallen`.
 **F2. A lane breaks.** The heart's waking surge falls hardest on one lane. Its
 column breaks and the front has a hole beside the company. The company is
 told; plugging the gap or holding its own line is the player's choice. The
-allied commander re-aims the next wave to close it. Builds on the existing
-`lane_broken_N`. Needs: the commander re-aiming waves (step 4).
+allied commander re-aims the next wave to close it (`heart-allied-commander.md`,
+Re-aiming a wave). Builds on `lane_broken_N`; beats `wave_reaimed_N_from_M_n`,
+`wave_sent_N_from_M_n`, `gap_closed_N_n`.
 
 **F3. Spores ground the air.** Close air support is promised but grounded
 while the satellites' spore colonies stand over the approach. Each colony
@@ -53,8 +54,9 @@ lanes converge on (step 2). Beat `linkup`.
 **F6. The supply road.** The country road is the front's one metalled road,
 and the armour waves and ammunition come up it. A satellite near the road
 cuts it with surges until it falls, so taking that bore is what keeps the
-fresh armour coming. Needs: a logistics base on the farmland that sends
-hulls up the road (step 3). Beat `road_cut` / `road_open`.
+fresh armour coming: while it cuts the road the base restocks no armour or
+trucks (`heart-nouns.md`, Logistics base), and the gunship counts it a target.
+Beats `road_cut_N` / `road_open`.
 
 ## The Burn: fire and the guns
 
@@ -107,9 +109,37 @@ two or three, drawn from the battle seed over what the map laid.
 | B2 | `village` | `village-holdout` | the company reaches it | the barrage's third line opens first | regard |
 | B3 | `guns_hold` | `gun-flank-1` | every gun standing at the end | the first gun lost | credits / the battery weakened |
 | B4 | `ford` | `company-ford` | the company at its ford | never; lapses | credits |
+| F2 | `plug_the_gap` | nothing | once a lane breaks, the company in its ground within 90 s | the 90 s pass | credits |
+| F3 | `air_corridor` | `ammo-dump-1` | the colonies of the two satellites nearest the company all dead | never; lapses | credits |
+| F4 | `matriarch_down` | nothing | the first Matriarchs out dead within 150 s | she lives longer | credits |
+| F6 | `road_open` | `supply-road` | the satellite nearest the road collapses | the battle ends first | credits |
+| B1 | `clear_of_the_walk` | nothing | the barrage ends without a gun holding its fire for the company | the first held round | credits |
+| B5 | `one_more_line` | `vehicle-park` | an ammunition truck reaches the guns before the last line lifts: the plan gains one more line | every truck lost, too late, or the battle ends first | credits |
+| B6 | `last_stretch` | nothing | every mother down within four minutes of the barrage's end | the four minutes pass | credits |
 
-Not in the pool yet: F2 and F4 need the commander and swarm-side behaviour
-they name, F3 needs close air support, F6 a satellite placed against the
-road, B5 the ammunition convoy, B1 and B6 are presentation. The lost column's
-survivors do not join a lane yet. The shared mechanism that
-rolls and runs them is `optional-objectives.md`.
+The air beats bring the Harrier in under the flier's law (`colony-breach-nouns.md`,
+Harrier): a pack flies only where the company or an ally has anti-air.
+- B3 digs a flak position among the guns. When the barrage's second line opens, a pack rises on the flank toward the battery, on the side of the nearest living bore, and `battery_threatened` is published.
+- F3 digs one at the ammunition dump. While a target satellite's colonies stand, one raises a pack whenever the company or an ally comes within a Harrier's sense of it: at most three packs, two minutes apart.
+- With no anti-air standing, no pack rises.
+
+Two beats are read as objectives the moment does not say outright. B1's
+ranging smoke is presentation, so its objective asks what the walk asks of
+the company: follow close, never close enough to stop a gun. B6's quiet is
+presentation too, so its objective is the finish inside it.
+
+B5's trucks are the shared supply delivery (`allied-tools.md`), sent from
+the vehicle park's tool shed with the guns' own trucks: two are sent when the
+third line opens, waiting while the shed has none in stock or the swarm is on
+the park, and the first through refills the battery as well, and drive whatever way the planner finds rather than the farm road.
+The extra line is as deep past the last as the plan steps, still short of the
+heart; the company's screen keeps to the plan it was given, so it does not
+follow the extra line.
+
+Not fully staged yet:
+- F4's hull-seeking Matriarch needs the swarm-side behaviour it names. Its objective runs without it.
+- F3's close air support is step 3.
+- The lost column's survivors do not join a lane yet.
+
+The shared mechanism that rolls and runs them is `optional-objectives.md`.
+

@@ -144,6 +144,45 @@ class DefendAreaTest {
                         + " distinct destinations for " + count);
     }
 
+    /**
+     * One strong cover cell inside reach of several members' line slots used to be every one of
+     * their stands: they all walked to its centre, pushed each other off it, and none of them
+     * ever counted as arrived. The squad's stands are now settled together, one cell each.
+     */
+    @Test
+    void oneCoverCellNearSeveralSlotsIsNotEveryonesStand() {
+        BattleSimulation sim = openSimulation(120, 48);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        int count = 6;
+        long[] members = new long[count];
+        for (int i = 0; i < count; i++) {
+            members[i] = sim.spawn(new EntitySpec("marine" + i, Faction.MARINE,
+                    UnitType.MARINE, 28 + i, 20).squad(squadId).primaryWeapon(
+                    WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID)));
+        }
+        squad.leaderId = members[0];
+        squad.aliveMembers = count;
+        squad.originalSize = count;
+        squad.assignedObjective = ObjectiveAssignment.defendArea(squadId, 30, 20, 10);
+        sim.getGrid().setCoverAtFacing(27, 20, NavigationGrid.FACING_E, 3);
+        squad.contactPicture = contactAt(100, 20);
+        DefendArea action = new DefendArea(30, 20, 10);
+
+        for (long member : members) action.execute(member, squad, sim);
+
+        Set<Long> destinations = new HashSet<>();
+        boolean coverTaken = false;
+        for (long member : members) {
+            int[] path = sim.world().path(member);
+            assertTrue(!Paths.isEmpty(path), "every member is walking somewhere");
+            destinations.add(((long) Paths.destX(path) << 32) | Paths.destY(path));
+            coverTaken |= Paths.destX(path) == 27 && Paths.destY(path) == 20;
+        }
+        assertTrue(coverTaken, "premise: someone takes the cover");
+        assertEquals(count, destinations.size(), "one stand per member");
+    }
+
     private static SquadContactPicture contactAt(int x, int y) {
         return new SquadContactPicture(1,
                 SquadContactPicture.Posture.DEFENDING, 1f, 0f,

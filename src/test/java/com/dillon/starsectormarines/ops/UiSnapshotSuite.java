@@ -74,9 +74,6 @@ import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
-import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -449,9 +446,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-vacant-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, true)),
-                new SnapshotArtifact("battle-hud-task-force-wide.png",
-                        renderBattleHudTaskForce(
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("battle-hud-selected-squad-wide.png",
                         renderBattleSquadOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
@@ -520,6 +514,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BriefingViewModel.putFactionIdentity(narratedBriefing, "employer", "Independent", OpeningBroker.CREST);
 
         narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing.01").text());
+        // As the first mission opens: one commander card, no command powers and no fleet ships.
+        narratedBriefing.put("taskForceRows", List.of(BriefingViewModel.forceCard("op-commander",
+                "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()));
+        narratedBriefing.put("powerRows", List.of());
+        narratedBriefing.put("powerEmpty", "No powers available from fleet or employer.");
+        narratedBriefing.put("sourceRows", List.of());
+        narratedBriefing.put("sourceEmpty", "No fleet ships provide command powers.");
+        narratedBriefing.put("assignClasses", "");
+        BriefingViewModel.withEmptyStyles(narratedBriefing);
         BriefingSurvey conquestSurvey = productionSurvey(context, "conquest-full-strength-west-v3.json", 1008);
         BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
         BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);
@@ -861,7 +865,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static BufferedImage renderVoiceSubtitle(SnapshotContext context,
             HeadlessUiRenderer renderer, String text, boolean officer) throws Exception {
-        BufferedImage image = renderBattleHudTaskForce(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+        BufferedImage image = renderBattleBackdrop(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                 List.of(StorySubtitleOverlay.COMPONENT_PATH, "data/ui/components/battle/company-subtitle.mlx"));
         loader.reload();
@@ -892,7 +896,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBattleHudCommandOverlay(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean groups) throws Exception {
-        BufferedImage image = renderBattleHudTaskForce(width, height);
+        BufferedImage image = renderBattleBackdrop(width, height);
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
                 ignored -> { }, "Pause", "1x", "2x", "4x");
@@ -1112,31 +1116,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    /**
-     * Full-viewport scale evidence for the production task-force plate. The
-     * backdrop is only a neutral contrast field; every HUD operation, value,
-     * and coordinate comes through {@link TaskForceStatusPanel#paint} — the
-     * same method the live OpenGL panel invokes.
-     */
-    private static BufferedImage renderBattleHudTaskForce(int width, int height) {
-        BufferedImage image = renderBattleBackdrop(width, height);
-        Graphics2D graphics = image.createGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-        TaskForceStatusPanel.Snapshot snapshot =
-                TaskForceStatusPanel.Snapshot.capture(battleHudSquads());
-        TaskForceStatusPanel.paint(new HeadlessTaskForcePaintTarget(graphics, height),
-                snapshot,
-                12f,
-                12f + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP,
-                1f);
-        graphics.dispose();
-        return image;
-    }
-
     private static BufferedImage renderBattleBackdrop(int width, int height) {
         BufferedImage image = new BufferedImage(width, height,
                 BufferedImage.TYPE_INT_ARGB);
@@ -1148,26 +1127,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         paintBattleContrastField(graphics, width, height);
         graphics.dispose();
         return image;
-    }
-
-    /** Representative late-battle force state at the scale the old list could not hold. */
-    private static List<Squad> battleHudSquads() {
-        List<Squad> squads = new ArrayList<>();
-        for (int index = 0; index < 44; index++) {
-            Squad squad = new Squad(index + 1, Faction.MARINE);
-            squad.originalSize = 12;
-            squad.aliveMembers = index < 3 ? 0 : index < 9
-                    ? 5 : 9 + index % 4;
-            squad.moraleBroken = index >= 3 && index < 9;
-            squad.morale = squad.moraleBroken ? 0.12f : 0.66f + (index % 3) * 0.08f;
-            squad.alertLevel = switch (index % 4) {
-                case 0, 1 -> SquadAlertLevel.ENGAGED;
-                case 2 -> SquadAlertLevel.SUSPICIOUS;
-                default -> SquadAlertLevel.UNAWARE;
-            };
-            squads.add(squad);
-        }
-        return squads;
     }
 
     private static void paintBattleContrastField(Graphics2D graphics,
@@ -1189,81 +1148,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         for (int y = 0; y < height; y += 32) {
             graphics.drawLine(0, y, width, y);
-        }
-    }
-
-    /** Java2D drain for the task-force panel's backend-neutral paint seam. */
-    private static final class HeadlessTaskForcePaintTarget
-            implements TaskForceStatusPanel.PaintTarget {
-        private final Graphics2D graphics;
-        private final int imageHeight;
-
-        private HeadlessTaskForcePaintTarget(Graphics2D graphics, int imageHeight) {
-            this.graphics = graphics;
-            this.imageHeight = imageHeight;
-        }
-
-        @Override
-        public void filledRect(float x, float y, float width, float height,
-                               Color color, float alphaMult) {
-            graphics.setColor(alpha(color, alphaMult));
-            graphics.fillRect(Math.round(x), top(y, height),
-                    Math.round(width), Math.round(height));
-        }
-
-        @Override
-        public void borderRect(float x, float y, float width, float height,
-                               Color color, float alphaMult) {
-            graphics.setColor(alpha(color, alphaMult));
-            graphics.setStroke(new BasicStroke(1f));
-            graphics.drawRect(Math.round(x), top(y, height),
-                    Math.round(width), Math.round(height));
-        }
-
-        @Override
-        public void disc(float centerX, float centerY, float radius,
-                         Color color, float alphaMult) {
-            graphics.setColor(alpha(color, alphaMult));
-            graphics.fill(new Ellipse2D.Float(centerX - radius,
-                    imageHeight - centerY - radius, radius * 2f, radius * 2f));
-        }
-
-        @Override
-        public void text(TaskForceStatusPanel.TextRole role, String text,
-                         float x, float y, Color color, float alphaMult) {
-            int style = role == TaskForceStatusPanel.TextRole.HEADER
-                    ? Font.BOLD : Font.PLAIN;
-            graphics.setFont(new Font(Font.SANS_SERIF, style, 12));
-            graphics.setColor(alpha(color, alphaMult));
-            graphics.drawString(text, x, imageHeight - y + 10f);
-        }
-
-        @Override
-        public void moraleBar(float x, float y, float width, float height,
-                              float morale, float cap, boolean broken,
-                              float breakThreshold, float alphaMult) {
-            float fill = cap > 0f ? Math.max(0f, Math.min(1f, morale / cap)) : 0f;
-            filledRect(x, y, width, height, new Color(0x14, 0x18, 0x20), alphaMult);
-            Color fillColor = fill > 0.5f ? new Color(0x40, 0xC0, 0x40)
-                    : fill > 0.3f ? new Color(0xE0, 0xC0, 0x40)
-                    : new Color(0xE0, 0x50, 0x40);
-            if (fill > 0f) filledRect(x, y, width * fill, height, fillColor, alphaMult);
-            float tickX = x + width * Math.max(0f, Math.min(1f, breakThreshold));
-            filledRect(tickX, y - 1f, 1.5f, height + 2f,
-                    new Color(0xF0, 0xF0, 0xF0, 0xD0), alphaMult);
-            borderRect(x, y, width, height,
-                    broken ? new Color(0xE0, 0x40, 0x40)
-                            : new Color(0x60, 0x80, 0xA0), alphaMult);
-        }
-
-        private int top(float y, float height) {
-            return Math.round(imageHeight - y - height);
-        }
-
-        private static Color alpha(Color color, float alphaMult) {
-            int alpha = Math.round(color.getAlpha()
-                    * Math.max(0f, Math.min(1f, alphaMult)));
-            return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
         }
     }
 
@@ -1492,7 +1376,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Rect box = subject.box().borderBox();
         document.pointerMoved(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
         binder.update();
-        if (binder.openTarget() != subject) {
+        // The sheet may belong to the subject or to a row around it (a stores row owns its sheet).
+        boolean opened = false;
+        for (UiElement element = subject; element != null && !opened; element = element.parent()) {
+            opened = binder.openTarget() == element;
+        }
+        if (!opened) {
             throw new IllegalStateException("Spec sheet did not open for " + subject.id());
         }
         document.advance(0f);
@@ -2647,6 +2536,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
                 new SnapshotArtifact("mech-internal-plating-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-plating")),
+                new SnapshotArtifact("mech-internal-empty-engine-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-empty-engine")),
                 new SnapshotArtifact("mech-internal-capacitor-bank-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-flux")),
                 // A refit Bulwark: better engine, bank and plate, and a shorter arm gun, so the stat
@@ -2773,6 +2664,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CAPACITORS);
+        }
+        // The engine dragged back to stores: the empty, required socket warns on the doll, and
+        // the stores' engine category lists the engine that came out at full strength.
+        if ("internal-empty-engine".equals(materialHint)) {
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.removeInstalledInternal(SocketId.CORE);
+            // The engine category: the stripped engine is a spare beside patterns with none.
+            viewModel.setFilter(MechLabViewModel.CategoryFilter.ENGINE);
         }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (materialHint != null && materialHint.startsWith("preview-")) {
@@ -3467,6 +3366,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
+        props.put("allPartsClasses", viewModel.allPartsClasses());
+        props.put("showAllParts", (Runnable) viewModel::showAllParts);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

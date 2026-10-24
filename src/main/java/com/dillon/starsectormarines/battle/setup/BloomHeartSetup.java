@@ -11,10 +11,16 @@ import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
+import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
+import com.dillon.starsectormarines.battle.evacuation.HeartGuns;
+import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.evacuation.HeartSupplyRoad;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRoll;
+import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -25,9 +31,11 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -115,7 +123,13 @@ public final class BloomHeartSetup {
         Precinct landing = plan.landingPlace();
         return HeartBores.plan(map.grid, map.topology, form,
                 new int[]{workings.seedX(), workings.seedY()},
-                new int[]{landing.seedX(), landing.seedY()}, battleSeed ^ BORE_SALT);
+                new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map), battleSeed ^ BORE_SALT);
+    }
+
+    /** The supply road's cells as the map laid them, or none. */
+    private static List<int[]> supplyRoad(MapResult map) {
+        Laid road = map.layout.find(HeartLayout.SUPPLY_ROAD);
+        return road == null || !road.isLaid() ? List.of() : road.cells();
     }
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
@@ -158,6 +172,15 @@ public final class BloomHeartSetup {
     /** As {@link #mission(Form, SurfacePalette, long, List)} in country as built-up as {@code density}. */
     public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
                                            List<ShuttleAssignment> manifest) {
+        return mission(form, biome, density, seed, manifest, List.of());
+    }
+
+    /**
+     * As {@link #mission(Form, SurfacePalette, Density, long, List)}, running the named optional objectives instead
+     * of the draw when {@code objectives} is not empty; each still runs only where its place was laid.
+     */
+    public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
+                                           List<ShuttleAssignment> manifest, List<String> objectives) {
         if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
         Built built = country(form, biome, density, seed);
         BattleSimulation sim = built.sim();
@@ -171,6 +194,8 @@ public final class BloomHeartSetup {
                 SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"));
         sim.configureSwarmFromBores(built.battleSeed());
         WalkingBarrage barrage = null;
+        // The guns' rounds and their trucks (owner, 2026-10-23): trucks come from the vehicle park where it was laid.
+        HeartGuns heartGuns = new HeartGuns();
         if (form == Form.THE_BURN) {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
@@ -179,18 +204,58 @@ public final class BloomHeartSetup {
             barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT)
                     .battery(BURN_BATTERY_STRUCTURE, guns);
             sim.addObjective(new BatteryObjective(guns));
+            int[] battery = centreOf(sim, guns);
+            if (battery != null) {
+                heartGuns.place(HeartGuns.BATTERY, HeartGuns.BATTERY_SHELLS, battery);
+                for (long gun : guns) heartGuns.add(HeartGuns.BATTERY, gun);
+                // Every barrage shell is a round off its gun's stock: a battery the trucks cannot reach thins out.
+                barrage.magazine(heartGuns.stock(HeartGuns.BATTERY)::spend);
+            }
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
+        // The armour waves come up the supply road from the vehicle park the layout laid, while it stands.
+        HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
+        if (lanes != null && park != null) {
+            lanes.sentFrom(park);
+            lanes.road(supplyRoad(built.map()));
+            // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
+            int n = lanes.grounds().size();
+            // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
+            AlliedToolShed shed = new AlliedToolShed(park)
+                    .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
+                            Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
+                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT))
+                    .gated(AlliedTool.GUNSHIP, lanes.gunship()::gate);
+            if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
+                    Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
+            lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
+            shed.stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS);
+            // Fresh hulls and ammunition come up the supply road: while its satellite cuts it, none reaches the park (F6).
+            HeartSupplyRoad road = lanes.road();
+            for (AlliedTool upTheRoad : new AlliedTool[]{AlliedTool.ARMOUR_PAIR, AlliedTool.MECH_LANCE, AlliedTool.AMMO_TRUCK}) {
+                shed.suppliedWhile(upTheRoad, s -> road.open());
+            }
+            heartGuns.calledFrom(shed, !lanes.callsByNeed());
+        } else if (park != null) {
+            heartGuns.calledFrom(new AlliedToolShed(park)
+                    .stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS), true);
+        }
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);
+        sim.getHeart().guns(heartGuns);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
-        ObjectiveBoard objectives = new ObjectiveBoard(ObjectiveRoll.pick(HeartObjectives.pool(form),
+        List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));
+        if (!objectives.isEmpty()) {
+            pool.removeIf(o -> !objectives.contains(o.key()));
+            count = new int[]{pool.size(), pool.size()};
+        }
+        ObjectiveBoard board = new ObjectiveBoard(ObjectiveRoll.pick(pool,
                 built.map().layout, built.battleSeed(), count[0], count[1]),
                 ObjectiveContext.forBattle(sim, built.map().layout, built.battleSeed(), HeartSequence.BEAT_PREFIX));
-        sim.installOptionalObjectives(objectives);
-        objectives.start(0);
+        sim.installOptionalObjectives(board);
+        board.start(0);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT
@@ -237,7 +302,7 @@ public final class BloomHeartSetup {
         for (int w = 1; w < waves.length; w++) waves[w] = HeartLanes.STEP_OFF_SECONDS + w * LATE_WAVE_SECONDS;
         int axis = form.advancesAlongY() ? 1 : 0;
         int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
-        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        float facing = HeartLanes.advanceFacing(form.advancesAlongY(), sign);
         HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
                 .advancing(sign).armourBehind(BROAD_ARMOUR_BEHIND);
         for (int i = 0; i < across.length; i++) {
@@ -294,7 +359,7 @@ public final class BloomHeartSetup {
     static void supportCompany(BattleSimulation sim, Form form, HeartLanes lanes, HeartLane companyLane, Precinct landing) {
         int axis = form.advancesAlongY() ? 1 : 0;
         int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
-        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        float facing = HeartLanes.advanceFacing(form.advancesAlongY(), sign);
         int[] base = {landing.seedX(), landing.seedY()};
         int support = lanes.addSupport(companyLane, base, sim.getSimTickIndex() ^ LANES_SALT);
         int slot = 0;
@@ -368,6 +433,24 @@ public final class BloomHeartSetup {
     /** Broad Front's armour waves, the same pairs from the opening, eight for the same reason ({@code -Dbattle.heart.broadArmourWaves}). */
     static final int BROAD_ARMOUR_WAVES = Integer.getInteger("battle.heart.broadArmourWaves", 8);
     static final int ARMOUR_WAVE_SECONDS = 120;
+    /** Ammunition trucks the vehicle park holds ready, and the ticks it takes to load another. */
+    static final int AMMO_TRUCKS = 1, AMMO_TRUCK_RESTOCK_TICKS = Math.round(90f / BattleSimulation.TICK_DT);
+
+    /** The middle of the living guns' cells, or {@code null} with none. */
+    static int[] centreOf(BattleSimulation sim, List<Long> guns) {
+        float x = 0f, y = 0f;
+        int n = 0;
+        for (long gun : guns) {
+            if (sim.resolveUnit(gun) == 0L) continue;
+            x += sim.world().x(gun);
+            y += sim.world().y(gun);
+            n++;
+        }
+        return n == 0 ? null : new int[]{Math.round(x / n), Math.round(y / n)};
+    }
+
+    /** Seconds after a gunship sortie leaves the shed before the next is ready. */
+    static final int GUNSHIP_RESTOCK_SECONDS = 240;
     /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
     static final float ARMOUR_DEPTH = 0.12f;
 
@@ -400,7 +483,7 @@ public final class BloomHeartSetup {
         HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
                 .following(screen).armourBehind(BURN_ARMOUR_BEHIND);
         int axis = form.advancesAlongY() ? 1 : 0;
-        float facing = form.advancesAlongY() ? (screen.sign() > 0 ? 90f : -90f) : (screen.sign() > 0 ? 0f : 180f);
+        float facing = HeartLanes.advanceFacing(form.advancesAlongY(), screen.sign());
         for (int i = 0; i < across.length; i++) {
             List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL));
             boolean inner = i == 1 || i == across.length - 2;

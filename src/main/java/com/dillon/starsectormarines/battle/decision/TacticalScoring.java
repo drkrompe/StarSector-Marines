@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.world.TacticalNodeQueries;
@@ -49,6 +50,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.LongUnaryOperator;
 
 /**
@@ -474,11 +476,24 @@ public final class TacticalScoring {
                                           int selfSquadId, long excludeFromCrowding,
                                           float shooterAirRadius, boolean allowNoLos,
                                           float minRange, float maxRange) {
+        return findBestTargetWithinRange(selfX, selfY, selfFaction, selfSquadId, excludeFromCrowding,
+                shooterAirRadius, allowNoLos, minRange, maxRange, tracksFliers(excludeFromCrowding));
+    }
+
+    /**
+     * As {@link #findBestTargetWithinRange(float, float, Faction, int, long, float, boolean, float, float)}, saying
+     * outright whether the weapon asking can engage a flier ({@code UnitType.isFlier}); a mount knows its own
+     * weapon where the shooter's id would only name its primary.
+     */
+    public long findBestTargetWithinRange(float selfX, float selfY, Faction selfFaction,
+                                          int selfSquadId, long excludeFromCrowding,
+                                          float shooterAirRadius, boolean allowNoLos,
+                                          float minRange, float maxRange, boolean tracksFliers) {
         long _profT0 = System.nanoTime();
         try {
             return findBestTargetImpl(selfX, selfY, selfFaction, selfSquadId,
                     excludeFromCrowding, shooterAirRadius, allowNoLos,
-                    minRange, maxRange);
+                    minRange, maxRange, tracksFliers);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) p.record(TickInnerProfile.Bucket.TARGET_PICK, System.nanoTime() - _profT0);
@@ -488,7 +503,7 @@ public final class TacticalScoring {
     private long findBestTargetImpl(float selfX, float selfY, Faction selfFaction,
                                     int selfSquadId, long excludeFromCrowding,
                                     float shooterAirRadius, boolean allowNoLos,
-                                    float minRange, float maxRange) {
+                                    float minRange, float maxRange, boolean tracksFliers) {
         World world = roster.world();
 
         // Grid cell of the shooter, for the LoS + zone lookups only - the
@@ -506,7 +521,7 @@ public final class TacticalScoring {
         TargetScan scan = TARGET_SCAN.get();
         scan.begin(this, selfX, selfY, selfCellX, selfCellY, selfFaction,
                 selfSquadId, excludeFromCrowding, shooterAirRadius, allowNoLos,
-                minRange, maxRange);
+                minRange, maxRange, tracksFliers);
         unitIndex.forEachHostileCombatantByRing(selfX, selfY, selfFaction, scan);
         offerLiftedFortCores(scan, selfFaction, selfSquadId);
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -535,6 +550,19 @@ public final class TacticalScoring {
             if (!liftedCore(selfFaction, squad, core)) continue;
             scan.accept(core, world.x(core), world.y(core));
         }
+    }
+
+    /** Whether {@code id} is a flier ({@code UnitType.isFlier}), which only a weapon that tracks it engages. */
+    public boolean isFlier(long id) {
+        return roster.identity().has(id) && roster.identity().type(id).isFlier();
+    }
+
+    /**
+     * Whether the body {@code shooter} fights with can engage a flier: an emplacement's mount weapon, anybody
+     * else's primary ({@code WeaponDef.tracksFliers}). No shooter, no answer: false.
+     */
+    public boolean tracksFliers(long shooter) {
+        return EngagementService.weaponTracksFliers(roster, shooter);
     }
 
     /** Whether {@code core} is a live fort core hostile to {@code selfFaction} that {@code squad} may fire on. */
@@ -628,6 +656,8 @@ public final class TacticalScoring {
         private boolean allowNoLos;
         private float minRange;
         private float maxRange;
+        /** Whether the weapon asking can engage a flier; a flier is not a candidate otherwise. */
+        private boolean tracksFliers;
         /**
          * How far the perceiver can see, in cells. Read off the unit when the
          * caller named one, and otherwise off the caller's own reach, which is
@@ -651,8 +681,9 @@ public final class TacticalScoring {
                    int selfCellX, int selfCellY, Faction selfFaction,
                    int selfSquadId, long excludeFromCrowding,
                    float shooterAirRadius, boolean allowNoLos,
-                   float minRange, float maxRange) {
+                   float minRange, float maxRange, boolean tracksFliers) {
             this.scoring = scoring;
+            this.tracksFliers = tracksFliers;
             this.world = scoring.roster.world();
             this.vision = scoring.roster.vision();
             this.selfX = selfX;
@@ -732,6 +763,7 @@ public final class TacticalScoring {
         @Override
         public void accept(long id, float snapshotX, float snapshotY) {
             visits++;
+            if (!tracksFliers && scoring.isFlier(id)) return;
             float d = cellDistance(selfX, selfY, world.x(id), world.y(id));
             if (d < minRange || d > maxRange) return;
             int ox = world.cellX(id);
@@ -2858,6 +2890,12 @@ public final class TacticalScoring {
      */
     public int[] bestCoverCell(int threatX, int threatY,
                                int nearX, int nearY, int radius) {
+        return bestCoverCell(threatX, threatY, nearX, nearY, radius, null);
+    }
+
+    /** {@link #bestCoverCell(int, int, int, int, int)} skipping every cell {@code excluded} accepts (a squadmate's stand); {@code null} excludes none. */
+    public int[] bestCoverCell(int threatX, int threatY, int nearX, int nearY, int radius,
+                               BiPredicate<Integer, Integer> excluded) {
 
         int[] best = null;
         int bestCover = -1;
@@ -2869,6 +2907,7 @@ public final class TacticalScoring {
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 float d = (float) Math.sqrt(dx * dx + dy * dy);
                 if (d > radius) continue;
+                if (excluded != null && excluded.test(cx, cy)) continue;
                 if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
                         threatX + 0.5f, threatY + 0.5f)) continue;
                 // Per-facing cover: cell-grid wall + doodad, each looked up

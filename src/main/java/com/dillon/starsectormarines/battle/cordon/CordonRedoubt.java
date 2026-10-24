@@ -11,8 +11,11 @@ import java.util.List;
  */
 public final class CordonRedoubt {
 
-    /** {@code cordon-nouns.md}, Redoubt states. */
-    public enum State { HOLDING, CALLING, RELIEVED, FALLEN }
+    /**
+     * {@code cordon-nouns.md}, Redoubt states. {@code GIVEN_UP} is a redoubt the allied command ordered its garrison
+     * out of (beat L3): empty, never calling, and not fallen, so it does not count against the line.
+     */
+    public enum State { HOLDING, CALLING, RELIEVED, FALLEN, GIVEN_UP }
 
     private final int number;
     private final int left, top, right, bottom;
@@ -21,6 +24,8 @@ public final class CordonRedoubt {
     private final List<Long> guns;
     private int garrison;
     private State state = State.HOLDING;
+    private int swarmInside;
+    private int lastBreachTick = Integer.MIN_VALUE / 2;
 
     public CordonRedoubt(int number, int left, int top, int right, int bottom,
                          List<Integer> teams, List<Long> guns, int garrison) {
@@ -51,8 +56,21 @@ public final class CordonRedoubt {
     /** How many the wall teams stood up with, and every column that has joined them since. */
     public int garrison() { return garrison; }
     public State state() { return state; }
+    /** Swarm bodies inside the wall at the last look. */
+    public int swarmInside() { return swarmInside; }
+    /** Ticks at {@code tick} since a swarm body was last inside the wall; very large for never. */
+    public int quietTicks(int tick) { return tick - lastBreachTick; }
+
+    /** The sequence's look inside the wall this tick. */
+    void observe(int inside, int tick) {
+        swarmInside = inside;
+        if (inside > 0) lastBreachTick = tick;
+    }
 
     void setState(State state) { this.state = state; }
+
+    /** Whether the allies still hold it: neither fallen nor given up. Columns, carriers and armour go only to these. */
+    public boolean manned() { return state != State.FALLEN && state != State.GIVEN_UP; }
 
     /** An allied column joins the garrison: its squad is a wall team from here on. */
     void reinforce(int squad, int members) {

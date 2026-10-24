@@ -75,7 +75,9 @@ public final class LoadoutCardIssue {
                     SoldierProfile.REGULAR, special, null, pattern.appearanceFamily(),
                     pattern.armorCapacity(), pattern.armorRating(), pattern.moveSpeedMult(),
                     pattern.incomingAccuracyMult(), null, pattern.integralSystem())
-                    .withArmorClass(pattern.armorClass()));
+                    .withArmorClass(pattern.armorClass())
+                    .withBelt(weapon.beltEquipmentId(),
+                            weapon.beltDef() != null ? weapon.beltDef().startingAmmo() : 0));
         }
         return seats.toArray(new MarineLoadout[0]);
     }

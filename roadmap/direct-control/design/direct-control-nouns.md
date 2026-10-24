@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — every vehicle the player owns is controllable, not only the Heavy APC; reticle ticks lie across the line of fire; held racks chain salvos.
+Updated: 2026-10-23 — the right button lists throws from both special slots, so one Marine can carry smoke and a frag.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -100,7 +100,8 @@ the machine doll's colours. Its arms and legs read only the limb wounds the
 simulation keeps (`WoundService`): green when sound, orange at the first wound, red
 once wounds stack to the floor. LEG WOUND (slowed) and ARM WOUND (aim) flags sit
 beneath. A power suit draws as a broader shell. Beside the figure a kit column
-lists what the Marine carries and what is left: special equipment with its rounds or
+lists what the Marine carries and what is left: special equipment in both slots (the
+belt's throw beside the special, in a fixed order whichever slot holds it) with its rounds or
 cooldown, the integral system's charges or cooldown, and the medic kit's supplies
 when this Marine is the squad medic. The doll invents no hit location: a head or
 torso hit only spends the shared pools. Filled lengths reflect the exact body's remaining fractions;
@@ -199,9 +200,11 @@ falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
 are clocks, and the panel's ammunition strips own them, so a Marine's empty
-magazine is a reload rather than grey. A Marine's left mark is the primary; the
-right mark is the right-button item, carried smoke (red past its throw reach,
-where it lands short) or the shield. A vehicle's turret is its left mark.
+magazine is a reload rather than grey. A Marine's left mark is its pick: the
+primary, or the special it is on, read at that special's range and accuracy and
+grey once the special is empty; the right mark is the right-button pick: a throw,
+smoke or a hand grenade (red past its throw reach, where it lands short; grey with
+none left), or the shield. A vehicle's turret is its left mark.
 **Optimal range** is derived, not authored: the distance at which a cursor round
 keeps 80% of its point-blank chance of landing on one body (half a cell,
 widened by the round's blast radius). The manual error disk is sized at weapon
@@ -216,7 +219,10 @@ thrown (rockets and LRM racks), the tick **blooms**: it keeps its length and
 thickness and opens away from the dot so that its inner end sits on the widest
 landing disk among them, the way a shooter's crosshair opens, and it never
 opens further than 40 pixels. A vehicle turret's launcher blooms the same way,
-measured from its turret ring. Guns, which have no ground burst, keep the
+measured from its turret ring, and so does a Marine's left tick while it is on a
+rocket launcher. A Marine's picked hand grenade blooms its right tick by the
+grenade's burst radius, so the tick shows what the blast will cover (owner,
+2026-10-23). Guns, which have no ground burst, keep the
 resting tick, and so does a grey tick, since a refused trigger lands nothing.
 The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom
 was chosen over a tick that grows longer instead (owner, 2026-10-23).
@@ -234,10 +240,13 @@ continue to update the guide while paused; pointing at chrome or outside the
 world viewport hides it.
 
 Equipped Marine abilities have one-shot input: C raises an integral directional
-shield, G throws carried smoke toward the cursor, and R reloads a magazine. Their read-only rows sit
-under a KEYS group below the primary weapon, each marked with its key. Only present
+shield, G throws carried smoke toward the cursor, and R reloads a magazine. Smoke,
+a hand grenade and the shield are also the right button's items, so their rows sit
+under the RMB group below the primary weapon (see Mouse buttons), smoke marked G and
+the shield C; a grenade has no key of its own. Only present
 equipment appears. Shield state reads its real soak pool, expiry, break flash,
-and cooldown; smoke reads carried canisters and the committed throw clock.
+and cooldown; smoke and grenades read what is left of those issued and the
+committed throw clock (there is no grenade icon, so the count is a number).
 Smoke has no additional cooldown. Held keys never repeat activation or queue a
 later use when equipment is unavailable. Pause, chrome, lost focus, or handback
 clear uncommitted requests. The equipment owners validate requests and spend
@@ -250,17 +259,22 @@ zero-length aim retains the screen's last simulation bearing. Its finite directi
 authored movement effect remain unchanged. Releasing control restores the
 normal activation policy without resetting an active effect or cooldown.
 
-A smoke press freezes a legal, range-clamped world point and begins the
-equipment's ordinary committed throw. It blocks movement and primary fire for
-the whole channel, releases once at its midpoint, and spends one canister only
-at that release. This recognized manual channel retains control; an already
+A smoke press, or a right-button press with a hand grenade picked, freezes a
+legal, range-clamped world point and begins the equipment's ordinary committed
+throw. It blocks movement and primary fire for the whole channel, releases once
+at its midpoint, and spends one canister or grenade only at that release. This
+recognized manual channel retains control through its follow-through; an already
 committed autonomous equipment action still blocks entry. A controlled carrier
 is excluded from squad smoke reservations. Accepted throws retain their point
 and finish under ordinary prep after handback. Pause freezes their progress;
-death before release prevents release, while a grenade already launched follows
+death before release prevents release, while a canister already launched follows
 the shared smoke-field lifetime. Smoke opacity affects both factions and does
-not make a walk obstacle. Other secondary equipment needs its own manual
-contract before it gains an activation key.
+not make a walk obstacle. A thrown grenade resolves exactly as an autonomous
+throw does: the same handling scatter, flight, point-defence exposure, burst,
+friendly fire and incendiary fire. Its point is booked as the squad's grenade
+reservations book a throw, so autonomous throwers keep clear of it, but the
+player's own throw is never refused for landing near a squadmate's. Other
+secondary equipment needs its own manual contract before it gains an activation key.
 
 Holding either Shift key requests sprint for every controllable Marine,
 independently of armor or carried equipment. Sprint is an individual movement
@@ -458,9 +472,10 @@ resetting cooldown. A magazine-fed primary spends one round per release from
 the same load its AI fire uses, and an empty load reloads on its own; manual
 fire grants no separate supply. R asks for a reload of a part-spent load (an
 autonomous marine tops up after a short lull instead). A semi-automatic
-magazine fires one round per press of the trigger rather than on a hold; a
-press that lands a moment before the action has cycled stays armed briefly so
-it is not lost, and a reload drops it.
+magazine fires one round per press of the trigger rather than on a hold, and
+under control there is no cycle between rounds: every press with a round loaded
+fires at once, so the player's finger sets the rate of fire (owner,
+2026-10-23). It reloads on its own only when the load runs dry.
 
 A handheld point request is consumed once whether it fires or is held by a gate.
 It requires a live equipped direct primary, a finite noncoincident world bearing,
@@ -513,9 +528,9 @@ dropped when its mount is no longer what either trigger's pick fires. Repeated
 input cannot replay a cancelled burst. Neither picks nor groups change the
 installed equipment, authored packet size, or AI firing policy. The authored
 single shot, timed burst, or simultaneous volley remains distinct from this
-player choice. A Marine's and a vehicle's triggers have single-member lists for
-now, and a warship has no cycle, so Q and E do nothing there; the Marine's direct-fire specials and grenades
-join them under `weapon-cycling.md`.
+player choice. A vehicle's trigger has a single-member list for now and a warship
+has no cycle, so Q and E do nothing there. A Marine's left and right lists are
+described below.
 
 The weapon-groups panel lists each mount under the button whose list it is in:
 an LMB group (guns), an RMB group (racks), and OTHER MOUNTS for a hardpoint
@@ -524,17 +539,74 @@ for example `LMB  LINKED  [Q]` or `LMB  R arm Chaingun  [Q]`, and `[E]` on the R
 named with its hardpoint when another member shares its name). The picked rows
 carry the wash; the others, which hold fire, dim. Gun rows carry their number
 key. Clicking a trigger header cycles it, clicking a gun row is its number key,
-and clicking a rack row picks that rack.
+and clicking a rack row picks that rack. A Marine with a direct-fire special
+shows an LMB group of the primary and each special, under the same header; a
+special's row draws its rockets as missiles and its rifle rounds as cartridges,
+as the doll's kit column does, and its clock is the readying and then the
+cooldown.
 
-A Marine's primary weapon stays on the left button. The right button is the
-Marine's secondary equipment, through the same one-shot request as the G and C
-keys: on the press it throws the carried smoke at the cursor and, for a Marine with
-no smoke, raises the integral shield toward it. It acts on the press and does not
-repeat while held, so a held button cannot spend a magazine of grenades; ammunition,
-cooldown and the committed throw are the equipment's own. No other secondary item
-has a manual contract (grenade launchers and satchels are autonomous), so a Marine
-carrying only those leaves the right button inert rather than inventing a new free
-action. C and G keep working.
+A Marine's left button **toggles into a secondary weapon** (owner, 2026-10-23).
+Its list is the primary and then each direct-fire special the Marine carries that
+spends ammunition, rockets before anti-materiel rifles before the flamer, with no LINKED: one pair
+of hands fires one weapon. Q steps through it and wraps to the primary; key 1 is
+the primary and key 2 the special. A picked special is under a **manual
+contract**. Picking it readies it over its authored aim time, and a press then
+fires one round at the cursor through the same point-fire path a company uses to
+open a wall with rockets: the launcher's round bursts at the point or on the
+first thing in its lane, and the rifle's strikes the first body on it. The round
+spends the special's own ammunition and starts its own cooldown. A press made
+while the special is still readying or cooling stays armed for as long as the
+button is held, and a held button fires once. The primary holds while a special
+is picked, and sprinting lowers the special, which is readied again afterwards.
+An empty special keeps the pick and reads EMPTY; it never falls back to the
+primary on its own. The pick resets to the primary on takeover and handback, and
+a special no longer carried returns it there. The controlled Marine **holds the
+picked special** in place of the primary, the launcher on the shoulder or the
+rifle in the hands: raised over the wind-up, through its firing clip for the
+follow-through after a round, and in its aim pose on walking feet while moving.
+Autonomous Marines use their specials through their AI policy as before.
+
+The **flamer is a held stream** rather than a single round. Picked, it readies over
+its aim time like the others; then for as long as the button is held it sends one
+charge of its own fuel each time its cooldown allows, and letting go stops it. Each
+charge flies toward the cursor, pulled in to the flamer's range and kept on the map,
+and stops short of the first wall on its bearing by the structural rule direct fire
+follows (smoke does not stop it); it lands and burns through the same release an
+autonomous flamer uses, with its accuracy scatter. A jet that could land only in the
+Marine's own cell, because the cursor is on the Marine or a wall is at the nozzle, is
+refused without spending fuel. **The player's flamer can burn its own Marine**
+(owner, 2026-10-23): fire it starts spreads through grass like any other, and the
+manual path deliberately has none of the autonomous flamer's own-side reach guard,
+so a Marine who keeps standing in a burning meadow pays for it. Its row counts fuel as a tank of cells, one a charge,
+and its reticle tick is grey on an empty tank or a refused jet and red past its
+range, where the jet lands short. It has no held art of its own: the Marine stands
+in the primary's aim pose while it is picked and in the primary's firing clip while
+a charge is leaving.
+
+The right button holds the
+Marine's **thrown and utility items** (owner, 2026-10-23): grenades are a throw, not
+a gun, so they sit beside smoke and the shield. Its list is, in this order, carried
+smoke, a carried hand grenade (frag or incendiary), then the integral shield; only
+what the Marine has appears, there is no LINKED (one pair of hands), and the first
+item is the default pick. E moves the pick and wraps; a row click picks that item.
+An item with nothing left stays in the list and reads empty, as a dry rack does, and
+an item the Marine no longer carries returns the pick to the first. The press uses
+the pick at the cursor through the same one-shot request as the G and C keys, and a
+pick that cannot be used now does nothing rather than falling to another item. It
+acts on the press and does not repeat while held, so a held button cannot spend a
+pouch of grenades; ammunition, cooldown and the committed throw are the equipment's
+own. The pick belongs to the control session, survives pause, and resets on takeover
+and handback. C and G keep working whatever the pick is, which is why the panel washes
+the picked row without dimming the others. The list reads both special slots: a Marine
+with smoke and a frag on the belt (`progression-nouns.md`) lists smoke, the grenade and
+the shield. Using a belt throw swaps it into the hand for its channel, and a direct-fire
+special it displaced returns once the hand is idle, so neither list moves while it runs.
+**The flamer is not a throw**:
+it shares the grenades' arcing activation in data, but it sprays a short flat jet
+(its weapon is not indirect fire) and is aimed and held like a gun, so its manual
+contract belongs to the left button with the direct-fire specials. Items with no
+manual contract (grenade launchers, satchels) stay autonomous
+and never join the list.
 
 A held rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a
 hold that has fired one keeps firing the next as soon as the last has gone, without the cycle, until

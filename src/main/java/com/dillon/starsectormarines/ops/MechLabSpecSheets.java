@@ -48,7 +48,9 @@ final class MechLabSpecSheets {
                                 MechLabViewModel viewModel) {
         if (binder == null) return;
         for (MechLabViewModel.CatalogRow row : rows) {
-            UiElement name = markup.requireElement(row.nameId());
+            // The whole row answers hover, not only its name; its FAB button and material
+            // chips keep their own sheets because the deepest bound element wins.
+            UiElement name = markup.requireElement(row.id());
             if (binder.isBound(name)) continue;
             if (row.chassisPreview() != null) {
                 binder.bind(name, SpecSheets.mech(row.chassisPreview()));
@@ -135,6 +137,18 @@ final class MechLabSpecSheets {
                         SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.lrmReplenishmentSeconds()))),
                 List.of(Strings.get("openingMechLabSpecSheetsBuildsOneMissileTriggerPackPerCycle"),
                         Strings.get("openingMechLabSpecSheetsInstallFromFleetSparesThisSystemCannot")));
+    }
+
+    /** A category symbol names itself on hover, since it carries no word. */
+    static void bindFilterPills(SpecSheetBinder binder, MarkupInstance markup,
+                                List<MechLabViewModel.FilterPill> pills) {
+        if (binder == null) return;
+        for (MechLabViewModel.FilterPill pill : pills) {
+            UiElement element = markup.requireElement(pill.id());
+            if (binder.isBound(element) || pill.icon() == null) continue;
+            binder.bind(element, new SpecSheet(pill.label(), Strings.get("openingMechLabFilterSubtitle"),
+                    pill.icon(), "item", List.of(), List.of(Strings.get("openingMechLabFilterHint"))));
+        }
     }
 
     static void bindMaterials(SpecSheetBinder binder, MarkupInstance markup,

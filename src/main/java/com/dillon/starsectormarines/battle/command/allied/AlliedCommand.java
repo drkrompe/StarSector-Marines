@@ -2,11 +2,15 @@ package com.dillon.starsectormarines.battle.command.allied;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
@@ -65,10 +69,16 @@ public final class AlliedCommand {
     public static final float VIA_REACH = 4f;
     /** Waypoints a hull is sent through on its way to one post before it stops asking. */
     public static final int VIA_LIMIT = 24;
-    /** Times a refused goal is pulled back before the hull stays where it is. */
+    /** Times a refused goal is pulled back before the hull stays where it is, until {@link #STALL_RETRY_TICKS}. */
     public static final int PULLBACK_LIMIT = 12;
     /** Cells a new post must move before a stationed hull is sent again, so a moving line is not a new order every tick. */
     public static final int RESTATION = 3;
+    /**
+     * Ticks a stationed hull that stopped short of its post (its refusals or waypoints spent) waits before it is
+     * sent to the post again with both counts fresh. The ground changes under it — a hull or a walker that stood
+     * in its way moves off, a wall comes down — and without a retry it stood where it stalled all battle.
+     */
+    public static final int STALL_RETRY_TICKS = Math.round(20f / BattleSimulation.TICK_DT);
 
     private enum Phase { STATION, BOARDING, DRIVING }
 
@@ -79,6 +89,8 @@ public final class AlliedCommand {
         int goalX, goalY;
         int pullbacks;
         int vias;
+        /** Tick it was last sent anywhere. */
+        int sentAt;
         int squad = -1;
         Delivery delivery;
         int boardingSince;
@@ -170,6 +182,43 @@ public final class AlliedCommand {
                 CommandAuthority.GARRISON, issuer, "allied mech to its post");
     }
 
+    /** Cells from the asked-for cell a new mech is looked for standable, unoccupied ground. */
+    public static final int MECH_SET_DOWN_REACH = 10;
+
+    /**
+     * Sets down a new allied mech on standable ground clear of every other body, as near {@code (x, y)} as
+     * there is some within {@link #MECH_SET_DOWN_REACH}, and puts it under this command. Returns 0 where no
+     * ground near takes it. It stands where it was set down until it is stationed.
+     */
+    public long deployMech(BattleSimulation sim, MechVariant variant, int x, int y, String name) {
+        MechSpawnPlacement.Point at = null;
+        for (int r = 0; at == null && r <= MECH_SET_DOWN_REACH; r++)
+            for (int dy = -r; at == null && dy <= r; dy++) for (int dx = -r; at == null && dx <= r; dx++)
+                if (Math.max(Math.abs(dx), Math.abs(dy)) == r)
+                    at = MechSpawnPlacement.nearCell(sim.getGrid(), variant.radius, x + dx, y + dy, ANYWHERE,
+                            (px, py) -> MechSpawnPlacement.unoccupied(sim.getRoster(), px, py, variant.radius, 0L));
+        if (at == null) return 0L;
+        int squad = sim.mintSquad(Faction.ALLY, UnitType.HEAVY_MECH);
+        long mech = sim.spawn(new EntitySpec(name, Faction.ALLY, UnitType.HEAVY_MECH, at.cellX(), at.cellY())
+                .atPosition(at.x(), at.y()).mechVariant(variant).squad(squad));
+        sim.world().attachMechLoadout(mech, FactionMechLoadouts.create(variant, variant.defaultRole, "independent"));
+        Squad s = sim.getSquad(squad);
+        s.leaderId = mech;
+        s.originalSize = 1;
+        enlistMech(sim, mech);
+        return mech;
+    }
+
+    /**
+     * Puts an allied mech standing on the field (one a shed has just finished) under this command: its squad
+     * is claimed under garrison authority, so nothing but this command moves it. It is stationed after.
+     */
+    public void enlistMech(BattleSimulation sim, long mech) {
+        Squad squad = sim.squadOf(mech);
+        if (squad == null) return;
+        sim.claimSquadCommand(squad.id, CommandAuthority.GARRISON, issuer, "allied mech");
+    }
+
     /** Live mechs under this command, in the order they were first stationed. */
     public List<Long> mechs() {
         return new ArrayList<>(mechs.keySet());
@@ -247,7 +296,14 @@ public final class AlliedCommand {
                     }
                 }
                 case STATION -> {
-                    if (!within(convoy.body(hull), task.goalX, task.goalY, STATION_LEASH) && stopped(sim, hull)) {
+                    if (!stopped(sim, hull)) break;
+                    if (stalled(task, sim.getSimTickIndex())) {
+                        task.pullbacks = 0;
+                        task.vias = 0;
+                        task.goalX = task.postX;
+                        task.goalY = task.postY;
+                        drive(sim, hull, task);
+                    } else if (!within(convoy.body(hull), task.goalX, task.goalY, STATION_LEASH)) {
                         drive(sim, hull, task);
                     }
                 }
@@ -278,14 +334,23 @@ public final class AlliedCommand {
     }
 
     private void drive(BattleSimulation sim, long hull, Task task) {
+        task.sentAt = sim.getSimTickIndex();
         sim.getVehicleMoveOrderService().requestMove(hull, task.goalX, task.goalY);
     }
 
     /**
-     * A refused goal is pulled back toward the hull and asked again: to the last corner of the way
+     * Whether a stopped, stationed hull has stalled short of its post: it stands at a goal pulled back from the
+     * post, and has been sent nowhere for {@link #STALL_RETRY_TICKS}. A hull at its post itself is home.
+     */
+    private static boolean stalled(Task task, int tick) {
+        return (task.goalX != task.postX || task.goalY != task.postY) && tick - task.sentAt >= STALL_RETRY_TICKS;
+    }
+
+    /**
+     * A refused goal is pulled back toward the hull and asked again: to the corner halfway along the way
      * there, where one is known, so the hull goes a leg at a time; else a step back along the
      * straight line, never past the hull itself. After {@link #PULLBACK_LIMIT} refusals the hull
-     * stays where it is.
+     * stays where it is, and is sent to its post afresh after {@link #STALL_RETRY_TICKS}.
      *
      * <p>A hull that steers wide (an APC turns on twice a car's circle) is refused a long route whose
      * one tight corner it cannot make in a single drive, though every leg of it is drivable alone:
@@ -298,10 +363,10 @@ public final class AlliedCommand {
         VehicleMoveOrderService.RefusedOrder refused = orders.refusal(hull);
         if (refused == null || refused.requestedX() != task.goalX || refused.requestedY() != task.goalY
                 || !stopped(sim, hull)) return false;
-        // Out of steps: a station stays put; a carrier sets its riders down where it stands.
-        if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION;
+        // Out of steps: a station stays put until it is retried; a carrier sets its riders down where it stands.
+        if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION && !stalled(task, sim.getSimTickIndex());
         GroundBody body = sim.convoy().body(hull);
-        int[] corner = lastCorner(sim, hull, task.goalX, task.goalY);
+        int[] corner = wayCorner(sim, hull, task.goalX, task.goalY);
         if (corner != null) {
             task.goalX = corner[0];
             task.goalY = corner[1];
@@ -321,10 +386,32 @@ public final class AlliedCommand {
     }
 
     /**
-     * The corner before the goal on the hull's way there, footprint-clear but not yet proved
-     * drivable, or {@code null} where the way is one straight leg or there is none.
+     * The corner nearest halfway along the hull's way to the goal, footprint-clear but not yet proved
+     * drivable, or {@code null} where the way is one straight leg or there is none. Halving the way at
+     * each refusal reaches back to the drivable first leg of a long route within {@link #PULLBACK_LIMIT}
+     * refusals; stepping back one corner at a time ran out of refusals deep in a town whose every corner
+     * was refused, and left the hull standing at its start.
      */
-    private static int[] lastCorner(BattleSimulation sim, long hull, int goalX, int goalY) {
+    static int[] midCorner(float[] xs, float[] ys) {
+        if (xs.length < 3) return null;
+        float total = 0f;
+        for (int i = 1; i < xs.length; i++) total += (float) Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+        float run = 0f;
+        int best = 1;
+        float bestGap = Float.MAX_VALUE;
+        for (int i = 1; i < xs.length - 1; i++) {
+            run += (float) Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+            float gap = Math.abs(run - total / 2f);
+            if (gap < bestGap) {
+                bestGap = gap;
+                best = i;
+            }
+        }
+        return new int[]{(int) xs[best], (int) ys[best]};
+    }
+
+    /** The {@link #midCorner} of the hull's footprint-clear way to the goal, or {@code null} where there is none. */
+    private static int[] wayCorner(BattleSimulation sim, long hull, int goalX, int goalY) {
         VehicleType type = sim.convoy().vehicleType(hull);
         if (type == null) return null;
         GroundBody body = sim.convoy().body(hull);
@@ -335,9 +422,7 @@ public final class AlliedCommand {
         if (from == null || to == null) return null;
         float[][] way = VehicleRoutePlanner.route(from[0], from[1], to[0], to[1], sim.getGrid(),
                 TerrainCostField.from(sim.getTopology()), clearance);
-        if (way == null || way[0].length < 3) return null;
-        int last = way[0].length - 2;
-        return new int[]{(int) way[0][last], (int) way[1][last]};
+        return way == null ? null : midCorner(way[0], way[1]);
     }
 
     /**

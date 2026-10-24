@@ -7,7 +7,7 @@ Read `convoy-nouns.md` first; this extends `vehicle-as-commandable-unit.md` to
 the allied side.
 
 Written: 2026-10-22
-Updated: 2026-10-23 — the screened advance moves as one formation and is a fighting advance (owner); bounds dropped
+Updated: 2026-10-24 — a straggler (stuck, or a late joiner still walking up) is out of the formation's body
 
 ## Why
 
@@ -50,11 +50,20 @@ It gives two tasks:
 **A refused place is reached a leg at a time.** A hull that steers wide (an
 APC turns on about twice a car's circle) is refused a long route with one
 corner it cannot make in a single drive, though every leg of it is drivable on
-its own. A refused goal is therefore pulled back to the last corner of the way
-there and asked again; standing at that corner the hull turns on its own and is
-sent on to its post. Where no way is known at all the goal is pulled back a step
-along the straight line instead. Both are bounded, so a hull with nowhere to go
-stays where it is rather than asking for ever.
+its own. A refused goal is therefore pulled back to the corner halfway along the
+way there and asked again, halving at each refusal until a leg is drivable;
+standing at that corner the hull turns on its own and is sent on to its post.
+Where no way is known at all the goal is pulled back a step along the straight
+line instead. Both are bounded, so a hull with nowhere to go stops rather than
+asking every tick; a stationed hull that stopped short of its post is sent to it
+afresh after a pause (`AlliedCommand.STALL_RETRY_TICKS`), because the ground
+changes under it (a machine that stood in its way moves off, a wall comes down).
+
+A mission sets its hulls down where they can drive out: facing the way they
+will go (the chassis heading, 0 at +Y), on ground whose footprint clears
+whichever way the first leg leaves (`TurnAwareCorridor.canSetOutFrom`). A hull
+set down side-on in a narrow road, or with its tail against trees, has every
+route refused at its first pose.
 
 An allied **mech** is stationed the same way: its squad attack-moves to ground
 the mech can stand on at the post, the post pulled back toward the mech a step
@@ -112,9 +121,18 @@ element's **body** keeps up with its slot, at a walking marine's pace at most.
 An element's body is the leading two thirds of its squads and machines along the
 route. So the slowest element walks on without stopping, and the fastest waits
 in its slot for it. A tank never leaves its infantry in the open, and a screen
-never stands out in front of armour that has fallen behind. A straggler (a hull
-pulling out to withdraw, a squad pinned down) is not the body: it is left to
-catch up and cannot freeze the formation. At the end, the screen's line is on
+never stands out in front of armour that has fallen behind. Only members that
+**keep up** are the body. A member that has stood ten seconds off its slot
+without moving a cell is a **straggler**: a hull that cannot find its way, a squad
+pinned down. So is a member that joined after step-off and has not yet walked up
+to its slot. A straggler is left to catch up and rejoins the body when it moves
+again (or, for a late joiner, once it has stood on its slot). Leaving it out matters
+because the anchor never runs more than a few cells ahead of the body, and a
+member already on its slot cannot go further forward. One member that could not
+reach its own slot would otherwise hold the whole formation where it stood: on
+Broad Front (2026-10-24) a lane stood still for six thousand ticks behind one
+stuck tank and two walkers still coming up. With nothing keeping up, the
+formation holds. At the end, the screen's line is on
 the rally point and the main's just behind it, and both arrive together.
 
 **A fighting advance.** Owner, 2026-10-23: "is there a 'fighting advance' where

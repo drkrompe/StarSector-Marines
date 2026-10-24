@@ -317,6 +317,7 @@ public final class GroundVehicleTurretSystem {
         // A venting gun holds the trigger the way a cooldown does, until its flux is gone.
         aim.cooldownTimer = Math.max(turret.cooldownTimer, fluxWait(turret, mount));
         aim.attackCooldown = weapon.cooldown;
+        aim.tracksFliers = weapon.tracksFliers();
         aim.target = held;
         float agedCooldown = turret.cooldownTimer > 0f ? turret.cooldownTimer - dt : turret.cooldownTimer;
         TurretAim.tick(aim, scoring, grid, world, roster.vision(), dt);

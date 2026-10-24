@@ -45,6 +45,21 @@ class TurnAwareCorridorTest {
                 "failure should be on the elbow approach, was y=" + result.failedY());
     }
 
+    @Test
+    void measuresABendsLegsToTheCornersEitherSideNotToAVertexInTheStraight() {
+        NavigationGrid grid = new NavigationGrid(60, 60);
+        carve(grid, 0, 0, 59, 59);
+
+        // A long diagonal with a vertex one cell short of its bend, as a string-pull leaves one.
+        TurnAwareCorridor.Result result = TurnAwareCorridor.refine(
+                new float[][]{
+                        new float[]{10.5f, 29.5f, 30.5f, 30.5f},
+                        new float[]{10.5f, 29.5f, 30.5f, 52.5f}
+                }, VehicleType.BREAKTHROUGH_TANK, grid);
+
+        assertNotNull(result.points(), "failed at " + result.failedX() + "," + result.failedY());
+    }
+
     private static void assertAllSegmentsFeasible(float[][] path, NavigationGrid grid) {
         float[] xs = path[0], ys = path[1];
         for (int i = 1; i < xs.length; i++) {

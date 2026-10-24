@@ -561,8 +561,8 @@ class MechLabViewModelTest {
             for (MechLabViewModel.CatalogRow row : rows) {
                 boolean subject = row.chassisPreview() != null || row.weaponPreview() != null;
                 if (subject) subjects++;
-                assertEquals(subject, binder.isBound(instance.requireElement(row.nameId())),
-                        row.nameId() + " is bound the wrong way round");
+                assertEquals(subject, binder.isBound(instance.requireElement(row.id())),
+                        row.id() + " is bound the wrong way round");
             }
             assertTrue(subjects > 0, "the catalog offered nothing to describe");
             assertEquals(subjects + viewModel.materialStock().get().size() + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());
@@ -669,35 +669,55 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void spareCountsReadAsACappedXCount() {
+        assertEquals("x0", MechLabViewModel.spareCount(0));
+        assertEquals("x7", MechLabViewModel.spareCount(7));
+        assertEquals("x99", MechLabViewModel.spareCount(99));
+        assertEquals("x99", MechLabViewModel.spareCount(250), "a large store still reads x99");
+    }
+
+    @Test
     void categoryFiltersControlCatalogDisplay() {
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
         viewModel.gantryRows().get().get(0).select().run();
-        assertTrue(viewModel.categoryFilterPills().get().isEmpty(), "Mini-fabs have no weapon categories");
-        viewModel.selectSlot(SocketId.LEFT_ARM);
-        assertFalse(viewModel.categoryFilterPills().get().isEmpty());
 
-        assertEquals(MechLabViewModel.CategoryFilter.ALL, viewModel.filter());
-        int totalRows = viewModel.catalogRows().get().size();
-        assertTrue(totalRows > 0);
+        // Opening a mech lists every part in stores, with a symbol per category and no "all".
+        assertTrue(viewModel.browsingStores().get());
+        assertNull(viewModel.selectedSocket(), "no mount is chosen while browsing");
+        assertEquals(List.of("mech-filter:ballistic", "mech-filter:missile", "mech-filter:energy",
+                        "mech-filter:engine", "mech-filter:capacitors", "mech-filter:utility"),
+                viewModel.categoryFilterPills().get().stream().map(MechLabViewModel.FilterPill::id).toList());
+        List<MechLabViewModel.CatalogRow> everything = viewModel.catalogRows().get();
+        assertTrue(everything.stream().anyMatch(row -> row.weaponPreview() != null));
+        assertTrue(everything.stream().anyMatch(row -> row.internalPreview() != null
+                && row.internalPreview().role == MechInternal.Role.ENGINE));
+        assertTrue(everything.stream().anyMatch(row -> row.internalPreview() != null
+                && row.internalPreview().role == MechInternal.Role.CAPACITOR_BANK));
 
-        viewModel.setFilter(MechLabViewModel.CategoryFilter.BALLISTIC);
-        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
-            if (row.weaponPreview() != null) {
-                assertEquals(MechWeaponComponent.HardpointType.BALLISTIC, row.weaponPreview().hardpointType);
-            }
-        }
-
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.ENGINE);
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row -> row.internalPreview() != null
+                && row.internalPreview().role == MechInternal.Role.ENGINE));
         viewModel.setFilter(MechLabViewModel.CategoryFilter.MISSILE);
-        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
-            if (row.weaponPreview() != null) {
-                assertEquals(MechWeaponComponent.HardpointType.MISSILE, row.weaponPreview().hardpointType);
-            }
-        }
+        assertFalse(viewModel.catalogRows().get().isEmpty());
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row -> row.weaponPreview() != null
+                && row.weaponPreview().hardpointType == MechWeaponComponent.HardpointType.MISSILE));
+        // Choosing the chosen category again clears it.
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.MISSILE);
+        assertEquals(MechLabViewModel.CategoryFilter.ALL, viewModel.filter());
+        assertEquals(everything.size(), viewModel.catalogRows().get().size());
 
-        viewModel.setFilter(MechLabViewModel.CategoryFilter.ALL);
-        assertEquals(totalRows, viewModel.catalogRows().get().size());
+        // A mount narrows the list to what fits it; ALL PARTS returns to everything.
+        viewModel.selectSlot(SocketId.CORE);
+        assertFalse(viewModel.browsingStores().get());
+        assertTrue(viewModel.categoryFilterPills().get().isEmpty(), "the engine mount decides the kind");
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row -> row.internalPreview() != null
+                && row.internalPreview().role == MechInternal.Role.ENGINE));
+        assertFalse(viewModel.allPartsClasses().get().contains("hidden"));
+        viewModel.showAllParts();
+        assertTrue(viewModel.browsingStores().get());
+        assertEquals(everything.size(), viewModel.catalogRows().get().size());
     }
 
     @Test
@@ -806,6 +826,28 @@ class MechLabViewModelTest {
         assertEquals(mech.internal(MechInternal.Role.ENGINE).displayName(),
                 viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
                         .findFirst().orElseThrow().component());
+
+        // Dragged off the doll, the engine goes back to stores and leaves its socket empty:
+        // the mech is incomplete and off the drop manifest until an engine is fitted again.
+        assertTrue(viewModel.removeInstalledInternal(SocketId.CORE), viewModel.feedbackText().get());
+        assertNull(mech.internal(MechInternal.Role.ENGINE));
+        assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
+        assertEquals(CampaignMech.Readiness.INCOMPLETE, mech.readiness(0f));
+        assertFalse(viewModel.socketOccupied(SocketId.CORE));
+        // The panel reports the gap rather than the stock engine the budget check stands in.
+        MechLabViewModel.PerformanceMeter mobility = viewModel.performanceMeters().get().stream()
+                .filter(meter -> meter.id().endsWith("mobility")).findFirst().orElseThrow();
+        assertEquals("0 CELLS/S", mobility.value());
+        assertTrue(mobility.fillStyle().contains("width: 0"), mobility.fillStyle());
+        MechLabViewModel.PerformanceMeter dissipation = viewModel.performanceMeters().get().stream()
+                .filter(meter -> meter.id().endsWith("dissipation")).findFirst().orElseThrow();
+        assertEquals("0 FLUX/S", dissipation.value(), "nothing powers the vents");
+        assertTrue(viewModel.budgetText().get().endsWith("/ 0"), viewModel.budgetText().get());
+        assertEquals("slot-badge required", viewModel.slotRows().get().stream()
+                .filter(row -> row.socketId() == SocketId.CORE).findFirst().orElseThrow().badgeClasses());
+        assertFalse(viewModel.removeInstalledInternal(SocketId.CORE), "the socket is already empty");
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
+        assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
 
         viewModel.selectSlot(SocketId.CAPACITORS);
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
@@ -1070,6 +1112,8 @@ class MechLabViewModelTest {
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
+        props.put("allPartsClasses", viewModel.allPartsClasses());
+        props.put("showAllParts", (Runnable) viewModel::showAllParts);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

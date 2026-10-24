@@ -1,6 +1,6 @@
 # The Heart — maps with intent
 
-Status: ACTIVE. Direction for step 2 of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the hollow's rim is held and partly raised; the cordon's works, the beats' set pieces and the three densities are laid.
+Status: ACTIVE. Direction for the map work of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the hollow's rim is held and partly raised; the cordon's works, the beats' set pieces and the three densities are laid.
 
 Written: 2026-10-23
 
@@ -139,7 +139,7 @@ the pooled maps keep the ground they were vetted on:
 | --- | --- | --- |
 | F1 The lost column | `holdout`: a sandbag ring at the market town's near edge, its way in on the start side, with `holdout-wreck`, the carrier, in its yard. | yes |
 | F5 Linkup | `reservoir-yard`: open ground on the workings' start side that the lanes' last stretches come out onto. | yes |
-| F6 The supply road | `supply-road` and the vehicle park. A satellite placed within surge reach of the road is not done. | partly |
+| F6 The supply road | `supply-road` and the vehicle park; the satellite of the band nearest the road's far end stands within surge reach of the road (`HeartBores.ROAD_REACH`), past the settlement's near gate, falling back to its band where no such ground seats. | yes |
 | B1 Ranging / B3 the guns | `gun-flank-1`, `gun-flank-2`: trench and wire along each open side of the battery, facing out. | yes |
 | B2 The village | `village-holdout`: a sandbag ring at the village's near edge. | yes |
 | B4 The ford | `company-ford`: the ford nearest the company's sector held open, its banks either side. | yes |

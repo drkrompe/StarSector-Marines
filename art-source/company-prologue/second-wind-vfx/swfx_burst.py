@@ -23,6 +23,7 @@ Callers: `swfx_pd` (flak), `swfx_missile_paths` (hits, kills, decoys, ignition),
 (kinetic and HE flashes, breaches), `swfx_fire` (explosion anchors with style 'jagged').
 """
 import math
+import random
 
 from mathutils import Matrix, Quaternion, Vector
 
@@ -51,10 +52,59 @@ def _rod_mesh(name, mat, sides=8):
     return swfx_guns._cylinder_mesh(name, 1.0, -1.0, 0.0, sides, mat)
 
 
-def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, rings=10):
+def _spread(verts):
+    """How unevenly `verts` sit round their box centre, per axis: the coefficient of variation of
+    their distances from the centre of their bounding box, each axis scaled by its half-extent.
+    The measure swfx_lint._round_shape reads an orb by (under .2 is round)."""
+    lo = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi = Vector([max(v[i] for v in verts) for i in range(3)])
+    c, h = (lo + hi) / 2, [max(x, 1e-9) for x in (hi - lo) / 2]
+    rs = [Vector([(v[i] - c[i]) / h[i] for i in range(3)]).length for v in verts]
+    mean = sum(rs) / len(rs)
+    return math.sqrt(sum((r - mean) ** 2 for r in rs) / len(rs)) / max(mean, 1e-9)
+
+
+def _bite(verts, rnd):
+    """One deep notch: every vertex pulled toward the box centre along its own ray by up to
+    60-85% inside a broad cone round a seeded direction. A direction-only scale about one point
+    moves each vertex along its ray and keeps their order on it, so the surface never folds."""
+    lo = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi = Vector([max(v[i] for v in verts) for i in range(3)])
+    c, h = (lo + hi) / 2, Vector([max(x, 1e-9) for x in (hi - lo) / 2])
+    d = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized()
+    a, p = rnd.uniform(.6, .85), rnd.uniform(3.0, 6.0)
+    out = []
+    for v in verts:
+        u = Vector([(v[i] - c[i]) / h[i] for i in range(3)])
+        f = 1 - a * max(0.0, u.normalized().dot(d)) ** p if u.length > 1e-9 else 1.0
+        out.append(c + (v - c) * f)
+    return out
+
+
+def tear_verts(verts, rnd, floor=.32, least=2, most=8, tries=6):
+    """Notch a burst's vertices until they are torn, never round: at least `least` bites, then more
+    until their spread (_spread) clears `floor`, each the most tearing of `tries` seeded candidates,
+    and the result stretched back to the box it started in so the burst keeps its size. Measured
+    on the bench (2026-10-24): an untorn lobed flash leaning into its throw is an egg, spread .11-.24,
+    flagged an orb on its white frame; torn, every one clears .32. floor .32 keeps a margin over the
+    lint's .2 at the owner's 'never an orb'; least 2 so even one already ragged gets uneven notches."""
+    lo0 = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi0 = Vector([max(v[i] for v in verts) for i in range(3)])
+    for k in range(most):
+        if k >= least and _spread(verts) >= floor:
+            break
+        verts = max((_bite(verts, rnd) for _ in range(tries)), key=_spread)
+    lo = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi = Vector([max(v[i] for v in verts) for i in range(3)])
+    s = [(hi0[i] - lo0[i]) / max(hi[i] - lo[i], 1e-9) for i in range(3)]
+    return [Vector([lo0[i] + (v[i] - lo[i]) * s[i] for i in range(3)]) for v in verts]
+
+
+def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, rings=10, torn=False):
     """An irregular burst shape: a sphere pushed out into a few broad lobes and a few sharp
     spikes in seeded directions, leaning toward local +X by `lean` (0 all round, 1.5 mostly
-    forward). Returns (mesh, [(direction, amount, sharpness)]); a spike's sharpness is over 15."""
+    forward). torn: then notched deep and unevenly (tear_verts), for a flash that must never read
+    as a disc. Returns (mesh, [(direction, amount, sharpness)]); a spike's sharpness is over 15."""
     bpy = _bpy()
 
     def pick():
@@ -75,6 +125,10 @@ def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, r
             ph = 2 * math.pi * k / segs
             v = Vector((math.sin(th) * math.cos(ph), math.sin(th) * math.sin(ph), math.cos(th)))
             verts.append(v * radius(v))
+    if torn:
+        # Notched from its own generator seeded off the caller's state without drawing from it, so
+        # every later draw of the burst (size, stretch, shrapnel, smoke) is what it was untorn.
+        verts = tear_verts(verts, random.Random(hash(rnd.getstate())))
     faces = [(0, 1 + (k + 1) % segs, 1 + k) for k in range(segs)]
     for r in range(rings - 2):
         a0, b0 = 1 + r * segs, 1 + (r + 1) * segs
@@ -139,8 +193,8 @@ def flash_material(ctx, rgb):
     give the shape; the emission stays modest, so the extra brightness is left to the camera's
     glare and bloom rather than to a large bright solid. Object colour R is the intensity
     (keyed), G pushes the grade toward the core while the flash is young, and B is how whole the
-    flash still is: 1 (the default, unkeyed) a whole lobed body; below 1 it tears into radial
-    tongues and loses its white heart (owner, 2026-10-23: an HE blast is a short bright flash
+    flash still is, stored as (whole + 1) / 2: 1 (the default, unkeyed) a whole lobed body; below 1
+    it tears into radial tongues and loses its white heart (owner, 2026-10-23: an HE blast is a short bright flash
     that breaks into ragged, directional debris and fire, no white body that holds)."""
     bpy = _bpy()
     import swfx_core
@@ -159,7 +213,7 @@ def flash_material(ctx, rgb):
     lw.inputs['Blend'].default_value = .35
     c = g.clamp01(g.sub(1.0, lw.outputs['Facing']))          # 1 facing the camera, 0 at the silhouette
     feather = g.pow(c, 2.4)                                  # soft to the edge, no rim
-    whole = sep.outputs[2]
+    whole = g.sub(g.mul(sep.outputs[2], 2.0), 1.0)           # B 1 is 1; B below .5 tears past 1
     tear = g.sub(1.0, whole)
     grade = g.clamp01(g.add(g.mul(g.pow(c, 1.6), g.add(g.mul(whole, .55), .45)), g.mul(sep.outputs[1], .35)))
     # Tongues: noise over the direction from the centre, so the holes run out radially and what
@@ -174,8 +228,10 @@ def flash_material(ctx, rgb):
     ray.inputs[1].default_value = (2.0, 2.0, 2.0)
     links.new(tc.outputs['Object'], ray.inputs[2])
     n = g.noise(ray.outputs[0], g.mul(info.outputs['Random'], 40.0), 1.7, 4.0, .65)
-    keep = g.clamp01(g.mul(g.sub(n, g.add(g.mul(tear, .42), .22)), 5.0))
-    holes = g.sub(1.0, g.mul(tear, g.sub(1.0, keep)))
+    # Torn (tear near 1) the cut is clean: what the noise drops goes to nothing, not to a dim glow
+    # that keeps the body's outline (bench, 2026-10-23: a big burst's +1 read as a brown plate).
+    keep = g.clamp01(g.mul(g.sub(n, g.add(g.mul(tear, .3), .2)), 5.0))
+    holes = g.clamp01(g.sub(1.0, g.mul(g.mul(tear, 1.6), g.sub(1.0, keep))))
     ramp = nodes.new('ShaderNodeValToRGB')
     els = ramp.color_ramp.elements
     rim = tuple(.5 * a + .5 * b for a, b in zip((1.0, .30, .05), rgb))   # orange leaning to the blast colour
@@ -266,7 +322,7 @@ def shrapnel_material(ctx):
 
 def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=None, lean=1.1, light_w=0.0,
           shrapnel=(2, 4), smoke=.55, smoke_life=(10, 14), smoke_rgb=SMOKE_RGB, flash_frames=3, parent=None,
-          prefix=PREFIX, tear=False, smoke_drift=0.0):
+          prefix=PREFIX, tear=False, smoke_drift=0.0, white=True):
     """One burst at `here` (collection space, hull units) on frame f. size_m: the flash's
     radius range in metres (the scale everything else follows). axis: a collection-space
     direction the burst throws along (a surface normal; None all round), with `lean` how far.
@@ -274,7 +330,8 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     puff's peak opacity (0 none) over smoke_life frames. light_w: a flash light (W, hull-unit
     file). parent: an object to hang everything from (it then rides with it). tear: the flash is
     whole and white-hot for its first frame only, then tears into orange tongues thrown outward
-    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. smoke_drift: the
+    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. white: with tear,
+    False opens already torn, with no white frame. smoke_drift: the
     smoke fades in over three frames and flies out along the throw by that many flash radii over its
     life, so it is torn off the blast rather than a body left where the flash was. Returns objects."""
     bpy = _bpy()
@@ -297,7 +354,7 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     # Its own material: hot yellow-white heart, the blast's colour out to a feathered edge (the
     # kit's glow ball rendered the lobed mesh as flat white cut-outs, first sweep render).
     glow = flash_material(ctx, flash_rgb)
-    me, dirs = lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd, lean=lean_now)
+    me, dirs = lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd, lean=lean_now, torn=True)
     fl = bpy.data.objects.new(f'{prefix} {tag}', me)
     coll.objects.link(fl)
     fl.location = here
@@ -307,11 +364,15 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     fr = [f + j for j in range(n_fl + 1)]
     if tear:
         # One whole white-hot frame, then torn orange tongues flying out and fading.
+        # Whole goes below zero by the third frame so the tear keeps eating the body: a big
+        # burst (a Harpoon's, a cook-off) left at a part-torn .4 read as a solid mottled plate for
+        # two frames (bench, 2026-10-23). white=False skips the white frame (a cook-off's
+        # satellites, which otherwise pop white one after another).
         grow = [.6 + 1.0 * (1 - math.exp(-2.0 * j / n_fl)) for j in range(n_fl + 1)]
-        heat = [1.7] + [1.0 * (1 - j / n_fl) ** 1.2 for j in range(1, n_fl + 1)]
-        young = [.35] + [0.0] * n_fl
-        whole = [1.0] + [max(0.0, .4 - .2 * (j - 1)) for j in range(1, n_fl + 1)]
-        swfx_guns._bake(fl, 'color', 2, fr, whole)
+        heat = [1.7 if white else 1.1] + [1.0 * (1 - j / n_fl) ** 1.2 for j in range(1, n_fl + 1)]
+        young = [.35 if white else 0.0] + [0.0] * n_fl
+        whole = [1.0 if white else .1] + [.1 - .2 * (j - 1) for j in range(1, n_fl + 1)]
+        swfx_guns._bake(fl, 'color', 2, fr, [(w + 1) / 2 for w in whole])     # stored as (whole + 1) / 2
     else:
         grow = [.55 + .65 * (1 - math.exp(-2.5 * j / n_fl)) for j in range(n_fl + 1)]
         heat = [1.7 * (1 - j / n_fl) ** 1.3 for j in range(n_fl + 1)]
@@ -349,8 +410,11 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
             tips = [here + d * (size * .5 + speed * i) for i in range(n + 1)]
             for i in range(3):
                 swfx_guns._bake(st, 'location', i, frames, [p[i] for p in tips])
+            # never shorter than four widths (twice its diameter), as the spall is: a cooled fragment
+            # of a small burst came out about as long as wide, a stub the orb lint read as a ball
             swfx_guns._bake(st, 'scale', 0, frames,
-                            [min(size * .3 + speed * i, frag + (hot_len - frag) * h) for i, h in enumerate(heat)])
+                            [max(width * 4, min(size * .3 + speed * i, frag + (hot_len - frag) * h))
+                             for i, h in enumerate(heat)])
             swfx_guns._bake(st, 'scale', 1, frames, [width] * len(frames))
             swfx_guns._bake(st, 'scale', 2, frames, [width] * len(frames))
             swfx_guns._bake(st, 'color', 0, frames, heat)
@@ -395,3 +459,98 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
             ob.parent = parent
             ob.matrix_parent_inverse = inv
     return out
+
+
+def warhead(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, core_m, axis=None, tongues=(5, 7), reach=(.8, 1.6),
+            tongue_k=(.35, .5), late=0, late_s=1.0, shrapnel=(4, 7), smoke=.6, smoke_life=(24, 32),
+            smoke_rgb=SMOKE_RGB, light_w=0.0, spall=0, glow_w=0.0, parent=None, prefix=PREFIX):
+    """A big blast built the way the approved HE and Hellbore hits are, scaled by adding pieces
+    rather than by inflating one (coordinator, 2026-10-23: a Harpoon hit torn out of one big flash
+    read as a hard polygon plate, then a leopard-print solid, then nothing). A small hot core
+    (core_m, a Hellbore-sized burst with its one white frame), torn fire tongues thrown outward round
+    it (no white frame of their own, opening over the core's first two frames, each with a puff),
+    `late` flickers of burning debris out to late_s seconds, and the core's smoke held smoke_life
+    frames and drifting off along the throw. What holds an HE hit on screen for a second is its
+    glowing crater lighting the smoke warm from below and its slow glowing spall; a warhead burst in
+    the open has no crater, so glow_w puts a warm light in the smoke fading out over late_s, and
+    spall throws that many slow fragments that glow orange and cool over half a second to a second.
+    here: collection space; returns the objects."""
+    ax = Vector(axis).normalized() if axis is not None else None
+    out = burst(ctx, coll, f'{tag} core', here, f, mpu, rnd, flash_rgb, size_m=core_m, axis=axis, lean=1.2,
+                shrapnel=shrapnel, smoke=smoke, smoke_life=smoke_life, smoke_rgb=smoke_rgb, flash_frames=5,
+                light_w=light_w, parent=parent, prefix=prefix, tear=True, smoke_drift=1.2)
+    R = sum(core_m) / 2 / mpu                       # the core's radius, hull units
+
+    def outward(spread):
+        d = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized()
+        return (d * spread + ax).normalized() if ax is not None else d
+
+    tongue_life = (max(6, int(smoke_life[0] * .5)), max(8, int(smoke_life[1] * .6)))
+    for k in range(rnd.randint(*tongues)):
+        d = outward(.9)
+        s = sum(core_m) / 2 * rnd.uniform(*tongue_k)
+        out += burst(ctx, coll, f'{tag} tongue {k}', here + d * R * rnd.uniform(*reach), f + rnd.randint(0, 2), mpu,
+                     rnd, flash_rgb, size_m=(s * .85, s * 1.15), axis=d, lean=1.0, shrapnel=(0, 1),
+                     smoke=smoke * .5, smoke_life=tongue_life, smoke_rgb=smoke_rgb, flash_frames=3, parent=parent,
+                     prefix=prefix, tear=True, smoke_drift=1.0, white=False)
+    fps = ctx.scene.render.fps or 24
+    for k in range(late):
+        d = outward(1.4)
+        s = sum(core_m) / 2 * rnd.uniform(.16, .26)
+        at = f + 3 + int(round((k + rnd.random()) / max(1, late) * (late_s * fps - 3)))
+        out += burst(ctx, coll, f'{tag} fire {k}', here + d * R * rnd.uniform(.4, 1.3), at, mpu, rnd,
+                     (1.0, .45, .12), size_m=(s * .85, s * 1.15), axis=d, lean=.8, shrapnel=None, smoke=smoke * .35,
+                     smoke_life=(8, 12), smoke_rgb=smoke_rgb, flash_frames=3, parent=parent, prefix=prefix,
+                     tear=True, smoke_drift=.8, white=False)
+    bpy = _bpy()
+    import swfx_core
+    import swfx_guns
+    extra = []
+    if spall:
+        rod = _rod_mesh(f'{prefix} shrapnel mesh', shrapnel_material(ctx))
+        k = sum(core_m) / 2 / 4.5                       # 1 for a Hellbore-sized core
+        for j in range(spall):
+            d = outward(1.2)
+            speed = rnd.uniform(6.0, 24.0) * k ** .5 / mpu / fps          # per frame (an HE hit's spall)
+            n = rnd.randint(int(.4 * fps), int(1.2 * fps))
+            st = bpy.data.objects.new(f'{prefix} {tag} spall {j}', rod)
+            coll.objects.link(st)
+            st.visible_shadow = False
+            st.rotation_mode = 'QUATERNION'
+            st.rotation_quaternion = d.to_track_quat('X', 'Z')
+            frames = list(range(f, f + n + 1))
+            start = here + d * R * rnd.uniform(.1, .5)
+            for i in range(3):
+                swfx_guns._bake(st, 'location', i, frames, [(start + d * speed * t)[i] for t in range(n + 1)])
+            # a thin streak the length of a frame and a half of its travel, as an HE hit's spall is drawn
+            # (bench7: fat 0.5 m rods read as a heap of pink blocks)
+            width = .07 * k ** .5 / mpu
+            swfx_guns._bake(st, 'scale', 0, frames, [max(speed * 1.5, width * 4)] * len(frames))
+            for i in (1, 2):
+                swfx_guns._bake(st, 'scale', i, frames, [width] * len(frames))
+            swfx_guns._bake(st, 'color', 0, frames, [.75 * (1 - t / n) ** 1.3 for t in range(n + 1)])
+            st.color = (.75, 0, 0, 1)
+            swfx_guns._visible_between(st, f, f + n)
+            extra.append(st)
+    if glow_w:
+        lt = swfx_core.point_light(f'{prefix} {tag} glow', coll, (1.0, .5, .18), 0.0, radius=R * .6)
+        lt.location = here + (ax * R * .6 if ax is not None else Vector())
+        span = max(4, int(late_s * fps))
+        keys = [(f - 1, 0.0)] + [(f + i, glow_w * math.exp(-2.6 * i / span) * (1 - i / span))
+                                 for i in range(0, span + 1, 2)]
+        for fi, e in keys:
+            lt.data.energy = e
+            lt.data.keyframe_insert('energy', frame=fi)
+        # shown only while it burns (dark either side): a light shown from the shot's first frame
+        # read to the motion audit as born there, wherever its ship then was
+        swfx_guns._visible_between(lt, f, f + span)
+        extra.append(lt)
+    for ob in extra:
+        ob['swfx_burst_t0'] = int(f)
+    if parent is not None:
+        import swfx_missile_paths as mp
+        inv = mp.anchor_matrix(parent).inverted()
+        for ob in extra:
+            ob.parent = parent
+            ob.matrix_parent_inverse = inv
+    return out + extra

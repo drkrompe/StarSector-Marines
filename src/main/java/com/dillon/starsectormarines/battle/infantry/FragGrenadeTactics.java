@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -85,6 +87,49 @@ public final class FragGrenadeTactics {
         sim.world().setSecondaryFired(carrier, false);
         sim.world().setSecondaryAimTargetId(carrier, 0L);
         return true;
+    }
+
+    /** Equipment availability for a player's throw: a hand grenade, in hand or on the belt, with one left and the hand free. */
+    public static boolean canThrow(long carrier, BattleView sim) {
+        World world = sim.world();
+        return world.isAlive(carrier) && CarriedSpecials.ready(world, carrier, SpecialEquipmentDef::isThrownGrenade);
+    }
+
+    /**
+     * A player's throw: freezes the cursor point, pulled in to the grenade's range and kept on the map, and
+     * starts the same committed channel an autonomous throw uses. It releases once at the channel's midpoint
+     * through {@code throwFragmentationGrenade}, which spends the grenade; nothing is spent here.
+     */
+    public static boolean beginManualThrow(long carrier, PointFireAim target, BattleControl sim) {
+        if (target == null || !Float.isFinite(target.x()) || !Float.isFinite(target.y())
+                || !canThrow(carrier, sim)) return false;
+        World world = sim.world();
+        SpecialEquipmentDef grenade = CarriedSpecials.item(world, carrier, SpecialEquipmentDef::isThrownGrenade);
+        float[] point = clampThrow(world.renderX(carrier), world.renderY(carrier), target.x(), target.y(),
+                grenade.range(), sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        if (point == null) return false;
+        Squad squad = sim.squadOf(carrier);
+        if (!CarriedSpecials.draw(world, carrier, SpecialEquipmentDef::isThrownGrenade)) return false;
+        sim.fragGrenades().reserveManual(carrier, squad != null ? squad.id : -1,
+                sim.identity().faction(carrier), point[0], point[1], grenade.aoeRadius());
+        world.setSecondaryActionTimer(carrier, grenade.aimDuration());
+        world.setSecondaryFired(carrier, false);
+        world.setSecondaryAimTargetId(carrier, 0L);
+        sim.combat().clearPrimaryFire(carrier);
+        return true;
+    }
+
+    /** The point a throw from {@code (fromX, fromY)} at the cursor lands on: no further than {@code range}, inside the map. */
+    static float[] clampThrow(float fromX, float fromY, float x, float y, float range, int width, int height) {
+        float dx = x - fromX;
+        float dy = y - fromY;
+        float distance = (float) Math.hypot(dx, dy);
+        if (!Float.isFinite(distance)) return null;
+        if (distance > range && distance > 0f) {
+            x = fromX + dx / distance * range;
+            y = fromY + dy / distance * range;
+        }
+        return new float[]{Math.max(.5f, Math.min(width - .5f, x)), Math.max(.5f, Math.min(height - .5f, y))};
     }
 
     /** Evades a known friendly grenade or a hostile grenade honestly observed by the squad. */

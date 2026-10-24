@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.infantry.FlameJet;
+import com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
@@ -36,8 +38,10 @@ import com.dillon.starsectormarines.battle.warship.WarshipPilot;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongPredicate;
@@ -61,6 +65,15 @@ public final class DirectControlSession {
     private int selectedWeapon;
     /** What each of a mech's triggers is on; a Marine's and a vehicle's lists have one member and never move. */
     private MechTriggerPicks picks = MechTriggerPicks.LINKED;
+    /** A Marine's right-button pick; null is its list's first item. */
+    private MarineRightTrigger.Item marineRight;
+    /**
+     * Whether the controlled Marine's current grenade channel is one the player started. The battle drops the
+     * throw's reservation at the release, so the channel's follow-through is known only here.
+     */
+    private boolean manualGrenade;
+    /** A Marine's left button: the primary, or a direct-fire special under its manual contract. */
+    private final MarineLeftTrigger marineLeft = new MarineLeftTrigger();
     private final EnumMap<DirectControlAbility, PointFireAim> pendingAbilities =
             new EnumMap<>(DirectControlAbility.class);
     private final MarineSprint marineSprint = new MarineSprint();
@@ -68,13 +81,6 @@ public final class DirectControlSession {
     private boolean secondaryHeld;
     /** Whether the left button was down on the previous Marine tick; a semi-automatic primary fires on a press. */
     private boolean primaryHeld;
-    /**
-     * Ticks a semi-automatic press stays armed while the action finishes its cycle, so a press that lands
-     * a moment early still fires instead of being lost to the cooldown. Zero means no press is armed.
-     */
-    private int semiPressTicks;
-    /** How long a semi-automatic press waits for the action, in ticks (about a fifth of a second). */
-    static final int SEMI_PRESS_BUFFER_TICKS = 6;
 
     /** The side the player flies for. */
     private static final Faction PLAYER_SIDE = Faction.MARINE;
@@ -145,7 +151,62 @@ public final class DirectControlSession {
     public MechTriggerPicks mechPicks() { return picks; }
 
     /** Changes whenever any trigger or number-key choice does, so the host knows to release held fire. */
-    public int selectionKey() { return (selectedWeapon * 31 + picks.left()) * 31 + picks.right(); }
+    public int selectionKey() {
+        return (((selectedWeapon * 31 + picks.left()) * 31 + picks.right()) * 31 + marineLeft.pick()) * 31
+                + (marineRight == null ? 0 : marineRight.ordinal() + 1);
+    }
+
+    /** The controlled Marine's right-button list, empty for every other carrier. */
+    public List<MarineRightTrigger.Item> marineRightMembers() {
+        if (!unitActive() || vehicleControl || !roster.isAliveById(unitId)
+                || roster.identity().type(unitId) != UnitType.MARINE) return List.of();
+        World world = roster.world();
+        return MarineRightTrigger.members(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null, roster.integralSystems().spec(unitId));
+    }
+
+    /** What the controlled Marine's right button uses now, or null when it has nothing on it. */
+    public MarineRightTrigger.Item marineRightPick() {
+        return MarineRightTrigger.resolve(marineRightMembers(), marineRight);
+    }
+
+    /** What the controlled Marine's left button is on, its readying and its last round; primary otherwise. */
+    public MarineLeftTrigger marineLeft() { return marineLeft; }
+
+    /**
+     * The direct-fire special the controlled Marine's left button is on, or null while it is on the
+     * primary or nothing is a Marine.
+     */
+    public SpecialEquipmentDef leftSpecial() {
+        if (!marineLeft.onSpecial()) return null;
+        List<SpecialEquipmentDef> specials = marineSpecials();
+        int index = marineLeft.pick() - 1;
+        return index < specials.size() ? specials.get(index) : null;
+    }
+
+    /** The specials the controlled Marine's left button cycles through, after the primary. */
+    public List<SpecialEquipmentDef> marineSpecials() {
+        if (!controllingMarine()) return List.of();
+        World world = roster.world();
+        // Both slots, so a launcher swapped onto the belt for a belt throw stays on the list.
+        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null);
+    }
+
+    /** Puts a Marine's left button on {@code member}: the primary (0), or a special, which it readies. */
+    private boolean pickMarineLeft(int member) {
+        List<SpecialEquipmentDef> specials = marineSpecials();
+        int before = marineLeft.pick();
+        float aim = member > 0 && member <= specials.size() ? specials.get(member - 1).aimDuration() : 0f;
+        if (!marineLeft.pick(member, specials.size() + 1, aim)) return false;
+        if (marineLeft.pick() != before) releaseSelectedFire();
+        return true;
+    }
+
+    private boolean controllingMarine() {
+        return unitActive() && !vehicleControl && roster.isAliveById(unitId)
+                && roster.identity().type(unitId) == UnitType.MARINE;
+    }
 
     /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */
     public MarineSprint.Status sprintStatus() {
@@ -162,6 +223,7 @@ public final class DirectControlSession {
         if (!unitActive() || !roster.isAliveById(unitId)) return false;
         // Key 1 is the left trigger's first member, LINKED; a single-member list has nothing else.
         if (selection == 0) return true;
+        if (controllingMarine()) return selection > 0 && selection <= marineSpecials().size();
         if (!roster.world().hasMechLoadout(unitId)) return false;
         return MechFireGroups.member(roster.world().mechLoadout(unitId).mounts(), FireTrigger.LEFT, selection) >= 0;
     }
@@ -177,6 +239,7 @@ public final class DirectControlSession {
             return true;
         }
         if (ship != null) return WarshipPilot.command(ship, WARSHIP_COMMANDS[selection]);
+        if (controllingMarine()) return pickMarineLeft(selection);
         if (!roster.world().hasMechLoadout(unitId)) return true;
         int member = MechFireGroups.member(roster.world().mechLoadout(unitId).mounts(), FireTrigger.LEFT, selection);
         return member >= 0 && pick(FireTrigger.LEFT, member);
@@ -184,9 +247,22 @@ public final class DirectControlSession {
 
     /**
      * Moves a trigger to the next member of its list (Q for the left button, E for the right).
-     * Refused when the list has fewer than two members, as every Marine's and vehicle's does for now.
+     * Refused when the list has fewer than two members. A Marine's left list is the primary and then
+     * its direct-fire specials.
      */
     public boolean cycle(FireTrigger trigger) {
+        var marineItems = trigger == FireTrigger.RIGHT ? marineRightMembers() : List.<MarineRightTrigger.Item>of();
+        if (!marineItems.isEmpty()) {
+            if (marineItems.size() < 2) return false;
+            marineRight = MarineRightTrigger.next(marineItems, marineRight);
+            releaseSelectedFire();
+            return true;
+        }
+        if (trigger == FireTrigger.LEFT && controllingMarine()) {
+            List<SpecialEquipmentDef> specials = marineSpecials();
+            if (specials.isEmpty()) return false;
+            return pickMarineLeft((marineLeft.pick() + 1) % (specials.size() + 1));
+        }
         if (trigger == null || !unitActive() || !roster.isAliveById(unitId)
                 || !roster.world().hasMechLoadout(unitId)) return false;
         var mounts = roster.world().mechLoadout(unitId).mounts();
@@ -194,8 +270,20 @@ public final class DirectControlSession {
         return pick(trigger, MechFireGroups.next(mounts, trigger, picks.pick(trigger)));
     }
 
-    /** Puts a trigger on one member of its list: LINKED, or a hardpoint ({@code slot.ordinal() + 1}) of its group. */
+    /**
+     * Puts a trigger on one member of its list: LINKED, or a hardpoint ({@code slot.ordinal() + 1}) of its group.
+     * A Marine's right button takes the index of an item in {@link #marineRightMembers()}.
+     */
     public boolean pick(FireTrigger trigger, int member) {
+        var marineItems = trigger == FireTrigger.RIGHT ? marineRightMembers() : List.<MarineRightTrigger.Item>of();
+        if (!marineItems.isEmpty()) {
+            if (member < 0 || member >= marineItems.size()) return false;
+            if (marineRightPick() == marineItems.get(member)) return true;
+            marineRight = marineItems.get(member);
+            releaseSelectedFire();
+            return true;
+        }
+        if (trigger == FireTrigger.LEFT && controllingMarine()) return pickMarineLeft(member);
         if (trigger == null || !unitActive() || !roster.isAliveById(unitId)
                 || !roster.world().hasMechLoadout(unitId)
                 || !MechFireGroups.isMember(roster.world().mechLoadout(unitId).mounts(), trigger, member)) return false;
@@ -237,6 +325,7 @@ public final class DirectControlSession {
                 yield spec != null && spec.grantsMitigation() && roster.integralSystems().canActivate(unitId);
             }
             case SMOKE -> SmokeTactics.canThrow(unitId, battle);
+            case GRENADE -> FragGrenadeTactics.canThrow(unitId, battle);
             case RELOAD -> {
                 CombatService combat = roster.combat();
                 int size = combat.magazineSize(unitId);
@@ -271,11 +360,19 @@ public final class DirectControlSession {
         return true;
     }
 
-    private boolean ownsSmokeChannel(long id) {
-        var commit = roster.world().smokeThrowCommit(id);
-        return isControlling(id) && commit != null && commit.manual()
-                && roster.world().specialEquipment(id).activation() == SpecialActivation.UTILITY_SMOKE;
+    /** Whether the controlled Marine is in the committed channel of a throw the player started: smoke or a grenade. */
+    private boolean ownsThrowChannel(long id) {
+        if (!isControlling(id) || !roster.world().hasSecondaryWeapon(id)) return false;
+        var special = roster.world().specialEquipment(id);
+        if (special.activation() == SpecialActivation.UTILITY_SMOKE) {
+            var commit = roster.world().smokeThrowCommit(id);
+            return commit != null && commit.manual();
+        }
+        return manualGrenade && special.isThrownGrenade() && roster.world().secondaryActionTimer(id) > 0f;
     }
+
+    /** Whether the controlled Marine is in the committed channel of a throw the player started. */
+    public boolean manualThrowActive() { return unitActive() && ownsThrowChannel(unitId); }
 
     /** Read-only entry check. Committed special actions finish under their original owner. */
     public boolean canEnter(long id) {
@@ -315,7 +412,7 @@ public final class DirectControlSession {
         // weapon clock. Their explicit interaction adapter is outside this primary-only slice.
         UnitRole role = roster.role().role(id);
         if (role == UnitRole.PLANTER || role == UnitRole.KIT_RETRIEVER) return false;
-        if (world.hasSecondaryWeapon(id) && world.secondaryActionTimer(id) > 0f && !ownsSmokeChannel(id)) return false;
+        if (world.hasSecondaryWeapon(id) && world.secondaryActionTimer(id) > 0f && !ownsThrowChannel(id)) return false;
         Squad squad = battle.squadOf(id);
         if (mech && (!world.hasMechLoadout(id) || squad == null
                 || squad.faction != Faction.MARINE || !squad.isMechSquad()
@@ -339,6 +436,9 @@ public final class DirectControlSession {
         unitId = id;
         selectedWeapon = 0;
         picks = MechTriggerPicks.LINKED;
+        marineRight = null;
+        manualGrenade = false;
+        marineLeft.reset();
         vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
         if (!vehicle && roster.identity().type(id) == UnitType.MARINE) marineSprint.releaseHold(id);
@@ -384,7 +484,7 @@ public final class DirectControlSession {
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
         pendingAbilities.clear();
-        semiPressTicks = 0;
+        marineLeft.suspend();
         intent = intent.neutralized();
         if (ship != null) {
             ship.pilotMove(0f, 0f);
@@ -402,7 +502,6 @@ public final class DirectControlSession {
     public void exit() {
         secondaryHeld = false;
         primaryHeld = false;
-        semiPressTicks = 0;
         if (ship != null) {
             Warship released = ship;
             Tender releasedTender = tender;
@@ -422,6 +521,9 @@ public final class DirectControlSession {
         unitId = 0L;
         selectedWeapon = 0;
         picks = MechTriggerPicks.LINKED;
+        marineRight = null;
+        manualGrenade = false;
+        marineLeft.reset();
         pendingAbilities.clear();
         marineSprint.releaseHold(previous);
         vehicleControl = false;
@@ -474,6 +576,16 @@ public final class DirectControlSession {
             selectedWeapon = 0;
             releaseSelectedFire();
         }
+        // A right-button item the Marine no longer carries returns the button to its first item.
+        if (marineRight != null && !marineRightMembers().contains(marineRight)) {
+            marineRight = null;
+            releaseSelectedFire();
+        }
+        // A special no longer carried returns a Marine's left button to the primary.
+        if (marineLeft.onSpecial() && leftSpecial() == null) {
+            marineLeft.reset();
+            releaseSelectedFire();
+        }
         // A picked hardpoint that was destroyed, or moved groups with it, returns its trigger to LINKED.
         if (unitActive() && roster.world().hasMechLoadout(unitId)) {
             var mounts = roster.world().mechLoadout(unitId).mounts();
@@ -506,18 +618,19 @@ public final class DirectControlSession {
     }
 
     /**
-     * The right button is a Marine's secondary equipment: on the press it throws the carried smoke
-     * at the cursor, and a Marine with no smoke raises a directional shield toward it. It is the
-     * same one-shot request as the G and C keys, so ammunition, cooldowns and the committed throw
-     * stay the equipment's own; holding the button never repeats it. A Marine with neither does nothing.
+     * The right button uses the Marine's right-button pick (smoke, a hand grenade or the shield; E moves
+     * it) on the press, at the cursor. It is the same one-shot request as the G and C keys, so ammunition,
+     * cooldowns and the committed throw stay the equipment's own; holding the button never repeats it,
+     * and a pick that cannot be used now does nothing rather than falling back to another item.
      */
     private void requestSecondaryEquipment(ManualIntent input) {
         boolean pressed = input.secondary() && !secondaryHeld;
         secondaryHeld = input.secondary();
         if (!pressed) return;
-        PointFireAim aim = new PointFireAim(input.aimX(), input.aimY());
-        if (canUseAbility(DirectControlAbility.SMOKE)) pendingAbilities.put(DirectControlAbility.SMOKE, aim);
-        else if (canUseAbility(DirectControlAbility.SHIELD)) pendingAbilities.put(DirectControlAbility.SHIELD, aim);
+        MarineRightTrigger.Item item = marineRightPick();
+        if (item != null && canUseAbility(item.ability)) {
+            pendingAbilities.put(item.ability, new PointFireAim(input.aimX(), input.aimY()));
+        }
     }
 
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
@@ -554,7 +667,9 @@ public final class DirectControlSession {
         }
         PointFireAim smoke = pendingAbilities.remove(DirectControlAbility.SMOKE);
         if (smoke != null) SmokeTactics.beginThrow(id, smoke, true, battle);
-        if (ownsSmokeChannel(id) && InfantryUnitPrep.tickAimAndShortCircuit(id, battle)) {
+        PointFireAim grenade = pendingAbilities.remove(DirectControlAbility.GRENADE);
+        if (grenade != null && FragGrenadeTactics.beginManualThrow(id, grenade, battle)) manualGrenade = true;
+        if (ownsThrowChannel(id) && InfantryUnitPrep.tickAimAndShortCircuit(id, battle)) {
             marineSprint.finishStep(id, input.sprint(), 0f, roster.movement().moveSpeed(id),
                     BattleSimulation.TICK_DT);
             roster.combat().clearPrimaryFire(id);
@@ -577,6 +692,10 @@ public final class DirectControlSession {
                 speed, BattleSimulation.TICK_DT);
         if (sprinting) roster.combat().clearPrimaryFire(id);
         MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
+        if (marineLeft.onSpecial()) {
+            fireLeftSpecial(id, input, sprinting);
+            return;
+        }
         if (primaryTrigger(id, input.firing()) && !sprinting) {
             boolean moving = roster.movement().velX(id) != 0f || roster.movement().velY(id) != 0f;
             roster.combat().setPointFireIntent(id, new PointFireAim(input.aimX(), input.aimY()),
@@ -585,32 +704,51 @@ public final class DirectControlSession {
     }
 
     /**
+     * The left button on a special: a press fires one round at the cursor through the special's own
+     * point-fire path once it is readied, off cooldown and loaded. The flamer is a held stream instead: while
+     * the button is down it sends a charge toward the cursor, short of the first wall and no further than its
+     * range, each time its cooldown allows. The primary holds meanwhile.
+     */
+    private void fireLeftSpecial(long id, ManualIntent input, boolean sprinting) {
+        primaryHeld = input.firing();
+        roster.combat().clearPrimaryFire(id);
+        SpecialEquipmentDef special = leftSpecial();
+        World world = roster.world();
+        boolean canFire = special != null && world.specialEquipment(id) == special
+                && world.secondaryCooldownTimer(id) <= 0f
+                && world.secondaryAmmo(id) > 0 && Float.isFinite(input.aimX()) && Float.isFinite(input.aimY());
+        boolean stream = special != null && special.isHeldStream();
+        float[] jet = canFire && stream ? FlameJet.point(battle.getGrid(), world.renderX(id), world.renderY(id),
+                input.aimX(), input.aimY(), special.range()) : null;
+        if (stream) canFire &= jet != null;
+        if (!marineLeft.tick(input.firing(), sprinting, canFire, stream, BattleSimulation.TICK_DT)) return;
+        if (stream) {
+            // The flamer's own release spends one charge of fuel; a held button sends the next on its cooldown.
+            int fuel = world.secondaryAmmo(id);
+            battle.throwFragmentationGrenade(id, jet[0], jet[1]);
+            if (world.secondaryAmmo(id) >= fuel) return;
+        } else if (!battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
+            return;
+        }
+        world.setSecondaryCooldownTimer(id, special.cooldown());
+        marineLeft.fired();
+    }
+
+    /**
      * Whether the controlled Marine's primary trigger asks for a round this tick. A held trigger asks
-     * every tick, and the firing gate paces it to the weapon's cycle. A semi-automatic magazine asks
-     * once per press instead: the press stays armed for {@link #SEMI_PRESS_BUFFER_TICKS} while the
-     * action cycles, and is dropped by a reload, so tapping fires as fast as the action allows and a
-     * held button fires a single round.
+     * every tick, and the firing gate paces it to the weapon's cycle. A semi-automatic magazine fires
+     * once per press with no cycle between rounds (owner, 2026-10-23): a press with a round loaded
+     * clears the action's cooldown, so the player's finger is the rate of fire. The magazine reloads
+     * on its own only when it runs dry, or on the reload key.
      */
     private boolean primaryTrigger(long id, boolean firing) {
         boolean pressed = firing && !primaryHeld;
         primaryHeld = firing;
-        MagazineDef magazine = roster.combat().primaryMagazine(id);
-        if (magazine == null || magazine.trigger() != MagazineDef.Trigger.SEMI) {
-            semiPressTicks = 0;
-            return firing;
-        }
         CombatService combat = roster.combat();
-        if (pressed) semiPressTicks = SEMI_PRESS_BUFFER_TICKS;
-        if (semiPressTicks == 0) return false;
-        if (combat.isReloading(id)) {
-            semiPressTicks = 0;
-            return false;
-        }
-        if (combat.cooldownTimer(id) <= 0f && combat.burstRemaining(id) == 0) {
-            semiPressTicks = 0;
-            return true;
-        }
-        semiPressTicks--;
-        return false;
+        MagazineDef magazine = combat.primaryMagazine(id);
+        if (magazine == null || magazine.trigger() != MagazineDef.Trigger.SEMI) return firing;
+        if (!pressed || !combat.mayFirePrimary(id) || combat.burstRemaining(id) > 0) return false;
+        combat.setCooldownTimer(id, 0f);
+        return true;
     }
 }

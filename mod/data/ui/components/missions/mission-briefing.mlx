@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -150,7 +150,7 @@
                 <div id="mission-command-title" class="label heading tone-edge">{commandHeader}</div>
                 <div id="mission-command-summary" class="label heading tone-accent">{commandSummary}</div>
               </div>
-              <div id="mission-power-list" class="command-power-list">
+              <div id="mission-power-list" class="command-power-list" style="{powerListStyle}">
                 <button each="power in powerRows" key="{power.id}" id="{power.id}" class="{power.classes}" disabled="{power.disabled}" onclick="{power.action}">
                   <img id="{power.indicatorId}" class="console-rocker" src="{power.indicatorSource}" />
                   <img id="{power.iconId}" class="power-icon" src="{power.icon}" />
@@ -165,7 +165,7 @@
             <div id="mission-logistics" class="mission-logistics">
               <div id="mission-source-block" class="briefing-section">
                 <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
-                <div id="mission-source-list" class="choice-list source-list">
+                <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
                   <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
                     <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
                     <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
@@ -344,15 +344,15 @@
   .debug-air-row { flex-direction: row; align-items: center; height: 24px; gap: 4px; padding: 2px; border-width: 1px; }
   .debug-air-label { width: 0px; flex-grow: 1; height: auto; padding: 0px; }
   .debug-air-row button { flex-direction: row; align-items: center; width: 72px; height: 18px; padding: 1px 3px; gap: 5px; border-width: 2px; font-family: heading; text-align: center; }
-  .force-card { flex-direction: row; align-items: center; width: 202px; height: 64px; padding: 5px; gap: 6px; border-width: 1px; }
-  .force-card-portrait { width: 44px; height: 44px; padding: 1px; border-width: 1px; pointer-events: none; }
+  .force-card { flex-direction: row; align-items: center; width: 256px; height: 72px; padding: 5px; gap: 6px; border-width: 1px; }
+  .force-card-portrait { width: 56px; height: 56px; padding: 1px; border-width: 1px; pointer-events: none; }
   .force-card-portrait.portrait-absent { width: 0px; height: 0px; padding: 0px; border-width: 0px; }
-  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 58px; gap: 3px; overflow: hidden; }
+  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 60px; gap: 3px; overflow: hidden; }
   .force-card-role { height: 12px; }
   .group-command-copy { width: 100%; flex-direction: column; gap: 4px; }
   .group-command-summary { width: 100%; height: auto; white-space: normal; }
   .captain-role-summary { height: 48px; white-space: normal; }
-  .force-card-title { height: auto; white-space: normal; }
+  .force-card-title { height: auto; white-space: nowrap; }
   .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
   .commitment-grid .briefing-section { height: 78px; }
@@ -412,8 +412,8 @@
   .force-meter { flex-direction: row; height: 9px; gap: 4px; }
   .force-meter .indicator { width: 42px; height: 9px; border-width: 1px; background-color: #8fae98; }
   .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
-  .mission-loadout-grid { flex-direction: column; height: 498px; gap: 22px; overflow: hidden; }
-  .command-deck { height: 178px; align-items: start; }
+  .mission-loadout-grid { flex-direction: column; height: auto; gap: 22px; overflow: hidden; }
+  .command-deck { height: auto; align-items: start; }
   .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
   .command-power-list { display: grid; height: 145px; gap: 8px; overflow: scroll; width: 100%; }
   .command-power-list .choice-row { width: 128px; height: 116px; padding: 6px; flex-direction: column; align-items: center; gap: 5px; }
@@ -422,8 +422,8 @@
   .command-power-list .choice-copy { width: 128px; height: 45px; flex-grow: 0; gap: 4px; }
   .command-power-list .choice-title { height: 25px; white-space: normal; text-align: center; }
   .command-power-list .choice-detail { height: 14px; text-align: center; }
-  .mission-logistics { flex-direction: column; height: 298px; gap: 20px; overflow: hidden; }
-  #mission-source-block { height: 78px; }
+  .mission-logistics { flex-direction: column; height: auto; gap: 20px; overflow: hidden; }
+  #mission-source-block { height: auto; }
   #mission-source-list { height: 46px; flex-grow: 0; display: grid; gap: 8px; }
   .source-list .choice-row { width: 280px; height: 30px; }
   .source-list .choice-icon { width: 32px; height: 28px; }

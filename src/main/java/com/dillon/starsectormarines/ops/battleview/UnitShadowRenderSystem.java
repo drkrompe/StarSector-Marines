@@ -1,5 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFall;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
+
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -137,6 +143,13 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * would be a hole in the ground as a shape.
      */
     private static final float AIR_SHADOW_ALPHA = 0.42f;
+    /**
+     * The height a loitering Rav flier casts its shadow from, in the sun's units. Lower than an aircraft's: it flies
+     * just over the rooftops, and its shadow should sit a wingspan or two off it, not across the street.
+     */
+    private static final float FLIER_SHADOW_HEIGHT_CELLS = 4f;
+    /** How much further a flier's shadow stands off per share its body has pumped up with the stroke. */
+    private static final float FLIER_SHADOW_PUMP_GAIN = 4f;
 
     /**
      * The altitude, in cells, an aircraft at full height casts from.
@@ -213,6 +226,52 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         SpriteAPI blob = sprites.shadowBlobSprite();
         if (blob != null) collectGroundBodies(ctx, out, blob);
         collectAircraft(ctx, out);
+        collectFliers(ctx, out);
+    }
+
+    /**
+     * Rav fliers: each casts its own drawing, in the pose it is drawn in, laid down-sun by the height it flies at,
+     * so a loitering pack's shadows stand off it and a diver's close in under it as it comes down. The ground size,
+     * not the drawn one: the body grows with height as it nears the camera, its shadow does not. A shot flier's
+     * shadow closes in under it as it falls, and meets it on the ground. As the stroke pumps the body up its
+     * shadow stands further off and shrinks a little.
+     */
+    private void collectFliers(RenderContext ctx, DrawList out) {
+        SwarmFliers fliers = ctx.sim.swarmFliers();
+        if (fliers.packs().isEmpty() && fliers.falls().isEmpty()) return;
+        BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
+        float cellPx = cam.cellPxSize();
+        FogOfWarService vis = ctx.sim.getFogOfWar();
+        float alpha = ctx.alphaMult * AIR_SHADOW_ALPHA * sun.shadowStrength();
+        for (HarrierFall fall : fliers.falls()) {
+            ShuttleSpriteCache cache = sprites.spriteByPath(HarrierRenderSystem.fallSprite(fall));
+            if (cache == null) continue;
+            float reach = sun.reachCells(FLIER_SHADOW_HEIGHT_CELLS * fall.altitude());
+            float x = fall.x() - sun.dirX() * reach;
+            float y = fall.y() - sun.dirY() * reach;
+            if (!view.visible(x, y, 3f)) continue;
+            emit(out, cache.sprite, cam, x, y,
+                    cache.pxW / HarrierLook.PX_PER_CELL * cellPx,
+                    cache.pxH / HarrierLook.PX_PER_CELL * cellPx,
+                    fall.facing(), alpha);
+        }        for (HarrierPack pack : fliers.packs()) {
+            for (HarrierFlight m : pack.members) {
+                float seen = HarrierRenderSystem.visibility(ctx, vis, m.id);
+                if (seen <= 0f) continue;
+                HarrierPose pose = HarrierPose.of(m, pack.phase());
+                // A pump that lifts the body throws its shadow further off and draws it smaller.
+                float lift = (m.rig.pump - 1f) * FLIER_SHADOW_PUMP_GAIN;
+                float reach = sun.reachCells(FLIER_SHADOW_HEIGHT_CELLS * m.altitude * (1f + lift));
+                float x = m.body.x - sun.dirX() * reach;
+                float y = m.body.y - sun.dirY() * reach;
+                if (!view.visible(x, y, 3f)) continue;
+                float a = alpha * seen;
+                HarrierBodyComposer.compose(sprites, m, pose.sprite(), x, y, 1f / (m.rig.pump * m.rig.pump),
+                        (part, px, py, degrees, w, h) -> emit(out, part.sprite, cam, px, py, w * cellPx, h * cellPx,
+                                degrees, a));
+            }
+        }
     }
 
     /**

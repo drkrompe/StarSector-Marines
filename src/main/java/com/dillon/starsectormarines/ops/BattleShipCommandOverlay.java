@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
-import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -56,7 +55,7 @@ final class BattleShipCommandOverlay {
             UiViewport plate = BattleDirectControlOverlay.entryViewport(position, selectedMech);
             return plate.screenY() + plate.height() - position.getY();
         }
-        return BattleLayout.PAD + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP + TaskForceStatusPanel.PANEL_H;
+        return BattleLayout.PAD + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP;
     }
 
     void bottomOffset(float height) { bottomOffset = Math.max(0f, height); }

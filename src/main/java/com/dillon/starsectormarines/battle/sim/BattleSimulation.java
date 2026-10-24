@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
+import com.dillon.starsectormarines.battle.appearance.HeldSpecialPose;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
@@ -292,6 +293,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
+import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -867,6 +869,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmFliers swarmFliers = new SwarmFliers();
+    /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
+    public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
@@ -1571,6 +1576,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
+        navigation.setOccupancyContributor(vehicleRepulsion::occupyStandingHulls);
         this.hullContact = new HullContactSystem(rosterService, grid);
         this.mechRam = new MechRamSystem(rosterService, unitIndex);
         this.squadTraffic = new SquadTrafficSystem(grid, rosterService);
@@ -2513,13 +2519,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return id;
     }
 
-    /** A gun on a plinth sees from its height for as long as it stands; its death lowers the cell again. */
+    /** A gun on a plinth sees from its height, and its plinth stands, for as long as it does; its death lowers both. */
     private void raisePlinthEye(long id, EntitySpec spec) {
         if (spec.turretStructureId == null) return;
         StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
         if (structure.plinthTiers <= 0) return;
         mapEditor.setRaisedEye(spec.cellX, spec.cellY, structure.plinthTiers);
-        turretDemolition.registerPlinth(id);
+        // The block itself stands over the whole footprint, which is what casts its sun shadow.
+        mapEditor.setPlinth(StructureFootprint.minX(structure, spec.cellX), StructureFootprint.minY(structure, spec.cellY),
+                structure.footprintCellsX, structure.footprintCellsY, structure.plinthTiers);
+        turretDemolition.registerPlinth(id, structure);
     }
 
     /** A shield generator's dome comes into being with it, for whichever side spawned it. */
@@ -3764,6 +3773,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             groundAntiAir.tick(this);
             airToAir.tick(this);
             airSystem.finishMissileContacts();
+        } else {
+            groundAntiAir.tickFliersOnly(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
@@ -3815,6 +3826,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        swarmFliers.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
@@ -3903,7 +3915,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechTurretSystem.tick(TICK_DT, directControl.controlledMechId(), directControl.pointAim());
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
-                directControl.intent().aimY(), directControl.sprintStatus().sprinting());
+                directControl.intent().aimY(), directControl.sprintStatus().sprinting(),
+                directControl.leftSpecial() == null ? null : new HeldSpecialPose(
+                        directControl.marineLeft().readiness(), directControl.marineLeft().sinceFired()));
         ravRunnerRigSystem.tick(TICK_DT);
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
@@ -4103,6 +4117,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } else {
             if (waitsAtFireEdge(u)) return;
             movement().advanceAlongPath(world, u, TICK_DT);
+            // A route the mover has been walking for seconds without getting anywhere is dropped,
+            // so its order plans a fresh one from where it stands; see MovementService.stalledOnRoute.
+            if (!movement().settled(u) && movement().stalledOnRoute(u)) navigation.clearPath(u);
         }
     }
 
@@ -4200,7 +4217,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return heavy.fireMountAtPoint(shooter, mount, aim);
     }
 
-    /** Fires a carried launcher at a world point: a wall a company has been ordered to open. */
+    /**
+     * Fires a carried direct-fire special at a world point: a wall a company has been ordered to open, or a
+     * controlled Marine's left button on its launcher or rifle.
+     */
+    @Override
     public boolean fireSecondaryAtPoint(long shooter, float x, float y) {
         return infantry.fireSecondaryAtPoint(shooter, x, y);
     }

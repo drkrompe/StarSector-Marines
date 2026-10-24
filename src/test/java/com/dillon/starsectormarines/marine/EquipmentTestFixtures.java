@@ -18,7 +18,8 @@ public final class EquipmentTestFixtures {
         armory.unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SURPLUS);
         for (String id : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
                 SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
-                SpecialEquipmentRegistry.SMOKE_GRENADE_ID, SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)) {
+                SpecialEquipmentRegistry.SMOKE_GRENADE_ID, SpecialEquipmentRegistry.FRAG_GRENADE_ID,
+                SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)) {
             armory.unlockSecondary(id);
         }
         for (String id : List.of("armor.cordon-shell", "armor.lashplate-harness",

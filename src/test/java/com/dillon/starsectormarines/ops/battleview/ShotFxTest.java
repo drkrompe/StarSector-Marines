@@ -186,8 +186,11 @@ public class ShotFxTest {
             assertTrue(fx.travels(), "secondary body travels: " + w);
             assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
             assertEquals(w.weaponDef().boostRamp, fx.boostRamp(), "boostRamp for " + w);
-            assertTrue(w.weaponDef().fx.layers(FxSlot.TRAIL).isEmpty(),
-                    "secondary trail remains represented by its contrail ribbon");
+            // A contrail is the trail of a secondary that has one; a jet with no contrail (the flamer) may author its own.
+            if (fx.contrail() != null) {
+                assertTrue(w.weaponDef().fx.layers(FxSlot.TRAIL).isEmpty(),
+                        "secondary trail remains represented by its contrail ribbon: " + w);
+            }
         }
     }
 

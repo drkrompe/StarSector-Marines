@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b79-03b4-75f0-9370-0986474d0dc3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b79-03b4-75f0-9370-0986474d0dc3\\exec-6e0017d6-1054-4909-a788-933831d814ca.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\flamer\\raw\\flamer-wand.raw.png",
+    "sha256": "e3eb282010dec03c6354d545f1e83751efaa4ef6fc00c36ae653130677968780",
+    "dimensions": [
+      725,
+      2170
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\flamer\\flamer-wand.prompt.txt",
+  "promptSha256": "2492ab0a2d0d00fbec170a6451cf65b0afe2323161998f403c32fefe30645a7b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette and position\n\nUse case: sketch-to-render. Asset: the handheld wand of a flamethrower, seen from straight overhead and pointing straight up the image, for a gritty military dark-science-fiction tactical game: a futuristic descendant of the WW2 flamethrower gun. It is held at a soldier's hip and is only about 12 by 45 pixels in play over olive-green and blue-steel armour, so it must read at a glance: bold, high contrast, clear shapes. Image 1 is the authoritative geometry guide and edit target (320x1240). Reskin this exact object into a finished painted game sprite, preserving its silhouette and arrangement: the dark nozzle with its black mouth at the top, the small hazard-orange igniter block with an amber glow to the right of the nozzle, the long barrel, the wide perforated heat shroud with its row of dark vents, the dark fore grip, the hazard-orange valve and trigger housing with its alloy valve body, the dark rear grip and the hose fitting at the bottom end, all exactly where they are, with all transparent empty space around them. Material: blued and gunmetal steel with worn bright edges, a scorched and heat-tinted shroud and nozzle (bronze and blue temper colours near the tip), hazard-orange enamel with chipped paint, ribbed black rubber grips, brushed alloy valve. Straight overhead orthographic camera, no perspective, no cast shadow, no ground, no flame, no text, no labels, no watermark, no UI. Genuine transparent background outside the object silhouette. Hand-painted Starsector-like game sprite finish, utilitarian science fiction. Change only material, detail and subtle ambient shading, not placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\flamer-wand-guide.png",
+      "sha256": "163ebc41a02d13290a181c9292a472a71eb0607d99ba47b09213759d2cfbd315",
+      "dimensions": [
+        320,
+        1240
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette and position"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the supplied layout, preserving its silhouette and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 74076,
+    "cached_input_tokens": 60544,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 536,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 46.6
+}

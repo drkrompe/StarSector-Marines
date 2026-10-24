@@ -27,6 +27,7 @@ runs in Blender only and imports bpy inside its functions.
                         placed[key]['matrix'], log=print, shot_fx=spec.get('fx', ()))
 """
 import math
+import os
 import random
 import sys
 import zlib
@@ -40,6 +41,11 @@ for p in (HERE, KIT):
 
 FPS = 24
 MATCH_M = 15.0          # a shot's fx entry this close to a ledger hit is the shot drawing that hit
+# A hit inside a shot's span exists only if a drawn round, missile or beam causes it in that shot
+# (coordinator, 2026-10-24): it links to a drawn impact on her within LINK_S seconds and LINK_M
+# metres (a kill, anywhere on her), or the build fails. Fires, blasts and debris are consequences.
+LINK_S = .1
+LINK_M = 5.0
 MAX_FIRES = 2           # persistent fire volumes per ship per shot (volumes are the render's cost)
 MAX_VENTS = 1           # persistent vents per ship per shot
 MAX_SMOKE = 2           # persistent smoke threads per ship per shot
@@ -83,16 +89,19 @@ class Hit:
     opens), 'debris' (plating torn off), 'cut' (a mining laser's seam at -> to), 'kill'.
     frm: the side the hit came from (outward, ship frame); the hit is cast onto the hull along it.
     by: the shot fx kind that draws its moment ('tracer', 'blast_on', 'fire_on', 'smoke',
-    'debris', 'mining'), or None for a story hit this module keys itself.
+    'debris', 'mining'), 'missile' (a drawn missile's own burst is the moment; the hit is placed on
+    where it met her), or None for a story hit this module keys itself.
     burn_until: when its fire is out (seconds), None = still burning at the end.
-    vent_s: seconds of venting (default the level's)."""
+    vent_s: seconds of venting (default the level's).
+    cause: the id of an earlier hit on her whose fire, still burning, brings this one on (a cook-off
+    the fires reach): it links through that hit's drawn fire instead of a round of its own."""
 
     def __init__(self, ship, t, kind, sev, at, frm=(0, 0, 1), to=None, by=None, src='story', note='',
-                 burn_until=None, vent_s=None, size=None):
+                 burn_until=None, vent_s=None, size=None, cause=None):
         self.ship, self.t, self.kind, self.sev = ship, float(t), kind, int(sev)
         self.at, self.frm, self.to = tuple(at), tuple(frm), tuple(to) if to else None
         self.by, self.src, self.note = by, src, note
-        self.burn_until, self.size = burn_until, size
+        self.burn_until, self.size, self.cause = burn_until, size, cause
         self.vent_s = LEVELS[self.sev]['vent_s'] if vent_s is None else vent_s
 
     @property
@@ -125,85 +134,77 @@ def H(*a, **kw):
 # 1.5 s before, smoke 5 s before, a tracer's strikes through the shot.
 LEDGER = [
     # ---- WARDEN LEAD, the lead Lasher: hit turning back in S6, smoking into S9b, finished there
-    H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5),
-      src='story (S6; the Manticore at range, unseen)', note="the Manticore's light guns walk along her port bow as she comes about"),
-    H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), src='story (S6; the Falcon at 3.8 km is past the kit 6 s round limit)',
-      note="a Falcon (P) bolt holes her port quarter; she vents"),
-    H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 missiles manticore-p',
-      note='the hit that turns her: her forward deck opens and burns; smoking from here to S9b'),
-    H('lasher-lead', 103.5, 'breach', 3, (-20, 10, 6), (-.2, .5, 1), by='fire_on', src='S9b k4b fire_on',
-      note="the Falcon's point guns as she rolls in: her aft deck catches"),
-    H('lasher-lead', 104.6, 'debris', 2, (-10, 8, 0), (0, 1, 0), by='debris', src='S9b k4b debris',
-      note='plating shed off her port side as she dives'),
-    H('lasher-lead', 107.6, 'breach', 4, (-30, 0, 6), (0, 0, 1), by='tracer', src='S9b k4b tracer falcon-p',
-      note="the Falcon's broadside opens her stern: she tumbles away burning"),
-    H('lasher-lead', 106.9, 'rake', 1, (12, -4, 6), (0, 0, 1), to=(-18, -6, 6), by='tracer',
-      src='S9b k4b tracer falcon-p', note='the rest of the broadside walks her deck'),
+    # (her 53.8 s rake is cut: no drawn round or Harpoon reaches her then)
+    H('lasher-lead', 55.8, 'he', 2, (18, -2, -3), (.7, .7, 0), by='missile', src='S6 k3 missiles manticore-p',
+      note="the first Harpoon of the second salvo holes her bow; she vents"),
+    H('lasher-lead', 55.9, 'breach', 3, (15, -8, -9), (.2, .6, 1), by='missile', src='S6 k3 missiles manticore-p',
+      note='the hit that turns her: the next Harpoon opens her forward hull and it burns; smoking from here to S9b'),
+    H('lasher-lead', 103.71, 'breach', 3, (49, -5, 5), (-.2, .5, 1), by=('tracer', 'fire_on'),
+      src='S9b k4b tracer falcon-p + fire_on', note="the Falcon's guns as she rolls in: her forward deck catches"),
+    H('lasher-lead', 104.5, 'debris', 2, (53, -3, -4), (0, 1, 0), by=('tracer', 'debris'),
+      src='S9b k4b tracer falcon-p + debris', note='the second burst tears plating off her bow'),
+    # (her 106.9 s rake is cut: the Falcon's guns no longer bear by then)
+    H('lasher-lead', 107.6, 'breach', 4, (8, 4, 6), (0, 0, 1), by=('blast_on', 'debris'),
+      cause='lasher-lead@103.7:breach', src='S9b k4b fire from 103.7 s',
+      note='the fires spread aft along her deck and reach her magazine: she breaks up and tumbles away burning'),
 
-    # ---- Lasher A: burns in S6
-    H('lasher-a', 52.8, 'he', 2, (-12, 10, 5), (-.3, 1, .5), src='story (S6)',
-      note="a Falcon (P) bolt opens her port quarter before S6's still"),
-    H('lasher-a', 54.5, 'breach', 3, (-20, 10, 6), (-.2, .5, 1), by='fire_on', src='S6 k3 fire_on',
-      note='Lasher A burns'),
+    # ---- Lasher A: burns in S6, the Manticore (P)'s first Harpoon salvo after the Phaeton's
+    H('lasher-a', 53.2, 'breach', 3, (-4, 12, -5), (-.2, .5, 1), by=('missile', 'fire_on'), src='S6 k3 missiles manticore-p',
+      note='a Harpoon opens her flank: Lasher A burns'),
 
     # ---- WARDEN THREE, Lasher B: scored, gets away
-    H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3),
-      src='story (S6; the Falcon at range, unseen)', note="the Falcon's fire scores her starboard bow"),
-    H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8),
-      src='story (S6b; the Buffalo Mk.II at 3.8 km is past the kit 6 s round limit)', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
+    # (her S6 rake from the Falcon is cut: the Falcon's guns draw nothing at that range)
+    # (her S6b deck rake from the Buffalo Mk.II is cut with its fire: no hit without a visible shooter)
 
-    # ---- WARDEN FOUR, the merchant Wolf: a graze, gets away
-    H('wolf-m', 73.0, 'he', 1, (5, -8, 3), (0, -1, .2), src='story (S6c)',
-      note='a blaster graze as she chases the Wolves (P) through the gap'),
+    # ---- WARDEN FOUR, the merchant Wolf: gets away unhit
+    # (her S6c blaster graze is cut: nothing in S6c fires on her, and no hit lands without a visible shooter)
 
     # ---- WARDEN FIVE, the convoy's Hound: crippled in S6d
-    H('hound-m', 75.2, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
-      src='S6d k3e tracer hound-p-b', note="the second Hound (P)'s chaingun from below as she rolls"),
-    H('hound-m', 75.5, 'breach', 3, (-12, 4, 3), (-.6, .3, .7), by='fire_on', src='S6d k3e fire_on',
-      note='drives hit: her drive deck burns'),
-    H('hound-m', 77.4, 'he', 2, (-24, -3, 1), (-1, 0, .2), src='story (S6d)', vent_s=20.0,
-      note='a second round in the drive cluster: she loses thrust, venting (the camera kick at 77.4)'),
+    # timed to the second Hound (P)'s drawn rounds: her first burst lands on her from 76.2 to 77.25 s
+    H('hound-m', 76.2, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
+      src='S6d k3e tracer hound-p-b', note="the second Hound (P)'s guns from below as she rolls"),
+    H('hound-m', 76.5, 'breach', 3, (16, 10, -4), (-.6, .3, .7), by='tracer', src='S6d k3e tracer hound-p-b',
+      note="the burst breaks through her belly plating: it burns"),
+    H('hound-m', 77.25, 'he', 2, (-24, -3, 1), (-1, 0, .2), by='tracer', src='S6d k3e tracer hound-p-b', vent_s=20.0,
+      note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
 
     # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
     H('tarsus', 68.0, 'rake', 1, (-30, -8, 4), (-.3, -1, .5), to=(-44, -6, 3), by='tracer',
       src='S6c k3d tracer wolf-p-a', note='the Wolves (P) rake aft toward her drives as they pass'),
-    H('tarsus', 69.6, 'he', 2, (-44, 5, 2), (-1, .4, .4), by='tracer', src='S6c k3d tracer wolf-p-b',
-      note='a drive bell holed'),
-    H('tarsus', 70.5, 'breach', 3, (-40, 0, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d fire_on',
+    H('tarsus', 70.5, 'breach', 3, (-33, -7, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-a + fire_on',
       burn_until=102.0, note='drives shot out: fire burns up out of the breach (continuity), out before S10'),
-    H('tarsus', 84.0, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
-      src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her forward deck"),
+    H('tarsus', 81.42, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
+      src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her deck"),
 
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
-    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6),
-      src='story (S8-S9; the Mk.III cannot depress onto her until her flight changes)', note="the Mk.III's guns walk onto the port pod from above"),
+    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6), by='tracer',
+      src='S8-S9 k4 tracer colossus3', note="the Mk.III's guns walk onto the port pod from above"),
     H('colossus', 93.5, 'breach', 3, (-55, 36, 4), (-.3, 1, .5), by='fire_on', src='S8-S9 k4 fire_on',
       note='the port pod burns, and burns into the atmosphere'),
     H('colossus', 94.9, 'he', 4, (-62, 30, 0), (-.4, 1, .2), by=('blast_on', 'debris'), src='S8-S9 k4 blast_on + debris',
       vent_s=40.0, note='the port tug pod is shot out: torn open, its lines venting'),
     H('colossus', 108.0, 'he', 2, (-62, -30, 0), (-.4, -1, .2), src='story (between S9b and S10)', vent_s=40.0,
       note='the starboard pod failing: an overstrained plate gives, venting'),
-    H('colossus', 113.3, 'debris', 3, (-30, 0, 10), (0, 0, 1), by='debris', src='S10 k5 debris',
+    H('colossus', 113.3, 'debris', 3, (-30, 0, 10), (0, 0, 1), by='debris', cause='colossus@93.5:breach', src='S10 k5 debris (her port pod fire, burning since 93.5 s)',
       note='her back starts to go: plating shed off the dorsal spine as she noses down; it burns'),
 
-    # ---- MORROW: under the Colossus's keel; scuffed, nothing more before the fall
-    H('morrow', 95.5, 'rake', 0, (-6, 6, 9), (0, .3, 1), to=(-18, 4, 9), src='story (S8-S9)',
-      note="the port pod's debris scuffs her back as she takes the weight"),
+    # ---- MORROW: under the Colossus's keel, untouched before the fall (her 95.5 s scuff is cut: no
+    # drawn round reaches her)
 
     # ---- BARON, the Falcon (P): shield overloaded, flank opened in S9b, still burning in S10
-    H('falcon-p', 104.8, 'rake', 1, (40, -30, 6), (0, -.6, 1), to=(0, -34, 4), by='tracer',
+    H('falcon-p', 104.62, 'rake', 1, (40, -30, 6), (0, -.6, 1), to=(0, -34, 4), by='tracer',
       src='S9b k4b tracer lasher-lead', note="the Lasher's guns walk down the open flank after the overload"),
-    H('falcon-p', 105.0, 'breach', 3, (-20, -14, 4), (-.3, -.6, .7), by='blast_on', src='S9b k4b blast_on',
+    H('falcon-p', 104.79, 'breach', 3, (14, -5, -5), (-.3, -.6, .7), by=('tracer', 'blast_on'),
+      src='S9b k4b tracer lasher-lead + blast_on',
       note='hit hard: the flank opens and burns; still burning in S10 (continuity)'),
-    H('falcon-p', 106.0, 'he', 2, (-45, -20, 2), (0, -1, .4), src='story (S9b)', vent_s=20.0,
+    H('falcon-p', 108.04, 'he', 2, (-11, 31, 10), (0, -1, .4), by='tracer', src='S9b k4b tracer lasher-lead', vent_s=20.0,
       note="the Lasher's last rounds hole her further aft, venting"),
 
     # ---- the Manticore (P): scored by the lead's guns
-    H('manticore-p', 55.5, 'rake', 1, (25, 8, 4), (.4, 1, .3), to=(10, 10, 4),
-      src='story (S6; the lead at 3.4 km is past the kit 6 s round limit)', note="the lead's light MGs as she turns back"),
+    # (her S6 rake from the lead is cut: the lead's guns draw nothing at that range)
 
     # ---- Wolf (P) A: grazed, then cut by a Borer
-    H('wolf-p-a', 56.8, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
+    H('wolf-p-a', 57.5, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
       src='S6 k3 tracer lasher-b', note="Lasher B's fire"),
     H('wolf-p-a', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
@@ -212,8 +213,8 @@ LEDGER = [
     H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
     # ---- Wolf (P) B: a graze through her shield
-    H('wolf-p-b', 72.4, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
-      src='S6c k3d tracer mule', note="the Mule's guns, mostly on her shield"),
+    H('wolf-p-b', 72.67, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
+      src='S6c k3d tracer colossus', note="the Colossus's guns, mostly on her shield"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
     H('kite-p-b', 96.5, 'he', 2, (-10, -10, 3), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
@@ -224,38 +225,42 @@ LEDGER = [
     # ---- HOOK, the Colossus Mk.III: the Colossus fires up into her belly
     H('colossus3', 96.0, 'rake', 1, (20, 10, -6), (0, .3, -1), to=(0, 12, -6), by='tracer',
       src='S8-S9 k4 tracer colossus', note="the Colossus's turrets score her belly"),
-    H('colossus3', 99.5, 'rake', 1, (-10, -6, -7), (0, -.3, -1), to=(-25, -4, -7), src='story (S9)',
+    H('colossus3', 99.5, 'rake', 1, (-10, -6, -7), (0, -.3, -1), to=(-25, -4, -7), by=('tracer', 'mining'),
+      src='S8-S9 k4 tracer colossus / mining borer-a, borer-b',
       note='a second burst as she swings her grapples away'),
 
     # ---- the Hounds (P) the convoy kills
-    H('hound-p-c', 60.0, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4),
-      src='story (S6b; Lasher B is out of reach until after the kill)', note='bare armour soaks the first burst'),
+    H('hound-p-c', 61.1, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4), by='tracer',
+      src='S6b k3c tracer wolf-m', note="bare armour soaks the merchant Wolf's first rounds to land"),
     H('hound-p-c', 61.6, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
       src='S6b k3c tracer wolf-m'),
-    H('hound-p-c', 61.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
-      note='the Ammo Feeder burst breaks her up'),
-    H('hound-p-a', 75.0, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
-      src='S6d k3e tracer hound-m'),
-    H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
-      note='killed at close range'),
+    H('hound-p-c', 62.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
+      note="Lasher B's Ammo Feeder burst lands and breaks her up"),
+    H('hound-p-a', 75.75, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
+      src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
+    H('hound-p-a', 76.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
+      note="killed at close range by the convoy Hound's burst: she cooks off"),
 ]
 # Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
-    'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
-    'lasher-lead@106.9:rake': (-0.70, -0.64, 0.31), 'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
+    'hound-m@76.2:rake': (0.96, 0.04, -0.27),
+    'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
     'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
-    'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
-    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
-    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
-    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.0:rake': (0.97, 0.15, 0.18),
-    'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
-    'hound-p-c@60.0:rake': (0.92, 0.27, 0.30), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
-    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
-    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
+    'lasher-lead@103.7:breach': (0.98, -0.17, -0.06), 'falcon-p@104.8:breach': (0.69, 0.55, 0.46),
+    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@76.5:breach': (0.94, 0.01, -0.33),
+    'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.7:rake': (0.39, -0.36, -0.85),
+    'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.8:rake': (0.99, -0.08, 0.12), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
+    'tarsus@81.4:rake': (-0.27, 0.78, 0.57),
+    'hound-p-c@61.1:rake': (0.89, 0.14, 0.44),
+    'hound-p-c@62.8:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
+    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@57.5:rake': (0.62, 0.55, -0.56),
     'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
 }
+_orphans = sorted(set(SHOOTER_SIDE) - {_h.id for _h in LEDGER})
+if _orphans:        # a retimed hit keeps its id's old time here and would silently lose its side
+    raise RuntimeError(f'SHOOTER_SIDE names no ledger hit: {_orphans}')
 for _h in LEDGER:
     _h.frm = SHOOTER_SIDE.get(_h.id, _h.frm)
 LEDGER.sort(key=lambda h: (h.ship, h.t))
@@ -268,7 +273,9 @@ CLEAN = ('phaeton', 'mule', 'buffalo-a', 'buffalo-b', 'dram', 'buffalo2-a', 'kit
 
 # Shot fx on a ship that are not damage (none now: Morrow's Borers fight the attackers, they do not
 # cut at their own ship; owner, 2026-10-23).
-NOT_DAMAGE = set()
+# fx entries on a ship that land no hit in their shot: S6's Falcon on Lasher B and the lead on the
+# Manticore fire at a range their rounds do not close in the shot, so nothing of theirs lands
+NOT_DAMAGE = {('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p')}
 
 
 def hits(ship, until=None, since=None):
@@ -714,8 +721,58 @@ class _Builder:
         self.made['keyed'] += 1
 
 
+def _seg_dist(p, a, b):
+    """Metres from point p to the segment a-b (a point when b is None)."""
+    from mathutils import Vector
+    p, a = Vector(p), Vector(a)
+    if b is None:
+        return (p - a).length
+    b = Vector(b)
+    ab = b - a
+    u = max(0.0, min(1.0, (p - a).dot(ab) / max(ab.length_squared, 1e-9)))
+    return (p - (a + ab * u)).length
+
+
+def drawn_impacts(h, frame, impacts, fps=FPS):
+    """The drawn impacts that may cause hit h landing on `frame`: [(metres off her line, impact)],
+    nearest first. impacts: [(ship, first frame, last frame, (x, y, z) her frame metres, what)]."""
+    tol = LINK_S * fps + 1e-6
+    out = [(0.0 if h.kind == 'kill' else _seg_dist(im[3], h.at, h.to), im) for im in impacts
+           if im[0] == h.ship and im[1] - tol <= frame <= im[2] + tol]
+    return sorted(out, key=lambda x: x[0])
+
+
+def link_check(events, impacts, fps=FPS):
+    """Every in-shot hit (apply's events) against the drawn impacts: (rows, fails)."""
+    rows, fails = [], []
+    for ev in events:
+        h, f = ev['hit'], ev['frame']
+        if h.cause is not None:      # brought on by her own fire: that hit must be drawn and still burning
+            c = next((x for x in LEDGER if x.id == h.cause), None)
+            if c is not None and c.ship == h.ship and c.t < h.t and c.burning(h.t):
+                rows.append(f'link {h.id}: the fire of {c.id}, burning since {c.t:g} s')
+            else:
+                fails.append(f'{h.id} ({h.src}): its cause {h.cause} is no fire burning on her then')
+            continue
+        got = [x for x in drawn_impacts(h, f, impacts, fps) if x[0] <= LINK_M]
+        if got:
+            rows.append(f'link {h.id}: {got[0][1][4]} at {got[0][0]:.1f} m')
+        else:
+            near = drawn_impacts(h, f, impacts, fps)
+            mine = sorted((min(abs(im[1] - f), abs(im[2] - f)), im) for im in impacts if im[0] == h.ship)
+            why = (f'nearest drawn impact in time is {near[0][0]:.1f} m off ({near[0][1][4]} at ' + '({:.0f}, {:.0f}, {:.0f}))'.format(*near[0][1][3]) if near
+                   else f'no drawn impact on her within {LINK_S:g} s; nearest on her '
+                        + (f'{mine[0][0] / fps:.2f} s off at {mine[0][1][1] / fps:+.2f} s from the key ({mine[0][1][4]})'
+                           if mine else 'none in the shot'))
+            if os.environ.get('ASHARU_LINK_LIST'):     # every drawn impact on her, to retime a hit onto
+                why += '; on her: ' + ', '.join(f'{im[1] / fps:+.2f} s ' + '({:.0f}, {:.0f}, {:.0f})'.format(*im[3])
+                                                for im in sorted(impacts, key=lambda im: im[1]) if im[0] == h.ship)
+            fails.append(f'{h.id} ({h.src}): {why}')
+    return rows, fails
+
+
 def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print, shot_fx=None,
-          max_fires=MAX_FIRES, max_vents=MAX_VENTS, ctx_kit=None, look=None, max_smoke=MAX_SMOKE):
+          max_fires=MAX_FIRES, max_vents=MAX_VENTS, ctx_kit=None, look=None, max_smoke=MAX_SMOKE, impacts=None):
     """Every ledger hit on `ship_key` up to t_shot1, on that ship's ShipFx copy for one shot build.
 
     ship_fx: the placed ship's ShipFx (battle_blockout's placed[key]['fx']); a ship without a kit copy
@@ -727,7 +784,9 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
       persistent fire and vent volumes this ship may carry in this shot (0 for a shot that cannot
       afford volumes). ctx_kit: an open (ctx, kit) of this ship's kit() to build into, else one is
       opened here. look: 'v2' (the default, LOOK) or 'v1' (the control). max_smoke: how many smoke
-      threads (a volume each) this ship may trail in this shot.
+      threads (a volume each) this ship may trail in this shot. impacts: the shot's drawn impacts
+      (drawn_impacts): a hit a tracer draws is placed where a drawn round met her then, not where
+      the ledger authored it.
 
     Hits before t_shot0 are persistent: their scars (embers cooling by their age), their fires if
     still burning and their vents if still venting, up to the caps, the most severe and newest first.
@@ -746,7 +805,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     if ctx_kit is None:
         with ship_fx.kit() as ck:
             return apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix, log, shot_fx,
-                         max_fires, max_vents, ctx_kit=ck, look=look, max_smoke=max_smoke)
+                         max_fires, max_vents, ctx_kit=ck, look=look, max_smoke=max_smoke, impacts=impacts)
     ctx, _kit = ctx_kit
     b = _Builder(ctx, ship_key, ship_fx, matrix, frame_of, log, look or LOOK)
 
@@ -776,11 +835,25 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
             b.smoke(h, f, at, n)
             tag.append('smoke')
         rows.append(f'{h.t:6.1f} {h.kind:6} sev{h.sev} past' + (f' ({", ".join(tag)})' if tag else ''))
+    events = []
     for h in now:
         f = b.frame(h.t)
-        at, n = b.scars(h, f)
         tag = []
-        if drawn(h, on):
+        if impacts is not None and ({'tracer', 'missile', 'mining'} & set(h.bys)):
+            got = drawn_impacts(h, f, impacts)
+            if got and got[0][0] > LINK_M:      # where the drawn round met her, the burst's walk kept
+                import copy
+                from mathutils import Vector
+                d_ = Vector(got[0][1][3]) - Vector(h.at)
+                h0, h = h, copy.copy(h)
+                h.at = tuple(got[0][1][3])
+                h.to = tuple(Vector(h0.to) + d_) if h0.to else None
+                tag.append(f'placed on a drawn round {d_.length:.0f} m from its authored point, at ' + '({:.0f}, {:.0f}, {:.0f})'.format(*h.at))
+        at, n = b.scars(h, f)
+        events.append(dict(hit=h, frame=f))
+        if 'missile' in h.bys:
+            tag.append('moment drawn by its missile')
+        elif drawn(h, on):
             tag.append(f'moment drawn by the shot ({h.by})')
         else:
             b.moment(h, f, at, n)
@@ -801,7 +874,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     for r in rows:
         log(f'ASHARU damage {ship_key} {r}')
     log(f'ASHARU damage {ship_key} {t_shot0:g}-{t_shot1:g} s: {len(past)} past, {len(now)} in shot, {b.made}')
-    return dict(ship=ship_key, past=len(past), now=len(now), **b.made)
+    return dict(ship=ship_key, past=len(past), now=len(now), events=events, **b.made)
 
 
 def apply_all(placed, t_shot0, t_shot1, frame_of, log=print, shot_fx=None, **kw):

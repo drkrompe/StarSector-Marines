@@ -58,6 +58,9 @@ public final class EntitySpec {
     /** The capability the worn armour pattern declares, or null — most declare none. */
     public IntegralSystemDef integralSystem;
     public int secondaryAmmo;
+    /** The thrown item stowed in the second special slot, the belt, or null; only seeded beside a special. */
+    public SpecialEquipmentDef beltEquipment;
+    public int beltAmmo;
     public AirBody body;
     /** Authoritative primary definition. */
     public WeaponDef primaryWeaponDef;
@@ -136,6 +139,11 @@ public final class EntitySpec {
     public EntitySpec specialEquipment(SpecialEquipmentDef equipment, int ammo) {
         this.specialEquipment = equipment;
         this.secondaryAmmo = ammo;
+        return this;
+    }
+    public EntitySpec beltEquipment(SpecialEquipmentDef equipment, int ammo) {
+        this.beltEquipment = equipment;
+        this.beltAmmo = ammo;
         return this;
     }
     public EntitySpec body(AirBody body) { this.body = body; return this; }

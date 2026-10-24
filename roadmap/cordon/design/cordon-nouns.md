@@ -3,6 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
+Updated: 2026-10-24 — escorted means alongside; a city's streets are its supply road; town armour on the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -111,7 +112,11 @@ wall once more. A relieved redoubt whose garrison is gone is held by the
 company while Marines stand in it. It has **fallen** when its garrison is dead
 and a swarm body is inside the wall. A
 fallen redoubt is not re-raised in the battle (see *Settled choices*). The line
-**breaks** when more redoubts have fallen than the briefing allows.
+**breaks** when more redoubts have fallen than the briefing allows. A redoubt
+is **given up** when the allied command orders its garrison out (beat L3): it
+no longer calls or falls, columns, carriers and armour no longer go to it, and
+it never counts against the line, so a beat's order cannot spend the player's
+allowance.
 
 **Tide.** The crisis the battle is timed round: every living bore's next
 surge brought forward to the same tick, and the swarm let out at the tide's
@@ -144,33 +149,65 @@ with the least garrison standing when it sets out, on either line; the Road's
 convoys are a different thing, sent for the town's people, not the line. A
 Road without columns had nothing to make good what each tide took from its
 redoubts, and broke in the second tide. If that redoubt falls before the column gets there, it is
-sent on to the next one. On arriving it joins the garrison as wall teams, so a
+sent on to the next one. A column that has come no cell nearer its
+destination for thirty seconds is asked whether it has **reached the front**.
+The mission says what counts: the Cordon says none has, so its columns go on to
+their redoubts; Broad Front says a column engaged on its own lane's ground has,
+and it joins its lane there. On arriving it joins the garrison as wall teams, so a
 redoubt a column reached stands with more than it started with. A column takes
 about two minutes to march up from the rear, so the timetable sends each one
-two minutes before a tide. The column is scripted (`AlliedColumns`, which is
+two minutes before a tide. Where the base has carriers forward (rural and town
+country) a column walks to the base's muster yard and is carried up from there
+(*Logistics base*); in a city it walks the whole way, in its two teams, to the
+redoubt that needs it most, a calling one first and then the one with the
+fewest standing. The column is scripted (`AlliedColumns`, which is
 mission-neutral: the mission says where it enters, where it goes and what
 joining means), not commanded by an allied commander; the full allied column
 system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
 **Logistics base.** The allies' depot behind the middle of the line: a
 fenced compound with a vehicle shed, stores and a muster yard
-(`FortressProgram.logisticsBase`). Its shed's berths build the allies' cars,
-technicals and carriers one at a time, at the pace its allied technicians weld
-them; the machine on the stocks is a real hull whose structure is how far
-built it is, gun empty until it is finished, so a swarm that reaches the base
-stops production by killing the crew or the hull. Allied columns walk in off
+(`FortressProgram.logisticsBase`). Its shed's berths build what the density's
+allied table lists (`cordon-allied-forces.md`), one machine at a time and round
+again, at the pace its allied technicians weld them: cars, technicals and
+carriers in open country, technicals and carriers with every third machine a
+Hound in a town, Hounds alone in a city. The machine on the stocks is a real
+hull or mech frame whose structure is how far built it is, gun empty until it
+is finished, so a swarm that reaches the base stops production by killing the
+crew or the machine. A finished Hound walks out of the shed on its own and
+joins the allied mechs (*Allied armour*); a hull is never drawn out of its berth
+onto ground a mech is standing on, nor laid on a berth one still stands in. Allied columns walk in off
 the rear edge to the muster yard and wait there. A carrier free at the base
 takes a waiting squad up to the redoubt that needs it most (a calling one
 first, then the fewest standing), sets it down behind the rear wall to join
-the garrison. Between carries a carrier is **support**: it stays behind the
-redoubt it fed and answers the nearest call as the armour does, beside the
-armour rather than on it. When squads wait at the base, one carrier a squad
+the garrison. In a town carriers are roadbound: one sets down only outside the
+redoubt's **rear gate** (the gap in its rear wall nearest the wall's middle,
+where the street through it leaves) and waits there between carries, never on
+the flanks. A city sends no carrier forward: its base builds none and opens
+with none, and its columns walk. Between carries a carrier is **support**: it stays behind the
+redoubt it fed and does not chase calls; only when that redoubt falls or is
+given up does it move, to the one a waiting squad would go to. When squads wait at the base, one carrier a squad
 goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
-redoubt as its home. The base opens with one carrier. **Supply roads** run from the
+redoubt as its home.
+
+The base is also the line's **producer** (`allied-tools.md`): besides the
+shed's line on its pace, it holds a small reserve the allied line command
+asks for by need, never on a timer. A sector left with no machines asks for
+an armour pair (a Hound pair in a city), at most one on its way at a time; a
+redoubt with a dry gun, or whose guns and tubes run low, asks for an **ammunition truck**, which
+drives its supply road and refills every gun tower, picket nest and mortar
+tube that redoubt holds. Each redoubt's guns spend rounds from that one stock;
+a gun with none left fires rationed, at a quarter of its rate. A request while
+the swarm is on the apron, or with nothing in stock, is refused, and asked
+again a little later (`cordon-allied-command.md`, The producer). Outside a city the base opens with one carrier. **Supply roads** run from the
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it; across a town's or a
-city's ground its own streets are the supply road.
+city's ground its own streets are the supply road: a truck's way to a redoubt
+whose road was not laid, or was cut off short of it, is the route a truck
+drives through the streets from the base to the rear gate, and it sets out on
+the first street outside the base. A redoubt no truck can drive to is sent
+none.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -199,12 +236,38 @@ allies' own command (`allied-command.md`), not the player's. Each has a
 **sector**: one redoubt it fights beside, out past a side wall and a few cells
 back from the front, where its gun reaches the ground in front of the wall (from
 behind the rear wall it reached nothing; a redoubt is deeper than a machine
-gun's range). The redoubt with the fewest hulls gets the next one, and a hull
-whose redoubt falls is given another. They do not chase calls: on a front
+gun's range). Every manned redoubt keeps a **floor** of cover: one machine in
+open country and towns, its Hound pair in a city. A new machine goes to the
+redoubt furthest under its floor, a sector that lost its machines first, then
+a calling one, then the fewest, the nearest breaking a tie; a machine whose
+redoubt falls is given another the same way. In a town hulls are
+**roadbound**: a sector's first hull stands on the street through or past its
+redoubt, and each later hull's flank post is moved to the nearest street cell
+within reach, the street nearest where it would have stood; not on the Road, where
+the town's main street is the convoys' road and a hull parked beside it stood
+in their way. They do not chase calls: on a front
 hundreds of cells wide a reserve sent to whichever redoubt called last spent
 the battle driving. The base's shed adds to them through the battle.
 They are the start of the allies fighting their
 own war (*The allies hold, the company decides*).
+
+**Allied mechs.** In a town and a city the allies field Hounds under the same
+command. A Hound's sector is a redoubt too, and it stands in that redoubt's
+**street mouths**: where the streets leave the ground in front of it toward the
+front, read along the row a few cells out from its front wall, nearest the
+redoubt's middle first (open ground where no street crosses that row, as in a
+town's fields). A mech is a machine of its sector as a hull is, counted to the
+same floor and given its redoubt by the same rule. A city's line opens
+with a Hound pair in each redoubt's mouths and a walking rifle team behind
+them, holding the mouth, and a mortar team in the redoubt's yard whose
+standing fire mission is the ground past the mouths (the owner's pick
+`cordon-urban-allies`, the mech lance, with mortars). A field mortar never
+fires a round with one of its own side under it, so the yard's tube fires on
+what the side has seen out past the mechs and holds while the swarm is among
+them; a town's Hounds come off the base's line. A mech pair holds a mouth
+but not every alley: the company clears a block the swarm has got into.
+What holds each sector, and what the base sends, by density:
+`cordon-allied-forces.md` (over the shared catalogue, `allied-tools.md`).
 
 **Refugees (the Line). People walking out of the region behind the line to
 the rear edge: groups of civilians leaving the rear villages on the
@@ -240,10 +303,25 @@ brings out six of the town's thirty-six, and two convoys must come back out.
 
 **Escort.** The allied armour escorts the convoys, and the company is the
 backstop (*The allies hold, the company decides*). From the moment a convoy
-sets out, the hulls nearest it leave their sectors and drive with it, one
-either side of the road a little ahead of its lead truck and a third further
-on, never on the road itself, where a parked car is in the trucks' way. They
-go back to their sectors when it is home. The company walks with a convoy only
+sets out, hulls leave their sectors and drive with it, one either side of the
+road a little ahead of its lead truck and a third further on, never on the
+road itself, where a parked car is in the trucks' way. Escorts come only out
+of the **surplus**: the nearest hulls whose sector stands above its floor, at
+most one from any one sector, never a calling redoubt's last; what the convoy
+cannot take that way it goes without. They go back to their sectors when it is
+home. An ammunition truck and R1's dozer are escorted the same way, one hull
+beside each, after the convoys, and only by an armed hull. A city fields no
+hulls, so there a truck or dozer with no hull free takes a **walking escort**
+out of the same surplus: a sector's Hound above its pair (a relief pair, a
+Hound off the gantry walking up), or a street mouth's rifle team while the
+sector's pair still stands (a team counts nothing toward the floor, so it is
+never a sector's last cover); hulls first, since a walker holds its truck to a
+walker's pace, and the team goes back to its mouth when the escort ends. **Escorted means
+alongside**: such a hull waits where it was set down until its escort is
+beside it, the pair drives at the slower one's pace, and it holds whenever the
+escort falls behind; with no escort free, or one that never came, it goes
+alone for good, and the company walks with it. The radio's Escorted counts an
+armed hull, a Hound or a street team within reach. The company walks with a convoy only
 where no armed allied hull is with it, which is where the armour has not come
 or has died, and clears the road ahead of one the swarm has halted. One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole
@@ -309,8 +387,9 @@ the whole width either side of the line: the redoubts stand as fortified blocks
 among streets and the front is suburbs. Density changes the country, not the
 places: the four redoubts, the base, the landing's country and, on the Road,
 the compound are where they are at every density. Dense country is ground for
-infantry and walkers more than for wheels, so the allies a city's Cordon fields
-should lean on mechs and walking columns rather than carriers (open work).
+infantry and walkers more than for wheels, so a town's allies keep their
+carriers to the streets and a city's Cordon fields mechs and walking columns
+and no carrier forward (`cordon-allied-forces.md`).
 
 The redoubts are programmed places (FortressProgram.fieldRedoubt, laid
 square), so they claim first and the rest grows round them. Their roads are
@@ -448,11 +527,23 @@ surges instead of waiting for headroom it never gets.
 
 ### The company
 
-Until `cordon-company-command.md`, the company's autonomous commander is the
-minimum the evidence needs: the company stands as the reserve behind the middle
-of the line, each squad goes to the calling redoubt nearest it, and returns to
-the reserve when no redoubt calls. It hears every call and knows where every
-redoubt stands; it sees the swarm only through its own squads.
+The company's autonomous commander hears the allies' **radio**: a redoubt is
+*breached* (the swarm inside its wall), *bled* (half its garrison down), and
+whether its sector is *uncovered* (it had armour or mechs and has none left),
+and the allies say whether help is coming (a carrier with a squad bound for
+it, or a column marching to it). It answers a breach with a two-squad
+**relief** that holds until the redoubt has been quiet for a settle window, a
+bleed only when no help is coming, an uncovered sector by holding its posts
+until a machine is back, the road's convoys and the optional objectives as
+before (a beat's truck or dozer only when no allied hull escorts it), and the
+base when it is overrun; outside a tide a third
+of the company stays uncommitted. The uncommitted wait by density: the reserve
+behind the middle of the line in open country, the hinge between the middle
+redoubts in a town (up in its gap in a tide), two hammers behind the redoubt
+pairs in a city. It knows where every redoubt stands and sees the swarm only
+through its own squads. The rules, and the allied line command's for its own
+machines: `cordon-allied-command.md`; posture and strikes:
+`cordon-company-command.md`.
 
 ### Evidence
 
@@ -461,9 +552,16 @@ every seed of the variant's pool through production construction, side by
 side, the checked-in fixture standing in for everything but the seed
 (`-Pfixture` plays exactly one). The report opens on a matrix, one row a seed. Asserted mechanics: the
 company lands, every tide the timetable reached came on its tick, a held line
-lost no more redoubts than allowed, a broken one says how. Read, not asserted:
+lost no more redoubts than allowed, a broken one says how, and a battle that
+ended did so through the Cordon's own outcome, never with it still running.
+Read, not asserted:
 the beats in order, each redoubt's state and garrison minute by minute, the
-swarm's size, and how it ended.
+swarm's size, and how it ended. Review frames (`-PsnapshotEveryTicks`, and the
+`cordon-mapgen` suite) name the Cordon's own places through one annotation set
+(`CordonReviewAnnotations`): each redoubt with its number and state, the gap
+redoubts, the bores, the logistics base, the town's compound, the landing field,
+the layout's pieces with any objective rolled on them, and where a running
+objective wants the company; never Conquest's keep, barracks or armory.
 
 ## Beats
 
@@ -501,7 +599,79 @@ with the same keys.
 | `convoys_lost` | the Road | PLAYER | Too many convoys are lost for enough to come out |
 | `convoys_short` | the Road | PLAYER | The window closed with too few convoys out |
 | `line_broken` | both | PLAYER | More redoubts have fallen than the briefing allows |
+| `company_lost` | both | PLAYER | The company is wiped out (no Marine on the ground or still to come down); read before every other end rule |
 | `cordon_held` | both | PLAYER | The battle is won |
+| `objective_<key>_started` | both | PLAYER | A rolled optional objective starts (at setup) |
+| `objective_<key>_succeeded` / `_failed` / `_lapsed` | both | PLAYER | It goes final (*Optional objectives*) |
+
+## Optional objectives
+
+The owner's twelve story beats (six a variant) are the Cordon's pool of
+optional objectives (`optional-objectives.md`), keyed below. A battle rolls a
+few of them against the set pieces its layout laid (`cordon-map-intent.md`):
+two or three in rural and town country, one or two in a city, where fewer set
+pieces stand. The owner's recommended beats (L1 to L3, R1 to R3) weigh twice
+the others. The roll is the battle seed's own, so the briefing shows the set
+the battle will run (`CordonSetup.briefingObjectives`). The board starts at
+setup and steps with the sequence; a beat asks the company for squads at its
+place, and the company's commander gives the beats at most half its squads,
+after the convoys and before calling redoubts; a squad on a beat keeps it rather than being
+re-chosen each frame. A beat's hulls (the ammo truck,
+the dozer) are the allies', driven by their own command and escorted out of
+the armour's surplus; the beat asks the company for its two squads only while
+no allied hull is with them or on its way to them. Evidence forces a set
+with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
+
+| Code | Key | Needs | Runs | Succeeds | Fails |
+| --- | --- | --- | --- | --- | --- |
+| L1 | `stragglers` | farmstead | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
+| L2 | `guns_dry` | ammo dump | At 5:00 one redoubt's gun towers (seeded, never the switch line's) run out of rounds and fire at a quarter rate; the allied line command asks the base for a truck, which drives its supply road (in a city, its streets); a redoubt no truck can reach is never chosen, and with none the beat lapses | A truck reaches the redoubt: its guns and tubes are full again | A truck bound there dies or the redoubt is lost first |
+| L3 | `switch_line` | switch line | At the second tide the switch line's middle redoubt is given up and its garrison ordered back | Most of those who set out are in the switch line | Too few are left alive for most |
+| L4 | `bore_behind` | eruption site | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
+| L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
+| L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
+| R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's dozer, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |
+| R2 | `truck_down` | none | Convoy 1's second truck, loaded, breaks down halfway between town and gap; its people walk back through the gap | Four are behind the line | Fewer than four can be |
+| R3 | `last_loading` | none | The last convoy waits two minutes longer at the gate | It leaves loaded | It is lost first |
+| R4 | `militia` | none | When the last convoy is at the gate the town militia go to the gap and hold it (allied, never the player's) | One reaches the gap | All die on the way (lapses when none is left to ride) |
+| R5 | `maw_on_road` | second road | At 5:30 a bore opens sixteen cells off the corridor past the gap, on the second road's side | Collapsed while a fissure | It grows: the convoys that set out after drive a corridor found again round it |
+| R6 | `gap_falls` | gap positions | When a gap redoubt falls (the battle's own fall, not scripted) the company holds the gap | No convoy lost since the fall, to the last convoy, or to the end of a won Road | A convoy lost since, the gap closed, or the Road lost (lapses if every convoy was already home) |
+
+R1 excludes R5 (a wreck on a road the convoys leave). Each beat is the
+simplest faithful form of the owner's card: the ammo truck appears at the
+base's gate rather than the dump, and "low" is a rationed rate of fire, not a
+magazine (a truck the base cannot send yet is asked for again until one goes); the granary is torched by bringing its walls down through the
+ordinary wall-damage path, not by fire; R2's broken truck is taken off the road
+rather than left as a wreck, so the convoys after it still drive; the dozer starts behind the gap, not at the base (from
+the base it lost the race to the first convoy on every long corridor), and a
+dozer standing at a shut road cell pushes it at the blade's rate even where
+its move order stopped it short of the blade bearing; it pulls aside onto
+the first cell square to the road past the wreck, either side and further out
+in turn, that is clear of the corridor and that it can drive to, and tries the
+next when its move order gives up on one (a fixed step off the road put it in
+a wall, and it stood wedged in the convoys' way); R4's militia
+stay allied; R6 waits for a natural fall, since a scripted one would spend the
+briefing's one allowed redoubt. A beat that never got its trigger lapses.
+
+**Rewards and costs.** Rewards are modest against a Cordon contract (a
+size-five world's pays about 25,000): credits and a little cargo. A failed
+beat's cost is a named key the Rav Bloom arc reads downstream; nothing here
+applies it.
+
+| Key | Reward | Cost on failure |
+| --- | --- | --- |
+| `stragglers` | 3,000 cr, 20 food | `bloom.cordon.refugees_lost` 6 |
+| `guns_dry` | 2,500 cr, 15 supplies | `bloom.cordon.redoubt_shaken` 1 |
+| `switch_line` | 3,000 cr, 5 heavy machinery | `bloom.cordon.garrison_lost` 1 |
+| `bore_behind` | 4,000 cr, 20 metals | `bloom.heart.satellites` 1 |
+| `last_hamlet` | 2,500 cr, 15 food | `bloom.cordon.refugees_lost` 6 |
+| `burn_granary` | 2,000 cr and the weaker tide | `bloom.heart.biomass` 1 |
+| `clear_road` | 3,000 cr, 5 heavy machinery | `bloom.cordon.road_delayed` 1 |
+| `truck_down` | 2,500 cr, 10 supplies | `bloom.cordon.townspeople_lost` 6 |
+| `last_loading` | 3,000 cr, 20 food | `bloom.cordon.townspeople_lost` 12 |
+| `militia` | 2,000 cr, grant `cordon.militia_joined` 1 | `bloom.cordon.militia_lost` 1 |
+| `maw_on_road` | 4,000 cr, 20 metals | `bloom.heart.satellites` 1 |
+| `gap_falls` | 3,500 cr, 20 supplies | `bloom.cordon.gap_lost` 1 |
 
 ## Laws
 

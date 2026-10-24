@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — the owner's flow picks settled; the battle as built (sleeping mothers, wake rules, beats).
+Updated: 2026-10-24 — Broad Front waves join a standing lane, and a column held at its lane's front joins there
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -125,6 +125,46 @@ about a sixth, a third, two thirds and five sixths of the way across, with the
 country road out of the middle of the farmland as the company's own. A lane is
 ground, not a corridor: a column may leave it, and the creep has grown over it.
 
+**Logistics base.** The allies' tool shed behind the start line: the layout's
+vehicle park, ammunition dumps and supply road (`heart-map-intent.md`), run as
+one producer over the shared catalogue (`allied-tools.md`). It holds each tool
+as stock and restocks it at a pace, and nothing sets out while the swarm is on
+the park, so losing the base is what stops the help. It never fights and never
+ends the battle.
+Fresh armour and ammunition reach it up the supply road: while the satellite
+beside the road has its swarm on the road (a **cut**, `heart.road_cut_<n>`, held
+ten seconds past the last body seen), the base restocks no armour pair, mech
+lance or truck, though what it holds can still go. Taking that satellite opens
+the road for good (F6). The gunship is not road-borne.
+- On Broad Front it holds all four of the owner's tools: armour pairs (one per
+  lane, at the old wave pace), mech lances in town and city, one gunship gated
+  on open air, and one ammunition truck.
+- On The Burn, which has no lanes, it holds ammunition trucks alone.
+Every truck in the heart comes from it, the B5 beat's included.
+
+**Rounds on hand.** The heart's own guns, the Burn's battery and the flak pits
+the beats dig, keep a stock of rounds per place (`GunStock`). Every barrage
+shell is a round off its gun, and a dry gun fires one shell in four. A place
+under half its rounds calls a truck from the base, and the truck's arrival
+refills it, so a base the swarm has cut off shows as a barrage thinning out.
+
+**Allied commander** (Broad Front). The lanes' own commander
+(`heart-allied-commander.md`): authored rules, not a general that weighs the
+field. It never orders the company and never ends the battle.
+- **How a lane goes forward:** from bore to bore as a screened advance, with
+  armour screening on open ground and militia screening through woods and
+  streets.
+- **When to call help:** a lane calls its next machines when it is
+  **uncovered** (it has lost a machine), broken, or **stalled** (its formation
+  pushed through two contacts at the cap in a row, clearing neither). In town
+  and city it asks for a mech lance first; elsewhere, an armour pair. A lane
+  never has two calls on the road. A broken lane the company has gone into does
+  not call: the company is plugging that gap.
+- **When to commit the gunship:** onto a Matriarch on a lane's armour, else the
+  bore a broken lane is on, else the bore the most stalled lanes are on. Only
+  with the air open. While the air is shut, the base shoots the colonies
+  keeping it shut instead, since nothing else in play reaches them.
+
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
 about three tenths and a half of the way in. Fire jumps up to three cells of
@@ -190,9 +230,10 @@ worse, because the front is held back behind the guns for longer.
 holds its fire while a friend stands in its lane, so armour posted behind its
 own militia mostly waits. The Burn's battlegroup armour posts four cells
 ahead of its infantry rather than four behind
-(`-Dbattle.heart.burnArmourBehind`), and on both forms a fresh tank and
-technical come up eight times, two minutes apart
-(`-Dbattle.heart.burnFrontArmourWaves`, `-Dbattle.heart.broadArmourWaves`).
+(`-Dbattle.heart.burnArmourBehind`), and a fresh tank and technical come up
+eight times, two minutes apart (`-Dbattle.heart.burnFrontArmourWaves`). On
+Broad Front those waves are the logistics base's stock, called up by need
+(Allied commander; `-Dbattle.heart.armourByNeed=false` is the timetable).
 Broad Front's armour stays behind (`-Dbattle.heart.broadArmourBehind`),
 because its lanes march into the overgrowth before the armour can follow.
 
@@ -201,7 +242,13 @@ committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
 and vehicles"). Its infantry comes in **waves**: the first steps off at the
 opening, one more as each of the barrage's first lines lifts, and more at a
 steady cadence once the barrage has ended, feeding the push on the mothers. A
-wave marches to wherever its lane is aimed now and joins the lane there. Its
+wave marches to wherever its lane is aimed now and joins the lane there. On
+Broad Front a lane that already stands has its next wave march to the lane
+itself, where its militia stand, and go on with it, rather than past it to the
+bore. A column held short of its bore by the fight on its own lane's ground has
+**reached the front** and joins there (`cordon-nouns.md`, Allied column): a bore
+spawns its own defenders, so the 12 cells of its mouth are ground no column
+reaches except by winning. Its
 armour is an escort APC, two technicals, two breakthrough tanks and a Hound
 pair, with a fresh tank and technical coming up every two minutes once the
 barrage has ended. It follows the barrage on its own line across the front, armour stepping with
@@ -258,7 +305,7 @@ a biome, never a market.
 | Woods | 70% of the wild ground | 80%: the fuel the burn runs through |
 | Cleared ground | a track along each of four allied lanes | two rides across the approach |
 | Water | none | the brook, about three fifths of the way in |
-| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front | 2-3 mothers, 3 satellites from 44% to 74% depth |
+| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6) | 2-3 mothers, 3 satellites from 44% to 74% depth |
 
 A plan states its country through its **landscape** (`mapgen-nouns.md`,
 Authored forests: a plan's landscape): how much of the wild ground is wood,
@@ -402,7 +449,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `landfall` | both | the first Marine is on the ground |
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
 | `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
-| `lane_broken_N` | Broad Front | lane N's column below a third of its strength |
+| `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |

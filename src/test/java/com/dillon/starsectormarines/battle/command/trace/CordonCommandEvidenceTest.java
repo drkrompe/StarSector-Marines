@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -89,7 +92,7 @@ class CordonCommandEvidenceTest {
                 .append("Every seed of the ").append(variant).append("'s story-map pool (`story-map-pools.md`), ")
                 .append(EvidenceFanOut.replayWording(repeat)).append(". Outcomes are readings, not assertions; ")
                 .append("each seed's report is in its own folder.\n\n")
-                .append("| biome | seed | outcome | winner | ended (min) | redoubts fallen |\n|---|---|---|---|---|---|\n");
+                .append("| density | biome | seed | outcome | winner | ended (min) | redoubts fallen | allies at the end | objectives | line command |\n|---|---|---|---|---|---|---|---|---|---|\n");
         JSONArray all = new JSONArray();
         List<String> broken = new ArrayList<>();
         for (int i = 0; i < fixtures.size(); i++) {
@@ -106,6 +109,7 @@ class CordonCommandEvidenceTest {
                     .put("schedulerMode", "SERIAL_DETERMINISTIC")
                     .put("fixture", selected.source())
                     .put("biome", selected.fixture().biome().name())
+                    .put("density", selected.fixture().density().name())
                     .put("seed", selected.fixture().seed())
                     .put("maxTicks", maxTicks)
                     .put("repeatCount", repeat)
@@ -115,16 +119,22 @@ class CordonCommandEvidenceTest {
                     .put("ticks", first.ticks())
                     .put("fallen", first.fallen())
                     .put("beats", first.beats())
+                    .put("objectives", first.objectives())
+                    .put("lineCommand", first.line())
                     .put("timeline", first.timeline());
             Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
             Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
-            all.put(new JSONObject().put("biome", selected.fixture().biome().name()).put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
+            all.put(new JSONObject().put("density", selected.fixture().density().name())
+                    .put("biome", selected.fixture().biome().name()).put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
                     .put("outcome", first.outcome()).put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
-                    .put("ticks", first.ticks()).put("fallen", first.fallen()));
-            matrix.append(String.format(Locale.ROOT, "| %s | %d | %s | %s | %.1f | %d |%n",
+                    .put("ticks", first.ticks()).put("fallen", first.fallen()).put("objectives", first.objectives())
+                    .put("lineCommand", first.line()));
+            matrix.append(String.format(Locale.ROOT, "| %s | %s | %d | %s | %s | %.1f | %d | %s | %s | %s |%n",
+                    selected.fixture().density().name().toLowerCase(Locale.ROOT),
                     selected.fixture().biome().name().toLowerCase(Locale.ROOT), selected.fixture().seed(),
                     first.outcome(), first.winner() != null ? first.winner() : "—",
-                    first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen()));
+                    first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen(),
+                    first.allies(), first.objectives().isEmpty() ? "—" : first.objectives(), first.line()));
             broken.addAll(mechanics(selected.id(), first));
         }
         if (pool) {
@@ -148,13 +158,28 @@ class CordonCommandEvidenceTest {
         }
         if ("BROKEN".equals(run.outcome()) && !(run.beatIds().contains("cordon.line_broken")
                 || run.beatIds().contains("cordon.gap_closed") || run.beatIds().contains("cordon.convoys_lost")
-                || run.beatIds().contains("cordon.convoys_short"))) {
+                || run.beatIds().contains("cordon.convoys_short") || run.beatIds().contains("cordon.company_lost"))) {
             broken.add(id + ": a broken cordon does not say how");
+        }
+        if (run.complete() && "RUNNING".equals(run.outcome())) {
+            broken.add(id + ": the battle ended with the cordon still running");
         }
         return broken;
     }
 
     private record Selected(CordonBattleFixture fixture, String id, String source) { }
+
+    /**
+     * The densities whose pools are played: {@code -P<prefix>.densities=town,urban} (forwarded as the system
+     * property), every density by default ({@code cordon-allied-forces.md}: what the allies field changes with it).
+     */
+    private static List<CordonPlan.Density> densities(String prefix) {
+        String named = System.getProperty(prefix + ".densities", "").trim();
+        if (named.isEmpty()) return List.of(CordonPlan.Density.values());
+        List<CordonPlan.Density> out = new ArrayList<>();
+        for (String d : named.split(",")) out.add(CordonPlan.Density.valueOf(d.trim().toUpperCase(Locale.ROOT)));
+        return out;
+    }
 
     /**
      * The fixture {@code -Pfixture} names, or else every seed of the variant's
@@ -166,11 +191,16 @@ class CordonCommandEvidenceTest {
         if (!selected.isBlank()) return List.of(new Selected(loadFixture(selected, variant), mission, selected));
         CordonBattleFixture template = loadFixture(fallback, variant);
         List<Selected> out = new ArrayList<>();
-        for (SurfacePalette biome : SurfacePalette.values()) {
-            String b = biome.name().toLowerCase(Locale.ROOT);
-            for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant)).entries(biome)) {
-                out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, biome, template.manifest()),
-                        mission + "-" + b + "-seed" + entry.seed(), fallback + " at pooled " + b + " seed " + entry.seed()));
+        for (CordonPlan.Density density : densities(prefix)) {
+            // Rural keeps its old ids, so a run reads against the runs before densities were played.
+            String d = density == CordonPlan.Density.RURAL ? "" : density.name().toLowerCase(Locale.ROOT) + "-";
+            for (SurfacePalette biome : SurfacePalette.values()) {
+                String b = biome.name().toLowerCase(Locale.ROOT);
+                for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant, density)).entries(biome)) {
+                    out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, biome, density, template.manifest()),
+                            mission + "-" + d + b + "-seed" + entry.seed(),
+                            fallback + " at pooled " + d + b + " seed " + entry.seed()));
+                }
             }
         }
         return out;
@@ -193,6 +223,16 @@ class CordonCommandEvidenceTest {
                 }
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
+            StringBuilder objectives = new StringBuilder();
+            ObjectiveBoard board = sim.getOptionalObjectives();
+            if (board != null) {
+                board.end(sim.getSimTickIndex());
+                for (ObjectiveResult result : board.results()) {
+                    if (objectives.length() > 0) objectives.append(", ");
+                    objectives.append(result.key()).append(' ').append(result.status().name().toLowerCase(Locale.ROOT));
+                }
+            }
             JSONArray beats = StoryBeatEvidence.snapshot(sim);
             List<String> ids = new ArrayList<>();
             for (StoryBeatLog.Event event : sim.getStoryBeats()) ids.add(event.id());
@@ -201,9 +241,12 @@ class CordonCommandEvidenceTest {
                 if (Math.round(seconds / BattleSimulation.TICK_DT) < sim.getSimTickIndex()) tidesDue++;
             }
             String winner = sim.getWinner() != null ? sim.getWinner().name() : null;
-            String report = report(runId, sim, cordon, winner, table.toString());
+            String report = report(runId, sim, cordon, winner, table.toString(), objectives.toString());
+            String allies = allies(sim, cordon);
+            String line = cordon.line() == null ? "—" : cordon.line().readings();
             return new RunResult(sim.getCommandTraceJsonLines(), sim.getSimTickIndex(), sim.isComplete(), winner,
-                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue, report);
+                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue, report,
+                    objectives.toString(), allies, line);
         }
     }
 
@@ -245,14 +288,18 @@ class CordonCommandEvidenceTest {
                 .put("minute", sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f)
                 .put("marines", marines).put("allies", allies).put("swarm", swarm)
                 .put("livingBores", bores).put("armour", hulls).put("armourAtCall", atCall)
+                .put("hounds", cordon.armour() == null ? 0 : cordon.armour().mechs().size())
+                .put("built", cordon.logistics() == null ? 0 : cordon.logistics().built())
                 .put("redoubts", redoubts)
-                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim));
+                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim))
+                .put("objectives", cordon.beats() == null ? new JSONArray() : new JSONArray(cordon.beats().describe(sim)));
     }
 
     private static String tableRow(JSONObject row) throws Exception {
-        StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "| %.0f | %d | %d | %d | %d | %d (%d) |",
+        StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "| %.0f | %d | %d | %d | %d | %d (%d) | %d | %d |",
                 row.getDouble("minute"), row.getInt("marines"), row.getInt("allies"), row.getInt("swarm"),
-                row.getInt("livingBores"), row.getInt("armour"), row.getInt("armourAtCall")));
+                row.getInt("livingBores"), row.getInt("armour"), row.getInt("armourAtCall"), row.getInt("hounds"),
+                row.getInt("built")));
         JSONArray redoubts = row.getJSONArray("redoubts");
         for (int i = 0; i < redoubts.length(); i++) {
             JSONObject r = redoubts.getJSONObject(i);
@@ -263,11 +310,12 @@ class CordonCommandEvidenceTest {
     }
 
     private static String report(String runId, BattleSimulation sim, CordonSequence cordon, String winner,
-                                 String table) {
+                                 String table, String objectives) {
         StringBuilder out = new StringBuilder("# Cordon evidence: ").append(runId).append("\n\n")
                 .append("Forced-serial, zero-input production Cordon (").append(cordon.variant())
                 .append("). Outcomes are readings, not assertions.\n\n")
-                .append("- Outcome: ").append(cordon.outcome()).append('\n')
+                .append("- Outcome: ").append(cordon.outcome())
+                .append(cordon.endBeat() != null ? " (" + cordon.endBeat() + ")" : "").append('\n')
                 .append("- Winner: ").append(winner != null ? winner : "—").append('\n')
                 .append(String.format(Locale.ROOT, "- Ended: tick %d (%.1f min)%n", sim.getSimTickIndex(),
                         sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f))
@@ -275,7 +323,10 @@ class CordonCommandEvidenceTest {
                 .append(" (").append(cordon.timetable().allowedFallen()).append(" allowed)\n")
                 .append("- Gap redoubts: ").append(cordon.gap()).append('\n')
                 .append("- Eruptions: ").append(cordon.eruptions()).append(" of ")
-                .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n");
+                .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n")
+                .append("- Optional objectives: ").append(objectives.isEmpty() ? "none" : objectives).append('\n')
+                .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
+                .append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")
@@ -292,7 +343,8 @@ class CordonCommandEvidenceTest {
                     .append(" lost of ").append(convoys.convoys()).append(" (")
                     .append(cordon.timetable().convoysNeeded()).append(" needed); townspeople ")
                     .append(convoys.peopleOut()).append(" out, ").append(convoys.peopleLost())
-                    .append(" lost, ").append(convoys.town()).append(" still in the town").append(NL);
+                    .append(" lost, ").append(convoys.town()).append(" still in the town")
+                    .append(convoys.detoured() ? "; the convoys took the detour" : "").append(NL);
             for (long truck : convoys.trucks()) {
                 GroundBody body = sim.convoy().body(truck);
                 out.append(String.format(Locale.ROOT, "  - Truck %d at %.0f,%.0f, structure %.0f/%.0f%s%s",
@@ -307,7 +359,8 @@ class CordonCommandEvidenceTest {
                     .append(cordon.logistics().queued()).append(" machines waiting to leave the shed, ")
                     .append(cordon.logistics().carriers().size()).append(" carriers and ")
                     .append(cordon.armour() == null ? 0 : cordon.armour().command().hulls().size())
-                    .append(" allied hulls alive\n");
+                    .append(" allied hulls alive, ").append(cordon.armour().mechs().size())
+                    .append(" allied Hounds alive\n");
             out.append("  - Machine door: ").append(cordon.logistics().doorX()).append(',')
                     .append(cordon.logistics().doorY()).append("; apron muster ")
                     .append(cordon.logistics().musterX()).append(',')
@@ -320,11 +373,18 @@ class CordonCommandEvidenceTest {
                         sim.world().maxHp(hull), refused == null ? "" : ", refused " + refused.reason()
                                 + " to " + refused.requestedX() + "," + refused.requestedY(), NL));
             }
+            for (long mech : cordon.armour().mechs()) {
+                // The armour forgets the dead at its next look; one killed since is not reported.
+                if (sim.resolveUnit(mech) == 0L || !sim.world().isAlive(mech)) continue;
+                out.append(String.format(Locale.ROOT, "  - Hound %d (%s) at %.0f,%.0f, structure %.0f/%.0f%s",
+                        mech, sim.identity().name(mech), sim.world().x(mech), sim.world().y(mech), sim.world().hp(mech),
+                        sim.world().maxHp(mech), NL));
+            }
             if (sim.getFabrication() != null) {
                 for (FabricationService.Works bay : sim.getFabrication().bays()) {
                     out.append("  - Shed bay ").append(bay.siteId).append(": ").append(bay.completed)
                             .append(" finished, on the stocks ").append(bay.hasFrame()
-                                    ? String.format(Locale.ROOT, "%s at %.0f%%", bay.vehicle,
+                                    ? String.format(Locale.ROOT, "%s at %.0f%%", bay.vehicle != null ? bay.vehicle : bay.chassis,
                                     100f * sim.world().hp(bay.frameId) / sim.world().maxHp(bay.frameId)) : "nothing")
                             .append('\n');
                 }
@@ -335,6 +395,9 @@ class CordonCommandEvidenceTest {
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")
                     .append(r.guns().size()).append('\n');
         }
+        if (cordon.beats() != null) {
+            for (String line : cordon.beats().describe(sim)) out.append("  - ").append(line).append('\n');
+        }
         out.append("\n## Beats\n\n| min | beat |\n|---|---|\n");
         for (StoryBeatLog.Event event : sim.getStoryBeats()) {
             out.append(String.format(Locale.ROOT, "| %.2f | %s |%n", event.tick() * BattleSimulation.TICK_DT / 60f,
@@ -343,9 +406,10 @@ class CordonCommandEvidenceTest {
         out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt). Convoys: each on "
                 + "the road, its lead truck's cell along the corridor")
                 .append(cordon.convoys() == null ? "" : " (the gap is cell " + cordon.convoys().gapIndex() + ")")
-                .append(", and why it is held.\n\n| min | marines | allies | swarm | bores | armour |");
+                .append(", and why it is held. Hounds: allied mechs alive. Built: machines off the base's shed so far.")
+                .append("\n\n| min | marines | allies | swarm | bores | armour | Hounds | built |");
         for (CordonRedoubt r : cordon.redoubts()) out.append(" redoubt ").append(r.number()).append(" |");
-        out.append(" convoys |\n|---|---|---|---|---|---|");
+        out.append(" convoys |\n|---|---|---|---|---|---|---|---|");
         for (int i = 0; i <= cordon.redoubts().size(); i++) out.append("---|");
         return out.append('\n').append(table).toString();
     }
@@ -369,5 +433,22 @@ class CordonCommandEvidenceTest {
     }
 
     private record RunResult(String trace, int ticks, boolean complete, String winner, String outcome, int fallen,
-                             JSONArray beats, List<String> beatIds, JSONArray timeline, int tidesDue, String report) { }
+                             JSONArray beats, List<String> beatIds, JSONArray timeline, int tidesDue, String report,
+                             String objectives, String allies, String line) { }
+
+    /**
+     * What the allies had at the end, for the matrix ({@code cordon-allied-forces.md}): machines the base built,
+     * Hounds and carriers alive, and machines still waiting to leave the shed (a jammed door shows here).
+     */
+    private static String allies(BattleSimulation sim, CordonSequence cordon) {
+        if (cordon.armour() == null) return "—";
+        int carriers = cordon.logistics() == null ? 0 : cordon.logistics().carriers().size();
+        int hulls = cordon.armour().command().hulls().size() - carriers;
+        String mortars = cordon.armour().mortarTeams().isEmpty() ? "" : String.format(Locale.ROOT,
+                ", mortar rounds %d fired, %d withheld", sim.fieldMortars().roundsFiredBy(Faction.ALLY),
+                sim.fieldMortars().roundsWithheldBy(Faction.ALLY));
+        return String.format(Locale.ROOT, "built %d, Hounds %d, carriers %d, hulls %d, queued %d%s",
+                cordon.logistics() == null ? 0 : cordon.logistics().built(), cordon.armour().mechs().size(),
+                carriers, hulls, cordon.logistics() == null ? 0 : cordon.logistics().queued(), mortars);
+    }
 }

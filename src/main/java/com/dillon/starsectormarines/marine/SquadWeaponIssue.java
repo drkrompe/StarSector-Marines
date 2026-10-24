@@ -21,9 +21,17 @@ public final class SquadWeaponIssue implements Serializable {
     private String primaryId;
     private EquipmentGrade grade;
     private String specialEquipmentId;
+    /** The thrown item issued in the billet's second special slot, the belt, or null. Older saves read null. */
+    private String beltEquipmentId;
 
     public SquadWeaponIssue(String role, String primaryId, EquipmentGrade grade,
                             String specialEquipmentId) {
+        this(role, primaryId, grade, specialEquipmentId, null);
+    }
+
+    /** As the four-argument issue, with {@code beltEquipmentId} (smoke or a hand grenade) on the belt. */
+    public SquadWeaponIssue(String role, String primaryId, EquipmentGrade grade,
+                            String specialEquipmentId, String beltEquipmentId) {
         this.role = role != null && !role.isBlank() ? role.trim() : "Marine";
         WeaponDef def = requirePrimary(primaryId);
         this.primaryId = def.id;
@@ -31,6 +39,11 @@ public final class SquadWeaponIssue implements Serializable {
         this.grade = grade != null ? grade : EquipmentGrade.SERVICE;
         this.specialEquipmentId = SpecialEquipmentRegistry.get(specialEquipmentId) != null
                 ? specialEquipmentId : null;
+        SpecialEquipmentDef belt = SpecialEquipmentRegistry.get(beltEquipmentId);
+        if (beltEquipmentId != null && (belt == null || !belt.isThrownItem())) {
+            throw new IllegalArgumentException("Belt item '" + beltEquipmentId + "' is not a thrown item");
+        }
+        this.beltEquipmentId = belt != null ? belt.id() : null;
     }
 
     public SquadWeaponIssue(String role, WeaponDef primary, EquipmentGrade grade,
@@ -46,6 +59,10 @@ public final class SquadWeaponIssue implements Serializable {
     public String specialEquipmentId() { return specialEquipmentId; }
     public SpecialEquipmentDef specialDef() {
         return SpecialEquipmentRegistry.get(specialEquipmentId);
+    }
+    public String beltEquipmentId() { return beltEquipmentId; }
+    public SpecialEquipmentDef beltDef() {
+        return SpecialEquipmentRegistry.get(beltEquipmentId);
     }
 
     private Object readResolve() {
@@ -65,6 +82,10 @@ public final class SquadWeaponIssue implements Serializable {
             LOG.warn("Clearing doctrine billet '" + role + "' unresolved special equipment '"
                     + specialEquipmentId + "'");
             specialEquipmentId = null;
+        }
+        if (beltEquipmentId != null && SpecialEquipmentRegistry.get(beltEquipmentId) == null) {
+            LOG.warn("Clearing doctrine billet '" + role + "' unresolved belt item '" + beltEquipmentId + "'");
+            beltEquipmentId = null;
         }
         return this;
     }

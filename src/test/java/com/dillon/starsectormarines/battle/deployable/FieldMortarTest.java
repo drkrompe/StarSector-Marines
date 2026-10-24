@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.deployable;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Phase;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService.Tube;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -238,6 +240,32 @@ class FieldMortarTest {
         Tube tube = awaitTube(sim, gunner, 120);
         advanceSeconds(sim, mortarItem().deployableEmplacementSpec().deployDuration() + 6f);
         assertEquals(0, tube.roundsFired(), "every enemy has a friendly inside the warhead's reach");
+    }
+
+    @Test
+    void anAlliedMilitiaCrewOnAFireMissionHoldsItsRoundForAMarineAndCountsItWithheld() {
+        SceneWorld world = SceneBuilder.openGround(MAP, ROW).missionCompletion(false)
+                .squad("team").faction(Faction.ALLY).type(UnitType.MILITIA).size(3).at(12, ROW / 2).primary(RIFLE)
+                .special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 1).stationary().done()
+                .squad("enemy").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(3)
+                .at(42, ROW / 2).primary(RIFLE).stationary().done()
+                .build();
+        BattleSimulation sim = world.sim();
+        long enemy = world.members("enemy")[0];
+        sim.spawn(new EntitySpec("friend", Faction.MARINE, UnitType.MARINE,
+                sim.world().cellX(enemy) + 1, sim.world().cellY(enemy)).moveSpeed(0f).health(1_000_000f));
+        // Militia see less than marines and seldom believe in enough to set a tube down on their own: a standing fire
+        // mission over the enemy's ground, which the side knows of, is what sets an allied militia tube down.
+        sim.assignSquadCommand(ObjectiveAssignment.defendArea(world.squadId("team"), 12, ROW / 2, 3)
+                        .withFireMission(new ObjectiveAssignment.FireMission(43, ROW / 2, 8)),
+                CommandAuthority.GARRISON, "test", "fire on the enemy's ground");
+        Tube tube = awaitTube(sim, world.members("team")[0], 240);
+        assertNotNull(tube, "an allied militia section on a fire mission sets its tube down");
+        advanceSeconds(sim, mortarItem().deployableEmplacementSpec().deployDuration() + 6f);
+        assertEquals(0, tube.roundsFired(), "a marine stands inside the warhead's reach of every enemy");
+        assertEquals(0, sim.fieldMortars().roundsFiredBy(Faction.ALLY));
+        assertTrue(sim.fieldMortars().roundsWithheldBy(Faction.ALLY) > 0, "the held rounds are counted for the side");
+        assertEquals(sim.fieldMortars().roundsWithheldBy(Faction.ALLY), tube.roundsWithheld());
     }
 
     // ---- fixtures ----

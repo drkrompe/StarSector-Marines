@@ -23,7 +23,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.LongPredicate;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
  * Data owner and serial lifecycle for crew-served tubes: the field mortar a
@@ -111,6 +113,7 @@ public final class FieldMortarService {
         volatile int rounds;
         /** Rounds this tube has fired since it was first set down, for evidence. */
         volatile int roundsFired;
+        volatile int roundsWithheld;
         /** Rounds fired at a body that stood on the tube's assigned fire mission, for evidence. */
         volatile int missionRoundsFired;
         /** The body the tube last chose on its mission, or 0, and the tick it last looked. */
@@ -142,6 +145,10 @@ public final class FieldMortarService {
         public long entityId() { return entityId; }
         public int rounds() { return rounds; }
         public int roundsFired() { return roundsFired; }
+        /** Rounds the crew held back because a friendly stood under where the round would fall. */
+        public int roundsWithheld() { return roundsWithheld; }
+        /** One round held back for a friendly under it. */
+        void noteWithheld() { roundsWithheld++; }
         public int missionRoundsFired() { return missionRoundsFired; }
         public long missionTarget() { return missionTarget; }
         public int loadedHeat() { return loadedHeat; }
@@ -179,6 +186,8 @@ public final class FieldMortarService {
     private final ThreadLocal<LongBucket> scratch = ThreadLocal.withInitial(LongBucket::new);
     /** The fire mission each squad's order carries now, read off the orders in the serial pass. */
     private final Map<Integer, FireMission> missions = new ConcurrentHashMap<>();
+    /** Rounds fired and rounds held back for a friendly under them, by side, over the whole battle: {@code [fired, withheld]}. */
+    private final Map<Faction, AtomicIntegerArray> roundsBySide = new ConcurrentHashMap<>();
     /** The sections working tubes now: the squad-level behaviour that halts a crew and leashes the rest of its squad. */
     private final MortarSections sections = new MortarSections();
     private int lost;
@@ -242,6 +251,65 @@ public final class FieldMortarService {
         if (rounds <= 0) return false;
         Tube tube = new Tube(carrier, faction, cellX, cellY, squadId, spec, structure, rounds, item);
         return byCarrier.putIfAbsent(carrier, tube) == null;
+    }
+
+    /** Refills a tube to its mount's capacity (an ammunition truck's delivery); returns the rounds added. */
+    public int rearm(Tube tube) {
+        int full = tube.structure.mount.ammoCapacity;
+        int added = Math.max(0, full - tube.rounds);
+        tube.rounds = Math.max(tube.rounds, full);
+        return added;
+    }
+
+    /**
+     * Refills every tube a squad serves, standing or packed, to its mount's capacity (an ammunition truck's delivery to
+     * the place the squad holds): a standing tube is rearmed, and a gunner's stash is emptied of its count, so the
+     * next set-down is full. Returns the tubes and stashes refilled.
+     */
+    public int restockSquad(int squadId, BattleView sim) {
+        int n = 0;
+        for (Tube tube : tubes()) {
+            if (tube.squadId != squadId) continue;
+            rearm(tube);
+            n++;
+        }
+        for (Long carrier : new ArrayList<>(stash.keySet())) {
+            if (!inSquad(carrier, squadId, sim) || byCarrier.containsKey(carrier)) continue;
+            stash.remove(carrier);
+            n++;
+        }
+        return n;
+    }
+
+    /**
+     * Rounds a squad's tubes hold, standing or packed, and what they hold full, {@code [rounds, full]}; {@code [0, 0]}
+     * for a squad that has not set a tube down yet, whose gunner still carries a full one.
+     */
+    public int[] squadRounds(int squadId, BattleView sim) {
+        int rounds = 0, full = 0;
+        for (Tube tube : tubes()) {
+            if (tube.squadId != squadId) continue;
+            rounds += tube.rounds;
+            full += tube.structure.mount.ammoCapacity;
+        }
+        StructureDef structure = null;
+        for (Map.Entry<Long, Integer> e : stash.entrySet()) {
+            if (!inSquad(e.getKey(), squadId, sim) || byCarrier.containsKey(e.getKey())) continue;
+            if (structure == null) structure = TurretCatalogRegistry.requireStructure(FIELD_MORTAR_STRUCTURE);
+            rounds += e.getValue();
+            full += structure.mount.ammoCapacity;
+        }
+        return new int[]{rounds, full};
+    }
+
+    /** The field mortar's emplacement, whose capacity a packed tube is counted against. */
+    static final String FIELD_MORTAR_STRUCTURE = "structure.deployable-field-mortar";
+
+    private static boolean inSquad(long carrier, int squadId, BattleView sim) {
+        long unit = sim.resolveUnit(carrier);
+        if (unit == 0L) return false;
+        Squad squad = sim.squadOf(unit);
+        return squad != null && squad.id == squadId;
     }
 
     /** Asks the gunner to lift the tube now (the player's or a commander's pack order). */
@@ -427,6 +495,24 @@ public final class FieldMortarService {
         return INCENDIARY_ROUND_HEAT;
     }
 
+    /** Counts one round of a tube's: fired, or held back because a friendly stood under where it would fall. */
+    public void countRound(Tube tube, boolean withheld) {
+        if (withheld) tube.noteWithheld();
+        roundsBySide.computeIfAbsent(tube.faction, f -> new AtomicIntegerArray(2)).incrementAndGet(withheld ? 1 : 0);
+    }
+
+    /** Rounds {@code faction}'s tubes have fired this battle. */
+    public int roundsFiredBy(Faction faction) {
+        AtomicIntegerArray n = roundsBySide.get(faction);
+        return n == null ? 0 : n.get(0);
+    }
+
+    /** Rounds {@code faction}'s tubes held back this battle for a friendly under them. */
+    public int roundsWithheldBy(Faction faction) {
+        AtomicIntegerArray n = roundsBySide.get(faction);
+        return n == null ? 0 : n.get(1);
+    }
+
     /** The fire mission {@code squadId}'s order carries, or null. */
     public FireMission missionOf(int squadId) {
         return squadId == Squad.NO_SQUAD ? null : missions.get(squadId);
@@ -450,7 +536,10 @@ public final class FieldMortarService {
         tube.missionLookTick = tick;
         float range = tube.structure.mount.weapon.range;
         float minRange = tube.structure.mount.weapon.minRange;
-        long pick = pickMissionTarget(mission, tube.faction, tube.cellX + 0.5f, tube.cellY + 0.5f, minRange, range, sim);
+        // Only a body the crew could call a round onto: one with nobody of the side's under where it would fall, so a
+        // mission over ground its own mechs and riflemen stand near picks the target clear of them rather than none.
+        long pick = pickMissionTarget(mission, tube.faction, tube.cellX + 0.5f, tube.cellY + 0.5f, minRange, range, sim,
+                id -> !friendlyUnderRound(tube, id, sim));
         tube.missionTarget = pick;
         return pick;
     }
@@ -470,6 +559,12 @@ public final class FieldMortarService {
      */
     public long pickMissionTarget(FireMission mission, Faction faction, float originX, float originY,
                                   float minRange, float maxRange, BattleView sim) {
+        return pickMissionTarget(mission, faction, originX, originY, minRange, maxRange, sim, id -> true);
+    }
+
+    /** As {@link #pickMissionTarget(FireMission, Faction, float, float, float, float, BattleView)}, of the bodies {@code clear} admits. */
+    public long pickMissionTarget(FireMission mission, Faction faction, float originX, float originY,
+                                  float minRange, float maxRange, BattleView sim, LongPredicate clear) {
         float cx = mission.cellX() + 0.5f;
         float cy = mission.cellY() + 0.5f;
         LongBucket bucket = scratch.get();
@@ -484,6 +579,7 @@ public final class FieldMortarService {
             float fromTube = (float) Math.hypot(sim.world().x(id) - originX, sim.world().y(id) - originY);
             if (fromTube < minRange + 0.5f || fromTube > maxRange) continue;
             if (!onMission(mission, id, sim)) continue;
+            if (!clear.test(id)) continue;
             boolean structure = sim.identity().type(id).isTurret();
             if (!structure) {
                 if (known == null) known = sideKnows(faction, sim);

@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.air.GroundWreck;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService.PodLaunch;
@@ -1030,6 +1031,28 @@ public final class UnitRenderService implements RenderSystem {
         return outfit != null && outfit.downed(poseIndex) != null;
     }
 
+    /** How wide a Harrier corpse's ichor spreads, in cells, once it has run its full spread. */
+    static final float HARRIER_ICHOR_CELLS = 1.8f;
+
+    /**
+     * The ichor a Harrier corpse lies in: one of the Runner's splats, the stain every burst Rav leaves, spreading
+     * from where the fall landed as a pool does. Nothing while the body is still falling.
+     */
+    private void harrierIchor(RenderContext ctx, DrawList out, long id, float x, float y, float facing, int pose,
+                              int ageTicks, ViewCull view) {
+        RavRunnerAssets ravArt = sprites.ravRunnerSprites();
+        if (ravArt == null || ravArt.splat == null || ravArt.splat.length == 0) return;
+        if (!view.visible(x, y, HARRIER_ICHOR_CELLS)) return;
+        if (ctx.sim.swarmFliers().falling(id)) return;
+        LayeredSpriteCache splat = ravArt.splat[Math.floorMod(pose + (int) (id % 7), ravArt.splat.length)];
+        BattleCamera cam = ctx.camera;
+        float size = cam.cellPxSize() * HARRIER_ICHOR_CELLS * bloodSpread(ageTicks * BattleSimulation.TICK_DT);
+        float alpha = ctx.alphaMult * pileFadeAlpha(ctx.sim.bodyPileCap().faded(id))
+                * meltAlpha(ctx.sim.creepDigestion().digested(id));
+        out.addSprite(RenderLayer.UNITS, splat.sprite, cam.cellToScreenX(x), cam.cellToScreenY(y),
+                size, size * splat.pxHeight / splat.pxWidth, facing, 1f, 1f, 1f, alpha);
+    }
+
     /** Heaves a second a carrier hauls its load with, and how far each heave jolts and rocks the body. */
     private static final float DRAG_HEAVE_HZ = 1.8f;
     private static final float DRAG_JOLT_CELLS = 0.05f;
@@ -1092,7 +1115,13 @@ public final class UnitRenderService implements RenderSystem {
                 int[] family = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
                 int[] deathTick = t.ints(c.CORPSE, BattleComponents.CORPSE_DEATH_TICK).array();
                 for (int r = 0, n = t.rowCount(); r < n; r++) {
-                    if (poseIdx[r] < 0 || !bleeds(family[r], poseIdx[r])) continue;
+                    if (poseIdx[r] < 0) continue;
+                    if (types[r] == UnitType.SWARM_HARRIER) {
+                        harrierIchor(ctx, out, t.entityAt(r), rx[r], ry[r], facing[r], poseIdx[r],
+                                now - deathTick[r], view);
+                        continue;
+                    }
+                    if (!bleeds(family[r], poseIdx[r])) continue;
                     if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
                             && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
@@ -1130,6 +1159,16 @@ public final class UnitRenderService implements RenderSystem {
                 float pileAlpha = pileFadeAlpha(faded);
                 float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
                 float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
+                if (type == UnitType.SWARM_HARRIER) {
+                    // A shot flier lies where its fall landed, as its look's corpse drawing.
+                    if (ctx.sim.swarmFliers().falling(t.entityAt(r))) continue;
+                    ShuttleSpriteCache lying = sprites.spriteByPath(HarrierLook.corpseAt(poseIdx[r]));
+                    if (lying == null) continue;
+                    float k = cam.cellPxSize() / HarrierLook.PX_PER_CELL * shrink;
+                    out.addSprite(RenderLayer.UNITS, lying.sprite, cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
+                            lying.pxW * k, lying.pxH * k, corpseFacing[r], 1f, 1f, 1f, alpha);
+                    continue;
+                }
                 if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
                         && deadBrute.dead()) {
                     // A dead Brute has burst as a Runner does, over the same ichor.
@@ -1632,12 +1671,15 @@ public final class UnitRenderService implements RenderSystem {
         AnimationClip clip = layouts.clip("marine-line", variantId, animationId);
         if (clip == null) return null;
         LayerPose sampled = clip.sample(phase);
-        if (moving && (pose == LayeredAppearance.POSE_AIMED
-                || pose == LayeredAppearance.POSE_FIRING)) {
-            // A primary-weapon action owns the upper body, but it must not
-            // erase locomotion while the simulation is still translating the
-            // marine. Keep the action body/head/weapon and take both feet from
-            // the current distance-driven stride sample.
+        if (moving && pose != LayeredAppearance.POSE_IDLE
+                && pose != LayeredAppearance.POSE_SMOKE_THROW
+                && pose != LayeredAppearance.POSE_SATCHEL_PLANT) {
+            // A weapon action owns the upper body, but it must not erase
+            // locomotion while the simulation is still translating the marine:
+            // a primary fired on the move, or a controlled Marine walking with
+            // the launcher or anti-materiel rifle its left button is on. Keep
+            // the action body/head/weapon and take both feet from the current
+            // distance-driven stride sample.
             AnimationClip walking = layouts.clip("marine-line", "rifle", "walking");
             if (walking != null) {
                 sampled = sampled.withLayersFrom(walking.sample(locomotionPhase),

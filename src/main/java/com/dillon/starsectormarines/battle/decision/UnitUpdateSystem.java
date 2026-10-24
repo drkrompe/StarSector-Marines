@@ -625,6 +625,7 @@ public final class UnitUpdateSystem implements AutoCloseable {
             case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
             case DRONE_PATROL:   return GoapDroneBehavior.INSTANCE;
             case SWARM_PRESSURE: return SwarmPressureBehavior.INSTANCE;
+            case SWARM_FLIER:    return StructureBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
@@ -644,7 +645,8 @@ public final class UnitUpdateSystem implements AutoCloseable {
             case KIT_RETRIEVER: return TickInnerProfile.Bucket.BEHAVIOR_KIT_RETRIEVER;
             case FLEE:          return TickInnerProfile.Bucket.BEHAVIOR_FLEE;
             case TURRET:        return TickInnerProfile.Bucket.BEHAVIOR_TURRET;
-            case STRUCTURE:     return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
+            case STRUCTURE:
+            case SWARM_FLIER:   return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
             case DRONE_HUB:     return TickInnerProfile.Bucket.BEHAVIOR_DRONE_HUB;
             case DRONE_PATROL:  return TickInnerProfile.Bucket.BEHAVIOR_GOAP_DRONE;
             case SWARM_PRESSURE:return TickInnerProfile.Bucket.BEHAVIOR_SWARM_PRESSURE;

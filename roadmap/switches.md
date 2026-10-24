@@ -47,6 +47,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.colonyBreach.strikes` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.command.conquest.balancedHomeTracks` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. |
 | `battle.conquest.attackerHoldsGround` | experiment | 2026-10-20 | Conquest command (2026-10-20): remove once commanderEvidence -Pmission=conquest accepts it. |
+| `battle.cordon.objectives` | control | 2026-10-23 | Permanent evidence lever: forces a Cordon battle's optional objectives (`all`, `none`, or keys / L1..R6) instead of rolling them, so commanderEvidence can exercise each beat on demand (cordon-nouns.md, Optional objectives). |
 | `battle.counterattack` | control | 2026-10-20 | Standing control: the commander-evidence counter-attack control (commander-evidence-missions.md). Its composed .<knob> evidence knobs (reserveShare, minStrength, ...) fold into constants when the counter-attack balance pass closes. |
 | `battle.creep.feedMultiplier` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.creep.spreadScale` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
@@ -55,6 +56,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fire` | control | 2026-10-22 | Standing control: master fire cost control that renderEvidence and the fire-colony/burn readings are measured against. |
 | `battle.fire.creepFilm` | experiment | 2026-10-22 | Fire: retire it, keeping the rule, once the owner accepts the bloom-m3 Burn re-render with 5-cell breaks. |
 | `battle.fire.laneDiscipline` | experiment | 2026-10-23 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
+| `battle.fire.spreadScale` | experiment | 2026-10-23 | Fire: a multiplier on each limited fuel's spread (0 = the old unbounded spread). Remove it with the losing arm once the owner picks how far a grass fire runs, folding the pick into `FireFuel`. |
 | `battle.fire.smoke` | control | 2026-10-22 | Standing control: the control loop of the fire-smoke scene verdict. Retire it with that loop. |
 | `battle.fire.stepOut` | control | 2026-10-22 | Standing control: the control loop of the fire-fear scene verdict. Retire it with that loop. |
 | `battle.fire.throwSafety` | control | 2026-10-22 | Standing control: the control loop of the fire-ignition kit scene verdict. Retire it with that loop. |
@@ -62,6 +64,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
+| `battle.heart.armourByNeed` | experiment | 2026-10-23 | Broad Front lanes call armour pairs from the vehicle park's tool shed by need, not on the waves' timetable (`heart-allied-commander.md`). Remove with the losing arm at the first played comparison once the owner answers `heart-allied-tool`; `false` is the control, the timetable. |
 | `battle.heart.broadArmourBehind` | experiment | 2026-10-23 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadArmourWaves` | experiment | 2026-10-23 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadCompanyArmour` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
@@ -80,7 +83,9 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.companySector` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.followBarrage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.frontage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
+| `battle.heart.gunshipPolicy` | experiment | 2026-10-24 | How the Broad Front commander risks its gunship, the owner's `heart-gunship` question (`HeartGunship.Policy`: REACHABLE_ONLY, ACCEPT_LOSSES, CLEAR_PATH, TOUGHER). Remove with the losing policies once the owner picks. |
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
+| `battle.heart.laneFormation` | experiment | 2026-10-23 | Broad Front lanes as screened advances, screen by country (`heart-allied-commander.md`). Remove with the losing arm once the owner answers `heart-lane-formation`; `false` is the control, straight to the bore. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
 | `battle.infantry.laneSidestep` | control | 2026-09-01 | Standing control: FiringLineScene runs the off arm as its control loop (behavior-scenes.md). Retire it with that loop. |
 | `battle.infantry.rejoin` | control | 2026-09-01 | Standing control: the control and contested-control loops of LateArrivalScene run the off arm. Retire it with those loops. |
