@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import org.junit.jupiter.api.Tag;
@@ -152,8 +153,10 @@ class StoryMapPoolEvidenceTest {
         try (BattleSimulation sim = built.sim()) {
             int laid = 0, pieces = 0;
             StringBuilder missing = new StringBuilder();
+            String dressing = "none";
             for (Laid piece : built.map().layout.pieces()) {
                 pieces++;
+                if (piece.name().equals(HeartLayout.ORIGIN_DRESSING) && piece.isLaid()) dressing = piece.reason();
                 if (piece.isLaid()) laid++;
                 else missing.append(missing.length() == 0 ? "" : ", ").append(piece.name())
                         .append(piece.reason().isBlank() ? "" : ": " + piece.reason());
@@ -162,6 +165,7 @@ class StoryMapPoolEvidenceTest {
                     + (BloomHeartSetup.originCore(built.map(), built.plan(), built.battleSeed()) == null ? " (no core)" : "")
                     + "; " + built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
                     + built.plan().landingPlace().seedY() + "; layout " + laid + " of " + pieces + " laid"
+                    + "; dressing " + dressing
                     + "; supply road " + BloomHeartSetup.supplyRoad(built.map(), built.plan()).size() + " cells"
                     + (missing.length() == 0 ? "" : " (not " + missing + ")");
         }

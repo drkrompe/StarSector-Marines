@@ -96,7 +96,7 @@ class DebugMissionCatalogTest {
     }
     @Test void locationGroupsKeepStoryOrderAndSeparateShelvedConcepts() {
         var catalog = DebugMissionCatalog.missions(null);
-        assertEquals(List.of("Jangala", "Asharu", "Warion", "Garnir", "Unfixed site", "Bloomed world"), DebugMissionScreen.locations(catalog, 0));
+        assertEquals(List.of("Jangala", "Asharu", "Warion", "Garnir", "Unfixed site", "Agreus", "Bloomed world"), DebugMissionScreen.locations(catalog, 0));
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
         assertEquals(List.of("01", "02", "03", "04", "R1", "R2", "R3"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());

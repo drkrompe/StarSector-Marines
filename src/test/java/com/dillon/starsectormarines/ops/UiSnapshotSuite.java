@@ -229,7 +229,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
-            "data/ui/components/armory/armory-armor-comparison.mlx");
+            "data/ui/components/fitting/fitting-filter-pill.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
@@ -396,12 +396,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, false, true)),
-                new SnapshotArtifact("fleet-armory-armor-comparison-wide.png",
-                        renderArmorComparison(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
-                new SnapshotArtifact("fleet-armory-armor-comparison-battlesuits-wide.png",
-                        renderArmorComparison(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("mech-lab-hardware-sheet-wide.png",
                         renderer.renderCanvas(new MechHardwareSheetCanvas(),
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -2371,43 +2365,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderArmorComparison(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
-        return renderArmorComparison(context, renderer, width, height, false);
-    }
-
-    /**
-     * @param scrolledToBattlesuits when true, scrolls past the light/line
-     *                              patterns to the tier-IV battlesuits, whose
-     *                              descriptions and integral-system lines are
-     *                              the longest text this surface renders — the
-     *                              case most likely to clip.
-     */
-    private static BufferedImage renderArmorComparison(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean scrolledToBattlesuits) throws Exception {
-        Reactor reactor = new Reactor();
-        MarineRoster roster = new MarineRoster();
-        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        collectArmorTemplates(roster);
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build(
-                reactor, "armory-armor-comparison", armorComparisonProps(viewModel))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            if (scrolledToBattlesuits) {
-                instance.requireElement("comparison-list").scrollTop(100_000f);
-            }
-            return renderRelative(renderer, document, width, height, 1f);
-        }
-    }
-
     /** A collected Armory fixture, distinct from the campaign's starter ownership. */
     private static void collectArmorTemplates(MarineRoster roster) {
         for (var armor : MarineArmorCatalogRegistry.installed().all()) {
@@ -2575,6 +2532,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 // bars show gains past stock and a shortfall below it.
                 new SnapshotArtifact("mech-lab-refit-stats-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "refit-stats")),
+                new SnapshotArtifact("mech-hover-installed-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "hover-installed")),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
                 SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
@@ -2662,6 +2621,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
         }
         if (weldingEvidence) viewModel.gantryRows().get().get(0).select().run();
+        if ("hover-installed".equals(materialHint)) viewModel.gantryRows().get().get(0).select().run();
         // Internals: the engine socket with an uprated engine hovered, then frame plating
         // with heavy plate hovered, so the budget line and meter ghosts show the trade.
         if (materialHint != null && materialHint.startsWith("internal-")) {
@@ -2822,7 +2782,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
                     && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")
-                    && !materialHint.startsWith("vehicle-")) {
+                    && !materialHint.startsWith("vehicle-") && !materialHint.startsWith("hover-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -2868,6 +2828,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     motionFrames.add(renderRelative(renderer, document, width, height, uiScale));
                 }
                 return motionFrames.get(Math.min(5, motionFrames.size() - 1));
+            }
+            // The pointer resting on a fitted missile pod, nothing in hand: the board names it.
+            if ("hover-installed".equals(materialHint)) {
+                float[] at = null;
+                for (float y = 0f; y < 2000f && at == null; y += 4f) {
+                    for (float x = 0f; x < 2000f; x += 4f) {
+                        SocketId socket = fittingCanvas.socketAt(x, y);
+                        MechWeaponComponent fitted = socket != null ? viewModel.installedWeapon(socket) : null;
+                        if (fitted != null && fitted.hardpointType == MechWeaponComponent.HardpointType.MISSILE) {
+                            at = new float[]{x + 24f, y + 40f};
+                            break;
+                        }
+                    }
+                }
+                if (at == null) throw new IllegalStateException("No fitted missile pod drawn on the doll");
+                fittingCanvas.pointAt(at[0], at[1]);
+                document.canvases().invalidate(instance.requireElement("mech-doll-canvas"));
             }
             renderRelative(renderer, document, width, height, uiScale);
             guide.update();
@@ -3233,8 +3210,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
-        props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
-        props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
         props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
         props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
         props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
@@ -3243,9 +3218,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
-        props.put("showArmorComparison", (Runnable) () -> { });
-        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
-        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("inspection", viewModel.inspection());
         props.put("transactionSummary", viewModel.transactionSummary());
@@ -3254,17 +3226,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("issueCargoClasses", viewModel.issueCargoClasses());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
-        props.put("back", (Runnable) () -> { });
-        putArmoryPageNavigation(props);
-        return props;
-    }
-
-    private static Map<String, Object> armorComparisonProps(FleetArmoryViewModel viewModel) {
-        Map<String, Object> props = new LinkedHashMap<>();
-        props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
-        props.put("armorComparisonCards", viewModel.armorComparisonCards());
-        props.put("backToFireTeams", (Runnable) () -> { });
         props.put("back", (Runnable) () -> { });
         putArmoryPageNavigation(props);
         return props;
