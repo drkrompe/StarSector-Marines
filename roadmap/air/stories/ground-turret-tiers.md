@@ -103,6 +103,8 @@ Presentation only, so a battle plays the same with or without them:
 - A plinth casts no shadow past its footprint; the renderer needs an overhang margin or a
   sun-offset shadow layer for it.
 - Missions choose the derelict style (nothing selects it yet).
+- Midline and high-tech styles, each prepared and militia: three draft directions per family are up for the owner
+  (`family_drafts.py`, `createSnapshots -Psnapshot=ground-turret-family-draft`); the chosen ones become full sets.
 - A scorch mark on the ground in front of the heavy cannon: the decal sheet has no scorch frame yet.
 
 ## Acceptance
