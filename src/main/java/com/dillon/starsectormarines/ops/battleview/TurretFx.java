@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
@@ -86,6 +87,27 @@ public final class TurretFx {
         ImpactDecals.spawnShellCasing(sim, rng, cx + rightX * out - fx0 * .2f, cy + rightY * out - fy0 * .2f);
     }
 
+    /**
+     * A hardpoint whose flux shield broke this step vents its capacitors: a burst of vapour off each corner of the
+     * plinth and a few sparks ({@link TurretFluxCapacitors} draws the cells dumping).
+     */
+    private void ventBrokenShields(BattleSimulation sim, ImpactFx fx, float dt) {
+        TurretShieldService shields = sim.turretShields();
+        for (int i = 0, n = shields.size(); i < n; i++) {
+            TurretShieldService.Fitted fitted = shields.at(i);
+            if (!(fitted.shield.sinceBreak() < dt) || !sim.world().isAlive(fitted.id)) continue;
+            float x = sim.world().x(fitted.id);
+            float y = sim.world().y(fitted.id);
+            for (int corner = 0; corner < 4; corner++) {
+                float cx = x + ((corner & 1) == 0 ? -1.1f : 1.1f);
+                float cy = y + ((corner & 2) == 0 ? -1.1f : 1.1f);
+                fx.spawnAmbientSmoke(cx + (rng.nextFloat() - .5f) * .3f, cy + (rng.nextFloat() - .5f) * .3f,
+                        .5f + rng.nextFloat() * .3f);
+                if (rng.nextFloat() < .6f) fx.spawnAmbientFire(cx, cy, .15f);
+            }
+        }
+    }
+
     /** Advances barrel smoke and damage smoke by one step of {@code dt} simulation seconds. */
     public void advance(BattleSimulation sim, ImpactFx fx, float dt) {
         for (ObjectIterator<Long2ObjectOpenHashMap.Entry<Barrel>> it = barrels.long2ObjectEntrySet().fastIterator();
@@ -103,6 +125,7 @@ public final class TurretFx {
             if (barrel.heat <= 0f) it.remove();
         }
         World world = sim.world();
+        ventBrokenShields(sim, fx, dt);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long id = sim.liveUnitAt(i);
             if (!sim.identity().type(id).isTurret() || !world.isAlive(id)) continue;
