@@ -37,6 +37,9 @@ public final class PurePursuit {
     private PurePursuit() {}
 
     /** Carrot point + progress cursor + the segment containing the carrot + an end-of-path flag. */
+    /** Distance, cells, at which a cell-path waypoint counts as reached even before the body crosses it. */
+    public static final float CELL_REACHED_RADIUS = 0.3f;
+
     public static final class Carrot {
         public final float x;
         public final float y;
@@ -114,6 +117,12 @@ public final class PurePursuit {
      * the {@code GridPathfinder} output shape), with each waypoint at the cell
      * center ({@code +0.5}). Same algorithm, no per-tick {@code float[]}
      * conversion — this is the infantry mover's carrot source.
+     *
+     * <p>One difference: an interior waypoint within {@link #CELL_REACHED_RADIUS}
+     * of the body also counts as passed. At a sharp bend the look-ahead, measured
+     * along the folded path, lands back beside the body, so the step it allows
+     * shrinks to almost nothing; any steady push holding the body short of the
+     * bend's perpendicular (formation steering, a crowd) then stops it for good.
      */
     public static Carrot pick(float bodyX, float bodyY,
                               int[] flatCells,
@@ -131,7 +140,8 @@ public final class PurePursuit {
             float segDy = (idx == 0) ? flatCells[3] + 0.5f - by : by - (flatCells[(idx - 1) * 2 + 1] + 0.5f);
             float toBodyDx = bodyX - bx;
             float toBodyDy = bodyY - by;
-            if (segDx * toBodyDx + segDy * toBodyDy >= 0f) {
+            if (segDx * toBodyDx + segDy * toBodyDy >= 0f
+                    || toBodyDx * toBodyDx + toBodyDy * toBodyDy <= CELL_REACHED_RADIUS * CELL_REACHED_RADIUS) {
                 idx++;
             } else {
                 break;

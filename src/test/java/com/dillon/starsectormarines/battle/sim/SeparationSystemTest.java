@@ -620,6 +620,30 @@ public class SeparationSystemTest {
     }
 
     @Test
+    public void formationMaySlowAWalkerButNeverTakeBackMoreThanHalfHisStep() {
+        BattleSimulation sim = openArena(40, 20);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long ahead = sim.spawn(new EntitySpec("ahead", Faction.MARINE, UnitType.MARINE, 20, 9).squad(squadId));
+        long behind = sim.spawn(new EntitySpec("behind", Faction.MARINE, UnitType.MARINE, 8, 9).squad(squadId));
+        sim.setPath(ahead, new int[]{20, 9, 36, 9});
+        sim.setPath(behind, new int[]{8, 9, 36, 9});
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        // The leader's slot is six cells back; this tick the follower stepped him one cell a second east.
+        BattleComponents c = sim.getBattleComponents();
+        float step = BattleSimulation.TICK_DT;
+        sim.getEntityWorld().setFloat(ahead, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, 1f);
+        float x = sim.world().x(ahead);
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        float moved = sim.world().x(ahead) - x;
+        assertTrue(moved < 0f, "pulled back toward the slot: " + moved);
+        assertTrue(moved >= -SeparationSystem.FORMATION_MAX_SLOWDOWN * step - 1e-5f,
+                "never more than half his own step: " + moved);
+    }
+
+    @Test
     public void divergentSquadOrdersDoNotCreateAFormationTug() {
         BattleSimulation sim = openArena(24, 20);
         SeparationSystem separation = separationFor(sim);

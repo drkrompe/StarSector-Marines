@@ -60,6 +60,12 @@ public final class MovementService {
      * it every repath-gated behavior would re-run findPath every tick.
      */
     public static final float REPATH_INTERVAL = 0.35f;
+    /** Seconds a mover may keep stepping along its route without getting {@link #STALL_PROGRESS_CELLS} from where it stood before the route is dropped. */
+    public static final float STALL_SECONDS = 3f;
+    /** Distance, cells, that counts as progress for the route-stall watch. */
+    public static final float STALL_PROGRESS_CELLS = 0.5f;
+    /** A gap this long between route steps means the mover was held on purpose, and the stall watch starts over. */
+    private static final float STALL_STEP_GAP_SECONDS = 0.1f;
     /** Arrival window in which a shared-destination infantry formation may finish settling. */
     public static final float FORMATION_MEMORY_SECONDS = 2f;
 
@@ -70,6 +76,7 @@ public final class MovementService {
 
     /** Sim clock for the repath throttle — advanced once per tick by {@link #beginTick}. */
     private float now;
+    private int routeStalls;
 
     private final UnitModifiers modifiers;
 
@@ -182,6 +189,46 @@ public final class MovementService {
         return settled(id)
                 || now - entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_LAST_REPATH_TIME) >= REPATH_INTERVAL;
     }
+
+    /**
+     * The safety net under the route follower: whether this mover has been
+     * stepping along its route for {@link #STALL_SECONDS} without getting
+     * {@link #STALL_PROGRESS_CELLS} from where it stood. Pushes the follower
+     * cannot see (formation, separation, a hull) can cancel its step exactly,
+     * and then nothing else ever notices: a route still in progress is never
+     * replanned. Called once per follower step; a gap between steps (an order
+     * holding the mover, a reflex, waiting at a fire's edge) starts the watch
+     * over, so only continuous trying counts. True once per stall, after
+     * which the watch restarts; {@link #routeStalls} counts them.
+     */
+    public boolean stalledOnRoute(long id) {
+        float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+        float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        float lastStep = entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_LAST_STEP);
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_LAST_STEP, now);
+        float dx = x - entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_ANCHOR_X);
+        float dy = y - entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_ANCHOR_Y);
+        boolean progressed = dx * dx + dy * dy > STALL_PROGRESS_CELLS * STALL_PROGRESS_CELLS;
+        if (progressed || now - lastStep > STALL_STEP_GAP_SECONDS) {
+            restartStallWatch(id, x, y);
+            return false;
+        }
+        if (now - entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_SINCE) < STALL_SECONDS) {
+            return false;
+        }
+        restartStallWatch(id, x, y);
+        routeStalls++;
+        return true;
+    }
+
+    private void restartStallWatch(long id, float x, float y) {
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_ANCHOR_X, x);
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_ANCHOR_Y, y);
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_STALL_SINCE, now);
+    }
+
+    /** Routes dropped by {@link #stalledOnRoute} so far this battle; evidence. */
+    public int routeStalls() { return routeStalls; }
 
     /** Stamp the repath throttle — called by {@code NavigationService.setPath} on every non-empty assignment. */
     public void markRepath(long id) {
