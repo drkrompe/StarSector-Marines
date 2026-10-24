@@ -2395,7 +2395,13 @@ width of his share of the line (a cell behind it), no more than a cell in front 
 the line, with a line of fire out along the front, so cover he could not shoot
 from is passed over. These places are settled with the claims, once per tick, so
 two squadmates never pick the same sandbag, and a marine keeps his while it still
-covers him. With no cover near, he holds his share, and with no prepared ground
+covers him. The line gives way to the fight only from nothing to something: a
+marine whose place gives no cover at all against the believed threat (a charge
+from the flank) moves, on the band, to medium cover or better against it that he
+can shoot back from, keeps it while that threat stands, and returns to the front's
+cover once it is gone; cover that helps at all against the incoming fire is kept,
+so the squad never trades the player's choice for a sidegrade of it. With no cover
+near, he holds his share, and with no prepared ground
 and no cover at all the squad forms a skirmish line along it. In a fight a marine
 fires from the place the line gave him while it gives him a shot, and looks for a
 better firing cell only within the line's band. Several selected squads share one drawn line end to

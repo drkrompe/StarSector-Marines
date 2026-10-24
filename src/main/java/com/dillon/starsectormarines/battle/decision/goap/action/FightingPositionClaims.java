@@ -265,7 +265,8 @@ public final class FightingPositionClaims {
                 before[i] = held == null ? -1 : held[1] * width + held[0];
             }
             int count = Math.max(1, squads.get(s).autonomousMemberCount(sim));
-            int[] open = LinePlacement.openCells(line, count, cells[s], before, width, probe, claimed);
+            int[] open = LinePlacement.openCells(line, count, cells[s], before, width, probe, claimed,
+                    orders[s].threatX(), orders[s].threatY());
             for (int i = 0; i < open.length; i++) {
                 if (open[i] < 0) continue;
                 nextOpenByMember.put(members[s][i], new int[]{open[i] % width, open[i] / width});
@@ -325,7 +326,9 @@ public final class FightingPositionClaims {
         }
         for (int cell : cells) if (cell >= 0) taken.add(cell);
         int count = Math.max(1, squad.autonomousMemberCount(sim));
-        return LinePlacement.openCells(line, count, cells, null, sim.getGrid().getWidth(), probe(sim), taken);
+        int[] threat = threatOf(squad);
+        return LinePlacement.openCells(line, count, cells, null, sim.getGrid().getWidth(), probe(sim), taken,
+                threat[0], threat[1]);
     }
 
     /** Where each member stands along {@code line}, parallel to {@code members}. */
