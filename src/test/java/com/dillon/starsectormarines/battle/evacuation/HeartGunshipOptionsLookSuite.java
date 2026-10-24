@@ -1,14 +1,14 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
-import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
-import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.testsupport.HeadlessBattles;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import org.json.JSONObject;
 
@@ -47,7 +47,7 @@ public final class HeartGunshipOptionsLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        SceneRegistries.installArmoury(context.projectRoot());
+        HeadlessStrings strings = HeadlessBattles.install(context.projectRoot());
         Map<HeartGunship.Policy, CompletableFuture<BattleSimulation>> played = new EnumMap<>(HeartGunship.Policy.class);
         ExecutorService pool = Executors.newFixedThreadPool(HeartGunship.Policy.values().length);
         try {
@@ -67,6 +67,7 @@ public final class HeartGunshipOptionsLookSuite implements SnapshotSuite {
             return out;
         } finally {
             pool.shutdownNow();
+            strings.close();
         }
     }
 
@@ -74,7 +75,7 @@ public final class HeartGunshipOptionsLookSuite implements SnapshotSuite {
     static BattleSimulation playToMoment(HeartGunship.Policy policy) {
         BattleSimulation sim;
         try {
-            sim = BattleFixtureJson.fromJson(new JSONObject(HeartCommanderLookSuite.FIXTURE)).build();
+            sim = HeadlessBattles.fixture(new JSONObject(HeartCommanderLookSuite.FIXTURE));
         } catch (Exception e) {
             throw new IllegalStateException("heart fixture", e);
         }

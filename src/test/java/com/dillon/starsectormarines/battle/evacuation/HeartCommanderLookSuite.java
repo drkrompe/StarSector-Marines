@@ -1,15 +1,15 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
-import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
-import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.testsupport.HeadlessBattles;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import org.json.JSONObject;
 
@@ -49,7 +49,7 @@ public final class HeartCommanderLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        SceneRegistries.installArmoury(context.projectRoot());
+        try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
         List<SnapshotArtifact> out = new ArrayList<>();
         String only = System.getProperty("snapshot.heartCommander.shots", "");
         if (only.isEmpty() || only.contains("armour"))
@@ -60,6 +60,7 @@ public final class HeartCommanderLookSuite implements SnapshotSuite {
         if (only.isEmpty() || only.contains("reaim"))
             out.addAll(LookReview.record(context.modRoot(), shot("commander-reaim", "wave_sent", 2700, 90f, true, 12)));
         return out;
+        }
     }
 
     /**
@@ -72,7 +73,7 @@ public final class HeartCommanderLookSuite implements SnapshotSuite {
         return new LookReview.Shot(name, LookGround.verdant(), 40, 30, placement -> {
             BattleSimulation sim;
             try {
-                sim = BattleFixtureJson.fromJson(new JSONObject(FIXTURE)).build();
+                sim = HeadlessBattles.fixture(new JSONObject(FIXTURE));
             } catch (Exception e) {
                 throw new IllegalStateException("heart fixture", e);
             }

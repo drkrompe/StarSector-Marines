@@ -1,22 +1,7 @@
 package com.dillon.starsectormarines.battle.probe;
 
-import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
-import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
-import com.dillon.starsectormarines.battle.power.CommandPowerResources;
-import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.marine.MarineRoster;
-import com.dillon.starsectormarines.ops.OpeningOperationKind;
-import com.dillon.starsectormarines.ops.ThunderRunEvidenceBattle;
-import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
-import com.dillon.starsectormarines.testsupport.HeadlessStrings;
-import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -25,9 +10,6 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * {@code gradlew battleProbe -Pbattle=<source> [-Pscript=<file>]}: stands one battle up and answers
@@ -57,9 +39,8 @@ public final class BattleProbeMain {
         PrintStream print = out.isBlank() ? System.out
                 : new PrintStream(Files.newOutputStream(Path.of(out)), true, StandardCharsets.UTF_8);
         long started = System.nanoTime();
-        // What the JUnit extensions install before every evidence test: disk catalogs and the mod's strings.
-        TileRegistryTestInstaller.install(Path.of(""));
-        try (var strings = new HeadlessStrings(Path.of("mod")); BattleSimulation sim = build(source)) {
+        // The construction the snapshot suites share, so a reading here reproduces in a clip.
+        try (var strings = HeadlessBattles.install(Path.of("")); BattleSimulation sim = HeadlessBattles.build(source)) {
             print.println("# " + source + " built in " + (System.nanoTime() - started) / 1_000_000 + " ms");
             BattleProbe probe = new BattleProbe(sim);
             BufferedReader reader = script.isBlank()
@@ -84,48 +65,4 @@ public final class BattleProbeMain {
         System.exit(0);
     }
 
-    static BattleSimulation build(String source) throws Exception {
-        int colon = source.indexOf(':');
-        String kind = colon < 0 ? source : source.substring(0, colon);
-        String rest = colon < 0 ? "" : source.substring(colon + 1);
-        return switch (kind) {
-            case "thunder-run" -> {
-                JSONObject fixture = options(rest);
-                if (!fixture.has("seed")) fixture.put("seed", 9301L);
-                yield ThunderRunEvidenceBattle.launched(fixture);
-            }
-            case "relief" -> {
-                JSONObject options = options(rest);
-                yield relief(options.optLong("seed", 1L), SurfacePalette.valueOf(options.optString("surface", "VERDANT")));
-            }
-            case "fixture" -> BattleFixtureJson.fromJson(new JSONObject(Files.readString(Path.of(rest)))).build();
-            default -> throw new IllegalArgumentException("unknown battle source: " + kind);
-        };
-    }
-
-    private static JSONObject options(String rest) throws Exception {
-        JSONObject options = new JSONObject();
-        for (String pair : rest.split(",")) {
-            if (pair.isBlank()) continue;
-            String[] kv = pair.split("=", 2);
-            options.put(kv[0].trim(), JSONObject.stringToValue(kv.length > 1 ? kv[1].trim() : "true"));
-        }
-        return options;
-    }
-
-    /** The Relief ground start: twelve named starter recruits ashore at tick zero, the employer's shuttle flying. */
-    private static BattleSimulation relief(long seed, SurfacePalette surface) {
-        TargetProfile profile = new TargetProfile(0, 0, 0, 0, "", Set.of(), surface, SettlementLink.ROAD);
-        int companySize = 12;
-        BattleSimulation sim = BattleSetup.createOpeningOperation(seed,
-                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)), 1, OpeningOperationKind.RELIEF, profile,
-                false, true);
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(companySize);
-        var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
-        var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, companySize);
-        BattleLaunchOverlay.capture(1, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, List.of(), 0, null)
-                .applyTo(sim, CommandPowerResources.FREE);
-        return sim;
-    }
 }
