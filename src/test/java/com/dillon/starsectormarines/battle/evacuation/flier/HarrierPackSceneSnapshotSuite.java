@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
@@ -124,6 +125,14 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                                     "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": %.4f,"
                                             + " \"volume\": %.3f, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
                                     frame[0], p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at[0], at[1]));
+                        }
+                        // A thrown marine's landing is SwarmAudio's body thud, posted as a cue; logged at its level.
+                        for (SwarmCues.Cue cue : s.swarmCues().cuesThisFrame()) {
+                            if (cue.kind() != SwarmCues.Kind.THROWN) continue;
+                            lines.append(String.format(Locale.ROOT,
+                                    "{\"frame\": %d, \"id\": \"marines_breach_body_thud\", \"x\": %.2f, \"y\": %.2f,"
+                                            + " \"pitch\": 1, \"volume\": 0.8, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
+                                    frame[0], cue.x(), cue.y(), at[0], at[1]));
                         }
                         // The line's fire too, at BattleShotAudio's levels, so the mix sets the fliers against it.
                         for (ShotEvent shot : s.getShotsThisFrame()) {
