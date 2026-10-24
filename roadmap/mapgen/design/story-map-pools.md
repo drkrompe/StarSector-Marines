@@ -55,7 +55,9 @@ those readings.
 **Density.** The Cordon is also laid out at its world's density (rural, town
 or urban, from the market size; `cordon-nouns.md`, Density), and each density
 is a story map of its own with its own pool: `cordon-line-town`,
-`cordon-road-urban` and so on. A density changes the whole map a seed names,
+`cordon-road-urban` and so on. The heart is the same (`heart-map-intent.md`,
+Density): `heart-front-town`, `heart-burn-city` and so on, rural, town and city
+each from the world's market size. A density changes the whole map a seed names,
 so it is vetted as a biome is.
 
 A pool **seed** is the battle seed itself: the map it names on its biome

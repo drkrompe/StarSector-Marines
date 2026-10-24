@@ -186,8 +186,7 @@ class MechInternalsTest {
 
     private static MechBay houndBay() {
         MechBay bay = new MechBay();
-        new MechWorkshop(bay, TestResources.stocked(500))
-                .fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
+        bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
         return bay;
     }
 

@@ -62,6 +62,26 @@ public final class CampaignMech implements Serializable {
 
     public String id() { return id; }
 
+    /**
+     * A chassis as it is bought: a bare frame, only its plating and factory-locked hardware
+     * fitted. Pictures of a pattern draw one, so nothing shows a gun the purchase does not bring.
+     */
+    public static CampaignMech frame(String id, MechVariant variant) {
+        CampaignMech mech = new CampaignMech(id, variant.displayName(), variant, variant.defaultRole,
+                MissileReplenisherComponent.STANDARD.id());
+        mech.stripToFrame();
+        return mech;
+    }
+
+    /** Takes off every weapon that is not factory-locked, the engine and the capacitor bank. */
+    void stripToFrame() {
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            if (weaponAt(slot) != null && !MechFrameBudget.integral(variant, slot)) installWeapon(slot, null);
+        }
+        installInternal(MechInternal.Role.ENGINE, null);
+        installInternal(MechInternal.Role.CAPACITOR_BANK, null);
+    }
+
     /** Acquisition preserves the recovered fit, including deliberately empty mounts. */
     public static CampaignMech fromDeployment(String id, MechDeploymentSpec fit) {
         CampaignMech mech = new CampaignMech(id, fit.displayName(), fit.variant(),

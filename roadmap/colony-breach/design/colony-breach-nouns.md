@@ -1735,18 +1735,23 @@ no voice. The Matriarch is the biggest of the Runner's and Brute's family and
 sounds it: only her roar (out of the bore and at each moult) and the whoosh
 and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
 wall breaking, pain and death are the Brute's, played deeper, slower and
-further apart. The Harrier is the other way round, lighter and quicker, and
-owns no take at all (`HarrierAudio`): quiet chitin wingbeats on the downstroke
-of the few fliers nearest the listener, the Runner's cry as a screech the moment
-each member's wings fold for the dive, the Runner's strike as its bite and its
-impale as the snatch of a marine it lifts, the Brute's body-hit where the throw
-lands, the Runner's yelp when flak hurts it, a Spitter's death shriek played
-lower as it is killed, and a lightened Brute hoof where its fall reaches the
-ground. It is read off the pack and its falls and throws rather than posted by
-them, so the flier's simulation stays silent. A pack does everything together,
-so each of its sounds is spaced twice: within the pack, so a staggered dive is a
-staggered cry rather than five copies of one clip, and more closely across the
-battle. Its gaps and jitter run on simulation time and a seed, so a replay
+further apart. The Harrier is the other way round, lighter and quicker
+(`HarrierAudio`): chitin wingbeats on the downstroke of every flier within
+earshot, its one take of its own, cut short from the Runner's clatter and
+levelled so a stroke is heard; the Runner's cry as a screech the moment each
+member's wings fold for the dive, its strike as the bite and its impale as the
+snatch of a marine it lifts, the Brute's body-hit where the throw lands, the
+Runner's yelp when flak hurts it, a Spitter's death shriek played lower as it is
+killed, and a lightened Brute hoof where its fall reaches the ground. It is read
+off the pack and its falls and throws rather than posted by them, so the flier's
+simulation stays silent. **A pack is heard by layering** (owner, 2026-10-24):
+several voices of one sound play at once, each quieter the more are sounding,
+so ten fliers are a thicker, somewhat louder sound than one without drowning
+the fire around them, and a lone flier's voice is set low for the same reason.
+Each sound's level is set from its borrowed takes' measured loudness, since
+those differ by some 25 dB. Two voices of one sound never start on one tick
+(the second waits a tick or two), and one flier does not repeat itself inside
+its own gap. Timing and jitter run on simulation time and a seed, so a replay
 sounds the same and a review can mix its soundtrack from the same rules.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction

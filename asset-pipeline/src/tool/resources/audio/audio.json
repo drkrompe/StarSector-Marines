@@ -805,6 +805,10 @@
     {"id": "marines_breach_matriarch_reap_1", "source": "colony-breach/sfx/marines_breach_matriarch_reap_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_matriarch_reap_2", "source": "colony-breach/sfx/marines_breach_matriarch_reap_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_matriarch_reap_3", "source": "colony-breach/sfx/marines_breach_matriarch_reap_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    // Colony Breach (tools/generate_colony_breach_audio.py),
     // Colony Breach (tools/generate_colony_breach_audio.py)
+    {"id": "marines_breach_harrier_wingbeat_1", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_harrier_wingbeat_2", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_harrier_wingbeat_3", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }

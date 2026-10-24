@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
-  <!-- 3 chevron(s): a weight class, drawn as rank. Dark detail over the chip's tone. -->
-  <polygon points="35,21 75,5 115,21 115,33 75,17 35,33" fill="#000000" fill-opacity="0.66"/>
-  <polygon points="41,23 75,10 109,23 109,25 75,12 41,25" fill="#ffffff" fill-opacity="0.4"/>
-  <polygon points="35,49 75,33 115,49 115,61 75,45 35,61" fill="#000000" fill-opacity="0.66"/>
-  <polygon points="41,51 75,38 109,51 109,53 75,40 41,53" fill="#ffffff" fill-opacity="0.4"/>
-  <polygon points="35,77 75,61 115,77 115,89 75,73 35,89" fill="#000000" fill-opacity="0.66"/>
-  <polygon points="41,79 75,66 109,79 109,81 75,68 41,81" fill="#ffffff" fill-opacity="0.4"/>
+  <!-- A weight block with its lifting ring, sized by class. Dark detail over the chip's tone. -->
+  <g transform="translate(75 97) scale(1.0) translate(-75 -97)">
+    <path d="M75,2 a19,19 0 1,0 0.01,0 Z M75,12 a9,9 0 1,1 -0.01,0 Z" fill="#000000" fill-opacity="0.66" fill-rule="evenodd"/>
+    <polygon points="44,40 106,40 126,96 24,96" fill="#000000" fill-opacity="0.66"/>
+    <rect x="48" y="47" width="54" height="5" fill="#ffffff" fill-opacity="0.4"/>
+  </g>
 </svg>

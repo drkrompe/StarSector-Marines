@@ -61,7 +61,7 @@ class MechRepairsTest {
     }
 
     private static FabricationCost chassisBill() {
-        return MechFabricationCatalog.chassis(MechVariant.BULWARK).cost();
+        return MechFabricationCatalog.standardFitCost(MechVariant.BULWARK);
     }
 
     private static int quantity(FabricationCost cost, String commodityId) {

@@ -76,9 +76,35 @@ public final class BloomHeartSetup {
         return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD);
     }
 
-    /** The story map a form plays from ({@code story-map-pools.md}). */
+    /** The story map a form plays from in open country ({@code story-map-pools.md}). */
     public static StoryMap storyMap(Form form) {
-        return form == Form.THE_BURN ? StoryMap.HEART_BURN : StoryMap.HEART_FRONT;
+        return storyMap(form, Density.RURAL);
+    }
+
+    /** The story map a form plays from in country as built-up as {@code density}: one pool each. */
+    public static StoryMap storyMap(Form form, Density density) {
+        boolean burn = form == Form.THE_BURN;
+        return switch (density) {
+            case RURAL -> burn ? StoryMap.HEART_BURN : StoryMap.HEART_FRONT;
+            case TOWN -> burn ? StoryMap.HEART_BURN_TOWN : StoryMap.HEART_FRONT_TOWN;
+            case CITY -> burn ? StoryMap.HEART_BURN_CITY : StoryMap.HEART_FRONT_CITY;
+        };
+    }
+
+    /** The form a heart story map is, or null for another mission's map. */
+    public static Form formOf(StoryMap map) {
+        for (Form form : Form.values()) for (Density density : Density.values()) {
+            if (storyMap(form, density) == map) return form;
+        }
+        return null;
+    }
+
+    /** The density a heart story map is laid out at; rural for any other map. */
+    public static Density densityOf(StoryMap map) {
+        for (Form form : Form.values()) for (Density density : Density.values()) {
+            if (storyMap(form, density) == map) return density;
+        }
+        return Density.RURAL;
     }
 
     /**
@@ -93,13 +119,12 @@ public final class BloomHeartSetup {
 
     /**
      * As {@link #country(Form, SurfacePalette, long)} in country as built-up as
-     * {@code density}. The pools hold open-country maps, so a town or city
-     * country is the first from the seed whose bores seat.
+     * {@code density}, from that density's pool.
      */
     public static Built country(Form form, SurfacePalette biome, Density density, long seed) {
-        StoryMapPool.Entry entry = density == Density.RURAL && StoryMapPools.installed()
-                ? StoryMapPools.pool(storyMap(form)).entry(biome, seed) : null;
-        if (entry != null) return country(form, biome, entry);
+        StoryMapPool.Entry entry = StoryMapPools.installed()
+                ? StoryMapPools.pool(storyMap(form, density)).entry(biome, seed) : null;
+        if (entry != null) return country(form, biome, density, entry);
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             Built built = build(form, biome, density, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
             if (built != null) return built;
@@ -110,9 +135,14 @@ public final class BloomHeartSetup {
 
     /** A pooled heart country: never re-rolled, so a pooled seed whose bores no longer seat is a broken pool. */
     public static Built country(Form form, SurfacePalette biome, StoryMapPool.Entry entry) {
-        Built built = build(form, biome, Density.RURAL, entry.seed(), entry.patch());
+        return country(form, biome, Density.RURAL, entry);
+    }
+
+    /** As {@link #country(Form, SurfacePalette, StoryMapPool.Entry)}, from the pool of a density. */
+    public static Built country(Form form, SurfacePalette biome, Density density, StoryMapPool.Entry entry) {
+        Built built = build(form, biome, density, entry.seed(), entry.patch());
         if (built == null) {
-            throw new IllegalStateException(storyMap(form).id + " " + biome + " seed " + entry.seed()
+            throw new IllegalStateException(storyMap(form, density).id + " " + biome + " seed " + entry.seed()
                     + " does not seat its bores");
         }
         return built;
@@ -148,10 +178,14 @@ public final class BloomHeartSetup {
         return new Built(sim, map, plan, heart, battleSeed);
     }
 
-    /** The heart as a campaign battle: the pooled map of the world's biome for a roll its event carries. */
-    public static BattleSimulation pooledMission(Form form, SurfacePalette biome, long roll,
+    /**
+     * The heart as a campaign battle: the pooled map of the world's biome and market size for a roll its event
+     * carries, a frontier world's farmland, a settled world's towns or a core world's city.
+     */
+    public static BattleSimulation pooledMission(Form form, SurfacePalette biome, int marketSize, long roll,
                                                  List<ShuttleAssignment> manifest) {
-        return mission(form, biome, StoryMapPools.pool(storyMap(form)).pick(biome, roll).seed(), manifest);
+        Density density = Density.of(marketSize);
+        return mission(form, biome, density, StoryMapPools.pool(storyMap(form, density)).pick(biome, roll).seed(), manifest);
     }
 
     /** Broad Front's company lane: satellites this share of the map's width either side of its landing are its own. */
