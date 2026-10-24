@@ -4,7 +4,7 @@
 
 Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials; Marine right button with grenades); step 5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — Marine grenades on the right button (step 4); held-weapon art question open
+Updated: 2026-10-23 — a second special slot (the belt) puts smoke and a grenade on one Marine; held-weapon art question open
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -110,8 +110,9 @@ firing stance from the waist up.
 - A Marine with a rocket launcher presses Q, fires one rocket at the cursor,
   presses Q again and is back on the rifle.
 - A Marine with a throw (smoke or a grenade) and a shield cycles the right trigger
-  between them (shipped). A Marine carries one special item, so smoke and a grenade
-  together would need a second special slot first.
+  between them (shipped). A Marine with smoke and a frag on the belt, the second special
+  slot, lists both throws and the shield, and either throw is used from the slot it rides
+  in (shipped; frame `active-marine-smoke-and-grenade` in `direct-control-ui`).
 - Nothing unpicked fires, except crewed defences, which keep intercepting.
 - The noun doc's "Mouse buttons and weapon groups" describes the cycle, and
   this story is folded and deleted.
