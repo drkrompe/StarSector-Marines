@@ -85,6 +85,8 @@ public final class MechLabViewModel {
     private final MutableSignal<MechInternal> hoveredInternal;
     /** Plating has no socket; while true the catalog lists plating instead of a socket. */
     private final MutableSignal<Boolean> platingSelected;
+    /** Stores list every part rather than what fits the selected mount. */
+    private final MutableSignal<Boolean> browsingStores;
     private final ComputedSignal<String> budgetText;
     private final ComputedSignal<String> budgetClasses;
     private final ComputedSignal<String> platingText;
@@ -94,6 +96,7 @@ public final class MechLabViewModel {
     private final Supplier<ShipCondition> shipCondition;
     private final ComputedSignal<List<FilterPill>> categoryFilterPills;
     private final ComputedSignal<String> categoryFilterClasses;
+    private final ComputedSignal<String> allPartsClasses;
     private final ComputedSignal<String> labSummary;
     private final ComputedSignal<List<SquadRow>> squadRows;
     private final ComputedSignal<List<MechRow>> mechRows;
@@ -197,9 +200,13 @@ public final class MechLabViewModel {
         hoveredWeapon = reactor.signal(null);
         hoveredInternal = reactor.signal(null);
         platingSelected = reactor.signal(false);
+        browsingStores = reactor.signal(false);
         categoryFilterPills = reactor.computed(this::buildFilterPills);
         categoryFilterClasses = reactor.computed(() -> categoryFilterPills.get().isEmpty()
                 ? "category-filters hidden" : "category-filters");
+        // Shown while one mount narrows the list, so the player can get back to every part.
+        allPartsClasses = reactor.computed(() -> selectedMech() != null && selectedVehicle() == null
+                && !browsingStores.get() ? "catalog-all-parts console-action" : "hidden");
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
         mechRows = reactor.computed(this::buildMechRows);
@@ -280,13 +287,14 @@ public final class MechLabViewModel {
             MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
             return buildSlots(layout.sockets().stream().map(SocketDef::id).toList());
         });
-        selectedSlotRows = reactor.computed(() -> platingSelected.get() ? List.<SlotRow>of()
+        selectedSlotRows = reactor.computed(() -> platingSelected.get() || browsingStores.get() ? List.<SlotRow>of()
                 : slotRows.get().stream().filter(row -> row.socketId() == selectedSlot.get()).toList());
         selectedSlotTitle = reactor.computed(() -> {
             if (fabricatingChassis()) return Strings.get("openingMechLabChassisPatterns");
             if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleHull");
             CampaignMech mech = selectedMech();
             if (mech != null && platingSelected.get()) return Strings.get("openingMechLabFramePlating");
+            if (mech != null && browsingStores.get()) return Strings.get("openingMechLabAllParts");
             if (mech != null) {
                 SocketDef def = MechFittingLayout.forVariant(mech.variant()).socket(selectedSlot.get());
                 if (def != null) return def.label();
@@ -613,11 +621,26 @@ public final class MechLabViewModel {
     public Consumer<String> editCallSignAction() { return this::editCallSign; }
     public Runnable renameCallSignAction() { return this::renameSelectedMech; }
     public Signal<String> categoryFilterClasses() { return categoryFilterClasses; }
+    public Signal<String> allPartsClasses() { return allPartsClasses; }
     public Signal<List<FilterPill>> categoryFilterPills() { return categoryFilterPills; }
     public Signal<CategoryFilter> catalogFilter() { return catalogFilter; }
+    /** Chooses a category, or clears it when it is already the one chosen. */
     public void setFilter(CategoryFilter filter) {
         if (filter == null) return;
-        catalogFilter.set(filter);
+        catalogFilter.set(filter == catalogFilter.get() ? CategoryFilter.ALL : filter);
+    }
+
+    /** Whether stores list every part rather than what fits the selected mount. */
+    public Signal<Boolean> browsingStores() { return browsingStores; }
+
+    /** Leaves the selected mount and lists every part in stores. */
+    public void showAllParts() {
+        if (selectedMech() == null) return;
+        browsingStores.set(true);
+        platingSelected.set(false);
+        catalogFilter.set(CategoryFilter.ALL);
+        feedbackText.set(Strings.get("openingMechLabAllPartsFeedback"));
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
     public CategoryFilter filter() { return catalogFilter.get(); }
     public void hoverWeapon(MechWeaponComponent component) {
@@ -710,7 +733,7 @@ public final class MechLabViewModel {
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
     /** Current authored fitting socket; shared with the physical room overlay. */
-    public SocketId selectedSocket() { return platingSelected.get() ? null : selectedSlot.get(); }
+    public SocketId selectedSocket() { return platingSelected.get() || browsingStores.get() ? null : selectedSlot.get(); }
 
     /** Whether the garage camera should frame the selected asset for fitting. */
     public boolean fittingFocused() { return fittingFocused.get(); }
@@ -1195,7 +1218,8 @@ public final class MechLabViewModel {
                     base + ":copy", base + ":header", base + ":name",
                     base + ":badge", base + ":component", base + ":telemetry", base + ":type", base + ":grid",
                     slot,
-                    slot == selectedSlot.get() && !platingSelected.get() ? "doll-slot selected" : "doll-slot",
+                    slot == selectedSlot.get() && !platingSelected.get() && !browsingStores.get()
+                            ? "doll-slot selected" : "doll-slot",
                     definition.label(), badge, badgeClasses,
                     slotComponent(mech, slot), telemetry, slotType(definition),
                     canStrip, stripClasses,
@@ -1213,6 +1237,7 @@ public final class MechLabViewModel {
                 ? Strings.get("openingMechLabFabricateACompleteStandardFitWalkerHere")
                 : Strings.get("openingMechLabNoHeavyAssetSelected");
         if (platingSelected.get()) return Strings.get("openingMechLabPlatingCopy");
+        if (browsingStores.get()) return Strings.get("openingMechLabAllPartsCopy");
         return switch (selectedSlot.get()) {
             case MINI_FAB -> Strings.get("openingMechLabUtilityCopy");
             case CORE -> Strings.get("openingMechLabEngineCopy");
@@ -1230,6 +1255,7 @@ public final class MechLabViewModel {
         }
         if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleNoFitting");
         if (selectedMech() != null && platingSelected.get()) return Strings.get("openingMechLabPlatingRule");
+        if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
         SocketDef definition = selectedSocketDefinition();
         if (definition == null) return Strings.get("openingMechLabNoSocketDefinition");
         String authority = definition.factoryLocked()
@@ -1244,6 +1270,7 @@ public final class MechLabViewModel {
         // A vehicle's hull and turret are its type's: nothing on it is fitted.
         if (selectedVehicle() != null) return List.of();
         if (mech != null && platingSelected.get()) return internalCatalog(mech, MechInternal.Role.PLATING);
+        if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
         if (selectedSlot.get() == SocketId.MINI_FAB) {
             List<CatalogRow> rows = new ArrayList<>(replenisherCatalog(mech));
             if (mech != null) rows.addAll(internalCatalog(mech, MechInternal.Role.VENT_ARRAY));
@@ -1275,20 +1302,41 @@ public final class MechLabViewModel {
                         : Strings.get("openingMechLabNoCompatibleFittingIsAvailableForThis"), true, List.of(), "material-costs hidden", () -> { }));
     }
 
+    /**
+     * Every part the bay holds or can build, whichever mount it would go on, narrowed by the
+     * chosen category. Weapons drag onto any mount that takes them; internals onto their own.
+     */
+    private List<CatalogRow> allPartsCatalog(CampaignMech mech) {
+        CategoryFilter filter = effectiveFilter();
+        boolean all = filter == CategoryFilter.ALL;
+        List<CatalogRow> rows = new ArrayList<>();
+        if (all || CategoryFilter.WEAPONS.contains(filter)) rows.addAll(weaponCatalog(mech, null));
+        if (all || filter == CategoryFilter.ENGINE) rows.addAll(internalCatalog(mech, MechInternal.Role.ENGINE));
+        if (all || filter == CategoryFilter.CAPACITORS) {
+            rows.addAll(internalCatalog(mech, MechInternal.Role.CAPACITOR_BANK));
+        }
+        if (all || filter == CategoryFilter.UTILITY) {
+            rows.addAll(replenisherCatalog(mech));
+            rows.addAll(internalCatalog(mech, MechInternal.Role.VENT_ARRAY));
+        }
+        return List.copyOf(rows);
+    }
+
     private List<CatalogRow> weaponCatalog(CampaignMech mech, MechMountSlot mount) {
         List<CatalogRow> rows = new ArrayList<>();
-        CategoryFilter filter = catalogFilter.get();
-        MechWeaponComponent current = slotWeapon(mech, selectedSlot.get());
+        CategoryFilter filter = effectiveFilter();
+        // Without a mount the list is every weapon in stores, compared against nothing.
+        MechWeaponComponent current = mount != null ? slotWeapon(mech, selectedSlot.get()) : null;
 
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
             MechWeaponComponent component = recipe.component();
             // Stores, not the mech: a fitted assembly is on the doll, and a row with no spare
             // appears only while its pattern can build one.
             if (!bay.canFabricate(component) && bay.availableWeapon(component.id) == 0) continue;
-            SocketDef socket = selectedSocketDefinition();
-            if (socket == null || !component.accepts(mount)
+            SocketDef socket = mount != null ? selectedSocketDefinition() : null;
+            if (mount != null && (socket == null || !component.accepts(mount)
                     || socket.type() != MechFittingLayout.SocketType.OMNI
-                    && !socket.type().name().equals(component.hardpointType.name())) continue;
+                    && !socket.type().name().equals(component.hardpointType.name()))) continue;
 
             int owned = bay.ownedWeapon(component.id);
             int fielded = bay.installedWeapon(component.id);
@@ -1298,7 +1346,6 @@ public final class MechLabViewModel {
             if (filter == CategoryFilter.BALLISTIC && component.hardpointType != MechWeaponComponent.HardpointType.BALLISTIC) continue;
             if (filter == CategoryFilter.MISSILE && component.hardpointType != MechWeaponComponent.HardpointType.MISSILE) continue;
             if (filter == CategoryFilter.ENERGY && component.hardpointType != MechWeaponComponent.HardpointType.ENERGY) continue;
-            if (filter == CategoryFilter.IN_STOCK && free <= 0) continue;
 
             boolean inCargo = free > 0;
             FabricationCost bill = workshop.weaponQuote(component);
@@ -1462,7 +1509,6 @@ public final class MechLabViewModel {
             MechInternal internal = recipe.internal();
             if (internal.role != role) continue;
             if (!bay.canFabricate(internal) && bay.availableInternal(internal.id) == 0) continue;
-            if (effectiveFilter() == CategoryFilter.IN_STOCK && bay.availableInternal(internal.id) <= 0) continue;
 
             int owned = bay.ownedInternal(internal.id);
             int free = bay.availableInternal(internal.id);
@@ -1764,6 +1810,7 @@ public final class MechLabViewModel {
         callSignDraft.set(squad.mechById(mechId).displayName());
         selectedSlot.set(defaultFittingSlot(squad.mechById(mechId)));
         platingSelected.set(false);
+        browsingStores.set(true);
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(Strings.format("openingMechLabInspectingNoCampaignHardwareChanged", squad.mechById(mechId).displayName()));
@@ -1807,6 +1854,7 @@ public final class MechLabViewModel {
         callSignDraft.set(occupant != null ? occupant : "");
         selectedSlot.set(defaultFittingSlot(mech));
         platingSelected.set(false);
+        browsingStores.set(mech != null);
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(occupant != null
@@ -1842,6 +1890,7 @@ public final class MechLabViewModel {
         if (!layout.hasSocket(slot)) return;
         selectedSlot.set(slot);
         platingSelected.set(false);
+        browsingStores.set(false);
         fittingFocused.set(true);
         SocketDef def = layout.socket(slot);
         String label = def != null ? def.label() : slot.label();
@@ -1858,6 +1907,7 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         if (mech == null) return;
         platingSelected.set(true);
+        browsingStores.set(false);
         clearHoverCandidates();
         feedbackText.set(Strings.format("openingMechLabSelected", Strings.get("openingMechLabFramePlating"),
                 Strings.get("openingMechLabInternalPartsReady")));
@@ -2394,30 +2444,30 @@ public final class MechLabViewModel {
     private List<FilterPill> buildFilterPills() {
         if (fabricatingChassis()) return weightPills();
         if (selectedMech() == null || selectedVehicle() != null) return List.of();
-        List<CategoryFilter> offered = offeredFilters();
-        if (offered.isEmpty()) return List.of();
         CategoryFilter current = effectiveFilter();
         List<FilterPill> pills = new ArrayList<>();
-        for (CategoryFilter f : offered) {
+        for (CategoryFilter f : offeredFilters()) {
             String id = "mech-filter:" + f.name().toLowerCase(Locale.ROOT);
             String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
-            pills.add(new FilterPill(id, f.label(), classes, () -> setFilter(f)));
+            pills.add(new FilterPill(id, f.label(), f.icon(), f.tone(), classes, () -> setFilter(f)));
         }
         return List.copyOf(pills);
     }
 
     /**
-     * Hardpoint types sort weapons only: an internal's socket already decides its role, so
-     * engine, capacitor, utility and plating stores offer All and In stock.
+     * The categories worth offering here: every part kind while browsing stores, the weapon
+     * kinds on a mount that takes more than one, and none where the mount decides the kind.
      */
     private List<CategoryFilter> offeredFilters() {
-        if (platingSelected.get() || selectedSlot.get() != null && roleFor(selectedSlot.get()) != null) {
-            return List.of(CategoryFilter.ALL, CategoryFilter.IN_STOCK);
-        }
-        return mountFor(selectedSlot.get()) != null ? List.of(CategoryFilter.values()) : List.of();
+        if (selectedMech() == null) return List.of();
+        if (browsingStores.get()) return CategoryFilter.PARTS;
+        if (platingSelected.get() || mountFor(selectedSlot.get()) == null) return List.of();
+        SocketDef socket = selectedSocketDefinition();
+        return socket != null && socket.type() == MechFittingLayout.SocketType.OMNI
+                ? CategoryFilter.WEAPONS : List.of();
     }
 
-    /** The chosen filter where this socket offers it; a hardpoint filter reads as All elsewhere. */
+    /** The chosen category where this view offers it; anything else reads as no filter. */
     private CategoryFilter effectiveFilter() {
         CategoryFilter current = catalogFilter.get();
         return offeredFilters().contains(current) ? current : CategoryFilter.ALL;
@@ -2427,17 +2477,16 @@ public final class MechLabViewModel {
     private List<FilterPill> weightPills() {
         MechPattern.WeightClass current = weightFilter.get();
         List<FilterPill> pills = new ArrayList<>();
-        pills.add(new FilterPill("mech-weight:all", Strings.get("openingMechLabAll"),
-                current == null ? "catalog-filter-pill selected" : "catalog-filter-pill", () -> setWeightFilter(null)));
+        // Weight classes toggle like part categories: none chosen lists every chassis.
         for (MechPattern.WeightClass weight : MechPattern.WeightClass.values()) {
             pills.add(new FilterPill("mech-weight:" + weight.name().toLowerCase(Locale.ROOT),
                     switch (weight) {
                         case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
                         case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
                         case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
-                    },
+                    }, null, null,
                     weight == current ? "catalog-filter-pill selected" : "catalog-filter-pill",
-                    () -> setWeightFilter(weight)));
+                    () -> setWeightFilter(weight == weightFilter.get() ? null : weight)));
         }
         return List.copyOf(pills);
     }
@@ -2597,22 +2646,49 @@ public final class MechLabViewModel {
             default -> throw unknown("mech-repair", p); }; }
     }
 
+    /**
+     * Stores categories. They are toggles, drawn as symbols: one chosen narrows the list to it,
+     * and choosing it again clears the filter. {@link #ALL} is that cleared state and has no pill.
+     */
     public enum CategoryFilter {
-        ALL(Strings.get("openingMechLabAll")),
-        BALLISTIC(Strings.get("openingMechLabBallistic")),
-        MISSILE(Strings.get("openingMechLabMissile")),
-        ENERGY(Strings.get("openingMechLabEnergy")),
-        IN_STOCK(Strings.get("openingMechLabInStock"));
+        // Each symbol is a part's detail art on its brick colour, the tones the doll draws
+        // (HardpointBricks): the art alone is only the dark detail layer.
+        ALL(null, null, null),
+        BALLISTIC("openingMechLabBallistic", "graphics/ui/mech-hardware/chaingun.svg", "#e2c248"),
+        MISSILE("openingMechLabMissile", "graphics/ui/mech-hardware/srm-5.svg", "#6cc45e"),
+        ENERGY("openingMechLabEnergy", "graphics/ui/mech-hardware/pulse-laser.svg", "#e06a3c"),
+        ENGINE("openingMechLabFilterEngine", "graphics/ui/mech-hardware/engine-industrial.svg", "#5e96d2"),
+        CAPACITORS("openingMechLabFilterCapacitors", "graphics/ui/mech-hardware/capacitor-factory.svg", "#a07edc"),
+        UTILITY("openingMechLabFilterUtility", "graphics/ui/mech-hardware/loader-standard.svg", "#4cb4a6");
 
-        private final String label;
-        CategoryFilter(String label) { this.label = label; }
-        public String label() { return label; }
+        private final String labelKey;
+        private final String icon;
+        private final String tone;
+        CategoryFilter(String labelKey, String icon, String tone) {
+            this.labelKey = labelKey; this.icon = icon; this.tone = tone;
+        }
+        public String label() { return labelKey == null ? "" : Strings.get(labelKey); }
+        public String icon() { return icon; }
+        public String tone() { return tone; }
+
+        static final List<CategoryFilter> WEAPONS = List.of(BALLISTIC, MISSILE, ENERGY);
+        static final List<CategoryFilter> PARTS = List.of(BALLISTIC, MISSILE, ENERGY, ENGINE, CAPACITORS, UTILITY);
     }
 
-    public record FilterPill(String id, String label, String classes, Runnable select)
+    /** One category symbol; {@code label} names it for its hover sheet. */
+    public record FilterPill(String id, String label, String icon, String tone, String classes, Runnable select)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "label" -> label; case "classes" -> classes;
+            case "icon" -> icon == null ? "" : icon;
+            case "iconId" -> id + ":icon";
+            case "iconClasses" -> icon == null ? "hidden" : "catalog-filter-icon";
+            case "chipId" -> id + ":chip";
+            case "chipClasses" -> icon == null ? "hidden" : "catalog-filter-chip";
+            case "chipStyle" -> tone == null ? "" : "background-color: " + tone + ";";
+            case "textId" -> id + ":text";
+            case "text" -> icon == null ? label : "";
+            case "textClasses" -> icon == null ? "catalog-filter-text" : "hidden";
             case "select" -> select; default -> throw unknown("mech-filter-pill", p);
         }; }
     }
@@ -2678,6 +2754,11 @@ public final class MechLabViewModel {
         /** The row's button builds a spare (drawn as the fabricator icon) rather than fitting one. */
         private boolean fabricates() { return Strings.get("openingMechLabFab").equals(actionLabel); }
 
+        private boolean hasAction() { return actionLabel != null && !actionLabel.isEmpty(); }
+
+        /** The build strip under the card: material costs and a wide BUY or FIT button. */
+        private boolean hasFooter() { return hasAction() || !materials.isEmpty(); }
+
         /** A chassis or vehicle pattern has no button: clicking the card selects it for preview. */
         public boolean selectsOnClick() { return chassisPreview != null || vehiclePreview != null; }
 
@@ -2696,13 +2777,15 @@ public final class MechLabViewModel {
             case "detail" -> detail; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
             case "materialsStyle" -> CompanyResources.billHeight(materials);
-            case "cardStyle" -> materials.isEmpty() ? "height: 102px;" : "height: 132px;";
-            case "actionClasses" -> actionLabel == null || actionLabel.isEmpty() ? "hidden"
+            case "cardStyle" -> hasFooter() ? "height: 130px;" : "height: 102px;";
+            case "footerId" -> id + ":footer";
+            case "footerClasses" -> hasFooter() ? "catalog-card-footer" : "hidden";
+            case "actionClasses" -> !hasAction() ? "hidden"
                     : actionDisabled ? "catalog-fab console-action short" : "catalog-fab console-action";
             case "actionIconId" -> actionId + ":icon";
             case "actionTextId" -> actionId + ":text";
             case "actionIconClasses" -> fabricates() ? "catalog-fab-icon" : "hidden";
-            case "actionText" -> fabricates() ? "" : actionLabel;
+            case "actionText" -> actionLabel;
             case "materialsClasses" -> materialsClasses;
             case "action" -> action;
             default -> throw unknown("mech-catalog", p); }; }
