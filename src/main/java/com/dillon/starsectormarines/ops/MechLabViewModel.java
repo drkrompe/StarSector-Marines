@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -1003,6 +1004,17 @@ public final class MechLabViewModel {
         if (physicalGantries == 1 && selectedMech() != null)
             return List.of(selectedMech().freezeForDeployment());
         return squad.mechs().stream().limit(physicalGantries).map(CampaignMech::freezeForDeployment).toList();
+    }
+
+    /**
+     * The vehicles on the pads after the lance's mechs, in pad order, with their kits; none while one
+     * pad stands for the selected mech alone.
+     */
+    public List<VehicleDeploymentSpec> gantryVehicles() {
+        revision.get();
+        CampaignMechSquad squad = selectedSquad();
+        if (squad == null || physicalGantries == 1) return List.of();
+        return squad.vehicles().stream().map(CampaignVehicle::freezeForDeployment).toList();
     }
 
     /** Selected vehicle's stable camera target within the current lance. */

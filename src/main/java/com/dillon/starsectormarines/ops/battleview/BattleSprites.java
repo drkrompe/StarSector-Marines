@@ -191,6 +191,7 @@ public class BattleSprites {
     private final SheetTexture tileTex       = SheetTexture.grid(TileManifest.SHEET);
     private final SheetTexture roadTex       = SheetTexture.grid(TileManifest.ROAD_SHEET);
     private final SheetTexture floorsTex     = SheetTexture.grid(TileManifest.FLOORS_SHEET);
+    private final SheetTexture roofTex       = SheetTexture.grid(RoofTiles.SHEET);
     private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
@@ -344,6 +345,9 @@ public class BattleSprites {
     public SpriteAPI floorsSheet()                 { return floorsTex.sprite(); }
     public int floorsSheetPxW()                    { return floorsTex.pxW(); }
     public int floorsSheetPxH()                    { return floorsTex.pxH(); }
+    public SpriteAPI roofSheet()                   { return roofTex.sprite(); }
+    public int roofSheetPxW()                      { return roofTex.pxW(); }
+    public int roofSheetPxH()                      { return roofTex.pxH(); }
     public SpriteAPI waterSheet()                  { return waterTex.sprite(); }
     public int waterSheetPxW()                     { return waterTex.pxW(); }
     public int waterSheetPxH()                     { return waterTex.pxH(); }
@@ -410,6 +414,7 @@ public class BattleSprites {
             else ensureUrbanSheet();
             ensureRoadSheet();
             ensureFloorsSheet();
+            ensureRoofSheet();
             ensureNatureSheet();
         }));
         steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> {
@@ -586,6 +591,9 @@ public class BattleSprites {
 
     /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
+
+    /** Lazy-loads the roof sheet ({@link RoofTiles}): a row of field, eave trims and damage frames per roof style. */
+    public void ensureRoofSheet()       { roofTex.ensureLoaded(lease); }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }

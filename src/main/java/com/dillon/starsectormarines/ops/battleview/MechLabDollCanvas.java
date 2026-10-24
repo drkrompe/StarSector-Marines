@@ -63,8 +63,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
+    /** The machines on the pads: mechs are units, a company vehicle a live hull on the convoy layer. */
     private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(
-            RenderLayer.UNITS, RenderLayer.VEHICLES);
+            RenderLayer.UNITS, RenderLayer.VEHICLES, RenderLayer.CONVOY);
 
     private final Supplier<List<MechDeploymentSpec>> deployments;
     private final IntSupplier selectedGantry;

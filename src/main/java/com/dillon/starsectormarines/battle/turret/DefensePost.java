@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.fort.FortTag;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -74,10 +75,15 @@ public final class DefensePost {
         this.droneHubCellY = droneHubCellY;
     }
 
-    /** This post built in {@code style}. */
+    /**
+     * This post built in {@code style}: each turret is the structure that style puts up for the one planned there
+     * ({@link StructureDef#builtIn}), so a high-tech post's guns are lasers, and restyling it again starts from the plan.
+     */
     public DefensePost withStyle(EmplacementStyle style) {
         if (style == this.style) return this;
-        return new DefensePost(tier, layoutId, anchorX, anchorY, turrets, droneHubCellX, droneHubCellY, fort, style);
+        List<TurretSpec> built = new ArrayList<>(turrets.size());
+        for (TurretSpec spec : turrets) built.add(spec.builtIn(style));
+        return new DefensePost(tier, layoutId, anchorX, anchorY, built, droneHubCellX, droneHubCellY, fort, style);
     }
 
     /** Where to spawn one MapTurret + what kind. Coupled here so the generator picks the kind alongside the position rather than the setup re-rolling per cell. */
@@ -85,14 +91,29 @@ public final class DefensePost {
         public final String structureId;
         public final int cellX;
         public final int cellY;
+        /** The structure the generator planned here, before a style built it as another ({@link #structureId}). */
+        public final String plannedId;
 
         public TurretSpec(String structureId, int cellX, int cellY) {
+            this(structureId, cellX, cellY, structureId);
+        }
+
+        private TurretSpec(String structureId, int cellX, int cellY, String plannedId) {
             if (structureId == null || structureId.isBlank()) {
                 throw new IllegalArgumentException("turret structure id may not be blank");
             }
             this.structureId = structureId;
             this.cellX = cellX;
             this.cellY = cellY;
+            this.plannedId = plannedId;
+        }
+
+        /** This spec as a post built in {@code style} puts it up; a structure the catalog does not know is kept. */
+        TurretSpec builtIn(EmplacementStyle style) {
+            TurretCatalogRegistry catalog = TurretCatalogRegistry.installed();
+            StructureDef planned = catalog != null ? catalog.getStructure(plannedId) : null;
+            String built = planned != null ? planned.builtIn(style) : plannedId;
+            return built.equals(structureId) ? this : new TurretSpec(built, cellX, cellY, plannedId);
         }
 
         public StructureDef structure() {

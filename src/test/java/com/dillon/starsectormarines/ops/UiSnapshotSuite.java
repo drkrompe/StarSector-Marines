@@ -2718,7 +2718,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
         // would be evidence about a room the player never sees.
-        CompanyDeck ship = companyShip(viewModel::gantryVariants, List::of);
+        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED, null, viewModel::gantryVariants,
+                List::of, () -> null).vehicles(viewModel::gantryVehicles);
+        readied(ship);
+        ship.advance(18f);
         DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
         if (weldingEvidence) seekMachineService(ship, vehicleBay, viewModel.selectedGantryIndex());
         ShipDeckBattleScene.RoomView framing =
