@@ -197,7 +197,7 @@ public final class BarracksCommandModel {
             guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
         props.put("guideDismiss", (Runnable) this::dismissGuide);
         bind(reactor, "title", this::title);
-        bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnelReserves", lineSquads().size(), roster.lineReadySoldiers().size(), roster.readyReserveCount()));
+        bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnel", lineSquads().size(), roster.lineReadySoldiers().size()));
         bind(reactor, "healTimer", this::healTimer);
         bind(reactor, "scopeSummary", () -> Strings.format("openingBarracksCommandSquadsInViewSelected", filtered().size(), selected.size()));
         bind(reactor, "empty", () -> filtered().isEmpty() ? Strings.get("openingBarracksCommandNoSquadsMatchThisViewChooseRaise") : "");
@@ -658,7 +658,7 @@ public final class BarracksCommandModel {
         int reserves = Math.min(vacancies, roster.readyReserveCount());
         int wounded = lineSquads().stream().filter(s -> squadIds.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
         int shortfall = vacancies - reserves - recruitsRequired(squadIds);
-        String summary = Strings.format("companyResourceRecruitment", vacancies, reserves, recruitsRequired(squadIds), wounded);
+        String summary = Strings.format("companyResourceRecruitment", vacancies, recruitsRequired(squadIds), wounded);
         return shortfall > 0 ? summary + " " + Strings.format("companyResourceRecruitmentShort", shortfall) : summary;
     }
     private int recruitsRequired(Set<String> squadIds) {
@@ -674,11 +674,9 @@ public final class BarracksCommandModel {
                 ? roster.squadById(squadIds.iterator().next()).name()
                 : Strings.format("openingBarracksCommandSquadsSelected", squadIds.size());
         int vacancies = vacancies(squadIds);
-        int reserves = Math.min(vacancies, roster.readyReserveCount());
         return new SpecSheet(Strings.get("openingBarracksCommandFillVacancies"), subject,
                 resources.commodityIcon(Commodities.MARINES), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandVacant"), Integer.toString(vacancies)),
-                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandNamedReserves"), Integer.toString(reserves)),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(squadIds)))),
                 List.of(recruitment(squadIds), Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
     }
@@ -724,10 +722,9 @@ public final class BarracksCommandModel {
         return new SpecSheet(Strings.get("openingBarracksCommandMarinesAvailableRecruits"), Strings.get("openingBarracksCommandUnenlistedPersonnelInFleetCargo"),
                 resources.commodityIcon(Commodities.MARINES), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandInCargo"), Integer.toString(cargoMarines.getAsInt())),
-                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandNamedReserves"), Integer.toString(roster.readyReserveCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(Set.copyOf(selected))))),
                 List.of(Strings.get("openingBarracksCommandTheMarinesCommodityRepresentsPersonnelOutsideYour"),
-                        Strings.get("openingBarracksCommandFillVacanciesTransfersReadyCompanyReservesFirst"),
+                        Strings.get("openingBarracksCommandFillVacanciesEnlistsCargoMarines"),
                         Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
     }
 
@@ -736,10 +733,7 @@ public final class BarracksCommandModel {
         return List.of(row("id", "barracks-recruit-stock", "copyId", "barracks-recruit-stock-copy", "iconId", "barracks-recruit-stock-icon",
                 "labelId", "barracks-recruit-stock-count", "nameId", "barracks-recruit-stock-label",
                 "name", resources.commodityName(Commodities.MARINES), "icon", resources.commodityIcon(Commodities.MARINES),
-                "stock", CompanyResources.number(cargoMarines.getAsInt())),
-                row("id", "barracks-reserve-stock", "copyId", "barracks-reserve-copy", "iconId", "barracks-reserve-icon", "labelId", "barracks-reserve-count",
-                "nameId", "barracks-reserve-label", "name", Strings.get("openingBarracksCommandNamedReserves"),
-                "icon", resources.commodityIcon(Commodities.MARINES), "stock", CompanyResources.number(roster.readyReserveCount())));
+                "stock", CompanyResources.number(cargoMarines.getAsInt())));
     }
 
     public void reinforceSelected() { fill(Set.copyOf(selected)); }
@@ -753,7 +747,7 @@ public final class BarracksCommandModel {
             reserves += result.reservesAssigned(); cargo += result.cargoMarinesConsumed();
         }
         if (guideVisible() && guideStep == 2 && reserves + cargo > 0) guideStep = 3;
-        feedback = Strings.format("openingBarracksCommandFilledBilletsReservesRecruitsEnlisted", (reserves + cargo), reserves, cargo);
+        feedback = Strings.format("openingBarracksCommandFilledBilletsEnlisted", reserves + cargo);
         refresh();
     }
     private boolean campaignGuidance;
