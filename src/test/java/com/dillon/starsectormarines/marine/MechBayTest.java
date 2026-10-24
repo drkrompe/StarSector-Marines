@@ -27,8 +27,7 @@ class MechBayTest {
         MechBay bay = new MechBay();
 
         assertEquals(0, bay.activeSquad().mechs().size());
-        assertEquals(0, bay.ownedReplenisher(
-                MissileReplenisherComponent.STANDARD.id()));
+        assertEquals(0, bay.ownedInternal(MechInternal.STANDARD_LOADER.id));
         assertEquals(0, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id));
         assertEquals(0, roundTrip(bay).activeSquad().mechs().size(),
                 "the modern empty start must not be mistaken for a legacy save");
@@ -45,8 +44,7 @@ class MechBayTest {
 
         assertEquals(1, restored.activeDeployment().size());
         assertEquals(MechVariant.BULWARK, restored.activeDeployment().get(0).variant());
-        assertEquals(1, restored.availableReplenisher(
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        assertEquals(1, restored.availableInternal(MechInternal.ACCELERATED_LOADER.id));
     }
 
     @Test
@@ -57,12 +55,9 @@ class MechBayTest {
         assertEquals(1, bay.activeSquad().mechs().size());
         assertEquals(MissileReplenisherComponent.STANDARD.id(),
                 mech.missileReplenisherId());
-        assertEquals(1, bay.ownedReplenisher(
-                MissileReplenisherComponent.STANDARD.id()));
-        assertEquals(0, bay.availableReplenisher(
-                MissileReplenisherComponent.STANDARD.id()));
-        assertEquals(1, bay.availableReplenisher(
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        assertEquals(1, bay.ownedInternal(MechInternal.STANDARD_LOADER.id));
+        assertEquals(0, bay.availableInternal(MechInternal.STANDARD_LOADER.id));
+        assertEquals(1, bay.availableInternal(MechInternal.ACCELERATED_LOADER.id));
         assertEquals(2, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id));
         assertEquals(0, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
     }
@@ -75,13 +70,10 @@ class MechBayTest {
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id());
         assertTrue(bay.addMech(MechBay.STARTER_SQUAD_ID, second));
 
-        assertTrue(bay.installReplenisher(MechBay.STARTER_MECH_ID,
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        assertEquals(1, bay.availableReplenisher(
-                MissileReplenisherComponent.STANDARD.id()),
+        assertTrue(bay.installInternal(MechBay.STARTER_MECH_ID, MechInternal.ACCELERATED_LOADER));
+        assertEquals(1, bay.availableInternal(MechInternal.STANDARD_LOADER.id),
                 "the replaced standard unit should return to stores");
-        assertFalse(bay.installReplenisher(second.id(),
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        assertFalse(bay.installInternal(second.id(), MechInternal.ACCELERATED_LOADER));
         assertEquals(MissileReplenisherComponent.STANDARD.id(),
                 second.missileReplenisherId(),
                 "failed atomic refit must preserve the prior component");
@@ -90,8 +82,7 @@ class MechBayTest {
     @Test
     void activeSquadFreezesValuesAndPersistsInstalledInventory() throws Exception {
         MechBay bay = MechBay.legacyStarterFixture();
-        assertTrue(bay.installReplenisher(MechBay.STARTER_MECH_ID,
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        assertTrue(bay.installInternal(MechBay.STARTER_MECH_ID, MechInternal.ACCELERATED_LOADER));
         bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
         assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.LEFT_ARM,
                 MechWeaponComponent.PULSE_LASER.id));
@@ -105,10 +96,8 @@ class MechBayTest {
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
                 deployment.get(0).missileReplenisher());
         assertEquals(MechWeaponComponent.PULSE_LASER, deployment.get(0).leftArm());
-        assertEquals(0, restored.availableReplenisher(
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        assertEquals(1, restored.availableReplenisher(
-                MissileReplenisherComponent.STANDARD.id()));
+        assertEquals(0, restored.availableInternal(MechInternal.ACCELERATED_LOADER.id));
+        assertEquals(1, restored.availableInternal(MechInternal.STANDARD_LOADER.id));
         assertEquals(1, restored.availableWeapon(MechWeaponComponent.CHAINGUN.id));
         assertEquals(0, restored.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
     }

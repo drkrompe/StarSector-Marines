@@ -438,6 +438,11 @@ tasks.register('loadoutMatchup', Test) {
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     systemProperty 'loadoutMatchup.dir', layout.buildDirectory.dir('reports/loadout-matchups').get().asFile.absolutePath
+    // `-PsnapshotBackend=gl` records the GIFs through the shipping renderer on the GPU (`ReviewSceneBackend`),
+    // which draws what Java2D does not: relief, sun shadows, event lights and per-quad effects such as hit flash.
+    if (providers.gradleProperty('snapshotBackend').isPresent()) {
+        systemProperty 'snapshot.backend', providers.gradleProperty('snapshotBackend').get()
+    }
     ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'gifs', 'gifSeeds', 'fireMission'].each { name ->
         if (providers.gradleProperty(name).isPresent()) {
             systemProperty "loadoutMatchup.${name}", providers.gradleProperty(name).get()
@@ -951,6 +956,20 @@ tasks.register('patchLwjgl3Gl11', JavaExec) {
 // default on a Mac, where LWJGL 2 cannot load; `-PsnapshotGl=lwjgl3` runs the same path on Windows.
 def snapshotGl = providers.gradleProperty('snapshotGl').getOrElse(
         System.getProperty('os.name', '').toLowerCase(Locale.ROOT).contains('mac') ? 'lwjgl3' : 'lwjgl2')
+
+// `shaderEvidence` on the same binding, so an evidence that makes its context through `GlSurface` reads the Mac's
+// own driver: the field evidence asks what precision a driver really stores (`NightShadeFieldGlEvidence`). Only the
+// evidences that make their context through `GlSurface` are handed to JUnit, since discovery loads every class it
+// is given and the rest are written against LWJGL 2, which is not on this classpath.
+tasks.named('shaderEvidence') {
+    if (snapshotGl == 'lwjgl3') {
+        include '**/NightShadeFieldGlEvidence*' 
+        dependsOn tasks.named('patchLwjgl3Gl11'), tasks.named('gl3Classes')
+        classpath = files(patchedLwjgl3Dir) + sourceSets.gl3.output + configurations.lwjgl3 +
+                sourceSets.test.runtimeClasspath.filter { it.name != 'lwjgl.jar' }
+        systemProperty 'snapshot.gl.context', 'com.dillon.starsectormarines.testsupport.gl3.Lwjgl3Surface'
+    }
+}
 
 tasks.register('createSnapshots', JavaExec) {
     group = 'verification'

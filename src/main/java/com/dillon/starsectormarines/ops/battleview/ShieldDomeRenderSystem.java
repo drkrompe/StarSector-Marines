@@ -103,11 +103,12 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
     }
 
     /**
-     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}), and the
-     * capacitors on its plinth ({@link TurretFluxCapacitors}). The arc is drawn by the dome shader only; where it is
-     * off the shields still work, their capacitors still show their charge, and the arc goes undrawn.
+     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}). Drawn by the dome
+     * shader only; where it is off the shields still work and go undrawn. The hardware's heat on the plinth is drawn
+     * with the structure ({@link TurretFluxHeat}).
      */
     private void collectTurretShields(RenderContext ctx, BattleCamera camera, float cellPx, boolean shaded) {
+        if (!shaded) return;
         long tick = ctx.sim.getSimTickIndex();
         World world = ctx.sim.world();
         TurretShieldService shields = ctx.sim.turretShields();
@@ -118,8 +119,6 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             float x = world.renderX(id);
             float y = world.renderY(id);
             if (!isKnown(ctx, ctx.sim.identity().faction(id), x, y)) continue;
-            TurretFluxCapacitors.append(mesh, id, x, y, fitted.shield, camera, cellPx, tick, ctx.alphaMult);
-            if (!shaded) continue;
             int slot = pass.draws().size();
             while (drawPool.size() <= slot) drawPool.add(new ShieldDomeDraw());
             if (TurretShieldField.describe(drawPool.get(slot), id, x, y, fitted.shield, fitted.tint,
@@ -231,10 +230,11 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
 
     /**
      * The player's own dome and its hits are always drawn; a hostile one only
-     * where the map has actually been seen.
+     * where the map has actually been seen, unless the host draws past the fog
+     * (a review frame is a neutral observer).
      */
     private static boolean isKnown(RenderContext ctx, Faction faction, float x, float y) {
-        return Allegiance.of(faction).friendly()
+        return Allegiance.of(faction).friendly() || !ctx.hostProfile.fogHidesUnits()
                 || ctx.sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y));
     }
 

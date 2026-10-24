@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -181,7 +181,7 @@ class MechDirectControlSessionTest {
         roster.world().attachMechLoadout(mech, loadout);
         assertFalse(session.cycle(FireTrigger.LEFT), "inactive session cannot retain a choice");
         assertTrue(session.enter(mech));
-        assertEquals(MechTriggerPicks.LINKED, session.mechPicks());
+        assertEquals(TriggerPicks.LINKED, session.triggerPicks());
         var arms = loadout.mount(MechMountSlot.LEFT_ARM);
         var srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         arms.burstRemaining = 3;
@@ -193,8 +193,8 @@ class MechDirectControlSessionTest {
         srm.burstPointAim = new PointFireAim(20, 5);
         session.submit(new ManualIntent(1, -1, 20, 5, true));
         assertTrue(session.cycle(FireTrigger.RIGHT), "an empty rack stays in the cycle");
-        assertEquals(key(MechMountSlot.LEFT_SHOULDER), session.mechPicks().right());
-        assertEquals(MechFireGroups.LINKED, session.mechPicks().left(), "C leaves the left button alone");
+        assertEquals(key(MechMountSlot.LEFT_SHOULDER), session.triggerPicks().right());
+        assertEquals(MechFireGroups.LINKED, session.triggerPicks().left(), "C leaves the left button alone");
         assertEquals(0, arms.burstRemaining);
         assertEquals(0, srm.burstRemaining);
         assertEquals(3f, srm.cycleRemaining);
@@ -207,11 +207,11 @@ class MechDirectControlSessionTest {
         for (int invalid : new int[]{-1, 3}) assertFalse(session.selectWeapon(invalid));
         assertFalse(session.pick(FireTrigger.LEFT, key(MechMountSlot.LEFT_SHOULDER)), "a rack is not a gun");
         session.suspendInput();
-        assertEquals(key(MechMountSlot.LEFT_SHOULDER), session.mechPicks().right(), "pause and chrome keep the pick");
+        assertEquals(key(MechMountSlot.LEFT_SHOULDER), session.triggerPicks().right(), "pause and chrome keep the pick");
         session.exit();
-        assertEquals(MechTriggerPicks.LINKED, session.mechPicks());
+        assertEquals(TriggerPicks.LINKED, session.triggerPicks());
         assertTrue(session.enter(mech));
-        assertEquals(MechTriggerPicks.LINKED, session.mechPicks(), "a takeover starts on LINKED");
+        assertEquals(TriggerPicks.LINKED, session.triggerPicks(), "a takeover starts on LINKED");
     }
 
     @Test
@@ -221,12 +221,12 @@ class MechDirectControlSessionTest {
         int[] expected = {key(MechMountSlot.LEFT_ARM), key(MechMountSlot.RIGHT_ARM), MechFireGroups.LINKED};
         for (int pick : expected) {
             assertTrue(session.cycle(FireTrigger.LEFT));
-            assertEquals(pick, session.mechPicks().left());
+            assertEquals(pick, session.triggerPicks().left());
         }
         assertTrue(session.selectWeapon(2), "key 3");
-        assertEquals(key(MechMountSlot.RIGHT_ARM), session.mechPicks().left());
+        assertEquals(key(MechMountSlot.RIGHT_ARM), session.triggerPicks().left());
         assertTrue(session.selectWeapon(0), "key 1");
-        assertEquals(MechFireGroups.LINKED, session.mechPicks().left());
+        assertEquals(MechFireGroups.LINKED, session.triggerPicks().left());
     }
 
     @Test
@@ -241,7 +241,7 @@ class MechDirectControlSessionTest {
         session.submit(new ManualIntent(1, 0, 20, 5, true));
         session.validate();
         assertTrue(session.active());
-        assertEquals(MechTriggerPicks.LINKED, session.mechPicks());
+        assertEquals(TriggerPicks.LINKED, session.triggerPicks());
         assertFalse(session.intent().firing());
         assertEquals(0, replacement.mount(MechMountSlot.LEFT_SHOULDER).burstRemaining);
         assertFalse(session.cycle(FireTrigger.LEFT), "one rack left is its own LINKED: nothing to cycle");

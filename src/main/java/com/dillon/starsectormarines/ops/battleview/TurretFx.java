@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import java.util.Random;
@@ -29,6 +30,19 @@ public final class TurretFx {
     /** Below this share of its structure a turret smokes; below {@link #SPARK_BELOW} it also throws sparks. */
     private static final float SMOKE_BELOW = .5f;
     private static final float SPARK_BELOW = .25f;
+
+    /** A break older than this, in seconds, is not vented when first seen: the moment has passed. */
+    private static final float VENT_WINDOW = .5f;
+    /** Turrets whose current break has vented. */
+    private final LongOpenHashSet vented = new LongOpenHashSet();
+
+    /**
+     * Where the flux device's capacitor and radiator stand from the gun, in cells: on the plinth's west wall
+     * ({@link TurretFluxHeat}'s layout, from the sprite's top-left corner, about its centre).
+     */
+    private static final float DEVICE_X = TurretFluxHeat.CAPACITOR_X - 1.5f;
+    private static final float CAPACITOR_DY = 1.5f - TurretFluxHeat.CAPACITOR_Y;
+    private static final float RADIATOR_DY = 1.5f - TurretFluxHeat.RADIATOR_Y;
 
     private final Random rng;
     private final Long2ObjectOpenHashMap<Barrel> barrels = new Long2ObjectOpenHashMap<>();
@@ -88,22 +102,35 @@ public final class TurretFx {
     }
 
     /**
-     * A hardpoint whose flux shield broke this step vents its capacitors: a burst of vapour off each corner of the
-     * plinth and a few sparks ({@link TurretFluxCapacitors} draws the cells dumping).
+     * A hardpoint's flux device, physically: near breaking, sparks jump off its capacitor; when its shield breaks,
+     * the radiator blows out a burst of vapour and the capacitor sparks ({@link TurretFluxHeat} draws its heat and
+     * the flux haze that keeps venting through the overload).
      */
     private void ventBrokenShields(BattleSimulation sim, ImpactFx fx, float dt) {
         TurretShieldService shields = sim.turretShields();
         for (int i = 0, n = shields.size(); i < n; i++) {
             TurretShieldService.Fitted fitted = shields.at(i);
-            if (!(fitted.shield.sinceBreak() < dt) || !sim.world().isAlive(fitted.id)) continue;
+            if (!sim.world().isAlive(fitted.id)) continue;
             float x = sim.world().x(fitted.id);
             float y = sim.world().y(fitted.id);
-            for (int corner = 0; corner < 4; corner++) {
-                float cx = x + ((corner & 1) == 0 ? -1.1f : 1.1f);
-                float cy = y + ((corner & 2) == 0 ? -1.1f : 1.1f);
-                fx.spawnAmbientSmoke(cx + (rng.nextFloat() - .5f) * .3f, cy + (rng.nextFloat() - .5f) * .3f,
-                        .5f + rng.nextFloat() * .3f);
-                if (rng.nextFloat() < .6f) fx.spawnAmbientFire(cx, cy, .15f);
+            // Vent once per break, on the first step that sees it, so a feed that starts late still shows it.
+            boolean broke = false;
+            if (fitted.shield.overloaded()) {
+                broke = fitted.shield.sinceBreak() < VENT_WINDOW && vented.add(fitted.id);
+            } else {
+                vented.remove(fitted.id);
+            }
+            float strain = TurretFluxHeat.strain(fitted.shield);
+            float dx = x + DEVICE_X;
+            if (broke) {
+                for (int k = 0; k < 3; k++) {
+                    fx.spawnAmbientSmoke(dx + (rng.nextFloat() - .5f) * .4f,
+                            y + RADIATOR_DY + k * .3f + (rng.nextFloat() - .5f) * .2f, .45f + rng.nextFloat() * .3f);
+                }
+                fx.spawnAmbientFire(dx, y + CAPACITOR_DY, .15f);
+            } else if (strain > 0f && rng.nextFloat() < strain * .24f) {
+                fx.spawnAmbientFire(dx + (rng.nextFloat() - .5f) * .3f, y + CAPACITOR_DY + (rng.nextFloat() - .5f) * .3f,
+                        .08f + .06f * strain);
             }
         }
     }

@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-24 — redoubts and the city base are built from a mix of constructions; the base publishes no capture beacon
+Updated: 2026-10-24 — redoubts and the city base are built from a mix of constructions; the redoubts stand on the crest, ramped from the rear; the base publishes no capture beacon
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -248,7 +248,8 @@ a gun with none left fires rationed, at a quarter of its rate. A request while
 the swarm is on the apron, or with nothing in stock, is refused, and asked
 again a little later (`cordon-allied-command.md`, The producer). Outside a city the base opens with one carrier. **Supply roads** run from the
 base's gate toward the line to each redoubt's rear gate across open country
-(`mission-layout.md`), so the line has a road behind it; across a town's or a
+(`mission-layout.md`), so the line has a road behind it, laid wherever it
+reaches the redoubt's ground even with no other road near it; across a town's or a
 city's ground its own streets are the supply road: a truck's way to a redoubt
 whose road was not laid, or was cut off short of it, is the route a truck
 drives through the streets from the base to the rear gate, and it sets out on
@@ -444,7 +445,8 @@ run through a redoubt rather than beside it: the redoubt then guards that
 road's way through the line. A map on which a redoubt has no wall, or the
 landing's field of fire is not clear, re-rolls; so does one whose logistics
 base packed no shed, or whose apron a carrier cannot drive from to every
-redoubt (a base fenced too narrowly for a carrier kept every one it built
+redoubt, onto its level (a redoubt on the crest is reached on its top, not
+under its cliff) (a base fenced too narrowly for a carrier kept every one it built
 standing on its apron, refused a route, with the shed's lane jammed behind).
 That proof keeps clear of walls along cell edges as well as walled cells, as a
 hull's body does.
@@ -460,7 +462,13 @@ climb from the rear. **Each redoubt stands on the crest** as a terrace
 (`elevation-nouns.md`, Terraces): its walls, yard and gates on one flat top,
 the cliff a few cells beyond its lawn, and a ramp wherever a road crosses that
 cliff, so the supply road climbs to the rear gate and the line's road comes up
-from the front. The band runs on into each redoubt's top rather than breaking
+from the front. **Its rear is always ramped**: it is supplied from the rear
+(`TerracePlanner`, supply side), so a ramp a tank's width climbs its rear cliff
+whether or not the supply road was laid to it, as near the middle as open
+ground allows, and a redoubt that cannot have one cannot stand on the crest.
+Carriers, armour and ammunition trucks come up behind a redoubt; with no rear
+ramp (on most town maps, where no supply road was laid) they stood below the
+cliff and no street way reached any rear gate. The band runs on into each redoubt's top rather than breaking
 there, so the crest runs redoubt to redoubt and the picket courses are dug
 crest to crest. Wherever any other road, a structure or a place crosses the
 band it still breaks into a pass, and the swarm meets a cliff everywhere else.

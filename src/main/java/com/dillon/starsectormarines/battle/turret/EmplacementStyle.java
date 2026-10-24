@@ -9,7 +9,8 @@ package com.dillon.starsectormarines.battle.turret;
  * <p>Each tech family (`tech-families.md`) builds a prepared and a militia style: low-tech pours {@link #BRUTALIST}
  * or digs {@link #EARTHWORK}; midline sets up the League's {@link #MODULAR} panels or {@link #BARRIER} cells, or the
  * Diktat's {@link #EXPORT} panels or {@link #BLOCKWORK}; high-tech grows {@link #COMPOSITE} field-emitter shells or
- * drops {@link #DEPLOYED} kit. {@link #DERELICT} is old works, outside the families.
+ * drops {@link #DEPLOYED} kit. {@link #DERELICT} is old works, outside the families, and {@link #PATCHWORK} is what
+ * pirates make of them.
  *
  * <p>Presentation, as a tech family is, with one exception: a look may fit its structure's flux shield
  * ({@link StructureLook#shield}), which a battle reads.
@@ -35,7 +36,12 @@ public enum EmplacementStyle {
      */
     COMPOSITE("composite", false),
     /** High-tech, militia: the same pods on folding pylons and pads behind hard-light barrier panes. */
-    DEPLOYED("deployed", true);
+    DEPLOYED("deployed", true),
+    /**
+     * Pirate works: old colony steel patched with scrap plate, drums and tarps. Its guns are the derelict guns
+     * ({@link #basis}); its walls, parapets, barricades and gate are its own.
+     */
+    PATCHWORK("patchwork", false, DERELICT);
 
     /** The id a structure's {@code looks} entry is keyed by. */
     public final String key;
@@ -44,9 +50,19 @@ public enum EmplacementStyle {
      * embanked rather than poured and its ground is left unpaved.
      */
     public final boolean militia;
+    /**
+     * The style whose art this one wears wherever it has none of its own, or null for a style that falls back to the
+     * default art directly.
+     */
+    public final EmplacementStyle basis;
 
     EmplacementStyle(String key, boolean militia) {
+        this(key, militia, null);
+    }
+
+    EmplacementStyle(String key, boolean militia, EmplacementStyle basis) {
         this.key = key;
         this.militia = militia;
+        this.basis = basis;
     }
 }

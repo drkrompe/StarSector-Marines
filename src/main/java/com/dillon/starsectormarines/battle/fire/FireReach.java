@@ -74,7 +74,7 @@ public final class FireReach {
             for (int dx = -lit; dx <= lit; dx++) {
                 int local = (half + dy) * span + half + dx;
                 int from = startingDistance(field, x + dx, y + dy);
-                if (from < 0) continue;
+                if (from == NONE) continue;
                 distance[local] = from;
                 queued[local] = true;
                 queue[(head + size++) % queue.length] = local;
@@ -93,8 +93,9 @@ public final class FireReach {
                     int gx = reach.originX + nx, gy = reach.originY + ny;
                     if (!fuel(field, gx, gy)) continue;
                     int d = base + (int) Math.round(FireField.QUARTERS * Math.hypot(nx - lx, ny - ly));
-                    int limit = field.isBurning(gx, gy) ? Integer.MAX_VALUE
-                            : field.spreadLimitAt(gy * field.width() + gx, field.fuelMaskAt(gx, gy));
+                    int mask = field.fuelMaskAt(gx, gy);
+                    int limit = field.isBurning(gx, gy) || building(mask) ? Integer.MAX_VALUE
+                            : field.spreadLimitAt(gy * field.width() + gx, mask);
                     if (d >= distance[next] || d > limit) continue;
                     distance[next] = d;
                     if (!queued[next]) {
@@ -108,15 +109,27 @@ public final class FireReach {
         return reach;
     }
 
-    /** A lit cell's distance: nought for fuel the blast sets alight, the field's own for one already burning; -1 for none. */
+    /** No fire starts here: neither burning nor able to burn. */
+    private static final int NONE = Integer.MIN_VALUE;
+
+    /** A lit cell's distance: nought for fuel the blast sets alight, the field's own for one already burning (below nought in a blaze); {@link #NONE} for none. */
     private static int startingDistance(FireField field, int x, int y) {
         if (field.isBurning(x, y)) return field.distanceAt(y * field.width() + x);
-        return field.canBurn(x, y) ? 0 : -1;
+        return field.canBurn(x, y) ? 0 : NONE;
     }
 
     /** Whether a cell's fire keeps counting its distance onward, rather than lighting afresh as creep and buildings do. */
     private static boolean carriesOnward(FireField field, int x, int y) {
-        return FireFuel.spread(field.fuelMaskAt(x, y)) < FireFuel.UNLIMITED;
+        int mask = field.fuelMaskAt(x, y);
+        return FireFuel.spread(mask) < FireFuel.UNLIMITED && !building(mask);
+    }
+
+    /**
+     * A building's walls and floors, taken as carrying a fire as far as they stand: a room flashes over whole and
+     * its walls burn in the heat of all of it, which no count from where the charge landed foresees.
+     */
+    private static boolean building(int mask) {
+        return FireFuel.FURNISHING.in(mask) || FireFuel.STRUCTURE.in(mask);
     }
 
     /** Whether a cell is reached, or beside reached ground. */

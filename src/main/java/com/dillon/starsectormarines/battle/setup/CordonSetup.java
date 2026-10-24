@@ -227,6 +227,14 @@ public final class CordonSetup {
         List<String> roads = new ArrayList<>();
         for (Piece piece : plan.layout().pieces()) if (piece instanceof Road && !piece.required()) roads.add(piece.name());
         List<List<String>> fallbacks = new ArrayList<>();
+        // A redoubt's terrace that cannot stand with its own supply road (one crossing its cliff at a corner, where
+        // no ramp climbs) is tried without that road first, so the other redoubts keep theirs.
+        for (int n = 1; n <= CordonPlan.REDOUBTS; n++) {
+            String road = CordonPlan.SUPPLY_ROAD + n;
+            if (whole.missing().contains(CordonPlan.CREST + CordonPlan.REDOUBT_PLACE + n + " ") && roads.contains(road)) {
+                fallbacks.add(List.of(road));
+            }
+        }
         if (roads.contains(CordonPlan.SECOND_ROAD)) fallbacks.add(List.of(CordonPlan.SECOND_ROAD));
         if (!roads.isEmpty()) fallbacks.add(roads);
         for (List<String> drop : fallbacks) {

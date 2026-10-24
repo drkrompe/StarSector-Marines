@@ -136,9 +136,13 @@ bursts per icon for a long belt) and then keeps its exact count beside it; a
 load too long even folded keeps only the number. While a rack's button is held, the missiles (or
 folded salvos) that hold has fired draw lit beside the live ones, so a chain is seen building
 salvo by salvo, and go back to spent when the button comes up. Finite Mech stores count
-trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
-a rocket or precision-rifle special with a short load draws it as missiles or
-cartridges in place of its count.
+trigger packs, while a vehicle turret counts individual rounds. A flamer's tank draws
+its charges as fuel canisters. The right button's rows draw what they hold the same
+way: each smoke or hand grenade carried, thrown ones hollow and the rest dimmed while
+a throw is under way, and the shield as one plate, lit up or ready, dimmed while it
+recharges and hollow when broken. In the Marine doll's kit column, a rocket,
+precision-rifle or thrown special with a short load draws it as missiles, cartridges
+or the throws themselves in place of its count, and the shield draws its plate beside its clock.
 
 A bounded, scrollable objective list stays at the top left, showing the same
 public mission steps, instructions, measured progress and blockers as command
@@ -489,13 +493,18 @@ weapon range so placing the cursor nearer cannot improve distant accuracy.
 Two held buttons, one model across carriers: the left button is the primary
 trigger and the right button the secondary, and both may be held together.
 
-A Mech's point-fire hardpoints split into two **groups by weapon role**. Guns,
-cannons and lasers are the primary group; missile and rocket racks are the
-secondary group, arcing LRM racks included. The Hound therefore fires its nose chaingun on the left button and its
-SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks right.
-A chassis whose point-fire mounts are all one role keeps them all on the left
-button and leaves the right one inert (an all-rack chassis is not stranded without
-a primary).
+A machine's weapon mounts (a Mech's point-fire hardpoints, a vehicle's turrets)
+split into two **groups by weapon role**, one rule for every carrier
+(`FireGroups`). Direct-fire guns, cannons and lasers are the primary group;
+missile, rocket and indirect-fire mounts are the secondary group, arcing LRM racks
+included, and so is **any secondary turret**, whatever it throws, so a hull's second
+gun is never merged into its main gun's group. The Hound therefore fires its nose
+chaingun on the left button and its SRM pod on the right; a Bulwark fires its
+chainguns left and both SRM racks right; a tank with a coax MG fires its cannon left
+and the MG right. A carrier whose primary mounts are all ordnance keeps them on the
+left button (an all-rack chassis, or a launcher hull, is not stranded without a
+primary) and leaves the right one to its secondary turrets, inert where it has none;
+a hull whose main gun is shot away fires its second gun from the left.
 
 Each button is a **trigger**, a delegation with its own **sub-cycle** (owner,
 2026-10-23): an ordered list of **members** and a **pick** into it, and the press
@@ -513,8 +522,8 @@ list order. **A member its trigger's pick leaves out holds fire**: no manual rou
 and no autonomous one, since the controlled body takes no AI trigger. A **crewed
 defence** (a mount with its own gunner, such as a tank's active protection) never
 joins a list and keeps firing autonomously under control; today's tank APS is a
-point-defence structure already, and a future defensive mount declares itself
-crewed in data rather than being inferred.
+point-defence structure already, and a defensive turret on a hull declares itself
+crewed in data (`VehicleMount`) rather than being inferred.
 
 A destroyed or empty hardpoint is never a member, so cycling skips it; a mount
 whose ammunition is exhausted stays in its list and reads EMPTY. A pick whose
@@ -528,11 +537,14 @@ dropped when its mount is no longer what either trigger's pick fires. Repeated
 input cannot replay a cancelled burst. Neither picks nor groups change the
 installed equipment, authored packet size, or AI firing policy. The authored
 single shot, timed burst, or simultaneous volley remains distinct from this
-player choice. A vehicle's trigger has a single-member list for now and a warship
-has no cycle, so Q and E do nothing there. A Marine's left and right lists are
-described below.
+player choice. A vehicle's lists follow the same rule over its mounts: the main
+turret, then each secondary mount (`VehicleType.secondaryMounts`), so a one-gun hull
+has a single-member left list and nothing on the right. A warship has no cycle, so
+Q and E do nothing there. A Marine's left and right lists are described below.
 
-The weapon-groups panel lists each mount under the button whose list it is in:
+The weapon-groups panel lists each mount under the button whose list it is in (a
+hull with more than one gun is panelled as a Mech is; a one-gun hull keeps its
+single LMB row):
 an LMB group (guns), an RMB group (racks), and OTHER MOUNTS for a hardpoint
 neither lists. Each trigger header names its pick and the key that cycles it,
 for example `LMB  LINKED  [Q]` or `LMB  R arm Chaingun  [Q]`, and `[E]` on the RMB header (a picked mount is
@@ -561,9 +573,14 @@ is picked, and sprinting lowers the special, which is readied again afterwards.
 An empty special keeps the pick and reads EMPTY; it never falls back to the
 primary on its own. The pick resets to the primary on takeover and handback, and
 a special no longer carried returns it there. The controlled Marine **holds the
-picked special** in place of the primary, the launcher on the shoulder or the
-rifle in the hands: raised over the wind-up, through its firing clip for the
-follow-through after a round, and in its aim pose on walking feet while moving.
+picked special** in place of the primary, the launcher at port across the chest
+or the rifle at low ready (owner, 2026-10-24): raised over the wind-up,
+through its firing clip for the follow-through after a round, and carried in the
+item's own walking clip while it walks with the special readied, coming back up
+to the aim when it stops. The
+walking clip moves the arms and shoulders with the stride, so a walking Marine
+is never frozen in a firing stance from the waist up; going between the carry and
+the aim takes a fifth of a second each way, and a round snaps it to the aim.
 Autonomous Marines use their specials through their AI policy as before.
 
 The **flamer is a held stream** rather than a single round. Picked, it readies over
@@ -579,9 +596,11 @@ refused without spending fuel. **The player's flamer can burn its own Marine**
 manual path deliberately has none of the autonomous flamer's own-side reach guard,
 so a Marine who keeps standing in a burning meadow pays for it. Its row counts fuel as a tank of cells, one a charge,
 and its reticle tick is grey on an empty tank or a refused jet and red past its
-range, where the jet lands short. It has no held art of its own: the Marine stands
-in the primary's aim pose while it is picked and in the primary's firing clip while
-a charge is leaving.
+range, where the jet lands short. Its kit is its own art: a fuel pack of twin tanks
+and a pressure bottle worn on the back and always visible, and a wand corded to it by
+a hose, held at the hip in place of the primary while the flamer is picked, as the
+comms radio's handset is corded to its pack. The jet leaves from the wand's nozzle,
+ahead of the Marine and drawn in front of the body.
 
 The right button holds the
 Marine's **thrown and utility items** (owner, 2026-10-23): grenades are a throw, not
@@ -644,7 +663,9 @@ committed physical terminal contact (`ballistics-nouns.md` owns both rules).
 Direct SRMs retain their ordinary interception opportunity and delayed impact.
 
 A vehicle's independent turret slews toward the mouse bearing at its authored
-traverse rate, whatever the gun: a flat-fire gun or beam, a rocket pod, or an
+traverse rate, whatever the gun, and a secondary mount is a turret of its own (its
+own structure, ring, aim, magazine and cadence) that slews with it and fires only
+while its button's pick names it: a flat-fire gun or beam, a rocket pod, or an
 arcing rack (the LRM carrier's launcher, the fire-support APC's mortar) refused
 inside its manual minimum. A hull with no turret weapon (the supply truck, the
 scout car, the drone skimmer, whose drones keep their own tether) drives only,

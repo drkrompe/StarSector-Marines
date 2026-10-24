@@ -27,7 +27,7 @@ class ChargeGaugeTest {
     void aFlamersTankIsACellAChargeLitWhileItIsLeft() {
         ChargeGauge tank = ChargeGauge.fuel(8, 3);
         assertEquals(8, tank.cells());
-        assertEquals("cell", tank.iconKind());
+        assertEquals("fuel", tank.iconKind());
         assertEquals(ChargeGauge.Cell.CHARGED, tank.cell(2));
         assertEquals(ChargeGauge.Cell.EMPTY, tank.cell(3));
         assertEquals(ChargeGauge.Cell.EMPTY, ChargeGauge.fuel(8, 0).cell(0));
