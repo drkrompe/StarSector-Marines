@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-24
 
-Updated: 2026-10-24 — yards dressed with whole groups of clean props; origins are real facilities broken open by the damage layer, not scattered story props (owner).
+Updated: 2026-10-24 — the park origin; yards dressed with whole groups of clean props; origins are real facilities broken open by the damage layer, not scattered story props (owner).
 
 `heart-nouns.md` is the model, `heart-map-intent.md` the map direction and
 `swarm-lore-guide.md` the lore this stays inside.
@@ -95,9 +95,19 @@ the freight yard a truck stopped with its seafood crates by the warehouse and
 container stacks, the research yard rows of tank racks and freezers carried
 out, the pump yard a shed and its pipeline. The first group sits nearest the
 core and the rest spread across the yard. A first lattice of single props read as a
-placed grid and was dropped. Every pooled map is dressed. Next: the annex's
-inner fence; the park; damaged states of the clean props without creep, if
-the dressing stays.
+placed grid and was dropped. Every pooled map is dressed.
+
+The park is the fourth origin: a railed green whose program is a café
+pavilion and a groundskeeper's shed on a wide lawn, its yard dressed with the
+pond and its benches (set down at the place's seed), the bandstand, a
+playground and more benches. The first mother opens at the pond, not in a
+building (`HeartOrigin.opensAt`). With four origins a seed-only draw gave every
+pool the same two, so the origin is drawn from the seed stepped by form and
+density, and read back from the far place's program where only the plan is
+at hand. Every pool shows three origins and each form shows all four. Next:
+the owner's look at the four; the annex's inner fence; the park's lawn reads
+bare under the creep; damaged states of the clean props without creep, if the
+dressing stays.
 
 1. The origin as a plan choice: `HeartCountry` picks it from the seed and
    gives the far place a facility (a program or character) instead of the

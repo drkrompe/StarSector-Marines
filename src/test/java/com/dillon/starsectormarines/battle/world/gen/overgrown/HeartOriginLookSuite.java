@@ -43,12 +43,12 @@ public final class HeartOriginLookSuite implements SnapshotSuite {
             for (StoryMapPool.Entry entry : pool.entries(SurfacePalette.VERDANT)) {
                 BloomHeartSetup.Built built = BloomHeartSetup.country(form, SurfacePalette.VERDANT, Density.RURAL, entry);
                 try (BattleSimulation sim = built.sim()) {
-                    int[] core = BloomHeartSetup.originCore(built.map(), built.plan(), built.battleSeed());
+                    int[] core = BloomHeartSetup.originCore(built.map(), built.plan());
                     HeartBores.Site first = built.heart().mothers().get(0);
                     float cx = core == null ? first.x() : (core[0] + first.x()) / 2f;
                     float cy = core == null ? first.y() : (core[1] + first.y()) / 2f;
                     String name = String.format(Locale.ROOT, "%02d-%s-%s-seed%d", index++,
-                            HeartOrigin.of(built.battleSeed()).name().toLowerCase(Locale.ROOT),
+                            HeartOrigin.of(HeartCountry.place(built.plan(), HeartCountry.WORKINGS)).name().toLowerCase(Locale.ROOT),
                             form.name().toLowerCase(Locale.ROOT).replace('_', '-'), entry.seed());
                     out.add(new SnapshotArtifact(name + "-site.png", BattleReviewFrameRenderer.look(context.modRoot(),
                             1920, 1080, cx, cy, SITE_CELLS).render(sim, name)));
