@@ -263,6 +263,10 @@ public class BriefingScreen implements Screen {
      */
     private int debugMechCount = DebugCompanyStage.FIRST_CONTRACT.mechs;
     private int debugMechRoll;
+    /** How many line squads the debug briefing offers weapon and armor cards for. */
+    private static final int DEBUG_CARD_SQUADS = 4;
+    /** The four bay slots once the player has edited them; null while the preset's own roster stands. */
+    private DebugBaySlot[] debugBay;
 
     /**
      * Indices into {@link #cachedCarriers} the player has deselected for the
@@ -348,6 +352,7 @@ public class BriefingScreen implements Screen {
                 debugTransportCount = preset.boats();
                 debugMechCount = preset.mechs();
                 debugMechRoll = 0;
+                debugBay = null;
                 debugAirSelections.clear();
                 debugWarship = DebugWarship.Spec.OFF;
                 lastDebugPresetRevision = ctx.debugPresetRevision();
@@ -710,13 +715,27 @@ public class BriefingScreen implements Screen {
                 () -> adjustDebugSquadCount(1), () -> adjustDebugSquadCount(10),
                 () -> { }));
 
+        var cardRoster = ctx.getDebugCompanyRoster();
+        var cardSquads = DebugSquadCards.lineSquads(cardRoster);
+        for (int i = 0; i < Math.min(cardSquads.size(), DEBUG_CARD_SQUADS); i++) {
+            var squad = cardSquads.get(i);
+            controls.add(conquestControl("debug-squad-weapons-" + (i + 1), "Squad " + (i + 1) + " weapons",
+                    DebugSquadCards.weaponName(cardRoster, squad), false, false,
+                    () -> { DebugSquadCards.cycleWeapons(cardRoster, squad, -1); rebuild(); },
+                    () -> { DebugSquadCards.cycleWeapons(cardRoster, squad, 1); rebuild(); }));
+            controls.add(conquestControl("debug-squad-armor-" + (i + 1), "Squad " + (i + 1) + " armor",
+                    DebugSquadCards.armorName(cardRoster, squad), false, false,
+                    () -> { DebugSquadCards.cycleArmor(cardRoster, squad, -1); rebuild(); },
+                    () -> { DebugSquadCards.cycleArmor(cardRoster, squad, 1); rebuild(); }));
+        }
         if (DevConfig.DEBUG_MECH_SUPPORT_PICKER) {
-            controls.add(new BriefingViewModel.DebugControl("debug-player-mechs",
-                    "Player mechs", Integer.toString(debugMechCount), "-10", "-", "+", "+10", "REROLL",
-                    "debug-cycle", debugMechCount <= 0, debugMechCount <= 0, false, false, false,
-                    () -> adjustDebugMechCount(-10), () -> adjustDebugMechCount(-1),
-                    () -> adjustDebugMechCount(1), () -> adjustDebugMechCount(10),
-                    this::rerollDebugMechs));
+            DebugBaySlot[] bay = debugBaySlots(mission);
+            for (int i = 0; i < DebugBaySlot.SLOTS; i++) {
+                int slot = i;
+                controls.add(conquestControl("debug-bay-slot-" + (i + 1), "Bay slot " + (i + 1),
+                        bay[i].label, false, false,
+                        () -> cycleDebugBaySlot(mission, slot, -1), () -> cycleDebugBaySlot(mission, slot, 1)));
+            }
         }
         // Only the two missions whose maps are made of places read a sprawl, so
         // the dial is offered where it does something and nowhere else.
@@ -1696,7 +1715,7 @@ public class BriefingScreen implements Screen {
 
     private List<CommandPower> availablePowers(Mission mission) {
         if (mission == null) return Collections.emptyList();
-        List<CommandPower> powers = mission.source.isDebug() ? List.of() : mission.source == MissionSource.STATIONING
+        List<CommandPower> powers = mission.source.isDebug() ? DebugMechRoster.easterEggPowers() : mission.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(mission).powers
                 : DetachmentResolver.resolve(mission, lift(), committedWings(),
                         committedPowerSourceMembers()).powers;
@@ -1741,6 +1760,7 @@ public class BriefingScreen implements Screen {
                 debugPersonnel ? () -> {
                     ctx.cycleDebugCompanyStage();
                     debugMechCount = ctx.getDebugCompanyStage().mechs;
+                    debugBay = null;
                     rebuild();
                 } : this::openSquadDeployment);
         widgets.add(squads);
@@ -1951,6 +1971,7 @@ public class BriefingScreen implements Screen {
         DebugCompanyStage stage = debugCompanyStageFor(tier);
         ctx.setDebugCompanyStage(stage);
         debugMechCount = stage.mechs;
+        debugBay = null;
         ctx.setSelectedMission(adjusted);
         debugTransportCount = Math.min(debugTransportCount,
                 adjusted.requiredDrops);
@@ -2000,6 +2021,7 @@ public class BriefingScreen implements Screen {
                 () -> {
                     ctx.cycleDebugCompanyStage();
                     debugMechCount = ctx.getDebugCompanyStage().mechs;
+                    debugBay = null;
                     rebuild();
                 });
         y -= ROW_GAP;
@@ -2073,8 +2095,29 @@ public class BriefingScreen implements Screen {
         return (int) Math.max(0L, Math.min(Integer.MAX_VALUE, adjusted));
     }
 
+    /** The bay as the briefing shows it: the player's edits, else the preset's own roster laid into slots. */
+    private DebugBaySlot[] debugBaySlots(Mission mission) {
+        if (debugBay != null) return debugBay;
+        DebugBaySlot[] slots = new DebugBaySlot[DebugBaySlot.SLOTS];
+        java.util.Arrays.fill(slots, DebugBaySlot.EMPTY);
+        var roster = debugMechRoster(mission);
+        if (roster != null) {
+            var filled = roster.slots();
+            for (int i = 0; i < filled.size(); i++) slots[i] = filled.get(i);
+        }
+        return slots;
+    }
+
+    private void cycleDebugBaySlot(Mission mission, int slot, int step) {
+        DebugBaySlot[] slots = debugBaySlots(mission).clone();
+        slots[slot] = DebugBaySlot.cycle(slots[slot], step);
+        debugBay = slots;
+        rebuild();
+    }
+
     private DebugMechRoster debugMechRoster(Mission mission) {
         if (mission == null || !mission.source.isDebug()) return null;
+        if (debugBay != null) return DebugMechRoster.ofSlots(java.util.Arrays.asList(debugBay));
         var scenario = DebugMissionCatalog.scenario(mission);
         if (scenario != null && scenario.hound && debugMechCount == 1 && debugMechRoll == 0)
             return DebugMechRoster.recoveredHound();
