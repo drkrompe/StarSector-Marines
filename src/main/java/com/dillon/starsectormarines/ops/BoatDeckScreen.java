@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
+import com.dillon.starsectormarines.ops.battleview.BoatHardwareCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -82,6 +83,8 @@ public final class BoatDeckScreen implements Screen {
      * the middle of a traversal.
      */
     private boolean deckMayHaveChanged;
+    /** Drives the doll's wire pulses; wraps hourly so it never loses float precision. */
+    private double elapsedSeconds;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -138,9 +141,9 @@ public final class BoatDeckScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             bayElement = candidate.requireElement("boat-deck-canvas");
-            bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
-                    viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld).recovery(viewModel::berthRecovery);
+            bayCanvas = bayCanvas(deck);
             built.canvases().set(bayElement, bayCanvas);
+            wireCatalogPreviews(candidate, built, viewModel.catalogRows().get());
             bayElement.onPointerMove(this::pointAtBerth);
             bayElement.onPointerDown(this::pressBerth);
             bayElement.onPointerUp(this::activateBerth);
@@ -182,6 +185,9 @@ public final class BoatDeckScreen implements Screen {
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("stageTitle", viewModel.stageTitle());
+        props.put("stageStatus", viewModel.stageStatus());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
         props.put("fabricationClasses", viewModel.fabricationClasses());
@@ -208,6 +214,21 @@ public final class BoatDeckScreen implements Screen {
                 // Lab's does: a page already open is not a dead button.
                 viewModel.backToDeckAction(), context::openEngineering);
         return props;
+    }
+
+    /**
+     * Gives each catalog row its piece on its bricks. Rows are keyed and come
+     * and go as the selected slot changes, so this runs after every
+     * reconciliation and sets only the rows that have no picture yet.
+     */
+    static void wireCatalogPreviews(MarkupInstance instance, UiDocument target,
+                                    List<BoatDeckViewModel.CatalogRow> rows) {
+        for (BoatDeckViewModel.CatalogRow row : rows) {
+            UiElement canvas = instance.requireElement(row.previewId());
+            if (target.canvases().producerOf(canvas) == null) {
+                target.canvases().set(canvas, new BoatHardwareCanvas(row.kind(), row.itemId()));
+            }
+        }
     }
 
     private static void requireWiredElements(MarkupInstance component) {
@@ -276,11 +297,20 @@ public final class BoatDeckScreen implements Screen {
         CompanyDeck liveDeck = context.companyDeck();
         if (liveDeck == null || liveDeck == deck) return;
         deck = liveDeck;
-        bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
-                viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld).recovery(viewModel::berthRecovery);
+        bayCanvas = bayCanvas(deck);
         document.canvases().set(bayElement, bayCanvas);
         refreshBayPresentation();
         invalidateBay();
+    }
+
+    /** The bay's camera, with the doll the selected boat is drawn as. */
+    private BoatDeckCanvas bayCanvas(CompanyDeck ship) {
+        BoatDeckCanvas canvas = new BoatDeckCanvas(ship, this::currentBay,
+                viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld)
+                .recovery(viewModel::berthRecovery)
+                .doll(() -> viewModel.doll().get(), () -> elapsedSeconds);
+        canvas.snap();
+        return canvas;
     }
 
     private void pointAtBerth(UiPointerEvent event) {
@@ -292,7 +322,8 @@ public final class BoatDeckScreen implements Screen {
 
     private void pressBerth(UiPointerEvent event) {
         CanvasPoint point = canvasPoint(event);
-        if (point == null || bayCanvas.berthAt(point.x(), point.y()) < 0) return;
+        if (point == null || bayCanvas.slotAt(point.x(), point.y()) == null
+                && bayCanvas.berthAt(point.x(), point.y()) < 0) return;
         event.capturePointer();
         event.preventDefault();
     }
@@ -301,6 +332,13 @@ public final class BoatDeckScreen implements Screen {
         CanvasPoint point = canvasPoint(event);
         event.releasePointerCapture();
         if (point == null) return;
+        String slot = bayCanvas.slotAt(point.x(), point.y());
+        if (slot != null) {
+            viewModel.selectDollSlot(slot);
+            invalidateBay();
+            event.preventDefault();
+            return;
+        }
         int berth = bayCanvas.berthAt(point.x(), point.y());
         if (berth < 0) return;
         viewModel.selectBoatAction(berth).run();
@@ -378,6 +416,7 @@ public final class BoatDeckScreen implements Screen {
     @Override
     public void advance(float dt) {
         if (deckMayHaveChanged) adoptChangedDeck();
+        if (Float.isFinite(dt)) elapsedSeconds = (elapsedSeconds + Math.max(0f, dt)) % 3600d;
         if (viewModel != null) viewModel.refreshTime();
         if (wings != null) wings.refresh();
         if (deck != null && deck.ready()) {
@@ -391,10 +430,15 @@ public final class BoatDeckScreen implements Screen {
             }
             refreshBayPresentation();
         }
-        if (markupInstance != null) markupInstance.flush();
+        if (markupInstance != null) {
+            markupInstance.flush();
+            if (document != null) wireCatalogPreviews(markupInstance, document, viewModel.catalogRows().get());
+        }
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (bayElement != null) BoatDeckCanvas.fitSurface(bayElement);
+        // The doll's wires pulse and the camera eases, so the bay is redrawn every frame it is open on a boat.
+        if (bayCanvas != null && (bayCanvas.advance(dt) || viewModel.fittingFocused())) invalidateBay();
         if (preparationGuide != null) preparationGuide.update();
         if (document != null && wings != null && !CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending())
             TutorialModal.bind(document, markupInstance, wings::visible,
