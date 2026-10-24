@@ -21,6 +21,8 @@ import java.nio.file.Path;
  *       ({@code seed}, default 9301; {@code companySize}; {@code retry=true});</li>
  *   <li>{@code relief[:seed=N,surface=VERDANT]} — the Relief ground start, the campaign's first mission: the
  *       starter company already ashore beside the hauler, as {@code ReliefCommandEvidenceTest} stands it up;</li>
+ *   <li>{@code cordon[:variant=line,density=urban,biome=ARID,seed=6]} — one Cordon seed as
+ *       {@code CordonCommandEvidenceTest} stands each pooled seed up;</li>
  *   <li>{@code fixture:<path>} — any battle fixture JSON, rebuilt at tick zero through its production factory.</li>
  * </ul>
  * Each command is echoed as {@code > command} and answered with one line of JSON, so a transcript reads in order and

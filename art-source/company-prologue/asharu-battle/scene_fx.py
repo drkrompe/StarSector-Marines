@@ -462,11 +462,20 @@ class SceneFx:
             real = mt.inverted()                                    # ... in her frame as she really is then
             aim_l, src_l = real @ aim_w, real @ src
             ray = (aim_l - src_l).normalized()
-            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * reach * 4), tuple(aim_l))
+            # cast from no further back than her muzzle: at close range a cast from behind it met the
+            # shooter's own hull and counted the round a miss (S8-S9, 2026-10-24: the Colossus at the
+            # Mk.III, 0 hits from 165)
+            back = min(reach * 4, max((aim_l - src_l).length - 2.0, 1.0))
+            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * back), tuple(aim_l))
             hit = None
             if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
                 hit = (Vector(got[0]), Vector(got[1]))
                 aim_w = mt @ hit[0]
+            if os.environ.get('ASHARU_SHOT_DEBUG') == f'{a}>{b}':      # why a gun's rounds miss
+                print(f'ASHARU shot {a}>{b} f{f}: hit_l {tuple(round(c) for c in hit_l)} reach {reach:.0f} '
+                      f'offset ({ox:.0f}, {oy:.0f}) err {err:+.2f} cast '
+                      + ('none' if got is None else f'{(Vector(got[0]) - Vector(hit_l)).length:.0f} m from hit_l'),
+                      flush=True)
             shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ aim_w, hit)
             return shots[f]
         others = [k for k in self.placed if k not in (a, b)]
@@ -796,10 +805,11 @@ class SceneFx:
         self.rows.append(f'strikes on {key}: {out}')
 
     # ------------------------------------------------------------------ missiles
-    def missiles(self, a, b, arrive=None, decoys=0):
+    def missiles(self, a, b, arrive=None, decoys=0, aim=(0, 0, 0)):
         """A Harpoon salvo from a's launchers at b, arriving on frame `arrive`. decoys: how many of
         its seekers take one of b's flares instead (flares must already have been thrown by b in
-        this shot): the visible cause a flare needs (owner, 2026-10-23)."""
+        this shot): the visible cause a flare needs (owner, 2026-10-23). aim: the point on b they seek (her
+        frame, metres)."""
         shooter = self.ship(a)
         if shooter is None:
             return False
@@ -809,12 +819,36 @@ class SceneFx:
             starts = [(*mp.tube(shooter, ctx, g.turret, g.tag), kit.guns.gun_label(g)) for g in tubes[:4]]
         if not starts:
             return False
-        target = self.world(b)
+        target = self.world(b, aim)
         arrive = arrive if arrive is not None else self.now + 6
         frames = [3 * i for i in range(len(starts))]
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=frames, target_name=b, width=.18)
         shift = arrive - max(f.end['frame'] for f in fl if f.end)
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
+                      target_name=b, width=.18)
+        for _settle in range(4 if self.matrix_at is not None and self.span else 1):
+            fl = self._salvo_world(a, b, starts, frames, shift, fl, arrive, mp, shooter, aim)
+            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit']
+            if not ends or abs(max(ends) - arrive) <= 1:
+                break
+            shift += arrive - max(ends)       # the world re-plan moved the arrivals: shift the launch
+        taken = self._decoy(a, b, fl, decoys) if decoys else []
+        for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
+            if f.end and f.end['kind'] == 'hit':
+                self.riding[(f.label, int(f.frame))] = (b, int(f.end['frame']))
+        with self.fired(a), shooter.kit() as (ctx, kit):
+            kit.guns.launch_flights(ctx, fl)
+        self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
+                         f'arriving {[f.end["frame"] for f in fl if f.end]} (asked {arrive})'
+                         + (f'; decoyed {taken}' if decoys else ''))
+        if decoys and not taken:
+            self.log(f'WARNING missiles {a} -> {b}: asked for {decoys} decoyed, none took a flare '
+                     f'({len(self.flared.get(b, ()))} flares thrown by {b} in this shot)')
+        return True
+
+    def _salvo_world(self, a, b, starts, frames, shift, fl, arrive, mp, shooter, aim):
+        """The salvo launched `shift` frames on, each seeker re-planned in the world (below)."""
+        fl = mp.salvo('harpoon', starts, self.world(b, aim), mp.space_of(shooter), frames=[f + shift for f in frames],
                       target_name=b, width=.18)
         if self.matrix_at is not None and self.span:
             # A seeker flies to where she will be when it arrives, in the world: the flights are
@@ -830,24 +864,12 @@ class SceneFx:
                 end = fl[k].end['frame'] if k < len(fl) and fl[k].end else arrive
                 for _ in range(2):
                     launch = self.matrix_at(a, fr) @ Matrix.Scale(mpu_a, 4)
-                    tgt = space @ (launch.inverted() @ self.matrix_at(b, end).translation)
+                    tgt = space @ (launch.inverted() @ (self.matrix_at(b, end) @ Vector(aim)))
                     one = mp.salvo('harpoon', [st], tgt, space, frames=[fr], seed=k, target_name=b, width=.18)
                     end = one[0].end['frame'] if one and one[0].end else end
                 out += one
             fl = out
-        taken = self._decoy(a, b, fl, decoys) if decoys else []
-        for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
-            if f.end and f.end['kind'] == 'hit':
-                self.riding[(f.label, int(f.frame))] = (b, int(f.end['frame']))
-        with self.fired(a), shooter.kit() as (ctx, kit):
-            kit.guns.launch_flights(ctx, fl)
-        self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
-                         f'arriving {[f.end["frame"] for f in fl if f.end]}'
-                         + (f'; decoyed {taken}' if decoys else ''))
-        if decoys and not taken:
-            self.log(f'WARNING missiles {a} -> {b}: asked for {decoys} decoyed, none took a flare '
-                     f'({len(self.flared.get(b, ()))} flares thrown by {b} in this shot)')
-        return True
+        return fl
 
     def _decoy(self, a, b, flights, count):
         """Divert up to `count` of a's planned flights onto flares b threw, about a second before

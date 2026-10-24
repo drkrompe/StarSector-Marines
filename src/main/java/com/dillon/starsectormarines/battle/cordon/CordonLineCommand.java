@@ -82,6 +82,7 @@ public final class CordonLineCommand {
         this.reserve = table.reserve();
         armour.setCoverFloor(CordonAlliedRules.coverFloor(density));
         armour.setRoadbound(CordonAlliedRules.roadbound(density, sequence.variant()));
+        armour.setWalkingEscorts(CordonAlliedRules.walkingEscorts(density));
         List<CordonRedoubt> redoubts = sequence.redoubts();
         for (CordonRedoubt r : redoubts) {
             GunStock stock = new GunStock(place(r), reserve.roundsPerGun());

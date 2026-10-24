@@ -53,5 +53,7 @@ class EscortPaceTest {
     void thePairKeepsToTheSlowerOnesPace() {
         assertEquals(3.4f * EscortPace.PACE, EscortPace.cap(3.4f, 4.0f), 1e-6f);
         assertEquals(2.4f * EscortPace.PACE, EscortPace.cap(2.4f, 4.0f), 1e-6f);
+        // A city's truck behind a walking escort (a rifle team, a Hound) keeps to the walker.
+        assertEquals(1.6f * EscortPace.PACE, EscortPace.cap(2.8f, 1.6f), 1e-6f);
     }
 }

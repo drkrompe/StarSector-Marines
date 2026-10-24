@@ -241,8 +241,9 @@ open country and towns, its Hound pair in a city. A new machine goes to the
 redoubt furthest under its floor, a sector that lost its machines first, then
 a calling one, then the fewest, the nearest breaking a tie; a machine whose
 redoubt falls is given another the same way. In a town hulls are
-**roadbound**: each flank post is moved to the nearest street cell within
-reach, the street nearest where it would have stood; not on the Road, where
+**roadbound**: a sector's first hull stands on the street through or past its
+redoubt, and each later hull's flank post is moved to the nearest street cell
+within reach, the street nearest where it would have stood; not on the Road, where
 the town's main street is the convoys' road and a hull parked beside it stood
 in their way. They do not chase calls: on a front
 hundreds of cells wide a reserve sent to whichever redoubt called last spent
@@ -309,11 +310,18 @@ of the **surplus**: the nearest hulls whose sector stands above its floor, at
 most one from any one sector, never a calling redoubt's last; what the convoy
 cannot take that way it goes without. They go back to their sectors when it is
 home. An ammunition truck and R1's dozer are escorted the same way, one hull
-beside each, after the convoys, and only by an armed hull. **Escorted means
+beside each, after the convoys, and only by an armed hull. A city fields no
+hulls, so there a truck or dozer with no hull free takes a **walking escort**
+out of the same surplus: a sector's Hound above its pair (a relief pair, a
+Hound off the gantry walking up), or a street mouth's rifle team while the
+sector's pair still stands (a team counts nothing toward the floor, so it is
+never a sector's last cover); hulls first, since a walker holds its truck to a
+walker's pace, and the team goes back to its mouth when the escort ends. **Escorted means
 alongside**: such a hull waits where it was set down until its escort is
 beside it, the pair drives at the slower one's pace, and it holds whenever the
 escort falls behind; with no escort free, or one that never came, it goes
-alone for good, and the company walks with it. The company walks with a convoy only
+alone for good, and the company walks with it. The radio's Escorted counts an
+armed hull, a Hound or a street team within reach. The company walks with a convoy only
 where no armed allied hull is with it, which is where the armour has not come
 or has died, and clears the road ahead of one the swarm has halted. One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole
@@ -637,7 +645,11 @@ ordinary wall-damage path, not by fire; R2's broken truck is taken off the road
 rather than left as a wreck, so the convoys after it still drive; the dozer starts behind the gap, not at the base (from
 the base it lost the race to the first convoy on every long corridor), and a
 dozer standing at a shut road cell pushes it at the blade's rate even where
-its move order stopped it short of the blade bearing; R4's militia
+its move order stopped it short of the blade bearing; it pulls aside onto
+the first cell square to the road past the wreck, either side and further out
+in turn, that is clear of the corridor and that it can drive to, and tries the
+next when its move order gives up on one (a fixed step off the road put it in
+a wall, and it stood wedged in the convoys' way); R4's militia
 stay allied; R6 waits for a natural fall, since a scripted one would spend the
 briefing's one allowed redoubt. A beat that never got its trigger lapses.
 

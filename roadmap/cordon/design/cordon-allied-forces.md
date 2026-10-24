@@ -6,7 +6,7 @@ Status: ACTIVE — the table is built (`CordonAlliedTable`, read by
 `heart-allied-tool` pick; the rows marked *not built* below are open.
 
 Written: 2026-10-23
-Updated: 2026-10-24 — a town's technicals hold the streets; a city's trucks drive its streets.
+Updated: 2026-10-24 — a town's technicals hold the streets; a city's trucks drive its streets, escorted on foot.
 
 Step 3 of the owner's plan for the Cordon. `cordon-nouns.md` is the model
 (Allied armour, Logistics base, Allied column, Density); `allied-tools.md` is
@@ -25,14 +25,14 @@ sector beside the garrison is what changes with density.
 
 | | Rural | Town | Urban |
 | --- | --- | --- | --- |
-| Beside each redoubt | a car or technical on each flank, out past the side wall | technicals on the street nearest each flank post (built); *not built:* a technical on the street through the redoubt, riflemen in the house fronts | **a Hound pair in the street mouths and a walking rifle team, a mortar team in the yard** (built; the owner's pick `cordon-urban-allies`, the mech lance, with mortars added) |
+| Beside each redoubt | a car or technical on each flank, out past the side wall | a technical on the street through or past the redoubt, and later ones on the street nearest each flank post (built, the Line only: on the Road, hulls beside the main street block the convoys); *not built:* riflemen in the house fronts | **a Hound pair in the street mouths and a walking rifle team, a mortar team in the yard** (built; the owner's pick `cordon-urban-allies`, the mech lance, with mortars added) |
 | Opening armour | two cars, two technicals | four technicals | none |
 | Base | a fenced yard on the main road; the shed builds | the base the map lays; the shed builds (*not built:* the town's goods yard) | the base the map lays; the shed's berths build the Hounds (*not built:* a depot in a warehouse block with a mech gantry) |
 | Base produces | carrier, car, carrier, technical, round again | technical, carrier, Hound, round again | Hounds, one at a time at the shed's pace; no carriers |
 | Opening carrier | one on the apron | one on the apron | none |
 | Columns | walk in to the muster yard; carriers lift them up | walk in to the muster yard; carriers lift them up | walk the whole way up, two teams each, to the redoubt that needs them most |
 | Carriers forward | yes: lift, then stay on the flanks of a calling redoubt as support | yes, roadbound: set down outside the rear gate only, and wait there | no |
-| Ammunition | a truck up the supply road when a redoubt runs low (L2 empties one), escorted by a surplus hull that it keeps to | the same; where the road was not laid, or is cut off, through the town's streets | the same, through the city's streets to the rear gate (built); a redoubt the streets do not reach is sent none |
+| Ammunition | a truck up the supply road when a redoubt runs low (L2 empties one), escorted by a surplus hull that it keeps to | the same; where the road was not laid, or is cut off, through the town's streets | the same, through the city's streets to the rear gate (built), escorted on foot by a surplus Hound or a street mouth's rifle team (built); a redoubt the streets do not reach is sent none |
 | Reserve, asked by need | an armour pair of technicals for an uncovered sector | the same | a Hound pair walking up |
 | Air and guns | deferred to `heart-allied-tool` | deferred | deferred; matters most here |
 
@@ -80,9 +80,8 @@ is in.
   `cordon-allies-look` (opt-in `createSnapshots` suite);
   `-Dsnapshot.cordonAllies.options=town,urban` renders the built table at a
   redoubt instead.
-- Town: a technical on the street through the redoubt and riflemen in the
-  house fronts. The town's technicals hold the street nearest their flank
-  posts; a sector of one hull would have to give its flank up for the street
-  through the redoubt, so that waits for a second hull in the sector.
+- Town: riflemen in the house fronts. A sector's first technical holds the
+  street through or past its redoubt rather than a flank (a sector of one hull
+  gives its flank up for it); a second takes a flank.
 - The base's own ground by density: a town's goods yard, a city's depot and
   mech gantry. The shed's berths build Hounds meanwhile.

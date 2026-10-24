@@ -104,7 +104,7 @@ allies say what they are already doing about it:
 | **Help coming** (redoubt N) | a loaded carrier or a column is bound for it | it arrives or is lost |
 | **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
 | **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
-| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: within 14 cells) | none is |
+| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: an armed hull, a Hound or a street team within 14 cells) | none is |
 
 Breached and Bled are the redoubt's existing Calling state split by its two
 causes; Uncovered is new. The company is never told what the swarm is doing
@@ -131,6 +131,13 @@ convoys and beat hulls on the road; the density), returning tasks the
    hull from any one sector, and never a calling redoubt's last hull. What it
    cannot take that way it goes without, and says so (*Escorted* is false), so
    the company knows to walk with it. The hulls go home when the escort ends.
+   In a city, which fields no hulls, a truck or dozer with no hull free takes a
+   walking escort out of the same surplus (`CordonAlliedRules.escorts` takes
+   hulls, mechs and teams alike): a Hound from a sector above its pair, or a
+   street mouth's rifle team while its pair stands, since a team counts nothing
+   toward the floor and is never the last cover. Hulls are offered first; the
+   truck keeps to a walker at the walker's pace, and a team goes back to its
+   mouth when the escort ends.
    Only an armed hull escorts, and one that does not close on its truck (boxed
    in at the base's door, say) is stood down for two minutes and the next taken.
    **Escorted means alongside, not assigned.** A truck or dozer with an escort
@@ -147,9 +154,10 @@ convoys and beat hulls on the road; the density), returning tasks the
    neediest redoubt (calling first, then fewest standing, today's `neediest`),
    and while it is on its way that redoubt has *Help coming*. Only a carrier
    with no allied squad waiting may take a Marine (the company's lift, below).
-5. **Density shapes the posts, not the rules.** Town: every post is moved to
-   the nearest street cell within reach (roadbound; not on the Road, whose
-   streets are the convoys'), and carriers set down at
+5. **Density shapes the posts, not the rules.** Town: a sector's first hull
+   stands on the street through or past its redoubt, and every other post is
+   moved to the nearest street cell within reach (roadbound; not on the Road,
+   whose streets are the convoys'), and carriers set down at
    the rear gate only. Urban: no carriers; columns walk to the redoubt with the
    fewest standing; mechs stand in the street mouths the swarm comes through.
 6. **The allies never end the battle and never take the company's work.** They
@@ -163,7 +171,9 @@ where `nextPost` says, the nearest breaking a tie, and takes escorts through
 `escorts`; `CordonLogistics` keeps carriers behind the redoubt they fed and
 sends waiting squads by `carrierDuty`). Rule 5: the town's rear gate for
 carriers, the city's walking columns and mechs in the mouths, and in a town
-every hull's flank post moved to the nearest street cell within sixteen
+the sector's first hull on the street through or past its redoubt (within
+twelve of its walls, `CordonArmour.throughStreet`) and every later hull's flank
+post moved to the nearest street cell within sixteen
 (`CordonAlliedRules.roadbound`), but not on the Road: there the town's main
 street is the convoys' road, and hulls parked on the streets beside it stood
 in their way and the dozer's. A beat's hull (L2's ammunition truck, R1's
@@ -198,7 +208,9 @@ rule in `CordonAlliedRules`:
   (`CordonSupplyStreets`), and the truck sets out from the first street cell
   on it outside the base from which it can drive the rest. Every way is proved
   at setup as a move order is planned, every bend one a truck can make
-  forward; a redoubt with no such way is never sent a truck (one sent anyway
+  forward, and the truck is set down facing along the way's first leg (set
+  down facing the redoubt, it stood at a street's edge facing a wall: the two
+  city trucks that sat at their start all battle); a redoubt with no such way is never sent a truck (one sent anyway
   stood where its way ran out), and evidence names each redoubt's way (road,
   streets or none).
 

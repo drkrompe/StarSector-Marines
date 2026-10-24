@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
-import com.dillon.starsectormarines.battle.cordon.CordonAlliedRules.Hull;
+import com.dillon.starsectormarines.battle.cordon.CordonAlliedRules.Escort;
+import com.dillon.starsectormarines.battle.cordon.CordonAlliedRules.Kind;
 import com.dillon.starsectormarines.battle.cordon.CordonAlliedRules.Post;
 import org.junit.jupiter.api.Test;
 
@@ -39,18 +40,48 @@ class CordonAlliedRulesTest {
                 new Post(1, true, false, 10, 3, true),
                 new Post(2, true, false, 10, 1, true),
                 new Post(3, true, true, 10, 2, true));
-        List<Hull> free = List.of(
-                new Hull(11, 0, 0, 1), new Hull(12, 1, 0, 1), new Hull(13, 2, 0, 1),
-                new Hull(21, 0, 1, 2),
-                new Hull(31, 5, 5, 3), new Hull(32, 6, 5, 3));
-        List<Hull> out = CordonAlliedRules.escorts(0, 0, 3, free, posts, 1);
-        assertEquals(List.of(11L, 31L), out.stream().map(Hull::id).toList());
+        List<Escort> free = List.of(
+                new Escort(11, 0, 0, 1), new Escort(12, 1, 0, 1), new Escort(13, 2, 0, 1),
+                new Escort(21, 0, 1, 2),
+                new Escort(31, 5, 5, 3), new Escort(32, 6, 5, 3));
+        List<Escort> out = CordonAlliedRules.escorts(0, 0, 3, free, posts, 1);
+        assertEquals(List.of(11L, 31L), out.stream().map(Escort::id).toList());
     }
 
     @Test
     void aCallingRedoubtsLastMachineNeverEscorts() {
         List<Post> posts = List.of(new Post(1, true, true, 10, 1, true));
-        assertTrue(CordonAlliedRules.escorts(0, 0, 1, List.of(new Hull(1, 0, 0, 1)), posts, 0).isEmpty());
+        assertTrue(CordonAlliedRules.escorts(0, 0, 1, List.of(new Escort(1, 0, 0, 1)), posts, 0).isEmpty());
+    }
+
+    @Test
+    void aCitysStreetTeamEscortsWhileItsMechPairHoldsTheFloor() {
+        // Urban floor: the pair. Sector 1 holds its pair, sector 2 has lost a Hound, sector 3 has a relief pair too.
+        List<Post> posts = List.of(
+                new Post(1, true, false, 10, 2, true),
+                new Post(2, true, false, 10, 1, true),
+                new Post(3, true, false, 10, 4, true));
+        List<Escort> free = List.of(
+                new Escort(101, 0, 0, 1, Kind.MECH), new Escort(102, 1, 0, 1, Kind.TEAM),
+                new Escort(201, 0, 1, 2, Kind.TEAM),
+                new Escort(301, 9, 9, 3, Kind.MECH));
+        // The pair is the floor, so no Hound of sector 1 goes, but its team does; sector 2's team is its last cover
+        // above a broken pair and stays; sector 3's relief leaves a Hound to spare.
+        assertEquals(List.of(102L, 301L),
+                CordonAlliedRules.escorts(0, 0, 3, free, posts, 2).stream().map(Escort::id).toList());
+    }
+
+    @Test
+    void aCallingRedoubtsStreetTeamStaysWhereNoMachineIsLeft() {
+        List<Post> posts = List.of(new Post(1, true, true, 10, 0, true));
+        assertTrue(CordonAlliedRules.escorts(0, 0, 1, List.of(new Escort(1, 0, 0, 1, Kind.TEAM)), posts, 0).isEmpty());
+    }
+
+    @Test
+    void onlyACityTakesWalkingEscorts() {
+        assertTrue(CordonAlliedRules.walkingEscorts(CordonPlan.Density.URBAN));
+        assertFalse(CordonAlliedRules.walkingEscorts(CordonPlan.Density.TOWN));
+        assertFalse(CordonAlliedRules.walkingEscorts(CordonPlan.Density.RURAL));
     }
 
     @Test
