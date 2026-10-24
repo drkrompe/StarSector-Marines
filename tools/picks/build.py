@@ -12,7 +12,7 @@ question (a GIF of a finished feature, a set of stills), newest first, as
 [{id, area, date, title, note, lead?, shots: [{file, label}]}] with each `file`
 under media/<preview id>/; `lead: true` draws the first shot full width. Publish
 out.html with the Artifact tool, declaring the `db` capability, and pass the
-images through `files`. See "Questions for the owner" in CLAUDE.md.
+images through `files`. See `owner-review.md` (Questions: the picks page).
 """
 import argparse
 import json

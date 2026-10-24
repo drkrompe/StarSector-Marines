@@ -1,15 +1,13 @@
-| `heart-commander-look` | Opt-in, minutes: plays the Broad Front town battle (seed 2) unrecorded to the allied commander's first call for machines and to its gunship call, and records each through the look preset from the call, the camera on what the base sent: `commander-armour`, `commander-gunship`, and `commander-reaim`, the wave re-aimed at a broken lane from its stepping off (`-Dsnapshot.heartCommander.shots=reaim` renders one) (`heart-allied-commander.md`) | `build/snapshots/heart-commander-look/` |
 # Snapshot suites
 
 Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-23 — look frames (`look/`) for owner-facing pictures
+Updated: 2026-10-24 — running the catalog and the review-frame parity table moved here from `CLAUDE.md`
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
-How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
-workflow). This table is not the catalog. Suites register through `META-INF/services`,
+How to run them is below (Running the catalog); the preview rule is in `CLAUDE.md`. This table is not the catalog. Suites register through `META-INF/services`,
 and `tools/authoring.sh snapshot_list_suites` lists every registered id; many registered
 suites have no row here. Add a row when a suite is evidence someone will want to find
 by name.
@@ -30,8 +28,71 @@ A suite can be **opt-in**: `all` leaves it out and only `-Psnapshot=<id>` runs i
 (`SnapshotSuite.inAll`). That is for slow look studies that matter only while their
 art is being changed; `deck-props` and `elevation-look` are opt-in.
 
+## Running the catalog
+
+`gradlew.bat createSnapshots` renders every deterministic visual-evidence suite under `build/snapshots/` without
+launching Starsector. It is the only top-level task for visual evidence: a new kind of picture is a `SnapshotSuite`
+provider registered through `META-INF/services`, never a new Gradle task, so automation and the `layerAuthoring`
+workbench's Snapshots tab share one catalog.
+
+- `-Psnapshot=<id>[,<id>...]` selects suites (default `all`, which leaves out opt-in suites); quote the whole
+  property in PowerShell (`'-Psnapshot=layers,turrets'`). `-PsnapshotDir=<path>` moves the output root. A run
+  replaces matching files without prompting and never removes stale ones, so a renamed artifact leaves the old
+  name behind.
+- A `-Dbattle.*` switch on the command line is forwarded into the fork, so a control run is one command:
+  `.\gradlew.bat createSnapshots '-Psnapshot=killing-ground' '-Dbattle.pathfinding.casualtyRouteCost=false'`.
+- Art is read from `mod/` first and the installed game second, the game's own order, so vanilla sprites such as
+  aircraft hulls appear; a suite stops drawing them if the install is missing.
+- **Review frames are drawn on the GPU by default**, through the shipping `BattleRenderer` into a `HeadlessGl`
+  pbuffer (`ReviewSceneBackend`), with surface relief, sun shadows and event lights (`gpu-review-drain.md`).
+  `-Dsnapshot.backend=java2d` is the reference drain; `-Dsnapshot.gl.relief=false` drops the relief composite. On
+  the Mac the task runs on LWJGL 3 through a windowless CGL context (`-PsnapshotGl=lwjgl3` does the same on
+  Windows); a machine with no context says so once and uses Java2D. GL pixels depend on the driver, so compare raw
+  frames only between runs on one backend and machine.
+- The pixel work runs on workers (`SnapshotWorkers`, half the processors; `-Dsnapshot.threads=1` is serial): frames
+  drain in fixed 32-row bands, so every frame is the same at any worker count (`-Dsnapshot.bandRows=0` drains each
+  frame whole). The simulation steps on one thread. `-Dsnapshot.profile=true` prints where a frame's time goes.
+- **Accept a renderer change on raw frames, never on GIFs**, whose palette hides and invents differences:
+  `-PsnapshotRawFrames=<dir>` keeps every frame losslessly and `RawFrameDump.main` compares two runs.
+- A suite artifact is a PNG, or an animated GIF for a suite whose evidence is a played battle. The runner writes
+  both; a suite never writes files itself. Animated review frames come from `BattleReviewFrameRenderer`, shared
+  with commander evidence. Frames are a pure function of simulation state: the effect feed's jitter is seeded and
+  the animation clock pinned (`REVIEW_CLOCK_SECONDS`).
+- Snapshot code never enters the shipped jar: catalog and runner code lives in `:layer-authoring`, mod-specific
+  providers in the root test source set, and `verifyModJarBoundary` (part of `check`) fails if any tool-only class
+  reaches `StarsectorMarines.jar`.
+
+## What a Java2D review frame draws, against the live screen
+
+`BattleReviewFrameRenderer` collects the production `BattleRenderer` layers. On the Java2D drain
+(`HeadlessBattleSceneRenderer`), what is not in the draw list is missing: GL custom passes, and services the
+screen ticks every frame, which a feed (`ReviewImpactFx.feed`, once per simulation tick) stands in for.
+
+| Live layer / feature | Review frame |
+|----------------------|--------------|
+| Ground, decals, doodads, parked vehicles | Drawn. Terrain relief, sun shading and normal-mapped lighting are the GL composite and are not drawn; `sun-shadows` holds the CPU model |
+| Units, bodies, health bars, medic and satchel markers | Drawn |
+| Unit shadows, roofs and fort building art | Drawn when asked for (`withUnitShadows`, `withRoofs`); off by default |
+| Aircraft hulls, turrets and shadows, warships, convoys, drones, engine plumes | Drawn |
+| Projectiles, tracers, bolts, beams, delivered-ordnance traces | Drawn (`SHOTS`) |
+| Contrails, including warship missiles' ribbons | Drawn as flat-coloured ribbon segments (`RibbonBatch`); additive plumes draw as ordinary blends |
+| Weapon `fx` blocks, blasts, wall dust, wreck smoke and fire, point-defence bursts | Drawn from the real `ImpactFx` fed per tick |
+| Smoke clouds, shield domes, point-defence marks, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader) |
+| Night lighting pools | Drawn; muzzle, impact and fire lights (`GroundLightService`) are not fed |
+| Capture-point rings, objective annuli | Drawn |
+| Objective, compound and fort text labels | Not drawn; reviews name places with `ReviewAnnotations` |
+| Fog of war | Not drawn: a review is a neutral observer (`BattleRenderHostProfile.OBSERVER_SCENE`) |
+| Highlights, selection rings, order lines, debug overlays | Not drawn: UI and debug |
+| Ship-deck lighting and deck scenes | Not drawn here; the ship-deck suites have their own renderer |
+
+Scenes built over a bare grid get no doodads unless they hand the generator's `ctx.doodads` to the simulation; the
+fort scenes do not (`render-parity` does).
+
+## The notable suites
+
 | Suite | Evidence | Output |
 |-------|----------|--------|
+| `heart-commander-look` | Opt-in, minutes: plays the Broad Front town battle (seed 2) unrecorded to the allied commander's first call for machines and to its gunship call, and records each through the look preset from the call, the camera on what the base sent: `commander-armour`, `commander-gunship`, and `commander-reaim`, the wave re-aimed at a broken lane from its stepping off (`-Dsnapshot.heartCommander.shots=reaim` renders one) (`heart-allied-commander.md`) | `build/snapshots/heart-commander-look/` |
 | `mission-flow-localization` | Mission previews (briefing, deployment, results, salvage) and the retained battle HUD matrix, each in English and in expanded copy (every catalog value 50% longer, arguments intact) at 1920x1080/100%; text that does not grow is still a literal or preview sample data. Siblings: `opening-localization`, `equipment-localization` | `build/snapshots/mission-flow-localization/` |
 | `hive-creep` | Hive creep on the canonical colony: every eruption site opened on the breach schedule and only the creep field advanced, whole map at two, four and six minutes (with roofs, and annotated), a bore and a spreading edge close up, an edge at play zoom (`07-play-zoom-edge.png`, 32 px a cell) and closer (`08-close-edge.png`), the pulse (`09-pulse.gif`, clock-driven) and a source removed dying back (`10-dying-back.gif`); 1920x1080/100% look evidence, not mission acceptance. `-Dbattle.render.creepPalette=chitin` or `bloom` draws a superseded palette. The GL picture of the same creep is `CreepGlLookEvidence` under `renderEvidence` (`build/reports/render/creep-look/`) | `build/snapshots/hive-creep/` |
 | `rural-mapgen` | Colony Breach's map at tick zero on seeds 7117, 3 and 11 (`-Dsnapshot.ruralMapgen.seeds=`): whole map, the country band 220 cells across, and play zoom (32 px a cell) on the landing field, where the country road leaves town, open country, a farmstead, the town's yards and lots where they meet grass, each holdout and the civil-defence compound. Look evidence for the surveyed country (`mapgen-nouns.md`, Rural country), 1920x1080 | `build/snapshots/rural-mapgen/` |
@@ -50,8 +111,6 @@ art is being changed; `deck-props` and `elevation-look` are opt-in.
 | `vehicle-damage-smoke` | Damage smoke on live hulls (`combat-durability-nouns.md`, Damage smoke): four breakthrough tanks on real ground, plates worn to 15% (thin engine-deck smoke), hull structure failing (heavier), drive lost (a burst, then smoke at the running gear) and turret lost (a burst, then a smoulder on the ring), six seconds at play zoom and close (`look/tank-smoke-*`, GIF and stills). Look evidence only, no verdict | `build/snapshots/vehicle-damage-smoke/` |
 | `mech-flux` | Flux haze on live mechs (`mechs-nouns.md`, Flux reservoir): a row of Hounds and a row of Bulwarks on real ground at 0, 60 and 85% flux and venting, held four seconds at play zoom and close (`look/mech-flux-*`, GIF and stills). Look evidence only, no verdict | `build/snapshots/mech-flux/` |
 | `vehicle-ram` | The vehicle-ram behaviour scene's eleven loops: a technical through a file of our own riflemen (`friendly-file`), a technical and a gun tank into a Runner pack and into two Brutes (`runners-light`/`-heavy`, `brutes-light`/`-heavy`), and two hulls ordered past each other down a walled lane (`lane-meet`, two APCs in five cells; `lane-meet-mixed`, technical and tank in seven); then a Hound walked through the file, into the pack, round a parked APC (`mech-friendly-file`, `mech-runners`, `mech-into-hull`) and head-on into a Bulwark (`mech-meet`). Walls outlined; each loop also as `-close` on the meeting stretch. 1920x1080; verdicts are `sceneEvidence -Pscene=vehicle-ram`'s | `build/snapshots/vehicle-ram/` |
-| Suite | Evidence | Output |
-|-------|----------|--------|
 | `deck-props` | Opt-in. The generated, manned Valkyrie's moving props: belt conveyor, rack lift, treadmill and rower, engine-room fans, the vehicle bay's travelling cranes over alternately occupied berths. One 1920x1080 GIF per room on the deck's own clock, power up for the first half and at a deficit for the second; the console says how often each worked machine was worked | `build/snapshots/deck-props/` |
 | `apc` | Registered live/wreck APCs at four headings and both sizes, twin-MG muzzle rotation, distance-driven tire treads and compact destruction effects on Thunder Run beside the tank and freight; controlled 1920x1080/100% art/motion evidence, not mission acceptance | `build/snapshots/apc/` |
 | `tank` | Registered tracked hull and short single-cannon turret at four headings, full posed rotation with muzzle marks, real autonomous-fire recoil, the production Thunder Run staging column alongside APCs, a technical and freight haulers, controlled forward/brake/reverse tread motion, and registered destruction with roof/engine effects; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
