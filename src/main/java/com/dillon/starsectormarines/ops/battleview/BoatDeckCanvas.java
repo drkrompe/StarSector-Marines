@@ -251,10 +251,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
 
     /** Keep annotations in document pixels rather than stretching their fonts with the camera. */
     public static void fitSurface(UiElement canvas) {
-        if (canvas.box() == null) return;
-        int width = Math.max(1, Math.round(canvas.box().contentBox().width()));
-        int height = Math.max(1, Math.round(canvas.box().contentBox().height()));
-        if (width != canvas.canvasWidth() || height != canvas.canvasHeight()) canvas.canvasSize(width, height);
+        canvas.fitCanvasToBox();
     }
 
     /**
