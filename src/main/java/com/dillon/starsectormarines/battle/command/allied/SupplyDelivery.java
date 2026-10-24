@@ -48,9 +48,9 @@ public final class SupplyDelivery {
         void arrived(BattleSimulation sim);
     }
 
-    /** The armed hull a mission has sent beside a delivery's truck. */
+    /** The armed escort a mission has sent beside a delivery's truck: a hull, or a walker (a mech, a rifle team's leader). */
     public interface Escort {
-        /** The hull escorting {@code truck} now, or {@code 0} while none is. */
+        /** The hull or unit escorting {@code truck} now, or {@code 0} while none is. */
         long hull(BattleSimulation sim, long truck);
     }
 

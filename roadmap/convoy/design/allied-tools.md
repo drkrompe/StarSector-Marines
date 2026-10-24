@@ -108,7 +108,8 @@ delivers nothing.
   the edge of a street that runs the other way, it had a bend from a
   standing start that no trajectory makes, and stood there all battle.
 - **An escorted delivery keeps to its escort** (`SupplyDelivery.escortedBy`,
-  `EscortPace`). The mission names the armed hull it has sent beside the
+  `EscortPace`). The mission names the armed hull, or the walker (a mech, a
+  rifle team's leader: a city has no hulls), it has sent beside the
   truck; "escorted" means alongside, not assigned. The truck waits where it
   was set down until its escort is within eight cells, the pair drives at the
   slower one's pace (a little under it, so the escort can close up), and the

@@ -104,7 +104,7 @@ allies say what they are already doing about it:
 | **Help coming** (redoubt N) | a loaded carrier or a column is bound for it | it arrives or is lost |
 | **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
 | **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
-| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: within 14 cells) | none is |
+| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: an armed hull, a Hound or a street team within 14 cells) | none is |
 
 Breached and Bled are the redoubt's existing Calling state split by its two
 causes; Uncovered is new. The company is never told what the swarm is doing
@@ -131,6 +131,13 @@ convoys and beat hulls on the road; the density), returning tasks the
    hull from any one sector, and never a calling redoubt's last hull. What it
    cannot take that way it goes without, and says so (*Escorted* is false), so
    the company knows to walk with it. The hulls go home when the escort ends.
+   In a city, which fields no hulls, a truck or dozer with no hull free takes a
+   walking escort out of the same surplus (`CordonAlliedRules.escorts` takes
+   hulls, mechs and teams alike): a Hound from a sector above its pair, or a
+   street mouth's rifle team while its pair stands, since a team counts nothing
+   toward the floor and is never the last cover. Hulls are offered first; the
+   truck keeps to a walker at the walker's pace, and a team goes back to its
+   mouth when the escort ends.
    Only an armed hull escorts, and one that does not close on its truck (boxed
    in at the base's door, say) is stood down for two minutes and the next taken.
    **Escorted means alongside, not assigned.** A truck or dozer with an escort

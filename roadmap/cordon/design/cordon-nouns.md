@@ -309,11 +309,18 @@ of the **surplus**: the nearest hulls whose sector stands above its floor, at
 most one from any one sector, never a calling redoubt's last; what the convoy
 cannot take that way it goes without. They go back to their sectors when it is
 home. An ammunition truck and R1's dozer are escorted the same way, one hull
-beside each, after the convoys, and only by an armed hull. **Escorted means
+beside each, after the convoys, and only by an armed hull. A city fields no
+hulls, so there a truck or dozer with no hull free takes a **walking escort**
+out of the same surplus: a sector's Hound above its pair (a relief pair, a
+Hound off the gantry walking up), or a street mouth's rifle team while the
+sector's pair still stands (a team counts nothing toward the floor, so it is
+never a sector's last cover); hulls first, since a walker holds its truck to a
+walker's pace, and the team goes back to its mouth when the escort ends. **Escorted means
 alongside**: such a hull waits where it was set down until its escort is
 beside it, the pair drives at the slower one's pace, and it holds whenever the
 escort falls behind; with no escort free, or one that never came, it goes
-alone for good, and the company walks with it. The company walks with a convoy only
+alone for good, and the company walks with it. The radio's Escorted counts an
+armed hull, a Hound or a street team within reach. The company walks with a convoy only
 where no armed allied hull is with it, which is where the armour has not come
 or has died, and clears the road ahead of one the swarm has halted. One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole

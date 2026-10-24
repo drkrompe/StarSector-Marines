@@ -464,7 +464,7 @@ public final class CordonSetup {
             if (cells.size() < ColonyMilitia.POST_SIZE) continue;
             String name = "Redoubt " + r.number() + " street team";
             int squad = ColonyMilitia.seatTeam(sim, cells, name, GARRISON_RISK, rng);
-            armour.addStreetTeam(squad);
+            armour.addStreetTeam(squad, r, cells.get(0)[0], cells.get(0)[1], MOUTH_TEAM_HOLD);
             sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, cells.get(0)[0], cells.get(0)[1], MOUTH_TEAM_HOLD),
                     CommandAuthority.GARRISON, CordonGarrisons.ISSUER, name + " holds the street mouth");
         }
