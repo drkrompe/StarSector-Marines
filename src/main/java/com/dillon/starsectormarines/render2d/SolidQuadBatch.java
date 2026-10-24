@@ -151,19 +151,22 @@ public final class SolidQuadBatch {
      * {@code (u, v)}: how a paged run takes a solid fill, as a quad of one opaque white texel tinted by its colour,
      * which is the colour a fill draws untextured.
      */
-    void moveQueuedTo(PagedQuadRun run, float lane, float u, float v) {
+    void moveQueuedTo(PagedQuadRun run, float lane, float light, float lightAngle, float wear, float u, float v) {
         if (quadCount == 0) return;
         run.ensureCapacity(quadCount);
         int verts = quadCount * VERTS_PER_QUAD;
         int base = run.quadCount * VERTS_PER_QUAD;
         float z = lane;
         for (int i = 0; i < verts; i++) {
-            int to = (base + i) * 3;
+            int to = (base + i) * 4;
             run.posData[to] = posData[i * 2];
             run.posData[to + 1] = posData[i * 2 + 1];
             run.posData[to + 2] = z;
-            run.uvData[(base + i) * 2] = u;
-            run.uvData[(base + i) * 2 + 1] = v;
+            run.posData[to + 3] = light;
+            run.uvData[to] = u;
+            run.uvData[to + 1] = v;
+            run.uvData[to + 2] = lightAngle;
+            run.uvData[to + 3] = wear;
         }
         System.arraycopy(colData, 0, run.colData, base * 4, verts * 4);
         run.quadCount += quadCount;

@@ -1,6 +1,6 @@
-Status: IN PROGRESS — stages A to C and whole sprites landed (law 27); D under way, hit flash landed
+Status: IN PROGRESS — stages A to C and whole sprites landed (law 27); D under way, body effects landed
 Written: 2026-10-24
-Updated: 2026-10-24 — hit flash rides in z's fraction; dissolve, outline, recolour and lit units open
+Updated: 2026-10-24 — body effects in four-wide arrays; outline and recolour open
 
 # Programmable quad batch
 
@@ -77,15 +77,16 @@ that held it off was retired once stages A to C were read against it.
   `255 * alphaMult`. A sprite's own centre or offset is not followed; no caller
   of the drain sets one. On the stress scene `SHOTS` went from 36 draws to 2 at
   every framing, frames within one level of the control.
-- **D. Effects.** Per-quad parameters: hit flash, dissolve, outline, faction
-  mask recolour, lit units. Not vertex attributes: the Mac's LWJGL 3 path keeps
-  only `GL11`, so an effect rides in the fraction of z past the lane
-  (`PagedQuadRun.lane(page, additive, flash)`, half a unit of span). **Hit
-  flash landed**: `DrawList.setFlash` stamps every command a unit emits,
-  accepted on `PagedQuadRunGlEvidence` (a flashed quad is its colour mixed
-  toward white, within one level). A second effect needs more room than one
-  fraction gives: split the span or pack two quantised values before adding a
-  generic attribute.
+- **D. Effects.** Per-quad parameters, not vertex attributes: the Mac's LWJGL 3
+  path keeps only `GL11`, so effects ride in the spare components of four-wide
+  positions and texture coordinates: the flash in z's fraction past the lane,
+  the light packed as three bytes in w, its direction in r, wear (char, embers,
+  dissolve) as three bytes in q. **Landed**: hit flash; lit bodies; char and
+  embers from the fire field; dissolve for the body cap; and event lights in
+  the night shade's fire pool. Accepted on `PagedQuadRunGlEvidence` and the
+  `body-effects-look` stills against `-Dbattle.render.bodyEffects=false`,
+  which is awaiting the owner. Open: outline and faction mask recolour (an
+  outline samples neighbours, which a tightly trimmed atlas cut would bleed).
 
 ## Measuring
 
