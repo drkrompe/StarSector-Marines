@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ea2-b1fe-79f3-b97e-0ceba9e37652",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ea2-b1fe-79f3-b97e-0ceba9e37652\\exec-11346d37-f68c-48f1-8a86-9380036906a0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\s2.png",
+    "sha256": "81ab30fc7bbe31dba4a21938c8bd4efbc5406294790e5e9557f9a8ede3859501",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\prompts\\s2.prompt.txt",
+  "promptSha256": "c9f13143fa10a83a89d34f1e3c2fcba45489693475ca1f002c9736ea8f009b8a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: this exact creature seen from above; keep its design, colours and organ; draw it from the side\n\nConcept side view for a tactical game: the SPITTER creature in reference image 1 (the same design, same colours, same plates, same acid organ and tube or vent), now seen in strict SIDE PROFILE, facing RIGHT, at the moment it FIRES.\n\nIt braces: its two muscled legs stand directly UNDER its body (like a big flightless bird's or a hound's hind legs, knees forward, hocks back), slightly crouched, and its heavy tail is planted on the ground behind as a third prop. The acid organ on its back has just contracted, and ONE big glob of deep dark venom-green acid is leaving the bone tube (or vent) on its back, flying UP and FORWARD in a high mortar arc over its head, trailing a thin strand of acid. The legs must not sprawl sideways. Beast first: armour plates over muscled flesh, sinew in the gaps, small amber eyes, ivory claws.\n\nPlain flat light grey background (#b4b4b4), no ground line, no shadow, no text, no border. The whole creature and the glob in frame, filling most of a landscape canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\c2.png",
+      "sha256": "82099f28790523d8782cd97278114002baede980673e817faf7ef1c58ca3c025",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: this exact creature seen from above; keep its design, colours and organ; draw it from the side"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one side-profile firing pose from your reference."
+  ],
+  "usage": {
+    "input_tokens": 76216,
+    "cached_input_tokens": 62848,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 568,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 62.1
+}

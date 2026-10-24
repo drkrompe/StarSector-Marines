@@ -163,7 +163,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
             List<String> pattern = MechPatternPicker.pick(factionId,
                     FactionEquipmentSource.PATRON, 1, seed, unavailablePatterns, progress,
                     fieldsMechs ? EnumSet.allOf(MechPattern.Kind.class)
-                            : EnumSet.of(MechPattern.Kind.CHASSIS, MechPattern.Kind.VEHICLE));
+                            : EnumSet.of(MechPattern.Kind.CHASSIS, MechPattern.Kind.VEHICLE, MechPattern.Kind.KIT));
             if (!pattern.isEmpty()) return new Reward(pattern.get(0), true);
         }
         List<String> selected = LoadoutCardPicker.pick(factionId,

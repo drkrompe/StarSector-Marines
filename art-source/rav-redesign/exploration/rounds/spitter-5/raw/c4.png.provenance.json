@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ed1-f102-7ff3-a840-57c65ed22462",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ed1-f102-7ff3-a840-57c65ed22462\\exec-0199e155-aade-4c00-8514-4eda4912af01.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-5\\raw\\c4.png",
+    "sha256": "8bdffb0c49911b1ebee3f6b2265609ed3695ba25799d031014e291cc954c0b2b",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-5\\prompts\\c4.prompt.txt",
+  "promptSha256": "eb762fa1891d729c5c274323deb0a32ecaa68c7b3367661d993481db73ba8d4b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The Runner: what the Spitter must NOT look like. Tissue structure only (plates over muscle, sinew in gaps, bone claws); do not use its colours or body plan\n\nTop-down concept for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners and spits arcing globs of deep dark venom-green acid that splash infantry. Original design in the spirit of a classic sci-fi serpent warrior-beast, NOT a copy of any existing game creature.\n\nBODY PLAN: UPRIGHT and SERPENTINE. A long, thick, armoured snake-like lower body that coils or curls on the ground behind it as its base, rising into a raised, reared upper body with a broad chest, a menacing head, and two scything bone forelimbs held ready. Bilaterally symmetric upper body. Same engineered organism as the Runner (reference image 1): glossy armour plates over muscled flesh, sinew visible in every gap, ivory bone claws and spines, small amber eyes. Beast first, never insect-like: no wings, no antennae, no thin waist.\n\nIt must look clearly different from the Runner (reference image 1, a pale lilac hound with arm spikes) at a glance from far above: its own colours, and a long coiled serpent outline instead of a four-legged hound.\n\nCOLOURS: OCHRE-BONE: pale yellowed bone plates over deep crimson sinew, dark umber shadows between plates, venom-green acid.\nLAUNCHER: a swollen translucent THROAT and chest sac glowing venom-green under ribbed plates; two long bone spines curve back from the head like horns. It rears back and the throat sac heaves the glob out of its gaping jaws.\n\nStrict overhead orthographic view, camera looking straight down from above, the reared upper body and head toward the TOP of the frame, the coiled serpent body below it, centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The Runner: what the Spitter must NOT look like. Tissue structure only (plates over muscle, sinew in gaps, bone claws); do not use its colours or body plan"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Spitter concept using the reference only for its tissue structure, with the coiled serpent body and ochre-bone palette you specified."
+  ],
+  "usage": {
+    "input_tokens": 81609,
+    "cached_input_tokens": 69120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 681,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 68.3
+}

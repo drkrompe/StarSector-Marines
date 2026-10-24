@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ea0-c6b5-7802-91df-e49a540e0a47",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ea0-c6b5-7802-91df-e49a540e0a47\\exec-9005d915-6260-4046-ad00-3d4862c20a68.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\c2.png",
+    "sha256": "82099f28790523d8782cd97278114002baede980673e817faf7ef1c58ca3c025",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\prompts\\c2.prompt.txt",
+  "promptSha256": "17887cf5e3e70372ddb6552ebcaab3977e152ada7cf85b93785af39ac12f9e04",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The Runner: what the Spitter must NOT look like. Tissue structure only (plates over muscle, sinew in gaps); do not use its colours or body plan\nImage 2: Colour and material only (carapace, sinew and acid colours); ignore its body plan and its sprawled legs\n\nTop-down concept for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's fragile ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners, denies open ground and the low sky by lobbing arcing globs of acid that splash infantry. Original design, not StarCraft. It must look clearly DIFFERENT from the Runner (reference image 1, a pale lilac blade-armed hound): its own colour scheme and a rounder, heavier mass, so a player tells them apart at a glance from far above. Keep only the Runner's tissue STRUCTURE (glossy armour plates over muscled flesh, sinew visible in every gap, bone claws, small amber eyes), NOT its colours. Beast first, never insect-like: no wings, no antennae, no thin waist, no arm blades. Bilaterally SYMMETRIC.\n\nLEGS (strict): it walks on TWO strong muscled digitigrade legs set directly UNDER its body, like a big flightless bird's or a hound's hind legs, swinging forward and back. The legs must NOT sprawl out to the sides like a lizard's or a toad's; from above, the feet sit inside the body's outline or just beside it. A short heavy armoured TAIL behind, which it plants on the ground as a third prop when it braces to fire. Small clawed forelimbs folded under the chest.\n\nACID: a deep, dark VENOM GREEN that glows from inside a translucent acid organ on its back; the only bright note on the body. The organ is the read from above: a big ROUND mass on the back.\n\nCOLOURS: INSIDE-OUT MAGENTA: dark crimson-magenta plates with raw red-pink muscle bulging between them, dark wine sinew, ivory claws and tube.\n\nBODY AND FIRING (STRIDER): upright and compact. Behind the shoulders a big round translucent acid dome caged by plate ribs, with ONE short wide bone mortar tube rising from its centre, angled forward. It braces on tail and legs and the dome contracts to pump one glob high over the Runners.\n\nStrict overhead orthographic view, camera looking straight down at its back, standing at rest, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The Runner: what the Spitter must NOT look like. Tissue structure only (plates over muscle, sinew in gaps); do not use its colours or body plan"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\raw\\c6.png",
+      "sha256": "57d89b51b7ff8b808bb342ceb144005bb4e2db353ed9b97eba5dae25a5a065c5",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colour and material only (carapace, sinew and acid colours); ignore its body plan and its sprawled legs"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Spitter concept using the references for tissue structure and materials, with a compact body and legs tucked underneath."
+  ],
+  "usage": {
+    "input_tokens": 45799,
+    "cached_input_tokens": 38144,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 941,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 84.1
+}

@@ -13,7 +13,7 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 
 /**
- * Advances every live Runner's, Brute's and Matriarch's skeleton from the tick's settled state: where the body stands,
+ * Advances every live Runner's, Brute's, Spitter's and Matriarch's skeleton from the tick's settled state: where the body stands,
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
  * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
@@ -78,6 +78,11 @@ public final class RavRunnerRigSystem {
                     brute.setStage(stage(id));
                     brute.advance(posX[row], posY[row], facing[row], cooldown[row],
                             chargePhase.applyAsInt(id), stunned.test(id), dt);
+                    continue;
+                }
+                if (state instanceof RavSpitterRig spitter) {
+                    spitter.setStage(stage(table.entityAt(row)));
+                    spitter.advance(posX[row], posY[row], facing[row], cooldown[row], target[row] != 0L, dt);
                     continue;
                 }
                 if (state instanceof RavMatriarchRig matriarch) {

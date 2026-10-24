@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
+import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 
@@ -25,7 +26,8 @@ final class RavRigStandIn {
     static boolean needed(Object rig) {
         return rig instanceof RavRunnerRig r && !r.posed()
                 || rig instanceof RavBruteRig b && !b.posed()
-                || rig instanceof RavMatriarchRig m && !m.posed();
+                || rig instanceof RavMatriarchRig m && !m.posed()
+                || rig instanceof RavSpitterRig s && !s.posed();
     }
 
     /** A rig of {@code rig}'s kind, standing at {@code (x, y)} facing {@code facing}. */
@@ -42,6 +44,12 @@ final class RavRigStandIn {
             matriarch.setStage(stage);
             matriarch.advance(x, y, facing, RavMatriarchRig.NONE, 0f, dt);
             return matriarch;
+        }
+        if (rig instanceof RavSpitterRig) {
+            RavSpitterRig spitter = new RavSpitterRig(seed);
+            spitter.setStage(stage);
+            spitter.advance(x, y, facing, 1f, false, dt);
+            return spitter;
         }
         RavRunnerRig runner = new RavRunnerRig(seed);
         runner.setStage(stage);

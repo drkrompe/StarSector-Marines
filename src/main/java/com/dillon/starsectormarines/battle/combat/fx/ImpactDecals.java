@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 
 import java.util.Random;
@@ -16,6 +17,33 @@ import java.util.Random;
 public final class ImpactDecals {
 
     private ImpactDecals() {}
+
+    /** A weapon's authored mark is this share of its splash's radius across, never smaller than the minimum, cells. */
+    private static final float AUTHORED_SPLASH_SHARE = 0.6f, AUTHORED_MIN_CELLS = 0.5f;
+
+    /**
+     * Drops a persistent decal at a weapon impact: the weapon's own authored mark
+     * ({@link WeaponDef#impactDecal()}) where it names one, otherwise the mark its
+     * effect layers pick ({@link #spawnWeaponImpact(BattleSimulation, Random, WeaponFxDef, float, float, boolean)}).
+     */
+    public static void spawnWeaponImpact(BattleSimulation sim, Random rng, WeaponDef weapon,
+                                         WeaponFxDef fx, float x, float y, boolean isWall) {
+        if (!spawnAuthored(sim, rng, weapon, x, y)) spawnWeaponImpact(sim, rng, fx, x, y, isWall);
+    }
+
+    /**
+     * Drops the weapon's authored mark ({@link WeaponDef#impactDecal()}) at an impact, turned at random and sized to
+     * its splash; a splash of Spitter acid lands as either of its two spatters. Returns false, dropping
+     * nothing, when the weapon names no mark.
+     */
+    public static boolean spawnAuthored(BattleSimulation sim, Random rng, WeaponDef weapon, float x, float y) {
+        DecalKind kind = weapon != null ? weapon.impactDecal() : null;
+        if (kind == null) return false;
+        if (kind == DecalKind.ACID_SPLASH && rng.nextBoolean()) kind = DecalKind.ACID_SPLASH_LONG;
+        float size = Math.max(AUTHORED_MIN_CELLS, weapon.aoeRadius * AUTHORED_SPLASH_SHARE);
+        sim.addDecal(new Decal(x, y, kind.index, rng.nextFloat() * 360f, size));
+        return true;
+    }
 
     /**
      * Drops a persistent decal at a weapon impact. The authored primitives

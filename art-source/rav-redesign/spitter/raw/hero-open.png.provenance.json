@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ed8-58a6-7eb0-8282-315724c6c0c6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ed8-58a6-7eb0-8282-315724c6c0c6\\exec-03e71d7b-fec5-4b5c-b273-76e5be85d82a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open.png",
+    "sha256": "872805a94de80585c0752cb70d9b3fe009b23c64aa7a8193498be98f76ab0047",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\hero-open.prompt.txt",
+  "promptSha256": "53d46f98331296b12ba85c436182fff06ffa9771ea19daa87d478c1c11c5400c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Body plan and cobra hood authority (ignore its coiled tail and its teal colours)\nImage 2: Colour and plate finish authority only (ignore its crest and coiled body)\n\nProduction top-down sprite plate for a tactical game: the Rav Bloom SPITTER, an upright serpentine beast seen from directly above. Combine the two references exactly: the BODY PLAN and the COBRA HOOD of reference image 1, in the COLOURS and plate finish of reference image 2 (near-black indigo carapace, blue-violet only on the plate edges, dark wine-red sinew in every gap, pale steel-grey/ivory bone spines and claws, small amber eyes). Its acid is a deep dark venom green, glowing from the hood's inner membrane.\n\nPOSE (strict, this plate will be cut into layers):\n- The creature is a VERTICAL figure, perfectly bilaterally symmetric about the vertical centre line.\n- Head at the top, facing UP, jaws slightly open.\n- The cobra HOOD is fully FLARED open around the head and neck, wide and round, ribbed with bone spines, its inner membrane glowing venom green.\n- Below the hood: a broad armoured chest and shoulders.\n- Two long scything bone FORELIMBS held out to the left and right of the chest, clearly separated from the body by background, blades curving forward and inward, mirror images of each other.\n- The serpent TAIL hangs STRAIGHT DOWN from the waist to the bottom of the frame, a long tapering armoured column with no coil, no curve and no loop, ending in a bone spike.\n- Nothing overlaps: hood, forelimbs and tail each stand apart from the body's outline.\n\nStrict overhead orthographic view, light from the upper left, centred, the figure filling most of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-5\\raw\\c1.png",
+      "sha256": "1aa407c76b27155d96ce5a4742c970cfb57673fbf22bf9cfe0c71cdc025d16c2",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Body plan and cobra hood authority (ignore its coiled tail and its teal colours)"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-5\\raw\\c5.png",
+      "sha256": "f85cd7f1bff6b76d55c494763e477ccd0477e198ae8c6057ae0e43b4077b5872",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colour and plate finish authority only (ignore its crest and coiled body)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s body and hood, the second reference’s colours and plate finish, and your straight, symmetric pose.\n"
+  ],
+  "usage": {
+    "input_tokens": 44273,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 689,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.3
+}

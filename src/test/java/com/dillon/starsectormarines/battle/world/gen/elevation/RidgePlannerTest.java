@@ -74,4 +74,19 @@ class RidgePlannerTest {
         }
         assertTrue(!held[W / 2][2] && !held[W / 2][H - 3], "ground well clear of the band is not held");
     }
+
+    /**
+     * Sealed ground holds a band's sides and stops at its ends, so the pass a mission leaves between two bands stays
+     * as wide as it was drawn whatever the margin; held ground's round ends would close it.
+     */
+    @Test
+    void sideGroundLeavesThePassBetweenTwoBandsOpen() {
+        RidgePlanner.Band west = RidgePlanner.Band.rect(4, 20, 40, 29, true, -1, 5);
+        RidgePlanner.Band east = RidgePlanner.Band.rect(56, 20, W - 5, 29, true, -1, 5);
+        boolean[][] side = RidgePlanner.sideGround(List.of(west, east), W, H, 7);
+        boolean[][] held = RidgePlanner.heldGround(List.of(west, east), W, H, 7);
+        for (int x = 42; x <= 54; x++) assertTrue(!side[x][24], "the pass is open at " + x);
+        assertTrue(held[48][24], "held ground's round ends would close the pass");
+        assertTrue(side[20][38] && !side[20][44], "the side reaches the band, its apron and the margin");
+    }
 }
