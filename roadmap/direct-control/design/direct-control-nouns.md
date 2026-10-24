@@ -573,10 +573,11 @@ is picked, and sprinting lowers the special, which is readied again afterwards.
 An empty special keeps the pick and reads EMPTY; it never falls back to the
 primary on its own. The pick resets to the primary on takeover and handback, and
 a special no longer carried returns it there. The controlled Marine **holds the
-picked special** in place of the primary, the launcher on the shoulder or the
-rifle in the hands: raised over the wind-up, through its firing clip for the
-follow-through after a round, and carried in the item's own walking clip while
-it walks with the special readied, coming back up to the aim when it stops. The
+picked special** in place of the primary, the launcher at port across the chest
+or the rifle at low ready (owner, 2026-10-24): raised over the wind-up,
+through its firing clip for the follow-through after a round, and carried in the
+item's own walking clip while it walks with the special readied, coming back up
+to the aim when it stops. The
 walking clip moves the arms and shoulders with the stride, so a walking Marine
 is never frozen in a firing stance from the waist up; going between the carry and
 the aim takes a fifth of a second each way, and a round snaps it to the aim.
