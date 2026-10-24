@@ -1099,10 +1099,16 @@ public final class MechLabViewModel {
         }
         MechFrameBudget.Fit ghost = candidateFit(mech);
         if (ghost == null) ghost = fit;
+        // An empty engine or capacitor socket stands in as the stock part for the budget check
+        // only; the panel reads its figures as zero. A hovered part of that role fills the ghost.
+        Gaps now = Gaps.of(mech, null);
+        Gaps then = Gaps.of(mech, hoveredInternal.get());
         // What the mech deploys on: the armor shop's plate and the coolant plant over the fit.
         MechRefit refit = refit();
         float armor = fit.armorCapacity() * refit.armorMult();
-        float dissipation = fit.dissipationPerSecond() * refit.dissipationMult();
+        float speed = now.speed(fit);
+        float flux = now.flux(fit);
+        float dissipation = now.dissipation(fit) * refit.dissipationMult();
         // The stock frame: the chassis's roll-out weapons on its stock internals. A bar shows that
         // much in its part's shade and what the fit adds past it (or falls short of it) beyond.
         MechVariant variant = mech.variant();
@@ -1112,20 +1118,43 @@ public final class MechLabViewModel {
                 meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
                         armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
                         ghost.armorCapacity() * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), PLATE_TONE),
-                meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(fit.moveSpeed())),
-                        fit.moveSpeed(), maximum(MechFrameBudget::refitMoveSpeed), ghost.moveSpeed(),
+                meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(speed)),
+                        speed, maximum(MechFrameBudget::refitMoveSpeed), then.speed(ghost),
                         stock.moveSpeed(), ENGINE_TONE),
-                meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(fit.fluxCapacity())),
-                        fit.fluxCapacity(), maximumFluxCapacity(), ghost.fluxCapacity(), stock.fluxCapacity(), FLUX_TONE),
+                meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(flux)),
+                        flux, maximumFluxCapacity(), then.flux(ghost), stock.fluxCapacity(), FLUX_TONE),
                 meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
                         dissipation, maximumDissipation() * refit.dissipationMult(),
-                        ghost.dissipationPerSecond() * refit.dissipationMult(),
+                        then.dissipation(ghost) * refit.dissipationMult(),
                         stock.dissipationPerSecond() * refit.dissipationMult(), FLUX_TONE),
                 meter("range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(currentRange)),
                         currentRange, maximumWeaponRange(), ghostRange, weaponRange(stock), WEAPON_TONE),
                 meter("endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", currentMissiles),
                         currentMissiles, maximumMissileTriggers(), ghostMissiles,
                         finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), MISSILE_TONE));
+    }
+
+    /**
+     * Which required internals a fit is really missing. {@link MechFrameBudget.Fit} fills an
+     * empty socket with the stock part, which is right for the budget check and wrong for what
+     * the panel reports. The panel leans into the gap: no engine moves the mech nowhere and
+     * powers no vents, and no bank holds no flux and so has none to vent.
+     */
+    private record Gaps(boolean engine, boolean bank) {
+        /** The mech's gaps, less the one a hovered part of that role would fill. */
+        static Gaps of(CampaignMech mech, MechInternal hovered) {
+            boolean engine = mech.internal(MechInternal.Role.ENGINE) == null
+                    && (hovered == null || hovered.role != MechInternal.Role.ENGINE);
+            boolean bank = mech.internal(MechInternal.Role.CAPACITOR_BANK) == null
+                    && (hovered == null || hovered.role != MechInternal.Role.CAPACITOR_BANK);
+            return new Gaps(engine, bank);
+        }
+
+        float speed(MechFrameBudget.Fit fit) { return engine ? 0f : fit.moveSpeed(); }
+
+        float flux(MechFrameBudget.Fit fit) { return bank ? 0f : fit.fluxCapacity(); }
+
+        float dissipation(MechFrameBudget.Fit fit) { return engine || bank ? 0f : fit.dissipationPerSecond(); }
     }
 
     /** The fit a hovered catalog candidate would produce, or null when nothing is hovered. */
@@ -1142,6 +1171,10 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         if (mech == null) return "";
         MechFrameBudget.Fit fit = mech.fit();
+        // No engine, no output: the stand-in's figure would read as a budget the mech has not got.
+        if (mech.internal(MechInternal.Role.ENGINE) == null) {
+            return Strings.format("openingMechLabMassBudget", number(fit.fittedMass()), number(0f));
+        }
         MechFrameBudget.Fit candidate = candidateFit(mech);
         if (candidate != null && (Math.abs(candidate.fittedMass() - fit.fittedMass()) > 0.01f
                 || Math.abs(candidate.output() - fit.output()) > 0.01f)) {
