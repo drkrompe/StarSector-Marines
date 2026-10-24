@@ -176,6 +176,27 @@ public class FiringSystemTest {
     }
 
     @Test
+    public void reassertedPursuitTargetDoesNotStarveOpportunityFire() {
+        BattleSimulation sim = openArena(30, 10);
+        long shooter = combatant(sim, Faction.MARINE, 5, 5);
+        long pursued = combatant(sim, Faction.DEFENDER, 25, 5);
+        long opportune = combatant(sim, Faction.DEFENDER, 9, 5);
+        sim.world().setAttackRange(shooter, 10f);
+        FiringSystem system = systemFor(sim);
+
+        // An advancing member keeps its out-of-reach pursuit target every tick and shoots what it can reach.
+        for (int tick = 0; tick < 20 && sim.world().cooldownTimer(shooter) <= 0f; tick++) {
+            sim.combat().setTargetId(shooter, pursued);
+            sim.combat().setFireIntent(shooter, opportune, FireStance.MOVING, false);
+            system.tick(sim);
+        }
+
+        assertEquals(FireGate.FIRED, sim.combat().lastFireGate(shooter),
+                "keeping the same pursuit target must not restart the opportunity threat's registration");
+        assertEquals(pursued, sim.combat().targetId(shooter));
+    }
+
+    @Test
     public void alternatingNearEqualThreatsCannotStarveOpportunityFire() {
         BattleSimulation sim = openArena(30, 10);
         long shooter = combatant(sim, Faction.MARINE, 5, 5);
