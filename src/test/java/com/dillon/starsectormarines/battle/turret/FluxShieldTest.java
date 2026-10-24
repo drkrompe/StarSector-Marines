@@ -104,4 +104,26 @@ class FluxShieldTest {
         up.tick(DT, 0f);
         assertEquals(20f, up.flux(), 0.5f);
     }
+
+    @Test
+    void anEnergyGunChargesTheCapacitorsShieldDownAndRestsBetweenItsMarks() {
+        // No upkeep or round cost of the shield's own, so only the gun's draw charges it: 20 a round, shedding 10/s.
+        FluxShieldSpec spec = new FluxShieldSpec(2f, 120f, 100f, 10f, 0f, 1f, 0f, 0.5f, 0.5f, 2f, 90f, 1f,
+                new FluxShieldSpec.GunDraw(20f, 0.8f, 0.4f));
+        FluxShield shield = new FluxShield(spec, 0f);
+        for (int round = 0; round < 4; round++) {
+            shield.noteRound();
+            shield.tick(DT, Float.NaN);
+        }
+        assertEquals(0f, shield.extent(), "the shield never rose");
+        assertTrue(shield.fluxShare() >= 0.75f, "yet four rounds charged its capacitors");
+        assertFalse(shield.gunHeld(), "below the high mark the gun still fires");
+        shield.noteRound();
+        shield.tick(DT, Float.NaN);
+        assertTrue(shield.gunHeld(), "past the high mark it holds");
+        run(shield, 2f, Float.NaN);
+        assertTrue(shield.gunHeld(), "and keeps holding above the low mark");
+        run(shield, 4f, Float.NaN);
+        assertFalse(shield.gunHeld(), "until the capacitors bleed down to it");
+    }
 }

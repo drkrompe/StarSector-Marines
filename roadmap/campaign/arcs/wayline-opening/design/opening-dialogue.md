@@ -689,7 +689,7 @@ recorded `relief` briefing; ordered `briefing.*` turns). Shared by every start
 port, so it does not mention Nessa; the sisters are connected only where the
 player has met Nessa.
 
-1. > Mara Venn. Castle sent your particulars, and I've read them twice. I broker
+1. > Castle sent your particulars, and I've read them twice. I broker
    > for Wayline, and since the spring I run it, because our director took a post
    > off-world and somebody had to.
 2. > A year ago we ran freighters between worlds. We lost three cargoes in a season
