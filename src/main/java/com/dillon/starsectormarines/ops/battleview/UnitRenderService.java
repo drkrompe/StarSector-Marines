@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureLook;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -413,9 +414,10 @@ public final class UnitRenderService implements RenderSystem {
                 // Painted base: the whole footprint, upright, in place of the flat pad.
                 float w = spanX * cellPx;
                 float h = spanY * cellPx;
-                out.addSprite(RenderLayer.UNITS, artBase.sprite,
-                        cam.cellToScreenX(cx) + w * 0.5f, cam.cellToScreenY(cy) + h * 0.5f,
-                        w, h, 0f, 1f, 1f, 1f, alphaMult);
+                float mx = cam.cellToScreenX(cx) + w * 0.5f;
+                float my = cam.cellToScreenY(cy) + h * 0.5f;
+                out.addSprite(RenderLayer.UNITS, artBase.sprite, mx, my, w, h, 0f, 1f, 1f, 1f, alphaMult);
+                emitFluxBank(ctx, out, u, mx, my, w, h, alphaMult);
                 continue;
             }
             if (standsOnSurface(ctx.sim.getTopology(), cx, cy, spanX, spanY)) continue;
@@ -499,6 +501,24 @@ public final class UnitRenderService implements RenderSystem {
             for (StructureArt.Layer layer : structure.art.layers()) extent = Math.max(extent, layer.cells());
         }
         return extent;
+    }
+
+    /**
+     * A shielded structure's flux hardware over its painted base: the capacitor banks and radiators painted cold, and
+     * the same hardware at full charge laid over them at the shield's heat ({@link TurretFluxHeat}).
+     */
+    private void emitFluxBank(RenderContext ctx, DrawList out, long id, float x, float y, float w, float h,
+                              float alphaMult) {
+        TurretShieldService.Fitted fitted = ctx.sim.turretShields().fitted(id);
+        if (fitted == null) return;
+        StructureLook look = ctx.sim.turretState().structure(id).look(ctx.sim.structureStyle(id));
+        if (look == null || look.fluxBankPath() == null) return;
+        ShuttleSpriteCache cold = sprites.spriteByPath(look.fluxBankPath());
+        if (cold == null) return;
+        out.addSprite(RenderLayer.UNITS, cold.sprite, x, y, w, h, 0f, 1f, 1f, 1f, alphaMult);
+        float hot = TurretFluxHeat.hotAlpha(id, fitted.shield, ctx.sim.getSimTickIndex());
+        ShuttleSpriteCache glow = hot > 0.01f ? sprites.spriteByPath(look.fluxBankHotPath()) : null;
+        if (glow != null) out.addSprite(RenderLayer.UNITS, glow.sprite, x, y, w, h, 0f, 1f, 1f, 1f, hot * alphaMult);
     }
 
     /** The painted base of a structure that has one and whose sprite loaded, else null (the flat pad is drawn). */

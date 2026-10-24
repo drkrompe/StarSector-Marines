@@ -298,6 +298,7 @@ public final class BruteChargeSystem {
             if (!sim.getRoster().isAliveById(t.body())) continue;
             sim.stagger().stagger(t.body(), BruteChargeRules.ticks(TOSS_HOLD), Cause.KNOCKED_DOWN);
             launch(t.body(), t.dx(), t.dy(), TOSS_CELLS, BruteChargeRules.BODY_SLIDE, sim);
+            sim.swarmCues().post(SwarmCues.Kind.THROWN, t.body(), sim);
         }
     }
 
@@ -351,6 +352,7 @@ public final class BruteChargeSystem {
         if (!sim.getRoster().isAliveById(body)) return;
         sim.stagger().stagger(body, BruteChargeRules.ticks(BruteChargeRules.TRAMPLE_HOLD), Cause.KNOCKED_DOWN);
         launch(body, dx, dy, BruteChargeRules.TRAMPLE_BOWL, BruteChargeRules.BODY_SLIDE, sim);
+        sim.swarmCues().post(SwarmCues.Kind.THROWN, body, sim);
     }
 
     private void begin(Request r, BattleSimulation sim, int now) {

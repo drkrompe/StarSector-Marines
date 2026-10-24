@@ -13,7 +13,6 @@ import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -41,10 +40,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * size and sets its loudness ({@link #pitch}, {@link #volume}): one take heard
  * three ways, so a whelp pack chitters high and light and an elder is deeper
  * and louder, and still the same creature. A pack's break is one scatter
- * shriek, the leader's own cry at the leader's stage. A swarm is many bodies doing the same thing at once, so each sound is
- * admitted under its own wall-time gap and footfalls are drawn from the few
- * bodies nearest the listener: a pack reads as a pack, not as forty copies of
- * one clip. Presentation only; nothing here reaches the simulation.
+ * shriek, the leader's own cry at the leader's stage. A swarm is many bodies doing the same thing at once, so a
+ * sound layers ({@link VoicePool}): several of its voices at once, up to its voice count, each quieter the more are
+ * sounding, and one body never repeats inside its own gap; footfalls are drawn from the bodies nearest the
+ * listener. A pack reads as a pack, thicker and somewhat louder than one body, not as forty copies of one clip.
+ * A thrown body's landing is one thud whatever threw it. Presentation only; nothing here reaches the simulation.
  *
  * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
@@ -58,70 +58,78 @@ public final class SwarmAudio {
     private static final float PITCH_JITTER = 0.08f;
     /** Footfalls further from the listener than this are not drawn. */
     private static final float FOOTFALL_RANGE_CELLS = 22f;
-    /** At most this many footfalls start in one frame, nearest first. */
-    private static final int FOOTFALLS_PER_FRAME = 3;
+    /** At most this many footfalls are offered in one frame, nearest first; the voices cap what starts. */
+    private static final int FOOTFALLS_PER_FRAME = 8;
     /** Health lost below this is a graze and draws no pain sound. */
     private static final float PAIN_THRESHOLD = 1f;
 
-    // Presentation-only: per battle, the last tick played, gait and health last seen, and gaps.
+    // Presentation-only: per battle, the last tick played, gait and health last seen, and the voices.
     private static final Map<BattleSimulation, Mix> MIXES = new WeakHashMap<>();
 
-    /** One sound a strain makes, with its mix level and the shortest gap between two plays. */
+    /**
+     * One sound a strain makes: its take, the level one voice plays at alone, how many voices of it may sound at once
+     * and how long each counts as sounding, the shortest gap before one body repeats it (0 for none), and for a
+     * borrowed take the pitch it plays at.
+     */
     enum Sound {
-        RUNNER_CRY("runner_chitter", 0.6f, 350),
-        RUNNER_GALLOP("runner_gallop", 0.5f, 110),
-        RUNNER_CLATTER("runner_clatter", 0.45f, 260),
-        RUNNER_STRIKE("runner_attack", 0.7f, 90),
-        RUNNER_IMPALE("runner_impale", 0.9f, 250),
-        RUNNER_PAIN("runner_pain", 0.6f, 120),
-        RUNNER_DEATH("runner_death", 0.8f, 60),
-        BODY_LATCH("body_latch", 0.8f, 400),
-        BODY_DRAG("body_drag", 0.6f, 1900),
-        BRUTE_BELLOW("brute_bellow", 1f, 1500),
-        BRUTE_FOOTFALL("brute_footfall", 0.75f, 90),
-        BRUTE_IMPACT("brute_impact", 0.9f, 200),
-        BRUTE_WALL_BREAK("brute_wall_break", 1f, 300),
-        BRUTE_CHARGE_TELL("brute_charge_tell", 1f, 400),
-        BRUTE_CHARGE_RUN("brute_charge", 1f, 600),
-        BRUTE_CHARGE_HIT_BODY("brute_charge_hit_body", 1f, 250),
-        BRUTE_CHARGE_HIT_VEHICLE("brute_charge_hit_vehicle", 1f, 300),
-        BRUTE_CHARGE_HIT_WALL("brute_charge_hit_wall", 1f, 300),
-        BRUTE_STUN("brute_stun", 0.9f, 800),
-        BRUTE_PAIN("brute_pain", 0.8f, 300),
-        BRUTE_DEATH("brute_death", 1f, 150),
+        RUNNER_CRY("runner_chitter", 0.6f, 4, 1.2f, 2f),
+        RUNNER_GALLOP("runner_gallop", 0.5f, 6, 0.5f, 0f),
+        RUNNER_CLATTER("runner_clatter", 0.45f, 3, 0.6f, 0f),
+        RUNNER_STRIKE("runner_attack", 0.7f, 5, 0.8f, 0.4f),
+        RUNNER_IMPALE("runner_impale", 0.9f, 3, 1.4f, 1f),
+        RUNNER_PAIN("runner_pain", 0.6f, 4, 0.6f, 0.4f),
+        RUNNER_DEATH("runner_death", 0.8f, 6, 1.2f, 0f),
+        BODY_LATCH("body_latch", 0.8f, 3, 0.6f, 0.6f),
+        BODY_DRAG("body_drag", 0.6f, 3, 1.9f, 1.9f),
+        BODY_THUD("body_thud", 0.8f, 5, 0.8f, 0.5f),
+        BRUTE_BELLOW("brute_bellow", 1f, 2, 2.5f, 4f),
+        BRUTE_FOOTFALL("brute_footfall", 0.75f, 6, 0.6f, 0f),
+        BRUTE_IMPACT("brute_impact", 0.9f, 3, 1.2f, 0.4f),
+        BRUTE_WALL_BREAK("brute_wall_break", 1f, 2, 2.5f, 0f),
+        BRUTE_CHARGE_TELL("brute_charge_tell", 1f, 2, 0.9f, 0f),
+        BRUTE_CHARGE_RUN("brute_charge", 1f, 2, 2.5f, 0f),
+        BRUTE_CHARGE_HIT_BODY("brute_charge_hit_body", 1f, 3, 1.2f, 0f),
+        BRUTE_CHARGE_HIT_VEHICLE("brute_charge_hit_vehicle", 1f, 2, 1.5f, 0f),
+        BRUTE_CHARGE_HIT_WALL("brute_charge_hit_wall", 1f, 2, 1.5f, 0f),
+        BRUTE_STUN("brute_stun", 0.9f, 2, 1.8f, 0f),
+        BRUTE_PAIN("brute_pain", 0.8f, 3, 0.9f, 0.6f),
+        BRUTE_DEATH("brute_death", 1f, 3, 2.5f, 0f),
         // The Matriarch: her own roar and reap; everything else is a Brute take played a size deeper at
         // runtime, so a variant costs no file (colony-breach-nouns.md, Sound). Her death is the Brute's
-        // slowed and deepened by the same pitch argument.
-        MATRIARCH_ROAR("matriarch_roar", 1f, 4000),
-        MATRIARCH_REAP("matriarch_reap", 1f, 400),
-        MATRIARCH_DEATH("brute_death", 1f, 500, 0.62f),
-        MATRIARCH_BELLOW("brute_bellow", 1f, 3000, 0.72f),
-        MATRIARCH_FOOTFALL("brute_footfall", 1f, 250, 0.65f),
-        MATRIARCH_CROWN("brute_impact", 1f, 400, 0.75f),
-        MATRIARCH_WALL_BREAK("brute_wall_break", 1f, 600, 0.8f),
-        MATRIARCH_PAIN("brute_pain", 0.9f, 1200, 0.72f);
+        // slowed and deepened by the same pitch argument. There is one of her, so her voices hardly layer.
+        MATRIARCH_ROAR("matriarch_roar", 1f, 1, 4f, 0f),
+        MATRIARCH_REAP("matriarch_reap", 1f, 2, 1.3f, 0f),
+        MATRIARCH_DEATH("brute_death", 1f, 1, 3f, 0f, 0.62f),
+        MATRIARCH_BELLOW("brute_bellow", 1f, 1, 3.5f, 0f, 0.72f),
+        MATRIARCH_FOOTFALL("brute_footfall", 1f, 4, 1f, 0f, 0.65f),
+        MATRIARCH_CROWN("brute_impact", 1f, 2, 2f, 0f, 0.75f),
+        MATRIARCH_WALL_BREAK("brute_wall_break", 1f, 2, 3f, 0f, 0.8f),
+        MATRIARCH_PAIN("brute_pain", 0.9f, 1, 1.3f, 1.2f, 0.72f);
 
         final String id;
         final float volume;
-        final long gapNanos;
+        final VoicePool.Layering layering;
         /** A borrowed take played this much lower: a bigger body. */
         final float pitch;
 
-        Sound(String clip, float volume, long gapMillis) {
-            this(clip, volume, gapMillis, 1f);
+        Sound(String clip, float volume, int voices, float voiceSeconds, float bodyGapSeconds) {
+            this(clip, volume, voices, voiceSeconds, bodyGapSeconds, 1f);
         }
 
-        Sound(String clip, float volume, long gapMillis, float pitch) {
+        Sound(String clip, float volume, int voices, float voiceSeconds, float bodyGapSeconds, float pitch) {
             id = PREFIX + clip;
             this.volume = volume;
-            gapNanos = gapMillis * 1_000_000L;
+            layering = new VoicePool.Layering(voices, voiceSeconds, bodyGapSeconds);
             this.pitch = pitch;
         }
     }
 
+    /** Where a held voice starts, and whose voice it is. */
+    record Spot(float x, float y, UnitType strain, SwarmStage stage) { }
+
     static final class Mix {
         private int tick = -1;
-        private final EnumMap<Sound, Long> last = new EnumMap<>(Sound.class);
+        final VoicePool<Sound, Spot> voices = new VoicePool<>(Sound.class, sound -> sound.layering);
         // Readings by body, as float bits (fastutil-core has no float maps); absent reads NaN.
         private final Long2IntOpenHashMap gait = readings();
         private final Long2IntOpenHashMap health = readings();
@@ -138,18 +146,11 @@ public final class SwarmAudio {
         boolean frame(int current) {
             if (current == tick) return false;
             if (current < tick) {
-                last.clear();
+                voices.clear();
                 gait.clear();
                 health.clear();
             }
             tick = current;
-            return true;
-        }
-
-        boolean admit(Sound sound, long now) {
-            Long prior = last.get(sound);
-            if (prior != null && now - prior < sound.gapNanos) return false;
-            last.put(sound, now);
             return true;
         }
 
@@ -165,7 +166,8 @@ public final class SwarmAudio {
     }
 
     /** A footfall waiting for the per-frame budget. */
-    private record Step(Sound sound, float x, float y, float distanceSquared, UnitType strain, SwarmStage stage) { }
+    private record Step(Sound sound, long body, float x, float y, float distanceSquared, UnitType strain,
+                        SwarmStage stage) { }
 
     private SwarmAudio() { }
 
@@ -177,22 +179,27 @@ public final class SwarmAudio {
         HarrierAudio.play(sim, listenerX, listenerY);
         Mix mix = MIXES.computeIfAbsent(sim, ignored -> new Mix());
         if (!mix.frame(sim.getSimTickIndex())) return;
-        long now = System.nanoTime();
+        int now = sim.getSimTickIndex();
+        for (VoicePool.Held<Sound, Spot> h : mix.voices.due(now)) {
+            Spot at = h.payload();
+            emit(sim, mix, h.sound(), 0L, at.x(), at.y(), now, at.strain(), at.stage(), h.heldFor());
+        }
         for (SwarmCues.Cue cue : sim.swarmCues().cuesThisFrame())
-            emit(sim, mix, sound(cue.kind(), cue.strain()), cue.x(), cue.y(), now, cue.strain(), cue.stage());
+            emit(sim, mix, sound(cue.kind(), cue.strain()), cue.body(), cue.x(), cue.y(), now, cue.strain(),
+                    cue.stage(), 0);
         LongList deaths = sim.getDeathsThisFrame();
         for (int i = 0; i < deaths.size(); i++) {
             long body = deaths.getLong(i);
             UnitType type = sim.identity().type(body);
             if (!type.isSwarm()) continue;
-            emit(sim, mix, death(type), sim.world().renderX(body), sim.world().renderY(body), now,
-                    type, sim.identity().swarmStage(body));
+            emit(sim, mix, death(type), body, sim.world().renderX(body), sim.world().renderY(body), now,
+                    type, sim.identity().swarmStage(body), 0);
         }
         bodies(sim, mix, listenerX, listenerY, now);
     }
 
     /** Footfalls and pain off every living swarm body's gait and health. */
-    private static void bodies(BattleSimulation sim, Mix mix, float listenerX, float listenerY, long now) {
+    private static void bodies(BattleSimulation sim, Mix mix, float listenerX, float listenerY, int now) {
         BattleComponents components = sim.getRoster().components();
         EntityWorld world = sim.getRoster().entityWorld();
         List<Step> steps = new ArrayList<>();
@@ -206,7 +213,7 @@ public final class SwarmAudio {
             float hp = sim.world().hp(body);
             float priorHp = Float.intBitsToFloat(mix.health.get(body));
             mix.seenHealth.put(body, Float.floatToRawIntBits(hp));
-            if (hp > 0f && priorHp - hp >= PAIN_THRESHOLD) emit(sim, mix, pain(type), x, y, now, type, stage);
+            if (hp > 0f && priorHp - hp >= PAIN_THRESHOLD) emit(sim, mix, pain(type), body, x, y, now, type, stage, 0);
             if (!world.has(body, components.MOVEMENT)) continue;
             float phase = world.getFloat(body, components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE);
             float priorPhase = Float.intBitsToFloat(mix.gait.get(body));
@@ -217,13 +224,13 @@ public final class SwarmAudio {
             float d2 = dx * dx + dy * dy;
             if (!(d2 <= FOOTFALL_RANGE_CELLS * FOOTFALL_RANGE_CELLS)) continue;
             Sound step = footfall(type, ++mix.strides, sim.swarmHarvest().isCarrier(body));
-            if (step != null) steps.add(new Step(step, x, y, d2, type, stage));
+            if (step != null) steps.add(new Step(step, body, x, y, d2, type, stage));
         }
         mix.settle();
         steps.sort(Comparator.comparingDouble(Step::distanceSquared));
         for (int i = 0; i < Math.min(FOOTFALLS_PER_FRAME, steps.size()); i++) {
             Step step = steps.get(i);
-            emit(sim, mix, step.sound(), step.x(), step.y(), now, step.strain(), step.stage());
+            emit(sim, mix, step.sound(), step.body(), step.x(), step.y(), now, step.strain(), step.stage(), 0);
         }
     }
 
@@ -252,6 +259,8 @@ public final class SwarmAudio {
     }
 
     static Sound sound(SwarmCues.Kind kind, UnitType strain) {
+        // A thrown body's landing is the body's own, whatever it is and whatever threw it.
+        if (kind == SwarmCues.Kind.THROWN) return Sound.BODY_THUD;
         if (strain == UnitType.SWARM_RUNNER) {
             return switch (kind) {
                 case ALERT, PACK_BROKEN -> Sound.RUNNER_CRY;
@@ -322,12 +331,13 @@ public final class SwarmAudio {
         };
     }
 
-    private static void emit(BattleSimulation sim, Mix mix, Sound sound, float x, float y, long now,
-                             UnitType strain, SwarmStage stage) {
+    /** Offers one voice to the battle's pool and plays it if it starts; {@code heldFor} is ticks it has waited. */
+    private static void emit(BattleSimulation sim, Mix mix, Sound sound, long body, float x, float y, int tick,
+                             UnitType strain, SwarmStage stage, int heldFor) {
         if (sound == null || !sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) return;
-        if (!mix.admit(sound, now)) return;
+        if (mix.voices.offer(sound, body, tick, new Spot(x, y, strain, stage), heldFor) != VoicePool.Admit.START) return;
         float pitch = sound.pitch * pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
-        Global.getSoundPlayer().playSound(sound.id, pitch, sound.volume * volume(stage),
+        Global.getSoundPlayer().playSound(sound.id, pitch, sound.volume * volume(stage) * mix.voices.gain(sound),
                 new Vector2f(x * BattleShotAudio.WORLD_UNITS_PER_CELL, y * BattleShotAudio.WORLD_UNITS_PER_CELL),
                 new Vector2f(0f, 0f));
     }

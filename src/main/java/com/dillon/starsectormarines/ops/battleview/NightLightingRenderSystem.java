@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 
 import java.util.Arrays;
 
@@ -20,7 +22,9 @@ final class NightLightingRenderSystem implements RenderSystem {
     private final DoodadRenderSystem doodads;
 
     NightLightingRenderSystem(BattleSprites sprites) { doodads = new DoodadRenderSystem(sprites); }
-    void dispose() { pass.dispose(); }
+    void dispose() { pass.dispose(); field.dispose(); }
+    /** The shade computed on the card, for a host that can run a custom pass owning its GL. */
+    private final NightShadeField field = new NightShadeField();
     private CellTopology topology;
     private NightLighting lighting;
     private float[] pools, reds, greens, blues;
@@ -51,6 +55,14 @@ final class NightLightingRenderSystem implements RenderSystem {
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
+        if (NightShadeField.ENABLED && ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
+            field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), burning ? firePools : null,
+                    ground, useFog ? fog.cellShownArray() : null, night.darkness(), ctx.alphaMult, camera);
+            pass.useField(field, masked, useFog);
+            out.addCustom(layer(), pass);
+            lamps(ctx, out, night, visible, useFog, fog);
+            return;
+        }
         int steps = shadeSteps(camera.cellPxSize());
         shade.reset();
         PolyMesh dimMesh = masked ? pass.fogShade() : shade;
@@ -95,6 +107,13 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
         if (masked) out.addCustom(layer(), pass);
         else out.addPoly(layer(),shade);
+        lamps(ctx, out, night, visible, useFog, fog);
+    }
+
+    /** The fixtures and their halos, over the shade. */
+    private void lamps(RenderContext ctx, DrawList out, NightLighting night, VisibleCellRect visible, boolean useFog,
+                       FogOfWarService fog) {
+        var camera = ctx.camera;
         for (var lamp:night.lamps()) {
             if (!visible.contains((int)lamp.x(),(int)lamp.y())) continue;
             if (useFog
@@ -125,19 +144,28 @@ final class NightLightingRenderSystem implements RenderSystem {
     /** The shade over a point lit by {@code pool} of lamp light and {@code firePool} of fire; null where it is clear. */
     private float[] shadeColour(NightLighting night, float pool, float firePool, float red, float green, float blue,
                                 float alphaMult) {
+        float[] c = pool == 0f && firePool == 0f ? new float[4] : colour;
+        return shade(night.darkness(), pool, firePool, red, green, blue, alphaMult, c) ? c : null;
+    }
+
+    /**
+     * The night shade over a point into {@code c} (straight colour and alpha); false where it is clear. The one
+     * definition: {@link NightShadeField}'s fragment shader is this function, and its GL evidence holds it to it.
+     */
+    static boolean shade(float darkness, float pool, float firePool, float red, float green, float blue,
+                         float alphaMult, float[] c) {
         float lit=pool+firePool;
-        float dark=night.darkness()*(1-.92f*Math.min(1,lit));
+        float dark=darkness*(1-.92f*Math.min(1,lit));
         // Fire tints what it lights harder than a lamp does: it is the only light there.
         float warm=Math.min(1,.11f*Math.min(1,pool)+.2f*Math.min(1,firePool));
         float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
-        if (alpha<=0f) return null;
+        if (alpha<=0f) return false;
         float divisor=Math.max(.001f,lit);
-        float[] c = pool == 0f && firePool == 0f ? new float[4] : colour;
         c[0]=(.012f*weight+warm*(red+firePool*FireLight.RED)/divisor)/alpha;
         c[1]=(.019f*weight+warm*(green+firePool*FireLight.GREEN)/divisor)/alpha;
         c[2]=(.037f*weight+warm*(blue+firePool*FireLight.BLUE)/divisor)/alpha;
         c[3]=alpha*alphaMult;
-        return c;
+        return true;
     }
 
     /**
@@ -274,6 +302,11 @@ final class NightLightingRenderSystem implements RenderSystem {
 
     private void bake(CellTopology ground, NightLighting night) {
         topology=ground; lighting=night; width=ground.getWidth()*2+1;
+        bakePools(ground, night);
+        if (NightShadeField.ENABLED) field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
+    }
+
+    private void bakePools(CellTopology ground, NightLighting night) {
         int height=ground.getHeight()*2+1;
         pools=new float[width*height]; reds=new float[pools.length]; greens=new float[pools.length]; blues=new float[pools.length];
         for (var lamp:night.lamps()) {

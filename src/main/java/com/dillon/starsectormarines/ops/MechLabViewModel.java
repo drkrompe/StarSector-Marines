@@ -549,7 +549,7 @@ public final class MechLabViewModel {
             MechPattern.WeightClass weight = recipe != null ? weightOf(recipe.variant(), recipe.vehicle()) : null;
             return weight != null ? weightIcon(weight) : weightIcon(MechPattern.WeightClass.LIGHT);
         }));
-        props.put("buildWeightClasses", reactor.computed(() -> previewRecipe() != null ? "weight-chip" : "hidden"));
+        props.put("buildWeightClasses", reactor.computed(() -> previewRecipe() != null ? "weight-slot" : "hidden"));
         props.put("buildWeightStyle", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             MechPattern.WeightClass weight = recipe != null ? weightOf(recipe.variant(), recipe.vehicle()) : null;
@@ -1510,10 +1510,10 @@ public final class MechLabViewModel {
                     base + ":preview",
                     "catalog-preview", variant, null, null, null, null, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabChassis"), "catalog-badge fabrication",
-                    credit(recipe),
+                    Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabFrameStats", Math.round(variant.armorCapacity), Math.round(variant.maxStructure)),
                     "", "catalog-delta hidden",
-                    chassisKind(variant),
+                    roleLabel(variant.defaultRole),
                     Strings.get("openingMechLabFab"), buildHint(recipe),
                     !canBuild(recipe), materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> build(recipe), () -> previewRecipeId.set(recipe.id())));
@@ -1542,10 +1542,10 @@ public final class MechLabViewModel {
                     base + ":preview",
                     "catalog-preview", null, null, null, null, type, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge fabrication",
-                    credit(recipe),
+                    Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",
-                    vehicleKind(type),
+                    vehicleGun(type),
                     Strings.get("openingMechLabFab"), buildHint(recipe),
                     !canBuild(recipe), materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> build(recipe), () -> previewRecipeId.set(recipe.id())));
@@ -2389,6 +2389,17 @@ public final class MechLabViewModel {
         };
     }
 
+    /**
+     * A catalog row's short armament: the turret's name in capitals, without "Emplacement" (a
+     * hull's gun is not an emplacement), or that it carries none.
+     */
+    private static String vehicleGun(VehicleType type) {
+        String turret = turretName(type);
+        if (turret == null) return Strings.get("openingMechLabVehicleUnarmed");
+        String gun = turret.replaceFirst("(?i)\\s+emplacement$", "");
+        return Strings.upper(gun);
+    }
+
     private static String vehicleArmament(VehicleType type) {
         String turret = turretName(type);
         return turret != null ? Strings.format("openingMechLabVehicleTurret", turret)
@@ -2947,7 +2958,8 @@ public final class MechLabViewModel {
             case "detailRowId" -> id + ":detail-row";
             case "weightId" -> id + ":weight";
             case "weightIconId" -> id + ":weight-icon";
-            case "weightClasses" -> weightOf(chassisPreview, vehiclePreview) != null ? "weight-chip" : "hidden";
+            case "weightChipId" -> id + ":weight-chip";
+            case "weightClasses" -> weightOf(chassisPreview, vehiclePreview) != null ? "weight-slot" : "hidden";
             case "weightIcon" -> {
                 MechPattern.WeightClass weight = weightOf(chassisPreview, vehiclePreview);
                 yield weightIcon(weight != null ? weight : MechPattern.WeightClass.LIGHT);
