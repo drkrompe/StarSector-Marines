@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
+import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
@@ -95,8 +97,32 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             PolyTess.appendAnnulus(mesh, sx, sy, radius, radius + 2.5f, MARK_SEGMENTS,
                     1f, 1f, 1f, 0.85f * fade);
         }
+        if (shaded) collectTurretShields(ctx, camera, cellPx);
         if (!pass.isEmpty()) out.addCustom(RenderLayer.HAZARDS, pass);
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.HAZARDS, mesh);
+    }
+
+    /**
+     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}). Drawn by the dome
+     * shader only; where it is off the shields still work and go undrawn.
+     */
+    private void collectTurretShields(RenderContext ctx, BattleCamera camera, float cellPx) {
+        World world = ctx.sim.world();
+        TurretShieldService shields = ctx.sim.turretShields();
+        for (int i = 0, n = shields.size(); i < n; i++) {
+            TurretShieldService.Fitted fitted = shields.at(i);
+            long id = fitted.id;
+            if (!world.isAlive(id)) continue;
+            float x = world.renderX(id);
+            float y = world.renderY(id);
+            if (!isKnown(ctx, ctx.sim.identity().faction(id), x, y)) continue;
+            int slot = pass.draws().size();
+            while (drawPool.size() <= slot) drawPool.add(new ShieldDomeDraw());
+            if (TurretShieldField.describe(drawPool.get(slot), x, y, fitted.shield, fitted.tint,
+                    camera, cellPx, ctx.alphaMult)) {
+                pass.add(drawPool.get(slot));
+            }
+        }
     }
 
     /** The shader inputs for one dome: where it is, how full, what state, and the impacts crossing it. */
@@ -119,6 +145,8 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
         draw.hitFlash = dome.hitFlash();
         draw.dropFlash = dome.dropFlash();
         draw.alpha = ctx.alphaMult;
+        System.arraycopy(ShieldDomeShading.AMBER, 0, draw.collapse, 0, 3);
+        draw.arcCos = -2f;
         ShieldImpactField.gather(draw, dome, hits, camera);
         return draw;
     }

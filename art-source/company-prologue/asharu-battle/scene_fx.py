@@ -923,17 +923,25 @@ class SceneFx:
     # 'big' cluster (18 m and up: seven to ten tongues, three to five satellites, a long smoke)
     KILL_SIZE = 1.7
 
-    def blast_on(self, key, radius, at, frame=None):
+    def blast_on(self, key, radius, at, frame=None, facing=False):
         """An HE blast on key's hull at `at` (her frame, metres), on `frame` (default two frames before
-        the key). At her origin it is her kill: the whole ship cooks off (kill())."""
+        the key). At her origin it is her kill: the whole ship cooks off (kill()). With `facing`, it goes
+        off on the face of her hull the camera sees, on the line from the lens to `at`: a small blast on
+        her far side is hidden by her own hull (S9b's secondary pops, 24 fps check 2026-10-24)."""
         ship = self.ship(key)
         if ship is None:
             return False
         f = self.now - 2 if frame is None else frame
         if Vector(at).length < 1e-6:
             return self.kill(key, radius, f)
+        out = self.outward(key, at)
+        if facing and self.cam_at is not None:
+            p, n = self.hit_point(key, self.cam_at(f)[0], self.world(key, at))
+            self.rows.append(f'blast on {key}: {tuple(round(c) for c in at)} brought to the face toward the camera, '
+                             f'{tuple(round(c) for c in p)}')
+            at, out = tuple(p), n
         with ship.kit() as (ctx, kit):
-            self.m['swfx_impacts'].he(ctx, f, tuple(at), tuple(self.outward(key, at)), size_m=radius * .6)
+            self.m['swfx_impacts'].he(ctx, f, tuple(at), tuple(out), size_m=radius * .6)
         self.rows.append(f'blast on {key} r{radius}')
         return True
 

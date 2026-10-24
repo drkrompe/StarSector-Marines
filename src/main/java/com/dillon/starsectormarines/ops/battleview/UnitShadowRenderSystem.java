@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierAltitude;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFall;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLift;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
@@ -143,13 +145,6 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * would be a hole in the ground as a shape.
      */
     private static final float AIR_SHADOW_ALPHA = 0.42f;
-    /**
-     * The height a loitering Rav flier casts its shadow from, in the sun's units. Lower than an aircraft's: it flies
-     * just over the rooftops, and its shadow should sit a wingspan or two off it, not across the street.
-     */
-    private static final float FLIER_SHADOW_HEIGHT_CELLS = 4f;
-    /** How much further a flier's shadow stands off per share its body has pumped up with the stroke. */
-    private static final float FLIER_SHADOW_PUMP_GAIN = 4f;
 
     /**
      * The altitude, in cells, an aircraft at full height casts from.
@@ -247,7 +242,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         for (HarrierFall fall : fliers.falls()) {
             ShuttleSpriteCache cache = sprites.spriteByPath(HarrierRenderSystem.fallSprite(fall));
             if (cache == null) continue;
-            float reach = sun.reachCells(FLIER_SHADOW_HEIGHT_CELLS * fall.altitude());
+            float reach = sun.reachCells(HarrierAltitude.SHADOW_HEIGHT_CELLS * fall.altitude());
             float x = fall.x() - sun.dirX() * reach;
             float y = fall.y() - sun.dirY() * reach;
             if (!view.visible(x, y, 3f)) continue;
@@ -260,14 +255,13 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float seen = HarrierRenderSystem.visibility(ctx, vis, m.id);
                 if (seen <= 0f) continue;
                 HarrierPose pose = HarrierPose.of(m, pack.phase());
-                // A pump that lifts the body throws its shadow further off and draws it smaller.
-                float lift = (m.rig.pump - 1f) * FLIER_SHADOW_PUMP_GAIN;
-                float reach = sun.reachCells(FLIER_SHADOW_HEIGHT_CELLS * m.altitude * (1f + lift));
+                // The drawn height, smoothed, with the pump a small wobble on it: a shadow that glides, not hops.
+                float reach = sun.reachCells(HarrierAltitude.shadowHeightCells(m));
                 float x = m.body.x - sun.dirX() * reach;
                 float y = m.body.y - sun.dirY() * reach;
                 if (!view.visible(x, y, 3f)) continue;
                 float a = alpha * seen;
-                HarrierBodyComposer.compose(sprites, m, pose.sprite(), x, y, 1f / (m.rig.pump * m.rig.pump),
+                HarrierBodyComposer.compose(sprites, m, pose.sprite(), x, y, HarrierAltitude.shadowScale(m),
                         (part, px, py, degrees, w, h) -> emit(out, part.sprite, cam, px, py, w * cellPx, h * cellPx,
                                 degrees, a));
             }
@@ -401,6 +395,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 // edge on the body's centre: nothing may lie between a body
                 // and the light that is casting it. See the class doc.
                 float anchor = lengthCells * 0.5f;
+                // A body a Harrier threw: its shadow stays on the ground, laid down-sun by how high it is.
+                HarrierLift thrown = ctx.sim.swarmFliers().lift(entityId);
+                if (thrown != null) anchor += sun.reachCells(thrown.height());
                 float shadowX = rx[r] - sun.dirX() * anchor;
                 float shadowY = ry[r] - sun.dirY() * anchor;
 

@@ -1076,9 +1076,11 @@ KEYFRAMES = {
             ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
             ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
             ('fire_on', 'lasher-lead', (16, 4, 6), (-.4, .4, 1), 105 - 106.9),
-            ('blast_on', 'lasher-lead', 8, (40, -3, 5), 105.9),
-            ('blast_on', 'lasher-lead', 8, (28, 1, 6), 106.6),
-            ('blast_on', 'lasher-lead', 9, (17, 3, 6), 107.2),
+            # each pop on the face toward the camera, growing toward the break-up and never rivalling it, with
+            # its own spray of plating (24 fps checks, 2026-10-24: r11 facing outshone the cook-off two to one)
+            ('blast_on', 'lasher-lead', 6, (40, -3, 5), 105.9, 'facing'), ('debris', 'lasher-lead', 10, (40, -3, 5), 105.9),
+            ('blast_on', 'lasher-lead', 7, (28, 1, 6), 106.6, 'facing'), ('debris', 'lasher-lead', 10, (28, 1, 6), 106.6),
+            ('blast_on', 'lasher-lead', 8, (17, 3, 6), 107.2, 'facing'), ('debris', 'lasher-lead', 12, (17, 3, 6), 107.2),
             ('blast_on', 'lasher-lead', 16, (8, 4, 6), 107.6), ('debris', 'lasher-lead', 40, (8, 4, 6), 107.6)],
         labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
@@ -1172,7 +1174,10 @@ def s5_eased(key, t_still):
 M5_MANTICORE = s5_eased('manticore-p', 47.0)
 _m5 = M5_MANTICORE.at(M5_T)
 _m5_aim = convoy_at(M5_T)['phaeton']
-M5_SHIPS = {**{k: v for k, v in convoy_at(M5_T).items() if k in ('phaeton', 'tarsus', 'hound-m', 'buffalo-b', 'dram')},
+# The Phaeton and Lasher A fly S6's flights (K3_SHIPS), so the salvos S5 shows leaving (each aimed to
+# land when S6 has it land) meet the ships S6 has them meet, and the Phaeton is where S6 opens on her
+M5_SHIPS = {**{k: v for k, v in convoy_at(M5_T).items() if k in ('tarsus', 'hound-m', 'buffalo-b', 'dram')},
+            **{k: at_time(K3_SHIPS[k], M5_T) for k in ('phaeton', 'lasher-a')},
             **{k: s5_eased(k, M5_T) for k in ('manticore-p', 'wolf-p-b')}}
 _m5_dir = [b - a for a, b in zip(_m5[:3], _m5_aim[:3])]
 _m5_len = math.sqrt(sum(x * x for x in _m5_dir))
@@ -1365,8 +1370,8 @@ BLOCKED = {
         labels=['colossus', 'morrow', 'lasher-a']),
     'm5': dict(
         shot='S5', title='The opening',
-        caption='The Manticore (P) opens at long range: Hellbore slugs and a Harpoon salvo cross 3-4 km of space '
-                'toward the column\'s tail.',
+        caption='The Manticore (P) opens at long range: two Harpoon salvos leave her tubes and cross 3-4 km of '
+                'space toward the column\'s tail.',
         # ALONG THE LINE OF FIRE, ZOOM OUT: long on the Manticore from behind as she fires (130 mm), widening
         # down the line as the salvo crosses toward the column (85 to 50 mm)
         camera=camera('m5', [dict(t=44, loc=track(M5_MANTICORE, _m5_point(-850, 110, 90)),
@@ -1378,7 +1383,11 @@ BLOCKED = {
                              dict(t=50, loc=track(M5_MANTICORE, _m5_point(-940, 130, 110)),
                                   target=_m5_point(_m5_len * .7), lens=50)], M5_T, shake=.08, kicks=[(44.6, .4)]),
         ships=M5_SHIPS,
-        fx=[('tracer', 'manticore-p', 'phaeton'), ('missiles', 'manticore-p', 'phaeton')],
+        # the two Harpoon salvos S6 lands, leaving her tubes: the Phaeton's on her cook-off (54.0 s, S6's
+        # break_frame) and Lasher A's (53.2 s, her S6 breach). No Hellbore: the Phaeton is past its
+        # range gate (scene_fx MAX_RANGE_M, 3.5 km), and slugs still in flight at the cut would vanish
+        # in S6, where her guns are on the lead Lasher (S5 staging, 2026-10-24)
+        fx=[('missiles', 'manticore-p', 'phaeton', 54.0), ('missiles', 'manticore-p', 'lasher-a', 53.2)],
         labels=['manticore-p', 'phaeton', 'tarsus', 'hound-m']),
     'm11': dict(
         shot='S11', title='Entry',
@@ -1396,6 +1405,9 @@ BLOCKED = {
         fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5)],
         labels=['colossus', 'morrow']),
 }
+# S5 is lit (coordinator, 2026-10-24): it goes through the kit, the link and motion audits and the
+# blob lint like every key frame. Its key time is the first of its ships' (M5_T).
+KEYFRAMES['m5'] = BLOCKED.pop('m5')
 SHOTS = {**KEYFRAMES, **BLOCKED}
 SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
@@ -3124,9 +3136,10 @@ def blender_main(cfg):
                         if not done and len(fx) > 4:
                             print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
                                   f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
-                    elif kind == 'blast_on':     # optional 5th: its sequence time (default 2 frames before the key)
+                    elif kind == 'blast_on':     # optional 5th: its sequence time (default 2 frames before the key);
+                        # optional 6th 'facing': on the face of her hull toward the camera (scene_fx.blast_on)
                         done = sfx_.blast_on(fx[1], fx[2], fx[3], frame=anchor + round((fx[4] - spec['key_t']) * fps_s)
-                                             if len(fx) > 4 else None)
+                                             if len(fx) > 4 else None, facing=len(fx) > 5 and fx[5] == 'facing')
                     elif kind == 'debris':       # optional 5th: the blast's time; its plates are 8 frames ahead of it
                         done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0),
                                            frame=anchor + round((fx[4] - spec['key_t']) * fps_s) - 8

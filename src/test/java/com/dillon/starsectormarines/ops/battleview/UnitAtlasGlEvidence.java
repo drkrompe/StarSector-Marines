@@ -187,7 +187,8 @@ class UnitAtlasGlEvidence {
                             + same.painted() + " painted, " + same.differingPixels()
                             + " differ against the sprite path, "
                             + displaced.differingPixels()
-                            + " against the same frame moved one column");
+                            + " against the same frame moved one column; differing pixels by their largest "
+                            + "channel delta: " + same.byLargestDelta());
                     assertTrue(same.painted() > 8_000,
                             "the comparison has to be between two frames with bodies in "
                                     + "them, not two magenta rectangles; painted "
@@ -249,25 +250,34 @@ class UnitAtlasGlEvidence {
      * way, a slot read a row out or a bilinear tap reaching into the art next
      * door all move whole pixels, not their last bit.
      */
-    private record Difference(int painted, int differingPixels) { }
+    private record Difference(int painted, int differingPixels, String byLargestDelta) { }
 
-    /** Compares two RGBA read-backs, counting what was drawn over the magenta clear. */
+    /**
+     * Compares two RGBA read-backs, counting what was drawn over the magenta clear, and how far apart the differing
+     * pixels are: a delta of one is the last bit the comparison's own documentation allows for, and anything larger
+     * is a pixel drawn differently rather than rounded differently.
+     */
     private static Difference compare(byte[] control, byte[] subject) {
         int painted = 0;
         int differing = 0;
+        int[] byDelta = new int[256];
         for (int pixel = 0; pixel < control.length; pixel += 4) {
             int r = control[pixel] & 0xFF;
             int g = control[pixel + 1] & 0xFF;
             int b = control[pixel + 2] & 0xFF;
             if (!(r == 255 && g == 0 && b == 255)) painted++;
+            int delta = 0;
             for (int channel = 0; channel < 4; channel++) {
-                if (control[pixel + channel] != subject[pixel + channel]) {
-                    differing++;
-                    break;
-                }
+                delta = Math.max(delta, Math.abs((control[pixel + channel] & 0xFF) - (subject[pixel + channel] & 0xFF)));
+            }
+            if (delta > 0) {
+                differing++;
+                byDelta[delta]++;
             }
         }
-        return new Difference(painted, differing);
+        StringBuilder spread = new StringBuilder();
+        for (int d = 1; d < 256; d++) if (byDelta[d] > 0) spread.append(' ').append(d).append(':').append(byDelta[d]);
+        return new Difference(painted, differing, spread.toString().trim());
     }
 
     /** The same frame moved one pixel to the right — the metric's own control. */

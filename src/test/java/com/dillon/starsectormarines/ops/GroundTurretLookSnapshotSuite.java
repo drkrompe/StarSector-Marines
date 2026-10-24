@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -34,6 +36,11 @@ import java.util.Map;
  * {@code -Dsnapshot.groundTurrets.firingSeconds=} plays it longer (the heavy cannon fires about once in five seconds,
  * so its muzzle scorch only builds up over half a minute), and {@code -Dsnapshot.groundTurrets.firingStills=}
  * keeps those recorded frames as its stills instead of the busiest moments.
+ *
+ * <p>A {@code shield-<look>} shot, for each look that fits the hardpoint's flux shield, puts a squad in front of the
+ * cannon hardpoint that shoots back and a marine on its flank, for {@code -Dsnapshot.groundTurrets.shieldSeconds=}
+ * (twenty by default): the arc rising to face the squad, its blocks, its break and its return, and the flank's rounds
+ * going through. {@code -Dsnapshot.groundTurrets.shield=false} leaves it out.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
@@ -70,6 +77,13 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         }
         if (Boolean.parseBoolean(System.getProperty("snapshot.groundTurrets.firing", "true"))) {
             for (String look : looks) artifacts.addAll(LookReview.record(context.modRoot(), firing(look)));
+        }
+        if (Boolean.parseBoolean(System.getProperty("snapshot.groundTurrets.shield", "true"))) {
+            StructureDef heavy = TurretCatalogRegistry.requireStructure(ROLES.get("heavy"));
+            for (String look : looks) {
+                if (heavy.fluxShieldIn(EmplacementStyle.valueOf(look.toUpperCase())) == null) continue;
+                artifacts.addAll(LookReview.record(context.modRoot(), shieldUnderFire(look)));
+            }
         }
         return artifacts;
     }
@@ -156,6 +170,46 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         }, placement -> List.of(
                 LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 26f)),
                 firingTicks(), 1, 3).withStills(firingStills());
+    }
+
+    /**
+     * A 40x22 window on arid ground: the cannon hardpoint at the west, a six-marine squad with two rocket launchers
+     * sixteen cells east of it, outside its dead zone, and one rifleman nine cells north on its flank, inside it. Both
+     * sides fire, and every body, the gun's too, has the hit points to outlast the run. Played at a frame every two ticks.
+     */
+    private static LookReview.Shot shieldUnderFire(String look) {
+        LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
+        float seconds = Float.parseFloat(System.getProperty("snapshot.groundTurrets.shieldSeconds", "20"));
+        return new LookReview.Shot("shield-" + look, ground, 40, 22, placement -> {
+            SceneBuilder builder = placement.builder();
+            float[] front = placement.openNear(28f, 11f);
+            builder.squad("front").faction(Faction.MARINE).size(6)
+                    .at((int) front[0] - placement.site().x0(), (int) front[1] - placement.site().y0())
+                    .primary("weapon.field-rifle").special("special.rocket-launcher", 2, 6)
+                    .health(4000f).stationary().done();
+            float[] flank = placement.openNear(12f, 2f);
+            builder.squad("flank").faction(Faction.MARINE).size(1)
+                    .at((int) flank[0] - placement.site().x0(), (int) flank[1] - placement.site().y0())
+                    .primary("weapon.field-rifle").health(4000f).stationary().done();
+            placement.holdouts(builder);
+            BattleSimulation sim = builder.build().sim();
+            float[] at = placement.openNear(12f, 11f);
+            int x = (int) at[0];
+            int y = (int) at[1];
+            long id = sim.spawn(MapTurret.create("shielded", Faction.DEFENDER, ROLES.get("heavy"), x, y));
+            sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
+            sim.getGrid().setWalkable(x, y, false);
+            sim.turretState().setFacingDegrees(id, 90f);
+            // Hit points to outlast the run, so the shield's return is in the frame rather than the gun's wreck.
+            sim.world().setMaxHp(id, 4000f);
+            sim.world().setHp(id, 4000f);
+            return sim;
+        }, placement -> List.of(
+                LookReview.View.close("close", placement.site().x(20f), placement.site().y(9f), 30f)),
+                Math.round(seconds / BattleSimulation.TICK_DT), 2, 4)
+                // Recorded frames, at two ticks each: blocking, the break, the gun silent, the shield back up. The
+                // battle is deterministic, so these hold until the shield's numbers or the squad's kit change.
+                .withStills(60, 177, 220, 290);
     }
 
     /** The recorded frames {@code -Dsnapshot.groundTurrets.firingStills} asks for; none keeps the busiest. */

@@ -26,7 +26,7 @@ public final class CordonBeats {
     /** Who drives the beats' hulls, as the command log names it. */
     public static final String ISSUER = "cordon-beats";
     /** How far from where it was asked a hull is set down on ground its footprint fits. */
-    private static final int STAND_REACH = 12;
+    static final int STAND_REACH = 12;
 
     private final CordonVariant variant;
     private final PrecinctPlan plan;

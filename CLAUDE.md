@@ -713,6 +713,39 @@ yet creates one when it has its first question and adds a row to
   stream and handing it over. The whole-frame column exists because a lever can
   trade our cost for the driver's — a resident mesh draws the whole map however
   close the camera is — and every other column here would call that a win.
+  **The fast path is `-PrenderMaps=stress`: about 45 seconds, against twenty
+  minutes for the whole matrix.** `RenderStressScene` stands a dense battle up
+  without a playout: the verdant 400x240 colony at tick zero, a mother bore and
+  three bores fed to their tiers with their spore colonies, creep matured at
+  once, about 180 bodies round one point (four infantry families, every mech
+  chassis on both sides, runners, brutes, spitters and a matriarch) with a
+  third of them killed where they stand, 45 ticks so the dead fall and shots
+  are in flight, then a fire stepped on its own field to The Burn's shape:
+  centred on trees and walls, which alone burn hot enough to throw embers, aged
+  45 steps (grass burnt out, crowns and walls at full heat and smoking), plus a
+  fresh patch. Its HAZARDS at mid is about 1,360 draws on the old per-sheet
+  path (`-Dbattle.render.pagedBatch=false`), near The Burn's 1,323.
+  Its counts are asserted to repeat across two stand-ups, as Conquest's are.
+  A render-cost fixture only, with no balance meaning. Compare a lever against
+  its own control with the same `-PrenderMaps=stress`. A map selection runs
+  `RenderBudgetEvidence` alone and skips the creep look evidence that shares
+  the tag.
+  **Under Nsight Systems, launch the JVM, not Gradle.** Every `renderEvidence`
+  run writes `build/nsys/render-evidence.cmd`, which replays that run (its
+  classpath, heap, properties and map selection) as one JVM through
+  `RenderEvidenceMain`. Gradle under nsys injects into every JVM it forks, and
+  its toolchain probe hung there. Capture with this, from the worktree, after
+  one `renderEvidence -PrenderMaps=stress`:
+  `& 'C:\Program Files\NVIDIA Corporation\Nsight Systems 2026.4.1\target-windows-x64\nsys.exe' profile --trace=opengl-annotations --force-overwrite=true -o "$PWD\build\nsys\stress" "$PWD\build\nsys\render-evidence.cmd"`.
+  Both paths must be absolute, because nsys starts the target outside the
+  current folder. Extra `-D` arguments to the script go to the JVM. Verified
+  2026-10-24: 45,069 GL calls, 37,943 of them `glDrawArrays`, plus GPU workload
+  ranges. Each frame is a `KHR_debug` group named `<map> / <framing> / frame N`
+  (`GlFrameMarkers`). nsys 2026.4 records the push and pop calls with their
+  labels on the OpenGL API row, but builds no KHR range rows from them, so read
+  a frame as push to pop: 68, 238 and 162 draws per frame at close, mid and
+  whole map. Traced frames run several times slower, so take the times from the
+  report, not from the capture.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector.
   It reads art from `mod/` first and the installed game second — the game's own

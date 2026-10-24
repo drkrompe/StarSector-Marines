@@ -1,8 +1,9 @@
 """Cut the shipped ground-turret sets into mod/graphics/structures/ground-turrets/<look>/ (every emplacement style).
 
 Mechanical, from the retained raws and their guides (make_guide.py), at 128 px a cell. Every look has the same pieces
-at the same sizes, and every look's heads are fitted to the brutalist head's opaque box, so one set of muzzles serves
-all three (the table LOOKS says where each piece comes from):
+at the same sizes. The low-tech looks' heads are fitted to the brutalist head's opaque box; the family looks' heads are
+registered to their own guides (fit_registered), which hold the pivot and the brutalist muzzle geometry. Either way
+one set of muzzles serves every look (the table LOOKS says where each piece comes from):
 
   collar-octagon.png, collar-round.png         1x1 bases, 128x128
   <role>-head.png + <role>-barrel.png          rotating head and its recoil layer, 160x160 (visualCells 1.25),
@@ -18,7 +19,8 @@ painted piece exactly at rest.
 Muzzles are measured off the barrel layer: one per separate tube, at its tip, in cells from the pivot
 ([lateral, forward], lateral positive to the right of the bearing), and written to muzzles.json beside this file.
 
-Midline and high-tech looks (modular, barrier, composite, deployed) come from family_drafts.py's sheets.
+Midline and high-tech looks (modular, barrier: League standard; export, blockwork: Diktat export; composite, deployed:
+field emitter, from its '-hex' raws) come from family_drafts.py's sheets.
 
 Usage: python art-source/ground-turrets/export_ship.py
 """
@@ -128,6 +130,19 @@ def fit_object(raw, guide, index, frame):
     return canvas.crop(frame)
 
 
+def fit_registered(raw, guide, index, frame):
+    """Raw object `index` moved and scaled (per axis) onto guide object `index`, returned as the guide's `frame` crop.
+
+    The family looks' guides draw each head with its turret ring on the frame centre (the pivot) and its barrel tips
+    where the brutalist guide puts them, so the guide is the fit: a head registered to its own guide object sits on
+    its mount and fires from the shared muzzles. Pieces are found by separation, as in fit_object."""
+    rb = objects(raw)[index]
+    gb = objects(guide)[index]
+    canvas = Image.new("RGBA", guide.size, (0, 0, 0, 0))
+    canvas.alpha_composite(raw.crop(rb).resize((gb[2] - gb[0], gb[3] - gb[1]), Image.LANCZOS), (gb[0], gb[1]))
+    return canvas.crop(frame)
+
+
 def match_extent(piece, reference):
     """`piece` moved and scaled (per axis) so its opaque extent equals `reference`'s: one set of muzzles then serves
     every look, because each look's head and barrel span exactly the brutalist head's box."""
@@ -220,19 +235,21 @@ LOOKS = {
 }
 
 
-def _family_look(option, variant, family, hardpoint="hardpoint", second="points2", dressed=False):
-    """A midline or high-tech look from family_drafts.py's sheets (guides named by family, raws by option)."""
-    pts = (f"{option}-{variant}-points.raw.png", f"{family}-{variant}-points-guide.png")
-    hp = (f"{option}-{variant}-{hardpoint}.raw.png", f"{family}-{variant}-{hardpoint}-guide.png")
+def _family_look(option, variant, family, hardpoint="hardpoint", second="points2", dressed=False, raw_suffix=""):
+    """A midline or high-tech look from family_drafts.py's sheets (guides named by family, raws by option; a raw
+    suffix such as '-hex' names a regeneration over the same guides)."""
+    x = raw_suffix
+    pts = (f"{option}-{variant}-points{x}.raw.png", f"{family}-{variant}-points-guide.png")
+    hp = (f"{option}-{variant}-{hardpoint}{x}.raw.png", f"{family}-{variant}-{hardpoint}-guide.png")
     if dressed:
         # The second point sheet was refused for this variant: its round collar was generated alone, and its grenade
         # and point-defence heads are the prepared variant's in this variant's paint (dress source: its autogun).
-        collar = (f"{option}-{variant}-collar2.raw.png", f"{family}-{variant}-collar2-guide.png")
-        heads = (f"{option}-prepared-points2.raw.png", f"{family}-prepared-points2-guide.png")
+        collar = (f"{option}-{variant}-collar2{x}.raw.png", f"{family}-{variant}-collar2-guide.png")
+        heads = (f"{option}-prepared-points2{x}.raw.png", f"{family}-prepared-points2-guide.png")
         grenade = heads + (1, frame(1), "autogun")
         pd = heads + (2, frame(2), "autogun")
     else:
-        collar = heads = (f"{option}-{variant}-{second}.raw.png", f"{family}-{variant}-{second}-guide.png")
+        collar = heads = (f"{option}-{variant}-{second}{x}.raw.png", f"{family}-{variant}-{second}-guide.png")
         grenade, pd = heads + (1, frame(1)), heads + (2, frame(2))
     return {
         "collar-octagon": pts + (0, COLLAR_BOX),
@@ -246,11 +263,19 @@ def _family_look(option, variant, family, hardpoint="hardpoint", second="points2
     }
 
 
-# Midline (League standard) and high-tech (Tri-Tachyon white), each prepared and militia (`ground-turret-tiers.md`).
+# Midline (League standard for the Persean League, Diktat export for the Diktat) and high-tech (field emitter, hex
+# armoured), each prepared and militia (`ground-turret-tiers.md`).
 LOOKS["modular"] = _family_look("league-standard", "prepared", "midline")
 LOOKS["barrier"] = _family_look("league-standard", "militia", "midline", hardpoint="hardpoint-v2", dressed=True)
-LOOKS["composite"] = _family_look("tritach-white", "prepared", "hightech")
-LOOKS["deployed"] = _family_look("tritach-white", "militia", "hightech", hardpoint="hardpoint-v2")
+LOOKS["export"] = _family_look("diktat-export", "prepared", "midline")
+LOOKS["blockwork"] = _family_look("diktat-export", "militia", "midline", hardpoint="hardpoint-v2",
+                                  dressed=not (HERE / "raw" / "diktat-export-militia-points2.raw.png").exists())
+LOOKS["composite"] = _family_look("field-emitter", "prepared", "hightech", raw_suffix="-hex")
+LOOKS["deployed"] = _family_look("field-emitter", "militia", "hightech", hardpoint="hardpoint-v2", raw_suffix="-hex")
+# Looks cut by registering each piece to its own guide (fit_registered) rather than fitting it onto the brutalist
+# head's box: their guides already hold the pivot and muzzle geometry, and stretching a differently proportioned head
+# onto another head's box moved its ring off the pivot (the owner's "heads not fit right", phase B).
+GUIDE_FIT = {"modular", "barrier", "export", "blockwork", "composite", "deployed"}
 
 
 def export_look(look, reference):
@@ -270,7 +295,8 @@ def export_look(look, reference):
         if not raw_path.exists() and look == "earthwork":
             raw_name, fallback = raw_name.replace("earthwork-", "brutalist-"), True
         image, guide = sheet(raw_name, guide_name)
-        fitted_piece = fit_object(image, guide, index, box)
+        fit = fit_registered if look in GUIDE_FIT else fit_object
+        fitted_piece = fit(image, guide, index, box)
         if piece.startswith("collar"):
             collar = fitted_piece.resize((PPC, PPC), Image.LANCZOS)
             collar = fill_pit(collar)
@@ -290,7 +316,7 @@ def export_look(look, reference):
         if dress_from is not None:
             from field_dress import colour_transfer
             composed_piece = colour_transfer(composed_piece, composed[dress_from])
-        if reference is not None:
+        if reference is not None and look not in GUIDE_FIT:
             composed_piece = match_extent(composed_piece, reference[piece])
         composed[piece] = composed_piece
         head, barrel, _ = split(composed_piece)
@@ -305,7 +331,7 @@ def export_look(look, reference):
 def main():
     reference, measured = export_look("brutalist", None)
     report = {"brutalist": measured}
-    for look in ("earthwork", "derelict", "modular", "barrier", "composite", "deployed"):
+    for look in ("earthwork", "derelict", "modular", "barrier", "export", "blockwork", "composite", "deployed"):
         report[look] = export_look(look, reference)[1]
     (HERE / "muzzles.json").write_text(json.dumps(report, indent=2) + "\n")
     for look, pieces in report.items():

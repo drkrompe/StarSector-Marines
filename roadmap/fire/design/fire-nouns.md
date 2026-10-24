@@ -112,7 +112,12 @@ fire three times as far. Every igniter (an incendiary's splash, a burning
 wreck, a shell's blast on dry fuel) lights at distance nought, so a second
 burst further on starts a second patch. `-Dbattle.fire.spreadScale` scales
 every limited spread, `0` being the old unbounded fire, while the owner picks
-how far grass carries it.
+how far grass carries it. `-Dbattle.fire.spread.<fuel>` (`brush`, `crown`, ...) sets one
+fuel's spread, for the owner's fire-flamer-woods pick: a flamer throws only
+where its fire cannot come back (Starting fires), which on grass needs the
+target about 6.5 cells off (two cells lit, three carried, one beside), so a
+7-cell flamer standing on any fuel has half a cell to throw in; from bare
+ground it throws freely.
 
 **Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
 firebreak by definition. It stays scorched for the battle (it does not
@@ -272,13 +277,21 @@ does not set Conquest alight.
 - **Throwing fire.** A squad spends an incendiary as it does a frag, on soft
   infantry it has seen, with two differences, both because the fire does the
   rest of the work. One man standing in fuel is worth a throw, where a frag
-  wants two in its blast. And a carrier does not throw where the fire could
-  come to its own side (`FireReach`): the fuel round the point it would light,
-  followed outward through any gap of three cells or less, which heat crosses,
-  out to ten cells; a friend on that ground or beside it vetoes the throw. So
-  a squad standing in the meadow its enemy stands in holds its fire, and one on
-  a road, a firebreak or burnt ground uses it. `-Dbattle.fire.throwSafety=false`
-  is the control, for thrown fire, rounds and firebombs alike.
+  wants two in its blast. It is aimed at fuel that can still catch: on ground
+  already burnt or burning it moves to the nearest unburnt fuel that keeps the
+  target in the blast, and with none there the throw is judged as a frag. And a carrier does not throw where the fire could
+  come to its own side (`FireReach`): the fuel the ordnance would light (its
+  blast and scatter round the point; for a firebomb stick, the director's
+  danger-close ring, since a stick runs along the pass), followed outward
+  through any gap of three cells or less, which heat crosses, and no further
+  from where it was lit than each cell's fuel carries a fire (Spread), counted
+  as the field counts it; a friend on that ground or beside it vetoes the
+  throw. So the check is the fire the field will actually burn: a flamer seven
+  cells back from a meadow or a stretch of brush throws, one five cells back
+  holds, and in a wood whose crowns carry a fire five cells the same throw
+  holds too. A squad on a road, a firebreak or burnt ground throws freely.
+  `-Dbattle.fire.throwSafety=false` is the control, for thrown fire, rounds
+  and firebombs alike.
 - **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
   shells, not grenades) puts enough heat into the ground it covers to catch
   grass and dying creep, never a living crown. A walking barrage of ordinary
