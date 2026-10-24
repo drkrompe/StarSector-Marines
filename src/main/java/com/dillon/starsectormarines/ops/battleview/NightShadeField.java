@@ -51,7 +51,7 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * The night shade computed per pixel on the card instead of built as quads ({@code gpu-night-shade.md}).
+ * The night shade computed per pixel on the card instead of built as quads ({@code battle-render-nouns.md}, night lighting).
  *
  * <p>The shade is a function of light pools sampled bilinearly at half-cell resolution
  * ({@link NightLightingRenderSystem}): the lamps' pools and colours, baked once per map, and fire's pools, refilled
@@ -70,14 +70,6 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
  */
 final class NightShadeField {
     private static final Logger LOG = Global.getLogger(NightShadeField.class);
-
-    /**
-     * {@code -Dbattle.render.gpuNightShade=false} builds the night shade as quads on the CPU, the control for this
-     * pass. Temporary: remove it with the quad path for GL hosts once stills and renderEvidence have read the field
-     * against it; the quad path itself stays for Java2D hosts.
-     */
-    static final String GPU_PROPERTY = "battle.render.gpuNightShade";
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(GPU_PROPERTY, "true"));
 
     /** What a stored pool of one full unit reads as; pools above it are clamped. */
     static final float RANGE = 16f;

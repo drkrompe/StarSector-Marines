@@ -172,14 +172,10 @@ public class BattleRenderer {
     private final SolidQuadBatch solidBatch = new SolidQuadBatch(256);
 
     /**
-     * {@code -Dbattle.render.pagedBatch=false} drains one fixed-function run per sheet, the control for paged runs
-     * ({@code programmable-quad-batch.md}). Temporary: remove it with that path once renderEvidence and the
-     * paged-run GL evidence have read paged runs against it; the fallback for a context that cannot page stays.
+     * One draw across several sheets and both blends where the context allows it (law 27); a context that cannot
+     * build its program drains one fixed-function run per sheet.
      */
-    static final String PAGED_BATCH_PROPERTY = "battle.render.pagedBatch";
-    /** One draw across several sheets where the context allows it; null under the control. */
-    private final PagedQuadRun pagedRun =
-            Boolean.parseBoolean(System.getProperty(PAGED_BATCH_PROPERTY, "true")) ? new PagedQuadRun() : null;
+    private final PagedQuadRun pagedRun = new PagedQuadRun();
 
     /**
      * Shared line batch for {@code LINE} commands (hitscan tracers; later the
@@ -669,7 +665,7 @@ public class BattleRenderer {
         scorch.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();
-        if (pagedRun != null) pagedRun.dispose();
+        pagedRun.dispose();
     }
 
     /**
