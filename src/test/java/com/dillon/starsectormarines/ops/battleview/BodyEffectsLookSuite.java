@@ -42,13 +42,11 @@ public final class BodyEffectsLookSuite implements SnapshotSuite {
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
-        String only = System.getProperty("snapshot.bodyEffects.shots",
-                "lit-firefight,burning-dead,retiring-dead,selected-outline");
+        String only = System.getProperty("snapshot.bodyEffects.shots", "lit-firefight,burning-dead,retiring-dead");
         List<SnapshotArtifact> out = new ArrayList<>();
         if (only.contains("lit-firefight")) out.addAll(LookReview.record(context.modRoot(), litFirefight()));
         if (only.contains("burning-dead")) out.addAll(LookReview.record(context.modRoot(), burningDead()));
         if (only.contains("retiring-dead")) out.addAll(LookReview.record(context.modRoot(), retiringDead()));
-        if (only.contains("selected-outline")) out.addAll(LookReview.record(context.modRoot(), selectedOutline()));
         return out;
     }
 
@@ -139,34 +137,6 @@ public final class BodyEffectsLookSuite implements SnapshotSuite {
     private static long spawnBody(BattleSimulation sim, int[] area, int i) {
         return sim.spawn(new EntitySpec("Body " + i, Faction.DEFENDER, UnitType.MILITIA,
                 area[0] + i % BodyPileCap.AREA_CELLS, area[1] + i / BodyPileCap.AREA_CELLS));
-    }
-
-    /**
-     * Two Marine squads walking east, the north one selected with its leader as the primary selection and the south
-     * one hovered: the outline in the selection ring's colours on each body.
-     */
-    static LookReview.Shot selectedOutline() {
-        return LookReview.Shot.of("selected-outline", 32, 20, placement -> {
-            float[] north = placement.openNear(8f, 7f);
-            float[] south = placement.openNear(8f, 13f);
-            float[] goal = placement.openNear(26f, 10f);
-            int x0 = placement.site().x0(), y0 = placement.site().y0();
-            int gx = (int) goal[0], gy = (int) goal[1];
-            SceneBuilder builder = placement.builder();
-            builder.squad("north").faction(Faction.MARINE).size(4).at((int) north[0] - x0, (int) north[1] - y0)
-                    .primary("weapon.field-rifle").assigned(id -> ObjectiveAssignment.attackMove(id, gx, gy)).done();
-            builder.squad("south").faction(Faction.MARINE).size(4).at((int) south[0] - x0, (int) south[1] - y0)
-                    .primary("weapon.field-rifle").assigned(id -> ObjectiveAssignment.attackMove(id, gx, gy)).done();
-            SceneWorld world = builder.build();
-            BattleSimulation sim = world.sim();
-            long leader = world.members("north")[0];
-            int northSquad = sim.squad().squadId(leader);
-            placement.selection().selectUnit(northSquad, leader);
-            placement.selection().hoverSquad(sim.squad().squadId(world.members("south")[0]));
-            placement.subject("north", leader);
-            placement.subject("south", world.members("south")[0]);
-            return sim;
-        }, placement -> List.of(LookReview.View.follow("close", placement, 14f, "north", "south")), 240);
     }
 
     /** The pile cap's area the pile lies in: the one holding the open ground nearest the window's middle. */

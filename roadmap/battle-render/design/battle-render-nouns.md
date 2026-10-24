@@ -659,11 +659,8 @@ change the physical crash corridor.
     silhouette edge facing them (`BodyEffects`); and its **wear**: embers
     while the ground under it burns, char once it has burnt, and a dissolve
     in blotches as the body cap retires it, edged in dust, or in fire for a
-    body still burning; and the **outline** of a selected or hovered Marine,
-    its silhouette's edge in the selection ring's colours. The outline is
-    found where alpha changes fastest inside the quad, never by sampling
-    round it, because a tightly packed atlas cut would bleed its neighbour in.
-    There is no faction recolour: it needs an authored mask the art does not
+    body still burning. There is no selection outline: it was tried and the
+    owner kept the ground rings (2026-10-24). There is no faction recolour: it needs an authored mask the art does not
     have, and each faction's art already carries its own colours. Only the
     paged run draws these; the per-sheet fallback and the Java2D review drain
     draw the body plain, and a retiring body there fades by alpha over the
