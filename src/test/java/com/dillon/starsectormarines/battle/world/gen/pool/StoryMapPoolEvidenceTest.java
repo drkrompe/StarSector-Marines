@@ -141,6 +141,7 @@ class StoryMapPoolEvidenceTest {
             }
             return built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
                     + built.plan().landingPlace().seedY() + "; layout " + laid + " of " + pieces + " laid"
+                    + "; supply road " + BloomHeartSetup.supplyRoad(built.map(), built.plan()).size() + " cells"
                     + (missing.length() == 0 ? "" : " (not " + missing + ")");
         }
     }
