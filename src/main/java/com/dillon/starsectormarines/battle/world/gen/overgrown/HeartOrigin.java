@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -47,16 +48,33 @@ public enum HeartOrigin {
             new FortressBuilding(RoomPurpose.PHARMACY, RoomShape.rectangle(12, 9), Ward.YARD, 2),
             new FortressBuilding(RoomPurpose.SERVER_ROOM, RoomShape.rectangle(8, 6), Ward.YARD, 1),
             new FortressBuilding(RoomPurpose.CIVIC_RECEPTION, RoomShape.rectangle(10, 7), Ward.FRONTAGE,
-                    RoomPacker.EdgeContact.ANY, 1)), 0, 220));
+                    RoomPacker.EdgeContact.ANY, 1)), 0, 220)),
 
-    /** The building the first mother came up against. */
+    /**
+     * Nobody's fault, the colony built over it: a railed green with its café pavilion and groundskeeper's shed on a
+     * wide lawn. The first mother opens at the pond, not in a building.
+     */
+    PARK(RoomPurpose.SHOP_FLOOR, new FortressProgram(List.of(
+            new FortressBuilding(RoomPurpose.SHOP_FLOOR, RoomShape.rectangle(9, 6), Ward.FRONTAGE,
+                    RoomPacker.EdgeContact.ANY, 1),
+            new FortressBuilding(RoomPurpose.STOCKROOM, RoomShape.rectangle(6, 5), Ward.YARD, 1)), 0, 900),
+            OriginProp.POND);
+
+    /** The building the first mother came up against, or the park's pavilion. */
     public final RoomPurpose core;
     /** What the place is built of. */
     public final FortressProgram program;
+    /** The prop in the yard the first mother opens at instead of the core building, or {@code null}. */
+    public final OriginProp opensAt;
 
     HeartOrigin(RoomPurpose core, FortressProgram program) {
+        this(core, program, null);
+    }
+
+    HeartOrigin(RoomPurpose core, FortressProgram program, OriginProp opensAt) {
         this.core = core;
         this.program = program;
+        this.opensAt = opensAt;
     }
 
     /** A light fence round the facility, two gates: a works fence, not a fort's wall. */
@@ -64,10 +82,20 @@ public enum HeartOrigin {
 
     private static final long SALT = 0x4F52_4947_494E_5321L;
 
-    /** The origin a seed's country has. */
-    public static HeartOrigin of(long seed) {
+    /**
+     * The origin a country has: its seed stepped on by its form and density, so the pools' three seeds per biome show
+     * three origins each and every origin stands somewhere in each form's pools.
+     */
+    public static HeartOrigin of(long seed, HeartCountry.Form form, HeartCountry.Density density) {
         HeartOrigin[] all = values();
-        return all[new SplittableRandom(seed ^ SALT).nextInt(all.length)];
+        return all[(int) Math.floorMod(seed + density.ordinal() + 2L * form.ordinal(), (long) all.length)];
+    }
+
+    /** The origin a plan's far place was built as, from its program; {@code null} for a place no origin built. */
+    public static HeartOrigin of(Precinct place) {
+        if (place == null) return null;
+        for (HeartOrigin origin : values()) if (origin.program.equals(place.program())) return origin;
+        return null;
     }
 
     /** Cells round the far place's seed its core building is looked for in. */

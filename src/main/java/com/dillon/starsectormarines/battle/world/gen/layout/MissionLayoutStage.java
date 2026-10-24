@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -175,6 +177,10 @@ public final class MissionLayoutStage implements GenStage {
                 Laid laid = LayoutBlocks.lay(ctx, block, held);
                 out.add(laid);
                 for (int[] c : laid.cells()) closed |= !ctx.grid.isWalkable(c[0], c[1]);
+            } else if (piece instanceof Props props) {
+                Laid laid = layProps(ctx, props);
+                out.add(laid);
+                closed |= laid.isLaid();
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
                 Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
@@ -212,6 +218,20 @@ public final class MissionLayoutStage implements GenStage {
         if (!planned.stands()) return Laid.refused(t.name(), Laid.Kind.GROUND, t.required(), planned.refusal());
         return new Laid(t.name(), Laid.Kind.GROUND, Laid.Status.LAID, planned.ramps().size() + " ramps", t.required(),
                 List.of(new int[]{t.x0(), t.y0()}, new int[]{t.x1(), t.y1()}), planned.feet(), List.of());
+    }
+
+    /** Each prop through the ordinary placement; laid when any stood, reported by the low corners of those that did. */
+    static Laid layProps(GenContext ctx, Props props) {
+        TileRegistry tiles = TileRegistry.installed();
+        List<int[]> stood = new ArrayList<>();
+        for (Props.Placement p : props.props()) {
+            DoodadDef def = tiles == null ? null : tiles.doodad(p.doodad());
+            if (def != null && PreparedGround.prop(ctx, p.x(), p.y(), def, p.quarterTurns())) stood.add(new int[]{p.x(), p.y()});
+        }
+        return stood.isEmpty()
+                ? Laid.refused(props.name(), Laid.Kind.BLOCK, props.required(), "no prop had open ground")
+                : new Laid(props.name(), Laid.Kind.BLOCK, Laid.Status.LAID, stood.size() + " of " + props.props().size(),
+                        props.required(), stood, List.of(), List.of());
     }
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {

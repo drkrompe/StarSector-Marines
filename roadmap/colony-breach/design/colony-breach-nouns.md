@@ -6,6 +6,8 @@ Written: 2026-10-21
 
 Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of the water cells' squares.
 
+Updated: 2026-10-24 — a bloom's calls are the only missions the campaign seeds by planet.
+
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
 fixture lineage and Marine rescue commander, with a colony worth fighting
@@ -82,7 +84,9 @@ lifecycle (`campaign-event-nouns.md`). A rescue with no bloom behind it would
 be a Colony Breach with nothing coming out of the ground, so there is none.
 The live system is `RavBloomSystem`; everything it does to a market goes
 through a `BloomWorld`, so the rules run unchanged over a synthetic sector in
-evidence.
+evidence. A bloom's calls are the **only missions the campaign seeds by
+planet** (owner, 2026-10-24; `contracts-nouns.md`, Where missions come from):
+everything else is story work.
 
 **Spores travel with people** (owner, 2026-10-22). Dormant Bloom material rides
 on cargo and arrives with people who do not know they carry it, all through

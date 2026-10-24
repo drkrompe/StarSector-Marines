@@ -42,6 +42,8 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.OriginProp;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -158,7 +160,7 @@ public final class BloomHeartSetup {
         Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
         Precinct landing = plan.landingPlace();
         return HeartBores.plan(map.grid, map.topology, form,
-                new int[]{workings.seedX(), workings.seedY()}, originCore(map, plan, battleSeed),
+                new int[]{workings.seedX(), workings.seedY()}, originCore(map, plan),
                 new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map, plan), battleSeed ^ BORE_SALT);
     }
 
@@ -205,11 +207,22 @@ public final class BloomHeartSetup {
         return out;
     }
 
-    /** The middle of the origin's core building, or null when the far place packed none. */
-    public static int[] originCore(MapResult map, PrecinctPlan plan, long battleSeed) {
+    /**
+     * Where the origin's first mother came up: the middle of its core building, or for an origin that opens at a prop
+     * (the park's pond) the middle of that prop as the yard dressing laid it; null when the far place packed neither.
+     */
+    public static int[] originCore(MapResult map, PrecinctPlan plan) {
         Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
-        return workings == null ? null
-                : HeartOrigin.core(map.topology, HeartOrigin.of(battleSeed), workings.seedX(), workings.seedY());
+        HeartOrigin origin = HeartOrigin.of(workings);
+        if (origin == null) return null;
+        Laid dressing = map.layout == null ? null : map.layout.find(HeartLayout.ORIGIN_DRESSING);
+        if (origin.opensAt != null && dressing != null && dressing.isLaid()) {
+            // The pond is the dressing's first prop.
+            int[] at = dressing.cells().get(0);
+            DoodadDef def = origin.opensAt.def(OriginProp.State.CLEAN);
+            return def == null ? at : new int[]{at[0] + def.footprintCellsX / 2, at[1] + def.footprintCellsY / 2};
+        }
+        return HeartOrigin.core(map.topology, origin, workings.seedX(), workings.seedY());
     }
 
     /**
@@ -217,7 +230,7 @@ public final class BloomHeartSetup {
      * broken open from the first mother's side, the facility battered round it.
      */
     private static MapResult originDamage(MapResult map, PrecinctPlan plan, HeartBores heart, long battleSeed) {
-        int[] core = originCore(map, plan, battleSeed);
+        int[] core = originCore(map, plan);
         if (core == null || heart.mothers().isEmpty()) return map;
         HeartBores.Site first = heart.mothers().get(0);
         Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);

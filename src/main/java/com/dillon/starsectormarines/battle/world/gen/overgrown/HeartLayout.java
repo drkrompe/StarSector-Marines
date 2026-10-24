@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Props;
 import com.dillon.starsectormarines.battle.world.gen.layout.Ridge;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
@@ -23,6 +24,8 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Dens
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +48,10 @@ public final class HeartLayout {
 
     /** The cordon ridge: the last high ground before the bloom, the forward line dug along its crest. */
     public static final String CORDON_RIDGE = "cordon-ridge";
+    /** The origin facility's yard dressing (`heart-origins.md`): the clean props that say what the place was. */
+    public static final String ORIGIN_DRESSING = "origin-dressing";
+    /** Clear cells kept round each dressing group, and the step its anchors are tried at. */
+    static final int DRESS_MARGIN = 2, DRESS_STEP = 2;
     /** The forward line's runs, one between each pair of lane gaps: this plus 1, 2, ... */
     public static final String FORWARD_LINE = "forward-line-";
     /** The observation posts forward of the line: this plus 1 and 2. */
@@ -124,6 +131,8 @@ public final class HeartLayout {
         pieces.add(new Deferred(LOGISTICS, Phase.STRUCTURES, ground -> ammoDumps(ground, form), false));
         pieces.add(new Deferred(VEHICLE_PARK, Phase.WORKS, ground -> vehiclePark(ground, form), false));
         pieces.add(new Deferred(RESERVOIR_YARD, Phase.WORKS, ground -> reservoirYard(ground, form), false));
+        HeartOrigin origin = HeartOrigin.of(seed, form, density);
+        pieces.add(new Deferred(ORIGIN_DRESSING, Phase.WORKS, ground -> originDressing(ground, origin), false));
         if (form == Form.BROAD_FRONT) {
             pieces.add(new Deferred(HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, HOLDOUT, true, density), false));
@@ -135,6 +144,138 @@ public final class HeartLayout {
             pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS, ground -> companyFord(form, brook), false));
         }
         return new MissionLayout(pieces);
+    }
+
+    /**
+     * The origin facility's yard dressed as what it was: a few of the origin's groups (a stack of containers, a truck
+     * stopped with its crates, a row of tank racks), each set down whole where its box and a margin are open yard
+     * inside the facility's claim, the first nearest the core building and each next as far from those taken as the
+     * yard allows. Props are clean (the creep is the live layer's); none where the facility claimed nothing.
+     */
+    static List<Piece> originDressing(LayoutGround ground, HeartOrigin origin) {
+        int[] claim = ground.claimBounds(HeartCountry.WORKINGS);
+        Precinct workings = HeartCountry.place(ground.plan(), HeartCountry.WORKINGS);
+        if (claim == null || workings == null) return List.of();
+        int[] core = origin.opensAt != null ? null
+                : HeartOrigin.core(ground.topology(), origin, workings.seedX(), workings.seedY());
+        int[] near = core != null ? core : new int[]{workings.seedX(), workings.seedY()};
+        List<int[]> taken = new ArrayList<>();
+        List<Props.Placement> out = new ArrayList<>();
+        for (DressingGroup group : dressing(origin)) {
+            int[] best = null;
+            long bestScore = Long.MIN_VALUE;
+            for (int y = claim[1]; y + group.height <= claim[3]; y += DRESS_STEP) {
+                for (int x = claim[0]; x + group.width <= claim[2]; x += DRESS_STEP) {
+                    if (!fits(ground, x, y, group, taken)) continue;
+                    int[] mid = {x + group.width / 2, y + group.height / 2};
+                    long score;
+                    if (taken.isEmpty()) {
+                        score = -dist2(mid, near);
+                    } else {
+                        score = Long.MAX_VALUE;
+                        for (int[] t : taken) score = Math.min(score, dist2(mid, new int[]{t[0] + t[2] / 2, t[1] + t[3] / 2}));
+                    }
+                    if (score > bestScore) { bestScore = score; best = new int[]{x, y}; }
+                }
+            }
+            if (best == null) continue;
+            taken.add(new int[]{best[0], best[1], group.width, group.height});
+            for (DressingGroup.Part part : group.parts) {
+                out.add(new Props.Placement(part.prop().id(OriginProp.State.CLEAN), best[0] + part.dx(), best[1] + part.dy(), 0));
+            }
+        }
+        return out.isEmpty() ? List.of() : List.of(new Props(ORIGIN_DRESSING, out, false));
+    }
+
+    /** Whether a group's box, with its margin, is open yard nobody holds and clear of the groups already taken. */
+    private static boolean fits(LayoutGround ground, int x0, int y0, DressingGroup group, List<int[]> taken) {
+        for (int[] t : taken) {
+            if (x0 - DRESS_MARGIN < t[0] + t[2] && t[0] < x0 + group.width + DRESS_MARGIN
+                    && y0 - DRESS_MARGIN < t[1] + t[3] && t[1] < y0 + group.height + DRESS_MARGIN) return false;
+        }
+        for (int y = y0 - DRESS_MARGIN; y < y0 + group.height + DRESS_MARGIN; y++) {
+            for (int x = x0 - DRESS_MARGIN; x < x0 + group.width + DRESS_MARGIN; x++) {
+                if (!ground.buildable(x, y) || ground.isHeld(x, y)) return false;
+            }
+        }
+        return true;
+    }
+
+    /** Props set down together as one thing in a yard, each part at its offset from the group's low corner. */
+    record DressingGroup(int width, int height, List<Part> parts) {
+        record Part(OriginProp prop, int dx, int dy) {}
+
+        static DressingGroup of(Part... parts) {
+            int w = 0, h = 0;
+            for (Part p : parts) {
+                int[] size = footprint(p.prop());
+                w = Math.max(w, p.dx() + size[0]);
+                h = Math.max(h, p.dy() + size[1]);
+            }
+            return new DressingGroup(w, h, List.of(parts));
+        }
+    }
+
+    /** A clean prop's footprint in cells, from its tileset entry; one cell where no tiles are installed. */
+    private static int[] footprint(OriginProp prop) {
+        DoodadDef def = TileRegistry.installed() == null ? null : prop.def(OriginProp.State.CLEAN);
+        return def == null ? new int[]{1, 1} : new int[]{def.footprintCellsX, def.footprintCellsY};
+    }
+
+    /**
+     * What an origin's yard holds, the first group set down nearest the core building; the park's first is its pond,
+     * set down nearest the place's seed, where the first mother opens.
+     */
+    static List<DressingGroup> dressing(HeartOrigin origin) {
+        return switch (origin) {
+            case FREIGHT -> {
+                DressingGroup unloading = DressingGroup.of(new DressingGroup.Part(OriginProp.UNLOADING_TRUCK, 0, 0),
+                        new DressingGroup.Part(OriginProp.SEAFOOD_CRATES, 3, 0),
+                        new DressingGroup.Part(OriginProp.SEAFOOD_CRATES, 3, 2));
+                DressingGroup stack = DressingGroup.of(new DressingGroup.Part(OriginProp.CONTAINER_RUST, 0, 0),
+                        new DressingGroup.Part(OriginProp.CONTAINER_BLUE, 0, 2),
+                        new DressingGroup.Part(OriginProp.CONTAINER_RUST, 0, 4));
+                DressingGroup pair = DressingGroup.of(new DressingGroup.Part(OriginProp.CONTAINER_BLUE, 0, 0),
+                        new DressingGroup.Part(OriginProp.CONTAINER_BLUE, 4, 0));
+                yield List.of(unloading, stack, stack, pair);
+            }
+            case RESEARCH -> {
+                DressingGroup racks = DressingGroup.of(new DressingGroup.Part(OriginProp.TANK_RACK, 0, 0),
+                        new DressingGroup.Part(OriginProp.TANK_RACK, 0, 2),
+                        new DressingGroup.Part(OriginProp.TANK_RACK, 0, 4),
+                        new DressingGroup.Part(OriginProp.SAMPLE_FREEZER, 4, 0),
+                        new DressingGroup.Part(OriginProp.SAMPLE_FREEZER, 4, 2));
+                DressingGroup cold = DressingGroup.of(new DressingGroup.Part(OriginProp.TANK_RACK, 0, 0),
+                        new DressingGroup.Part(OriginProp.SAMPLE_FREEZER, 0, 2));
+                yield List.of(racks, racks, cold);
+            }
+            case WORKINGS -> {
+                DressingGroup pumping = DressingGroup.of(new DressingGroup.Part(OriginProp.PUMP_SHED, 0, 0),
+                        new DressingGroup.Part(OriginProp.PIPE_RUN, 3, 0),
+                        new DressingGroup.Part(OriginProp.PIPE_RUN, 6, 0));
+                DressingGroup outfall = DressingGroup.of(new DressingGroup.Part(OriginProp.PIPE_RUN, 0, 0),
+                        new DressingGroup.Part(OriginProp.PIPE_RUN, 3, 0),
+                        new DressingGroup.Part(OriginProp.PIPE_MOUTH, 6, 0));
+                yield List.of(pumping, outfall, pumping);
+            }
+            case PARK -> {
+                DressingGroup pondside = DressingGroup.of(new DressingGroup.Part(OriginProp.POND, 0, 0),
+                        new DressingGroup.Part(OriginProp.BENCH, 0, 4),
+                        new DressingGroup.Part(OriginProp.BENCH, 3, 4));
+                DressingGroup bandstand = DressingGroup.of(new DressingGroup.Part(OriginProp.BANDSTAND, 0, 0));
+                DressingGroup playground = DressingGroup.of(new DressingGroup.Part(OriginProp.SWINGS, 0, 0),
+                        new DressingGroup.Part(OriginProp.SLIDE, 4, 0),
+                        new DressingGroup.Part(OriginProp.CLIMBER, 0, 3),
+                        new DressingGroup.Part(OriginProp.ROUNDABOUT, 4, 3));
+                DressingGroup benches = DressingGroup.of(new DressingGroup.Part(OriginProp.BENCH, 0, 0),
+                        new DressingGroup.Part(OriginProp.BENCH, 3, 0));
+                yield List.of(pondside, bandstand, playground, benches);
+            }
+        };
+    }
+
+    private static long dist2(int[] a, int[] b) {
+        return (long) (a[0] - b[0]) * (a[0] - b[0]) + (long) (a[1] - b[1]) * (a[1] - b[1]);
     }
 
     /** The cell at a depth and an across, both in cells. */
