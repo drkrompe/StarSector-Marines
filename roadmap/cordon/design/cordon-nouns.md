@@ -232,8 +232,12 @@ redoubt's middle first (open ground where no street crosses that row, as in a
 town's fields). The redoubt with the fewest mechs gets the next, a calling one
 first, and a mech whose redoubt falls is given another. A city's line opens
 with a Hound pair in each redoubt's mouths and a walking rifle team behind
-them, holding the mouth (the owner's pick `cordon-urban-allies`, the mech
-lance); a town's Hounds come off the base's line. A mech pair holds a mouth
+them, holding the mouth, and a mortar team in the redoubt's yard whose
+standing fire mission is the ground past the mouths (the owner's pick
+`cordon-urban-allies`, the mech lance, with mortars). A field mortar never
+fires a round with one of its own side under it, so the yard's tube fires on
+what the side has seen out past the mechs and holds while the swarm is among
+them; a town's Hounds come off the base's line. A mech pair holds a mouth
 but not every alley: the company clears a block the swarm has got into.
 What holds each sector, and what the base sends, by density:
 `cordon-allied-forces.md` (over the shared catalogue, `allied-tools.md`).

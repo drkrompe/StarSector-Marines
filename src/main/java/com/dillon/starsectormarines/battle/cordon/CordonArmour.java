@@ -58,6 +58,10 @@ public final class CordonArmour {
     static final int MOUTH_PAIR = 4;
     /** Cells in front of the front wall a mouth's rifle team stands, behind its mechs. */
     static final int TEAM_OUT = 2;
+    /** Cells in front of the front wall the middle of a yard mortar's fire mission lies: past the mouths. */
+    public static final int MISSION_OUT = 22;
+    /** How far from its middle a yard mortar's fire mission reaches. */
+    public static final int MISSION_RADIUS = 18;
 
 
     private final AlliedCommand command;
@@ -70,6 +74,8 @@ public final class CordonArmour {
     private final Map<Long, CordonRedoubt> mechSector = new LinkedHashMap<>();
     /** The rifle teams in the redoubts' street mouths. */
     private final List<Integer> streetTeams = new ArrayList<>();
+    /** The mortar teams in the redoubts' yards. */
+    private final List<Integer> mortarTeams = new ArrayList<>();
     /** Each redoubt's street mouths, found once at the first look ({@link #mouths}). */
     private final Map<CordonRedoubt, List<int[]>> mouthsOf = new HashMap<>();
     /** Each redoubt's rear gate drop, found once ({@link #rearGate}). */
@@ -262,6 +268,24 @@ public final class CordonArmour {
     /** The rifle teams standing in the redoubts' street mouths, by squad. */
     public List<Integer> streetTeams() {
         return List.copyOf(streetTeams);
+    }
+
+    /** Records a mortar team standing in a redoubt's yard (set down at setup). */
+    public void addMortarTeam(int squad) {
+        mortarTeams.add(squad);
+    }
+
+    /** The mortar teams in the redoubts' yards, by squad. */
+    public List<Integer> mortarTeams() {
+        return List.copyOf(mortarTeams);
+    }
+
+    /**
+     * The ground a redoubt's mortar team is given as its standing fire mission: centred {@link #MISSION_OUT} cells in
+     * front of the front wall, past the street mouths, {@link #MISSION_RADIUS} across.
+     */
+    public int[] mortarGround(CordonRedoubt r) {
+        return new int[]{r.centreX(), (frontward > 0 ? r.bottom() : r.top()) + frontward * MISSION_OUT};
     }
 
     /** Live allied mechs on the line, in the order they came. */

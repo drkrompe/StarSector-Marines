@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObj
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
 import com.dillon.starsectormarines.battle.cordon.CordonAlliedTable;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
@@ -452,6 +454,7 @@ public final class CordonSetup {
             for (int i = 0; i < table.mouthHounds(); i++) {
                 armour.deployMech(sim, r, "Redoubt " + r.number() + " Hound " + (i + 1));
             }
+            if (table.yardMortar()) yardMortar(sim, armour, r, rng);
             if (!table.mouthRifleTeam()) continue;
             int[] post = armour.teamPost(sim, r);
             List<int[]> cells = CordonGround.clusterNear(sim, post[0], post[1], ColonyMilitia.POST_SIZE);
@@ -462,6 +465,25 @@ public final class CordonSetup {
             sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, cells.get(0)[0], cells.get(0)[1], MOUTH_TEAM_HOLD),
                     CommandAuthority.GARRISON, CordonGarrisons.ISSUER, name + " holds the street mouth");
         }
+    }
+
+    /**
+     * A mortar team in a redoubt's yard, its first man carrying a field mortar, holding the yard with the ground in front
+     * of the redoubt as its standing fire mission: it sets its tube down where it stands and fires on what the side has
+     * seen there, never a round with one of its own under it (`FieldMortarService.friendlyUnderRound`).
+     */
+    static void yardMortar(BattleSimulation sim, CordonArmour armour, CordonRedoubt r, Random rng) {
+        List<int[]> cells = CordonGround.clusterNear(sim, r.centreX(), r.centreY(), ColonyMilitia.POST_SIZE);
+        if (cells.size() < ColonyMilitia.POST_SIZE) return;
+        String name = "Redoubt " + r.number() + " mortar team";
+        int squad = ColonyMilitia.seatTeam(sim, cells, name, GARRISON_RISK, rng);
+        SpecialEquipmentDef tube = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
+        sim.world().attachSpecialEquipment(sim.getSquad(squad).leaderId, tube, tube.startingAmmo());
+        armour.addMortarTeam(squad);
+        int[] ground = armour.mortarGround(r);
+        sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, cells.get(0)[0], cells.get(0)[1], MOUTH_TEAM_HOLD)
+                        .withFireMission(new ObjectiveAssignment.FireMission(ground[0], ground[1], CordonArmour.MISSION_RADIUS)),
+                CommandAuthority.GARRISON, CordonGarrisons.ISSUER, name + " fires on the ground in front");
     }
 
     /** Cells round its post a mouth's rifle team holds. */

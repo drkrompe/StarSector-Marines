@@ -437,8 +437,11 @@ class CordonCommandEvidenceTest {
         if (cordon.armour() == null) return "—";
         int carriers = cordon.logistics() == null ? 0 : cordon.logistics().carriers().size();
         int hulls = cordon.armour().command().hulls().size() - carriers;
-        return String.format(Locale.ROOT, "built %d, Hounds %d, carriers %d, hulls %d, queued %d",
+        String mortars = cordon.armour().mortarTeams().isEmpty() ? "" : String.format(Locale.ROOT,
+                ", mortar rounds %d fired, %d withheld", sim.fieldMortars().roundsFiredBy(Faction.ALLY),
+                sim.fieldMortars().roundsWithheldBy(Faction.ALLY));
+        return String.format(Locale.ROOT, "built %d, Hounds %d, carriers %d, hulls %d, queued %d%s",
                 cordon.logistics() == null ? 0 : cordon.logistics().built(), cordon.armour().mechs().size(),
-                carriers, hulls, cordon.logistics() == null ? 0 : cordon.logistics().queued());
+                carriers, hulls, cordon.logistics() == null ? 0 : cordon.logistics().queued(), mortars);
     }
 }

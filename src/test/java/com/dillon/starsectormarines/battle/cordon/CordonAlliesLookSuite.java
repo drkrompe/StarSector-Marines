@@ -226,7 +226,7 @@ public final class CordonAlliesLookSuite implements SnapshotSuite {
     /** Cells from a redoubt's wall a Hound counts as come to it: the town is framed from then on. */
     static final float AT_POST = 12f;
     /** Stills written for the built table, {@link #STILL_EVERY} ticks apart. */
-    static final int TABLE_STILLS = 10;
+    static final int TABLE_STILLS = 20;
 
     /**
      * The density's own allies at a redoubt, as the setup fields them: framed on the redoubt with its mouths and rear
@@ -307,6 +307,9 @@ public final class CordonAlliesLookSuite implements SnapshotSuite {
                 float contact = contact(sim, placed, packSquad);
                 System.out.printf("    [cordon-allies-look/%s] tick %d: %d allied groups in frame, %d rounds, pack %.0f cells off%n",
                         option, tick, placed.size(), fired, contact);
+                System.out.printf("    [cordon-allies-look/%s] allied tubes: %d set up, %d rounds fired, %d withheld for friendlies%n",
+                        option, sim.fieldMortars().tubes().stream().filter(t -> t.faction == Faction.ALLY).count(),
+                        sim.fieldMortars().roundsFiredBy(Faction.ALLY), sim.fieldMortars().roundsWithheldBy(Faction.ALLY));
                 if (fired > bestFired) {
                     bestFired = fired;
                     bestTick = tick;
@@ -342,6 +345,19 @@ public final class CordonAlliesLookSuite implements SnapshotSuite {
             VehicleType type = sim.convoy().vehicleType(hull);
             String name = carriers.contains(hull) ? "CARRIER" : type == null ? "HULL" : type.name().replace('_', ' ');
             out.add(new Placed(name, List.of(hull)));
+        }
+        for (int squad : armour.mortarTeams()) {
+            List<Long> members = new ArrayList<>();
+            for (int i = 0, c = sim.liveUnitCount(); i < c; i++) {
+                long unit = sim.liveUnitAt(i);
+                Squad s = sim.squadOf(unit);
+                if (s != null && s.id == squad) members.add(unit);
+            }
+            if (members.isEmpty()) continue;
+            float[] at = where(sim, members.get(0));
+            if (at != null && Math.abs(at[0] - cx) <= half && Math.abs(at[1] - cy) <= halfY) {
+                out.add(new Placed("MORTAR TEAM", members));
+            }
         }
         for (int squad : armour.streetTeams()) {
             List<Long> members = new ArrayList<>();
