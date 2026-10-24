@@ -373,7 +373,6 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 K1B_T = 34
 K2_T = 40
 LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
-LAMPS_GAIN = {'falcon-p': 3.0}     # the crash zoom's subject: her lamps read at 300 mm before her drives
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -858,6 +857,7 @@ KEYFRAMES = {
         platform=PLATFORM, platform_t=K1B_T,
         # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
         knobs={'falcon-p': {'thr_glow': 4.0}},
+        lamp_gain={'falcon-p': 3.0},     # the crash zoom's subject: her lamps read at 300 mm before her drives
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
@@ -3123,7 +3123,7 @@ def blender_main(cfg):
                             print(f'ASHARU state {kf}: {key} has no ship lamps to wake', flush=True)
                         else:
                             wake_ = (spec['span_t'] - (LAUNCH[key] - LAMPS_LEAD_S)) / .3
-                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_)) * LAMPS_GAIN.get(key, 1.0)
+                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_)) * spec.get('lamp_gain', {}).get(key, 1.0)
                 for key, sh in spec.get('shields', {}).items():
                     if key in placed and sh.get('toward') in placed and placed[key]['fx'] is not None:
                         d_ = placed[key]['matrix'].inverted() @ placed[sh['toward']]['matrix'].translation
