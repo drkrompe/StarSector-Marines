@@ -2007,6 +2007,7 @@ def blender_main(cfg):
     def place(key, spec, state=None):
         """state names another FINISHED build of the same hull (a condition state) for this frame."""
         x, y, z, hd, pt, rl, thr = spec
+        thr = min(1.0, max(0.0, thr))    # a keyed throttle eased between keys can overshoot (S3 Falcon: -0.24)
         m = {**members[key], 'finished': state} if state else members[key]
         lib = hull(m)
         sfx = ship_fx_for(key, m, lib)
@@ -3216,6 +3217,8 @@ def blender_main(cfg):
                 else:
                     lab[key] = ship_label(key)
             labels[kf] = lab
+            if 'span_t' in spec:
+                print(f'ASHARU on screen {kf}: {lab}', flush=True)
             if cfg.get('motion_preview'):     # --motion-preview: play this shot in Workbench (asharu_preview.py)
                 import asharu_preview
                 asharu_preview.shot(locals(), kf)
