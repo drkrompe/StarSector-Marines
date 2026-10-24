@@ -218,8 +218,8 @@ HIDES = {
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
     # her stern and drive block clear of the hulk, turned three-quarters stern-on to S3's camera so her
     # plume reads along her flank at the crash zoom (coordinator, 2026-10-23: was hd -30, nose-on)
-    'falcon-p': dict(at=(-950, -420, -180), hd=30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112),
-                     peek=-.75),
+    'falcon-p': dict(at=(-950, -420, -180), hd=float(os.environ.get('ASHARU_S3_FALCON_HD', 30)), pt=-4, rl=12,
+                     cover='hulk', cover_size=(230, 201, 112), peek=-.75),
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
@@ -373,6 +373,9 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 K1B_T = 34
 K2_T = 40
 LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
+# S3's subject eases out on her thrusters from the moment her lamps wake, and faster, so her stern and
+# drive block are out in the open by 35 s (coordinator, 2026-10-24)
+EARLY_EASE = {'falcon-p'}
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -387,13 +390,19 @@ def _near(a, b):
 def launch(key, hide, t_light, climb):
     """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
     four and a half seconds until she is clear of the structure, then turning onto her climb attitude
-    (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed."""
+    (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed.
+    A ship in EARLY_EASE starts easing out on her thrusters as her lamps wake, and faster."""
     x, y, z, hd, pt, rl, _ = hide
     chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
     v = CLIMB_SPEED[mass_class(key)]
-    keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
-            dict(t=t_light + 2.4, v=18.0, thr=.6),
-            dict(t=t_light + 4.6, v=.3 * v, thr=1.0),          # still on her nose, clear of the structure
+    if key in EARLY_EASE:
+        keys = [dict(t=t_light - LAMPS_LEAD_S, v=0.0, thr=0.0), dict(t=t_light - .05, v=10.0, thr=0.0),
+                dict(t=t_light + .6, v=20.0, thr=.25), dict(t=t_light + 1.2, v=32.0, thr=.5),
+                dict(t=t_light + 2.4, v=.3 * v, thr=.8)]
+    else:
+        keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
+                dict(t=t_light + 2.4, v=18.0, thr=.6)]
+    keys += [dict(t=t_light + 4.6, v=(.4 if key in EARLY_EASE else .3) * v, thr=1.0),     # still on her nose, clear
             dict(t=t_light + 7.0, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
             dict(t=t_light + 9.5, hd=chd, pt=cpt, rl=crl, v=.8 * v),
             dict(t=t_light + 13.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
