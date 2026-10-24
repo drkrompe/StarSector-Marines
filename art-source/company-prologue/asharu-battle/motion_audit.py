@@ -10,6 +10,8 @@ and checked against how that kind of thing has to move.
             frame, at the end of the shot, or burnt out at the end of their flight.
   missiles  bodies and motors: leave their own ship, advance every frame, no pop and no blink.
   flares    thrown by their ship: advance every frame, no pop and no blink.
+  decoys    a seeker's burst on the flare it took, away from any hull: shown over unbroken frames,
+            animated while shown.
   blasts    explosions, flashes, fireballs, shock rings, sparks: shown over unbroken frames, born on
             or at a hull, animated while shown (no held picture).
   debris    shards and debris: shown over unbroken frames, moving every frame.
@@ -31,6 +33,7 @@ import re
 from mathutils import Vector
 
 KINDS = [
+    ('decoys', re.compile(r' missile decoy ')),     # a seeker's burst on the flare it took: in open space
     ('rounds', re.compile(r' (round(?! halo| light| trail)|tracer) .* f-?\d{3,}$')),
     ('missiles', re.compile(r'SWFX missile .*\b(body|motor|missile)\b')),
     ('flares', re.compile(r'\bflare\b(?! light)')),
@@ -219,6 +222,9 @@ def audit(sfx, cam_view=None):
                                                                                     else Vector()), end + 1))
                         if not ok:
                             fail(kind, o, end, f'vanishes mid-air, in frame, {age} frames into its flight')
+        elif kind == 'decoys':
+            if len(shown) > 1 and not animated(core, o):
+                fail(kind, o, shown[1], 'a held picture: nothing about it changes while it shows')
         elif kind in ('blasts', 'debris'):
             if key is not None and o.parent is None:
                 p = copy_at(key, shown[0]) @ (Vector([fc.evaluate(shown[0]) for fc in fcs]) if keyed

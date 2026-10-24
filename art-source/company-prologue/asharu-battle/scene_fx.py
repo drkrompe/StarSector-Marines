@@ -835,11 +835,11 @@ class SceneFx:
             shift += arrive - max(ends)       # the world re-plan moved the arrivals: shift the launch
         # a seeker the world re-plan sends the long way round (S8-S9: one of four arriving 7 s late,
         # still circling at the cut) is not launched: a salvo lands together or not at all
-        late = [f for f in fl if f.end and f.end['kind'] == 'hit' and f.end['frame'] > arrive + self.fps]
+        late = [f for f in fl if f.end and f.end['frame'] > arrive + self.fps]
         fl = [f for f in fl if f not in late]
         if late:
-            self.rows.append(f'missiles {a} -> {b}: {len(late)} seeker(s) arriving over a second late not launched '
-                             f'({[f.end["frame"] for f in late]})')
+            self.rows.append(f'missiles {a} -> {b}: {len(late)} seeker(s) ending over a second late not launched '
+                             f'({[(f.end["kind"], f.end["frame"]) for f in late]})')
         taken = self._decoy(a, b, fl, decoys) if decoys else []
         for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
             if f.end and f.end['kind'] == 'hit':
