@@ -64,7 +64,7 @@
           "variant": "rocket",
           "using": "aiming",
           "firing": "firing",
-          "walking": "walking-shoulder"
+          "walking": "walking-port"
         },
         "preview": {
           "state": "using",
@@ -127,7 +127,7 @@
           "variant": "rocket",
           "using": "aiming",
           "firing": "firing",
-          "walking": "walking-shoulder"
+          "walking": "walking-port"
         },
         "preview": {
           "state": "using",

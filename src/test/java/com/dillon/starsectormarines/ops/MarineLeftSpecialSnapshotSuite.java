@@ -17,9 +17,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
@@ -63,17 +60,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
 
     /**
      * One frame: the special the Marine carries (null for a rifleman), its rounds, how many Q presses, whether the
-     * Marine is walking at the moment of the frame, and a click before it. {@code walkingClip}, when set, carries the
-     * special in that clip of its variant in place of the one its data names: a carry option drawn for the owner.
+     * Marine is walking at the moment of the frame, and a click before it.
      */
-    record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires, int fireLead,
-                String walkingClip) {
+    record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires, int fireLead) {
         Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) {
-            this(name, specialId, ammo, cycles, walking, fires, 6, null);
-        }
-
-        Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires, int fireLead) {
-            this(name, specialId, ammo, cycles, walking, fires, fireLead, null);
+            this(name, specialId, ammo, cycles, walking, fires, 6);
         }
     }
 
@@ -106,16 +97,6 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("amr-walking-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
             new Case("amr-held-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false));
 
-    /**
-     * The carry options put to the owner ({@code direct-control-nouns.md}): each walking clip of the launcher and the
-     * rifle, at play zoom, close, and as a close walk. The shipped clip is one of them; the rest go once the owner
-     * has picked.
-     */
-    private static final List<String[]> CARRY_OPTIONS = List.of(
-            new String[]{SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, "rocket", "walking-shoulder"},
-            new String[]{SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, "rocket", "walking-port"},
-            new String[]{SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, "amr", "walking-low-ready"},
-            new String[]{SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, "amr", "walking-slung"});
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -134,15 +115,6 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                         frame(renderer, context.modRoot(), c, CLOSE_CELLS_ACROSS)));
             }
             artifacts.add(flamerSweep(renderer, context.modRoot()));
-            for (String[] option : CARRY_OPTIONS) {
-                String name = "carry-option-" + option[1] + "-" + option[2];
-                Case walking = new Case(name, option[0], 3, 1, true, false, 6, option[2]);
-                artifacts.add(new SnapshotArtifact(name + "-1920x1080-ui100.png",
-                        frame(renderer, context.modRoot(), walking, CELLS_ACROSS)));
-                artifacts.add(new SnapshotArtifact(name + "-close-1920x1080-ui100.png",
-                        frame(renderer, context.modRoot(), walking, CLOSE_CELLS_ACROSS)));
-                artifacts.add(walkCycle(renderer, context.modRoot(), walking, name + "-close-1920x1080-ui100.gif"));
-            }
             artifacts.add(walkCycle(renderer, context.modRoot(), new Case("rocket-walk",
                     SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, true, false),
                     "rocket-walk-close-1920x1080-ui100.gif"));
@@ -201,27 +173,10 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 .builder()
                 .unit("marine", Faction.MARINE, UnitType.MARINE, 8, 12, spec -> {
                     spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
-                    if (c.specialId() != null) spec.specialEquipment(special(c), c.ammo());
+                    if (c.specialId() != null) spec.specialEquipment(SpecialEquipmentRegistry.require(c.specialId()), c.ammo());
                 })
                 .unit("target", Faction.DEFENDER, UnitType.MARINE, 34, 10, spec -> spec.moveSpeed(0f))
                 .build();
-    }
-
-    /** The case's special, carried in its option's walking clip when the case names one. */
-    private static SpecialEquipmentDef special(Case c) {
-        SpecialEquipmentDef def = SpecialEquipmentRegistry.require(c.specialId());
-        if (c.walkingClip() == null) return def;
-        SpecialEquipmentPresentationDef p = def.presentation();
-        LayerClips clips = p.layerClips();
-        SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(p.armoryIconPath(),
-                p.usePose(), p.carrierLayer(), p.thrown(), p.field(), p.deployed(),
-                new LayerClips(clips.variant(), clips.using(), clips.firing(), c.walkingClip()),
-                p.preview(), p.handsetLayer(), p.packedLayer());
-        return new SpecialEquipmentDef(def.id(), def.displayName(), def.catalogSubtitle(), def.catalogDescription(),
-                def.catalogFactionLogo(), def.activation(), def.weaponId(), def.resourceMode(), def.startingAmmo(),
-                def.aiPolicy(), presentation, def.smokeGrenadeSpec(), def.satchelChargeSpec(),
-                def.closeContactSpec(), def.deployableEmplacementSpec(), def.deployableCoverSpec(),
-                def.commsKitSpec());
     }
 
     /** Ticks the walk is played before the cycle is recorded: long enough to ready either special. */
