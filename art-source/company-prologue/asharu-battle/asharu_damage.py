@@ -148,7 +148,9 @@ LEDGER = [
       cause='lasher-lead@103.7:breach', src='S9b k4b fire from 103.7 s',
       note='the fires spread aft along her deck and reach her magazine: she breaks up and tumbles away burning'),
 
-    # ---- Lasher A: untouched in S6 (her 52.8 and 54.5 s hits are cut: nothing drawn reaches her)
+    # ---- Lasher A: burns in S6, the Manticore (P)'s first Harpoon salvo after the Phaeton's
+    H('lasher-a', 53.2, 'breach', 3, (-4, 12, -5), (-.2, .5, 1), by=('missile', 'fire_on'), src='S6 k3 missiles manticore-p',
+      note='a Harpoon opens her flank: Lasher A burns'),
 
     # ---- WARDEN THREE, Lasher B: scored, gets away
     # (her S6 rake from the Falcon is cut: the Falcon's guns draw nothing at that range)
@@ -175,8 +177,8 @@ LEDGER = [
       src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her deck"),
 
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
-    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6),
-      src='story (S8-S9; the Mk.III cannot depress onto her until her flight changes)', note="the Mk.III's guns walk onto the port pod from above"),
+    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6), by='tracer',
+      src='S8-S9 k4 tracer colossus3', note="the Mk.III's guns walk onto the port pod from above"),
     H('colossus', 93.5, 'breach', 3, (-55, 36, 4), (-.3, 1, .5), by='fire_on', src='S8-S9 k4 fire_on',
       note='the port pod burns, and burns into the atmosphere'),
     H('colossus', 94.9, 'he', 4, (-62, 30, 0), (-.4, 1, .2), by=('blast_on', 'debris'), src='S8-S9 k4 blast_on + debris',
@@ -186,9 +188,8 @@ LEDGER = [
     H('colossus', 113.3, 'debris', 3, (-30, 0, 10), (0, 0, 1), by='debris', cause='colossus@93.5:breach', src='S10 k5 debris (her port pod fire, burning since 93.5 s)',
       note='her back starts to go: plating shed off the dorsal spine as she noses down; it burns'),
 
-    # ---- MORROW: under the Colossus's keel; scuffed, nothing more before the fall
-    H('morrow', 95.5, 'rake', 0, (-6, 6, 9), (0, .3, 1), to=(-18, 4, 9), src='story (S8-S9)',
-      note="the port pod's debris scuffs her back as she takes the weight"),
+    # ---- MORROW: under the Colossus's keel, untouched before the fall (her 95.5 s scuff is cut: no
+    # drawn round reaches her)
 
     # ---- BARON, the Falcon (P): shield overloaded, flank opened in S9b, still burning in S10
     H('falcon-p', 104.62, 'rake', 1, (40, -30, 6), (0, -.6, 1), to=(0, -34, 4), by='tracer',
@@ -224,7 +225,8 @@ LEDGER = [
     # ---- HOOK, the Colossus Mk.III: the Colossus fires up into her belly
     H('colossus3', 96.0, 'rake', 1, (20, 10, -6), (0, .3, -1), to=(0, 12, -6), by='tracer',
       src='S8-S9 k4 tracer colossus', note="the Colossus's turrets score her belly"),
-    H('colossus3', 99.5, 'rake', 1, (-10, -6, -7), (0, -.3, -1), to=(-25, -4, -7), src='story (S9)',
+    H('colossus3', 99.5, 'rake', 1, (-10, -6, -7), (0, -.3, -1), to=(-25, -4, -7), by=('tracer', 'mining'),
+      src='S8-S9 k4 tracer colossus / mining borer-a, borer-b',
       note='a second burst as she swings her grapples away'),
 
     # ---- the Hounds (P) the convoy kills
@@ -837,7 +839,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     for h in now:
         f = b.frame(h.t)
         tag = []
-        if impacts is not None and ('tracer' in h.bys or 'missile' in h.bys):
+        if impacts is not None and ({'tracer', 'missile', 'mining'} & set(h.bys)):
             got = drawn_impacts(h, f, impacts)
             if got and got[0][0] > LINK_M:      # where the drawn round met her, the burst's walk kept
                 import copy
