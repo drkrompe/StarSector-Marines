@@ -83,6 +83,7 @@ public final class DrawList {
     /** The packed light, its direction and the packed wear stamped likewise; see {@link #setLight}, {@link #setWear}. */
     private float light, lightAngle, wear;
 
+
     /**
      * Stamps every command added from now on with the light on it, each channel a multiple of its own colour added
      * to it, coming from {@code angleRadians} on screen (law 27); zero is none. Paged runs draw it.
@@ -93,11 +94,11 @@ public final class DrawList {
     }
 
     /**
-     * Stamps every command added from now on with its wear (law 27), each 0 to 1: {@code charred} by fire, glowing
-     * {@code embers} while it burns, and {@code dissolved}, eaten away until gone at one. Paged runs draw it.
+     * Stamps every command added from now on with its wear (law 27), each 0 to 1: {@code charred} by fire and
+     * glowing {@code embers} while it burns. Paged runs draw it.
      */
-    public void setWear(float charred, float embers, float dissolved) {
-        wear = PagedQuadRun.packWear(charred, embers, dissolved);
+    public void setWear(float charred, float embers) {
+        wear = PagedQuadRun.packWear(charred, embers);
     }
 
     /** Clears every per-quad effect: flash, light and wear. */

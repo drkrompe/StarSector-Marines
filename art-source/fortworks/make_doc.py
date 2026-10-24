@@ -21,6 +21,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 import make_guide as guide  # noqa: E402
+import trim  # noqa: E402
 
 ALPHA = 128
 # Pixels cut off each side of a painted wall tile (about 4% of it).
@@ -145,8 +146,21 @@ def main():
     state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
     raw = HERE / 'raw' / (look + ('' if state is None else '-' + state) + '.raw.png')
     name = 'fortworks-' + style + ('' if state is None else '-' + state)
-    authoring('tileset_write_document', {'name': name, 'document': document(look, style, raw, state)})
+    doc = document(look, style, raw, state)
+    if style not in trim.STYLES:
+        authoring('tileset_write_document', {'name': name, 'document': doc})
+        authoring('tileset_export', {'name': name})
+        return
+    # The style's grade (trim.py) goes on a copy of the master under build/, which the atlas is cut from; the document
+    # then names the master again, since the copy is regenerated and never tracked.
+    doc['note'] += (' Graded by art-source/fortworks/trim.py at export: export through make_doc.py, never'
+                    ' tileset_export alone, or the atlas ships ungraded.')
+    graded = ROOT / 'build' / 'fortworks-graded' / raw.name
+    graded.parent.mkdir(parents=True, exist_ok=True)
+    trim.graded(Image.open(raw), style).save(graded)
+    authoring('tileset_write_document', {'name': name, 'document': dict(doc, sheet=graded.relative_to(ROOT).as_posix())})
     authoring('tileset_export', {'name': name})
+    authoring('tileset_write_document', {'name': name, 'document': doc})
 
 
 if __name__ == '__main__':

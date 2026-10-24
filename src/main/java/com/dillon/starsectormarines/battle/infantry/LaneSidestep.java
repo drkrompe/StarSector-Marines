@@ -329,7 +329,11 @@ public final class LaneSidestep {
      * off run exactly.
      */
     public static boolean isStepping(long unit, BattleControl sim) {
-        World world = sim.world();
+        return isStepping(unit, sim.world());
+    }
+
+    /** {@link #isStepping(long, BattleControl)} from the world alone. */
+    public static boolean isStepping(long unit, World world) {
         return world.hasAiState(unit)
                 && world.sidestepTimer(unit) > 0f
                 && stillWalking(unit, world)

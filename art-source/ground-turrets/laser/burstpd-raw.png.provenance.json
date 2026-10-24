@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f23-540d-76a1-870c-0ff4302b1955",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f23-540d-76a1-870c-0ff4302b1955\\exec-e5b0a2f0-bed8-43a2-b79e-548100ac9663.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\laser\\burstpd-raw.png",
+    "sha256": "7881643a75d51d2a1541e1795fe0f33312da882213a35bb6c44e806a0249575b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\laser\\burstpd-prompt.txt",
+  "promptSha256": "d7fbe4aa233b16fa539ae85a42337c143ded2c2136d62b74f309df946ec8efae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep the design, silhouette and position exactly\nImage 2: Livery, material and finish reference only: Tri-Tachyon white ceramic, graphite and cyan; not layout\n\nRepaint image 1 at high resolution. Image 1 is a tiny 32-pixel game sprite of a small spaceship burst point-defence laser turret, enlarged with hard pixels, pointing UP, seen strictly from straight above. Keep its design exactly: the same silhouette, proportions and parts, in the same position and size on the same canvas. Only replace the blocky pixels with crisp, detailed, painted sci-fi hardware. Read it as: a compact armoured turret body with a rounded front, twin short emitter housings side by side at the front (top) end, shoulder pods either side, and a ribbed heat-sink block at the rear (bottom). Repaint it in Tri-Tachyon's CORPORATE HIGH-TECH livery: clean off-white ceramic armour plates with fine panel lines, dark graphite for the base ring, recesses and mechanisms, and a few thin cyan accent light lines; the emitter lens or lenses at the front end are dark glass with a faint cyan rim. Light, cool, neutral field wear: grey dust in recesses, a few graphite scuffs. No red, no yellow, green, brown or gold tint anywhere. Clean, well-made starship hardware in the Starsector style: semi-realistic painted metal and ceramic, crisp edges, soft overhead light from the top left, subtle wear. No glow halos, no beam, no light rays, no sparks, no new parts. Exactly one object, strict 90-degree overhead orthographic, no perspective tilt. No scene, labels, text, background, checkerboard, ground shadow or border. True transparent background with genuine alpha outside the silhouette. Square canvas, same size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\laser\\burstpd-upres-guide.png",
+      "sha256": "83643573db5db312b1ed1629292921fc8f5ab2cbccd411c2d16018dbc7374057",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep the design, silhouette and position exactly"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-skin-tt-raw.png",
+      "sha256": "31a6ba9d1d09a68ff6e1d2a861638f705262b43d706d0fa825100c3dff1a03fe",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Livery, material and finish reference only: Tri-Tachyon white ceramic, graphite and cyan; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint Image 1, preserving its geometry and using Image 2 only for materials and colors.\n"
+  ],
+  "usage": {
+    "input_tokens": 84911,
+    "cached_input_tokens": 68096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 718,
+    "reasoning_output_tokens": 75
+  },
+  "elapsedSeconds": 53.1
+}

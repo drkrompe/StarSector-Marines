@@ -146,6 +146,26 @@ field emitter, everyone else low-tech, pirates patchwork: old works patched with
 above one) pick its prepared style, the rest its militia one; no market builds brutalist.
 A militia post's parapets are sandbags and it is not paved.
 
+## High-tech lasers
+
+A high-tech builder (composite, deployed) fits lasers where the others fit guns: the structure
+names what a style builds in its place (`builtIn` in the turret catalog), and a post built in that
+style puts it up (`DefensePost.withStyle`, from the planned structure, so restyling starts from the
+plan). There are two kinds, both the space game's own turrets up-res'd in Tri-Tachyon white,
+graphite and cyan (`art-source/ground-turrets/laser/`):
+
+- **Beam over time:** the PD laser (`structure.turret-pd-laser`, the laser tank's turret) for the
+  vulcan, heavy MG and dual flak, and an anti-air version for the flak position. Its red beam
+  plays ten pulses a burst and engages fliers.
+- **Burst:** the Burst PD Laser (`structure.turret-burst-laser`, twin emitters) for the Arbalest,
+  Hephaestus and grenade launcher: four quick blue pulses.
+- **Hardpoint:** the laser tank's own red PD laser, turret and weapon, at hardpoint size
+  (`structure.hardpoint-laser`) for the cannon hardpoint, behind its flux shield.
+
+Laser heads have no recoil and no barrel layer. A first-pass balance, matched to the damage per
+second of the guns they replace, to be moved by play. Missions that spawn guns directly (not
+through a post) are unchanged; the Locust hardpoint keeps its missiles.
+
 ## Turret effects
 
 Presentation only, so a battle plays the same with or without them:

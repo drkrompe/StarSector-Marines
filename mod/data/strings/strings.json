@@ -1121,6 +1121,10 @@
     "gearCatalogWeaponTankBurstLaserModelName": "BL-G ground-mount burst laser",
     "gearCatalogWeaponTankPdLaserDisplayName": "PD Laser Turret",
     "gearCatalogWeaponTankPdLaserModelName": "PDL-G ground-mount PD laser",
+    "gearCatalogWeaponPostPdLaserDisplayName": "PD Laser Emplacement",
+    "gearCatalogWeaponPostPdLaserModelName": "Tri-Tachyon PDL-E emplaced PD laser",
+    "gearCatalogWeaponPostBurstLaserDisplayName": "Burst Laser Emplacement",
+    "gearCatalogWeaponPostBurstLaserModelName": "Tri-Tachyon BL-E emplaced burst laser",
     "gearCatalogWeaponDroneIonDisplayName": "Drone Ion Sting",
     "gearCatalogWeaponDroneIonModelName": "Tri-Tachyon IS-1 Ion Sting",
     "gearCatalogWeaponDroneIonRole": "DRONE",
@@ -2882,6 +2886,7 @@
     "openingShipWordBRIDGE": "BRIDGE",
     "openingShipWordHOME_KITCHEN": "KITCHEN",
     "openingShipWordBRIG": "BRIG",
+    "openingShipWordGATE_TOWER": "GATE TOWER",
 
     "openingSecondhandWingsSecondhandWingsHasAlreadyBeenPurchased": "Secondhand Wings has already been purchased.",
     "openingSecondhandWingsCompleteCounterattackToHearMaraSOffer": "Complete Counterattack to hear Mara's offer.",

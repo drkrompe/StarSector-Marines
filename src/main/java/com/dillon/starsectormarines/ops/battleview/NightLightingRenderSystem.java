@@ -325,7 +325,7 @@ final class NightLightingRenderSystem implements RenderSystem {
      */
     private boolean fillEvents(CellTopology ground, int height, int viewMinX, int viewMinY, int viewMaxX,
                                int viewMaxY) {
-        if (events == null || !BodyEffects.ENABLED) return false;
+        if (events == null) return false;
         boolean any = false;
         for (int i = 0, n = events.eventCount(); i < n && filledCount < filled.length; i++) {
             GroundLightService.Light light = events.event(i);

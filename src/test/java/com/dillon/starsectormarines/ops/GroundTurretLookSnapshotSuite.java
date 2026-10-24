@@ -126,7 +126,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear((Float) spot[1], (Float) spot[2]);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, ROLES.get((String) spot[0]), x, y));
+                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, built((String) spot[0], look), x, y));
                 sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, (Float) spot[3]);
@@ -165,7 +165,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear((Float) gun[1], (Float) gun[2]);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                long id = sim.spawn(MapTurret.create("fire" + i++, Faction.DEFENDER, ROLES.get((String) gun[0]), x, y));
+                long id = sim.spawn(MapTurret.create("fire" + i++, Faction.DEFENDER, built((String) gun[0], look), x, y));
                 sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, 90f);
@@ -208,7 +208,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             float[] at = placement.openNear(12f, 11f);
             int x = (int) at[0];
             int y = (int) at[1];
-            long id = sim.spawn(MapTurret.create("shielded", Faction.DEFENDER, ROLES.get("heavy"), x, y));
+            long id = sim.spawn(MapTurret.create("shielded", Faction.DEFENDER, built("heavy", look), x, y));
             sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
             sim.getGrid().setWalkable(x, y, false);
             sim.turretState().setFacingDegrees(id, 90f);
@@ -252,7 +252,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear(12f + i * 6f, 11f);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                guns[i] = sim.spawn(MapTurret.create("gun" + i, Faction.DEFENDER, ROLES.get("heavy"), x, y));
+                guns[i] = sim.spawn(MapTurret.create("gun" + i, Faction.DEFENDER, built("heavy", style), x, y));
                 sim.setStructureStyle(guns[i], built);
                 sim.getGrid().setWalkable(x, y, false);
                 if (sim.turretShields().fitted(guns[i]) == null) {
@@ -275,6 +275,14 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 LookReview.View.play(placement.site().x(18f), placement.site().y(11f)),
                 LookReview.View.close("close", placement.site().x(18f), placement.site().y(11f), 22f)),
                 Math.round(1.2f / BattleSimulation.TICK_DT), 1, 1).withStills(Math.round(1f / BattleSimulation.TICK_DT));
+    }
+
+    /**
+     * The structure a post built in {@code look} puts up for {@code role}, as a generated post would
+     * ({@code DefensePost.withStyle}): a high-tech look's guns are lasers.
+     */
+    private static String built(String role, String look) {
+        return TurretCatalogRegistry.requireStructure(ROLES.get(role)).builtIn(EmplacementStyle.valueOf(look.toUpperCase()));
     }
 
     /** A shield's view of where things are, read off {@code sim}'s world. */

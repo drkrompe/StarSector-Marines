@@ -59,20 +59,25 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  * law 20), and a roof is a function of the topology in exactly the way a ground
  * tile is.
  *
- * <p><b>What varies and what does not.</b> A roof cell's tile is picked by
- * hashing its own coordinates and its tint belongs to its building, so both are
- * settled at the bake. What moves every frame is one number per building: the
- * fade that reveals an interior with the player's units inside it. So the
- * geometry is baked once and a building whose fade has moved is an <em>alpha
- * patch</em> of its own vertices — which is one contiguous run, because a
- * building's cells are baked together.
+ * <p><b>What varies and what does not.</b> A roof cell's pieces are a function
+ * of the topology ({@link RoofTiles}) and its tint belongs to its building, so
+ * both are settled at the bake. What moves every frame is one number per
+ * building: the fade that reveals an interior with the player's units inside
+ * it. So the geometry is baked once and a building whose fade has moved is an
+ * <em>alpha patch</em> of its own vertices — which is one contiguous run,
+ * because a building's cells are baked together: its floor, then the walls its
+ * roof is laid over ({@link com.dillon.starsectormarines.battle.world.model.RoofCover}).
  *
- * <p><b>A cave-in is a patch, not a rebuild.</b> A destroyed roof is recorded in
+ * <p><b>A cell holds {@link RoofTiles#MAX_QUADS} slots.</b> An eave is the
+ * field cut short and its trim, an inside corner two rectangles of field and
+ * its trim; a cell drawing fewer leaves the rest degenerate. A fixed share per
+ * cell keeps a re-resolve in place, whatever the cell becomes.
+ *
+ * <p><b>Damage is a patch, not a rebuild.</b> A blow to a roof is recorded in
  * {@link CellTopology}'s change log (law 21, which is why that log is one list
- * rather than one per reader), and the cell it names gives up its slot and draws
- * nothing. Unlike a ground tile, a roof needs no neighbour re-resolve: its tile
- * comes from a variant pool picked by hashing the cell, so knocking a hole in a
- * roof changes the picture of that cell and no other.
+ * rather than one per reader), and the cell it names re-resolves to its broken
+ * frame. Its neighbours re-resolve with it, and only they: a cell's cover is cut
+ * by whether the cells beside it are outside, which a fallen wall changes.
  *
  * <p><b>It fails soft.</b> A driver without buffer objects, a failed allocation,
  * any GL error at all — {@code sync} answers false and the caller emits the
@@ -87,25 +92,22 @@ public final class RoofMesh {
      * <p>The same threshold the command stream uses, so the two paint the same
      * picture: a building faded this far is one the streamed path skips
      * entirely, and a resident quad at that alpha would put a couple of levels
-     * of brick over a revealed interior.
+     * of roof over a revealed interior.
      */
     private static final float INVISIBLE_BELOW = 0.01f;
 
-    /** Where a resolved roof cell's tile goes. */
-    public interface RoofSink {
-        /** This cell draws the sheet's sub-rectangle over its own square. */
-        void quad(int srcX, int srcY, int srcW, int srcH);
-    }
+    private static final int SLOTS = RoofTiles.MAX_QUADS;
 
     /**
-     * Resolves one roof cell's tile, or nothing at all.
+     * Resolves one roof cell into the pieces it draws ({@link RoofTiles.Sink}),
+     * or nothing at all.
      *
      * <p>The same interface the ordinary command path implements, so the mesh
      * and the per-cell stream cannot disagree about what a roof looks like:
      * there is one resolver and two sinks.
      */
     public interface RoofResolver {
-        void resolve(int gridX, int gridY, RoofSink sink);
+        void resolve(Building building, int gridX, int gridY, RoofTiles.Sink sink);
     }
 
     /** One building's contiguous run of slots, and the fade its vertices carry. */
@@ -132,8 +134,10 @@ public final class RoofMesh {
     private boolean broken;
 
     private final List<Span> spans = new ArrayList<>();
-    /** Which slot each cell holds, or {@code -1}; sized to the grid. */
+    /** The first of the slots each cell holds, or {@code -1}; sized to the grid. */
     private int[] slotOfCell;
+    /** The building each slot-holding cell is roofed by, by its first slot over {@link #SLOTS}. */
+    private Building[] buildingOfCell = new Building[0];
 
     private float[] pos = new float[0];
     private float[] uv = new float[0];
@@ -153,6 +157,10 @@ public final class RoofMesh {
     /** Cells re-resolved by the last catch-up; see {@link #lastResolvedCells()}. */
     private int lastResolvedCells;
 
+    /** Which cells this patch has re-resolved already, by stamp, so a cell two changes touch resolves once. */
+    private long[] patchSeen = new long[0];
+    private long patchStamp;
+
     /**
      * Whether this mesh already holds {@code topology}'s roofs.
      *
@@ -167,17 +175,17 @@ public final class RoofMesh {
                 && buildings == boundBuildings;
     }
 
-    /** Quads currently resident — what one frame no longer has to submit. */
+    /** Quad slots currently resident — what one frame no longer has to submit. */
     public int residentQuads() {
         return used;
     }
 
-    /** Cells re-resolved by the last catch-up; the whole roof for a bake. */
+    /** Cells re-resolved by the last catch-up; every roofed cell for a bake. */
     public int lastResolvedCells() {
         return lastResolvedCells;
     }
 
-    /** Visible for tests: the slot {@code (x, y)} holds, or {@code -1}. */
+    /** Visible for tests: the first slot {@code (x, y)} holds, or {@code -1}. */
     int slotOf(int x, int y) {
         if (slotOfCell == null || gridW <= 0) return -1;
         int cell = y * gridW + x;
@@ -187,6 +195,11 @@ public final class RoofMesh {
     /** Visible for tests: the four corners, in cell units, a slot occupies. */
     float[] positionAt(int slot) {
         return Arrays.copyOfRange(pos, slot * 8, slot * 8 + 8);
+    }
+
+    /** Visible for tests: a slot's four texture coordinates, as {@code u, v} pairs. */
+    float[] uvAt(int slot) {
+        return Arrays.copyOfRange(uv, slot * 8, slot * 8 + 8);
     }
 
     /** Visible for tests: one slot's first vertex colour, as {@code r, g, b, a}. */
@@ -345,25 +358,32 @@ public final class RoofMesh {
         Arrays.fill(slotOfCell, -1);
         spans.clear();
 
+        // Each building's cells: its floor, then the walls its roof is laid over.
+        int[] claimed = new int[cells];
+        List<int[]> cellsOf = new ArrayList<>();
         int total = 0;
-        for (Building b : buildings.all()) total += b.cellCount();
-        pos = new float[total * 8];
-        uv = new float[total * 8];
-        col = new float[total * 16];
-        used = total;
+        for (Building b : buildings.all()) {
+            int[] own = RoofPlans.roofedCells(topology, b, claimed);
+            cellsOf.add(own);
+            total += own.length;
+        }
+        pos = new float[total * SLOTS * 8];
+        uv = new float[total * SLOTS * 8];
+        col = new float[total * SLOTS * 16];
+        buildingOfCell = new Building[total];
+        used = total * SLOTS;
 
         int slot = 0;
+        int index = 0;
         for (Building b : buildings.all()) {
-            Span span = new Span(b, slot, b.cellCount());
-            spans.add(span);
-            for (int i = 0; i < b.cellCount(); i++, slot++) {
-                int cx = b.cellsX[i];
-                int cy = b.cellsY[i];
-                if (cx >= 0 && cy >= 0 && cx < gridW && cy < topology.getHeight()) {
-                    slotOfCell[cy * gridW + cx] = slot;
-                }
-                writeTint(slot, b);
-                resolveInto(slot, cx, cy, topology, resolver);
+            int[] own = cellsOf.get(index++);
+            spans.add(new Span(b, slot, own.length * SLOTS));
+            for (int at : own) {
+                slotOfCell[at] = slot;
+                buildingOfCell[slot / SLOTS] = b;
+                for (int k = 0; k < SLOTS; k++) writeTint(slot + k, b);
+                resolveInto(slot, at % gridW, at / gridW, resolver);
+                slot += SLOTS;
             }
         }
         lastResolvedCells = total;
@@ -376,23 +396,37 @@ public final class RoofMesh {
     }
 
     /**
-     * Re-resolves the cells the topology has recorded as changed.
+     * Re-resolves the cells the topology has recorded as changed, and the cells
+     * beside each.
      *
-     * <p>Only the cells themselves, with no neighbour sweep: a roof tile comes
-     * from a variant pool picked by hashing the cell's own coordinates, so
-     * nothing about a roof depends on what is beside it. That is the difference
-     * from the ground, where an autotile frame is chosen from the wall mask of
-     * everything it touches.
+     * <p>The neighbours because a roof's cover is cut by whether the cells
+     * beside it are outside: a wall that falls turns the eaves either side of it
+     * into corners. A cell's own frame needs nothing else, so the sweep stops
+     * one cell out.
      */
     private void patch(CellTopology topology, RoofResolver resolver, long now) {
         int resolved = 0;
+        long stamp = ++patchStamp;
+        if (patchSeen.length != slotOfCell.length) patchSeen = new long[slotOfCell.length];
+        int gridH = topology.getHeight();
         for (long sequence = caughtUpTo; sequence < now; sequence++) {
             int cell = topology.changedCellAt(sequence);
             if (cell < 0 || cell >= slotOfCell.length) continue;
-            int slot = slotOfCell[cell];
-            if (slot < 0) continue;
-            resolveInto(slot, cell % gridW, cell / gridW, topology, resolver);
-            resolved++;
+            int cx = cell % gridW;
+            int cy = cell / gridW;
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int nx = cx + dx;
+                    int ny = cy + dy;
+                    if (nx < 0 || ny < 0 || nx >= gridW || ny >= gridH) continue;
+                    int at = ny * gridW + nx;
+                    int slot = slotOfCell[at];
+                    if (slot < 0 || patchSeen[at] == stamp) continue;
+                    patchSeen[at] = stamp;
+                    resolveInto(slot, nx, ny, resolver);
+                    resolved++;
+                }
+            }
         }
         caughtUpTo = now;
         lastResolvedCells = resolved;
@@ -416,34 +450,29 @@ public final class RoofMesh {
     private void writeTint(int slot, Building b) {
         int at = slot * 16;
         for (int vertex = 0; vertex < 4; vertex++) {
-            col[at++] = b.tintR;
-            col[at++] = b.tintG;
-            col[at++] = b.tintB;
+            col[at++] = RoofTiles.tint(b.tintR);
+            col[at++] = RoofTiles.tint(b.tintG);
+            col[at++] = RoofTiles.tint(b.tintB);
             col[at++] = 0f;
         }
     }
 
-    /** Applies one cell's resolution into its slot, or degenerates it. */
-    private void resolveInto(int slot, int cx, int cy, CellTopology topology,
-                             RoofResolver resolver) {
-        if (topology.isRoofDestroyed(cx, cy)) {
-            degenerate(slot);
-            return;
-        }
+    /** Applies one cell's resolution into its slots, degenerating what it leaves unused. */
+    private void resolveInto(int slot, int cx, int cy, RoofResolver resolver) {
         placedSlot = slot;
         placedCellX = cx;
         placedCellY = cy;
-        placed = false;
-        resolver.resolve(cx, cy, sink);
-        if (!placed) degenerate(slot);
+        placed = 0;
+        resolver.resolve(buildingOfCell[slot / SLOTS], cx, cy, sink);
+        for (int k = placed; k < SLOTS; k++) degenerate(slot + k);
         markGeometry(slot);
+        markGeometry(slot + SLOTS - 1);
     }
 
     /** A slot with nothing to draw keeps its place: four coincident vertices. */
     private void degenerate(int slot) {
         int at = slot * 8;
         for (int i = 0; i < 8; i++) pos[at + i] = 0f;
-        markGeometry(slot);
     }
 
     // Scratch for the cell currently being resolved; the sink is one object
@@ -451,36 +480,40 @@ public final class RoofMesh {
     private int placedSlot;
     private int placedCellX;
     private int placedCellY;
-    private boolean placed;
+    private int placed;
     private boolean wholeUpload = true;
 
-    private final RoofSink sink = (srcX, srcY, srcW, srcH) -> {
-        if (placed) return;
-        placed = true;
-        int at = placedSlot * 8;
-        float x0 = placedCellX;
-        float y0 = placedCellY;
-        float x1 = placedCellX + 1f;
-        float y1 = placedCellY + 1f;
-        pos[at] = x0;     pos[at + 1] = y0;
-        pos[at + 2] = x1; pos[at + 3] = y0;
-        pos[at + 4] = x1; pos[at + 5] = y1;
-        pos[at + 6] = x0; pos[at + 7] = y1;
+    private final RoofTiles.Sink sink = (column, row, turns, x0, y0, x1, y1) -> {
+        if (placed >= SLOTS) return;
+        int at = (placedSlot + placed++) * 8;
+        pos[at] = placedCellX + x0;     pos[at + 1] = placedCellY + y0;
+        pos[at + 2] = placedCellX + x1; pos[at + 3] = placedCellY + y0;
+        pos[at + 4] = placedCellX + x1; pos[at + 5] = placedCellY + y1;
+        pos[at + 6] = placedCellX + x0; pos[at + 7] = placedCellY + y1;
+        cornerUv(at, column, row, turns, x0, y0);
+        cornerUv(at + 2, column, row, turns, x1, y0);
+        cornerUv(at + 4, column, row, turns, x1, y1);
+        cornerUv(at + 6, column, row, turns, x0, y1);
+    };
 
-        // Same convention QuadBatch uses: source pixels are top-down and GL's V
-        // is bottom-up, and getTextureWidth/Height is the image's normalised
-        // extent inside a possibly padded texture.
+    /**
+     * The texture coordinate of one corner: the frame point the turned frame
+     * puts there ({@link RoofTiles#frameU}), held half a texel inside the frame
+     * so a bilinear tap never reaches the next one. Same convention QuadBatch
+     * uses: sheet pixels are top-down and GL's V is bottom-up, and
+     * getTextureWidth/Height is the image's normalised extent inside a possibly
+     * padded texture.
+     */
+    private void cornerUv(int at, int column, int row, int turns, float px, float py) {
+        float frameW = sheetPxW / (float) RoofTiles.COLUMNS;
+        float frameH = sheetPxH / (float) RoofStyle.COUNT;
+        float u = RoofTiles.insideFrame(RoofTiles.frameU(turns, px, py), frameW);
+        float v = RoofTiles.insideFrame(RoofTiles.frameV(turns, px, py), frameH);
         float texU = sheet.getTextureWidth();
         float texV = sheet.getTextureHeight();
-        float u0 = ((float) srcX / sheetPxW) * texU;
-        float u1 = ((float) (srcX + srcW) / sheetPxW) * texU;
-        float v0 = texV - ((float) srcY / sheetPxH) * texV;
-        float v1 = texV - ((float) (srcY + srcH) / sheetPxH) * texV;
-        uv[at] = u0;     uv[at + 1] = v1;
-        uv[at + 2] = u1; uv[at + 3] = v1;
-        uv[at + 4] = u1; uv[at + 5] = v0;
-        uv[at + 6] = u0; uv[at + 7] = v0;
-    };
+        uv[at] = (column + u) * frameW / sheetPxW * texU;
+        uv[at + 1] = texV - (row + 1f - v) * frameH / sheetPxH * texV;
+    }
 
     private void markGeometry(int slot) {
         geometryFrom = geometryFrom < 0 ? slot : Math.min(geometryFrom, slot);

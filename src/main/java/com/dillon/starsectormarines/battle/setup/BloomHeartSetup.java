@@ -220,10 +220,12 @@ public final class BloomHeartSetup {
         int[] core = originCore(map, plan, battleSeed);
         if (core == null || heart.mothers().isEmpty()) return map;
         HeartBores.Site first = heart.mothers().get(0);
+        Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
         List<DamagePlan.Layer> layers = new ArrayList<>();
         if (map.initialDamage != null) layers.addAll(map.initialDamage.layers());
         layers.add(new DamagePlan.Layer(HeartOrigin.DAMAGE_LAYER, true,
-                HeartOrigin.damage(core, new int[]{first.x(), first.y()})));
+                HeartOrigin.damage(map.topology, core, new int[]{first.x(), first.y()}, workings.seedX(), workings.seedY(),
+                        battleSeed)));
         long seed = map.initialDamage != null ? map.initialDamage.seed() : battleSeed;
         return map.withInitialDamage(new DamagePlan(map.grid.getWidth(), map.grid.getHeight(), seed, layers));
     }

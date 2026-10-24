@@ -53,7 +53,7 @@ import static org.lwjgl.opengl.GL20.GL_MAX_TEXTURE_IMAGE_UNITS;
 /**
  * One draw over quads cut from several textures: the run {@link DrawListRenderer} keeps open across a change of
  * sheet, so painter order no longer has to cost a flush every time the texture changes
- * ({@code programmable-quad-batch.md}).
+ * ({@code battle-render-nouns.md}, law 27).
  *
  * <p><b>Pages.</b> Up to {@link #MAX_PAGES} textures are bound to as many texture units for the draw, and each
  * vertex carries the number of the page it samples. The fragment shader picks the sampler with a branch on that
@@ -87,7 +87,7 @@ import static org.lwjgl.opengl.GL20.GL_MAX_TEXTURE_IMAGE_UNITS;
  * fixed-function contract does not carry (a secondary colour or normal array would want entry points LWJGL 3's
  * headless binding does not keep). A quad's hit flash is the fraction of its z past the lane
  * ({@link #lane(int, boolean, float)}); w is the light on it ({@link #packLight}); r the direction that light comes
- * from; q its wear: char, embers and dissolve ({@link #packWear}). All four are zero for an ordinary quad, which then
+ * from; q its wear: char and embers ({@link #packWear}). All four are zero for an ordinary quad, which then
  * draws exactly as before. The packed values are whole numbers under 2^24, exact in a float, unpacked in the vertex
  * shader where every corner carries the same value.
  *
@@ -123,7 +123,7 @@ public final class PagedQuadRun {
             + "  additive = lane > " + MAX_PAGES + ".0 - 0.5 ? 1.0 : 0.0;\n"
             + "  page = lane - additive * " + MAX_PAGES + ".0;\n"
             + "  texels = pageTexels[int(page + 0.5)];\n"
-            // Three bytes each, high first: light red, green, blue; wear char, embers, dissolve.
+            // Three bytes, high first: light red, green, blue; wear char, embers and a byte to spare.
             + "  float l = gl_Vertex.w;\n"
             + "  light = vec3(floor(l / 65536.0), mod(floor(l / 256.0), 256.0), mod(l, 256.0)) * ("
             + LIGHT_MAX + " / 255.0);\n"
@@ -160,7 +160,7 @@ public final class PagedQuadRun {
                 .append("  float gg = dot(g, g);\n")
                 .append("  float rim = gg > 1e-6 ? max(dot(-g * inversesqrt(gg), lightDir), 0.0) : 0.0;\n")
                 .append("  c.rgb += (vec3(0.1) + c.rgb) * light * (0.6 + 1.8 * rim);\n")
-                .append("  if (wear.x + wear.y + wear.z > 0.0) {\n")
+                .append("  if (wear.x + wear.y > 0.0) {\n")
                 .append("    vec2 p = uv * texels;\n")
                 // Char: blackened toward soot in blotches, never quite evenly.
                 .append("    float blot = noise(p * 0.07);\n")
@@ -168,14 +168,6 @@ public final class PagedQuadRun {
                 // Embers: the brightest specks of a finer noise glow orange.
                 .append("    float speck = noise(p * 0.45 + 31.0);\n")
                 .append("    c.rgb += vec3(1.0, 0.42, 0.08) * smoothstep(0.86 - 0.3 * wear.y, 0.98, speck) * wear.y * 2.2;\n")
-                // Dissolve: eaten away where the blotch noise is under the threshold, edged in dust, or in fire
-                // while it burns.
-                .append("    float cut = wear.z * 1.12;\n")
-                .append("    float edge = blot - cut;\n")
-                .append("    if (wear.z > 0.0 && edge < 0.0) c = vec4(0.0);\n")
-                .append("    else if (wear.z > 0.0 && edge < 0.07) c.rgb = mix(c.rgb,"
-                        + " mix(vec3(0.17, 0.14, 0.11), vec3(1.6, 1.0, 0.35), wear.y),"
-                        + " (1.0 - edge / 0.07) * min(1.0, wear.z * 8.0));\n")
                 .append("  }\n")
                 // A hit flash: the quad's own colour pushed toward white, its shape and alpha untouched.
                 .append("  c.rgb = mix(c.rgb, vec3(1.0), flash);\n")
@@ -295,10 +287,10 @@ public final class PagedQuadRun {
 
     /**
      * The q a quad carries for its wear, each share 0 to 1 in a byte: {@code charred}, blackened as by fire;
-     * {@code embers}, glowing specks while it burns; {@code dissolved}, eaten away with a hot edge until gone at one.
+     * {@code embers}, glowing specks while it burns.
      */
-    public static float packWear(float charred, float embers, float dissolved) {
-        return pack(charred, embers, dissolved);
+    public static float packWear(float charred, float embers) {
+        return pack(charred, embers, 0f);
     }
 
     private static float pack(float a, float b, float c) {

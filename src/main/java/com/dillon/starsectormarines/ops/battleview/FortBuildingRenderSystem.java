@@ -27,7 +27,7 @@ import java.util.List;
  * style of the fort's lot, and its roof is the ordinary roof, lifting as any building's does. This system adds only
  * what the kit has no piece for: the holder's banner over each building (tinted by who holds it, larger once taken) and
  * the magazine's blast door, damaged with the building ({@link FortBuildingArt#stateOf}). At the gate it draws the
- * leaves over the passage and over each open sally port; the towers either side are the fort's own wall.
+ * leaves over the passage and over each open sally port; the towers either side are rooms, drawn like any building.
  */
 public final class FortBuildingRenderSystem implements RenderSystem {
 
@@ -167,8 +167,6 @@ public final class FortBuildingRenderSystem implements RenderSystem {
             float cx = (b[0] + b[2] + 1) * 0.5f;
             float cy = (b[1] + b[3] + 1) * 0.5f;
             if (!view.visible(cx, cy, 4f)) continue;
-            // A tower is the fort's own wall, drawn by the ground pass in the lot's style; only the leaves are art.
-            if (piece.kind() == FortPlan.PieceKind.TOWER) continue;
             String path = art.gate();
             RenderLayer layer = RenderLayer.DOODADS;
             ShuttleSpriteCache sprite = sprites.spriteByPath(path);
