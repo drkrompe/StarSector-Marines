@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.scene;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
@@ -52,10 +51,10 @@ public final class LookReview {
      * stage named ({@link #subject}), which a {@link View#follow following view} keeps in frame.
      */
     public record Placement(LookGround ground, MapResult map, LookGround.Site site, Map<String, Long> subjects,
-                            List<Consumer<BattleSimulation>> beforeTicks, Selection selection) {
+                            List<Consumer<BattleSimulation>> beforeTicks) {
 
         public Placement(LookGround ground, MapResult map, LookGround.Site site) {
-            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>(), new Selection());
+            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>());
         }
 
         /**
@@ -249,8 +248,7 @@ public final class LookReview {
             List<List<BufferedImage>> frames = new ArrayList<>(views.size());
             for (View view : views) {
                 float[] f = view.focus().apply(sim);
-                renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2])
-                        .withSelection(placement.selection()));
+                renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2]));
                 frames.add(new CompressedFrameList());
             }
             List<List<Integer>> activity = new ArrayList<>();

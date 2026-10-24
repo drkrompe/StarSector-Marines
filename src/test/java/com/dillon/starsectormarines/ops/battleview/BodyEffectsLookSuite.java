@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -26,8 +25,7 @@ import java.util.Set;
  * only drain that draws them: {@code lit-firefight}, a rifle section with grenades against a militia picket at night,
  * where every muzzle flash and blast lights the bodies round it and a hit flashes the body it lands on;
  * {@code burning-dead}, a row of the dead in grass a fire sweeps over, glowing with embers as it burns and charred
- * once it has burnt; {@code retiring-dead}, a pile past the body cap's limit for its ground, whose oldest dissolve
- * with a hot edge as the cap retires them. Opt-in: a look question, not part of {@code all}.
+ * once it has burnt. Opt-in: a look question, not part of {@code all}.
  */
 public final class BodyEffectsLookSuite implements SnapshotSuite {
 
@@ -35,20 +33,17 @@ public final class BodyEffectsLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "body-effects-look"; }
 
-    @Override public String label() { return "Body effects: lit by the fight, burnt by fire, dissolved by the pile cap"; }
+    @Override public String label() { return "Body effects: lit by the fight, burnt by fire"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
-        String only = System.getProperty("snapshot.bodyEffects.shots",
-                "lit-firefight,burning-dead,retiring-dead,selected-outline");
+        String only = System.getProperty("snapshot.bodyEffects.shots", "lit-firefight,burning-dead");
         List<SnapshotArtifact> out = new ArrayList<>();
         if (only.contains("lit-firefight")) out.addAll(LookReview.record(context.modRoot(), litFirefight()));
         if (only.contains("burning-dead")) out.addAll(LookReview.record(context.modRoot(), burningDead()));
-        if (only.contains("retiring-dead")) out.addAll(LookReview.record(context.modRoot(), retiringDead()));
-        if (only.contains("selected-outline")) out.addAll(LookReview.record(context.modRoot(), selectedOutline()));
         return out;
     }
 
@@ -102,77 +97,5 @@ public final class BodyEffectsLookSuite implements SnapshotSuite {
             return sim;
         }, placement -> List.of(LookReview.View.close("close", placement.site().x(17f), placement.site().y(12f),
                 18f)), 1200);
-    }
-
-    /**
-     * 64 dead filling one of the pile cap's eight-cell areas row by row, then 16 more on its last two rows: past the
-     * cap's limit of 64 an area, so the 16 oldest, the first two rows, are retired as the rest fall, with nothing
-     * lying over them.
-     */
-    static LookReview.Shot retiringDead() {
-        return LookReview.Shot.of("retiring-dead", 32, 20, placement -> {
-            BattleSimulation sim = placement.builder().build().sim();
-            int[] area = pileArea(placement);
-            int cells = BodyPileCap.AREA_CELLS * BodyPileCap.AREA_CELLS;
-            List<Long> bodies = new ArrayList<>();
-            for (int i = 0; i < cells; i++) bodies.add(spawnBody(sim, area, i));
-            placement.beforeTick(s -> {
-                int t = s.getSimTickIndex();
-                if (t == SECOND_WAVE_TICK) {
-                    for (int i = cells - SECOND_WAVE; i < cells; i++) bodies.add(spawnBody(s, area, i));
-                }
-                if (t % 2 != 0) return;
-                int k = t < SECOND_WAVE_TICK ? t / 2 : cells + (t - SECOND_WAVE_TICK) / 2;
-                boolean firstWave = t < SECOND_WAVE_TICK;
-                if (k < bodies.size() && firstWave == (k < cells)) s.applyDamage(bodies.get(k), 1_000_000f, 1000f);
-            });
-            return sim;
-        }, placement -> {
-            int[] area = pileArea(placement);
-            float half = BodyPileCap.AREA_CELLS / 2f;
-            return List.of(LookReview.View.close("close", area[0] + half, area[1] + half, 14f));
-        }, 900);
-    }
-
-    private static final int SECOND_WAVE_TICK = 240, SECOND_WAVE = 16;
-
-    private static long spawnBody(BattleSimulation sim, int[] area, int i) {
-        return sim.spawn(new EntitySpec("Body " + i, Faction.DEFENDER, UnitType.MILITIA,
-                area[0] + i % BodyPileCap.AREA_CELLS, area[1] + i / BodyPileCap.AREA_CELLS));
-    }
-
-    /**
-     * Two Marine squads walking east, the north one selected with its leader as the primary selection and the south
-     * one hovered: the outline in the selection ring's colours on each body.
-     */
-    static LookReview.Shot selectedOutline() {
-        return LookReview.Shot.of("selected-outline", 32, 20, placement -> {
-            float[] north = placement.openNear(8f, 7f);
-            float[] south = placement.openNear(8f, 13f);
-            float[] goal = placement.openNear(26f, 10f);
-            int x0 = placement.site().x0(), y0 = placement.site().y0();
-            int gx = (int) goal[0], gy = (int) goal[1];
-            SceneBuilder builder = placement.builder();
-            builder.squad("north").faction(Faction.MARINE).size(4).at((int) north[0] - x0, (int) north[1] - y0)
-                    .primary("weapon.field-rifle").assigned(id -> ObjectiveAssignment.attackMove(id, gx, gy)).done();
-            builder.squad("south").faction(Faction.MARINE).size(4).at((int) south[0] - x0, (int) south[1] - y0)
-                    .primary("weapon.field-rifle").assigned(id -> ObjectiveAssignment.attackMove(id, gx, gy)).done();
-            SceneWorld world = builder.build();
-            BattleSimulation sim = world.sim();
-            long leader = world.members("north")[0];
-            int northSquad = sim.squad().squadId(leader);
-            placement.selection().selectUnit(northSquad, leader);
-            placement.selection().hoverSquad(sim.squad().squadId(world.members("south")[0]));
-            placement.subject("north", leader);
-            placement.subject("south", world.members("south")[0]);
-            return sim;
-        }, placement -> List.of(LookReview.View.follow("close", placement, 14f, "north", "south")), 240);
-    }
-
-    /** The pile cap's area the pile lies in: the one holding the open ground nearest the window's middle. */
-    private static int[] pileArea(LookReview.Placement placement) {
-        float[] at = placement.openNear(16f, 10f);
-        return new int[]{Math.floorDiv((int) at[0], BodyPileCap.AREA_CELLS) * BodyPileCap.AREA_CELLS,
-                Math.floorDiv((int) at[1], BodyPileCap.AREA_CELLS) * BodyPileCap.AREA_CELLS};
     }
 }

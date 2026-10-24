@@ -74,7 +74,7 @@ public final class DrawList {
             buf[c] = cmd;
         }
         counts[li] = c + 1;
-        cmd.setEffects(flash, light, PagedQuadRun.packDirection(lightAngle, light != 0f, outline), wear);
+        cmd.setEffects(flash, light, lightAngle, wear);
         return cmd;
     }
 
@@ -82,16 +82,7 @@ public final class DrawList {
     private float flash;
     /** The packed light, its direction and the packed wear stamped likewise; see {@link #setLight}, {@link #setWear}. */
     private float light, lightAngle, wear;
-    /** The outline kind stamped likewise ({@code PagedQuadRun.OUTLINE_*}); see {@link #setOutline}. */
-    private int outline;
 
-    /**
-     * Stamps every command added from now on with an outline of {@code kind} ({@code PagedQuadRun.OUTLINE_*}): the
-     * silhouette's edge painted in the selection's colour (law 27). Paged runs draw it.
-     */
-    public void setOutline(int kind) {
-        outline = kind;
-    }
 
     /**
      * Stamps every command added from now on with the light on it, each channel a multiple of its own colour added
@@ -99,23 +90,22 @@ public final class DrawList {
      */
     public void setLight(float r, float g, float b, float angleRadians) {
         light = PagedQuadRun.packLight(r, g, b);
-        lightAngle = angleRadians;
+        lightAngle = light == 0f ? 0f : angleRadians;
     }
 
     /**
-     * Stamps every command added from now on with its wear (law 27), each 0 to 1: {@code charred} by fire, glowing
-     * {@code embers} while it burns, and {@code dissolved}, eaten away until gone at one. Paged runs draw it.
+     * Stamps every command added from now on with its wear (law 27), each 0 to 1: {@code charred} by fire and
+     * glowing {@code embers} while it burns. Paged runs draw it.
      */
-    public void setWear(float charred, float embers, float dissolved) {
-        wear = PagedQuadRun.packWear(charred, embers, dissolved);
+    public void setWear(float charred, float embers) {
+        wear = PagedQuadRun.packWear(charred, embers);
     }
 
-    /** Clears every per-quad effect: flash, light, outline and wear. */
+    /** Clears every per-quad effect: flash, light and wear. */
     public void clearEffects() {
         flash = 0f;
         light = 0f;
         lightAngle = 0f;
-        outline = 0;
         wear = 0f;
     }
 

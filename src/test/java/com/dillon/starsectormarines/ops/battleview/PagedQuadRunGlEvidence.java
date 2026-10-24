@@ -247,8 +247,7 @@ class PagedQuadRunGlEvidence {
 
     /**
      * The light and wear channels (law 27): a lit fill is its colour plus the light times its colour lifted off black
-     * (an opaque fill has no silhouette edge inside it, so no rim); a charred one is darker in every channel; a fully
-     * dissolved one draws nothing.
+     * (an opaque fill has no silhouette edge inside it, so no rim); a charred one is darker in every channel.
      */
     @Test
     void lightAndWearDrawWhatTheyCarry() throws Exception {
@@ -267,30 +266,25 @@ class PagedQuadRunGlEvidence {
                 frame.setLight(light[0], light[1], light[2], 1f);
                 frame.addSolidRect(RenderLayer.UNITS, 20, 20, 100, 100, r, g, b, 1f);
                 frame.clearEffects();
-                frame.setWear(1f, 0f, 0f);
+                frame.setWear(1f, 0f);
                 frame.addSolidRect(RenderLayer.UNITS, 120, 20, 200, 100, r, g, b, 1f);
-                frame.setWear(0f, 0f, 1f);
-                frame.addSolidRect(RenderLayer.UNITS, 220, 20, 300, 100, r, g, b, 1f);
                 frame.clearEffects();
                 byte[] pixels = draw(target[0], frame, new IdentityHashMap<>(), paged, new DrawCensus());
 
                 float[] colour = {r, g, b};
                 int worstLit = 0;
                 boolean darker = true;
-                int lit = (60 * W + 60) * 4, charred = (60 * W + 160) * 4, gone = (60 * W + 260) * 4;
+                int lit = (60 * W + 60) * 4, charred = (60 * W + 160) * 4;
                 for (int k = 0; k < 3; k++) {
                     float carried = Math.round(light[k] / 2f * 255f) * 2f / 255f;
                     float expected = Math.min(1f, colour[k] + (.1f + colour[k]) * carried * .6f);
                     worstLit = Math.max(worstLit, Math.abs((pixels[lit + k] & 0xFF) - Math.round(expected * 255f)));
                     darker &= (pixels[charred + k] & 0xFF) < Math.round(colour[k] * 255f) - 10;
                 }
-                boolean dissolved = (pixels[gone] & 0xFF) == 255 && (pixels[gone + 1] & 0xFF) == 0
-                        && (pixels[gone + 2] & 0xFF) == 255;
                 System.out.println("[shader-evidence] body effects: lit worst " + worstLit + " levels, charred darker "
-                        + darker + ", dissolved leaves the ground " + dissolved);
+                        + darker);
                 assertTrue(worstLit <= 2, "a lit fill adds the light times its lifted colour; worst " + worstLit);
                 assertTrue(darker, "a charred fill is darker in every channel");
-                assertTrue(dissolved, "a fully dissolved fill draws nothing");
             } finally {
                 paged.dispose();
                 glDeleteFramebuffers(target[0]);

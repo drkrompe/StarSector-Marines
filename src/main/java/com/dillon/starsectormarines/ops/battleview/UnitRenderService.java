@@ -1303,9 +1303,9 @@ public final class UnitRenderService implements RenderSystem {
                     float poolAlpha = alphaMult * pileFadeAlpha(faded);
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
                             * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
-                    // The pool goes as its body does: lit, charred and dissolved with it.
+                    // The pool is lit and charred with its body.
                     effects.stampLight(out, rx[r], ry[r]);
-                    effects.stampDeadWear(out, ctx.sim, rx[r], ry[r], faded);
+                    effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
                     out.addSprite(RenderLayer.UNITS, pool.sprite,
                             cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
                             size, size * pool.pxHeight / pool.pxWidth, facing[r],
@@ -1340,7 +1340,7 @@ public final class UnitRenderService implements RenderSystem {
                 float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
                 float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
                 effects.stampLight(out, rx[r], ry[r]);
-                effects.stampDeadWear(out, ctx.sim, rx[r], ry[r], faded);
+                effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
                 if (type == UnitType.SWARM_HARRIER) {
                     // A shot flier lies where its fall landed, as its look's corpse drawing.
                     if (ctx.sim.swarmFliers().falling(t.entityAt(r))) continue;
@@ -1456,18 +1456,12 @@ public final class UnitRenderService implements RenderSystem {
     /** How much a digesting body shrinks by the time the creep has it all. */
     private static final float MELT_SHRINK = 0.2f;
 
-    /**
-     * A body the pile cap retires dissolves over its fade (law 27, {@link BodyEffects}) and fades out only over the
-     * last of it, where a drain that cannot dissolve still lets it go smoothly.
-     */
+    /** A body the pile cap retires fades out smoothly over the whole of its fade. */
     static float pileFadeAlpha(float faded) {
-        if (faded <= PILE_FADE_FROM) return 1f;
-        float t = Math.min(1f, (faded - PILE_FADE_FROM) / (1f - PILE_FADE_FROM));
+        if (faded <= 0f) return 1f;
+        float t = Math.min(1f, faded);
         return 1f - t * t * (3f - 2f * t);
     }
-
-    /** How far into its retirement a body starts to fade; dissolving carries it until then. */
-    static final float PILE_FADE_FROM = BodyEffects.ENABLED ? 0.7f : 0f;
 
     /** A digesting body stays whole for its first third, then fades into the creep. */
     static float meltAlpha(float digested) {
@@ -1620,7 +1614,6 @@ public final class UnitRenderService implements RenderSystem {
                 out.setFlash(HitFlash.amount(combat, entityId, tick));
                 effects.stampLight(out, rx[r], ry[r]);
                 effects.stampLiveWear(out, ctx.sim, rx[r], ry[r]);
-                effects.stampOutline(out, ctx, entityId);
 
                 UnitType type = (UnitType) types[r];
                 LayeredMechAssets mechAssets = hasMechLayered
