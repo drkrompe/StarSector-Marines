@@ -148,7 +148,9 @@ LEDGER = [
       cause='lasher-lead@103.7:breach', src='S9b k4b fire from 103.7 s',
       note='the fires spread aft along her deck and reach her magazine: she breaks up and tumbles away burning'),
 
-    # ---- Lasher A: untouched in S6 (her 52.8 and 54.5 s hits are cut: nothing drawn reaches her)
+    # ---- Lasher A: burns in S6, the Manticore (P)'s first Harpoon salvo after the Phaeton's
+    H('lasher-a', 53.2, 'breach', 3, (-4, 12, -5), (-.2, .5, 1), by=('missile', 'fire_on'), src='S6 k3 missiles manticore-p',
+      note='a Harpoon opens her flank: Lasher A burns'),
 
     # ---- WARDEN THREE, Lasher B: scored, gets away
     # (her S6 rake from the Falcon is cut: the Falcon's guns draw nothing at that range)

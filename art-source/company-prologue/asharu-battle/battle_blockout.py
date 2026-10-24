@@ -906,7 +906,9 @@ KEYFRAMES = {
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
             # the second salvo: the lead Lasher's 55.9 s breach is a Harpoon's (fire-control plan)
-            ('missiles', 'manticore-p', 'lasher-lead', 55.9)],
+            ('missiles', 'manticore-p', 'lasher-lead', 55.9),
+            # a Lasher burns (S6's beat): a salvo onto Lasher A first, her fire lit where it meets her
+            ('missiles', 'manticore-p', 'lasher-a', 53.2), ('fire_on', 'lasher-a', (-4, 12, -5), (-.2, .5, 1), 56 - 53.2)],
         cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
               'manticore-p': {'fire': ['t1_1']}, 'phaeton': {'impacts': 'cookoff'}},
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
