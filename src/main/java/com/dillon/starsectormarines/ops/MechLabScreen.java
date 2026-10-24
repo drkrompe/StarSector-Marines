@@ -664,7 +664,12 @@ public final class MechLabScreen implements Screen {
         if (specSheets != null) specSheets.update();
         if (document != null) {
             document.advance(dt);
-            if (dollElement != null) document.canvases().invalidate(dollElement);
+            // The bay view's box changes shape between the lance overview and the fitting view;
+            // its surface follows, so the build mark, pad letters and schematic never stretch.
+            if (dollElement != null) {
+                dollElement.fitCanvasToBox();
+                document.canvases().invalidate(dollElement);
+            }
             if (preparationGuide != null) preparationGuide.update();
         }
     }

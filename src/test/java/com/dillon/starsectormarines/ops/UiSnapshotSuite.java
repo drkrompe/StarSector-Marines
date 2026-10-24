@@ -2785,6 +2785,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         .findFirst().orElseThrow().id() : MechLabSpecSheets.firstSpecSheetAnchorId(rows);
                 openSpecSheet(document, binder, width, height, instance.requireElement(anchor));
             }
+            // Lay out once and fit the bay view's surface to its box, as the screen does each frame.
+            renderRelative(renderer, document, width, height, uiScale);
+            instance.requireElement("mech-doll-canvas").fitCanvasToBox();
             if (motionFrames != null) {
                 MechWeaponDragCanvas ghost = new MechWeaponDragCanvas(MechLabDollCanvas::headlessAssets);
                 UiElement ghostElement = instance.requireElement("mech-drag-ghost");

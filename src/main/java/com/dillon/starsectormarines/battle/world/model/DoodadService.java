@@ -204,6 +204,11 @@ public final class DoodadService {
         return id;
     }
 
+    /** The footprint, {cellX, cellY, width, height}, of the standing natural object (a tree, a bush) on a cell; false for none. */
+    public boolean naturalPropFootprintAt(int x, int y, int[] out) {
+        return naturalProps.standingFootprintAt(x, y, out);
+    }
+
     /**
      * Whether the first destructible prop a structural hit on this cell reaches is a registered cover prop —
      * a sandbag, fence or crate barricade — rather than a rock, a natural object or registered equipment. A cell
