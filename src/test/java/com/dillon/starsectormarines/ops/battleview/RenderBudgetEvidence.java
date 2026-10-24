@@ -227,8 +227,11 @@ class RenderBudgetEvidence {
                 renderer.buildTileBatches();
 
                 for (MapSpec spec : MapSpec.selected()) {
+                    long standUp = System.nanoTime();
                     try (BattleSimulation sim = spec.build()) {
-                        play(sim, ticks);
+                        if (spec.playout()) play(sim, ticks);
+                        System.out.printf(Locale.ROOT, "[render-evidence] %s stood up in %.1f s%n",
+                                spec.id(), (System.nanoTime() - standUp) / 1e9);
                         List<EqualityCheck> checks = new ArrayList<>();
                         rows.addAll(profile(spec, sim, renderer, frames, frameCosts, checks, runs));
                         DecorationAtlas decoration = renderer.getDecorationAtlas();
@@ -251,8 +254,10 @@ class RenderBudgetEvidence {
                                 spec.id());
                     }
                 }
-                if (MapSpec.selected().stream().anyMatch(spec -> spec.id().equals(MapSpec.CONQUEST_ID))) {
-                    assertStandUpRepeats(renderer, rows, ticks);
+                for (MapSpec spec : MapSpec.selected()) {
+                    if (spec.id().equals(MapSpec.CONQUEST_ID) || spec.id().equals(MapSpec.STRESS_ID)) {
+                        assertStandUpRepeats(renderer, rows, ticks, spec);
+                    }
                 }
                 atlases.add(0, renderer.getUnitAtlas().report());
                 atlases.add(0, renderer.getGroundAtlas().report());
@@ -288,7 +293,11 @@ class RenderBudgetEvidence {
      * is the tier whose scale is {@code LARGE}, the 280x168 the renderer was
      * built and measured on.
      */
-    record MapSpec(String id, Builder builder) {
+    record MapSpec(String id, Builder builder, boolean playout) {
+
+        MapSpec(String id, Builder builder) {
+            this(id, builder, true);
+        }
 
         interface Builder {
             BattleSimulation build() throws Exception;
@@ -311,9 +320,12 @@ class RenderBudgetEvidence {
                 new MapSpec("280x168 body pile", MapSpec::bodyPile),
                 new MapSpec("overlook raised ground", MapSpec::raisedGround),
                 new MapSpec("400x240 the burn", () -> theBurn(false)),
-                new MapSpec("400x240 the burn at night", () -> theBurn(true)));
+                new MapSpec("400x240 the burn at night", () -> theBurn(true)),
+                new MapSpec(MapSpec.STRESS_ID, MapSpec::stress, false));
 
         static final String CONQUEST_ID = "560x336 conquest";
+        /** {@link RenderStressScene}: stood up dense with no playout; {@code -PrenderMaps=stress} runs it alone. */
+        static final String STRESS_ID = "400x240 stress";
         static final String PILE_ID = "280x168 body pile";
 
         /**
@@ -431,6 +443,13 @@ class RenderBudgetEvidence {
                 }
             }
             return best;
+        }
+
+        /** {@link RenderStressScene}, its framings on the middle of the crowd. */
+        static BattleSimulation stress() throws Exception {
+            RenderStressScene.Stood stood = RenderStressScene.build();
+            PILE_FOCUS.put(stood.sim(), stood.focus());
+            return stood.sim();
         }
 
         /** Seconds the green colony burns for before it is drawn: the front well into its groves. */
@@ -638,18 +657,17 @@ class RenderBudgetEvidence {
      * The same fixture, stood up a second time, collects the same commands.
      *
      * <p>This is the assertion the frame-to-frame one cannot make. It builds the
-     * canonical Conquest again from the same fixture, plays it the same number of
-     * ticks, profiles it at the same three framings, and compares every layer's
+     * canonical Conquest (or the stress scene) again from the same fixture, plays it
+     * the same number of ticks, profiles it at the same three framings, and compares every layer's
      * command count against the first stand-up's. A scheduler that has gone
      * non-deterministic again, or a collector that has acquired a dependency on
      * something outside the world, fails here and nowhere else.
      */
-    private static void assertStandUpRepeats(BattleRenderer renderer, List<Row> first, int ticks)
+    private static void assertStandUpRepeats(BattleRenderer renderer, List<Row> first, int ticks, MapSpec spec)
             throws Exception {
-        MapSpec spec = new MapSpec("560x336 conquest", MapSpec::conquest);
         List<Row> repeat;
         try (BattleSimulation sim = spec.build()) {
-            play(sim, ticks);
+            if (spec.playout()) play(sim, ticks);
             repeat = profile(spec, sim, renderer, 1, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
         // Keyed rather than positional, and only where something was collected:
@@ -716,7 +734,11 @@ class RenderBudgetEvidence {
             RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,
                     null, null, BattleRenderHostProfile.STANDALONE_BATTLE, ANIMATION_CLOCK_SECONDS);
 
-            for (int warmup = 0; warmup < WARMUP_FRAMES; warmup++) drawFrame(renderer, rc, null);
+            for (int warmup = 0; warmup < WARMUP_FRAMES; warmup++) {
+                GlFrameMarkers.push(mapId + " / " + framing.id() + " / warm-up " + warmup);
+                drawFrame(renderer, rc, null);
+                GlFrameMarkers.pop();
+            }
             if (!framing.id().equals("close")) {
                 DrawList collected = renderer.collectWorld(rc, ALL_LAYERS);
                 for (RenderLayer layer : RUN_LAYERS) {
@@ -733,9 +755,11 @@ class RenderBudgetEvidence {
             int firstTotal = -1;
             for (int frame = 0; frame < frames; frame++) {
                 census.reset();
+                GlFrameMarkers.push(mapId + " / " + framing.id() + " / frame " + frame);
                 long started = System.nanoTime();
                 drawFrame(renderer, rc, census);
                 wall[frame] = System.nanoTime() - started;
+                GlFrameMarkers.pop();
                 collect[frame] = perLayer(census, true);
                 drain[frame] = perLayer(census, false);
                 int total = census.total().commands();
@@ -1066,6 +1090,10 @@ class RenderBudgetEvidence {
                 .append(" frames after warm-up and are **CPU** cost — building the\n")
                 .append("command stream and submitting it. The GPU's own work and the game's\n")
                 .append("frame around ours are not in these numbers.\n\n");
+        if (rows.stream().anyMatch(row -> row.map().equals(MapSpec.STRESS_ID))) {
+            out.append("`").append(MapSpec.STRESS_ID).append("` is not played: it is stood up dense and settled for ")
+                    .append(RenderStressScene.SETTLE_TICKS).append(" ticks (`RenderStressScene`).\n\n");
+        }
         out.append("A `CUSTOM` pass owns its GL, so its draws and binds are its own and are\n")
                 .append("not counted in the draw-call column; its time is.\n\n");
         out.append("Levers this run: decoration atlas **")
