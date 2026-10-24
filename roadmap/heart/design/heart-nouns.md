@@ -294,7 +294,7 @@ a biome, never a market.
 | Woods | 70% of the wild ground | 80%: the fuel the burn runs through |
 | Cleared ground | a track along each of four allied lanes | two rides across the approach |
 | Water | none | the brook, about three fifths of the way in |
-| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front | 2-3 mothers, 3 satellites from 44% to 74% depth |
+| Bores | 2-3 mothers round the workings, 5 satellites at 52-72% depth, one per fifth of the front, except the road satellite: the one nearest the supply road's far end stands beside the road instead (F6) | 2-3 mothers, 3 satellites from 44% to 74% depth |
 
 A plan states its country through its **landscape** (`mapgen-nouns.md`,
 Authored forests: a plan's landscape): how much of the wild ground is wood,

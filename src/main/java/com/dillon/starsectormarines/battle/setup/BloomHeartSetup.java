@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
-import com.dillon.starsectormarines.battle.evacuation.HeartGunship;
 import com.dillon.starsectormarines.battle.evacuation.HeartGuns;
 import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
@@ -31,9 +30,11 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -121,7 +122,13 @@ public final class BloomHeartSetup {
         Precinct landing = plan.landingPlace();
         return HeartBores.plan(map.grid, map.topology, form,
                 new int[]{workings.seedX(), workings.seedY()},
-                new int[]{landing.seedX(), landing.seedY()}, battleSeed ^ BORE_SALT);
+                new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map), battleSeed ^ BORE_SALT);
+    }
+
+    /** The supply road's cells as the map laid them, or none. */
+    private static List<int[]> supplyRoad(MapResult map) {
+        Laid road = map.layout.find(HeartLayout.SUPPLY_ROAD);
+        return road == null || !road.isLaid() ? List.of() : road.cells();
     }
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
@@ -209,14 +216,15 @@ public final class BloomHeartSetup {
         HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
         if (lanes != null && park != null) {
             lanes.sentFrom(park);
+            lanes.gunship().road(supplyRoad(built.map()));
             // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
             int n = lanes.grounds().size();
             // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
             AlliedToolShed shed = new AlliedToolShed(park)
                     .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
                             Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
-                    .stock(AlliedTool.GUNSHIP, HeartGunship.maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT))
-                    .gated(AlliedTool.GUNSHIP, HeartGunship::airOpen);
+                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT))
+                    .gated(AlliedTool.GUNSHIP, lanes.gunship()::gate);
             if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);

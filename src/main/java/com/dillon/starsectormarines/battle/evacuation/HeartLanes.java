@@ -418,6 +418,9 @@ public final class HeartLanes {
     /** The commander's gunship on call, and the shoots that open the air for it. */
     private final HeartGunship gunship = new HeartGunship();
 
+    /** The commander's gunship on call: its maker and gate stock the shed. */
+    public HeartGunship gunship() { return gunship; }
+
     /** In built-up country an uncovered lane asks the base for a mech lance first, and an armour pair if none is free. */
     public HeartLanes mechsFirst(boolean first) {
         this.mechsFirst = first;
