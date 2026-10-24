@@ -162,9 +162,12 @@ def _vent_material(ctx, name, seed, length):
     along = g.m('MULTIPLY', g.mr(u, -.02, .03), g.m('SUBTRACT', 1.0, g.mr(u, .25, 1.0)))
     flow = g.comb(g.m('SUBTRACT', x, g.m('MULTIPLY', t, units(18.0))), y, z)
     n = g.noise(flow, g.m('MULTIPLY_ADD', t, .8, seed), 3.0/length, detail=4.0, rough=.6)
-    shape = g.m('MULTIPLY', g.m('MULTIPLY', g.gauss(r, 1.0, 1.6), along), g.mr(n, .3, .75))
-    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .9/units(1.0)), amount)
-    volume_output(g, dens, (0.85, 0.87, 0.9, 1), (0.9, 0.92, 0.95, 1), .35)
+    # Thin, torn and grey (audit, 2026-10-23): at .9 density with a near-white albedo the vent lit by
+    # Asharu's sun read as two solid white lobes on the Lasher in S6 (frame 1349). Gas in vacuum
+    # thins at once, so it is a third as dense, broken into wisps, and absorbs as much as it scatters.
+    shape = g.m('MULTIPLY', g.m('MULTIPLY', g.gauss(r, 1.0, 1.6), along), g.mr(n, .45, .8))
+    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .3/units(1.0)), amount)
+    volume_output(g, dens, (0.55, 0.57, 0.6, 1), (0.35, 0.36, 0.38, 1), .35)
     return m
 
 
