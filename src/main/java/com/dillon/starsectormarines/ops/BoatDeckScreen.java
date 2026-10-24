@@ -19,6 +19,8 @@ import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
 import com.dillon.starsectormarines.ops.battleview.BoatHardwareCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
@@ -81,6 +83,8 @@ public final class BoatDeckScreen implements Screen {
     private StarsectorUiInputAdapter input;
     private BoatDeckCanvas bayCanvas;
     private UiElement bayElement;
+    /** Every part's sheet, on its stores card and fitted on the doll. */
+    private SpecSheetBinder specSheets;
     private UiElement ghostElement;
     private final FittingDragGhost dragGhost = new FittingDragGhost();
     /** A stores part on the end of the pointer, on its way to a socket on the board. */
@@ -158,6 +162,9 @@ public final class BoatDeckScreen implements Screen {
             built.canvases().set(bayElement, bayCanvas);
             ghostElement = candidate.requireElement("boat-drag-ghost");
             built.canvases().set(ghostElement, dragGhost);
+            specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
+            // A fitted part on the doll opens the sheet its stores card does, beside the part.
+            BoatDeckSpecSheets.bindDoll(specSheets, built, bayElement, () -> bayCanvas);
             wireStores(candidate, built);
             bayElement.onPointerMove(this::pointAtBerth);
             bayElement.onPointerDown(this::pressBerth);
@@ -261,6 +268,7 @@ public final class BoatDeckScreen implements Screen {
     private void wireStores(MarkupInstance instance, UiDocument target) {
         List<BoatDeckViewModel.CatalogRow> rows = viewModel.catalogRows().get();
         wireCatalogPreviews(instance, target, rows, viewModel.slotRows().get());
+        BoatDeckSpecSheets.bindCatalogRows(specSheets, instance, rows);
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement card = instance.requireElement(row.id());
             card.onPointerDown(event -> {
@@ -512,6 +520,7 @@ public final class BoatDeckScreen implements Screen {
         }
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
+        if (specSheets != null) specSheets.update();
         if (bayElement != null) BoatDeckCanvas.fitSurface(bayElement);
         // A dragged part is drawn at the board's brick size only on a surface the screen's size.
         if (ghostElement != null) ghostElement.fitCanvasToBox();
@@ -550,6 +559,8 @@ public final class BoatDeckScreen implements Screen {
         bayCanvas = null;
         bayElement = null;
         ghostElement = null;
+        if (specSheets != null) specSheets.clear();
+        specSheets = null;
         drag.cancel();
         dragGhost.clear();
         input = null;

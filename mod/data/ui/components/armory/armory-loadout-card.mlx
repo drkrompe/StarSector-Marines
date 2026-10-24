@@ -35,13 +35,20 @@
       </div>
       <div id="{tile.stampIssuedId}" class="spec-sheet-stamp-issued">{tile.stampIssued}</div>
     </div>
-    <div id="{tile.ratingId}" class="spec-sheet-stat spec-sheet-stat-metered">
+    <!-- The rating as ten symbols on an absolute scale, each lit in quarters: the lit picture
+         is clipped to its fill over the unlit one (RatingSymbols, as the hover sheet draws it). -->
+    <div id="{tile.ratingId}" class="spec-sheet-stat">
       <div id="{tile.ratingLineId}" class="spec-sheet-stat-line">
         <div id="{tile.ratingLabelId}" class="spec-sheet-stat-label">{tile.ratingName}</div>
+        <div id="{tile.ratingSymbolsId}" class="spec-sheet-rating">
+          <div each="symbol in tile.ratingSymbols" key="{symbol.id}" id="{symbol.id}" class="spec-sheet-rating-slot">
+            <img id="{symbol.emptyId}" class="spec-sheet-rating-empty" src="{symbol.empty}" />
+            <div id="{symbol.litId}" class="spec-sheet-rating-lit" style="{symbol.litStyle}">
+              <img id="{symbol.litImageId}" class="spec-sheet-rating-lit-image" src="{symbol.lit}" />
+            </div>
+          </div>
+        </div>
         <div id="{tile.ratingValueId}" class="spec-sheet-stat-value">{tile.ratingValue}</div>
-      </div>
-      <div id="{tile.ratingTrackId}" class="spec-sheet-stat-track">
-        <div id="{tile.ratingFillId}" class="spec-sheet-stat-fill" style="{tile.ratingFillStyle}" />
       </div>
     </div>
     <div id="{tile.seatsId}" class="{tile.seatsClasses}">

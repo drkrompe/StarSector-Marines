@@ -554,6 +554,7 @@
     "boatDeckLift": "LIFT",
     "boatDeckLiftCopy": "What the hold takes. A cradle gives up every seat for a machine: a cradled boat flies machine-only sorties.",
     "boatDeckLiftEffect": "Lifts {0} machines · no seats",
+    "boatDeckSpecAccel": "ACCEL",
     "boatDeckMachineOnly": "Machine only · {0}",
     "liftRatingNONE": "no",
     "liftRatingLIGHT": "Light",

@@ -96,6 +96,11 @@ public final class SpecSheetLayer {
             .spec-sheet-stat-value { width: 120px; white-space: normal; text-align: right; }
             .spec-sheet-stat-track { flex-direction: row; height: 4px; background-color: #1a2836; }
             .spec-sheet-stat-fill { height: 4px; background-color: #53c6e8; }
+            .spec-sheet-rating { flex-direction: row; align-items: center; gap: 2px; pointer-events: none; }
+            .spec-sheet-rating-slot { width: 16px; height: 16px; pointer-events: none; }
+            .spec-sheet-rating-empty { position: absolute; left: 0px; top: 0px; width: 16px; height: 16px; pointer-events: none; }
+            .spec-sheet-rating-lit { position: absolute; left: 0px; top: 0px; height: 16px; flex-direction: row; overflow: hidden; pointer-events: none; }
+            .spec-sheet-rating-lit-image { width: 16px; height: 16px; pointer-events: none; }
             .spec-sheet-armor .spec-sheet-stat-fill { background-color: #dfb84d; }
             .spec-card .spec-sheet-stamp-badge { width: 466px; }
             .spec-sheet-crest.spec-card-crest { width: 48px; height: 32px; }
@@ -530,7 +535,10 @@ public final class SpecSheetLayer {
         }
     }
 
-    /** One stat row: a label and value line, plus a meter track when it has one. */
+    /**
+     * One stat row: a label and value line, plus a meter when it has one, drawn as a
+     * track under the line or as a row of rating symbols within it.
+     */
     private static final class StatRow {
 
         private final UiElement row;
@@ -539,6 +547,10 @@ public final class SpecSheetLayer {
         private final UiElement value;
         private final UiElement track;
         private final UiElement fill;
+        private final UiElement rating;
+        private final UiElement[] emptySymbols = new UiElement[RatingSymbols.SLOTS];
+        private final UiElement[] litSymbols = new UiElement[RatingSymbols.SLOTS];
+        private final UiElement[] litClips = new UiElement[RatingSymbols.SLOTS];
 
         private StatRow(int index) {
             String id = ELEMENT_ID + "-stat-" + index;
@@ -553,12 +565,26 @@ public final class SpecSheetLayer {
                             .child(label)
                             .child(value);
             row = new UiElement(id).addClass("spec-sheet-stat").child(line);
+            rating = new UiElement(id + "-rating").addClass("spec-sheet-rating");
+            for (int slot = 0; slot < RatingSymbols.SLOTS; slot++) {
+                String slotId = id + "-rating-" + slot;
+                emptySymbols[slot] = new UiElement(slotId + "-empty").tag(UiTag.IMAGE)
+                        .addClass("spec-sheet-rating-empty");
+                litSymbols[slot] = new UiElement(slotId + "-lit-image").tag(UiTag.IMAGE)
+                        .addClass("spec-sheet-rating-lit-image");
+                litClips[slot] = new UiElement(slotId + "-lit").addClass("spec-sheet-rating-lit")
+                        .child(litSymbols[slot]);
+                rating.child(new UiElement(slotId).addClass("spec-sheet-rating-slot")
+                        .child(emptySymbols[slot])
+                        .child(litClips[slot]));
+            }
         }
 
         private void apply(SpecSheet.Stat stat) {
             label.text(stat.label());
             value.text(stat.value());
-            boolean metered = stat.hasMeter();
+            boolean symbolled = stat.hasMeter() && stat.symbol() != null;
+            boolean metered = stat.hasMeter() && !symbolled;
             row.classed("spec-sheet-stat-metered", metered);
             boolean attached = track.parent() == row;
             if (metered && !attached) row.child(track);
@@ -566,6 +592,18 @@ public final class SpecSheetLayer {
             if (metered) {
                 fill.style(String.format(Locale.ROOT, "width: %.2f%%",
                         Math.max(0f, Math.min(1f, stat.fill())) * 100f));
+            }
+            // Between the label and the value, so the row stays one line high.
+            boolean rated = rating.parent() == line;
+            if (symbolled && !rated) line.insert(1, rating);
+            if (!symbolled && rated) line.remove(rating);
+            if (symbolled) {
+                float[] fills = RatingSymbols.fills(stat.fill());
+                for (int slot = 0; slot < RatingSymbols.SLOTS; slot++) {
+                    emptySymbols[slot].imageSource(RatingSymbols.emptyImage(stat.symbol()));
+                    litSymbols[slot].imageSource(RatingSymbols.litImage(stat.symbol()));
+                    litClips[slot].style(RatingSymbols.litStyle(fills[slot]));
+                }
             }
         }
     }

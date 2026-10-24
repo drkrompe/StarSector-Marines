@@ -51,6 +51,7 @@ import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.spec.RatingSymbols;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -606,7 +607,13 @@ public final class FleetArmoryViewModel {
         if (presentation.lore() != null && !presentation.lore().isBlank()) notes.add(presentation.lore());
         return new SpecSheet(name, presentation.rarity().displayName() + Strings.get("separatorDot") + metadata,
                 presentation.factionLogo(), accent,
-                List.of(new SpecSheet.Stat("rating", Strings.get(ratingLabel), rating + "%", rating / 100f)), notes);
+                List.of(new SpecSheet.Stat("rating", Strings.get(ratingLabel), rating + "%", rating / 100f,
+                        ratingSymbol(accent))), notes);
+    }
+
+    /** The symbol a loadout's rating is drawn as: swords for firepower, shields for protection. */
+    static String ratingSymbol(String accent) {
+        return accent.equals("armor") ? RatingSymbols.SHIELD : RatingSymbols.SWORD;
     }
 
     static String weaponComposition(SquadWeaponDoctrine doctrine) {
@@ -1554,8 +1561,27 @@ public final class FleetArmoryViewModel {
         private int cardHeight() {
             return 38                                              // heading
                     + (stamp == null ? 0 : restricted() ? 52 : 30)  // stamp, with the banner
-                    + 29                                           // rating meter
+                    + 22                                           // rating symbols
                     + (seats.isEmpty() ? 48 * ((distributionSpans.size() + 1) / 2) : 146);
+        }
+
+        /** The rating's ten symbols, each lit in quarters, as the hover sheet draws them. */
+        private List<Map<String, Object>> ratingSymbols() {
+            String symbol = ratingSymbol(accent());
+            float[] fills = RatingSymbols.fills(rating / 100f);
+            List<Map<String, Object>> symbols = new ArrayList<>(fills.length);
+            for (int slot = 0; slot < fills.length; slot++) {
+                String slotId = id + ":rating-symbol-" + slot;
+                symbols.add(Map.of(
+                        "id", slotId,
+                        "emptyId", slotId + "-empty",
+                        "litId", slotId + "-lit",
+                        "litImageId", slotId + "-lit-image",
+                        "empty", RatingSymbols.emptyImage(symbol),
+                        "lit", RatingSymbols.litImage(symbol),
+                        "litStyle", RatingSymbols.litStyle(fills[slot])));
+            }
+            return symbols;
         }
 
         private List<Map<String, Object>> seatTeams() {
@@ -1674,11 +1700,10 @@ public final class FleetArmoryViewModel {
                 case "ratingLineId" -> id + ":rating-line";
                 case "ratingLabelId" -> id + ":rating-label";
                 case "ratingValueId" -> id + ":rating-value";
-                case "ratingTrackId" -> id + ":rating-track";
-                case "ratingFillId" -> id + ":rating-fill";
+                case "ratingSymbolsId" -> id + ":rating-symbols";
+                case "ratingSymbols" -> ratingSymbols();
                 case "ratingName" -> Strings.get(accent().equals("armor") ? "openingBarracksCardGuard" : "openingBarracksCardFire");
                 case "ratingValue" -> rating + "%";
-                case "ratingFillStyle" -> "width: " + Math.max(0, Math.min(100, rating)) + "%;";
                 // The card's printed stamp, and for a Restricted card its seal and warrant banner.
                 case "stampId" -> id + ":stamp";
                 case "stampIssued" -> stamp == null ? "" : stamp.issued();

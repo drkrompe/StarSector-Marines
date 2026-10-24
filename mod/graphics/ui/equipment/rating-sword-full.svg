@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- One firepower symbol, lit: the weapon accent on a dark edge. Drawn over its empty twin, clipped to show a quarter, half, three quarters or all of it. -->
+  <g transform="rotate(45 16 16)" fill="#53c6e8" stroke="#071017" stroke-width="2" stroke-linejoin="miter">
+    <path d="M12.5 21 V7 L16 1.5 L19.5 7 V21 Z"/>
+    <rect x="7" y="21" width="18" height="3.5"/>
+    <rect x="14" y="24.5" width="4" height="4"/>
+    <circle cx="16" cy="30.2" r="2.2"/>
+  </g>
+</svg>
