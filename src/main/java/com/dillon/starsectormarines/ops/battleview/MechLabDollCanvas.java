@@ -491,7 +491,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             boolean removable = !socket.factoryLocked() && dragPreview == null
                     && (weaponAt(deployment, socket.id()) != null
-                    || socket.id() == SocketId.MINI_FAB && installedInternals.apply(socket.id()) != null);
+                    || installedInternals.apply(socket.id()) != null);
             if (!removable) continue;
             StripTarget strip = new StripTarget(socket.id(), target.right() - STRIP_SIZE - 4f, target.top() + 4f);
             strips.add(strip);

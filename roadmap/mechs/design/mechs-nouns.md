@@ -439,10 +439,14 @@ increasing an encounter's total armored threat.
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
   has no mount to drop on, so a spare plate is fitted from its row. Internals
-  drag off like weapons, but a frame always holds an engine and a capacitor bank:
-  dragging either back to stores refits the stock part from stores in its place,
-  and is refused when the fitted part is already stock or no stock spare is held.
-  Only the vent array leaves its socket empty. The stores filters follow the
+  drag off like weapons (or come off by the X) and leave their socket empty. An
+  engine and a capacitor bank are **required**: a mech missing either is
+  `INCOMPLETE`, a readiness beside damaged and under repair, and stays off the
+  drop manifest until both are fitted; its empty sockets warn on the doll and in
+  the slot list. Plating covers the frame and is only ever replaced. Until a
+  refit, an empty socket reads as the stock part for the engine budget, the
+  lightest real fit, so nothing fitted meanwhile can exceed a budget a refit
+  would honour. The stores filters follow the
   socket: a weapon mount sorts by hardpoint type, and every other socket offers
   All and In stock. The whole stores row is the drag handle and the hover target
   for its spec sheet. The fitting
