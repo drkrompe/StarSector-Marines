@@ -910,8 +910,9 @@ KEYFRAMES = {
                                    target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
                               for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.0, .6)]),
         ships=K3C_SHIPS,
+        # the Buffalo Mk.II no longer fires on Lasher B: a stand-in hull has no kit guns to draw it, and
+        # no hit lands without a visible shooter (coordinator, 2026-10-23; kit rounds from stand-ins is open)
         fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
-            ('tracer', 'buffalo2-a', 'lasher-b'),
             ('blast_on', 'hound-p-c', 18, (0, 0, 0)), ('debris', 'hound-p-c', 50, (0, 0, 0))],
         labels=['lasher-b', 'wolf-m', 'hound-p-c', 'buffalo2-a']),
     'k3d': dict(
@@ -925,11 +926,12 @@ KEYFRAMES = {
                               dict(t=74, loc=(-420, -740, 80), target=(-330, 40, -10), lens=26)], K3D_T, shake=.2,
                       kicks=[(72.3, .3)]),
         ships=K3D_SHIPS,
-        # shields flare on both sides: the raiders' fronts under the Mule's and the Wolf's fire
-        shields={'wolf-p-b': dict(toward='mule', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
+        # shields flare on both sides: the raiders' fronts under the Colossus's and the Wolf's fire (the
+        # Mule, a stand-in with no kit guns, no longer fires: coordinator, 2026-10-23)
+        shields={'wolf-p-b': dict(toward='colossus', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
-            ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
+            ('tracer', 'wolf-m', 'wolf-p-a'),
             # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
             # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
             ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),

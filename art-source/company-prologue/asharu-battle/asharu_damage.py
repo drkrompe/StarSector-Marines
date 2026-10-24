@@ -213,7 +213,7 @@ LEDGER = [
 
     # ---- Wolf (P) B: a graze through her shield
     H('wolf-p-b', 72.4, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
-      src='S6c k3d tracer mule', note="the Mule's guns, mostly on her shield"),
+      src='S6c k3d tracer colossus', note="the Colossus's guns, mostly on her shield"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
     H('kite-p-b', 96.5, 'he', 2, (-10, -10, 3), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
