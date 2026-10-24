@@ -898,8 +898,10 @@ public final class BallisticResolver {
             // A hull takes no terrain cover. Low cover is a thing a person
             // gets behind, and a chassis or an airframe is neither the size nor
             // the shape to do it — a rule that predates air and, before the
-            // collapse, was spelled "is it a vehicle".
-            int coverLevel = e.hull ? 0
+            // collapse, was spelled "is it a vehicle". A gun on a plinth is a
+            // storey above the cover at its foot, so that cover hides none of it.
+            boolean coverless = e.hull || roster.standsAboveLowCover(victim);
+            int coverLevel = coverless ? 0
                     : grid.getCoverAgainst(e.victimCellX, e.victimCellY, shooterCellX, shooterCellY);
             BodyPlan victimPlan = e.hull ? null : bodyPlanOf(victim);
             // A body whose rows read cover from the ground up (a mech) is not gated by the catch
@@ -912,7 +914,7 @@ public final class BallisticResolver {
             }
             // The ground the victim stands in (a trench) covers him from every direction,
             // more the further off the shooter is.
-            int occupantLevel = e.hull ? 0
+            int occupantLevel = coverless ? 0
                     : doodads.occupantCoverAt(e.victimCellX, e.victimCellY, e.z);
             float occupantScale = occupantLevel > 0 ? occupantCoverScale(e.t * roundVelocity) : 0f;
             BodyPart part = null;

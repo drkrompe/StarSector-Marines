@@ -505,4 +505,15 @@ public final class MapEditor {
     public void setRaisedEye(int x, int y, int tiers) {
         grid.setRaisedEye(x, y, tiers);
     }
+
+    /**
+     * Raises the plinth a structure stands on over its footprint, the
+     * {@code w x h} cells from {@code (x0, y0)}, or clears it with zero
+     * ({@link CellTopology#setPlinthTiers}).
+     */
+    public void setPlinth(int x0, int y0, int w, int h, int tiers) {
+        for (int y = y0; y < y0 + h; y++) {
+            for (int x = x0; x < x0 + w; x++) topology.setPlinthTiers(x, y, tiers);
+        }
+    }
 }

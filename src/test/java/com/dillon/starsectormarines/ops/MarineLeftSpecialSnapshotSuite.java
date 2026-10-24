@@ -59,7 +59,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
      * One frame: the special the Marine carries (null for a rifleman), its rounds, how many Q presses, whether the
      * Marine is walking at the moment of the frame, and a click before it.
      */
-    private record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) { }
+    record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) { }
+
+    /** The flamer picked and held: a charge of the jet on its way, a charge spent from the tank. */
+    static final Case FLAMER_STREAMING = new Case("flamer-streaming", SpecialEquipmentRegistry.FLAMER_ID, 8, 1,
+            false, true);
 
     private static final List<Case> CASES = List.of(
             new Case("rifle", null, 0, 0, true, false),
@@ -68,7 +72,9 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("rocket-fired", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, false, true),
             new Case("amr-walking", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
             new Case("amr-standing", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false),
-            new Case("rocket-empty", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 0, 1, true, false));
+            new Case("rocket-empty", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 0, 1, true, false),
+            new Case("flamer-walking", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, true, false),
+            FLAMER_STREAMING);
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -86,6 +92,13 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
         } finally {
             SvgAsset.setSource(previous);
         }
+    }
+
+    /** The flamer-streaming frame for another suite, with the armoury catalogs this one installs. */
+    static BufferedImage flamerFrame(HeadlessUiRenderer renderer, SnapshotContext context) throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        SceneRegistries.installArmoury(context.projectRoot());
+        return frame(renderer, context.modRoot(), FLAMER_STREAMING);
     }
 
     private static BufferedImage frame(HeadlessUiRenderer renderer, Path modRoot, Case c) throws Exception {

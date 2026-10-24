@@ -88,8 +88,10 @@ public final class InfantryUnitPrep {
     }
 
     /**
-     * Decrements primary and secondary cooldown timers by one sim tick, and
-     * advances the primary magazine's reload and recoil recovery with them.
+     * Decrements primary, secondary and belt cooldown timers by one sim tick, and
+     * advances the primary magazine's reload and recoil recovery with them. A
+     * belt throw that has finished hands the hand's own item back here
+     * ({@link CarriedSpecials#stowBack}).
      * Idempotent at zero — already-expired timers stay at zero. Runs every
      * tick regardless of what the unit is doing so a long approach phase
      * doesn't freeze cooldown drain (otherwise the marine arrives at firing
@@ -103,6 +105,11 @@ public final class InfantryUnitPrep {
         if (world.hasSecondaryWeapon(id)) {
             float scd = world.secondaryCooldownTimer(id);
             if (scd > 0f) world.setSecondaryCooldownTimer(id, scd - BattleSimulation.TICK_DT);
+        }
+        if (world.hasBelt(id)) {
+            float bcd = world.beltCooldownTimer(id);
+            if (bcd > 0f) world.setBeltCooldownTimer(id, bcd - BattleSimulation.TICK_DT);
+            CarriedSpecials.stowBack(world, id);
         }
         float rcd = world.repositionCooldown(id);
         if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
@@ -176,8 +183,28 @@ public final class InfantryUnitPrep {
      * when nothing changed.
      */
     public static boolean tryOpportunitySpecial(long unit, BattleControl sim) {
+        if (!sim.world().hasSecondaryWeapon(unit)) return false;
+        return tryHandSpecial(unit, sim) || tryBeltGrenade(unit, sim);
+    }
+
+    /**
+     * The belt's hand grenade, considered after the hand's item declined: a smoke carrier with a frag on the belt
+     * still throws it at a soft cluster. The throw is judged on the belt item, and only a committed one swaps it
+     * into the hand, whose channel then runs it.
+     */
+    private static boolean tryBeltGrenade(long unit, BattleControl sim) {
+        World w = sim.world();
+        if (!w.hasBelt(unit) || !CarriedSpecials.handIdle(w, unit)) return false;
+        SpecialEquipmentDef belt = w.beltEquipment(unit);
+        if (belt == null || belt.aiPolicy() != SpecialAiPolicy.SOFT_CLUSTER_INDIRECT
+                || w.beltAmmo(unit) <= 0 || w.beltCooldownTimer(unit) > 0f) return false;
+        if (!FragGrenadeTactics.tryCommitThrow(unit, belt, sim)) return false;
+        w.swapBelt(unit);
+        return true;
+    }
+
+    private static boolean tryHandSpecial(long unit, BattleControl sim) {
         long id = unit;
-        if (!sim.world().hasSecondaryWeapon(id)) return false;
         if (sim.world().secondaryCooldownTimer(id) > 0f) return false;
         if (sim.world().secondaryActionTimer(id) > 0f) return false;
 

@@ -14,6 +14,9 @@ import java.util.Locale;
  * cartridges for cells ({@link #burst}): one round a shot of the burst, spent as the click's burst
  * goes out, and chambered again over the cycle.
  *
+ * <p>A flamer's tank is drawn with the same cells ({@link #fuel}): one cell a charge of fuel, lit while it
+ * is in the tank and dark once the held jet has spent it.
+ *
  * @param charge cells' worth of charge, from 0 to {@code cells}
  * @param held whether flux holds the next shot
  * @param rounds whether the cells are drawn as cartridges rather than charge cells
@@ -51,6 +54,13 @@ public record ChargeGauge(int cells, float charge, boolean held, boolean rounds)
         int cells = Math.min(MAX_BURST_ROUNDS, roundsPerTrigger);
         float charge = roundsLeft > 0 ? (float) roundsLeft * cells / roundsPerTrigger : cycleFraction * cells;
         return new ChargeGauge(cells, charge, false, true);
+    }
+
+    /** A flamer's tank: {@code capacity} charges, {@code left} of them still in it. */
+    public static ChargeGauge fuel(int capacity, int left) {
+        int cells = Math.max(1, Math.min(MAX_CELLS, capacity));
+        float charge = capacity <= 0 ? 0f : (float) Math.max(0, left) * cells / capacity;
+        return new ChargeGauge(cells, charge, false, false);
     }
 
     public Cell cell(int index) {
