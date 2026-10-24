@@ -253,6 +253,19 @@ public record SpecialEquipmentDef(
         return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && weaponDef().indirectFire;
     }
 
+    /** True for a smoke grenade: a thrown screen, the right button's first item. */
+    public boolean isSmokeThrow() {
+        return activation == SpecialActivation.UTILITY_SMOKE && smokeGrenadeSpec() != null;
+    }
+
+    /**
+     * True for what may ride in a Marine's second special slot, the belt: a thrown item, smoke or a hand
+     * grenade. Every throw runs through the one channel the hand slot owns, so the belt holds nothing else.
+     */
+    public boolean isThrownItem() {
+        return isSmokeThrow() || isThrownGrenade();
+    }
+
     /** True when the item is a tube the carrier sets down, serves and lifts again. */
     public boolean isCrewServed() {
         return aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT;

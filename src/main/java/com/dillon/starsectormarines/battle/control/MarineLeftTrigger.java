@@ -38,8 +38,18 @@ public final class MarineLeftTrigger {
      * ammunition. A Marine's one special slot means this has at most one member today.
      */
     public static List<SpecialEquipmentDef> specials(SpecialEquipmentDef carried) {
+        return specials(carried, null);
+    }
+
+    /**
+     * As {@link #specials(SpecialEquipmentDef)} over both special slots, the hand and the belt. The belt holds only
+     * throws, so a direct-fire item is on it only while a belt throw has borrowed the hand.
+     */
+    public static List<SpecialEquipmentDef> specials(SpecialEquipmentDef hand, SpecialEquipmentDef belt) {
         List<SpecialEquipmentDef> out = new ArrayList<>(1);
-        if (carried != null && carried.isDirectFireWeapon() && carried.usesAmmunition()) out.add(carried);
+        for (SpecialEquipmentDef carried : new SpecialEquipmentDef[]{hand, belt}) {
+            if (carried != null && carried.isDirectFireWeapon() && carried.usesAmmunition()) out.add(carried);
+        }
         out.sort((a, b) -> Integer.compare(order(a.activation()), order(b.activation())));
         return out;
     }
