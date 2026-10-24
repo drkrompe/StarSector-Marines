@@ -322,8 +322,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         BoatDoll shown = doll.get();
         if (shown != null && focused != null && focus > 0.5f) {
             markTurrets(context, projection, focused, shown);
-            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, hover,
-                    seconds.getAsDouble());
+            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, seconds.getAsDouble());
             recoveryTargets = List.of();
         } else {
             cards = List.of();
@@ -527,6 +526,29 @@ public final class BoatDeckCanvas implements CanvasProducer {
         float x3 = cx + tangentX * a0 + door.outDx() * o1, y3 = cy + tangentY * a0 + door.outDy() * o1;
         context.fillQuad(p.x(x0), p.y(y0), p.x(x1), p.y(y1), p.x(x2), p.y(y2), p.x(x3), p.y(y3), color);
     }
+
+    /**
+     * The part fitted in the socket under the pointer and that socket's box in canvas pixels,
+     * for the room to open the part's spec sheet beside; null while a part is in hand or the
+     * pointer is on no socket.
+     */
+    public PointedPart pointedPart() {
+        if (!hover.names() || hoveredCard == null) return null;
+        BoatDoll shown = doll.get();
+        if (shown == null) return null;
+        for (BoatDollPanel.CardTarget card : cards) {
+            if (!card.key().equals(hoveredCard)) continue;
+            for (BoatDoll.Slot slot : shown.slots()) {
+                if (!slot.key().equals(hoveredCard) || slot.itemId() == null) continue;
+                return new PointedPart(slot.kind(), slot.itemId(), card.left(), card.top(),
+                        card.left() + card.width(), card.top() + card.height());
+            }
+        }
+        return null;
+    }
+
+    /** A part on the boat's doll: its kind and id, and where its socket is drawn. */
+    public record PointedPart(BoatDoll.Kind kind, String itemId, float left, float top, float right, float bottom) { }
 
     /** The board's pointer, which the room's drag holds while a part is in hand. */
     public BoatDeckCanvas hover(BoardHover hover) {

@@ -2475,7 +2475,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)));
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
+                // The pointer resting on the fitted Arbalest, nothing in hand: its spec sheet opens.
+                new SnapshotArtifact("boat-deck-hover-part-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, NO_DEPARTURE, 0, BoatDoll.HARDPOINT_KEY + 0)));
     }
 
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
@@ -2922,11 +2926,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean openBoat, boolean strikeABoat, int departure, int hardpoint)
             throws Exception {
+        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, departure, hardpoint, null);
+    }
+
+    /** @param pointAt the doll socket the pointer rests on, by key, its part's sheet open; null for none */
+    private static BufferedImage renderBoatDeck(
+            SnapshotContext context, HeadlessUiRenderer renderer, int width, int height, boolean openBoat,
+            boolean strikeABoat, int departure, int hardpoint, String pointAt)
+            throws Exception {
         // The doll draws each turret spot where the hull's weapon slot is, which needs the install's specs.
         InstalledWeaponSlots.install();
         try {
             return renderBoatDeckWithSlots(context, renderer, width, height, openBoat, strikeABoat,
-                    departure, hardpoint);
+                    departure, hardpoint, pointAt);
         } finally {
             TurretSlotResolver.useHullSpecs(null);
         }
@@ -2934,8 +2946,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static BufferedImage renderBoatDeckWithSlots(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean openBoat, boolean strikeABoat, int departure, int hardpoint)
-            throws Exception {
+            int width, int height, boolean openBoat, boolean strikeABoat, int departure, int hardpoint,
+            String pointAt) throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck[] campaign = new BoatDeck[1];
         // The berth struck has to be one the camera is looking at, and the page
@@ -2992,17 +3004,42 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("boat-deck-canvas"),
-                    new BoatDeckCanvas(ship, () -> bay,
-                            viewModel::selectedBerthIndex, () -> 0,
-                            berth -> berth < 0 || berth >= deck.berths()
-                                    || deck.boats().get(berth) != null)
-                            .doll(() -> viewModel.doll().get(), () -> 0d));
+            BoatDeckCanvas bayCanvas = new BoatDeckCanvas(ship, () -> bay,
+                    viewModel::selectedBerthIndex, () -> 0,
+                    berth -> berth < 0 || berth >= deck.berths()
+                            || deck.boats().get(berth) != null)
+                    .doll(() -> viewModel.doll().get(), () -> 0d);
+            UiElement bayElement = instance.requireElement("boat-deck-canvas");
+            document.canvases().set(bayElement, bayCanvas);
             BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
                     viewModel.slotRows().get());
             // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
             document.layout(width, height);
-            BoatDeckCanvas.fitSurface(instance.requireElement("boat-deck-canvas"));
+            BoatDeckCanvas.fitSurface(bayElement);
+            if (pointAt != null) {
+                // Drawn once so the doll knows where its sockets are, then pointed at as the room is.
+                renderRelative(renderer, document, width, height, 1f);
+                float[] at = null;
+                for (float y = 0f; y < 2200f && at == null; y += 4f) {
+                    for (float x = 0f; x < 4000f; x += 4f) {
+                        if (pointAt.equals(bayCanvas.slotAt(x, y))) {
+                            at = new float[]{x + 24f, y + 30f};
+                            break;
+                        }
+                    }
+                }
+                if (at == null) throw new IllegalStateException("No doll socket drawn for " + pointAt);
+                SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
+                BoatDeckSpecSheets.bindDoll(binder, document, bayElement, () -> bayCanvas);
+                CanvasMetrics metrics = document.canvasMetrics(bayElement, 1f);
+                document.pointerMoved(metrics.toDocumentX(at[0]), metrics.toDocumentY(at[1]));
+                bayCanvas.pointAt(at[0], at[1]);
+                document.canvases().invalidate(bayElement);
+                renderRelative(renderer, document, width, height, 1f);
+                binder.update();
+                if (binder.openTarget() != bayElement) throw new IllegalStateException("No spec sheet for " + pointAt);
+                document.advance(0f);
+            }
             return renderRelative(renderer, document, width, height, 1f);
         }
     }

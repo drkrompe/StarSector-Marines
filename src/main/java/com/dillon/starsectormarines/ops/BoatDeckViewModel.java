@@ -563,14 +563,14 @@ public final class BoatDeckViewModel {
         String on = mounts.stream().map(index -> Strings.format("boatDeckHardpointShort", index + 1))
                 .reduce((a, b) -> a + "  ·  " + b).orElse("");
         return card(BoatDoll.Kind.HARDPOINT, gun.id(), "boat-catalog:gun:" + gun.id(), gun.displayName(),
-                Strings.format("openingBoatDeckTier", gun.tier()), gun.effect(),
+                gun.tier(), gun.effect(),
                 on.isEmpty() ? "" : Strings.format("boatDeckFittedOn", on), !mounts.isEmpty(), held, free, bill);
     }
 
     private CatalogRow fittingCard(CampaignBoat boat, BoatFitting fitting, boolean installed) {
         boolean held = installed && selectedHardpoint.get() == NO_HARDPOINT && selectedSlot.get() == fitting.slot();
         return card(dollKind(fitting.slot()), fitting.id(), "boat-catalog:" + fitting.id(), fitting.displayName(),
-                tierLabel(fitting), effect(fitting), installed ? "" : change(boat, fitting), installed, held,
+                fitting.tier(), effect(fitting), installed ? "" : change(boat, fitting), installed, held,
                 fitting.standard(), fitting.standard() ? null : resources.quote(fitting.bill()));
     }
 
@@ -578,7 +578,7 @@ public final class BoatDeckViewModel {
      * One stores card: what it is and its tier, what it does, what it would change or where it
      * is fitted, and its footprint, with its bill beneath unless it is already on or free.
      */
-    private CatalogRow card(BoatDoll.Kind kind, String itemId, String id, String name, String tier,
+    private CatalogRow card(BoatDoll.Kind kind, String itemId, String id, String name, int tier,
                             String effect, String delta, boolean fitted, boolean held, boolean free,
                             FabricationCost bill) {
         boolean affordable = free || bill == null || resources.canAfford(bill);
@@ -593,7 +593,7 @@ public final class BoatDeckViewModel {
         if (!fitted && !affordable) detail += "  ·  " + Strings.format("openingBoatDeckShort", shortest(bill));
         List<Row> materials = fitted || free ? List.of() : materialRows(id, bill);
         FittingCard card = new FittingCard(id, classes, "catalog-preview", name, badge, badgeClasses,
-                tier + "  ·  " + kindSingular(kind), effect, delta,
+                kindLine(tier, kind), effect, delta,
                 delta.isEmpty() ? "catalog-delta neutral" : fitted ? "label heading catalog-delta neutral"
                         : delta.startsWith("-") ? "label heading catalog-delta negative"
                         : "label heading catalog-delta positive",
@@ -692,6 +692,11 @@ public final class BoatDeckViewModel {
     }
 
     /** One part of that kind, for a card's first line. */
+    /** A part's tier and kind, as its stores card and its sheet both head it. */
+    static String kindLine(int tier, BoatDoll.Kind kind) {
+        return Strings.format("openingBoatDeckTier", tier) + "  ·  " + kindSingular(kind);
+    }
+
     private static String kindSingular(BoatDoll.Kind kind) {
         return switch (kind) {
             case HARDPOINT -> Strings.get("boatDeckStoresGun");
@@ -936,7 +941,7 @@ public final class BoatDeckViewModel {
         return Strings.format("openingBoatDeckSpeedAccel", factor(fitting.speedFactor()), factor(fitting.accelFactor()));
     }
 
-    private static String factor(float value) {
+    static String factor(float value) {
         return String.format(Strings.locale(), "%.2f", value);
     }
 

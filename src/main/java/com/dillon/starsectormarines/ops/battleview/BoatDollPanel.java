@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -77,7 +76,7 @@ final class BoatDollPanel {
      * @param drop    the socket a carried piece is over, or null
      */
     static List<CardTarget> draw(CanvasContext c, BoatDoll doll, float canvasWidth, float canvasHeight,
-                                 String hovered, Drop drop, BoardHover hover, double seconds) {
+                                 String hovered, Drop drop, double seconds) {
         float width = canvasWidth * SHARE;
         board(c, width, canvasHeight);
 
@@ -138,17 +137,10 @@ final class BoatDollPanel {
         }
         if (plainCore) core(c, core, doll);
         List<CardTarget> targets = new ArrayList<>(placed.size());
-        BoatDoll.Slot pointedAt = null;
         for (Placed socket : placed) {
             console(c, socket.target(), socket.slot(), socket.slot().key().equals(hovered), seconds);
             if (drop != null && socket.slot().key().equals(drop.key())) dropMark(c, socket.target(), drop.valid());
-            if (socket.slot().key().equals(hovered)) pointedAt = socket.slot();
             targets.add(socket.target());
-        }
-        // The fitted part's name is a hover away, as on the Mech Lab's board, not a caption.
-        if (pointedAt != null) {
-            BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, pointedAt.fitted(),
-                    pointedAt.title() + "  ·  " + pointedAt.tier());
         }
         return List.copyOf(targets);
     }
