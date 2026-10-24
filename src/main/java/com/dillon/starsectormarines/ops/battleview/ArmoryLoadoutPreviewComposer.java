@@ -88,8 +88,8 @@ public final class ArmoryLoadoutPreviewComposer {
         if (billet == null || width <= 0f || height <= 0f) return;
 
         sink.fillRect(0f, 0f, width, height, BACKGROUND);
-        sink.line(12f, height - 14f, width - 12f, height - 14f, ACCENT, 2f);
-        // The portrait is a small square on the marine's card: the figure fills its shorter side.
+        // The portrait is a small square on the marine's card: the figure fills its shorter side,
+        // with no stage floor under it.
         drawSoldier(sink, assets, billet, width * 0.5f, height * 0.48f,
                 Math.min(height, width) * 0.85f, height, idleSeconds);
     }
