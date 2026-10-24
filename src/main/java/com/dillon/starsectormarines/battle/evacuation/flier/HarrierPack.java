@@ -123,7 +123,12 @@ public final class HarrierPack {
             case DIVE -> dive(dt, strikes);
             case PULL_UP -> pullUp(dt);
         }
-        for (HarrierFlight m : members) m.wingClock += dt;
+        float folding = dt / HarrierFlight.FOLD_SECONDS;
+        for (HarrierFlight m : members) {
+            m.wingClock += dt;
+            boolean diving = phase == Phase.DIVE && !m.struck;
+            m.fold = diving ? Math.min(1f, m.fold + folding) : Math.max(0f, m.fold - folding);
+        }
     }
 
     private void loiter(float dt) {

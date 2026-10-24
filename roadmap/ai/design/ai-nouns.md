@@ -2139,8 +2139,13 @@ MISSION plan keeps every prepared position, firing-position search, and target
 response inside the circle. It reads the squad's own contact picture: as a
 believed threat bearing moves, the squad rotates a spaced firing line and
 claims directional cover facing that report; direct targets are engaged from
-bounded cover without losing moving fire. Broken fire teams still peel under
-cohesion law, and a new player order or hard withdrawal supersedes the defense.
+bounded cover without losing moving fire. Every member without a claimed
+position is given a stand no squadmate has: the circle's stands (quiet or
+prepared line) are settled together in member order, each skipping the cells
+given before it, as the claims settle a drawn line's open cells, because one
+good cover cell inside reach of several slots would otherwise be every one's
+destination, and bodies that separation keeps off a shared cell centre never
+count as arrived. Broken fire teams still peel under cohesion law, and a new player order or hard withdrawal supersedes the defense.
 
 ### Crew-served fire support (the field mortar)
 
@@ -2158,10 +2163,15 @@ squad.
 - **Packs up, relocates, can be lost.** An idle tube, an empty magazine or an enemy inside the danger distance
   packs the tube (carried rounds survive packing). A tube shot out leaves the gunner alive but unarmed for a
   cooldown; **a dead gunner is replaced by a nearby squadmate, and only when none can the tube is lost**.
-- **Friendly fire is vetoed** at launch: a round is not fired while a friendly stands under its impact.
+- **Friendly fire is vetoed** at launch: a round is not fired while a friendly stands under its impact (the
+  warhead's radius, the scatter at that range and a margin, round where the target will be when it lands). Friendly is
+  `Faction.friendlyTo`, so an allied tube holds for marines and for its own side's men and mechs alike; a held round is
+  counted for the side (`FieldMortarService.roundsWithheldBy`).
 
 **An assigned fire mission** is part of the squad's order (a cell and a radius). The tube fires at the best body
 on that ground, a structure without a sighting (its works are disclosed) and a man only when the side believes in him,
+and never a body with one of the side's own under where its round would fall, so a mission over ground its own stand
+near picks the target clear of them rather than refusing every target,
 and fires on the section's own belief when nothing there is eligible; a plan's base of fire and the commander's
 standing missions both assign one (`phased-assault.md`).
 
@@ -2395,7 +2405,13 @@ width of his share of the line (a cell behind it), no more than a cell in front 
 the line, with a line of fire out along the front, so cover he could not shoot
 from is passed over. These places are settled with the claims, once per tick, so
 two squadmates never pick the same sandbag, and a marine keeps his while it still
-covers him. With no cover near, he holds his share, and with no prepared ground
+covers him. The line gives way to the fight only from nothing to something: a
+marine whose place gives no cover at all against the believed threat (a charge
+from the flank) moves, on the band, to medium cover or better against it that he
+can shoot back from, keeps it while that threat stands, and returns to the front's
+cover once it is gone; cover that helps at all against the incoming fire is kept,
+so the squad never trades the player's choice for a sidegrade of it. With no cover
+near, he holds his share, and with no prepared ground
 and no cover at all the squad forms a skirmish line along it. In a fight a marine
 fires from the place the line gave him while it gives him a shot, and looks for a
 better firing cell only within the line's band. Several selected squads share one drawn line end to

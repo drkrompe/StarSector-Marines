@@ -251,7 +251,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float y = m.body.y - sun.dirY() * reach;
                 if (!view.visible(x, y, 3f)) continue;
                 emit(out, cache.sprite, cam, x, y,
-                        cache.pxW / HarrierLook.PX_PER_CELL * cellPx * pose.widthScale(),
+                        cache.pxW / HarrierLook.PX_PER_CELL * cellPx,
                         cache.pxH / HarrierLook.PX_PER_CELL * cellPx,
                         m.body.facingDegrees, alpha * seen);
             }
