@@ -1,6 +1,7 @@
 """Cut one painted look (`generate.py`) into its style's fortification works and export them (`fort-works.md`).
 
-  python art-source/fortworks/make_doc.py <look> <style>     e.g. derelict-colony-steel derelict
+  python art-source/fortworks/make_doc.py <look> <style> [--state damaged|destroyed]
+                                                    e.g. derelict-colony-steel derelict
 
 Writes the authoring document of sheet `fortworks-<style>` (cuts measured from the raw, never assumed: ImageGen moves
 and rescales a little) and exports it through `tools/authoring.sh`, which writes the atlas and
@@ -72,42 +73,57 @@ def grid(box, n):
     return lambda c, r: [xs[c], ys[r], xs[c + 1] - xs[c], ys[r + 1] - ys[r]]
 
 
-def document(look, style, raw):
-    alpha = np.array(Image.open(raw).convert('RGBA'))[:, :, 3]
+def document(look, style, raw, state=None):
+    """The authoring document of one look, or of its damaged or destroyed state when `state` is given: a state is cut
+    with the intact raw's measurements (its edit kept the geometry, and a destroyed piece's own outline is partly
+    gone), carries the damage family's ids and has no wall tiles, since a broken wall cell is rubble."""
+    intact = HERE / 'raw' / (look + '.raw.png')
+    alpha = np.array(Image.open(intact).convert('RGBA'))[:, :, 3]
     plate = grid(opaque_box(alpha, 0, 0, 976, 1024), 5)
     ring = grid(opaque_box(alpha, 976, 0, 1536, 600), 3)
+    prefix = '' if state is None else state + '-'
+    gone = state == 'destroyed'
     entries = []
     for shape, (c, r) in PARAPET.items():
-        entries.append({'id': 'doodad.fort-emplacement-%s@%s' % (shape, style), 'included': True, 'cover': 'heavy',
-                        'ballisticHalfHeight': 0.5, 'footprintCells': [1, 1], 'rect': plate(c, r),
-                        'note': 'Parapet collar piece %s, %s look.' % (shape, style)})
+        entries.append({'id': 'doodad.fort-emplacement-%s%s@%s' % (prefix, shape, style), 'included': True,
+                        'cover': 'none' if gone else 'heavy', 'ballisticHalfHeight': 0.1 if gone else 0.5,
+                        'footprintCells': [1, 1], 'rect': plate(c, r),
+                        'note': 'Parapet collar piece %s, %s look%s.' % (shape, style, '' if state is None else ', ' + state)})
     for shape, (c, r) in RING.items():
         for template, name, cover, half in BARRICADES:
-            entries.append({'id': (template % name(shape)) + '@' + style, 'included': True, 'cover': cover,
-                            'ballisticHalfHeight': half, 'footprintCells': [1, 1], 'rect': ring(c, r),
-                            'note': 'Barricade piece %s, %s look.' % (shape, style)})
-    cols, rows = runs(alpha, 976, 600, 1536, 1024)
-    for mask in range(16):
-        (x0, x1), (y0, y1) = cols[mask % 4], rows[mask // 4]
-        # ImageGen outlines each separate tile; cut inside it, or every joint between wall cells draws a dark seam.
-        box = [x0 + WALL_INSET, y0 + WALL_INSET, x1 - WALL_INSET, y1 - WALL_INSET]
-        entries.append({'id': '%s@%s.faces-%d' % (WALL, style, mask), 'block': '%s@%s' % (WALL, style),
-                        'slot': 'faces-%d' % mask, 'included': True, 'cover': 'none', 'footprintCells': [1, 1],
-                        'rect': [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
-    note = ("Fortification works of the %s emplacement style, look '%s': every piece a lot's walls, parapets and "
+            entries.append({'id': (template % (prefix + name(shape))) + '@' + style, 'included': True,
+                            'cover': 'none' if gone else cover, 'ballisticHalfHeight': 0.0 if gone else half,
+                            'footprintCells': [1, 1], 'rect': ring(c, r),
+                            'note': 'Barricade piece %s, %s look%s.' % (shape, style, '' if state is None else ', ' + state)})
+    blocks = []
+    if state is None:
+        cols, rows = runs(alpha, 976, 600, 1536, 1024)
+        for mask in range(16):
+            (x0, x1), (y0, y1) = cols[mask % 4], rows[mask // 4]
+            # ImageGen outlines each separate tile; cut inside it, or every joint between wall cells draws a dark seam.
+            box = [x0 + WALL_INSET, y0 + WALL_INSET, x1 - WALL_INSET, y1 - WALL_INSET]
+            entries.append({'id': '%s@%s.faces-%d' % (WALL, style, mask), 'block': '%s@%s' % (WALL, style),
+                            'slot': 'faces-%d' % mask, 'included': True, 'cover': 'none', 'footprintCells': [1, 1],
+                            'rect': [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
+        blocks.append({'id': '%s@%s' % (WALL, style), 'layout': 'wall-faces-4x4',
+                       'windowBlock': 'installation.dark-concrete-window',
+                       'doorBlock': 'installation.dark-concrete-door',
+                       'rubbleBlock': 'installation.dark-concrete-rubble'})
+    name = look if state is None else look + '-' + state
+    note = ("Fortification works of the %s emplacement style%s, look '%s': every piece a lot's walls, parapets and "
             "barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png "
-            "(make_guide.py) with the style's turret plinth as material reference; prompt "
-            "art-source/fortworks/prompts/%s.prompt.txt, raw retained unmodified. Cuts are measured from the raw "
+            "(make_guide.py) with the style's turret plinth as material reference%s; prompt "
+            "art-source/fortworks/prompts/%s.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw "
             "(make_doc.py). Every id is a look <base id>@%s of a piece the generators lay: FortWorks dresses a piece on "
             "a lot built in this style with it, art only, so cover and blocking stay the base piece's "
-            "(fort-works.md). One ring piece serves both barricade families.") % (style, look, look, style)
-    return {'sheetName': 'fortworks-' + style, 'sheet': str(raw.relative_to(ROOT)).replace('\\', '/'), 'cellPx': 128,
+            "(fort-works.md). One ring piece serves both barricade families.") % (
+        style, '' if state is None else ', ' + state + ' state', look,
+        '' if state is None else ', then edited into its ' + state + ' state with the intact raw as edit target',
+        name, style)
+    return {'sheetName': 'fortworks-' + style + ('' if state is None else '-' + state),
+            'sheet': str(raw.relative_to(ROOT)).replace('\\', '/'), 'cellPx': 128,
             'alphaMin': 16, 'idPrefix': 'doodad', 'gridCols': 12, 'gridRows': 8, 'note': note,
-            'blocks': [{'id': '%s@%s' % (WALL, style), 'layout': 'wall-faces-4x4',
-                        'windowBlock': 'installation.dark-concrete-window',
-                        'doorBlock': 'installation.dark-concrete-door',
-                        'rubbleBlock': 'installation.dark-concrete-rubble'}],
-            'entries': entries}
+            'blocks': blocks, 'entries': entries}
 
 
 def authoring(tool, args):
@@ -122,9 +138,10 @@ def authoring(tool, args):
 
 def main():
     look, style = sys.argv[1], sys.argv[2]
-    raw = HERE / 'raw' / (look + '.raw.png')
-    name = 'fortworks-' + style
-    authoring('tileset_write_document', {'name': name, 'document': document(look, style, raw)})
+    state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
+    raw = HERE / 'raw' / (look + ('' if state is None else '-' + state) + '.raw.png')
+    name = 'fortworks-' + style + ('' if state is None else '-' + state)
+    authoring('tileset_write_document', {'name': name, 'document': document(look, style, raw, state)})
     authoring('tileset_export', {'name': name})
 
 

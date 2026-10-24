@@ -3,6 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-24
+Updated: 2026-10-24 — damage states for every look; the fort gatehouse drawn in its lot's style
 
 Read `ground-turret-tiers.md` (emplacement styles) and `tech-families.md` (the families) first;
 `forts.md` is the fort these works belong to.
@@ -54,6 +55,10 @@ place: its walls, gates, barricades, parapets, sandbags and gun emplacements all
 - **Walls are dressed where they are drawn.** The ground pass draws a wall cell from its
   surface's look in the cell's works style (`GroundRenderSystem`), since its surface id is a
   fact rules read.
+- **So is the gate.** The fort's gatehouse (tower caps and gate leaves) is building art rather
+  than a catalog piece: the renderer draws it in the works style of the fort's lot
+  (`FortGatehouseArt.inStyle`), from the same file names in a folder named for the style, for
+  every style the gatehouse's `looks` list names.
 
 ## Art
 
@@ -63,6 +68,13 @@ ring whose eight cells are the eight run shapes, and the sixteen wall masks. The
 turret plinth is the material reference, so the walls are the guns' material. The exporter
 measures every cut from the raw (ImageGen moves and rescales a little) and writes the sheet
 through the authoring tools. One ring piece serves both barricade families.
+
+Each look's damaged and destroyed sheets (`fortworks-<style>-damaged`, `-destroyed`) are image
+edits of its accepted intact sheet, cut with the intact sheet's measurements so every state
+registers with the piece it replaces; they carry no wall tiles, since a broken wall cell is
+rubble. The gatehouse of each style is painted over the fort-buildings gatehouse guide with the
+style's works sheet as its material reference (`generate.py <look> --gatehouse`,
+`export_gatehouse.py`). Brutalist uses the base gatehouse.
 
 | Style | Look |
 |---|---|
@@ -78,8 +90,8 @@ through the authoring tools. One ring piece serves both barricade families.
 
 ## Open
 
-- The owner's pick between the three derelict drafts (fort works picks page).
-- The damaged and destroyed states of every look (a worn piece shows the base art's damage until then).
+- The owner's pick between the three derelict drafts (fort works picks page); colony steel
+  stands until they answer.
 - Pieces still drawn in the base art on every lot: the light post's vent ring (road-sheet
-  frames with no catalog id), the fort's gatehouse and building shells, door and window
-  openings, wall rubble, hedgehogs, trench and fence.
+  frames with no catalog id), the fort's building shells (bunker, magazine, power plant and
+  their annexes), door and window openings, wall rubble, hedgehogs, trench and fence.

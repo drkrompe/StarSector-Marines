@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6f-4a56-75b3-aac3-493335d7a490",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6f-4a56-75b3-aac3-493335d7a490\\exec-2f2836a0-7e52-46a0-955f-fc875b5ec1f8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\gatehouse-modular.raw.png",
+    "sha256": "e6be6a65ea963dbe166f1a3cdd5399496cd6c8160f744158857fdf15f3f15a86",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\gatehouse-modular.prompt.txt",
+  "promptSha256": "a48677377a4eeb0b7ae921ead9a6f9fce9d71ccf8d711042923a7ed621261550",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep every panel where and how big it is\nImage 2: Wall material reference only; not layout\nImage 3: Material and style reference only; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a 1536x1024 canvas: reskin it into finished painted game sprites, preserving every shape, position, size, registration and all transparent empty space exactly; do not move, rescale, rotate, merge, add or remove pieces. Image 2 is the same set's wall and barricade sheet and image 3 its gun emplacement plinth: MATERIAL AND STYLE REFERENCES ONLY, never layout. The gate must be built of the same stuff as those walls. The sheet is parts of a fortress GATEHOUSE seen from directly above, three panels in the first three quadrants of a 2x2 grid of 768x512 quadrants (the fourth stays empty), each a 2-wide by 3-tall portrait panel exactly where the guide places it. Top-left: a gate-tower roof, a hardened cap with chamfered corners and a raised inner cap, narrow dark embrasure slits along the left flank and on both the top and bottom ends, and a small round roof hatch. Top-right: a heavy GATE: the passage between them stays open and transparent, and two thick gate leaves stand folded back against the jambs along the top and bottom edges, with big hinge pins and a thin worn threshold sill line across the middle. Bottom-left: the same tower roof DAMAGED: cracked, scorched, one embrasure blown wide. Same materials and registration across panels. Material and style: Persean League prepared works in League coalition standard: pressed modular steel panels in slate blue-grey with sealed seams, recessed strip lamps along the parapet top and the wall rims, small white unit chevrons, standard bolted access hatches, scuffed paint and clean repairs; the barricade a run of interlocking slate blue-grey modular barrier panels on feet. Straight 90-degree overhead orthographic camera: no perspective, no visible vertical faces, no cast or drop shadow, no ground outside the guide shapes, no labels, text, watermark, grid lines or UI marks. Genuine transparent background everywhere the guide is empty. Coarse readable detail that survives being shrunk to about 40 pixels per cell; hand-painted Starsector-like finish, light from the upper left.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\templates\\fort-buildings-gatehouse-guide.png",
+      "sha256": "49d557cca0298b6c48748c226bb9466b5075e29fdc530fef185f1cc589ed6e6e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep every panel where and how big it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\modular.raw.png",
+      "sha256": "cd61c3c2e9cf070d5d826c6806693404d91075fa8c22d8e24fddbb16604721de",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Wall material reference only; not layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\mod\\graphics\\structures\\ground-turrets\\modular\\plinth.png",
+      "sha256": "4b12624e5e9c2df3bafb3d661465d8039c76092b04735e43ddfeedcbd8342a04",
+      "dimensions": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the guide as the exact geometry and apply the slate blue-grey steel finish from the material references."
+  ],
+  "usage": {
+    "input_tokens": 44942,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 739,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 81.4
+}
