@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -40,7 +41,7 @@ import java.util.Map;
  *
  * <h2>The corridor is the instrument, not the setting</h2>
  * <p>On open ground a squad under a defend order spreads into a perimeter and
- * unmasks itself, and a control loop with no friendly fire in it measures
+ * unmasks itself, and a control loop with nobody masked in it measures
  * nothing at all. The corridor is what keeps the squad in column.
  *
  * <p><b>It is five cells wide, and the first version was three.</b> Three looks
@@ -99,9 +100,17 @@ import java.util.Map;
  * {@code control} with it off, through
  * {@link LaneSidestep#setEnabledForEvidence}. Same seed, same walls, same
  * bodies in the same cells. The first verdict a reader should look at is
- * {@code control-has-friendly-fire}, which is the instrument checking itself —
- * if the control does not shoot its own men, nothing below it means anything
- * and the geometry is what wants fixing.
+ * {@code control-holds-in-lane}, which is the instrument checking itself —
+ * if the control is never masked, nothing below it means anything and the
+ * geometry is what wants fixing.
+ *
+ * <h2>What the fault looks like since the lane gate</h2>
+ * <p>The scene was built when a masked marine fired through his man, and it
+ * measured friendly fire. The firing gate now holds a trained shooter's
+ * trigger while a friend is in the lane ({@link FireGate#FRIENDLY_IN_LANE}), so
+ * the control puts nothing into its own men: the fault is a held trigger, and
+ * the scene counts the ticks a marine's trigger was held for it. Friendly fire
+ * is still reported, and should read nought in both loops.
  */
 public final class FiringLineScene implements BehaviorScene {
 
@@ -152,8 +161,8 @@ public final class FiringLineScene implements BehaviorScene {
      */
     private static final long[] SEEDS = {1, 2, 3, 4, 5, 6, 7, 8};
 
-    /** The sidestep loop must cut friendly fire to at most this share of the control's. */
-    private static final float FRIENDLY_FIRE_BAR = 0.5f;
+    /** The sidestep loop must cut the ticks held for a friend in the lane to at most this share of the control's. */
+    private static final float LANE_HOLD_BAR = 0.5f;
 
     /** And must keep at least this share of the control's damage on the enemy. */
     private static final float CONCENTRATION_BAR = 0.9f;
@@ -266,22 +275,21 @@ public final class FiringLineScene implements BehaviorScene {
     private SceneReport report(String loopId, LaneTally loop, LaneTally control) {
         List<Verdict> verdicts = new ArrayList<>();
         if (control == null) {
-            verdicts.add(Verdict.of("control-has-friendly-fire", loop.friendlyFire() > 0f,
-                    String.format(Locale.ROOT,
-                            "the marines put %.1f HP into their own men with the reflex off"
-                                    + " (wanted more than 0, or the corridor is not producing"
-                                    + " the fault this scene exists to measure)",
-                            loop.friendlyFire())));
+            verdicts.add(Verdict.of("control-holds-in-lane", loop.laneHolds() > 0,
+                    "the marines' triggers were held for a friend in the lane on "
+                            + loop.laneHolds() + " tick(s) with the reflex off"
+                            + " (wanted more than 0, or the corridor is not producing"
+                            + " the fault this scene exists to measure)"));
             verdicts.add(Verdict.of("no-sidesteps", loop.sidesteps() == 0,
                     loop.sidesteps() + " sidestep(s) taken with the reflex off (wanted 0)"));
         } else {
-            float bar = control.friendlyFire() * FRIENDLY_FIRE_BAR;
-            verdicts.add(Verdict.of("sidestep-reduces-friendly-fire",
-                    loop.friendlyFire() <= bar,
+            float bar = control.laneHolds() * LANE_HOLD_BAR;
+            verdicts.add(Verdict.of("sidestep-reduces-lane-holds",
+                    loop.laneHolds() <= bar,
                     String.format(Locale.ROOT,
-                            "%.1f HP of friendly fire against the control's %.1f"
+                            "%d tick(s) held for a friend in the lane against the control's %d"
                                     + " (wanted at most %.1f)",
-                            loop.friendlyFire(), control.friendlyFire(), bar)));
+                            loop.laneHolds(), control.laneHolds(), bar)));
             float concentration = control.hostileDamage() * CONCENTRATION_BAR;
             verdicts.add(Verdict.of("fire-stays-concentrated",
                     loop.hostileDamage() >= concentration,
@@ -317,6 +325,7 @@ public final class FiringLineScene implements BehaviorScene {
         }
 
         Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("laneHoldTicks", loop.laneHolds());
         metrics.put("friendlyFireDamage", loop.friendlyFire());
         metrics.put("hostileDamageDealt", loop.hostileDamage());
         metrics.put("defendersKilled", loop.defendersKilled());
@@ -352,6 +361,8 @@ public final class FiringLineScene implements BehaviorScene {
         private final float[] lastX;
         private final float[] lastY;
         private final float[] lastSpeed;
+        private final int[] lastGateTick;
+        private int laneHolds;
         private int sidesteps;
         private int sidestepsCompleted;
         private int sidestepsThatMoved;
@@ -374,9 +385,11 @@ public final class FiringLineScene implements BehaviorScene {
             this.lastX = new float[marines.length];
             this.lastY = new float[marines.length];
             this.lastSpeed = new float[marines.length];
+            this.lastGateTick = new int[marines.length];
             this.marinesAlive = marines.length;
             this.defendersAlive = defenders.length;
             Arrays.fill(firstFireX, Integer.MIN_VALUE);
+            Arrays.fill(lastGateTick, Integer.MIN_VALUE);
         }
 
         @Override
@@ -394,6 +407,7 @@ public final class FiringLineScene implements BehaviorScene {
                     trackFooting(world, telemetry, marine, i);
                 }
                 countSidestep(sim, world, marine, i);
+                countLaneHold(sim, marine, i);
             }
             marinesAlive = alive;
             int standing = 0;
@@ -485,6 +499,20 @@ public final class FiringLineScene implements BehaviorScene {
             if (ratio > worstStepRatio) worstStepRatio = ratio;
         }
 
+        /**
+         * Counts a tick on which this marine's trigger was held for a friend
+         * in the lane, read off the firing gate's own record of its last
+         * decision so a tick is counted once however often it is observed.
+         */
+        private void countLaneHold(BattleSimulation sim, long marine, int i) {
+            int gateTick = sim.combat().lastFireGateTick(marine);
+            if (gateTick == lastGateTick[i]) return;
+            lastGateTick[i] = gateTick;
+            if (sim.combat().lastFireGate(marine) == FireGate.FRIENDLY_IN_LANE) laneHolds++;
+        }
+
+        int laneHolds() { return laneHolds; }
+
         float friendlyFire() { return sum(friendlyFire); }
 
         float hostileDamage() { return sum(hostileDamage); }
@@ -518,6 +546,12 @@ public final class FiringLineScene implements BehaviorScene {
 
         private LaneTally(List<LaneTrace> traces) {
             this.traces = traces;
+        }
+
+        int laneHolds() {
+            int total = 0;
+            for (LaneTrace t : traces) total += t.laneHolds();
+            return total;
         }
 
         float friendlyFire() {

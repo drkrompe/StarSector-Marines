@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
@@ -189,8 +190,24 @@ public final class HeartCountry {
                 form.scale.width, form.scale.height, rng);
         Precinct workings = place(plan, WORKINGS);
         Landscape landscape = landscapeFor(form, seed);
-        if (workings != null) landscape = landscape.withHeld(hollow(form, workings.seedX(), workings.seedY()));
+        if (workings != null) landscape = landscape.withSealed(hollow(form, workings.seedX(), workings.seedY()));
+        if (form == Form.BROAD_FRONT && density != Density.CITY) landscape = landscape.withKnolls(List.of(knoll(density)));
         return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, density, seed));
+    }
+
+    /** The knoll Broad Front's market town stands on (`heart-map-intent.md`, The ground), named as the layout reports it. */
+    public static final String KNOLL = "knoll";
+    /** Half-sizes of the knoll's top round the town's seed: a town world's bigger town on a bigger top. */
+    static final int KNOLL_HALF_W = 32, KNOLL_HALF_H = 24, TOWN_KNOLL_HALF_W = 40, TOWN_KNOLL_HALF_H = 28;
+
+    /**
+     * Broad Front's town on its knoll: the town grows only on the top, its gates straight roads down across the ring
+     * toward the start and either side, so the lost column's holdout has height over the lanes round it.
+     */
+    static Landscape.Knoll knoll(Density density) {
+        boolean town = density == Density.TOWN;
+        return new Landscape.Knoll(KNOLL, SETTLEMENT, town ? TOWN_KNOLL_HALF_W : KNOLL_HALF_W,
+                town ? TOWN_KNOLL_HALF_H : KNOLL_HALF_H, List.of(Direction.S, Direction.E, Direction.W), false);
     }
 
     /** The far place as its origin's facility: a fenced, programmed place on the heart's edge (`heart-origins.md`). */

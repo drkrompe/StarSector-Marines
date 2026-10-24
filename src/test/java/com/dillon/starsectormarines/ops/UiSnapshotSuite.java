@@ -2544,6 +2544,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
                 new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
+                new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-apc")),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-internal-engine-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
@@ -2685,6 +2687,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.addKit(VehicleKit.READY_RACK.id, 1);
             bay.fitKit(tank.id(), VehicleKit.APPLIQUE_PLATE);
             bay.fitKit(tank.id(), VehicleKit.SPACED_SKIRTS);
+            viewModel.gantryRows().get().get(3).select().run();
+        }
+        // An up-armoured APC with a spall liner: the seats bay card beside the turret and hull.
+        if ("vehicle-apc".equals(materialHint)) {
+            CampaignVehicle apc = new CampaignVehicle("support_vehicle_04", "Bastion 04", VehicleType.UP_ARMORED_APC);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc);
+            bay.learnPattern(MechPattern.of(VehicleKit.SPALL_LINER).id());
+            bay.addKit(VehicleKit.SPALL_LINER.id, 1);
+            bay.fitKit(apc.id(), VehicleKit.SPALL_LINER);
             viewModel.gantryRows().get().get(3).select().run();
         }
         if ("internal-flux".equals(materialHint)) {

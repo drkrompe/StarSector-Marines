@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.fort.GateTowerGarrison;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -56,6 +57,8 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
     private static final int SETTLE_TICKS = 30;
     /** The free-standing post's layout: a line of guns behind its parapet or barricade. */
     private static final String POST_VARIANT = "line-h";
+    /** How long a gate tower's garrison has to walk in and open fire before it is framed. */
+    private static final int GARRISON_TICKS = 300;
 
     @Override public String id() { return "fort-works-look"; }
 
@@ -110,6 +113,8 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
         }
         EmplacementStylePolicy.restyle(posts, style);
         BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(), posts, SEED).sim();
+        // With no marines on the field the battle is won on its first tick and stops playing; a garrison shot plays on.
+        if (Boolean.getBoolean("snapshot.fortWorks.garrison")) sim.setMissionCompletionEnabled(false);
         try {
             ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
             for (int tick = 0; tick < SETTLE_TICKS; tick++) {
@@ -133,6 +138,7 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             float[] gate = gateCentre(sim);
             if (gate != null) artifacts.add(still(context, sim, fx, style.key + "-gate-close", gate[0], gate[1], 18f));
             if (structures) artifacts.addAll(structureStills(context, sim, fx, style, posts, small));
+            if (Boolean.getBoolean("snapshot.fortWorks.garrison")) artifacts.addAll(garrisonStills(context, sim, fx, style));
             wear(sim, postX, postY, 9f);
             artifacts.add(still(context, sim, fx, style.key + "-post-worn", postX, postY, 22f));
             System.out.printf("    [fort-works-look/%s] %d posts, fort %s%n", style.key, posts.size(),
@@ -145,10 +151,44 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
 
     private static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx, String name,
                                           float x, float y, float cellsAcross) throws Exception {
+        return still(context, sim, fx, name, x, y, cellsAcross, Boolean.getBoolean("snapshot.fortWorks.noRoofs"));
+    }
+
+    private static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx, String name,
+                                          float x, float y, float cellsAcross, boolean noRoofs) throws Exception {
         BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y,
                 cellsAcross);
-        if (Boolean.getBoolean("snapshot.fortWorks.noRoofs")) renderer.withoutRoofs();
+        if (noRoofs) renderer.withoutRoofs();
         return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+    }
+
+    /**
+     * A squad holding the main gate's first tower and firing out of its slits at a file of targets on the approach
+     * ({@link GateTowerGarrison}), framed roofed and with the roofs lifted, and close on the slit down the approach.
+     * Played last: the battle moves on from here.
+     */
+    private static List<SnapshotArtifact> garrisonStills(SnapshotContext context, BattleSimulation sim,
+                                                         ReviewImpactFx fx, EmplacementStyle style) throws Exception {
+        if (sim.forts().forts().isEmpty()) return List.of();
+        GateTowerGarrison.Manned manned = GateTowerGarrison.man(sim, sim.forts().forts().get(0).frame(), 3, 3,
+                1_000_000f, "weapon.smg", false);
+        for (int tick = 0; tick < GARRISON_TICKS; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            fx.feed(sim);
+        }
+        int[] floor = manned.floor().get(manned.floor().size() / 2);
+        float x = (floor[0] + manned.aim()[0]) * 0.5f + 0.5f, y = (floor[1] + manned.aim()[1]) * 0.5f + 0.5f;
+        // The slit straight down the approach: the one beside the middle stand.
+        int[] middle = manned.stands().get(manned.stands().size() / 2);
+        int[] slit = manned.slits().get(0);
+        for (int[] c : manned.slits()) {
+            if (Math.abs(c[0] - middle[0]) + Math.abs(c[1] - middle[1])
+                    < Math.abs(slit[0] - middle[0]) + Math.abs(slit[1] - middle[1])) slit = c;
+        }
+        return List.of(still(context, sim, fx, style.key + "-gate-tower-garrison", x, y, 20f, false),
+                still(context, sim, fx, style.key + "-gate-tower-garrison-open", x, y, 20f, true),
+                still(context, sim, fx, style.key + "-gate-tower-slit", slit[0] + 0.5f, slit[1] + 0.5f, 7f, false),
+                still(context, sim, fx, style.key + "-gate-tower-slit-open", slit[0] + 0.5f, slit[1] + 0.5f, 7f, true));
     }
 
     /**

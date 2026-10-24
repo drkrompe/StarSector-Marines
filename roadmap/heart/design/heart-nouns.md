@@ -99,10 +99,16 @@ the line is dug on the last open ground before the streets instead.
 **Hollow.** The low ground the workings sit in: a rim of high ground wrapped
 round them on the attack's side, climbed from outside, its inner face a cliff
 over the yard, with a pass straight toward the start and wherever a road or
-route crosses it. The rim's ground is held before the places grow
-(`elevation-nouns.md`, Held ground), so the workings' roads and the town's
-fields grow round it. Today it stands as one to three arcs rather than a ring
-(`heart-map-intent.md`).
+route crosses it. The rim's ground is sealed before the places grow
+(`elevation-nouns.md`, Sealed ground): the places grow round it and every road,
+weld and route goes round it and crosses only at its passes. It stands as most
+of a ring, broken by The Burn's brook and short gaps (`heart-map-intent.md`).
+
+**Knoll.** The rise Broad Front's market town was built on, the reason it is
+where it is: the town grows only on the knoll's top (`elevation-nouns.md`,
+Knolls), its gates roads ramped down toward the start and either side, so the
+lost column's holdout has height over the lanes round it. Rural and town maps;
+a city has none.
 
 **Cordon's works.** What the cordon dug and built facing the bloom, laid as
 named pieces of the heart's mission layout: the forward line of trench and
