@@ -19,12 +19,14 @@ import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureFit;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * What the heart lays over its country (`heart-map-intent.md`): the works a
@@ -80,6 +82,9 @@ public final class HeartLayout {
     static final float[] BROAD_GAPS = {0.15f, 0.33f, 0.50f, 0.67f, 0.85f};
     /** The Burn's battlegroups' sectors and the company's, as shares across. */
     static final float[] BURN_GAPS = {0.18f, 0.36f, 0.50f, 0.64f, 0.82f};
+    /** Rows short of a city's first built-up row its forward line is dug, and where the search for that row starts. */
+    static final int CITY_STANDOFF = 4;
+    static final float CITY_SCAN_FROM = 0.10f;
     /** Cells forward of the line its listening posts stand, and where across. */
     static final int OP_FORWARD = 6, OP_SEARCH = 10;
     /** Cells past the ridge's far edge that its faces and apron take. */
@@ -93,18 +98,25 @@ public final class HeartLayout {
     /** The reservoir yard's side, how far toward the start of the workings' seed it is wanted, and the search. */
     static final int YARD_SIDE = 16, YARD_TOWARD_START = 14, YARD_SEARCH = 36;
     /** The holdout's side (a sandbag ring with a way in), and how far outside the place's claim it is searched. */
-    static final int HOLDOUT_SIDE = 9, HOLDOUT_SEARCH = 20;
+    static final int HOLDOUT_SIDE = 9, HOLDOUT_SEARCH = 20, CITY_HOLDOUT_SEARCH = 40;
     /** The Burn's gun-flank trenches: how deep into the farmland they run and how far in from the map's sides. */
     static final float GUN_FLANK_DEPTH = 0.10f;
     static final int GUN_FLANK_INSET = 4;
     /** Cells either side of the ford's middle the ford's site holds. */
     static final int FORD_HALF = 4;
 
-    /** The heart's layout for this form of country. */
-    static MissionLayout layout(Form form, long seed) {
+    /**
+     * The heart's layout for this form of country. A city's height is its buildings (`elevation-nouns.md`), so a
+     * city's cordon has no ridge: its forward line is dug on the last open ground before the streets.
+     */
+    static MissionLayout layout(Form form, Density density, long seed) {
         List<Piece> pieces = new ArrayList<>();
-        pieces.add(new Ridge(CORDON_RIDGE, HeartCountry.ridge(form), false));
-        pieces.addAll(forwardLine(form));
+        if (density == Density.CITY) {
+            pieces.add(new Deferred(FORWARD_LINE, Phase.WORKS, ground -> forwardLine(form, cityLineDepth(ground, form)), false));
+        } else {
+            pieces.add(new Ridge(CORDON_RIDGE, HeartCountry.ridge(form), false));
+            pieces.addAll(forwardLine(form));
+        }
         pieces.add(new Deferred(OBSERVATION_POSTS, Phase.STRUCTURES, ground -> observationPosts(ground, form), false));
         Side front = form.advancesAlongY() ? Side.NORTH : Side.EAST;
         pieces.add(new Road(SUPPLY_ROAD, Endpoint.beside(LANDING, front, 0, 0),
@@ -113,10 +125,11 @@ public final class HeartLayout {
         pieces.add(new Deferred(VEHICLE_PARK, Phase.WORKS, ground -> vehiclePark(ground, form), false));
         pieces.add(new Deferred(RESERVOIR_YARD, Phase.WORKS, ground -> reservoirYard(ground, form), false));
         if (form == Form.BROAD_FRONT) {
-            pieces.add(new Deferred(HOLDOUT, Phase.WORKS, ground -> holdout(ground, form, HOLDOUT, true), false));
+            pieces.add(new Deferred(HOLDOUT, Phase.WORKS,
+                    ground -> holdout(ground, form, HOLDOUT, true, density), false));
         } else {
             pieces.add(new Deferred(VILLAGE_HOLDOUT, Phase.WORKS,
-                    ground -> holdout(ground, form, VILLAGE_HOLDOUT, false), false));
+                    ground -> holdout(ground, form, VILLAGE_HOLDOUT, false, density), false));
             pieces.addAll(gunFlanks(form));
             Landscape.Brook brook = HeartCountry.brook(form.scale.width, form.scale.height, seed);
             pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS, ground -> companyFord(form, brook), false));
@@ -162,7 +175,12 @@ public final class HeartLayout {
      * drive through.
      */
     static List<Piece> forwardLine(Form form) {
-        int across = acrossCells(form), depth = lineDepth(form);
+        return forwardLine(form, lineDepth(form));
+    }
+
+    /** The forward line dug at this depth. */
+    static List<Piece> forwardLine(Form form, int depth) {
+        int across = acrossCells(form);
         float[] gaps = form == Form.BROAD_FRONT ? BROAD_GAPS : BURN_GAPS;
         List<Piece> out = new ArrayList<>();
         int from = 2, n = 1;
@@ -176,6 +194,30 @@ public final class HeartLayout {
             if (i < gaps.length) from = Math.round(gaps[i] * (across - 1)) + LANE_GAP;
         }
         return out;
+    }
+
+    /** A city's forward line: a few rows short of the first built-up row, never deeper than the ridge's crest. */
+    static int cityLineDepth(LayoutGround ground, Form form) {
+        int depthCells = form.advancesAlongY() ? form.scale.height : form.scale.width;
+        int deepest = lineDepth(form);
+        int edge = builtUpDepth((d, a) -> {
+            int[] c = cell(form, d, a);
+            return ground.buildable(c[0], c[1]);
+        }, acrossCells(form), Math.round(CITY_SCAN_FROM * (depthCells - 1)), deepest + CITY_STANDOFF);
+        return Math.min(deepest, edge - CITY_STANDOFF);
+    }
+
+    /**
+     * The first depth in {@code [from, to)} at which at least half the row across is not open ground, or {@code to}
+     * when every row there is mostly open.
+     */
+    static int builtUpDepth(BiPredicate<Integer, Integer> open, int across, int from, int to) {
+        for (int d = from; d < to; d++) {
+            int shut = 0;
+            for (int a = 0; a < across; a++) if (!open.test(d, a)) shut++;
+            if (shut * 2 >= across) return d;
+        }
+        return to;
     }
 
     /** A listening post forward of the line in each half of the front, on the open ground nearest its place. */
@@ -253,9 +295,10 @@ public final class HeartLayout {
     /**
      * A holdout at the settlement's near edge: a sandbag ring with its way in
      * on the start side, facing the bloom, and, for the lost column, its
-     * wrecked carrier in the yard.
+     * wrecked carrier in the yard. A city's settlement starts where its line is dug, so there the holdout stands
+     * wholly past the line's trench and wire, looked for further into the streets.
      */
-    static List<Piece> holdout(LayoutGround ground, Form form, String name, boolean wreck) {
+    static List<Piece> holdout(LayoutGround ground, Form form, String name, boolean wreck, Density density) {
         int[] claim = ground.claimBounds(HeartCountry.SETTLEMENT);
         Precinct settlement = HeartCountry.place(ground.plan(), HeartCountry.SETTLEMENT);
         if (claim == null || settlement == null) return List.of();
@@ -263,7 +306,10 @@ public final class HeartLayout {
         int[] want = form.advancesAlongY() ? new int[]{settlement.seedX(), claim[1]}
                 : new int[]{claim[0], settlement.seedY()};
         int s = HOLDOUT_SIDE;
-        int[] at = StructureFit.nearest((x, y) -> ground.buildable(x, y), around(ground, want, HOLDOUT_SEARCH), s, s,
+        boolean city = density == Density.CITY;
+        int pastLine = city ? cityLineDepth(ground, form) + LINE_DEPTH + 2 : Integer.MIN_VALUE;
+        int[] at = StructureFit.nearest((x, y) -> ground.buildable(x, y) && (form.advancesAlongY() ? y : x) >= pastLine,
+                around(ground, want, city ? CITY_HOLDOUT_SEARCH : HOLDOUT_SEARCH), s, s,
                 want[0] - s / 2, want[1] - s / 2, 1);
         if (at == null) return List.of();
         int[] front = frontward(form);
