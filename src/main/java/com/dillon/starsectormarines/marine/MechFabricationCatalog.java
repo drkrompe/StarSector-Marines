@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -7,6 +8,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.List;
+import java.util.Map;
+import java.util.EnumMap;
 import java.util.Locale;
 
 /**
@@ -14,6 +17,9 @@ import java.util.Locale;
  * transplutonics (the game's {@code rare_metals}); the lab spends no supplies.
  */
 public final class MechFabricationCatalog {
+
+    /** Each chassis's authored standard-fit bill: what a machine that can fight costs, frame and parts. */
+    private static final Map<MechVariant, FabricationCost> STANDARD_FIT = new EnumMap<>(MechVariant.class);
 
     private static final List<Recipe> WEAPONS = List.of(
             weapon(MechWeaponComponent.CHAINGUN, "@gearFabricationStandardIssue"),
@@ -125,6 +131,14 @@ public final class MechFabricationCatalog {
         return null;
     }
 
+    /**
+     * What the chassis costs fitted to its standard roll-out: the frame's bill plus its parts'.
+     * Repairs and the armor economy price a fighting machine, so they read this, not the frame.
+     */
+    public static FabricationCost standardFitCost(MechVariant variant) {
+        return STANDARD_FIT.get(variant);
+    }
+
     public static Recipe chassis(MechVariant variant) {
         for (Recipe recipe : CHASSIS) {
             if (recipe.variant() == variant) return recipe;
@@ -142,10 +156,36 @@ public final class MechFabricationCatalog {
                 null, null, internal, null, internalCost(internal));
     }
 
+    /**
+     * A chassis is sold as a bare frame: the authored bill is the standard-fit machine's, less
+     * what its removable weapons, engine and capacitor bank cost as parts. Plating and
+     * factory-locked hardware are the frame and stay in its price.
+     */
     private static Recipe chassis(MechVariant variant, String provenance,
                                   int metals, int machinery, int transplutonics) {
+        STANDARD_FIT.put(variant, cost(metals, machinery, transplutonics));
+        int[] bill = {metals, machinery, transplutonics};
+        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(variant);
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponComponent weapon = stock.weaponAt(slot);
+            if (weapon != null && !MechFrameBudget.integral(variant, slot)) less(bill, weaponCost(weapon));
+        }
+        less(bill, internalCost(stock.engine()));
+        less(bill, internalCost(stock.capacitorBank()));
         return new Recipe("recipe.chassis." + variant.id, null,
-                provenance, null, variant, null, null, cost(metals, machinery, transplutonics));
+                provenance, null, variant, null, null, cost(bill[0], bill[1], bill[2]));
+    }
+
+    /** Takes a part's bill off a frame's, never below one unit of any material. */
+    private static void less(int[] bill, FabricationCost part) {
+        for (FabricationCost.Line line : part.lines()) {
+            int index = switch (line.commodityId()) {
+                case Commodities.METALS -> 0;
+                case Commodities.HEAVY_MACHINERY -> 1;
+                default -> 2;
+            };
+            bill[index] = Math.max(1, bill[index] - line.quantity());
+        }
     }
 
     private static Recipe vehicle(VehicleType type, String provenance,

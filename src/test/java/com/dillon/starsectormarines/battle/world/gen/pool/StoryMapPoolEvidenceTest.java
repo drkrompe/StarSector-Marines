@@ -79,11 +79,8 @@ class StoryMapPoolEvidenceTest {
         long start = System.nanoTime();
         String failure = null, detail = "";
         try {
-            switch (job.map()) {
-                case HEART_BURN -> detail = heart(Form.THE_BURN, job.biome(), job.entry());
-                case HEART_FRONT -> detail = heart(Form.BROAD_FRONT, job.biome(), job.entry());
-                default -> detail = cordon(job.map(), job.biome(), job.entry());
-            }
+            Form form = BloomHeartSetup.formOf(job.map());
+            detail = form != null ? heart(job.map(), job.biome(), job.entry()) : cordon(job.map(), job.biome(), job.entry());
         } catch (Exception | AssertionError e) {
             failure = String.valueOf(e.getMessage());
         }
@@ -131,11 +128,21 @@ class StoryMapPoolEvidenceTest {
         return detail;
     }
 
-    private static String heart(Form form, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
-        BloomHeartSetup.Built built = BloomHeartSetup.country(form, biome, entry);
+    private static String heart(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), biome,
+                BloomHeartSetup.densityOf(map), entry);
         try (BattleSimulation sim = built.sim()) {
+            int laid = 0, pieces = 0;
+            StringBuilder missing = new StringBuilder();
+            for (Laid piece : built.map().layout.pieces()) {
+                pieces++;
+                if (piece.isLaid()) laid++;
+                else missing.append(missing.length() == 0 ? "" : ", ").append(piece.name());
+            }
             return built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
-                    + built.plan().landingPlace().seedY();
+                    + built.plan().landingPlace().seedY() + "; layout " + laid + " of " + pieces + " laid"
+                    + "; supply road " + BloomHeartSetup.supplyRoad(built.map(), built.plan()).size() + " cells"
+                    + (missing.length() == 0 ? "" : " (not " + missing + ")");
         }
     }
 

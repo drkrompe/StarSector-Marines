@@ -4,7 +4,28 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-The individual behavior scenes (`FrontageScene` through `LateArrivalScene`): why each exists, what it recorded and the traps its instrument fell into. Moved verbatim from `CLAUDE.md` (Behavior scenes); the standing rules for writing a scene's verdicts stay there. Ordinal references ("the second", "the fourth") count in the order scenes appear here.
+Updated: 2026-10-24 — the rules for writing a scene's verdicts moved here from `CLAUDE.md`
+
+The individual behavior scenes (`FrontageScene` through `LateArrivalScene`): why each exists, what it recorded and the traps its instrument fell into. Ordinal references ("the second", "the fourth") count in the order scenes appear here.
+
+## Writing a scene
+
+**Prefer a scene over a mission harness** whenever the question is about one behaviour rather than a whole battle's
+balance, and add another scene rather than widening one past what its name claims. `sceneEvidence` plays the
+catalog for its verdicts (`evidence-tasks.md`); `createSnapshots` draws it.
+
+**A scene's verdicts assert mechanics; outcomes are readings.** Features keep landing, and every one of them moves
+who wins a fight: a verdict such as "the wall came down", "the company took the bunker" or "at least N defenders
+died" goes red on an unrelated merge or a seed change without anything it protects having broken. Assert what the
+machinery does: the plan gave the breach to squads that carry the kit, a breacher with the wall in reach and kit
+ready spent it within a few seconds, a planted charge damaged the wall it was set on, nothing is fired at your own
+side. Where the mechanic needs a precondition the fight may not supply (a breacher alive at the wall), make the
+verdict conditional on it and say so in the detail. Wall-down ticks, rounds, kills, losses and who held what go in
+the report's metrics. A scripted, deterministic effect (a placed barrage on a fixed target) may still be asserted;
+an unscripted fight may not. `assault-muster` takes `-Dbattle.scene.assaultMuster.seed=<long>` so a verdict's
+seed-stability can be shown rather than assumed.
+
+## The scenes
 
 `FrontageScene` is a small, purpose-built battle — one production-stamped
 compound, a configurable number of defender garrisons and marine assault

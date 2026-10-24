@@ -104,7 +104,6 @@ import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechHardwareSheetCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
-import com.dillon.starsectormarines.ops.battleview.MechSchematicPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -2718,8 +2717,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
-            document.canvases().set(instance.requireElement("mech-build-doll"),
-                    new MechSchematicPreviewCanvas(viewModel::padPreview, MechLabDollCanvas::headlessAssets));
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
                     document.canvases().set(instance.requireElement(slot.id()), new LanceSlotCanvas(
@@ -2734,8 +2731,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
                 if (row.chassisPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
-                            new MechChassisPreviewCanvas(
-                                    row.chassisPreview(), MechLabDollCanvas::headlessAssets));
+                            new MechChassisPreviewCanvas(CampaignMech.frame(row.id(), row.chassisPreview()),
+                                    MechLabDollCanvas::headlessAssets));
                 } else if (row.vehiclePreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             new VehiclePreviewCanvas(row.vehiclePreview()));
