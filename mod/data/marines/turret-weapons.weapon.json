@@ -448,9 +448,13 @@
           { "kind": "smoke", "radius": 0.22, "lifetime": 0.38 }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
-          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
-          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.12, "color": "FFC860" },
+          { "kind": "fire", "radius": [0.30, 0.45], "lifetime": [0.16, 0.24], "count": 3, "jitter": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.75], "lifetime": [2.4, 3.2], "count": 3, "jitter": 0.35, "color": "34302C" },
+          { "kind": "smoke", "radius": [0.40, 0.60], "lifetime": [2.0, 2.8], "count": 5, "jitter": 1.10, "delay": [0.04, 0.20], "color": "4C4743" }
+        ],
+        "aftermath": [
+          { "kind": "smoke", "radius": [0.30, 0.45], "lifetime": [1.6, 2.2], "jitter": 0.90, "delay": [0.25, 0.40], "emissionDuration": 0.90, "emissionInterval": [0.22, 0.32], "color": "6A6560" }
         ]
       },
       "audio": { "fireSound": "flak_fire" }
