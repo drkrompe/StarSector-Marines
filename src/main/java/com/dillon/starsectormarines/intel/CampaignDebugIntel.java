@@ -23,7 +23,6 @@ import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
-import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugDefectorAsylumSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugKingmakerTestamentSpawner;
@@ -81,10 +80,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SKIP_1         = "skip-1-day";
     private static final String BTN_SKIP_7         = "skip-7-days";
     private static final String BTN_SKIP_30        = "skip-30-days";
-    private static final String BTN_SPAWN_ESCORT   = "spawn-local-escort";
-    private static final String BTN_SPAWN_GARRISON = "spawn-local-garrison";
-    private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
-    private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
     private static final String BTN_SPAWN_RESCUE   = "spawn-local-rescue";
     private static final String BTN_SPAWN_DEFECTOR = "spawn-defector-asylum";
     private static final String BTN_SPAWN_TESTAMENT = "spawn-kingmaker-testament";
@@ -213,10 +208,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Skip 1 day", BTN_SKIP_1, 320f, 24f, 8f);
         ui.addButton("Skip 7 days", BTN_SKIP_7, 320f, 24f, 8f);
         ui.addButton("Skip 30 days", BTN_SKIP_30, 320f, 24f, 8f);
-        ui.addButton("Spawn local Escort offers", BTN_SPAWN_ESCORT, 320f, 24f, 8f);
-        ui.addButton("Spawn local Garrison offers", BTN_SPAWN_GARRISON, 320f, 24f, 8f);
-        ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
-        ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
         ui.addButton("Spawn local civilian rescue", BTN_SPAWN_RESCUE, 320f, 24f, 8f);
         ui.addButton("Spawn discovered-chain defector", BTN_SPAWN_DEFECTOR,
                 320f, 24f, 8f);
@@ -521,14 +512,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             skipDays(script, s, 7);
         } else if (BTN_SKIP_30.equals(buttonId)) {
             skipDays(script, s, 30);
-        } else if (BTN_SPAWN_ESCORT.equals(buttonId)) {
-            spawnOffersForLocalPatrons(s, ContractType.ESCORT);
-        } else if (BTN_SPAWN_GARRISON.equals(buttonId)) {
-            spawnOffersForLocalPatrons(s, ContractType.GARRISON);
-        } else if (BTN_SPAWN_CADRE.equals(buttonId)) {
-            spawnOffersForLocalPatrons(s, ContractType.CADRE);
-        } else if (BTN_SPAWN_ASSAULT.equals(buttonId)) {
-            spawnOffersForLocalPatrons(s, ContractType.PLANETARY_ASSAULT);
         } else if (BTN_SPAWN_RESCUE.equals(buttonId)) {
             spawnLocalRescue(s);
         } else if (BTN_SPAWN_DEFECTOR.equals(buttonId)) {
@@ -625,27 +608,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             list.get(i).tick(s, day);
         }
         s.lastTickDay = day;
-    }
-
-    /**
-     * Direct-creates the requested offer for every eligible active patron whose market lives
-     * in the player's current system, skipping patrons that already have an
-     * outstanding offer (matches {@link com.dillon.starsectormarines.campaign.systems.ContractGenerator}'s
-     * per-patron cap). Defaults mirror the generator so debug-spawned offers
-     * are indistinguishable from rolled ones.
-     */
-    private static void spawnOffersForLocalPatrons(CampaignState s, ContractType type) {
-        StarSystemAPI system = currentPlayerSystem();
-        if (system == null) return;
-        Set<Integer> localMarketSlots = collectLocalMarketSlots(s, system);
-        if (localMarketSlots.isEmpty()) return;
-        int day = Global.getSector() != null ? CampaignClock.day() : 0;
-
-        for (int i = 0; i < s.houseCount; i++) {
-            if (HouseStatus.fromByte(s.houseStatus[i]) != HouseStatus.ACTIVE) continue;
-            if (!localMarketSlots.contains(s.houseMarketId[i])) continue;
-            DebugContractOfferSpawner.spawn(s, i, type, day);
-        }
     }
 
     /**

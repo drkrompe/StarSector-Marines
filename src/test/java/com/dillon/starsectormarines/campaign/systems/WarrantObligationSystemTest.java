@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.campaign.systems;
 
-import com.dillon.starsectormarines.campaign.AuxiliaryWarrantProgress;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -22,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The period clock, service calls, suspension, restoration and revocation. */
+/** The period clock, loyalty, suspension, restoration and revocation. */
 class WarrantObligationSystemTest {
 
     private static final int PERIOD = WarrantObligationSystem.PERIOD_DAYS;
@@ -58,42 +57,33 @@ class WarrantObligationSystemTest {
     }
 
     @Test
-    void aServedPeriodIsHonouredAndOpensTheAuxiliarySecondStage() {
+    void aLoyalPeriodIsHonouredWithoutServiceAndOpensTheAuxiliarySecondStage() {
         enrol();
-        complete(hegemonyHouse, otherHouse, 10);
         runTo(1, PERIOD);
         assertEquals(WarrantObligationLedger.Status.ACTIVE, term().status());
         assertEquals(1, term().honouredPeriods());
         assertEquals(PERIOD, term().periodStart());
         assertTrue(state.auxiliaryWarrant().secondStage());
         assertTrue(MilitaryWarrants.warrantedCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_TWO));
+        assertEquals(0, state.contractCount, "the issuer never offers a service call");
     }
 
     @Test
-    void aPeriodWithoutServiceSuspendsAndOneServiceCallRestores() {
+    void aSuspensionLiftsAfterOneLoyalPeriodAndNotBefore() {
         enrol();
-        runTo(1, PERIOD - WarrantObligationSystem.SERVICE_CALL_LEAD_DAYS);
-        long call = term().serviceCallId();
-        assertTrue(call >= 0, "a service call arrives before the period ends");
-        int row = state.contractIndex(call);
-        assertEquals(hegemonyHouse, state.contractPatronHouseId[row]);
-        assertEquals(PERIOD, state.contractOfferExpiresTick[row]);
-
-        runTo(PERIOD - WarrantObligationSystem.SERVICE_CALL_LEAD_DAYS + 1, PERIOD);
+        relations.put("hegemony", RepLevel.NEUTRAL);
+        system.tick(state, 3);
         assertEquals(WarrantObligationLedger.Status.SUSPENDED, term().status());
-        assertTrue(MilitaryWarrants.withheldCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
-        assertFalse(MilitaryWarrants.warrantedCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
-        assertFalse(state.auxiliaryWarrant().secondStage());
 
-        long recall = term().serviceCallId();
-        assertTrue(recall >= 0, "a suspended warrant is sent a fresh call");
-        int callRow = state.contractIndex(recall);
-        state.contractState[callRow] = ContractState.COMPLETED.toByte();
-        state.contractAcceptedTick[callRow] = PERIOD + 3;
-        system.tick(state, PERIOD + 5);
+        runTo(4, 3 + PERIOD);
+        assertEquals(WarrantObligationLedger.Status.SUSPENDED, term().status(),
+                "a period spent below the floor does not restore");
+        assertEquals(3 + PERIOD, term().periodStart());
+
+        relations.put("hegemony", RepLevel.FAVORABLE);
+        runTo(4 + PERIOD, 3 + 2 * PERIOD);
         assertEquals(WarrantObligationLedger.Status.ACTIVE, term().status());
         assertTrue(MilitaryWarrants.withheldCardIds(state).isEmpty());
-        assertEquals(AuxiliaryWarrantProgress.Stage.ACCEPTED, state.auxiliaryWarrant().stage());
     }
 
     @Test
@@ -119,7 +109,7 @@ class WarrantObligationSystemTest {
         relations.put("hegemony", RepLevel.FAVORABLE);
         complete(hegemonyHouse, otherHouse, 6);
         runTo(5, PERIOD * 2);
-        assertEquals(WarrantObligationLedger.Status.REVOKED, term().status(), "service never lifts a revocation");
+        assertEquals(WarrantObligationLedger.Status.REVOKED, term().status(), "a loyal period never lifts a revocation");
         assertTrue(MilitaryWarrants.withheldCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
     }
 
