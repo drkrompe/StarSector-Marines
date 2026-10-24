@@ -136,9 +136,13 @@ bursts per icon for a long belt) and then keeps its exact count beside it; a
 load too long even folded keeps only the number. While a rack's button is held, the missiles (or
 folded salvos) that hold has fired draw lit beside the live ones, so a chain is seen building
 salvo by salvo, and go back to spent when the button comes up. Finite Mech stores count
-trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
-a rocket or precision-rifle special with a short load draws it as missiles or
-cartridges in place of its count.
+trigger packs, while a vehicle turret counts individual rounds. A flamer's tank draws
+its charges as fuel canisters. The right button's rows draw what they hold the same
+way: each smoke or hand grenade carried, thrown ones hollow and the rest dimmed while
+a throw is under way, and the shield as one plate, lit up or ready, dimmed while it
+recharges and hollow when broken. In the Marine doll's kit column, a rocket,
+precision-rifle or thrown special with a short load draws it as missiles, cartridges
+or the throws themselves in place of its count, and the shield draws its plate beside its clock.
 
 A bounded, scrollable objective list stays at the top left, showing the same
 public mission steps, instructions, measured progress and blockers as command

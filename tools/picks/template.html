@@ -77,8 +77,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     <p>__BLURB__</p>
   </header>
   <div class="bar" role="region" aria-label="Progress"><span><b id="n-done">0</b> of <span id="n-all">0</span> decided</span><span class="store" id="store">Connecting to saved choices…</span></div>
-  <section class="previews" id="previews" hidden aria-label="Previews"></section>
   <main id="list" style="display:grid;gap:36px"></main>
+  <section class="previews" id="previews" hidden aria-label="Previews"></section>
 </div>
 <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Zoomed image">
   <div class="lb-bar"><span class="t" id="lb-t"></span><button type="button" id="lb-size">Actual size</button><button type="button" id="lb-close">Close</button></div>
@@ -118,7 +118,7 @@ function render(){
 function renderPreviews(){
   const el = $("previews");
   el.hidden = !PREVIEWS.length;
-  el.innerHTML = PREVIEWS.length ? `<h2>To look at · newest first</h2>` + PREVIEWS.map(v => `<article class="pv" id="pv-${esc(v.id)}">
+  el.innerHTML = PREVIEWS.length ? `<h2>Previews to look at · nothing to answer · newest first</h2>` + PREVIEWS.map(v => `<article class="pv" id="pv-${esc(v.id)}">
     <span class="owner">${esc(v.area)}${v.date ? " · " + esc(v.date) : ""}</span><h3>${esc(v.title)}</h3>
     ${v.note ? `<p>${esc(v.note)}</p>` : ""}
     <div class="pv-shots">${(v.shots || []).map((x, i) => `<figure class="${i === 0 && v.lead ? "lead" : ""}"><button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(v.title + (x.label ? " — " + x.label : ""))}" aria-label="Zoom ${esc(x.label || v.title)}"><img src="${esc(x.file)}" alt="${esc(x.label || v.title)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>${x.label ? `<figcaption>${esc(x.label)}</figcaption>` : ""}</figure>`).join("")}</div>

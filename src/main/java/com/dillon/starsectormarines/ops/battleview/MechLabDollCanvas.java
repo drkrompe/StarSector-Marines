@@ -10,11 +10,11 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -28,7 +28,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
@@ -89,11 +91,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
     private List<StripTarget> lastStripTargets = List.of();
+    /** Each compartment part's box from the last frame, {left, top, right, bottom}, for lifting it off. */
+    private Map<MechInternal, float[]> lastPartBoxes = Map.of();
     private static final float STRIP_SIZE = 14f;
-    private SocketId hoveredStrip;
+    private StripTarget hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
+    private Supplier<List<MechInternal>> installedCompartment = List::of;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
@@ -117,6 +122,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
      */
     public void installedInternals(Function<SocketId, MechInternal> source) {
         installedInternals = source != null ? source : socket -> null;
+    }
+
+    /** What the selected machine's auxiliary compartment holds, in fitted order. */
+    public void installedCompartment(Supplier<List<MechInternal>> source) {
+        installedCompartment = source != null ? source : List::of;
     }
 
     private record DragPreview(MechWeaponComponent component, SocketId source,
@@ -239,8 +249,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * draws none.
      */
     private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
-        MechDeploymentSpec stock = new MechDeploymentSpec(variant, variant.defaultRole,
-                MissileReplenisherComponent.STANDARD);
         MechFrameBudget.Fit frame = MechFrameBudget.Fit.frame(variant);
         MechFittingLayout layout = MechFittingLayout.forVariant(variant);
         float panelWidth = width * SCHEMATIC_SHARE;
@@ -264,7 +272,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
-                    stock.missileReplenisher(), null, assets.get(),
+                    null, socket.id() == SocketId.AUXILIARY ? List.of() : null, assets.get(),
                     false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
@@ -298,7 +306,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     public void pointAt(float canvasX, float canvasY) {
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
-        hoveredStrip = stripAt(canvasX, canvasY);
+        hoveredStrip = stripTargetAt(canvasX, canvasY);
     }
 
     /** The socket dock target at this canvas-local point, or null outside all sockets. */
@@ -312,10 +320,30 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** The socket whose strip X is at this canvas-local point, or null when no X is there. */
     public SocketId stripAt(float canvasX, float canvasY) {
+        StripTarget target = stripTargetAt(canvasX, canvasY);
+        return target != null ? target.id() : null;
+    }
+
+    /** The compartment part drawn at this canvas-local point, or null. */
+    public MechInternal partAt(float canvasX, float canvasY) {
+        for (Map.Entry<MechInternal, float[]> part : lastPartBoxes.entrySet()) {
+            float[] box = part.getValue();
+            if (canvasX >= box[0] && canvasX <= box[2] && canvasY >= box[1] && canvasY <= box[3]) return part.getKey();
+        }
+        return null;
+    }
+
+    /** The compartment part whose X is at this canvas-local point, or null for any other X. */
+    public MechInternal stripPartAt(float canvasX, float canvasY) {
+        StripTarget target = stripTargetAt(canvasX, canvasY);
+        return target != null ? target.part() : null;
+    }
+
+    private StripTarget stripTargetAt(float canvasX, float canvasY) {
         if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
         for (StripTarget target : lastStripTargets) {
             if (canvasX >= target.left() && canvasX <= target.left() + STRIP_SIZE
-                    && canvasY >= target.top() && canvasY <= target.top() + STRIP_SIZE) return target.id();
+                    && canvasY >= target.top() && canvasY <= target.top() + STRIP_SIZE) return target;
         }
         return null;
     }
@@ -517,25 +545,33 @@ public final class MechLabDollCanvas implements CanvasProducer {
             boolean rejected = draggingHere && !dragPreview.valid();
             boolean compatible = draggingHere ? dragPreview.valid()
                     : active != null && isSocketCompatible(socket, active);
-            MechInternal internal = installedInternals.apply(socket.id());
+            boolean compartment = socket.id() == SocketId.AUXILIARY;
             MechSocketConsole.draw(c, target, socket, component,
                     draggingHere ? active : null,
-                    deployment != null && internal == null ? deployment.missileReplenisher() : null,
-                    internal, assets.get(), selected,
+                    compartment ? null : installedInternals.apply(socket.id()),
+                    compartment ? packed(socket) : null, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }
         lastSocketTargets = List.copyOf(targets);
         List<StripTarget> strips = new ArrayList<>();
+        Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
-            boolean removable = !socket.factoryLocked() && dragPreview == null
-                    && (weaponAt(deployment, socket.id()) != null
-                    || installedInternals.apply(socket.id()) != null);
-            if (!removable) continue;
-            StripTarget strip = new StripTarget(socket.id(), target.right() - STRIP_SIZE - 4f, target.top() + 4f);
-            strips.add(strip);
-            boolean hot = hoveredStrip == socket.id();
+            if (socket.factoryLocked() || dragPreview != null) continue;
+            if (socket.id() == SocketId.AUXILIARY) {
+                // Each part in the compartment comes out on its own, from an X on its corner.
+                for (MechCompartment.Placement part : packed(socket)) {
+                    float[] box = MechSocketConsole.partBox(target, socket, part);
+                    partBoxes.putIfAbsent(part.part(), box);
+                    strips.add(new StripTarget(socket.id(), part.part(), box[2] - STRIP_SIZE - 2f, box[1] + 2f));
+                }
+            } else if (weaponAt(deployment, socket.id()) != null || installedInternals.apply(socket.id()) != null) {
+                strips.add(new StripTarget(socket.id(), null, target.right() - STRIP_SIZE - 4f, target.top() + 4f));
+            }
+        }
+        for (StripTarget strip : strips) {
+            boolean hot = strip.equals(hoveredStrip);
             c.fillRect(strip.left(), strip.top(), STRIP_SIZE, STRIP_SIZE,
                     hot ? new Color(0x45, 0x1a, 0x1a, 235) : new Color(0x2a, 0x15, 0x15, 215));
             Color ink = hot ? new Color(0xff, 0x6e, 0x6e) : new Color(0xe9, 0x8b, 0x83);
@@ -546,9 +582,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     strip.left() + inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
         }
         lastStripTargets = List.copyOf(strips);
+        lastPartBoxes = partBoxes;
     }
 
-    private record StripTarget(SocketId id, float left, float top) { }
+    /** An X on the doll: a socket's, or one compartment part's. */
+    private record StripTarget(SocketId id, MechInternal part, float left, float top) { }
+
+    /** The selected machine's compartment at its packed places; empty if it somehow does not pack. */
+    private List<MechCompartment.Placement> packed(SocketDef compartment) {
+        List<MechCompartment.Placement> placed = MechCompartment.pack(compartment, installedCompartment.get());
+        return placed != null ? placed : List.of();
+    }
 
     static void drawCornerBrackets(CanvasContext c, float left, float top, float width, float height,
                                    Color color, float stroke, float bracketLength, float chamfer) {
@@ -609,7 +653,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case "ENGINE CORE" -> "CORE";
             case "L. SHOULDER" -> "L. SHLDR";
             case "R. SHOULDER" -> "R. SHLDR";
-            case "CAPACITORS" -> "CAPS";
+            case "AUXILIARY" -> "AUX";
             default -> label;
         };
         return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
@@ -623,8 +667,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case RIGHT_ARM -> "R. ARM";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
-            case CAPACITORS -> "CAPS";
-            case MINI_FAB -> "MINI-FAB";
+            case AUXILIARY -> "AUX";
         };
         return name + " [" + cols + "×" + rows + "]";
     }
@@ -641,7 +684,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        if (socket == SocketId.CORE || socket == SocketId.CAPACITORS || socket == SocketId.MINI_FAB) return true;
+        if (socket == SocketId.CORE || socket == SocketId.AUXILIARY) return true;
         return weaponAt(deployment, socket) != null;
     }
 
@@ -674,7 +717,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /**
      * Lays the sockets out as the machine is built: the engine core in the middle of the panel,
      * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
-     * ahead-right), a shoulder either side, and the capacitors and mini-fab behind it. Every card
+     * ahead-right), a shoulder either side, and the auxiliary compartment behind it. Every card
      * keeps its fixed brick size; the rows are centred in the panel.
      */
     static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
@@ -687,7 +730,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
         float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
                 Math.max(cardHeight(leftArm), cardHeight(rightArm)));
-        float backH = Math.max(cardHeight(byId.get(SocketId.CAPACITORS)), cardHeight(byId.get(SocketId.MINI_FAB)));
+        float backH = cardHeight(byId.get(SocketId.AUXILIARY));
         float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
         float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
         float centerX = panelWidth * 0.5f;
@@ -703,15 +746,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
         place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);
         place(targets, right, centerX + coreW * 0.5f + SCHEMATIC_GAP_X + cardWidth(right) * 0.5f, coreY);
-        SocketDef capacitors = byId.get(SocketId.CAPACITORS);
-        SocketDef miniFab = byId.get(SocketId.MINI_FAB);
         float backY = coreY + coreH * 0.5f + SCHEMATIC_GAP_Y + backH * 0.5f;
-        if (capacitors != null && miniFab != null) {
-            place(targets, capacitors, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(capacitors) * 0.5f, backY);
-            place(targets, miniFab, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(miniFab) * 0.5f, backY);
-        } else {
-            place(targets, capacitors != null ? capacitors : miniFab, centerX, backY);
-        }
+        place(targets, byId.get(SocketId.AUXILIARY), centerX, backY);
         return List.copyOf(targets);
     }
 

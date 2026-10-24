@@ -115,16 +115,25 @@ that side and leaves the flanks and rear open. Point guns carry none.
   how a shielded hardpoint is opened, and its silence is the moment to rush it.
 - **Drawn from the sim.** `TurretShieldField` reads the shield (`TurretShieldService`) and
   draws it with the dome shader cut to the arc: strain whitening the field as flux fills,
-  a flare on the rim at each block, a flickering shatter at a break and a ghost rim
-  re-forming during the overload.
-- **Capacitors you can read.** The plinth wears its capacitors (`TurretFluxCapacitors`): a ring of
-  sixteen cells round the head that fill with flux, blue, whitening over the last quarter. Past
-  three quarters they flicker and arcs crackle over the plinth, and the shield arc stutters with
-  them; at a break the cells flash white and dump, the plinth vents vapour and sparks (`TurretFx`),
-  and through the overload they refill in a dim charging tint until the shield can rise. Read off
-  the shield's state and hashed from the tick, so it changes nothing in a battle. Strips along the
-  plinth rim and a projector-ring glow are kept as alternatives
-  (`-Dsnapshot.groundTurrets.capacitors=all` renders all three at 80%).
+  and a flare on the rim at each block. A break plays for under a second (the cells flicker
+  out as shards, the arc narrows into its facing, a ring blows off it) and then nothing is
+  drawn: a broken shield is gone until the overload ends and it is raised again.
+- **Flux hardware you can read.** A shielded hardpoint carries one compact flux device on its
+  plinth's west wall, about one cell by two: a capacitor at the north end ringed by six charge
+  lamps, and a radiator at the south end. Each tech family paints it in its own language
+  (`fluxDevice` on the look): a riveted steel box and three cast fins for low tech, a bolted can
+  and a five-fin skid for midline, a pearl pod and glass fins in a capsule for high tech, from
+  one guide per family (`make_flux_device_guide.py`, `export_flux_device.py`). The device is
+  painted cold and at full charge, and the hot layer is laid over the cold one at the shield's
+  heat (`TurretFluxHeat`); the lamps light one by one in the shield's colour as the capacitor
+  fills, and the radiator gives off the flux haze ships, convoy guns and mechs share
+  (`FluxHaze`), thin at half charge and thick near full. Past three quarters the glow and the
+  last lamp stutter, sparks jump off the capacitor and the arc stutters with it; at a break the
+  radiator blows out vapour (`TurretFx`) and vents the lavender plume through the overload as
+  its lamps go out, and the shield may rise again once it is cold. Drawn only while a shield is
+  fitted, so the low and midline devices wait for those families' shields;
+  `-Dsnapshot.groundTurrets.fluxHardware=brutalist,modular,composite` renders each cold, at 80%
+  and just broken.
 
 `createSnapshots -Psnapshot=ground-turret-look` plays a `shield-<style>` shot for each
 shielded style: a squad with rockets in front of the cannon hardpoint and a rifleman on its
