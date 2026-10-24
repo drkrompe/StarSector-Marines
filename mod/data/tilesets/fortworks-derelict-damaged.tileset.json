@@ -1,0 +1,320 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Parapet collar piece s, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-s@derelict",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Parapet collar piece n, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-n@derelict",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Parapet collar piece e, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-e@derelict",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Parapet collar piece w, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-w@derelict",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Parapet collar piece inner-se, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-inner-se@derelict",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Parapet collar piece inner-sw, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-inner-sw@derelict",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Parapet collar piece inner-ne, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-inner-ne@derelict",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Parapet collar piece inner-nw, derelict look, damaged.",
+      "name": "doodad.fort-emplacement-damaged-inner-nw@derelict",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Barricade piece n, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-n@derelict",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Barricade piece n, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-straight-n@derelict",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Barricade piece s, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-s@derelict",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "Barricade piece s, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-straight-s@derelict",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "Barricade piece w, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-w@derelict",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Barricade piece w, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-straight-w@derelict",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "Barricade piece e, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-e@derelict",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "Barricade piece e, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-straight-e@derelict",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Barricade piece corner-nw, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-corner-nw@derelict",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "Barricade piece corner-nw, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-corner-nw@derelict",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "Barricade piece corner-ne, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-corner-ne@derelict",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "Barricade piece corner-ne, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-corner-ne@derelict",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "Barricade piece corner-sw, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-corner-sw@derelict",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "Barricade piece corner-sw, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-corner-sw@derelict",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "Barricade piece corner-se, derelict look, damaged.",
+      "name": "doodad.fort-sandbag-damaged-corner-se@derelict",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "Barricade piece corner-se, derelict look, damaged.",
+      "name": "doodad.sandbag-damaged-corner-se@derelict",
+      "row": 1
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-s@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-n@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-e@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-w@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-se@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-sw@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-ne@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-nw@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 8,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-n@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-straight-n@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 10,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-s@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 11,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-straight-s@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 12,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-w@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 13,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-straight-w@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 14,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-e@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 15,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-straight-e@derelict",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-corner-nw@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-corner-nw@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-corner-ne@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-corner-ne@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-corner-sw@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-corner-sw@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-damaged-corner-se@derelict",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.sandbag-damaged-corner-se@derelict",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/doodads/fortworks-derelict-damaged.png"
+}

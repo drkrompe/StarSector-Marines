@@ -383,9 +383,12 @@ fittings' factors applied, frozen at launch and read nowhere else. It is what a
 handling come from, so a refit in the middle of a mission is not a thing the sim
 has to have an opinion about. Only the numbers a fitting is about are touched —
 plating scales the hull, the drive scales forward speed and both accelerations,
-a lift cradle sets the lift rating — and turn rate, damping, hardpoints, sprite
-and hull id are the pattern's and are delegated untouched. A better boat is
-faster and tougher, not a different aircraft.
+a lift cradle sets the lift rating, and the door guns are what an air-to-ground
+sortie mounts on her hardpoints in place of the role's kit — and turn rate,
+damping, hardpoint count, sprite and hull id are the pattern's and are delegated
+untouched. A better boat is faster, tougher or better armed, not a different
+aircraft. A gun is mounted on the hull's turret slots before its fixed rails, so
+the one gun a Kite-hulled boat carries sits on her turret.
 
 **Lift.** Every machine a drop carries has a **lift class** — Light, Medium or
 Heavy, its weight class seen from the air (Hound and the heavy APC Light;

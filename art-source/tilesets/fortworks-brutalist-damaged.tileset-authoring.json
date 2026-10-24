@@ -1,0 +1,421 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-s@brutalist",
+      "included": true,
+      "note": "Parapet collar piece s, brutalist look, damaged.",
+      "rect": [
+        393,
+        38,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-n@brutalist",
+      "included": true,
+      "note": "Parapet collar piece n, brutalist look, damaged.",
+      "rect": [
+        393,
+        797,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-e@brutalist",
+      "included": true,
+      "note": "Parapet collar piece e, brutalist look, damaged.",
+      "rect": [
+        16,
+        418,
+        188,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-w@brutalist",
+      "included": true,
+      "note": "Parapet collar piece w, brutalist look, damaged.",
+      "rect": [
+        770,
+        418,
+        188,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-se@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-se, brutalist look, damaged.",
+      "rect": [
+        16,
+        38,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-sw@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, brutalist look, damaged.",
+      "rect": [
+        770,
+        38,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-ne@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, brutalist look, damaged.",
+      "rect": [
+        16,
+        797,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-nw@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, brutalist look, damaged.",
+      "rect": [
+        770,
+        797,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-n@brutalist",
+      "included": true,
+      "note": "Barricade piece n, brutalist look, damaged.",
+      "rect": [
+        1170,
+        32,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-n@brutalist",
+      "included": true,
+      "note": "Barricade piece n, brutalist look, damaged.",
+      "rect": [
+        1170,
+        32,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-s@brutalist",
+      "included": true,
+      "note": "Barricade piece s, brutalist look, damaged.",
+      "rect": [
+        1170,
+        383,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-s@brutalist",
+      "included": true,
+      "note": "Barricade piece s, brutalist look, damaged.",
+      "rect": [
+        1170,
+        383,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-w@brutalist",
+      "included": true,
+      "note": "Barricade piece w, brutalist look, damaged.",
+      "rect": [
+        993,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-w@brutalist",
+      "included": true,
+      "note": "Barricade piece w, brutalist look, damaged.",
+      "rect": [
+        993,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-e@brutalist",
+      "included": true,
+      "note": "Barricade piece e, brutalist look, damaged.",
+      "rect": [
+        1346,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-e@brutalist",
+      "included": true,
+      "note": "Barricade piece e, brutalist look, damaged.",
+      "rect": [
+        1346,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-nw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-nw, brutalist look, damaged.",
+      "rect": [
+        993,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-nw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-nw, brutalist look, damaged.",
+      "rect": [
+        993,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-ne@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-ne, brutalist look, damaged.",
+      "rect": [
+        1346,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-ne@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-ne, brutalist look, damaged.",
+      "rect": [
+        1346,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-sw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-sw, brutalist look, damaged.",
+      "rect": [
+        993,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-sw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-sw, brutalist look, damaged.",
+      "rect": [
+        993,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-se@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-se, brutalist look, damaged.",
+      "rect": [
+        1346,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-se@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-se, brutalist look, damaged.",
+      "rect": [
+        1346,
+        383,
+        177,
+        175
+      ]
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the brutalist emplacement style, damaged state, look 'brutalist': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference, then edited into its damaged state with the intact raw as edit target; prompt art-source/fortworks/prompts/brutalist-damaged.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@brutalist of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/brutalist-damaged.raw.png",
+  "sheetName": "fortworks-brutalist-damaged"
+}

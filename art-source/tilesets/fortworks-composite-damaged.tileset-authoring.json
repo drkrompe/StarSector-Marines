@@ -1,0 +1,421 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-s@composite",
+      "included": true,
+      "note": "Parapet collar piece s, composite look, damaged.",
+      "rect": [
+        390,
+        63,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-n@composite",
+      "included": true,
+      "note": "Parapet collar piece n, composite look, damaged.",
+      "rect": [
+        390,
+        774,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-e@composite",
+      "included": true,
+      "note": "Parapet collar piece e, composite look, damaged.",
+      "rect": [
+        26,
+        419,
+        182,
+        177
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-w@composite",
+      "included": true,
+      "note": "Parapet collar piece w, composite look, damaged.",
+      "rect": [
+        754,
+        419,
+        182,
+        177
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-se@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-se, composite look, damaged.",
+      "rect": [
+        26,
+        63,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-sw@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, composite look, damaged.",
+      "rect": [
+        754,
+        63,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-ne@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, composite look, damaged.",
+      "rect": [
+        26,
+        774,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-nw@composite",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, composite look, damaged.",
+      "rect": [
+        754,
+        774,
+        182,
+        178
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-n@composite",
+      "included": true,
+      "note": "Barricade piece n, composite look, damaged.",
+      "rect": [
+        1165,
+        36,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-n@composite",
+      "included": true,
+      "note": "Barricade piece n, composite look, damaged.",
+      "rect": [
+        1165,
+        36,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-s@composite",
+      "included": true,
+      "note": "Barricade piece s, composite look, damaged.",
+      "rect": [
+        1165,
+        379,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-s@composite",
+      "included": true,
+      "note": "Barricade piece s, composite look, damaged.",
+      "rect": [
+        1165,
+        379,
+        172,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-w@composite",
+      "included": true,
+      "note": "Barricade piece w, composite look, damaged.",
+      "rect": [
+        992,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-w@composite",
+      "included": true,
+      "note": "Barricade piece w, composite look, damaged.",
+      "rect": [
+        992,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-e@composite",
+      "included": true,
+      "note": "Barricade piece e, composite look, damaged.",
+      "rect": [
+        1337,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-straight-e@composite",
+      "included": true,
+      "note": "Barricade piece e, composite look, damaged.",
+      "rect": [
+        1337,
+        207,
+        173,
+        172
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-nw@composite",
+      "included": true,
+      "note": "Barricade piece corner-nw, composite look, damaged.",
+      "rect": [
+        992,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-nw@composite",
+      "included": true,
+      "note": "Barricade piece corner-nw, composite look, damaged.",
+      "rect": [
+        992,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-ne@composite",
+      "included": true,
+      "note": "Barricade piece corner-ne, composite look, damaged.",
+      "rect": [
+        1337,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-ne@composite",
+      "included": true,
+      "note": "Barricade piece corner-ne, composite look, damaged.",
+      "rect": [
+        1337,
+        36,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-sw@composite",
+      "included": true,
+      "note": "Barricade piece corner-sw, composite look, damaged.",
+      "rect": [
+        992,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-sw@composite",
+      "included": true,
+      "note": "Barricade piece corner-sw, composite look, damaged.",
+      "rect": [
+        992,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-damaged-corner-se@composite",
+      "included": true,
+      "note": "Barricade piece corner-se, composite look, damaged.",
+      "rect": [
+        1337,
+        379,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-damaged-corner-se@composite",
+      "included": true,
+      "note": "Barricade piece corner-se, composite look, damaged.",
+      "rect": [
+        1337,
+        379,
+        173,
+        171
+      ]
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the composite emplacement style, damaged state, look 'composite': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference, then edited into its damaged state with the intact raw as edit target; prompt art-source/fortworks/prompts/composite-damaged.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@composite of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/composite-damaged.raw.png",
+  "sheetName": "fortworks-composite-damaged"
+}

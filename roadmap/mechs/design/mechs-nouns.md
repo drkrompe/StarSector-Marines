@@ -1208,7 +1208,9 @@ support sortie, subject only to practical runtime resources.
   drawn as vacant. The build catalog filters on two axes at once, as symbols in
   the strip the parts catalog uses: kind (walkers or vehicles) and weight class (light,
   medium, heavy: rank chevrons on a danger ramp, since weight is how the player reads a
-  machine's threat). Each axis toggles on its own; none chosen lists everything. Gantries order mechs first, then vehicles.
+  machine's threat). Each axis toggles on its own; none chosen lists everything. A pattern's weight class
+  is shown by the same block wherever the pattern is (its catalog row, the pattern card),
+  never as a word. Gantries order mechs first, then vehicles.
 - **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
   presses: the first arms it and says what comes back, the second breaks the machine
   up. Nothing fitted is lost (weapons, internals and the replenisher stay owned and are

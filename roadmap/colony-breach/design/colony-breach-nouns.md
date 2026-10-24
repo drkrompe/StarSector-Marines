@@ -1724,9 +1724,17 @@ bed. **Rav Bloom sound re-uses rather than multiplies** (owner): a new sound
 is first tried as an accepted take of another played at another pitch, which
 also sets its tempo, and ships no audio of its own when that serves; the
 creep bed is the bore-tier ambience slowed, the spine strike the Brute's
-head-ram quickened and its wall hit slowed, drawn from one pool. Each strain's sound is admitted under its own gap and
-footfalls come from the few bodies nearest the listener, so a pack reads as a
-pack, and the swarm is heard only on ground the player has seen. A body's growth
+head-ram quickened and its wall hit slowed, drawn from one pool. **A crowd is heard by layering** (owner, 2026-10-24): several voices of one
+sound play at once, up to that sound's voice count, each quieter the more are
+sounding, so many bodies doing one thing are thicker and somewhat louder than
+one without drowning the fire around them; two voices of one sound never start
+on one tick (the second waits a tick or two), and one body does not repeat
+itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
+the listener, so a pack reads as a pack, and the swarm is heard only on ground
+the player has seen. **A thrown body lands with one thud** whatever threw it
+(owner, 2026-10-24): a marine a Brute tramples, a Matriarch's reap throws or a
+Harrier drops, and a shot Harrier reaching the ground, a little lighter; it is
+the landing body's own sound, posted by that body. A body's growth
 stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
@@ -1740,18 +1748,14 @@ further apart. The Harrier is the other way round, lighter and quicker
 earshot, its one take of its own, cut short from the Runner's clatter and
 levelled so a stroke is heard; the Runner's cry as a screech the moment each
 member's wings fold for the dive, its strike as the bite and its impale as the
-snatch of a marine it lifts, the Brute's body-hit where the throw lands, the
-Runner's yelp when flak hurts it, a Spitter's death shriek played lower as it is
-killed, and a lightened Brute hoof where its fall reaches the ground. It is read
+snatch of a marine it lifts (the throw lands with the body thud), the Runner's
+yelp when flak hurts it, a Spitter's death shriek played lower as it is killed,
+and the body thud, lighter, where its fall reaches the ground. It is read
 off the pack and its falls and throws rather than posted by them, so the flier's
-simulation stays silent. **A pack is heard by layering** (owner, 2026-10-24):
-several voices of one sound play at once, each quieter the more are sounding,
-so ten fliers are a thicker, somewhat louder sound than one without drowning
-the fire around them, and a lone flier's voice is set low for the same reason.
-Each sound's level is set from its borrowed takes' measured loudness, since
-those differ by some 25 dB. Two voices of one sound never start on one tick
-(the second waits a tick or two), and one flier does not repeat itself inside
-its own gap. Timing and jitter run on simulation time and a seed, so a replay
+simulation stays silent. Its pack layers by the crowd rule above, a lone
+flier's voice set low for the same reason, and each sound's level is set from
+its borrowed takes' measured loudness, since those differ by some 25 dB. Timing
+and jitter run on simulation time and a seed, so a replay
 sounds the same and a review can mix its soundtrack from the same rules.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
