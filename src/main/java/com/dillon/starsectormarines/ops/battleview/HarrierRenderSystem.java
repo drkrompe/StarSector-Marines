@@ -56,7 +56,7 @@ public final class HarrierRenderSystem implements RenderSystem {
                 float alpha = ctx.alphaMult * visibility(ctx, vis, m.id);
                 if (alpha <= 0f || !view.visible(m.body.x, m.body.y, 3f)) continue;
                 HarrierPose pose = HarrierPose.of(m, pack.phase());
-                float scale = 1f + ALTITUDE_SCALE_GAIN * m.altitude;
+                float scale = 1f + ALTITUDE_SCALE_GAIN * m.shownAltitude;
                 HarrierBodyComposer.compose(sprites, m, pose.sprite(), m.body.x, m.body.y, scale,
                         (part, x, y, degrees, w, h) -> out.addSprite(RenderLayer.DRONES, part.sprite,
                                 cam.cellToScreenX(x), cam.cellToScreenY(y), w * cellPx, h * cellPx, degrees,
