@@ -276,10 +276,11 @@ class SceneFx:
     # Each round leaves the bore a little off the gun's line, seeded per round (owner, 2026-10-23,
     # S6: the rounds of a burst should fly roughly parallel, not all converge on one point): the
     # aim point scatters by range x tan(SPREAD_DEG), so the spread grows with distance as a gun's does.
-    SPREAD_DEG = .4
+    SPREAD_DEG = .3
     # A gunner's lead is a guess at where she will be: each burst leads by its own error (a share of
     # the flight time), so a moving target slides out from under some bursts and into others.
-    LEAD_ERR = .12
+    # .12 missed 69% of S6b's rounds (verify12); the owner's mark is a third to a half.
+    LEAD_ERR = .07
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
@@ -339,7 +340,7 @@ class SceneFx:
             th = rnd.uniform(0, 2 * math.pi)
             r0 = reach * rnd.uniform(.8, 1.5)
             ph = th + math.pi + rnd.uniform(-.8, .8)
-            r1 = reach * rnd.uniform(-.2, 1.0)
+            r1 = reach * rnd.uniform(-.2, .6)
             walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
                           rnd.gauss(0, self.LEAD_ERR)))
         imp = self.m['swfx_impacts']
