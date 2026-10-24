@@ -67,7 +67,10 @@ public final class InfantryLoadoutRolls {
         return roster;
     }
 
-    /** Builds a local/defender fireteam; elite high-risk regulars field one AMR carrier. */
+    /**
+     * Builds a local/defender fireteam; elite high-risk regulars field one AMR carrier, and their smoke carrier has a
+     * frag on the belt.
+     */
     public static MarineLoadout[] defenderSquad(int capacity, UnitType type,
                                                  RiskLevel risk, Random rng) {
         return defenderSquad(capacity, type, risk, rng, null);
@@ -98,6 +101,11 @@ public final class InfantryLoadoutRolls {
                     armor.moveSpeedMult, armor.incomingAccuracyMult,
                     null, integralSystemOf(armor.id)).withArmorClass(
                     armorClassOf(armor.id));
+            if (i == smokeSlot && resolvedRisk == RiskLevel.HIGH) {
+                // A high-risk squad's smoke carrier has a frag on the belt, the second special slot.
+                SpecialEquipmentDef frag = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
+                roster[i] = roster[i].withBelt(frag.id(), frag.startingAmmo());
+            }
         }
         return roster;
     }
