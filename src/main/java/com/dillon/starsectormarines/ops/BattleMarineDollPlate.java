@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.BodyPart;
+import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SquadMedic;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -33,7 +34,7 @@ import java.util.function.Function;
  * A controlled Marine's doll as a small read-only plate, the counterpart of a machine's
  * {@link BattleDamageDollPlate} and the same size, so the status panel stands beside either in the
  * same place: the {@link MarineDollCanvas} figure, the kit the Marine carries beside it (special
- * equipment, integral system, and the squad's medic kit when this is the medic) with what is left of
+ * equipment in both slots, hand and belt, integral system, and the squad's medic kit when this is the medic) with what is left of
  * each, and two flags beneath, LEG WOUND and ARM WOUND. Display only: it takes no input.
  */
 final class BattleMarineDollPlate {
@@ -42,8 +43,8 @@ final class BattleMarineDollPlate {
     static final String COMPONENT_PATH = "data/ui/components/battle/" + COMPONENT + ".mlx";
     static final float DOCUMENT_WIDTH = BattleDamageDollPlate.DOCUMENT_WIDTH;
     static final float DOCUMENT_HEIGHT = BattleDamageDollPlate.DOCUMENT_HEIGHT;
-    /** Kit rows the plate has room for. */
-    static final int KIT_ROWS = 3;
+    /** Kit rows the plate has room for: two special slots, the integral system and the medic kit. */
+    static final int KIT_ROWS = 4;
 
     private static final String FLAG_OFF = "flag flag-off";
     private static final String FLAG_ON = "flag flag-on";
@@ -95,13 +96,13 @@ final class BattleMarineDollPlate {
             World world = sim.world();
             boolean armored = world.hasArmor(id);
             List<Kit> kit = new ArrayList<>(KIT_ROWS);
-            SpecialEquipmentDef special = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
-            if (special != null) {
-                int left = world.secondaryAmmo(id);
+            for (CarriedSpecials.Slot slot : specialOrder(world, id)) {
+                SpecialEquipmentDef special = CarriedSpecials.spec(world, id, slot);
+                int left = CarriedSpecials.ammo(world, id, slot);
                 kit.add(special.usesAmmunition()
                         ? new Kit(special.displayName(), left + "/" + special.startingAmmo(), left <= 0,
                                 Kit.round(special), left, special.startingAmmo())
-                        : new Kit(special.displayName(), clock(world.secondaryCooldownTimer(id), copy), false));
+                        : new Kit(special.displayName(), clock(CarriedSpecials.cooldown(world, id, slot), copy), false));
             }
             IntegralSystemService systems = sim.integralSystems();
             IntegralSystemDef system = systems.has(id) ? systems.spec(id) : null;
@@ -122,6 +123,25 @@ final class BattleMarineDollPlate {
                     armored ? fraction(world.armor(id), world.maxArmor(id)) : 0f,
                     fraction(world.hp(id), world.maxHp(id)),
                     sim.wounds().wounds(id, BodyPart.ARMS), sim.wounds().wounds(id, BodyPart.LEGS), kit);
+        }
+
+        /**
+         * The slots holding an item, in a fixed order whichever slot an item sits in: anything not thrown first,
+         * then smoke, then a hand grenade. A belt throw swaps its item into the hand and back, and the rows hold
+         * still through it.
+         */
+        static List<CarriedSpecials.Slot> specialOrder(World world, long id) {
+            List<CarriedSpecials.Slot> slots = new ArrayList<>(2);
+            if (!world.hasSecondaryWeapon(id)) return slots;
+            if (world.specialEquipment(id) != null) slots.add(CarriedSpecials.Slot.HAND);
+            if (world.hasBelt(id) && world.beltEquipment(id) != null) slots.add(CarriedSpecials.Slot.BELT);
+            slots.sort((a, b) -> Integer.compare(rank(CarriedSpecials.spec(world, id, a)),
+                    rank(CarriedSpecials.spec(world, id, b))));
+            return slots;
+        }
+
+        private static int rank(SpecialEquipmentDef special) {
+            return special.isSmokeThrow() ? 1 : special.isThrownGrenade() ? 2 : 0;
         }
 
         private static String clock(float remaining, Function<String, String> copy) {

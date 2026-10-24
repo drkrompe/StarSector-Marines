@@ -70,6 +70,9 @@ public record LoadoutCard(Kind kind, String definitionId) {
                 if (issue.specialEquipmentId() != null) {
                     add(ids, EquipmentTemplateCatalog.specialId(issue.specialEquipmentId()));
                 }
+                if (issue.beltEquipmentId() != null) {
+                    add(ids, EquipmentTemplateCatalog.specialId(issue.beltEquipmentId()));
+                }
             }
         } else {
             for (String pattern : ArmorSheetBundles.patternsFor(definitionId)) {

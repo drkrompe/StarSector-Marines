@@ -120,6 +120,40 @@ public final class ImpactDecals {
         sim.addDecal(new Decal(jx, jy, idx, rot, CASING_SCALE_CELLS));
     }
 
+    /**
+     * Lays soot on the ground ahead of a heavy gun's muzzle as a round leaves: a {@link DecalKind#MUZZLE_SCORCH}
+     * fan about {@code lengthCells} long, laid along {@code headingDeg} (degrees, cell space, counter-clockwise from
+     * +x) with its narrow end at the muzzle. Each round's fan is turned and sized a little differently, so a long
+     * engagement builds an irregular mark that darkens as the stamps overlap; once {@link #SCORCH_STACK_CAP} fans lie
+     * round the same spot, further rounds add nothing there, so the ground in front of a gun is never carpeted.
+     */
+    public static void spawnMuzzleScorch(BattleSimulation sim, Random rng, float muzzleX, float muzzleY,
+                                         float headingDeg, float lengthCells) {
+        float rotation = headingDeg + (rng.nextFloat() * 2f - 1f) * SCORCH_SPREAD_DEG;
+        float length = lengthCells * (.9f + rng.nextFloat() * .2f);
+        double radians = Math.toRadians(rotation);
+        float cx = muzzleX + (float) Math.cos(radians) * length * .5f;
+        float cy = muzzleY + (float) Math.sin(radians) * length * .5f;
+        float crowd = lengthCells * SCORCH_CROWD_RADIUS;
+        float crowdSq = crowd * crowd;
+        int count = 0;
+        for (Decal d : sim.getDecals()) {
+            if (d.decalIndex != DecalKind.MUZZLE_SCORCH.index) continue;
+            float dx = d.x - cx;
+            float dy = d.y - cy;
+            if (dx * dx + dy * dy > crowdSq) continue;
+            if (++count >= SCORCH_STACK_CAP) return;
+        }
+        sim.addDecal(new Decal(cx, cy, DecalKind.MUZZLE_SCORCH.index, rotation, length));
+    }
+
+    /** How far either side of the gun's bearing a round's soot fan may lie, in degrees. */
+    private static final float SCORCH_SPREAD_DEG = 6f;
+    /** Fans centred within this share of their length of one another count as the same mark for the cap. */
+    private static final float SCORCH_CROWD_RADIUS = .3f;
+    /** Most soot fans stacked on one spot: enough to darken, too few to blacken. */
+    private static final int SCORCH_STACK_CAP = 5;
+
     /** Visual size of a shell casing in cells. Smaller than other decals — a 9mm next to a marine sprite should read as a fleck, not a log. */
     private static final float CASING_SCALE_CELLS = 0.18f;
     /** Max casings allowed on any single cell — once a marine holds a position long enough to saturate it, new casings drop instead of stacking infinitely. */

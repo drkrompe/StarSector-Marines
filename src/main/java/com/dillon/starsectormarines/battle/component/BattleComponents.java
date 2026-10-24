@@ -355,6 +355,13 @@ public final class BattleComponents {
     /** Carrier-owned smoke point/channel origin; null outside an accepted smoke throw (OBJECT). */
     public static final int SECONDARY_WEAPON_SMOKE_COMMIT = 6;
 
+    /** {@link #BELT} field 0: the stowed {@link com.dillon.starsectormarines.marine.SpecialEquipmentDef} (OBJECT). */
+    public static final int BELT_SPEC = 0;
+    /** {@link #BELT} field 1: uses left on the stowed item (INT). */
+    public static final int BELT_AMMO = 1;
+    /** {@link #BELT} field 2: the stowed item's cooldown, sim-seconds (FLOAT); it drains while stowed. */
+    public static final int BELT_COOLDOWN_TIMER = 2;
+
     /** {@link #INTEGRAL_SYSTEM} field 0: the authoritative {@link com.dillon.starsectormarines.marine.IntegralSystemDef} the worn armour pattern declares (OBJECT). */
     public static final int INTEGRAL_SYSTEM_SPEC = 0;
     /** {@link #INTEGRAL_SYSTEM} field 1: sim-seconds until the system may be activated again (FLOAT); {@code <= 0} = ready. */
@@ -600,6 +607,14 @@ public final class BattleComponents {
     public final ComponentType MECH_GAIT_STATE;
     /** Live-only skeleton of a Rav Bloom Runner: planted feet, sway and spike-arm strikes. */
     public final ComponentType RAV_RIG;
+    /**
+     * Optional second special-item slot, the <b>belt</b>: one stowed thrown item ({@code SpecialEquipmentDef
+     * spec; int ammo; float cooldownTimer}) beside the one in {@link #SECONDARY_WEAPON}. Present iff the unit
+     * was issued one. It has no channel of its own: the item is swapped into the hand for its throw and back
+     * once the hand is idle again ({@code CarriedSpecials}), so every throw runs through the one
+     * {@link #SECONDARY_WEAPON} channel. Removed in the corpse transmute.
+     */
+    public final ComponentType BELT;
     /**
      * Dead-archetype marker, carrying what a lying body needs once the live layered
      * appearance is gone: the facing and body family it died with
@@ -1283,6 +1298,7 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT);
         HULL_LOCATIONS  = world.register(41, "HullLocations", FieldKind.OBJECT);
         RAV_RIG         = world.register(42, "RavRig", FieldKind.OBJECT);
+        BELT            = world.register(43, "Belt", FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

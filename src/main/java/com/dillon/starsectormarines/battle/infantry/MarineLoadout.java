@@ -27,6 +27,9 @@ public final class MarineLoadout {
     public final SoldierProfile soldierProfile;
     public final String specialEquipmentId;
     public final int secondaryAmmo;
+    /** The thrown item in the second special slot, the belt, or null; {@link #withBelt}. */
+    public final String beltEquipmentId;
+    public final int beltAmmo;
     public final String campaignSoldierId;
     public final CampaignSquadTag campaignSquad;
     public final LayeredArmorFamily armorFamily;
@@ -110,6 +113,19 @@ public final class MarineLoadout {
             LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
             float armorMoveSpeedMult, float armorIncomingAccuracyMult,
             CampaignSquadTag campaignSquad, IntegralSystemDef integralSystem, ArmorClass armorClass) {
+        this(role, objective, primaryWeaponId, equipmentGrade, soldierProfile, specialEquipmentId, secondaryAmmo,
+                null, 0, campaignSoldierId, armorFamily, armorCapacity, armorRating, armorMoveSpeedMult,
+                armorIncomingAccuracyMult, campaignSquad, integralSystem, armorClass);
+    }
+
+    private MarineLoadout(UnitRole role, Objective objective, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, int secondaryAmmo, String beltEquipmentId, int beltAmmo,
+            String campaignSoldierId, LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
+            float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+            CampaignSquadTag campaignSquad, IntegralSystemDef integralSystem, ArmorClass armorClass) {
+        this.beltEquipmentId = beltEquipmentId;
+        this.beltAmmo = beltAmmo;
         this.armorClass = armorClass != null ? armorClass : ArmorClass.STANDARD;
         this.integralSystem = integralSystem;
         this.campaignSquad = campaignSquad;
@@ -169,7 +185,7 @@ public final class MarineLoadout {
     /** Copies exact protection identity without consulting presentation or live catalogs. */
     public MarineLoadout withArmorClass(ArmorClass armorClass) {
         return new MarineLoadout(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
-                specialEquipmentId, secondaryAmmo, campaignSoldierId, armorFamily, armorCapacity,
+                specialEquipmentId, secondaryAmmo, beltEquipmentId, beltAmmo, campaignSoldierId, armorFamily, armorCapacity,
                 armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad,
                 integralSystem, armorClass);
     }
@@ -177,9 +193,26 @@ public final class MarineLoadout {
     /** This loadout with its special-equipment slot filled, everything else left as it was. */
     public MarineLoadout withSpecial(String specialId, int ammo) {
         return new MarineLoadout(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
-                specialId, ammo, campaignSoldierId, armorFamily, armorCapacity,
+                specialId, ammo, beltEquipmentId, beltAmmo, campaignSoldierId, armorFamily, armorCapacity,
                 armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad,
                 integralSystem, armorClass);
+    }
+
+    /**
+     * This loadout with its second special slot, the belt, holding {@code beltId} (a thrown item: smoke or a hand
+     * grenade; null empties it), everything else left as it was.
+     */
+    public MarineLoadout withBelt(String beltId, int ammo) {
+        return new MarineLoadout(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, secondaryAmmo, beltId, beltId != null ? ammo : 0, campaignSoldierId, armorFamily,
+                armorCapacity, armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad,
+                integralSystem, armorClass);
+    }
+
+    /** The belt's item, or null; anything that is not a thrown item never rides there. */
+    public SpecialEquipmentDef beltDef() {
+        SpecialEquipmentDef belt = SpecialEquipmentRegistry.get(beltEquipmentId);
+        return belt != null && belt.isThrownItem() ? belt : null;
     }
 
     public WeaponDef primaryDef() {
@@ -202,8 +235,13 @@ public final class MarineLoadout {
             marine.soldierProfile(soldierProfile);
         }
         SpecialEquipmentDef special = specialDef();
-        if (special != null && special.hasAvailableUse(secondaryAmmo)) {
-            marine.specialEquipment(special, secondaryAmmo);
+        boolean handFilled = special != null && special.hasAvailableUse(secondaryAmmo);
+        if (handFilled) marine.specialEquipment(special, secondaryAmmo);
+        SpecialEquipmentDef belt = beltDef();
+        if (belt != null && beltAmmo > 0) {
+            // A belt item with nothing in hand is simply carried in hand.
+            if (handFilled) marine.beltEquipment(belt, beltAmmo);
+            else marine.specialEquipment(belt, beltAmmo);
         }
         marine.campaignSoldierId(campaignSoldierId);
         marine.campaignSquadId(campaignSquad != null ? campaignSquad.squadId : null);

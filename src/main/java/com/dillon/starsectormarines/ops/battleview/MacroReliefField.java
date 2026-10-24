@@ -41,6 +41,12 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  *       lands behind the opening while the full-height wall either side keeps
  *       its shadow. That reads as a shaft through the window, and it costs the
  *       composite nothing — no extra channel and no extra sample.</li>
+ *   <li><b>A plinth is a block of whole tiers.</b> A hardpoint's footprint
+ *       stands {@link CellTopology#getPlinthTiers} tiers of
+ *       {@link #TIER_RISE_METERS} above its ground while the structure stands,
+ *       so the block casts as a wall of that height does, in the same
+ *       direction and at the same reach per metre. Destroyed, the footprint is
+ *       rubble and the plinth is gone.</li>
  * </ul>
  *
  * <h2>What deliberately has no height</h2>
@@ -126,6 +132,8 @@ public final class MacroReliefField {
 
     /** What stands on the ground at {@code (x, y)}, above it. */
     private float standingMeters(int x, int y) {
+        int plinth = topology.getPlinthTiers(x, y);
+        if (plinth > 0) return plinth * TIER_RISE_METERS;
         if (topology.isWall(x, y)) {
             return topology.isWindow(x, y) ? windowSillMeters : wallMeters;
         }
@@ -188,6 +196,7 @@ public final class MacroReliefField {
     public float tallestMeters() {
         float tallest = Math.max(wallMeters, roofMeters);
         tallest = mapping != null ? Math.max(tallest, mapping.tallestMacroHeightMeters()) : tallest;
+        tallest = Math.max(tallest, topology.highestPlinthTiers() * TIER_RISE_METERS);
         return tallest + (elevation != null ? elevation.highestTier() * TIER_RISE_METERS : 0f);
     }
 

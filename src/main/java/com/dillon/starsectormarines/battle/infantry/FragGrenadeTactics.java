@@ -89,14 +89,10 @@ public final class FragGrenadeTactics {
         return true;
     }
 
-    /** Equipment availability for a player's throw: a carried hand grenade with one left and nothing in hand. */
+    /** Equipment availability for a player's throw: a hand grenade, in hand or on the belt, with one left and the hand free. */
     public static boolean canThrow(long carrier, BattleView sim) {
         World world = sim.world();
-        if (!world.isAlive(carrier) || !world.hasSecondaryWeapon(carrier)) return false;
-        SpecialEquipmentDef special = world.specialEquipment(carrier);
-        return special != null && special.isThrownGrenade()
-                && world.secondaryAmmo(carrier) > 0 && world.secondaryActionTimer(carrier) <= 0f
-                && world.secondaryCooldownTimer(carrier) <= 0f;
+        return world.isAlive(carrier) && CarriedSpecials.ready(world, carrier, SpecialEquipmentDef::isThrownGrenade);
     }
 
     /**
@@ -108,11 +104,12 @@ public final class FragGrenadeTactics {
         if (target == null || !Float.isFinite(target.x()) || !Float.isFinite(target.y())
                 || !canThrow(carrier, sim)) return false;
         World world = sim.world();
-        SpecialEquipmentDef grenade = world.specialEquipment(carrier);
+        SpecialEquipmentDef grenade = CarriedSpecials.item(world, carrier, SpecialEquipmentDef::isThrownGrenade);
         float[] point = clampThrow(world.renderX(carrier), world.renderY(carrier), target.x(), target.y(),
                 grenade.range(), sim.getGrid().getWidth(), sim.getGrid().getHeight());
         if (point == null) return false;
         Squad squad = sim.squadOf(carrier);
+        if (!CarriedSpecials.draw(world, carrier, SpecialEquipmentDef::isThrownGrenade)) return false;
         sim.fragGrenades().reserveManual(carrier, squad != null ? squad.id : -1,
                 sim.identity().faction(carrier), point[0], point[1], grenade.aoeRadius());
         world.setSecondaryActionTimer(carrier, grenade.aimDuration());
