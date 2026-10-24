@@ -93,6 +93,11 @@ Presentation only, so a battle plays the same with or without them:
 - **Damage.** A turret below half its structure smokes, faster as it gets worse; below a quarter
   it throws sparks too.
 - **Night light.** The muzzle flash already lights the ground around a turret in the live game.
+- **Plinth shadow.** A hardpoint's plinth is a block of its tiers in the ground relief's height
+  field (`CellTopology.getPlinthTiers` over the footprint, read by `MacroReliefField`), so the sun
+  composite casts it exactly as it casts a wall: same direction, same reach per metre, about five
+  cells from a 4 m plinth at the default sun. The block goes with the structure; its rubble casts
+  nothing.
 
 `createSnapshots -Psnapshot=ground-turret-look` plays a `firing-<style>` shot with all of it.
 
@@ -100,8 +105,6 @@ Presentation only, so a battle plays the same with or without them:
 
 - Incoming fire at a raised gun still meets the low cover round its plinth as if the
   gun stood on the ground.
-- A plinth casts no shadow past its footprint; the renderer needs an overhang margin or a
-  sun-offset shadow layer for it.
 - Missions choose the derelict style (nothing selects it yet).
 - A scorch mark on the ground in front of the heavy cannon: the decal sheet has no scorch frame yet.
 

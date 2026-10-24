@@ -342,6 +342,8 @@ public final class GroundParallaxPipeline {
     private int heightPadCells;
     /** How high the current map's highest tier stands; part of how far a shadow reaches. */
     private float raisedMeters;
+    /** The tallest structure plinth the map has raised, in metres; a hardpoint's block outstands a wall. */
+    private float plinthMeters;
     /** {@link #heightPadCells} in the UI-space units the FBO ortho and the ground passes are drawn in. */
     private float heightPadUi;
 
@@ -427,15 +429,15 @@ public final class GroundParallaxPipeline {
 
     /**
      * How far the sun's march has to reach, in cells, for the tallest surface
-     * the installed mapping can place, standing on the map's highest raised
-     * ground. Also the size of the height target's margin, since an occluder
+     * the installed mapping can place or the tallest plinth the map has raised,
+     * standing on the map's highest raised ground. Also the size of the height target's margin, since an occluder
      * has to be in the texture to cast out of it.
      */
     float shadowRangeCells() {
         if (!sun.casts()) return 0f;
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        float tallest = (mapping != null ? mapping.tallestMacroHeightMeters()
-                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS) + raisedMeters;
+        float tallest = Math.max(mapping != null ? mapping.tallestMacroHeightMeters()
+                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS, plinthMeters) + raisedMeters;
         if (tallest <= 0f) return 0f;
         return clamp(sun.reachCells(tallest), 0f, MAX_SHADOW_RANGE_CELLS);
     }
@@ -474,6 +476,7 @@ public final class GroundParallaxPipeline {
         cellPxUi = Math.max(0.0001f, rc.camera.cellPxSize());
         ElevationMap elevation = rc.sim.getGrid().elevation();
         raisedMeters = elevation == null ? 0f : elevation.highestTier() * MacroReliefField.TIER_RISE_METERS;
+        plinthMeters = rc.sim.getTopology().highestPlinthTiers() * MacroReliefField.TIER_RISE_METERS;
         if (vpW <= 0f || vpH <= 0f) {
             drainColor.run();
             return;
