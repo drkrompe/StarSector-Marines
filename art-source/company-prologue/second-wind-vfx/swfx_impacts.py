@@ -186,8 +186,9 @@ def _flash(ctx, e, seed, radius_m, decay_s, metre_watts, colour=(1.0, .86, .6), 
     if not body:
         return [light]
     if (style or STYLE) == 'jagged':
+        # torn after its first frame like every burst (coordinator, 2026-10-23: no held white anywhere)
         return [light] + _burst(ctx, e, colour, (radius_m * .8, radius_m * 1.2), shrapnel=None, smoke=0,
-                                flash_frames=max(2, int(round(decay_s * FPS * 2))))
+                                flash_frames=max(2, int(round(decay_s * FPS * 2))), tear=True)
     m, nodes, links = node_material(f'{PREFIX} flash body {seed}')
     g = G(m.node_tree)
     strength = value_node(ctx, nodes, 'strength', f'{25.0:.1f}*{env}', ('imp_flash',), extra=_start(e))

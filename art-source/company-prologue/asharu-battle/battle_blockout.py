@@ -2315,6 +2315,32 @@ def blender_main(cfg):
             return Vector(c['loc']), 2.0 * math.atan(18.0 / c['lens'])
         return cam_at
 
+    blob_state = {}
+
+    def white_blob_lint(kf, display, effects_alpha):
+        """blob_lint on a finished span frame: near-white regions the effects own, held too long. The
+        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs."""
+        import blob_lint
+        from bpy_extras.object_utils import world_to_camera_view
+        spec_ = KEYFRAMES[kf]
+        h_, w_ = display.shape[:2]
+        engines = []
+        for key, pl in placed.items():
+            for pos, _d, _r, _s in pl['lib'].get('engines', ()):
+                c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
+                if c.z > 0:
+                    engines.append((c.x * w_, (1.0 - c.y) * h_))
+        span_ = spec_['span_of']
+        st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
+        n_ = int(kf.rsplit('_f', 1)[1])
+        dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
+        rows_, flagged_ = st['lint'].frame(n_, dt, display, effects_alpha, engines)
+        st['last_t'] = spec_['span_t']
+        print(f'ASHARU blob lint {kf}: {len(rows_)} white regions, {len(flagged_)} held'
+              + ''.join(f'; {r_}' for r_ in rows_[:4]), flush=True)
+        if flagged_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+            raise RuntimeError(f'{kf}: a white region holds past a flash (the old HE blob): {flagged_[:3]}')
+
     def cam_view_of(spec):
         """scene frame -> (camera world location, rotation quaternion, lens) along a span's camera
         path, as aim() sets the camera (the motion audit's out-of-frame test)."""
@@ -3198,6 +3224,8 @@ def blender_main(cfg):
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
                                            log=lambda m: print(m, flush=True),
                                            glow=KEYFRAMES.get(kf, {}).get('bloom', 0.0))
+            if cfg.get('swfx') and 'span_t' in KEYFRAMES.get(kf, {}):
+                white_blob_lint(kf, composite_layers.read_png(partial), composite_layers.compose_frame.effects_alpha)
         else:
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
