@@ -29,9 +29,9 @@ final class BoatDollPanel {
     private static final float MARGIN = 18f;
     private static final float GAP_X = 18f;
     private static final float GAP_Y = 30f;
-    /** @see HardpointBricks#BOARD_BRICK_HEIGHT */
-    static final float BRICK_HEIGHT = HardpointBricks.BOARD_BRICK_HEIGHT;
-    static final float BRICK_GAP = HardpointBricks.BOARD_BRICK_GAP;
+    /** @see HardpointBricks#BRICK_HEIGHT */
+    static final float BRICK_HEIGHT = HardpointBricks.BRICK_HEIGHT;
+    static final float BRICK_GAP = HardpointBricks.BRICK_GAP;
     private static final float HEADER = 22f;
     private static final float CAPTION = 22f;
     private static final float SIDE = 12f;
