@@ -98,7 +98,9 @@ final class MarkupBuilder {
                 }
                 case "onclick" -> {
                     requireTag(tag, UiTag.BUTTON, attribute, frame);
-                    target.onClick(handler(attribute, frame));
+                    // Rebound like any other attribute: a keyed row keeps its element when its
+                    // data is replaced, and must then run the new row's handler, not the first one.
+                    reactor.bind(() -> target.onClick(handler(attribute, frame)));
                 }
                 case "sound" -> {
                     requireTag(tag, UiTag.BUTTON, attribute, frame);
@@ -119,7 +121,7 @@ final class MarkupBuilder {
                 }
                 case "oninput" -> {
                     requireTag(tag, UiTag.INPUT, attribute, frame);
-                    target.onInput(inputHandler(attribute, frame));
+                    reactor.bind(() -> target.onInput(inputHandler(attribute, frame)));
                 }
                 case "src" -> {
                     requireTag(tag, UiTag.IMAGE, attribute, frame);

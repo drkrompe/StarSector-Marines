@@ -230,6 +230,44 @@ class MarkupRuntimeTest {
         }
     }
 
+    @Test
+    void aKeptRowRunsItsReplacementDataHandler() {
+        Reactor values = new Reactor();
+        AtomicReference<String> clicked = new AtomicReference<>();
+        MutableSignal<List<Action>> rows = values.signal(List.of(new Action("a", () -> clicked.set("first"))));
+        MarkupLoader loader = loader("action-list.mlx", """
+                <template props="items">
+                  <div id="list">
+                    <button each="item in items" key="{item.id}" id="{item.id}" onclick="{item.act}">Go</button>
+                  </div>
+                </template>
+                """);
+
+        try (MarkupInstance instance = loader.build(values, "action-list", Map.of("items", rows))) {
+            UiElement row = instance.requireElement("a");
+            rows.set(List.of(new Action("a", () -> clicked.set("second"))));
+            instance.flush();
+
+            assertSame(row, instance.requireElement("a"));
+            UiDocument document = new UiDocument(row);
+            document.layout(100f, 40f);
+            document.pointerDown(20f, 20f);
+            document.pointerUp(20f, 20f);
+            assertEquals("second", clicked.get());
+        }
+    }
+
+    private record Action(String id, Runnable act) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "act" -> act;
+                default -> throw new IllegalArgumentException("Unknown action property");
+            };
+        }
+    }
+
     private static MarkupLoader loader(String path, String source) {
         MarkupLoader loader = new MarkupLoader(ignored -> source, List.of(path));
         loader.reload();
