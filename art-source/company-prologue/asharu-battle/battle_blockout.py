@@ -3067,10 +3067,14 @@ def blender_main(cfg):
                     if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
                         raise RuntimeError(f'{kf}: the motion audit failed {len(fails_)} effects, e.g. {fails_[:4]}')
                 if os.environ.get('ASHARU_DIAG_HIDE'):
-                    # diagnosis only: which effect a picture shows, by rendering without it
+                    # diagnosis only: which effect a picture shows, by rendering without it. The pattern
+                    # must match a whole object name (fullmatch), never a substring: 'vent' once hid the
+                    # Wolf's ventral docking lamps and a wreck's scar vents along with the vent it meant.
                     import swfx_core as swfx_core_
                     rx_ = re.compile(os.environ['ASHARU_DIAG_HIDE'])
-                    hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.search(o.name)]
+                    hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.fullmatch(o.name)]
+                    if not hid_:
+                        raise RuntimeError(f"ASHARU_DIAG_HIDE {os.environ['ASHARU_DIAG_HIDE']!r} matches no whole object name")
                     for o in hid_:
                         fc_ = swfx_core_.find_fcurve(o, 'hide_render')
                         if fc_ is not None:
