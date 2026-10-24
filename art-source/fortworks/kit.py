@@ -5,9 +5,6 @@ is painted in one pass, as the works are.
 
   python art-source/fortworks/kit.py guide                  writes guides/kit-guide.png
   python art-source/fortworks/kit.py export <look> <style>  cuts raw/kit-<look>.raw.png into tileset fortworks-<style>-kit
-  python art-source/fortworks/kit.py export <look> <style> <variant>   an owner option's draft: the window slots of
-                                                            raw/kit-<look>-<variant>.raw.png over the look's own raw
-                                                            (re-export without it to restore)
 
 The guide is the base art itself, drawn grey: each piece at its slot, so the painted look keeps the base piece's
 geometry (the channel of a trench meets a cell edge where the base one does, a window sits on the edge it does). The
@@ -177,28 +174,9 @@ def document(look, style, sheet_rel, raw):
             'blocks': list(blocks.values()), 'entries': entries}
 
 
-def variant_raw(look, variant):
-    """The look's raw with the window slots painted from a variant's edit of it, under build/. The edit is asked to
-    change only the windows, but ImageGen repaints the whole sheet and may lose its transparency (the earthwork
-    loophole edit came back with an opaque ground), so only the window slots' colour is taken and every alpha stays
-    the look's own."""
-    own = np.array(Image.open(HERE / 'raw' / ('kit-%s.raw.png' % look)).convert('RGBA'))
-    edit = np.array(Image.open(HERE / 'raw' / ('kit-%s-%s.raw.png' % (look, variant))).convert('RGBA'))
-    margin = 16
-    for col, row, _, fields in slots():
-        if fields.get('kind') != 'window':
-            continue
-        x0, y0, x1, y1 = slot_box(col, row)
-        own[y0 - margin:y1 + margin, x0 - margin:x1 + margin, :3] = edit[y0 - margin:y1 + margin, x0 - margin:x1 + margin, :3]
-    out = ROOT / 'build' / 'fortworks-variant' / ('kit-%s-%s.raw.png' % (look, variant))
-    out.parent.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(own).save(out)
-    return out
-
-
-def export(look, style, variant=None):
+def export(look, style):
     from make_doc import authoring
-    raw = HERE / 'raw' / ('kit-%s.raw.png' % look) if variant is None else variant_raw(look, variant)
+    raw = HERE / 'raw' / ('kit-%s.raw.png' % look)
     name = 'fortworks-%s-kit' % style
     doc = document(look, style, raw.relative_to(ROOT).as_posix(), raw)
     if style not in trim.STYLES:
@@ -222,7 +200,7 @@ def main():
         guide().save(out)
         print('wrote', out)
     elif sys.argv[1] == 'export':
-        export(sys.argv[2], sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else None)
+        export(sys.argv[2], sys.argv[3])
 
 
 if __name__ == '__main__':
