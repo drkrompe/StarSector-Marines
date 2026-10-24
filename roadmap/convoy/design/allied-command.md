@@ -7,7 +7,7 @@ Read `convoy-nouns.md` first; this extends `vehicle-as-commandable-unit.md` to
 the allied side.
 
 Written: 2026-10-22
-Updated: 2026-10-23 — the screened advance moves as one formation and is a fighting advance (owner); bounds dropped
+Updated: 2026-10-23 — refused goals halve the way; a stalled station is retried; hulls set down able to drive out
 
 ## Why
 
@@ -50,11 +50,20 @@ It gives two tasks:
 **A refused place is reached a leg at a time.** A hull that steers wide (an
 APC turns on about twice a car's circle) is refused a long route with one
 corner it cannot make in a single drive, though every leg of it is drivable on
-its own. A refused goal is therefore pulled back to the last corner of the way
-there and asked again; standing at that corner the hull turns on its own and is
-sent on to its post. Where no way is known at all the goal is pulled back a step
-along the straight line instead. Both are bounded, so a hull with nowhere to go
-stays where it is rather than asking for ever.
+its own. A refused goal is therefore pulled back to the corner halfway along the
+way there and asked again, halving at each refusal until a leg is drivable;
+standing at that corner the hull turns on its own and is sent on to its post.
+Where no way is known at all the goal is pulled back a step along the straight
+line instead. Both are bounded, so a hull with nowhere to go stops rather than
+asking every tick; a stationed hull that stopped short of its post is sent to it
+afresh after a pause (`AlliedCommand.STALL_RETRY_TICKS`), because the ground
+changes under it (a machine that stood in its way moves off, a wall comes down).
+
+A mission sets its hulls down where they can drive out: facing the way they
+will go (the chassis heading, 0 at +Y), on ground whose footprint clears
+whichever way the first leg leaves (`TurnAwareCorridor.canSetOutFrom`). A hull
+set down side-on in a narrow road, or with its tail against trees, has every
+route refused at its first pose.
 
 An allied **mech** is stationed the same way: its squad attack-moves to ground
 the mech can stand on at the post, the post pulled back toward the mech a step

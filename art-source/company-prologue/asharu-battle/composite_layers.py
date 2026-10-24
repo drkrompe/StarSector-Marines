@@ -238,6 +238,7 @@ def compose_frame(exr, png, scene, plate=None, backdrop=None, log=print, glow=0.
     if missing:
         raise SystemExit(f'{exr}: no {", ".join(missing)} layer (has {", ".join(layers)})')
     rgba, bg, cover, used = compose(layers, plate, backdrop)
+    compose_frame.effects_alpha = np.clip(layers['effects']['Combined'][..., 3], 0.0, 1.0)     # the white-blob lint's
     if glow:            # a key frame's bloom (its spec's 'bloom'): from the effects layer, over everything
         rgba = rgba.copy()
         rgba[..., :3] += bloom(layers['effects']['Combined'][..., :3], glow)

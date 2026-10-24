@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongPredicate;
 import java.util.SplittableRandom;
 
 /**
@@ -145,6 +146,23 @@ public final class WalkingBarrage {
     public int vetoed() { return vetoed; }
     /** Shells the battery could not fire because none of its guns was left. */
     public int silenced() { return silenced; }
+    /** Shells a dry gun held back, firing rationed. */
+    public int rationed() { return rationed; }
+
+    /** A dry gun fires one shell in this many, as a crew scraping the last rounds together does. */
+    public static final int DRY_RATION = 4;
+    private LongPredicate magazine;
+    private int dryShells;
+    private int rationed;
+
+    /**
+     * Each shell spends a round from its gun through {@code magazine} (the gun's rounds on hand, `GunStock.spend`); a
+     * gun with none left fires rationed, one shell in {@link #DRY_RATION}. Without one the battery never runs dry.
+     */
+    public WalkingBarrage magazine(LongPredicate magazine) {
+        this.magazine = magazine;
+        return this;
+    }
 
     /**
      * Fires every shell from these guns, emplacements of {@code structureId} on
@@ -198,10 +216,16 @@ public final class WalkingBarrage {
                 round.asUnmarked();
                 sim.getCommandPowerService().addFireMission(round);
                 fired++;
-            } else if (launch(sim, x, y, line)) {
-                fired++;
             } else {
-                silenced++;
+                long gun = nearestGun(sim, x, y);
+                if (gun == 0L) {
+                    silenced++;
+                } else if (magazine != null && !magazine.test(gun) && dryShells++ % DRY_RATION != 0) {
+                    rationed++;
+                } else {
+                    launch(sim, gun, x, y, line);
+                    fired++;
+                }
             }
         }
     }
@@ -215,10 +239,8 @@ public final class WalkingBarrage {
         return round;
     }
 
-    /** Fires one round at {@code (x, y)} from the battery's nearest living gun, its sector's; false when none is left. */
-    private boolean launch(BattleSimulation sim, float x, float y, Line line) {
-        long gun = nearestGun(sim, x, y);
-        if (gun == 0L) return false;
+    /** Fires one round at {@code (x, y)} from {@code gun}, the battery's nearest living gun, its sector's. */
+    private void launch(BattleSimulation sim, long gun, float x, float y, Line line) {
         WeaponDef weapon = battery.mount.weapon;
         float gx = sim.world().x(gun), gy = sim.world().y(gun);
         float facing = TurretAim.bearingTo(gx, gy, x, y);
@@ -232,7 +254,6 @@ public final class WalkingBarrage {
         sim.queueProjectile(new Projectile(muzzle.x(), muzzle.y(), x, y, weapon.boostRamp, arc,
                 side, true, flight, round, weapon.id, false));
         sim.postShot(new ShotEvent(gun, muzzle.x(), muzzle.y(), x, y, true, side, flight, battery).withArcHeight(arc));
-        return true;
     }
 
     /** How long a shell aimed at {@code (x, y)} now will be in the air: from the nearest gun, or the plan's fixed flight. */

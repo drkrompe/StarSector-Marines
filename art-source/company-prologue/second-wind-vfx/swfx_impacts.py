@@ -186,8 +186,9 @@ def _flash(ctx, e, seed, radius_m, decay_s, metre_watts, colour=(1.0, .86, .6), 
     if not body:
         return [light]
     if (style or STYLE) == 'jagged':
+        # torn after its first frame like every burst (coordinator, 2026-10-23: no held white anywhere)
         return [light] + _burst(ctx, e, colour, (radius_m * .8, radius_m * 1.2), shrapnel=None, smoke=0,
-                                flash_frames=max(2, int(round(decay_s * FPS * 2))))
+                                flash_frames=max(2, int(round(decay_s * FPS * 2))), tear=True)
     m, nodes, links = node_material(f'{PREFIX} flash body {seed}')
     g = G(m.node_tree)
     strength = value_node(ctx, nodes, 'strength', f'{25.0:.1f}*{env}', ('imp_flash',), extra=_start(e))
@@ -644,19 +645,27 @@ def refine_sparks(ctx, width=.4, streak=.4, count=2.0, prefix='SWFX fire embers'
 
 # ======================================================================================= placing
 
-def ray_to_hull(scene, matrix, origin_m, toward_m, ignore=()):
+def ray_to_hull(scene, matrix, origin_m, toward_m, ignore=(), reach=3.0):
     """Where a round from origin_m toward toward_m (both in the ship's frame, metres) first meets
     geometry, and that surface's normal, back in the ship's frame: (at_m, normal) or None.
-    matrix is the ship's world matrix (metres, as ShipFx.matrix)."""
+    matrix is the ship's world matrix (metres, as ShipFx.matrix). The ray stops `reach` times the
+    origin-to-toward distance out: a round that misses her hull is a miss (None), never a hit on
+    whatever lies behind her (2026-10-23, S7: an aim point just off the Tarsus cast on into the
+    planet, ~400 km below, and the gun was planned onto a point on Asharu)."""
     dg = bpy.context.evaluated_depsgraph_get()
     o = matrix @ Vector(origin_m)
-    d = (matrix @ Vector(toward_m) - o).normalized()
+    end = matrix @ Vector(toward_m)
+    d = (end - o).normalized()
+    left = (end - o).length * reach
     for _ in range(64):            # skip the kit's own volume boxes (a wreck is full of them)
-        ok, loc, nrm, _i, ob, _m = scene.ray_cast(dg, o, d)
+        ok, loc, nrm, _i, ob, _m = scene.ray_cast(dg, o, d, distance=max(left, 1e-3))
         if not ok:
             return None
         if ob is not None and (ob.name.startswith('SWFX') or any(base in ob.name for base in ignore)):
+            left -= (loc - o).length + .05
             o = loc + d * .05
+            if left <= 0:
+                return None
             continue
         inv = matrix.inverted()
         n = (inv.to_3x3() @ nrm).normalized()

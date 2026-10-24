@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.allied.AdvanceRoute;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
@@ -24,6 +25,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
@@ -85,6 +87,8 @@ public final class HeartLanes {
         int machinesHeld;
         /** How many times the lane has called armour up. */
         int calls;
+        /** Contacts the lane's formation has pushed through at the cap with none cleared between: two is stalled. */
+        int pushesRunning;
 
         Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
@@ -362,6 +366,7 @@ public final class HeartLanes {
                 .onStalled(ScreenedAdvance.Stalled.PUSH_THROUGH)
                 .onScreenBroken(ScreenedAdvance.Broken.MAIN_LEADS)
                 .contactTimes(ScreenedAdvance.CONTACT_CLEAR_SECONDS, LANE_CONTACT_HOLD_SECONDS)
+                .beats(key -> lane.pushesRunning = pushesAfter(lane.pushesRunning, key))
                 .build();
     }
 
@@ -469,6 +474,11 @@ public final class HeartLanes {
         return this;
     }
 
+    /** Whether the lanes call their tools from the shed by need, and so advance it each tick. */
+    public boolean callsByNeed() {
+        return byNeed();
+    }
+
     private boolean byNeed() {
         return ARMOUR_BY_NEED && shed != null;
     }
@@ -489,7 +499,7 @@ public final class HeartLanes {
             if (lane == null || from == null) return null;
             int index = lanes.indexOf(lane);
             int hulls = lane.hulls.size();
-            float facing = lane.ground.advancesAlongY() ? (advanceSign >= 0 ? 90f : -90f) : (advanceSign >= 0 ? 0f : 180f);
+            float facing = advanceFacing(lane.ground.advancesAlongY(), advanceSign);
             addArmour(sim, index, VehicleType.BREAKTHROUGH_TANK, from[0], from[1], facing);
             addArmour(sim, index, VehicleType.MILITIA_TECHNICAL, from[0], from[1], facing);
             if (lane.hulls.size() == hulls) return null;
@@ -502,11 +512,26 @@ public final class HeartLanes {
         };
     }
 
+    /** Contacts pushed through in a row that make a lane <b>stalled</b>. */
+    static final int STALL_PUSHES = 2;
+
+    /**
+     * The lane's run of contacts pushed through at the cap after one of its formation's beats: a push adds one,
+     * a contact cleared, a rally or a new step-off ends the run.
+     */
+    static int pushesAfter(int running, String beat) {
+        String key = beat.substring(beat.lastIndexOf('.') + 1);
+        if (key.startsWith("pushed_")) return running + 1;
+        if (key.startsWith("cleared_") || key.equals("rallied") || key.equals("step_off")) return 0;
+        return running;
+    }
+
     /**
      * The lane's call for armour, by need (the Cordon commander's signal names, `cordon-allied-command.md`): a lane
-     * is <b>uncovered</b> when it has fewer machines standing than it has had, or broken when its militia are. It
-     * asks the shed for a pair, never with a pair of its own still on the road; the shed refuses while it has none
-     * in stock or its depot cannot send.
+     * is <b>uncovered</b> when it has fewer machines standing than it has had, broken when its militia are, or
+     * <b>stalled</b> when its formation has pushed through {@link #STALL_PUSHES} contacts in a row without clearing
+     * one. It asks the shed for a pair, never with a pair of its own still on the road; the shed refuses while it
+     * has none in stock or its depot cannot send.
      */
     private void callArmour(BattleSimulation sim, Lane lane, List<String> beats) {
         int standing = 0;
@@ -514,11 +539,12 @@ public final class HeartLanes {
         for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech)) standing++;
         lane.machinesHeld = Math.max(lane.machinesHeld, standing);
         boolean uncovered = standing < lane.machinesHeld;
-        if (!(uncovered || lane.broken) || shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0) return;
+        boolean stalled = lane.pushesRunning >= STALL_PUSHES;
+        if (!(uncovered || lane.broken || stalled) || shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0) return;
         int tx = lane.targetX >= 0 ? lane.targetX : lane.entryX, ty = lane.targetY >= 0 ? lane.targetY : lane.entryY;
         if (shed.onRoad(AlliedTool.MECH_LANCE, place(lane.number)) > 0) return;
         int before = lane.hulls.size() + lane.mechs.size();
-        String reason = uncovered ? "uncovered" : "broken";
+        String reason = uncovered ? "uncovered" : lane.broken ? "broken" : "stalled";
         boolean granted = mechsFirst
                 && shed.request(sim, new AlliedRequest(AlliedTool.MECH_LANCE, place(lane.number), tx, ty, reason));
         if (!granted) granted = shed.request(sim, new AlliedRequest(AlliedTool.ARMOUR_PAIR, place(lane.number), tx, ty, reason));
@@ -526,7 +552,10 @@ public final class HeartLanes {
         // What the lane is to have once its call is up: the pair replaces what it lost.
         lane.machinesHeld = standing + lane.hulls.size() + lane.mechs.size() - before;
         lane.calls++;
+        // The machines answer the stall; the next run of pushes is a new one.
+        if (stalled) lane.pushesRunning = 0;
         beats.add("armour_called_" + lane.number + "_" + lane.calls);
+        if (reason.equals("stalled")) beats.add("lane_stalled_" + lane.number);
     }
 
     /** Whether a machine sent to the lane is alive and still short of its lane's aim. */
@@ -548,6 +577,16 @@ public final class HeartLanes {
 
     /** Cells between neighbouring machines across a lane, and by default how far behind the lane's aim they stand. */
     static final int ARMOUR_SPACING = 5, ARMOUR_BEHIND = 4;
+
+    /**
+     * The chassis heading of the advance ({@code 0} is +Y, counter-clockwise): a hull is set down facing the way its
+     * lane goes. Taken as a math-frame angle it pointed a hull side-on, into the woods or the wall beside a narrow
+     * road, where a hull that turns on a car's circle has no room to come round.
+     */
+    public static float advanceFacing(boolean alongY, int sign) {
+        int s = sign >= 0 ? 1 : -1;
+        return alongY ? AirBody.facingToward(0f, s) : AirBody.facingToward(s, 0f);
+    }
 
     /** Brings a machine on at {@code tick} as {@link #addArmour} sets one down; one with no ground near is dropped. */
     public void scheduleArmour(int tick, int index, VehicleType type, int x, int y, float facing) {
@@ -581,11 +620,15 @@ public final class HeartLanes {
             return true;
         }
         VehicleClearance clearance = clearance(sim, type);
+        // Ground it can set out from whichever way its route leaves; only where there is none near, ground it fits.
         int[] cell = null;
-        for (int r = 0; cell == null && r <= 10; r++)
-            for (int dy = -r; cell == null && dy <= r; dy++) for (int dx = -r; cell == null && dx <= r; dx++)
-                if (Math.max(Math.abs(dx), Math.abs(dy)) == r && clearance.isPassable(x + dx, y + dy)
-                        && clearOfArmour(x + dx + .5f, y + dy + .5f)) cell = new int[]{x + dx, y + dy};
+        for (int pass = 0; cell == null && pass < 2; pass++)
+            for (int r = 0; cell == null && r <= 10; r++)
+                for (int dy = -r; cell == null && dy <= r; dy++) for (int dx = -r; cell == null && dx <= r; dx++)
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) == r && clearance.isPassable(x + dx, y + dy)
+                            && clearOfArmour(x + dx + .5f, y + dy + .5f)
+                            && (pass == 1 || TurnAwareCorridor.canSetOutFrom(x + dx + .5f, y + dy + .5f, type, sim.getGrid())))
+                        cell = new int[]{x + dx, y + dy};
         if (cell == null) return false;
         placed.add(new float[]{cell[0] + .5f, cell[1] + .5f});
         lane.hulls.add(allied.deploy(sim, type, cell[0], cell[1], facing));

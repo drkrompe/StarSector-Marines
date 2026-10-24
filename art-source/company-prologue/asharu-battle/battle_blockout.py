@@ -270,7 +270,7 @@ def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
             math.degrees(math.atan2(m[2][1], m[2][2])), thr)
 
 
-def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None):
+def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None, hold=0.0):
     """A boarding boat (a Hermes) on its run from under its mother craft to a seat on the prize's deck
     (motion.boarding_run). launch_off and seat_off are metres in the mother's and the prize's frames;
     it leaves down and aft from the mother's belly, where the camera cannot see it launch, and comes in
@@ -281,7 +281,7 @@ def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carr
     n = math.hypot(*down_aft)
     args = (aboard(mother, launch_off)[:3], [c / n for c in down_aft], aboard(prize, seat_off)[:3],
             [p[i][0] for i in range(3)], near(prize, seat_off, hd=180.0, thr=0.0), t0, t1)
-    run = Pose(tuple(boarding_run(*args, t)), t, lambda tt: tuple(boarding_run(*args, tt)))
+    run = Pose(tuple(boarding_run(*args, t, hold=hold)), t, lambda tt: tuple(boarding_run(*args, tt, hold=hold)))
     return run if carrier is None else carried(run, carrier)     # the seat moves with the prize
 
 
@@ -325,19 +325,13 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
     # still gaining on the column: speed builds through the shot, so the drives burn
     keys[0]['v'], keys[-1]['v'] = v * .8, v * 1.15
     return fly(key, pose, t, keys, v=v, **kw)
-
-
 # The convoy's escorts work up and down the column (m/s, relative to it): the lead moving up, the
 # rear ones dropping back, so the column reads as a moving formation rather than a parked one.
-ESCORT_DRIFT = {'lasher-lead': (18, 3, 0), 'wolf-m': (-12, 0, 2), 'lasher-a': (10, -4, 0), 'lasher-b': (-15, 3, 0),
-                'hound-m': (-8, -2, 1)}
 
 
 def convoy_at(t):
     """The convoy at t: freighters weaving on station, escorts working along the column."""
-    out = fleet_at({k: v for k, v in CONVOY.items() if k not in ESCORT_DRIFT}, t)
-    out.update({k: station(k, CONVOY[k], t, vel=ESCORT_DRIFT[k]) for k in ESCORT_DRIFT})
-    return out
+    return fleet_at(CONVOY, t)     # escorts too: each moves along her own nose (S4, S6 notes)
 
 
 def track(pose, point, share=1.0, lag=0.0):
@@ -433,17 +427,57 @@ def rejoin_start(t_light, t_next):
 
 
 def rejoined(key, f, t_light):
-    """A launch flight eased onto its REJOIN offset: positions only, her attitude is the launch's."""
+    """A launch flight eased onto its REJOIN offset. The offset moves her; her nose follows where
+    she is actually going, turned from the launch's attitude toward her track by the share of her
+    speed the offset gives her (none at either end of the ease, so every cut keeps its attitude).
+    It used to move positions only, and five S4 hulls crabbed sideways at 30-98 degrees off their
+    noses with their drives at full (owner, 2026-10-23: "ships flying sideways")."""
     if key not in REJOIN:
         return f
     t_next, d = REJOIN[key]
     ta = rejoin_start(t_light, t_next)
+    span = t_next - ta
+
+    def pos(t):
+        p = f.at(t)
+        u = min(1.0, max(0.0, (t - ta) / span))
+        w = u * u * (3 - 2 * u)
+        return p, (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2])
+
+    def want(t):
+        """The nose she should have at t: the launch's, turned toward her track."""
+        p, _ = pos(t)
+        hd0, pt0 = math.radians(p[3]), math.radians(p[4])
+        n0 = (math.cos(pt0) * math.cos(hd0), math.cos(pt0) * math.sin(hd0), math.sin(pt0))
+        u = (t - ta) / span
+        if not 0.0 < u < 1.0:
+            return n0
+        h = .05
+        v = [(pos(t + h)[1][i] - pos(t - h)[1][i]) / (2 * h) for i in range(3)]
+        sp = math.sqrt(sum(c * c for c in v))
+        if sp < 1.0:
+            return n0
+        vo = 6 * u * (1 - u) / span * math.sqrt(sum(c * c for c in d))   # the offset's share of her speed
+        s = min(1.0, vo / sp)
+        s = s * s * (3 - 2 * s)
+        return tuple(n0[i] * (1 - s) + v[i] / sp * s for i in range(3))
 
     def at(t):
-        p = f.at(t)
-        u = min(1.0, max(0.0, (t - ta) / (t_next - ta)))
-        w = u * u * (3 - 2 * u)
-        return (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2], *p[3:])
+        p, q = pos(t)
+        # Her nose comes round over the last 1.5 s of where she should point, not at once: a hull
+        # turns at a hull's rate (a destroyer swung 115 degrees in a second without it).
+        n = [0.0, 0.0, 0.0]
+        for k in range(11):
+            w = 11 - k
+            for i, c in enumerate(want(t - k * .15)):
+                n[i] += c * w
+        ln = math.sqrt(sum(c * c for c in n)) or 1.0
+        n = [c / ln for c in n]
+        if abs(n[2]) > .9999 or max(abs(c) for c in n) < 1e-9:
+            return (*q, *p[3:])
+        hd = _near(p[3], math.degrees(math.atan2(n[1], n[0])))
+        pt = math.degrees(math.asin(max(-1.0, min(1.0, n[2]))))
+        return (*q, hd, pt, *p[5:])
     return Pose(at(f.t), f.t, at)
 
 
@@ -567,7 +601,11 @@ K3D_SHIPS = {
 K3E_T = 77
 K3E_SHIPS = {
     'hound-m': fly('hound-m', (-1500, -150, 110, -160, -25, 110, 1), K3E_T, [
-        dict(t=74, hd=0, pt=2, rl=5, v=160), dict(t=75.5, hd=-85, pt=-10, rl=75),
+        # She has rolled over onto them before the shot opens (72-74 s), so through S6d she is steady enough
+        # for her turret to stay on the first Hound (P) and fire down onto her: rolling over inside the shot
+        # swung the target 40-93 deg/s across her turret and the 5-degree gate held all but 5 late rounds
+        # (owner, 2026-10-23: "I don't see any shots coming out of our hero Hound")
+        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-18, rl=95),
         dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
         hits=recoil([75.8], every=.2, until=77.4) + [dict(t=77.4, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
@@ -588,9 +626,11 @@ K3B_SHIPS = {
     'kite-p-a': held('kite-p-a', K3B_KITE_A, K3B_T, wobble=1.5),
     'kite-p-b': held('kite-p-b', K3B_KITE_B, K3B_T, wobble=1.5),
     # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
-    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 62, 80, K3B_T, carrier=K3B_TARSUS_FLOWN),
-    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 90, K3B_T, carrier=K3B_TARSUS_FLOWN),
-    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81, 99, K3B_T, carrier=K3B_TARSUS_FLOWN),
+    # S7 (80-88 s) sees all three settle: the first holds over her seat and sets down by the key time, the
+    # second brakes in and keeps station through the shot, the third is still on her way in
+    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 64, 86, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=5.0),
+    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 93, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=7.0),
+    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 74, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=6.0),
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
@@ -604,7 +644,7 @@ K3B_SHIPS = {
 K4_T = 95
 K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
     dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
-    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=0.0, wobble=.5, thrust=None,
+    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
@@ -726,12 +766,14 @@ K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K
 
 
 # S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
-# Falcon is hit and her broadside answers, and the Lasher tumbles away
+# Falcon is hit and her broadside answers, and the Lasher tumbles away: a held roll-dominant tumble of
+# about 20 deg/s, what a heavy round off her centre could plausibly give a 90 m frigate in a film (owner,
+# 2026-10-23: the 150 deg/s pinwheel was overdone; physically it would be under 1 deg/s)
 K4B_T = 105
 K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
     dict(t=102, hd=-150, pt=-4, rl=25, v=170), dict(t=103.8, hd=-157, pt=-16, rl=120),
     dict(t=106.6, hd=-163, pt=-25, rl=172), dict(t=110, hd=-170, pt=-30, rl=190, v=130)], v=165,
-    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(150, 50, 60), push=(0, 20, 8), decay=2.5, thr=.1)])
+    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])
 K4B_SHIPS = {
     'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
         dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
@@ -868,7 +910,7 @@ KEYFRAMES = {
     'k3d': dict(
         shot='S6c', title='The column is cut',
         caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
-                'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
+                'raking the Tarsus\'s drives as they pass. The Colossus, the Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
         # TRACKING DOLLY: dropping back along the column at 70 m/s, the Wolves (P) passing the lens
         camera=camera('k3d', [dict(t=66, loc=(120, -800, 105), target=(60, 0, 0), lens=28),
@@ -881,13 +923,16 @@ KEYFRAMES = {
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
             ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
+            # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
+            # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
+            ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
             ('fire_on', 'tarsus', (-40, 0, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
         shot='S6d', title='The rear guard',
-        caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
+        caption='The convoy\'s Hound, rolled over onto two Hounds (P) climbing at her, fires down on the first and kills her at close range '
                 'and takes the second\'s fire full on as she falls back on the column.',
-        # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
+        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
                               for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.4, 1.0)]),
@@ -1024,6 +1069,10 @@ M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'mo
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
 M5_T = 47.0
+# The effects the finished kit (scene_fx) draws; under --swfx none of them falls back to a stand-in.
+KIT_FX = ('tracer', 'missiles', 'blast_on', 'debris', 'fire_on', 'smoke', 'flares')
+
+
 def at_time(pose, t):
     """A flight keyed at another shot's key time, stilled at t instead: the same motion, so a camera
     tracking it and the preview's key frame both register at t."""
@@ -2266,6 +2315,45 @@ def blender_main(cfg):
             return Vector(c['loc']), 2.0 * math.atan(18.0 / c['lens'])
         return cam_at
 
+    blob_state = {}
+
+    def white_blob_lint(kf, display, effects_alpha):
+        """blob_lint on a finished span frame: near-white regions the effects own, held too long. The
+        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs."""
+        import blob_lint
+        from bpy_extras.object_utils import world_to_camera_view
+        spec_ = KEYFRAMES[kf]
+        h_, w_ = display.shape[:2]
+        engines = []
+        for key, pl in placed.items():
+            for pos, _d, _r, _s in pl['lib'].get('engines', ()):
+                c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
+                if c.z > 0:
+                    engines.append((c.x * w_, (1.0 - c.y) * h_))
+        span_ = spec_['span_of']
+        st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
+        n_ = int(kf.rsplit('_f', 1)[1])
+        dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
+        rows_, flagged_ = st['lint'].frame(n_, dt, display, effects_alpha, engines)
+        st['last_t'] = spec_['span_t']
+        print(f'ASHARU blob lint {kf}: {len(rows_)} white regions, {len(flagged_)} held'
+              + ''.join(f'; {r_}' for r_ in rows_[:4]), flush=True)
+        if flagged_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+            raise RuntimeError(f'{kf}: a white region holds past a flash (the old HE blob): {flagged_[:3]}')
+
+    def cam_view_of(spec):
+        """scene frame -> (camera world location, rotation quaternion, lens) along a span's camera
+        path, as aim() sets the camera (the motion audit's out-of-frame test)."""
+        path = spec['camera'].get('at')
+
+        def view(f):
+            c = path(spec['key_t'] + (f - anchor) / fps_s) if path is not None else spec['camera']
+            loc = Vector(c['loc'])
+            d = (Vector(c['target']) - loc) if c.get('target') is not None else Vector(c['look'])
+            q = d.normalized().to_track_quat('-Z', 'Y') @ Quaternion((0, 0, 1), math.radians(c.get('roll', 0.0)))
+            return loc, q, c['lens']
+        return view
+
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
         for i in range(n):
@@ -2856,8 +2944,21 @@ def blender_main(cfg):
             rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
             span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
             span_now['span'] = 'span_t' in spec
-            for key, sp in spec['ships'].items():
-                place(key, sp, spec.get('states', {}).get(key))
+            # The kit is the shot's, not the chunk's: under --kit-once it is built with every ship where
+            # she is as the shot opens, whichever chunk this run renders, so every chunk plans the same
+            # guns, rounds and hits and nothing pops at a chunk boundary (2026-10-23: S7's chunks
+            # planned 0, 5, 5 and 6 rounds for one gun); the ships are then put back at this frame.
+            build_at = spec['shot_t'][0] if (not step and cfg.get('kit_once') and 'span_t' in spec) else None
+            if build_at is not None:
+                span_now['dt'] = build_at - spec['key_t']
+                staged = set(stage.all_objects)
+                for key, sp in KEYFRAMES[spec['span_of']]['ships'].items():
+                    place(key, at_time(sp, build_at) if hasattr(sp, 'at') else sp, spec.get('states', {}).get(key))
+                build_placed = [o for o in stage.all_objects if o not in staged]
+                print(f"ASHARU kit {kf}: built at the shot's opening, {build_at:.3f} s", flush=True)
+            else:
+                for key, sp in spec['ships'].items():
+                    place(key, sp, spec.get('states', {}).get(key))
             if not step:                     # the kit's build: once per run under --kit-once
                 for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
                     if lib.get('ctl') is not None:
@@ -2958,7 +3059,33 @@ def blender_main(cfg):
                 finally:
                     for row in sfx_.rows:
                         print(f'ASHARU kit {kf} {row}', flush=True)
+                if 'span_t' in spec and cfg.get('kit_once'):
+                    import motion_audit      # every effect the kit made, moving as the camera will see it
+                    rows_, fails_ = motion_audit.audit(sfx_, cam_view_of(spec))
+                    for row in rows_:
+                        print(f'ASHARU kit {kf} {row}', flush=True)
+                    if fails_ and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                        raise RuntimeError(f'{kf}: the motion audit failed {len(fails_)} effects, e.g. {fails_[:4]}')
+                if os.environ.get('ASHARU_DIAG_HIDE'):
+                    # diagnosis only: which effect a picture shows, by rendering without it
+                    import swfx_core as swfx_core_
+                    rx_ = re.compile(os.environ['ASHARU_DIAG_HIDE'])
+                    hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.search(o.name)]
+                    for o in hid_:
+                        fc_ = swfx_core_.find_fcurve(o, 'hide_render')
+                        if fc_ is not None:
+                            fc_.mute = True
+                        o.hide_render = True
+                    print(f'ASHARU DIAG hid {len(hid_)} objects matching {rx_.pattern!r}: '
+                          f'{sorted({ship_fx.base_name(o.name)[:40] for o in hid_})[:30]}', flush=True)
                 ship_fx.refresh(scene)
+                bpy.context.view_layer.update()
+            if build_at is not None:     # back to this frame's own poses, before anything else reads them
+                for o in build_placed:
+                    bpy.data.objects.remove(o)
+                span_now['dt'] = spec['span_t'] - spec['key_t']
+                for key, sp in spec['ships'].items():
+                    place(key, sp, spec.get('states', {}).get(key))
                 bpy.context.view_layer.update()
             if not step:
                 built_for[0] = span_of
@@ -2971,6 +3098,11 @@ def blender_main(cfg):
                 if i in kit_drew:
                     continue
                 kind = fx[0]
+                if cfg.get('swfx') and kind in KIT_FX:
+                    # no stand-in under the kit (owner, 2026-10-23, S7: a stand-in stream is a still
+                    # picture of rounds, held for the length of a burst, that no projectile check sees):
+                    # an effect the kit should draw and did not stops the render
+                    raise RuntimeError(f'{kf}: the kit did not draw {fx}, and a kit render draws no stand-ins')
                 if kind == 'tracer':
                     tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None, muzzle=muzzles.get(fx[:3]))
                 elif kind == 'missiles':
@@ -3015,6 +3147,16 @@ def blender_main(cfg):
                 for s_ in ships_fx.values():
                     s_.vacuum()
                 ship_fx.refresh(scene)
+            if 'span_t' in spec and cfg.get('kit_once'):
+                # each ship drawn this frame where the kit's planner has her (the rounds it fired leave
+                # the muzzle there): her placement against her flight evaluated at this frame
+                f_ = anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
+                m_at = ship_matrix_at(spec)
+                worst = max((((placed[k_]['matrix'].translation - m_at(k_, f_).translation).length, k_)
+                             for k_ in placed if hasattr(spec['ships'].get(k_), 'at')), default=(0.0, None))
+                print(f'ASHARU placement {kf}: worst {worst[0] * 100:.2f} cm ({worst[1]}) from the planner', flush=True)
+                if worst[0] > .03 and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                    raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.3f} m from where the kit planned her')
             if 'span_t' in spec:         # a motion span: the effects built at the key instant play on to this one
                 scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
                 print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
@@ -3082,6 +3224,8 @@ def blender_main(cfg):
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
                                            log=lambda m: print(m, flush=True),
                                            glow=KEYFRAMES.get(kf, {}).get('bloom', 0.0))
+            if cfg.get('swfx') and 'span_t' in KEYFRAMES.get(kf, {}):
+                white_blob_lint(kf, composite_layers.read_png(partial), composite_layers.compose_frame.effects_alpha)
         else:
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'

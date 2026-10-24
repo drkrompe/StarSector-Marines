@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierWingbeat;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -28,7 +29,7 @@ class HarrierPoseTest {
         Set<Integer> seen = new HashSet<>();
         int last = -1;
         for (int i = 0; i < 64; i++) {
-            float t = i * HarrierPose.BEAT_SECONDS / 64f;
+            float t = i * HarrierWingbeat.BEAT_SECONDS / 64f;
             int frame = HarrierPose.beatFrame(flight(t, 0.5f, 0f), HarrierPack.Phase.PULL_UP);
             if (frame != last) {
                 assertEquals((last + 1) % HarrierLook.BEAT_FRAMES, frame, "frames advance one at a time");
@@ -42,11 +43,11 @@ class HarrierPoseTest {
     @Test
     void aCruisingBurstStartsAndEndsOnTheGlide() {
         HarrierPack.Phase loiter = HarrierPack.Phase.LOITER;
-        float burst = HarrierPose.LOITER_BEATS * HarrierPose.LOITER_BEAT_SECONDS;
+        float burst = HarrierWingbeat.LOITER_BEATS * HarrierWingbeat.LOITER_BEAT_SECONDS;
         assertEquals(0, HarrierPose.beatFrame(flight(0.001f, 1f, 0f), loiter));
         assertEquals(HarrierLook.BEAT_FRAMES - 1, HarrierPose.beatFrame(flight(burst - 0.001f, 1f, 0f), loiter));
         assertEquals(0, HarrierPose.beatFrame(flight(burst + 0.01f, 1f, 0f), loiter));
-        assertEquals(0, HarrierPose.beatFrame(flight(HarrierPose.GLIDE_CYCLE_SECONDS - 0.01f, 1f, 0f), loiter));
+        assertEquals(0, HarrierPose.beatFrame(flight(HarrierWingbeat.GLIDE_CYCLE_SECONDS - 0.01f, 1f, 0f), loiter));
     }
 
     @Test

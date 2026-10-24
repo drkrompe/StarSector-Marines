@@ -675,6 +675,8 @@ def burst(ctx, coll, prof, what, tag, here, f, mpu, axis=None, rnd=None):
         kw.update(flash=prof['blast'], size_m=(B * .4, B * .55), smoke=.5, light_w=6.0e4, axis=None)
     else:
         raise ValueError(what)
+    if what != 'ignition':      # a warhead tears like an HE shell (owner, 2026-10-23: no held white blob)
+        kw.update(tear=True, smoke_drift=1.2)
     flash = kw.pop('flash')
     return swfx_burst.burst(ctx, coll, f'{what} {tag}', here, f, mpu, rnd, flash, **kw)
 

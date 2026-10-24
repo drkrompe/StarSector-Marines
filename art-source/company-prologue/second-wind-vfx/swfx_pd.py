@@ -550,7 +550,7 @@ def jagged_burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5)
 def _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=False):
     """One canister's burst (jagged_burst in the flak colours)."""
     return jagged_burst(ctx, coll, f'flak {k} f{b.frame:04d}', here, b.frame, mpu, rnd, FLAK['flash'],
-                        light_w=1.5e4 if light else 0.0)
+                        light_w=1.5e4 if light else 0.0, tear=True, smoke_drift=1.2)
 
 def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, style='burst'):
     """Key canister flak on the firing ship (inside its ship.kit()): a dim canister streak from

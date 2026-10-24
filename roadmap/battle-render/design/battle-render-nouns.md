@@ -493,7 +493,13 @@ change the physical crash corridor.
     not per texture. And the set is **bounded by what an image is for** rather
     than by what will fit: an atlas pays where many of its images are on screen
     at once, which a composed body is and a vanilla aircraft hull is not, so an
-    image past a stated size keeps drawing as a whole sprite.
+    image past a stated size is not held whole. It is held at **the size it is
+    drawn**: the largest its draws give it at the camera's closest zoom, filtered
+    down once into its slot, because texels past that are never on screen. A
+    downed pose is 360x520 and is never 75 pixels tall on a 560x336 map; a
+    mother bore is 736 across and reaches 442 on a 400x240 one. Only an image that
+    is big on screen as well (a creep spray drawn larger than the screen) keeps
+    drawing as a whole sprite.
 
     **What the unit layers draw is what the unit atlas holds.** Its membership is
     a rule over draws, not a list: any image drawn in `UNITS` or `UNIT_SHADOWS`
@@ -501,7 +507,8 @@ change the physical crash corridor.
     before the next collect. The list the battle seeds it from only spares the
     first frames a rebuild. A seed list kept by hand was how turret collars and
     downed poses each came to cost a bind per body unnoticed; under the rule the
-    only way out is the size cap, and the atlas report names what it left out.
+    only way out is being too big on screen, and the atlas report names what it
+    left out and how big it was drawn.
     An image first drawn mid-battle goes into rows the plan kept free, so it costs
     one upload rather than a rebuild on the frame a marine first falls.
 
