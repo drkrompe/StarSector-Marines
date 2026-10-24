@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.ops.fitting.PointerDrag;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
+import com.dillon.starsectormarines.ops.fitting.FittingDragGhost;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -26,7 +27,7 @@ import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
-import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechHardware;
 import org.lwjgl.input.Keyboard;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
@@ -99,7 +100,7 @@ public final class MechLabScreen implements Screen {
     private MechLabDollCanvas dollCanvas;
     private UiElement dollElement;
     private UiElement ghostElement;
-    private MechWeaponDragCanvas dragGhost;
+    private final FittingDragGhost dragGhost = new FittingDragGhost();
     private UiElement inventoryDropElement;
     private UiElement returnDropNote;
     /** The board's pointer; the drag holds it, so nothing covers the socket a part is going into. */
@@ -182,7 +183,6 @@ public final class MechLabScreen implements Screen {
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
             ghostElement = candidate.requireElement("mech-drag-ghost");
-            dragGhost = new MechWeaponDragCanvas(this::previewMechs);
             built.canvases().set(ghostElement, dragGhost);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             wireEquipmentPreviews(candidate, built, candidateSheets);
@@ -469,8 +469,11 @@ public final class MechLabScreen implements Screen {
         // Over a socket the socket itself answers (the part drawn in it, or lit as a fit or a
         // refusal); the ghost hanging off the pointer would only cover it.
         if (target != null) dragGhost.clear();
-        else if (drag.component() != null) dragGhost.show(drag.component(), event.x(), event.y());
-        else dragGhost.show(drag.internal(), event.x(), event.y());
+        else if (drag.component() != null) {
+            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.component(), x, y), event.x(), event.y());
+        } else {
+            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.internal(), x, y), event.x(), event.y());
+        }
         document.canvases().invalidate(ghostElement);
         // An installed internal has only its own socket; it can go back to stores and nowhere else.
         boolean valid = target != null && (drag.source() != null
@@ -710,7 +713,7 @@ public final class MechLabScreen implements Screen {
     private void cancelDrag() {
         if (!weaponDrag.active()) return;
         weaponDrag.cancel();
-        if (dragGhost != null) dragGhost.clear();
+        dragGhost.clear();
         if (dollCanvas != null) dollCanvas.clearWeaponDragPreview();
         if (returnDropNote != null) returnDropNote.removeClass("drop-active");
         if (document != null) {

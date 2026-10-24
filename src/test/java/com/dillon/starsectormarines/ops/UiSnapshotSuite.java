@@ -112,7 +112,8 @@ import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechHardwareSheetCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
-import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
+import com.dillon.starsectormarines.ops.fitting.FittingDragGhost;
+import com.dillon.starsectormarines.ops.battleview.MechHardware;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -2840,7 +2841,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             renderRelative(renderer, document, width, height, uiScale);
             instance.requireElement("mech-doll-canvas").fitCanvasToBox();
             if (motionFrames != null) {
-                MechWeaponDragCanvas ghost = new MechWeaponDragCanvas(MechLabDollCanvas::headlessAssets);
+                FittingDragGhost ghost = new FittingDragGhost();
                 UiElement ghostElement = instance.requireElement("mech-drag-ghost");
                 document.canvases().set(ghostElement, ghost);
                 for (int frame = 0; frame < (selectHound ? 44 : 1); frame++) {
@@ -2856,7 +2857,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     // A controlled carried-item pose; the well state above is a preview, not a campaign commit.
                     if (frame >= 12 && frame < 40) {
                         var box = instance.requireElement("mech-doll-canvas").box().contentBox();
-                        ghost.show(frame < 28 ? MechWeaponComponent.SRM_5 : MechWeaponComponent.SINGLE_HEAVY_CANNON,
+                        MechWeaponComponent carried = frame < 28 ? MechWeaponComponent.SRM_5
+                                : MechWeaponComponent.SINGLE_HEAVY_CANNON;
+                        ghost.show((c, x, y) -> MechHardware.drawCarried(c, carried, x, y),
                                 box.x() + box.width() * .82f, box.y() + box.height() * .25f);
                     } else ghost.clear();
                     document.canvases().invalidate(ghostElement);
