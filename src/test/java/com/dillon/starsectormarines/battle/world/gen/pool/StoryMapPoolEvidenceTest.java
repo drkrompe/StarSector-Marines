@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.cordon.CordonFront;
 import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
+import com.dillon.starsectormarines.battle.cordon.CordonGapNests;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -23,6 +25,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -120,6 +123,20 @@ class StoryMapPoolEvidenceTest {
                     gap.west(), gap.east(), gap.widestStep(), gap.holds() ? "" : "!", gap.towerToTower()));
         }
         detail += String.format(Locale.ROOT, "; gaps %s, law %.1f", gaps, CordonGapLaw.LIMIT);
+        StringBuilder nests = new StringBuilder();
+        int added = 0, mouths = 0;
+        CordonGapNests.Ground ground = CordonGapNests.mapGround(cordon.map().grid, cordon.map().topology, Set.of());
+        int front = CordonFront.frontward(cordon.plan());
+        for (int n = 1; n < redoubts.size(); n++) {
+            Laid picket = cordon.map().layout.find(CordonPlan.PICKET_LINE + n + "-" + (n + 1));
+            nests.append(nests.length() == 0 ? "" : "-").append(picket == null ? 0 : picket.nests().size());
+            int k = CordonGapNests.added(picket);
+            added += k;
+            for (int i = picket == null ? 0 : picket.nests().size() - k; k > 0 && i < picket.nests().size(); i++) {
+                if (CordonGapNests.mouth(ground, picket.nests().get(i)[0], picket.nests().get(i)[1], front)) mouths++;
+            }
+        }
+        detail += "; picket nests " + nests + " (" + added + " added for the gaps, " + mouths + " at street mouths)";
         try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD)) {
             if (sim.getCordon() == null) throw new AssertionError("the battle has no cordon");
             StringBuilder guns = new StringBuilder();

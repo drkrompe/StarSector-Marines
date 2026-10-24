@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
@@ -25,6 +26,7 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -212,6 +214,7 @@ public class MarineOpsContext {
                 MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks)
                 .groundedBoats(MarineOpsContext::companyBoatsGrounded)
                 .doorGuns(MarineOpsContext::companyDoorGuns)
+                .vehicles(MarineOpsContext::companyVehicles)
                 .leasedFrom(TextureLedger.shared());
         // The deck laid out again keeps what is on the card rather than unloading it and loading it back.
         if (previous != null) {
@@ -322,6 +325,15 @@ public class MarineOpsContext {
             for (CampaignMech mech : squad.mechs()) lance.add(mech.variant());
         }
         return lance;
+    }
+
+    /** The active squad's vehicles, parked in the berths after its mechs. */
+    private static List<VehicleDeploymentSpec> companyVehicles() {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script == null ? null : script.roster();
+        CampaignMechSquad squad = roster == null ? null : roster.mechBay().activeSquad();
+        if (squad == null) return List.of();
+        return squad.vehicles().stream().map(CampaignVehicle::freezeForDeployment).toList();
     }
 
     /**

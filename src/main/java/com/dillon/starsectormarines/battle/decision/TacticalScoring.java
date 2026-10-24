@@ -51,6 +51,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.LongPredicate;
 import java.util.function.LongUnaryOperator;
 
 /**
@@ -1671,6 +1672,17 @@ public final class TacticalScoring {
      */
     public long closestEnemyInAttackRange(long self, long preferred,
                                           float switchMargin) {
+        return closestEnemyInAttackRange(self, preferred, switchMargin, null);
+    }
+
+    /**
+     * {@link #closestEnemyInAttackRange(long, long, float)} over only the
+     * candidates {@code admit} accepts ({@code null} accepts every one). The
+     * filter is asked after range and line of fire, and only of a candidate
+     * that could change the answer, so an expensive one is paid for rarely.
+     */
+    public long closestEnemyInAttackRange(long self, long preferred,
+                                          float switchMargin, LongPredicate admit) {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
         float selfX = world.x(self);
@@ -1708,6 +1720,7 @@ public final class TacticalScoring {
             if (d >= bestDist && other != preferred) continue;
             if (!canShootPair(grid, selfX, selfY, otherX, otherY,
                     selfAir, vision.targetAirLosRadius(other))) continue;
+            if (admit != null && !admit.test(other)) continue;
             if (other == preferred) preferredDist = d;
             if (d < bestDist) {
                 bestDist = d;

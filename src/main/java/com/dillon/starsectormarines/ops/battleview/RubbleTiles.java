@@ -8,10 +8,13 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 final class RubbleTiles {
     private RubbleTiles() {}
 
-    static GridBlockDef skin(TileRegistry registry, CellTopology.WallRemnant remnant, String defaultWall) {
+    /** {@code look} names the works style of the cell's lot (`fort-works.md`), whose rubble look it draws if any. */
+    static GridBlockDef skin(TileRegistry registry, CellTopology.WallRemnant remnant, String defaultWall, String look) {
         if (registry == null || remnant == null) return null;
         GridBlockDef wall = registry.block(remnant.materialId() == null ? defaultWall : remnant.materialId());
-        return wall == null ? null : registry.block(wall.rubbleBlockId);
+        if (wall == null) return null;
+        GridBlockDef styled = look == null ? null : registry.blockLook(wall.rubbleBlockId, look);
+        return styled != null ? styled : registry.block(wall.rubbleBlockId);
     }
 
     static int[] cell(GridBlockDef skin, CellTopology.WallRemnant remnant) {

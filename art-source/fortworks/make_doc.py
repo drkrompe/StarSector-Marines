@@ -21,6 +21,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 import make_guide as guide  # noqa: E402
+import trim  # noqa: E402
 
 ALPHA = 128
 # Pixels cut off each side of a painted wall tile (about 4% of it).
@@ -48,6 +49,15 @@ def opaque_box(alpha, x0, y0, x1, y1):
     region = alpha[y0:y1, x0:x1] >= ALPHA
     ys, xs = np.nonzero(region)
     return [int(x0 + xs.min()), int(y0 + ys.min()), int(x0 + xs.max() + 1), int(y0 + ys.max() + 1)]
+
+
+def ring_box(alpha):
+    """The barricade ring's box. The guide's ring is square, and the region it is measured in reaches down to the wall
+    tiles' top edge: a raw whose wall tiles came back a little high had its ring measured 60 pixels too tall, so every
+    lower-row cut slid up and the south piece carried a sliver of the wall tile under it. Its height is its width."""
+    box = opaque_box(alpha, 976, 0, 1536, 600)
+    box[3] = min(box[3], box[1] + (box[2] - box[0]))
+    return box
 
 
 def runs(alpha, x0, y0, x1, y1):
@@ -83,7 +93,7 @@ def document(look, style, raw, state=None):
     intact = HERE / 'raw' / (look + '.raw.png')
     alpha = np.array(Image.open(intact).convert('RGBA'))[:, :, 3]
     plate = grid(opaque_box(alpha, 0, 0, 976, 1024), 5)
-    ring = grid(opaque_box(alpha, 976, 0, 1536, 600), 3)
+    ring = grid(ring_box(alpha), 3)
     prefix = '' if state is None else state + '-'
     gone = state == 'destroyed'
     entries = []
@@ -145,8 +155,21 @@ def main():
     state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
     raw = HERE / 'raw' / (look + ('' if state is None else '-' + state) + '.raw.png')
     name = 'fortworks-' + style + ('' if state is None else '-' + state)
-    authoring('tileset_write_document', {'name': name, 'document': document(look, style, raw, state)})
+    doc = document(look, style, raw, state)
+    if style not in trim.STYLES:
+        authoring('tileset_write_document', {'name': name, 'document': doc})
+        authoring('tileset_export', {'name': name})
+        return
+    # The style's grade (trim.py) goes on a copy of the master under build/, which the atlas is cut from; the document
+    # then names the master again, since the copy is regenerated and never tracked.
+    doc['note'] += (' Graded by art-source/fortworks/trim.py at export: export through make_doc.py, never'
+                    ' tileset_export alone, or the atlas ships ungraded.')
+    graded = ROOT / 'build' / 'fortworks-graded' / raw.name
+    graded.parent.mkdir(parents=True, exist_ok=True)
+    trim.graded(Image.open(raw), style).save(graded)
+    authoring('tileset_write_document', {'name': name, 'document': dict(doc, sheet=graded.relative_to(ROOT).as_posix())})
     authoring('tileset_export', {'name': name})
+    authoring('tileset_write_document', {'name': name, 'document': doc})
 
 
 if __name__ == '__main__':

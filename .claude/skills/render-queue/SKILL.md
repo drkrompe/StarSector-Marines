@@ -49,6 +49,50 @@ The queue folder is `G:\My Drive\starsector\render-queue\` on Windows and
   to Windows are unaffected. The coordinator turns it on when the owner says
   good morning and off when they go to bed, alongside `preempt_min_run_seconds`.
 
+### Holding the coordinator role
+
+The standing practice, so a session that takes the role over (a new chat, or
+the same work on another account) runs the queue the way the last one did.
+
+- **Taking over.** Run `status`, read `config.json`, and read the hand-off
+  note `render-queue/COORDINATOR.md` on Drive if the last coordinator left one:
+  it holds what `status` cannot show (who submitted what, what the owner was
+  asked, what is waiting on them). Then schedule a check-in about every half
+  hour (`CronCreate`, at :13 and :43). Check-ins live only in the session that
+  made them, so a new session or account starts without one.
+- **A check-in** runs `status` and acts on what it finds: a failed job, a stale
+  heartbeat (over 15 minutes), a stall, a light-job storm, a Blender the
+  runners did not start. When nothing changed, the report is one line.
+- **Day and night.** "Good morning": `prefer mac` and
+  `preempt_min_run_seconds` 1200. "Going to bed": `prefer off` and 3600, so a
+  final runs at least an hour before a short job can swap it out. The
+  preempt value is a field in `config.json`; edit it there.
+- **Windows is the owner's.** When they say it is under load, `gate windows
+  pause`: the running final swaps out at its next frame and keeps its frames.
+  Its Windows halves and every assembly wait until it opens again. Moving that
+  work to the Mac means cancelling the Windows jobs and resubmitting them
+  pinned to the Mac under new ids; it is only worth it when the Mac's own
+  queue would otherwise run dry.
+- **Assemblies run on Windows.** Drive on the Mac stalls on downloads, so a job
+  that reads a whole frame folder off Drive is pinned to Windows. Restarting
+  Drive on the Mac needs the owner's OK.
+- **Light jobs stay short.** A light job is stopped at 30 minutes and marked
+  failed; at the Mac's 40 s a frame that is about 36 frames. Ask a session
+  that keeps hitting it to resubmit as `review` or cut the frames.
+- **A Blender the runners did not start** holds the queue up
+  (`block_on_foreign_blender`). Ask the session that started it to move it into
+  the queue. One left behind by a session that has finished, the coordinator
+  stops.
+- **Failures** are reported once to the session that submitted the job (or its
+  coordinator), with the reason from `status --job` and where its partial output
+  is.
+- **The owner's calls are pictures.** Anything visual the coordinator wants a
+  decision on goes in front of the owner as renders, and finished previews go
+  on the coordinator's own preview page (see CLAUDE.md's review rules).
+  Artifact pages belong to the account that published them: after an account
+  switch the new session cannot republish the old pages, so it starts its own
+  and says so.
+
 ## Lanes and the gate
 
 | lane | for | gate |

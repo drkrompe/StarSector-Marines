@@ -157,6 +157,8 @@ public class BattleRenderer {
     private QuadBatch urbanBatch;
     private QuadBatch roadBatch;
     private QuadBatch floorsBatch;
+    /** The roof sheet: the streamed roof path draws through it on the frame before the resident mesh serves. */
+    private QuadBatch roofBatch;
     private QuadBatch waterBatch;
     private QuadBatch urbanTile3Batch;
     private QuadBatch natureBatch;
@@ -243,6 +245,9 @@ public class BattleRenderer {
      * it with the rest of the renderer's GPU state.
      */
     private final RoofMesh roofMesh = new RoofMesh();
+    /** Each building's roof style and the cells it covers, shared by the mesh and the stream. */
+    private final RoofPlans roofPlans = new RoofPlans();
+    private final RoofStream roofStream = new RoofStream();
 
     /**
      * The battle's fog, resident as one map-sized alpha texture and patched from
@@ -261,6 +266,8 @@ public class BattleRenderer {
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
+    /** The bodies, lit by {@link #groundLights} or a review's own (law 27). */
+    private final UnitRenderService units;
     /** Barrel smoke, ejected brass and damage smoke off map turrets; fed by the screen with the simulation's shots. */
     private final TurretFx turretFx = new TurretFx(0x7A11E7L);
 
@@ -308,6 +315,9 @@ public class BattleRenderer {
         PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
         this.nightLighting = new NightLightingRenderSystem(sprites);
         this.aircraft = new ShuttleRenderSystem(sprites);
+        this.units = new UnitRenderService(sprites);
+        units.useLights(groundLights);
+        nightLighting.useLights(groundLights);
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
@@ -361,7 +371,7 @@ public class BattleRenderer {
                         out.addCustom(RenderLayer.UNITS, unitAtlas::sync);
                     }
                 }),
-                new UnitRenderService(sprites),
+                units,
                 // Over the bodies, like the health bars: who the medic is and what they are doing.
                 new MedicMarkerRenderSystem(sprites),
                 new SatchelRenderSystem(sprites),
@@ -449,6 +459,8 @@ public class BattleRenderer {
             roadBatch = new QuadBatch(sprites.roadSheet(), sprites.roadSheetPxW(), sprites.roadSheetPxH(), 4096);
         if (floorsBatch == null && sprites.floorsSheet() != null)
             floorsBatch = new QuadBatch(sprites.floorsSheet(), sprites.floorsSheetPxW(), sprites.floorsSheetPxH(), 4096);
+        if (roofBatch == null && sprites.roofSheet() != null)
+            roofBatch = new QuadBatch(sprites.roofSheet(), sprites.roofSheetPxW(), sprites.roofSheetPxH(), 4096);
         if (waterBatch == null && sprites.waterSheet() != null)
             waterBatch = new QuadBatch(sprites.waterSheet(), sprites.waterSheetPxW(), sprites.waterSheetPxH(), 2048);
         if (urbanTile3Batch == null && sprites.urbanTile3Sheet() != null)
@@ -487,6 +499,7 @@ public class BattleRenderer {
         registerBatch(sprites.tileSheet(), urbanBatch);
         registerBatch(sprites.roadSheet(), roadBatch);
         registerBatch(sprites.floorsSheet(), floorsBatch);
+        registerBatch(sprites.roofSheet(), roofBatch);
         registerBatch(sprites.waterSheet(), waterBatch);
         registerBatch(sprites.urbanTile3Sheet(), urbanTile3Batch);
         registerBatch(sprites.natureSheet(), natureBatch);
@@ -646,11 +659,13 @@ public class BattleRenderer {
     public TurretFx getTurretFx() { return turretFx; }
 
     /**
-     * Lights the ground composite from {@code lights} instead of this renderer's own; null restores its own. A
+     * Lights the ground composite and the bodies from {@code lights} instead of this renderer's own; null restores its own. A
      * headless review keeps the presentation state the screen feeds every tick in a feed of its own, lights among it.
      */
     void useGroundLights(GroundLightService lights) {
         groundParallax.useLights(lights != null ? lights : groundLights);
+        units.useLights(lights != null ? lights : groundLights);
+        nightLighting.useLights(lights != null ? lights : groundLights);
     }
 
     /**
@@ -839,43 +854,122 @@ public class BattleRenderer {
      * pass has run, so the frame that builds the mesh also draws the ordinary
      * stream and the mesh serves from the next one. That is one frame of the old
      * cost per battle, and it is what keeps the collector free of GL (law 2).
+     *
+     * <p>What a roof is drawn as is {@link RoofTiles}: each building in its own
+     * {@link RoofStyle}, over its walls, and broken by what hit it. A host
+     * without the roof sheet falls back on paving every floor cell with the
+     * {@code surfaceRender.ROOF} block, as roofs were drawn before they had art
+     * of their own.
      */
     private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {
         Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
-        // Floors sheet is ensured at BattleScreen.attach; collect stays GL-free. Guard covers the not-loaded case.
-        if (sprites.floorsSheet() == null) return;
-        // What a roof is drawn as is a surfaceRender.ROOF mapping question; it
-        // happens to be a floor block, read as paving from above. Variant-pool
-        // block, center pick, (x,y)-hashed. Registry is process-wide/stable for
-        // the battle, so resolve the block once here.
-        GridBlockDef brick = GenMappingRegistry.installedSurfaceBlock(SurfaceRole.ROOF);
-        if (brick == null) return;
-
         CellTopology topology = sim.getTopology();
+        // Sheets are ensured at BattleScreen.attach; collect stays GL-free. Guards cover the not-loaded case.
+        if (sprites.roofSheet() == null) {
+            streamPavedRoofs(sim, out, alphaMult, topology);
+            return;
+        }
         if (rc.hostProfile.residentGroundAllowed()) {
-            RoofMesh.RoofResolver resolver = (x, y, sink) -> {
-                int[] cell = brick.resolve(false, false, false, false, x, y);
-                int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
-                sink.quad(cell[0] * TileManifest.FLOORS_TILE_SIZE + inset,
-                        cell[1] * TileManifest.FLOORS_TILE_SIZE + inset,
-                        TileManifest.FLOORS_TILE_SIZE - 2 * inset,
-                        TileManifest.FLOORS_TILE_SIZE - 2 * inset);
+            RoofMesh.RoofResolver resolver = (building, x, y, sink) -> {
+                RoofPlans.Plan plan = roofPlans.of(topology, buildings, building);
+                RoofTiles.resolve(topology, x, y, plan.style, plan.grainTurns, sink);
             };
             boolean serving = roofMesh.isServing(topology, buildings);
             out.addCustom(RenderLayer.ROOFS, () -> {
-                boolean drawable = roofMesh.sync(topology, buildings, sprites.floorsSheet(),
-                        sprites.floorsSheetPxW(), sprites.floorsSheetPxH(), resolver, alphaMult);
+                boolean drawable = roofMesh.sync(topology, buildings, sprites.roofSheet(),
+                        sprites.roofSheetPxW(), sprites.roofSheetPxH(), resolver, alphaMult);
                 if (drawable && serving) roofMesh.draw(rc.camera);
             });
             if (serving) return;
         }
-        streamRoofs(sim, out, alphaMult, brick, topology);
+        streamRoofs(sim, out, alphaMult, topology);
     }
 
-    /** Every visible roof cell as its own command — the path residency replaces. */
-    private void streamRoofs(BattleSimulation sim, DrawList out, float alphaMult,
-                             GridBlockDef brick, CellTopology topology) {
+    /** Every visible roof cell's pieces as commands of their own — the path residency replaces. */
+    private void streamRoofs(BattleSimulation sim, DrawList out, float alphaMult, CellTopology topology) {
+        Buildings buildings = sim.getBuildings();
+        int gridW = topology.getWidth();
+        VisibleCellRect view = rc.camera.visibleCells(
+                VisibleCellRect.GEOMETRY_MARGIN_CELLS,
+                sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        for (Building b : buildings.all()) {
+            float roofAlpha = b.currentAlpha;
+            if (roofAlpha <= 0.01f) continue;
+            // A roof reaches one cell past its floor, over the walls that carry it.
+            if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
+            RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
+            roofStream.begin(out, b, roofAlpha * alphaMult);
+            for (int at : plan.cells) {
+                int cx = at % gridW;
+                int cy = at / gridW;
+                if (!view.contains(cx, cy)) continue;
+                roofStream.cellX = cx;
+                roofStream.cellY = cy;
+                RoofTiles.resolve(topology, cx, cy, plan.style, plan.grainTurns, roofStream);
+            }
+        }
+    }
+
+    /**
+     * The streamed path's sink: a piece is its frame's rectangle cut from the
+     * sheet, turned onto the cell. The turn is a rotation of the command about
+     * the piece's centre, counter-clockwise on screen, so a clockwise quarter
+     * turn is minus ninety degrees; the source rectangle is the piece seen in
+     * its frame before the turn, so its width and height are the frame's.
+     */
+    private final class RoofStream implements RoofTiles.Sink {
+        private DrawList out;
+        private float r;
+        private float g;
+        private float b;
+        private float a;
+        int cellX;
+        int cellY;
+
+        void begin(DrawList out, Building building, float alpha) {
+            this.out = out;
+            r = RoofTiles.tint(building.tintR);
+            g = RoofTiles.tint(building.tintG);
+            b = RoofTiles.tint(building.tintB);
+            a = alpha;
+        }
+
+        @Override
+        public void quad(int column, int row, int turns, float x0, float y0, float x1, float y1) {
+            float frameW = sprites.roofSheetPxW() / (float) RoofTiles.COLUMNS;
+            float frameH = sprites.roofSheetPxH() / (float) RoofStyle.COUNT;
+            float ua = RoofTiles.frameU(turns, x0, y0);
+            float ub = RoofTiles.frameU(turns, x1, y1);
+            float va = RoofTiles.frameV(turns, x0, y0);
+            float vb = RoofTiles.frameV(turns, x1, y1);
+            float u0 = Math.min(ua, ub);
+            float u1 = Math.max(ua, ub);
+            float v0 = Math.min(va, vb);
+            float v1 = Math.max(va, vb);
+            int srcX = Math.round((column + u0) * frameW);
+            int srcY = Math.round((row + 1f - v1) * frameH);
+            int srcW = Math.max(1, Math.round((column + u1) * frameW) - srcX);
+            int srcH = Math.max(1, Math.round((row + 1f - v0) * frameH) - srcY);
+            float cellPx = rc.camera.cellPxSize();
+            float cx = rc.camera.cellToScreenX(cellX + (x0 + x1) * 0.5f);
+            float cy = rc.camera.cellToScreenY(cellY + (y0 + y1) * 0.5f);
+            out.addSheetQuad(RenderLayer.ROOFS, sprites.roofSheet(),
+                    srcX, srcY, srcW, srcH,
+                    cx, cy, (u1 - u0) * cellPx, (v1 - v0) * cellPx, -90f * (turns & 3),
+                    r, g, b, a);
+        }
+    }
+
+    /**
+     * Roofs paved with the {@code surfaceRender.ROOF} block, one tile per floor
+     * cell, for a host that has the floors sheet but not the roof sheet.
+     */
+    private void streamPavedRoofs(BattleSimulation sim, DrawList out, float alphaMult,
+                                  CellTopology topology) {
+        if (sprites.floorsSheet() == null) return;
+        GridBlockDef brick = GenMappingRegistry.installedSurfaceBlock(SurfaceRole.ROOF);
+        if (brick == null) return;
         Buildings buildings = sim.getBuildings();
         VisibleCellRect view = rc.camera.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,

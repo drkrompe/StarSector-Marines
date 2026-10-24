@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f5d-d694-7ba3-b3c4-0fa1703077a3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f5d-d694-7ba3-b3c4-0fa1703077a3\\exec-70326116-0301-4493-aa5b-e27487e8f685.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\deployed-ceramic-destroyed.raw.png",
+    "sha256": "f41ce07dc87280fda06228a22be44afb5c14fcd7e673f87e52d83af13e9383fc",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\deployed-ceramic-destroyed.prompt.txt",
+  "promptSha256": "09a2b7571abfb4125e7b3b090e254a464a85c37e93c3a22c3781a81559d9a441",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile crossing a cell boundary. Material and style: Tri-Tachyon high-tech deployed kit, field-emplaced armour: modular slabs of MATTE off-white and pale warm-grey ceramic composite armour plate, the same stuff as a Tri-Tachyon warship's hull, with faceted chamfered edges, crisp dark recessed panel seams dividing each slab into large plates, a faint coarse hexagonal ceramic tiling on the plate faces, slight dust and scuffing and a few scorch marks; the slabs stand in dark graphite frames with hinge brackets, locking clamps and short anchor feet where they were set down. Accents are restrained: a thin muted slate-blue stripe or small unit stencil block on some plates and tiny dim status pips, nothing more. NO glow, NO light lines, NO translucent or hard-light panes, NO bright cyan or electric blue, no energy effects: every surface is solid matte ceramic or graphite. The parapet a ring of chamfered ceramic armour slabs in graphite frames on a pale composite deck pad, the wall caps the tops of tall ceramic armour slabs, the barricade a run of low chamfered ceramic slabs on graphite feet. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\deployed-ceramic.raw.png",
+      "sha256": "b0eb004d184ece278d7d42d281a4284d3e85db8898b705611eeba195e2236e92",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one edited sheet, preserving the layout and confining the damage to each piece’s footprint.\n"
+  ],
+  "usage": {
+    "input_tokens": 41446,
+    "cached_input_tokens": 35840,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 496,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.2
+}

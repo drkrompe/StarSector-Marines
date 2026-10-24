@@ -33,6 +33,8 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from export import contact_shadow, masked, plinth_with_shadow  # noqa: E402
+sys.path.insert(0, str(HERE.parent / "fortworks"))
+from trim import graded  # noqa: E402
 
 ROOT = HERE.parent.parent
 OUT = ROOT / "mod" / "graphics" / "structures" / "ground-turrets"
@@ -272,6 +274,9 @@ LOOKS["blockwork"] = _family_look("diktat-export", "militia", "midline", hardpoi
                                   dressed=not (HERE / "raw" / "diktat-export-militia-points2.raw.png").exists())
 LOOKS["composite"] = _family_look("field-emitter", "prepared", "hightech", raw_suffix="-hex")
 LOOKS["deployed"] = _family_look("field-emitter", "militia", "hightech", hardpoint="hardpoint-v2", raw_suffix="-hex")
+# The deployed plinth wears its works' matte ceramic (fortworks `deployed-ceramic`): an edit of the -hex sheet that
+# repainted only the plinth, its hard-light arcs made solid ceramic shells. The heavy head stays the -hex sheet's.
+LOOKS["deployed"]["plinth"] = ("field-emitter-militia-hardpoint-v2-ceramic.raw.png",) + LOOKS["deployed"]["plinth"][1:]
 # Looks cut by registering each piece to its own guide (fit_registered) rather than fitting it onto the brutalist
 # head's box: their guides already hold the pivot and muzzle geometry, and stretching a differently proportioned head
 # onto another head's box moved its ring off the pivot (the owner's "heads not fit right", phase B).
@@ -296,7 +301,8 @@ def export_look(look, reference):
             raw_name, fallback = raw_name.replace("earthwork-", "brutalist-"), True
         image, guide = sheet(raw_name, guide_name)
         fit = fit_registered if look in GUIDE_FIT else fit_object
-        fitted_piece = fit(image, guide, index, box)
+        # A style's grade (fortworks/trim.py) goes on every piece, so its guns are the same stuff as its works.
+        fitted_piece = graded(fit(image, guide, index, box), look)
         if piece.startswith("collar"):
             collar = fitted_piece.resize((PPC, PPC), Image.LANCZOS)
             collar = fill_pit(collar)

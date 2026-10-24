@@ -153,4 +153,10 @@ public enum RoomPurpose {
     HOME_KITCHEN,
     /** Ship deck — holding cells for prisoners taken ashore. */
     BRIG,
+    /**
+     * Fort — a gatehouse tower set into the works' wall either side of a gate, projecting over the approach. A bare
+     * room the garrison fights from: its slits look out of the works and along the wall face, never into the yard,
+     * so it is windowed by the fort rather than by the ordinary facade rule.
+     */
+    GATE_TOWER,
 }

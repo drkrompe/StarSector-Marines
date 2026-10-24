@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointTyp
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+
 import java.awt.Color;
 
 /**
@@ -29,12 +31,13 @@ final class HardpointBricks {
     /** Width over height of one brick: narrower than tall, so even a square footprint stands upright. */
     static final float BRICK_ASPECT = 0.75f;
     /**
-     * One brick's height on a fitting board, the Mech Lab's and the Boat Deck's alike: every
-     * socket on either uses it, so a socket's size follows its capacity and a brick is the
-     * same brick in both rooms.
+     * One brick's height in document pixels, everywhere a brick is drawn: the Mech Lab's and
+     * the Boat Deck's boards, their stores cards, the selected-mount card and a part being
+     * dragged. A part is the same size wherever it is shown, and a socket's size follows its
+     * capacity. Sized so the tallest part, two by three, fits a stores card.
      */
-    static final float BOARD_BRICK_HEIGHT = 46f;
-    static final float BOARD_BRICK_GAP = 2f;
+    static final float BRICK_HEIGHT = 30f;
+    static final float BRICK_GAP = 2f;
 
     private HardpointBricks() { }
 
@@ -68,16 +71,23 @@ final class HardpointBricks {
     }
 
     /**
-     * A brick-stack of {@code columns x rows} centred in the given area, its bricks the size that
-     * would fit {@code scaleColumns x scaleRows} there: every part drawn against the same scale
-     * has the same bricks, so a small part reads smaller rather than as fatter bricks.
+     * A brick-stack of {@code columns x rows} at the one brick size, centred in the given area
+     * of a canvas whose surface {@code metrics} maps to the document: a stores picture or a
+     * mount card draws its part at the size the board does, however its surface is scaled.
      */
-    static Layout fitAtScaleOf(float x, float y, float width, float height, int columns, int rows,
-                               int scaleColumns, int scaleRows, float gap) {
-        Layout scale = fit(x, y, width, height, Math.max(columns, scaleColumns), Math.max(rows, scaleRows), gap);
-        Layout placed = at(0f, 0f, columns, rows, scale.brickHeight(), scale.gap());
-        return at(Math.round(x + (width - placed.width()) * .5f), Math.round(y + (height - placed.height()) * .5f),
-                columns, rows, scale.brickHeight(), scale.gap());
+    static Layout centred(float x, float y, float width, float height, int columns, int rows,
+                          CanvasMetrics metrics) {
+        float scaleX = metrics != null && metrics.scaleX() > 0f ? metrics.scaleX() : 1f;
+        float scaleY = metrics != null && metrics.scaleY() > 0f ? metrics.scaleY() : 1f;
+        columns = Math.max(1, columns);
+        rows = Math.max(1, rows);
+        float brickHeight = BRICK_HEIGHT / scaleY;
+        float brickWidth = Math.round(BRICK_HEIGHT * BRICK_ASPECT) / scaleX;
+        float gap = BRICK_GAP / scaleY;
+        float totalWidth = columns * brickWidth + (columns - 1) * gap;
+        float totalHeight = rows * brickHeight + (rows - 1) * gap;
+        return new Layout(x + (width - totalWidth) * .5f, y + (height - totalHeight) * .5f,
+                columns, rows, brickWidth, brickHeight, gap);
     }
 
     /** The brick-stack box of {@code columns x rows} fitted and centred inside the given area. */

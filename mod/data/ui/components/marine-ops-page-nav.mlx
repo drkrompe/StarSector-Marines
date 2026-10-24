@@ -62,7 +62,9 @@
     text-align: center;
   }
 
-  #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: normal; }
+  #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: nowrap; }
+  /* A room with news widens to hold its badge beside the whole name, rather than break the name. */
+  #marine-ops-page-routes .page-nav-new { flex-grow: 1.45; }
 
   #marine-ops-page-routes .page-nav-current {
     background-color: #183b50;

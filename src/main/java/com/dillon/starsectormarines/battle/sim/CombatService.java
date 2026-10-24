@@ -275,6 +275,26 @@ public final class CombatService {
     public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
 
     /**
+     * Who a trained shooter's queued shot actually goes to, given the one a
+     * behaviour asked for ({@code infantry.LaneRetarget}): asked by
+     * {@link #setFireIntent}, so every behaviour that queues fire obeys the same
+     * rule and the threat it registers is the one the round will go at.
+     */
+    @FunctionalInterface
+    public interface FireRedirect {
+        FireRedirect NONE = (shooter, target) -> target;
+
+        long redirect(long shooter, long target);
+    }
+
+    private FireRedirect fireRedirect = FireRedirect.NONE;
+
+    /** Installs the rule {@link #setFireIntent} applies to a trained shooter's target; {@code null} is none. */
+    public void setFireRedirect(FireRedirect fireRedirect) {
+        this.fireRedirect = fireRedirect != null ? fireRedirect : FireRedirect.NONE;
+    }
+
+    /**
      * Selects the unit's current threat and starts its experience-scaled
      * registration delay when that threat is new. Reasserting the same threat
      * is free, so per-tick target maintenance never restarts the clock.
@@ -361,6 +381,7 @@ public final class CombatService {
      * #fireTargetId} every tick whether or not it fired.
      */
     public void setFireIntent(long id, long targetId, FireStance stance, boolean repositionAfter) {
+        if (targetId != 0L && usesInfantryTraining(id)) targetId = fireRedirect.redirect(id, targetId);
         registerThreat(id, targetId);
         entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_POINT_FIRE_AIM, null);
         entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, targetId);

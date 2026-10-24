@@ -44,6 +44,7 @@ import java.util.function.Function;
  * cannon hardpoint that shoots back and a marine on its flank, for {@code -Dsnapshot.groundTurrets.shieldSeconds=}
  * (twenty by default): the arc rising to face the squad, its blocks, its break and its return, and the flank's rounds
  * going through. {@code -Dsnapshot.groundTurrets.shield=false} leaves it out.
+ * {@code -Dsnapshot.groundTurrets.rake=true} adds a {@code rake-<look>} shot: the hardpoint raking a line of marines.
  *
  * <p>{@code -Dsnapshot.groundTurrets.fluxHardware=brutalist,modular,composite} adds a {@code flux-<style>} shot per
  * style named: three cannon hardpoints with their flux hardware cold, at about 80% and just broken.
@@ -91,6 +92,9 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 artifacts.addAll(LookReview.record(context.modRoot(), shieldUnderFire(look)));
             }
         }
+        if (Boolean.parseBoolean(System.getProperty("snapshot.groundTurrets.rake", "false"))) {
+            for (String look : looks) artifacts.addAll(LookReview.record(context.modRoot(), rake(look)));
+        }
         String hardware = System.getProperty("snapshot.groundTurrets.fluxHardware", "");
         if (!hardware.isBlank()) {
             for (String style : hardware.split(",")) {
@@ -126,7 +130,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear((Float) spot[1], (Float) spot[2]);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, ROLES.get((String) spot[0]), x, y));
+                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, built((String) spot[0], look), x, y));
                 sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, (Float) spot[3]);
@@ -165,7 +169,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear((Float) gun[1], (Float) gun[2]);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                long id = sim.spawn(MapTurret.create("fire" + i++, Faction.DEFENDER, ROLES.get((String) gun[0]), x, y));
+                long id = sim.spawn(MapTurret.create("fire" + i++, Faction.DEFENDER, built((String) gun[0], look), x, y));
                 sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, 90f);
@@ -182,6 +186,37 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         }, placement -> List.of(
                 LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 26f)),
                 firingTicks(), 1, 3).withStills(firingStills());
+    }
+
+    /**
+     * A 40x22 window on arid ground: the cannon hardpoint built in {@code look} at the west, laid north, and a line of
+     * eight marines across open ground twenty cells east of it, north to south (bodies, not squads, so only the gun
+     * fires). Each dies in a few hits, so the gun comes round from one to the next: a beam opens off target and rakes
+     * along the line, scorching the ground it crosses. Played twenty-four seconds at one frame a tick, long enough for a
+     * gun that rests to let its flux bleed to fire, rest and fire again.
+     */
+    private static LookReview.Shot rake(String look) {
+        LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
+        return new LookReview.Shot("rake-" + look, ground, 40, 22, placement -> {
+            SceneBuilder builder = placement.builder();
+            placement.holdouts(builder);
+            BattleSimulation sim = builder.build().sim();
+            float[] at = placement.openNear(11f, 11f);
+            long id = sim.spawn(MapTurret.create("raker", Faction.DEFENDER, built("heavy", look), (int) at[0], (int) at[1]));
+            sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
+            sim.getGrid().setWalkable((int) at[0], (int) at[1], false);
+            sim.turretState().setFacingDegrees(id, 0f);
+            for (int t = 0; t < 8; t++) {
+                float[] cell = placement.openNear(31f, 4f + t * 2f);
+                EntitySpec target = new EntitySpec("line" + t, Faction.MARINE, UnitType.MARINE, (int) cell[0], (int) cell[1]);
+                target.moveSpeed = 0f;
+                target.attackRange = 0f;
+                sim.spawn(target);
+            }
+            return sim;
+        }, placement -> List.of(
+                LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 30f)),
+                Math.round(24f / BattleSimulation.TICK_DT), 1, 3).withStills(90, 250, 420, 600);
     }
 
     /**
@@ -208,7 +243,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             float[] at = placement.openNear(12f, 11f);
             int x = (int) at[0];
             int y = (int) at[1];
-            long id = sim.spawn(MapTurret.create("shielded", Faction.DEFENDER, ROLES.get("heavy"), x, y));
+            long id = sim.spawn(MapTurret.create("shielded", Faction.DEFENDER, built("heavy", look), x, y));
             sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
             sim.getGrid().setWalkable(x, y, false);
             sim.turretState().setFacingDegrees(id, 90f);
@@ -252,7 +287,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear(12f + i * 6f, 11f);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                guns[i] = sim.spawn(MapTurret.create("gun" + i, Faction.DEFENDER, ROLES.get("heavy"), x, y));
+                guns[i] = sim.spawn(MapTurret.create("gun" + i, Faction.DEFENDER, built("heavy", style), x, y));
                 sim.setStructureStyle(guns[i], built);
                 sim.getGrid().setWalkable(x, y, false);
                 if (sim.turretShields().fitted(guns[i]) == null) {
@@ -275,6 +310,14 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 LookReview.View.play(placement.site().x(18f), placement.site().y(11f)),
                 LookReview.View.close("close", placement.site().x(18f), placement.site().y(11f), 22f)),
                 Math.round(1.2f / BattleSimulation.TICK_DT), 1, 1).withStills(Math.round(1f / BattleSimulation.TICK_DT));
+    }
+
+    /**
+     * The structure a post built in {@code look} puts up for {@code role}, as a generated post would
+     * ({@code DefensePost.withStyle}): a high-tech look's guns are lasers.
+     */
+    private static String built(String role, String look) {
+        return TurretCatalogRegistry.requireStructure(ROLES.get(role)).builtIn(EmplacementStyle.valueOf(look.toUpperCase()));
     }
 
     /** A shield's view of where things are, read off {@code sim}'s world. */

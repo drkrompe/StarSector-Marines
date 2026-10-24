@@ -13,13 +13,15 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / 'art-source/fort-buildings'))
+sys.path.insert(0, str(HERE))
 import export as fort  # noqa: E402
+import trim  # noqa: E402
 from PIL import Image  # noqa: E402
 
 
 def main():
     look, style = sys.argv[1], sys.argv[2]
-    im = Image.open(HERE / 'raw' / f'gatehouse-{look}.raw.png').convert('RGBA')
+    im = trim.graded(Image.open(HERE / 'raw' / f'gatehouse-{look}.raw.png').convert('RGBA'), style)
     if im.getextrema()[3][0] != 0:
         raise SystemExit(f'{look}: gatehouse master has no real transparency')
     out = ROOT / 'mod/graphics/fort' / style

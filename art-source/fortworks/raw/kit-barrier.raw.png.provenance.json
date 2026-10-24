@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f28-d20d-7421-a35f-d111bac6261b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f28-d20d-7421-a35f-d111bac6261b\\exec-9d1124e2-78d1-45f8-b049-06697b5e1aa3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\kit-barrier.raw.png",
+    "sha256": "2b5342f8b723308fe276f9c08a222b1b3a622a9d765e53532e6aca398ada9c24",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\kit-barrier.prompt.txt",
+  "promptSha256": "62c22d44ec92833e7a07dac2f85663d53ec0057d411306dee85c7605c761177e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep every piece where and how big it is\nImage 2: Wall, parapet and barricade material reference only; not layout\nImage 3: Material and style reference only; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a 1536x1024 canvas: it is existing game art drawn in plain grey. Reskin every piece into the material of this set, preserving every shape, silhouette, position, size and all transparent empty space exactly: do not move, rescale, rotate, merge, add or remove pieces, and keep every piece inside its own 144-pixel square. Image 2 is the same set's wall, parapet and barricade sheet and image 3 its gun emplacement plinth: MATERIAL AND STYLE REFERENCES ONLY, never layout. Every piece must look built by the same people out of the same stuff as image 2. The guide is an 8 by 6 grid of 160-pixel slots. TOP-LEFT 4x2 SLOTS, OPENINGS seen from directly above, each lying along ONE edge of its square exactly as the guide draws it. The left 2x2 are WINDOWS: a framed window set into a wall line, a frame of the set's wall material round dark, desaturated glass panes split by a mullion; the glass is dark and quiet with at most a faint cool sheen, never bright cyan or blue. The right 2x2 are OPEN DOORWAYS: two narrow jambs of the wall material at the ends and a low threshold strip between them, the passage between them empty and transparent, no door leaves. LOWER-LEFT 4x4 SLOTS, WALL RUBBLE: broken chunks and slabs of the set's wall material lying exactly where the guide's grey chunks lie, the same sizes, with transparent ground between them; no dust clouds, no ground. TOP-RIGHT 4x4 SLOTS, A TRENCH: a dug fighting trench whose lip and revetment are the set's own material (where the guide has a raised lip of bags, give it the set's barricade or parapet facing instead, same width and position), its floor dug earth with a few duckboards where the guide has them. The channel meets each square's edge where the guide's does, and the lip runs to the square's edge there, so neighbouring squares join. BOTTOM-RIGHT 2x4 SLOTS, PROPS: first an anti-tank HEDGEHOG of crossed beams in the set's material; then one VENT PANEL filling its whole square, a flat armoured vent cover in the set's material with the guide's trim line; then six FENCE pieces, thin posts and rails exactly where the guide's run, in the set's fencing (posts and rails, mesh panels or light barrier as fits the set), still thin and see-through. Material and style: Persean League field works assembled on site: collapsible wire-mesh barrier bins lined with grey geotextile and filled with earth, in square cells, ratchet straps, a sun-faded blue tarp lashed over part of the parapet, stacked grey storage cases, slate blue-grey standard fittings; the wall caps the earth tops of two-high stacked mesh barrier bins; the barricade a run of single mesh barrier bins. Straight 90-degree overhead orthographic camera: no perspective tilt, no visible vertical faces beyond the guide's, no cast or drop shadow outside the pieces, no ground outside the guide shapes, no labels, text, letters, numbers, watermark, grid lines or UI marks. Genuine transparent background everywhere the guide is empty (if transparency is impossible, flat pure white). Coarse readable detail that survives being shrunk to about 32 to 64 pixels per square; hand-painted gritty Starsector-like finish, light from the upper left.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\guides\\kit-guide.png",
+      "sha256": "cb6efd4ccde16e1c635acc410a137886f50690418fb6c07f6332816f2a88aa5d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep every piece where and how big it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\barrier.raw.png",
+      "sha256": "8598b0e01c99f75f36386abe15be525f722b9ce29b9c3b97280bf52ce3a9e2cc",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Wall, parapet and barricade material reference only; not layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\mod\\graphics\\structures\\ground-turrets\\barrier\\plinth.png",
+      "sha256": "25037eccdde60ca35c2f036941c13cf3cbd13b9ec91ef96e74b7ac22611d3ab1",
+      "dimensions": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to reskin the guide, preserving its layout and using the other two images only as material references.\n"
+  ],
+  "usage": {
+    "input_tokens": 44812,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 898,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 76.0
+}

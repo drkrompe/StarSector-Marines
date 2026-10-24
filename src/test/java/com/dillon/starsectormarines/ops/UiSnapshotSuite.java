@@ -2504,6 +2504,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return String.valueOf(row.markupProperty("actionClasses")).contains("hidden") ? row.nameId() : row.actionId();
     }
 
+    /** The Boat Deck's refit board alone: its doll fitting and a hardpoint selected. */
+    static List<SnapshotArtifact> renderBoatConsole(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        HeadlessUiRenderer boatRenderer = new HeadlessUiRenderer(
+                new HeadlessBattleSceneRenderer(context.modRoot(), true),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("boat-deck-fitting-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("boat-deck-hardpoint-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)));
+    }
+
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
@@ -2544,6 +2559,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
                 new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
+                new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-apc")),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-internal-engine-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
@@ -2687,6 +2704,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.fitKit(tank.id(), VehicleKit.SPACED_SKIRTS);
             viewModel.gantryRows().get().get(3).select().run();
         }
+        // An up-armoured APC with a spall liner: the seats bay card beside the turret and hull.
+        if ("vehicle-apc".equals(materialHint)) {
+            CampaignVehicle apc = new CampaignVehicle("support_vehicle_04", "Bastion 04", VehicleType.UP_ARMORED_APC);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc);
+            bay.learnPattern(MechPattern.of(VehicleKit.SPALL_LINER).id());
+            bay.addKit(VehicleKit.SPALL_LINER.id, 1);
+            bay.fitKit(apc.id(), VehicleKit.SPALL_LINER);
+            viewModel.gantryRows().get().get(3).select().run();
+        }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.AUXILIARY);
@@ -2707,7 +2733,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
         // would be evidence about a room the player never sees.
-        CompanyDeck ship = companyShip(viewModel::gantryVariants, List::of);
+        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED, null, viewModel::gantryVariants,
+                List::of, () -> null).vehicles(viewModel::gantryVehicles);
+        readied(ship);
+        ship.advance(18f);
         DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
         if (weldingEvidence) seekMachineService(ship, vehicleBay, viewModel.selectedGantryIndex());
         ShipDeckBattleScene.RoomView framing =
@@ -2980,6 +3009,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             .doll(() -> viewModel.doll().get(), () -> 0d));
             BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
                     viewModel.slotRows().get());
+            // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
+            document.layout(width, height);
+            BoatDeckCanvas.fitSurface(instance.requireElement("boat-deck-canvas"));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -3190,6 +3222,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());

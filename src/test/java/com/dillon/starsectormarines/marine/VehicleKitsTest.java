@@ -29,6 +29,7 @@ class VehicleKitsTest {
         assertFalse(VehicleKit.READY_RACK.suits(VehicleType.SUPPLY_TRUCK), "no magazine to extend");
         assertFalse(VehicleKit.SPACED_SKIRTS.suits(VehicleType.MILITIA_TECHNICAL), "no tracks to skirt");
         assertTrue(VehicleKit.SPACED_SKIRTS.suits(VehicleType.BREAKTHROUGH_TANK));
+        assertFalse(VehicleKit.SPACED_SKIRTS.suits(VehicleType.HEAVY_APC), "an APC runs on wheels");
     }
 
     @Test

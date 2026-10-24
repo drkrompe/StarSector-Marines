@@ -35,6 +35,17 @@ class CordonAlliedRulesTest {
     }
 
     @Test
+    void aConvoyIsEscortedOnlyByAWholeEscortAlongside() {
+        assertTrue(CordonAlliedRules.convoyEscorted(3, 3, true));
+        // A hull near a truck that the armour did not send whole: short, and the company walks.
+        assertFalse(CordonAlliedRules.convoyEscorted(3, 1, true));
+        assertFalse(CordonAlliedRules.convoyEscorted(3, 0, true));
+        // Sent but not yet alongside.
+        assertFalse(CordonAlliedRules.convoyEscorted(3, 3, false));
+        assertFalse(CordonAlliedRules.convoyEscorted(0, 0, true));
+    }
+
+    @Test
     void escortsComeOutOfTheSurplusOnePerSector() {
         List<Post> posts = List.of(
                 new Post(1, true, false, 10, 3, true),

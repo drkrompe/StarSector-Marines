@@ -114,7 +114,27 @@ LOOKS = {
         "white and graphite casings with small cyan status lights; the parapet a ring of pylons and hard-light panes "
         "on a deck pad, the wall caps the tops of tall deployed barrier modules; the barricade a run of low pylons "
         "with hard-light panes between them.")),
+    # The owner found the hard-light look too cartoonish ("feels like energy walls"): the deployed kit is ceramic
+    # armour plate in the Paragon's finish (guides/paragon-ceramic-finish.png), set apart from the composite style's
+    # seamless glowing shells by its faceted, seamed, bracketed field panels and by having no light lines at all.
+    'deployed-ceramic': ('deployed', (
+        "Material and style: Tri-Tachyon high-tech deployed kit, field-emplaced armour: modular slabs of MATTE "
+        "off-white and pale warm-grey ceramic composite armour plate, the same stuff as a Tri-Tachyon warship's hull, "
+        "with faceted chamfered edges, crisp dark recessed panel seams dividing each slab into large plates, a faint "
+        "coarse hexagonal ceramic tiling on the plate faces, slight dust and scuffing and a few scorch marks; the slabs "
+        "stand in dark graphite frames with hinge brackets, locking clamps and short anchor feet where they were set "
+        "down. Accents are restrained: a thin muted slate-blue stripe or small unit stencil block on some plates and "
+        "tiny dim status pips, nothing more. NO glow, NO light lines, NO translucent or hard-light panes, NO bright "
+        "cyan or electric blue, no energy effects: every surface is solid matte ceramic or graphite. The parapet a "
+        "ring of chamfered ceramic armour slabs in graphite frames on a pale composite deck pad, the wall caps the tops "
+        "of tall ceramic armour slabs, the barricade a run of low chamfered ceramic slabs on graphite feet.")),
 }
+
+# A look whose material reference is not its style's plinth: the plinth still wears the art the look replaces.
+FINISH = {'deployed-ceramic': (HERE / 'guides/paragon-ceramic-finish.png',
+                               'Finish reference only, a Tri-Tachyon warship hull: matte faceted ceramic armour plates '
+                               'with dark seams. Take its material and restraint; ignore its glowing lines, its beams, '
+                               'the black space and the perspective; not layout')}
 
 
 # The parts of a damage-state edit: what changes, given the look's own material brief.
@@ -170,32 +190,91 @@ GATEHOUSE_CLOSE = (
     "40 pixels per cell; hand-painted Starsector-like finish, light from the upper left.")
 
 
+# The rest of the kit (`kit.py`): openings, rubble, trench, hedgehog, fence and vent ring, painted over the base art drawn
+# grey, with the look's accepted works sheet as the material reference.
+KIT = (
+    "Use case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a "
+    "1536x1024 canvas: it is existing game art drawn in plain grey. Reskin every piece into the material of this set, "
+    "preserving every shape, silhouette, position, size and all transparent empty space exactly: do not move, rescale, "
+    "rotate, merge, add or remove pieces, and keep every piece inside its own 144-pixel square. Image 2 is the same "
+    "set's wall, parapet and barricade sheet and image 3 its gun emplacement plinth: MATERIAL AND STYLE REFERENCES "
+    "ONLY, never layout. Every piece must look built by the same people out of the same stuff as image 2. "
+    "The guide is an 8 by 6 grid of 160-pixel slots. "
+    "TOP-LEFT 4x2 SLOTS, OPENINGS seen from directly above, each lying along ONE edge of its square exactly as the "
+    "guide draws it. The left 2x2 are WINDOWS: a framed window set into a wall line, a frame of the set's wall "
+    "material round dark, desaturated glass panes split by a mullion; the glass is dark and quiet with at most a faint "
+    "cool sheen, never bright cyan or blue. The right 2x2 are OPEN DOORWAYS: two narrow jambs of the wall material at "
+    "the ends and a low threshold strip between them, the passage between them empty and transparent, no door leaves. "
+    "LOWER-LEFT 4x4 SLOTS, WALL RUBBLE: broken chunks and slabs of the set's wall material lying exactly where the "
+    "guide's grey chunks lie, the same sizes, with transparent ground between them; no dust clouds, no ground. "
+    "TOP-RIGHT 4x4 SLOTS, A TRENCH: a dug fighting trench whose lip and revetment are the set's own material (where "
+    "the guide has a raised lip of bags, give it the set's barricade or parapet facing instead, same width and "
+    "position), its floor dug earth with a few duckboards where the guide has them. The channel meets each square's "
+    "edge where the guide's does, and the lip runs to the square's edge there, so neighbouring squares join. "
+    "BOTTOM-RIGHT 2x4 SLOTS, PROPS: first an anti-tank HEDGEHOG of crossed beams in the set's material; then one VENT "
+    "PANEL filling its whole square, a flat armoured vent cover in the set's material with the guide's trim line; then "
+    "six FENCE pieces, thin posts and rails exactly where the guide's run, in the set's fencing (posts and rails, mesh "
+    "panels or light barrier as fits the set), still thin and see-through. ")
+KIT_CLOSE = (
+    " Straight 90-degree overhead orthographic camera: no perspective tilt, no visible vertical faces beyond the "
+    "guide's, no cast or drop shadow outside the pieces, no ground outside the guide shapes, no labels, text, letters, "
+    "numbers, watermark, grid lines or UI marks. Genuine transparent background everywhere the guide is empty (if "
+    "transparency is impossible, flat pure white). Coarse readable detail that survives being shrunk to about 32 to "
+    "64 pixels per square; hand-painted gritty Starsector-like finish, light from the upper left.")
+
+def material(look, style):
+    """The look's material reference: its finish reference if it has one, else its style's turret plinth."""
+    if look in FINISH:
+        return '%s=%s' % FINISH[look]
+    return '%s=Material and style reference only; not layout' % (TURRETS / style / 'plinth.png')
+
+
+def finish_brief(text):
+    """A brief whose material reference is a finish reference rather than the set's plinth, told so."""
+    text = text.replace(
+        "Image 2 is the gun emplacement plinth of the same set: a MATERIAL AND STYLE REFERENCE ONLY. Match its "
+        "materials, colours, painting finish and level of detail; do not copy its layout, its stair, its gun well or "
+        "its shadow.",
+        "Image 2 is a FINISH REFERENCE ONLY, a warship hull: take its matte ceramic armour plate, dark seams and "
+        "restraint; do not copy its layout, shapes, glowing lines, beams, perspective or black background.")
+    return text.replace("and image 3 its gun emplacement plinth:", "and image 3 a finish reference (a warship hull):")
+
+
 def main():
     look = sys.argv[1]
     dry = '--dry' in sys.argv
     state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
     gatehouse = '--gatehouse' in sys.argv
+    kit = '--kit' in sys.argv
     style, brief = LOOKS[look]
-    name = ('gatehouse-' + look) if gatehouse else look if state is None else look + '-' + state
+    name = ('kit-' + look) if kit else ('gatehouse-' + look) if gatehouse else look if state is None else look + '-' + state
     prompt = HERE / 'prompts' / (name + '.prompt.txt')
     raw = HERE / 'raw' / (name + '.raw.png')
     prompt.parent.mkdir(exist_ok=True)
     raw.parent.mkdir(exist_ok=True)
-    if gatehouse:
+    if kit:
+        prompt.write_text(KIT + brief + KIT_CLOSE + '\n', encoding='utf-8')
+        refs = ['%s=Geometry authority and edit target: keep every piece where and how big it is'
+                % (HERE / 'guides/kit-guide.png'),
+                '%s=Wall, parapet and barricade material reference only; not layout' % (HERE / 'raw' / (look + '.raw.png')),
+                material(look, style)]
+    elif gatehouse:
         prompt.write_text(GATEHOUSE + brief + GATEHOUSE_CLOSE + '\n', encoding='utf-8')
         refs = ['%s=Geometry authority and edit target: keep every panel where and how big it is'
                 % (ROOT / 'art-source/templates/fort-buildings-gatehouse-guide.png'),
                 '%s=Wall material reference only; not layout' % (HERE / 'raw' / (look + '.raw.png')),
-                '%s=Material and style reference only; not layout' % (TURRETS / style / 'plinth.png')]
+                material(look, style)]
     elif state is None:
         prompt.write_text(LAYOUT + brief + CLOSE + '\n', encoding='utf-8')
         refs = ['%s=Geometry/layout authority and edit target: keep every piece where and how big it is'
                 % (HERE / 'guides/works-guide.png'),
-                '%s=Material and style reference only; not layout' % (TURRETS / style / 'plinth.png')]
+                material(look, style)]
     else:
         prompt.write_text(STATE_OPEN + STATES[state] + brief + ' ' + STATE_CLOSE + '\n', encoding='utf-8')
         refs = ['%s=The intact sheet: geometry authority and edit target; change only the surface'
                 % (HERE / 'raw' / (look + '.raw.png'))]
+    if look in FINISH:
+        prompt.write_text(finish_brief(prompt.read_text(encoding='utf-8')), encoding='utf-8')
     if raw.exists():
         print('exists, not regenerating:', raw)
         return

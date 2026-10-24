@@ -4,7 +4,7 @@ Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the l
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — town and city redoubts and the city base are built from a mix of constructions.
+Updated: 2026-10-24 — the gap law is closed with picket nests and is acceptance.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -44,13 +44,15 @@ A line drawn across country by someone who has had weeks to choose:
   against twice the heavy machine gun's range plus its spread and splash at
   each end (53.6 cells). Redoubts stand a quarter of the map apart, a hundred
   and more cells, so the towers alone never meet and the nests carry the law.
-  It is a reading in the pools' report, not acceptance: on the maps as laid
-  most lines break it somewhere (a road gap or a long redoubt lawn leaves a
-  step of 55 to 100 cells), and closing it means more guns or closer redoubts,
-  which is a balance decision for the owner.
+  The owner closed it with more picket nests (2026-10-24): once the redoubts
+  are built, every pair still breaking it gets nests along the line until no
+  step is over the law, on the crest in open country and at street mouths in
+  a town or a city, where a gun sees down the street rather than into a wall
+  (`cordon-nouns.md`, Picket line). It is acceptance: a map whose line still
+  breaks it is not a Cordon map.
 - **A picket line between them.** A trench with wire in front runs redoubt to
   redoubt along the crest, broken where roads pass (the gaps). Nests stand at
-  each end of a course.
+  each end of a course, and more wherever the gap law needs one.
 - **A switch line behind.** A second, shorter trench behind the middle of the
   line, unmanned at the start: where a garrison falls back to (beat L3).
 - **Supply roads.** A road from the logistics base to the rear gate of each

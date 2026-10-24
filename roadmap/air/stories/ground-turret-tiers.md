@@ -78,7 +78,8 @@ is approved; every look step is shown to the owner as renders.
    launcher and both flak positions the grenade head) on a collar, each with its
    earthwork and derelict look. The carried point-defence pod takes the new head with no
    collar, since it is set down in the field. The heavy mortar keeps its vanilla sprite.
-   The light post is four concrete parapets and a paved apron round its gun.
+   The light post is a closed ring of eight concrete parapets round its gun, corner pieces
+   included; a militia style sandbags the ring and leaves the gun's pit unpaved earth.
 5. **Hardpoints** (built): `structure.hardpoint-cannon` (heavy head) and
    `structure.hardpoint-locust` (the vanilla Locust head) on the 3x3 plinth. A large post
    may draw the 5x5 hardpoint layout (plinth plus paved apron); the artillery post is
@@ -145,6 +146,35 @@ League builds League standard, the Diktat and Lion's Guard Diktat export, Tri-Ta
 field emitter, everyone else low-tech, pirates patchwork: old works patched with scrap, on derelict guns), and prepared defences (ground defences, heavy batteries or a defence level
 above one) pick its prepared style, the rest its militia one; no market builds brutalist.
 A militia post's parapets are sandbags and it is not paved.
+
+## High-tech lasers
+
+A high-tech builder (composite, deployed) fits lasers where the others fit guns: the structure
+names what a style builds in its place (`builtIn` in the turret catalog), and a post built in that
+style puts it up (`DefensePost.withStyle`, from the planned structure, so restyling starts from the
+plan). There are two kinds, both the space game's own turrets up-res'd in Tri-Tachyon white,
+graphite and cyan (`art-source/ground-turrets/laser/`):
+
+- **Beam over time:** the PD laser (`structure.turret-pd-laser`, the laser tank's turret) for the
+  vulcan, heavy MG and dual flak, and an anti-air version for the flak position. Its red beam
+  plays ten pulses a burst and engages fliers.
+- **Burst:** the Burst PD Laser (`structure.turret-burst-laser`, twin emitters) for the Arbalest,
+  Hephaestus and grenade launcher: four quick blue pulses.
+- **Hardpoint:** the laser tank's own red PD laser turret at hardpoint size
+  (`structure.hardpoint-laser`) for the cannon hardpoint, behind its flux shield. Its weapon is the
+  tank's beam made less accurate and slower to cycle (`weapon.hardpoint-pd-laser`), and it is fed
+  from the shield's own capacitors (`gunDraw` on the shield): every pulse charges them, shield up or
+  down, so firing spends the shield's headroom, and past 80% the gun holds fire until they bleed
+  to 50%. It fires in spells and rests, and a hardpoint under fire and firing back breaks sooner.
+
+Every post laser rakes as a tank's lance does: a beam opens up to 20 degrees off its target, lands
+short along the mount's facing and drags across onto it as the mount comes round, striking and
+scorching whatever it crosses (`TurretBehavior`, `TurretFireSystem.fireBeam`). A line of infantry
+is raked from one to the next; `-Dsnapshot.groundTurrets.rake=true` renders it.
+
+Laser heads have no recoil and no barrel layer. A first-pass balance, matched to the damage per
+second of the guns they replace, to be moved by play. Missions that spawn guns directly (not
+through a post) are unchanged; the Locust hardpoint keeps its missiles.
 
 ## Turret effects
 

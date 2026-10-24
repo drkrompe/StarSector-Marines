@@ -34,6 +34,7 @@ com.dillon.starsectormarines.battle.squad.SquadTrafficSceneSnapshotSuite
 com.dillon.starsectormarines.ops.MissionUiSnapshotSuite
 
 com.dillon.starsectormarines.ops.MechConsoleSnapshotSuite
+com.dillon.starsectormarines.ops.BoatConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksCommandSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksMedicSnapshotSuite
 com.dillon.starsectormarines.ops.OfficerDossierSnapshotSuite
@@ -269,6 +270,7 @@ com.dillon.starsectormarines.battle.fire.FlamerForestLookSuite
 com.dillon.starsectormarines.battle.fire.FlamerForestLookSuite$Woods
 com.dillon.starsectormarines.battle.fire.FireBlazeLookSuite
 com.dillon.starsectormarines.battle.fire.FireFlashoverLookSuite
+com.dillon.starsectormarines.battle.world.RoofLookSuite
 com.dillon.starsectormarines.battle.fire.FireBuildingsSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdSceneSnapshotSuite
 com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
@@ -303,6 +305,8 @@ com.dillon.starsectormarines.battle.cordon.CordonAlliesLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
+com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.OriginPropsLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOriginLookSuite

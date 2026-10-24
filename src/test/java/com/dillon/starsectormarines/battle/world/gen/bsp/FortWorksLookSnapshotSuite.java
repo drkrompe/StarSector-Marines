@@ -2,8 +2,12 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.fort.GateTowerGarrison;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -12,6 +16,11 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -20,6 +29,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
@@ -32,7 +42,9 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Opt-in look study for themed fortification lots (`fort-works.md`): a battery fort the production generator sites on
@@ -54,8 +66,13 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
     private static final long SEED = 11L;
     /** Ticks played before the still, so smoke and the guns' first turn have settled. */
     private static final int SETTLE_TICKS = 30;
-    /** The free-standing post's layout: a line of guns behind its parapet or barricade. */
-    private static final String POST_VARIANT = "line-h";
+    /**
+     * The free-standing post's layout: a line of guns behind its parapet or barricade, or the large layout named by
+     * {@code -Dsnapshot.fortWorks.postVariant} (e.g. {@code hardpoint}, to frame a style's plinth).
+     */
+    private static final String POST_VARIANT = System.getProperty("snapshot.fortWorks.postVariant", "line-h");
+    /** How long a gate tower's garrison has to walk in and open fire before it is framed. */
+    private static final int GARRISON_TICKS = 300;
 
     @Override public String id() { return "fort-works-look"; }
 
@@ -108,8 +125,16 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             }
             posts.addAll(small);
         }
+        boolean kit = Boolean.getBoolean("snapshot.fortWorks.kit");
+        int[] yard = null;
+        if (kit) {
+            yard = openField(map, 14, 9, field[0] + 8, field[1] + 5);
+            posts.add(kitYard(map, yard, style));
+        }
         EmplacementStylePolicy.restyle(posts, style);
         BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(), posts, SEED).sim();
+        // With no marines on the field the battle is won on its first tick and stops playing; a garrison shot plays on.
+        if (Boolean.getBoolean("snapshot.fortWorks.garrison")) sim.setMissionCompletionEnabled(false);
         try {
             ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
             for (int tick = 0; tick < SETTLE_TICKS; tick++) {
@@ -133,6 +158,11 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
             float[] gate = gateCentre(sim);
             if (gate != null) artifacts.add(still(context, sim, fx, style.key + "-gate-close", gate[0], gate[1], 18f));
             if (structures) artifacts.addAll(structureStills(context, sim, fx, style, posts, small));
+            if (Boolean.getBoolean("snapshot.fortWorks.garrison")) {
+                artifacts.addAll(buildingGarrisonStills(context, sim, fx, style));
+                artifacts.addAll(garrisonStills(context, sim, fx, style));
+            }
+            if (kit) artifacts.addAll(kitStills(context, sim, fx, style, yard));
             wear(sim, postX, postY, 9f);
             artifacts.add(still(context, sim, fx, style.key + "-post-worn", postX, postY, 22f));
             System.out.printf("    [fort-works-look/%s] %d posts, fort %s%n", style.key, posts.size(),
@@ -145,10 +175,86 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
 
     private static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx, String name,
                                           float x, float y, float cellsAcross) throws Exception {
+        return still(context, sim, fx, name, x, y, cellsAcross, Boolean.getBoolean("snapshot.fortWorks.noRoofs"));
+    }
+
+    private static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx, String name,
+                                          float x, float y, float cellsAcross, boolean noRoofs) throws Exception {
         BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y,
                 cellsAcross);
-        if (Boolean.getBoolean("snapshot.fortWorks.noRoofs")) renderer.withoutRoofs();
+        if (noRoofs) renderer.withoutRoofs();
         return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+    }
+
+    /**
+     * The fort's power hall garrisoned: a defender fixed in each of its windows and a file of unarmed targets out in front
+     * of the windows, framed once they have been firing a while, roofed and with the roof lifted.
+     */
+    private static List<SnapshotArtifact> buildingGarrisonStills(SnapshotContext context, BattleSimulation sim,
+                                                                 ReviewImpactFx fx, EmplacementStyle style)
+            throws Exception {
+        if (sim.forts().forts().isEmpty()) return List.of();
+        Fort fort = sim.forts().forts().get(0);
+        FortFrame frame = fort.frame();
+        int[] b = null;
+        for (Fort.Place place : fort.places()) {
+            if (place.aspect() == FortAspect.POWER) b = place.floorBounds(frame);
+        }
+        if (b == null) return List.of();
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        int targetSquad = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        int held = 0, shot = 0;
+        for (SharedEdgeBarrier barrier : sim.getGrid().getEdgeBarriers()) {
+            if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+            int x = barrier.structureCellX(), y = barrier.structureCellY();
+            if (x < b[0] - 1 || x > b[2] + 1 || y < b[1] - 1 || y > b[3] + 1) continue;
+            boolean owner = x == barrier.cellX() && y == barrier.cellY();
+            int outX = (owner ? 1 : -1) * barrier.direction().dx, outY = (owner ? 1 : -1) * barrier.direction().dy;
+            EntitySpec holder = new EntitySpec("window-" + held++, Faction.DEFENDER, UnitType.MARINE, x, y);
+            new MarineLoadout(UnitRole.COMBATANT, null, "weapon.smg", null, 0).seedInto(holder);
+            sim.spawn(holder.squad(squadId).moveSpeed(0f));
+            EntitySpec target = new EntitySpec("target-" + shot++, Faction.MARINE, UnitType.MARINE, x + outX * 5,
+                    y + outY * 5);
+            sim.spawn(target.squad(targetSquad).moveSpeed(0f).health(1_000_000f).attackDamage(0f).attackRange(0f));
+        }
+        sim.getSquad(squadId).originalSize = sim.getSquad(squadId).aliveMembers = held;
+        sim.getSquad(targetSquad).originalSize = sim.getSquad(targetSquad).aliveMembers = shot;
+        for (int tick = 0; tick < GARRISON_TICKS; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            fx.feed(sim);
+        }
+        float x = (b[0] + b[2] + 1) * 0.5f, y = (b[1] + b[3] + 1) * 0.5f;
+        return List.of(still(context, sim, fx, style.key + "-building-garrison", x, y, 30f, false),
+                still(context, sim, fx, style.key + "-building-garrison-open", x, y, 30f, true));
+    }
+
+    /**
+     * A squad holding the main gate's first tower and firing out of its slits at a file of targets on the approach
+     * ({@link GateTowerGarrison}), framed roofed and with the roofs lifted, and close on the slit down the approach.
+     * Played last: the battle moves on from here.
+     */
+    private static List<SnapshotArtifact> garrisonStills(SnapshotContext context, BattleSimulation sim,
+                                                         ReviewImpactFx fx, EmplacementStyle style) throws Exception {
+        if (sim.forts().forts().isEmpty()) return List.of();
+        GateTowerGarrison.Manned manned = GateTowerGarrison.man(sim, sim.forts().forts().get(0).frame(), 3, 3,
+                1_000_000f, "weapon.smg", false);
+        for (int tick = 0; tick < GARRISON_TICKS; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            fx.feed(sim);
+        }
+        int[] floor = manned.floor().get(manned.floor().size() / 2);
+        float x = (floor[0] + manned.aim()[0]) * 0.5f + 0.5f, y = (floor[1] + manned.aim()[1]) * 0.5f + 0.5f;
+        // The slit straight down the approach: the one beside the middle stand.
+        int[] middle = manned.stands().get(manned.stands().size() / 2);
+        int[] slit = manned.slits().get(0);
+        for (int[] c : manned.slits()) {
+            if (Math.abs(c[0] - middle[0]) + Math.abs(c[1] - middle[1])
+                    < Math.abs(slit[0] - middle[0]) + Math.abs(slit[1] - middle[1])) slit = c;
+        }
+        return List.of(still(context, sim, fx, style.key + "-gate-tower-garrison", x, y, 20f, false),
+                still(context, sim, fx, style.key + "-gate-tower-garrison-open", x, y, 20f, true),
+                still(context, sim, fx, style.key + "-gate-tower-slit", slit[0] + 0.5f, slit[1] + 0.5f, 7f, false),
+                still(context, sim, fx, style.key + "-gate-tower-slit-open", slit[0] + 0.5f, slit[1] + 0.5f, 7f, true));
     }
 
     /**
@@ -183,6 +289,85 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
         for (DefensePost post : small) {
             out.add(still(context, sim, fx, prefix + post.tier.name().toLowerCase() + "-post",
                     post.anchorX + 0.5f, post.anchorY + 0.5f, 10f));
+        }
+        return out;
+    }
+
+    /**
+     * A yard of the kit's loose pieces on open country, all one lot in {@code style}: a light post (its vent ring), a
+     * fence round a pen, a trench with a branch and a row of hedgehogs. Returns the light post.
+     */
+    private static DefensePost kitYard(MapResult map, int[] at, EmplacementStyle style) {
+        int x0 = at[0], y0 = at[1];
+        for (int x = x0; x < x0 + 14; x++) for (int y = y0; y < y0 + 9; y++) FortWorks.mark(map.topology, x, y, style);
+        DefensePost light = DefensePostStamper.stampPost(map.grid, map.topology, map.doodads,
+                DefensePostLayoutRegistry.requireInstalled().require(DefensePostKind.LIGHT, "default"), x0 + 3, y0 + 4,
+                style);
+        TileRegistry registry = TileRegistry.installed();
+        int left = x0 + 7, right = x0 + 12, bottom = y0, top = y0 + 2;
+        for (int x = left; x <= right; x++) {
+            for (int y = bottom; y <= top; y++) {
+                if (x != left && x != right && y != bottom && y != top) continue;
+                String piece = x == left && y == top ? "corner-nw" : x == right && y == top ? "corner-ne"
+                        : x == left && y == bottom ? "corner-sw" : x == right && y == bottom ? "corner-se"
+                        : y == top || y == bottom ? "straight-h" : "straight-v";
+                map.doodads.add(new Doodad(x, y, registry.doodad("doodad.industrial-fence-" + piece)));
+            }
+        }
+        Set<Long> trench = new HashSet<>();
+        for (int x = left; x <= right; x++) trench.add(key(x, y0 + 5));
+        trench.add(key(x0 + 9, y0 + 6));
+        trench.add(key(x0 + 9, y0 + 7));
+        for (long cell : trench) {
+            int x = (int) (cell >> 32), y = (int) cell;
+            int mask = (trench.contains(key(x, y + 1)) ? 1 : 0) | (trench.contains(key(x + 1, y)) ? 2 : 0)
+                    | (trench.contains(key(x, y - 1)) ? 4 : 0) | (trench.contains(key(x - 1, y)) ? 8 : 0);
+            map.doodads.add(new Doodad(x, y, registry.doodad("doodad.fort-trench-" + mask)));
+        }
+        for (int x = x0 + 1; x <= x0 + 5; x += 2) map.doodads.add(new Doodad(x, y0 + 8, registry.doodad("doodad.fort-hedgehog")));
+        return light;
+    }
+
+    private static long key(int x, int y) {
+        return ((long) x << 32) | (y & 0xFFFFFFFFL);
+    }
+
+    /**
+     * The kit's pieces in place: the yard ({@link #kitYard}), the fort's wall breached beside its gate, and the first
+     * fort building with a hole in its wall, so its openings and both walls' rubble show.
+     */
+    private static List<SnapshotArtifact> kitStills(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx,
+                                                    EmplacementStyle style, int[] yard) throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        out.add(still(context, sim, fx, style.key + "-kit-yard", yard[0] + 7f, yard[1] + 4.5f, 16f));
+        float[] gate = gateCentre(sim);
+        CellTopology topology = sim.getTopology();
+        if (gate != null) {
+            int broken = 0;
+            for (int r = 4; r <= 7 && broken < 6; r++) {
+                for (int dx = -r; dx <= r && broken < 6; dx++) {
+                    for (int dy = -r; dy <= r && broken < 6; dy++) {
+                        int x = (int) gate[0] + dx, y = (int) gate[1] + dy;
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r || !topology.isWall(x, y)
+                                || FortWorks.styleAt(topology, x, y) == null) continue;
+                        sim.mapEditor().damageWall(x, y, Integer.MAX_VALUE / 2);
+                        broken++;
+                    }
+                }
+            }
+            out.add(still(context, sim, fx, style.key + "-kit-breach", gate[0], gate[1], 16f, true));
+        }
+        for (Fort fort : sim.forts().forts()) {
+            FortFrame frame = fort.frame();
+            if (frame == null || !fort.places().iterator().hasNext()) continue;
+            int[] b = fort.places().iterator().next().floorBounds(frame);
+            int midX = (b[0] + b[2]) / 2;
+            for (int x = midX - 1; x <= midX; x++) {
+                if (topology.isWall(x, b[1] - 1)) sim.mapEditor().damageWall(x, b[1] - 1, Integer.MAX_VALUE / 2);
+            }
+            out.add(still(context, sim, fx, style.key + "-kit-building", (b[0] + b[2] + 1) * 0.5f,
+                    (b[1] + b[3] + 1) * 0.5f, 16f, true));
+            break;
         }
         return out;
     }

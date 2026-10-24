@@ -165,6 +165,14 @@ public final class TurretCatalogRegistry {
     public int structureCount() { return structuresById.size(); }
 
     private void validateAssets() {
+        for (StructureDef structure : structuresById.values()) {
+            for (String built : structure.builds.values()) {
+                if (!structuresById.containsKey(built)) {
+                    throw new IllegalStateException("Structure '" + structure.id + "' is built as unknown structure '"
+                            + built + "'");
+                }
+            }
+        }
         for (TurretMountDef mount : mountsById.values()) {
             validateAsset(mount.id, "sprite", mount.spritePath);
             validateAsset(mount.id, "recoilSprite", mount.recoilSpritePath);

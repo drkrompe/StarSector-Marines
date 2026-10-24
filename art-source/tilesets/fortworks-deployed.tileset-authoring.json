@@ -29,10 +29,10 @@
       "included": true,
       "note": "Parapet collar piece s, deployed look.",
       "rect": [
-        407,
-        45,
-        183,
-        187
+        400,
+        58,
+        186,
+        186
       ]
     },
     {
@@ -46,10 +46,10 @@
       "included": true,
       "note": "Parapet collar piece n, deployed look.",
       "rect": [
-        407,
-        793,
-        183,
-        187
+        400,
+        802,
+        186,
+        186
       ]
     },
     {
@@ -63,10 +63,10 @@
       "included": true,
       "note": "Parapet collar piece e, deployed look.",
       "rect": [
-        42,
-        419,
-        183,
-        187
+        27,
+        430,
+        186,
+        186
       ]
     },
     {
@@ -80,10 +80,10 @@
       "included": true,
       "note": "Parapet collar piece w, deployed look.",
       "rect": [
-        772,
-        419,
-        183,
-        187
+        773,
+        430,
+        186,
+        186
       ]
     },
     {
@@ -97,10 +97,10 @@
       "included": true,
       "note": "Parapet collar piece inner-se, deployed look.",
       "rect": [
-        42,
-        45,
-        183,
-        187
+        27,
+        58,
+        186,
+        186
       ]
     },
     {
@@ -114,10 +114,10 @@
       "included": true,
       "note": "Parapet collar piece inner-sw, deployed look.",
       "rect": [
-        772,
-        45,
-        183,
-        187
+        773,
+        58,
+        186,
+        186
       ]
     },
     {
@@ -131,10 +131,10 @@
       "included": true,
       "note": "Parapet collar piece inner-ne, deployed look.",
       "rect": [
-        42,
-        793,
-        183,
-        187
+        27,
+        802,
+        186,
+        186
       ]
     },
     {
@@ -148,10 +148,10 @@
       "included": true,
       "note": "Parapet collar piece inner-nw, deployed look.",
       "rect": [
-        772,
-        793,
-        183,
-        187
+        773,
+        802,
+        186,
+        186
       ]
     },
     {
@@ -165,10 +165,10 @@
       "included": true,
       "note": "Barricade piece n, deployed look.",
       "rect": [
-        1161,
-        41,
-        164,
-        186
+        1165,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -182,10 +182,10 @@
       "included": true,
       "note": "Barricade piece n, deployed look.",
       "rect": [
-        1161,
-        41,
-        164,
-        186
+        1165,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -199,10 +199,10 @@
       "included": true,
       "note": "Barricade piece s, deployed look.",
       "rect": [
-        1161,
-        414,
-        164,
-        186
+        1165,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -216,10 +216,10 @@
       "included": true,
       "note": "Barricade piece s, deployed look.",
       "rect": [
-        1161,
-        414,
-        164,
-        186
+        1165,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -233,10 +233,10 @@
       "included": true,
       "note": "Barricade piece w, deployed look.",
       "rect": [
-        998,
-        227,
-        163,
-        187
+        992,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -250,10 +250,10 @@
       "included": true,
       "note": "Barricade piece w, deployed look.",
       "rect": [
-        998,
-        227,
-        163,
-        187
+        992,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -267,10 +267,10 @@
       "included": true,
       "note": "Barricade piece e, deployed look.",
       "rect": [
-        1325,
-        227,
-        163,
-        187
+        1338,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -284,10 +284,10 @@
       "included": true,
       "note": "Barricade piece e, deployed look.",
       "rect": [
-        1325,
-        227,
-        163,
-        187
+        1338,
+        204,
+        173,
+        167
       ]
     },
     {
@@ -301,10 +301,10 @@
       "included": true,
       "note": "Barricade piece corner-nw, deployed look.",
       "rect": [
-        998,
-        41,
-        163,
-        186
+        992,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -318,10 +318,10 @@
       "included": true,
       "note": "Barricade piece corner-nw, deployed look.",
       "rect": [
-        998,
-        41,
-        163,
-        186
+        992,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -335,10 +335,10 @@
       "included": true,
       "note": "Barricade piece corner-ne, deployed look.",
       "rect": [
-        1325,
-        41,
-        163,
-        186
+        1338,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -352,10 +352,10 @@
       "included": true,
       "note": "Barricade piece corner-ne, deployed look.",
       "rect": [
-        1325,
-        41,
-        163,
-        186
+        1338,
+        37,
+        173,
+        167
       ]
     },
     {
@@ -369,10 +369,10 @@
       "included": true,
       "note": "Barricade piece corner-sw, deployed look.",
       "rect": [
-        998,
-        414,
-        163,
-        186
+        992,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -386,10 +386,10 @@
       "included": true,
       "note": "Barricade piece corner-sw, deployed look.",
       "rect": [
-        998,
-        414,
-        163,
-        186
+        992,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -403,10 +403,10 @@
       "included": true,
       "note": "Barricade piece corner-se, deployed look.",
       "rect": [
-        1325,
-        414,
-        163,
-        186
+        1338,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -420,10 +420,10 @@
       "included": true,
       "note": "Barricade piece corner-se, deployed look.",
       "rect": [
-        1325,
-        414,
-        163,
-        186
+        1338,
+        371,
+        173,
+        167
       ]
     },
     {
@@ -437,9 +437,9 @@
       "included": true,
       "rect": [
         1018,
-        604,
-        83,
-        83
+        626,
+        76,
+        79
       ],
       "slot": "faces-0"
     },
@@ -453,10 +453,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-1",
       "included": true,
       "rect": [
-        1125,
-        604,
-        84,
-        83
+        1114,
+        626,
+        79,
+        79
       ],
       "slot": "faces-1"
     },
@@ -470,10 +470,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-2",
       "included": true,
       "rect": [
-        1233,
-        604,
-        83,
-        83
+        1210,
+        626,
+        79,
+        79
       ],
       "slot": "faces-2"
     },
@@ -487,10 +487,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-3",
       "included": true,
       "rect": [
-        1341,
-        604,
-        83,
-        83
+        1308,
+        626,
+        76,
+        79
       ],
       "slot": "faces-3"
     },
@@ -505,9 +505,9 @@
       "included": true,
       "rect": [
         1018,
-        708,
-        83,
-        84
+        725,
+        76,
+        78
       ],
       "slot": "faces-4"
     },
@@ -521,10 +521,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-5",
       "included": true,
       "rect": [
-        1125,
-        708,
-        84,
-        84
+        1114,
+        725,
+        79,
+        78
       ],
       "slot": "faces-5"
     },
@@ -538,10 +538,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-6",
       "included": true,
       "rect": [
-        1233,
-        708,
-        83,
-        84
+        1210,
+        725,
+        79,
+        78
       ],
       "slot": "faces-6"
     },
@@ -555,10 +555,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-7",
       "included": true,
       "rect": [
-        1341,
-        708,
-        83,
-        84
+        1308,
+        725,
+        76,
+        78
       ],
       "slot": "faces-7"
     },
@@ -573,9 +573,9 @@
       "included": true,
       "rect": [
         1018,
-        814,
-        83,
-        84
+        821,
+        76,
+        79
       ],
       "slot": "faces-8"
     },
@@ -589,10 +589,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-9",
       "included": true,
       "rect": [
-        1125,
-        814,
-        84,
-        84
+        1114,
+        821,
+        79,
+        79
       ],
       "slot": "faces-9"
     },
@@ -606,10 +606,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-10",
       "included": true,
       "rect": [
-        1233,
-        814,
-        83,
-        84
+        1210,
+        821,
+        79,
+        79
       ],
       "slot": "faces-10"
     },
@@ -623,10 +623,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-11",
       "included": true,
       "rect": [
-        1341,
-        814,
-        83,
-        84
+        1308,
+        821,
+        76,
+        79
       ],
       "slot": "faces-11"
     },
@@ -642,8 +642,8 @@
       "rect": [
         1018,
         918,
-        83,
-        84
+        76,
+        80
       ],
       "slot": "faces-12"
     },
@@ -657,10 +657,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-13",
       "included": true,
       "rect": [
-        1125,
+        1114,
         918,
-        84,
-        84
+        79,
+        80
       ],
       "slot": "faces-13"
     },
@@ -674,10 +674,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-14",
       "included": true,
       "rect": [
-        1233,
+        1210,
         918,
-        83,
-        84
+        79,
+        80
       ],
       "slot": "faces-14"
     },
@@ -691,10 +691,10 @@
       "id": "installation.dark-concrete-wall@deployed.faces-15",
       "included": true,
       "rect": [
-        1341,
+        1308,
         918,
-        83,
-        84
+        76,
+        80
       ],
       "slot": "faces-15"
     },
@@ -709,9 +709,9 @@
       "included": true,
       "rect": [
         1018,
-        604,
-        83,
-        83
+        626,
+        76,
+        79
       ],
       "slot": "faces-0"
     },
@@ -725,10 +725,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-1",
       "included": true,
       "rect": [
-        1125,
-        604,
-        84,
-        83
+        1114,
+        626,
+        79,
+        79
       ],
       "slot": "faces-1"
     },
@@ -742,10 +742,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-2",
       "included": true,
       "rect": [
-        1233,
-        604,
-        83,
-        83
+        1210,
+        626,
+        79,
+        79
       ],
       "slot": "faces-2"
     },
@@ -759,10 +759,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-3",
       "included": true,
       "rect": [
-        1341,
-        604,
-        83,
-        83
+        1308,
+        626,
+        76,
+        79
       ],
       "slot": "faces-3"
     },
@@ -777,9 +777,9 @@
       "included": true,
       "rect": [
         1018,
-        708,
-        83,
-        84
+        725,
+        76,
+        78
       ],
       "slot": "faces-4"
     },
@@ -793,10 +793,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-5",
       "included": true,
       "rect": [
-        1125,
-        708,
-        84,
-        84
+        1114,
+        725,
+        79,
+        78
       ],
       "slot": "faces-5"
     },
@@ -810,10 +810,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-6",
       "included": true,
       "rect": [
-        1233,
-        708,
-        83,
-        84
+        1210,
+        725,
+        79,
+        78
       ],
       "slot": "faces-6"
     },
@@ -827,10 +827,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-7",
       "included": true,
       "rect": [
-        1341,
-        708,
-        83,
-        84
+        1308,
+        725,
+        76,
+        78
       ],
       "slot": "faces-7"
     },
@@ -845,9 +845,9 @@
       "included": true,
       "rect": [
         1018,
-        814,
-        83,
-        84
+        821,
+        76,
+        79
       ],
       "slot": "faces-8"
     },
@@ -861,10 +861,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-9",
       "included": true,
       "rect": [
-        1125,
-        814,
-        84,
-        84
+        1114,
+        821,
+        79,
+        79
       ],
       "slot": "faces-9"
     },
@@ -878,10 +878,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-10",
       "included": true,
       "rect": [
-        1233,
-        814,
-        83,
-        84
+        1210,
+        821,
+        79,
+        79
       ],
       "slot": "faces-10"
     },
@@ -895,10 +895,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-11",
       "included": true,
       "rect": [
-        1341,
-        814,
-        83,
-        84
+        1308,
+        821,
+        76,
+        79
       ],
       "slot": "faces-11"
     },
@@ -914,8 +914,8 @@
       "rect": [
         1018,
         918,
-        83,
-        84
+        76,
+        80
       ],
       "slot": "faces-12"
     },
@@ -929,10 +929,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-13",
       "included": true,
       "rect": [
-        1125,
+        1114,
         918,
-        84,
-        84
+        79,
+        80
       ],
       "slot": "faces-13"
     },
@@ -946,10 +946,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-14",
       "included": true,
       "rect": [
-        1233,
+        1210,
         918,
-        83,
-        84
+        79,
+        80
       ],
       "slot": "faces-14"
     },
@@ -963,10 +963,10 @@
       "id": "installation.light-concrete-wall@deployed.faces-15",
       "included": true,
       "rect": [
-        1341,
+        1308,
         918,
-        83,
-        84
+        76,
+        80
       ],
       "slot": "faces-15"
     }
@@ -974,7 +974,7 @@
   "gridCols": 12,
   "gridRows": 8,
   "idPrefix": "doodad",
-  "note": "Fortification works of the deployed emplacement style, look 'deployed': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/deployed.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@deployed of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
-  "sheet": "art-source/fortworks/raw/deployed.raw.png",
+  "note": "Fortification works of the deployed emplacement style, look 'deployed-ceramic': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/deployed-ceramic.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@deployed of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/deployed-ceramic.raw.png",
   "sheetName": "fortworks-deployed"
 }

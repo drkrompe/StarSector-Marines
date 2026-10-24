@@ -307,6 +307,90 @@
       "audio": { "loopSound": "laser_loop" }
     },
     {
+      "id": "weapon.hardpoint-pd-laser",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponHardpointPdLaserDisplayName", "modelName": "@gearCatalogWeaponHardpointPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "sim": {
+        "tracksFliers": true,
+        "range": 26.0, "damage": 7.0, "accuracy": 0.7, "cooldown": 1.5, "penetration": 2.0,
+        "burstCount": 10, "burstSpacing": 0.1, "hitSpread": 0.25,
+        "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": { "coreWidthPx": 2.2, "glowColor": "E01A12", "glowWidthPx": 11.0, "lifetimeSec": 0.105,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 } },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.post-pd-laser",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponPostPdLaserDisplayName", "modelName": "@gearCatalogWeaponPostPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "sim": {
+        "tracksFliers": true,
+        "range": 24.0, "damage": 5.0, "accuracy": 0.95, "cooldown": 0.5, "penetration": 3.0,
+        "burstCount": 10, "burstSpacing": 0.1, "hitSpread": 0.12,
+        "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": { "coreWidthPx": 2.2, "glowColor": "E01A12", "glowWidthPx": 11.0, "lifetimeSec": 0.105,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 } },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.post-burst-laser",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponPostBurstLaserDisplayName", "modelName": "@gearCatalogWeaponPostBurstLaserModelName", "designation": "BL", "designationTiered": false },
+      "sim": {
+        "range": 30.0, "damage": 15.0, "accuracy": 0.85, "cooldown": 1.6, "penetration": 7.0,
+        "burstCount": 4, "burstSpacing": 0.06, "hitSpread": 0.2,
+        "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.5
+      },
+      "render": {
+        "tracerColor": "EEF2FF",
+        "beam": { "coreWidthPx": 2.5, "glowColor": "4A6BFF", "glowWidthPx": 13.0, "pulseCycles": 1.0, "lifetimeSec": 0.1,
+          "texture": { "texelCells": 0.5, "scrollCellsPerSec": 11.0, "roughness": 0.85, "throbHz": 0.0 } },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "7A8CFF" },
+          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "DCE2FF" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "6A7EFF" },
+          { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
+        ]
+      },
+      "audio": { "fireSound": "burst_pd_fire" }
+    },
+    {
       "id": "weapon.turret-vulcan",
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretVulcanDisplayName", "modelName": "@gearCatalogWeaponTurretVulcanModelName", "designation": "VUL", "designationTiered": false },

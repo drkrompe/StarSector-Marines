@@ -22,13 +22,19 @@ final class MechSocketConsole {
     private static final Color FITS = new Color(0xc8eef4);
     private static final Color RED = new Color(0xe98b83);
 
-    /** @see HardpointBricks#BOARD_BRICK_HEIGHT */
-    static final float BRICK_HEIGHT = HardpointBricks.BOARD_BRICK_HEIGHT;
-    static final float BRICK_GAP = HardpointBricks.BOARD_BRICK_GAP;
+    /** @see HardpointBricks#BRICK_HEIGHT */
+    static final float BRICK_HEIGHT = HardpointBricks.BRICK_HEIGHT;
+    static final float BRICK_GAP = HardpointBricks.BRICK_GAP;
     private static final float HEADER = 22f;
-    private static final float CAPTION = 22f;
+    /** Below the bricks: a margin, not a caption. A part's name is the board tooltip's. */
+    private static final float FOOT = 10f;
     private static final float SIDE = 12f;
-    private static final float MIN_WIDTH = 180f;
+    /** The header's own room: its tick and inset before the name, and its right margin. */
+    private static final float HEADER_INSET = 16f;
+    private static final float HEADER_END = 10f;
+    private static final float TAG_GAP = 10f;
+    /** What a header keeps beside its name: the tick and inset before it, the strip X after. */
+    private static final float LABEL_RESERVE = 40f;
     private static final float SEALED_HEIGHT = 48f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
@@ -36,15 +42,30 @@ final class MechSocketConsole {
 
     private MechSocketConsole() { }
 
-    /** The card a socket needs at the doll's fixed brick size: its bricks plus a label and caption. */
+    /**
+     * The card a socket needs at the one brick size: its bricks, or its header where that is
+     * wider. A compartment's header also carries how full it is, so it is sized for a full one.
+     */
     static float width(SocketDef socket) {
-        if (socket.factoryLocked()) return MIN_WIDTH;
-        return Math.max(MIN_WIDTH, bricks(socket, 0, 0).width() + SIDE * 2f);
+        // The name is set clear of the strip X in the corner, as draw() fits it.
+        float header = Fonts.ORBITRON_12_BOLD.measureWidth(socket.label()) + LABEL_RESERVE;
+        if (socket.id().compartment()) {
+            header += TAG_GAP + Fonts.ORBITRON_12_BOLD.measureWidth(
+                    Strings.format("mechLabCompartmentUsed", socket.capacity(), socket.capacity()));
+        }
+        if (socket.factoryLocked()) return Math.max(header, HEADER_INSET + Fonts.ORBITRON_12_BOLD.measureWidth("SEALED") + HEADER_END);
+        return Math.max(header, bricks(socket, 0, 0).width() + SIDE * 2f);
     }
 
     static float height(SocketDef socket) {
         if (socket.factoryLocked()) return SEALED_HEIGHT;
-        return HEADER + bricks(socket, 0, 0).height() + CAPTION;
+        return HEADER + bricks(socket, 0, 0).height() + FOOT;
+    }
+
+    /** Text right-aligned in a card's header, such as how full a compartment is. */
+    private static void headerTag(CanvasContext c, String tag, float x, float y, float w, Color color) {
+        c.text(Fonts.ORBITRON_12_BOLD, tag, x + w - HEADER_END - Fonts.ORBITRON_12_BOLD.measureWidth(tag),
+                y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, color);
     }
 
     private static HardpointBricks.Layout bricks(SocketDef socket, float x, float y) {
@@ -86,9 +107,14 @@ final class MechSocketConsole {
                 (int) (150 + pulse * 105)) : empty && !fixed ? socketTone
                 : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), missing ? 2f : 1.2f);
         c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : missing ? RED : socketTone);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 40), x + 16,
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - LABEL_RESERVE), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f);
+        if (compartment && !fixed) {
+            headerTag(c, Strings.format("mechLabCompartmentUsed", used(here), socket.capacity()), x, y, w,
+                    missing ? RED : SILVER);
+        } else if (missing) {
+            drawWarningBadge(c, x + w - 26f, y + 5f);
+        }
 
         if (fixed) {
             c.text(Fonts.ORBITRON_12_BOLD, rejected ? "CANNOT FIT" : "SEALED", x + 16, y + HEADER,
@@ -133,15 +159,6 @@ final class MechSocketConsole {
                             new Color(255, 255, 255, preview != null ? 195 : 255));
                 }
             }
-            String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
-                    : missing ? Strings.get("mechLabSocketRequired")
-                    : internal != null ? internal.displayName()
-                    : compartment ? Strings.format("mechLabCompartmentUsed", used(here), socket.capacity())
-                    : installed != null ? installed.displayName() : socket.type().label() + " / "
-                    + socket.gridColumns() + "x" + socket.gridRows();
-            c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
-                    y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
-                    draggingHere ? accent : missing ? RED : empty ? AMBER : SILVER);
         }
         if (selected || hovered || compatible || rejected) {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2, y - 2, w + 4, h + 4,
@@ -181,42 +198,33 @@ final class MechSocketConsole {
      * mark and a SEALED tag; or the kit rack, one kit to a row, each with an X for the caller to hang.
      */
     static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
-                            String mark, String caption, List<VehicleKit> kits,
+                            Color tone, String art, String caption, List<VehicleKit> kits,
                             boolean selected, boolean hovered, double time) {
         boolean rack = socket.id() == SocketId.AUXILIARY;
-        Color tone = HardpointBricks.tone(socket.type());
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         plate(c, x, y, w, h, PLATE);
         HardpointBricks.rim(c, x, y, w, h, CUT, rack && kits.isEmpty() ? tone
                 : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), 1.2f);
         c.fillRect(x + 8, y + 7, 3, 9, rack ? tone : MUTED);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 90), x + 16,
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 24), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        if (!rack) {
-            String sealed = Strings.get("vehicleDollSealed");
-            c.text(Fonts.ORBITRON_12_BOLD, sealed, x + w - 10 - Fonts.ORBITRON_12_BOLD.measureWidth(sealed),
-                    y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, MUTED);
-        }
+        // A sealed card says so by its muted rim and its one factory piece; the rack counts its kits.
+        if (rack) headerTag(c, caption, x, y, w, kits.isEmpty() ? AMBER : SILVER);
         HardpointBricks.Layout bricks = bricks(socket, 0, 0);
         bricks = bricks(socket, x + (w - bricks.width()) * .5f, y + HEADER);
         HardpointBricks.drawEmpty(c, bricks, tone);
         if (rack) {
             for (int row = 0; row < kits.size() && row < bricks.rows(); row++) {
-                HardpointBricks.drawFilled(c, bricks, 0, row, 2, 1, tone);
-                // Left of the kit's X, which hangs in its top-right corner.
-                float room = bricks.width() - 18f;
-                centred(c, Strings.get("vehicleKitShort" + kits.get(row).name()), bricks.left() + room * .5f,
-                        bricks.brickY(row) + bricks.brickHeight() * .5f, room);
+                HardpointBricks.drawFilled(c, bricks, 0, row, 2, 1, VehicleDoll.tone(kits.get(row)));
+                HardwareArt.draw(c, kits.get(row), bricks.left(), bricks.brickY(row), bricks.width(),
+                        bricks.brickHeight(), 255);
             }
         } else {
             HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
                     HardpointBricks.mix(tone, 0x101311, .35f));
-            centred(c, mark, bricks.centerX(), bricks.centerY(), bricks.width() - 12f);
+            HardwareArt.drawVehicle(c, art, bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
         }
-        c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
-                y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
-                rack && kits.isEmpty() ? AMBER : SILVER);
         if (selected || hovered) {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2, y - 2, w + 4, h + 4,
                     new Color(AMBER.getRed(), AMBER.getGreen(), AMBER.getBlue(), (int) (180 + pulse * 65)),
@@ -230,12 +238,6 @@ final class MechSocketConsole {
         bricks = bricks(socket, t.left() + (t.width() - bricks.width()) * .5f, t.top() + HEADER);
         float top = bricks.brickY(row);
         return new float[] {bricks.left(), top, bricks.left() + bricks.width(), top + bricks.brickHeight()};
-    }
-
-    private static void centred(CanvasContext c, String text, float centerX, float centerY, float width) {
-        String shown = fit(text, width);
-        c.text(Fonts.ORBITRON_12_BOLD, shown, centerX - Fonts.ORBITRON_12_BOLD.measureWidth(shown) * .5f,
-                centerY - Fonts.ORBITRON_12_BOLD.getLineHeight() * .5f, SILVER);
     }
 
     /** A red warning triangle with an exclamation mark, 18 px square at its top-left corner. */

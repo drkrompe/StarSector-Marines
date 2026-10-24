@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -23,6 +24,14 @@ public final class FortWorks {
 
     private FortWorks() {}
 
+    private static final EmplacementStyle[] STYLES = EmplacementStyle.values();
+
+    /**
+     * The catalog id the light post's vent ring is dressed as. Its cells are road-sheet frames with no id of their own,
+     * so its looks are named after this one ({@code doodad.light-post-vent@<style>}).
+     */
+    public static final String VENT = "doodad.light-post-vent";
+
     /** The catalog id of {@code baseId}'s look in {@code style}. */
     public static String lookId(String baseId, EmplacementStyle style) {
         return baseId + "@" + style.key;
@@ -31,7 +40,16 @@ public final class FortWorks {
     /** The style the works on the cell were built in, or null for a cell that is no lot's. */
     public static EmplacementStyle styleAt(CellTopology topology, int x, int y) {
         int value = topology.getWorksStyle(x, y);
-        return value == 0 ? null : EmplacementStyle.values()[value - 1];
+        return value == 0 ? null : STYLES[value - 1];
+    }
+
+    /**
+     * The look name of the works on the cell (its style's key), or null for a cell that is no lot's: what a block drawn
+     * there in place of the base art is named after ({@code TileRegistry.blockLook}).
+     */
+    public static String lookAt(CellTopology topology, int x, int y) {
+        EmplacementStyle style = styleAt(topology, x, y);
+        return style == null ? null : style.key;
     }
 
     /** Marks the cell as part of a lot built in {@code style}. */
@@ -90,9 +108,11 @@ public final class FortWorks {
      * lot's, the piece is not a catalog piece, or its style has no look for it.
      */
     public static Doodad dress(Doodad placed, CellTopology topology, TileRegistry registry) {
-        if (registry == null || placed.definitionId() == null) return placed;
+        String shown = placed.definitionId() != null ? placed.definitionId()
+                : placed.fromRoadSheet && TileManifest.isLightPostVent(placed.tile) ? VENT : null;
+        if (registry == null || shown == null) return placed;
         EmplacementStyle style = styleAt(topology, placed.cellX, placed.cellY);
-        return style == null ? placed : dress(placed, placed.definitionId(), style.key, registry);
+        return style == null ? placed : dress(placed, shown, style.key, registry);
     }
 
     /**

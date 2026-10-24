@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -42,24 +43,28 @@ final class OpeningTiles {
     static GridBlockDef skin(TileRegistry registry, CellTopology topology,
                              int x, int y, Direction facing, boolean window) {
         if (registry == null) return null;
+        // An opening in a fortification lot is drawn in the lot's works style where the style has a look for it.
+        String look = FortWorks.lookAt(topology, x, y);
         // The two jamb walls are the most precise material authority, including accent-floor cases.
         Direction along = facing == Direction.N || facing == Direction.S ? Direction.E : Direction.N;
-        GridBlockDef a = wallSkin(registry, topology, x + along.dx, y + along.dy, window);
-        GridBlockDef b = wallSkin(registry, topology, x - along.dx, y - along.dy, window);
+        GridBlockDef a = wallSkin(registry, topology, x + along.dx, y + along.dy, window, look);
+        GridBlockDef b = wallSkin(registry, topology, x - along.dx, y - along.dy, window, look);
         if (a != null && b != null) return a.id.compareTo(b.id) <= 0 ? a : b;
         if (a != null || b != null) return a != null ? a : b;
-        return paired(registry, registry.block(topology.getSurfaceId(x, y)), window);
+        return paired(registry, registry.block(topology.getSurfaceId(x, y)), window, look);
     }
 
     private static GridBlockDef wallSkin(TileRegistry registry, CellTopology topology,
-                                         int x, int y, boolean window) {
+                                         int x, int y, boolean window, String look) {
         return wall(topology, x, y) == 0 ? null
-                : paired(registry, registry.block(topology.getSurfaceId(x, y)), window);
+                : paired(registry, registry.block(topology.getSurfaceId(x, y)), window, look);
     }
 
-    private static GridBlockDef paired(TileRegistry registry, GridBlockDef material, boolean window) {
-        return material == null ? null
-                : registry.block(window ? material.windowBlockId : material.doorBlockId);
+    private static GridBlockDef paired(TileRegistry registry, GridBlockDef material, boolean window, String look) {
+        if (material == null) return null;
+        String id = window ? material.windowBlockId : material.doorBlockId;
+        GridBlockDef styled = look == null ? null : registry.blockLook(id, look);
+        return styled != null ? styled : registry.block(id);
     }
 
     private static int wall(CellTopology topology, int x, int y) {

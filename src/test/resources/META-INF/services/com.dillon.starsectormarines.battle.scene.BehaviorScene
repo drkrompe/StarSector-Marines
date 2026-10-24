@@ -153,3 +153,4 @@ com.dillon.starsectormarines.battle.world.gen.elevation.FiringDownScene
 com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceScene
 com.dillon.starsectormarines.battle.vehicle.VehicleRamScene
 com.dillon.starsectormarines.battle.evacuation.flier.HarrierPackScene
+com.dillon.starsectormarines.battle.fort.GateTowerScene
