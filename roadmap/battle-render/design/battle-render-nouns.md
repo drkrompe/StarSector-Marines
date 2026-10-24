@@ -657,14 +657,13 @@ change the physical crash corridor.
     `CombatService.ticksSinceDamaged`, before cover and armour have their
     say); the **light** on it from the event lights, brightest on the
     silhouette edge facing them (`BodyEffects`); and its **wear**: embers
-    while the ground under it burns, char once it has burnt, and a dissolve
-    in blotches as the body cap retires it, edged in dust, or in fire for a
-    body still burning. There is no selection outline: it was tried and the
+    while the ground under it burns, char once it has burnt. A body the cap
+    retires fades out by alpha; a dissolve in blotches was tried and declined
+    (owner, 2026-10-24). There is no selection outline: it was tried and the
     owner kept the ground rings (2026-10-24). There is no faction recolour: it needs an authored mask the art does not
     have, and each faction's art already carries its own colours. Only the
     paged run draws these; the per-sheet fallback and the Java2D review drain
-    draw the body plain, and a retiring body there fades by alpha over the
-    last of its retirement.
+    draw the body plain.
 
 Authored spline roads retain a `RoadSurface` beside their grid footprint. The
 surface samples signed distances at cell corners and clips each cell's two

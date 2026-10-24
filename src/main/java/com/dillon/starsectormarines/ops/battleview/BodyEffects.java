@@ -5,19 +5,10 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 /**
  * What a body's per-quad effects are this frame (law 27): the light from the battle's event lights falling on it, and
- * its wear: charred and glowing with embers where the ground under it burns or has burnt, and dissolving as the body
- * cap retires it. A pure function of the simulation's state and the lights the screen already keeps, so nothing here
+ * its wear: charred and glowing with embers where the ground under it burns or has burnt. A pure function of the simulation's state and the lights the screen already keeps, so nothing here
  * can move a battle. Stamped onto a {@link DrawList} before a body is emitted and cleared after, like the hit flash.
  */
 final class BodyEffects {
-    /**
-     * The A/B for the body effects and for event lights lighting the night: off, bodies are unlit and unworn, the
-     * night is lit by lamps and fire alone, and the pile cap fades its bodies out by alpha as before. Remove it with
-     * the losing arm once the owner has judged the {@code body-effects-look} stills against it.
-     */
-    static final String PROPERTY = "battle.render.bodyEffects";
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-
     /** Char on a body lying in ground that has burnt out: soot that stays. */
     static final float BURNT_CHAR = 0.7f;
     /** Char and embers on a body in ground still burning. */
@@ -36,7 +27,7 @@ final class BodyEffects {
 
     /** Stamps the light on a body at cell {@code x, y}. */
     void stampLight(DrawList out, float x, float y) {
-        if (lights == null || !ENABLED) {
+        if (lights == null) {
             out.setLight(0f, 0f, 0f, 0f);
             return;
         }
@@ -47,17 +38,13 @@ final class BodyEffects {
 
     /** Stamps a standing body's wear: embers while the cell under it burns. */
     void stampLiveWear(DrawList out, BattleSimulation sim, float x, float y) {
-        FireField fire = ENABLED ? sim.fireFieldIfPresent() : null;
+        FireField fire = sim.fireFieldIfPresent();
         boolean burning = fire != null && fire.isBurning((int) x, (int) y);
-        out.setWear(0f, burning ? LIVE_EMBERS : 0f, 0f);
+        out.setWear(0f, burning ? LIVE_EMBERS : 0f);
     }
 
-    /** Stamps a body's wear as it lies: charred by the ground's fire, and dissolving by {@code retired}, 0 to 1. */
-    void stampDeadWear(DrawList out, BattleSimulation sim, float x, float y, float retired) {
-        if (!ENABLED) {
-            out.setWear(0f, 0f, 0f);
-            return;
-        }
+    /** Stamps a body's wear as it lies: charred by the ground's fire, with embers while it still burns. */
+    void stampDeadWear(DrawList out, BattleSimulation sim, float x, float y) {
         FireField fire = sim.fireFieldIfPresent();
         int cx = (int) x, cy = (int) y;
         float charred = 0f, embers = 0f;
@@ -69,6 +56,6 @@ final class BodyEffects {
                 charred = BURNT_CHAR;
             }
         }
-        out.setWear(charred, embers, retired);
+        out.setWear(charred, embers);
     }
 }
