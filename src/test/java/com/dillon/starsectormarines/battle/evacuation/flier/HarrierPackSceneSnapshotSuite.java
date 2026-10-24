@@ -53,12 +53,13 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                 placement -> stage(placement, HarrierLook.DEFAULT, false),
                 placement -> List.of(LookReview.View.follow("close", placement, WINGS_CELLS, "pack")),
                 WINGS_TICKS, 1, 4, WINGS_STILLS));
-        // The wingbeat at play zoom under flak: a frame every tick too, since a beat is a dozen ticks and the
-        // ordinary frame every six would alias it away.
+        // The wingbeat at play zoom under flak, and close on the line where the shot fliers fall and lie: a frame
+        // every tick too, since a beat is a dozen ticks and the ordinary frame every six would alias it away.
         shots.add(new LookReview.Shot("harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-') + "-flak-beat",
                 LookGround.verdant(), 70, 40,
                 placement -> stage(placement, HarrierLook.DEFAULT, true),
-                placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack")),
+                placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack"),
+                        LookReview.View.follow("line", placement, 26f, "line")),
                 FLAK_TICKS, 1, 4, FLAK_STILLS));
         return shots;
     }

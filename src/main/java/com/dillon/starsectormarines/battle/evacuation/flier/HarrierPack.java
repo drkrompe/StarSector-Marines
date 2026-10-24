@@ -134,7 +134,8 @@ public final class HarrierPack {
         float folding = dt / HarrierFlight.FOLD_SECONDS;
         for (HarrierFlight m : members) {
             m.wingClock += dt;
-            boolean diving = phase == Phase.DIVE && !m.struck;
+            // Folding is for going in: a member still circling out its stagger keeps its wings spread.
+            boolean diving = phase == Phase.DIVE && !m.struck && phaseSeconds >= m.diveDelay;
             m.fold = diving ? Math.min(1f, m.fold + folding) : Math.max(0f, m.fold - folding);
         }
     }
