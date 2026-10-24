@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.EscortPace;
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * R1, Clear the road ({@code cordon-nouns.md}, Optional objectives): a wreck lies across the corridor in
@@ -152,8 +154,7 @@ final class ClearRoadBeat extends CordonBeat {
             sent = true;
             // Moved up behind the gap before the battle: from the base it lost the race to the first convoy on
             // every long corridor (a dozer is a third of a truck's pace).
-            int[] from = corridor.get(Math.max(convoys.entry(), convoys.gapIndex() - FORWARD));
-            dozer = beats.deploy(sim, VehicleType.DOZER_BREACHER, from[0], from[1]);
+            dozer = setDown(sim, convoys);
             if (dozer == 0L) return Status.LAPSED;
             // It sets out at once and keeps to its escort only once under way: staged forward to beat the first convoy
             // to the wreck, it lost that race in town, where no hull is ever free to escort it, by waiting the two
@@ -166,6 +167,64 @@ final class ClearRoadBeat extends CordonBeat {
         int[] lead = convoys.truck(sim, 1, 0);
         boolean atWreck = lead != null && !convoys.detoured() && lead[0] >= wreckIndex - NEEDED;
         return rule(cleared, CordonBeats.alive(sim, dozer), atWreck);
+    }
+
+    /**
+     * Sets the dozer down behind the gap, at the first corridor cell {@link #startIndex} offers that it can drive to
+     * the wreck from, over the ground its blade opens, and facing along that route's first leg
+     * ({@link SupplyDelivery#facing}); where none can, where it always was, facing the front. Set down at the corridor
+     * cell {@link #FORWARD} short of the gap whatever lay there, it stood in town where its footprint could not turn
+     * onto the street (every route refused at its first bend), or snapped into a yard walled all round, and never
+     * reached the wreck.
+     */
+    private long setDown(BattleSimulation sim, CordonConvoys convoys) {
+        List<int[]> corridor = beats.corridor();
+        int preferred = Math.max(convoys.entry(), convoys.gapIndex() - FORWARD);
+        VehicleType type = VehicleType.DOZER_BREACHER;
+        int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
+        VehicleClearance stand = VehicleClearance.erode(sim.getGrid(), radius);
+        // The move order proves a bladed hull's route over the blade's view of the map; so does this.
+        NavigationGrid view = sim.blade() != null ? sim.blade().planningGrid() : sim.getGrid();
+        VehicleClearance mask = VehicleClearance.erode(view, radius);
+        TerrainCostField cost = TerrainCostField.from(sim.getTopology());
+        int[] mid = corridor.get(wreckIndex);
+        int[] goal = VehicleRoutePlanner.snapToMask(mask, mid[0], mid[1], ORDER_SNAP);
+        int[][] at = new int[1][];
+        float[][][] way = new float[1][][];
+        int index = goal == null ? -1 : startIndex(preferred, convoys.entry(), convoys.gapIndex() - 1, i -> {
+            int[] cell = VehicleRoutePlanner.snapToMask(stand, corridor.get(i)[0], corridor.get(i)[1], CordonBeats.STAND_REACH);
+            if (cell == null || !mask.isPassable(cell[0], cell[1])) return false;
+            float[][] route = VehicleRoutePlanner.routeDrivable(cell[0], cell[1], goal[0], goal[1], view, cost, mask, type);
+            if (route == null) return false;
+            at[0] = cell;
+            way[0] = route;
+            return true;
+        });
+        if (index < 0) {
+            int[] from = corridor.get(preferred);
+            return beats.deploy(sim, type, from[0], from[1]);
+        }
+        float facing = SupplyDelivery.facing(way[0], at[0][0] + .5f, at[0][1] + .5f, goal[0] + .5f, goal[1] + .5f);
+        return beats.command().deploy(sim, type, at[0][0], at[0][1], facing);
+    }
+
+    /** Cells a move order looks round its goal for ground the hull fits, as {@code VehicleMoveOrderSystem} does. */
+    private static final int ORDER_SNAP = 6;
+
+    /** Corridor cells either side of the preferred start tried in turn for the dozer's, nearest first, back before on. */
+    static final int[] START_STEPS = {0, -3, 3, -6, 6, -9, 9, -12, -15, -18, -21, -24};
+
+    /**
+     * The corridor cell the dozer is set down at: the first of {@link #START_STEPS} from {@code preferred}, within
+     * {@code lo..hi}, that {@code drives} to the wreck; {@code -1} where none does.
+     */
+    static int startIndex(int preferred, int lo, int hi, IntPredicate drives) {
+        for (int step : START_STEPS) {
+            int i = preferred + step;
+            if (i < lo || i > hi) continue;
+            if (drives.test(i)) return i;
+        }
+        return -1;
     }
 
     /**
@@ -235,16 +294,41 @@ final class ClearRoadBeat extends CordonBeat {
         VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
         TerrainCostField cost = TerrainCostField.from(sim.getTopology());
         int[] from = VehicleRoutePlanner.snapToMask(mask, (int) body.x, (int) body.y, BLADE_SNAP);
+        // Its move order proves a bladed hull's route over the ground the blade opens; that view is asked only where
+        // no place is reached over open ground, so the dozer pushes through a yard wall only when it must.
+        NavigationGrid view = sim.blade() != null ? sim.blade().planningGrid() : sim.getGrid();
+        VehicleClearance bladeMask = VehicleClearance.erode(view, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        int[] bladeFrom = VehicleRoutePlanner.snapToMask(bladeMask, (int) body.x, (int) body.y, BLADE_SNAP);
         aside = aside(beats.corridor(), wreckIndex, (x, y) -> {
-            for (int[] t : asideTried) if (t[0] == x && t[1] == y) return false;
+            if (tried(x, y)) return false;
             return from != null && mask.isPassable(x, y) && VehicleRoutePlanner.routeDrivable(from[0], from[1], x, y,
                     sim.getGrid(), cost, mask, type) != null;
+        }, (x, y) -> {
+            if (tried(x, y)) return false;
+            return bladeFrom != null && mask.isPassable(x, y) && VehicleRoutePlanner.routeDrivable(bladeFrom[0],
+                    bladeFrom[1], x, y, view, cost, bladeMask, type) != null;
         });
         if (aside == null) return;
         asideTried.add(aside);
         asideNearest = body.distanceTo(aside[0] + .5f, aside[1] + .5f);
         asideSince = sim.getSimTickIndex();
         beats.command().station(sim, dozer, aside[0], aside[1]);
+    }
+
+    private boolean tried(int x, int y) {
+        for (int[] t : asideTried) if (t[0] == x && t[1] == y) return true;
+        return false;
+    }
+
+    /**
+     * Where the dozer pulls aside: the first place {@link #aside(List, int, Ground)} offers over {@code open} ground,
+     * and only where none is, the first it offers over {@code bladed} ground, which its blade opens on the way. In town
+     * no place beside the road could be driven to round the blocks, the dozer stood on a street one hull wide past the
+     * wreck, and the outbound convoys halted at it all battle.
+     */
+    static int[] aside(List<int[]> corridor, int wreckIndex, Ground open, Ground bladed) {
+        int[] place = aside(corridor, wreckIndex, open);
+        return place != null ? place : aside(corridor, wreckIndex, bladed);
     }
 
     /** Cells nearer its aside place the dozer must come to count as moving toward it. */
@@ -342,6 +426,8 @@ final class ClearRoadBeat extends CordonBeat {
         int[] at = beats.corridor().get(wreckIndex);
         return "wreck " + wreck.size() + " cells at corridor cell " + wreckIndex + " (" + at[0] + "," + at[1] + "), "
                 + open + "/" + road.size() + " road cells open; " + hull + (through ? ", through" : "")
+                + (cleared ? aside == null ? ", no aside place" : ", aside " + aside[0] + "," + aside[1] + " (try "
+                + asideTried.size() + ")" : "")
                 + (refused == null ? "" : ", refused " + refused.reason() + " to " + refused.requestedX() + ","
                 + refused.requestedY());
     }
