@@ -49,8 +49,9 @@ public final class MechCatalog {
      *                    doctrine a player assigns and can change
      * @param description provenance prose; no numbers, because every number a
      *                    screen shows comes from {@link MechVariant}
+     * @param factionLogo the crest of whoever its prose says builds it
      */
-    public record ChassisEntry(String designation, String role, String description) {
+    public record ChassisEntry(String designation, String role, String description, String factionLogo) {
         public String role() { return Strings.resolve(role); }
         public String description() { return Strings.resolve(description); }
     }
@@ -60,8 +61,9 @@ public final class MechCatalog {
      *
      * @param designation the catalog code, e.g. {@code SRM-15}
      * @param description provenance prose
+     * @param factionLogo the crest of whoever its prose says builds or issues it
      */
-    public record ComponentEntry(String designation, String description) {
+    public record ComponentEntry(String designation, String description, String factionLogo) {
         public String description() { return Strings.resolve(description); }
     }
 
@@ -115,7 +117,8 @@ public final class MechCatalog {
             chassis.put(variant, new ChassisEntry(
                     requireText(entry, "designation", variantId),
                     requireText(entry, "role", variantId),
-                    requireText(entry, "description", variantId)));
+                    requireText(entry, "description", variantId),
+                    requireText(entry, "factionLogo", variantId)));
         }
 
         Map<MechWeaponComponent, ComponentEntry> components =
@@ -134,7 +137,8 @@ public final class MechCatalog {
             }
             components.put(component, new ComponentEntry(
                     requireText(entry, "designation", componentId),
-                    requireText(entry, "description", componentId)));
+                    requireText(entry, "description", componentId),
+                    requireText(entry, "factionLogo", componentId)));
         }
 
         MechCatalog catalog = new MechCatalog(chassis, components);
