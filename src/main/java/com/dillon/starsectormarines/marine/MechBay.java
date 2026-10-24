@@ -493,9 +493,18 @@ public final class MechBay implements Serializable {
 
     /** Empties the optional utility socket; the vent array returns to stores. */
     public boolean stripVentArray(String mechId) {
+        return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
+    }
+
+    /**
+     * Empties one socketed internal back to stores. An engine or capacitor bank may be left
+     * empty too; the mech is then {@link CampaignMech.Readiness#INCOMPLETE} and stays off the
+     * drop manifest until one is fitted. Plating covers the frame and is only ever replaced.
+     */
+    public boolean stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = mechById(mechId);
-        if (mech == null || mech.internal(MechInternal.Role.VENT_ARRAY) == null) return false;
-        mech.installInternal(MechInternal.Role.VENT_ARRAY, null);
+        if (mech == null || role == null || role.socket() == null || mech.internal(role) == null) return false;
+        mech.installInternal(role, null);
         return true;
     }
 
@@ -605,7 +614,8 @@ public final class MechBay implements Serializable {
 
     /**
      * Frozen values for the active squad's mechs that can deploy now; campaign objects stay in
-     * the roster. A damaged mech or one under repair stays in its gantry ({@link #heldBack}).
+     * the roster. A damaged mech, one under repair, or one missing a required internal stays in
+     * its gantry ({@link #heldBack}).
      */
     public List<MechDeploymentSpec> activeDeployment() {
         return activeDeployment(CampaignClock.dayFloat());

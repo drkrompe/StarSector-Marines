@@ -1,14 +1,13 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.allied.GunStock;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -24,8 +23,8 @@ import java.util.Random;
 final class GunsDryBeat extends CordonBeat {
 
     static final int DRY_SECONDS = 300;
-    /** A dry gun waits this many times its own cooldown between shots. */
-    static final float RATION = 4f;
+    /** Rounds a redoubt gun holds once the truck has come: more than the rest of a battle spends. */
+    static final int FULL = 1000;
     /** Cells from the redoubt's wall the truck has arrived. */
     static final int ARRIVE = 8;
     private static final long SALT = 0x4755_4E53_4452_59L;
@@ -33,7 +32,8 @@ final class GunsDryBeat extends CordonBeat {
     private CordonRedoubt redoubt;
     private SupplyDelivery delivery;
     private boolean started, arrived;
-    private final Map<Long, Float> lastTimer = new HashMap<>();
+    /** The redoubt's guns' rounds on hand, drained when they run dry and refilled by the truck. */
+    private GunStock stock;
 
     GunsDryBeat(CordonBeats beats) {
         super(beats);
@@ -53,6 +53,9 @@ final class GunsDryBeat extends CordonBeat {
             started = true;
             Laid road = choose();
             if (road == null) return Status.LAPSED;
+            stock = new GunStock("redoubt " + redoubt.number(), FULL);
+            for (long gun : redoubt.guns()) stock.add(gun);
+            stock.drain();
             int[] base = road.gaps().get(0), gate = road.gaps().get(1);
             if (dist(base, redoubt) < dist(gate, redoubt)) {
                 int[] swap = base;
@@ -67,7 +70,10 @@ final class GunsDryBeat extends CordonBeat {
                 @Override public boolean reached(BattleSimulation s, float x, float y) {
                     return r.contains((int) x, (int) y, ARRIVE);
                 }
-                @Override public void arrived(BattleSimulation s) { GunsDryBeat.this.arrived = true; }
+                @Override public void arrived(BattleSimulation s) {
+                    GunsDryBeat.this.arrived = true;
+                    stock.refill(s);
+                }
             }, s -> from);
         }
         SupplyDelivery.State state = delivery.advance(sim, beats.command());
@@ -78,7 +84,7 @@ final class GunsDryBeat extends CordonBeat {
     /** The guns stay rationed until the truck comes, whether or not it still can. */
     @Override
     void watch(BattleSimulation sim, int tick) {
-        if (redoubt != null && !arrived && redoubt.manned()) ration(sim);
+        if (stock != null && !arrived && redoubt.manned()) stock.advance(sim);
     }
 
     /** A manned redoubt with a supply road, drawn from the battle seed; the switch line's redoubt last. */
@@ -97,20 +103,6 @@ final class GunsDryBeat extends CordonBeat {
     private static long dist(int[] c, CordonRedoubt r) {
         long dx = c[0] - r.centreX(), dy = c[1] - r.centreY();
         return dx * dx + dy * dy;
-    }
-
-    /** Every gun that fired since the last tick waits {@link #RATION} times its cooldown before the next. */
-    private void ration(BattleSimulation sim) {
-        for (long gun : redoubt.guns()) {
-            if (sim.resolveUnit(gun) == 0L || !sim.world().isAlive(gun)) continue;
-            float timer = sim.world().cooldownTimer(gun);
-            Float last = lastTimer.get(gun);
-            if (last != null && timer > last + 1e-4f) {
-                timer = sim.combat().attackCooldown(gun) * RATION;
-                sim.world().setCooldownTimer(gun, timer);
-            }
-            lastTimer.put(gun, timer);
-        }
     }
 
     /** The redoubt the guns ran dry in, once chosen. */
