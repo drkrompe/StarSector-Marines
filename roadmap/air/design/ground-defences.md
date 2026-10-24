@@ -220,7 +220,7 @@ capital that is not another ship.
      "Ground defences" dial has a `NESTS` option back (the earlier GROUND option declared nothing and was dropped), and
      `FORTRESS` now includes nests with its batteries and generator.
    - *Placement.* `DefenceNestStage` runs after the battery stage and places exactly the declared count, drawing no
-     random numbers. A nest is the ordinary light defence post (four parapets and a paved apron round one sealed mount) stamped by
+     random numbers. A nest is the ordinary light defence post (a closed ring of eight parapets, corners included, round one sealed mount) stamped by
      `DefensePostStamper`, so nothing parallel exists; the guns are the catalog's own emplacements, the Hephaestus cannon
      alternating with heavy machine gun (anti-armour, then anti-infantry). Nests are unmanned, as the overwatch towers are:
      no guard-post node, so no defender roster change. Sites are open outdoor ground that fits the post footprint in the

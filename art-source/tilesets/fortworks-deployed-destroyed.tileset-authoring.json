@@ -153,7 +153,7 @@
         1161,
         41,
         164,
-        186
+        163
       ]
     },
     {
@@ -170,7 +170,7 @@
         1161,
         41,
         164,
-        186
+        163
       ]
     },
     {
@@ -185,9 +185,9 @@
       "note": "Barricade piece s, deployed look, destroyed.",
       "rect": [
         1161,
-        414,
+        368,
         164,
-        186
+        163
       ]
     },
     {
@@ -202,9 +202,9 @@
       "note": "Barricade piece s, deployed look, destroyed.",
       "rect": [
         1161,
-        414,
+        368,
         164,
-        186
+        163
       ]
     },
     {
@@ -219,9 +219,9 @@
       "note": "Barricade piece w, deployed look, destroyed.",
       "rect": [
         998,
-        227,
+        204,
         163,
-        187
+        164
       ]
     },
     {
@@ -236,9 +236,9 @@
       "note": "Barricade piece w, deployed look, destroyed.",
       "rect": [
         998,
-        227,
+        204,
         163,
-        187
+        164
       ]
     },
     {
@@ -253,9 +253,9 @@
       "note": "Barricade piece e, deployed look, destroyed.",
       "rect": [
         1325,
-        227,
+        204,
         163,
-        187
+        164
       ]
     },
     {
@@ -270,9 +270,9 @@
       "note": "Barricade piece e, deployed look, destroyed.",
       "rect": [
         1325,
-        227,
+        204,
         163,
-        187
+        164
       ]
     },
     {
@@ -289,7 +289,7 @@
         998,
         41,
         163,
-        186
+        163
       ]
     },
     {
@@ -306,7 +306,7 @@
         998,
         41,
         163,
-        186
+        163
       ]
     },
     {
@@ -323,7 +323,7 @@
         1325,
         41,
         163,
-        186
+        163
       ]
     },
     {
@@ -340,7 +340,7 @@
         1325,
         41,
         163,
-        186
+        163
       ]
     },
     {
@@ -355,9 +355,9 @@
       "note": "Barricade piece corner-sw, deployed look, destroyed.",
       "rect": [
         998,
-        414,
+        368,
         163,
-        186
+        163
       ]
     },
     {
@@ -372,9 +372,9 @@
       "note": "Barricade piece corner-sw, deployed look, destroyed.",
       "rect": [
         998,
-        414,
+        368,
         163,
-        186
+        163
       ]
     },
     {
@@ -389,9 +389,9 @@
       "note": "Barricade piece corner-se, deployed look, destroyed.",
       "rect": [
         1325,
-        414,
+        368,
         163,
-        186
+        163
       ]
     },
     {
@@ -406,9 +406,9 @@
       "note": "Barricade piece corner-se, deployed look, destroyed.",
       "rect": [
         1325,
-        414,
+        368,
         163,
-        186
+        163
       ]
     }
   ],

@@ -153,7 +153,7 @@
         1165,
         38,
         167,
-        187
+        168
       ]
     },
     {
@@ -170,7 +170,7 @@
         1165,
         38,
         167,
-        187
+        168
       ]
     },
     {
@@ -185,9 +185,9 @@
       "note": "Barricade piece s, earthwork look, damaged.",
       "rect": [
         1165,
-        413,
+        373,
         167,
-        187
+        168
       ]
     },
     {
@@ -202,9 +202,9 @@
       "note": "Barricade piece s, earthwork look, damaged.",
       "rect": [
         1165,
-        413,
+        373,
         167,
-        187
+        168
       ]
     },
     {
@@ -219,9 +219,9 @@
       "note": "Barricade piece w, earthwork look, damaged.",
       "rect": [
         997,
-        225,
+        206,
         168,
-        188
+        167
       ]
     },
     {
@@ -236,9 +236,9 @@
       "note": "Barricade piece w, earthwork look, damaged.",
       "rect": [
         997,
-        225,
+        206,
         168,
-        188
+        167
       ]
     },
     {
@@ -253,9 +253,9 @@
       "note": "Barricade piece e, earthwork look, damaged.",
       "rect": [
         1332,
-        225,
+        206,
         168,
-        188
+        167
       ]
     },
     {
@@ -270,9 +270,9 @@
       "note": "Barricade piece e, earthwork look, damaged.",
       "rect": [
         1332,
-        225,
+        206,
         168,
-        188
+        167
       ]
     },
     {
@@ -289,7 +289,7 @@
         997,
         38,
         168,
-        187
+        168
       ]
     },
     {
@@ -306,7 +306,7 @@
         997,
         38,
         168,
-        187
+        168
       ]
     },
     {
@@ -323,7 +323,7 @@
         1332,
         38,
         168,
-        187
+        168
       ]
     },
     {
@@ -340,7 +340,7 @@
         1332,
         38,
         168,
-        187
+        168
       ]
     },
     {
@@ -355,9 +355,9 @@
       "note": "Barricade piece corner-sw, earthwork look, damaged.",
       "rect": [
         997,
-        413,
+        373,
         168,
-        187
+        168
       ]
     },
     {
@@ -372,9 +372,9 @@
       "note": "Barricade piece corner-sw, earthwork look, damaged.",
       "rect": [
         997,
-        413,
+        373,
         168,
-        187
+        168
       ]
     },
     {
@@ -389,9 +389,9 @@
       "note": "Barricade piece corner-se, earthwork look, damaged.",
       "rect": [
         1332,
-        413,
+        373,
         168,
-        187
+        168
       ]
     },
     {
@@ -406,9 +406,9 @@
       "note": "Barricade piece corner-se, earthwork look, damaged.",
       "rect": [
         1332,
-        413,
+        373,
         168,
-        187
+        168
       ]
     }
   ],
