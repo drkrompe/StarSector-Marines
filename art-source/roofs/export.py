@@ -30,7 +30,7 @@ STYLES = ('clay', 'slab', 'corrugated', 'plate')
 F = 128
 COLUMNS = 10
 # RoofCover.EAVE_DEPTH: an eave's open edge lies this far up the frame from its south edge.
-EAVE_DEPTH = 0.4
+EAVE_DEPTH = 0.7
 EDGE = round(F * (1 - EAVE_DEPTH))   # image row of the eave's open edge
 CORNER = round(F * EAVE_DEPTH)       # image column of an outside corner's open edge
 TRIM = 12                            # the edge band's depth

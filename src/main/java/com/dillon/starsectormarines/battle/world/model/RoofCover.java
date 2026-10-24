@@ -22,8 +22,12 @@ package com.dillon.starsectormarines.battle.world.model;
  */
 public final class RoofCover {
 
-    /** How far an eave reaches over a cell that faces the outside, from the building's side, in cells. */
-    public static final float EAVE_DEPTH = 0.4f;
+    /**
+     * How far an eave reaches over a cell that faces the outside, from the building's side, in cells: up to the
+     * inner edge of an exterior window's frame, which takes the outer 0.3 of its cell, so the roof just touches every
+     * window and leaves the frame and the outer strip of each wall in view.
+     */
+    public static final float EAVE_DEPTH = 0.7f;
 
     /** The shape a roof takes over one cell. */
     public enum Piece {
