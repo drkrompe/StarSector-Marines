@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.RavBurst;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 
 /**
- * Draws a Spitter from its parts, seen from above: the tail's slices coiled out from under the haunch, the arms
- * about their shoulder sockets, the back over them, and the head on top, turned about its neck, with its
- * hood folded or popped open as the rig fires (the flared hood grows out from the folded one). A dead Spitter lies
- * dulled in a pool of its own acid ({@link #emitDead}).
+ * Draws a Spitter from its parts, seen from above: the tail's slices chained from the body's centre (coiled round the
+ * body standing, trailing behind on the move), the back over them, and the head on top, turned about its
+ * neck, closed or spitting as the rig fires. A dead Spitter is drawn burst, as a Brute is ({@link #emitDead}).
  */
 final class RavSpitterComposer {
 
@@ -14,18 +14,15 @@ final class RavSpitterComposer {
     private static final float SCALE = 0.25f;
     private static final float U = RavSpitterRig.U_LAYER;
     private static final float ANCHOR = RavSpitterRig.ANCHOR_ROW, CENTRE = RavSpitterRig.CENTRE_COL;
-    /** Canvas row of each sprite's centre (the export boxes): the back, and the head in either hood state. */
-    private static final float BACK_ROW = 565f, HEAD_ROW = 250f;
-    /**
-     * The left arm on its own canvas: its box's centre, its shoulder ball (the pivot set on the back's socket), the
-     * share it is drawn at, and its rest swing off the drawn pose, raised forward (degrees).
-     */
-    private static final float ARM_COL = 360f, ARM_ROW = 602.5f, ARM_PIVOT_COL = 536f, ARM_PIVOT_ROW = 517f;
-    private static final float ARM_SCALE = 0.75f, ARM_REST = -25f;
+    private static final float BACK_ROW = RavSpitterRig.BACK_ROW, HEAD_ROW = RavSpitterRig.HEAD_ROW;
     /** The flared hood opens out from this share of its width. */
-    private static final float HOOD_FROM = 0.55f;
-    /** The canvas centre row of the corpse, the corpse's pool across, and the corpse drawn a little flattened. */
-    private static final float CANVAS_CENTRE_ROW = 768f, POOL_CELLS = 1.25f, DEAD_SCALE = 0.97f;
+    private static final float HOOD_FROM = 0.9f;
+    /** The hood share past which the spitting head replaces the closed one. */
+    private static final float HOOD_SWAP = 0.5f;
+    /** Tail slices from the root that bend to keep the planted tail joined to the moving body. */
+    private static final int HOOKUP_SLICES = 2;
+    /** A drawn tail slice's length, cells. */
+    private static final float SLICE = RavSpitterRig.SLICE_PX / RavSpitterRig.U_LAYER;
 
     private RavSpitterComposer() {
     }
@@ -54,58 +51,53 @@ final class RavSpitterComposer {
         ax += p[0] * ppc;
         ay += p[1] * ppc;
 
-        // the tail, chained from its root under the chest; drawn tip first so each segment lies over the one behind it
-        float[][] root = new float[RavSpitterRig.TAIL_SEGMENTS][2];
-        float[] angle = new float[RavSpitterRig.TAIL_SEGMENTS];
-        point(CENTRE, RavSpitterRig.COIL_ROOT_ROW, chest, ax, ay, ppc, p);
-        float jx = p[0], jy = p[1], a = chest;
-        for (int i = 0; i < RavSpitterRig.TAIL_SEGMENTS; i++) {
+        // the tail, chained from the body's centre. It is planted: it hangs off the sim position and the facing, so the
+        // chest's rear, lunge and roll leave it where it lies; only its hookup follows the body
+        int n = RavSpitterRig.TAIL_SEGMENTS;
+        float[][] joint = new float[n + 1][2];
+        float tailPx = spritePx * RavSpitterRig.TAIL_SCALE;
+        float jx = cx, jy = cy, a = facing;
+        for (int i = 0; i <= n; i++) {
+            joint[i][0] = jx;
+            joint[i][1] = jy;
+            if (i == n) break;
             a += rig.tailAngle(i);
-            angle[i] = a;
-            root[i][0] = jx;
-            root[i][1] = jy;
-            float length = (RavSpitterRig.TAIL_ROWS[i + 1] - RavSpitterRig.TAIL_ROWS[i]) / U;
-            rotate(0f, -length, a, p);
+            rotate(0f, -SLICE, a, p);
             jx += p[0] * ppc;
             jy += p[1] * ppc;
         }
-        for (int i = RavSpitterRig.TAIL_SEGMENTS - 1; i >= 0; i--) {
-            float back = (RavSpitterRig.TAIL_ROWS[i + 1] - RavSpitterRig.TAIL_ROWS[i]) / 2f / U;
-            rotate(0f, -back, angle[i], p);
-            LayeredSpriteCache s = art.tail[i];
-            out.add(s, root[i][0] + p[0] * ppc, root[i][1] + p[1] * ppc, s.pxWidth * spritePx,
-                    s.pxHeight * spritePx, angle[i], 1f, 1f, 1f, alpha);
+        // the root rides with the body, and the first slices bend and stretch to keep it joined to the planted rest
+        float dx = ax - cx, dy = ay - cy;
+        for (int k = 0; k < HOOKUP_SLICES; k++) {
+            float follow = 1f - (float) k / HOOKUP_SLICES;
+            joint[k][0] += dx * follow;
+            joint[k][1] += dy * follow;
         }
-
-        for (int side = 0; side < 2; side++) {        // arms about their shoulder sockets
-            float sign = side == RavSpitterRig.LEFT ? 1f : -1f;
-            float shoulderCol = CENTRE - sign * (CENTRE - RavSpitterRig.SHOULDER_COL);
-            point(shoulderCol, RavSpitterRig.SHOULDER_ROW, chest, ax, ay, ppc, p);
-            // the left swings back counter-clockwise, the right clockwise
-            float swing = sign * (ARM_REST + rig.clawAngle(side));
-            float ox = sign * (ARM_COL - ARM_PIVOT_COL) * ARM_SCALE / U;
-            float oy = (ARM_PIVOT_ROW - ARM_ROW) * ARM_SCALE / U;
-            float[] o = new float[2];
-            rotate(ox, oy, chest + swing, o);
-            LayeredSpriteCache s = art.arm[side];
-            out.add(s, p[0] + o[0] * ppc, p[1] + o[1] * ppc, s.pxWidth * spritePx * ARM_SCALE,
-                    s.pxHeight * spritePx * ARM_SCALE, chest + swing, 1f, 1f, 1f, alpha);
+        for (int i = n - 1; i >= 0; i--) {             // tip first, so each slice lies over the one behind it
+            float vx = joint[i + 1][0] - joint[i][0], vy = joint[i + 1][1] - joint[i][1];
+            float stretch = (float) Math.hypot(vx, vy) / (SLICE * ppc);
+            float sliceAngle = (float) Math.toDegrees(Math.atan2(vx, -vy));
+            LayeredSpriteCache s = art.tail[RavSpitterRig.TAIL_ART[i]];
+            out.add(s, (joint[i][0] + joint[i + 1][0]) / 2f, (joint[i][1] + joint[i + 1][1]) / 2f,
+                    s.pxWidth * tailPx * RavSpitterRig.tailGirth(i), s.pxHeight * tailPx * stretch, sliceAngle,
+                    1f, 1f, 1f, alpha);
         }
 
         point(CENTRE, BACK_ROW, chest, ax, ay, ppc, p);
         out.add(art.back, p[0], p[1], art.back.pxWidth * spritePx, art.back.pxHeight * spritePx, chest,
                 1f, 1f, 1f, alpha);
 
-        // the head about its neck, its hood folded under the flared one as it pops
+        // the head about its neck, closed or spitting
         float[] neck = new float[2];
         point(CENTRE, RavSpitterRig.NECK_ROW, chest, ax, ay, ppc, neck);
         float head = chest + rig.headYaw();
         float k = rig.headScale();
         float hood = rig.hood();
-        if (hood < 0.98f) headSprite(out, art.headShut, HEAD_ROW, neck, head, k, 1f, ppc, spritePx, alpha);
-        if (hood > 0.02f) {
+        // one head at a time: the two poses' silhouettes differ, so any overlap reads as two heads
+        if (hood < HOOD_SWAP) headSprite(out, art.headShut, HEAD_ROW, neck, head, k, 1f, ppc, spritePx, alpha);
+        else {
             headSprite(out, art.headOpen, HEAD_ROW, neck, head, k, HOOD_FROM + (1f - HOOD_FROM) * hood, ppc,
-                    spritePx, alpha * Math.min(1f, hood * 2.5f));
+                    spritePx, alpha);
         }
     }
 
@@ -118,22 +110,59 @@ final class RavSpitterComposer {
                 s.pxHeight * spritePx * k, head, 1f, 1f, 1f, alpha);
     }
 
-    static void emitDead(DrawList out, RavSpitterAssets art, float cx, float cy, float facing, float ppc,
-                         float alpha) {
-        emitDead(units(out), art, cx, cy, facing, ppc, alpha);
+    /**
+     * A dead Spitter, burst: its blood on the ground, then the tail's slices, the body and the head where the burst
+     * left them, then the droplets still in the air. The blood is the Runner's ({@code splat}, {@code drop}); without
+     * it the pieces are drawn bare.
+     */
+    static void emitDead(DrawList out, RavSpitterAssets art, LayeredSpriteCache[] splat, LayeredSpriteCache drop,
+                         RavSpitterRig rig, float cx, float cy, float ppc, float alpha) {
+        emitDead(units(out), art, splat, drop, rig, cx, cy, ppc, alpha);
     }
 
-    /** A dead Spitter: dulled and lying where it fell, in the acid it spilled. */
-    static void emitDead(LayeredUnitComposer.SpriteEmitter out, RavSpitterAssets art, float cx, float cy,
-                         float facing, float ppc, float alpha) {
-        float pool = POOL_CELLS * ppc;
-        out.add(art.pool, cx, cy, pool, pool * art.pool.pxHeight / art.pool.pxWidth, facing + 37f,
-                1f, 1f, 1f, alpha);
-        float spritePx = ppc / (U * SCALE) * DEAD_SCALE;
+    static void emitDead(LayeredUnitComposer.SpriteEmitter out, RavSpitterAssets art, LayeredSpriteCache[] splat,
+                         LayeredSpriteCache drop, RavSpitterRig rig, float cx, float cy, float ppc, float alpha) {
+        RavBurst burst = rig.burst();
+        float facing = rig.facingDegrees();
+        float spritePx = ppc / (U * SCALE);
         float[] p = new float[2];
-        point(CENTRE, CANVAS_CENTRE_ROW, facing, cx, cy, ppc, p);
-        out.add(art.dead, p[0], p[1], art.dead.pxWidth * spritePx, art.dead.pxHeight * spritePx, facing,
-                1f, 1f, 1f, alpha);
+        RavIchor.Ground ground = (x, y, o) -> {
+            rotate(x, y, facing, o);
+            o[0] = cx + o[0] * ppc;
+            o[1] = cy + o[1] * ppc;
+        };
+        if (splat != null) RavIchor.onGround(out, splat, burst, ground, ppc, facing, 1f, alpha);
+
+        float[] d = new float[3], a = new float[2], b = new float[2];
+        float tailPx = spritePx * RavSpitterRig.TAIL_SCALE;
+        for (int i = RavSpitterRig.TAIL_SEGMENTS - 1; i >= 0; i--) {
+            int piece = RavSpitterRig.tailPieceOf(i);
+            burst.deadPoint(piece, i, 0f, 0f, d);
+            ground.toScreen(d[0], d[1], a);
+            burst.deadPoint(piece, i + 1, 0f, 0f, d);
+            ground.toScreen(d[0], d[1], b);
+            float vx = b[0] - a[0], vy = b[1] - a[1];
+            float stretch = (float) Math.hypot(vx, vy) / (SLICE * ppc);
+            float sliceAngle = (float) Math.toDegrees(Math.atan2(vx, -vy));
+            LayeredSpriteCache s = art.tail[RavSpitterRig.TAIL_ART[i]];
+            out.add(s, (a[0] + b[0]) / 2f, (a[1] + b[1]) / 2f, s.pxWidth * tailPx * RavSpitterRig.tailGirth(i),
+                    s.pxHeight * tailPx * stretch, sliceAngle, 1f, 1f, 1f, alpha);
+        }
+        deadPiece(out, art.back, burst, RavSpitterRig.PIECE_BODY, RavSpitterRig.BACK_POINT, ground, facing,
+                spritePx, alpha, d, p);
+        deadPiece(out, art.headShut, burst, RavSpitterRig.PIECE_HEAD, RavSpitterRig.HEAD_POINT, ground, facing,
+                spritePx, alpha, d, p);
+        if (drop != null) RavIchor.inFlight(out, drop, burst, ground, ppc, 1f, alpha);
+    }
+
+    /** One burst piece's sprite, centred on its pose point. */
+    private static void deadPiece(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache sprite, RavBurst burst,
+                                  int piece, int point, RavIchor.Ground ground, float facing, float spritePx,
+                                  float alpha, float[] d, float[] at) {
+        burst.deadPoint(piece, point, 0f, 0f, d);
+        ground.toScreen(d[0], d[1], at);
+        out.add(sprite, at[0], at[1], sprite.pxWidth * spritePx, sprite.pxHeight * spritePx,
+                facing + burst.pieceSpin(piece), 1f, 1f, 1f, alpha);
     }
 
     /** The screen point of canvas pixel {@code (col, row)} on a body anchored at (ax, ay) and turned to angle. */

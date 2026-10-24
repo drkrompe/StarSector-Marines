@@ -109,6 +109,7 @@ public final class RavRunnerRigSystem {
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 if (rigs[row] instanceof RavRunnerRig rig) rig.advanceDead(posX[row], posY[row], dt);
                 else if (rigs[row] instanceof RavBruteRig brute) brute.advanceDead(posX[row], posY[row], dt);
+                else if (rigs[row] instanceof RavSpitterRig spitter) spitter.advanceDead(posX[row], posY[row], dt);
             }
         }
     }

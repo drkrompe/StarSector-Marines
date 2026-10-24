@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f39-6fb1-7f83-85f9-da912771f188",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f39-6fb1-7f83-85f9-da912771f188\\exec-82ec4ec6-8c71-4850-af90-16951f578ab0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-4\\raw\\p3-cowl.png",
+    "sha256": "ee83831a47225ab0be3461f0d87f7ef49a136163aa1e5100ec9d3fbd643f5041",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-4\\prompts\\p3-cowl.prompt.txt",
+  "promptSha256": "fae06229d2011989b799f9a64542871232a8b94239d453b2677510f36d3c6097",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Silhouette, pose, placement, scale and shading: fill it in, never move it\nImage 2: Colours and material only; not layout or design\n\nA production top-down sprite for a tactical game: the whole Rav Bloom Spitter, a serpentine beast that rears straight up out of its own coiled tail like a cobra or a hydralisk and lobs acid, seen from DIRECTLY ABOVE, head facing UP. It has NO arms and NO claws.\n\nReference image 1 is a shaded 3D render of the animal from directly above: it is the exact silhouette, pose, placement, scale and shading. Fill it in with armour and anatomy that follow it closely, never move or reshape it. Reading it: the head is at the top, brightest because it is highest and nearest the camera; its snout points up, its two dark eyes sit behind the snout, a ridge runs back along the skull, and two crest blades sweep back over the neck. Beneath the head the body is rearing up and leaning back, so its rounded haunch shows behind the chest. The tail lies on the ground, darker, curled tight round the base of the body and tapering to a spike. Keep that light-to-dark fall from head to tail.\n\nReference image 2 is for colours and material only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in the gaps, ivory bone, small amber eyes.\n\nKEEP IT CLEAN AND READABLE AT SMALL SIZE: a few long smooth plates that follow the body, not many small ones; few spines; no busy texture.\n\nDESIGN: An indigo wedge skull with an ivory brow; the crest blades and the ridge between them are a hydralisk cowl of slim ivory plates lying back along the neck. Long smooth indigo plates down the body and tail.\n\nStrict overhead orthographic view, light from the upper left. Plain flat light grey background (#afafaf), no cast shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-4\\guides\\pose-stand.png",
+      "sha256": "8a185e7efd36aa0800cf9004818d2367eb8243d2ad48985f8908323014a5a042",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "L",
+      "role": "Silhouette, pose, placement, scale and shading: fill it in, never move it"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and material only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite using the first image’s exact pose and silhouette, with the second image’s colours and materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 45235,
+    "cached_input_tokens": 37760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 693,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.7
+}

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f23-fe7a-73c0-b2fa-26f18479775e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f23-fe7a-73c0-b2fa-26f18479775e\\exec-b0692f7b-a474-4713-92c3-1f711bbfc298.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\raw\\h3-sacs.png",
+    "sha256": "d1290a33ed760d6a787ac74e62eb53e458a6d7962f3d499ce4a65f795eb7bd17",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\prompts\\h3-sacs.prompt.txt",
+  "promptSha256": "19400619d31a9f6263550495aca411beb121d1da2cdc7ac8ecdf563e96ee7d97",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Position and scale on the canvas only; the design is new\nImage 2: Colours and plate finish only; not layout or design\n\nA single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter, an upright serpentine beast that lobs acid, seen from DIRECTLY ABOVE, facing UP, as its own separate part. Reference image 1 fixes only the part's position and scale on the canvas (the head sits in the same place, about the same size, its neck ending in a rounded closed stump at the bottom that tucks under the body); the DESIGN is new, as described below. Reference image 2 is the whole creature, for colours and plate finish only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone, small amber eyes, and deep venom-green acid glowing where it is stored.\n\nDESIGN: VENOM SACS. A narrow armoured skull flanked by two large swollen translucent venom sacs bulging out to either side behind the jaws, glowing deep green from inside and laced with dark red veins, held in a cage of thin ivory ribs.\n\nNo arms, no claws, no shoulders, no body, no tail. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\part-head-open.png",
+      "sha256": "0974056459cdf5884402d7009bdaca6e5f150654640237c8377df8913bf422e9",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Position and scale on the canvas only; the design is new"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and plate finish only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one head layer using the first reference for placement and the second for palette and plate finish."
+  ],
+  "usage": {
+    "input_tokens": 44748,
+    "cached_input_tokens": 37376,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 454,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 42.2
+}

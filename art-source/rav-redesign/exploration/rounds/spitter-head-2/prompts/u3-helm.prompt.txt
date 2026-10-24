@@ -1,0 +1,16 @@
+A production top-down sprite for a tactical game: the UPPER BODY of the Rav Bloom Spitter, an upright serpentine beast that rears up out of its tail like a cobra and lobs acid, seen from DIRECTLY ABOVE, head facing UP. It has NO arms and NO claws.
+
+Reference image 1 is the exact silhouette, placement, scale and VALUE plan: fill it in, never move it. Its shapes, top to bottom, are the creature's parts at falling height:
+- the HEAD (brightest, the part nearest the camera, so the largest and sharpest-lit);
+- the CHEST rising beneath it (a step darker);
+- the HAUNCH, a broad dark hump where the body bends backward into the tail (darker again);
+- the TAIL ROOT on the ground leaving behind (darkest).
+Each part overlaps the one below it. Keep that light-to-dark gradient from head to tail: it is what makes the animal read as standing upright.
+
+Reference image 2 is for colours and material only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in the gaps, ivory bone, small amber eyes.
+
+KEEP IT CLEAN AND READABLE AT SMALL SIZE: a few large smooth carapace plates, not many small ones; few spines; strong simple shapes; no busy texture.
+
+DESIGN: A sleek bone-helmet head, almost featureless, one large smooth ivory plate over the skull with two amber eye slits, swept back into the neck. The chest and haunch in large smooth indigo plates, very little detail.
+
+Strict overhead orthographic view, light from the upper left. Plain flat light grey background (#afafaf), no cast shadow, no ground, no text, no border.

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f5e-1846-7653-9ea0-e1a43bcbb8ba",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f5e-1846-7653-9ea0-e1a43bcbb8ba\\exec-747c94a0-dde1-49f4-b9f5-0c1b6451aa5f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\ridge-head-spit.png",
+    "sha256": "4eeebf0e855a5c679ad583b201912dae65bd2cfc2f90420e8cb4ff6f39068eea",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\ridge-head-spit-v2.prompt.txt",
+  "promptSha256": "c4f6a8d345b360b081339b572d58104bb0cb9d584b4dd6b32e1484d121324097",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Silhouette, pose, placement, scale and shading: fill it in, never move it\nImage 2: The same head at rest: design, colours and finish to match; not pose\n\nA single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter as it SPITS acid, seen from DIRECTLY ABOVE, facing UP, as its own separate part.\n\nReference image 1 is a shaded 3D render of exactly this pose from directly above: the exact silhouette, placement, scale and shading; fill it in, never move or reshape it. In it the head has reared back on its neck with the snout tilted up toward the camera, so the skull looks shorter and we see its top and back; the two crest blades are flared out wide; and the lower jaw has dropped and thrust forward past the snout, so the only part of the open mouth the camera can see is the dark gap at the front between the snout and the jaw's tip. Paint that gap as the open mouth glowing deep venom green, with a bead of acid at the lips. Do NOT paint a mouth on top of the head.\n\nReference image 2 is the same head at rest: match its design exactly (narrow indigo skull, the single ivory crest ridge down its centre, amber eyes, slim ivory crest blades, dark wine-red sinew).\n\nOnly the head: no body. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\guides\\ridge-part-head-spit.png",
+      "sha256": "413a1f4e4506840e0e31bc02abc9a2562e3f7e36098806a664c1ad5755553cda",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "L",
+      "role": "Silhouette, pose, placement, scale and shading: fill it in, never move it"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\ridge-head.png",
+      "sha256": "c5f241136934194025b7035860ab04a58bf8e54ed16ea32202f9563b35a19a1b",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The same head at rest: design, colours and finish to match; not pose"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s exact pose and placement and the second reference’s colours and finish."
+  ],
+  "usage": {
+    "input_tokens": 88550,
+    "cached_input_tokens": 80768,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 616,
+    "reasoning_output_tokens": 35
+  },
+  "elapsedSeconds": 40.5
+}

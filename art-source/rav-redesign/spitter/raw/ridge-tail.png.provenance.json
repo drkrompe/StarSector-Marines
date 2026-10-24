@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f3f-3b8a-7860-b28e-3f18994fbfe0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f3f-3b8a-7860-b28e-3f18994fbfe0\\exec-b3842c77-37ed-4124-8b31-27317a3f99cc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\ridge-tail.png",
+    "sha256": "2710ddfb368f410dc44ce0758f34aed15ac9b35b120ed72f171f939c878a2aa6",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\ridge-tail.prompt.txt",
+  "promptSha256": "f5fa43a5ae7ddee55b09593cda4a6e9f36d43cda02d1929e7eed567683fc908f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Silhouette, placement, scale and shading of this part: fill it in, never move it\nImage 2: The approved design: match its plates, crest ridge, colours and finish; not layout\n\nA single sprite LAYER for a top-down tactical game: one part of the Rav Bloom Spitter, a serpentine beast that rears up out of its tail and lobs acid, seen from DIRECTLY ABOVE, facing UP. Reference image 1 is a shaded 3D render of exactly this part, alone, from directly above: it is the part's exact silhouette, placement, scale and shading; fill it in, never move or reshape it. Reference image 2 is the approved whole creature: match its design, plates, colours and finish exactly (near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in the gaps, a single ivory crest ridge, ivory bone, amber eyes). Clean and readable at small size: a few long smooth plates, no busy texture.\n\nPART: The TAIL alone, lying perfectly STRAIGHT: a tapering armoured column of long smooth indigo plates with the ivory crest ridge running down its centre to a bone spike at the tip; its top end, the root, a blunt rounded end that tucks under the body. No curve, no body.\n\nOnly this part: nothing else of the creature. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no cast shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\guides\\ridge-part-tail.png",
+      "sha256": "84b8b0855d8e59226c29d3f5feca0443c825014204582fd6c743fad3496e7571",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "L",
+      "role": "Silhouette, placement, scale and shading of this part: fill it in, never move it"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-4\\raw\\p2-ridge.png",
+      "sha256": "7028e0dbe8e3efd14baa1bcf4cc532f15ef6eea5d5fe897b821adc1a87dc1ebb",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The approved design: match its plates, crest ridge, colours and finish; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one tail layer using the silhouette’s exact placement and the approved design’s colours and finish."
+  ],
+  "usage": {
+    "input_tokens": 44880,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 503,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.1
+}

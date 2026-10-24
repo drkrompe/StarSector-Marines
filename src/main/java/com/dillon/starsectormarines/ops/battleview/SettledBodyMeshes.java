@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
+import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.render2d.QuadMesh;
 
 import java.util.Map;
@@ -59,6 +60,17 @@ final class SettledBodyMeshes {
         if (entry != null && entry.art == art) return entry.mesh;
         QuadMesh mesh = new QuadMesh();
         RavBruteComposer.emitDead(recorder(mesh), art, splat, drop, rig, 0f, 0f, RECORD_PPC, 1f);
+        meshes.put(rig, new Entry(art, mesh));
+        return mesh;
+    }
+
+    /** The settled Spitter's mesh, recorded on first asking; null while its burst is still moving. */
+    QuadMesh spitter(RavSpitterRig rig, RavSpitterAssets art, LayeredSpriteCache[] splat, LayeredSpriteCache drop) {
+        if (!ENABLED || !rig.dead() || !rig.burst().settled()) return null;
+        Entry entry = meshes.get(rig);
+        if (entry != null && entry.art == art) return entry.mesh;
+        QuadMesh mesh = new QuadMesh();
+        RavSpitterComposer.emitDead(recorder(mesh), art, splat, drop, rig, 0f, 0f, RECORD_PPC, 1f);
         meshes.put(rig, new Entry(art, mesh));
         return mesh;
     }
