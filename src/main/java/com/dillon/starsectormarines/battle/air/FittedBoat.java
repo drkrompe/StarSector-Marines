@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -39,6 +42,8 @@ public final class FittedBoat implements Airframe, AirHandling {
     private final BoatFitting drive;
     private final BoatFitting lift;
     private final String boatId;
+    /** Turret structure per hardpoint for an air-to-ground sortie; a null entry is the sortie kit's own gun. */
+    private final String[] guns;
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive) {
         this(pattern, plating, drive, null);
@@ -51,11 +56,26 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
                       BoatFitting lift, String boatId) {
+        this(pattern, plating, drive, lift, boatId, null);
+    }
+
+    /**
+     * @param guns the door gun's turret structure on each hardpoint, or null
+     *     (or a null entry) for the gun the sortie kit would mount there
+     */
+    public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
+                      BoatFitting lift, String boatId, String[] guns) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
         this.plating = requireSlot(plating, BoatFittingSlot.PLATING);
         this.drive = requireSlot(drive, BoatFittingSlot.DRIVE);
         this.lift = requireSlot(lift, BoatFittingSlot.LIFT);
         this.boatId = boatId;
+        String[] kit = ShuttleType.kitFor(TurretRole.A2G, pattern.hardpoints());
+        this.guns = new String[kit.length];
+        for (int index = 0; index < kit.length; index++) {
+            String fitted = guns != null && index < guns.length ? guns[index] : null;
+            this.guns[index] = fitted != null && !fitted.isBlank() ? fitted : kit[index];
+        }
     }
 
     /** The pattern as it leaves the yard, which is every boat a hull comes with. */
@@ -108,6 +128,18 @@ public final class FittedBoat implements Airframe, AirHandling {
     @Override public String renderHullId() { return pattern.renderHullId(); }
     @Override public AirOrdnance ordnance() { return pattern.ordnance(); }
     @Override public int hardpoints()     { return pattern.hardpoints(); }
+
+    /**
+     * The door guns the yard put on, for an air-to-ground sortie; any other role
+     * is the pattern's, which today arms nothing.
+     */
+    @Override
+    public String[] kitFor(TurretRole role) {
+        return role == TurretRole.A2G ? guns.clone() : pattern.kitFor(role);
+    }
+
+    /** The turret structure on each hardpoint, in hardpoint order. */
+    public List<String> guns() { return List.of(guns); }
     @Override public AirHandling flight() { return this; }
 
     @Override public float maxHp() { return pattern.maxHp() * plating.hullFactor(); }
@@ -137,7 +169,8 @@ public final class FittedBoat implements Airframe, AirHandling {
                 && plating.id().equals(boat.plating.id())
                 && drive.id().equals(boat.drive.id())
                 && lift.id().equals(boat.lift.id())
-                && Objects.equals(boatId, boat.boatId);
+                && Objects.equals(boatId, boat.boatId)
+                && Arrays.equals(guns, boat.guns);
     }
 
     @Override
@@ -145,6 +178,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         int result = 31 * pattern.hashCode() + plating.id().hashCode();
         result = 31 * result + drive.id().hashCode();
         result = 31 * result + lift.id().hashCode();
+        result = 31 * result + Arrays.hashCode(guns);
         return 31 * result + Objects.hashCode(boatId);
     }
 

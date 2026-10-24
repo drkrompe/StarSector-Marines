@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6a-c985-7c20-808c-56f16df6cb1c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6a-c985-7c20-808c-56f16df6cb1c\\exec-661d9f68-4668-49fb-ae15-a36a56a273bc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\brutalist-damaged.raw.png",
+    "sha256": "564462777916bf41c4f8ecf53a649cacb1b5095846fe0074b824470c5a106136",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\brutalist-damaged.prompt.txt",
+  "promptSha256": "56809d9e4d3960dcf38363c61310d5abf928a22ccd4070c915f8500a172b41c2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint battle damage into the same pieces: on the parapet plate, chipped and spalled edges, dents and gouges, short dark cracks, scorch and soot blooms and bullet pitting, a few small loose fragments on the flat hard-standing; on the barricade ring, the same kind of hits, its pieces dented, holed and scorched; the wall tiles scuffed and pitted. Everything is still standing and complete: nothing missing, no gaps, every band still full width. Spread the damage so it looks alike on all four sides and the four corners, with no single large feature and no hard lines along cell boundaries. Material and style: low-tech prepared works in Brutalist utilitarian concrete: board-formed poured concrete, pale warm grey, with form-tie holes, cast seams, weathering streaks and chipped arrises, the parapet and the wall caps massive and plain; the barricade a run of precast concrete barrier blocks with lifting slots. No paint, no hazard stripes, no steel plate. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\brutalist.raw.png",
+      "sha256": "e1dbaaea53aefa9911f60f7282fac23321f0404f5ed0fd27183d025fc4fff51b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one damaged version, preserving the sheet’s geometry, layout, concrete finish, and lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 41287,
+    "cached_input_tokens": 28544,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 521,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.6
+}

@@ -2,10 +2,14 @@
 look, through `tools/codex_imagegen.py`.
 
   python art-source/fortworks/generate.py <look> [--dry]
+  python art-source/fortworks/generate.py <look> --state damaged|destroyed [--dry]
 
 A look is a key of LOOKS: the style it dresses, the material brief, and the style's turret plinth as the material
 reference (so a lot's walls are the same stuff as its guns). The brief is written to prompts/<look>.prompt.txt and the
 untouched result to raw/<look>.raw.png with its provenance. Nothing is regenerated over an existing raw.
+
+A damage state is an edit of the look's accepted intact raw, so every cell registers with the intact cell it replaces
+(the exporter cuts both with the intact raw's measurements): raw/<look>-<state>.raw.png.
 """
 import subprocess
 import sys
@@ -113,26 +117,94 @@ LOOKS = {
 }
 
 
+# The parts of a damage-state edit: what changes, given the look's own material brief.
+STATE_OPEN = (
+    "Use case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit "
+    "target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups "
+    "at the same positions and sizes, the same empty transparent canvas round and between them and inside the "
+    "barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, "
+    "colours, painting finish and north-west lighting as image 1. ")
+STATES = {
+    'damaged': (
+        "Paint battle damage into the same pieces: on the parapet plate, chipped and spalled edges, dents and gouges, "
+        "short dark cracks, scorch and soot blooms and bullet pitting, a few small loose fragments on the flat "
+        "hard-standing; on the barricade ring, the same kind of hits, its pieces dented, holed and scorched; the wall "
+        "tiles scuffed and pitted. Everything is still standing and complete: nothing missing, no gaps, every band "
+        "still full width. Spread the damage so it looks alike on all four sides and the four corners, with no single "
+        "large feature and no hard lines along cell boundaries. "),
+    'destroyed': (
+        "Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged "
+        "stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick "
+        "black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade "
+        "ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of "
+        "transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread "
+        "the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile "
+        "crossing a cell boundary. "),
+}
+STATE_CLOSE = (
+    "Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no "
+    "labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps "
+    "described.")
+
+
+# The gatehouse: the fort's gate towers and gate leaves, painted over the fort-buildings gatehouse guide in the look's
+# material (`export_gatehouse.py` cuts them), with the look's accepted works sheet as the wall material reference.
+GATEHOUSE = (
+    "Use case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a "
+    "1536x1024 canvas: reskin it into finished painted game sprites, preserving every shape, position, size, "
+    "registration and all transparent empty space exactly; do not move, rescale, rotate, merge, add or remove pieces. "
+    "Image 2 is the same set's wall and barricade sheet and image 3 its gun emplacement plinth: MATERIAL AND STYLE "
+    "REFERENCES ONLY, never layout. The gate must be built of the same stuff as those walls. "
+    "The sheet is parts of a fortress GATEHOUSE seen from directly above, three panels in the first three quadrants "
+    "of a 2x2 grid of 768x512 quadrants (the fourth stays empty), each a 2-wide by 3-tall portrait panel exactly where "
+    "the guide places it. Top-left: a gate-tower roof, a hardened cap with chamfered corners and a raised inner cap, "
+    "narrow dark embrasure slits along the left flank and on both the top and bottom ends, and a small round roof "
+    "hatch. Top-right: a heavy GATE: the passage between them stays open and transparent, and two thick gate leaves "
+    "stand folded back against the jambs along the top and bottom edges, with big hinge pins and a thin worn threshold "
+    "sill line across the middle. Bottom-left: the same tower roof DAMAGED: cracked, scorched, one embrasure blown "
+    "wide. Same materials and registration across panels. ")
+GATEHOUSE_CLOSE = (
+    " Straight 90-degree overhead orthographic camera: no perspective, no visible vertical faces, no cast or drop "
+    "shadow, no ground outside the guide shapes, no labels, text, watermark, grid lines or UI marks. Genuine "
+    "transparent background everywhere the guide is empty. Coarse readable detail that survives being shrunk to about "
+    "40 pixels per cell; hand-painted Starsector-like finish, light from the upper left.")
+
+
 def main():
     look = sys.argv[1]
     dry = '--dry' in sys.argv
+    state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
+    gatehouse = '--gatehouse' in sys.argv
     style, brief = LOOKS[look]
-    prompt = HERE / 'prompts' / (look + '.prompt.txt')
-    raw = HERE / 'raw' / (look + '.raw.png')
+    name = ('gatehouse-' + look) if gatehouse else look if state is None else look + '-' + state
+    prompt = HERE / 'prompts' / (name + '.prompt.txt')
+    raw = HERE / 'raw' / (name + '.raw.png')
     prompt.parent.mkdir(exist_ok=True)
     raw.parent.mkdir(exist_ok=True)
-    prompt.write_text(LAYOUT + brief + CLOSE + '\n', encoding='utf-8')
+    if gatehouse:
+        prompt.write_text(GATEHOUSE + brief + GATEHOUSE_CLOSE + '\n', encoding='utf-8')
+        refs = ['%s=Geometry authority and edit target: keep every panel where and how big it is'
+                % (ROOT / 'art-source/templates/fort-buildings-gatehouse-guide.png'),
+                '%s=Wall material reference only; not layout' % (HERE / 'raw' / (look + '.raw.png')),
+                '%s=Material and style reference only; not layout' % (TURRETS / style / 'plinth.png')]
+    elif state is None:
+        prompt.write_text(LAYOUT + brief + CLOSE + '\n', encoding='utf-8')
+        refs = ['%s=Geometry/layout authority and edit target: keep every piece where and how big it is'
+                % (HERE / 'guides/works-guide.png'),
+                '%s=Material and style reference only; not layout' % (TURRETS / style / 'plinth.png')]
+    else:
+        prompt.write_text(STATE_OPEN + STATES[state] + brief + ' ' + STATE_CLOSE + '\n', encoding='utf-8')
+        refs = ['%s=The intact sheet: geometry authority and edit target; change only the surface'
+                % (HERE / 'raw' / (look + '.raw.png'))]
     if raw.exists():
         print('exists, not regenerating:', raw)
         return
-    cmd = [sys.executable, str(ROOT / 'tools/codex_imagegen.py'), '--prompt', str(prompt), '--out', str(raw),
-           '--ref', '%s=Geometry/layout authority and edit target: keep every piece where and how big it is'
-           % (HERE / 'guides/works-guide.png'),
-           '--ref', '%s=Material and style reference only; not layout' % (TURRETS / style / 'plinth.png')]
+    cmd = [sys.executable, str(ROOT / 'tools/codex_imagegen.py'), '--prompt', str(prompt), '--out', str(raw)]
+    for ref in refs:
+        cmd += ['--ref', ref]
     print(' '.join(cmd))
     if not dry:
         subprocess.run(cmd, check=True, cwd=ROOT)
-
 
 if __name__ == '__main__':
     main()

@@ -31,10 +31,11 @@ Broad Front none won, one lost, eleven timed out, most with the company alive
 
 Ranked by what it unblocks:
 
-1. **Frozen seed 2's early company loss.** After the company stopped taking an
-   allied lane's satellite and learned to withdraw (2026-10-24), one Broad Front
-   seed still loses it at tick ~8,000, before its own satellite falls: a
-   different cause, unread.
+1. **Marines never shoot the spitters.** Frozen seed 2 loses the company at tick
+   ~8,000, before its own satellite falls: 22 of 23 marines are killed by satellite
+   3's spitters, 13 to 20 cells off, while every one of the marines' 96 hits in
+   that half-minute lands on the runners and brutes charging them. Infantry target
+   choice, not the heart's: shared by every mission, so its own piece of work.
 2. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
    brook valley, the hollow's rim, the cordon's works, every beat's set piece
    that needs ground (F6's road satellite with it), the town and city densities,

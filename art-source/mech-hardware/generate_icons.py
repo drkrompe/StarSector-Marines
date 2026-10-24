@@ -113,6 +113,7 @@ GLYPHS = {
     'Q': ['.###.', '#...#', '#...#', '#...#', '#.#.#', '#..#.', '.##.#'],
     'T': ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
     'E': ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+    'F': ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
     'N': ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
     'V': ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
 }
@@ -415,6 +416,7 @@ def build():
     f['quarry-breaker'] = banded(150, 200, b, 'QB')
 
     internals(f)
+    boats(f)
     return f
 
 
@@ -507,6 +509,77 @@ def internals(f):
     f['loader-standard'] = banded(150, 100, loader(False), 'LDR')
     f['loader-accelerated'] = banded(150, 100, loader(True), 'LDR')
     f['fab'] = fabricator_icon()
+
+
+# --- boat hardware --------------------------------------------------------------------------
+
+def upright1(art):
+    """The 1x2 form of ``upright``: side-on art on a 200x75 canvas, muzzle right, turned a
+    quarter left into the 75x200 piece a door gun on a pintle stands in."""
+    return f'<g transform="translate(0 200) rotate(-90)">\n{art}</g>\n'
+
+
+def armour_plate(layers):
+    """A boat's plating as a 3x1 piece: riveted plates, one per layer, stepped so each skin
+    laid over the last shows its edge; heavier plating is more of them, thicker."""
+    s = ''
+    depth = 72 / layers
+    for k in range(layers):
+        y0 = 14 + k * depth
+        x0 = 10 + k * 6
+        s += block(x0, y0, 215 - k * 6, y0 + depth - 4, 5)
+        s += rect(x0 + 6, y0 + 3, 200 - k * 12 - 12, 2.5, LS)
+        for x in range(int(x0 + 14), int(215 - k * 6 - 8), 26):
+            s += ell(x, y0 + depth * .55 - 2, 2.6, 2.6, L)
+    return s
+
+
+def hold(kind):
+    """A boat's hold as a 2x2 piece seen from above, ramp at the foot. Benches for people; a
+    cradle is a clamped frame for one machine, and a heavy cradle the same on a doubled keel."""
+    s = block(14, 10, 136, 176, 8, MID)
+    s += poly([(30, 176), (120, 176), (110, 194), (40, 194)], D)
+    if kind == 'seats':
+        for side in (24, 102):
+            s += rect(side, 22, 24, 142, D, rx=3)
+            for y in range(30, 160, 18):
+                s += rect(side + 4, y, 16, 10, L, rx=2)
+    else:
+        keel = 10 if kind == 'heavy' else 6
+        for x in (40, 104):
+            s += rect(x, 18, keel, 152, D, rx=2)
+        for y in (34, 98, 150):
+            s += hbar(36, 114 + keel, y, 8, D, rx=1)
+            s += rect(30, y - 8, 10, 16, L, rx=2) + rect(110 + keel, y - 8, 10, 16, L, rx=2)
+        if kind == 'heavy':
+            s += rect(70, 18, 10, 152, D, rx=2)
+    return s
+
+
+def grenade_launcher(y, x0, x1, s):
+    """A drum-fed grenade launcher: a fat drum magazine, a short receiver and a stubby tube."""
+    g = ell(x0 + s * 1.1, y, s * 1.05, s * 1.05, D) + ell(x0 + s * 1.1, y, s * .4, s * .4, L)
+    g += block(x0 + s * 2.2, y - s * .55, x0 + s * 3.6, y + s * .55, s * .12)
+    g += hbar(x0 + s * 3.6, x1, y, s * .7, D, rx=3)
+    g += rect(x0 + s * 3.8, y - s * .3, x1 - x0 - s * 4, max(1.5, s * .12), LS)
+    g += rect(x1 - 6, y - s * .45, 6, s * .9, D, rx=1)
+    return g
+
+
+def boats(f):
+    """Door guns, plating and holds for the Boat Deck's doll; its drives are the lab's engines."""
+    f['boat-door-heavy-mg'] = banded(75, 200, upright1(autogun(37.5, 8, 192, 20)), 'MG')
+    f['boat-door-grenade'] = banded(75, 200, upright1(grenade_launcher(37.5, 8, 192, 18)), 'GL')
+    f['boat-door-arbalest'] = banded(150, 200, upright2(autogun(75, 10, 190, 38, drum=True)), 'AC')
+    b = autogun(75, 10, 178, 48)
+    b += block(178, 75 - 24, 192, 75 + 24, 4) + rect(182, 75 - 18, 3, 36, L)
+    f['boat-door-hephaestus'] = banded(150, 200, upright2(b), 'HEP')
+    f['boat-plating-standard'] = banded(225, 100, armour_plate(1), 'PLT')
+    f['boat-plating-reinforced'] = banded(225, 100, armour_plate(2), 'PLT')
+    f['boat-plating-armoured'] = banded(225, 100, armour_plate(3), 'PLT')
+    f['boat-hold-standard'] = banded(150, 200, hold('seats'), 'HLD')
+    f['boat-hold-cradle'] = banded(150, 200, hold('cradle'), 'LFT')
+    f['boat-hold-heavy-cradle'] = banded(150, 200, hold('heavy'), 'LFT')
 
 
 def fabricator_icon():
