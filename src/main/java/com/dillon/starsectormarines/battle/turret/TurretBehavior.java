@@ -41,6 +41,14 @@ public final class TurretBehavior implements UnitBehavior {
         // burst recoils per round, not just on the trigger pull.
         turretState.setRecoilTimer(id, turretState.recoilTimer(id) + BattleSimulation.TICK_DT);
 
+        // An overloaded flux shield trips the generator the gun shares: it is silent, and drops any burst, until
+        // the capacitors have vented.
+        if (sim.turretShields().silenced(id)) {
+            turretState.setBurstRemaining(id, 0);
+            turretState.setBurstTargetId(id, 0L);
+            return;
+        }
+
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
         // AirSystem.tickShuttleTurrets. Reads the TURRET_STATE-shadow

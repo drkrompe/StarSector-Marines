@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <!-- A tracked hull from above, nose to the right: two tracks, the hull, a turret and its gun. -->
+  <rect x="14" y="12" width="104" height="16" fill="#000000" fill-opacity="0.72"/>
+  <rect x="14" y="72" width="104" height="16" fill="#000000" fill-opacity="0.72"/>
+  <rect x="18" y="18" width="96" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="18" y="79" width="96" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  <polygon points="20,28 110,28 122,40 122,60 110,72 20,72 16,66 16,34" fill="#000000" fill-opacity="0.5"/>
+  <polygon points="44,36 72,36 78,42 78,58 72,64 44,64 38,58 38,42" fill="#000000" fill-opacity="0.72"/>
+  <rect x="78" y="47" width="62" height="6" fill="#000000" fill-opacity="0.72"/>
+  <rect x="46" y="42" width="4" height="16" fill="#ffffff" fill-opacity="0.45"/>
+  <rect x="24" y="34" width="10" height="32" fill="#000000" fill-opacity="0.34"/>
+</svg>

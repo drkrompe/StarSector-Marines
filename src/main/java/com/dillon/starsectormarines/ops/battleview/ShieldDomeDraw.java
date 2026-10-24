@@ -27,6 +27,15 @@ final class ShieldDomeDraw {
     float hitFlash;
     float dropFlash;
     float alpha = 1f;
+    /** Colour the field strains toward as it fills and shatters in when it overloads; a dome's is amber. */
+    final float[] collapse = ShieldDomeShading.AMBER.clone();
+    /**
+     * The arc the shield covers, for a directional shield: the unit direction it faces in the local frame, and the
+     * cosine of half its width. Below {@code -1} (the default) the whole circle is drawn, as a dome is.
+     */
+    float arcDirX = 1f;
+    float arcDirY;
+    float arcCos = -2f;
     final float[] impacts = new float[MAX_IMPACTS * 4];
     int impactCount;
 }
