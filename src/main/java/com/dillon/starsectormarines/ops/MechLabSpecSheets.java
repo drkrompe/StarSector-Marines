@@ -2,9 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
-import com.dillon.starsectormarines.ops.battleview.MechReplenisherArt;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -59,8 +57,6 @@ final class MechLabSpecSheets {
                 if (viewModel == null) binder.bind(name, SpecSheets.mechWeapon(weapon));
                 else binder.bind(name, () -> SpecSheets.mechWeapon(weapon,
                         viewModel.selectedFluxCapacity(), viewModel.selectedDissipationPerSecond()));
-            } else if (row.replenisherPreview() != null) {
-                binder.bind(name, replenisherSheet(row.replenisherPreview()));
             } else if (row.internalPreview() != null) {
                 binder.bind(name, internalSheet(row.internalPreview()));
             }
@@ -90,18 +86,28 @@ final class MechLabSpecSheets {
             }
             case VENT_ARRAY -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecDissipation"),
                     signed(internal.dissipation)));
+            case LOADER -> {
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsSrmCycle"),
+                        Strings.format("openingMechLabSpecSheetsS", internal.replenisher().srmReplenishmentSeconds())));
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"),
+                        Strings.format("openingMechLabSpecSheetsS", internal.replenisher().lrmReplenishmentSeconds())));
+            }
         }
+        if (internal.role.compartment()) stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecFootprint"),
+                internal.footprintColumns + "x" + internal.footprintRows));
         String role = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabRoleEngine");
             case PLATING -> Strings.get("openingMechLabRolePlating");
             case CAPACITOR_BANK -> Strings.get("openingMechLabRoleCapacitorBank");
             case VENT_ARRAY -> Strings.get("openingMechLabRoleVentArray");
+            case LOADER -> Strings.get("openingMechLabRoleLoader");
         };
         String copy = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabEngineCopy");
             case PLATING -> Strings.get("openingMechLabPlatingCopy");
             case CAPACITOR_BANK -> Strings.get("openingMechLabCapacitorBankCopy");
-            case VENT_ARRAY -> Strings.get("openingMechLabUtilityCopy");
+            case VENT_ARRAY -> Strings.get("openingMechLabVentArrayCopy");
+            case LOADER -> Strings.get("openingMechLabLoaderCopy");
         };
         return new SpecSheet(internal.displayName(), role, null, "item", List.copyOf(stats), List.of(copy));
     }
@@ -128,15 +134,6 @@ final class MechLabSpecSheets {
                                 List.of(current.actionHint()))).orElse(null));
             }
         }
-    }
-
-    private static SpecSheet replenisherSheet(MissileReplenisherComponent component) {
-        return new SpecSheet(component.displayName(), Strings.get("openingMechLabSpecSheetsMissileMiniFab"),
-                MechReplenisherArt.icon(component), "item", List.of(
-                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsSrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.srmReplenishmentSeconds())),
-                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.lrmReplenishmentSeconds()))),
-                List.of(Strings.get("openingMechLabSpecSheetsBuildsOneMissileTriggerPackPerCycle"),
-                        Strings.get("openingMechLabSpecSheetsInstallFromFleetSparesThisSystemCannot")));
     }
 
     /** A category symbol names itself on hover, since it carries no word. */

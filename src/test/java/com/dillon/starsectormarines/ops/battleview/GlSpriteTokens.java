@@ -189,7 +189,10 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
                     case "getWidth": return width;
                     case "getHeight": return height;
                     case "getTextureWidth":
-                    case "getTextureHeight": return 1f;
+                    case "getTextureHeight":
+                    // A whole sprite's texture rectangle starts as its padded extent, as the game's does.
+                    case "getTexWidth":
+                    case "getTexHeight": return 1f;
                     case "bindTexture":
                         glBindTexture(GL_TEXTURE_2D, texture(path, file));
                         return null;

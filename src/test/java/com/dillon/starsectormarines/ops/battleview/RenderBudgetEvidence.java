@@ -1017,20 +1017,15 @@ class RenderBudgetEvidence {
 
     // ---- where a layer's runs break -------------------------------------------
 
-    /** The layers whose runs are reported: the props, the two that draw bodies, and fire. */
-    private static final List<RenderLayer> RUN_LAYERS =
-            List.of(RenderLayer.DOODADS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS, RenderLayer.HAZARDS);
-
-    /** Whether this run drains paged runs ({@code BattleRenderer.PAGED_BATCH_PROPERTY}), which the breakdown models. */
-    private static final boolean PAGED =
-            Boolean.parseBoolean(System.getProperty(BattleRenderer.PAGED_BATCH_PROPERTY, "true"));
+    /** The layers whose runs are reported: the props, the two that draw bodies, shots, and fire. */
+    private static final List<RenderLayer> RUN_LAYERS = List.of(RenderLayer.DOODADS, RenderLayer.UNIT_SHADOWS,
+            RenderLayer.UNITS, RenderLayer.SHOTS, RenderLayer.HAZARDS);
 
     /**
      * What one layer's command stream is made of: each texture with the quads drawn from it, how many times the
      * run broke and on what, and every whole sprite by image. A run breaks wherever the drain must flush, and the
-     * binds column cannot say which of those it was. Under paged runs (law 27) a sheet change and a fill are not
-     * breaks; a blend change, a line, a ribbon, a whole sprite, a custom pass and a ninth page are. With the
-     * control on, every sheet change and fill is one, as the per-sheet drain flushes them.
+     * binds column cannot say which of those it was. Under paged runs (law 27) a sheet change, a blend change, a
+     * fill and a whole sprite are not breaks; a line, a ribbon, a custom pass and a ninth page are.
      */
     private static String runBreakdown(DrawList list, RenderLayer layer, BattleRenderer renderer) {
         DrawCommand[] buffer = list.buffer(layer);
@@ -1049,31 +1044,42 @@ class RenderBudgetEvidence {
             Object page = null;
             switch (c.kind()) {
                 case SHEET_QUAD -> {
-                    boolean inRun = PAGED;
-                    key = inRun ? paged : c.additive() ? "additive@" + System.identityHashCode(c.sprite()) : c.sprite();
-                    reason = c.additive() ? "additive quad" : "sheet change";
-                    if (inRun) page = c.sprite();
+                    key = paged;
+                    reason = "sheet change";
+                    page = c.sprite();
                     quadsBySheet.merge(sheetName(c.sprite(), renderer) + (c.additive() ? " (additive)" : ""),
                             1, Integer::sum);
                 }
                 case MESH -> {
-                    boolean inRun = PAGED && c.sprite() != null;
-                    key = inRun ? paged : c.sprite() != null ? c.sprite() : c.mesh();
+                    key = paged;
                     reason = "mesh";
-                    if (inRun) page = c.sprite();
+                    if (c.sprite() != null) {
+                        page = c.sprite();
+                    } else {
+                        // Each image is a page of its own; all but the last are counted here.
+                        for (int q = 0; q + 1 < c.mesh().size(); q++) {
+                            if (pages.add(c.mesh().image(q)) && pages.size() > PagedQuadRun.MAX_PAGES) {
+                                breaks.merge("page table full", 1, Integer::sum);
+                                pages.clear();
+                                pages.add(c.mesh().image(q));
+                            }
+                        }
+                        if (c.mesh().size() > 0) page = c.mesh().image(c.mesh().size() - 1);
+                    }
                     quadsBySheet.merge(c.sprite() != null ? sheetName(c.sprite(), renderer) : "(mesh images)",
                             1, Integer::sum);
                 }
                 case SOLID_RECT, POLY -> {
-                    key = PAGED ? paged : "solid";
+                    key = paged;
                     reason = "solid fill";
-                    if (PAGED) page = "white";
+                    page = "white";
                 }
                 case LINE -> { key = "line@" + c.angleDegrees(); reason = "line"; }
                 case RIBBON -> { key = "ribbon"; reason = "ribbon"; }
                 case SPRITE -> {
-                    key = new Object();
-                    reason = c.additive() ? "additive sprite" : "sprite";
+                    key = paged;
+                    reason = "sprite";
+                    page = c.sprite();
                     String name = sheetName(c.sprite(), renderer) + (c.additive() ? " (additive)" : "");
                     sprites.merge(name, 1, Integer::sum);
                 }
@@ -1188,8 +1194,9 @@ class RenderBudgetEvidence {
         }
 
         out.append("\n## Where the runs break\n\n")
-                .append("Mid and whole-map framings. A break is a flush the drain had to make: a\n")
-                .append("different sheet, a fill or a line between quads, or a whole sprite.\n\n");
+                .append("Mid and whole-map framings. A break is a flush the drain had to make, named\n")
+                .append("by the command that reopened the run: a line, a ribbon or a custom pass\n")
+                .append("between quads, or a ninth texture (law 27).\n\n");
         for (String run : runs) out.append(run).append('\n');
 
         out.append("\n## The ceiling\n\n");

@@ -16,8 +16,9 @@ import java.util.List;
  * Every physically legal fit of one chassis: weapons its sockets accept by type and footprint,
  * crossed with every internal its sockets hold. Pure arithmetic over {@link MechFrameBudget} and
  * the authored doll ({@link MechFittingLayout#forVariant}); no world, no battle. The same rules
- * {@code MechBay.canInstallWeapon} and {@code MechBay.canInstallInternal} apply, with a standard
- * loader assumed (a faster loader would only take the vent array's socket away).
+ * {@code MechBay.canInstallWeapon} and {@code MechBay.canInstallInternal} apply. Compartments are
+ * enumerated with the standard loader or none (a faster loader changes missile cadence, not the
+ * frame) and as many vent arrays as pack beside them ({@link MechCompartment}).
  */
 public final class MechFitSpace {
 
@@ -39,10 +40,13 @@ public final class MechFitSpace {
         return out;
     }
 
-    /** Internals of {@code role} this chassis can hold; a null entry is an empty utility socket. */
+    /**
+     * Internals of {@code role} this chassis can hold, each judged alone against its socket's grid;
+     * a null entry means the role may be left out (a vent array or a loader).
+     */
     public static List<MechInternal> internalsFor(MechVariant variant, MechInternal.Role role) {
         List<MechInternal> out = new ArrayList<>();
-        if (role == MechInternal.Role.VENT_ARRAY) out.add(null);
+        if (role == MechInternal.Role.VENT_ARRAY || role == MechInternal.Role.LOADER) out.add(null);
         MechFittingLayout layout = MechFittingLayout.forVariant(variant);
         for (MechInternal internal : MechInternal.values()) {
             if (internal.role != role) continue;
@@ -79,10 +83,28 @@ public final class MechFitSpace {
         List<MechFrameBudget.Fit> out = new ArrayList<>();
         for (MechInternal engine : internalsFor(variant, MechInternal.Role.ENGINE)) {
             for (MechInternal plating : internalsFor(variant, MechInternal.Role.PLATING)) {
-                for (MechInternal capacitors : internalsFor(variant, MechInternal.Role.CAPACITOR_BANK)) {
-                    for (MechInternal ventArray : internalsFor(variant, MechInternal.Role.VENT_ARRAY)) {
-                        out.add(new MechFrameBudget.Fit(variant, arms, left, right, engine, plating, capacitors, ventArray));
-                    }
+                for (List<MechInternal> compartment : compartmentsFor(variant)) {
+                    out.add(new MechFrameBudget.Fit(variant, arms, left, right, engine, plating, compartment));
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Every compartment this chassis packs: each capacitor bank, with the standard loader or none,
+     * and zero or more vent arrays.
+     */
+    public static List<List<MechInternal>> compartmentsFor(MechVariant variant) {
+        List<List<MechInternal>> out = new ArrayList<>();
+        for (MechInternal bank : internalsFor(variant, MechInternal.Role.CAPACITOR_BANK)) {
+            for (MechInternal loader : new MechInternal[] {MechInternal.STANDARD_LOADER, null}) {
+                List<MechInternal> parts = new ArrayList<>();
+                parts.add(bank);
+                if (loader != null) parts.add(loader);
+                while (MechCompartment.fits(variant, parts)) {
+                    out.add(List.copyOf(parts));
+                    parts.add(MechInternal.AUXILIARY_VENT_ARRAY);
                 }
             }
         }
@@ -104,14 +126,30 @@ public final class MechFitSpace {
                 heaviest(weaponsFor(variant, MechMountSlot.LEFT_SHOULDER)),
                 heaviest(weaponsFor(variant, MechMountSlot.RIGHT_SHOULDER)),
                 top(variant, MechInternal.Role.ENGINE), top(variant, MechInternal.Role.PLATING),
-                top(variant, MechInternal.Role.CAPACITOR_BANK), top(variant, MechInternal.Role.VENT_ARRAY));
+                topCompartment(variant));
     }
 
     /** The top internal of every role this chassis holds, around its factory weapons. */
     public static MechFrameBudget.Fit fullInternalRefit(MechVariant variant) {
         return new MechFrameBudget.Fit(variant, variant.stockArmWeapon(), variant.leftShoulder, variant.rightShoulder,
                 top(variant, MechInternal.Role.ENGINE), top(variant, MechInternal.Role.PLATING),
-                top(variant, MechInternal.Role.CAPACITOR_BANK), top(variant, MechInternal.Role.VENT_ARRAY));
+                topCompartment(variant));
+    }
+
+    /**
+     * A full refit's compartment: the highest-tier bank that packs beside the standard loader (a
+     * refit keeps its racks refilling), and a vent array too if it still packs.
+     */
+    private static List<MechInternal> topCompartment(MechVariant variant) {
+        List<MechInternal> banks = new ArrayList<>(internalsFor(variant, MechInternal.Role.CAPACITOR_BANK));
+        banks.sort(Comparator.comparingInt((MechInternal bank) -> bank.tier.ordinal()).reversed());
+        for (MechInternal bank : banks) {
+            List<MechInternal> parts = new ArrayList<>(List.of(bank, MechInternal.STANDARD_LOADER));
+            if (!MechCompartment.fits(variant, parts)) continue;
+            parts.add(top(variant, MechInternal.Role.VENT_ARRAY));
+            return MechCompartment.fits(variant, parts) ? parts : parts.subList(0, 2);
+        }
+        return MechFrameBudget.Fit.stockCompartment();
     }
 
     /**

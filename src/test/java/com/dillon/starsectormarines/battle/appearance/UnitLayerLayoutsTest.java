@@ -175,6 +175,10 @@ class UnitLayerLayoutsTest {
                 assertNotNull(layouts.clip("marine-line", references.variant(),
                         references.firing()), equipment.id());
             }
+            if (references.walking() != null) {
+                assertNotNull(layouts.clip("marine-line", references.variant(),
+                        references.walking()), equipment.id());
+            }
         }
     }
 

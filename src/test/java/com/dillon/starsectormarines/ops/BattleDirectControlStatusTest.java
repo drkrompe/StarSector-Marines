@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
@@ -125,12 +125,12 @@ class BattleDirectControlStatusTest {
         var pod = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
         var lrm = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_5);
         var mounts = new MechWeaponMount[]{null, pod, lrm};
-        var near = BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), MechTriggerPicks.LINKED, 4f);
+        var near = BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), TriggerPicks.LINKED, 4f);
         assertEquals(List.of(false, true), near.stream().map(BattleDirectControlStatus.WeaponStatus::tooClose).toList());
         assertEquals(BattleDirectControlStatus.WeaponState.TOO_CLOSE, near.get(1).state());
-        var far = BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), MechTriggerPicks.LINKED, 20f);
+        var far = BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), TriggerPicks.LINKED, 20f);
         assertEquals(BattleDirectControlStatus.WeaponState.LOADED, far.get(1).state());
-        assertFalse(BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), MechTriggerPicks.LINKED, Float.NaN).get(1).tooClose(),
+        assertFalse(BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), TriggerPicks.LINKED, Float.NaN).get(1).tooClose(),
                 "no cursor is not a close cursor");
     }
 
@@ -142,9 +142,9 @@ class BattleDirectControlStatusTest {
         var mounts = new MechWeaponMount[MechMountSlot.values().length];
         for (MechWeaponMount mount : new MechWeaponMount[]{arms, pod, lrm}) mounts[mount.slot.ordinal()] = mount;
         var flux = new MechFlux();
-        assertEquals(List.of("L", "R", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, MechTriggerPicks.LINKED)
+        assertEquals(List.of("L", "R", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, TriggerPicks.LINKED)
                 .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
-        var podAlone = new MechTriggerPicks(MechFireGroups.LINKED, MechMountSlot.LEFT_SHOULDER.ordinal() + 1);
+        var podAlone = new TriggerPicks(MechFireGroups.LINKED, MechMountSlot.LEFT_SHOULDER.ordinal() + 1);
         var cards = BattleDirectControlStatus.mechWeapons(mounts, flux, podAlone);
         assertEquals(List.of("L", "R", ""), cards.stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList(),
                 "the unpicked LRM rack holds fire");

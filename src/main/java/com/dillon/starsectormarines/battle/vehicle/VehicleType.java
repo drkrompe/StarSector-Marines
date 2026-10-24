@@ -336,6 +336,12 @@ public enum VehicleType {
 
     public Stance engagementStance() { return Stance.DUEL; }
 
+    /**
+     * The hull's weapon mounts beside its main turret ({@link VehicleMount}), in the order a driver's right button
+     * lists them; empty for every hull with one gun.
+     */
+    public List<VehicleMount> secondaryMounts() { return List.of(); }
+
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 

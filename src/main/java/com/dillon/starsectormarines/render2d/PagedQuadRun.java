@@ -77,6 +77,10 @@ import static org.lwjgl.opengl.GL20.GL_MAX_TEXTURE_IMAGE_UNITS;
  * the fixed-function path added its own squared. Always premultiplied, never only when a run holds an additive
  * quad: what a quad's pixels round to must not depend on what else shares its run, which culling changes.
  *
+ * <p><b>Effects ride in z's fraction.</b> A quad's hit flash is the fraction of its z past the lane
+ * ({@link #lane(int, boolean, float)}), so effects need no array beyond the three the fixed-function contract
+ * carries: a secondary colour or normal array would want entry points LWJGL 3's headless binding does not keep.
+ *
  * <p><b>Fails soft.</b> {@link #ready()} is false when the program does not build or the driver offers fewer than
  * two texture units to a fragment shader, and the drain then keeps one fixed-function run per sheet, as before.
  * NOT thread-safe, like every batch on the render path.
@@ -86,13 +90,21 @@ public final class PagedQuadRun {
     /** The most textures one run binds. Eight is under every GL 2.1 driver's fragment unit count worth supporting. */
     public static final int MAX_PAGES = 8;
 
+    /**
+     * The part of z's fraction a quad's hit flash takes: a flash of one is a lane plus this. Under one half, so the
+     * lane is always the floor of z.
+     */
+    static final float EFFECT_SPAN = 0.5f;
+
     private static final String VERTEX = "#version 120\n"
-            + "varying vec2 uv; varying vec4 tint; varying float page; varying float additive;\n"
+            + "varying vec2 uv; varying vec4 tint; varying float page; varying float additive; varying float flash;\n"
             + "void main(){\n"
             + "  gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, 0.0, 1.0);\n"
             + "  uv = gl_MultiTexCoord0.xy; tint = gl_Color;\n"
-            + "  additive = gl_Vertex.z > " + MAX_PAGES + ".0 - 0.5 ? 1.0 : 0.0;\n"
-            + "  page = gl_Vertex.z - additive * " + MAX_PAGES + ".0;\n"
+            + "  float lane = floor(gl_Vertex.z);\n"
+            + "  flash = (gl_Vertex.z - lane) / " + EFFECT_SPAN + ";\n"
+            + "  additive = lane > " + MAX_PAGES + ".0 - 0.5 ? 1.0 : 0.0;\n"
+            + "  page = lane - additive * " + MAX_PAGES + ".0;\n"
             + "}\n";
 
     private static final String FRAGMENT;
@@ -100,7 +112,7 @@ public final class PagedQuadRun {
     static {
         StringBuilder fragment = new StringBuilder("#version 120\n");
         for (int i = 0; i < MAX_PAGES; i++) fragment.append("uniform sampler2D page").append(i).append(";\n");
-        fragment.append("varying vec2 uv; varying vec4 tint; varying float page; varying float additive;\n")
+        fragment.append("varying vec2 uv; varying vec4 tint; varying float page; varying float additive; varying float flash;\n")
                 .append("void main(){\n  vec4 texel;\n");
         // Each page owns the interval around its number, so an interpolated z that is a hair off
         // its integer still finds it.
@@ -111,6 +123,8 @@ public final class PagedQuadRun {
         // Premultiplied, an additive quad is one that covers nothing: its colour is added whole and its alpha,
         // zero, keeps everything under it.
         fragment.append("  else texel = vec4(0.0);\n  vec4 c = texel * tint;\n")
+                // A hit flash: the quad's own colour pushed toward white, its shape and alpha untouched.
+                .append("  c.rgb = mix(c.rgb, vec3(1.0), flash);\n")
                 .append("  gl_FragColor = vec4(c.rgb * c.a, c.a * (1.0 - additive));\n}\n");
         FRAGMENT = fragment.toString();
     }
@@ -202,6 +216,14 @@ public final class PagedQuadRun {
         return additive ? page + MAX_PAGES : page;
     }
 
+    /**
+     * The z a quad carries with its effects: {@link #lane(int, boolean)}, and in the fraction its hit flash, the share
+     * of white mixed into its colour (law 27).
+     */
+    public static float lane(int page, boolean additive, float flash) {
+        return lane(page, additive) + Math.max(0f, Math.min(1f, flash)) * EFFECT_SPAN;
+    }
+
     public boolean isEmpty() {
         return quadCount == 0;
     }
@@ -220,6 +242,59 @@ public final class PagedQuadRun {
         posData = grow(posData, quads * POS_FLOATS_PER_QUAD, quadCount * POS_FLOATS_PER_QUAD);
         uvData = grow(uvData, quads * UV_FLOATS_PER_QUAD, quadCount * UV_FLOATS_PER_QUAD);
         colData = grow(colData, quads * COL_FLOATS_PER_QUAD, quadCount * COL_FLOATS_PER_QUAD);
+    }
+
+    /**
+     * Queues the whole of {@code sprite} on {@code lane} ({@link #lane}): the quad {@link SpriteAPI#renderAtCenter}
+     * draws after {@code setSize(w, h)}, {@code setAngle(angleDeg)}, {@code setColor} and {@code setAlphaMult(a)}.
+     * That is the sprite's {@code texX..texX + texWidth} by {@code texY..texY + texHeight}, its padded extent unless
+     * a caller narrowed it, upright from {@code texY} at the bottom, turned counter-clockwise about its middle; and
+     * its colour in bytes as the engine sends it, each channel rounded as {@link java.awt.Color} rounds a float and
+     * the alpha cut down from {@code 255 * a}. A sprite given a centre of its own turns about that instead, and no
+     * caller of the drain sets one, so this does not follow it.
+     */
+    public void appendSprite(SpriteAPI sprite, float lane, float cx, float cy, float w, float h, float angleDeg,
+                             float r, float g, float b, float a) {
+        ensureCapacity(1);
+        float halfW = w * 0.5f;
+        float halfH = h * 0.5f;
+        double rad = Math.toRadians(angleDeg);
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
+        float z = lane;
+        int p = quadCount * POS_FLOATS_PER_QUAD;
+        // BL BR TR TL, as every other quad of the run.
+        p = corner(p, cx, cy, -halfW, -halfH, cos, sin, z);
+        p = corner(p, cx, cy, halfW, -halfH, cos, sin, z);
+        p = corner(p, cx, cy, halfW, halfH, cos, sin, z);
+        corner(p, cx, cy, -halfW, halfH, cos, sin, z);
+
+        float u0 = sprite.getTexX();
+        float v0 = sprite.getTexY();
+        float u1 = u0 + sprite.getTexWidth();
+        float v1 = v0 + sprite.getTexHeight();
+        int t = quadCount * UV_FLOATS_PER_QUAD;
+        uvData[t] = u0; uvData[t + 1] = v0;
+        uvData[t + 2] = u1; uvData[t + 3] = v0;
+        uvData[t + 4] = u1; uvData[t + 5] = v1;
+        uvData[t + 6] = u0; uvData[t + 7] = v1;
+
+        float red = (int) (r * 255f + 0.5f) / 255f;
+        float green = (int) (g * 255f + 0.5f) / 255f;
+        float blue = (int) (b * 255f + 0.5f) / 255f;
+        float alpha = Math.min(255, Math.max(0, (int) (255f * a))) / 255f;
+        int c = quadCount * COL_FLOATS_PER_QUAD;
+        for (int v = 0; v < VERTS_PER_QUAD; v++) {
+            colData[c++] = red; colData[c++] = green; colData[c++] = blue; colData[c++] = alpha;
+        }
+        quadCount++;
+    }
+
+    private int corner(int p, float cx, float cy, float x, float y, float cos, float sin, float z) {
+        posData[p] = cx + x * cos - y * sin;
+        posData[p + 1] = cy + x * sin + y * cos;
+        posData[p + 2] = z;
+        return p + 3;
     }
 
     /**

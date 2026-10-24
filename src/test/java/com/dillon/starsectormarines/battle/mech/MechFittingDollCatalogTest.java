@@ -44,11 +44,11 @@ class MechFittingDollCatalogTest {
         assertEquals(SocketType.MISSILE, houndShoulder.type());
 
         DollDef warden = catalog.doll(MechVariant.WARDEN);
-        assertEquals(6, warden.sockets().size());
+        assertEquals(5, warden.sockets().size());
         assertEquals("NOSE CANNON", socket(warden, SocketId.ARMS).label());
 
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);
-        assertEquals(7, bulwark.sockets().size(), "a socket for each arm in place of one arm assembly");
+        assertEquals(7, bulwark.sockets().size(), "a socket for each arm and two compartment bays");
         assertEquals("L. ARM", socket(bulwark, SocketId.LEFT_ARM).label());
         assertEquals("R. ARM", socket(bulwark, SocketId.RIGHT_ARM).label());
         assertTrue(bulwark.sockets().stream().noneMatch(socket -> socket.id() == SocketId.ARMS));
@@ -61,7 +61,7 @@ class MechFittingDollCatalogTest {
         assertTrue(houndLayout.hasSocket(SocketId.ARMS));
         assertTrue(houndLayout.hasSocket(SocketId.LEFT_SHOULDER));
         assertFalse(houndLayout.hasSocket(SocketId.RIGHT_SHOULDER));
-        assertFalse(houndLayout.hasSocket(SocketId.MINI_FAB));
+        assertTrue(houndLayout.hasSocket(SocketId.AUXILIARY));
     }
 
     @Test

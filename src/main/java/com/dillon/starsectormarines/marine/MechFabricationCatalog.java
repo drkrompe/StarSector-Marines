@@ -62,7 +62,9 @@ public final class MechFabricationCatalog {
             internal(MechInternal.FACTORY_CAPACITOR_BANK, "@gearFabricationStandardIssue"),
             internal(MechInternal.DOUBLE_CAPACITOR_BANK, "@gearFabricationMilitaryPattern"),
             internal(MechInternal.MILITARY_CAPACITOR_BANK, "@gearFabricationMilitaryPattern"),
-            internal(MechInternal.AUXILIARY_VENT_ARRAY, "@gearFabricationStandardIssue"));
+            internal(MechInternal.AUXILIARY_VENT_ARRAY, "@gearFabricationStandardIssue"),
+            internal(MechInternal.STANDARD_LOADER, "@gearFabricationStandardIssue"),
+            internal(MechInternal.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"));
 
     /**
      * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
@@ -158,7 +160,7 @@ public final class MechFabricationCatalog {
 
     /**
      * A chassis is sold as a bare frame: the authored bill is the standard-fit machine's, less
-     * what its removable weapons, engine and capacitor bank cost as parts. Plating and
+     * what its removable weapons, engine and compartment parts cost as parts. Plating and
      * factory-locked hardware are the frame and stay in its price.
      */
     private static Recipe chassis(MechVariant variant, String provenance,
@@ -171,7 +173,7 @@ public final class MechFabricationCatalog {
             if (weapon != null && !MechFrameBudget.integral(variant, slot)) less(bill, weaponCost(weapon));
         }
         less(bill, internalCost(stock.engine()));
-        less(bill, internalCost(stock.capacitorBank()));
+        for (MechInternal part : stock.compartment()) less(bill, internalCost(part));
         return new Recipe("recipe.chassis." + variant.id, null,
                 provenance, null, variant, null, null, cost(bill[0], bill[1], bill[2]));
     }
@@ -235,6 +237,8 @@ public final class MechFabricationCatalog {
             case ENGINE -> 4000f;
             case PLATING -> 2300f;
             case CAPACITOR_BANK, VENT_ARRAY -> 1550f;
+            // A loader is a small autoforge: guidance stock and feed mechanism.
+            case LOADER -> 1200f;
         };
         return base * tierMultiplier(internal.tier);
     }
@@ -257,6 +261,7 @@ public final class MechFabricationCatalog {
             case ENGINE -> split(value, .25f, .60f, .15f);
             case PLATING -> split(value, .80f, .15f, .05f);
             case CAPACITOR_BANK, VENT_ARRAY -> split(value, .20f, .25f, .55f);
+            case LOADER -> split(value, .30f, .40f, .30f);
         };
     }
 

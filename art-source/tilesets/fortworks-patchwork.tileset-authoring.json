@@ -1,0 +1,699 @@
+{
+  "alphaMin": 16,
+  "blocks": [{
+    "doorBlock": "installation.dark-concrete-door",
+    "id": "installation.dark-concrete-wall@patchwork",
+    "layout": "wall-faces-4x4",
+    "rubbleBlock": "installation.dark-concrete-rubble",
+    "windowBlock": "installation.dark-concrete-window"
+  }],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s@patchwork",
+      "included": true,
+      "note": "Parapet collar piece s, patchwork look.",
+      "rect": [
+        402,
+        52,
+        185,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n@patchwork",
+      "included": true,
+      "note": "Parapet collar piece n, patchwork look.",
+      "rect": [
+        402,
+        775,
+        185,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e@patchwork",
+      "included": true,
+      "note": "Parapet collar piece e, patchwork look.",
+      "rect": [
+        34,
+        414,
+        184,
+        180
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w@patchwork",
+      "included": true,
+      "note": "Parapet collar piece w, patchwork look.",
+      "rect": [
+        771,
+        414,
+        184,
+        180
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-se@patchwork",
+      "included": true,
+      "note": "Parapet collar piece inner-se, patchwork look.",
+      "rect": [
+        34,
+        52,
+        184,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-sw@patchwork",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, patchwork look.",
+      "rect": [
+        771,
+        52,
+        184,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-ne@patchwork",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, patchwork look.",
+      "rect": [
+        34,
+        775,
+        184,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw@patchwork",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, patchwork look.",
+      "rect": [
+        771,
+        775,
+        184,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-n@patchwork",
+      "included": true,
+      "note": "Barricade piece n, patchwork look.",
+      "rect": [
+        1164,
+        43,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-n@patchwork",
+      "included": true,
+      "note": "Barricade piece n, patchwork look.",
+      "rect": [
+        1164,
+        43,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-s@patchwork",
+      "included": true,
+      "note": "Barricade piece s, patchwork look.",
+      "rect": [
+        1164,
+        374,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-s@patchwork",
+      "included": true,
+      "note": "Barricade piece s, patchwork look.",
+      "rect": [
+        1164,
+        374,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-w@patchwork",
+      "included": true,
+      "note": "Barricade piece w, patchwork look.",
+      "rect": [
+        992,
+        208,
+        172,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-w@patchwork",
+      "included": true,
+      "note": "Barricade piece w, patchwork look.",
+      "rect": [
+        992,
+        208,
+        172,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-e@patchwork",
+      "included": true,
+      "note": "Barricade piece e, patchwork look.",
+      "rect": [
+        1336,
+        208,
+        172,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-e@patchwork",
+      "included": true,
+      "note": "Barricade piece e, patchwork look.",
+      "rect": [
+        1336,
+        208,
+        172,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-nw@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-nw, patchwork look.",
+      "rect": [
+        992,
+        43,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-nw@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-nw, patchwork look.",
+      "rect": [
+        992,
+        43,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-ne@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-ne, patchwork look.",
+      "rect": [
+        1336,
+        43,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-ne@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-ne, patchwork look.",
+      "rect": [
+        1336,
+        43,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-sw@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-sw, patchwork look.",
+      "rect": [
+        992,
+        374,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-sw@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-sw, patchwork look.",
+      "rect": [
+        992,
+        374,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-se@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-se, patchwork look.",
+      "rect": [
+        1336,
+        374,
+        172,
+        165
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-se@patchwork",
+      "included": true,
+      "note": "Barricade piece corner-se, patchwork look.",
+      "rect": [
+        1336,
+        374,
+        172,
+        165
+      ]
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-0",
+      "included": true,
+      "rect": [
+        1017,
+        616,
+        77,
+        79
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-1",
+      "included": true,
+      "rect": [
+        1112,
+        616,
+        79,
+        79
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-2",
+      "included": true,
+      "rect": [
+        1208,
+        616,
+        77,
+        79
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-3",
+      "included": true,
+      "rect": [
+        1303,
+        616,
+        78,
+        79
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-4",
+      "included": true,
+      "rect": [
+        1017,
+        712,
+        77,
+        77
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-5",
+      "included": true,
+      "rect": [
+        1112,
+        712,
+        79,
+        77
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-6",
+      "included": true,
+      "rect": [
+        1208,
+        712,
+        77,
+        77
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-7",
+      "included": true,
+      "rect": [
+        1303,
+        712,
+        78,
+        77
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-8",
+      "included": true,
+      "rect": [
+        1017,
+        807,
+        77,
+        75
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-9",
+      "included": true,
+      "rect": [
+        1112,
+        807,
+        79,
+        75
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-10",
+      "included": true,
+      "rect": [
+        1208,
+        807,
+        77,
+        75
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-11",
+      "included": true,
+      "rect": [
+        1303,
+        807,
+        78,
+        75
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-12",
+      "included": true,
+      "rect": [
+        1017,
+        899,
+        77,
+        77
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-13",
+      "included": true,
+      "rect": [
+        1112,
+        899,
+        79,
+        77
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-14",
+      "included": true,
+      "rect": [
+        1208,
+        899,
+        77,
+        77
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.dark-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@patchwork.faces-15",
+      "included": true,
+      "rect": [
+        1303,
+        899,
+        78,
+        77
+      ],
+      "slot": "faces-15"
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the patchwork emplacement style, look 'derelict-pirate': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/derelict-pirate.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@patchwork of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/derelict-pirate.raw.png",
+  "sheetName": "fortworks-patchwork"
+}
