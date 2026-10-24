@@ -4,7 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory previews and the ops dialog's UI images each hold their own textures and give them back (`battle-textures.md`).
+Updated: 2026-10-24 — Roofs have styles, cover the walls under them (whole inside, an eave outside) and show what broke them, cell by cell (Roofs, law 25).
+
+Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory previews and the ops dialog's UI images each hold their own textures and give them back (`battle-textures.md`).
 
 ## Vocabulary
 
@@ -14,6 +16,9 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
 - A **render layer** is one named stratum in the world stack. Its ordinal is paint order; it is an occlusion contract, not a depth-sort hint.
 - A **prop** is scenery: authored, placed at generation, drawn from a sheet, and never a simulation actor. Size and subject do not promote one — a parked truck draws in the same layer, from the same registry, and with the same cover model as a crate. A second render path for scenery that merely looks important is duplication, and it drifts: the one this replaced had grown its own list, its own sheet cache, its own footprint stamp, and a cover rule nothing else in the game used.
 - A **render system** is a GL-free, per-frame producer. It reads the frame context and appends commands for its one layer without putting render data on simulation entities.
+- A **roof** is drawn over every building cell and over the walls that carry it (`RoofCover`, `RoofTiles`). Where nothing outside touches a cell, a floor, a partition, a party wall, it is covered whole, so from outside an interior reads as one roof. Where a cell faces the outside, an exterior wall or doorway, the roof stops at an **eave** `RoofCover.EAVE_DEPTH` of the cell in from the building's side, with a trim and a short shadow along its open edge, so the wall's material and its worth as cover stay readable; an outside corner keeps only its inner square, an inside corner all but the square the outside touches. A roof over a wall is presentation only: whether a roof shields is the floor cell's `isRoofIntact`.
+- A roof is drawn in its building's **roof style** (`RoofStyle`): clay tile, poured slab, corrugated sheet or armour plate, from the fort lot's works family, else the wall material, else the building kind. Its courses run along the building's long side, from a seamless two-by-two swatch, so a roof has no cell seams.
+- A roof is broken **cell by cell, by what hit it** (`RoofDamage`): a shell or the edge of a bomb **holes** it, a bomb's core, a crash, creep or the wall under it falling **collapses** it, fire, a room's flashover and a wall alight **burn it through**. A second blow keeps the worse. Every broken state is open to the sky, which is all a rule reads; each draws its own frame of the style's sheet, cut to the cell's cover, and an eave keeps no trim once broken. An eave over a wall takes its own damage and has no shield to lose.
 - A **swing door** hangs in every one-cell doorway on a battle map (`SwingDoor`, `SwingDoorRenderSystem`): a leaf hinged on one jamb that swings into the building as someone comes in line with the doorway and falls shut as they leave. Its angle is read each frame from where people stand, never stored, so it needs no home for state and paints the same in every host; it does not lock, block or shade anything. A wide doorway is a gap and has none, rubble removes it, and ship decks draw their own sliding compartment doors instead.
 - A **field-cache marker** reads the battle's optional salvage ledger. Unknown caches emit no commands; discovered caches retain a last-seen marker, while current recovery progress requires current visibility. Its pickup art is a nonblocking interaction cue, not a new scenery or cover authority. Bitmap world labels carry the same text and font metrics into live and headless drains.
 - The **frame context** is the current simulation view plus camera, layout, alpha, selection/highlight state, and host-owned frame inputs. It is temporary and is not retained as gameplay state.
@@ -571,15 +576,16 @@ change the physical crash corridor.
     topology and of which building owns the cell, and it paints *above* units —
     so the mesh is a resident layer in its own painter slot rather than another
     sub-layer of GROUND, and law 20 carries over whole. What is new is the
-    invalidation's two shapes. A cave-in is geometry and comes from the same
-    `CellTopology` change log, and it re-resolves **exactly the cell that
-    caved**: a roof tile is picked by hashing its own coordinates, so unlike a
-    ground autotile it has no neighbour to disturb. A building fading as the
-    player walks inside it is not geometry at all — it is that building's alpha
-    — so its cells are baked as one contiguous span and a fade is a patch of
-    that span's vertex colours. The stream's own rule that a roof under a
-    threshold is not drawn survives as an alpha of zero, or a resident quad
-    would put a roof over an interior the streamed path leaves clear.
+    invalidation's two shapes. A blow to a roof is geometry and comes from the
+    same `CellTopology` change log, and it re-resolves the cell it names and the
+    eight beside it, and no more: a cell's frame is its own, but its cover is cut
+    by whether its neighbours are outside, which a fallen wall changes. A
+    building fading as the player walks inside it is not geometry at all — it
+    is that building's alpha — so its cells, floor then the walls it carries,
+    are baked as one contiguous span of fixed slots per cell, and a fade is a
+    patch of that span's vertex colours. The stream's own rule that a roof
+    under a threshold is not drawn survives as an alpha of zero, or a resident
+    quad would put a roof over an interior the streamed path leaves clear.
 26. A collector visits what the camera can see, and pays for the visit once.
     Culling is the standing answer to a collector's cost the way residency is to
     a submitter's: a body whose drawn extent cannot land in the viewport is not
