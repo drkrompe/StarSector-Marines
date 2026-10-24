@@ -531,8 +531,17 @@ public final class HeartLanes {
 
     /** Whether a machine sent to the lane is alive and still short of its lane's aim. */
     private static boolean onTheRoad(BattleSimulation sim, Lane lane, long id) {
-        if (sim.convoy().structure(id) <= 0f) return false;
-        float x = sim.convoy().body(id).x, y = sim.convoy().body(id).y;
+        float x, y;
+        if (sim.convoy().isVehicle(id)) {
+            if (sim.convoy().structure(id) <= 0f || sim.convoy().body(id) == null) return false;
+            x = sim.convoy().body(id).x;
+            y = sim.convoy().body(id).y;
+        } else {
+            // A walker (a Hound of a mech lance).
+            if (sim.resolveUnit(id) == 0L || !sim.world().isAlive(id)) return false;
+            x = sim.world().x(id);
+            y = sim.world().y(id);
+        }
         int tx = lane.targetX >= 0 ? lane.targetX : lane.entryX, ty = lane.targetY >= 0 ? lane.targetY : lane.entryY;
         return Math.max(Math.abs(x - tx), Math.abs(y - ty)) > ARRIVED_CELLS;
     }
