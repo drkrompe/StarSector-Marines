@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
@@ -228,6 +229,20 @@ public final class BattleProbe {
                 vehicle.put("facing", round(body.facingDegrees)).put("speed", round(body.speed))
                         .put("immobilised", body.immobilised);
             }
+            VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
+            VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(id);
+            if (order != null) {
+                vehicle.put("order", new JSONObject()
+                        .put("requested", new JSONArray(List.of(order.requestedX(), order.requestedY())))
+                        .put("destination", new JSONArray(List.of(round(order.destinationX()), round(order.destinationY()))))
+                        .put("routePoints", order.routeXs().length));
+            }
+            VehicleMoveOrderService.RefusedOrder refused = orders.refusal(id);
+            if (refused != null) {
+                vehicle.put("refused", new JSONObject().put("reason", String.valueOf(refused.reason()))
+                        .put("requested", new JSONArray(List.of(refused.requestedX(), refused.requestedY()))));
+            }
+            vehicle.put("pending", orders.pending(id)).put("enlisted", orders.isEnlisted(id));
             GroundTurret turret = convoy.turret(id);
             if (turret != null) {
                 JSONObject t = new JSONObject().put("facing", round(turret.facingDeg)).put("ammo", turret.ammo)

@@ -48,7 +48,8 @@ B = (95, 333)               # where the membrane meets the flank (on the body: n
 # Fold targets: each spar's angle from the wrist when laid back along the flank (degrees, screen: 90 is straight back).
 FOLDED = [100.0, 96.0, 92.0]
 
-# name -> (arm elevation, hand elevation, arm sweep, hand sweep, finger fold)
+# name -> (arm elevation, hand elevation, arm sweep, hand sweep, finger fold), or a pair of those (the right wing,
+# then the left) for a frame whose wings do not mirror.
 FRAMES = {
     "beat-1": (34, -12, -6, -10, 0.25),    # upstroke begins: wing rising, hand trailing, fingers closing a little
     "beat-2": (62, -18, 0, -6, 0.40),      # mid upstroke
@@ -57,11 +58,25 @@ FRAMES = {
     "beat-5": (8, 14, 12, 6, -0.06),       # mid downstroke: level, fully spread and reaching forward
     "beat-6": (-38, -18, 4, 0, 0.0),       # the bottom: wings swept down below the body
     "beat-7": (-18, 12, -6, -8, 0.12),     # recovery: arm coming up, the hand still low
-    "fold-1": (14, 6, 18, -22, 0.40),      # folding into the dive: wrist coming forward, spars swinging back
-    "fold-2": (24, 10, 34, -48, 0.80),     # nearly folded: arm forward, spars laid along the flank
+    # Round 1's fold, which tucked the wings away entirely; superseded by the "dive" sheet's, kept so guide-all redraws.
+    "r1-fold-1": (14, 6, 18, -22, 0.40),
+    "r1-fold-2": (24, 10, 34, -48, 0.80),
+    # The dive keeps its wings showing (owner, 2026-10-23): swept back into an arrowhead, membrane still open.
+    "fold-1": (6, 3, -18, 8, 0.08),       # the wings start back
+    "fold-2": (20, 5, -34, 18, 0.18),    # nearly there
+    "dive": (34, 6, -50, 30, 0.30),        # the dive: wings half swept back along the flanks, still spread
+    # A shot flier tumbles: limp wings thrown about by the spin, never in step.
+    "fall-1": ((40, -30, -20, -20, 0.30), (-30, 20, 10, -10, 0.10)),
+    "fall-2": ((-20, 35, 5, 15, 0.0), (60, -40, -25, -30, 0.50)),
+    "fall-3": ((70, -10, -35, -40, 0.60), (-45, -25, 15, 10, 0.20)),
+    "fall-4": ((-35, -30, 20, 25, 0.10), (25, 40, -10, -45, 0.40)),
+    # On the ground: wings lying flat and crumpled, one splayed and one half folded.
+    "corpse-1": ((0, 0, -40, -15, 0.50), (0, 0, 15, 20, -0.05)),
+    "corpse-2": ((0, 0, 10, 25, -0.05), (0, 0, -35, -20, 0.55)),
 }
-# One sheet, three rows of three, read left to right and top to bottom.
-SHEETS = [("all", ["beat-1", "beat-2", "beat-3", "beat-4", "beat-5", "beat-6", "beat-7", "fold-1", "fold-2"])]
+# Each sheet is three columns, read left to right and top to bottom.
+SHEETS = [("all", ["beat-1", "beat-2", "beat-3", "beat-4", "beat-5", "beat-6", "beat-7", "r1-fold-1", "r1-fold-2"]),
+          ("dive", ["fold-1", "fold-2", "dive", "fall-1", "fall-2", "fall-3", "fall-4", "corpse-1", "corpse-2"])]
 COLUMNS = 3
 
 LIGHT = np.array([-0.45, -0.45, 0.77])
@@ -198,9 +213,10 @@ def wings_cell(name):
     big = Image.new("RGBA", (cw * SS, ch * SS), (0, 0, 0, 0))
     d = ImageDraw.Draw(big)
     k = SCALE * SS
-    p = pose(FRAMES[name])
-    for mirror in (False, True):
-        draw_wing(d, p, cw * SS / 2, -BODY_TOP * k, k, mirror)
+    params = FRAMES[name]
+    sides = params if isinstance(params[0], tuple) else (params, params)
+    for mirror, side in zip((False, True), sides):
+        draw_wing(d, pose(side), cw * SS / 2, -BODY_TOP * k, k, mirror)
     return big.resize((cw, ch), Image.LANCZOS)
 
 
