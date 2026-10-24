@@ -75,6 +75,11 @@ public final class TurretMountDef {
     public final Recoil recoil;
     /** Whether the gun throws spent brass beside itself as it fires ({@code render.casings}). Presentation only. */
     public final boolean ejectsCasings;
+    /**
+     * Length in cells of the soot fan a round lays on the ground ahead of the muzzle ({@code render.scorch}); zero
+     * for a gun that leaves none. Presentation only.
+     */
+    public final float scorchCells;
 
     /**
      * A barrel's kick: it jumps back {@code distanceFrac} of the mount's visual size when a round leaves and eases
@@ -92,8 +97,9 @@ public final class TurretMountDef {
                            boolean hardenedTargetsOnly, Flux flux,
                            boolean engagesAir, float maxDepressionDeg,
                            String spritePath, String recoilSpritePath, Recoil recoil,
-                           boolean ejectsCasings) {
+                           boolean ejectsCasings, float scorchCells) {
         this.id = id;
+        this.scorchCells = scorchCells;
         this.recoil = recoil;
         this.ejectsCasings = ejectsCasings;
         this.maxDepressionDeg = maxDepressionDeg;
@@ -205,11 +211,15 @@ public final class TurretMountDef {
             }
             recoil = new Recoil(distance, seconds);
         }
+        float scorch = render != null ? (float) render.optDouble("scorch", 0.0) : 0f;
+        if (!Float.isFinite(scorch) || scorch < 0f) {
+            throw new JSONException("Turret mount '" + id + "' scorch must be a finite, non-negative length in cells");
+        }
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
                 flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
-                render != null && render.optBoolean("casings", false));
+                render != null && render.optBoolean("casings", false), scorch);
     }
 
     /** A mount's flux frame ({@link TurretMountDef#flux}). */
