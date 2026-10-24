@@ -1,33 +1,41 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims.Probe;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiPredicate;
 
 /**
  * Where each marine of a squad stands on a drawn line: at the position the claims give him, or,
- * with none, at his own share of the line a cell behind it, settled into the best cover there.
+ * with none, in the best cover against the line's front near his own share of it, a cell behind
+ * the line.
  *
- * <p>One rule for two callers. {@link DefendArea} walks a marine to it, and the drag preview
- * draws it before the order is given, so the place a marker promises is the place the marine
- * goes rather than a second guess at it.
+ * <p>The front is the direction the player's drag implies, and it is what cover is judged
+ * against: not the squad's believed primary contact, which can be one runner on a flank. A front
+ * that runs between two compass points takes the cover on both of its sides, each in proportion
+ * to how much of the front it faces, so a line dragged on the diagonal settles behind a corner
+ * of sandbags rather than behind whichever one face the front happened to snap to.
+ *
+ * <p>One rule for every caller. {@link FightingPositionClaims} settles it once per tick for
+ * every line-holding squad, so squadmates never pick the same sandbag; {@link DefendArea}
+ * walks a marine to the cell it settled; and the drag preview runs it before the order is
+ * given, so the place a marker promises is the place the marine goes.
  */
 public final class LinePlacement {
 
-    /** How far behind the drawn line a marine without a position stands. */
+    /** How far behind the drawn line a marine's share of it lies. */
     static final float REARWARD_OFFSET = 1f;
-    /** How far ahead of the line cover is judged from when no threat is believed. */
+    /** How far ahead along the front a covered cell must see, so cover is a place to fight from. */
     static final float FRONT_PROBE = 10f;
-    /** How far from his share a marine without a position looks for cover. */
-    static final int COVER_SEARCH_RADIUS = 2;
+    /** How far from his share a marine looks for cover: the band's own half-width. */
+    static final int COVER_SEARCH_RADIUS = FrontageLine.BAND;
+    /** How far in front of the drawn line a marine may settle, so a line drawn just behind a wall reaches it. */
+    static final float MAX_AHEAD = 1f;
 
     /** Where one marine will stand, and whether it is a position (a trench or a building post) rather than open ground. */
     public record Place(long member, int x, int y, boolean position) { }
@@ -41,79 +49,142 @@ public final class LinePlacement {
     }
 
     /**
-     * The covered cell near member {@code ordinal}'s share, judged against the believed threat or,
-     * with none ({@code threatX < 0}), against a point ahead of the line, skipping every cell
-     * {@code taken} accepts (a position, or a squadmate's stand); {@code null} when no covered cell
-     * inside the band is free, and the caller falls back to the share itself.
+     * Cover the cell gives against fire from the line's front. Cover is held per compass facing,
+     * so a front between two facings weighs each by the share of the front it faces; a front
+     * square to one facing reads that facing alone.
      */
-    static int[] coveredCell(FrontageLine line, int ordinal, int count, int threatX, int threatY,
-                             BattleView sim, BiPredicate<Integer, Integer> taken) {
-        int[] desired = share(line, ordinal, count);
-        int fromX = threatX;
-        int fromY = threatY;
-        if (fromX < 0 || fromY < 0) {
-            float[] front = line.pointAt((ordinal + 0.5f) / count, FRONT_PROBE);
-            fromX = Math.round(front[0]);
-            fromY = Math.round(front[1]);
-        }
-        return sim.getTacticalScoring().bestCoverCell(
-                fromX, fromY, desired[0], desired[1], COVER_SEARCH_RADIUS,
-                (x, y) -> !line.covers(x, y) || taken.test(x, y));
+    static float frontCover(Probe probe, int x, int y, FrontageLine line) {
+        float fx = line.frontX();
+        float fy = line.frontY();
+        float ax = Math.abs(fx);
+        float ay = Math.abs(fy);
+        if (ax + ay < 1e-6f) return 0f;
+        float across = ax < 1e-3f ? 0f : probe.cover(x, y, fx > 0f ? 8 : -8, 0);
+        float down = ay < 1e-3f ? 0f : probe.cover(x, y, 0, fy > 0f ? 8 : -8);
+        return (ax * across + ay * down) / (ax + ay);
     }
 
     /**
-     * Where every member of {@code squad} available to plan would stand if given {@code line} now.
-     * The positions are the claims' own dry run; the rest are placed as {@link DefendArea} places
-     * them, in order, each avoiding the cells given before him, falling back to the nearest
-     * walkable cell of the band.
+     * Open-ground cells for the members a line gave no position. Parallel to {@code cells}, the
+     * squad's members available to plan in squad order: each slot whose cell is -1 is given the
+     * cell with the most cover against the front within {@link #COVER_SEARCH_RADIUS} of its
+     * share, nearest the share among equals, on the line's band, no more than
+     * {@link #MAX_AHEAD} in front of it, with a line of fire out along the front and free of
+     * {@code taken}; with no covered cell, the nearest free walkable cell of the band to the
+     * share. A slot whose {@code previous} cell is still covered, free and on the band keeps it,
+     * so a marine is not marched along the line each time a squadmate's choice shifts. Slots
+     * holding a position stay -1. Every cell handed out joins {@code taken}.
+     *
+     * @param count how many shares the line is cut into
+     * @param previous each slot's open cell last tick ({@code y * width + x}), or -1
+     */
+    static int[] openCells(FrontageLine line, int count, int[] cells, int[] previous, int width,
+                           Probe probe, Set<Integer> taken) {
+        int[] open = new int[cells.length];
+        Arrays.fill(open, -1);
+        for (int i = 0; i < cells.length; i++) {
+            int cell = previous == null ? -1 : previous[i];
+            if (cells[i] >= 0 || cell < 0 || taken.contains(cell)) continue;
+            int x = cell % width;
+            int y = cell / width;
+            if (admits(line, x, y, probe) && frontCover(probe, x, y, line) > 0f && seesFront(line, x, y, probe)) {
+                open[i] = cell;
+                taken.add(cell);
+            }
+        }
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i] >= 0 || open[i] >= 0) continue;
+            int[] share = share(line, i, Math.max(count, i + 1));
+            int cell = coveredCell(line, share, width, probe, taken);
+            if (cell < 0) cell = nearestFree(line, share, width, probe, taken);
+            open[i] = cell;
+            if (cell >= 0) taken.add(cell);
+        }
+        return open;
+    }
+
+    /** The most covered admissible cell near {@code share} that sees the front, or -1. */
+    private static int coveredCell(FrontageLine line, int[] share, int width, Probe probe, Set<Integer> taken) {
+        int r = COVER_SEARCH_RADIUS;
+        int best = -1;
+        float bestCover = 0f;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                int distance = dx * dx + dy * dy;
+                if (distance > r * r) continue;
+                int x = share[0] + dx;
+                int y = share[1] + dy;
+                if (x < 0 || y < 0 || x >= width || !admits(line, x, y, probe)) continue;
+                int cell = y * width + x;
+                if (taken.contains(cell)) continue;
+                float cover = frontCover(probe, x, y, line);
+                if (cover <= 0f || cover < bestCover) continue;
+                if (cover == bestCover && (distance > bestDistance
+                        || (distance == bestDistance && cell > best))) continue;
+                // The line of fire last: it is the one test that walks the grid.
+                if (!seesFront(line, x, y, probe)) continue;
+                best = cell;
+                bestCover = cover;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    /** The nearest free walkable cell of the band to {@code share}, or -1 when the band has none. */
+    private static int nearestFree(FrontageLine line, int[] share, int width, Probe probe, Set<Integer> taken) {
+        int best = -1;
+        int bestDistance = Integer.MAX_VALUE;
+        int reach = FrontageLine.BAND;
+        for (int y = share[1] - reach; y <= share[1] + reach; y++) {
+            for (int x = share[0] - reach; x <= share[0] + reach; x++) {
+                if (x < 0 || y < 0 || x >= width || !probe.walkable(x, y) || !line.covers(x, y)) continue;
+                int cell = y * width + x;
+                if (taken.contains(cell)) continue;
+                int dx = x - share[0];
+                int dy = y - share[1];
+                int distance = dx * dx + dy * dy;
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = cell;
+                }
+            }
+        }
+        return best;
+    }
+
+    private static boolean admits(FrontageLine line, int x, int y, Probe probe) {
+        return probe.walkable(x, y) && line.covers(x, y) && line.ahead(x, y) <= MAX_AHEAD;
+    }
+
+    private static boolean seesFront(FrontageLine line, int x, int y, Probe probe) {
+        return probe.lineOfFire(x, y, x + line.frontX() * FRONT_PROBE, y + line.frontY() * FRONT_PROBE);
+    }
+
+    /**
+     * Where every member of {@code squad} available to plan would stand if given {@code line} now:
+     * the claims' own dry run, positions and open ground alike.
      */
     public static List<Place> preview(BattleView sim, Squad squad, FrontageLine line) {
         List<Long> members = FightingPositionClaims.availableMembers(squad, sim);
         if (members.isEmpty()) return List.of();
-        int[] cells = sim.fightingPositionClaims().previewLine(sim, squad, line, members);
+        FightingPositionClaims claims = sim.fightingPositionClaims();
+        int[] cells = claims.previewLine(sim, squad, line, members);
+        int[] open = claims.previewOpen(sim, squad, line, members, cells);
         int width = sim.getGrid().getWidth();
-        Set<Integer> held = new HashSet<>();
-        for (int cell : cells) if (cell >= 0) held.add(cell);
-        SquadContactPicture picture = squad.contactPicture;
-        boolean threat = picture != null && picture.hasContacts()
-                && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
-        int threatX = threat ? picture.primaryCellX() : -1;
-        int threatY = threat ? picture.primaryCellY() : -1;
-        int count = Math.max(1, squad.autonomousMemberCount(sim));
         List<Place> places = new ArrayList<>(members.size());
         for (int i = 0; i < members.size(); i++) {
             long member = members.get(i);
             if (cells[i] >= 0) {
                 places.add(new Place(member, cells[i] % width, cells[i] / width, true));
-                continue;
+            } else if (open[i] >= 0) {
+                places.add(new Place(member, open[i] % width, open[i] / width, false));
+            } else {
+                int[] share = share(line, i, Math.max(1, squad.autonomousMemberCount(sim)));
+                places.add(new Place(member, share[0], share[1], false));
             }
-            int[] cell = coveredCell(line, i, count, threatX, threatY, sim,
-                    (x, y) -> held.contains(y * width + x)
-                            || sim.fightingPositionClaims().isClaimedByOther(x, y, width, member));
-            if (cell == null) cell = nearestWalkable(line, share(line, i, count), sim.getGrid());
-            held.add(cell[1] * width + cell[0]);
-            places.add(new Place(member, cell[0], cell[1], false));
         }
         return places;
-    }
-
-    /** {@code wanted} if it is walkable, else the nearest walkable cell of the band, else {@code wanted}. */
-    private static int[] nearestWalkable(FrontageLine line, int[] wanted, NavigationGrid grid) {
-        int[] best = null;
-        int bestDistance = Integer.MAX_VALUE;
-        int reach = FrontageLine.BAND;
-        for (int y = wanted[1] - reach; y <= wanted[1] + reach; y++) {
-            for (int x = wanted[0] - reach; x <= wanted[0] + reach; x++) {
-                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !line.covers(x, y)) continue;
-                int dx = x - wanted[0];
-                int dy = y - wanted[1];
-                int distance = dx * dx + dy * dy;
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    best = new int[]{x, y};
-                }
-            }
-        }
-        return best != null ? best : wanted;
     }
 }

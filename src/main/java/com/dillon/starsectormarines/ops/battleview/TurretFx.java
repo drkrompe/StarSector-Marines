@@ -14,8 +14,8 @@ import java.util.Random;
 
 /**
  * What a map turret does to the air around it besides the round it fires (`ground-turret-tiers.md`): brass thrown
- * beside a gun that ejects casings, smoke drifting off a barrel once a burst stops, and smoke and sparks off a turret
- * that is badly hurt. Presentation only: it reads the simulation and writes particles and casing decals, and draws
+ * beside a gun that ejects casings, soot laid on the ground ahead of a heavy gun's muzzle, smoke drifting off a barrel once a burst stops, and smoke and sparks off a turret
+ * that is badly hurt. Presentation only: it reads the simulation and writes particles, casing and scorch decals, and draws
  * from its own random stream, so the battle plays the same with or without it. The live screen and the review
  * frames feed it the same way, once per simulation step: {@link #onShot} for each shot, then {@link #advance}.
  */
@@ -42,7 +42,10 @@ public final class TurretFx {
         float x, y, radius, heat, quiet, nextPuff;
     }
 
-    /** Records a turret's round: warms its barrel and, for a gun that ejects brass, throws a casing to its right. */
+    /**
+     * Records a turret's round: warms its barrel, lays soot ahead of a gun that scorches the ground
+     * ({@code render.scorch}) and, for a gun that ejects brass, throws a casing to its right.
+     */
     public void onShot(ShotEvent shot, BattleSimulation sim, ImpactFx fx) {
         StructureDef structure = shot.turretStructureDef;
         if (structure == null) return;
@@ -58,17 +61,23 @@ public final class TurretFx {
         barrel.heat = Math.min(MAX_HEAT, barrel.heat + 1f);
         barrel.quiet = 0f;
         barrel.nextPuff = 0f;
-        if (!mount.ejectsCasings || !sim.world().isAlive(shot.shooterId)) return;
+        if ((!mount.ejectsCasings && mount.scorchCells <= 0f) || !sim.world().isAlive(shot.shooterId)) return;
         float dx = shot.toX - shot.fromX;
         float dy = shot.toY - shot.fromY;
         float length = (float) Math.hypot(dx, dy);
         if (length < 1e-4f) return;
         float fx0 = dx / length;
         float fy0 = dy / length;
-        float rightX = fy0;
-        float rightY = -fx0;
         float cx = sim.world().x(shot.shooterId);
         float cy = sim.world().y(shot.shooterId);
+        if (mount.scorchCells > 0f) {
+            // On the ground under the muzzle, not at the round's origin: a raised gun's shot leaves from its height.
+            ImpactDecals.spawnMuzzleScorch(sim, rng, cx + fx0 * mount.muzzleOffsetCells,
+                    cy + fy0 * mount.muzzleOffsetCells, (float) Math.toDegrees(Math.atan2(fy0, fx0)), mount.scorchCells);
+        }
+        if (!mount.ejectsCasings) return;
+        float rightX = fy0;
+        float rightY = -fx0;
         float speed = 2.2f + rng.nextFloat() * 1.2f;
         float spread = (rng.nextFloat() - .5f) * .8f;
         fx.spawnCasingGlint(cx + rightX * .3f, cy + rightY * .3f,

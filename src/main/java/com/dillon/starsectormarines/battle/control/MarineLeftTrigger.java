@@ -36,12 +36,22 @@ public final class MarineLeftTrigger {
 
     /**
      * The specials the left button cycles through, in cycle order: direct-fire items that spend
-     * ammunition, and the flamer's held stream. A Marine's one special slot means this has at most one member today.
+     * ammunition, and the flamer's held stream. Only the hand holds one, so this has at most one member today.
      */
     public static List<SpecialEquipmentDef> specials(SpecialEquipmentDef carried) {
+        return specials(carried, null);
+    }
+
+    /**
+     * As {@link #specials(SpecialEquipmentDef)} over both special slots, the hand and the belt. The belt holds only
+     * throws, so a direct-fire item is on it only while a belt throw has borrowed the hand.
+     */
+    public static List<SpecialEquipmentDef> specials(SpecialEquipmentDef hand, SpecialEquipmentDef belt) {
         List<SpecialEquipmentDef> out = new ArrayList<>(1);
-        if (carried != null && (carried.isDirectFireWeapon() || carried.isHeldStream())
-                && carried.usesAmmunition()) out.add(carried);
+        for (SpecialEquipmentDef carried : new SpecialEquipmentDef[]{hand, belt}) {
+            if (carried != null && (carried.isDirectFireWeapon() || carried.isHeldStream())
+                    && carried.usesAmmunition()) out.add(carried);
+        }
         out.sort((a, b) -> Integer.compare(order(a.activation()), order(b.activation())));
         return out;
     }

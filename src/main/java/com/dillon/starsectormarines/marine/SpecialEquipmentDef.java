@@ -253,6 +253,19 @@ public record SpecialEquipmentDef(
         return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && weaponDef().indirectFire;
     }
 
+    /** True for a smoke grenade: a thrown screen, the right button's first item. */
+    public boolean isSmokeThrow() {
+        return activation == SpecialActivation.UTILITY_SMOKE && smokeGrenadeSpec() != null;
+    }
+
+    /**
+     * True for what may ride in a Marine's second special slot, the belt: a thrown item, smoke or a hand
+     * grenade. Every throw runs through the one channel the hand slot owns, so the belt holds nothing else.
+     */
+    public boolean isThrownItem() {
+        return isSmokeThrow() || isThrownGrenade();
+    }
+
     /**
      * True for the flamer: an {@link SpecialActivation#ARC_EXPLOSIVE} item whose weapon is not indirect fire,
      * a short flat jet aimed and held like a gun. Under direct control it fires for as long as the button is

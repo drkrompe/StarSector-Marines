@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.combat.fx;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 
 /**
- * Semantic names for the 13 frames in {@code mod/graphics/decals/decals.png}.
+ * Semantic names for the 14 frames in {@code mod/graphics/decals/decals.png}.
  * Sheet is a 2048×160 horizontal strip; frame index in this enum matches the
  * sliced frame index from {@link SpriteSheetSlicer}.
  *
@@ -36,7 +36,12 @@ public enum DecalKind {
     /** Alternate rubble pile. */
     RUBBLE_ALT(11),
     /** Rubble with ongoing fire — heavy HE detonation. Visually busier; use sparingly. */
-    RUBBLE_FIRE(12);
+    RUBBLE_FIRE(12),
+    /**
+     * Soot fanned forward from a heavy gun's muzzle, pointing along the frame's +x with the muzzle at its left edge
+     * ({@code art-source/fx/build_muzzle_scorch.py}). Faint on its own; overlapping stamps darken it.
+     */
+    MUZZLE_SCORCH(13);
 
     public final int index;
     DecalKind(int index) { this.index = index; }

@@ -45,7 +45,6 @@ public final class DefendArea implements Action {
     private static final double GOLDEN_ANGLE = Math.PI * (3d - Math.sqrt(5d));
     private static final int STAND_QUIET = 0;
     private static final int STAND_PREPARED = 1;
-    private static final int STAND_LINE = 2;
 
     private final int centerX;
     private final int centerY;
@@ -57,7 +56,6 @@ public final class DefendArea implements Action {
     private int standKind;
     private int standThreatX;
     private int standThreatY;
-    private FrontageLine standLine;
     private List<Long> standMembers = List.of();
 
     public DefendArea(int centerX, int centerY, int radius) {
@@ -150,16 +148,35 @@ public final class DefendArea implements Action {
             }
             return ActionStatus.RUNNING;
         }
-        int[] firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
-                member, target, centerX, centerY, radius);
+        FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
+        int[] open = line == null ? null : sim.fightingPositionClaims().openCellOf(member);
+        if (open != null && sim.movement().atCell(member, open[0], open[1])) {
+            // A marine on a drawn line fights from the cover the line gave him against its front
+            // while it gives him a shot, rather than stepping out to a better angle on one runner.
+            float held = TacticalScoring.cellDistance(
+                    sim.world().x(member), sim.world().y(member),
+                    sim.world().x(target), sim.world().y(target));
+            if (held <= sim.world().attackRange(member)
+                    && sim.getTacticalScoring().hasClearShot(member, target)) {
+                if (LaneSidestep.isStepping(member, sim)) {
+                    sim.advanceMovement(member);
+                } else {
+                    PatrolMotion.hold(member, sim);
+                }
+                sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
+                return ActionStatus.RUNNING;
+            }
+        }
+        int[] firingPosition = onLine(sim.getTacticalScoring().findFiringPositionWithin(
+                member, target, centerX, centerY, radius), line);
         if (firingPosition == null) {
             long alternative = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, centerX, centerY, radius);
             if (alternative != 0L && alternative != target) {
                 sim.world().setTargetId(member, alternative);
                 target = alternative;
-                firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target, centerX, centerY, radius);
+                firingPosition = onLine(sim.getTacticalScoring().findFiringPositionWithin(
+                        member, target, centerX, centerY, radius), line);
             }
         }
         if (firingPosition == null) {
@@ -199,40 +216,77 @@ public final class DefendArea implements Action {
         return ActionStatus.RUNNING;
     }
 
+    /** A firing cell off a drawn line's band is no firing cell for a squad holding the line. */
+    private static int[] onLine(int[] cell, FrontageLine line) {
+        return cell == null || line == null || line.covers(cell[0], cell[1]) ? cell : null;
+    }
+
     private int[] preparedPosition(long member, int threatX, int threatY,
                                    Squad squad, BattleView sim) {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
         FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
-        if (line != null) return squadStand(member, STAND_LINE, threatX, threatY, line, squad, sim);
+        if (line != null) return linePosition(member, line, squad, sim);
         if (threatX == centerX && threatY == centerY) return quietPosition(member, squad, sim);
-        return squadStand(member, STAND_PREPARED, threatX, threatY, null, squad, sim);
+        return squadStand(member, STAND_PREPARED, threatX, threatY, squad, sim);
+    }
+
+    /**
+     * Where a member holds a drawn line when no prepared position was his: the open-ground cell
+     * the claims settled for him, the best cover against the line's front near his share of it
+     * ({@link LinePlacement#openCells}). Shares are spaced evenly along the whole line, so a
+     * squad on open ground stands as a skirmish line across the ground the player drew. Before
+     * the claims have run for a new order, his share itself.
+     */
+    private int[] linePosition(long member, FrontageLine line, Squad squad, BattleView sim) {
+        int[] open = sim.fightingPositionClaims().openCellOf(member);
+        if (open != null) return open;
+        int ordinal = memberOrdinal(member, squad, sim);
+        int count = Math.max(1, squad.autonomousMemberCount(sim));
+        int[] share = LinePlacement.share(line, ordinal, count);
+        return nearestWalkableInside(share[0], share[1], sim);
+    }
+
+    /**
+     * The position this member holds under the squad's claims (a fighting-position cell, or a
+     * building post on a drawn line), or {@code null}: overflow, no positions in the ground, or
+     * fighting positions off on an order that is not a line. Claims are settled in the
+     * serial phase before dispatch; this only reads them.
+     */
+    private static int[] claimedCell(long member, BattleView sim) {
+        return sim.fightingPositionClaims().cellOf(member);
+    }
+
+
+    /** A member left without a position must not settle on one a squadmate holds. */
+    private static boolean claimedByOther(int x, int y, long member, BattleView sim) {
+        return sim.fightingPositionClaims()
+                .isClaimedByOther(x, y, sim.getGrid().getWidth(), member);
     }
 
     private int[] quietPosition(long member, Squad squad, BattleView sim) {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
         FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
-        if (line != null) return squadStand(member, STAND_LINE, -1, -1, line, squad, sim);
-        return squadStand(member, STAND_QUIET, -1, -1, null, squad, sim);
+        if (line != null) return linePosition(member, line, squad, sim);
+        return squadStand(member, STAND_QUIET, -1, -1, squad, sim);
     }
 
     /**
-     * Where {@code member} stands while he holds no position of his own, with every squadmate
-     * given a different cell: the squad's stands are settled together in ordinal order
-     * ({@link DistinctStands}), once per tick and kind of stand, so members whose shares search
-     * overlapping ground do not all walk to its one best cover cell and jostle round its centre
-     * without any of them ever arriving.
+     * Where {@code member} stands in the circle while he holds no position of his own, with every
+     * squadmate given a different cell. The squad's stands are settled together in member order
+     * ({@link DistinctStands}), once per tick and kind of stand: each member's own rule, the best
+     * cover near his slot, finds the same cover cell as his neighbours whenever their searches
+     * overlap, and squadmates sent to one cell jostle round its centre without any of them ever
+     * counting as arrived. A drawn line's open cells are settled the same way by the claims.
      */
-    private int[] squadStand(long member, int kind, int threatX, int threatY, FrontageLine line,
+    private int[] squadStand(long member, int kind, int threatX, int threatY,
                              Squad squad, BattleView sim) {
-        if (squad == null) {
-            return standCell(kind, 0, 1, threatX, threatY, line, (x, y) -> false, sim);
-        }
+        if (squad == null) return standCell(kind, 0, 1, threatX, threatY, (x, y) -> false, sim);
         List<Long> members = FightingPositionClaims.availableMembers(squad, sim);
         int ordinal = members.indexOf(member);
         if (ordinal < 0) {
-            return standCell(kind, 0, Math.max(1, members.size()), threatX, threatY, line,
+            return standCell(kind, 0, Math.max(1, members.size()), threatX, threatY,
                     (x, y) -> claimedByOther(x, y, member, sim), sim);
         }
         int width = sim.getGrid().getWidth();
@@ -241,46 +295,37 @@ public final class DefendArea implements Action {
             int tick = sim.getSimTickIndex();
             if (standCells == null || standTick != tick || standKind != kind
                     || standThreatX != threatX || standThreatY != threatY
-                    || standLine != line || !standMembers.equals(members)) {
+                    || !standMembers.equals(members)) {
                 int count = members.size();
                 standCells = DistinctStands.assign(count, width, (i, taken) -> {
                     long candidate = members.get(i);
                     if (claimedCell(candidate, sim) != null) return null;
-                    return standCell(kind, i, count, threatX, threatY, line,
+                    return standCell(kind, i, count, threatX, threatY,
                             (x, y) -> taken.test(x, y) || claimedByOther(x, y, candidate, sim), sim);
                 });
                 standTick = tick;
                 standKind = kind;
                 standThreatX = threatX;
                 standThreatY = threatY;
-                standLine = line;
                 standMembers = members;
             }
             cells = standCells;
         }
         int cell = cells[ordinal];
         if (cell == DistinctStands.NONE) {
-            return standCell(kind, ordinal, members.size(), threatX, threatY, line,
+            return standCell(kind, ordinal, members.size(), threatX, threatY,
                     (x, y) -> claimedByOther(x, y, member, sim), sim);
         }
         return new int[]{cell % width, cell / width};
     }
 
     /**
-     * Member {@code ordinal} of {@code count}'s stand of the given kind, avoiding every cell
-     * {@code taken} accepts while any other will do. On a drawn line it is his share settled into
-     * cover against the believed threat (or the line's front, {@code threatX < 0}); in a quiet
-     * circle his point of the sunflower; facing a threat in a circle, his slot of a line across
-     * the threat axis behind the centre, settled into the best cover near it.
+     * Member {@code ordinal} of {@code count}'s stand, avoiding every cell {@code taken} accepts
+     * while any other will do: in a quiet circle his point of the sunflower; facing a threat, his
+     * slot of a line across the threat axis behind the centre, settled into the best cover near it.
      */
     private int[] standCell(int kind, int ordinal, int count, int threatX, int threatY,
-                            FrontageLine line, BiPredicate<Integer, Integer> taken, BattleView sim) {
-        if (kind == STAND_LINE) {
-            int[] covered = LinePlacement.coveredCell(line, ordinal, count, threatX, threatY, sim, taken);
-            if (covered != null) return covered;
-            int[] share = LinePlacement.share(line, ordinal, count);
-            return nearestWalkableInside(share[0], share[1], taken, sim);
-        }
+                            BiPredicate<Integer, Integer> taken, BattleView sim) {
         if (kind == STAND_QUIET) {
             float[] offset = quietOffset(ordinal, count, radius);
             return nearestWalkableInside(Math.round(centerX + offset[0]),
@@ -304,23 +349,6 @@ public final class DefendArea implements Action {
     }
 
     /**
-     * The position this member holds under the squad's claims (a fighting-position cell, or a
-     * building post on a drawn line), or {@code null}: overflow, no positions in the ground, or
-     * fighting positions off on an order that is not a line. Claims are settled in the
-     * serial phase before dispatch; this only reads them.
-     */
-    private static int[] claimedCell(long member, BattleView sim) {
-        return sim.fightingPositionClaims().cellOf(member);
-    }
-
-
-    /** A member left without a position must not settle on one a squadmate holds. */
-    private static boolean claimedByOther(int x, int y, long member, BattleView sim) {
-        return sim.fightingPositionClaims()
-                .isClaimedByOther(x, y, sim.getGrid().getWidth(), member);
-    }
-
-    /**
      * Offset from the circle's centre for member {@code ordinal} of {@code count}
      * while no enemy is known: a sunflower spiral whose members sit about
      * {@link #QUIET_SPACING} cells apart, kept inside the ordered circle. A lone
@@ -333,6 +361,10 @@ public final class DefendArea implements Action {
         float distance = reach * (float) Math.sqrt((ordinal + 0.5f) / count);
         double angle = ordinal * GOLDEN_ANGLE;
         return new float[]{(float) (Math.cos(angle) * distance), (float) (Math.sin(angle) * distance)};
+    }
+
+    private int[] nearestWalkableInside(int wantedX, int wantedY, BattleView sim) {
+        return nearestWalkableInside(wantedX, wantedY, (x, y) -> false, sim);
     }
 
     /**
@@ -427,6 +459,18 @@ public final class DefendArea implements Action {
         int dx = x - centerX;
         int dy = y - centerY;
         return dx * dx + dy * dy <= radius * radius;
+    }
+
+    private static int memberOrdinal(long member, Squad squad, BattleView sim) {
+        if (squad == null) return 0;
+        int ordinal = 0;
+        for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
+            long candidate = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(candidate, sim)) continue;
+            if (candidate == member) return ordinal;
+            ordinal++;
+        }
+        return 0;
     }
 
     @Override

@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — a Marine's left button toggles into a direct-fire special on Q, its right button cycles smoke, a hand grenade and the shield on E; grenades are a committed manual throw.
+Updated: 2026-10-23 — the right button lists throws from both special slots, so one Marine can carry smoke and a frag.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -100,7 +100,8 @@ the machine doll's colours. Its arms and legs read only the limb wounds the
 simulation keeps (`WoundService`): green when sound, orange at the first wound, red
 once wounds stack to the floor. LEG WOUND (slowed) and ARM WOUND (aim) flags sit
 beneath. A power suit draws as a broader shell. Beside the figure a kit column
-lists what the Marine carries and what is left: special equipment with its rounds or
+lists what the Marine carries and what is left: special equipment in both slots (the
+belt's throw beside the special, in a fixed order whichever slot holds it) with its rounds or
 cooldown, the integral system's charges or cooldown, and the medic kit's supplies
 when this Marine is the squad medic. The doll invents no hit location: a head or
 torso hit only spends the shared pools. Filled lengths reflect the exact body's remaining fractions;
@@ -593,8 +594,11 @@ acts on the press and does not repeat while held, so a held button cannot spend 
 pouch of grenades; ammunition, cooldown and the committed throw are the equipment's
 own. The pick belongs to the control session, survives pause, and resets on takeover
 and handback. C and G keep working whatever the pick is, which is why the panel washes
-the picked row without dimming the others. A Marine carries one special item, so a
-list holds at most one throw beside the shield. **The flamer is not a throw**:
+the picked row without dimming the others. The list reads both special slots: a Marine
+with smoke and a frag on the belt (`progression-nouns.md`) lists smoke, the grenade and
+the shield. Using a belt throw swaps it into the hand for its channel, and a direct-fire
+special it displaced returns once the hand is idle, so neither list moves while it runs.
+**The flamer is not a throw**:
 it shares the grenades' arcing activation in data, but it sprays a short flat jet
 (its weapon is not indirect fire) and is aimed and held like a gun, so its manual
 contract belongs to the left button with the direct-fire specials. Items with no
