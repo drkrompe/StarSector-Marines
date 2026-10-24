@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.evacuation.HeartGunship;
+import com.dillon.starsectormarines.battle.evacuation.HeartGuns;
 import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
@@ -185,6 +186,8 @@ public final class BloomHeartSetup {
                 SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"));
         sim.configureSwarmFromBores(built.battleSeed());
         WalkingBarrage barrage = null;
+        // The guns' rounds and their trucks (owner, 2026-10-23): trucks come from the vehicle park where it was laid.
+        HeartGuns heartGuns = new HeartGuns();
         if (form == Form.THE_BURN) {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
@@ -193,10 +196,17 @@ public final class BloomHeartSetup {
             barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT)
                     .battery(BURN_BATTERY_STRUCTURE, guns);
             sim.addObjective(new BatteryObjective(guns));
+            int[] battery = centreOf(sim, guns);
+            if (battery != null) {
+                heartGuns.place(HeartGuns.BATTERY, HeartGuns.BATTERY_SHELLS, battery);
+                for (long gun : guns) heartGuns.add(HeartGuns.BATTERY, gun);
+                // Every barrage shell is a round off its gun's stock: a battery the trucks cannot reach thins out.
+                barrage.magazine(heartGuns.stock(HeartGuns.BATTERY)::spend);
+            }
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
         // The armour waves come up the supply road from the vehicle park the layout laid, while it stands.
-        HeartVehiclePark park = form == Form.BROAD_FRONT ? HeartVehiclePark.of(built.map().layout) : null;
+        HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
         if (lanes != null && park != null) {
             lanes.sentFrom(park);
             // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
@@ -210,10 +220,16 @@ public final class BloomHeartSetup {
             if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
+            shed.stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS);
+            heartGuns.calledFrom(shed, !lanes.callsByNeed());
+        } else if (park != null) {
+            heartGuns.calledFrom(new AlliedToolShed(park)
+                    .stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS), true);
         }
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);
+        sim.getHeart().guns(heartGuns);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
         List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));
@@ -403,6 +419,22 @@ public final class BloomHeartSetup {
     /** Broad Front's armour waves, the same pairs from the opening, eight for the same reason ({@code -Dbattle.heart.broadArmourWaves}). */
     static final int BROAD_ARMOUR_WAVES = Integer.getInteger("battle.heart.broadArmourWaves", 8);
     static final int ARMOUR_WAVE_SECONDS = 120;
+    /** Ammunition trucks the vehicle park holds ready, and the ticks it takes to load another. */
+    static final int AMMO_TRUCKS = 1, AMMO_TRUCK_RESTOCK_TICKS = Math.round(90f / BattleSimulation.TICK_DT);
+
+    /** The middle of the living guns' cells, or {@code null} with none. */
+    static int[] centreOf(BattleSimulation sim, List<Long> guns) {
+        float x = 0f, y = 0f;
+        int n = 0;
+        for (long gun : guns) {
+            if (sim.resolveUnit(gun) == 0L) continue;
+            x += sim.world().x(gun);
+            y += sim.world().y(gun);
+            n++;
+        }
+        return n == 0 ? null : new int[]{Math.round(x / n), Math.round(y / n)};
+    }
+
     /** Seconds after a gunship sortie leaves the shed before the next is ready. */
     static final int GUNSHIP_RESTOCK_SECONDS = 240;
     /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */

@@ -241,7 +241,8 @@ public final class HeartObjectives {
     static ObjectiveRuntime guns(ObjectiveContext ctx) {
         long[] dug = battery(ctx);
         float[] middle = dug == null ? null : centroid(ctx.sim(), dug);
-        if (middle != null) digFlak(ctx.sim(), "battery-flak", (int) middle[0], (int) middle[1]);
+        if (middle != null) stocked(ctx, HeartGuns.BATTERY_FLAK, HeartGuns.FLAK_ROUNDS, new int[]{(int) middle[0], (int) middle[1]},
+                digFlak(ctx.sim(), "battery-flak", (int) middle[0], (int) middle[1]));
         return new ObjectiveRuntime() {
             boolean released;
 
@@ -327,7 +328,10 @@ public final class HeartObjectives {
      */
     static ObjectiveRuntime air(ObjectiveContext ctx) {
         int[] dump = bounds(ctx.laid(), HeartLayout.AMMO_DUMP + 1, 0);
-        if (dump != null) digFlak(ctx.sim(), "dump-flak", (dump[0] + dump[2]) / 2, (dump[1] + dump[3]) / 2);
+        if (dump != null) {
+            int[] at = {(dump[0] + dump[2]) / 2, (dump[1] + dump[3]) / 2};
+            stocked(ctx, HeartGuns.DUMP, HeartGuns.FLAK_ROUNDS, at, digFlak(ctx.sim(), "dump-flak", at[0], at[1]));
+        }
         return new ObjectiveRuntime() {
             List<SwarmBore> targets;
             int packs, nextPack;
@@ -571,6 +575,16 @@ public final class HeartObjectives {
     }
 
     /** Digs the company a flak position on the open cell nearest {@code (x, y)}; 0 when there is none within reach. */
+    /**
+     * Puts a gun a beat dug on the heart's stock at {@code place}, laying the place where it is new, so it spends
+     * rounds and calls the vehicle park's trucks ({@link HeartGuns}).
+     */
+    static void stocked(ObjectiveContext ctx, String place, int rounds, int[] cell, long gun) {
+        HeartSequence heart = ctx.sim().getHeart();
+        if (heart == null || heart.guns() == null || gun == 0L) return;
+        heart.guns().place(place, rounds, cell).add(place, gun);
+    }
+
     static long digFlak(BattleSimulation sim, String name, int x, int y) {
         int[] cell = openCellNear(sim, x, y, 8);
         return cell == null ? 0L : sim.spawn(MapTurret.create(name, Faction.MARINE, FLAK, cell[0], cell[1]));

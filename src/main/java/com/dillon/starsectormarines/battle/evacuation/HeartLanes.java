@@ -85,6 +85,8 @@ public final class HeartLanes {
         int machinesHeld;
         /** How many times the lane has called armour up. */
         int calls;
+        /** Contacts the lane's formation has pushed through at the cap with none cleared between: two is stalled. */
+        int pushesRunning;
 
         Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
@@ -362,6 +364,7 @@ public final class HeartLanes {
                 .onStalled(ScreenedAdvance.Stalled.PUSH_THROUGH)
                 .onScreenBroken(ScreenedAdvance.Broken.MAIN_LEADS)
                 .contactTimes(ScreenedAdvance.CONTACT_CLEAR_SECONDS, LANE_CONTACT_HOLD_SECONDS)
+                .beats(key -> lane.pushesRunning = pushesAfter(lane.pushesRunning, key))
                 .build();
     }
 
@@ -469,6 +472,11 @@ public final class HeartLanes {
         return this;
     }
 
+    /** Whether the lanes call their tools from the shed by need, and so advance it each tick. */
+    public boolean callsByNeed() {
+        return byNeed();
+    }
+
     private boolean byNeed() {
         return ARMOUR_BY_NEED && shed != null;
     }
@@ -502,11 +510,26 @@ public final class HeartLanes {
         };
     }
 
+    /** Contacts pushed through in a row that make a lane <b>stalled</b>. */
+    static final int STALL_PUSHES = 2;
+
+    /**
+     * The lane's run of contacts pushed through at the cap after one of its formation's beats: a push adds one,
+     * a contact cleared, a rally or a new step-off ends the run.
+     */
+    static int pushesAfter(int running, String beat) {
+        String key = beat.substring(beat.lastIndexOf('.') + 1);
+        if (key.startsWith("pushed_")) return running + 1;
+        if (key.startsWith("cleared_") || key.equals("rallied") || key.equals("step_off")) return 0;
+        return running;
+    }
+
     /**
      * The lane's call for armour, by need (the Cordon commander's signal names, `cordon-allied-command.md`): a lane
-     * is <b>uncovered</b> when it has fewer machines standing than it has had, or broken when its militia are. It
-     * asks the shed for a pair, never with a pair of its own still on the road; the shed refuses while it has none
-     * in stock or its depot cannot send.
+     * is <b>uncovered</b> when it has fewer machines standing than it has had, broken when its militia are, or
+     * <b>stalled</b> when its formation has pushed through {@link #STALL_PUSHES} contacts in a row without clearing
+     * one. It asks the shed for a pair, never with a pair of its own still on the road; the shed refuses while it
+     * has none in stock or its depot cannot send.
      */
     private void callArmour(BattleSimulation sim, Lane lane, List<String> beats) {
         int standing = 0;
@@ -514,11 +537,12 @@ public final class HeartLanes {
         for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech)) standing++;
         lane.machinesHeld = Math.max(lane.machinesHeld, standing);
         boolean uncovered = standing < lane.machinesHeld;
-        if (!(uncovered || lane.broken) || shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0) return;
+        boolean stalled = lane.pushesRunning >= STALL_PUSHES;
+        if (!(uncovered || lane.broken || stalled) || shed.onRoad(AlliedTool.ARMOUR_PAIR, place(lane.number)) > 0) return;
         int tx = lane.targetX >= 0 ? lane.targetX : lane.entryX, ty = lane.targetY >= 0 ? lane.targetY : lane.entryY;
         if (shed.onRoad(AlliedTool.MECH_LANCE, place(lane.number)) > 0) return;
         int before = lane.hulls.size() + lane.mechs.size();
-        String reason = uncovered ? "uncovered" : "broken";
+        String reason = uncovered ? "uncovered" : lane.broken ? "broken" : "stalled";
         boolean granted = mechsFirst
                 && shed.request(sim, new AlliedRequest(AlliedTool.MECH_LANCE, place(lane.number), tx, ty, reason));
         if (!granted) granted = shed.request(sim, new AlliedRequest(AlliedTool.ARMOUR_PAIR, place(lane.number), tx, ty, reason));
@@ -526,7 +550,10 @@ public final class HeartLanes {
         // What the lane is to have once its call is up: the pair replaces what it lost.
         lane.machinesHeld = standing + lane.hulls.size() + lane.mechs.size() - before;
         lane.calls++;
+        // The machines answer the stall; the next run of pushes is a new one.
+        if (stalled) lane.pushesRunning = 0;
         beats.add("armour_called_" + lane.number + "_" + lane.calls);
+        if (reason.equals("stalled")) beats.add("lane_stalled_" + lane.number);
     }
 
     /** Whether a machine sent to the lane is alive and still short of its lane's aim. */

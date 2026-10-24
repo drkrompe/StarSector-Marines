@@ -56,6 +56,8 @@ public final class HeartSequence {
     private boolean lineLit;
 
     private final HeartLanes lanes;
+    /** The guns and their trucks, or {@code null} when the heart has none stocked. */
+    private HeartGuns guns;
     private final LaidLayout places;
 
     /**
@@ -76,6 +78,12 @@ public final class HeartSequence {
 
     /** The allied lanes, or {@code null} when the heart has none. */
     public HeartLanes lanes() { return lanes; }
+
+    /** Stocks the heart's guns: they spend rounds and call trucks from now on. */
+    public void guns(HeartGuns guns) { this.guns = guns; }
+
+    /** The guns and their trucks, or {@code null}. */
+    public HeartGuns guns() { return guns; }
 
     /** The walking barrage, or {@code null} when the heart has none. */
     public WalkingBarrage barrage() { return barrage; }
@@ -108,6 +116,7 @@ public final class HeartSequence {
         if (form == Form.THE_BURN) hurtSurges(sim, bores, tick);
         if (barrage != null) barrage.tick(sim);
         if (lanes != null) lanes.tick(sim, pending);
+        if (guns != null) guns.tick(sim, pending);
         ObjectiveBoard objectives = sim.getOptionalObjectives();
         if (objectives != null) objectives.advance(tick);
     }

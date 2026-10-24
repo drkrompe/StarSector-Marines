@@ -70,6 +70,18 @@ public final class GunStock {
         return n;
     }
 
+    /**
+     * Spends one of the gun's rounds for a shot fired outside its own cooldown (a barrage's shell); false when it has
+     * none left. A gun not stocked here fires freely.
+     */
+    public boolean spend(long gun) {
+        int[] r = rounds.get(gun);
+        if (r == null) return true;
+        if (r[0] <= 0) return false;
+        r[0]--;
+        return true;
+    }
+
     /** Trucks that have refilled this place. */
     public int refills() { return refills; }
 
