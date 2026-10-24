@@ -21,6 +21,13 @@ import java.util.Set;
  * to how much of the front it faces, so a line dragged on the diagonal settles behind a corner
  * of sandbags rather than behind whichever one face the front happened to snap to.
  *
+ * <p>The line gives way to the fight only where the player would agree it should: a marine whose
+ * place gives him <em>no</em> cover against the fire actually coming in — a charge from the
+ * flank, say — moves to real cover against it ({@link #MIN_REACTIVE_COVER} or better) on the
+ * line's own ground, if there is some he can shoot back from. Cover that helps at all is kept,
+ * and he returns to the front's cover once the threat is gone. So the choice the squad makes is
+ * never a sidegrade of the player's: it is from nothing to something.
+ *
  * <p>One rule for every caller. {@link FightingPositionClaims} settles it once per tick for
  * every line-holding squad, so squadmates never pick the same sandbag; {@link DefendArea}
  * walks a marine to the cell it settled; and the drag preview runs it before the order is
@@ -36,6 +43,11 @@ public final class LinePlacement {
     static final int COVER_SEARCH_RADIUS = FrontageLine.BAND;
     /** How far in front of the drawn line a marine may settle, so a line drawn just behind a wall reaches it. */
     static final float MAX_AHEAD = 1f;
+    /**
+     * The least cover against a believed threat worth leaving the front's place for: medium, "worth
+     * a sidestep to grab". Light rubble is not enough to justify breaking the line the player drew.
+     */
+    static final int MIN_REACTIVE_COVER = 2;
 
     /** Where one marine will stand, and whether it is a position (a trench or a building post) rather than open ground. */
     public record Place(long member, int x, int y, boolean position) { }
@@ -75,11 +87,18 @@ public final class LinePlacement {
      * so a marine is not marched along the line each time a squadmate's choice shifts. Slots
      * holding a position stay -1. Every cell handed out joins {@code taken}.
      *
+     * <p>With a believed threat, a slot whose cell gives no cover at all against it moves to the
+     * most covered cell against it near its share, if one gives {@link #MIN_REACTIVE_COVER} or
+     * more and has a line of fire to it, nearest his cell among equals ({@link #reactiveCell}).
+     * Such a cell is kept while the threat it answered still stands and it still covers him.
+     *
      * @param count how many shares the line is cut into
      * @param previous each slot's open cell last tick ({@code y * width + x}), or -1
+     * @param threatX the squad's believed primary threat cell, or -1 for none
      */
     static int[] openCells(FrontageLine line, int count, int[] cells, int[] previous, int width,
-                           Probe probe, Set<Integer> taken) {
+                           Probe probe, Set<Integer> taken, int threatX, int threatY) {
+        boolean threat = threatX >= 0 && threatY >= 0;
         int[] open = new int[cells.length];
         Arrays.fill(open, -1);
         for (int i = 0; i < cells.length; i++) {
@@ -87,7 +106,11 @@ public final class LinePlacement {
             if (cells[i] >= 0 || cell < 0 || taken.contains(cell)) continue;
             int x = cell % width;
             int y = cell / width;
-            if (admits(line, x, y, probe) && frontCover(probe, x, y, line) > 0f && seesFront(line, x, y, probe)) {
+            if (!admits(line, x, y, probe)) continue;
+            boolean front = frontCover(probe, x, y, line) > 0f && seesFront(line, x, y, probe);
+            boolean answered = threat && threatCover(probe, x, y, threatX, threatY) >= MIN_REACTIVE_COVER
+                    && probe.lineOfFire(x, y, threatX, threatY);
+            if (front || answered) {
                 open[i] = cell;
                 taken.add(cell);
             }
@@ -100,7 +123,59 @@ public final class LinePlacement {
             open[i] = cell;
             if (cell >= 0) taken.add(cell);
         }
+        if (!threat) return open;
+        for (int i = 0; i < cells.length; i++) {
+            int cell = open[i];
+            if (cell < 0 || threatCover(probe, cell % width, cell / width, threatX, threatY) > 0) continue;
+            int[] share = share(line, i, Math.max(count, i + 1));
+            int better = reactiveCell(line, share, cell, width, probe, taken, threatX, threatY);
+            if (better < 0) continue;
+            taken.remove(cell);
+            taken.add(better);
+            open[i] = better;
+        }
         return open;
+    }
+
+    /** Cover the cell gives against fire from the believed threat, by the one facing a shot from it reads. */
+    static int threatCover(Probe probe, int x, int y, int threatX, int threatY) {
+        if (x == threatX && y == threatY) return 0;
+        return probe.cover(x, y, threatX - x, threatY - y);
+    }
+
+    /**
+     * The most covered cell against the threat near {@code share}, on the line's ground, free, with
+     * a line of fire to the threat and at least {@link #MIN_REACTIVE_COVER}; nearest {@code from}
+     * among equals, so the sidestep is short. -1 when there is none.
+     */
+    private static int reactiveCell(FrontageLine line, int[] share, int from, int width, Probe probe,
+                                    Set<Integer> taken, int threatX, int threatY) {
+        int r = COVER_SEARCH_RADIUS;
+        int fromX = from % width;
+        int fromY = from / width;
+        int best = -1;
+        int bestCover = MIN_REACTIVE_COVER - 1;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy > r * r) continue;
+                int x = share[0] + dx;
+                int y = share[1] + dy;
+                if (x < 0 || y < 0 || x >= width || !admits(line, x, y, probe)) continue;
+                int cell = y * width + x;
+                if (taken.contains(cell)) continue;
+                int cover = threatCover(probe, x, y, threatX, threatY);
+                if (cover < MIN_REACTIVE_COVER) continue;
+                int distance = (x - fromX) * (x - fromX) + (y - fromY) * (y - fromY);
+                if (cover < bestCover || (cover == bestCover && (distance > bestDistance
+                        || (distance == bestDistance && cell > best)))) continue;
+                if (!probe.lineOfFire(x, y, threatX, threatY)) continue;
+                best = cell;
+                bestCover = cover;
+                bestDistance = distance;
+            }
+        }
+        return best;
     }
 
     /** The most covered admissible cell near {@code share} that sees the front, or -1. */
