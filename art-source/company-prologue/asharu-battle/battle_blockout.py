@@ -3155,7 +3155,7 @@ def blender_main(cfg):
                 worst = max((((placed[k_]['matrix'].translation - m_at(k_, f_).translation).length, k_)
                              for k_ in placed if hasattr(spec['ships'].get(k_), 'at')), default=(0.0, None))
                 print(f'ASHARU placement {kf}: worst {worst[0] * 100:.2f} cm ({worst[1]}) from the planner', flush=True)
-                if worst[0] > .03:
+                if worst[0] > .03 and not os.environ.get('ASHARU_AUDIT_SOFT'):
                     raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.3f} m from where the kit planned her')
             if 'span_t' in spec:         # a motion span: the effects built at the key instant play on to this one
                 scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))

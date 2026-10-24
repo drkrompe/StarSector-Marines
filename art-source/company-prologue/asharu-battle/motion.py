@@ -244,6 +244,20 @@ class Pose(tuple):
         return o
 
 
+def _orthonormal(m):
+    """Rows of a near-rotation 3x3 (a blend of two close ones) made a rotation again, columns
+    Gram-Schmidt in order: forward, then left, then up as their cross product."""
+    c = [[m[r][k] for r in range(3)] for k in range(3)]
+    def norm(v):
+        n = math.sqrt(sum(x * x for x in v)) or 1.0
+        return [x / n for x in v]
+    f = norm(c[0])
+    d = sum(c[1][i] * f[i] for i in range(3))
+    l = norm([c[1][i] - d * f[i] for i in range(3)])
+    u = [f[1] * l[2] - f[2] * l[1], f[2] * l[0] - f[0] * l[2], f[0] * l[1] - f[1] * l[0]]
+    return [[f[r], l[r], u[r]] for r in range(3)]
+
+
 def _rot(hd, pt, rl):
     """Rows of Rz(hd) Ry(-pt) Rx(rl), battle_blockout.frame_of's rotation."""
     h, p, r = math.radians(hd), math.radians(-pt), math.radians(rl)
@@ -453,8 +467,25 @@ class Flight:
             self.samples[j] = (p, m)
         return p, m
 
+    def _between(self, t):
+        """Position and attitude at t, between the integrated steps either side of it (2026-10-23:
+        taking the nearest step put a fast ship a whole step, 3.5 m at 210 m/s, off her own planned
+        pose whenever a frame's time fell a hair either side of a half step, which at 24 fps is every
+        other frame, and moved her in uneven two- and three-step strides)."""
+        x = (t - self.t_key) / self.DT
+        i0 = math.floor(x)
+        f = x - i0
+        p0, m0 = self._state(i0)
+        if f < 1e-9:
+            return p0, m0
+        p1, m1 = self._state(i0 + 1)
+        p = tuple(p0[k] + (p1[k] - p0[k]) * f for k in range(3))
+        if m0 is None or m1 is None:
+            return p, m0 if m1 is None else m1
+        return p, _orthonormal([[m0[r][c] + (m1[r][c] - m0[r][c]) * f for c in range(3)] for r in range(3)])
+
     def __call__(self, t):
-        p, m = self._state(round((t - self.t_key) / self.DT))
+        p, m = self._between(t)
         p, m = _apply(p, m, self.hits, self.jumps, t, self.t_key)
         m = _body_step(m, self._bank(t) - self._bank(self.t_key), 0.0, 0.0)
         w = [0.0, 0.0, 0.0]
@@ -533,7 +564,7 @@ class Keyed(Flight):
         return p, None
 
     def __call__(self, t):
-        p, _ = self._state(round((t - self.t_key) / self.DT))
+        p, _ = self._between(t)
         hd, pt, rl, v, thr = self.attitude(t)
         if self.thrust:      # the drives burn with the acceleration: speeding up, and hauling round a turn
             thr = max(IDLE, min(1.0, IDLE + (abs(self._accel(t)) + .5 * abs(v) * self._turn(t)) / self.thrust))

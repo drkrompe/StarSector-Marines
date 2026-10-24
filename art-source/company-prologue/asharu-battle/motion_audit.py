@@ -35,7 +35,7 @@ KINDS = [
     ('missiles', re.compile(r'SWFX missile .*\b(body|motor|missile)\b')),
     ('flares', re.compile(r'\bflare\b(?! light)')),
     ('debris', re.compile(r'\b(debris|shard|shards|shrapnel)\b')),
-    ('blasts', re.compile(r'\b(flash(?! light)|fireball|shock ring|shock|sparks?|embers|hit|burst)\b')),
+    ('blasts', re.compile(r'\b(flash(?! light)|fireball|shock ring|shock|sparks?|embers|hit|burst)\b(?!.*\blight\b)')),
     ('damage', re.compile(r'\b(flame|smoke|vent|scorch|char|pock|fire|breach|stream)\b')),
 ]
 BURNOUT_SLACK = 2          # frames short of the full flight that still count as burnt out
@@ -224,7 +224,10 @@ def audit(sfx, cam_view=None):
                 p = copy_at(key, shown[0]) @ (Vector([fc.evaluate(shown[0]) for fc in fcs]) if keyed
                                               else o.matrix_basis.translation)
                 if kind == 'blasts' and ships_near(p, shown[0], 1.2) is None:
-                    fail(kind, o, shown[0], 'born away from any hull')
+                    k_, d_ = min(((k, (sfx.matrix_at(k, shown[0]).translation - p).length)
+                                  for k in sfx.placed), key=lambda x: x[1])
+                    fail(kind, o, shown[0], f'born away from any hull: nearest {k_} at {d_:.0f} m '
+                                            f'(her length {sfx.placed[k_]["length"]:.0f} m)')
             if len(shown) > 1 and not animated(core, o):
                 fail(kind, o, shown[1], 'a held picture: nothing about it changes while it shows')
             if kind == 'debris' and keyed and len(shown) > 1:
