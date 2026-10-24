@@ -306,7 +306,9 @@
   .catalog-all-parts { width: 96px; height: 20px; padding: 2px 6px; font-family: heading; text-align: center; }
   .catalog-filter-pill.selected { background-color: #343a30; border-color: #d3d0c5; color: #d3d0c5; }
   .catalog-filter-pill:hover { background-color: #34382e; border-color: #dfc588; }
-  .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
+  /* The parts list is a well sunk into the gunmetal column, as dark as the doll panel, and
+     its cards sit just proud of it, so the stores read as depth rather than one flat plate. */
+  .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; padding: 4px; overflow: scroll; background-color: #0d1214; border-width: 1px; border-color: #050809; }
   .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 128px; padding: 5px; gap: 3px; border-width: 1px; }
   .catalog-card-body { flex-direction: row; align-items: center; width: 100%; height: 90px; gap: 6px; }
   .catalog-item-copy { flex-direction: column; width: 0px; height: 90px; flex-grow: 1; gap: 2px; }
@@ -332,6 +334,11 @@
   .material-chip-value { width: 0px; flex-grow: 1; height: 16px; text-align: right; color: #dfc588; }
   .material-chip.short .material-chip-value { color: #eea296; }
   .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 140px; }
+  .catalog-row { background-color: #172023; border-color: #2a3437; }
+  .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
+  /* No spare in stores (a pattern to build): the card and its picture fade into the well, the words do not. */
+  .catalog-row.requires-fabrication { background-color: #17202366; border-color: #2a343770; }
+  .catalog-row.requires-fabrication .catalog-preview { opacity: 0.45; }
   .material-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 20px; padding: 1px 4px; gap: 5px; background-color: #121719; border-width: 1px; }
   .material-stock-strip { flex-direction: row; align-items: center; width: 380px; height: 24px; gap: 6px; }
   .material-stock { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 5px; padding: 1px 4px; }
