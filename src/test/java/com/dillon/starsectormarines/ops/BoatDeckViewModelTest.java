@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
+import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -57,6 +59,26 @@ class BoatDeckViewModelTest {
         assertEquals(3, model.catalogRows().get().size());
     }
 
+@Test
+    void aHardpointOpensTheDoorGunCatalogAndAFitArmsTheDoll() {
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+        model.selectBoatAction(0).run();
+        model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 0);
+
+        assertEquals("HARDPOINT 1", model.selectedSlotTitle().get());
+        List<BoatDeckViewModel.CatalogRow> guns = model.catalogRows().get();
+        assertEquals(BoatGun.catalog().size(), guns.size());
+        assertTrue(guns.get(0).actionDisabled(), "the yard's own gun is already on");
+        guns.stream().filter(row -> row.name().equals(BoatGun.ARBALEST.displayName()))
+                .findFirst().orElseThrow().action().run();
+
+        BoatDoll.Slot hardpoint = model.doll().get().slots().stream()
+                .filter(slot -> slot.kind() == BoatDoll.Kind.HARDPOINT).findFirst().orElseThrow();
+        assertEquals(BoatGun.ARBALEST.displayName(), hardpoint.fitted());
+        assertTrue(hardpoint.selected());
+    }
+
     private static final float EPSILON = 0.01f;
     private static final int BERTHS = 6;
     private static final List<String> COMPONENTS = List.of(
@@ -99,7 +121,9 @@ class BoatDeckViewModelTest {
         assertFalse(viewModel.fittingClasses().get().contains("hidden"));
 
         List<BoatDeckViewModel.SlotRow> rack = viewModel.slotRows().get();
-        assertEquals(2, rack.size());
+        assertEquals(3, rack.size(), "plating, drive and the Aeroshuttle's one hardpoint");
+        assertEquals("HARDPOINT 1", rack.get(2).name());
+        assertEquals(BoatGun.HEAVY_MG.displayName(), rack.get(2).fitting());
         assertEquals("PLATING", rack.get(0).name());
         assertEquals(BoatFitting.STANDARD_PLATING.displayName(), rack.get(0).fitting());
         assertEquals("DRIVE", rack.get(1).name());
@@ -415,6 +439,9 @@ class BoatDeckViewModelTest {
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("stageTitle", viewModel.stageTitle());
+        props.put("stageStatus", viewModel.stageStatus());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
         props.put("fabricationClasses", viewModel.fabricationClasses());

@@ -5,10 +5,9 @@ package com.dillon.starsectormarines.marine;
  *
  * <p>Three of them, and they divide the boat the way a yard's work order does:
  * what is between the crew and the ground fire, what gets them off the deck,
- * and whether the hold takes people or a machine. A hardpoint slot would be a
- * fourth, and is deliberately absent — a
- * boat's door gun is decided by what the sortie is for
- * ({@code AirArmament.kitFor}), not by what the company bolted on last month.
+ * and whether the hold takes people or a machine. A boat's door guns are not a
+ * slot here: a boat has as many hardpoints as its pattern, each takes one
+ * {@link BoatGun}, and they are fitted by hardpoint index.
  */
 public enum BoatFittingSlot {
 

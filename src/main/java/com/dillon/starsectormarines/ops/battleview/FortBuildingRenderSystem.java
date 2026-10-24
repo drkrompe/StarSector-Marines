@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortBuildingArt;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.fort.FortGatehouseArt;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -277,10 +278,13 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         if (plan.gatehouse().isEmpty()) return;
         StructureDef platform = TurretCatalogRegistry.installed().getStructure(plan.centrepieceStructureId());
         if (platform == null || platform.gatehouseArt == null) return;
-        FortGatehouseArt art = platform.gatehouseArt;
         BattleCamera cam = ctx.camera;
         NavigationGrid grid = ctx.sim.getGrid();
         CellTopology topology = ctx.sim.getTopology();
+        // The gate is the lot's works: drawn in the style its fort was built in (`fort-works.md`).
+        float[] centre = frame.point(frame.plan().width() * 0.5f, frame.plan().height() * 0.5f);
+        FortGatehouseArt art = platform.gatehouseArt.inStyle(
+                FortWorks.styleAt(topology, (int) Math.floor(centre[0]), (int) Math.floor(centre[1])));
         float cellPx = cam.cellPxSize();
         for (FortPlan.Piece piece : plan.gatehouse()) {
             int[] b = frame.bounds(piece.x(), piece.y(), piece.width(), piece.height());

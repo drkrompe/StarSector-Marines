@@ -257,7 +257,7 @@ public final class PlacementGuards {
     /**
      * The same question for a stamp whose footprint is not a filled rectangle.
      *
-     * <p>A defence post's embankment is a ring, a cross or a notched trapezoid:
+     * <p>A defence post's embankment is a ring, a cross or a gapped spearhead:
      * cells inside its bounding box that the stamp leaves walkable. Those open
      * cells are exactly where the interesting failure lives — a ring arm can box
      * in its own corner against a pre-existing wall — so they are treated as

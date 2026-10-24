@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6d-17fd-7c82-82ab-d825c5a423de",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6d-17fd-7c82-82ab-d825c5a423de\\exec-feb345c3-a9d1-449e-befc-310e56b77f11.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\barrier-destroyed.raw.png",
+    "sha256": "17c4e1793508d8d56b6a1843372121d491dd12706e42c636e5f393574553e378",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\barrier-destroyed.prompt.txt",
+  "promptSha256": "6b16a8d8e597433fbbec8ac545c3c0df908e4c104740034b7e3e598d74db01df",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile crossing a cell boundary. Material and style: Persean League field works assembled on site: collapsible wire-mesh barrier bins lined with grey geotextile and filled with earth, in square cells, ratchet straps, a sun-faded blue tarp lashed over part of the parapet, stacked grey storage cases, slate blue-grey standard fittings; the wall caps the earth tops of two-high stacked mesh barrier bins; the barricade a run of single mesh barrier bins. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\barrier.raw.png",
+      "sha256": "8598b0e01c99f75f36386abe15be525f722b9ce29b9c3b97280bf52ce3a9e2cc",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one edited sheet, preserving the layout and keeping all damage within the existing footprints.\n"
+  ],
+  "usage": {
+    "input_tokens": 41244,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 561,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.0
+}

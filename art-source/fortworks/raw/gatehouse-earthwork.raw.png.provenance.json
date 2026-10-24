@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6f-4a56-72b0-a457-65dffe59c8f5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6f-4a56-72b0-a457-65dffe59c8f5\\exec-edc6f548-371d-4359-b1c6-25084a853a32.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\gatehouse-earthwork.raw.png",
+    "sha256": "316dbc6e646e704667c40f5ce5dc222af47973860098d6d0af0c407d435dce4a",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\gatehouse-earthwork.prompt.txt",
+  "promptSha256": "ffaeff4fa96a3b63a3c4720c917ae6d329eb78989fe41ff2351fbf3c4151e033",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep every panel where and how big it is\nImage 2: Wall material reference only; not layout\nImage 3: Material and style reference only; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a 1536x1024 canvas: reskin it into finished painted game sprites, preserving every shape, position, size, registration and all transparent empty space exactly; do not move, rescale, rotate, merge, add or remove pieces. Image 2 is the same set's wall and barricade sheet and image 3 its gun emplacement plinth: MATERIAL AND STYLE REFERENCES ONLY, never layout. The gate must be built of the same stuff as those walls. The sheet is parts of a fortress GATEHOUSE seen from directly above, three panels in the first three quadrants of a 2x2 grid of 768x512 quadrants (the fourth stays empty), each a 2-wide by 3-tall portrait panel exactly where the guide places it. Top-left: a gate-tower roof, a hardened cap with chamfered corners and a raised inner cap, narrow dark embrasure slits along the left flank and on both the top and bottom ends, and a small round roof hatch. Top-right: a heavy GATE: the passage between them stays open and transparent, and two thick gate leaves stand folded back against the jambs along the top and bottom edges, with big hinge pins and a thin worn threshold sill line across the middle. Bottom-left: the same tower roof DAMAGED: cracked, scorched, one embrasure blown wide. Same materials and registration across panels. Material and style: low-tech field works dug and filled by a garrison: tan sandbags in tidy courses, gabion baskets of wire mesh filled with stones, rammed earth and timber revetting; the parapet a sandbagged earth berm faced with planks, the hard-standing packed earth and gravel, the wall caps the tops of earth-filled gabion walls with sandbags along the exposed edges; the barricade a run of sandbags. No concrete, no paint. Straight 90-degree overhead orthographic camera: no perspective, no visible vertical faces, no cast or drop shadow, no ground outside the guide shapes, no labels, text, watermark, grid lines or UI marks. Genuine transparent background everywhere the guide is empty. Coarse readable detail that survives being shrunk to about 40 pixels per cell; hand-painted Starsector-like finish, light from the upper left.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\templates\\fort-buildings-gatehouse-guide.png",
+      "sha256": "49d557cca0298b6c48748c226bb9466b5075e29fdc530fef185f1cc589ed6e6e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep every panel where and how big it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\earthwork.raw.png",
+      "sha256": "b5b9de84b2eb63abe4c04fc359125a23bf540beb931ab32b02b7668b7d0dbc21",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Wall material reference only; not layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\mod\\graphics\\structures\\ground-turrets\\earthwork\\plinth.png",
+      "sha256": "ccc18e2ec3d2101fa4842d95494b1b8b40bc7b183116fb6969a4c25e0220a82d",
+      "dimensions": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one sprite sheet, preserving Image 1’s layout and using Images 2–3 only for materials and style.\n"
+  ],
+  "usage": {
+    "input_tokens": 69413,
+    "cached_input_tokens": 43136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1189,
+    "reasoning_output_tokens": 59
+  },
+  "elapsedSeconds": 86.4
+}

@@ -36,6 +36,13 @@ class SwarmAudioTest {
                 SwarmAudio.sound(SwarmCues.Kind.PACK_BROKEN, UnitType.SWARM_RUNNER), "the scatter shriek is the cry");
     }
 
+    @Test void everyThrownBodyLandsWithTheSameThud() {
+        for (UnitType type : new UnitType[]{UnitType.MARINE, UnitType.SWARM_RUNNER, UnitType.SWARM_BRUTE}) {
+            assertEquals(SwarmAudio.Sound.BODY_THUD, SwarmAudio.sound(SwarmCues.Kind.THROWN, type), type.name());
+        }
+        assertEquals(1f, SwarmAudio.pitch(UnitType.MARINE, null), "a marine's thud is not pitched as a rav");
+    }
+
     @Test void aStandingBodyMakesNoFootfall() {
         assertFalse(SwarmAudio.stepped(UnitType.SWARM_BRUTE, 0.3f, 0.3f));
         assertFalse(SwarmAudio.stepped(UnitType.SWARM_RUNNER, 0.7f, 0.7f));

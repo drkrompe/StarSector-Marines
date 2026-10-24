@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
@@ -193,6 +194,54 @@ class BoatWorkshopTest {
 
         assertEquals(BoatWorkshop.Status.NO_SUCH_BERTH, result.status());
         assertEquals(200, hold.available(Commodities.METALS));
+    }
+
+    /** A hardpoint nobody refitted flies the sortie kit's gun, which is what every old save carries. */
+    @Test
+    void anUnrefittedHardpointCarriesTheSortieKitsGun() {
+        CampaignBoat boat = deck().airworthy().get(0);
+        assertSame(BoatGun.HEAVY_MG, boat.gunOn(0));
+        assertNull(boat.gunOn(1), "an Aeroshuttle has one hardpoint");
+        assertEquals(List.of(BoatGun.HEAVY_MG.structureId()), boat.freezeForDeployment().guns());
+    }
+
+    @Test
+    void fittingADoorGunSpendsItsBillAndArmsTheFrozenBoat() {
+        BoatDeck deck = deck();
+        TestResources hold = TestResources.stocked(100);
+        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+        String boatId = deck.airworthy().get(0).id();
+
+        BoatWorkshop.Result result = workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id());
+
+        assertEquals(BoatWorkshop.Status.FITTED, result.status());
+        assertEquals(90, hold.available(Commodities.SUPPLIES));
+        assertEquals(95, hold.available(Commodities.HEAVY_MACHINERY));
+        assertEquals(80, hold.available(Commodities.METALS));
+        assertEquals(List.of(BoatGun.ARBALEST.structureId()),
+                List.of(deck.boatById(boatId).freezeForDeployment().kitFor(TurretRole.A2G)));
+        assertEquals(0, deck.boatById(boatId).freezeForDeployment().kitFor(TurretRole.AA).length,
+                "a refit changes what an air-to-ground sortie mounts, not what other roles do");
+    }
+
+    @Test
+    void puttingTheYardGunBackIsFreeAndAShortHoldChangesNothing() {
+        BoatDeck deck = deck();
+        TestResources hold = TestResources.stocked(100);
+        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+        String boatId = deck.airworthy().get(0).id();
+        workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id());
+        Map<String, Integer> afterRefit = Map.copyOf(hold.stock);
+
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boatId, 0, BoatGun.HEAVY_MG.id()).status());
+        assertEquals(afterRefit, hold.stock);
+
+        TestResources empty = TestResources.stocked(0);
+        assertEquals(BoatWorkshop.Status.CANNOT_AFFORD,
+                new BoatWorkshop(deck, empty).fitGun(boatId, 0, BoatGun.HEPHAESTUS.id()).status());
+        assertSame(BoatGun.HEAVY_MG, deck.boatById(boatId).gunOn(0));
+        assertEquals(BoatWorkshop.Status.UNKNOWN_HARDPOINT,
+                workshop.fitGun(boatId, 3, BoatGun.HEAVY_MG.id()).status());
     }
 
     private static BoatDeck deck() {

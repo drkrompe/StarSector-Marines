@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6d-1576-7050-9568-ea669d7ade08",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6d-1576-7050-9568-ea669d7ade08\\exec-125ac51e-35a6-4322-bc74-52e9bb20dda5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\brutalist-destroyed.raw.png",
+    "sha256": "066a8a91704beddc7cf6b3ad713de47d198a649a77753208ece4af5a5642a067",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\brutalist-destroyed.prompt.txt",
+  "promptSha256": "fc4e7373f1d45717c72db6c1bb8773ac345c721983126d8b220aa3222184e10e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile crossing a cell boundary. Material and style: low-tech prepared works in Brutalist utilitarian concrete: board-formed poured concrete, pale warm grey, with form-tie holes, cast seams, weathering streaks and chipped arrises, the parapet and the wall caps massive and plain; the barricade a run of precast concrete barrier blocks with lifting slots. No paint, no hazard stripes, no steel plate. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\brutalist.raw.png",
+      "sha256": "e1dbaaea53aefa9911f60f7282fac23321f0404f5ed0fd27183d025fc4fff51b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one edited image, preserving the sheet’s layout and confining the damage to each piece’s footprint.\n"
+  ],
+  "usage": {
+    "input_tokens": 60211,
+    "cached_input_tokens": 45568,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 575,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.1
+}

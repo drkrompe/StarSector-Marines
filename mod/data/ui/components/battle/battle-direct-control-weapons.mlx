@@ -83,4 +83,8 @@
   .round-salvo { width: 12px; height: 22px; }
   .round-belt { width: 9px; height: 20px; }
   .round-cell { width: 8px; height: 18px; }
+  .round-fuel { width: 8px; height: 18px; }
+  .round-grenade { width: 12px; height: 20px; }
+  .round-smoke { width: 10px; height: 20px; }
+  .round-shield { width: 16px; height: 20px; }
 </style>
