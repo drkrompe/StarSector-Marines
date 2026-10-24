@@ -520,17 +520,19 @@ def internals(f):
 
 # --- boat hardware --------------------------------------------------------------------------
 
-def armour_plate(layers):
-    """A boat's plating as a 3x1 piece: riveted plates, one per layer, stepped so each skin
-    laid over the last shows its edge; heavier plating is more of them, thicker."""
+def armour_plate(layers, w, h):
+    """A boat's plating as a w x h piece, two bricks wide like every piece: riveted plates, one
+    per layer, stepped so each skin laid over the last shows its edge; heavier plating is more
+    of them, thicker, and the heavier kinds fill a 2x2."""
     s = ''
-    depth = 72 / layers
+    depth = (h - 28) / layers
     for k in range(layers):
         y0 = 14 + k * depth
         x0 = 10 + k * 6
-        s += block(x0, y0, 215 - k * 6, y0 + depth - 4, 5)
-        s += rect(x0 + 6, y0 + 3, 200 - k * 12 - 12, 2.5, LS)
-        for x in range(int(x0 + 14), int(215 - k * 6 - 8), 26):
+        x1 = w - 10 - k * 6
+        s += block(x0, y0, x1, y0 + depth - 4, 5)
+        s += rect(x0 + 6, y0 + 3, x1 - x0 - 12, 2.5, LS)
+        for x in range(int(x0 + 14), int(x1 - 8), 26):
             s += ell(x, y0 + depth * .55 - 2, 2.6, 2.6, L)
     return s
 
@@ -576,9 +578,9 @@ def boats(f):
     b = autogun(75, 10, 178, 48)
     b += block(178, 75 - 24, 192, 75 + 24, 4) + rect(182, 75 - 18, 3, 36, L)
     f['boat-door-hephaestus'] = banded(150, 200, upright2(b), 'HEP')
-    f['boat-plating-standard'] = banded(225, 100, armour_plate(1), 'PLT')
-    f['boat-plating-reinforced'] = banded(225, 100, armour_plate(2), 'PLT')
-    f['boat-plating-armoured'] = banded(225, 100, armour_plate(3), 'PLT')
+    f['boat-plating-standard'] = banded(150, 100, armour_plate(1, 150, 100), 'PLT')
+    f['boat-plating-reinforced'] = banded(150, 200, armour_plate(2, 150, 200), 'PLT')
+    f['boat-plating-armoured'] = banded(150, 200, armour_plate(3, 150, 200), 'PLT')
     f['boat-hold-standard'] = banded(150, 200, hold('seats'), 'HLD')
     f['boat-hold-cradle'] = banded(150, 200, hold('cradle'), 'LFT')
     f['boat-hold-heavy-cradle'] = banded(150, 200, hold('heavy'), 'LFT')
