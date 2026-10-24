@@ -156,7 +156,7 @@ public final class MechFittingDollCatalog {
                         0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY")
         )));
 
-        // Warden (5 sockets, a 3x2 compartment)
+        // Warden (5 sockets, a compartment two wide and three deep)
         dolls.put(MechVariant.WARDEN, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, false, "ENGINE CORE"),
@@ -166,11 +166,11 @@ public final class MechFittingDollCatalog {
                         -0.36f, -0.15f, -1.34f, -0.46f, 1.36f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.36f, -0.15f, 1.34f, -0.46f, 1.36f, 0.68f, false, "R. SHOULDER"),
-                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 2,
+                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 3,
                         0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY")
         )));
 
-        // Bulwark (6 sockets: a gun on each arm, a 3x3 compartment)
+        // Bulwark (7 sockets: a gun on each arm, a compartment of two 2x2 flank bays)
         dolls.put(MechVariant.BULWARK, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.03f, 0.0f, -1.50f, 1.70f, 0.68f, false, "ENGINE CORE"),
@@ -182,8 +182,10 @@ public final class MechFittingDollCatalog {
                         -0.36f, -0.12f, -1.38f, -0.48f, 1.40f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.36f, -0.12f, 1.38f, -0.48f, 1.40f, 0.68f, false, "R. SHOULDER"),
-                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 3,
-                        0.0f, -0.26f, 0.0f, 0.72f, 1.40f, 0.72f, false, "AUXILIARY")
+                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
+                        -0.30f, -0.26f, -0.42f, 0.72f, 0.85f, 0.68f, false, "L. AUXILIARY"),
+                new SocketDef(SocketId.AUXILIARY_2, SocketType.AUXILIARY, 2, 2,
+                        0.30f, -0.26f, 0.42f, 0.72f, 0.85f, 0.68f, false, "R. AUXILIARY")
         )));
 
         return new MechFittingDollCatalog(dolls);

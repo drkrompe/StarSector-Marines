@@ -982,7 +982,9 @@ class MechLabViewModelTest {
         MechLabViewModel.SlotRow compartment = viewModel.slotRows().get().stream()
                 .filter(row -> row.socketId() == SocketId.AUXILIARY).findFirst().orElseThrow();
         assertFalse(compartment.canStrip(), "parts come out one at a time, from their own X");
-        assertTrue(compartment.component().contains(MechInternal.AUXILIARY_VENT_ARRAY.displayName()));
+        assertTrue(viewModel.slotRows().get().stream().anyMatch(row -> row.socketId().compartment()
+                        && row.component().contains(MechInternal.AUXILIARY_VENT_ARRAY.displayName())),
+                "a bay's row names the parts packed into it");
         assertTrue(viewModel.removeCompartmentPart(MechInternal.AUXILIARY_VENT_ARRAY));
         assertNull(mech.internal(MechInternal.Role.VENT_ARRAY));
         assertTrue(bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id) > 0);

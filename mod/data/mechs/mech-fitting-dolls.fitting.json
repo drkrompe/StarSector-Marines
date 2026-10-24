@@ -103,8 +103,8 @@
           "id": "AUXILIARY",
           "label": "@gearSocketAuxiliary",
           "type": "AUXILIARY",
-          "gridColumns": 3,
-          "gridRows": 2,
+          "gridColumns": 2,
+          "gridRows": 3,
           "anchor": [0.0, -0.26],
           "dockDirection": [0.0, 0.68],
           "footprintHull": [1.36, 0.68],
@@ -173,13 +173,24 @@
         },
         {
           "id": "AUXILIARY",
-          "label": "@gearSocketAuxiliary",
+          "label": "@gearSocketAuxiliaryLeft",
           "type": "AUXILIARY",
-          "gridColumns": 3,
-          "gridRows": 3,
-          "anchor": [0.0, -0.26],
-          "dockDirection": [0.0, 0.72],
-          "footprintHull": [1.40, 0.68],
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [-0.30, -0.26],
+          "dockDirection": [-0.42, 0.72],
+          "footprintHull": [0.85, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "AUXILIARY_2",
+          "label": "@gearSocketAuxiliaryRight",
+          "type": "AUXILIARY",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.30, -0.26],
+          "dockDirection": [0.42, 0.72],
+          "footprintHull": [0.85, 0.68],
           "factoryLocked": false
         }
       ]
