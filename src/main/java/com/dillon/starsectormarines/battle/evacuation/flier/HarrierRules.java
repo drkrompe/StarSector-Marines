@@ -60,8 +60,12 @@ public final class HarrierRules {
     /** Descent and climb rates, altitude per second. */
     public static final float DESCENT_RATE = 1.6f;
     public static final float CLIMB_RATE = 0.7f;
-    /** A dive that has not landed its strikes by now is broken off. */
+    /** A dive that has not landed its strikes by now (after its stagger) is broken off. */
     public static final float MAX_DIVE_SECONDS = 7f;
+    /** Members of a committed pack go in over this long, each after its own seeded delay. */
+    public static final float DIVE_STAGGER_SECONDS = 1.2f;
+    /** A diving pack spreads its members over the prey within this of the body it chose. */
+    public static final float SPREAD_RADIUS = 8f;
     /** How long a pack flies out and climbs after a dive before it loiters again. */
     public static final float PULL_UP_SECONDS = 2.2f;
 
@@ -79,8 +83,11 @@ public final class HarrierRules {
     /** Packs released at once are cut to this size at most; a pack is 6-20 by design. */
     public static final int MAX_PACK = 20;
 
-    /** How long a killed flier takes to fall, in seconds; presentation only. */
-    public static final float FALL_SECONDS = 0.8f;
+    /**
+     * How long a flier killed at loiter height takes to reach the ground, in seconds; one hit lower falls for
+     * less ({@link HarrierFall}). Its body lies where it lands.
+     */
+    public static final float FALL_SECONDS = 1.4f;
 
     /** Drawn altitude of a loitering flier above its ground point, in cells, for shots and shadows. */
     public static final float LOITER_HEIGHT_CELLS = 3f;

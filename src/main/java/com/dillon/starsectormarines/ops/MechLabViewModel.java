@@ -1338,8 +1338,6 @@ public final class MechLabViewModel {
                     || socket.type() != MechFittingLayout.SocketType.OMNI
                     && !socket.type().name().equals(component.hardpointType.name()))) continue;
 
-            int owned = bay.ownedWeapon(component.id);
-            int fielded = bay.installedWeapon(component.id);
             int free = bay.availableWeapon(component.id);
 
             // Category filter
@@ -1394,7 +1392,7 @@ public final class MechLabViewModel {
                     "catalog-preview", null, component, null, null, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", component.displayName(),
                     badge, badgeClasses,
-                    Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
+                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
                     telemetry, deltaText, deltaClasses,
                     Strings.format("openingMechLabGrid", component.hardpointType, component.footprintColumns, component.footprintRows),
                     showMaterials ? Strings.get("openingMechLabFab") : "",
@@ -1462,8 +1460,6 @@ public final class MechLabViewModel {
         List<CatalogRow> rows = new ArrayList<>();
         for (MissileReplenisherComponent component : MissileReplenisherComponent.catalog()) {
             boolean installed = mech != null && component.id().equals(mech.missileReplenisherId());
-            int owned = bay.ownedReplenisher(component.id());
-            int fielded = bay.installedReplenisher(component.id());
             int free = bay.availableReplenisher(component.id());
             // Loaders cannot be fabricated, so a row is a spare in stores or nothing.
             if (free <= 0) continue;
@@ -1481,7 +1477,7 @@ public final class MechLabViewModel {
                     "catalog-preview", null, null, component, null, null,
                     "catalog-row", component.displayName(),
                     stockBadge(free), inCargo ? "catalog-badge in-cargo" : "catalog-badge unavailable",
-                    Strings.format("openingMechLabOwnFieldFree", owned, fielded, free),
+                    spareCount(free),
                     Strings.format("openingMechLabSrmSLrmS", number(component.srmReplenishmentSeconds()), number(component.lrmReplenishmentSeconds())),
                     "", "catalog-delta hidden",
                     Strings.get("openingMechLabRestoresOneMissileTriggerPack"),
@@ -1510,7 +1506,6 @@ public final class MechLabViewModel {
             if (internal.role != role) continue;
             if (!bay.canFabricate(internal) && bay.availableInternal(internal.id) == 0) continue;
 
-            int owned = bay.ownedInternal(internal.id);
             int free = bay.availableInternal(internal.id);
             boolean installed = current == internal;
             boolean fits = bay.canInstallInternal(mech.id(), internal);
@@ -1564,7 +1559,7 @@ public final class MechLabViewModel {
                     null, null, null, internal, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", internal.displayName(),
                     badge, badgeClasses,
-                    Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
+                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
                     internalTelemetry(proposed, internal), deltaText, deltaClasses,
                     detail, actionLabel, actionHint,
                     disabled, materials, showMaterials ? "material-costs" : "material-costs hidden",
@@ -1574,8 +1569,14 @@ public final class MechLabViewModel {
     }
 
     /** Spares in stores, or that the row is a known pattern with none built. */
+    /** A spare in stores or a pattern to build; how many spares is the row's x-count. */
     private static String stockBadge(int free) {
-        return free > 0 ? Strings.format("openingMechLabStockCount", free) : Strings.get("openingMechLabPattern");
+        return free > 0 ? Strings.get("openingMechLabInStores") : Strings.get("openingMechLabPattern");
+    }
+
+    /** Spares in stores as a compact x-count, x0 to x99; a larger store still reads x99. */
+    static String spareCount(int free) {
+        return Strings.format("openingMechLabSpareCount", Math.max(0, Math.min(99, free)));
     }
 
     private void fabricateWeapon(MechWeaponComponent component) {

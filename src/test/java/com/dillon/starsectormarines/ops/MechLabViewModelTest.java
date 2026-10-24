@@ -669,6 +669,14 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void spareCountsReadAsACappedXCount() {
+        assertEquals("x0", MechLabViewModel.spareCount(0));
+        assertEquals("x7", MechLabViewModel.spareCount(7));
+        assertEquals("x99", MechLabViewModel.spareCount(99));
+        assertEquals("x99", MechLabViewModel.spareCount(250), "a large store still reads x99");
+    }
+
+    @Test
     void categoryFiltersControlCatalogDisplay() {
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
