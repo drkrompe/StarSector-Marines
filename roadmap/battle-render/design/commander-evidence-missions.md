@@ -59,6 +59,9 @@ bore its cell, tier, integrity, surges, bodies, Matriarch and collapse tick, the
 the beats. Asserted: every beat is the heart's, no mother surged while the heart
 slept, Broad Front's first satellite collapse woke the heart on its tick, and
 the heart was down exactly when every mother had collapsed. Who won is a reading.
+A heart fixture may carry `density` (`RURAL`, `TOWN`, `CITY`) and an
+`objectives` list of optional-objective keys, which runs those beats instead
+of the battle's draw, each still only where its place was laid.
 
 ## Relief
 

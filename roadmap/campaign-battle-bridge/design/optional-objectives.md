@@ -1,9 +1,8 @@
 # Optional objectives
 
 Status: ACTIVE — the mission-neutral mechanism is built (roll, board, beats,
-campaign hand-off); no mission rolls a pool yet. The Cordon
-(`cordon-map-intent.md`, Order of work step 4) and the heart
-(`heart-story-beats.md`) are its first users.
+campaign hand-off). The Cordon rolls its pool (`cordon-nouns.md`, Optional
+objectives); the heart (`heart-story-beats.md`) is next.
 
 Written: 2026-10-23
 
@@ -87,7 +86,6 @@ that advances the board from its own story sequence.
 
 ## Open
 
-- Each mission's pool, its count range by density, and its runtimes
-  (`cordon-map-intent.md`, `heart-mission-depth.md`).
+- The heart's pool, count range and runtimes (`heart-mission-depth.md`).
 - The arc's reading of grants and costs.
 - Showing the rolled set in the briefing, from the same roll.

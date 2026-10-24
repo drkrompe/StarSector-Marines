@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.cordon.CordonCommand;
+import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
@@ -83,9 +84,17 @@ public final class CordonSetup {
 
     private CordonSetup() {}
 
-    /** A generated Cordon map, the plan it was laid out from and the world biome it was grown on. */
+    /** A generated Cordon map, the plan it was laid out from, the world biome it was grown on and how built-up it is. */
     public record CordonMap(MapResult map, PrecinctPlan plan, long battleSeed, List<int[]> corridor,
-                            SurfacePalette biome) { }
+                            SurfacePalette biome, CordonPlan.Density density) { }
+
+    /**
+     * The titles of the optional objectives a battle on this map will run, for the briefing: the same roll
+     * the battle makes at setup ({@code cordon-nouns.md}, Optional objectives).
+     */
+    public static List<String> briefingObjectives(CordonMap cordon, CordonVariant variant) {
+        return CordonObjectives.titles(variant, cordon.density(), cordon.map().layout, cordon.battleSeed());
+    }
 
     /**
      * The world the Cordon is fought on: the colony's country on a world of
@@ -189,7 +198,7 @@ public final class CordonSetup {
         }
         CordonMap cordon = generated.cordon();
         return new CordonMap(entry.patch().ruined(cordon.map(), entry.seed()), cordon.plan(), cordon.battleSeed(),
-                cordon.corridor(), biome);
+                cordon.corridor(), biome, density);
     }
 
     private record Generated(CordonMap cordon, String missing) { }
@@ -197,7 +206,7 @@ public final class CordonSetup {
     private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
                                       long battleSeed, MapPatch patch) {
         PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, density, WIDTH, HEIGHT, battleSeed));
-        Generated whole = generate(variant, biome, battleSeed, plan, List.of(), null);
+        Generated whole = generate(variant, density, biome, battleSeed, plan, List.of(), null);
         if (whole.missing() == null) return whole;
         // A layout road moves the ground the places grow round, and a map can come out without the Cordon for it
         // (a base whose shed faces a wall). An optional road is not worth the map: try the map without it.
@@ -207,15 +216,15 @@ public final class CordonSetup {
         if (roads.contains(CordonPlan.SECOND_ROAD)) fallbacks.add(List.of(CordonPlan.SECOND_ROAD));
         if (!roads.isEmpty()) fallbacks.add(roads);
         for (List<String> drop : fallbacks) {
-            Generated without = generate(variant, biome, battleSeed, plan, drop, whole.missing());
+            Generated without = generate(variant, density, biome, battleSeed, plan, drop, whole.missing());
             if (without.missing() == null) return without;
         }
         return whole;
     }
 
     /** The map from {@code plan} less the layout pieces named in {@code drop}, reported refused for {@code why}. */
-    private static Generated generate(CordonVariant variant, SurfacePalette biome, long battleSeed, PrecinctPlan plan,
-                                      List<String> drop, String why) {
+    private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
+                                      long battleSeed, PrecinctPlan plan, List<String> drop, String why) {
         if (!drop.isEmpty()) {
             List<Piece> kept = new ArrayList<>();
             for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
@@ -232,7 +241,7 @@ public final class CordonSetup {
         String missing = missing(variant, map, plan);
         if (missing != null) return new Generated(null, missing);
         List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(convoyGrid(map), map.topology, plan) : null;
-        return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome), null);
+        return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome, density), null);
     }
 
     /** What this map lacks, or {@code null} when it carries the whole Cordon. */
@@ -420,8 +429,10 @@ public final class CordonSetup {
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
         }
-        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
+        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density()),
                 CordonCommand.disclosure(sequence));
+        CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,
+                cordon.corridor(), cordon.battleSeed());
         return sim;
     }
 
@@ -514,12 +525,15 @@ public final class CordonSetup {
         for (int seconds : timetable.convoySeconds()) departTicks.add(Math.round(seconds / BattleSimulation.TICK_DT));
         int[] gate = corridor.get(corridor.size() - 1);
         Random rng = new Random(cordon.battleSeed() ^ TOWN_SALT);
+        List<Integer> militia = new ArrayList<>();
         for (int team = 0; team < TOWN_TEAMS; team++) {
             List<int[]> cells = CordonGround.clusterNear(sim, gate[0], gate[1] + frontward * (TOWN_DEPTH + team * 3), TOWN_TEAM_SIZE);
-            if (!cells.isEmpty()) ColonyMilitia.seatTeam(sim, cells, "Town militia " + (team + 1), GARRISON_RISK, rng);
+            if (!cells.isEmpty()) militia.add(ColonyMilitia.seatTeam(sim, cells, "Town militia " + (team + 1), GARRISON_RISK, rng));
         }
-        return new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
+        CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, departTicks,
                 timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
+        convoys.setTownMilitia(militia);
+        return convoys;
     }
 
     /** Cells from the base's muster yard the corridor must pass for the convoys to set out from the base. */

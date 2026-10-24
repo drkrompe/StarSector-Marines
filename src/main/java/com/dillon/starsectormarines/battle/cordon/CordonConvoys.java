@@ -91,6 +91,8 @@ public final class CordonConvoys {
         int direction;
         int people;
         boolean gone;
+        /** Taken off the road by a beat (R2) with its people walking on: gone, but not destroyed. */
+        boolean stranded;
         boolean halted;
         /** Held past the gap for want of an escort. */
         boolean unescorted;
@@ -107,6 +109,8 @@ public final class CordonConvoys {
         Phase phase = Phase.WAITING;
         final List<Truck> trucks = new ArrayList<>();
         int loadingSince;
+        /** Ticks added to its loading by a beat (R3). */
+        int extraLoading;
         int people;
         boolean throughGap, ambushed;
 
@@ -116,15 +120,20 @@ public final class CordonConvoys {
         }
     }
 
-    private final List<int[]> corridor;
+    private List<int[]> corridor;
     /** The corridor cell trucks set out from and come back to. */
-    private final int entry;
+    private int entry;
+    /** A detour waiting for the road to be empty (beat R5): its cells, gap and entry, or {@code null}. */
+    private List<int[]> detour;
+    private int detourGap, detourEntry;
+    /** The town militia's squads, for the beat that rides them out (R4). */
+    private List<Integer> townMilitia = List.of();
     /** The route to the town and the route out, laid along the corridor on first use. */
     private float[][] inward, outward;
     /** Where a truck's footprint fits, and what ground costs it; made on first use. */
     private VehicleClearance clearance;
     private TerrainCostField cost;
-    private final int gapIndex;
+    private int gapIndex;
     private final List<Convoy> convoys = new ArrayList<>();
     private int town;
     private int peopleOut, peopleLost;
@@ -149,6 +158,119 @@ public final class CordonConvoys {
     }
 
     public int convoys() { return convoys.size(); }
+
+    /** The corridor cell trucks set out from and come back to. */
+    public int entry() { return entry; }
+
+    /** The corridor the convoys drive now, rear edge first. */
+    public List<int[]> corridor() { return corridor; }
+
+    /** The town militia's squads, set at setup. */
+    public List<Integer> townMilitia() { return townMilitia; }
+
+    public void setTownMilitia(List<Integer> squads) {
+        townMilitia = List.copyOf(squads);
+    }
+
+    /** Convoy {@code number}'s phase in a word ({@code waiting}, {@code inbound}, ...), or {@code null}. */
+    public String phase(int number) {
+        if (number < 1 || number > convoys.size()) return null;
+        return convoys.get(number - 1).phase.name().toLowerCase(Locale.ROOT);
+    }
+
+    /** Convoy {@code number} waits this many more ticks at the gate while its people board (beat R3). */
+    public void extendLoading(int number, int ticks) {
+        if (number >= 1 && number <= convoys.size()) convoys.get(number - 1).extraLoading += Math.max(0, ticks);
+    }
+
+    /**
+     * Where truck {@code index} (from 0) of convoy {@code number} is: {corridor cell, people aboard, x, y}, or
+     * {@code null} when it has not come on or is gone.
+     */
+    public int[] truck(BattleSimulation sim, int number, int index) {
+        if (number < 1 || number > convoys.size()) return null;
+        Convoy c = convoys.get(number - 1);
+        if (index < 0 || index >= c.trucks.size()) return null;
+        Truck t = c.trucks.get(index);
+        if (t.gone || !sim.convoy().isVehicle(t.hull) || sim.convoy().structure(t.hull) <= 0f) return null;
+        GroundBody body = sim.convoy().body(t.hull);
+        return new int[]{nearestIndex(body), t.people, (int) body.x, (int) body.y};
+    }
+
+    /**
+     * A beat takes truck {@code index} of convoy {@code number} off the road (R2): it is gone without being
+     * destroyed, so its people are not lost with it, and they are handed back to walk. Returns how many were
+     * aboard, or -1 when there is no such truck on the road. The hull is taken off, not left as a wreck, so the
+     * corridor stays open behind it.
+     */
+    public int strand(BattleSimulation sim, int number, int index) {
+        if (number < 1 || number > convoys.size()) return -1;
+        Convoy c = convoys.get(number - 1);
+        if (index < 0 || index >= c.trucks.size()) return -1;
+        Truck t = c.trucks.get(index);
+        if (t.gone) return -1;
+        int people = t.people;
+        t.people = 0;
+        t.gone = true;
+        t.stranded = true;
+        sim.convoy().despawn(t.hull);
+        return people;
+    }
+
+    /** Townspeople who walked out from a stranded truck (R2) are out. */
+    public void walkedOut(int people) {
+        peopleOut += Math.max(0, people);
+    }
+
+    /** Townspeople who died walking from a stranded truck (R2) are lost. */
+    public void walkedLost(int people) {
+        peopleLost += Math.max(0, people);
+    }
+
+    /**
+     * The road has changed under the trucks (a wreck pushed clear, beat R1): every route is laid again from the
+     * live map, and each truck on the road is handed its rest from where it stands.
+     */
+    public void relay(BattleSimulation sim) {
+        if (clearance == null) return;
+        clearance = null;
+        ground(sim);
+        for (Convoy c : convoys) {
+            for (Truck t : c.trucks) {
+                if (t.gone || !sim.convoy().isVehicle(t.hull)) continue;
+                route(sim, t, t.direction == 0 ? 1 : t.direction);
+            }
+        }
+    }
+
+    /**
+     * The convoys take another road (beat R5's detour) from the first moment none is on the road: one on it
+     * keeps the road it is on, and the next to set out drives the detour.
+     */
+    public void detour(List<int[]> road, int gap, int from) {
+        detour = List.copyOf(road);
+        detourGap = gap;
+        detourEntry = from;
+    }
+
+    /** Whether the convoys drive a detour now. */
+    public boolean detoured() { return detourApplied; }
+
+    private boolean detourApplied;
+
+    private void applyDetour() {
+        if (detour == null) return;
+        for (Convoy c : convoys) {
+            if (c.phase == Phase.INBOUND || c.phase == Phase.LOADING || c.phase == Phase.OUTBOUND) return;
+        }
+        corridor = detour;
+        gapIndex = detourGap;
+        entry = detourEntry;
+        detour = null;
+        detourApplied = true;
+        clearance = null;
+        inward = outward = null;
+    }
     /** Convoys back out with their people. */
     public int out() { return count(Phase.OUT); }
     /** Convoys whose every truck was destroyed. */
@@ -209,6 +331,7 @@ public final class CordonConvoys {
 
     /** One tick: brings convoys on, drives them a leg at a time, loads them at the gate, takes them off. */
     public void advance(BattleSimulation sim, int tick, Consumer<String> beat) {
+        applyDetour();
         if (corridor.size() < 2) return;
         boolean review = tick % REVIEW_TICKS == 0;
         List<float[]> swarm = review ? positions(sim, true) : List.of();
@@ -223,7 +346,7 @@ public final class CordonConvoys {
             }
             comeOn(sim, c);
             bury(sim, c);
-            if (c.trucks.isEmpty() || allGone(c)) {
+            if (c.trucks.isEmpty() || allGone(c) && !anyStranded(c)) {
                 if (c.trucks.size() >= TRUCKS || c.phase != Phase.INBOUND) {
                     c.phase = Phase.LOST;
                     beat.accept("convoy_lost_" + c.number);
@@ -234,7 +357,7 @@ public final class CordonConvoys {
             switch (c.phase) {
                 case INBOUND -> inbound(sim, tick, c, swarm, beat);
                 case LOADING -> {
-                    if (tick - c.loadingSince < LOADING_TICKS) continue;
+                    if (tick - c.loadingSince < LOADING_TICKS + c.extraLoading) continue;
                     for (Truck t : c.trucks) {
                         if (t.gone) continue;
                         t.people = Math.min(SEATS, town);
@@ -628,6 +751,11 @@ public final class CordonConvoys {
             peopleLost += t.people;
             t.people = 0;
         }
+    }
+
+    private static boolean anyStranded(Convoy c) {
+        for (Truck t : c.trucks) if (t.stranded) return true;
+        return false;
     }
 
     private static boolean allGone(Convoy c) {

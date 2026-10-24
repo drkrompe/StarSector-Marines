@@ -12,10 +12,11 @@ import java.util.Objects;
 
 /**
  * The heart of a Rav Bloom (`heart-nouns.md`): one variant, the world's biome, how built-up its country is, the seed
- * and the company's boats.
+ * and the company's boats. {@code objectives}, when not empty, names the optional objectives the battle runs instead
+ * of the draw (each still only where its place was laid), so evidence can ask for a beat.
  */
 public record BloomHeartBattleFixture(long seed, Form form, SurfacePalette biome, Density density,
-                                      List<ShuttleAssignment> manifest)
+                                      List<ShuttleAssignment> manifest, List<String> objectives)
         implements BattleFixture {
     public static final String KIND = "BLOOM_HEART";
 
@@ -24,6 +25,13 @@ public record BloomHeartBattleFixture(long seed, Form form, SurfacePalette biome
         Objects.requireNonNull(biome, "biome");
         if (density == null) density = Density.RURAL;
         manifest = List.copyOf(manifest);
+        objectives = objectives == null ? List.of() : List.copyOf(objectives);
+    }
+
+    /** A heart whose objectives are drawn. */
+    public BloomHeartBattleFixture(long seed, Form form, SurfacePalette biome, Density density,
+                                   List<ShuttleAssignment> manifest) {
+        this(seed, form, biome, density, manifest, List.of());
     }
 
     /** An open-country heart. */
@@ -34,6 +42,6 @@ public record BloomHeartBattleFixture(long seed, Form form, SurfacePalette biome
     @Override public String kind() { return KIND; }
 
     @Override public BattleSimulation build() {
-        return BloomHeartSetup.mission(form, biome, density, seed, manifest);
+        return BloomHeartSetup.mission(form, biome, density, seed, manifest, objectives);
     }
 }

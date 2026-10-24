@@ -103,7 +103,7 @@ public final class WalkingBarrage {
         return Math.max(MIN_FLIGHT_SECONDS, distance / LOB_CELLS_PER_SECOND);
     }
 
-    private final Plan plan;
+    private Plan plan;
     private final Ground ground;
     private final Faction side;
     private final SplittableRandom rng;
@@ -126,6 +126,20 @@ public final class WalkingBarrage {
     }
 
     public Plan plan() { return plan; }
+
+    /**
+     * Adds one more line {@code step} deeper than the last, opening as the last lifts and firing for
+     * {@code fireSeconds}, as an ammunition delivery that reaches the guns does. Refused once the barrage has
+     * ended, or when there is no line to follow; returns whether it was added.
+     */
+    public boolean extend(float step, float fireSeconds) {
+        if (ended || plan.lines().isEmpty()) return false;
+        Line last = plan.lines().get(plan.lines().size() - 1);
+        List<Line> lines = new ArrayList<>(plan.lines());
+        lines.add(new Line(last.depth() + step, last.liftSeconds(), fireSeconds, 0));
+        plan = new Plan(lines, plan.shell(), plan.shellsPerSecond(), plan.depthSpread());
+        return true;
+    }
     public List<Event> events() { return events; }
     public int fired() { return fired; }
     public int vetoed() { return vetoed; }
