@@ -42,8 +42,11 @@ final class ClearRoadBeat extends CordonBeat {
     static final int[] ASIDE = {6, 9, 12, 16};
     /** Corridor cells past the wreck tried in turn for the place the dozer pulls aside beside. */
     static final int[] ALONG = {PAST, PAST + 6, PAST + 12, PAST / 2};
-    /** Cells an aside place keeps from every corridor cell: off the road, not on its edge. */
-    static final int OFF_ROAD = 4;
+    /**
+     * Cells an aside place keeps from every corridor cell on either axis: off the road, not on its edge. The dozer's
+     * half-width and a truck's beside it, and a little more: four left the dozer on the inside of a bend the trucks cut.
+     */
+    static final int OFF_ROAD = 6;
     /** Corridor cells either side of a place its heading is read across. */
     static final int HEADING_SPAN = 3;
     /** Corridor cells short of the gap the dozer starts. */
@@ -69,6 +72,9 @@ final class ClearRoadBeat extends CordonBeat {
     /** The cell the dozer was sent aside to once the road was open, or {@code null}; and every cell tried. */
     private int[] aside;
     private final List<int[]> asideTried = new ArrayList<>();
+    /** The nearest the dozer has come to its aside place, and the tick it last came nearer. */
+    private float asideNearest;
+    private int asideSince;
 
     ClearRoadBeat(CordonBeats beats) {
         super(beats);
@@ -181,9 +187,23 @@ final class ClearRoadBeat extends CordonBeat {
         if (cleared) {
             // A pull-aside the move order gave up on leaves the dozer on the road: the next place, until one is
             // reached or none is left.
-            VehicleMoveOrderService.RefusedOrder refused = aside != null && CordonBeats.alive(sim, dozer)
-                    ? sim.getVehicleMoveOrderService().refusal(dozer) : null;
-            if (refused != null && refused.requestedX() == aside[0] && refused.requestedY() == aside[1]) pullAside(sim);
+            // So does one it is wedged on: a dozer pinned against a fence beside the road neither moves nor is refused.
+            if (aside == null || !CordonBeats.alive(sim, dozer)) return;
+            VehicleMoveOrderService.RefusedOrder refused = sim.getVehicleMoveOrderService().refusal(dozer);
+            GroundBody body = sim.convoy().body(dozer);
+            float d = body.distanceTo(aside[0] + .5f, aside[1] + .5f);
+            if (d < asideNearest - ASIDE_PROGRESS) {
+                asideNearest = d;
+                asideSince = tick;
+            }
+            boolean gaveUp = refused != null && refused.requestedX() == aside[0] && refused.requestedY() == aside[1];
+            VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
+            VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(dozer);
+            boolean underWay = orders.pending(dozer)
+                    || order != null && order.requestedX() == aside[0] && order.requestedY() == aside[1];
+            if (asideTried.size() < ASIDE_TRIES && (gaveUp || asideStalled(d, tick - asideSince, underWay))) {
+                pullAside(sim);
+            }
             return;
         }
         if (road.isEmpty() || beats.sequence().convoys() == null) return;
@@ -222,7 +242,29 @@ final class ClearRoadBeat extends CordonBeat {
         });
         if (aside == null) return;
         asideTried.add(aside);
+        asideNearest = body.distanceTo(aside[0] + .5f, aside[1] + .5f);
+        asideSince = sim.getSimTickIndex();
         beats.command().station(sim, dozer, aside[0], aside[1]);
+    }
+
+    /** Cells nearer its aside place the dozer must come to count as moving toward it. */
+    static final float ASIDE_PROGRESS = 1f;
+    /** Cells from its aside place the dozer has pulled aside. */
+    static final float ASIDE_REACHED = 3f;
+    /** Ticks the dozer may go without coming nearer its aside place before the next is tried. */
+    static final int ASIDE_STALL_TICKS = Math.round(8f / BattleSimulation.TICK_DT);
+
+    /** Aside places the dozer is sent to at most: after that it stays where the last one left it. */
+    static final int ASIDE_TRIES = 4;
+
+    /**
+     * Whether the dozer is wedged short of its aside place: still under way to it, not there, and no nearer for
+     * {@link #ASIDE_STALL_TICKS}. A move order pinned against a fence neither progresses nor is given up on, and the
+     * dozer stood on the road. One whose order is done has arrived as near as it stops, and is not sent on: re-sent
+     * every few seconds, it wandered beside the road among the trucks.
+     */
+    static boolean asideStalled(float distance, int ticksSinceProgress, boolean underWay) {
+        return underWay && distance > ASIDE_REACHED && ticksSinceProgress >= ASIDE_STALL_TICKS;
     }
 
     /** Cells round the dozer its footprint is looked for when it plans its pull-aside. */

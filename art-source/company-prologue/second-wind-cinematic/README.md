@@ -52,7 +52,10 @@ strings, sounds).
 
 **Packaging.** All six finals are in the game (2026-10-22). `cinematic_export.py --from-drive`
 copies each shot's approved frames off Drive (`FINALS`: C1 and C4 on their plumes-trim builds,
-C5 titled) into `build/cinematic/` and encodes them. C1's planet lock is read from C1 v2's own
+C5 titled) into `build/cinematic/` and encodes them. C1's frames 300-904 are then replaced by
+its planet fix: the final rendered Jangala's air shell unscaled, an opaque grey ball, and
+`corvus-approach/planet_fix.py` composites the corrected planet into the shipped frames from two
+planet-only layers (`c1v2_scene.py --planet-layer`, with and without `--air-legacy`). C1's planet lock is read from C1 v2's own
 camera (`corvus-approach/c1v2_planet_track.py`, run in Blender before exporting C1) and lands
 on Approach's customs call (hail 03), the first transmission with Jangala wholly in frame.
 

@@ -29,6 +29,12 @@ layout or timing; finals and anything shown to the owner as a picture are at 100
 --from s, --to s, --step n
              with --animatic, render only those seconds of the shot, every nth frame (default
              every frame): a motion question rarely needs the whole 38 s at 24 fps.
+--planet-layer dir
+             with --final, render only Jangala (everything else held out, volumes hidden, the
+             frame cropped to the disc) as RGBA to dir/%05d.png, for planet_fix.py. Takes
+             --frames a:b or --frame-list f,f,...
+--air-legacy the unscaled, opaque air shell the 2026-10-22 C1 final rendered with; only for the
+             'before' planet layer.
 --save       also write the assembled scene to build/c1v2/c1v2-scene.blend.
 
 World frame, metres: +Y is the final view direction (toward Jangala), +Z up. The camera only
@@ -113,6 +119,7 @@ STAR_FILL = 0.25     # share of cells that hold a visible star
 # Final framing: looking down the lane at Jangala, pitched slightly down.
 FINAL_PITCH = math.radians(-4.0)
 EEVEE_PREVIEW = True   # layout passes; the final look pass renders Cycles
+AIR_LEGACY = False     # --air-legacy: the unscaled (opaque) air shell, for planet_layer's difference
 EEVEE_VOLUME_RANGE = 3000.0   # metres of depth EEVEE renders volumes in: out to the hero at the end
 
 # --- Second Wind's pass ----------------------------------------------------------------------
@@ -263,9 +270,13 @@ def add_planet(scene):
     centre = direction_at_px(*planet.DISC_CENTRE_PX) * distance
     # render_planet shades from object-space position and expects the camera on its -Y side,
     # so the spheres are translated and scaled, never rotated.
+    # The air's density is per planet radius; Cycles integrates per world unit, so it is scaled
+    # with the sphere. --air-legacy keeps the unscaled shell the 2026-10-22 final rendered with,
+    # opaque and grey, only so planet_layer can difference it out of those frames.
+    air_scale = 1.0 if AIR_LEGACY else radius
     for name, r, mat in (('Jangala | surface', 1.0, planet.surface_material(SUN_DIR)),
                          ('Jangala | clouds', planet.CLOUD_RADIUS, planet.cloud_material()),
-                         ('Jangala | air', planet.AIR_RADIUS, planet.air_material())):
+                         ('Jangala | air', planet.AIR_RADIUS, planet.air_material(air_scale))):
         obj = planet.sphere(name, r)
         obj.data.materials.append(mat)
         obj.location = centre
@@ -774,11 +785,82 @@ def build(final=False, samples=128, profile='production', volume_step_rate=None)
     return scene
 
 
+def planet_disc_px(frame):
+    """(cx, cy, r) of Jangala's disc in full-size pixels at a frame, or None behind the camera."""
+    alpha = math.atan(planet.DISC_RADIUS_PX / F_PX)
+    distance = 30000.0
+    centre = direction_at_px(*planet.DISC_CENTRE_PX) * distance
+    v = camera_quat(frame / FPS).inverted() @ centre
+    depth = -v.z
+    if depth <= 0:
+        return None
+    return W / 2 + F_PX * v.x / depth, H / 2 - F_PX * v.y / depth, F_PX * distance * math.sin(alpha) / depth
+
+
+def planet_layer(scene, out_dir, frames):
+    """Render Jangala alone over a transparent film: every other object is a holdout, every
+    volume (drive plumes, dust) is hidden, and the frame is cropped to the disc and its air.
+
+    Two of these, one with --air-legacy, are the before and after of the planet in a finished
+    frame: `planet_fix.py` adds their difference to the shipped frames, so ships and plumes
+    in front of the planet keep the pixels they were rendered with.
+    """
+    for obj in scene.objects:
+        if obj.name.startswith('Jangala |'):
+            continue
+        mats = [s.material for s in getattr(obj, 'material_slots', []) if s.material]
+        volume = any(m.use_nodes and any(n.type == 'OUTPUT_MATERIAL' and n.inputs['Volume'].is_linked
+                                         for n in m.node_tree.nodes) for m in mats)
+        if volume or obj.get('thrust_plume'):
+            obj.hide_render = True
+        elif obj.type not in ('LIGHT', 'CAMERA'):
+            obj.is_holdout = True
+    for lc in bpy.context.view_layer.layer_collection.children:
+        lc.holdout = True
+    # The plume guard asks whether every thrusting craft shows its drive. In this layer no craft
+    # shows anything (held out, plumes hidden on purpose): build() has already passed the guard
+    # with the plumes on, so its render-time re-check is disarmed here and only here.
+    import thrust_shots
+    if thrust_shots._check_plumes in bpy.app.handlers.render_init:
+        bpy.app.handlers.render_init.remove(thrust_shots._check_plumes)
+    # The opaque legacy shell is wider than the true planet and hid the stars behind its rim, so
+    # the corrected layer keeps the sky: (after - before) then puts those stars back. The legacy
+    # layer is transparent, its alpha the footprint that difference is applied over.
+    scene.render.film_transparent = AIR_LEGACY
+    scene.render.image_settings.color_mode = 'RGBA'
+    scene.render.image_settings.color_depth = '16'
+    scene.render.use_border = True
+    scene.render.use_crop_to_border = False
+    margin = planet.AIR_RADIUS * 1.02
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for f in frames:
+        disc = planet_disc_px(f)
+        if disc is None:
+            continue
+        cx, cy, r = disc
+        r *= margin
+        x0, x1 = max(0.0, cx - r - 8), min(float(W), cx + r + 8)
+        y0, y1 = max(0.0, cy - r - 8), min(float(H), cy + r + 8)
+        if x0 >= x1 or y0 >= y1:
+            continue
+        path = out_dir / ('%05d.png' % f)
+        if path.exists() and path.stat().st_size > 0:
+            continue
+        scene.render.border_min_x, scene.render.border_max_x = x0 / W, x1 / W
+        scene.render.border_min_y, scene.render.border_max_y = 1 - y1 / H, 1 - y0 / H
+        scene.frame_set(f)
+        scene.render.filepath = str(path)
+        bpy.ops.render.render(write_still=True)
+        print('C1V2 planet layer %05d' % f, flush=True)
+
+
 def opts():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     o = {'animatic': '--animatic' in argv, 'final': '--final' in argv, 'save': '--save' in argv,
          'still': [], 'frames': None, 'samples': None, 'step': 1,
-         'profile': os.environ.get('C1_PROFILE', 'production'), 'volume_step_rate': None}
+         'profile': os.environ.get('C1_PROFILE', 'production'), 'volume_step_rate': None,
+         'air_legacy': '--air-legacy' in argv, 'planet_layer': None, 'frame_list': None}
     for i, a in enumerate(argv):
         if a == '--from':
             o['frames'] = (round(float(argv[i + 1]) * FPS), (o['frames'] or (0, FRAMES - 1))[1])
@@ -794,6 +876,10 @@ def opts():
             o['volume_step_rate'] = float(argv[i + 1])
         if a == '--still':
             o['still'] = [float(x) for x in argv[i + 1].split(',')]
+        if a == '--planet-layer':
+            o['planet_layer'] = argv[i + 1]
+        if a == '--frame-list':
+            o['frame_list'] = [int(x) for x in argv[i + 1].split(',')]
         if a == '--frames':
             a0, a1 = argv[i + 1].split(':')
             o['frames'] = (int(a0), int(a1))
@@ -803,7 +889,9 @@ def opts():
 
 
 def main():
+    global AIR_LEGACY
     o = opts()
+    AIR_LEGACY = o['air_legacy']
     scene = build(o['final'], o['samples'], o['profile'], o['volume_step_rate'])
     if o['save']:
         OUT.mkdir(parents=True, exist_ok=True)
@@ -812,7 +900,10 @@ def main():
         scene.frame_set(round(t * FPS))
         scene.render.filepath = str(OUT / ('stills-final' if o['final'] else 'stills') / ('t%05.1f.png' % t))
         bpy.ops.render.render(write_still=True)
-    if o['animatic']:
+    if o['planet_layer']:
+        a, b = o['frames'] or (0, FRAMES - 1)
+        planet_layer(scene, o['planet_layer'], o['frame_list'] or range(a, b + 1))
+    elif o['animatic']:
         a, b = o['frames'] or (0, FRAMES - 1)
         scene.frame_start, scene.frame_end, scene.frame_step = a, b, o['step']
         scene.render.filepath = str(OUT / 'animatic' / 'frames' / '#####')
