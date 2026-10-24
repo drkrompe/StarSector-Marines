@@ -104,9 +104,11 @@ playground and more benches. The first mother opens at the pond, not in a
 building (`HeartOrigin.opensAt`). With four origins a seed-only draw gave every
 pool the same two, so the origin is drawn from the seed stepped by form and
 density, and read back from the far place's program where only the plan is
-at hand. Every pool shows three origins and each form shows all four. Next:
-the owner's look at the four; the annex's inner fence; the park's lawn reads
-bare under the creep; damaged states of the clean props without creep, if the
+at hand. Every pool shows three origins and each form shows all four. The
+owner kept all four. The park's lawn read bare under the creep, so trees now stand
+inside its rails, a grove and single trees planted on grass beds, withered
+by the bloom like the woods. Next:
+the annex's inner fence; damaged states of the clean props without creep, if the
 dressing stays.
 
 1. The origin as a plan choice: `HeartCountry` picks it from the seed and

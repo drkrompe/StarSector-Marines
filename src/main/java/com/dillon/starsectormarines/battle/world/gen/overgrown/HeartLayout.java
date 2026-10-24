@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.layout.Block;
 import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
@@ -181,7 +182,7 @@ public final class HeartLayout {
             if (best == null) continue;
             taken.add(new int[]{best[0], best[1], group.width, group.height});
             for (DressingGroup.Part part : group.parts) {
-                out.add(new Props.Placement(part.prop().id(OriginProp.State.CLEAN), best[0] + part.dx(), best[1] + part.dy(), 0));
+                out.add(new Props.Placement(part.doodad(), best[0] + part.dx(), best[1] + part.dy(), 0));
             }
         }
         return out.isEmpty() ? List.of() : List.of(new Props(ORIGIN_DRESSING, out, false));
@@ -203,23 +204,29 @@ public final class HeartLayout {
 
     /** Props set down together as one thing in a yard, each part at its offset from the group's low corner. */
     record DressingGroup(int width, int height, List<Part> parts) {
-        record Part(OriginProp prop, int dx, int dy) {}
+        /** One doodad of a group, its footprint and its offset. */
+        record Part(String doodad, int width, int height, int dx, int dy) {}
 
         static DressingGroup of(Part... parts) {
             int w = 0, h = 0;
             for (Part p : parts) {
-                int[] size = footprint(p.prop());
-                w = Math.max(w, p.dx() + size[0]);
-                h = Math.max(h, p.dy() + size[1]);
+                w = Math.max(w, p.dx() + p.width());
+                h = Math.max(h, p.dy() + p.height());
             }
             return new DressingGroup(w, h, List.of(parts));
         }
     }
 
-    /** A clean prop's footprint in cells, from its tileset entry; one cell where no tiles are installed. */
-    private static int[] footprint(OriginProp prop) {
+    /** A clean origin prop as a group's part, its footprint from its tileset entry (one cell with no tiles installed). */
+    private static DressingGroup.Part part(OriginProp prop, int dx, int dy) {
         DoodadDef def = TileRegistry.installed() == null ? null : prop.def(OriginProp.State.CLEAN);
-        return def == null ? new int[]{1, 1} : new int[]{def.footprintCellsX, def.footprintCellsY};
+        return def == null ? new DressingGroup.Part(prop.id(OriginProp.State.CLEAN), 1, 1, dx, dy)
+                : new DressingGroup.Part(prop.id(OriginProp.State.CLEAN), def.footprintCellsX, def.footprintCellsY, dx, dy);
+    }
+
+    /** A tree as a group's part: its canopy is its footprint. */
+    private static DressingGroup.Part tree(TreeCanopy canopy, int dx, int dy) {
+        return new DressingGroup.Part(canopy.id, canopy.width, canopy.height, dx, dy);
     }
 
     /**
@@ -229,47 +236,52 @@ public final class HeartLayout {
     static List<DressingGroup> dressing(HeartOrigin origin) {
         return switch (origin) {
             case FREIGHT -> {
-                DressingGroup unloading = DressingGroup.of(new DressingGroup.Part(OriginProp.UNLOADING_TRUCK, 0, 0),
-                        new DressingGroup.Part(OriginProp.SEAFOOD_CRATES, 3, 0),
-                        new DressingGroup.Part(OriginProp.SEAFOOD_CRATES, 3, 2));
-                DressingGroup stack = DressingGroup.of(new DressingGroup.Part(OriginProp.CONTAINER_RUST, 0, 0),
-                        new DressingGroup.Part(OriginProp.CONTAINER_BLUE, 0, 2),
-                        new DressingGroup.Part(OriginProp.CONTAINER_RUST, 0, 4));
-                DressingGroup pair = DressingGroup.of(new DressingGroup.Part(OriginProp.CONTAINER_BLUE, 0, 0),
-                        new DressingGroup.Part(OriginProp.CONTAINER_BLUE, 4, 0));
+                DressingGroup unloading = DressingGroup.of(part(OriginProp.UNLOADING_TRUCK, 0, 0),
+                        part(OriginProp.SEAFOOD_CRATES, 3, 0),
+                        part(OriginProp.SEAFOOD_CRATES, 3, 2));
+                DressingGroup stack = DressingGroup.of(part(OriginProp.CONTAINER_RUST, 0, 0),
+                        part(OriginProp.CONTAINER_BLUE, 0, 2),
+                        part(OriginProp.CONTAINER_RUST, 0, 4));
+                DressingGroup pair = DressingGroup.of(part(OriginProp.CONTAINER_BLUE, 0, 0),
+                        part(OriginProp.CONTAINER_BLUE, 4, 0));
                 yield List.of(unloading, stack, stack, pair);
             }
             case RESEARCH -> {
-                DressingGroup racks = DressingGroup.of(new DressingGroup.Part(OriginProp.TANK_RACK, 0, 0),
-                        new DressingGroup.Part(OriginProp.TANK_RACK, 0, 2),
-                        new DressingGroup.Part(OriginProp.TANK_RACK, 0, 4),
-                        new DressingGroup.Part(OriginProp.SAMPLE_FREEZER, 4, 0),
-                        new DressingGroup.Part(OriginProp.SAMPLE_FREEZER, 4, 2));
-                DressingGroup cold = DressingGroup.of(new DressingGroup.Part(OriginProp.TANK_RACK, 0, 0),
-                        new DressingGroup.Part(OriginProp.SAMPLE_FREEZER, 0, 2));
+                DressingGroup racks = DressingGroup.of(part(OriginProp.TANK_RACK, 0, 0),
+                        part(OriginProp.TANK_RACK, 0, 2),
+                        part(OriginProp.TANK_RACK, 0, 4),
+                        part(OriginProp.SAMPLE_FREEZER, 4, 0),
+                        part(OriginProp.SAMPLE_FREEZER, 4, 2));
+                DressingGroup cold = DressingGroup.of(part(OriginProp.TANK_RACK, 0, 0),
+                        part(OriginProp.SAMPLE_FREEZER, 0, 2));
                 yield List.of(racks, racks, cold);
             }
             case WORKINGS -> {
-                DressingGroup pumping = DressingGroup.of(new DressingGroup.Part(OriginProp.PUMP_SHED, 0, 0),
-                        new DressingGroup.Part(OriginProp.PIPE_RUN, 3, 0),
-                        new DressingGroup.Part(OriginProp.PIPE_RUN, 6, 0));
-                DressingGroup outfall = DressingGroup.of(new DressingGroup.Part(OriginProp.PIPE_RUN, 0, 0),
-                        new DressingGroup.Part(OriginProp.PIPE_RUN, 3, 0),
-                        new DressingGroup.Part(OriginProp.PIPE_MOUTH, 6, 0));
+                DressingGroup pumping = DressingGroup.of(part(OriginProp.PUMP_SHED, 0, 0),
+                        part(OriginProp.PIPE_RUN, 3, 0),
+                        part(OriginProp.PIPE_RUN, 6, 0));
+                DressingGroup outfall = DressingGroup.of(part(OriginProp.PIPE_RUN, 0, 0),
+                        part(OriginProp.PIPE_RUN, 3, 0),
+                        part(OriginProp.PIPE_MOUTH, 6, 0));
                 yield List.of(pumping, outfall, pumping);
             }
             case PARK -> {
-                DressingGroup pondside = DressingGroup.of(new DressingGroup.Part(OriginProp.POND, 0, 0),
-                        new DressingGroup.Part(OriginProp.BENCH, 0, 4),
-                        new DressingGroup.Part(OriginProp.BENCH, 3, 4));
-                DressingGroup bandstand = DressingGroup.of(new DressingGroup.Part(OriginProp.BANDSTAND, 0, 0));
-                DressingGroup playground = DressingGroup.of(new DressingGroup.Part(OriginProp.SWINGS, 0, 0),
-                        new DressingGroup.Part(OriginProp.SLIDE, 4, 0),
-                        new DressingGroup.Part(OriginProp.CLIMBER, 0, 3),
-                        new DressingGroup.Part(OriginProp.ROUNDABOUT, 4, 3));
-                DressingGroup benches = DressingGroup.of(new DressingGroup.Part(OriginProp.BENCH, 0, 0),
-                        new DressingGroup.Part(OriginProp.BENCH, 3, 0));
-                yield List.of(pondside, bandstand, playground, benches);
+                DressingGroup pondside = DressingGroup.of(part(OriginProp.POND, 0, 0),
+                        part(OriginProp.BENCH, 0, 4),
+                        part(OriginProp.BENCH, 3, 4));
+                DressingGroup bandstand = DressingGroup.of(part(OriginProp.BANDSTAND, 0, 0));
+                DressingGroup playground = DressingGroup.of(part(OriginProp.SWINGS, 0, 0),
+                        part(OriginProp.SLIDE, 4, 0),
+                        part(OriginProp.CLIMBER, 0, 3),
+                        part(OriginProp.ROUNDABOUT, 4, 3));
+                DressingGroup benches = DressingGroup.of(part(OriginProp.BENCH, 0, 0),
+                        part(OriginProp.BENCH, 3, 0));
+                DressingGroup grove = DressingGroup.of(tree(TreeCanopy.OAK, 0, 0), tree(TreeCanopy.OAK_SMALL, 6, 1),
+                        tree(TreeCanopy.BIRCH, 2, 6));
+                // The lawn's trees: a grove, then single trees spread to the rails.
+                yield List.of(pondside, bandstand, playground, grove, benches, DressingGroup.of(tree(TreeCanopy.OAK, 0, 0)),
+                        DressingGroup.of(tree(TreeCanopy.BIRCH, 0, 0)), DressingGroup.of(tree(TreeCanopy.OAK_SMALL, 0, 0)),
+                        DressingGroup.of(tree(TreeCanopy.OAK, 0, 0)), DressingGroup.of(tree(TreeCanopy.BIRCH, 0, 0)));
             }
         };
     }

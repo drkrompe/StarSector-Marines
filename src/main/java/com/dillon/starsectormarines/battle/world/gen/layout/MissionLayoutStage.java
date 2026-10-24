@@ -9,9 +9,14 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -220,11 +225,19 @@ public final class MissionLayoutStage implements GenStage {
                 List.of(new int[]{t.x0(), t.y0()}, new int[]{t.x1(), t.y1()}), planned.feet(), List.of());
     }
 
-    /** Each prop through the ordinary placement; laid when any stood, reported by the low corners of those that did. */
+    /**
+     * Each prop through the ordinary placement, and a tree's canopy through the forest brush, which refuses it on
+     * ground a tree may not stand on; laid when any stood, reported by the low corners of those that did.
+     */
     static Laid layProps(GenContext ctx, Props props) {
         TileRegistry tiles = TileRegistry.installed();
         List<int[]> stood = new ArrayList<>();
         for (Props.Placement p : props.props()) {
+            TreeCanopy canopy = canopy(p.doodad());
+            if (canopy != null) {
+                if (tree(ctx, new ForestField.Tree(p.x(), p.y(), canopy, p.quarterTurns()))) stood.add(new int[]{p.x(), p.y()});
+                continue;
+            }
             DoodadDef def = tiles == null ? null : tiles.doodad(p.doodad());
             if (def != null && PreparedGround.prop(ctx, p.x(), p.y(), def, p.quarterTurns())) stood.add(new int[]{p.x(), p.y()});
         }
@@ -232,6 +245,40 @@ public final class MissionLayoutStage implements GenStage {
                 ? Laid.refused(props.name(), Laid.Kind.BLOCK, props.required(), "no prop had open ground")
                 : new Laid(props.name(), Laid.Kind.BLOCK, Laid.Status.LAID, stood.size() + " of " + props.props().size(),
                         props.required(), stood, List.of(), List.of());
+    }
+
+    private static TreeCanopy canopy(String doodad) {
+        for (TreeCanopy c : TreeCanopy.values()) if (c.id.equals(doodad)) return c;
+        return null;
+    }
+
+    /**
+     * One tree stamped as the woods are: planted, so paving under its canopy is lifted to a grass bed first. Refused
+     * where its canopy would cover a road, a building or anything already standing.
+     */
+    private static boolean tree(GenContext ctx, ForestField.Tree tree) {
+        if (tree.x() < 0 || tree.y() < 0 || tree.x() + tree.width() > ctx.width || tree.y() + tree.height() > ctx.height) return false;
+        RoadSurface roads = ctx.topology.roadSurface();
+        for (int y = tree.y(); y < tree.y() + tree.height(); y++) {
+            for (int x = tree.x(); x < tree.x() + tree.width(); x++) {
+                if (!tree.blocks(x, y)) continue;
+                if (!PreparedGround.open(ctx, x, y) || ctx.topology.getBuildingId(x, y) != 0
+                        || roads != null && roads.underlay(x, y) != null) return false;
+            }
+        }
+        for (int y = tree.y(); y < tree.y() + tree.height(); y++) {
+            for (int x = tree.x(); x < tree.x() + tree.width(); x++) {
+                if (!tree.blocks(x, y)) continue;
+                ctx.topology.setGroundKind(x, y, CellTopology.GroundKind.GRASS);
+                ctx.topology.setSurface(x, y, 0);
+            }
+        }
+        try {
+            ForestBrush.stampTrees(List.of(tree), ctx.grid, ctx.topology, ctx.doodads, null, false);
+            return true;
+        } catch (IllegalArgumentException | IllegalStateException refused) {
+            return false;
+        }
     }
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {

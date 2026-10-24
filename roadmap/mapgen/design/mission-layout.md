@@ -66,6 +66,9 @@ optional (reported, and the map stands).
   whose ground is not open. One piece, laid when any prop stood and reporting
   how many did: set dressing that says what a place was (a freight yard's
   containers, a lab's tank racks), never a building or cover a beat relies on.
+  A tree's canopy is set down through the forest brush, as the woods are: it
+  is planted, so paving under it is lifted to a grass bed, and it is refused
+  over a road, a building or anything already standing.
 - **Ridge.** High ground the works stand on: a band along a path
   (`elevation-nouns.md`, Ridges), raised at the start of the works phase,
   before any line is laid, so a line resolved along it is dug on its crest. It
