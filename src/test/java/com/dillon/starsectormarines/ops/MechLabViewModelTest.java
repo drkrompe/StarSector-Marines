@@ -292,7 +292,7 @@ class MechLabViewModelTest {
         assertEquals(MechVariant.HOUND, hound.chassisPreview());
         assertEquals("mech-catalog:recipe.chassis.hound:preview", hound.previewId());
         assertFalse(hound.previewClasses().contains("hidden"));
-        hound.action().run();
+        hound.select().run();
         assertEquals(1, bay.activeSquad().mechs().size(), "selecting a pattern only previews it");
         assertEquals(MechVariant.HOUND, viewModel.padPreview());
         viewModel.buildAction().run();
@@ -418,7 +418,7 @@ class MechLabViewModelTest {
         assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
         assertEquals(3, apc.materials().size());
-        apc.action().run();
+        apc.select().run();
         assertEquals(0, bay.activeSquad().vehicles().size(), "selecting a pattern only previews it");
         assertEquals(VehicleType.ESCORT_APC, viewModel.padPreview());
         viewModel.buildAction().run();
