@@ -421,7 +421,7 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
     made = swfx_burst.warhead(ctx, coll, f'blast {anchor.name}', at, f, mpu, rnd, (1.0, .55, .22),
                               core_m=(S * .2, S * .27), axis=out_dir, tongues=(7, 10) if big else (5, 7),
                               reach=(.8, 1.8), late=10 if big else 6, late_s=1.6 if big else 1.2,
-                              shrapnel=(12, 18) if big else (6, 10), smoke=.6 if big else .5,
+                              shrapnel=(12, 18) if big else (6, 10), smoke=.85 if big else .7,
                               smoke_life=(48, 72) if big else (28, 44), spall=40 if big else 20,
                               glow_w=8.0e4 if big else 4.0e4, parent=anchor, prefix=PREFIX)
     n = rnd.randint(3, 5) if big else rnd.randint(1, 2)

@@ -672,9 +672,10 @@ def burst(ctx, coll, prof, what, tag, here, f, mpu, axis=None, rnd=None):
         k = {'hit': 1.0, 'shield': .8, 'pop': .6, 'decoy': .7}[what]
         return swfx_burst.warhead(
             ctx, coll, f'{what} {tag}', here, f, mpu, rnd, srgb((255, 190, 120)) if what == 'pop' else prof['blast'],
-            core_m=(B * .16 * k, B * .22 * k), axis=None if what == 'decoy' else axis,
+            core_m=(B * .2 * k, B * .28 * k), axis=None if what == 'decoy' else axis,
+            reach=(1.0, 2.0) if what == 'hit' else (.8, 1.6),
             tongues=(5, 7) if what == 'hit' else (3, 5), late=6 if what == 'hit' else (3 if what == 'shield' else 0),
-            late_s=1.0, shrapnel=(4, 7) if what in ('hit', 'shield') else (2, 4), smoke=.6 if what == 'hit' else .5,
+            late_s=1.0, shrapnel=(4, 7) if what in ('hit', 'shield') else (2, 4), smoke=.85 if what == 'hit' else .6,
             smoke_life=(24, 32) if what in ('hit', 'shield') else (16, 22),
             light_w={'hit': 2.5e5, 'shield': 1.2e5, 'pop': 4.0e4, 'decoy': 6.0e4}[what],
             spall={'hit': 24, 'shield': 14, 'pop': 8, 'decoy': 6}[what],

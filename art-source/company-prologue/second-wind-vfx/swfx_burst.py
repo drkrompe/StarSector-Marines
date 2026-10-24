@@ -454,8 +454,8 @@ def warhead(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, core_m, axis=None, ton
         k = sum(core_m) / 2 / 4.5                       # 1 for a Hellbore-sized core
         for j in range(spall):
             d = outward(1.2)
-            speed = rnd.uniform(3.0, 12.0) * k ** .5 / mpu / fps          # per frame
-            n = rnd.randint(int(.45 * fps), int(1.1 * fps))
+            speed = rnd.uniform(6.0, 24.0) * k ** .5 / mpu / fps          # per frame (an HE hit's spall)
+            n = rnd.randint(int(.4 * fps), int(1.2 * fps))
             st = bpy.data.objects.new(f'{prefix} {tag} spall {j}', rod)
             coll.objects.link(st)
             st.visible_shadow = False
@@ -465,9 +465,12 @@ def warhead(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, core_m, axis=None, ton
             start = here + d * R * rnd.uniform(.1, .5)
             for i in range(3):
                 swfx_guns._bake(st, 'location', i, frames, [(start + d * speed * t)[i] for t in range(n + 1)])
-            size = rnd.uniform(.25, .5) * k ** .5 / mpu
-            for i in range(3):
-                swfx_guns._bake(st, 'scale', i, frames, [size * (2.2 if i == 0 else 1.0)] * len(frames))
+            # a thin streak the length of a frame and a half of its travel, as an HE hit's spall is drawn
+            # (bench7: fat 0.5 m rods read as a heap of pink blocks)
+            width = .07 * k ** .5 / mpu
+            swfx_guns._bake(st, 'scale', 0, frames, [max(speed * 1.5, width * 4)] * len(frames))
+            for i in (1, 2):
+                swfx_guns._bake(st, 'scale', i, frames, [width] * len(frames))
             swfx_guns._bake(st, 'color', 0, frames, [.75 * (1 - t / n) ** 1.3 for t in range(n + 1)])
             st.color = (.75, 0, 0, 1)
             swfx_guns._visible_between(st, f, f + n)
