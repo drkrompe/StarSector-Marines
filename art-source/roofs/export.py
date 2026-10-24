@@ -1,6 +1,6 @@
 """Export the roof sheet `mod/graphics/tilesets/roofs.png` from the painted roof sheets (`generate.py`).
 
-A row per roof style, in `RoofStyle` order, and ten 128 px frames per row, in `RoofTiles` order:
+A row per roof style, in `RoofStyle` order, and twelve 128 px frames per row, in `RoofTiles` order:
 
   0-3  FIELD      the style's swatch made seamless and cut two by two: column i + 2j holds cell (i, j), j counted north
   4    TRIM_EAVE  the eave edge along the line EAVE_DEPTH up from the frame's south edge, outer side north, with the
@@ -8,6 +8,8 @@ A row per roof style, in `RoofStyle` order, and ten 128 px frames per row, in `R
   5    TRIM_CORNER the edge round the south-west EAVE_DEPTH square (open north and east), mitred at its corner
   6    TRIM_INNER the edge along an inside corner, round the north-east square the outside touches
   7-9  HOLED, COLLAPSED, BURNT  the damage cells, their alpha the guide's mask (the code owns every silhouette)
+  10   TRIM_DOOR  TRIM_EAVE at DOOR_EAVE_DEPTH, the eave over an exterior door
+  11   TRIM_PANE  TRIM_EAVE at PANE_EAVE_DEPTH, the eave over a slit window
 
 Every cut is mechanical: the raw is scaled back to the guide's canvas and cut where the guide put each piece. A style
 with no raw yet is cut from its guide, so the runtime has a sheet to draw before the paint is in.
@@ -28,9 +30,12 @@ import make_guide as G  # noqa: E402
 OUT = ROOT / 'mod/graphics/tilesets/roofs.png'
 STYLES = ('clay', 'slab', 'corrugated', 'plate')
 F = 128
-COLUMNS = 10
+COLUMNS = 12
 # RoofCover.EAVE_DEPTH: an eave's open edge lies this far up the frame from its south edge.
 EAVE_DEPTH = 0.7
+# RoofCover.DOOR_EAVE_DEPTH and PANE_EAVE_DEPTH: the eaves over an exterior door and a slit window.
+DOOR_EAVE_DEPTH = 0.4
+PANE_EAVE_DEPTH = 0.3
 EDGE = round(F * (1 - EAVE_DEPTH))   # image row of the eave's open edge
 CORNER = round(F * EAVE_DEPTH)       # image column of an outside corner's open edge
 TRIM = 12                            # the edge band's depth
@@ -71,13 +76,19 @@ def shadow(frame, box):
     return Image.fromarray(arr)
 
 
+def eave_trim(band, depth):
+    """The eave trim, north-facing, its open edge `depth` up the frame."""
+    edge = round(F * (1 - depth))
+    eave = Image.new('RGBA', (F, F))
+    eave.paste(band, (0, edge))
+    return shadow(eave, (0, edge - SHADOW, F, edge, 'down'))
+
+
 def trims(band):
     """The three trim frames, north-facing, from one cell of the edge band (its outer side up)."""
     east = band.rotate(-90, expand=True)  # outer side facing east
 
-    eave = Image.new('RGBA', (F, F))
-    eave.paste(band, (0, EDGE))
-    eave = shadow(eave, (0, EDGE - SHADOW, F, EDGE, 'down'))
+    eave = eave_trim(band, EAVE_DEPTH)
 
     corner = Image.new('RGBA', (F, F))
     corner.paste(east.crop((0, 0, TRIM, F - EDGE)), (CORNER - TRIM, EDGE))
@@ -123,13 +134,17 @@ def row(style):
         i, j = col & 1, col >> 1
         frames.append(swatch.crop((i * F, (1 - j) * F, (i + 1) * F, (2 - j) * F)))
 
-    frames.extend(trims(edge_band(sheet)))
+    band = edge_band(sheet)
+    frames.extend(trims(band))
 
     for (x, y) in (G.HOLED, G.COLLAPSED, G.BURNT):
         box = (x, y, x + G.DAMAGE, y + G.DAMAGE)
         cell = sheet.crop(box).resize((F, F), Image.LANCZOS).convert('RGBA')
         cell.putalpha(mask.crop(box).resize((F, F), Image.BILINEAR))
         frames.append(cell)
+
+    frames.append(eave_trim(band, DOOR_EAVE_DEPTH))
+    frames.append(eave_trim(band, PANE_EAVE_DEPTH))
     return frames
 
 

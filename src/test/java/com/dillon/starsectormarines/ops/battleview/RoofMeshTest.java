@@ -71,17 +71,17 @@ class RoofMeshTest {
         Buildings buildings = town(topology);
         RoofMesh mesh = new RoofMesh();
         // Frame 1 of row 2, a quarter turn, over the south half of the cell.
-        mesh.catchUp(topology, buildings, SHEET, 250, 200, (b, x, y, sink) ->
+        mesh.catchUp(topology, buildings, SHEET, 300, 200, (b, x, y, sink) ->
                 sink.quad(1, 2, 1, 0f, 0f, 1f, 0.5f), 1f);
         float[] uv = mesh.uvAt(mesh.slotOf(2, 2));
         // Frames are 25x50 px, row 2 spans sheet rows 100..150. A clockwise turn takes the frame's south-east
         // corner to the cell's south-west, and its north-east to the cell's south-east; the north-east corner of
         // the cut is half way along the frame's north edge. Each is held half a texel inside the frame.
-        assertEquals(49.5f / 250f, uv[0], 1e-5f);
+        assertEquals(49.5f / 300f, uv[0], 1e-5f);
         assertEquals(1f - 149.5f / 200f, uv[1], 1e-5f);
-        assertEquals(49.5f / 250f, uv[2], 1e-5f);
+        assertEquals(49.5f / 300f, uv[2], 1e-5f);
         assertEquals(1f - 100.5f / 200f, uv[3], 1e-5f);
-        assertEquals(37.5f / 250f, uv[4], 1e-5f);
+        assertEquals(37.5f / 300f, uv[4], 1e-5f);
         assertEquals(1f - 100.5f / 200f, uv[5], 1e-5f);
     }
 
