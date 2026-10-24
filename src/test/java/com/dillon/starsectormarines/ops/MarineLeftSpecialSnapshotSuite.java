@@ -221,7 +221,8 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 sim.advance(BattleSimulation.TICK_DT);
                 fx.feed(sim);
                 if (tick % SWEEP_AFTER_FRAME_TICKS == 0 && sim.world().isAlive(marine)) {
-                    frames.add(compose(renderer, modRoot, sim, marine, restX, restY, fx, focusX, focusY));
+                    frames.add(compose(renderer, modRoot, sim, marine, restX, restY, fx, focusX, focusY,
+                            CELLS_ACROSS));
                 }
             }
         }

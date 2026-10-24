@@ -159,7 +159,7 @@ public final class HeadlessArmoryPreviewRenderer {
                         new FireTeamBillet("Observer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                                 EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID),
                                 MarineArmorPattern.CHARCOAL)),
-                new PreviewCase("flamer", "Pack Flamer · Legionary line suit",
+                new PreviewCase("flamer", "Pack Flamer Â· Legionary line suit",
                         new FireTeamBillet("Flamer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                                 EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FLAMER_ID),
                                 MarineArmorPattern.ARMY_GREEN)),
