@@ -292,7 +292,6 @@ com.dillon.starsectormarines.battle.mech.MechFluxHazeSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.flier.HarrierPackSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.HeartAlliesLookSuite
 com.dillon.starsectormarines.battle.evacuation.HeartCommanderLookSuite
-com.dillon.starsectormarines.battle.evacuation.HeartGunshipOptionsLookSuite
 com.dillon.starsectormarines.battle.command.allied.HeartLaneFormationLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlliesLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite

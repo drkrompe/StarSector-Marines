@@ -224,8 +224,7 @@ public final class BloomHeartSetup {
             AlliedToolShed shed = new AlliedToolShed(park)
                     .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
                             Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
-                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT))
-                    .gated(AlliedTool.GUNSHIP, lanes.gunship()::gate);
+                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT));
             if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
@@ -270,6 +269,7 @@ public final class BloomHeartSetup {
         if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR) supportCompany(sim, form, lanes, companyLane, landing);
         if (front) lanes.companySector(companyLane);
         HeartAssaultCommand company = new HeartAssaultCommand(companyLane, screen);
+        if (form == Form.BROAD_FRONT && lanes != null) company.alongside(lanes.waveGrounds());
         if (form == Form.BROAD_FRONT && BROAD_WAIT_FOR_LANES) {
             if (BROAD_FALL_BACK) company.waitingForSatellites(landing.seedX(), landing.seedY());
             else company.waitingForSatellites();

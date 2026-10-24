@@ -1,5 +1,4 @@
 | `heart-commander-look` | Opt-in, minutes: plays the Broad Front town battle (seed 2) unrecorded to the allied commander's first call for machines and to its gunship call, and records each through the look preset from the call, the camera on what the base sent: `commander-armour`, `commander-gunship`, and `commander-reaim`, the wave re-aimed at a broken lane from its stepping off (`-Dsnapshot.heartCommander.shots=reaim` renders one) (`heart-allied-commander.md`) | `build/snapshots/heart-commander-look/` |
-| `heart-gunship-options` | Opt-in, minutes: the owner's gunship question (`heart-allied-commander.md`). The same Broad Front town battle once per `HeartGunship.Policy`, played side by side to the first sortie called (or the target a policy is still waiting on at tick 16000) and recorded through the look preset from there, the camera on the sortie; prints each policy's sorties, shoots and aircraft lost | `build/snapshots/heart-gunship-options/` |
 # Snapshot suites
 
 Status: ACTIVE
