@@ -454,12 +454,12 @@ public final class QuadBatch {
      * paged run takes a sheet's quads while each one's texture coordinates are still worked out by the batch that
      * knows its sheet.
      */
-    void moveQueuedTo(PagedQuadRun run, int page) {
+    void moveQueuedTo(PagedQuadRun run, float lane) {
         if (quadCount == 0) return;
         run.ensureCapacity(quadCount);
         int verts = quadCount * VERTS_PER_QUAD;
         int base = run.quadCount * VERTS_PER_QUAD;
-        float z = page;
+        float z = lane;
         for (int v = 0; v < verts; v++) {
             int to = (base + v) * 3;
             run.posData[to] = posData[v * 2];

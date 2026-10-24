@@ -188,6 +188,52 @@ class PagedQuadRunGlEvidence {
         return out;
     }
 
+    /**
+     * A hit flash on a real driver: fills at several flash amounts over a grey ground, each read back as its colour
+     * mixed toward white by exactly that share and then blended by its alpha, and an unflashed fill unchanged.
+     */
+    @Test
+    void aFlashedQuadIsItsColourMixedTowardWhite() throws Exception {
+        try (HeadlessGl gl = HeadlessGl.createOrNull(W, H)) {
+            if (gl == null) {
+                System.out.println("[shader-evidence] SKIPPED: " + HeadlessGl.unavailableReason());
+                return;
+            }
+            int[] target = target();
+            PagedQuadRun paged = new PagedQuadRun();
+            try {
+                assertTrue(paged.ready(), "a GL 2.1 context has to page");
+                float[] flashes = {0f, .25f, .5f, .75f, 1f};
+                float r = .2f, g = .5f, b = .9f, a = .8f;
+                DrawList frame = new DrawList();
+                for (int i = 0; i < flashes.length; i++) {
+                    frame.setFlash(flashes[i]);
+                    frame.addSolidRect(RenderLayer.UNITS, 20 + i * 100, 20, 100 + i * 100, 100, r, g, b, a);
+                }
+                frame.setFlash(0f);
+                byte[] pixels = draw(target[0], frame, new IdentityHashMap<>(), paged, new DrawCensus());
+                int worst = 0;
+                for (int i = 0; i < flashes.length; i++) {
+                    int at = (60 * W + 60 + i * 100) * 4;
+                    float[] colour = {r, g, b};
+                    float[] ground = {1f, 0f, 1f};
+                    for (int k = 0; k < 3; k++) {
+                        float flashed = colour[k] + (1f - colour[k]) * flashes[i];
+                        int expected = Math.round((flashed * a + ground[k] * (1f - a)) * 255f);
+                        worst = Math.max(worst, Math.abs((pixels[at + k] & 0xFF) - expected));
+                    }
+                }
+                System.out.println("[shader-evidence] hit flash: worst channel " + worst
+                        + " levels from colour mixed toward white");
+                assertTrue(worst <= 2, "a flash mixes the colour toward white by its share; worst " + worst);
+            } finally {
+                paged.dispose();
+                glDeleteFramebuffers(target[0]);
+                glDeleteTextures(target[1]);
+            }
+        }
+    }
+
     private static byte[] draw(int fbo, DrawList frame, Map<SpriteAPI, QuadBatch> batches, PagedQuadRun paged,
                                DrawCensus census) {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);

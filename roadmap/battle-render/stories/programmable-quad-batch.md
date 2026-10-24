@@ -1,6 +1,6 @@
-Status: IN PROGRESS — stages A to C landed (law 27); D open
+Status: IN PROGRESS — stages A to C landed (law 27); D under way, hit flash landed
 Written: 2026-10-24
-Updated: 2026-10-24 — normal and additive quads share a run, colour within three levels on `PagedQuadRunGlEvidence`
+Updated: 2026-10-24 — hit flash rides in z's fraction; dissolve, outline, recolour and lit units open
 
 # Programmable quad batch
 
@@ -69,9 +69,15 @@ that held it off was retired once stages A to C were read against it.
   run made a quad's rounding depend on what shared its run, and
   `renderEvidence`'s culled-against-unculled check caught a one-level
   difference where culling had changed a run's company.
-- **D. Effects.** Per-quad parameters as vertex attributes: hit flash, dissolve,
-  outline, faction mask recolour, lit units. Each is its own story once A to C
-  have settled the stream.
+- **D. Effects.** Per-quad parameters: hit flash, dissolve, outline, faction
+  mask recolour, lit units. Not vertex attributes: the Mac's LWJGL 3 path keeps
+  only `GL11`, so an effect rides in the fraction of z past the lane
+  (`PagedQuadRun.lane(page, additive, flash)`, half a unit of span). **Hit
+  flash landed**: `DrawList.setFlash` stamps every command a unit emits,
+  accepted on `PagedQuadRunGlEvidence` (a flashed quad is its colour mixed
+  toward white, within one level). A second effect needs more room than one
+  fraction gives: split the span or pack two quantised values before adding a
+  generic attribute.
 
 ## Measuring
 

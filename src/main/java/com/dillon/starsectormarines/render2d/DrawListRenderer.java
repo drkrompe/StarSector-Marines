@@ -119,7 +119,7 @@ public final class DrawListRenderer {
                     } else if (c.poly != null) {
                         c.poly.appendTo(solidBatch);
                     }
-                    solidBatch.moveQueuedTo(paged, page, 0.5f, 0.5f);
+                    solidBatch.moveQueuedTo(paged, PagedQuadRun.lane(page, false, c.flash), 0.5f, 0.5f);
                     pagedPending = true;
                     continue;
                 }
@@ -136,7 +136,8 @@ public final class DrawListRenderer {
                 } else {
                     appendSheetQuad(batch, c);
                 }
-                batch.moveQueuedTo(paged, PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive));
+                batch.moveQueuedTo(paged,
+                        PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive, c.flash));
                 pagedPending = true;
                 continue;
             }
