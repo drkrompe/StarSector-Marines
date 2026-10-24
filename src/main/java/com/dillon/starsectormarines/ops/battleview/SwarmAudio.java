@@ -49,7 +49,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
  * death are the Brute's takes played deeper and slower through the pitch
- * argument, not baked copies.
+ * argument, not baked copies. The Harrier, which flies with its pack rather than walking, is
+ * {@link HarrierAudio}'s, played from here.
  */
 public final class SwarmAudio {
 
@@ -173,6 +174,7 @@ public final class SwarmAudio {
      * sounds once.
      */
     public static void play(BattleSimulation sim, float listenerX, float listenerY) {
+        HarrierAudio.play(sim, listenerX, listenerY);
         Mix mix = MIXES.computeIfAbsent(sim, ignored -> new Mix());
         if (!mix.frame(sim.getSimTickIndex())) return;
         long now = System.nanoTime();

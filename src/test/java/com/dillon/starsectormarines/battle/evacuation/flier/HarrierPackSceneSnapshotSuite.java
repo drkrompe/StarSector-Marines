@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
@@ -7,9 +8,16 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.ops.battleview.HarrierAudio;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The Harrier pack's frames: the {@code with-aa} and {@code no-aa} loops at 1920x1080 (verdict evidence, on a bare
@@ -81,7 +89,7 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
      * The shots for an owner's picks question, in place of the review set ({@code -Dsnapshot.harrierPack.picks}):
      * {@code rate} plays the strike close-up at three throw rates, so how often a marine goes up can be watched;
      * {@code blood} plays it closer at the rule's own rate for stills of the blood, rendered once per
-     * {@code -Dbattle.harrier.blood} mode.
+     * {@code -Dbattle.harrier.blood} mode; {@code sound} plays the pack under flak and logs its sounds ({@link #soundShot}).
      */
     private static List<LookReview.Shot> pickShots(String picks) {
         List<LookReview.Shot> shots = new ArrayList<>();
@@ -105,9 +113,65 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                     placement -> List.of(LookReview.View.follow("close", placement, PICK_BLOOD_CELLS, "line")),
                     PICK_BLOOD_TICKS, 1, 4, new int[]{PICK_BLOOD_TICKS / 2}));
         }
+        if (picks.contains("sound")) shots.add(soundShot(look));
         return shots;
     }
 
+    /**
+     * {@code sound}: the pack over the line under flak at play zoom, a frame every tick, with every sound
+     * {@link HarrierAudio} would start written as a JSON line per sound ({@code frame, id, x, y, pitch, volume,
+     * listenerX, listenerY}), and the line's fire, to {@code -Dsnapshot.harrierPack.soundLog} for the review's soundtrack. The listener is
+     * the camera's centre, as it is the screen's in a battle. The throw chance is raised so a short clip hears one.
+     */
+    private static LookReview.Shot soundShot(String look) {
+        Path log = Path.of(System.getProperty("snapshot.harrierPack.soundLog", "build/snapshots/harrier-pack-sounds.jsonl"));
+        return new LookReview.Shot(look + "-sound", LookGround.verdant(), 70, 40,
+                placement -> {
+                    BattleSimulation sim = stage(placement, HarrierLook.DEFAULT, true);
+                    sim.swarmFliers().liftChance = STRIKE_LIFT_CHANCE;
+                    LookReview.View ear = LookReview.View.followAtPlay(placement, "line", "pack");
+                    HarrierAudio.Mix mix = new HarrierAudio.Mix();
+                    int[] frame = {0};
+                    try {
+                        Files.createDirectories(log.toAbsolutePath().getParent());
+                        Files.writeString(log, "");
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                    placement.beforeTick(s -> {
+                        float[] at = ear.focus().apply(s);
+                        StringBuilder lines = new StringBuilder();
+                        for (HarrierAudio.Play p : mix.hear(s, at[0], at[1])) {
+                            lines.append(String.format(Locale.ROOT,
+                                    "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": %.4f,"
+                                            + " \"volume\": %.3f, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
+                                    frame[0], p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at[0], at[1]));
+                        }
+                        // The line's fire too, at BattleShotAudio's levels, so the mix sets the fliers against it.
+                        for (ShotEvent shot : s.getShotsThisFrame()) {
+                            String id = shot.turretStructureDef != null ? shot.turretStructureDef.mount.weapon.fireSoundId
+                                    : shot.primaryWeaponDef != null ? shot.primaryWeaponDef.fireSoundId : null;
+                            if (id == null) continue;
+                            lines.append(String.format(Locale.ROOT,
+                                    "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": 1,"
+                                            + " \"volume\": %.3f, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
+                                    frame[0], id, shot.fromX, shot.fromY, shot.turretStructureDef != null ? 1f : 0.85f,
+                                    at[0], at[1]));
+                        }
+                        frame[0]++;
+                        try {
+                            Files.writeString(log, lines, StandardOpenOption.APPEND);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    });
+                    return sim;
+                },
+                placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack")),
+                SOUND_TICKS, 1, 2, new int[]{SOUND_TICKS / 2});
+    }
+
+    static final int SOUND_TICKS = 900;
     static final int PICK_RATE_TICKS = 3000;
     static final float PICK_BLOOD_CELLS = 8f;
     static final int PICK_BLOOD_TICKS = 600;
