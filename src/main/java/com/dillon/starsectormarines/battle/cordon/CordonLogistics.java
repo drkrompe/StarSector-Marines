@@ -460,7 +460,9 @@ public final class CordonLogistics implements AlliedDepot {
         }
         while (!leaving.isEmpty()) {
             long hull = leaving.peek();
-            if (!sim.convoy().isVehicle(hull) || sim.convoy().structure(hull) <= 0f) {
+            // A machine lost on its berth frees its id, and the id may be on another side's hull by now.
+            if (!sim.convoy().isVehicle(hull) || sim.convoy().structure(hull) <= 0f
+                    || sim.convoy().faction(hull) != Faction.ALLY) {
                 leaving.poll();
                 continue;
             }

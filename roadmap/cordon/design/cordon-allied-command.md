@@ -182,7 +182,12 @@ is sized so an ordinary battle barely notices it: one cover in stock and one
 more every four minutes; two trucks and one more every two minutes; a gun
 holds 400 bursts, about fifteen minutes of a heavy MG firing without pause,
 and a truck is asked for under 30% of the redoubt's rounds. Evidence reads how
-often any of it is used.
+often any of it is used: on the 2026-10-23 pools no ordinary battle asked for
+a truck (every truck was L2's, and every one sent outside a city arrived),
+cover was asked for in about half the open-country and town battles and
+granted almost always, and a sector stood uncovered for seconds, not minutes.
+A city's L2 lapses: it lays no supply road, and a truck from the shed's door
+found no way through its streets.
 
 ## The company commander's rules
 
