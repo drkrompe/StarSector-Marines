@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.fire;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,12 +12,30 @@ class FireFieldTest {
 
     private static final int W = 40, H = 20;
 
-    /** Grass everywhere except the columns given, which are bare. */
-    private static int[] grassWithBreak(int fromX, int toX) {
+    /**
+     * Dead creep everywhere except the columns given, which are bare. It burns as grass does (same peak, ignition
+     * and reach) but carries a fire as far as it stands, so a front lit at one edge can run the width of the field.
+     */
+    private static int[] runningFuelWithBreak(int fromX, int toX) {
         int[] fuel = new int[W * H];
         for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
-            fuel[y * W + x] = x >= fromX && x <= toX ? 0 : FireFuel.GRASS.bit;
+            fuel[y * W + x] = x >= fromX && x <= toX ? 0 : FireFuel.DEAD_CREEP.bit;
         return fuel;
+    }
+
+    private static int[] grass() {
+        int[] fuel = new int[W * H];
+        Arrays.fill(fuel, FireFuel.GRASS.bit);
+        return fuel;
+    }
+
+    /** The furthest burnt or burning cell from {@code (x, y)}, counted in rings as heat travels. */
+    private static int furthestTouched(FireField f, int x, int y) {
+        int far = 0;
+        for (int cy = 0; cy < H; cy++) for (int cx = 0; cx < W; cx++)
+            if (f.stateAt(cy * W + cx) != FireField.UNBURNT)
+                far = Math.max(far, Math.max(Math.abs(cx - x), Math.abs(cy - y)));
+        return far;
     }
 
     private static FireField field(int[] fuel, long seed) {
@@ -36,25 +56,48 @@ class FireFieldTest {
     }
 
     @Test
-    void aGrassFireRunsAcrossAndBurnsOut() {
-        int[] fuel = grassWithBreak(-1, -1);
+    void aFireOnFuelThatCarriesItRunsAcrossAndBurnsOut() {
+        int[] fuel = runningFuelWithBreak(-1, -1);
         FireField f = field(fuel, 3L);
         lightWestEdge(f);
         run(f, 0, 30 * 120);
         for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
-            assertEquals(FireField.BURNT, f.stateAt(y * W + x), "every grass cell burnt: " + x + "," + y);
+            assertEquals(FireField.BURNT, f.stateAt(y * W + x), "every cell burnt: " + x + "," + y);
         assertFalse(f.isActive(), "and the fire is out");
     }
 
     @Test
+    void aGrassFireLitAtAPointBurnsAPatchNoWiderThanItsSpreadAndGoesOut() {
+        FireField f = field(grass(), 3L);
+        f.addHeat(20.5f, 10.5f, 1.3f, 2200); // A flamer charge's splash.
+        run(f, 0, 30 * 120);
+        int far = furthestTouched(f, 20, 10);
+        assertTrue(far >= 2, "the fire spread from where it was lit: " + far);
+        // The splash lights the cells round its centre too, each where a fire was lit: one cell out.
+        assertTrue(far <= FireFuel.GRASS.spread + 1, "and no further than grass carries it: " + far);
+        assertFalse(f.isActive(), "and went out");
+    }
+
+    @Test
+    void dryCountryCarriesAGrassFireFurther() {
+        FireField f = field(grass(), 3L);
+        f.setTinder(true);
+        f.addHeat(20.5f, 10.5f, 1.3f, 2200);
+        run(f, 0, 30 * 120);
+        int far = furthestTouched(f, 20, 10);
+        assertTrue(far > FireFuel.GRASS.spread + 1, "dry grass runs past its green spread: " + far);
+        assertTrue(far <= FireFuel.GRASS.spread * FireField.TINDER_SPREAD + 1, "but not without end: " + far);
+    }
+
+    @Test
     void aTwoCellBreakHoldsAGrassFireAndAOneCellGapDoesNot() {
-        FireField held = field(grassWithBreak(20, 21), 3L);
+        FireField held = field(runningFuelWithBreak(20, 21), 3L);
         lightWestEdge(held);
         run(held, 0, 30 * 120);
         assertTrue(anyTouched(held, 19), "the fire reached the break");
         assertFalse(anyTouched(held, 22), "and nothing beyond it caught");
 
-        FireField leaked = field(grassWithBreak(20, 20), 3L);
+        FireField leaked = field(runningFuelWithBreak(20, 20), 3L);
         lightWestEdge(leaked);
         run(leaked, 0, 30 * 120);
         assertTrue(anyTouched(leaked, 21), "a front throws heat over a one-cell furrow");
@@ -62,7 +105,7 @@ class FireFieldTest {
 
     @Test
     void aCrownFireThrowsHeatFurtherThanAGrassFire() {
-        int[] fuel = grassWithBreak(20, 21);
+        int[] fuel = runningFuelWithBreak(20, 21);
         for (int y = 0; y < H; y++) for (int x = 12; x < 20; x++) fuel[y * W + x] = FireFuel.CROWN.bit | FireFuel.CREEP.bit;
         FireField f = field(fuel, 3L);
         lightWestEdge(f);
@@ -72,7 +115,7 @@ class FireFieldTest {
 
     @Test
     void windCarriesItDownwindAndHoldsItUpwind() {
-        int[] fuel = grassWithBreak(-1, -1);
+        int[] fuel = runningFuelWithBreak(-1, -1);
         FireField f = field(fuel, 5L);
         f.setWind(1f, 0f, 1f);
         f.addHeat(20, 10, 3000);
@@ -89,7 +132,7 @@ class FireFieldTest {
 
     @Test
     void sameSeedSameBurn() {
-        int[] fuel = grassWithBreak(18, 18);
+        int[] fuel = runningFuelWithBreak(18, 18);
         FireField a = field(fuel, 11L), b = field(fuel, 11L);
         for (FireField f : new FireField[]{a, b}) { lightWestEdge(f); run(f, 0, 30 * 40); }
         for (int i = 0; i < W * H; i++) {

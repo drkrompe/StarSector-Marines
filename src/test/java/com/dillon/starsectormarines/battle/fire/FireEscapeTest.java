@@ -46,8 +46,9 @@ class FireEscapeTest {
     void groundAheadOfTheFrontIsNotSafeButBareGroundBeyondItIs() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
-        // Grass from 0 to 12, alight only at its west end; bare beyond.
-        FireField field = new FireField(W, H, 3L, idx -> idx % W <= 12 ? FireFuel.GRASS.bit : 0);
+        // Dead creep (grass that carries a fire as far as it stands) from 0 to 12, alight only at its west end;
+        // bare beyond.
+        FireField field = new FireField(W, H, 3L, idx -> idx % W <= 12 ? FireFuel.DEAD_CREEP.bit : 0);
         for (int y = 0; y < H; y++) field.addHeat(0, y, 5000);
         int t = 0;
         while (!field.isBurning(4, 4) || field.isBurning(6, 4)) {
