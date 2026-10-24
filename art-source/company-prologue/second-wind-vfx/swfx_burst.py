@@ -23,6 +23,7 @@ Callers: `swfx_pd` (flak), `swfx_missile_paths` (hits, kills, decoys, ignition),
 (kinetic and HE flashes, breaches), `swfx_fire` (explosion anchors with style 'jagged').
 """
 import math
+import random
 
 from mathutils import Matrix, Quaternion, Vector
 
@@ -51,10 +52,59 @@ def _rod_mesh(name, mat, sides=8):
     return swfx_guns._cylinder_mesh(name, 1.0, -1.0, 0.0, sides, mat)
 
 
-def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, rings=10):
+def _spread(verts):
+    """How unevenly `verts` sit round their box centre, per axis: the coefficient of variation of
+    their distances from the centre of their bounding box, each axis scaled by its half-extent.
+    The measure swfx_lint._round_shape reads an orb by (under .2 is round)."""
+    lo = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi = Vector([max(v[i] for v in verts) for i in range(3)])
+    c, h = (lo + hi) / 2, [max(x, 1e-9) for x in (hi - lo) / 2]
+    rs = [Vector([(v[i] - c[i]) / h[i] for i in range(3)]).length for v in verts]
+    mean = sum(rs) / len(rs)
+    return math.sqrt(sum((r - mean) ** 2 for r in rs) / len(rs)) / max(mean, 1e-9)
+
+
+def _bite(verts, rnd):
+    """One deep notch: every vertex pulled toward the box centre along its own ray by up to
+    60-85% inside a broad cone round a seeded direction. A direction-only scale about one point
+    moves each vertex along its ray and keeps their order on it, so the surface never folds."""
+    lo = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi = Vector([max(v[i] for v in verts) for i in range(3)])
+    c, h = (lo + hi) / 2, Vector([max(x, 1e-9) for x in (hi - lo) / 2])
+    d = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized()
+    a, p = rnd.uniform(.6, .85), rnd.uniform(3.0, 6.0)
+    out = []
+    for v in verts:
+        u = Vector([(v[i] - c[i]) / h[i] for i in range(3)])
+        f = 1 - a * max(0.0, u.normalized().dot(d)) ** p if u.length > 1e-9 else 1.0
+        out.append(c + (v - c) * f)
+    return out
+
+
+def tear_verts(verts, rnd, floor=.32, least=2, most=8, tries=6):
+    """Notch a burst's vertices until they are torn, never round: at least `least` bites, then more
+    until their spread (_spread) clears `floor`, each the most tearing of `tries` seeded candidates,
+    and the result stretched back to the box it started in so the burst keeps its size. Measured
+    on the bench (2026-10-24): an untorn lobed flash leaning into its throw is an egg, spread .11-.24,
+    flagged an orb on its white frame; torn, every one clears .32. floor .32 keeps a margin over the
+    lint's .2 at the owner's 'never an orb'; least 2 so even one already ragged gets uneven notches."""
+    lo0 = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi0 = Vector([max(v[i] for v in verts) for i in range(3)])
+    for k in range(most):
+        if k >= least and _spread(verts) >= floor:
+            break
+        verts = max((_bite(verts, rnd) for _ in range(tries)), key=_spread)
+    lo = Vector([min(v[i] for v in verts) for i in range(3)])
+    hi = Vector([max(v[i] for v in verts) for i in range(3)])
+    s = [(hi0[i] - lo0[i]) / max(hi[i] - lo[i], 1e-9) for i in range(3)]
+    return [Vector([lo0[i] + (v[i] - lo[i]) * s[i] for i in range(3)]) for v in verts]
+
+
+def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, rings=10, torn=False):
     """An irregular burst shape: a sphere pushed out into a few broad lobes and a few sharp
     spikes in seeded directions, leaning toward local +X by `lean` (0 all round, 1.5 mostly
-    forward). Returns (mesh, [(direction, amount, sharpness)]); a spike's sharpness is over 15."""
+    forward). torn: then notched deep and unevenly (tear_verts), for a flash that must never read
+    as a disc. Returns (mesh, [(direction, amount, sharpness)]); a spike's sharpness is over 15."""
     bpy = _bpy()
 
     def pick():
@@ -75,7 +125,11 @@ def lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), lean=0.0, segs=20, r
             ph = 2 * math.pi * k / segs
             v = Vector((math.sin(th) * math.cos(ph), math.sin(th) * math.sin(ph), math.cos(th)))
             verts.append(v * radius(v))
-    faces = [(0, 1 + (k + 1) % segs, 1 + k) for k in range(segs)]
+    if torn:
+        # Notched from its own generator seeded off the caller's state without drawing from it, so
+        # every later draw of the burst (size, stretch, shrapnel, smoke) is what it was untorn.
+        verts = tear_verts(verts, random.Random(hash(rnd.getstate())))
+    faces =[(0, 1 + (k + 1) % segs, 1 + k) for k in range(segs)]
     for r in range(rings - 2):
         a0, b0 = 1 + r * segs, 1 + (r + 1) * segs
         for k in range(segs):
@@ -300,7 +354,7 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     # Its own material: hot yellow-white heart, the blast's colour out to a feathered edge (the
     # kit's glow ball rendered the lobed mesh as flat white cut-outs, first sweep render).
     glow = flash_material(ctx, flash_rgb)
-    me, dirs = lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd, lean=lean_now)
+    me, dirs = lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd, lean=lean_now, torn=True)
     fl = bpy.data.objects.new(f'{prefix} {tag}', me)
     coll.objects.link(fl)
     fl.location = here
@@ -356,8 +410,11 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
             tips = [here + d * (size * .5 + speed * i) for i in range(n + 1)]
             for i in range(3):
                 swfx_guns._bake(st, 'location', i, frames, [p[i] for p in tips])
+            # never shorter than four widths (twice its diameter), as the spall is: a cooled fragment
+            # of a small burst came out about as long as wide, a stub the orb lint read as a ball
             swfx_guns._bake(st, 'scale', 0, frames,
-                            [min(size * .3 + speed * i, frag + (hot_len - frag) * h) for i, h in enumerate(heat)])
+                            [max(width * 4, min(size * .3 + speed * i, frag + (hot_len - frag) * h))
+                             for i, h in enumerate(heat)])
             swfx_guns._bake(st, 'scale', 1, frames, [width] * len(frames))
             swfx_guns._bake(st, 'scale', 2, frames, [width] * len(frames))
             swfx_guns._bake(st, 'color', 0, frames, heat)
