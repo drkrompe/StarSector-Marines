@@ -1076,9 +1076,9 @@ KEYFRAMES = {
             ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
             ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
             ('fire_on', 'lasher-lead', (16, 4, 6), (-.4, .4, 1), 105 - 106.9),
-            ('blast_on', 'lasher-lead', 4, (40, -3, 5), 105.9),
-            ('blast_on', 'lasher-lead', 4, (28, 1, 6), 106.6),
-            ('blast_on', 'lasher-lead', 5, (17, 3, 6), 107.2),
+            ('blast_on', 'lasher-lead', 8, (40, -3, 5), 105.9),
+            ('blast_on', 'lasher-lead', 8, (28, 1, 6), 106.6),
+            ('blast_on', 'lasher-lead', 9, (17, 3, 6), 107.2),
             ('blast_on', 'lasher-lead', 16, (8, 4, 6), 107.6), ('debris', 'lasher-lead', 40, (8, 4, 6), 107.6)],
         labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
