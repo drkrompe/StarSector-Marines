@@ -240,6 +240,44 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void aReadiedLauncherIsCarriedWalkingAndRaisedToTheAimOnStopping() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3));
+        FacingSystem system = new FacingSystem(sim.getEntityWorld(), c, sim.getRoster());
+        HeldSpecialPose ready = new HeldSpecialPose(1f, Float.POSITIVE_INFINITY);
+        int blendTicks = Math.round(FacingSystem.CARRY_BLEND_SECONDS / BattleSimulation.TICK_DT);
+
+        sim.getEntityWorld().setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, UnitType.MARINE.moveSpeed);
+        system.tick(marine, 9f, 5f, false, new HeldSpecialPose(0.5f, Float.POSITIVE_INFINITY));
+        assertFalse(carried(sim, marine), "still readying, it is raised to the aim even on the move");
+
+        system.tick(marine, 9f, 5f, false, ready);
+        assertEquals(LayeredAppearance.POSE_ROCKET_AIM, i(sim, marine, BattleComponents.LAYERED_WEAPON_POSE));
+        assertTrue(carried(sim, marine), "readied and walking, it goes to the carry");
+        assertEquals(1f / blendTicks, f(sim, marine, BattleComponents.LAYERED_WEAPON_PHASE), 0.001f);
+        for (int tick = 0; tick < blendTicks; tick++) system.tick(marine, 9f, 5f, false, ready);
+        assertEquals(1f, f(sim, marine, BattleComponents.LAYERED_WEAPON_PHASE), 0.001f);
+
+        sim.getEntityWorld().setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, 0f);
+        system.tick(marine, 9f, 5f, false, ready);
+        assertTrue(carried(sim, marine), "stopping raises it over the blend rather than at once");
+        for (int tick = 0; tick < blendTicks; tick++) system.tick(marine, 9f, 5f, false, ready);
+        assertFalse(carried(sim, marine), "standing, it is back at the aim");
+
+        sim.getEntityWorld().setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, UnitType.MARINE.moveSpeed);
+        for (int tick = 0; tick < blendTicks; tick++) system.tick(marine, 9f, 5f, false, ready);
+        system.tick(marine, 9f, 5f, false, new HeldSpecialPose(1f, 0f));
+        assertEquals(LayeredAppearance.POSE_ROCKET_FIRE, i(sim, marine, BattleComponents.LAYERED_WEAPON_POSE));
+        assertFalse(carried(sim, marine), "a round is fired from the aim, not the carry");
+    }
+
+    private static boolean carried(BattleSimulation sim, long marine) {
+        return (i(sim, marine, BattleComponents.LAYERED_FLAGS) & LayeredAppearance.FLAG_SPECIAL_CARRIED) != 0;
+    }
+
+    @Test
     public void secondaryEntryRetainsItsLastStrideUntilTheBlendFinishes() {
         BattleSimulation sim = arena();
         BattleComponents c = sim.getBattleComponents();

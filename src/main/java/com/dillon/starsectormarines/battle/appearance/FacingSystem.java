@@ -550,6 +550,16 @@ public final class FacingSystem {
             if (!fired && authoredPhase < LayeredAppearance.ACTION_ENTRY_BLEND_PHASE && moving) {
                 authoredFlags |= LayeredAppearance.FLAG_ACTION_FROM_MOVING;
             }
+            // Readied and walking, it is carried in the item's walking clip; stopping brings it back up to the aim.
+            // Both ways it moves over a short blend, and a round snaps it to the aim at once.
+            float carried = (previousFlags & LayeredAppearance.FLAG_SPECIAL_CARRIED) != 0 ? phase[row] : 0f;
+            boolean carrying = !fired && moving && held.readiness() >= 1f && special.presentation().layerClips() != null
+                    && special.presentation().layerClips().walking() != null;
+            carried = fired ? 0f : clamp01(carried + (carrying ? TICK_FLOOR : -TICK_FLOOR) / CARRY_BLEND_SECONDS);
+            if (carried > 0f) {
+                authoredPhase = carried;
+                authoredFlags |= LayeredAppearance.FLAG_SPECIAL_CARRIED;
+            }
             if (fired && launcher) authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
             if (fired && held.sinceFired() <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
                 authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
@@ -589,6 +599,8 @@ public final class FacingSystem {
 
     /** A follow-through never shorter than one tick, so a round always shows its firing frame. */
     private static final float TICK_FLOOR = BattleSimulation.TICK_DT;
+    /** Seconds a readied special takes to go from the aim to its walking carry, and back. */
+    static final float CARRY_BLEND_SECONDS = 0.2f;
 
     private static float clamp01(float value) {
         return Math.max(0f, Math.min(1f, value));
