@@ -44,8 +44,8 @@ rounds colour times alpha once where the blend unit multiplied, and stacked
 translucent quads carry that rounding up.
 
 **It fails soft.** No program (compile or link refused, fewer than two units)
-leaves the drain on today's fixed-function path, unchanged. A control switch
-`battle.render.pagedBatch` holds it off for the A/B.
+leaves the drain on the fixed-function path, one run per sheet. The A/B switch
+that held it off was retired once stages A to C were read against it.
 
 ## Stages
 

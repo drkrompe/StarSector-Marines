@@ -55,7 +55,7 @@ final class NightLightingRenderSystem implements RenderSystem {
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
-        if (NightShadeField.ENABLED && ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
+        if (ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
             field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), burning ? firePools : null,
                     ground, useFog ? fog.cellShownArray() : null, night.darkness(), ctx.alphaMult, camera);
             pass.useField(field, masked, useFog);
@@ -303,7 +303,7 @@ final class NightLightingRenderSystem implements RenderSystem {
     private void bake(CellTopology ground, NightLighting night) {
         topology=ground; lighting=night; width=ground.getWidth()*2+1;
         bakePools(ground, night);
-        if (NightShadeField.ENABLED) field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
+        field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
     }
 
     private void bakePools(CellTopology ground, NightLighting night) {
