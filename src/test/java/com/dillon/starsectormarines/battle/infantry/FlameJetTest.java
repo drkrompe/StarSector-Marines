@@ -48,4 +48,20 @@ class FlameJetTest {
     void aCursorOnTheMarineSendsNothing() {
         assertNull(FlameJet.point(open(20, 9), 2.5f, 4.5f, 2.5f, 4.5f, 7f));
     }
+
+    @Test
+    void theJetLeavesTheWandsNozzleAheadAndToTheRightOfTheMarine() {
+        // Facing east: the nozzle is ahead (east) and on the right hip, which with y running north is south.
+        float[] east = FlameJet.nozzle(10f, 10f, 15f, 10f);
+        assertEquals(10f + FlameJet.NOZZLE_FORWARD_CELLS, east[0], 1e-5f);
+        assertEquals(10f - FlameJet.NOZZLE_RIGHT_CELLS, east[1], 1e-5f);
+        // Facing north: right is east.
+        float[] north = FlameJet.nozzle(10f, 10f, 10f, 14f);
+        assertEquals(10f + FlameJet.NOZZLE_RIGHT_CELLS, north[0], 1e-5f);
+        assertEquals(10f + FlameJet.NOZZLE_FORWARD_CELLS, north[1], 1e-5f);
+        // No bearing, no offset.
+        float[] still = FlameJet.nozzle(10f, 10f, 10f, 10f);
+        assertEquals(10f, still[0], 0f);
+        assertEquals(10f, still[1], 0f);
+    }
 }

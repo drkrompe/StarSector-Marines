@@ -327,16 +327,18 @@ public final class ImpactFx {
         mist.color = BLOOD_MIST_COLOR;
         mist.alpha = .45f;
         mist.angleDeg = rng.nextFloat() * 360f;
-        for (int i = 0, n = Math.round(6 * blood); i < n; i++) {
-            float across = (rng.nextFloat() - .5f) * 1.1f;
-            float speed = 1.8f + rng.nextFloat() * 2.2f;
+        // Fine droplets, most of them small and a few heavier, flung at different speeds so they string out.
+        for (int i = 0, n = Math.round(10 * blood); i < n; i++) {
+            float across = (rng.nextFloat() - .5f) * 1.2f;
+            float speed = 1.4f + rng.nextFloat() * rng.nextFloat() * 4f;
             Particle p = streak(x, y, (dirX + sideX * across) * speed, (dirY + sideY * across) * speed);
-            p.dragPerSecond = 6f;
-            p.lifetimeRemaining = p.lifetimeMax = .4f + rng.nextFloat() * .25f;
-            p.radiusCells = (.06f + rng.nextFloat() * .05f) * (float) Math.sqrt(blood);
-            p.aspectRatio = .55f;
+            p.dragPerSecond = 5f + rng.nextFloat() * 3f;
+            p.lifetimeRemaining = p.lifetimeMax = .3f + rng.nextFloat() * .35f;
+            float heft = rng.nextFloat();
+            p.radiusCells = (.025f + .06f * heft * heft) * (float) Math.sqrt(blood);
+            p.aspectRatio = .3f + rng.nextFloat() * .45f;
             p.color = BLOOD_COLOR;
-            p.alpha = .9f;
+            p.alpha = .8f + .2f * heft;
         }
     }
 
