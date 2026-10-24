@@ -33,6 +33,8 @@ final class MechSocketConsole {
     private static final float HEADER_INSET = 16f;
     private static final float HEADER_END = 10f;
     private static final float TAG_GAP = 10f;
+    /** What a header keeps beside its name: the tick and inset before it, the strip X after. */
+    private static final float LABEL_RESERVE = 40f;
     private static final float SEALED_HEIGHT = 48f;
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
@@ -45,7 +47,8 @@ final class MechSocketConsole {
      * wider. A compartment's header also carries how full it is, so it is sized for a full one.
      */
     static float width(SocketDef socket) {
-        float header = HEADER_INSET + Fonts.ORBITRON_12_BOLD.measureWidth(socket.label()) + HEADER_END;
+        // The name is set clear of the strip X in the corner, as draw() fits it.
+        float header = Fonts.ORBITRON_12_BOLD.measureWidth(socket.label()) + LABEL_RESERVE;
         if (socket.id().compartment()) {
             header += TAG_GAP + Fonts.ORBITRON_12_BOLD.measureWidth(
                     Strings.format("mechLabCompartmentUsed", socket.capacity(), socket.capacity()));
@@ -104,7 +107,7 @@ final class MechSocketConsole {
                 (int) (150 + pulse * 105)) : empty && !fixed ? socketTone
                 : new Color(socketTone.getRed(), socketTone.getGreen(), socketTone.getBlue(), 70), missing ? 2f : 1.2f);
         c.fillRect(x + 8, y + 7, 3, 9, fixed ? MUTED : missing ? RED : socketTone);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 40), x + 16,
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - LABEL_RESERVE), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
         if (compartment && !fixed) {
             headerTag(c, Strings.format("mechLabCompartmentUsed", used(here), socket.capacity()), x, y, w,
