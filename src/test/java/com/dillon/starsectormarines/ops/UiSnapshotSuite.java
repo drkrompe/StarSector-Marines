@@ -1578,9 +1578,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * has everybody standing on their spawn cell, which is the one arrangement
      * the crew is never actually in.
      */
-    private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
-                                           Supplier<List<MarineSoldier>> company) {
-        return companyShip(lance, company, null);
+    private static CompanyDeck companyShip(SnapshotContext context,
+                                           Supplier<List<MechVariant>> lance,
+                                           Supplier<List<MarineSoldier>> company) throws Exception {
+        return companyShip(context, lance, company, null);
     }
 
     /**
@@ -1593,11 +1594,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * question and is crewed from the same one, so this costs no second
      * generation.
      */
-    private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
+    private static CompanyDeck companyShip(SnapshotContext context,
+                                           Supplier<List<MechVariant>> lance,
                                            Supplier<List<MarineSoldier>> company,
-                                           Function<CompanyDeck, boolean[]> boatsHeld) {
+                                           Function<CompanyDeck, boolean[]> boatsHeld) throws Exception {
         boolean[][] held = new boolean[1][];
-        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED,
+        CompanyDeck ship = new CompanyDeck(TestHulls.secondWind(context.starsectorCore()), SHIP_SEED,
                 null, lance, company, () -> held[0]);
         if (boatsHeld != null) held[0] = boatsHeld.apply(ship);
         readied(ship);
@@ -1652,7 +1654,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var squad = roster.squads().stream().filter(q -> !q.reserve()).findFirst().orElseThrow();
         var model = new BarracksViewModel(reactor, roster, () -> 100d, snapshotEquipmentResources(),
                 () -> 20, id -> new PersonnelDrawResult(0, 0));
-        CompanyDeck ship = companyShip(List::of, () -> MarineOpsContext.companyMarines(roster));
+        CompanyDeck ship = companyShip(context, List::of, () -> MarineOpsContext.companyMarines(roster));
         List<ScreenId> routes = new ArrayList<>();
         var navigation = new MarineOpsContext(null) {
             @Override public void goTo(ScreenId screen) { routes.add(screen); }
@@ -2081,7 +2083,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         BarracksViewModel model = new BarracksViewModel(reactor, company.roster, () -> 100d,
                 company, company::recruits, company::reinforce);
-        CompanyDeck ship = companyShip(List::of, () -> MarineOpsContext.companyMarines(company.roster));
+        CompanyDeck ship = companyShip(context, List::of, () -> MarineOpsContext.companyMarines(company.roster));
         Map<String, Object> properties = props(model, ship);
         properties.put("contextLabel", ShipBreadcrumb.of(ship.ship(), null) + " / PERSONNEL COMMAND");
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -2191,7 +2193,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
         if (companyRoster) viewModel.command().showCompanyRoster();
-        CompanyDeck ship = companyShip(List::of,
+        CompanyDeck ship = companyShip(context, List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -2228,7 +2230,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         VanillaHullSilhouettes.Hull hull =
                 vanilla.available() ? vanilla.read(SHIP_VIEW_HULL) : null;
         CompanyDeck ship = hull == null
-                ? companyShip(List::of, () -> MarineOpsContext.companyMarines(roster))
+                ? companyShip(context, List::of, () -> MarineOpsContext.companyMarines(roster))
                 : new CompanyDeck(new CompanyShip(hull.hullClass(), hull.role(),
                         hull.minCrew(), hull.maxCrew(), hull.cargo(),
                         hull.silhouette(), hull.spriteName()),
@@ -2704,7 +2706,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
         // would be evidence about a room the player never sees.
-        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED, null, viewModel::gantryVariants,
+        CompanyDeck ship = new CompanyDeck(TestHulls.secondWind(context.starsectorCore()), SHIP_SEED, null, viewModel::gantryVariants,
                 List::of, () -> null).vehicles(viewModel::gantryVehicles);
         readied(ship);
         ship.advance(18f);
@@ -2959,7 +2961,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // opens on her first hangar. Larger programs can have additional bays,
         // so derive a visible berth rather than assuming campaign numbering.
         int[] struck = {-1};
-        CompanyDeck ship = companyShip(List::of, List::of, hull -> {
+        CompanyDeck ship = companyShip(context, List::of, List::of, hull -> {
             campaign[0] = boatsAboard(hull);
             if (strikeABoat) {
                 struck[0] = lastBerthInHerFirstHangar(hull);
