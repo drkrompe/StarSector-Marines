@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b40-4e96-7941-ae57-86c70e0b87f3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b40-4e96-7941-ae57-86c70e0b87f3\\exec-73f59cf8-b276-447a-a353-e4911677dc00.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\raw\\diktat-export-militia-points.raw.png",
+    "sha256": "ad126cbbc041716f0b7632467c7620414ab96b41899dda491d30d2f3e2b829d9",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\prompts\\diktat-export-militia-points.prompt.txt",
+  "promptSha256": "0840c8a6fc293685c3fa1178734762503e5cbf97e09931cf30c87271c80efa38",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette, position and size\nImage 2: Painting style and rendering finish only; not layout, not material colour\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It holds three separate objects for small sci-fi strategy-game building props (like a tabletop miniature terrain set), each seen from directly above: left, a ring of eight square collapsible barrier cells round a dug pit, sunk flush into the ground, with an empty dark circular socket in the middle (leave the well interior dark and plain: a separate housing sits over it); middle, a boxy panelled rotating machinery housing with a flat front plate, a side feed box and two slim parallel pipes sticking straight up the image; right, a flat-sided panelled rotating machinery housing with a square front box and one long pipe ending in a slotted cap, sticking straight up the image. Material and style: Sindrian militia emplacement: the same sand-ochre export housings, dusty and dented, set in interlocking moulded plastic-composite barrier blocks in faded orange-red and off-white where the guide shows square cells, filled with sand, with oil drums and corrugated sheet patches; red unit bands sun-faded. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: keep the guide's lit and shaded faces exactly where they are. Hand-painted gritty science-fiction game-sprite look like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no letters, no numbers, no labels, no watermark, no UI, no ground or terrain, no grass, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\guides\\midline-militia-points-guide.png",
+      "sha256": "26d6e40002e8b7b1a057be1bfde682f188cd11c259e44c59e15b495ea7645645",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette, position and size"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\mod\\graphics\\structures\\missile-aa-base.png",
+      "sha256": "c4fd9bbc087b3bcc64c613cc676461ab1f9b79c3bce36ae6d5ecc9c589ff176e",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Painting style and rendering finish only; not layout, not material colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render one image, preserving Image 1’s geometry and using Image 2 only for the painted finish."
+  ],
+  "usage": {
+    "input_tokens": 42036,
+    "cached_input_tokens": 33408,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 541,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.1
+}

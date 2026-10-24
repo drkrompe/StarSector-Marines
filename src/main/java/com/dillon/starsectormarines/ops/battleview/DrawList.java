@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.QuadMesh;
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -34,6 +35,8 @@ public final class DrawList {
 
     /** Where a whole-image draw is re-addressed, or null for the sprite path. */
     private SpriteAtlas spriteAtlas;
+    /** By layer ordinal: whether {@link #spriteAtlas} takes in what is drawn there and not yet held. */
+    private final boolean[] gathered = new boolean[RenderLayer.values().length];
     /** {@link #spriteAtlas}'s rectangles, as a mesh resolves them once. */
     private final QuadMesh.AtlasAddress atlasAddress = image -> {
         SpriteAtlas.Placement at = spriteAtlas.placement(image);
@@ -69,7 +72,34 @@ public final class DrawList {
                              float cx, float cy, float w, float h,
                              float r, float g, float b, float a) {
         TextureUsage.sheet(sheet, srcW, srcH, w, h);
+        if (gathered[layer.ordinal()]
+                && cutIntoAtlas(layer, sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, 0f, false, r, g, b, a)) return;
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
+    }
+
+    /**
+     * In a layer the atlas {@linkplain SpriteAtlas#gathers gathers}, a quad cut from a sheet the atlas holds whole is
+     * addressed inside its slot, so it joins the run around it instead of flushing it twice; a sheet the atlas does
+     * not hold is noted for it. False leaves the quad on its own sheet.
+     */
+    private boolean cutIntoAtlas(RenderLayer layer, SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
+                                 float cx, float cy, float w, float h, float angleDeg, boolean flipV,
+                                 float r, float g, float b, float a) {
+        SpriteAtlas.Placement at = held(layer, sheet);
+        if (at == null) return false;
+        ModTextures.Loaded loaded = spriteAtlas.loadedImage(sheet);
+        if (loaded == null || loaded.width() <= 0 || loaded.height() <= 0) return false;
+        // A fitted image's slot is its shipped size, so logical pixels scale into it.
+        float sx = at.width() / (float) loaded.width();
+        float sy = at.height() / (float) loaded.height();
+        int x = at.x() + Math.round(srcX * sx);
+        int y = at.y() + Math.round(srcY * sy);
+        int cutW = Math.round(srcW * sx);
+        int cutH = Math.round(srcH * sy);
+        DrawCommand cmd = slot(layer);
+        if (flipV) cmd.setSheetQuadFlippedV(spriteAtlas.sheet(), x, y, cutW, cutH, cx, cy, w, h, angleDeg, r, g, b, a);
+        else cmd.setSheetQuad(spriteAtlas.sheet(), x, y, cutW, cutH, cx, cy, w, h, angleDeg, r, g, b, a);
+        return true;
     }
 
     /** A convex clipped part of a tile; vertices are normalized within its uncut destination. */
@@ -85,6 +115,8 @@ public final class DrawList {
                              float cx, float cy, float w, float h, float angleDeg,
                              float r, float g, float b, float a) {
         TextureUsage.sheet(sheet, srcW, srcH, w, h);
+        if (gathered[layer.ordinal()]
+                && cutIntoAtlas(layer, sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, false, r, g, b, a)) return;
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
@@ -98,20 +130,18 @@ public final class DrawList {
                                int srcX, int srcY, int srcW, int srcH,
                                float cx, float cy, float w, float h, float angleDeg,
                                float r, float g, float b, float a) {
-        if (spriteAtlas != null && spriteAtlas.isServing()) {
-            SpriteAtlas.Placement at = spriteAtlas.placement(image);
-            if (at != null) {
-                // A fitted image's slot is its shipped size, so logical pixels scale into it.
-                float sx = at.width() / (float) imageW;
-                float sy = at.height() / (float) imageH;
-                TextureUsage.sheet(image, srcW, srcH, w, h);
-                slot(layer).setSheetQuad(spriteAtlas.sheet(),
-                        at.x() + Math.round(srcX * sx), at.y() + Math.round(srcY * sy),
-                        Math.round(srcW * sx), Math.round(srcH * sy), cx, cy, w, h, angleDeg, r, g, b, a);
-                return;
-            }
+        SpriteAtlas.Placement at = held(layer, image);
+        TextureUsage.sheet(image, srcW, srcH, w, h);
+        if (at != null) {
+            // A fitted image's slot is its shipped size, so logical pixels scale into it.
+            float sx = at.width() / (float) imageW;
+            float sy = at.height() / (float) imageH;
+            slot(layer).setSheetQuad(spriteAtlas.sheet(),
+                    at.x() + Math.round(srcX * sx), at.y() + Math.round(srcY * sy),
+                    Math.round(srcW * sx), Math.round(srcH * sy), cx, cy, w, h, angleDeg, r, g, b, a);
+            return;
         }
-        addSheetQuad(layer, image, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
+        slot(layer).setSheetQuad(image, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
     /** Vertically-mirrored sheet-quad (axis-aligned): samples the sub-rect top↔bottom flipped. */
@@ -120,6 +150,8 @@ public final class DrawList {
                                      float cx, float cy, float w, float h,
                                      float r, float g, float b, float a) {
         TextureUsage.sheet(sheet, srcW, srcH, w, h);
+        if (gathered[layer.ordinal()]
+                && cutIntoAtlas(layer, sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, 0f, true, r, g, b, a)) return;
         slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
     }
 
@@ -129,6 +161,8 @@ public final class DrawList {
                                      float cx, float cy, float w, float h, float angleDeg,
                                      float r, float g, float b, float a) {
         TextureUsage.sheet(sheet, srcW, srcH, w, h);
+        if (gathered[layer.ordinal()]
+                && cutIntoAtlas(layer, sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, true, r, g, b, a)) return;
         slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH,
                 cx, cy, w, h, angleDeg, r, g, b, a);
     }
@@ -142,24 +176,36 @@ public final class DrawList {
      * than in the composers because there are a dozen emit sites and one of them
      * disagreeing with the others would be a body drawn out of order; here there
      * is one rule, applied to every caller alike, and the command's layer,
-     * position and order are untouched. A caller that genuinely wants the sprite
-     * path — an additive draw, whose blend a batched quad cannot carry — has its
-     * own method and never reaches this one.
+     * position and order are untouched. In a layer the atlas
+     * {@linkplain SpriteAtlas#gathers gathers}, an image it does not hold yet is
+     * noted for it, so a later frame's collect finds it there.
      */
     public void addSprite(RenderLayer layer, SpriteAPI sprite,
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {
         TextureUsage.sprite(sprite, w, h);
-        if (spriteAtlas != null && spriteAtlas.isServing()) {
-            SpriteAtlas.Placement at = spriteAtlas.placement(sprite);
-            if (at != null) {
-                slot(layer).setSheetQuad(spriteAtlas.sheet(),
-                        at.x(), at.y(), at.width(), at.height(),
-                        cx, cy, w, h, angleDeg, r, g, b, a);
-                return;
-            }
+        SpriteAtlas.Placement at = held(layer, sprite);
+        if (at != null) {
+            slot(layer).setSheetQuad(spriteAtlas.sheet(),
+                    at.x(), at.y(), at.width(), at.height(),
+                    cx, cy, w, h, angleDeg, r, g, b, a);
+            return;
         }
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a);
+    }
+
+    /**
+     * {@code image}'s slot while the atlas is serving and holds it, else null; an image drawn in a layer the atlas
+     * {@linkplain SpriteAtlas#gathers gathers} that the atlas does not hold is noted for it on the way.
+     */
+    private SpriteAtlas.Placement held(RenderLayer layer, SpriteAPI image) {
+        if (spriteAtlas == null) return null;
+        SpriteAtlas.Placement at = spriteAtlas.placement(image);
+        if (at == null) {
+            if (gathered[layer.ordinal()]) spriteAtlas.noteMissed(image);
+            return null;
+        }
+        return spriteAtlas.isServing() ? at : null;
     }
 
     /**
@@ -177,8 +223,13 @@ public final class DrawList {
             }
         }
         SpriteAPI sheet = null;
-        if (spriteAtlas != null && spriteAtlas.isServing()) {
-            if (mesh.addressAtlas(spriteAtlas, spriteAtlas.sheet(), atlasAddress)) sheet = spriteAtlas.sheet();
+        if (spriteAtlas != null) {
+            if (spriteAtlas.isServing()
+                    && mesh.addressAtlas(spriteAtlas.layoutToken(), spriteAtlas.sheet(), atlasAddress)) {
+                sheet = spriteAtlas.sheet();
+            } else if (gathered[layer.ordinal()]) {
+                for (int i = 0; i < mesh.size(); i++) held(layer, mesh.image(i));
+            }
         }
         slot(layer).setMesh(mesh, sheet, x, y, scale, alphaMult);
     }
@@ -192,13 +243,26 @@ public final class DrawList {
      */
     public void setSpriteAtlas(SpriteAtlas atlas) {
         this.spriteAtlas = atlas;
+        for (RenderLayer layer : RenderLayer.values()) {
+            gathered[layer.ordinal()] = atlas != null && atlas.gathers(layer);
+        }
     }
 
-    /** As {@link #addSprite}, but the sprite adds light instead of compositing over what is beneath it. */
+    /**
+     * As {@link #addSprite}, but the sprite adds light instead of compositing over what is beneath it. The atlas rule
+     * is the same: a held image is an additive quad of the atlas sheet, which the drain runs beside the normal ones.
+     */
     public void addAdditiveSprite(RenderLayer layer, SpriteAPI sprite,
                                   float cx, float cy, float w, float h, float angleDeg,
                                   float r, float g, float b, float a) {
         TextureUsage.sprite(sprite, w, h);
+        SpriteAtlas.Placement at = held(layer, sprite);
+        if (at != null) {
+            slot(layer).setAdditiveSheetQuad(spriteAtlas.sheet(),
+                    at.x(), at.y(), at.width(), at.height(),
+                    cx, cy, w, h, angleDeg, r, g, b, a);
+            return;
+        }
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a, true);
     }
 

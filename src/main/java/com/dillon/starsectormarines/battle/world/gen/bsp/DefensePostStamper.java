@@ -587,7 +587,10 @@ public final class DefensePostStamper implements GenStage {
         return stampPost(grid, topology, doodads, layout(tier, shape), cx, cy, EmplacementStyle.BRUTALIST);
     }
 
-    /** As above, built in {@code style}: an earthwork post rings itself with sandbags and leaves its ground unpaved. */
+    /**
+     * As above, built in {@code style}: a militia post ({@link EmplacementStyle#militia}) rings itself with sandbags
+     * and leaves its ground unpaved.
+     */
     static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
                                  List<Doodad> doodads, DefensePostKind tier,
                                  DefensePostShape shape, int cx, int cy, EmplacementStyle style) {
@@ -599,13 +602,13 @@ public final class DefensePostStamper implements GenStage {
                                          List<Doodad> doodads, DefensePostLayoutDef layout,
                                          int cx, int cy, EmplacementStyle style) {
         clearFootprint(doodads, layout, cx, cy);
-        boolean earthwork = style == EmplacementStyle.EARTHWORK;
+        boolean fieldWorks = style.militia;
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;
             DefensePostLayoutDef.Offset offset = cell.offset();
             int x = cx + offset.x();
             int y = cy + offset.y();
-            if (earthwork) {
+            if (fieldWorks) {
                 // Field works: the ring is sandbagged whatever the layout pours in a prepared post.
                 stampRingCell(grid, topology, doodads, x, y, barrierTile(withAppearance(cell,
                         DefensePostLayoutDef.BarrierAppearance.EMBANKMENT)));
@@ -621,13 +624,13 @@ public final class DefensePostStamper implements GenStage {
             }
         }
 
-        boolean concreteRing = !earthwork && layout.hasApron();
+        boolean concreteRing = !fieldWorks && layout.hasApron();
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             concreteRing |= cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
                     && cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE;
         }
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
-            if (earthwork || cell.kind() != DefensePostLayoutDef.CellKind.APRON) continue;
+            if (fieldWorks || cell.kind() != DefensePostLayoutDef.CellKind.APRON) continue;
             int x = cx + cell.offset().x();
             int y = cy + cell.offset().y();
             // Paved, not sealed: the apron stays walkable ground with the post's concrete on it.

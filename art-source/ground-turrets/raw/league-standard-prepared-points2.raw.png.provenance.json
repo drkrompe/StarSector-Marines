@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b5c-a533-75d0-b635-6c1b49cd8019",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b5c-a533-75d0-b635-6c1b49cd8019\\exec-4ae0bba0-6c2a-4841-94b7-35def0b3de38.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\raw\\league-standard-prepared-points2.raw.png",
+    "sha256": "e989f1d4cd04ad19c8bec9257ecf087c013da96d3b6ffe958f3356eecf85eec5",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\prompts\\league-standard-prepared-points2.prompt.txt",
+  "promptSha256": "8402b4dd322a2bc02ac890de593401b1eed6a96948cca8e890a7f58b716d585b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette, position and size\nImage 2: Painting style and rendering finish only; not layout, not material colour\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It holds three separate objects for small sci-fi strategy-game building props (like a tabletop miniature terrain set), each seen from directly above: left, a round precast collar of joined panels with a recessed lamp arc and four bolted plates, sunk flush into the ground, with an empty dark circular socket in the middle (leave the well interior dark and plain: a separate housing sits over it); middle, a panelled box machinery housing with a square side box and two short wide pipes side by side in a flat cradle, sticking straight up the image; right, a small square machinery housing with a dark sensor box on its side and a cluster of three thin pipes sticking straight up the image. Material and style: Persean League coalition standard: factory-made pressed modular composite-steel panels with sealed caulked seams, flush standard bolt fittings and access hatches, painted in a clean slate blue-grey standard scheme with pale grey trim and small abstract white-and-yellow unit chevrons and stencil bars (no letters or numbers), recessed white strip lamps where the guide shows the brightest thin bars; housings in the same painted slate blue-grey with grey hatches and darker charcoal pipes; scuffed paint at edges, clean repairs, reads serviced not old. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: keep the guide's lit and shaded faces exactly where they are. Hand-painted gritty science-fiction game-sprite look like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no letters, no numbers, no labels, no watermark, no UI, no ground or terrain, no grass, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\guides\\midline-prepared-points2-guide.png",
+      "sha256": "364f31ef49b60f8cf0fd3bb72f24501d732a1291a0db56b62a901630fcee1419",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette, position and size"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\mod\\graphics\\structures\\missile-aa-base.png",
+      "sha256": "c4fd9bbc087b3bcc64c613cc676461ab1f9b79c3bce36ae6d5ecc9c589ff176e",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Painting style and rendering finish only; not layout, not material colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image-generation skill to render one image, preserving the guide’s geometry and layout."
+  ],
+  "usage": {
+    "input_tokens": 79828,
+    "cached_input_tokens": 61440,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 686,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 57.0
+}

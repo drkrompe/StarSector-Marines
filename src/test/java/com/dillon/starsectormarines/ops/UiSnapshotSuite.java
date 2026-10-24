@@ -2665,11 +2665,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CAPACITORS);
         }
-        // The engine dragged back to stores: the empty, required socket warns on the doll and
-        // in the slot list, and the stores list the engine that came out.
+        // The engine dragged back to stores: the empty, required socket warns on the doll, and
+        // the stores' engine category lists the engine that came out at full strength.
         if ("internal-empty-engine".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.removeInstalledInternal(SocketId.CORE);
+            // The engine category: the stripped engine is a spare beside patterns with none.
+            viewModel.setFilter(MechLabViewModel.CategoryFilter.ENGINE);
         }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (materialHint != null && materialHint.startsWith("preview-")) {

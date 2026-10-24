@@ -77,8 +77,8 @@ incendiary blast, a flamer's stream, a burning wreck, an ordinary shell's
 blast on dry fuel. An igniter is not a new delivery system; it is a property
 of the weapon or effect that already lands there (Starting fires).
 
-**Burning.** A burning cell has an **intensity** that rises as it catches,
-peaks, and falls as its fuel runs out; it spends its fuel at a fixed rate, so
+**Burning.** A burning cell has an **intensity** that rises over four seconds
+as it catches, peaks, and falls as its fuel runs out; it spends its fuel at a fixed rate, so
 its load is its burn time. Each fire step it gives heat to the cells round
 it by ring: a quarter of its intensity to the cells touching it, about a
 tenth to the ring beyond, and, for a crown fire only, a sixteenth to the ring
@@ -87,6 +87,14 @@ ragged rather than as a diamond. One burning cell cannot light grass two
 rings away, but a front of them can, which is why a single furrow does not
 stop a field fire and two bare cells do. A cell that has spent its fuel is
 **burnt**.
+
+**Pace.** The slow rise is what sets how fast a front runs: a newly caught
+cell gives little heat until it is well alight, so a grass front walks at
+about two thirds of a cell a second in calm air, a third of a man's walking
+pace, and a single flamer charge in a meadow is a patch some thirteen cells across
+after ten seconds (owner, 2026-10-23: the front that kept pace with a
+walking man overran everyone). It does not change how hot a fire gets or how
+far it throws heat, so the firebreak widths below hold as they did.
 
 **Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
 firebreak by definition. It stays scorched for the battle (it does not
@@ -169,8 +177,8 @@ and one that walks into it and dies there.
 
 **Getting out of the way** (`FireEscape`). A person in the fire's way moves
 before doing anything else: in a burning cell, or standing on fuel within
-three cells of one, because a grass front moves about as fast as a man walks
-and waiting for it to arrive is waiting to be overtaken. He goes to the
+three cells of one, because waiting for a front to arrive is waiting to be
+overtaken, however slowly it walks. He goes to the
 nearest safe cell, one out of and not beside the fire that cannot burn (burnt
 out or bare); ground just ahead of a front is not safe, since the front takes
 it. Steps through burning cells count five times, so a thin front is crossed

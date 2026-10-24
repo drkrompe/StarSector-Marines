@@ -34,8 +34,11 @@ public final class FireField {
     public static final float STEP_SECONDS = STEP_TICKS / 30f;
     /** Ticks a burnt cell refuses creep after it burns out: three minutes. */
     public static final int CREEP_REFUSAL_TICKS = 30 * 180;
-    /** Steps a caught cell takes to reach its peak. */
-    static final int RAMP_STEPS = 5;
+    /**
+     * Steps a caught cell takes to reach its peak: four seconds. It sets the front's pace (a grass front walks
+     * about 0.65 cells a second, a third of a marine's walk) without changing peak heat or reach, so breaks hold.
+     */
+    static final int RAMP_STEPS = 20;
     /** The share of a cell's load left when its fire starts to die down. */
     static final int TAIL_DIVISOR = 4;
     /** Heat a cell keeps each step, in 1/8: the rest cools away. */
