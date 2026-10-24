@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e83-33b8-7162-948d-d4531751de64",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e83-33b8-7162-948d-d4531751de64\\exec-6fe8c065-cf76-46e5-85cc-ede91748a247.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\raw\\flux-bank-modular.raw.png",
+    "sha256": "12f55e6a455bdd0bd9377cc0a46cf6d6b44e6a38ef5ed22d8d071f4952bd723e",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\prompts\\flux-bank-modular.prompt.txt",
+  "promptSha256": "5fb2bb673ea375d85931c5d0b8fc52f411195e3f77df0dca4a234ca9cd39f945",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every shape exactly\nImage 2: Material, palette and finish reference only; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It shows the same piece of machinery twice, seen from directly above, for a sci-fi strategy-game hardpoint (a heavy gun on a raised one-storey plinth; the plinth itself is NOT drawn, it is a separate layer underneath, and this hardware bolts onto its west and east sloped walls). Each frame holds exactly two shield-capacitor radiator banks, one at its far left edge and one at its far right edge, and nothing else (four banks on the whole sheet, never more): a long rectangular frame of rails with a row of nine flat radiator fins standing across it, a squat round capacitor can seen end-on at the north end of each bank with a bolted rim and a small round charge window in its cap, a strap from the can down to the bank, and a short conduit pipe from the can inward toward the gun. Left frame: the hardware COLD and idle: fins dull unlit metal, charge windows dark. Right frame: the SAME two banks, identical in every shape, BOTH glowing at full charge just before overload: the fins glow with heat: dull red at their roots, orange through their length and pale yellow at the hottest middle, a faint heat haze; the charge windows glow pale amber-white. Material and style: Persean League coalition standard: factory-made pressed modular composite-steel radiator panels with stamped louvred fins, sealed caulked seams, flush standard bolt fittings, painted clean slate blue-grey with pale grey trim and small abstract white-and-yellow chevrons (no letters or numbers); capacitor cans as sealed cylindrical service modules with quick-release clamps and armoured cable sleeves; serviced, standardised. Image 2 is the League hardpoint the hardware bolts onto: material, palette and finish reference only, not layout. Everything else in the right frame (rails, cans, bolts, straps, conduits) stays exactly as in the left frame. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: west banks lit, east banks in shade, as in the guide. Hand-painted gritty science-fiction game-sprite look like Starsector, physical believable machinery (real radiator fins, heavy bolted capacitor housings, cabling), restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no letters, no numbers, no labels, no watermark, no UI, no plinth, no gun, no ground or terrain, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\guides\\flux-bank-guide.png",
+      "sha256": "115750a72c7078ebe08a4debdb5454a471d91ea24536a36c8451962e9383ad3a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every shape exactly"
+    },
+    {
+      "path": "art-source\\ground-turrets\\raw\\league-standard-prepared-hardpoint.raw.png",
+      "sha256": "98a630577460e6197bf9712dcaf2149290d7f691896fdbd7fa8ba73e5e2ddbce",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette and finish reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the imagegen skill, preserving Image 1’s geometry and applying Image 2’s materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 84169,
+    "cached_input_tokens": 59520,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 916,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 79.1
+}

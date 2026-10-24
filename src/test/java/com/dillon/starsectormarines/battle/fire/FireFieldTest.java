@@ -237,4 +237,22 @@ class FireFieldTest {
         assertEquals(FireField.MASS_MAX, wide.massAt(10 * W + 20), "the heart of a wide fire has every cell round it burning");
         assertEquals(0, wide.massAt(0), "a cell not burning has no mass");
     }
+
+    @Test
+    void aBigFireBlazesOnceAndStopsShortOfTheWholeWood() {
+        int side = 80, forest = FireFuel.GRASS.bit | FireFuel.BRUSH.bit | FireFuel.CROWN.bit;
+        FireField f = new FireField(side, side, 1L, idx -> forest);
+        f.addHeat(side / 2f, side / 2f, 6f, 4000);
+        boolean blazed = false;
+        for (int t = 0; t < 30 * 120; t++) {
+            f.tick(t);
+            for (int i = 0; i < f.burningCount(); i++) blazed |= f.isBlaze(f.burningCell(i));
+        }
+        assertTrue(blazed, "a napalm-sized fire in a wood becomes a blaze");
+        for (int i = 0; i < side; i++) {
+            for (int edge : new int[]{i, (side - 1) * side + i, i * side, i * side + side - 1}) {
+                assertEquals(FireField.UNBURNT, f.stateAt(edge), "a blaze is one burst onward, not a chain to the edge");
+            }
+        }
+    }
 }

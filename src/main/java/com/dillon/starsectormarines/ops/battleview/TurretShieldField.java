@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  *   <li><b>Raise and lower.</b> The arc grows out from its facing as the shield rises and folds back into it as it
  *   lowers; folded away, nothing is drawn.</li>
  *   <li><b>Strain.</b> The capacitors' fill is the dome's flux level: the field brightens and whitens toward
- *   overload, and near it the arc stutters with the capacitors ({@link TurretFluxCapacitors}).</li>
+ *   overload, and near it the arc stutters with the hardware ({@link TurretFluxHeat}).</li>
  *   <li><b>Blocks.</b> Each round the shield stopped lights the rim where it came from.</li>
  *   <li><b>Break.</b> On overload the arc shatters, its cells flickering out in the shield's own pale colour, and
  *   for the rest of the overload a ghost rim re-forms across the arc as the capacitors vent.</li>
@@ -69,8 +69,8 @@ final class TurretShieldField {
         draw.recovery = overloaded ? shield.overloadShare() : 0f;
         draw.dropFlash = shatter(shield.sinceBreak());
         // Near breaking the arc stutters with its capacitors, on the same beat as their flicker.
-        float stutter = TurretFluxCapacitors.strain(shield);
-        draw.alpha = alpha * PRESENCE * (1f - 0.4f * stutter * TurretFluxCapacitors.hash01(id, tick, 1));
+        float stutter = TurretFluxHeat.strain(shield);
+        draw.alpha = alpha * PRESENCE * (1f - 0.4f * stutter * TurretFluxHeat.hash01(id, tick, 1));
 
         // The arc, in the dome's local frame: a broken shield keeps its full width so its break fills the arc it held.
         float halfArc = overloaded ? 0.5f * spec.arcDegrees() : shield.halfArcDegrees();

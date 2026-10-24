@@ -3,7 +3,7 @@
 Status: ACTIVE. Beats, allied forces and the allied commander shipped; the maps' last pieces are left, then tuning. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
-Updated: 2026-10-24 — a pool per density, a city's streets as its supply road; the company wipe and gunship risk fixed; the hollow and knoll remain.
+Updated: 2026-10-24 — a city's line dug on its edge with no ridge; the spitter finding split off; the hollow and knoll remain.
 
 ## Why
 
@@ -38,10 +38,9 @@ Ranked by what it unblocks:
    choice, not the heart's: shared by every mission, so its own piece of work.
 2. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
    brook valley, the hollow's rim, the cordon's works, every beat's set piece
-   that needs ground (F6's road satellite with it), the town and city densities,
+   that needs ground (F6's road satellite with it), the town and city densities
+   (a city's line on its edge, with no ridge, and its streets for the supply road),
    and a pool for each density (three seeds per biome). Open:
-   - the cordon ridge and pieces of the forward line, which fail on most city
-     maps (a city's supply road is its streets now);
    - a full hollow;
    - the knoll.
 3. **Tuning win rates**, only after the map work (owner: no overtuning yet).
