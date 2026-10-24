@@ -48,5 +48,5 @@ final class RavBloomDebugChoice {
     }
     static String densityLabel() { return "DENSITY: " + DENSITIES[density].toUpperCase(); }
     static String biomeLabel() { return "BIOME: " + biome(); }
-    static String seedLabel() { return random ? "SEED: RANDOM " + rolled + " (USE POOLED)" : "SEED: POOLED (ROLL RANDOM)"; }
+    static String seedLabel() { return random ? "SEED: RANDOM" : "SEED: POOLED"; }
 }

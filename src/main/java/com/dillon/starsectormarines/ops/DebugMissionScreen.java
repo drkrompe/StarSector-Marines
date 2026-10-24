@@ -28,11 +28,6 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     @Override protected Map<String, Object> props() {
         Map<String, Object> props = model(catalog, selected, group, page, location, this::location, this::select,
                 this::group, this::page, this::launch, this::onCancel);
-        var story = DebugMissionCatalog.scenario(selected);
-        props.put("ravOptionsDisabled", story == null || !story.ravBloom());
-        props.put("ravDensityLabel", RavBloomDebugChoice.densityLabel());
-        props.put("ravBiomeLabel", RavBloomDebugChoice.biomeLabel());
-        props.put("ravSeedLabel", RavBloomDebugChoice.seedLabel());
         props.put("ravDensity", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleDensity));
         props.put("ravBiome", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleBiome));
         props.put("ravSeed", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleSeed));
@@ -91,13 +86,6 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     static Map<String, Object> previewProps() {
         List<Mission> entries = DebugMissionCatalog.missions(null);
         Map<String, Object> props = model(entries, entries.get(1), 0, 0, m -> { }, i -> { }, i -> { }, () -> { }, () -> { });
-        props.put("ravOptionsDisabled", true);
-        props.put("ravDensityLabel", RavBloomDebugChoice.densityLabel());
-        props.put("ravBiomeLabel", RavBloomDebugChoice.biomeLabel());
-        props.put("ravSeedLabel", RavBloomDebugChoice.seedLabel());
-        props.put("ravDensity", (Runnable) () -> { });
-        props.put("ravBiome", (Runnable) () -> { });
-        props.put("ravSeed", (Runnable) () -> { });
         return props;
     }
     static Map<String, Object> model(List<Mission> catalog, Mission selected, int group, int page,
@@ -155,6 +143,13 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         props.put("previous", (Runnable) () -> turn.accept(current - 1));
         props.put("next", (Runnable) () -> turn.accept(current + 1));
         props.put("previousDisabled", current == 0); props.put("nextDisabled", current + 1 >= pages);
+        var choosable = DebugMissionCatalog.scenario(selected);
+        props.put("ravOptionsDisabled", choosable == null || !choosable.ravBloom());
+        props.put("ravDensityLabel", RavBloomDebugChoice.densityLabel());
+        props.put("ravBiomeLabel", RavBloomDebugChoice.biomeLabel());
+        props.put("ravSeedLabel", RavBloomDebugChoice.seedLabel());
+        Runnable none = () -> { };
+        props.put("ravDensity", none); props.put("ravBiome", none); props.put("ravSeed", none);
         props.put("launch", launch); props.put("back", back); props.put("launchDisabled", selected == null);
         props.put("title", selected == null ? Strings.get("debugMissionUnavailable") : selected.name);
         var selectedStory = DebugMissionCatalog.scenario(selected);
