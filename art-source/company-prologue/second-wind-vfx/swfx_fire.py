@@ -420,7 +420,8 @@ def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
                               core_m=(S * .2, S * .27), axis=out_dir, tongues=(7, 10) if big else (5, 7),
                               reach=(.8, 1.8), late=10 if big else 6, late_s=1.6 if big else 1.2,
                               shrapnel=(12, 18) if big else (6, 10), smoke=.6 if big else .5,
-                              smoke_life=(48, 72) if big else (28, 44), parent=anchor, prefix=PREFIX)
+                              smoke_life=(48, 72) if big else (28, 44), spall=40 if big else 20,
+                              glow_w=8.0e4 if big else 4.0e4, parent=anchor, prefix=PREFIX)
     n = rnd.randint(3, 5) if big else rnd.randint(1, 2)
     for k in range(n):
         off = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized() * S * rnd.uniform(.25, .5)

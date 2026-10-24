@@ -406,14 +406,18 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
 
 def warhead(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, core_m, axis=None, tongues=(5, 7), reach=(.8, 1.6),
             tongue_k=(.35, .5), late=0, late_s=1.0, shrapnel=(4, 7), smoke=.6, smoke_life=(24, 32),
-            smoke_rgb=SMOKE_RGB, light_w=0.0, parent=None, prefix=PREFIX):
+            smoke_rgb=SMOKE_RGB, light_w=0.0, spall=0, glow_w=0.0, parent=None, prefix=PREFIX):
     """A big blast built the way the approved HE and Hellbore hits are, scaled by adding pieces
     rather than by inflating one (coordinator, 2026-10-23: a Harpoon hit torn out of one big flash
     read as a hard polygon plate, then a leopard-print solid, then nothing). A small hot core
     (core_m, a Hellbore-sized burst with its one white frame), torn fire tongues thrown outward round
     it (no white frame of their own, opening over the core's first two frames, each with a puff),
     `late` flickers of burning debris out to late_s seconds, and the core's smoke held smoke_life
-    frames and drifting off along the throw. here: collection space; returns the objects."""
+    frames and drifting off along the throw. What holds an HE hit on screen for a second is its
+    glowing crater lighting the smoke warm from below and its slow glowing spall; a warhead burst in
+    the open has no crater, so glow_w puts a warm light in the smoke fading out over late_s, and
+    spall throws that many slow fragments that glow orange and cool over half a second to a second.
+    here: collection space; returns the objects."""
     ax = Vector(axis).normalized() if axis is not None else None
     out = burst(ctx, coll, f'{tag} core', here, f, mpu, rnd, flash_rgb, size_m=core_m, axis=axis, lean=1.2,
                 shrapnel=shrapnel, smoke=smoke, smoke_life=smoke_life, smoke_rgb=smoke_rgb, flash_frames=5,
@@ -441,4 +445,49 @@ def warhead(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, core_m, axis=None, ton
                      (1.0, .45, .12), size_m=(s * .85, s * 1.15), axis=d, lean=.8, shrapnel=None, smoke=smoke * .35,
                      smoke_life=(8, 12), smoke_rgb=smoke_rgb, flash_frames=3, parent=parent, prefix=prefix,
                      tear=True, smoke_drift=.8, white=False)
-    return out
+    bpy = _bpy()
+    import swfx_core
+    import swfx_guns
+    extra = []
+    if spall:
+        rod = _rod_mesh(f'{prefix} shrapnel mesh', shrapnel_material(ctx))
+        k = sum(core_m) / 2 / 4.5                       # 1 for a Hellbore-sized core
+        for j in range(spall):
+            d = outward(1.2)
+            speed = rnd.uniform(3.0, 12.0) * k ** .5 / mpu / fps          # per frame
+            n = rnd.randint(int(.45 * fps), int(1.1 * fps))
+            st = bpy.data.objects.new(f'{prefix} {tag} spall {j}', rod)
+            coll.objects.link(st)
+            st.visible_shadow = False
+            st.rotation_mode = 'QUATERNION'
+            st.rotation_quaternion = d.to_track_quat('X', 'Z')
+            frames = list(range(f, f + n + 1))
+            start = here + d * R * rnd.uniform(.1, .5)
+            for i in range(3):
+                swfx_guns._bake(st, 'location', i, frames, [(start + d * speed * t)[i] for t in range(n + 1)])
+            size = rnd.uniform(.25, .5) * k ** .5 / mpu
+            for i in range(3):
+                swfx_guns._bake(st, 'scale', i, frames, [size * (2.2 if i == 0 else 1.0)] * len(frames))
+            swfx_guns._bake(st, 'color', 0, frames, [.75 * (1 - t / n) ** 1.3 for t in range(n + 1)])
+            st.color = (.75, 0, 0, 1)
+            swfx_guns._visible_between(st, f, f + n)
+            extra.append(st)
+    if glow_w:
+        lt = swfx_core.point_light(f'{prefix} {tag} glow', coll, (1.0, .5, .18), 0.0, radius=R * .6)
+        lt.location = here + (ax * R * .6 if ax is not None else Vector())
+        span = max(4, int(late_s * fps))
+        keys = [(f - 1, 0.0)] + [(f + i, glow_w * math.exp(-2.6 * i / span) * (1 - i / span))
+                                 for i in range(0, span + 1, 2)]
+        for fi, e in keys:
+            lt.data.energy = e
+            lt.data.keyframe_insert('energy', frame=fi)
+        extra.append(lt)
+    for ob in extra:
+        ob['swfx_burst_t0'] = int(f)
+    if parent is not None:
+        import swfx_missile_paths as mp
+        inv = mp.anchor_matrix(parent).inverted()
+        for ob in extra:
+            ob.parent = parent
+            ob.matrix_parent_inverse = inv
+    return out + extra

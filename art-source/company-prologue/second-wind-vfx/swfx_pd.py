@@ -554,7 +554,7 @@ def _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=False):
     return swfx_burst.warhead(ctx, coll, f'flak {k} f{b.frame:04d}', here, b.frame, mpu, rnd, FLAK['flash'],
                               core_m=(1.6, 2.4), tongues=(3, 4), reach=(.7, 1.3), tongue_k=(.4, .55), late=0,
                               shrapnel=(3, 5), smoke=.7, smoke_life=(22, 30), smoke_rgb=(.035, .03, .025),
-                              light_w=1.5e4 if light else 0.0, prefix=PREFIX)
+                              light_w=1.5e4 if light else 0.0, spall=6, prefix=PREFIX)
 
 def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, style='burst'):
     """Key canister flak on the firing ship (inside its ship.kit()): a dim canister streak from
