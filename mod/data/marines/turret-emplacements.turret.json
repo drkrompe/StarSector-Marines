@@ -54,7 +54,7 @@
     {
       "id": "mount.turret-hephaestus", "weapon": "weapon.turret-hephaestus",
       "sim": { "ammoCapacity": 50, "turnRateDegPerSec": 75.0 },
-      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.586, "muzzles": [[0.0, 0.586]], "sprite": "graphics/structures/ground-turrets/brutalist/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/cannon-barrel.png", "recoil": { "distanceFrac": 0.16, "seconds": 0.45 } }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.586, "muzzles": [[0.0, 0.586]], "sprite": "graphics/structures/ground-turrets/brutalist/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/cannon-barrel.png", "scorch": 1.5, "recoil": { "distanceFrac": 0.16, "seconds": 0.45 } }
     },
     {
       "id": "mount.turret-grenade-launcher", "weapon": "weapon.turret-grenade-launcher",
@@ -79,7 +79,7 @@
     {
       "id": "mount.hardpoint-cannon", "weapon": "weapon.turret-hephaestus",
       "sim": { "ammoCapacity": 50, "turnRateDegPerSec": 60.0, "maxDepressionDeg": 15.0 },
-      "render": { "visualCells": 3.0, "muzzleOffsetCells": 1.414, "muzzles": [[0.0, 1.414]], "sprite": "graphics/structures/ground-turrets/brutalist/heavy-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/heavy-barrel.png", "recoil": { "distanceFrac": 0.12, "seconds": 0.6 } }
+      "render": { "visualCells": 3.0, "muzzleOffsetCells": 1.414, "muzzles": [[0.0, 1.414]], "sprite": "graphics/structures/ground-turrets/brutalist/heavy-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/heavy-barrel.png", "scorch": 2.8, "recoil": { "distanceFrac": 0.12, "seconds": 0.6 } }
     },
     { "id": "mount.hardpoint-locust", "weapon": "weapon.turret-locust",
       "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 50.0 },

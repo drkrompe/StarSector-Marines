@@ -90,6 +90,11 @@ Presentation only, so a battle plays the same with or without them:
   (`TurretFx`, fed by the live screen and the review frames alike).
 - **Brass.** A mount with `render.casings` throws a glint of brass to its right on every round,
   which lands as a casing decal beside the gun.
+- **Scorch.** A mount with `render.scorch` (a length in cells: the hardpoint cannon and the
+  Hephaestus point gun) lays a fan of soot on the ground ahead of its muzzle on every round
+  (`DecalKind.MUZZLE_SCORCH`, drawn by `art-source/fx/build_muzzle_scorch.py`). Each fan is
+  faint and turned a little; overlapping fans darken the mark, and no more than five stack on
+  one spot, so a gun's ground darkens without blackening.
 - **Damage.** A turret below half its structure smokes, faster as it gets worse; below a quarter
   it throws sparks too.
 - **Night light.** The muzzle flash already lights the ground around a turret in the live game.
@@ -99,11 +104,11 @@ Presentation only, so a battle plays the same with or without them:
   cells from a 4 m plinth at the default sun. The block goes with the structure; its rubble casts
   nothing.
 
-`createSnapshots -Psnapshot=ground-turret-look` plays a `firing-<style>` shot with all of it.
+`createSnapshots -Psnapshot=ground-turret-look` plays a `firing-<style>` shot with all of it
+(`-Dsnapshot.groundTurrets.firingSeconds=30` for long enough to see the scorch build up).
 
 ## Open
 
-- A scorch mark on the ground in front of the heavy cannon (in progress; its look goes on the picks page).
 - Midline and high-tech emplacement families (in progress; their looks go on the picks page).
 
 Settled: a raised gun takes no low cover at its foot (`UnitRosterService.standsAboveLowCover`);
