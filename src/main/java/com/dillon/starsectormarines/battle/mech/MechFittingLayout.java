@@ -29,8 +29,8 @@ public final class MechFittingLayout {
         RIGHT_ARM("@gearSocketRArm"),
         LEFT_SHOULDER("@gearSocketLShoulder"),
         RIGHT_SHOULDER("@gearSocketRShoulder"),
-        CAPACITORS("@gearSocketCapacitors"),
-        MINI_FAB("@gearSocketMiniFab");
+        /** The shared auxiliary compartment: capacitor banks, vent arrays and loaders. */
+        AUXILIARY("@gearSocketAuxiliary");
 
         private final String label;
 
@@ -44,8 +44,7 @@ public final class MechFittingLayout {
         BALLISTIC("@gearSocketBallistic"),
         MISSILE("@gearSocketMissile"),
         OMNI("@gearSocketOmni"),
-        FLUX("@gearSocketFlux"),
-        UTILITY("@gearSocketUtility");
+        AUXILIARY("@gearSocketTypeAuxiliary");
 
         private final String label;
 
@@ -152,7 +151,7 @@ public final class MechFittingLayout {
     public boolean occupied(SocketId id) {
         if (!byId.containsKey(id)) return false;
         return switch (id) {
-            case CORE, CAPACITORS, MINI_FAB -> true;
+            case CORE, AUXILIARY -> true;
             case ARMS -> variant.arms != null;
             case LEFT_ARM -> variant.leftArm != null;
             case RIGHT_ARM -> variant.rightArm != null;
@@ -174,10 +173,8 @@ public final class MechFittingLayout {
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false),
-                socket(SocketId.CAPACITORS, SocketType.FLUX, 2, 2,
-                        0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, false),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
-                        0f, -0.92f, 1.38f, 0.72f, 1.40f, 0.68f, false))));
+socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 3,
+                        0f, -0.58f, 0f, 0.72f, 1.70f, 0.68f, false))));
         layouts.put(MechVariant.HOUND, layout(MechVariant.HOUND, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
@@ -187,10 +184,8 @@ public final class MechFittingLayout {
                         -0.62f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.62f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.CAPACITORS, SocketType.FLUX, 2, 1,
-                        0f, -0.54f, -1.34f, 0.68f, 1.64f, 0.68f, false),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
-                        0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
+socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
+                        0f, -0.54f, 0f, 0.68f, 1.64f, 0.68f, false))));
         layouts.put(MechVariant.WARDEN, layout(MechVariant.WARDEN, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
@@ -200,10 +195,8 @@ public final class MechFittingLayout {
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.CAPACITORS, SocketType.FLUX, 1, 2,
-                        0f, -0.55f, -1.34f, 0.68f, 1.64f, 0.68f, false),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
-                        0f, -0.86f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
+socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 2,
+                        0f, -0.55f, 0f, 0.68f, 1.64f, 0.68f, false))));
         return Map.copyOf(layouts);
     }
 

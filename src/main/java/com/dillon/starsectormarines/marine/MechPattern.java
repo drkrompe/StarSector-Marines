@@ -96,7 +96,8 @@ public record MechPattern(Kind kind, String definitionId) {
             of(MechWeaponComponent.SRM_5_FRAG),
             of(MechInternal.INDUSTRIAL_ENGINE),
             of(MechInternal.FACTORY_PLATING),
-            of(MechInternal.FACTORY_CAPACITOR_BANK));
+            of(MechInternal.FACTORY_CAPACITOR_BANK),
+            of(MechInternal.STANDARD_LOADER));
 
     public static MechPattern of(MechVariant variant) {
         return new MechPattern(Kind.CHASSIS, variant.id);

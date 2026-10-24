@@ -79,7 +79,9 @@ public final class MechWorkshop {
     public Result fitInternal(String mechId, MechInternal internal) {
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || internal == null) return Result.of(Status.INVALID);
-        if (mech.internal(internal.role) == internal) return Result.of(Status.ALREADY_INSTALLED);
+        if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) {
+            return Result.of(Status.ALREADY_INSTALLED);
+        }
         if (!bay.canInstallInternal(mechId, internal)) return Result.of(Status.INCOMPATIBLE);
         if (!bay.withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) {
             return Result.of(Status.OVER_BUDGET);
@@ -125,7 +127,7 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED);
     }
 
-    /** Empties the optional utility socket. */
+    /** Takes the first vent array out of the compartment. */
     public Result stripVentArray(String mechId) {
         return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
     }
@@ -139,6 +141,14 @@ public final class MechWorkshop {
         if (mech == null || role == null || role.socket() == null) return Result.of(Status.INVALID);
         if (mech.internal(role) == null) return Result.of(Status.ALREADY_STRIPPED);
         return bay.stripInternal(mechId, role) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
+    }
+
+    /** Takes one part out of the compartment back to stores. */
+    public Result stripPart(String mechId, MechInternal part) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null || part == null || !part.role.compartment()) return Result.of(Status.INVALID);
+        if (!mech.compartment().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripPart(mechId, part) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {

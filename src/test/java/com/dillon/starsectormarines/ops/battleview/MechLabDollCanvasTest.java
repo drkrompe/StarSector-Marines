@@ -61,8 +61,8 @@ class MechLabDollCanvasTest {
             MechLabDollCanvas.SocketDropTarget right = find(targets, SocketId.RIGHT_SHOULDER);
             if (left != null) assertTrue(left.right() < core.left(), "left shoulder beside the core on " + variant);
             if (right != null) assertTrue(right.left() > core.right(), "right shoulder beside the core on " + variant);
-            MechLabDollCanvas.SocketDropTarget capacitors = find(targets, SocketId.CAPACITORS);
-            if (capacitors != null) assertTrue(capacitors.top() > core.bottom(), "capacitors behind the core on " + variant);
+            MechLabDollCanvas.SocketDropTarget compartment = find(targets, SocketId.AUXILIARY);
+            if (compartment != null) assertTrue(compartment.top() > core.bottom(), "compartment behind the core on " + variant);
             for (int i = 0; i < targets.size(); i++) {
                 MechLabDollCanvas.SocketDropTarget a = targets.get(i);
                 assertTrue(a.left() >= 0f && a.right() <= 620f && a.top() >= 0f && a.bottom() <= 880f,

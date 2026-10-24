@@ -11,7 +11,8 @@ import java.awt.Color;
  * The Mech Lab's hardware language: a footprint is a stack of chamfered bricks, one per grid
  * cell, each narrower than it is tall, so a piece's size reads from its outline. Colour
  * names the hardpoint: energy red-orange, missile green, ballistic yellow, omni grey; the
- * frame's own mounts are engine blue, flux violet and utility teal.
+ * frame's own parts are engine blue, flux violet and utility teal, and the auxiliary
+ * compartment that holds the last two is steel.
  */
 final class HardpointBricks {
     static final Color ENERGY = new Color(0xe0, 0x6a, 0x3c);
@@ -22,6 +23,8 @@ final class HardpointBricks {
     static final Color ENGINE = new Color(0x5e, 0x96, 0xd2);
     static final Color FLUX = new Color(0xa0, 0x7e, 0xdc);
     static final Color UTILITY = new Color(0x4c, 0xb4, 0xa6);
+    /** The auxiliary compartment's rim: a neutral steel, since its parts bring their own colours. */
+    static final Color AUXILIARY = new Color(0x8a, 0xa4, 0xb8);
 
     /** Width over height of one brick: narrower than tall, so even a square footprint stands upright. */
     static final float BRICK_ASPECT = 0.75f;
@@ -44,8 +47,7 @@ final class HardpointBricks {
             case MISSILE -> MISSILE;
             case OMNI -> OMNI;
             case ENGINE -> ENGINE;
-            case FLUX -> FLUX;
-            case UTILITY -> UTILITY;
+            case AUXILIARY -> AUXILIARY;
         };
     }
 
@@ -53,7 +55,7 @@ final class HardpointBricks {
         return switch (role) {
             case ENGINE -> ENGINE;
             case CAPACITOR_BANK -> FLUX;
-            case VENT_ARRAY -> UTILITY;
+            case VENT_ARRAY, LOADER -> UTILITY;
             case PLATING -> OMNI;
         };
     }
