@@ -42,6 +42,17 @@ public final class ModTextures {
     private static final Map<SpriteAPI, TextureFitManifest.Entry> FITTED =
             Collections.synchronizedMap(new IdentityHashMap<>());
 
+    /**
+     * Every sprite handed out, with its path and logical size as it left here: a sprite's own
+     * width and height are display sizes the first whole-sprite draw overwrites, so code holding
+     * only the sprite (an atlas taking in an image it was not told about) asks here instead.
+     * Weak, so a battle's sprites go with the battle.
+     */
+    private static final WeakIdentityMap<Loaded> LOADED = new WeakIdentityMap<>();
+
+    /** A sprite {@link #sprite} handed out: the path it was asked for and its logical size in pixels. */
+    public record Loaded(String path, int width, int height) { }
+
     private ModTextures() { }
 
     /** The build's record of fitted images, read once; empty in a checkout. */
@@ -134,7 +145,13 @@ public final class ModTextures {
             FITTED.put(sprite, entry);
         }
         TextureUsage.name(sprite, path, sprite.getWidth(), sprite.getHeight());
+        LOADED.put(sprite, new Loaded(path, Math.round(sprite.getWidth()), Math.round(sprite.getHeight())));
         return sprite;
+    }
+
+    /** Where {@code sprite} came from and its logical size, or null for a sprite this class did not hand out. */
+    public static Loaded loaded(SpriteAPI sprite) {
+        return sprite == null ? null : LOADED.get(sprite);
     }
 
     /**
