@@ -99,6 +99,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private StripTarget hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
+    /** Where the pointer was last seen on the canvas, for the board tooltip; NaN when it is not over it. */
+    private float pointerX = Float.NaN;
+    private float pointerY = Float.NaN;
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
     private Supplier<List<MechInternal>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
@@ -321,6 +324,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
+        pointerX = canvasX;
+        pointerY = canvasY;
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
         hoveredStrip = stripTargetAt(canvasX, canvasY);
@@ -596,6 +601,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawStrips(c, strips);
         lastStripTargets = List.copyOf(strips);
         lastPartBoxes = partBoxes;
+        if (dragPreview == null && hoveredSocket != null && layout.hasSocket(hoveredSocket)) {
+            SocketDef socket = layout.socket(hoveredSocket);
+            MechInternal part = socket.id().compartment() ? partAt(pointerX, pointerY)
+                    : installedInternals.apply(socket.id());
+            MechWeaponComponent weapon = weaponAt(deployment, socket.id());
+            String grid = socket.type().label() + " / " + socket.gridColumns() + "x" + socket.gridRows();
+            String title = part != null ? part.displayName() : weapon != null ? weapon.displayName()
+                    : socket.id().compartment() ? null : socket.label();
+            BoardTooltip.draw(c, pointerX, pointerY, canvasWidth, canvasHeight, title,
+                    part != null || weapon != null ? socket.label() : grid);
+        }
     }
 
     /**
@@ -644,6 +660,23 @@ public final class MechLabDollCanvas implements CanvasProducer {
         lastSocketTargets = List.copyOf(live);
         lastStripTargets = List.copyOf(strips);
         lastPartBoxes = Map.of();
+        for (SocketDropTarget target : targets) {
+            if (!target.contains(pointerX, pointerY)) continue;
+            SocketDef socket = socketById(sockets, target.id());
+            String title = VehicleDoll.caption(type, socket.id(), kits);
+            if (socket.id() == SocketId.AUXILIARY) {
+                // On the rack, the kit under the pointer.
+                title = null;
+                for (int row = 0; row < kits.size(); row++) {
+                    float[] box = MechSocketConsole.kitBox(target, socket, row);
+                    if (pointerX >= box[0] && pointerX <= box[2] && pointerY >= box[1] && pointerY <= box[3]) {
+                        title = kits.get(row).displayName();
+                    }
+                }
+            }
+            BoardTooltip.draw(c, pointerX, pointerY, canvasWidth, canvasHeight, title, socket.label());
+            break;
+        }
     }
 
     private static SocketDef socketById(List<SocketDef> sockets, SocketId id) {
