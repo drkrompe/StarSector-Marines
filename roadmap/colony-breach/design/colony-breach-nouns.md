@@ -1077,10 +1077,10 @@ not read in a soft shadow at play zoom.
     bites once as it passes; one whose body is gone gives its dive up. A bite
     kicks dust off the ground and strikes sparks off the plate, and on a body
     that bleeds throws blood on along the stroke (`ImpactFx.spawnClawStrike`,
-    queued by the sim as presentation). How heavy the blood is, and whether a
-    bite leaves a short-lived stain on the ground (a small blood pool that
-    spreads and fades over twenty seconds), is open to the owner's pick
-    (`-Dbattle.harrier.blood`, `HarrierBlood`). Rarely, a seeded share of bites on a
+    queued by the sim as presentation), and leaves a short-lived stain where it
+    landed: a spatter of fine droplets thrown on along the stroke, drawn from
+    the fallen-body pool art, that fades over twenty seconds (owner's pick).
+    Rarely, a seeded share of bites on a
     marine who lives through them (`HarrierRules.LIFT_CHANCE`), it **lifts** the
     marine off its feet and throws it a couple of cells on along the dive
     (`HarrierLift`): up and down again in under a second, turning over, its

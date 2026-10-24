@@ -33,8 +33,6 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
     @Override protected boolean showUnitShadows() { return true; }
 
     @Override protected List<LookReview.Shot> lookShots() {
-        String picks = System.getProperty("snapshot.harrierPack.picks", "").trim();
-        if (!picks.isEmpty()) return pickShots(picks);
         List<LookReview.Shot> shots = new ArrayList<>();
         for (HarrierLook look : HarrierLook.values()) {
             shots.add(LookReview.Shot.of("harrier-" + look.name().toLowerCase().replace('_', '-'), 70, 40,
@@ -74,48 +72,24 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                 },
                 placement -> List.of(LookReview.View.follow("close", placement, STRIKE_CELLS, "line")),
                 WINGS_TICKS, 1, 4, WINGS_STILLS));
+        // The blood close up, at the rule's own throw rate: the spray as the bites land, then the spatter left on
+        // the ground once the pack has climbed out.
+        shots.add(new LookReview.Shot("harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-') + "-blood",
+                LookGround.verdant(), 70, 40,
+                placement -> stage(placement, HarrierLook.DEFAULT, false),
+                placement -> List.of(LookReview.View.follow("close", placement, BLOOD_CELLS, "line")),
+                BLOOD_TICKS, 1, 4, BLOOD_STILLS));
         return shots;
     }
-
-    /**
-     * The shots for an owner's picks question, in place of the review set ({@code -Dsnapshot.harrierPack.picks}):
-     * {@code rate} plays the strike close-up at three throw rates, so how often a marine goes up can be watched;
-     * {@code blood} plays it closer at the rule's own rate for stills of the blood, rendered once per
-     * {@code -Dbattle.harrier.blood} mode.
-     */
-    private static List<LookReview.Shot> pickShots(String picks) {
-        List<LookReview.Shot> shots = new ArrayList<>();
-        String look = "harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-');
-        if (picks.contains("rate")) {
-            for (int percent : new int[]{3, 6, 12}) {
-                shots.add(new LookReview.Shot(look + "-throw-" + percent, LookGround.verdant(), 70, 40,
-                        placement -> {
-                            BattleSimulation sim = stage(placement, HarrierLook.DEFAULT, false);
-                            sim.swarmFliers().liftChance = percent / 100f;
-                            return sim;
-                        },
-                        placement -> List.of(LookReview.View.follow("close", placement, STRIKE_CELLS, "line")),
-                        PICK_RATE_TICKS, 2, 4, new int[]{PICK_RATE_TICKS / 4}));
-            }
-        }
-        if (picks.contains("blood")) {
-            shots.add(new LookReview.Shot(look + "-blood-" + HarrierBlood.MODE.name().toLowerCase(),
-                    LookGround.verdant(), 70, 40,
-                    placement -> stage(placement, HarrierLook.DEFAULT, false),
-                    placement -> List.of(LookReview.View.follow("close", placement, PICK_BLOOD_CELLS, "line")),
-                    PICK_BLOOD_TICKS, 1, 4, new int[]{PICK_BLOOD_TICKS / 2}));
-        }
-        return shots;
-    }
-
-    static final int PICK_RATE_TICKS = 3000;
-    static final float PICK_BLOOD_CELLS = 8f;
-    static final int PICK_BLOOD_TICKS = 600;
 
     /** The wing close-up: cells across, ticks played, and its stills (frames are ticks here). */
     static final float WINGS_CELLS = 9f;
     static final int WINGS_TICKS = 720;
     static final int[] WINGS_STILLS = {60, 150, 240, 330, 420, 510, 600};
+    /** The blood close-up: cells across, ticks played, and its stills (the bites land near tick 216). */
+    static final float BLOOD_CELLS = 8f;
+    static final int BLOOD_TICKS = 360;
+    static final int[] BLOOD_STILLS = {216, 300};
     /** The strike close-up: cells across, and the lift chance it plays at so a throw shows. */
     static final float STRIKE_CELLS = 14f;
     static final float STRIKE_LIFT_CHANCE = 0.35f;
