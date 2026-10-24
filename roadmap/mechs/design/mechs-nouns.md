@@ -1183,7 +1183,9 @@ support sortie, subject only to practical runtime resources.
   buying:** it stands the pattern on the pad as a translucent preview at the scene's own
   scale (a mech in its standard fit, a vehicle nose-up) and fills the PATTERN card in
   the right-hand column, where an occupied pad shows its specifications, with the
-  maker's crest, name, procurement credit, kind, figures, lore and bill. Only a BUY,
+  maker's crest, name, procurement credit and kind, the standard fit's doll (the fitting
+  schematic, read-only; a vehicle shows its hull), its figures as the specifications' own
+  bars, its lore and its bill. Only a BUY,
   on the row or the card's BUILD, spends anything. Every chassis and vehicle pattern is
   credited to a faction in the loadout cards' voice (`MechPatternCredits`: a square
   faction crest and a procurement line such as the Ordnance Board heavy schedule), and
@@ -1195,8 +1197,10 @@ support sortie, subject only to practical runtime resources.
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
   callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
   passengers, turret); it exposes no sockets, catalog or doll, and its pad is never
-  drawn as vacant. The build catalog filters by kind, walkers or vehicles, as
-  symbol categories in the strip the parts catalog uses; none chosen lists both. Gantries order mechs first, then vehicles.
+  drawn as vacant. The build catalog filters on two axes at once, as symbols in
+  the strip the parts catalog uses: kind (walkers or vehicles) and weight class (light,
+  medium, heavy: rank chevrons on a danger ramp, since weight is how the player reads a
+  machine's threat). Each axis toggles on its own; none chosen lists everything. Gantries order mechs first, then vehicles.
 - **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
   presses: the first arms it and says what comes back, the second breaks the machine
   up. Nothing fitted is lost (weapons, internals and the replenisher stay owned and are

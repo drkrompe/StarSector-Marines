@@ -412,6 +412,15 @@ class MechLabViewModelTest {
                 new Reactor(), bay, resources, changes::incrementAndGet);
         viewModel.nextGantryAction().run();
 
+        // Kind and weight filter together; choosing a weight again clears it.
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.VEHICLES);
+        viewModel.setWeightFilter(MechPattern.WeightClass.HEAVY);
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row -> row.vehiclePreview() != null
+                && MechPattern.weightClass(row.vehiclePreview()) == MechPattern.WeightClass.HEAVY));
+        viewModel.setWeightFilter(MechPattern.WeightClass.HEAVY);
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.VEHICLES);
+        assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.chassisPreview() != null));
+
         MechLabViewModel.CatalogRow apc = viewModel.catalogRows().get().stream()
                 .filter(row -> row.name().equals("Escort APC"))
                 .findFirst().orElseThrow();

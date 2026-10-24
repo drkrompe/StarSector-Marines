@@ -1568,7 +1568,7 @@
         "designationTiered": false
       },
       "sim": {
-        "range": 7.0,
+        "range": 8.0,
         "damage": 14.0,
         "accuracy": 0.8,
         "cooldown": 1.4,
