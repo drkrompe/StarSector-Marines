@@ -116,7 +116,8 @@ class SceneFx:
 
     def hit_point(self, target, from_world, aim_world):
         """Where a round from from_world toward aim_world meets the target's hull, in the target's
-        frame (metres), with the surface normal; the aim point and an outward normal on a miss."""
+        frame (metres), with the surface normal. On a miss, the point on her hull nearest the aim
+        point (coordinator, 2026-10-23: every planned impact lands on metal, never in the air)."""
         imp = self.m['swfx_impacts']
         a, b = self.local(target, from_world), self.local(target, aim_world)
         start = b + (a - b).normalized() * 60.0          # cast from just outside her, not from the shooter
@@ -125,8 +126,46 @@ class SceneFx:
             got = None       # it met something else: a boat on her deck, a ship alongside; not her hull
         if got:
             return Vector(got[0]), Vector(got[1])
+        near = self.nearest_on_hull(target, b)
+        if near is not None:
+            self.rows.append(f'hit point on {target}: the line missed her; snapped {(near[0] - b).length:.1f} m '
+                             f'from the aim point onto her hull')
+            return near
+        self.rows.append(f'hit point on {target}: the line missed her and she has no hull mesh to snap to')
         n = (a - b).normalized()
         return b, n
+
+    def nearest_on_hull(self, target, p_m):
+        """(point, normal) on the target's hull meshes nearest p_m, both in her frame (metres), or None.
+        Her copy's objects are in copy space (her matrix x mpu); each mesh is searched in its own space."""
+        pl = self.placed[target]
+        s = pl['fx']
+        hull = getattr(s, 'hull', None) if s is not None else None
+        if hull is None:
+            return None
+        mpu = pl['mpu']
+        p_copy = Vector(p_m) / mpu
+        best = None
+        for o in hull.all_objects:
+            if o.type != 'MESH' or o.name.startswith('SWFX') or not len(o.data.polygons):
+                continue
+            m, par, n_ = o.matrix_basis.copy(), o.parent, o
+            while par is not None:
+                m = par.matrix_basis @ n_.matrix_parent_inverse @ m
+                n_, par = par, par.parent
+            try:
+                ok, loc, nrm, _i = o.closest_point_on_mesh(m.inverted() @ p_copy)
+            except (RuntimeError, ValueError):
+                continue
+            if not ok:
+                continue
+            w = m @ loc
+            d = (w - p_copy).length
+            if best is None or d < best[0]:
+                best = (d, w, (m.to_3x3() @ nrm).normalized())
+        if best is None:
+            return None
+        return best[1] * mpu, best[2]
 
     # ------------------------------------------------------------------ shields
     def shield(self, key, s):
