@@ -748,12 +748,21 @@ class SceneFx:
             # A seeker flies to where she will be when it arrives, in the world: the flights are
             # held in the shooter's space as it stood at launch (to_world), so the target goes
             # into that space, then back through the space salvo works in.
-            f0 = min(f.frame for f in fl)
-            launch = self.matrix_at(a, f0) @ Matrix.Scale(self.placed[a]['mpu'], 4)
-            at_end = self.matrix_at(b, max(f.end['frame'] for f in fl if f.end)).translation
-            target = mp.space_of(shooter) @ (launch.inverted() @ at_end)
-            fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
-                          target_name=b, width=.18)
+            # Each seeker on its own (2026-10-23, S6: one target for the salvo, where she would be at
+            # the LAST arrival, from the shooter as she stood at the FIRST launch, burst the early
+            # arrivals 60 m off a Lasher doing 190 m/s): from the shooter at its own launch frame, to
+            # where she is on its own arrival frame, settled over two passes.
+            space, mpu_a, out = mp.space_of(shooter), self.placed[a]['mpu'], []
+            for k, (st, fr) in enumerate(zip(starts, [f + shift for f in frames])):
+                one = [fl[k]] if k < len(fl) else []
+                end = fl[k].end['frame'] if k < len(fl) and fl[k].end else arrive
+                for _ in range(2):
+                    launch = self.matrix_at(a, fr) @ Matrix.Scale(mpu_a, 4)
+                    tgt = space @ (launch.inverted() @ self.matrix_at(b, end).translation)
+                    one = mp.salvo('harpoon', [st], tgt, space, frames=[fr], seed=k, target_name=b, width=.18)
+                    end = one[0].end['frame'] if one and one[0].end else end
+                out += one
+            fl = out
         taken = self._decoy(a, b, fl, decoys) if decoys else []
         with self.fired(a), shooter.kit() as (ctx, kit):
             kit.guns.launch_flights(ctx, fl)

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.HeartLane;
-import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
+import com.dillon.starsectormarines.battle.command.allied.GunStock;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
@@ -468,48 +468,50 @@ public final class HeartObjectives {
     }
 
     /**
-     * B5: when the barrage's third line opens, {@link #TRUCKS} ammunition trucks leave the vehicle park
-     * ({@link HeartVehiclePark}, waiting while the swarm is on it) for the battery. The first through adds one more
-     * line to the plan, if the last has not lifted; every truck lost, or the battle ending first, fails it.
+     * B5: when the barrage's third line opens, {@link #TRUCKS} ammunition trucks are sent from the vehicle park's tool
+     * shed ({@link HeartGuns#send}: every truck comes from the one producer, waiting while it has none in stock or the
+     * swarm is on the park) for the battery. The first through adds one more line to the plan, if the last has not
+     * lifted, and refills the battery's rounds; every truck lost, or the battle ending first, fails it.
      */
     static ObjectiveRuntime ammunition(ObjectiveContext ctx) {
-        HeartVehiclePark park = HeartVehiclePark.of(ctx.laid());
         return new ObjectiveRuntime() {
-            final AlliedCommand command = new AlliedCommand("heart-ammunition");
-            final List<SupplyDelivery> trucks = new ArrayList<>();
             int sentAt = -1;
+            int sent;
+            boolean arrived;
             Status outcome;
 
             @Override public Status advance(ObjectiveContext c, int tick) {
                 if (outcome != null) return outcome;
                 HeartSequence heart = c.sim().getHeart();
                 WalkingBarrage barrage = heart == null ? null : heart.barrage();
-                if (park == null || barrage == null) return Status.LAPSED;
+                HeartGuns guns = heart == null ? null : heart.guns();
+                if (barrage == null || guns == null || !guns.sends()) return Status.LAPSED;
                 if (sentAt < 0) {
                     if (!c.hasBeat("barrage_line_" + AMMUNITION_LINE)) return Status.ACTIVE;
                     sentAt = tick;
                 }
-                if (trucks.size() < TRUCKS && tick >= sentAt + trucks.size() * TRUCK_GAP_TICKS) {
-                    trucks.add(SupplyDelivery.ammunition(battery(barrage), park));
+                if (arrived) {
+                    boolean added = barrage.extend(EXTRA_LINE_STEP, EXTRA_LINE_SECONDS);
+                    c.publish(tick, added ? "ammunition_up" : "ammunition_late");
+                    outcome = added ? Status.SUCCEEDED : Status.FAILED;
+                    return outcome;
                 }
-                command.advance(c.sim());
-                boolean lost = trucks.size() == TRUCKS;
-                for (SupplyDelivery truck : trucks) {
-                    SupplyDelivery.State state = truck.advance(c.sim(), command);
-                    if (state == SupplyDelivery.State.DELIVERED) {
-                        boolean added = barrage.extend(EXTRA_LINE_STEP, EXTRA_LINE_SECONDS);
-                        c.publish(tick, added ? "ammunition_up" : "ammunition_late");
-                        outcome = added ? Status.SUCCEEDED : Status.FAILED;
-                        return outcome;
-                    }
-                    if (state != SupplyDelivery.State.LOST) lost = false;
+                if (sent < TRUCKS && tick >= sentAt + sent * TRUCK_GAP_TICKS
+                        && guns.send(c.sim(), errand(sent + 1), battery(barrage, guns, () -> arrived = true), "one more line")) {
+                    sent++;
                 }
-                if (lost) {
+                if (sent == TRUCKS && onRoad(guns) == 0) {
                     c.publish(tick, "ammunition_lost");
                     outcome = Status.FAILED;
                     return outcome;
                 }
                 return Status.ACTIVE;
+            }
+
+            private int onRoad(HeartGuns guns) {
+                int n = 0;
+                for (int i = 1; i <= sent; i++) n += guns.onRoad(errand(i));
+                return n;
             }
 
             @Override public Status end(ObjectiveContext c) {
@@ -519,8 +521,16 @@ public final class HeartObjectives {
         };
     }
 
-    /** The battery as a delivery's recipient: the middle of its standing guns, gone once none stands. */
-    private static SupplyDelivery.Recipient battery(WalkingBarrage barrage) {
+    /** The place B5's {@code n}th truck is sent under. */
+    static String errand(int n) {
+        return "one-more-line-" + n;
+    }
+
+    /**
+     * The battery as a delivery's recipient: the middle of its standing guns, gone once none stands. Arrival refills
+     * the battery's rounds, as any ammunition truck's does, and tells the beat through {@code arrived}.
+     */
+    private static SupplyDelivery.Recipient battery(WalkingBarrage barrage, HeartGuns guns, Runnable arrived) {
         return new SupplyDelivery.Recipient() {
             @Override public String name() { return "battery"; }
 
@@ -529,7 +539,11 @@ public final class HeartObjectives {
                 return middle == null ? null : new int[]{(int) middle[0], (int) middle[1]};
             }
 
-            @Override public void arrived(BattleSimulation sim) { }
+            @Override public void arrived(BattleSimulation sim) {
+                GunStock stock = guns.stock(HeartGuns.BATTERY);
+                if (stock != null) stock.refill(sim);
+                arrived.run();
+            }
         };
     }
 

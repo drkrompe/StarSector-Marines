@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.HitLog;
@@ -67,6 +68,7 @@ import java.util.Set;
  *   beats [since=T] [text=TEXT]           story beats
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
+ *   bores                                 every swarm bore: cell, collapsed, each spore colony alive with its hp
  *   places                                every compound: kind, box, holder, capture and who is present
  *   creep                                 hive creep: cells creeped and dying, shares of the map, each source's reach
  *   grid X0 Y0 X1 Y1 [width=W]            map rows, north first: # blocked, . walkable, , clear for a hull W wide
@@ -113,6 +115,7 @@ public final class BattleProbe {
                 .put("hold", String.valueOf(sim.getCivilianEscortHold()))
                 .put("progress", String.valueOf(sim.getCivilianEvacuationProgress())));
         commands.put("places", this::places);
+        commands.put("bores", a -> bores());
         commands.put("pads", this::pads);
         commands.put("creep", a -> creep());
         commands.put("grid", this::grid);
@@ -431,6 +434,24 @@ public final class BattleProbe {
     private static JSONObject node(TacticalNode n) throws Exception {
         return new JSONObject().put("kind", String.valueOf(n.kind)).put("anchor", new JSONArray(List.of(n.anchorX, n.anchorY)))
                 .put("box", new JSONArray(List.of(n.left, n.top, n.right, n.bottom)));
+    }
+
+    private JSONObject bores() throws Exception {
+        JSONArray rows = new JSONArray();
+        for (SwarmBore bore : sim.swarmBores().bores()) {
+            JSONArray colonies = new JSONArray();
+            for (long colony : bore.colonies()) {
+                boolean alive = sim.resolveUnit(colony) != 0L && sim.world().isAlive(colony);
+                JSONObject c = new JSONObject().put("id", colony).put("alive", alive);
+                if (alive) c.put("hp", round(sim.world().hp(colony))).put("maxHp", round(sim.world().maxHp(colony)))
+                        .put("x", round(sim.world().x(colony))).put("y", round(sim.world().y(colony)));
+                colonies.put(c);
+            }
+            rows.put(new JSONObject().put("key", bore.beatKey()).put("mother", bore.mother())
+                    .put("cell", new JSONArray(List.of(bore.x(), bore.y()))).put("collapsed", bore.collapsed())
+                    .put("colonies", colonies));
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("bores", rows);
     }
 
     private JSONObject places(Args a) throws Exception {
