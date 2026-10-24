@@ -79,8 +79,11 @@ public final class HarrierRules {
     /** Packs released at once are cut to this size at most; a pack is 6-20 by design. */
     public static final int MAX_PACK = 20;
 
-    /** How long a killed flier takes to fall, in seconds; presentation only. */
-    public static final float FALL_SECONDS = 0.8f;
+    /**
+     * How long a flier killed at loiter height takes to reach the ground, in seconds; one hit lower falls for
+     * less ({@link HarrierFall}). Its body lies where it lands.
+     */
+    public static final float FALL_SECONDS = 1.4f;
 
     /** Drawn altitude of a loitering flier above its ground point, in cells, for shots and shadows. */
     public static final float LOITER_HEIGHT_CELLS = 3f;

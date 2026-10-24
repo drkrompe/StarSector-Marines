@@ -1088,12 +1088,21 @@ not read in a soft shadow at play zoom.
     the Runner's lilac carapace with bat wings grown from its spike arms.
     It animates frame by frame (`HarrierPose`): an eight-frame wingbeat whose
     first frame is the glide, flown in short bursts while it circles and
-    steadily, faster, as it climbs out; two frames folding the wings back into
-    the dive drawing as it goes down, and the same two opening them again as it
-    pulls up. Every beat and fold frame carries the glide's body to the pixel
-    and only the wings move. Drawn over the roofs, larger the higher it flies,
-    with its own silhouette cast down-sun as its shadow, nearer under it as it
-    dives.
+    steadily, faster, as it climbs out; two frames sweeping the wings back into
+    the dive as it goes down, and the same two opening them again as it pulls
+    up. The dive keeps its wings showing, swept back along the flanks and still
+    open (owner). Every frame carries the glide's body to the pixel and only the
+    wings move. Drawn over the roofs, larger the higher it flies, with its own
+    silhouette cast down-sun as its shadow, nearer under it as it dives.
+  - **How it dies.** A shot flier falls (`HarrierFall`): carried on the way it
+    was flying while its speed bleeds off, dropping faster as it goes, tumbling
+    through limp-winged fall frames, its shadow closing in under it until the
+    two meet on the ground; hit higher, it falls longer. Where it lands its body
+    lies, as one of two corpse drawings with wings sprawled and crumpled, in a
+    Runner's ichor splat. From then it is a body like any other Rav's: the
+    ordinary corpse of the unit that died, moved to where the fall landed and
+    kept undrawn until then, so it pools, melts into the creep and counts
+    against the body pile by the same laws.
 
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never

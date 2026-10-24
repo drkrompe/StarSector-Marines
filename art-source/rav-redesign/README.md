@@ -81,3 +81,8 @@ glide's own body pixels, nine frames on one 3x3 sheet (`guide-all.png`).
 the round-1 sheet as identity reference), with provenance. `export_harrier.py`
 cuts each frame from its guide cell, keeps only the generated wings and lays the
 glide body back over them, so the body never changes from frame to frame.
+
+The second sheet, `guide-dive.png` / `raw/dive.png` (`dive.brief.txt`), carries
+the dive with its wings still showing and the two frames sweeping into it, four
+tumbling fall frames, and two corpses that the exporter grades duller. The
+first sheet's own fold frames (`r1-fold-*`) are no longer exported.

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -14,14 +15,15 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * The battle's Harrier packs: releases them, flies them once a tick in pack order, lands their strikes and
- * remembers the fallen for the renderer.
+ * The battle's Harrier packs: releases them, flies them once a tick in pack order, lands their strikes, and
+ * lets the fallen fall ({@link HarrierFall}) before laying their bodies where they land.
  *
  * <p>Serial, after the swarm's ground packs, and deterministic: packs are visited in id order, members in slot
  * order, and nothing here draws a random number. A Harrier is a roster unit (it is shot, takes damage and dies as
@@ -35,8 +37,6 @@ public final class SwarmFliers {
     /** A friend inside this of a body on foot keeps it from counting as alone. */
     static final float ALONE_RADIUS = 5f;
 
-    /** A killed Harrier falling, for the renderer: where it was and how long it has fallen. */
-    public record Fall(float x, float y, float facing, float altitude, HarrierLook look, float seconds) {}
 
     /** Something a pack did, kept for evidence. */
     public record Event(int tick, Kind kind, int pack, long harrier, long target) {
@@ -44,7 +44,7 @@ public final class SwarmFliers {
     }
 
     private final List<HarrierPack> packs = new ArrayList<>();
-    private final List<Fall> falls = new ArrayList<>();
+    private final List<HarrierFall> falls = new ArrayList<>();
     private final List<Event> events = new ArrayList<>();
     private final List<HarrierTargeting.Candidate> candidates = new ArrayList<>();
     private final List<float[]> airGuns = new ArrayList<>();
@@ -52,7 +52,13 @@ public final class SwarmFliers {
     private int released;
 
     public List<HarrierPack> packs() { return Collections.unmodifiableList(packs); }
-    public List<Fall> falls() { return Collections.unmodifiableList(falls); }
+    public List<HarrierFall> falls() { return Collections.unmodifiableList(falls); }
+
+    /** Whether a killed Harrier is still falling: its body is not on the ground yet, and is not drawn there. */
+    public boolean falling(long harrier) {
+        for (HarrierFall f : falls) if (f.id == harrier) return true;
+        return false;
+    }
     public List<Event> events() { return Collections.unmodifiableList(events); }
 
     /** The pack a live Harrier flies with, or {@code null}. */
@@ -139,7 +145,7 @@ public final class SwarmFliers {
 
     /** One tick: every pack's prey, flight and strikes, then any splits. */
     public void tick(BattleSimulation sim) {
-        ageFalls();
+        ageFalls(sim);
         if (packs.isEmpty()) return;
         int tick = sim.getSimTickIndex();
         World world = sim.world();
@@ -233,22 +239,41 @@ public final class SwarmFliers {
         for (int i = pack.members.size() - 1; i >= 0; i--) {
             HarrierFlight m = pack.members.get(i);
             if (sim.world().isAlive(m.id)) continue;
-            falls.add(new Fall(m.body.x, m.body.y, m.body.facingDegrees, m.altitude, m.look, 0f));
+            falls.add(new HarrierFall(m.id, m.look, m.body, m.altitude));
             pack.members.remove(i);
             lost = true;
         }
         if (lost) pack.reslot();
     }
 
-    private void ageFalls() {
+    /**
+     * Steps every fall. A Harrier's corpse is made where it was shot, when its death is drained; it is kept off
+     * the ground (not drawn, not counted by the body pile) while the fall plays, and laid where the fall lands,
+     * at the tumble's last facing, as one of its look's corpse drawings. From then it is a body like any other
+     * Rav's: it pools, melts into the creep and is retired by the pile cap on the same rules.
+     */
+    private void ageFalls(BattleSimulation sim) {
+        if (falls.isEmpty()) return;
+        BattleComponents c = sim.getBattleComponents();
+        EntityWorld world = sim.getEntityWorld();
+        NavigationGrid grid = sim.getGrid();
         for (int i = falls.size() - 1; i >= 0; i--) {
-            Fall f = falls.get(i);
-            float s = f.seconds() + BattleSimulation.TICK_DT;
-            if (s >= HarrierRules.FALL_SECONDS) falls.remove(i);
-            else falls.set(i, new Fall(f.x(), f.y(), f.facing(), f.altitude(), f.look(), s));
+            HarrierFall f = falls.get(i);
+            f.advance(BattleSimulation.TICK_DT);
+            boolean corpse = world.has(f.id, c.CORPSE) && world.has(f.id, c.SPRITE);
+            if (!f.landed()) {
+                if (corpse) world.setInt(f.id, c.SPRITE, BattleComponents.SPRITE_INDEX, -1);
+                continue;
+            }
+            if (corpse) {
+                sim.world().setPos(f.id, clamp(f.x(), grid.getWidth()), clamp(f.y(), grid.getHeight()));
+                world.setFloat(f.id, c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES, f.facing());
+                world.setInt(f.id, c.CORPSE, BattleComponents.CORPSE_DEATH_TICK, sim.getSimTickIndex());
+                world.setInt(f.id, c.SPRITE, BattleComponents.SPRITE_INDEX, f.look.corpseIndex(f.corpseVariant()));
+            }
+            falls.remove(i);
         }
     }
-
     private boolean preyStands(BattleSimulation sim, long id) {
         if (sim.getRoster().convoy().isVehicle(id)) return sim.bodies().isTargetable(id);
         return sim.world().isAlive(id) && !sim.isRiding(id);
