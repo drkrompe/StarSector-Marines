@@ -22,8 +22,31 @@ public final class CordonAlliedRules {
     /** A redoubt as the allied command sees it. */
     record Post(int number, boolean manned, boolean calling, int standing, int machines, boolean hadMachines) { }
 
-    /** A hull that could escort: where it stands and the redoubt whose sector it holds. */
-    record Hull(long id, float x, float y, int sector) { }
+    /** What could escort a road hull: a hull, one of a sector's mechs, or a street mouth's rifle team. */
+    enum Kind {
+        HULL, MECH, TEAM;
+
+        /**
+         * What it counts toward its sector's floor: a machine one, a rifle team none. A team may go while the
+         * sector's machines stand at their floor; it is never a sector's last cover, since the machines stay.
+         */
+        int cover() {
+            return this == TEAM ? 0 : 1;
+        }
+
+        /** Whether it walks: it escorts a road hull at a walker's pace. */
+        boolean walks() {
+            return this != HULL;
+        }
+    }
+
+    /** Something that could escort: where it stands, the redoubt whose sector it holds, and what it is. */
+    record Escort(long id, float x, float y, int sector, Kind kind) {
+        /** A hull. */
+        Escort(long id, float x, float y, int sector) {
+            this(id, x, y, sector, Kind.HULL);
+        }
+    }
 
     /** Machines each manned redoubt keeps on its posts: one hull in open country and towns, a mech pair in a city. */
     static int coverFloor(CordonPlan.Density density) {
@@ -32,10 +55,21 @@ public final class CordonAlliedRules {
 
     /**
      * Whether the line's hulls keep to the streets (rule 5): in a town, where armour cannot leave them. Open country
-     * is driven anywhere, and a city's sectors are held by mechs.
+     * is driven anywhere, and a city's sectors are held by mechs. Not on the Road: there the town's main street is the
+     * convoys' road, and a hull parked on the streets beside it stood in their way and the dozer's (town Road held 0
+     * of 12 with the streets kept, 2 of 12 without).
      */
-    static boolean roadbound(CordonPlan.Density density) {
-        return density == CordonPlan.Density.TOWN;
+    static boolean roadbound(CordonPlan.Density density, CordonVariant variant) {
+        return density == CordonPlan.Density.TOWN && variant != CordonVariant.ROAD;
+    }
+
+    /**
+     * Whether a road hull may take a walking escort (a mech of a sector's pair, a street mouth's rifle team) when no
+     * hull is free: in a city, which fields no hulls and whose trucks otherwise went alone. Elsewhere hulls escort, as
+     * before, and the company walks where none is free.
+     */
+    static boolean walkingEscorts(CordonPlan.Density density) {
+        return density == CordonPlan.Density.URBAN;
     }
 
     /** A sector had machines and has none left: the radio's Uncovered. */
@@ -71,24 +105,27 @@ public final class CordonAlliedRules {
     };
 
     /**
-     * The hulls an escort at {@code (x, y)} may take, nearest first, up to {@code want}: only from sectors above
-     * their floor, at most one from any one sector, never a calling redoubt's last machine. Fewer than {@code want}
-     * means the escort goes short, and the radio says it is not Escorted.
+     * What an escort at {@code (x, y)} may take, nearest first, up to {@code want}: hulls, mechs and street teams
+     * alike, only out of the surplus. Taking one must leave its sector's machines at or above the floor (a machine
+     * counts one, a rifle team none: {@link Kind#cover}), and a calling redoubt keeps at least one machine; at most
+     * one from any one sector. Fewer than {@code want} means the escort goes short, and the radio says it is not
+     * Escorted.
      */
-    static List<Hull> escorts(float x, float y, int want, List<Hull> free, List<Post> posts, int floor) {
+    static List<Escort> escorts(float x, float y, int want, List<Escort> free, List<Post> posts, int floor) {
         Map<Integer, Post> bySector = new HashMap<>();
         for (Post p : posts) bySector.put(p.number(), p);
-        List<Hull> nearest = new ArrayList<>(free);
+        List<Escort> nearest = new ArrayList<>(free);
         nearest.sort(Comparator.comparingDouble(h -> Math.hypot(h.x() - x, h.y() - y)));
-        List<Hull> out = new ArrayList<>();
+        List<Escort> out = new ArrayList<>();
         Map<Integer, Integer> taken = new HashMap<>();
-        for (Hull h : nearest) {
+        for (Escort h : nearest) {
             if (out.size() >= want) break;
             Post p = bySector.get(h.sector());
             if (p != null && p.manned()) {
+                int left = p.machines() - h.kind().cover();
                 if (taken.containsKey(h.sector())) continue;
-                if (p.machines() <= floor) continue;
-                if (p.calling() && p.machines() <= 1) continue;
+                if (left < floor) continue;
+                if (p.calling() && left < 1) continue;
             }
             taken.put(h.sector(), 1);
             out.add(h);

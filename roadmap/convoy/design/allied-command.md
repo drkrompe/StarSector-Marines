@@ -7,7 +7,7 @@ Read `convoy-nouns.md` first; this extends `vehicle-as-commandable-unit.md` to
 the allied side.
 
 Written: 2026-10-22
-Updated: 2026-10-23 — refused goals halve the way; a stalled station is retried; hulls set down able to drive out
+Updated: 2026-10-24 — a straggler (stuck, or a late joiner still walking up) is out of the formation's body
 
 ## Why
 
@@ -121,9 +121,18 @@ element's **body** keeps up with its slot, at a walking marine's pace at most.
 An element's body is the leading two thirds of its squads and machines along the
 route. So the slowest element walks on without stopping, and the fastest waits
 in its slot for it. A tank never leaves its infantry in the open, and a screen
-never stands out in front of armour that has fallen behind. A straggler (a hull
-pulling out to withdraw, a squad pinned down) is not the body: it is left to
-catch up and cannot freeze the formation. At the end, the screen's line is on
+never stands out in front of armour that has fallen behind. Only members that
+**keep up** are the body. A member that has stood ten seconds off its slot
+without moving a cell is a **straggler**: a hull that cannot find its way, a squad
+pinned down. So is a member that joined after step-off and has not yet walked up
+to its slot. A straggler is left to catch up and rejoins the body when it moves
+again (or, for a late joiner, once it has stood on its slot). Leaving it out matters
+because the anchor never runs more than a few cells ahead of the body, and a
+member already on its slot cannot go further forward. One member that could not
+reach its own slot would otherwise hold the whole formation where it stood: on
+Broad Front (2026-10-24) a lane stood still for six thousand ticks behind one
+stuck tank and two walkers still coming up. With nothing keeping up, the
+formation holds. At the end, the screen's line is on
 the rally point and the main's just behind it, and both arrive together.
 
 **A fighting advance.** Owner, 2026-10-23: "is there a 'fighting advance' where

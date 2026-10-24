@@ -33,6 +33,13 @@ public final class AlliedColumns {
         boolean stillNeeded(BattleSimulation sim, int x, int y);
         /** Whether a column member at {@code (x, y)} has arrived at the destination. */
         boolean arrived(int x, int y, int destX, int destY);
+        /**
+         * Whether a column that has gained no ground on its destination for {@link #STALL_SECONDS} has reached the
+         * fight for it, and so joins there: an attack-moving column halts to shoot whatever comes into range, and a
+         * destination that spawns its own defenders (a bore) is one it can only otherwise reach by winning. None does
+         * by default.
+         */
+        default boolean holdsFront(BattleSimulation sim, List<Integer> squads, int destX, int destY) { return false; }
         /** The column has arrived: its squads are the mission's now. */
         void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY);
     }
@@ -46,10 +53,42 @@ public final class AlliedColumns {
         final List<Integer> squads = new ArrayList<>();
         int destX = -1, destY = -1;
         boolean entered, done;
+        final Progress progress = new Progress();
 
         Column(int number, Departure departure) {
             this.number = number;
             this.departure = departure;
+        }
+    }
+
+    /** Seconds a marching column may gain no ground on its destination before it is asked whether it holds the front. */
+    public static final float STALL_SECONDS = 30f;
+    private static final int STALL_TICKS = Math.round(STALL_SECONDS / BattleSimulation.TICK_DT);
+
+    /**
+     * How a marching column is getting on: the nearest any member has come to its destination, and the tick it last
+     * came a cell nearer. A column that is not gaining ground has stalled, whatever stopped it.
+     */
+    static final class Progress {
+        private float closest = Float.MAX_VALUE;
+        private int closerSince;
+
+        /** A new destination: the column starts gaining ground on it afresh. */
+        void reset(int tick) {
+            closest = Float.MAX_VALUE;
+            closerSince = tick;
+        }
+
+        /** The nearest member is {@code nearest} cells from the destination at {@code tick}. */
+        void observe(int tick, float nearest) {
+            if (nearest > closest - 1f) return;
+            closest = nearest;
+            closerSince = tick;
+        }
+
+        /** Whether the column has come no cell nearer for {@code ticks}. */
+        boolean stalled(int tick, int ticks) {
+            return tick - closerSince >= ticks;
         }
     }
 
@@ -92,6 +131,32 @@ public final class AlliedColumns {
         return out;
     }
 
+    /**
+     * Each column on the march, one line each, for a probe: its number, where it is bound, its squads and the
+     * centre and nearest member to its destination, in cells.
+     */
+    public List<String> describe(BattleSimulation sim) {
+        List<String> out = new ArrayList<>();
+        for (Column c : columns) {
+            if (!c.entered || c.done || c.squads.isEmpty()) continue;
+            float sx = 0f, sy = 0f, nearest = Float.MAX_VALUE;
+            int n = 0;
+            for (int squad : c.squads) {
+                for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
+                    long member = sim.squadMemberAt(squad, i);
+                    float x = sim.world().x(member), y = sim.world().y(member);
+                    sx += x;
+                    sy += y;
+                    n++;
+                    nearest = Math.min(nearest, (float) Math.hypot(x - c.destX, y - c.destY));
+                }
+            }
+            out.add("column " + c.number + " to " + c.destX + "," + c.destY + " squads " + c.squads
+                    + (n == 0 ? "" : String.format(" at %.0f,%.0f nearest %.0f", sx / n, sy / n, nearest)));
+        }
+        return out;
+    }
+
     /** One tick: due columns come on, marching columns are checked for arrival and re-routed if needed. */
     public void advance(BattleSimulation sim, int tick, Orders orders, BeatSink beat) {
         for (Column column : columns) {
@@ -114,7 +179,9 @@ public final class AlliedColumns {
                 if (dest == null) continue;
                 route(sim, column, dest);
             }
-            if (anyArrived(sim, column, orders)) {
+            column.progress.observe(tick, nearest(sim, column));
+            if (anyArrived(sim, column, orders) || column.progress.stalled(tick, STALL_TICKS)
+                    && orders.holdsFront(sim, List.copyOf(column.squads), column.destX, column.destY)) {
                 column.done = true;
                 orders.joined(sim, column.number, List.copyOf(column.squads), column.destX, column.destY);
                 beat.emit("column_arrived_" + column.number, false);
@@ -140,12 +207,25 @@ public final class AlliedColumns {
     }
 
     private void route(BattleSimulation sim, Column column, int[] dest) {
+        if (dest[0] != column.destX || dest[1] != column.destY) column.progress.reset(sim.getSimTickIndex());
         column.destX = dest[0];
         column.destY = dest[1];
         for (int squad : column.squads) {
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, dest[0], dest[1]),
                     CommandAuthority.GARRISON, issuer, "allied column " + column.number + " marches up");
         }
+    }
+
+    /** Cells from the column's destination to its nearest member. */
+    private static float nearest(BattleSimulation sim, Column column) {
+        float best = Float.MAX_VALUE;
+        for (int squad : column.squads) {
+            for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
+                long member = sim.squadMemberAt(squad, i);
+                best = Math.min(best, (float) Math.hypot(sim.world().x(member) - column.destX, sim.world().y(member) - column.destY));
+            }
+        }
+        return best;
     }
 
     private static boolean anyArrived(BattleSimulation sim, Column column, Orders orders) {

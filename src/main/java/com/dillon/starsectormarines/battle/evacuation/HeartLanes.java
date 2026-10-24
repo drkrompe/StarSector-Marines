@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.battle.command.BarrageScreen;
@@ -72,7 +73,7 @@ public final class HeartLanes {
         final int entryX, entryY;
         final AlliedColumns column;
         List<Integer> squads;
-        /** The militia the lane's arrived waves were raised with: what "broken" is measured against. */
+        /** The militia standing in the lane's waves as each arrived: what "broken" is measured against. */
         int joinedMembers;
         final int teams;
         int targetX = -1, targetY = -1;
@@ -118,6 +119,10 @@ public final class HeartLanes {
                 laneBeats.add("wave_sent_" + reaimedTo.number + "_from_" + number + "_" + reaimedTo.reaims);
                 return gap;
             }
+            // A lane that stands is where its next wave goes: the wave joins it and goes on with it, rather than
+            // marching past it into the swarm on its own.
+            int[] standing = screen == null ? standing(sim) : null;
+            if (standing != null) return standing;
             KnownBore bore = ground.target(known(sim), entryX, entryY);
             return bore == null ? null : aim(sim, ground, bore);
         }
@@ -125,7 +130,11 @@ public final class HeartLanes {
         @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
             int[] gap = gapToClose();
             if (gap != null && near(gap, x, y)) return true;
-            if (screen == null) return livingBoreAt(sim, x, y);
+            if (screen == null) {
+                int[] standing = standing(sim);
+                if (standing != null) return Math.max(Math.abs(standing[0] - x), Math.abs(standing[1] - y)) <= ARRIVE_CELLS;
+                return livingBoreAt(sim, x, y);
+            }
             // Following the guns, a column marches to where its lane is aimed now: the hold moves up as each
             // line lifts, and the bore it was sent for may have fallen.
             int[] now = destination(sim);
@@ -138,6 +147,37 @@ public final class HeartLanes {
             if (gapAt != null && reaimedTo != null && near(gapAt, destX, destY)
                     && inBand(reaimedTo.ground, x, y) && Math.hypot(x - destX, y - destY) <= GAP_REACH) return true;
             return Math.max(Math.abs(x - destX), Math.abs(y - destY)) <= ARRIVE_CELLS;
+        }
+
+        /**
+         * A column held short of its destination by the fight on its own lane's ground has reached the lane's front:
+         * one of its squads is engaged inside the band. One stopped anywhere else (lost, or blocked) has not.
+         */
+        @Override public boolean holdsFront(BattleSimulation sim, List<Integer> squads, int destX, int destY) {
+            for (int id : squads) {
+                Squad squad = sim.getSquad(id);
+                if (squad == null || squad.alertLevel != SquadAlertLevel.ENGAGED) continue;
+                long leader = squad.leaderId;
+                if (leader != 0L && sim.resolveUnit(leader) != 0L && sim.world().isAlive(leader)
+                        && inBand(ground, sim.world().x(leader), sim.world().y(leader))) return true;
+            }
+            return false;
+        }
+
+        /** Where the lane's living militia stand, the middle of them on walkable ground; null while none does. */
+        int[] standing(BattleSimulation sim) {
+            if (squads == null) return null;
+            float x = 0f, y = 0f;
+            int n = 0;
+            for (int squad : squads) {
+                for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
+                    long member = sim.squadMemberAt(squad, i);
+                    x += sim.world().x(member);
+                    y += sim.world().y(member);
+                    n++;
+                }
+            }
+            return n == 0 ? null : walkableNear(sim, Math.round(x / n), Math.round(y / n));
         }
 
         @Override public void joined(BattleSimulation sim, int ignored, List<Integer> joined, int destX, int destY) {
@@ -155,7 +195,15 @@ public final class HeartLanes {
                 targetY = destY;
             }
             squads.addAll(joined);
-            joinedMembers += teams * ColonyMilitia.POST_SIZE;
+            // Measured as the wave came in, not as it was raised: a column that fought its way up arrives short.
+            for (int squad : joined) joinedMembers += sim.squadMemberCount(squad);
+            // A wave that joined the lane where it stands goes on with it to its aim (a formation gives it a slot).
+            if (targetX != destX || targetY != destY) {
+                for (int squad : joined) {
+                    sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, targetX, targetY),
+                            CommandAuthority.GARRISON, ISSUER, "a wave joins lane " + number);
+                }
+            }
         }
 
         /**
@@ -163,17 +211,8 @@ public final class HeartLanes {
          * aim toward its foot. Its aim on Broad Front is the bore itself, whose mouth no column walks into.
          */
         int[] gapCell(BattleSimulation sim) {
-            float x = 0f, y = 0f;
-            int n = 0;
-            if (squads != null) for (int squad : squads) {
-                for (int i = 0, m = sim.squadMemberCount(squad); i < m; i++) {
-                    long member = sim.squadMemberAt(squad, i);
-                    x += sim.world().x(member);
-                    y += sim.world().y(member);
-                    n++;
-                }
-            }
-            if (n > 0) return walkableNear(sim, Math.round(x / n), Math.round(y / n));
+            int[] standing = standing(sim);
+            if (standing != null) return standing;
             if (targetX < 0) return new int[]{entryX, entryY};
             float dx = entryX - targetX, dy = entryY - targetY, d = (float) Math.hypot(dx, dy);
             float t = d <= GAP_STANDOFF ? 1f : GAP_STANDOFF / d;
@@ -357,7 +396,7 @@ public final class HeartLanes {
             lane.squads.removeIf(squad -> sim.squadMemberCount(squad) == 0);
             int alive = 0;
             for (int squad : lane.squads) alive += sim.squadMemberCount(squad);
-            if (!lane.broken && alive * 3 < lane.joinedMembers) {
+            if (!lane.broken && broken(alive, lane.joinedMembers)) {
                 lane.broken = true;
                 beats.add("lane_broken_" + lane.number);
             }
@@ -512,6 +551,20 @@ public final class HeartLanes {
     public HeartGunship gunship() { return gunship; }
     /** The supply road the base's armour and ammunition come up (F6). */
     private HeartSupplyRoad road = new HeartSupplyRoad(List.of());
+
+    /** Each lane as it stands, for a probe: its aim, militia, formation and marching columns. */
+    public List<String> describe(BattleSimulation sim) {
+        List<String> out = new ArrayList<>();
+        for (Lane lane : lanes) {
+            int alive = 0;
+            if (lane.squads != null) for (int squad : lane.squads) alive += sim.squadMemberCount(squad);
+            out.add("lane " + lane.number + " aim " + lane.targetX + "," + lane.targetY + (lane.broken ? " broken" : "")
+                    + " militia " + alive + "/" + lane.joinedMembers
+                    + (lane.advance == null ? "" : " formation " + lane.advance.describe(sim)));
+            for (String column : lane.column.describe(sim)) out.add("  " + column);
+        }
+        return out;
+    }
 
     /** Lays the supply road from its cells: its cuts hold back the base's restock and give the gunship its rung 3. */
     public HeartLanes road(List<int[]> cells) {
@@ -720,6 +773,7 @@ public final class HeartLanes {
             Lane nearest = null;
             for (Lane lane : lanes) {
                 if (lane == gap || lane.broken || lane.reaimedTo != null || lane.column.remaining() == 0) continue;
+                if (!neighbours(acrossOf(), wavesOf(), lanes.indexOf(lane), lanes.indexOf(gap))) continue;
                 if (nearest == null || entryDistance(lane, gap) < entryDistance(nearest, gap)) nearest = lane;
             }
             if (nearest == null) continue;
@@ -730,6 +784,41 @@ public final class HeartLanes {
         }
         for (String closed : closedGaps) beats.add("gap_closed_" + closed);
         closedGaps.clear();
+    }
+
+    /**
+     * Whether a lane standing at {@code alive} militia is broken: below a third of the {@code arrivedWith} its waves
+     * brought in, counted as each arrived.
+     */
+    static boolean broken(int alive, int arrivedWith) {
+        return alive * 3 < arrivedWith;
+    }
+
+    /** Where each lane lies across the front, in lane order. */
+    private int[] acrossOf() {
+        int[] out = new int[lanes.size()];
+        for (int i = 0; i < out.length; i++) out[i] = lanes.get(i).ground.across();
+        return out;
+    }
+
+    /** Whether each lane takes waves, in lane order: armour-only support ground ({@link #addSupport}) does not. */
+    private boolean[] wavesOf() {
+        boolean[] out = new boolean[lanes.size()];
+        for (int i = 0; i < out.length; i++) out[i] = lanes.get(i).teams > 0;
+        return out;
+    }
+
+    /**
+     * Whether lane {@code from} is a neighbour of lane {@code gap} across the front: no other lane that takes waves
+     * lies between them (support ground beside the company does not count). Only a neighbour's wave is re-aimed at
+     * a gap; past it, the gap waits for the company or the next call, rather than a wave marching across the map.
+     */
+    static boolean neighbours(int[] across, boolean[] takesWaves, int from, int gap) {
+        int low = Math.min(across[from], across[gap]), high = Math.max(across[from], across[gap]);
+        for (int i = 0; i < across.length; i++) {
+            if (i != from && i != gap && takesWaves[i] && across[i] > low && across[i] < high) return false;
+        }
+        return true;
     }
 
     /** How far {@code from}'s waves step off from {@code gap}'s aim. */

@@ -12,9 +12,10 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * on without it after a while rather than standing on the road all battle.
  *
  * <p>The decision is {@link #rule}, a pure function; this holds the little state it needs (set out yet, holding,
- * since when, an escort given up on) and applies it through the hull's {@link VehicleMission#speedCap}, the brake a
- * mission driver already has. Mission-neutral: who escorts is the mission's (an {@link SupplyDelivery.Escort}); the
- * Cordon's ammunition trucks and R1's dozer are paced by it, and the heart's trucks can be.
+ * since when, gone on alone) and applies it through the hull's {@link VehicleMission#speedCap}, the brake a
+ * mission driver already has. Mission-neutral: who escorts is the mission's (an {@link SupplyDelivery.Escort}), a hull
+ * or a walker (a mech, a rifle team's leader), and the pair keeps to the slower one's pace either way; the Cordon's
+ * ammunition trucks and R1's dozer are paced by it, and the heart's trucks can be.
  */
 public final class EscortPace {
 
@@ -81,7 +82,7 @@ public final class EscortPace {
     private boolean setOut;
     private boolean holding;
     private int since;
-    private long dropped;
+    private boolean alone;
     private Pace last = Pace.WAIT;
 
     /** @param startTick the tick the hull was set down */
@@ -96,9 +97,8 @@ public final class EscortPace {
      */
     public Pace step(BattleSimulation sim, long hull, long escort) {
         int tick = sim.getSimTickIndex();
-        boolean with = escort != 0L && escort != dropped && alive(sim, escort);
-        float distance = with ? sim.convoy().body(hull).distanceTo(sim.convoy().body(escort).x,
-                sim.convoy().body(escort).y) : Float.MAX_VALUE;
+        boolean with = !alone && escort != 0L && alive(sim, escort);
+        float distance = with ? sim.convoy().body(hull).distanceTo(x(sim, escort), y(sim, escort)) : Float.MAX_VALUE;
         Pace pace = rule(setOut, holding, with, distance, tick - (setOut ? since : startTick));
         VehicleMission mission = sim.convoy().mission(hull);
         switch (pace) {
@@ -111,11 +111,11 @@ public final class EscortPace {
             case GO -> {
                 setOut = true;
                 holding = false;
-                mission.speedCap = with ? cap(type(sim, hull).maxSpeed, type(sim, escort).maxSpeed)
+                mission.speedCap = with ? cap(type(sim, hull).maxSpeed, topSpeed(sim, escort))
                         : Float.POSITIVE_INFINITY;
             }
             case ALONE -> {
-                if (with) dropped = escort;
+                alone = true;
                 setOut = true;
                 holding = false;
                 mission.speedCap = Float.POSITIVE_INFINITY;
@@ -137,6 +137,12 @@ public final class EscortPace {
     /** Whether the hull has set out. */
     public boolean setOut() { return setOut; }
 
+    /**
+     * Whether the hull has gone on without an escort: final, so it is offered none again. Offered a fresh one at the
+     * next look, a truck that had given up on one waited, or held, for the next in turn while its guns stood dry.
+     */
+    public boolean alone() { return alone; }
+
     /** The pace decided at the last step. */
     public Pace last() { return last; }
 
@@ -144,7 +150,26 @@ public final class EscortPace {
         return sim.convoy().vehicleType(hull);
     }
 
-    private static boolean alive(BattleSimulation sim, long hull) {
-        return sim.convoy().isVehicle(hull) && sim.convoy().structure(hull) > 0f;
+    /**
+     * Whether an escort is still there: a hull with structure left, or a living unit (a mech, a rifle team's
+     * leader). An escort may walk: a city has no hulls, and its truck keeps to a Hound or a rifle team instead.
+     */
+    private static boolean alive(BattleSimulation sim, long escort) {
+        if (sim.convoy().isVehicle(escort)) return sim.convoy().structure(escort) > 0f;
+        return sim.resolveUnit(escort) != 0L && sim.world().isAlive(escort);
+    }
+
+    private static float x(BattleSimulation sim, long escort) {
+        return sim.convoy().isVehicle(escort) ? sim.convoy().body(escort).x : sim.world().x(escort);
+    }
+
+    private static float y(BattleSimulation sim, long escort) {
+        return sim.convoy().isVehicle(escort) ? sim.convoy().body(escort).y : sim.world().y(escort);
+    }
+
+    /** An escort's top speed, cells per second: a hull's type's, a walker's own move speed. */
+    private static float topSpeed(BattleSimulation sim, long escort) {
+        if (sim.convoy().isVehicle(escort)) return type(sim, escort).maxSpeed;
+        return sim.world().hasMovement(escort) ? sim.world().moveSpeed(escort) : Float.POSITIVE_INFINITY;
     }
 }

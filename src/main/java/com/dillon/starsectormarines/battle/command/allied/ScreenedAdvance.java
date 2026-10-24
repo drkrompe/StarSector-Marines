@@ -132,6 +132,48 @@ public final class ScreenedAdvance {
     static final float SEEN_SECONDS = 1f;
     /** Share of the screen's strength at step-off below which it is broken. */
     public static final float SCREEN_FLOOR = 1f / 3f;
+    /**
+     * Seconds a member off its slot may stand without moving a cell before it is a <b>straggler</b>: out of its
+     * element's body until it moves again, so a hull that cannot find its way or a squad pinned down cannot hold
+     * the formation where it stands.
+     */
+    public static final float STRAGGLE_SECONDS = 10f;
+    static final int STRAGGLE_TICKS = Math.round(STRAGGLE_SECONDS / BattleSimulation.TICK_DT);
+
+    /**
+     * Whether one member keeps up with the formation. A member is <b>on the line</b> once it has stood on its slot:
+     * the members it stepped off with are, and one that joins later is not until it has walked up to its slot.
+     * It keeps up while it is on the line and either on its slot or still moving; one that has stood
+     * {@link #STRAGGLE_SECONDS} off its slot without moving a cell has fallen out until it moves again. Only
+     * members that keep up are the body the anchor waits for: the anchor never runs further ahead of the body
+     * than {@link #KEEP_UP}, and a member on its slot cannot go further forward, so one that cannot reach its own
+     * slot would otherwise hold the formation for good.
+     */
+    static final class Pace {
+        private boolean onLine;
+        private float x = Float.NaN, y = Float.NaN;
+        private int movedSince;
+
+        Pace(boolean onLine, int tick) {
+            this.onLine = onLine;
+            movedSince = tick;
+        }
+
+        /** The member stands at {@code (x, y)} at {@code tick}, on its slot or not. */
+        void observe(int tick, float x, float y, boolean inPlace) {
+            if (inPlace) onLine = true;
+            if (inPlace || Float.isNaN(this.x) || Math.hypot(x - this.x, y - this.y) >= 1f) {
+                this.x = x;
+                this.y = y;
+                movedSince = tick;
+            }
+        }
+
+        boolean keepsUp(int tick) {
+            return onLine && tick - movedSince < STRAGGLE_TICKS;
+        }
+    }
+
     /** Cells a squad's slot must move before it is ordered again. */
     static final int RESTATION = 3;
     /** Ticks between the advance's decisions. */
@@ -161,6 +203,8 @@ public final class ScreenedAdvance {
     private float[] facing;
     private boolean suspended;
     private final Map<Integer, int[]> squadOrders = new HashMap<>();
+    /** Each member's pace, keyed {@code kind:id}; a member with none stepped off with the formation. */
+    private final Map<String, Pace> paces = new HashMap<>();
     private final List<String> log = new ArrayList<>();
 
     private ScreenedAdvance(Builder b) {
@@ -255,17 +299,77 @@ public final class ScreenedAdvance {
     public float[] facing() { return facing == null ? null : facing.clone(); }
     /** Where the anchor stops: the screen's line on the rally point, the main's just behind it. */
     public float rallyAnchor() { return Math.max(0f, route.length() - screenAhead); }
+    /** Where the formation stands, for a probe: phase, anchor against its end and limit, each element's body and place. */
+    public String describe(BattleSimulation sim) {
+        float[] s = body(sim, screen), m = body(sim, main);
+        return String.format("%s anchor %.1f of %.1f limit %.1f slowest %.1f screen %s%s main %s%s%s", phase, anchor,
+                rallyAnchor(), limit.along(sim), slowest(sim),
+                s == null ? "-" : String.format("%.1f@%.0f,%.0f", s[2], s[0], s[1]), inPlace(sim, screen) ? " in place" : "",
+                m == null ? "-" : String.format("%.1f@%.0f,%.0f", m[2], m[0], m[1]), inPlace(sim, main) ? " in place" : "",
+                suspended ? " suspended" : "") + members(sim);
+    }
+
+    /** Each machine's slot and where it stands, for {@link #describe}. */
+    private String members(BattleSimulation sim) {
+        StringBuilder out = new StringBuilder();
+        for (Slot slot : slots()) {
+            if (slot.kind == 0) continue;
+            float[] p = where(sim, slot.kind, slot.id, Map.of());
+            if (p == null) continue;
+            int[] at = slot.cell();
+            out.append(String.format(" | %s%d slot %d,%d at %.0f,%.0f%s", slot.kind == 1 ? "hull" : "mech", slot.id,
+                    at[0], at[1], p[0], p[1], keepsUp(sim, slot.kind, slot.id) ? "" : " straggling"));
+        }
+        return out.toString();
+    }
+
     /** What the advance has done and when, one line each, for a report. */
     public List<String> log() { return log; }
 
     /** A squad joins the main, or the screen when {@code toMain} is false; the next decision gives it its slot. */
-    public void joinInfantry(int squad, boolean toMain) { (toMain ? main : screen).squads.add(squad); }
+    public void joinInfantry(int squad, boolean toMain) {
+        (toMain ? main : screen).squads.add(squad);
+        joinedLate(0, squad);
+    }
 
     /** A hull or a mech joins the screen, or the main when {@code toScreen} is false. */
     public void joinMachine(long id, boolean mech, boolean toScreen) {
         Element element = toScreen ? screen : main;
         if (mech) element.mechs.add(id);
         else element.hulls.add(id);
+        joinedLate(mech ? 2 : 1, id);
+    }
+
+    /** A member joining after step-off is off the line until it has walked up to its slot. */
+    private void joinedLate(int kind, long id) {
+        if (phase != Phase.WAITING) paces.put(kind + ":" + id, new Pace(false, 0));
+    }
+
+    /** Every member's pace, read from where each stands against its slot. Once a decision, before the body is asked. */
+    private void pace(BattleSimulation sim) {
+        int tick = sim.getSimTickIndex();
+        Map<Integer, float[]> centres = squadCentres(sim, screen);
+        centres.putAll(squadCentres(sim, main));
+        for (Slot slot : slots()) {
+            float[] p = where(sim, slot.kind, slot.id, centres);
+            if (p == null) continue;
+            int[] at = slot.cell();
+            paces.computeIfAbsent(slot.kind + ":" + slot.id, k -> new Pace(true, tick))
+                    .observe(tick, p[0], p[1], Math.hypot(p[0] - at[0] - .5f, p[1] - at[1] - .5f) <= ARRIVE_REACH);
+        }
+    }
+
+    /** Whether a member keeps up ({@link Pace}); one never paced stepped off with the formation and does. */
+    private boolean keepsUp(BattleSimulation sim, int kind, long id) {
+        Pace pace = paces.get(kind + ":" + id);
+        return pace == null || pace.keepsUp(sim.getSimTickIndex());
+    }
+
+    /** Where a member stands: a squad's centre, a hull or a mech; null when it no longer lives. */
+    private static float[] where(BattleSimulation sim, int kind, long id, Map<Integer, float[]> centres) {
+        if (kind == 0) return centres.get((int) id);
+        if (kind == 1) return AlliedCommand.alive(sim.convoy(), id) ? new float[]{sim.convoy().body(id).x, sim.convoy().body(id).y} : null;
+        return mechAlive(sim, id) ? new float[]{sim.world().x(id), sim.world().y(id)} : null;
     }
 
     /** Whether the advance is still going: neither rallied nor halted. */
@@ -299,6 +403,7 @@ public final class ScreenedAdvance {
         if (suspended || tick % DECIDE_TICKS != 0 || !active()) return;
         prune(sim, screen);
         prune(sim, main);
+        if (phase != Phase.WAITING) pace(sim);
         switch (phase) {
             case WAITING -> {
                 if (!start.ready(sim)) return;
@@ -388,21 +493,22 @@ public final class ScreenedAdvance {
         float[] s = body(sim, screen), m = body(sim, main);
         if (s != null) least = Math.min(least, s[2] - screenAhead);
         if (m != null) least = Math.min(least, m[2]);
-        return least == Float.POSITIVE_INFINITY ? 0f : least;
+        // Nothing keeps up (every member straggling, or still walking up to its slot): the formation holds.
+        if (least == Float.POSITIVE_INFINITY) return Float.isNaN(anchor) ? 0f : anchor - KEEP_UP;
+        return least;
     }
 
     /**
-     * An element's <b>body</b>: the leading {@link #ARRIVE_SHARE} of its squads and machines along the route,
-     * each squad counted once at its centre. Returns {@code [x, y, along]} of their mean, or null when nothing
-     * of the element lives.
+     * An element's <b>body</b>: the leading {@link #ARRIVE_SHARE} of its squads and machines that keep up
+     * ({@link Pace}) along the route, each squad counted once at its centre. Returns {@code [x, y, along]} of their mean, or null when nothing
+     * of the element lives and keeps up.
      */
     public float[] body(BattleSimulation sim, Element element) {
-        List<float[]> at = new ArrayList<>(squadCentres(sim, element).values());
-        for (long hull : element.hulls) {
-            if (AlliedCommand.alive(sim.convoy(), hull)) at.add(new float[]{sim.convoy().body(hull).x, sim.convoy().body(hull).y});
-        }
-        for (long mech : element.mechs) {
-            if (mechAlive(sim, mech)) at.add(new float[]{sim.world().x(mech), sim.world().y(mech)});
+        List<float[]> at = new ArrayList<>();
+        Map<Integer, float[]> centres = squadCentres(sim, element);
+        for (long[] member : members(element)) {
+            float[] p = where(sim, (int) member[0], member[1], centres);
+            if (p != null && keepsUp(sim, (int) member[0], member[1])) at.add(p);
         }
         if (at.isEmpty()) return null;
         List<float[]> ranked = new ArrayList<>();
@@ -574,24 +680,12 @@ public final class ScreenedAdvance {
         boolean isScreen = element == screen;
         for (Slot slot : slots()) {
             if (slot.screen != isScreen) continue;
+            float[] p = where(sim, slot.kind, slot.id, centres);
+            // A straggler is left to catch up, here as in the body: it cannot keep the formation from rallying.
+            if (p == null || !keepsUp(sim, slot.kind, slot.id)) continue;
             int[] at = slot.cell();
-            float x, y;
-            if (slot.kind == 0) {
-                float[] c = centres.get((int) slot.id);
-                if (c == null) continue;
-                x = c[0];
-                y = c[1];
-            } else if (slot.kind == 1) {
-                if (!AlliedCommand.alive(sim.convoy(), slot.id)) continue;
-                x = sim.convoy().body(slot.id).x;
-                y = sim.convoy().body(slot.id).y;
-            } else {
-                if (!mechAlive(sim, slot.id)) continue;
-                x = sim.world().x(slot.id);
-                y = sim.world().y(slot.id);
-            }
             live++;
-            if (Math.hypot(x - at[0] - .5f, y - at[1] - .5f) <= ARRIVE_REACH) there++;
+            if (Math.hypot(p[0] - at[0] - .5f, p[1] - at[1] - .5f) <= ARRIVE_REACH) there++;
         }
         return live == 0 || there >= Math.ceil(live * ARRIVE_SHARE);
     }

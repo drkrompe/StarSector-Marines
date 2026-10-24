@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-23 — the logistics base, rounds on hand and the allied commander folded in from `heart-mission-depth.md`.
+Updated: 2026-10-24 — Broad Front waves join a standing lane, and a column held at its lane's front joins there
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -242,7 +242,13 @@ committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
 and vehicles"). Its infantry comes in **waves**: the first steps off at the
 opening, one more as each of the barrage's first lines lifts, and more at a
 steady cadence once the barrage has ended, feeding the push on the mothers. A
-wave marches to wherever its lane is aimed now and joins the lane there. Its
+wave marches to wherever its lane is aimed now and joins the lane there. On
+Broad Front a lane that already stands has its next wave march to the lane
+itself, where its militia stand, and go on with it, rather than past it to the
+bore. A column held short of its bore by the fight on its own lane's ground has
+**reached the front** and joins there (`cordon-nouns.md`, Allied column): a bore
+spawns its own defenders, so the 12 cells of its mouth are ground no column
+reaches except by winning. Its
 armour is an escort APC, two technicals, two breakthrough tanks and a Hound
 pair, with a fresh tank and technical coming up every two minutes once the
 barrage has ended. It follows the barrage on its own line across the front, armour stepping with
@@ -443,7 +449,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `landfall` | both | the first Marine is on the ground |
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
 | `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
-| `lane_broken_N` | Broad Front | lane N's column below a third of its strength |
+| `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |

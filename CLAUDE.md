@@ -762,8 +762,10 @@ yet creates one when it has its first question and adds a row to
   off unless asked for. The task gets the same deterministic switches every
   `Test` task does (synchronous routes and influence, serial unit update); a
   JavaExec without them plays the live game's asynchronous battle, which is
-  not the one the evidence reported. Add a source in `BattleProbeMain.build`
-  when a mission's harness has its own construction.
+  not the one the evidence reported. Add a source in `HeadlessBattles.build`
+  when a mission's harness has its own construction: the probe and the snapshot
+  suites stand a battle up through `HeadlessBattles` (its registries, strings and
+  fixture), so a probe reading reproduces in a clip.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
   row saying what was measured. The same scenes already play under

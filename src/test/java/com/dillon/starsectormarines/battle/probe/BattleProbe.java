@@ -2,6 +2,10 @@ package com.dillon.starsectormarines.battle.probe;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
+import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -68,11 +72,13 @@ import java.util.Set;
  *   beats [since=T] [text=TEXT]           story beats
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
+ *   lanes                                 the heart's lanes: aim, militia, formation, marching columns
  *   bores                                 every swarm bore: cell, collapsed, each spore colony alive with its hp
  *   places                                every compound: kind, box, holder, capture and who is present
  *   creep                                 hive creep: cells creeped and dying, shares of the map, each source's reach
  *   grid X0 Y0 X1 Y1 [width=W]            map rows, north first: # blocked, . walkable, , clear for a hull W wide
  *   drive ID X Y                          a hull's snapped ends, footprint-clear way and drivable route to a cell
+ *   cordon                                the Cordon's truck ways, trucks sent (pace, escort, cell) and beats
  * </pre>
  * Every command answers one JSON object.
  */
@@ -116,10 +122,51 @@ public final class BattleProbe {
                 .put("progress", String.valueOf(sim.getCivilianEvacuationProgress())));
         commands.put("places", this::places);
         commands.put("bores", a -> bores());
+        commands.put("lanes", a -> new JSONObject().put("tick", sim.getSimTickIndex()).put("lanes",
+                sim.getHeart() == null ? new JSONArray() : new JSONArray(sim.getHeart().lanes().describe(sim))));
         commands.put("pads", this::pads);
         commands.put("creep", a -> creep());
         commands.put("grid", this::grid);
         commands.put("drive", this::drive);
+        commands.put("cordon", a -> cordon());
+    }
+
+    /**
+     * The Cordon's line command: each redoubt's truck way (start, way length and end) and each truck sent (its id,
+     * state, pace, escort and cell), the road hulls' escorts, and every beat's own description.
+     */
+    private JSONObject cordon() throws Exception {
+        JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex());
+        CordonSequence cordon = sim.getCordon();
+        if (cordon == null) return out.put("cordon", JSONObject.NULL);
+        CordonLineCommand line = cordon.line();
+        if (line != null) {
+            JSONArray redoubts = new JSONArray();
+            for (CordonRedoubt r : cordon.redoubts()) {
+                JSONObject row = new JSONObject().put("number", r.number()).put("manned", r.manned());
+                int[] start = line.truckStart(r);
+                row.put("start", start == null ? JSONObject.NULL : new JSONArray(start));
+                List<int[]> way = line.streetWay(r);
+                if (way != null) row.put("streetCells", way.size()).put("streetEnd", new JSONArray(way.get(way.size() - 1)));
+                redoubts.put(row);
+            }
+            out.put("redoubts", redoubts);
+            JSONArray trucks = new JSONArray();
+            for (Map.Entry<SupplyDelivery, CordonRedoubt> e : line.deliveries().entrySet()) {
+                SupplyDelivery d = e.getKey();
+                JSONObject row = new JSONObject().put("to", e.getValue().number()).put("truck", d.truck())
+                        .put("state", d.state().name());
+                if (d.pace() != null) row.put("pace", d.pace().last().name()).put("alone", d.pace().alone());
+                int[] at = d.truckCell(sim);
+                if (at != null) row.put("cell", new JSONArray(at));
+                if (cordon.armour() != null) row.put("escort", cordon.armour().escortOf(d.truck()))
+                        .put("escorted", cordon.armour().escorted(d.truck()));
+                trucks.put(row);
+            }
+            out.put("trucks", trucks).put("readings", line.readings());
+        }
+        if (cordon.beats() != null) out.put("beats", new JSONArray(cordon.beats().describe(sim)));
+        return out;
     }
 
     /**
