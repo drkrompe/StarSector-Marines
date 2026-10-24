@@ -273,12 +273,18 @@ does not set Conquest alight.
   infantry it has seen, with two differences, both because the fire does the
   rest of the work. One man standing in fuel is worth a throw, where a frag
   wants two in its blast. And a carrier does not throw where the fire could
-  come to its own side (`FireReach`): the fuel round the point it would light,
-  followed outward through any gap of three cells or less, which heat crosses,
-  out to ten cells; a friend on that ground or beside it vetoes the throw. So
-  a squad standing in the meadow its enemy stands in holds its fire, and one on
-  a road, a firebreak or burnt ground uses it. `-Dbattle.fire.throwSafety=false`
-  is the control, for thrown fire, rounds and firebombs alike.
+  come to its own side (`FireReach`): the fuel the ordnance would light (its
+  blast and scatter round the point; for a firebomb stick, the director's
+  danger-close ring, since a stick runs along the pass), followed outward
+  through any gap of three cells or less, which heat crosses, and no further
+  from where it was lit than each cell's fuel carries a fire (Spread), counted
+  as the field counts it; a friend on that ground or beside it vetoes the
+  throw. So the check is the fire the field will actually burn: a flamer seven
+  cells back from a meadow or a stretch of brush throws, one five cells back
+  holds, and in a wood whose crowns carry a fire five cells the same throw
+  holds too. A squad on a road, a firebreak or burnt ground throws freely.
+  `-Dbattle.fire.throwSafety=false` is the control, for thrown fire, rounds
+  and firebombs alike.
 - **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
   shells, not grenades) puts enough heat into the ground it covers to catch
   grass and dying creep, never a living crown. A walking barrage of ordinary
