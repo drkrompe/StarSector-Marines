@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
+import com.dillon.starsectormarines.battle.infantry.LaneRetarget;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.HeldSpecialPose;
@@ -1662,9 +1663,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         // Fire discipline before the trigger: a trained rifleman, a disciplined crew and a chassis's fire control
         // look down the lane and at where a burst will land, and hold rather than fire through or onto their own
-        // side. -Dbattle.fire.laneDiscipline=false is the control, leaving only the after-the-fact hold roll.
+        // side. A trained shooter held there longer than a new target takes to register shoots one with a clear
+        // lane instead (LaneRetarget). -Dbattle.fire.laneDiscipline=false is the control, leaving only the
+        // after-the-fact hold roll.
         if (Boolean.parseBoolean(System.getProperty("battle.fire.laneDiscipline", "true"))) {
             firingSystem.setFriendInLane(ballisticResolver::friendInLane);
+            rosterService.combat().setFireRedirect(new LaneRetarget(ballisticResolver::friendInLane,
+                    tacticalScoring, rosterService.combat(), rosterService.world(), this::getSimTickIndex));
             infantry.setLaneDiscipline(true);
             turretFire.setLaneDiscipline(true);
             heavy.setLaneDiscipline(true);
