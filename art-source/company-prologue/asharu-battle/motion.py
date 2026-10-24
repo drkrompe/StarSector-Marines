@@ -98,8 +98,55 @@ def drift(key, station, t, scale=1.0):
 
 
 def fleet_at(ships, t, scale=1.0, keep=()):
-    """Every ship of a dict at time t, except those named in keep (authored poses left as posed)."""
-    return {k: (v if k in keep else drift(k, v, t, scale)) for k, v in ships.items()}
+    """Every ship of a dict at time t (live(): her pose at t, and her motion through a shot around
+    it), except those named in keep (authored poses left as posed)."""
+    return {k: (v if k in keep else live(k, v, t, scale)) for k, v in ships.items()}
+
+
+# No ship holds a fixed spot (owner, 2026-10-23, S6), and none flies sideways (S4). A fleet ship
+# through a shot steers her weave: drift()'s heading, pitch, bank and throttle, played livelier for the
+# heavy hulls (LIVE_GAIN), and she moves only along her own nose, at her class's CREEP seeded per ship
+# (0.6 to 1.4 of it, so a formation shifts against itself) and surging with her throttle. drift()'s
+# own position weave is a convoy-frame offset that reads as crabbing in a still frame, so it is used
+# at the key time only: there she is exactly where drift() puts her, and every still keeps its framing.
+CREEP = {'frigate': 18.0, 'destroyer': 12.0, 'cruiser': 8.0, 'freighter': 5.0}
+LIVE_GAIN = {'frigate': 1.0, 'destroyer': 1.5, 'cruiser': 2.5, 'freighter': 3.0}
+LIVE_DT = .05
+
+
+def live(key, st, t_key, scale=1.0):
+    cls = mass_class(key)
+    g = LIVE_GAIN[cls]
+    k = .6 + .8 * (zlib.crc32(f'{key}|creep'.encode()) % 1000) / 999.0
+    creep = CREEP[cls] * k if st[6] > 0 else 0.0     # dead drives: she drifts, she does not creep
+    base = drift(key, st, t_key, scale)
+    memo = {}
+
+    def att(tt):
+        d = drift(key, st, tt, scale)
+        thr = max(d[6], .3) if creep else d[6]       # her drives show while she creeps
+        return (base[3] + (d[3] - base[3]) * g, base[4] + (d[4] - base[4]) * g, base[5] + (d[5] - base[5]) * g, thr)
+
+    def vel(tt):
+        hd, pt, _, thr = att(tt)
+        s = creep * (.7 + .6 * thr)
+        hr, pr = math.radians(hd), math.radians(pt)
+        return (s * math.cos(pr) * math.cos(hr), s * math.cos(pr) * math.sin(hr), s * math.sin(pr))
+
+    def at(tt):
+        n = int(round((tt - t_key) / LIVE_DT))
+        if n not in memo:
+            step = 1 if n >= 0 else -1
+            m = max((q for q in memo if (q - n) * step <= 0 and q * step >= 0), key=abs, default=0)
+            pos = memo.get(m, base[:3])
+            for q in range(m, n, step):                  # midpoint steps along her own heading
+                v = vel(t_key + (q + .5 * step) * LIVE_DT)
+                pos = tuple(pos[c] + v[c] * LIVE_DT * step for c in range(3))
+                memo[q + step] = pos
+            memo[n] = pos
+        x, y, z = memo[n]
+        return (x, y, z, *att(tt))
+    return Pose(at(t_key), t_key, at)
 
 
 def _bez(p, s):

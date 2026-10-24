@@ -325,19 +325,13 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
     # still gaining on the column: speed builds through the shot, so the drives burn
     keys[0]['v'], keys[-1]['v'] = v * .8, v * 1.15
     return fly(key, pose, t, keys, v=v, **kw)
-
-
 # The convoy's escorts work up and down the column (m/s, relative to it): the lead moving up, the
 # rear ones dropping back, so the column reads as a moving formation rather than a parked one.
-ESCORT_DRIFT = {'lasher-lead': (18, 3, 0), 'wolf-m': (-12, 0, 2), 'lasher-a': (10, -4, 0), 'lasher-b': (-15, 3, 0),
-                'hound-m': (-8, -2, 1)}
 
 
 def convoy_at(t):
     """The convoy at t: freighters weaving on station, escorts working along the column."""
-    out = fleet_at({k: v for k, v in CONVOY.items() if k not in ESCORT_DRIFT}, t)
-    out.update({k: station(k, CONVOY[k], t, vel=ESCORT_DRIFT[k]) for k in ESCORT_DRIFT})
-    return out
+    return fleet_at(CONVOY, t)     # escorts too: each moves along her own nose (S4, S6 notes)
 
 
 def track(pose, point, share=1.0, lag=0.0):
@@ -650,7 +644,7 @@ K3B_SHIPS = {
 K4_T = 95
 K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
     dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
-    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=0.0, wobble=.5, thrust=None,
+    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
