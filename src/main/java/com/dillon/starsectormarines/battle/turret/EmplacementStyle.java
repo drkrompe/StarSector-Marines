@@ -7,10 +7,12 @@ package com.dillon.starsectormarines.battle.turret;
  * {@link #key} in a structure's {@code looks}; {@link #BRUTALIST} is the art a structure carries by default.
  *
  * <p>Each tech family (`tech-families.md`) builds a prepared and a militia style: low-tech pours {@link #BRUTALIST}
- * or digs {@link #EARTHWORK}, midline sets up {@link #MODULAR} panels or {@link #BARRIER} cells, high-tech grows
- * {@link #COMPOSITE} shells or drops {@link #DEPLOYED} kit. {@link #DERELICT} is old works, outside the families.
+ * or digs {@link #EARTHWORK}; midline sets up the League's {@link #MODULAR} panels or {@link #BARRIER} cells, or the
+ * Diktat's {@link #EXPORT} panels or {@link #BLOCKWORK}; high-tech grows {@link #COMPOSITE} field-emitter shells or
+ * drops {@link #DEPLOYED} kit. {@link #DERELICT} is old works, outside the families.
  *
- * <p>Presentation only, as a tech family is: no rule reads it.
+ * <p>Presentation, as a tech family is, with one exception: a look may fit its structure's flux shield
+ * ({@link StructureLook#shield}), which a battle reads.
  */
 public enum EmplacementStyle {
     /** Low-tech, prepared: poured concrete collars and plinths, olive cast heads. */
@@ -23,9 +25,16 @@ public enum EmplacementStyle {
     MODULAR("modular", false),
     /** Midline, militia: the same standard heads on earth-filled mesh barrier cells, tarps and ammunition cases. */
     BARRIER("barrier", true),
-    /** High-tech, prepared: seamless white composite shells with graphite gaps and cyan emitter seams. */
+    /** Midline (Diktat), prepared: export-grade sand-ochre ceramic-steel panels with red unit bands. */
+    EXPORT("export", false),
+    /** Midline (Diktat), militia: the same ochre heads in moulded orange-red and white barrier blocks. */
+    BLOCKWORK("blockwork", true),
+    /**
+     * High-tech, prepared: pearl-grey hex-armoured composite with glass canopies and blue field-projector rings, each
+     * hardpoint under a directional flux shield ({@link StructureLook#shield}).
+     */
     COMPOSITE("composite", false),
-    /** High-tech, militia: the same white pods on drop-deployed graphite pads, struts and foam barrier shells. */
+    /** High-tech, militia: the same pods on folding pylons and pads behind hard-light barrier panes. */
     DEPLOYED("deployed", true);
 
     /** The id a structure's {@code looks} entry is keyed by. */

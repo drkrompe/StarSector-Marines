@@ -43,12 +43,12 @@ grass under a hedge under creep is three loads.
 
 | Fuel | Where it comes from | Load | Burns for | Catches | Spread | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| Grass | `GRASS` ground, a grass overlay tuft | 30 | 6 s | easily | 3 | The fast carrier, but green: a patch, not a meadow. |
-| Brush | a shrub or tuft on the nature overlay (a hedge) | 60 | 12 s | easily | 4 | Gone from the overlay once burnt. |
-| Crown | a standing tree's crown cells | 200 | 40 s | hard | 5 | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
+| Grass | `GRASS` ground, a grass overlay tuft | 30 | 6 s | easily | 2 | The fast carrier, but green: a patch, not a meadow. |
+| Brush | a shrub or tuft on the nature overlay (a hedge) | 60 | 12 s | easily | 3 | Gone from the overlay once burnt. |
+| Crown | a standing tree's crown cells | 200 | 40 s | hard | 4 | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
 | Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | all | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
 | Dead creep | creep dying back | 40 | 8 s | easily | all | Dry; the edge a source has abandoned goes up fast. |
-| Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | 3 | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
+| Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | 2 | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
 | Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | all | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
 | Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | all | A room's furniture and boards; a room that catches loses its roof. |
 
@@ -80,7 +80,7 @@ incendiary blast, a flamer's stream, a burning wreck, an ordinary shell's
 blast on dry fuel. An igniter is not a new delivery system; it is a property
 of the weapon or effect that already lands there (Starting fires).
 
-**Burning.** A burning cell has an **intensity** that rises over four seconds
+**Burning.** A burning cell has an **intensity** that rises over six seconds
 as it catches, peaks, and falls as its fuel runs out; it spends its fuel at a fixed rate, so
 its load is its burn time. Each fire step it gives heat to the cells round
 it by ring: a quarter of its intensity to the cells touching it, about a
@@ -99,20 +99,32 @@ everyone). It does not change how hot a fire gets or how far it throws heat,
 so the firebreak widths below hold as they did.
 
 **Spread.** A fire carries only so far from where it was lit
-(`FireFuel.spread`): each burning cell knows its distance, in cells, from its
-fire's ignition, a cell it heats would be one ring further, and a cell further
-from the ignition than its fuel's spread does not catch. Grass carries a fire
-three cells, brush four, a crown five, debris three; creep, living or dead, a
+(`FireFuel.spread`): each burning cell knows its distance from its fire's
+ignition, counted in a straight line hop by hop (in quarter cells), and a cell
+further from the ignition than it can carry does not catch. What a cell can
+carry is its fuel's spread times its own share, 65% to 115%, seeded per cell
+and clumped in three-cell blocks; its ignition varies the same way, 85% to
+120%. So a burn is a ragged disc round where it was lit, never a box: a
+flamer sweep's patch fills about three quarters of its bounding box, where
+counting distance as rings filled all of it. Grass carries a fire two cells,
+brush three, a crown four, debris two; creep, living or dead, a
 light wall and a room's boards carry it as far as they stand, and a cell of
 such fuel is a fresh ignition for whatever it lights. So a flamer's burst in a
-meadow burns a patch three cells round where it landed and goes out, a fire
+meadow burns a patch about two cells round where it landed and goes out, a fire
 that reaches creep runs through all of it, and a house that catches burns room
 by room. Dry country (`FireField.setTinder`, a mission's word) carries a
 fire three times as far. Every igniter (an incendiary's splash, a burning
 wreck, a shell's blast on dry fuel) lights at distance nought, so a second
 burst further on starts a second patch. `-Dbattle.fire.spreadScale` scales
 every limited spread, `0` being the old unbounded fire, while the owner picks
-how far grass carries it.
+how far grass carries it. A flamer throws only where its fire cannot come
+back (Starting fires): on grass that needs the target about five and a half
+cells off (two cells lit, up to two and a third carried, one beside), in
+brush six and a half and among crowns eight, which is why the flamer reaches
+eight cells (the owner's fire-flamer-woods pick, 2026-10-24); at seven it
+had half a cell to throw in from any fuel. An eight-charge sweep at full
+reach burns about 85 cells of meadow, 100 of brush or 120 of wood, and its
+nearest flame stays five, four or three cells from the squad.
 
 **Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
 firebreak by definition. It stays scorched for the battle (it does not
@@ -272,13 +284,21 @@ does not set Conquest alight.
 - **Throwing fire.** A squad spends an incendiary as it does a frag, on soft
   infantry it has seen, with two differences, both because the fire does the
   rest of the work. One man standing in fuel is worth a throw, where a frag
-  wants two in its blast. And a carrier does not throw where the fire could
-  come to its own side (`FireReach`): the fuel round the point it would light,
-  followed outward through any gap of three cells or less, which heat crosses,
-  out to ten cells; a friend on that ground or beside it vetoes the throw. So
-  a squad standing in the meadow its enemy stands in holds its fire, and one on
-  a road, a firebreak or burnt ground uses it. `-Dbattle.fire.throwSafety=false`
-  is the control, for thrown fire, rounds and firebombs alike.
+  wants two in its blast. It is aimed at fuel that can still catch: on ground
+  already burnt or burning it moves to the nearest unburnt fuel that keeps the
+  target in the blast, and with none there the throw is judged as a frag. And a carrier does not throw where the fire could
+  come to its own side (`FireReach`): the fuel the ordnance would light (its
+  blast and scatter round the point; for a firebomb stick, the director's
+  danger-close ring, since a stick runs along the pass), followed outward
+  through any gap of three cells or less, which heat crosses, and no further
+  from where it was lit than each cell's fuel carries a fire (Spread), counted
+  as the field counts it; a friend on that ground or beside it vetoes the
+  throw. So the check is the fire the field will actually burn: a flamer at
+  its eight-cell reach throws into a meadow, brush or a wood, and one closer
+  holds when the fuel between could carry the fire back. A squad on a road, a
+  firebreak or burnt ground throws freely.
+  `-Dbattle.fire.throwSafety=false` is the control, for thrown fire, rounds
+  and firebombs alike.
 - **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
   shells, not grenades) puts enough heat into the ground it covers to catch
   grass and dying creep, never a living crown. A walking barrage of ordinary

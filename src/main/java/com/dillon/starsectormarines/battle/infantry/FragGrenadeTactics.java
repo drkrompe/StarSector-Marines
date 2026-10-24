@@ -31,7 +31,10 @@ import static com.dillon.starsectormarines.battle.sim.BattleSimulation.TICK_DT;
  * <p>An incendiary is judged by the fire it starts as well as its blast
  * (`fire-nouns.md`, Starting fires): one soft target standing in fuel is worth
  * it, since the fire does the spreading, and it is not thrown where the fire
- * could come to the thrower's own side ({@link FireReach}).
+ * could come to the thrower's own side ({@link FireReach}). It is aimed at
+ * fuel that can still catch: ground already burnt or burning starts nothing,
+ * so the throw moves onto the nearest unburnt fuel that keeps the target in the
+ * blast, and with none in reach it is judged by its blast alone.
  */
 public final class FragGrenadeTactics {
 
@@ -50,12 +53,19 @@ public final class FragGrenadeTactics {
         if (squad == null || blockedByHigherPriorityWork(carrier, squad)) return false;
         cleanupReservations(sim);
         FireField fire = grenade.weaponDef().incendiaryHeat() > 0 && FireReach.enabled() ? sim.fireField() : null;
+        int lit = FireReach.litCells(grenade.aoeRadius(), grenade.hitSpread());
 
         Candidate best = null;
         for (BelievedContact anchor : squad.believedContacts()) {
             if (!usableSoftContact(anchor, squad.faction, sim)) continue;
-            float targetX = anchor.lastSeenCellX() + 0.5f;
-            float targetY = anchor.lastSeenCellY() + 0.5f;
+            int[] fuelCell = fire != null
+                    ? fuelCellNear(fire, anchor.lastSeenCellX(), anchor.lastSeenCellY(), grenade.aoeRadius())
+                    : null;
+            boolean inFuel = fuelCell != null;
+            int cellX = inFuel ? fuelCell[0] : anchor.lastSeenCellX();
+            int cellY = inFuel ? fuelCell[1] : anchor.lastSeenCellY();
+            float targetX = cellX + 0.5f;
+            float targetY = cellY + 0.5f;
             float dx = targetX - sim.world().x(carrier);
             float dy = targetY - sim.world().y(carrier);
             float distanceSq = dx * dx + dy * dy;
@@ -66,10 +76,9 @@ public final class FragGrenadeTactics {
 
             int softTargets = countSoftContacts(squad, targetX, targetY,
                     grenade.aoeRadius(), sim);
-            boolean inFuel = fire != null && fire.canBurn(anchor.lastSeenCellX(), anchor.lastSeenCellY());
-            if (softTargets < (inFuel ? 1 : MIN_SOFT_TARGETS)) continue;
+            if (!worthThrowing(inFuel, softTargets)) continue;
             if (!friendlyFootprintClear(carrier, targetX, targetY, grenade, sim)) continue;
-            if (fire != null && FireReach.reachesSide(fire, anchor.lastSeenCellX(), anchor.lastSeenCellY(),
+            if (fire != null && FireReach.reachesSide(fire, cellX, cellY, lit,
                     sim.identity().faction(carrier), sim)) continue;
             if (overlapsCommittedGrenade(targetX, targetY, grenade.aoeRadius(),
                     grenade.weaponId(),
@@ -87,6 +96,36 @@ public final class FragGrenadeTactics {
         sim.world().setSecondaryFired(carrier, false);
         sim.world().setSecondaryAimTargetId(carrier, 0L);
         return true;
+    }
+
+    /**
+     * The cell nearest {@code (x, y)}, within {@code reach} cells centre to centre, whose fuel can still catch, or
+     * null when there is none: an incendiary is aimed there rather than at ground already burnt or burning.
+     */
+    static int[] fuelCellNear(FireField fire, int x, int y, float reach) {
+        if (fire.canBurn(x, y)) return new int[]{x, y};
+        int span = (int) Math.floor(reach);
+        float reachSq = reach * reach;
+        int[] best = null;
+        int bestSq = Integer.MAX_VALUE;
+        for (int dy = -span; dy <= span; dy++) {
+            for (int dx = -span; dx <= span; dx++) {
+                int sq = dx * dx + dy * dy;
+                if (sq > reachSq || sq >= bestSq || !fire.canBurn(x + dx, y + dy)) continue;
+                best = new int[]{x + dx, y + dy};
+                bestSq = sq;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Whether a throw at a point is worth its charge: one soft target standing in fuel that can still catch, since
+     * the fire does the rest; otherwise the blast must do the work alone, and it wants two. A carrier that finds no
+     * such point keeps its charge and looks again on its next turn.
+     */
+    static boolean worthThrowing(boolean inFuel, int softTargets) {
+        return softTargets >= (inFuel ? 1 : MIN_SOFT_TARGETS);
     }
 
     /** Equipment availability for a player's throw: a hand grenade, in hand or on the belt, with one left and the hand free. */

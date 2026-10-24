@@ -361,8 +361,13 @@ def cloud_material():
     return mat
 
 
-def air_material():
-    """Rayleigh scattering volume with an exponential density profile, plus thin haze."""
+def air_material(length_scale=1.0):
+    """Rayleigh scattering volume with an exponential density profile, plus thin haze.
+
+    The profile is written in planet radii, but Cycles integrates density per world unit, so a
+    sphere scaled by `length_scale` must pass it here or its optical depth grows by that factor:
+    C1 v2's Jangala, scaled by thousands, rendered as an opaque grey ball that hid the surface.
+    """
     mat = bpy.data.materials.new('Jangala | air')
     g = Graph(mat)
     g.nodes.remove(g.nodes['Principled BSDF'])
@@ -371,7 +376,8 @@ def air_material():
     alt = g.math('MAXIMUM', g.math('SUBTRACT', r, 1.0), 0.0)
 
     def scatter(phase, colour, tau, scale_height, anisotropy=0.0):
-        dens = g.math('MULTIPLY', g.math('EXPONENT', g.math('DIVIDE', alt, -scale_height)), tau / scale_height)
+        dens = g.math('MULTIPLY', g.math('EXPONENT', g.math('DIVIDE', alt, -scale_height)),
+                      tau / scale_height / length_scale)
         n = g.nodes.new('ShaderNodeVolumeScatter')
         n.phase = phase
         n.inputs['Color'].default_value = (*colour, 1)

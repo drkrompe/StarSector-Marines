@@ -292,7 +292,7 @@ class MechLabViewModelTest {
         assertEquals(MechVariant.HOUND, hound.chassisPreview());
         assertEquals("mech-catalog:recipe.chassis.hound:preview", hound.previewId());
         assertFalse(hound.previewClasses().contains("hidden"));
-        hound.action().run();
+        hound.select().run();
         assertEquals(1, bay.activeSquad().mechs().size(), "selecting a pattern only previews it");
         assertEquals(MechVariant.HOUND, viewModel.padPreview());
         viewModel.buildAction().run();
@@ -412,13 +412,22 @@ class MechLabViewModelTest {
                 new Reactor(), bay, resources, changes::incrementAndGet);
         viewModel.nextGantryAction().run();
 
+        // Kind and weight filter together; choosing a weight again clears it.
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.VEHICLES);
+        viewModel.setWeightFilter(MechPattern.WeightClass.HEAVY);
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row -> row.vehiclePreview() != null
+                && MechPattern.weightClass(row.vehiclePreview()) == MechPattern.WeightClass.HEAVY));
+        viewModel.setWeightFilter(MechPattern.WeightClass.HEAVY);
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.VEHICLES);
+        assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.chassisPreview() != null));
+
         MechLabViewModel.CatalogRow apc = viewModel.catalogRows().get().stream()
                 .filter(row -> row.name().equals("Escort APC"))
                 .findFirst().orElseThrow();
         assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
         assertEquals(3, apc.materials().size());
-        apc.action().run();
+        apc.select().run();
         assertEquals(0, bay.activeSquad().vehicles().size(), "selecting a pattern only previews it");
         assertEquals(VehicleType.ESCORT_APC, viewModel.padPreview());
         viewModel.buildAction().run();

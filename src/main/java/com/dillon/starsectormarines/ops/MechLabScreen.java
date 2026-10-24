@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechSchematicPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
 import org.lwjgl.input.Keyboard;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -168,6 +169,8 @@ public final class MechLabScreen implements Screen {
                     .withPadPreview(viewModel::padPreview);
             dollCanvas.installedInternals(viewModel::installedInternal);
             built.canvases().set(dollElement, dollCanvas);
+            built.canvases().set(candidate.requireElement("mech-build-doll"),
+                    new MechSchematicPreviewCanvas(viewModel::padPreview, this::previewMechs));
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
             ghostElement = candidate.requireElement("mech-drag-ghost");
@@ -304,7 +307,7 @@ public final class MechLabScreen implements Screen {
                     && row.internalPreview().role != MechInternal.Role.PLATING;
             UiElement card = instance.requireElement(row.id());
             card.onPointerDown(event -> {
-                if (row.selectsOnClick()) row.action().run();
+                if (row.selectsOnClick()) row.select().run();
                 if (draggable) beginCatalogDrag(event, row);
             });
             card.onPointerMove(event -> {

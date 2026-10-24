@@ -643,13 +643,20 @@ base's gate rather than the dump, and "low" is a rationed rate of fire, not a
 magazine (a truck the base cannot send yet is asked for again until one goes); the granary is torched by bringing its walls down through the
 ordinary wall-damage path, not by fire; R2's broken truck is taken off the road
 rather than left as a wreck, so the convoys after it still drive; the dozer starts behind the gap, not at the base (from
-the base it lost the race to the first convoy on every long corridor), and a
+the base it lost the race to the first convoy on every long corridor), at the
+nearest corridor cell there it can drive to the wreck from over the ground its
+blade opens, facing along that route (set down wherever the corridor lay, in
+town it stood where it could not turn onto the street, or in a yard walled all
+round, and never set out), and a
 dozer standing at a shut road cell pushes it at the blade's rate even where
 its move order stopped it short of the blade bearing; it pulls aside onto
 the first cell square to the road past the wreck, either side and further out
-in turn, that is clear of the corridor and that it can drive to, and tries the
-next when its move order gives up on one (a fixed step off the road put it in
-a wall, and it stood wedged in the convoys' way); R4's militia
+in turn, that keeps six cells clear of the corridor and that it can drive to,
+and tries the next when its move order gives up on one or, still under way, it comes no
+nearer for eight seconds, four places at most; only where no such place is reached over
+open ground does it take one its blade pushes through to (in town none was, and it stood
+on a street one hull wide while the outbound convoys halted at it) (a fixed step off the road put it in a wall, and it stood
+wedged in the convoys' way); R4's militia
 stay allied; R6 waits for a natural fall, since a scripted one would spend the
 briefing's one allowed redoubt. A beat that never got its trigger lapses.
 

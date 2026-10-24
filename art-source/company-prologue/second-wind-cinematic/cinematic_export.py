@@ -73,7 +73,8 @@ CINEMATIC_BUILD = ROOT / "build" / "cinematic"
 # name order from 0) or split into render-queue chunks named "<first>-<last>/".
 DRIVE_BUILDS = Path("G:/My Drive/starsector/builds")
 FINALS = {
-    "c1": ["c1-final-dc62710dc-e0c15dc08-plumes-trim/frames"],
+    # C1's planet over the plumes-trim frames, its air shell no longer an opaque grey ball (planet_fix.py)
+    "c1": ["c1-final-dc62710dc-e0c15dc08-plumes-trim/frames", "c1-final-dc62710dc-e0c15dc08-planet-rim/frames"],
     "c2": ["c2-final-dc62710dc-71c4b051b/frames"],
     "entry": ["c3-entry-final-2a0bd10ef/entry/frames"],
     "c3": ["c3-entry-final-2a0bd10ef/c3/frames"],

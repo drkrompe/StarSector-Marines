@@ -105,7 +105,7 @@ public final class SupplyDelivery {
      *
      * @param way the route's points ({@code way[0]} xs, {@code way[1]} ys), or {@code null}
      */
-    static float facing(float[][] way, float x, float y, float toX, float toY) {
+    public static float facing(float[][] way, float x, float y, float toX, float toY) {
         float aimX = toX, aimY = toY;
         if (way != null && way[0].length > 1) {
             int n = way[0].length;

@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -40,11 +43,15 @@ public final class SwarmFliers {
 
     /** Something a pack did, kept for evidence. */
     public record Event(int tick, Kind kind, int pack, long harrier, long target) {
-        public enum Kind { COMMIT, STRIKE, PULL_UP_DONE, SPLIT, ESCORT_LOST }
+        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST }
     }
 
     private final List<HarrierPack> packs = new ArrayList<>();
     private final List<HarrierFall> falls = new ArrayList<>();
+    private final List<HarrierLift> lifts = new ArrayList<>();
+    private final List<Stain> stains = new ArrayList<>();
+    /** The share of strikes on a marine that lift it ({@link HarrierRules#LIFT_CHANCE}); a review raises it. */
+    float liftChance = HarrierRules.LIFT_CHANCE;
     private final List<Event> events = new ArrayList<>();
     private final List<HarrierTargeting.Candidate> candidates = new ArrayList<>();
     private final List<float[]> airGuns = new ArrayList<>();
@@ -53,6 +60,28 @@ public final class SwarmFliers {
 
     public List<HarrierPack> packs() { return Collections.unmodifiableList(packs); }
     public List<HarrierFall> falls() { return Collections.unmodifiableList(falls); }
+    public List<HarrierLift> lifts() { return Collections.unmodifiableList(lifts); }
+
+    /**
+     * Blood a bite left on the ground, at ({@code x},{@code y}) along the stroke ({@code facing}), from {@code tick}.
+     * Drawn as a spatter thrown along the stroke that spreads a little and then fades
+     * ({@link HarrierRules#STAIN_SECONDS}). Presentation only.
+     */
+    public record Stain(float x, float y, float facing, int tick) {}
+
+    /** The stains still on the ground. */
+    public List<Stain> stains() { return Collections.unmodifiableList(stains); }
+
+    private void stain(float x, float y, float dx, float dy, int tick) {
+        if (stains.size() >= HarrierRules.MAX_STAINS) stains.remove(0);
+        stains.add(new Stain(x, y, (float) Math.toDegrees(Math.atan2(dy, dx)), tick));
+    }
+
+    /** The throw {@code body} is in the air on, or {@code null} when it is on the ground. */
+    public HarrierLift lift(long body) {
+        for (HarrierLift l : lifts) if (l.body == body) return l;
+        return null;
+    }
 
     /** Whether a killed Harrier is still falling: its body is not on the ground yet, and is not drawn there. */
     public boolean falling(long harrier) {
@@ -146,6 +175,9 @@ public final class SwarmFliers {
     /** One tick: every pack's prey, flight and strikes, then any splits. */
     public void tick(BattleSimulation sim) {
         ageFalls(sim);
+        ageLifts(sim);
+        int stale = sim.getSimTickIndex() - Math.round(HarrierRules.STAIN_SECONDS / BattleSimulation.TICK_DT);
+        while (!stains.isEmpty() && stains.get(0).tick() < stale) stains.remove(0);
         if (packs.isEmpty()) return;
         int tick = sim.getSimTickIndex();
         World world = sim.world();
@@ -186,6 +218,7 @@ public final class SwarmFliers {
                 sim.applyDamage(t, h, HarrierRules.BITE_DAMAGE, HarrierRules.BITE_PENETRATION,
                         HarrierRules.STRIKE_MORALE);
                 events.add(new Event(tick, Event.Kind.STRIKE, pack.id, h, t));
+                strikeLooks(sim, pack, h, t, tick);
             });
             if (before == HarrierPack.Phase.LOITER && pack.phase == HarrierPack.Phase.DIVE) {
                 if (!candidatesBuilt) {
@@ -245,7 +278,7 @@ public final class SwarmFliers {
         for (int i = pack.members.size() - 1; i >= 0; i--) {
             HarrierFlight m = pack.members.get(i);
             if (sim.world().isAlive(m.id)) continue;
-            falls.add(new HarrierFall(m.id, m.look, m.body, m.altitude));
+            falls.add(new HarrierFall(m.id, m.look, m.body, m.shownAltitude));
             pack.members.remove(i);
             lost = true;
         }
@@ -258,6 +291,63 @@ public final class SwarmFliers {
      * at the tumble's last facing, as one of its look's corpse drawings. From then it is a body like any other
      * Rav's: it pools, melts into the creep and is retired by the pile cap on the same rules.
      */
+    /**
+     * What a strike looks like on the body it landed on: dust kicked off the ground, sparks off its plate and, on
+     * anything that bleeds, blood thrown along the stroke. And, rarely, a marine snatched off its feet and thrown
+     * ({@link HarrierLift}): only infantry that lived through the claws and is not already in the air.
+     */
+    private void strikeLooks(BattleSimulation sim, HarrierPack pack, long harrier, long target, int tick) {
+        HarrierFlight m = null;
+        for (HarrierFlight f : pack.members) if (f.id == harrier) m = f;
+        if (m == null) return;
+        double rad = Math.toRadians(m.body.facingDegrees + 90f);
+        float dx = (float) Math.cos(rad), dy = (float) Math.sin(rad);
+        World world = sim.world();
+        float tx = world.x(target), ty = world.y(target);
+        boolean infantry = BruteChargeSystem.isInfantry(target, sim);
+        sim.emitClawStrike(tx, ty, dx, dy, infantry ? 1f : 0f);
+        if (infantry) stain(tx + dx * .3f, ty + dy * .3f, dx, dy, tick);
+        if (!infantry || !sim.getRoster().isAliveById(target) || lift(target) != null
+                || !HarrierLift.rolls(harrier, target, tick, liftChance)) return;
+        NavigationGrid grid = sim.getGrid();
+        // Thrown on along the dive, as far as open ground allows; a body against a wall is not lifted at all.
+        for (float cells = HarrierRules.LIFT_THROW_CELLS; cells >= 1f; cells -= .4f) {
+            float lx = tx + dx * cells, ly = ty + dy * cells;
+            if (!ManualTerrainMotion.canStand(grid, lx, ly, sim.getRoster().radius(target))) continue;
+            lifts.add(new HarrierLift(harrier, target, tx, ty, lx, ly));
+            events.add(new Event(tick, Event.Kind.LIFT, pack.id, harrier, target));
+            sim.stagger().stagger(target, Math.round(HarrierRules.LIFT_SECONDS / BattleSimulation.TICK_DT) + 1,
+                    StaggerService.Cause.KNOCKED_DOWN);
+            sim.clearPath(target);
+            return;
+        }
+    }
+
+    /**
+     * Carries each thrown marine along its arc, and lands it: the ground hurts it, and it is knocked flat and
+     * skids on as a body a Brute threw does ({@code BruteChargeSystem.toss}). One that died in the air drops where
+     * it is.
+     */
+    private void ageLifts(BattleSimulation sim) {
+        if (lifts.isEmpty()) return;
+        NavigationGrid grid = sim.getGrid();
+        for (int i = lifts.size() - 1; i >= 0; i--) {
+            HarrierLift l = lifts.get(i);
+            if (!sim.getRoster().isAliveById(l.body)) {
+                lifts.remove(i);
+                continue;
+            }
+            l.advance(BattleSimulation.TICK_DT);
+            sim.world().setPos(l.body, clamp(l.x(), grid.getWidth()), clamp(l.y(), grid.getHeight()));
+            if (!l.landed()) continue;
+            lifts.remove(i);
+            sim.applyDamage(l.body, l.harrier, HarrierRules.LIFT_LANDING_DAMAGE, 0f, HarrierRules.LIFT_LANDING_MORALE);
+            float dx = l.x1 - l.x0, dy = l.y1 - l.y0;
+            float d = (float) Math.hypot(dx, dy);
+            if (d > 1e-4f) sim.bruteCharges().toss(l.harrier, l.body, dx / d, dy / d);
+        }
+    }
+
     private void ageFalls(BattleSimulation sim) {
         if (falls.isEmpty()) return;
         BattleComponents c = sim.getBattleComponents();

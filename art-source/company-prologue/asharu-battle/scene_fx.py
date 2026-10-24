@@ -828,10 +828,18 @@ class SceneFx:
                       target_name=b, width=.18)
         for _settle in range(4 if self.matrix_at is not None and self.span else 1):
             fl = self._salvo_world(a, b, starts, frames, shift, fl, arrive, mp, shooter, aim)
-            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit']
+            ends = [f.end['frame'] for f in fl if f.end and f.end['kind'] == 'hit'
+                    and f.end['frame'] <= arrive + self.fps]
             if not ends or abs(max(ends) - arrive) <= 1:
                 break
             shift += arrive - max(ends)       # the world re-plan moved the arrivals: shift the launch
+        # a seeker the world re-plan sends the long way round (S8-S9: one of four arriving 7 s late,
+        # still circling at the cut) is not launched: a salvo lands together or not at all
+        late = [f for f in fl if f.end and f.end['frame'] > arrive + self.fps]
+        fl = [f for f in fl if f not in late]
+        if late:
+            self.rows.append(f'missiles {a} -> {b}: {len(late)} seeker(s) ending over a second late not launched '
+                             f'({[(f.end["kind"], f.end["frame"]) for f in late]})')
         taken = self._decoy(a, b, fl, decoys) if decoys else []
         for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
             if f.end and f.end['kind'] == 'hit':
@@ -898,9 +906,12 @@ class SceneFx:
             if fd <= fl.ignite + 2 or not live:
                 continue
             fr = min(live, key=lambda x: (chase_of(x)(fd) - fl.at(fd)).length)
+            kept = ([p.copy() for p in fl.pos], dict(fl.end))       # divert rewrites only these
             fl.divert(fd, chase_of(fr), by='flare')
             if fl.end['kind'] == 'decoy':
                 out.append((fl.label, fd, fl.end['frame']))
+            else:            # it never reached the flare (S8-S9: one chased on 7 s past the cut): it flies its own line
+                fl.pos, fl.end = kept
         return out
 
     # ------------------------------------------------------------------ damage
@@ -912,17 +923,25 @@ class SceneFx:
     # 'big' cluster (18 m and up: seven to ten tongues, three to five satellites, a long smoke)
     KILL_SIZE = 1.7
 
-    def blast_on(self, key, radius, at, frame=None):
+    def blast_on(self, key, radius, at, frame=None, facing=False):
         """An HE blast on key's hull at `at` (her frame, metres), on `frame` (default two frames before
-        the key). At her origin it is her kill: the whole ship cooks off (kill())."""
+        the key). At her origin it is her kill: the whole ship cooks off (kill()). With `facing`, it goes
+        off on the face of her hull the camera sees, on the line from the lens to `at`: a small blast on
+        her far side is hidden by her own hull (S9b's secondary pops, 24 fps check 2026-10-24)."""
         ship = self.ship(key)
         if ship is None:
             return False
         f = self.now - 2 if frame is None else frame
         if Vector(at).length < 1e-6:
             return self.kill(key, radius, f)
+        out = self.outward(key, at)
+        if facing and self.cam_at is not None:
+            p, n = self.hit_point(key, self.cam_at(f)[0], self.world(key, at))
+            self.rows.append(f'blast on {key}: {tuple(round(c) for c in at)} brought to the face toward the camera, '
+                             f'{tuple(round(c) for c in p)}')
+            at, out = tuple(p), n
         with ship.kit() as (ctx, kit):
-            self.m['swfx_impacts'].he(ctx, f, tuple(at), tuple(self.outward(key, at)), size_m=radius * .6)
+            self.m['swfx_impacts'].he(ctx, f, tuple(at), tuple(out), size_m=radius * .6)
         self.rows.append(f'blast on {key} r{radius}')
         return True
 

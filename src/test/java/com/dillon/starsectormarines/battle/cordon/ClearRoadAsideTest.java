@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** R1's dozer pulling aside once the road is open ({@link ClearRoadBeat#aside}). */
 class ClearRoadAsideTest {
@@ -53,5 +55,23 @@ class ClearRoadAsideTest {
     @Test
     void noneWhereNothingIsReachable() {
         assertNull(ClearRoadBeat.aside(road(), 20, (x, y) -> false));
+    }
+
+    @Test
+    void aDozerNoNearerItsAsidePlaceForAWhileIsWedgedAndTriesTheNext() {
+        assertFalse(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS - 1, true));
+        assertTrue(ClearRoadBeat.asideStalled(9f, ClearRoadBeat.ASIDE_STALL_TICKS, true));
+        // There: nothing to retry.
+        assertFalse(ClearRoadBeat.asideStalled(2f, 10 * ClearRoadBeat.ASIDE_STALL_TICKS, true));
+        // Its order done, it stopped as near as it stops: not sent on.
+        assertFalse(ClearRoadBeat.asideStalled(9f, 10 * ClearRoadBeat.ASIDE_STALL_TICKS, false));
+    }
+
+    @Test
+    void pushesThroughToAPlaceOnlyWhereNoneIsReachedOverOpenGround() {
+        // Open ground reaches only the second place along; the blade would reach the first.
+        assertArrayEquals(new int[]{34, 56}, ClearRoadBeat.aside(road(), 20, (x, y) -> x == 34, (x, y) -> true));
+        assertArrayEquals(new int[]{28, 56}, ClearRoadBeat.aside(road(), 20, (x, y) -> false, (x, y) -> true));
+        assertNull(ClearRoadBeat.aside(road(), 20, (x, y) -> false, (x, y) -> false));
     }
 }
