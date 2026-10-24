@@ -1,6 +1,6 @@
 # The Heart — allied forces and their tools
 
-Status: DRAFT — the owner's answer to `heart-allied-tool`: all four tools, the commander choosing by need (`heart-allied-commander.md`). Armour, mech lances and the gunship are built; ammunition trucks are next.
+Status: DRAFT — the owner's answer to `heart-allied-tool`: all four tools, the commander choosing by need (`heart-allied-commander.md`). All four are built.
 
 Written: 2026-10-23
 Updated: 2026-10-23 — owner picked all four tools.
@@ -48,8 +48,11 @@ the same swarm pack, so the four pictures read side by side.
   the allied gunship Thunder Run and Wayline already fly.
 - **Ammunition trucks** (`allies-ammo`): supply trucks run from the dumps up
   the farm road to the Burn's battery. Trucks that arrive add a line to the
-  barrage (B5); trucks lost on the road do not. New: nothing links a truck to
-  the battery's rounds yet.
+  barrage (B5); trucks lost on the road do not. Built as the shed's fourth
+  tool (`HeartGuns`): the Burn's battery and the flak pits the beats dig keep
+  their rounds on hand (`GunStock`). Every barrage shell is a round off its
+  gun, and a dry gun fires one shell in four. A place under half its rounds
+  calls a truck from the vehicle park, and the truck's arrival refills it.
 - **Mech lance** (`allies-mechs`): a pair of Hounds walks with a lane in the
   town and the city, where armour is roadbound. Exists in `HeartLanes`.
 
@@ -58,9 +61,11 @@ trucks may also rearm turrets and flak pits at the bases. The base stocks the
 tools as one `AlliedToolShed`:
 - armour pairs, one per lane, restocking at the old wave pace;
 - one gunship, gated on open air;
-- mech lances, in town and city.
+- mech lances, in town and city;
+- one ammunition truck, restocking every ninety seconds. On The Burn, which
+  has no lanes, the park is a shed of trucks alone.
 
 ## Open
 
-The trucks as a shed tool, rearming guns through `GunStock`. Then what it
-costs to lose the base.
+What it costs to lose the base. B5's trucks still run on their own, not
+through the shed.

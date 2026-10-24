@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.command.allied;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GunStockTest {
 
@@ -31,5 +33,14 @@ class GunStockTest {
         assertEquals(1f, stock.share());
         standing[0] = false;
         assertEquals(null, to.where(null));
+    }
+
+    @Test
+    void aShotFiredOutsideTheCooldownSpendsARoundUntilNoneAreLeft() {
+        GunStock stock = new GunStock("battery", 2).add(3L);
+        assertTrue(stock.spend(3L));
+        assertTrue(stock.spend(3L));
+        assertFalse(stock.spend(3L));
+        assertTrue(stock.spend(9L), "a gun not stocked here fires freely");
     }
 }

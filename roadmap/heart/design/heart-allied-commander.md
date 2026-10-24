@@ -36,18 +36,17 @@ commander asks the base for a pair (`AlliedProducer.request`, the lane as the
 place) for the lane whose armour is weakest, when that lane is:
 - **uncovered**: it has lost a machine;
 - broken: its screen broke (F2's `lane_broken_N`);
-- stalled: its formation stalled at the cap twice running.
+- **stalled**: its formation pushed through two contacts at the cap in a row, clearing none (`heart.lane_stalled_<lane>`).
 
 There is never more than one call on the road per lane (`onRoad`). Built on
 the shared `AlliedToolShed`, behind `battle.heart.armourByNeed`. The lanes'
 timed waves become the vehicle park's stock, and the base keeps its pace by
-density as restock (`allied-tools.md`). A lane that is uncovered or broken
+density as restock (`allied-tools.md`). A lane that is uncovered, broken or stalled
 calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
 - In town and city, where hulls are roadbound, it asks for a **mech lance**
   (two Hounds) first, and an armour pair when no lance is in stock.
 - In rural country it asks for an armour pair (a breakthrough tank and a
   technical).
-- Stalled does not call yet.
 
 **When to commit the gunship.** Only once the air is open (F3's
 `air_corridor_open`), and only onto something worth one sortie, in this order:
@@ -69,10 +68,7 @@ The commander reads the company's position as one more fact:
 
 ## Open
 
-- **Ammunition trucks** as the shed's fourth tool: the owner asked for them to
-  rearm the bases' turrets and flak pits as well as the Burn's battery
-  (`GunStock`, `SupplyDelivery`). B5 still sends its trucks directly.
-- **Stalled** as a third reason to call.
+- B5's trucks still run on their own, beside the guns' trucks (`heart-allied-forces.md`).
 - Whether the commander should also re-aim the next infantry wave (F2's "the
   allied commander re-aims the next wave to close it"), which needs the
   militia column to accept a new target mid-march.

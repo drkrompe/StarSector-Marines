@@ -13,7 +13,12 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
+import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
@@ -64,6 +69,8 @@ import java.util.Set;
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
  *   places                                every compound: kind, box, holder, capture and who is present
  *   creep                                 hive creep: cells creeped and dying, shares of the map, each source's reach
+ *   grid X0 Y0 X1 Y1 [width=W]            map rows, north first: # blocked, . walkable, , clear for a hull W wide
+ *   drive ID X Y                          a hull's snapped ends, footprint-clear way and drivable route to a cell
  * </pre>
  * Every command answers one JSON object.
  */
@@ -108,6 +115,62 @@ public final class BattleProbe {
         commands.put("places", this::places);
         commands.put("pads", this::pads);
         commands.put("creep", a -> creep());
+        commands.put("grid", this::grid);
+        commands.put("drive", this::drive);
+    }
+
+    /**
+     * Whether a hull could be ordered to a cell now: its snapped ends, the footprint-clear way there and the
+     * drivable route a move order would be given (each as its points, or null for none).
+     */
+    private JSONObject drive(Args a) throws Exception {
+        long id = a.longAt(0);
+        int gx = a.intAt(1), gy = a.intAt(2);
+        VehicleType type = sim.convoy().vehicleType(id);
+        GroundBody body = sim.convoy().body(id);
+        NavigationGrid g = sim.getGrid();
+        VehicleClearance clearance = VehicleClearance.erode(g, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        TerrainCostField cost = TerrainCostField.from(sim.getTopology());
+        int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y), 6);
+        int[] to = VehicleRoutePlanner.snapToMask(clearance, gx, gy, 6);
+        JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex())
+                .put("from", from == null ? JSONObject.NULL : new JSONArray(from))
+                .put("to", to == null ? JSONObject.NULL : new JSONArray(to));
+        if (from == null || to == null) return out;
+        out.put("way", polyline(VehicleRoutePlanner.route(from[0], from[1], to[0], to[1], g, cost, clearance)));
+        out.put("drivable", polyline(VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], g, cost,
+                clearance, type)));
+        return out;
+    }
+
+    private static Object polyline(float[][] route) {
+        if (route == null) return JSONObject.NULL;
+        JSONArray points = new JSONArray();
+        for (int i = 0; i < route[0].length; i++)
+            points.put(new JSONArray(List.of(round(route[0][i]), round(route[1][i]))));
+        return points;
+    }
+
+    /**
+     * Rows of the map between two cells, north last: {@code #} not walkable, {@code .} walkable but too tight for the
+     * hull width given ({@code width=W}, default 2), {@code ,} clear for it.
+     */
+    private JSONObject grid(Args a) throws Exception {
+        NavigationGrid g = sim.getGrid();
+        int x0 = a.intAt(0), y0 = a.intAt(1), x1 = a.intAt(2), y1 = a.intAt(3);
+        VehicleClearance clearance = VehicleClearance.erode(g,
+                VehicleClearance.radiusForWidth((float) a.intOr("width", 2)));
+        JSONArray rows = new JSONArray();
+        for (int y = y1; y >= y0; y--) {
+            StringBuilder row = new StringBuilder(String.format(Locale.ROOT, "%4d ", y));
+            for (int x = x0; x <= x1; x++) {
+                if (!g.inBounds(x, y)) row.append(' ');
+                else if (!g.isWalkable(x, y)) row.append('#');
+                else row.append(clearance.isPassable(x, y) ? ',' : '.');
+            }
+            rows.put(row.toString());
+        }
+        return new JSONObject().put("x0", x0).put("rows", rows);
     }
 
     public BattleSimulation sim() {
@@ -243,6 +306,18 @@ public final class BattleProbe {
                         .put("requested", new JSONArray(List.of(refused.requestedX(), refused.requestedY()))));
             }
             vehicle.put("pending", orders.pending(id)).put("enlisted", orders.isEnlisted(id));
+            VehicleControlComponent control = convoy.control(id);
+            if (control != null) {
+                vehicle.put("control", new JSONObject()
+                        .put("planFailure", round(control.localPlanFailureTime))
+                        .put("wallStuck", round(control.wallStuckTime))
+                        .put("sinceProgress", round(control.timeSinceProgress))
+                        .put("recovery", String.valueOf(control.recovery))
+                        .put("trajectory", control.hasTrajectory())
+                        .put("docking", control.dockingPath != null)
+                        .put("turnarounds", control.turnaroundsUsed)
+                        .put("cursor", control.waypointIndex()));
+            }
             GroundTurret turret = convoy.turret(id);
             if (turret != null) {
                 JSONObject t = new JSONObject().put("facing", round(turret.facingDeg)).put("ammo", turret.ammo)

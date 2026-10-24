@@ -69,10 +69,16 @@ public final class AlliedCommand {
     public static final float VIA_REACH = 4f;
     /** Waypoints a hull is sent through on its way to one post before it stops asking. */
     public static final int VIA_LIMIT = 24;
-    /** Times a refused goal is pulled back before the hull stays where it is. */
+    /** Times a refused goal is pulled back before the hull stays where it is, until {@link #STALL_RETRY_TICKS}. */
     public static final int PULLBACK_LIMIT = 12;
     /** Cells a new post must move before a stationed hull is sent again, so a moving line is not a new order every tick. */
     public static final int RESTATION = 3;
+    /**
+     * Ticks a stationed hull that stopped short of its post (its refusals or waypoints spent) waits before it is
+     * sent to the post again with both counts fresh. The ground changes under it — a hull or a walker that stood
+     * in its way moves off, a wall comes down — and without a retry it stood where it stalled all battle.
+     */
+    public static final int STALL_RETRY_TICKS = Math.round(20f / BattleSimulation.TICK_DT);
 
     private enum Phase { STATION, BOARDING, DRIVING }
 
@@ -83,6 +89,8 @@ public final class AlliedCommand {
         int goalX, goalY;
         int pullbacks;
         int vias;
+        /** Tick it was last sent anywhere. */
+        int sentAt;
         int squad = -1;
         Delivery delivery;
         int boardingSince;
@@ -288,7 +296,14 @@ public final class AlliedCommand {
                     }
                 }
                 case STATION -> {
-                    if (!within(convoy.body(hull), task.goalX, task.goalY, STATION_LEASH) && stopped(sim, hull)) {
+                    if (!stopped(sim, hull)) break;
+                    if (stalled(task, sim.getSimTickIndex())) {
+                        task.pullbacks = 0;
+                        task.vias = 0;
+                        task.goalX = task.postX;
+                        task.goalY = task.postY;
+                        drive(sim, hull, task);
+                    } else if (!within(convoy.body(hull), task.goalX, task.goalY, STATION_LEASH)) {
                         drive(sim, hull, task);
                     }
                 }
@@ -319,14 +334,23 @@ public final class AlliedCommand {
     }
 
     private void drive(BattleSimulation sim, long hull, Task task) {
+        task.sentAt = sim.getSimTickIndex();
         sim.getVehicleMoveOrderService().requestMove(hull, task.goalX, task.goalY);
+    }
+
+    /**
+     * Whether a stopped, stationed hull has stalled short of its post: it stands at a goal pulled back from the
+     * post, and has been sent nowhere for {@link #STALL_RETRY_TICKS}. A hull at its post itself is home.
+     */
+    private static boolean stalled(Task task, int tick) {
+        return (task.goalX != task.postX || task.goalY != task.postY) && tick - task.sentAt >= STALL_RETRY_TICKS;
     }
 
     /**
      * A refused goal is pulled back toward the hull and asked again: to the corner halfway along the way
      * there, where one is known, so the hull goes a leg at a time; else a step back along the
      * straight line, never past the hull itself. After {@link #PULLBACK_LIMIT} refusals the hull
-     * stays where it is.
+     * stays where it is, and is sent to its post afresh after {@link #STALL_RETRY_TICKS}.
      *
      * <p>A hull that steers wide (an APC turns on twice a car's circle) is refused a long route whose
      * one tight corner it cannot make in a single drive, though every leg of it is drivable alone:
@@ -339,8 +363,8 @@ public final class AlliedCommand {
         VehicleMoveOrderService.RefusedOrder refused = orders.refusal(hull);
         if (refused == null || refused.requestedX() != task.goalX || refused.requestedY() != task.goalY
                 || !stopped(sim, hull)) return false;
-        // Out of steps: a station stays put; a carrier sets its riders down where it stands.
-        if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION;
+        // Out of steps: a station stays put until it is retried; a carrier sets its riders down where it stands.
+        if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION && !stalled(task, sim.getSimTickIndex());
         GroundBody body = sim.convoy().body(hull);
         int[] corner = wayCorner(sim, hull, task.goalX, task.goalY);
         if (corner != null) {
