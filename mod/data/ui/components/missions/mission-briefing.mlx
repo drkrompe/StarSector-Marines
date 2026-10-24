@@ -77,6 +77,15 @@
               <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
             </div>
           </div>
+          <div id="mission-employer-block" class="briefing-section">
+            <div id="mission-employer-heading" class="label heading tone-muted info-label">{employerHeader}</div>
+            <div id="mission-employer-list" class="info-list">
+              <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row employer-row">
+                <div id="{row.labelId}" class="label tone-edge info-label">{row.label}</div>
+                <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+              </div>
+            </div>
+          </div>
           <div id="mission-term-actions" class="mission-term-actions" style="{termActionsStyle}">
             <button each="term in termActions" key="{term.id}" id="{term.id}" class="{term.classes}" disabled="{term.disabled}" onclick="{term.action}">
               <div id="{term.titleId}" class="label heading choice-title">{term.title}</div>
@@ -163,21 +172,21 @@
               <div id="mission-power-empty" class="label tone-muted empty-copy" style="{powerEmptyStyle}">{powerEmpty}</div>
             </div>
             <div id="mission-logistics" class="mission-logistics">
-              <div id="mission-source-block" class="briefing-section">
-                <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
-                <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
-                  <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
-                    <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
-                    <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
-                    <div id="{source.copyId}" class="choice-copy">
-                      <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
-                      <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
-                    </div>
-                  </button>
-                </div>
-                <div id="mission-source-empty" class="label tone-muted empty-copy" style="{sourceEmptyStyle}">{sourceEmpty}</div>
-              </div>
               <div id="mission-support-stack" class="mission-support-stack">
+                <div id="mission-source-block" class="briefing-section">
+                  <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
+                  <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
+                    <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
+                      <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
+                      <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
+                      <div id="{source.copyId}" class="choice-copy">
+                        <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
+                        <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
+                      </div>
+                    </button>
+                  </div>
+                  <div id="mission-source-empty" class="label tone-muted empty-copy" style="{sourceEmptyStyle}">{sourceEmpty}</div>
+                </div>
                   <div id="mission-transport-block" class="briefing-section">
                     <div id="mission-transport-heading" class="label heading tone-edge section-heading">{transportHeader}</div>
                     <div id="mission-transport-readout" class="landing-craft-readout console-readout" tabindex="0">
@@ -203,15 +212,6 @@
                       </button>
                     </div>
                   </div>
-                <div id="mission-employer-block" class="briefing-section">
-                  <div id="mission-employer-heading" class="label heading tone-edge section-heading">{employerHeader}</div>
-                  <div id="mission-employer-list" class="info-list">
-                    <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
-                      <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-                      <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -356,10 +356,11 @@
   .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
   .commitment-grid .briefing-section { height: 78px; }
-  #mission-transport-block { height: 116px; }
   .landing-craft-image { height: 48px; }
   .landing-craft-line { height: auto; padding: 0px; white-space: normal; }
-  #mission-employer-block { width: 0px; flex-grow: 1; }
+  #mission-employer-block { height: auto; gap: 6px; }
+  #mission-employer-list { gap: 10px; }
+  .employer-row { height: auto; gap: 2px; }
   .commitment-summary { height: auto; white-space: normal; }
   .commitment-note { height: auto; white-space: normal; }
   .deck-heading-row .label { width: 0px; flex-grow: 1; }
@@ -401,7 +402,7 @@
   .mission-term-actions button { flex-direction: column; width: auto; flex-grow: 0; padding: 6px; gap: 4px; border-width: 1px; text-align: center; height: 38px; }
   .mission-term-actions .choice-row.selected { background-color: #35433f; border-color: #f2cf68; border-width: 2px; }
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 12px; gap: 5px; border-width: 0px; overflow: hidden; }
-  .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 24px; overflow: scroll; }
+  .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 16px; overflow: scroll; }
   .briefing-section { flex-direction: column; padding: 0px; gap: 8px; border-width: 0px; background-color: transparent; }
   .section-heading { height: 20px; }
   .force-comparison { width: 550px; flex-direction: row; align-items: center; height: 78px; gap: 14px; }
@@ -412,7 +413,7 @@
   .force-meter { flex-direction: row; height: 9px; gap: 4px; }
   .force-meter .indicator { width: 42px; height: 9px; border-width: 1px; background-color: #8fae98; }
   .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
-  .mission-loadout-grid { flex-direction: column; height: auto; gap: 22px; overflow: hidden; }
+  .mission-loadout-grid { flex-direction: column; height: auto; gap: 16px; overflow: hidden; }
   .command-deck { height: auto; align-items: start; }
   .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
   .command-power-list { display: grid; height: 145px; gap: 8px; overflow: scroll; width: 100%; }
@@ -422,18 +423,13 @@
   .command-power-list .choice-copy { width: 128px; height: 45px; flex-grow: 0; gap: 4px; }
   .command-power-list .choice-title { height: 25px; white-space: normal; text-align: center; }
   .command-power-list .choice-detail { height: 14px; text-align: center; }
-  .mission-logistics { flex-direction: column; height: auto; gap: 20px; overflow: hidden; }
-  #mission-source-block { height: auto; }
-  #mission-source-list { height: 46px; flex-grow: 0; display: grid; gap: 8px; }
-  .source-list .choice-row { width: 280px; height: 30px; }
-  .source-list .choice-icon { width: 32px; height: 28px; }
-  .mission-support-stack { flex-direction: row; height: 182px; gap: 18px; overflow: scroll; display: grid; }
-  #mission-transport-block, #mission-carrier-block, #mission-employer-block { width: 256px; height: 170px; flex-grow: 0; }
-  .landing-craft-readout { flex-direction: row; align-items: center; height: 100px; padding: 4px; gap: 7px; background-color: transparent; }
+  .mission-logistics { flex-direction: column; height: auto; overflow: hidden; }
+  /* Fleet support, landing craft and fighter cover share one row so the column never scrolls. */
+  .mission-support-stack { flex-direction: row; height: 132px; gap: 14px; overflow: hidden; }
+  #mission-source-block, #mission-transport-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 132px; gap: 6px; }
+  .landing-craft-readout { flex-direction: row; align-items: center; height: 104px; padding: 4px; gap: 7px; background-color: transparent; }
   .landing-craft-copy { flex-direction: column; height: 96px; width: 0px; flex-grow: 1; gap: 2px; }
-  #mission-carrier-list { height: 114px; overflow: scroll; }
-  #mission-employer-list { height: 134px; flex-grow: 0; overflow: scroll; gap: 12px; }
-  #mission-employer-list .info-row { height: 42px; }
+  #mission-carrier-list { height: 0px; flex-grow: 1; overflow: scroll; }
   .mission-briefing-actions { flex-direction: row; height: 40px; padding: 8px; gap: 14px; border-width: 0px; overflow: hidden; }
   .mission-briefing-actions button { flex-direction: row; align-items: center; width: 158px; flex-grow: 0; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; height: 30px; }
   #mission-briefing-back { width: 114px; }
@@ -471,10 +467,9 @@
   .survey-objective { height: 24px; white-space: normal; }
   #mission-survey-footer { height: 34px; white-space: normal; }
   #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
-  .source-list .choice-row { height: 48px; width: 310px; }
-  .source-list .choice-icon { width: 54px; height: 44px; }
-  #mission-source-block { height: 96px; }
-  #mission-source-list { height: 64px; }
+  #mission-source-list { height: 0px; flex-grow: 1; }
+  .source-list .choice-row { height: 40px; width: 100%; }
+  .source-list .choice-icon { width: 40px; height: 34px; }
   .mission-factions { flex-direction: row; height: 62px; gap: 10px; width: 100%; }
   .faction-identity { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; gap: 6px; }
   .faction-crest { pointer-events: none; }

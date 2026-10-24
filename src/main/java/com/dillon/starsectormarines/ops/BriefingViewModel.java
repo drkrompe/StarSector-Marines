@@ -488,7 +488,7 @@ final class BriefingViewModel {
         // An empty list gives its space to the empty-state line instead of leaving a blank well.
         for (String key : List.of("power", "source")) {
             boolean empty = ((List<?>) props.getOrDefault(key + "Rows", List.of())).isEmpty();
-            props.put(key + "ListStyle", empty ? "height: 0px; overflow: hidden" : "");
+            props.put(key + "ListStyle", empty ? "height: 0px; flex-grow: 0; overflow: hidden" : "");
         }
         return props;
     }
