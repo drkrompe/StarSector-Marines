@@ -62,7 +62,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
      * One frame: the special the Marine carries (null for a rifleman), its rounds, how many Q presses, whether the
      * Marine is walking at the moment of the frame, and a click before it.
      */
-    record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) { }
+    record Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires, int fireLead) {
+        Case(String name, String specialId, int ammo, int cycles, boolean walking, boolean fires) {
+            this(name, specialId, ammo, cycles, walking, fires, 6);
+        }
+    }
 
     /** The flamer picked and held: a charge of the jet on its way, a charge spent from the tank. */
     static final Case FLAMER_STREAMING = new Case("flamer-streaming", SpecialEquipmentRegistry.FLAMER_ID, 8, 1,
@@ -83,7 +87,10 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
     private static final List<Case> CLOSE_CASES = List.of(
             new Case("flamer-walking-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, true, false),
             new Case("flamer-held-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, false),
-            new Case("flamer-streaming-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true));
+            new Case("flamer-streaming-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true),
+            // The first frames of a jet, two and four ticks after the click: it leaves the wand's nozzle.
+            new Case("flamer-first-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 2),
+            new Case("flamer-first-later-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 4));
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -138,7 +145,7 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             ReviewImpactFx fx = new ReviewImpactFx(modRoot);
             // Walk east for two seconds, long enough to ready either special, aiming ahead of the walk.
             int ticks = 60;
-            int fireAt = c.fires() ? ticks - 6 : -1;
+            int fireAt = c.fires() ? ticks - c.fireLead() : -1;
             float aimX = Float.NaN;
             float aimY = Float.NaN;
             for (int tick = 0; tick < ticks; tick++) {

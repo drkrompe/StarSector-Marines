@@ -340,16 +340,16 @@ public final class EffectsService {
 
     /**
      * A claw or bite raked across a body at ({@code x},{@code y}), travelling along ({@code dirX},{@code dirY}) (a unit
-     * vector): dust kicked off the ground, sparks off its plate and, when {@code bleeds}, blood thrown on. Presentation
-     * only; the hit itself already resolved.
+     * vector): dust kicked off the ground, sparks off its plate and blood thrown on, {@code blood} heavy (0 for a
+     * body that does not bleed, 1 for the plain spray). Presentation only; the hit itself already resolved.
      */
-    public void emitClawStrike(float x, float y, float dirX, float dirY, boolean bleeds) {
-        clawStrikesThisFrame.add(new float[]{x, y, dirX, dirY, bleeds ? 1f : 0f});
+    public void emitClawStrike(float x, float y, float dirX, float dirY, float blood) {
+        clawStrikesThisFrame.add(new float[]{x, y, dirX, dirY, blood});
     }
 
     // ---- Per-frame event drains ----
 
-    /** Claw strikes queued this tick, each {x, y, dirX, dirY, bleeds}; see {@link #emitClawStrike}. */
+    /** Claw strikes queued this tick, each {x, y, dirX, dirY, blood}; see {@link #emitClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return clawStrikesThisFrame; }
 
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
