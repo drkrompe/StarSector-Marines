@@ -17,13 +17,12 @@ import java.util.List;
 
 /**
  * The Broad Front's gunship on call (`heart-allied-commander.md`): the lanes' commander asks the logistics base for
- * one sortie at a time, only while the spore colonies over the company's approach are dead (the air is open), and
- * only onto something worth it: a Matriarch near a lane's armour first, then the bore a broken lane is on. A sortie
- * comes off station at half structure.
+ * one sortie at a time, only onto something worth it ({@link #target}), and risks it as its {@link Policy} says. A
+ * sortie comes off station at half structure.
  *
- * <p>While the commander wants a sortie and the air is shut, the base's guns <b>open the air</b>: a shoot on the
- * living colonies of the approach satellites, at most one every {@link #SHOOT_SECONDS}. Nothing else reaches those
- * colonies in a played battle; the company and the lanes stop well short of the satellites.
+ * <p>Where the policy wants the air cleared first, the base's guns shoot it open: a shoot sized to kill each spore
+ * colony and outpost in the way, at most one every {@link #SHOOT_SECONDS}. Nothing else reaches those in a played
+ * battle; the company and the lanes stop well short of the satellites.
  */
 public final class HeartGunship {
 
@@ -41,9 +40,57 @@ public final class HeartGunship {
     static final float SHELL_RADIUS = 2.5f, SHELL_DAMAGE = 80f, SHELL_PENETRATION = 20f, FIRST_FLIGHT = 3f;
     static final int SHELL_WALL_DAMAGE = 40;
 
+    /**
+     * How the commander risks its gunship, the owner's question {@code heart-gunship} (2026-10-24): every played
+     * sortie had been shot down by spore anti-air. Removal condition: the owner's pick of the four; the others go,
+     * with this switch.
+     */
+    public enum Policy {
+        /** (a) Sent only where no standing spore anti-air, any bore's, reaches its target or its way there. */
+        REACHABLE_ONLY,
+        /** (b) Sent once the approach is clear, losses accepted: the behaviour the first played sorties had. */
+        ACCEPT_LOSSES,
+        /** (c) The base's guns kill the spore anti-air reaching the target and the way there, then the sortie goes. */
+        CLEAR_PATH,
+        /** (d) As (b), with a sortie {@link #TOUGHER} times as hard to bring down. */
+        TOUGHER
+    }
+
+    /**
+     * The policy every heart battle starts with: {@code -Dbattle.heart.gunshipPolicy=<name>}, see {@link Policy}.
+     * {@link Policy#CLEAR_PATH} meanwhile: on the seed-2 town map to tick 16000 it flew three sorties and lost none,
+     * where (b) lost both of its two.
+     */
+    static final Policy DEFAULT_POLICY = Policy.valueOf(System.getProperty("battle.heart.gunshipPolicy", "CLEAR_PATH"));
+    /** How many times a sortie's structure and armour {@link Policy#TOUGHER} gives it. */
+    static final float TOUGHER = 3f;
+    /** Cells past a defence's own range the commander keeps its sortie. */
+    static final float STANDOFF = 2f;
+
+    private Policy policy = DEFAULT_POLICY;
+    private HeartSupplyRoad road = new HeartSupplyRoad(List.of());
     private int sorties;
     private int shoots;
     private int nextShoot;
+
+    /** Sets how the commander risks its gunship (the look suite pictures each). */
+    public HeartGunship policy(Policy policy) {
+        this.policy = policy;
+        return this;
+    }
+
+    public Policy policy() { return policy; }
+
+    /** The supply road, whose satellite is rung 3 while it cuts the road (F6). */
+    HeartGunship road(HeartSupplyRoad road) {
+        this.road = road;
+        return this;
+    }
+
+    /** The shed's gate on a sortie: the approach must be clear under (b) and (d); (a) and (c) judge each target instead. */
+    public boolean gate(BattleSimulation sim) {
+        return policy == Policy.REACHABLE_ONLY || policy == Policy.CLEAR_PATH || airOpen(sim);
+    }
 
     /** Whether the air over the approach is open: no spore colony or outpost stands on the satellites nearest the company. */
     public static boolean airOpen(BattleSimulation sim) {
@@ -57,7 +104,7 @@ public final class HeartGunship {
     }
 
     /** Sets a sortie down over the request's cell, flying in and out over the depot; done once it is gone. */
-    public static AlliedToolShed.Maker maker() {
+    public AlliedToolShed.Maker maker() {
         return (sim, from, request) -> {
             if (from == null) return null;
             long craft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, request.x() + .5f, request.y() + .5f,
@@ -65,6 +112,12 @@ public final class HeartGunship {
             ShuttleMission sortie = sim.world().mission(craft);
             if (sortie == null) return null;
             sortie.orbitSecondsLeft = ORBIT_SECONDS;
+            if (policy == Policy.TOUGHER) {
+                sim.world().setMaxHp(craft, sim.world().maxHp(craft) * TOUGHER);
+                sim.world().setHp(craft, sim.world().maxHp(craft));
+                sim.world().setMaxArmor(craft, sim.world().maxArmor(craft) * TOUGHER);
+                sim.world().setArmor(craft, sim.world().maxArmor(craft));
+            }
             return s -> {
                 if (sortie.destroyed || sortie.state == ShuttleState.GONE) return true;
                 // Off station at half structure: it turns for home and the next sortie waits for the base.
@@ -83,12 +136,20 @@ public final class HeartGunship {
         if (shed.onRoad(AlliedTool.GUNSHIP, PLACE) > 0) return;
         int[] target = target(sim, lanes);
         if (target == null) return;
-        if (!airOpen(sim)) {
-            if (sim.getSimTickIndex() >= nextShoot && shootTheAirOpen(sim) > 0) {
-                shoots++;
-                nextShoot = sim.getSimTickIndex() + Math.round(SHOOT_SECONDS / BattleSimulation.TICK_DT);
-                beats.add("air_shoot_" + shoots);
+
+        if (policy == Policy.REACHABLE_ONLY || policy == Policy.CLEAR_PATH) {
+            int[] from = shed.dispatchCell(sim);
+            if (from == null) return;
+            List<Long> reaching = reaching(sim, from, target);
+            // (a) waits for a target nothing standing covers; (c) has the base kill what covers this one.
+            if (!reaching.isEmpty()) {
+                if (policy == Policy.CLEAR_PATH) shoot(sim, reaching, beats);
+                return;
             }
+        } else if (!airOpen(sim)) {
+            List<Long> approach = new ArrayList<>();
+            for (SwarmBore bore : HeartObjectives.approachSatellites(sim)) approach.addAll(antiAir(bore));
+            shoot(sim, approach, beats);
             return;
         }
         if (!shed.request(sim, new AlliedRequest(AlliedTool.GUNSHIP, PLACE, target[0], target[1], "target"))) return;
@@ -96,25 +157,56 @@ public final class HeartGunship {
         beats.add("gunship_called_" + sorties);
     }
 
-    /** Puts on each living colony and outpost of the approach satellites the shells that kill it ({@link #shellsFor}); returns how many it shot at. */
-    static int shootTheAirOpen(BattleSimulation sim) {
-        int colonies = 0;
-        for (SwarmBore bore : HeartObjectives.approachSatellites(sim)) {
-            for (long colony : antiAir(bore)) {
-                if (!standing(sim, colony)) continue;
-                float x = sim.world().x(colony), y = sim.world().y(colony);
-                int shells = shellsFor(sim.world().hp(colony), sim.world().armor(colony));
-                for (int i = 0; i < shells; i++) {
-                    PendingDetonation shell = new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y,
-                            FIRST_FLIGHT + i, SHELL_RADIUS, SHELL_DAMAGE, SHELL_PENETRATION, SHELL_WALL_DAMAGE,
-                            Faction.ALLY, true);
-                    shell.asUnmarked();
-                    sim.getCommandPowerService().addFireMission(shell);
-                }
-                colonies++;
+    /** One shoot on {@code targets} at most every {@link #SHOOT_SECONDS}, marked {@code air_shoot_<n>}. */
+    private void shoot(BattleSimulation sim, List<Long> targets, List<String> beats) {
+        if (sim.getSimTickIndex() < nextShoot || shootAt(sim, targets) == 0) return;
+        shoots++;
+        nextShoot = sim.getSimTickIndex() + Math.round(SHOOT_SECONDS / BattleSimulation.TICK_DT);
+        beats.add("air_shoot_" + shoots);
+    }
+
+    /**
+     * Every standing spore colony and outpost, of any bore, whose own reach (plus {@link #STANDOFF}) covers the target
+     * or the straight way to it from {@code from}.
+     */
+    static List<Long> reaching(BattleSimulation sim, int[] from, int[] target) {
+        List<Long> out = new ArrayList<>();
+        for (SwarmBore bore : sim.swarmBores().bores()) {
+            for (long gun : antiAir(bore)) {
+                if (!standing(sim, gun)) continue;
+                float reach = sim.turretState().isTurret(gun) ? sim.turretState().weapon(gun).range : 0f;
+                float d = segmentDistance(sim.world().x(gun), sim.world().y(gun), from[0], from[1], target[0], target[1]);
+                if (d <= reach + STANDOFF) out.add(gun);
             }
         }
-        return colonies;
+        return out;
+    }
+
+    /** Distance from {@code (px, py)} to the segment {@code (ax, ay)}-{@code (bx, by)}. */
+    static float segmentDistance(float px, float py, float ax, float ay, float bx, float by) {
+        float dx = bx - ax, dy = by - ay;
+        float length2 = dx * dx + dy * dy;
+        float t = length2 == 0f ? 0f : Math.max(0f, Math.min(1f, ((px - ax) * dx + (py - ay) * dy) / length2));
+        return (float) Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    }
+
+    /** Puts on each standing one of {@code targets} the shells that kill it ({@link #shellsFor}); returns how many it shot at. */
+    static int shootAt(BattleSimulation sim, List<Long> targets) {
+        int shotAt = 0;
+        for (long gun : targets) {
+            if (!standing(sim, gun)) continue;
+            float x = sim.world().x(gun), y = sim.world().y(gun);
+            int shells = shellsFor(sim.world().hp(gun), sim.world().armor(gun));
+            for (int i = 0; i < shells; i++) {
+                PendingDetonation shell = new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y,
+                        FIRST_FLIGHT + i, SHELL_RADIUS, SHELL_DAMAGE, SHELL_PENETRATION, SHELL_WALL_DAMAGE,
+                        Faction.ALLY, true);
+                shell.asUnmarked();
+                sim.getCommandPowerService().addFireMission(shell);
+            }
+            shotAt++;
+        }
+        return shotAt;
     }
 
     /**
@@ -125,8 +217,12 @@ public final class HeartGunship {
         return Math.min(MOST_SHELLS, (int) Math.ceil((hp + armor) / SHELL_DAMAGE) + 1);
     }
 
-    /** The most pressing target: a living Matriarch on a lane's armour, else the bore a broken lane is on, else the bore the most stalled lanes are on. */
-    static int[] target(BattleSimulation sim, HeartLanes lanes) {
+    /**
+     * The most pressing target: a living Matriarch on a lane's armour, else the bore a broken lane is on, else the
+     * satellite beside the supply road while its surge is on the road (F6), else the bore the most stalled lanes are on.
+     * Rung 3 waits for the cut: a satellite merely standing beside the road is the company's objective, not a sortie's.
+     */
+    int[] target(BattleSimulation sim, HeartLanes lanes) {
         List<float[]> armour = lanes.machinePositions(sim);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
@@ -139,7 +235,9 @@ public final class HeartGunship {
             }
         }
         int[] broken = lanes.brokenLaneTarget();
-        return broken != null ? broken : lanes.stalledLaneTarget();
+        if (broken != null) return broken;
+        SwarmBore cutter = road.cut() ? road.satellite(sim) : null;
+        return cutter != null ? new int[]{cutter.x(), cutter.y()} : lanes.stalledLaneTarget();
     }
 
     /**

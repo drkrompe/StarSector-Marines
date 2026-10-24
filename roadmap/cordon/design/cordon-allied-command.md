@@ -7,11 +7,10 @@ built: the company's (`CordonRadio`, `CordonCompanyRules`, behind
 `CordonCommand`) and the allied line command's (`CordonAlliedRules`, behind
 `CordonArmour`, `CordonLogistics` and `CordonLineCommand`, which draws on the
 base as a producer). Still open: the lift is decided (`liftWorth`) but not
-asked for until a Marine carry exists, and town posts are not yet moved to the
-streets (rule 5).
+asked for until a Marine carry exists.
 
 Written: 2026-10-23
-Updated: 2026-10-23 — the allied line command's rules wired, the radio filled, the base a producer
+Updated: 2026-10-24 — escorted means alongside; trucks drive a city's streets; town armour on the streets
 
 Step 4 of the owner's plan for the Cordon: how the AI commanders use the
 allied forces and their tools. `cordon-nouns.md` is the model (*The allies
@@ -105,7 +104,7 @@ allies say what they are already doing about it:
 | **Help coming** (redoubt N) | a loaded carrier or a column is bound for it | it arrives or is lost |
 | **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
 | **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
-| **Escorted** (a convoy, truck or dozer) | an armed allied hull is beside it | none is |
+| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: within 14 cells) | none is |
 
 Breached and Bled are the redoubt's existing Calling state split by its two
 causes; Uncovered is new. The company is never told what the swarm is doing
@@ -132,6 +131,14 @@ convoys and beat hulls on the road; the density), returning tasks the
    hull from any one sector, and never a calling redoubt's last hull. What it
    cannot take that way it goes without, and says so (*Escorted* is false), so
    the company knows to walk with it. The hulls go home when the escort ends.
+   Only an armed hull escorts, and one that does not close on its truck (boxed
+   in at the base's door, say) is stood down for two minutes and the next taken.
+   **Escorted means alongside, not assigned.** A truck or dozer with an escort
+   coming waits where it was set down until the escort is beside it, then the
+   two drive at the slower one's pace, and it holds whenever the escort falls
+   behind; one that has none free sets out alone at once, and one whose escort
+   never comes goes on without it (after a minute and a half waiting, half a
+   minute holding).
 4. **Carriers lift allied squads first.** A waiting column squad goes to the
    neediest redoubt (calling first, then fewest standing, today's `neediest`),
    and while it is on its way that redoubt has *Help coming*. Only a carrier
@@ -146,13 +153,15 @@ convoys and beat hulls on the road; the density), returning tasks the
    below): cover for an uncovered sector, an ammunition truck for a redoubt
    running low. The shed's own line still builds on its pace.
 
-Built: rules 1 to 4 and 7 (`CordonArmour.advance` puts every new machine
+Built: rules 1 to 5 and 7 (`CordonArmour.advance` puts every new machine
 where `nextPost` says, the nearest breaking a tie, and takes escorts through
 `escorts`; `CordonLogistics` keeps carriers behind the redoubt they fed and
-sends waiting squads by `carrierDuty`). Rule 5 holds for carriers (the town's
-rear gate, the city's walking columns and mechs in the mouths); the town's
-armour posts are not yet moved onto the streets. A beat's hull (L2's
-ammunition truck, R1's dozer) wants one hull beside it, a convoy one a post.
+sends waiting squads by `carrierDuty`). Rule 5: the town's rear gate for
+carriers, the city's walking columns and mechs in the mouths, and in a town
+every hull's flank post moved to the nearest street cell within sixteen
+(`CordonAlliedRules.roadbound`). A beat's hull (L2's ammunition truck, R1's
+dozer) wants one hull beside it, a convoy one a post; the truck and the dozer
+keep to theirs (`EscortPace`, rule 3).
 
 ## The producer
 
@@ -171,10 +180,20 @@ rule in `CordonAlliedRules`:
   `GunStock`. When the rounds they hold together (one pool, tubes' rounds
   counted as rounds) fall under the table's share, or any of the guns runs dry,
   the line asks for an ammunition truck (`AlliedMakers.ammunition`), which
-  drives to the redoubt's end of its supply road (outside its rear gate where
-  none was laid) and refills every gun and tube there, packed tubes included.
-  L2 only empties the redoubt's gun towers in that stock; the same request
-  does the rest.
+  drives to the redoubt's end of its supply road and refills every gun and tube
+  there, packed tubes included. L2 only empties the redoubt's gun towers in
+  that stock; the same request does the rest.
+- **The truck's way.** A truck sets out from the base's end of the redoubt's
+  supply road and drives to its other end. Where none was laid (a city's
+  ground, a town's blocks) or the laid stretch is cut off short of the
+  redoubt, its way is the city's streets: the vehicle router's route for a
+  truck from the base's door to the redoubt's rear gate, streets cheapest
+  (`CordonSupplyStreets`), and the truck sets out from the first street cell
+  on it outside the base from which it can drive the rest. Every way is proved
+  at setup as a move order is planned, every bend one a truck can make
+  forward; a redoubt with no such way is never sent a truck (one sent anyway
+  stood where its way ran out), and evidence names each redoubt's way (road,
+  streets or none).
 
 A request with none in stock, or while the swarm is on the apron, is refused
 and asked again ten seconds later. The reserve (`CordonAlliedTable.Reserve`)
@@ -186,8 +205,8 @@ often any of it is used: on the 2026-10-23 pools no ordinary battle asked for
 a truck (every truck was L2's, and every one sent outside a city arrived),
 cover was asked for in about half the open-country and town battles and
 granted almost always, and a sector stood uncovered for seconds, not minutes.
-A city's L2 lapses: it lays no supply road, and a truck from the shed's door
-found no way through its streets.
+A city's L2 used to lapse, for want of a supply road; it now picks among the
+redoubts its streets reach, and lapses only where they reach none.
 
 ## The company commander's rules
 
@@ -213,8 +232,9 @@ duty stands, rather than being re-chosen each frame.
    "walks forward to a redoubt that lost its mechs", and it holds in every
    density.
 6. **The optional objectives**, at most half the company (today's cap and
-   order). A beat whose hull is *Escorted* asks for nobody; one that is not
-   asks for its two squads, as today (pending `cordon-beat-escort`).
+   order). A beat whose hull is *Escorted*, or has an escort on its way that
+   it waits for, asks for nobody; one the armour had no hull for asks for its
+   two squads.
 7. **The base overrun** (rural and town, where the base feeds the line): two
    squads go to the apron until it is clear.
 8. **The reserve keeps a floor.** Outside a tide at least a third of the

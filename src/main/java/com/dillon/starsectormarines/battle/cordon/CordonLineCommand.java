@@ -8,6 +8,11 @@ import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.command.allied.GunStock;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 
@@ -48,8 +53,13 @@ public final class CordonLineCommand {
     private final AlliedToolShed shed;
     private final Map<CordonRedoubt, GunStock> stocks = new LinkedHashMap<>();
     private final Map<CordonRedoubt, int[]> truckCell = new HashMap<>();
-    /** Where a truck for each redoubt sets out: the base's end of its supply road, where one was laid. */
+    /**
+     * Where a truck for each redoubt sets out: the base's end of its supply road where one was laid, else the base end
+     * of its supply way through the city's streets ({@link CordonSupplyStreets}). A redoubt with neither has no truck.
+     */
     private final Map<CordonRedoubt, int[]> truckStart = new HashMap<>();
+    /** Each redoubt's supply way through the streets, where no supply road was laid and the streets give one. */
+    private final Map<CordonRedoubt, List<int[]>> streetWay = new HashMap<>();
     private final Map<SupplyDelivery, CordonRedoubt> deliveries = new LinkedHashMap<>();
     /** The tick each place may be asked for again after a refusal, by tool and place. */
     private final Map<String, Integer> retryAt = new HashMap<>();
@@ -71,6 +81,7 @@ public final class CordonLineCommand {
         this.density = density;
         this.reserve = table.reserve();
         armour.setCoverFloor(CordonAlliedRules.coverFloor(density));
+        armour.setRoadbound(CordonAlliedRules.roadbound(density));
         List<CordonRedoubt> redoubts = sequence.redoubts();
         for (CordonRedoubt r : redoubts) {
             GunStock stock = new GunStock(place(r), reserve.roundsPerGun());
@@ -78,6 +89,13 @@ public final class CordonLineCommand {
             stocks.put(r, stock);
             truckCell.put(r, truckCell(sim, r, laid));
             int[] start = roadStart(r, laid);
+            if (start != null && !drivable(sim, start, truckCell.get(r))) {
+                // A road laid in part, cut off by other ground short of the redoubt: its end is no place a truck
+                // can reach, and one sent there stood where its way ran out. The streets to the rear gate instead.
+                start = null;
+                truckCell.put(r, armour.rearGate(sim, r));
+            }
+            if (start == null && logistics != null) start = streetStart(sim, r, logistics);
             if (start != null) truckStart.put(r, start);
         }
         for (long gun : pickets) {
@@ -113,12 +131,12 @@ public final class CordonLineCommand {
             AlliedToolShed.Maker truck = AlliedMakers.ammunition(supply, request -> {
                 CordonRedoubt to = redoubt(request.toPlace());
                 return to == null ? null : stocks.get(to).recipient(truckCell.get(to), to::manned);
-            }, delivery -> {
+            }, (at, hull) -> armour.escortOf(hull), delivery -> {
                 CordonRedoubt to = redoubt(delivery.recipient().name());
                 if (to != null) deliveries.put(delivery, to);
             });
-            // Loaded at the dump, it comes out of the base's gate onto the redoubt's supply road: from the shed's door
-            // a truck had to find its own way out of the yard, and in a city's streets found none.
+            // Loaded at the dump, it comes out of the base's gate onto the redoubt's supply road, or in a city onto the
+            // street way to it: from the shed's door a truck had to find its own way out of the yard.
             shed.stock(AlliedTool.AMMO_TRUCK, (s, from, request) -> {
                 CordonRedoubt to = redoubt(request.toPlace());
                 int[] start = to == null ? null : truckStart.get(to);
@@ -155,8 +173,8 @@ public final class CordonLineCommand {
             String place = place(r);
             int[] at = truckCell.get(r);
             GunStock stock = stocks.get(r);
-            if (CordonAlliedRules.wantsAmmunition(r.manned(), stock.pooledShare(sim), reserve.lowShare(), stock.dry(),
-                    shed.onRoad(AlliedTool.AMMO_TRUCK, place))) {
+            if (CordonAlliedRules.wantsAmmunition(r.manned(), supplied(r), stock.pooledShare(sim), reserve.lowShare(),
+                    stock.dry(), shed.onRoad(AlliedTool.AMMO_TRUCK, place))) {
                 ask(sim, tick, new AlliedRequest(AlliedTool.AMMO_TRUCK, place, at[0], at[1], "low"));
             }
             if (CordonAlliedRules.wantsCover(armour.uncovered(r), shed.onRoad(cover, place))) {
@@ -253,12 +271,21 @@ public final class CordonLineCommand {
             if (d.state() == SupplyDelivery.State.DELIVERED) delivered++;
             if (d.state() == SupplyDelivery.State.LOST) lost++;
         }
-        out.append("trucks ").append(delivered).append(" delivered, ").append(lost).append(" lost; ");
+        out.append("trucks ").append(delivered).append(" delivered, ").append(lost).append(" lost");
+        int onRoad = deliveries.size() - delivered - lost;
+        if (onRoad > 0) out.append(", ").append(onRoad).append(" on the road");
+        out.append(" (ways");
+        for (CordonRedoubt r : sequence.redoubts()) {
+            out.append(" r").append(r.number()).append(' ')
+                    .append(!supplied(r) ? "none" : streetWay.containsKey(r) ? "streets" : "road");
+        }
+        out.append("); ");
         out.append(String.format(Locale.ROOT, "dry gun-min %.1f", dryGunTicks * BattleSimulation.TICK_DT / 60f));
         if (!dryPeak.isEmpty()) out.append(" (most dry at once by redoubt ").append(dryPeak).append(')');
         float[] escorts = armour.escortReadings();
-        out.append(String.format(Locale.ROOT, "; road hulls escorted %.0f/%.0f, escort hull-min %.1f taken %.1f short",
-                escorts[1], escorts[0], escorts[2] / 60f, escorts[3] / 60f));
+        out.append(String.format(Locale.ROOT, "; road hulls escorted %.0f/%.0f, escort hull-min %.1f taken %.1f short"
+                        + ", road-hull min %.1f alongside %.1f alone",
+                escorts[1], escorts[0], escorts[2] / 60f, escorts[3] / 60f, escorts[4] / 60f, escorts[5] / 60f));
         Map<Integer, Float> uncovered = armour.uncoveredSeconds();
         if (!uncovered.isEmpty()) {
             out.append("; uncovered min");
@@ -293,6 +320,82 @@ public final class CordonLineCommand {
             return dist(a, r) <= dist(b, r) ? a : b;
         }
         return armour.rearGate(sim, r);
+    }
+
+    /**
+     * The base end of a redoubt's supply way through the streets ({@link CordonSupplyStreets}): the way the router reads
+     * from the base's dispatch cell to the redoubt's rear gate, streets first, and on it the first street cell outside
+     * the base from which a truck can drive the rest ({@link CordonSupplyStreets#starts}). {@code null} where a truck
+     * can drive it from none of them. Records the way from there.
+     */
+    private int[] streetStart(BattleSimulation sim, CordonRedoubt r, CordonLogistics logistics) {
+        int[] door = logistics.dispatchCell(sim);
+        if (door == null) return null;
+        int[] gate = truckCell.get(r);
+        float[][] route = truckRoute(sim, door, gate, false);
+        if (route == null) return null;
+        List<int[]> way = CordonSupplyStreets.cells(route[0], route[1]);
+        CellTopology topology = sim.getTopology();
+        for (int[] start : CordonSupplyStreets.starts(way,
+                (x, y) -> topology.getGroundKind(x, y) == CellTopology.GroundKind.STREET, STREET_TRIES, STREET_PITCH)) {
+            // Set down part-way, a truck has to make the way's next bend from a standing start, which the whole way
+            // from the base did not ask of it: each start is proved as the truck will drive it.
+            if (!drivable(sim, start, gate)) continue;
+            int from = way.indexOf(start);
+            streetWay.put(r, List.copyOf(way.subList(Math.max(0, from), way.size())));
+            return start;
+        }
+        return null;
+    }
+
+    /** Street cells along a way tried as a truck's start, and the cells between them. */
+    static final int STREET_TRIES = 6, STREET_PITCH = 6;
+
+    /** Cells round a way's ends a truck's footprint is looked for. */
+    static final int STREET_SNAP = 6;
+
+    /**
+     * The route between two cells for a truck's footprint, or {@code null} where it has none: {@code proved}, one whose
+     * every bend a truck can make forward, as a move order is planned; else the router's way over the ground alone.
+     */
+    private float[][] truckRoute(BattleSimulation sim, int[] from, int[] to, boolean proved) {
+        if (truckMask == null) {
+            truckMask = VehicleClearance.erode(sim.getGrid(),
+                    VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
+            truckCost = TerrainCostField.from(sim.getTopology());
+        }
+        int[] a = VehicleRoutePlanner.snapToMask(truckMask, from[0], from[1], STREET_SNAP);
+        int[] b = VehicleRoutePlanner.snapToMask(truckMask, to[0], to[1], STREET_SNAP);
+        if (a == null || b == null) return null;
+        if (!proved) return VehicleRoutePlanner.route(a[0], a[1], b[0], b[1], sim.getGrid(), truckCost, truckMask);
+        return VehicleRoutePlanner.routeDrivable(a[0], a[1], b[0], b[1], sim.getGrid(), truckCost, truckMask,
+                VehicleType.SUPPLY_TRUCK);
+    }
+
+    /** Whether a truck can drive from one cell to the other. */
+    private boolean drivable(BattleSimulation sim, int[] from, int[] to) {
+        return truckRoute(sim, from, to, true) != null;
+    }
+
+    /** A truck's clearance and route prices, found at setup for the supply ways. */
+    private VehicleClearance truckMask;
+    private TerrainCostField truckCost;
+
+    /** Whether a truck can be sent to a redoubt: it has a supply road, or a supply way through the streets. */
+    public boolean supplied(CordonRedoubt r) {
+        return truckStart.containsKey(r);
+    }
+
+    /** Where a truck for a redoubt sets out, or {@code null} where none can be sent. */
+    public int[] truckStart(CordonRedoubt r) {
+        int[] at = truckStart.get(r);
+        return at == null ? null : at.clone();
+    }
+
+    /** A redoubt's supply way through the streets, or {@code null} where it has a laid road or none. */
+    public List<int[]> streetWay(CordonRedoubt r) {
+        List<int[]> way = streetWay.get(r);
+        return way == null ? null : List.copyOf(way);
     }
 
     /** The base's end of a redoubt's supply road, or {@code null} where none was laid. */

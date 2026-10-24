@@ -74,11 +74,12 @@ class CordonAlliedRulesTest {
 
     @Test
     void aLowRedoubtAsksForOneTruck() {
-        assertTrue(CordonAlliedRules.wantsAmmunition(true, 0.2f, 0.3f, 0, 0));
-        assertTrue(CordonAlliedRules.wantsAmmunition(true, 0.9f, 0.3f, 2, 0));
-        assertFalse(CordonAlliedRules.wantsAmmunition(true, 0.2f, 0.3f, 2, 1));
-        assertFalse(CordonAlliedRules.wantsAmmunition(true, 0.3f, 0.3f, 0, 0));
-        assertFalse(CordonAlliedRules.wantsAmmunition(false, 0f, 0.3f, 1, 0));
+        assertTrue(CordonAlliedRules.wantsAmmunition(true, true, 0.2f, 0.3f, 0, 0));
+        assertTrue(CordonAlliedRules.wantsAmmunition(true, true, 0.9f, 0.3f, 2, 0));
+        assertFalse(CordonAlliedRules.wantsAmmunition(true, true, 0.2f, 0.3f, 2, 1));
+        assertFalse(CordonAlliedRules.wantsAmmunition(true, true, 0.3f, 0.3f, 0, 0));
+        assertFalse(CordonAlliedRules.wantsAmmunition(false, true, 0f, 0.3f, 1, 0));
+        assertFalse(CordonAlliedRules.wantsAmmunition(true, false, 0f, 0.3f, 1, 0), "no truck where none can drive");
     }
 
     @Test
@@ -86,5 +87,12 @@ class CordonAlliedRulesTest {
         assertTrue(CordonAlliedRules.helpComing(true, false));
         assertTrue(CordonAlliedRules.helpComing(false, true));
         assertFalse(CordonAlliedRules.helpComing(false, false));
+    }
+
+    @Test
+    void onlyATownsHullsKeepToTheStreets() {
+        assertTrue(CordonAlliedRules.roadbound(CordonPlan.Density.TOWN));
+        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.RURAL));
+        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.URBAN));
     }
 }

@@ -1,6 +1,6 @@
 # The Heart — the allied commander
 
-Status: SHIPPED. The owner's list is built: all four tools, chosen by need. Open: the gunship's road-satellite rung (waits for F6's map placement) and re-aiming waves.
+Status: SHIPPED. The owner's list is built: all four tools, chosen by need. Open: how the gunship is risked (the owner's question).
 
 Written: 2026-10-23
 Updated: 2026-10-23 — company-in-the-gap and stalled-bore rules built; the standing model folded into `heart-nouns.md` (Allied commander).
@@ -58,8 +58,10 @@ calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
 
 It comes off station at half structure, and the next sortie waits for the
 base. The air gate sits inside the base's `request`, so the commander may ask
-and be refused. Built (`HeartGunship`): rungs 1, 2 (the bore the broken lane is
-on) and 4; rung 3 waits for the road satellite F6 places. The gate is the
+and be refused. Built (`HeartGunship`): all four; rung 2 is the bore the broken lane
+is on, rung 3 the satellite F6 places beside the supply road while a swarm body
+stands on the road (a satellite merely beside it is the company's objective; an
+earlier rung 3 that struck it at once had it down inside ninety seconds). The gate is the
 colonies of the approach satellites. Nothing in play
 reaches those colonies: the company and the lanes stop well short of the
 satellites. So while the commander wants a sortie and the air is shut, the
@@ -74,16 +76,27 @@ The commander reads the company's position as one more fact:
   a lane only takes the bores in its own band and the company's sector is
   not one.
 
+**Re-aiming a wave (F2).** A broken lane the company has not gone into gets
+the next wave to step off from the whole lane nearest it that still has waves to
+come (`heart.wave_reaimed_<lane>_from_<lane>_<n>` when the commander decides,
+`heart.wave_sent_<lane>_from_<lane>_<n>` when the column steps off). Not a column
+already marching: those are in the thick of their own fight and seldom get
+anywhere new. The gap is where the
+broken lane's survivors stood at that moment, or a little short of its bore when
+none did: a lane's aim on Broad Front is the bore itself, whose mouth no column
+walks into. Once that wave is in, its teams
+are the broken lane's and the lane is whole again, measured from what stands now
+(`heart.gap_closed_<lane>_<n>`). If the company goes into the gap first, the wave is
+called back to its own lane (`heart.wave_recalled_<lane>_<n>`).
+
 ## Open
 
-- The gunship's rung 3, the satellite against the road, once F6's satellite
-  is placed (`heart-map-intent.md`).
 - Every played sortie so far was shot down by spore anti-air, three hits each
   against 60 structure and 30 armour. The first flew into bore 4's outposts
   (which is why the gate counts outposts now); the second, with the approach
-  clear, flew into mother-1's colonies, which the gate does not look at. Whether
-  the commander should only send a sortie where no standing anti-air reaches
-  the target is a design question. A reading, not tuned.
-- Whether the commander should also re-aim the next infantry wave (F2's "the
-  allied commander re-aims the next wave to close it"), which needs the
-  militia column to accept a new target mid-march.
+  clear, flew into mother-1's colonies, which the gate does not look at. How
+  the commander risks it is the owner's question `heart-gunship`: (a) only where
+  no standing anti-air of any bore reaches the target or the way there, (b) as
+  before, losses accepted, (c) the base's guns clear what reaches the way first,
+  (d) a sortie three times as hard to bring down. `HeartGunship.Policy` holds all
+  four behind `-Dbattle.heart.gunshipPolicy` until the pick.

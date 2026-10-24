@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.allied.EscortPace;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -22,8 +23,8 @@ import java.util.List;
  * road. The wreck is laid only when this beat is rolled, at setup, on the ground the layout held for it
  * (crate stacks, as {@code BlockKind.WRECK} is laid: there is no wreck art yet); with no dozer to clear it
  * a laid wreck stopped every convoy. The base's dozer starts moved up behind the gap and drives the corridor
- * to the far side of the wreck, its blade opening the way, with an escort out of the allied armour's surplus, and the
- * company asked only when no hull was free ({@code cordon-allied-command.md}, rule 3). Succeeds
+ * to the far side of the wreck, its blade opening the way, with an escort out of the allied armour's surplus that it
+ * waits for and keeps to ({@link EscortPace}), and the company asked only when no hull was free ({@code cordon-allied-command.md}, rule 3). Succeeds
  * when the road through the wreck is open before the first convoy's lead truck reaches it; fails when the
  * dozer dies first, or the convoy reaches a wreck still across the road (the dozer keeps at it for the
  * convoys after).
@@ -54,6 +55,8 @@ final class ClearRoadBeat extends CordonBeat {
     private int[] target;
     /** Blade push not yet spent as whole structure points. */
     private float push;
+    /** How the dozer keeps to its escort: it waits for it where it was set down, and holds when it falls behind. */
+    private EscortPace pace;
 
     ClearRoadBeat(CordonBeats beats) {
         super(beats);
@@ -134,19 +137,34 @@ final class ClearRoadBeat extends CordonBeat {
             int[] from = corridor.get(Math.max(convoys.entry(), convoys.gapIndex() - FORWARD));
             dozer = beats.deploy(sim, VehicleType.DOZER_BREACHER, from[0], from[1]);
             if (dozer == 0L) return Status.LAPSED;
+            pace = new EscortPace(tick);
+        }
+        if (!cleared && CordonBeats.alive(sim, dozer)) {
+            boolean out = pace.setOut();
+            pace.step(sim, dozer, beats.escortOf(dozer));
             // Onto the wreck's own middle, which only the blade's view of the ground opens: sent past it, the dozer
             // drove round the wreck through the fields and pushed nothing.
-            int[] at = corridor.get(wreckIndex);
-            beats.command().station(sim, dozer, at[0], at[1]);
+            if (!out && pace.setOut()) setOut(sim);
         }
         int[] lead = convoys.truck(sim, 1, 0);
         boolean atWreck = lead != null && !convoys.detoured() && lead[0] >= wreckIndex - NEEDED;
         return rule(cleared, CordonBeats.alive(sim, dozer), atWreck);
     }
 
+    /** Sends the dozer from where it waited for its escort onto the wreck. */
+    private void setOut(BattleSimulation sim) {
+        int[] at = beats.corridor().get(wreckIndex);
+        beats.command().station(sim, dozer, at[0], at[1]);
+    }
+
     /** The road through the wreck opened: the convoys' routes are laid again through it, even after a failure. */
     @Override
     void watch(BattleSimulation sim, int tick) {
+        if (pace != null && !active() && CordonBeats.alive(sim, dozer)) {
+            // Its escort ends with the beat; the dozer keeps at the wreck for the convoys after, on its own.
+            if (!pace.setOut()) setOut(sim);
+            pace.release(sim, dozer);
+        }
         if (cleared || road.isEmpty() || beats.sequence().convoys() == null) return;
         int[] closed = null;
         for (int[] c : road) {
@@ -157,6 +175,7 @@ final class ClearRoadBeat extends CordonBeat {
         }
         if (closed == null) {
             cleared = true;
+            if (pace != null) pace.release(sim, dozer);
             beats.sequence().convoys().relay(sim);
             if (CordonBeats.alive(sim, dozer)) {
                 // Off the road again, past the wreck, so it is not in the trucks' way.
@@ -167,7 +186,7 @@ final class ClearRoadBeat extends CordonBeat {
             }
             return;
         }
-        if (sent && CordonBeats.alive(sim, dozer)) drive(sim, closed);
+        if (sent && pace != null && pace.setOut() && CordonBeats.alive(sim, dozer)) drive(sim, closed);
     }
 
     /**
@@ -213,7 +232,7 @@ final class ClearRoadBeat extends CordonBeat {
 
     @Override
     int[] call(BattleSimulation sim) {
-        if (!CordonBeats.alive(sim, dozer) || beats.escorted(dozer)) return null;
+        if (!CordonBeats.alive(sim, dozer) || beats.covered(dozer)) return null;
         GroundBody body = sim.convoy().body(dozer);
         return new int[]{(int) body.x, (int) body.y, 2};
     }

@@ -272,7 +272,11 @@ public final class VehicleControlSystem {
         // for STALL_SECONDS → the truck isn't converging (orbiting a turn it
         // can't make): escalate to a re-route that laps around the failing spot.
         float rem = s.corridor.remainingLength(body.x, body.y);
-        if (rem < s.recoveryBestRemaining - VehicleController.RECOVERY_PROGRESS_MARGIN) {
+        if (mission.speedCap <= 0f) {
+            // Held by its driver (a truck waiting for its escort, a column closing up): standing still on purpose is
+            // not failing to converge, and must not spend the recovery ladder until the order is given up.
+            s.timeSinceProgress = 0f;
+        } else if (rem < s.recoveryBestRemaining - VehicleController.RECOVERY_PROGRESS_MARGIN) {
             s.recoveryBestRemaining = rem;
             s.recoveryAttempts = 0;
             s.timeSinceProgress = 0f;

@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-23 — the allied line command: sectors by floor, escorts from the surplus, the base asked by need
+Updated: 2026-10-24 — escorted means alongside; a city's streets are its supply road; town armour on the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -199,7 +199,11 @@ the swarm is on the apron, or with nothing in stock, is refused, and asked
 again a little later (`cordon-allied-command.md`, The producer). Outside a city the base opens with one carrier. **Supply roads** run from the
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it; across a town's or a
-city's ground its own streets are the supply road.
+city's ground its own streets are the supply road: a truck's way to a redoubt
+whose road was not laid, or was cut off short of it, is the route a truck
+drives through the streets from the base to the rear gate, and it sets out on
+the first street outside the base. A redoubt no truck can drive to is sent
+none.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -232,7 +236,9 @@ gun's range). Every manned redoubt keeps a **floor** of cover: one machine in
 open country and towns, its Hound pair in a city. A new machine goes to the
 redoubt furthest under its floor, a sector that lost its machines first, then
 a calling one, then the fewest, the nearest breaking a tie; a machine whose
-redoubt falls is given another the same way. They do not chase calls: on a front
+redoubt falls is given another the same way. In a town hulls are
+**roadbound**: each flank post is moved to the nearest street cell within
+reach, the street nearest where it would have stood. They do not chase calls: on a front
 hundreds of cells wide a reserve sent to whichever redoubt called last spent
 the battle driving. The base's shed adds to them through the battle.
 They are the start of the allies fighting their
@@ -297,7 +303,11 @@ of the **surplus**: the nearest hulls whose sector stands above its floor, at
 most one from any one sector, never a calling redoubt's last; what the convoy
 cannot take that way it goes without. They go back to their sectors when it is
 home. An ammunition truck and R1's dozer are escorted the same way, one hull
-beside each, after the convoys. The company walks with a convoy only
+beside each, after the convoys, and only by an armed hull. **Escorted means
+alongside**: such a hull waits where it was set down until its escort is
+beside it, the pair drives at the slower one's pace, and it holds whenever the
+escort falls behind; with no escort free it sets out alone, and the company
+walks with it. The company walks with a convoy only
 where no armed allied hull is with it, which is where the armour has not come
 or has died, and clears the road ahead of one the swarm has halted. One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole
@@ -595,13 +605,13 @@ after the convoys and before calling redoubts; a squad on a beat keeps it rather
 re-chosen each frame. A beat's hulls (the ammo truck,
 the dozer) are the allies', driven by their own command and escorted out of
 the armour's surplus; the beat asks the company for its two squads only while
-no allied hull is with them. Evidence forces a set
+no allied hull is with them or on its way to them. Evidence forces a set
 with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
 
 | Code | Key | Needs | Runs | Succeeds | Fails |
 | --- | --- | --- | --- | --- | --- |
 | L1 | `stragglers` | farmstead | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
-| L2 | `guns_dry` | ammo dump | At 5:00 one redoubt's gun towers (seeded, never the switch line's) run out of rounds and fire at a quarter rate; the allied line command asks the base for a truck, which drives its supply road | A truck reaches the redoubt: its guns and tubes are full again | A truck bound there dies or the redoubt is lost first |
+| L2 | `guns_dry` | ammo dump | At 5:00 one redoubt's gun towers (seeded, never the switch line's) run out of rounds and fire at a quarter rate; the allied line command asks the base for a truck, which drives its supply road (in a city, its streets); a redoubt no truck can reach is never chosen, and with none the beat lapses | A truck reaches the redoubt: its guns and tubes are full again | A truck bound there dies or the redoubt is lost first |
 | L3 | `switch_line` | switch line | At the second tide the switch line's middle redoubt is given up and its garrison ordered back | Most of those who set out are in the switch line | Too few are left alive for most |
 | L4 | `bore_behind` | eruption site | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
 | L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
