@@ -56,7 +56,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fire` | control | 2026-10-22 | Standing control: master fire cost control that renderEvidence and the fire-colony/burn readings are measured against. |
 | `battle.fire.creepFilm` | experiment | 2026-10-22 | Fire: retire it, keeping the rule, once the owner accepts the bloom-m3 Burn re-render with 5-cell breaks. |
 | `battle.fire.laneDiscipline` | experiment | 2026-10-23 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.spread.<fuel>` | experiment | 2026-10-24 | Fire: cells one fuel (`brush`, `crown`, ...) carries a fire, in place of `FireFuel.spread`. Remove it with the losing arm once the owner answers the fire-flamer-woods pick, folding the answer into `FireFuel`. |
 | `battle.fire.spreadScale` | experiment | 2026-10-23 | Fire: a multiplier on each limited fuel's spread (0 = the old unbounded spread). Remove it with the losing arm once the owner picks how far a grass fire runs, folding the pick into `FireFuel`. |
 | `battle.fire.smoke` | control | 2026-10-22 | Standing control: the control loop of the fire-smoke scene verdict. Retire it with that loop. |
 | `battle.fire.stepOut` | control | 2026-10-22 | Standing control: the control loop of the fire-fear scene verdict. Retire it with that loop. |
@@ -84,7 +83,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.companySector` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.followBarrage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.frontage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
-| `battle.heart.gunshipPolicy` | experiment | 2026-10-24 | How the Broad Front commander risks its gunship, the owner's `heart-gunship` question (`HeartGunship.Policy`: REACHABLE_ONLY, ACCEPT_LOSSES, CLEAR_PATH, TOUGHER). Remove with the losing policies once the owner picks. |
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.laneFormation` | experiment | 2026-10-23 | Broad Front lanes as screened advances, screen by country (`heart-allied-commander.md`). Remove with the losing arm once the owner answers `heart-lane-formation`; `false` is the control, straight to the bore. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |

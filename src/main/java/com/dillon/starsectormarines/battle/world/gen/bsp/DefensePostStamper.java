@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutDef;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -602,6 +603,9 @@ public final class DefensePostStamper implements GenStage {
                                          List<Doodad> doodads, DefensePostLayoutDef layout,
                                          int cx, int cy, EmplacementStyle style) {
         clearFootprint(doodads, layout, cx, cy);
+        // The post is a lot of its own: its parapets and ring draw in its guns' style.
+        for (DefensePostLayoutDef.Cell cell : layout.cells)
+            FortWorks.mark(topology, cx + cell.offset().x(), cy + cell.offset().y(), style);
         boolean fieldWorks = style.militia;
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;

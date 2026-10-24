@@ -180,8 +180,23 @@ public final class CivilDefenceCompound {
      */
     static Plan plan(BattleSimulation sim, int sx, int sy, int insideX, int insideY, int towardX, int towardY,
                      int wallReach) {
-        NavigationGrid grid = sim.getGrid();
-        CellTopology topology = sim.getTopology();
+        return plan(sim.getGrid(), sim.getTopology(), sim.getDoodads(), sx, sy, insideX, insideY, towardX, towardY,
+                wallReach);
+    }
+
+    /**
+     * Where the gun towers of the perimeter wall within {@code reach} of {@code (sx, sy)} will stand when the wall is
+     * dressed, read off a generated map before any battle stands on it: the same plan {@link #dress} lays. Empty
+     * when no closed wall stands there.
+     */
+    public static List<int[]> gunTowers(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, int sx,
+                                        int sy, int insideX, int insideY, int towardX, int towardY, int reach) {
+        Plan plan = plan(grid, topology, doodads, sx, sy, insideX, insideY, towardX, towardY, reach);
+        return plan == null ? List.of() : List.copyOf(plan.guns());
+    }
+
+    private static Plan plan(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, int sx, int sy,
+                             int insideX, int insideY, int towardX, int towardY, int wallReach) {
         Set<Long> wall = new HashSet<>();
         for (int y = Math.max(0, sy - wallReach); y <= Math.min(grid.getHeight() - 1, sy + wallReach); y++) {
             for (int x = Math.max(0, sx - wallReach); x <= Math.min(grid.getWidth() - 1, sx + wallReach); x++) {
@@ -227,7 +242,7 @@ public final class CivilDefenceCompound {
         }
         List<List<int[]>> gates = groups(gate, inside);
         if (gates.isEmpty()) return null;
-        Set<Long> dressed = dressedCells(sim, l - 2, t - 2, r + 2, b + 2);
+        Set<Long> dressed = dressedCells(doodads, l - 2, t - 2, r + 2, b + 2);
         Open open = (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y)
                 && topology.getBuildingId(x, y) == 0 && !topology.isFixture(x, y) && !topology.isWall(x, y)
                 && !dressed.contains(key(x, y)) && !gate.contains(key(x, y));
@@ -560,9 +575,9 @@ public final class CivilDefenceCompound {
         return topology.inBounds(x, y) && topology.isWall(x, y);
     }
 
-    private static Set<Long> dressedCells(BattleSimulation sim, int l, int t, int r, int b) {
+    private static Set<Long> dressedCells(List<Doodad> doodads, int l, int t, int r, int b) {
         Set<Long> cells = new HashSet<>();
-        for (Doodad d : sim.getDoodads()) {
+        for (Doodad d : doodads) {
             if (d.cellX > r || d.cellY > b || d.cellX + d.footprintCellsX <= l || d.cellY + d.footprintCellsY <= t) continue;
             for (int y = d.cellY; y < d.cellY + d.footprintCellsY; y++)
                 for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) cells.add(key(x, y));

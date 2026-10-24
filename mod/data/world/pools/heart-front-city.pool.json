@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "map": "heart-front-city",
+  "biomes": {
+    "VERDANT": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 279,30"
+      }
+    ],
+    "ARID": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 279,30"
+      }
+    ],
+    "ROCK": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 279,30"
+      }
+    ],
+    "FROZEN": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 279,30"
+      }
+    ]
+  }
+}

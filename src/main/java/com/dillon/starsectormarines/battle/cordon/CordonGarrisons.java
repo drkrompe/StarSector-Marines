@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
@@ -49,6 +50,21 @@ public final class CordonGarrisons {
             if (redoubt != null) out.add(redoubt);
         }
         return out;
+    }
+
+    /**
+     * Where redoubt {@code place}'s gun towers will stand once its wall is dressed, read off the generated map
+     * before the battle: the plan {@link #man} dresses it by. Empty when no closed wall stands there.
+     */
+    public static List<int[]> towers(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, Precinct place,
+                                     int front) {
+        int[] box = wallBox(topology, place);
+        if (box == null) return List.of();
+        int centreX = (box[0] + box[2]) / 2, centreY = (box[1] + box[3]) / 2;
+        int[] yard = nearestOpen(grid, centreX, centreY, box[0] + 1, box[1] + 1, box[2] - 1, box[3] - 1);
+        if (yard == null) return List.of();
+        return CivilDefenceCompound.gunTowers(grid, topology, doodads, centreX, centreY, yard[0], yard[1],
+                centreX, centreY - front * REAR_REACH, WALL_REACH);
     }
 
     private static CordonRedoubt man(BattleSimulation sim, Precinct place, int number, int front,

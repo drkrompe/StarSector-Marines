@@ -9,7 +9,11 @@ public enum StoryMap {
     CORDON_LINE_URBAN("cordon-line-urban"),
     CORDON_ROAD_URBAN("cordon-road-urban"),
     HEART_BURN("heart-burn"),
-    HEART_FRONT("heart-front");
+    HEART_FRONT("heart-front"),
+    HEART_BURN_TOWN("heart-burn-town"),
+    HEART_FRONT_TOWN("heart-front-town"),
+    HEART_BURN_CITY("heart-burn-city"),
+    HEART_FRONT_CITY("heart-front-city");
 
     /** The pool file's name and the {@code map} it declares. */
     public final String id;

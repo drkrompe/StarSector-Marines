@@ -6,8 +6,8 @@ biome; Conquest and skirmish stay fully random.
 
 Written: 2026-10-23
 
-Updated: 2026-10-23 — pools are per biome (owner): the story is fought on the
-event world's own ground, three owned maps for each.
+Updated: 2026-10-24 — the Cordon's rural and town pools re-screened for the
+redoubts on the crest; gap readings in the report.
 
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
@@ -55,7 +55,9 @@ those readings.
 **Density.** The Cordon is also laid out at its world's density (rural, town
 or urban, from the market size; `cordon-nouns.md`, Density), and each density
 is a story map of its own with its own pool: `cordon-line-town`,
-`cordon-road-urban` and so on. A density changes the whole map a seed names,
+`cordon-road-urban` and so on. The heart is the same (`heart-map-intent.md`,
+Density): `heart-front-town`, `heart-burn-city` and so on, rural, town and city
+each from the world's market size. A density changes the whole map a seed names,
 so it is vetted as a biome is.
 
 A pool **seed** is the battle seed itself: the map it names on its biome
@@ -99,7 +101,13 @@ acceptance. Opt-in and excluded from `test` (it generates whole maps), and it
 is what a session runs after a mapgen change that may move a story map. A
 failure names the map and the seed and what it now lacks; the fix is a patch,
 a swap for another seed, or the mapgen change itself. Writes
-`build/reports/story-map-pools/summary.md`.
+`build/reports/story-map-pools/summary.md`. A Cordon row's detail carries
+the line's gap readings (`CordonGapLaw`: each neighbouring pair's widest
+gun-to-gun step, `!` where it breaks the law, and the towers' own distance),
+which are readings and never fail a seed. When the redoubts went up onto the
+ridge's crest, a Cordon map whose redoubt could not stand there stopped being
+a Cordon map, and the rural and town pools were re-screened over seeds 1 to
+40: a swapped-in seed's note says every redoubt is on the crest.
 
 **Acceptance** is the mission's own re-roll test, so the check and the setup
 cannot disagree:

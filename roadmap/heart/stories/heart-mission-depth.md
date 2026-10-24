@@ -34,10 +34,13 @@ Ranked by what it unblocks:
    the owner's gunship question can be read across the pool.
 3. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
    brook valley, the hollow's rim, the cordon's works, every beat's set piece
-   that needs ground (F6's road satellite with it), and the town and city densities. Open:
+   that needs ground (F6's road satellite with it), the town and city densities,
+   and a pool for each density (three seeds per biome). Open:
+   - a city's supply road: no city map lays it, so F6 has no road to cut there
+     (the Cordon takes a city's streets as its supply road); the cordon ridge and
+     pieces of the forward line fail on most city maps too;
    - a full hollow;
-   - the knoll;
-   - pooling the denser maps.
+   - the knoll.
 4. **Tuning win rates**, only after the map work (owner: no overtuning yet).
 
 ## Constraints

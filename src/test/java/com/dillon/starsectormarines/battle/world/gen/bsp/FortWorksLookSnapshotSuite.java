@@ -1,0 +1,193 @@
+package com.dillon.starsectormarines.battle.world.gen.bsp;
+
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.scene.LookGround;
+import com.dillon.starsectormarines.battle.scene.SceneRegistries;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Opt-in look study for themed fortification lots (`fort-works.md`): a battery fort the production generator sites on
+ * real generated ground, built in each {@link EmplacementStyle} through the mission hook
+ * ({@link EmplacementStylePolicy#restyle}), so its wall, parapets, barricades and guns are drawn from one family. Owner
+ * look frames: real ground, effects and shadows on, no annotations, 1920x1080 at play zoom and close.
+ *
+ * <p>{@code -Dsnapshot.fortWorks.styles=} names the styles (keys, comma-separated; default every style) and
+ * {@code -Dsnapshot.fortWorks.biome=} the ground ({@code arid} by default). Frames go to {@code look/<style>-<view>.png}.
+ */
+public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
+
+    private static final int MAP_W = 400;
+    private static final int MAP_H = 240;
+    private static final long SEED = 11L;
+    /** Ticks played before the still, so smoke and the guns' first turn have settled. */
+    private static final int SETTLE_TICKS = 30;
+    /** The free-standing post's layout: a line of guns behind its parapet or barricade. */
+    private static final String POST_VARIANT = "trapezoid";
+
+    @Override public String id() { return "fort-works-look"; }
+
+    @Override public String label() { return "Fortification lots in each emplacement style (look study)"; }
+
+    @Override public boolean inAll() { return false; }
+
+    @Override
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        SceneRegistries.installArmoury(context.projectRoot());
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        try {
+            String selected = System.getProperty("snapshot.fortWorks.styles", "");
+            SurfacePalette surface = SurfacePalette.valueOf(
+                    System.getProperty("snapshot.fortWorks.biome", "arid").toUpperCase());
+            List<SnapshotArtifact> artifacts = new ArrayList<>();
+            for (EmplacementStyle style : EmplacementStyle.values()) {
+                if (!selected.isBlank() && !List.of(selected.split(",")).contains(style.key)) continue;
+                artifacts.addAll(shots(context, style, surface));
+            }
+            return artifacts;
+        } finally {
+            TurretSlotResolver.useHullSpecs(null);
+        }
+    }
+
+    private static List<SnapshotArtifact> shots(SnapshotContext context, EmplacementStyle style, SurfacePalette surface)
+            throws Exception {
+        TargetProfile profile = LookGround.of(surface, SEED).profile().withDeclaredDefences(
+                new GroundDefences(0, false).withForts(FortKind.BATTERY_FORT, 1));
+        MapResult map = new BspCityGenerator().generate(MAP_W, MAP_H, SEED, null, profile);
+        List<DefensePost> posts = new ArrayList<>(map.defensePosts);
+        // A post standing alone on the open ground beside the town, built in the style as a generator builds it: a
+        // militia style rings it with its barricade, a prepared one pours its parapet.
+        float[] fortAt = fortCentre(map.defensePosts);
+        int[] field = openField(map, 16, 10, fortAt == null ? MAP_W / 2f : fortAt[0], fortAt == null ? MAP_H / 2f : fortAt[1]);
+        DefensePost alone = DefensePostStamper.stampPost(map.grid, map.topology, map.doodads,
+                DefensePostLayoutRegistry.requireInstalled().require(DefensePostKind.LARGE, POST_VARIANT),
+                field[0] + 8, field[1] + 5, style);
+        posts.add(alone);
+        EmplacementStylePolicy.restyle(posts, style);
+        BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(), posts, SEED).sim();
+        try {
+            ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
+            for (int tick = 0; tick < SETTLE_TICKS; tick++) {
+                sim.advance(BattleSimulation.TICK_DT);
+                fx.feed(sim);
+            }
+            List<SnapshotArtifact> artifacts = new ArrayList<>();
+            float[] fort = fortCentre(posts);
+            if (fort != null) {
+                artifacts.add(still(context, sim, fx, style.key + "-fort-play", fort[0], fort[1],
+                        BattleReviewFrameRenderer.PLAY_ZOOM_CELLS));
+                artifacts.add(still(context, sim, fx, style.key + "-fort-close", fort[2], fort[3], 26f));
+            }
+            float gunsX = 0, gunsY = 0;
+            for (DefensePost.TurretSpec gun : alone.turrets) {
+                gunsX += gun.cellX + 0.5f;
+                gunsY += gun.cellY + 0.5f;
+            }
+            artifacts.add(still(context, sim, fx, style.key + "-post-close", gunsX / alone.turrets.size(),
+                    gunsY / alone.turrets.size(), 22f));
+            System.out.printf("    [fort-works-look/%s] %d posts, fort %s%n", style.key, posts.size(),
+                    fort == null ? "none" : String.format("at %.0f,%.0f", fort[0], fort[1]));
+            return artifacts;
+        } finally {
+            sim.close();
+        }
+    }
+
+    private static SnapshotArtifact still(SnapshotContext context, BattleSimulation sim, ReviewImpactFx fx, String name,
+                                          float x, float y, float cellsAcross) throws Exception {
+        BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y,
+                cellsAcross);
+        return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+    }
+
+    /**
+     * The middle of the fort's posts and, for the close view, the wall nest farthest from it: the corner of the
+     * works where wall, nest and belt meet. Null on a map whose fort did not stand.
+     */
+    private static float[] fortCentre(List<DefensePost> posts) {
+        float sx = 0, sy = 0;
+        int n = 0;
+        for (DefensePost post : posts) {
+            if (post.fort == null) continue;
+            sx += post.anchorX;
+            sy += post.anchorY;
+            n++;
+        }
+        if (n == 0) return null;
+        float cx = sx / n, cy = sy / n;
+        DefensePost far = null;
+        float best = -1;
+        for (DefensePost post : posts) {
+            if (post.fort == null) continue;
+            float d = (post.anchorX - cx) * (post.anchorX - cx) + (post.anchorY - cy) * (post.anchorY - cy);
+            if (d > best) {
+                best = d;
+                far = post;
+            }
+        }
+        return new float[]{cx + 0.5f, cy + 0.5f, (far.anchorX + cx) / 2f + 0.5f, (far.anchorY + cy) / 2f + 0.5f};
+    }
+
+
+    /**
+     * The corner of the {@code w x h} window of untouched country (walkable, unpaved, no prop, outside every building
+     * and lot) nearest {@code (nearX, nearY)}: where a post that stands alone is built.
+     */
+    private static int[] openField(MapResult map, int w, int h, float nearX, float nearY) {
+        int[] best = null;
+        float bestDistance = Float.MAX_VALUE;
+        boolean[][] taken = new boolean[MAP_W][MAP_H];
+        for (Doodad doodad : map.doodads) {
+            if (map.grid.inBounds(doodad.cellX, doodad.cellY)) taken[doodad.cellX][doodad.cellY] = true;
+        }
+        for (int y0 = 8; y0 + h < MAP_H - 8; y0 += 2) {
+            for (int x0 = 8; x0 + w < MAP_W - 8; x0 += 2) {
+                float distance = (x0 + w / 2f - nearX) * (x0 + w / 2f - nearX) + (y0 + h / 2f - nearY) * (y0 + h / 2f - nearY);
+                if (distance >= bestDistance || !country(map, taken, x0, y0, w, h)) continue;
+                bestDistance = distance;
+                best = new int[]{x0, y0};
+            }
+        }
+        if (best == null) throw new IllegalStateException("no open country for the free-standing post");
+        return best;
+    }
+
+    private static boolean country(MapResult map, boolean[][] taken, int x0, int y0, int w, int h) {
+        for (int y = y0; y < y0 + h; y++) {
+            for (int x = x0; x < x0 + w; x++) {
+                if (!map.grid.isWalkable(x, y) || taken[x][y] || map.topology.getSurface(x, y) != 0
+                        || map.topology.getWorksStyle(x, y) != 0) return false;
+                CellTopology.GroundKind kind = map.topology.getGroundKind(x, y);
+                if (kind != CellTopology.GroundKind.GRASS && kind != CellTopology.GroundKind.DIRT
+                        && kind != CellTopology.GroundKind.SAND) return false;
+            }
+        }
+        return true;
+    }
+
+}

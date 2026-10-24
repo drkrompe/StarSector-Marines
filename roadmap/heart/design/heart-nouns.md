@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-24 — Broad Front waves join a standing lane, and a column held at its lane's front joins there
+Updated: 2026-10-24 — Broad Front waves join a standing lane; a satellite nearer an allied lane is that lane's, not the company's; gunship_lost beat
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -361,8 +361,13 @@ collapses a bore by fiat.
    `mother_collapsed_N`.
 
    **The company falls back.** Its own satellite down, the company does not go
-   on alone to a mother. It falls back to its landing and holds there while
-   any satellite still stands. When the last one falls it goes for the mothers
+   on alone to a mother. Its own is the satellite nearest its line: the bands
+   overlap, and a satellite an allied lane's line lies nearer is that lane's,
+   even inside the company's band. On seed 5 (2026-10-24) the company took
+   lane 3's satellite beside the mothers for its own, went for it as the heart
+   woke, and was wiped there on every biome. It falls back to its landing and holds there while
+   any satellite still stands, breaking off from whatever it is fighting (a squad
+told only to defend a cell far behind it fought where it stood). When the last one falls it goes for the mothers
    with the converging lanes. Its satellite sits nearest the heart, so the
    heart's waking surge and the first Matriarchs come for it first. Holding
    the taken ground kept more of the company alive but still lost it there on
@@ -450,6 +455,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
 | `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
 | `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
+| `gunship_called_N`, `gunship_lost_N` | Broad Front | the commander's Nth sortie is granted; the Nth sortie is shot down |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |

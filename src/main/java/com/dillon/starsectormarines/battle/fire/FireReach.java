@@ -63,7 +63,8 @@ public final class FireReach {
         int span = half * 2 + 1;
         FireReach reach = new FireReach(x - half, y - half, span);
         // Each cell's distance from the ignition as the field counts it (FireField.catchFire): a hop adds its
-        // rings, and a cell of fuel that carries a fire as far as it stands lights afresh at nought.
+        // straight-line length in quarter cells, a cell catches only within its own seeded carry, and a cell of fuel
+        // that carries a fire as far as it stands lights afresh at nought.
         int[] distance = new int[span * span];
         Arrays.fill(distance, Integer.MAX_VALUE);
         int[] queue = new int[span * span];
@@ -91,8 +92,9 @@ public final class FireReach {
                     int next = ny * span + nx;
                     int gx = reach.originX + nx, gy = reach.originY + ny;
                     if (!fuel(field, gx, gy)) continue;
-                    int d = base + Math.max(Math.abs(nx - lx), Math.abs(ny - ly));
-                    int limit = field.isBurning(gx, gy) ? Integer.MAX_VALUE : field.spreadLimit(field.fuelMaskAt(gx, gy));
+                    int d = base + (int) Math.round(FireField.QUARTERS * Math.hypot(nx - lx, ny - ly));
+                    int limit = field.isBurning(gx, gy) ? Integer.MAX_VALUE
+                            : field.spreadLimitAt(gy * field.width() + gx, field.fuelMaskAt(gx, gy));
                     if (d >= distance[next] || d > limit) continue;
                     distance[next] = d;
                     if (!queued[next]) {
