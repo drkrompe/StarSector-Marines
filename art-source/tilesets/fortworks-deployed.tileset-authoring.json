@@ -1,12 +1,21 @@
 {
   "alphaMin": 16,
-  "blocks": [{
-    "doorBlock": "installation.dark-concrete-door",
-    "id": "installation.dark-concrete-wall@deployed",
-    "layout": "wall-faces-4x4",
-    "rubbleBlock": "installation.dark-concrete-rubble",
-    "windowBlock": "installation.dark-concrete-window"
-  }],
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@deployed",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@deployed",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
   "cellPx": 128,
   "entries": [
     {
@@ -688,12 +697,284 @@
         84
       ],
       "slot": "faces-15"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-0",
+      "included": true,
+      "rect": [
+        1018,
+        604,
+        83,
+        83
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-1",
+      "included": true,
+      "rect": [
+        1125,
+        604,
+        84,
+        83
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-2",
+      "included": true,
+      "rect": [
+        1233,
+        604,
+        83,
+        83
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-3",
+      "included": true,
+      "rect": [
+        1341,
+        604,
+        83,
+        83
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-4",
+      "included": true,
+      "rect": [
+        1018,
+        708,
+        83,
+        84
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-5",
+      "included": true,
+      "rect": [
+        1125,
+        708,
+        84,
+        84
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-6",
+      "included": true,
+      "rect": [
+        1233,
+        708,
+        83,
+        84
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-7",
+      "included": true,
+      "rect": [
+        1341,
+        708,
+        83,
+        84
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-8",
+      "included": true,
+      "rect": [
+        1018,
+        814,
+        83,
+        84
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-9",
+      "included": true,
+      "rect": [
+        1125,
+        814,
+        84,
+        84
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-10",
+      "included": true,
+      "rect": [
+        1233,
+        814,
+        83,
+        84
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-11",
+      "included": true,
+      "rect": [
+        1341,
+        814,
+        83,
+        84
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-12",
+      "included": true,
+      "rect": [
+        1018,
+        918,
+        83,
+        84
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-13",
+      "included": true,
+      "rect": [
+        1125,
+        918,
+        84,
+        84
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-14",
+      "included": true,
+      "rect": [
+        1233,
+        918,
+        83,
+        84
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.light-concrete-wall@deployed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@deployed.faces-15",
+      "included": true,
+      "rect": [
+        1341,
+        918,
+        83,
+        84
+      ],
+      "slot": "faces-15"
     }
   ],
   "gridCols": 12,
   "gridRows": 8,
   "idPrefix": "doodad",
-  "note": "Fortification works of the deployed emplacement style, look 'deployed': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/deployed.prompt.txt, raw retained unmodified. Cuts are measured from the raw (make_doc.py). Every id is a look <base id>@deployed of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "note": "Fortification works of the deployed emplacement style, look 'deployed': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/deployed.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@deployed of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
   "sheet": "art-source/fortworks/raw/deployed.raw.png",
   "sheetName": "fortworks-deployed"
 }
