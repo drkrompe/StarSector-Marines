@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
@@ -14,6 +15,8 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
+import com.dillon.starsectormarines.battle.world.gen.fortress.GateTowers;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationFloors;
 import com.dillon.starsectormarines.battle.world.gen.fortress.ShieldFort;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -145,5 +148,22 @@ class FortRoomStampTest {
             }
         }
         assertTrue(banks >= 2, "the operations hall is a room of stations");
+    }
+
+    @Test
+    void aGateTowersSlitIsFloorUnderAWindowAsAnyBuildingsIs() {
+        GenContext ctx = field();
+        CompoundLayout.Placement at = BatteryFort.PLAN.layout().at(60, 40, 1);
+        FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
+        FortRoom tower = BatteryFort.PLAN.towers().get(0);
+        int floor = ctx.topology.surfaceIndex(InstallationFloors.material(tower.purpose()));
+        for (int[] slit : GateTowers.slits(tower, BatteryFort.PLAN::isWorks)) {
+            int[] c = at.cell(slit[0], slit[1]);
+            assertTrue(ctx.grid.isWalkable(c[0], c[1]), "a slit is stood in");
+            assertFalse(ctx.topology.isWall(c[0], c[1]), "a slit draws no wall under whoever stands in it");
+            assertEquals(floor, ctx.topology.getSurface(c[0], c[1]), "a slit is laid in the tower's floor");
+            assertTrue(ctx.grid.getEdgeBarriers().stream().anyMatch(b -> b.kind() == SharedEdgeBarrier.Kind.WINDOW
+                    && b.structureCellX() == c[0] && b.structureCellY() == c[1]), "a slit is a window");
+        }
     }
 }
