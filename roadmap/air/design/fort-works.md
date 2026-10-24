@@ -90,7 +90,7 @@ style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 
 ## Open
 
-- The owner's pick between the three derelict drafts (fort works picks page); colony steel
+- The owner's pick between the three derelict drafts (the turret overhaul picks page); colony steel
   stands until they answer.
 - Pieces still drawn in the base art on every lot: the light post's vent ring (road-sheet
   frames with no catalog id), the fort's building shells (bunker, magazine, power plant and
