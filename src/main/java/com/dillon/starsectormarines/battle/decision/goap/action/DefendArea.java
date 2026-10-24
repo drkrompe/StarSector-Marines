@@ -137,16 +137,35 @@ public final class DefendArea implements Action {
             }
             return ActionStatus.RUNNING;
         }
-        int[] firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
-                member, target, centerX, centerY, radius);
+        FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
+        int[] open = line == null ? null : sim.fightingPositionClaims().openCellOf(member);
+        if (open != null && sim.movement().atCell(member, open[0], open[1])) {
+            // A marine on a drawn line fights from the cover the line gave him against its front
+            // while it gives him a shot, rather than stepping out to a better angle on one runner.
+            float held = TacticalScoring.cellDistance(
+                    sim.world().x(member), sim.world().y(member),
+                    sim.world().x(target), sim.world().y(target));
+            if (held <= sim.world().attackRange(member)
+                    && sim.getTacticalScoring().hasClearShot(member, target)) {
+                if (LaneSidestep.isStepping(member, sim)) {
+                    sim.advanceMovement(member);
+                } else {
+                    PatrolMotion.hold(member, sim);
+                }
+                sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
+                return ActionStatus.RUNNING;
+            }
+        }
+        int[] firingPosition = onLine(sim.getTacticalScoring().findFiringPositionWithin(
+                member, target, centerX, centerY, radius), line);
         if (firingPosition == null) {
             long alternative = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, centerX, centerY, radius);
             if (alternative != 0L && alternative != target) {
                 sim.world().setTargetId(member, alternative);
                 target = alternative;
-                firingPosition = sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target, centerX, centerY, radius);
+                firingPosition = onLine(sim.getTacticalScoring().findFiringPositionWithin(
+                        member, target, centerX, centerY, radius), line);
             }
         }
         if (firingPosition == null) {
@@ -186,12 +205,17 @@ public final class DefendArea implements Action {
         return ActionStatus.RUNNING;
     }
 
+    /** A firing cell off a drawn line's band is no firing cell for a squad holding the line. */
+    private static int[] onLine(int[] cell, FrontageLine line) {
+        return cell == null || line == null || line.covers(cell[0], cell[1]) ? cell : null;
+    }
+
     private int[] preparedPosition(long member, int threatX, int threatY,
                                    Squad squad, BattleView sim) {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
         FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
-        if (line != null) return linePosition(member, line, threatX, threatY, squad, sim);
+        if (line != null) return linePosition(member, line, squad, sim);
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float axisX = threatX - centerX;
@@ -216,20 +240,17 @@ public final class DefendArea implements Action {
     }
 
     /**
-     * Where a member holds a drawn line when no prepared position was his: his own share of the
-     * line, a cell behind it, settling into the best cover there against the believed threat or,
-     * with none, against the line's front. Shares are spaced evenly along the whole line, so a
-     * squad on open ground stands as a skirmish line across the ground the player drew.
-     *
-     * @param threatX the believed threat's cell, or -1 to cover against the front
+     * Where a member holds a drawn line when no prepared position was his: the open-ground cell
+     * the claims settled for him, the best cover against the line's front near his share of it
+     * ({@link LinePlacement#openCells}). Shares are spaced evenly along the whole line, so a
+     * squad on open ground stands as a skirmish line across the ground the player drew. Before
+     * the claims have run for a new order, his share itself.
      */
-    private int[] linePosition(long member, FrontageLine line, int threatX, int threatY,
-                               Squad squad, BattleView sim) {
+    private int[] linePosition(long member, FrontageLine line, Squad squad, BattleView sim) {
+        int[] open = sim.fightingPositionClaims().openCellOf(member);
+        if (open != null) return open;
         int ordinal = memberOrdinal(member, squad, sim);
         int count = Math.max(1, squad.autonomousMemberCount(sim));
-        int[] covered = LinePlacement.coveredCell(line, ordinal, count, threatX, threatY, sim,
-                (x, y) -> claimedByOther(x, y, member, sim));
-        if (covered != null) return covered;
         int[] share = LinePlacement.share(line, ordinal, count);
         return nearestWalkableInside(share[0], share[1], sim);
     }
@@ -255,7 +276,7 @@ public final class DefendArea implements Action {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
         FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
-        if (line != null) return linePosition(member, line, -1, -1, squad, sim);
+        if (line != null) return linePosition(member, line, squad, sim);
         int ordinal = memberOrdinal(member, squad, sim);
         int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float[] offset = quietOffset(ordinal, count, radius);
