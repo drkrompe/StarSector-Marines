@@ -455,6 +455,9 @@ public final class FireField {
     public boolean isBurning(int x, int y) { return inBounds(x, y) && state[y * width + x] == BURNING; }
     public boolean isBurnt(int x, int y) { return inBounds(x, y) && state[y * width + x] == BURNT; }
 
+    /** The fuel standing on a cell, burnt or not; {@code 0} off the field. */
+    int fuelMaskAt(int x, int y) { return inBounds(x, y) ? terrain.fuelMask(y * width + x) : 0; }
+
     /** Whether a cell could still catch: unburnt, with fuel standing on it. */
     public boolean canBurn(int x, int y) { return inBounds(x, y) && state[y * width + x] == UNBURNT && terrain.fuelMask(y * width + x) != 0; }
     /** 0..255 while burning, else 0. */
