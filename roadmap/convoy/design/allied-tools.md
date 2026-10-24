@@ -104,6 +104,14 @@ delivers nothing.
   recipient is gone first. **The Cordon owns it.**
 - The Cordon's L2 (`GunsDryBeat`) is the first user: the recipient is the
   dry redoubt, and its truck's arrival restores the guns to their own rate.
+- **What a truck rearms** (owner, 2026-10-23: trucks "might also rearm turrets
+  or other things at the bases"): any place's guns through a `GunStock`, the
+  rounds a place's gun towers, nests, turrets and field mortar tubes have on
+  hand. A shot spends a round; a dry gun fires rationed (four times its
+  cooldown) rather than not at all; a truck's arrival refills every gun and
+  tube there. A mission declares the stocks, sizes them and decides when a
+  place is low enough to ask its producer for a truck. L2 is a stock drained
+  on the beat's tick.
 - The heart's B5 is the second: a truck's arrival adds rounds to the
   walking barrage (`WalkingBarrage`), through the same hook.
 

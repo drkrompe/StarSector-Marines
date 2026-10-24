@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
+import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -48,13 +49,17 @@ public final class DirectControlScatter {
                     (float) Math.hypot(aim.aimX() - ring.x(), aim.aimY() - ring.y())), -1f);
         }
         if (!sim.world().hasMechLoadout(id)) {
-            // A Marine's left button blooms only with a rocket on it; a rifle's round flies a lane.
+            // A Marine's left button blooms with a rocket on it, and with the flamer's splash; a rifle's round flies a lane.
             SpecialEquipmentDef picked = sim.directControl().leftSpecial();
             float reach = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
-            float left = picked == null ? -1f : ManualPointFire.scatterRadiusCells(picked.weaponDef(),
+            float left = picked == null ? -1f : picked.isHeldStream() ? picked.aoeRadius()
+                    : ManualPointFire.scatterRadiusCells(picked.weaponDef(),
                     DirectControlFireMarks.specialAccuracy(sim, id, picked), reach, 0f);
-            float right = sim.directControl().marineRightPick() == MarineRightTrigger.Item.GRENADE
-                    && sim.world().secondaryAmmo(id) > 0 ? sim.world().specialEquipment(id).aoeRadius() : -1f;
+            SpecialEquipmentDef grenade = sim.directControl().marineRightPick() == MarineRightTrigger.Item.GRENADE
+                    ? CarriedSpecials.item(sim.world(), id, SpecialEquipmentDef::isThrownGrenade) : null;
+            float right = grenade != null
+                    && CarriedSpecials.ammo(sim.world(), id, SpecialEquipmentDef::isThrownGrenade) > 0
+                    ? grenade.aoeRadius() : -1f;
             return new Spread(left, right);
         }
         float distance = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));

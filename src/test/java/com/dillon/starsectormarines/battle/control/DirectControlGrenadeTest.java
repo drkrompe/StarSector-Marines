@@ -208,6 +208,35 @@ class DirectControlGrenadeTest {
         assertFalse(roster.mitigations().isActive(marine), "an empty pick does not fall back to the shield");
     }
 
+    @Test
+    void smokeAndAGrenadeOnOneMarineAreBothOnTheListAndTheBeltThrowGoesBackToItsSlot() {
+        var smoke = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+        assertEquals(List.of(MarineRightTrigger.Item.SMOKE, MarineRightTrigger.Item.GRENADE, MarineRightTrigger.Item.SHIELD),
+                MarineRightTrigger.members(FRAG, smoke, SHIELD), "the order is by item, not by slot");
+        long marine = roster.spawn(new EntitySpec("Marine", Faction.MARINE, UnitType.MARINE, 3, 5)
+                .primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID))
+                .specialEquipment(smoke, smoke.startingAmmo())
+                .beltEquipment(FRAG, FRAG.startingAmmo())
+                .integralSystem(SHIELD));
+        session.enter(marine);
+        assertEquals(List.of(MarineRightTrigger.Item.SMOKE, MarineRightTrigger.Item.GRENADE, MarineRightTrigger.Item.SHIELD),
+                session.marineRightMembers());
+        assertTrue(session.canUseAbility(DirectControlAbility.GRENADE), "a belt grenade is ready while the hand is free");
+        assertTrue(session.cycle(FireTrigger.RIGHT));
+        assertEquals(MarineRightTrigger.Item.GRENADE, session.marineRightPick());
+        press(9, 5.5f);
+        assertNotNull(grenades.reservationFor(marine), "the press throws the belt's grenade");
+        assertSame(FRAG, roster.world().specialEquipment(marine), "drawn into the hand for its throw");
+        assertSame(smoke, roster.world().beltEquipment(marine), "the smoke rides the belt meanwhile");
+        assertEquals(List.of(MarineRightTrigger.Item.SMOKE, MarineRightTrigger.Item.GRENADE, MarineRightTrigger.Item.SHIELD),
+                session.marineRightMembers(), "the swap does not reorder the list");
+        for (int i = 0; i < 60 && roster.world().secondaryActionTimer(marine) > 0f; i++) session.tick();
+        assertEquals(1, releases.size());
+        assertEquals(FRAG.startingAmmo() - 1, roster.world().secondaryAmmo(marine));
+        assertEquals(smoke.startingAmmo(), roster.world().beltAmmo(marine), "the smoke is untouched");
+        assertTrue(session.canUseAbility(DirectControlAbility.SMOKE), "and can be thrown next, from the belt");
+    }
+
     private void press(float x, float y) {
         session.submit(new ManualIntent(0, 0, x, y, false, false, true));
         session.tick();

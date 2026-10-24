@@ -253,6 +253,14 @@ public final class FieldMortarService {
         return byCarrier.putIfAbsent(carrier, tube) == null;
     }
 
+    /** Refills a tube to its mount's capacity (an ammunition truck's delivery); returns the rounds added. */
+    public int rearm(Tube tube) {
+        int full = tube.structure.mount.ammoCapacity;
+        int added = Math.max(0, full - tube.rounds);
+        tube.rounds = Math.max(tube.rounds, full);
+        return added;
+    }
+
     /** Asks the gunner to lift the tube now (the player's or a commander's pack order). */
     public void requestPack(long carrier) {
         Tube tube = byCarrier.get(carrier);

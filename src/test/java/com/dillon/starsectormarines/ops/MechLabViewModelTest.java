@@ -809,14 +809,18 @@ class MechLabViewModelTest {
                 viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
                         .findFirst().orElseThrow().component());
 
-        // Dragged off the doll, the engine goes back to stores and the stock one is refitted;
-        // the stock engine itself cannot leave, because a frame always holds one.
+        // Dragged off the doll, the engine goes back to stores and leaves its socket empty:
+        // the mech is incomplete and off the drop manifest until an engine is fitted again.
         assertTrue(viewModel.removeInstalledInternal(SocketId.CORE), viewModel.feedbackText().get());
-        assertEquals(MechInternal.INDUSTRIAL_ENGINE, mech.internal(MechInternal.Role.ENGINE));
+        assertNull(mech.internal(MechInternal.Role.ENGINE));
         assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
-        assertFalse(viewModel.removeInstalledInternal(SocketId.CORE));
-        assertEquals(MechInternal.INDUSTRIAL_ENGINE, mech.internal(MechInternal.Role.ENGINE));
-        assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
+        assertEquals(CampaignMech.Readiness.INCOMPLETE, mech.readiness(0f));
+        assertFalse(viewModel.socketOccupied(SocketId.CORE));
+        assertEquals("slot-badge required", viewModel.slotRows().get().stream()
+                .filter(row -> row.socketId() == SocketId.CORE).findFirst().orElseThrow().badgeClasses());
+        assertFalse(viewModel.removeInstalledInternal(SocketId.CORE), "the socket is already empty");
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
+        assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
 
         viewModel.setFilter(MechLabViewModel.CategoryFilter.IN_STOCK);
         assertTrue(viewModel.catalogRows().get().stream()

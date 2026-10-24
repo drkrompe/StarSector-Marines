@@ -362,13 +362,16 @@ final class BattleDirectControlHudModel {
     }
 
     /**
-     * The load drawn under a row: an energy weapon's charge cells, or a counted load round by round
+     * The load drawn under a row: an energy weapon's charge cells or a flamer's fuel, or a counted load round by round
      * (a Marine's magazine, a mech's racks in salvos, a vehicle's belt). Null for a weapon with nothing
      * to count, and for a load too long to draw even folded, which keeps its number.
      */
     static AmmoStrip strip(WeaponStatus weapon) {
         var behavior = weapon.behavior();
         var ammo = weapon.ammo();
+        if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.FUEL) {
+            return ChargeGauge.fuel(ammo.capacity(), ammo.remaining());
+        }
         if (behavior.ordnance() == Ordnance.ENERGY) {
             return ChargeGauge.of(behavior.projectilesPerTrigger(), weapon.burstRemaining(),
                     weapon.cycleFraction(), weapon.fluxBlocked());
@@ -532,6 +535,7 @@ final class BattleDirectControlHudModel {
     private String behavior(BattleDirectControlStatus.Behavior behavior) {
         // A rotary gun has no pull to count: it fires while held.
         if (behavior.kind() == BattleDirectControlStatus.FireKind.ROTARY) return label("ROTARY");
+        if (behavior.kind() == BattleDirectControlStatus.FireKind.STREAM) return label("STREAM");
         String value = label(behavior.kind().name());
         int count = behavior.kind() == BattleDirectControlStatus.FireKind.PACKET
                 ? behavior.projectilesPerShot() : behavior.projectilesPerTrigger();

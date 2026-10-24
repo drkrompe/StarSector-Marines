@@ -118,13 +118,15 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.PULSE_RIFLE_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Grenadier", WeaponRegistry.PULSE_RIFLE_ID,
-                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.PULSE_RIFLE_ID),
                             weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID))),
             weaponDoctrine(ASSAULT_WEAPONS, "@squadDoctrineAssaultWeaponsName",
                     "@squadDoctrineAssaultWeaponsDescription",
@@ -450,5 +452,12 @@ public final class SquadEquipmentDoctrines {
             String role, String weaponId, String specialEquipmentId) {
         return new SquadWeaponIssue(role, weaponId, EquipmentGrade.SERVICE,
                 specialEquipmentId);
+    }
+
+    /** A billet with a second special slot: {@code beltEquipmentId}, a thrown item, beside its special. */
+    private static SquadWeaponIssue weapon(
+            String role, String weaponId, String specialEquipmentId, String beltEquipmentId) {
+        return new SquadWeaponIssue(role, weaponId, EquipmentGrade.SERVICE,
+                specialEquipmentId, beltEquipmentId);
     }
 }

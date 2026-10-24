@@ -2368,8 +2368,12 @@ frontage rather than a place. It is the same defend-area context, with the
 circle replaced by a band three cells either side of the drawn line, so claims
 come only from prepared ground the line actually crosses. The line has a
 **front**: the side toward the squad's believed threat, or, with none, the side
-away from where the squad came from. Cover is judged against the threat, or
-against the front when there is none. The line is cut into one stretch per fire
+away from where the squad came from. Once drawn, the front is the direction the
+squad holds against: cover on the line, in a trench and on open ground alike, is
+judged against the front, never against the one contact the squad believes in at
+the moment, so a runner on the flank does not turn the line round. A front between
+two compass sides takes the cover on both, each by how much of the front it faces,
+so a line dragged on the diagonal settles behind a corner of sandbags. The line is cut into one stretch per fire
 team, and each team takes the run nearest its own stretch and stays whole on it
 while the run has room, so a line drawn across two trenches seats teams in each
 rather than splitting one team between them. A team's home run must lie within
@@ -2391,8 +2395,15 @@ their windows. The cut counts the squad's fire
 teams, not only those on the ground; when the set of teams changes (a lift lands,
 a team is lost) the whole line is cut again, so a team that arrived first does
 not keep the share meant for the rest. Marines left over take ordinary cover in
-the band, a cell behind the line; with no prepared ground at all the squad forms
-a skirmish line along it. Several selected squads share one drawn line end to
+the band: each the cell with the most cover against the front within the band's
+width of his share of the line (a cell behind it), no more than a cell in front of
+the line, with a line of fire out along the front, so cover he could not shoot
+from is passed over. These places are settled with the claims, once per tick, so
+two squadmates never pick the same sandbag, and a marine keeps his while it still
+covers him. With no cover near, he holds his share, and with no prepared ground
+and no cover at all the squad forms a skirmish line along it. In a fight a marine
+fires from the place the line gave him while it gives him a shot, and looks for a
+better firing cell only within the line's band. Several selected squads share one drawn line end to
 end. Mechs given a line move to its end. A drag on a selection with no
 infantry in it — a vehicle, or mechs alone — draws no line: it is a move to
 where the drag began, finishing facing the way it went (`mechs-nouns.md`,

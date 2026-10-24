@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -195,6 +196,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-marine-doll-figure-only-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine,
                         marinePlate(context.modRoot(), false).document(), false)));
+        artifacts.add(new SnapshotArtifact("active-marine-flamer-1920x1080-ui100.png",
+                MarineLeftSpecialSnapshotSuite.flamerFrame(renderer, context)));
         artifacts.add(new SnapshotArtifact("active-marine-wide-status-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine, null, false, true)));
         artifacts.add(new SnapshotArtifact("active-mech-ordnance-1920x1080-ui100.png",
@@ -224,6 +227,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-marine-pulse-rifle-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, pulseRifle(),
                         marinePlate(context.modRoot(), true).document(), false)));
+        // One Marine carrying smoke in hand and a frag on the belt: both throws on the RMB rows, the frag picked,
+        // and both in the doll's kit column.
+        artifacts.add(new SnapshotArtifact("active-marine-smoke-and-grenade-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, smokeAndGrenade(),
+                        smokeAndGrenadePlate(context.modRoot()).document(), false)));
         artifacts.add(new SnapshotArtifact("marine-doll-states-1920x1080-ui100.png",
                 marineStates(renderer, context.modRoot())));
         // A Bulwark's trigger headers on LINKED, then with one arm gun and one rack picked.
@@ -513,6 +521,35 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MARINE, false);
         return new BattleDirectControlStatus.Snapshot(base.entityId(), base.name(), base.carrier(),
                 base.durability(), List.of(status), List.of(), MarineSprint.EMPTY);
+    }
+
+    /** A rifleman with a smoke grenade and, in the second special slot, a frag: the frag picked on the right button. */
+    private static BattleDirectControlStatus.Snapshot smokeAndGrenade() {
+        var smoke = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+        var frag = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
+        WeaponDef weapon = WeaponRegistry.require("weapon.field-rifle");
+        float cycle = InfantryCombatStats.cooldown(weapon, EquipmentGrade.SERVICE, SoldierProfile.REGULAR);
+        var rifle = BattleDirectControlStatus.marineWeapon(weapon, EquipmentGrade.SERVICE, 0f, cycle, 0, 0f);
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MARINE, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), base.name(), base.carrier(),
+                base.durability(), List.of(rifle), List.of(
+                        BattleDirectControlStatus.smokeAbility(smoke, smoke.startingAmmo(), null, 0f, true),
+                        BattleDirectControlStatus.grenadeAbility(frag, frag.startingAmmo() - 1, false, 0f, true)
+                                .withPicked(true)),
+                MarineSprint.EMPTY);
+    }
+
+    private static BattleMarineDollPlate smokeAndGrenadePlate(Path modRoot) {
+        var smoke = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+        var frag = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
+        var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)),
+                ModStrings.fromDisk(modRoot), true);
+        plate.update(new BattleMarineDollPlate.MarineDoll(false, true, 35f / 60f, .74f, 0, 0, List.of(
+                new BattleMarineDollPlate.Kit(smoke.displayName(),
+                        smoke.startingAmmo() + "/" + smoke.startingAmmo(), false),
+                new BattleMarineDollPlate.Kit(frag.displayName(),
+                        (frag.startingAmmo() - 1) + "/" + frag.startingAmmo(), false))));
+        return plate;
     }
 
     /** The hover-only help tab: collapsed ({@code carrier == null}) or opened for a carrier. */
