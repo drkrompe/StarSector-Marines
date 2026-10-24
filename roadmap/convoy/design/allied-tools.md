@@ -5,6 +5,7 @@ forces; the heart's tool pick (`heart-allied-tool`) and the Cordon's urban
 backbone pick (`cordon-urban-allies`) are out to the owner.
 
 Written: 2026-10-23
+Updated: 2026-10-23 — the Cordon draws on its base through the producer
 
 `allied-command.md` is how the allies move and fight a machine once it stands
 on the field (station, carry, the screened advance). This doc is the step
@@ -102,16 +103,22 @@ delivers nothing.
   callback) and the `AlliedDepot` the truck sets out from. The delivery waits
   while the depot cannot send; it is lost when the truck dies or the
   recipient is gone first. **The Cordon owns it.**
-- The Cordon's L2 (`GunsDryBeat`) is the first user: the recipient is the
-  dry redoubt, and its truck's arrival restores the guns to their own rate.
+- The Cordon is the first user: each redoubt's `GunStock` is a recipient, and
+  its allied line command asks for a truck when the stock runs low; L2
+  (`GunsDryBeat`) only empties one redoubt's gun towers, and the same request
+  brings its truck.
 - **What a truck rearms** (owner, 2026-10-23: trucks "might also rearm turrets
   or other things at the bases"): any place's guns through a `GunStock`, the
   rounds a place's gun towers, nests, turrets and field mortar tubes have on
   hand. A shot spends a round; a dry gun fires rationed (four times its
   cooldown) rather than not at all; a truck's arrival refills every gun and
-  tube there. A mission declares the stocks, sizes them and decides when a
-  place is low enough to ask its producer for a truck. L2 is a stock drained
-  on the beat's tick.
+  every tube a mortar team at the place serves, standing or packed (a tube
+  that fired its last round packs, and its gunner's empty stash would never
+  set it down again). A mission declares the stocks, sizes them and decides
+  when a place is low enough to ask its producer for a truck. The Cordon's
+  stock is a redoubt's gun towers, the picket nests nearest it and its yard
+  mortar team, and it asks when any gun is dry or the pool is under 30% (`cordon-allied-command.md`, The
+  producer).
 - The heart's B5 is the second: a truck's arrival adds rounds to the
   walking barrage (`WalkingBarrage`), through the same hook.
 
@@ -138,8 +145,16 @@ that sets one down at the depot's cell and sends it on; it refuses a request
 with none in stock, the gate shut or the depot unable to send, and counts what
 is on the road where until it arrives or is lost. `AlliedMakers` has the shared
 makers (an armour pair or more, a Hound lance, an ammunition truck as a
-`SupplyDelivery`); a mission with its own way of setting a tool down (a lane's
-ground, a shed's berths and tug) supplies its own maker.
+`SupplyDelivery`, optionally telling the mission of each delivery so it can
+escort and follow the truck); a mission with its own way of setting a tool
+down (a lane's ground, a shed's berths and tug) supplies its own maker.
+
+The Cordon's producer is built: `CordonLineCommand` holds an `AlliedToolShed`
+over `CordonLogistics` as its depot, stocked from the density's table
+(`CordonAlliedTable.Reserve`) with an armour pair or a Hound lance (its own
+makers, which hand the machines straight to the sector that asked) and
+ammunition trucks (`AlliedMakers.ammunition`). The shed's line of machines on
+its pace is unchanged beside it.
 
 Proposed: one mission-neutral **producer** (working name `AlliedToolShed`)
 that takes a mission's table and a base found on the layout, and schedules

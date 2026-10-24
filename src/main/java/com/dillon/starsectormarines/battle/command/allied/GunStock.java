@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.command.allied;
 
-import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,7 +14,8 @@ import java.util.function.BooleanSupplier;
  * nests, a base's turrets, any gun that fires on a cooldown, plus the field mortar tubes standing there. Each shot
  * spends a round from the gun's stock; a gun with none left fires rationed, waiting {@link #RATION} times its own
  * cooldown between shots, as a crew scraping the last belts together does. An ammunition truck's arrival refills the
- * lot ({@link #recipient}). A tube keeps its own count (`FieldMortarService`) and is refilled to its capacity.
+ * lot ({@link #recipient}). A mortar team's tubes keep their own count (`FieldMortarService`), standing or packed, and
+ * are refilled to their capacity.
  *
  * <p>Mission-neutral: what a place is, how many rounds a gun holds and when a truck is asked for are the mission's.
  */
@@ -27,7 +28,7 @@ public final class GunStock {
     private final int roundsPerGun;
     private final Map<Long, int[]> rounds = new LinkedHashMap<>();
     private final Map<Long, Float> lastTimer = new LinkedHashMap<>();
-    private final List<FieldMortarService.Tube> tubes = new ArrayList<>();
+    private final List<Integer> mortarSquads = new ArrayList<>();
     private int refills;
 
     /** @param roundsPerGun rounds a gun holds full ({@code cordon-allied-forces.md} and the like set it) */
@@ -44,15 +45,23 @@ public final class GunStock {
         return this;
     }
 
-    /** Adds a field mortar tube standing at this place; a truck refills it to its capacity. */
-    public GunStock addTube(FieldMortarService.Tube tube) {
-        if (!tubes.contains(tube)) tubes.add(tube);
+    /** Adds a mortar team holding this place; a truck refills its tubes, standing or packed, to their capacity. */
+    public GunStock addMortarSquad(int squad) {
+        if (!mortarSquads.contains(squad)) mortarSquads.add(squad);
         return this;
     }
 
-    /** Empties every gun (a scripted shortage, the Cordon's L2). */
+    /** Empties every gun (a scripted shortage). */
     public void drain() {
         for (int[] r : rounds.values()) r[0] = 0;
+    }
+
+    /** Empties these guns, where they are this place's (a scripted shortage in some of its guns, the Cordon's L2). */
+    public void drain(List<Long> guns) {
+        for (long gun : guns) {
+            int[] r = rounds.get(gun);
+            if (r != null) r[0] = 0;
+        }
     }
 
     /** Rounds the guns hold together now, over what they hold full; {@code 1} with no guns. */
@@ -61,6 +70,21 @@ public final class GunStock {
         long left = 0;
         for (int[] r : rounds.values()) left += r[0];
         return left / (float) ((long) roundsPerGun * rounds.size());
+    }
+
+    /**
+     * Rounds the guns and the mortar tubes hold together, over what they hold full: one pool, so a team's few tube
+     * rounds weigh as rounds, not as a share of their own. {@code 1} with nothing here.
+     */
+    public float pooledShare(BattleView sim) {
+        long left = 0, full = (long) roundsPerGun * rounds.size();
+        for (int[] r : rounds.values()) left += r[0];
+        for (int squad : mortarSquads) {
+            int[] t = sim.fieldMortars().squadRounds(squad, sim);
+            left += t[0];
+            full += t[1];
+        }
+        return full == 0 ? 1f : left / (float) full;
     }
 
     /** Guns with no rounds left. */
@@ -85,10 +109,10 @@ public final class GunStock {
     /** Trucks that have refilled this place. */
     public int refills() { return refills; }
 
-    /** Refills every gun and every live tube here. */
+    /** Refills every gun and every mortar team's tubes here. */
     public void refill(BattleSimulation sim) {
         for (int[] r : rounds.values()) r[0] = roundsPerGun;
-        if (sim != null) for (FieldMortarService.Tube t : tubes) sim.fieldMortars().rearm(t);
+        if (sim != null) for (int squad : mortarSquads) sim.fieldMortars().restockSquad(squad, sim);
         refills++;
     }
 

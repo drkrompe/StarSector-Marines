@@ -53,6 +53,8 @@ the same swarm pack, so the four pictures read side by side.
   their rounds on hand (`GunStock`). Every barrage shell is a round off its
   gun, and a dry gun fires one shell in four. A place under half its rounds
   calls a truck from the vehicle park, and the truck's arrival refills it.
+  B5's trucks come from the same shed (`HeartGuns.send`): every truck has one
+  producer.
 - **Mech lance** (`allies-mechs`): a pair of Hounds walks with a lane in the
   town and the city, where armour is roadbound. Exists in `HeartLanes`.
 
@@ -67,5 +69,4 @@ tools as one `AlliedToolShed`:
 
 ## Open
 
-What it costs to lose the base. B5's trucks still run on their own, not
-through the shed.
+What it costs to lose the base.

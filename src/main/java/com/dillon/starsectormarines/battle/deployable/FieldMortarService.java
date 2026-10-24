@@ -261,6 +261,57 @@ public final class FieldMortarService {
         return added;
     }
 
+    /**
+     * Refills every tube a squad serves, standing or packed, to its mount's capacity (an ammunition truck's delivery to
+     * the place the squad holds): a standing tube is rearmed, and a gunner's stash is emptied of its count, so the
+     * next set-down is full. Returns the tubes and stashes refilled.
+     */
+    public int restockSquad(int squadId, BattleView sim) {
+        int n = 0;
+        for (Tube tube : tubes()) {
+            if (tube.squadId != squadId) continue;
+            rearm(tube);
+            n++;
+        }
+        for (Long carrier : new ArrayList<>(stash.keySet())) {
+            if (!inSquad(carrier, squadId, sim) || byCarrier.containsKey(carrier)) continue;
+            stash.remove(carrier);
+            n++;
+        }
+        return n;
+    }
+
+    /**
+     * Rounds a squad's tubes hold, standing or packed, and what they hold full, {@code [rounds, full]}; {@code [0, 0]}
+     * for a squad that has not set a tube down yet, whose gunner still carries a full one.
+     */
+    public int[] squadRounds(int squadId, BattleView sim) {
+        int rounds = 0, full = 0;
+        for (Tube tube : tubes()) {
+            if (tube.squadId != squadId) continue;
+            rounds += tube.rounds;
+            full += tube.structure.mount.ammoCapacity;
+        }
+        StructureDef structure = null;
+        for (Map.Entry<Long, Integer> e : stash.entrySet()) {
+            if (!inSquad(e.getKey(), squadId, sim) || byCarrier.containsKey(e.getKey())) continue;
+            if (structure == null) structure = TurretCatalogRegistry.requireStructure(FIELD_MORTAR_STRUCTURE);
+            rounds += e.getValue();
+            full += structure.mount.ammoCapacity;
+        }
+        return new int[]{rounds, full};
+    }
+
+    /** The field mortar's emplacement, whose capacity a packed tube is counted against. */
+    static final String FIELD_MORTAR_STRUCTURE = "structure.deployable-field-mortar";
+
+    private static boolean inSquad(long carrier, int squadId, BattleView sim) {
+        long unit = sim.resolveUnit(carrier);
+        if (unit == 0L) return false;
+        Squad squad = sim.squadOf(unit);
+        return squad != null && squad.id == squadId;
+    }
+
     /** Asks the gunner to lift the tube now (the player's or a commander's pack order). */
     public void requestPack(long carrier) {
         Tube tube = byCarrier.get(carrier);

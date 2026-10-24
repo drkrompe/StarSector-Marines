@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.allied.AlliedRequest;
+import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
+import com.dillon.starsectormarines.battle.command.allied.GunStock;
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
@@ -8,6 +12,7 @@ import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
@@ -66,7 +71,8 @@ public final class CordonReviewAnnotations {
             CordonRedoubt r = cordon.redoubts().get(i);
             String gap = cordon.gap().contains(i) ? " · gap" : "";
             marks.box(r.left(), Math.min(r.top(), r.bottom()), r.right(), Math.max(r.top(), r.bottom()),
-                    "REDOUBT " + r.number() + " · " + stateWord(r.state()) + gap, redoubtStyle(r.state()));
+                    "REDOUBT " + r.number() + " · " + stateWord(r.state()) + gap + lineWords(sim, cordon, r),
+                    redoubtStyle(r.state()));
         }
         CordonLogistics base = cordon.logistics();
         if (base != null) {
@@ -79,7 +85,65 @@ public final class CordonReviewAnnotations {
                     bore.collapsed() ? name + " · down" : name, bore.collapsed() ? ReviewStyle.NOTE : ReviewStyle.KEEP);
         }
         addLandingField(marks, sim);
+        addAllies(marks, sim, cordon);
         if (beats != null) addCalls(marks, sim, beats);
+    }
+
+    /** Seconds a request the base granted stays named over the base. */
+    private static final int REQUEST_SHOWN_SECONDS = 20;
+
+    /** What the allied line command says of a redoubt: its guns' rounds when they are short, and Uncovered. */
+    private static String lineWords(BattleSimulation sim, CordonSequence cordon, CordonRedoubt r) {
+        CordonLineCommand line = cordon.line();
+        if (line == null || !r.manned()) return "";
+        StringBuilder out = new StringBuilder();
+        GunStock stock = line.stock(r);
+        float share = stock.pooledShare(sim);
+        if (stock.dry() > 0) out.append(" · ").append(stock.dry()).append(" guns dry, rationed");
+        else if (share < 0.999f) out.append(String.format(Locale.ROOT, " · rounds %.0f%%", 100f * share));
+        if (line.uncovered(r)) out.append(" · uncovered");
+        if (line.helpComing(r)) out.append(" · help coming");
+        return out.toString();
+    }
+
+    /**
+     * The allied line command's tools on the field: each ammunition truck on the road with where it is bound and
+     * whether a hull escorts it, each escort hull, and over the base every request it granted in the last
+     * {@link #REQUEST_SHOWN_SECONDS} seconds.
+     */
+    private static void addAllies(ReviewAnnotations.Builder marks, BattleSimulation sim, CordonSequence cordon) {
+        CordonLineCommand line = cordon.line();
+        if (line == null) return;
+        Map<Long, Long> escorts = cordon.armour() == null ? Map.of() : cordon.armour().roadEscorts();
+        for (Map.Entry<SupplyDelivery, CordonRedoubt> e : line.deliveries().entrySet()) {
+            int[] at = e.getKey().truckCell(sim);
+            if (at == null) continue;
+            CordonRedoubt to = e.getValue();
+            boolean escorted = escorts.containsValue(e.getKey().truck());
+            marks.box(at[0] - 2, at[1] - 2, at[0] + 2, at[1] + 2, "AMMO TRUCK to redoubt " + to.number()
+                    + (escorted ? " · escorted" : " · no escort"), ReviewStyle.ALLY);
+            marks.arrow(at[0], at[1], to.centreX(), to.centreY(), "", ReviewStyle.ALLY);
+        }
+        for (Map.Entry<Long, Long> e : escorts.entrySet()) {
+            if (!sim.convoy().isVehicle(e.getKey()) || sim.convoy().structure(e.getKey()) <= 0f) continue;
+            GroundBody body = sim.convoy().body(e.getKey());
+            marks.box((int) body.x - 2, (int) body.y - 2, (int) body.x + 2, (int) body.y + 2,
+                    "ESCORT " + sim.convoy().vehicleType(e.getKey()).name().toLowerCase(Locale.ROOT).replace('_', ' '),
+                    ReviewStyle.ALLY);
+        }
+        AlliedToolShed shed = line.shed();
+        CordonLogistics base = cordon.logistics();
+        if (shed == null || base == null) return;
+        int shown = 0;
+        int since = sim.getSimTickIndex() - Math.round(REQUEST_SHOWN_SECONDS / BattleSimulation.TICK_DT);
+        for (AlliedToolShed.Dispatch d : shed.granted()) {
+            if (d.tick() < since) continue;
+            AlliedRequest r = d.request();
+            marks.label(base.doorX(), base.doorY() - 6 - 3 * shown++, String.format(Locale.ROOT,
+                    "REQUEST %s to %s (%s): sent at %d:%02d", r.tool().name().toLowerCase(Locale.ROOT).replace('_', ' '),
+                    r.toPlace(), r.reason(), (int) (d.tick() * BattleSimulation.TICK_DT) / 60,
+                    (int) (d.tick() * BattleSimulation.TICK_DT) % 60), ReviewStyle.ALLY);
+        }
     }
 
     /** What the frame says of a redoubt's state. */
