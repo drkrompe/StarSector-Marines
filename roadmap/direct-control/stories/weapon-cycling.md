@@ -2,9 +2,9 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials; Marine right button with grenades); step 5 open
+Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials and the flamer; Marine right button with grenades); step 5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — Marine grenades on the right button (step 4); held-weapon art question open
+Updated: 2026-10-23 — the flamer joins the left button as a held stream (step 3); held-weapon art question open
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -85,6 +85,9 @@ chooses what the button fires without a key per weapon.
    the held pose from the existing aim and firing clips over walking feet;
    frames in `marine-left-special`. Open: whether the owner wants dedicated
    carry-and-walk art for the launcher and the rifle (see the art note below).
+   The flamer joined as a held stream (`FlameJet`, a fuel tank of cells on its
+   row); frames `flamer-walking` and `flamer-streaming` in `marine-left-special`
+   and `active-marine-flamer` in `direct-control-ui`.
 4. ~~Marine grenades~~ (shipped): the right button's list (smoke, a hand grenade,
    the shield) on E, and the grenade's committed manual throw; the flamer is a
    left-button weapon, not a throw. Frames in `marine-right-button`.
@@ -93,6 +96,10 @@ chooses what the button fires without a key per weapon.
    point-defence service.
 
 ## Art note (step 3)
+
+The flamer has no carried or firing art at all: its sprite slots name the frag
+grenade, and the Marine holds the primary's aim and firing clips while it is
+picked. A held flamer wand and a firing clip are part of the same art question.
 
 The held special reuses art that already exists: the launcher and anti-materiel
 rifle sprites and their `aiming` and `firing` clips in the `rocket` and
