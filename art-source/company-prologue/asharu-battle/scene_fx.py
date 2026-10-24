@@ -121,6 +121,8 @@ class SceneFx:
         a, b = self.local(target, from_world), self.local(target, aim_world)
         start = b + (a - b).normalized() * 60.0          # cast from just outside her, not from the shooter
         got = imp.ray_to_hull(self.scene, self.placed[target]['matrix'], tuple(start), tuple(b))
+        if got and Vector(got[0]).length > .75 * self.placed[target]['length']:
+            got = None       # it met something else: a boat on her deck, a ship alongside; not her hull
         if got:
             return Vector(got[0]), Vector(got[1])
         n = (a - b).normalized()
