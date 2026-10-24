@@ -1,6 +1,6 @@
 # The Heart — maps with intent
 
-Status: ACTIVE. Direction for the map work of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the hollow's rim is held and partly raised; the cordon's works, the beats' set pieces and the three densities are laid.
+Status: ACTIVE. Direction for the map work of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge (no ridge in a city, its line on the city's edge) and The Burn's brook valley are built, the hollow's rim is held and partly raised; the cordon's works, the beats' set pieces and the three densities are laid.
 
 Written: 2026-10-23
 
@@ -74,8 +74,12 @@ support and the barrage matter more where the ground hides the swarm.
 Built (`HeartCountry.Density`, chosen from the world's market size as the
 Cordon's is): a town world adds a second market town across the approach and
 grows the settlement bigger; a city grows the settlement as a city and lays
-suburbs across the middle of the approach. Works yield to what is built, so
-the forward line runs in pieces between a city's streets. Each density has its
+suburbs across the middle of the approach. A city has no cordon ridge, as an
+urban Cordon has none (`cordon-nouns.md`): the colony's blocks run from the
+farmland's far edge across the whole band, so no stretch of a ridge stood on any
+pooled city map. Its forward line is dug a few rows short of the first built-up
+row instead, along the farmland's far edge, broken at the lanes as everywhere,
+and the lost column's holdout stands in the streets past it. Each density has its
 own pool, three seeds per biome like the open-country one (`story-map-pools.md`,
 Density), and a campaign heart takes its pool from the world's market size.
 
