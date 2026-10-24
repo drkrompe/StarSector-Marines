@@ -1572,6 +1572,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
+        navigation.setOccupancyContributor(vehicleRepulsion::occupyStandingHulls);
         this.hullContact = new HullContactSystem(rosterService, grid);
         this.mechRam = new MechRamSystem(rosterService, unitIndex);
         this.squadTraffic = new SquadTrafficSystem(grid, rosterService);
@@ -4106,6 +4107,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } else {
             if (waitsAtFireEdge(u)) return;
             movement().advanceAlongPath(world, u, TICK_DT);
+            // A route the mover has been walking for seconds without getting anywhere is dropped,
+            // so its order plans a fresh one from where it stands; see MovementService.stalledOnRoute.
+            if (!movement().settled(u) && movement().stalledOnRoute(u)) navigation.clearPath(u);
         }
     }
 
