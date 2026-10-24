@@ -69,6 +69,13 @@ public final class DamageResolver {
      * {@link #resolve(DamageEvent)} (and any caller routed through it,
      * including external-strafing damage rerouted from the flyby overlay).
      */
+    /**
+     * Penetration that armour does not stop at all: the whole hit goes to structure and the armour pool is
+     * untouched. Fire on a soft body ({@code FireHarm}) is the one source; only the roster-unit route below
+     * honours it, and a mech or hull is never handed it.
+     */
+    public static final float THROUGH_ARMOR = Float.POSITIVE_INFINITY;
+
     public static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
 
     private final NavigationGrid grid;
@@ -239,8 +246,9 @@ public final class DamageResolver {
                 applySectionLoss(targetId, mech, section);
             }
         } else {
-            DurabilityModel.resolveInto(postCoverDamage, penetration, mitigationSoak,
-                    armorBefore, armorRating, hpBefore, durability);
+            boolean through = penetration == THROUGH_ARMOR;
+            DurabilityModel.resolveInto(postCoverDamage, through ? 0f : penetration, mitigationSoak,
+                    through ? 0f : armorBefore, armorRating, hpBefore, durability);
             // The pool is spent by exactly what the model said it absorbed, which is
             // the step that lets massed fire beat a screen rather than wait it out.
             // It may break here; that is the interesting way for a screen to end.
