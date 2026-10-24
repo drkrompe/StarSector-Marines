@@ -108,10 +108,20 @@ up against the workings still break most of it. A rim that reads as a hollow
 needs those routed round it, or the workings placed clear of the town.
 Generation now offers that: a sealed rim (`elevation-nouns.md`, Sealed ground)
 is gone round by the welds, routes and tracks and crossed only at its passes.
-The heart's own open sites (the reservoir yard) still break it where they are
-resolved onto the rim.
+The heart seals its rim, and the reservoir yard keeps off it. Measured, the
+rim now raises about 120 to 130 of its 168 cells on Broad Front's rural and
+town maps (up to about 140 can stand once segment ends are trimmed) and 64 to
+112 of 144 on The Burn's; on a city, where it stood nowhere, 112 to 131 and 25
+to 67. What still breaks it: The Burn's brook, a natural pass, and two runs
+split by a short break, which the run-gap rule drops to one.
 
-The knoll under Broad Front's town is not built. Held ground keeps places off
+**Built: Broad Front's town stands on its knoll** on rural and town maps: the
+top 64 by 48 cells round the town's seed (80 by 56 on a town world), gates
+toward the start and either side, and it stood on every pooled map. A city has
+none, a city's height being its buildings. The lost column's holdout keeps off
+the knoll's ring, so it stands on the top's edge rather than over the cliff.
+
+How it was reached: held ground keeps places off
 it; a knoll wants the place on top of it, growing on the plateau with only the
 faces and ramps kept clear, which is a different reservation. A terrace over
 the town's claimed box (the Cordon's redoubt terraces, `elevation-nouns.md`,

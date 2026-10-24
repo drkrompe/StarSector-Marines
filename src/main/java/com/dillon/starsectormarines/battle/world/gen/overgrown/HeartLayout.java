@@ -284,7 +284,8 @@ public final class HeartLayout {
         if (workings == null) return List.of();
         int[] back = frontward(form);
         int[] want = {workings.seedX() - back[0] * YARD_TOWARD_START, workings.seedY() - back[1] * YARD_TOWARD_START};
-        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y);
+        // Off the hollow's rim, which is crossed only at its passes.
+        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y);
         int[] at = StructureFit.nearest(open, around(ground, want, YARD_SEARCH), YARD_SIDE, YARD_SIDE,
                 want[0] - YARD_SIDE / 2, want[1] - YARD_SIDE / 2, 2);
         if (at == null) return List.of();
@@ -308,7 +309,9 @@ public final class HeartLayout {
         int s = HOLDOUT_SIDE;
         boolean city = density == Density.CITY;
         int pastLine = city ? cityLineDepth(ground, form) + LINE_DEPTH + 2 : Integer.MIN_VALUE;
-        int[] at = StructureFit.nearest((x, y) -> ground.buildable(x, y) && (form.advancesAlongY() ? y : x) >= pastLine,
+        // Off held ground: on Broad Front the town stands on its knoll, and the ring round the top is the cliff.
+        int[] at = StructureFit.nearest((x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y)
+                        && (form.advancesAlongY() ? y : x) >= pastLine,
                 around(ground, want, city ? CITY_HOLDOUT_SEARCH : HOLDOUT_SEARCH), s, s,
                 want[0] - s / 2, want[1] - s / 2, 1);
         if (at == null) return List.of();
