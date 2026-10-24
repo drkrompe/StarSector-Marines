@@ -1235,6 +1235,8 @@
     "gearInternalAcceleratedLoader": "Accelerated missile loader",
     "gearReplenisherNone": "No missile loader",
     "gearSocketAuxiliary": "AUXILIARY",
+    "gearSocketAuxiliaryLeft": "L. AUXILIARY",
+    "gearSocketAuxiliaryRight": "R. AUXILIARY",
     "gearSocketTypeAuxiliary": "AUXILIARY",
     "gearReplenisherStandard": "Standard missile replenisher",
     "gearSeconds": "{0} s",

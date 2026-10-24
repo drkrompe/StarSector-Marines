@@ -30,13 +30,18 @@ public final class MechFittingLayout {
         LEFT_SHOULDER("@gearSocketLShoulder"),
         RIGHT_SHOULDER("@gearSocketRShoulder"),
         /** The shared auxiliary compartment: capacitor banks, vent arrays and loaders. */
-        AUXILIARY("@gearSocketAuxiliary");
+        AUXILIARY("@gearSocketAuxiliary"),
+        /** A second compartment bay that pools with {@link #AUXILIARY} (the Bulwark's right flank). */
+        AUXILIARY_2("@gearSocketAuxiliaryRight");
 
         private final String label;
 
         SocketId(String label) { this.label = label; }
 
         public String label() { return Strings.resolve(label); }
+
+        /** Whether this is a bay of the auxiliary compartment. */
+        public boolean compartment() { return this == AUXILIARY || this == AUXILIARY_2; }
     }
 
     public enum SocketType {
@@ -151,7 +156,7 @@ public final class MechFittingLayout {
     public boolean occupied(SocketId id) {
         if (!byId.containsKey(id)) return false;
         return switch (id) {
-            case CORE, AUXILIARY -> true;
+            case CORE, AUXILIARY, AUXILIARY_2 -> true;
             case ARMS -> variant.arms != null;
             case LEFT_ARM -> variant.leftArm != null;
             case RIGHT_ARM -> variant.rightArm != null;
@@ -173,8 +178,10 @@ public final class MechFittingLayout {
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false),
-socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 3,
-                        0f, -0.58f, 0f, 0.72f, 1.70f, 0.68f, false))));
+                socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
+                        -0.30f, -0.58f, -0.42f, 0.72f, 0.85f, 0.68f, false),
+                socket(SocketId.AUXILIARY_2, SocketType.AUXILIARY, 2, 2,
+                        0.30f, -0.58f, 0.42f, 0.72f, 0.85f, 0.68f, false))));
         layouts.put(MechVariant.HOUND, layout(MechVariant.HOUND, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
@@ -184,7 +191,7 @@ socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 3,
                         -0.62f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.62f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
+                socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
                         0f, -0.54f, 0f, 0.68f, 1.64f, 0.68f, false))));
         layouts.put(MechVariant.WARDEN, layout(MechVariant.WARDEN, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
@@ -195,7 +202,7 @@ socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 2,
+                socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 3,
                         0f, -0.55f, 0f, 0.68f, 1.64f, 0.68f, false))));
         return Map.copyOf(layouts);
     }

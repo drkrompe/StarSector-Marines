@@ -272,7 +272,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
-                    null, socket.id() == SocketId.AUXILIARY ? List.of() : null, assets.get(),
+                    null, socket.id().compartment() ? List.of() : null, assets.get(),
                     false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
@@ -514,7 +514,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDropTarget target : targets) {
             if (core == null || target == core) continue;
             SocketDef socket = layout.socket(target.id());
-            boolean selected = socket.id() == selectedSocket;
+            boolean selected = selects(socket.id(), selectedSocket);
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean compatible = active != null && isSocketCompatible(socket, active);
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
@@ -538,18 +538,18 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
-            boolean selected = socket.id() == selectedSocket;
+            boolean selected = selects(socket.id(), selectedSocket);
             MechWeaponComponent component = weaponAt(deployment, socket.id());
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
             boolean rejected = draggingHere && !dragPreview.valid();
             boolean compatible = draggingHere ? dragPreview.valid()
                     : active != null && isSocketCompatible(socket, active);
-            boolean compartment = socket.id() == SocketId.AUXILIARY;
+            boolean compartment = socket.id().compartment();
             MechSocketConsole.draw(c, target, socket, component,
                     draggingHere ? active : null,
                     compartment ? null : installedInternals.apply(socket.id()),
-                    compartment ? packed(socket) : null, assets.get(), selected,
+                    compartment ? packed(layout) : null, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }
@@ -559,9 +559,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
             if (socket.factoryLocked() || dragPreview != null) continue;
-            if (socket.id() == SocketId.AUXILIARY) {
+            if (socket.id().compartment()) {
                 // Each part in the compartment comes out on its own, from an X on its corner.
-                for (MechCompartment.Placement part : packed(socket)) {
+                for (MechCompartment.Placement part : MechCompartment.in(packed(layout), socket.id())) {
                     float[] box = MechSocketConsole.partBox(target, socket, part);
                     partBoxes.putIfAbsent(part.part(), box);
                     strips.add(new StripTarget(socket.id(), part.part(), box[2] - STRIP_SIZE - 2f, box[1] + 2f));
@@ -588,10 +588,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /** An X on the doll: a socket's, or one compartment part's. */
     private record StripTarget(SocketId id, MechInternal part, float left, float top) { }
 
-    /** The selected machine's compartment at its packed places; empty if it somehow does not pack. */
-    private List<MechCompartment.Placement> packed(SocketDef compartment) {
-        List<MechCompartment.Placement> placed = MechCompartment.pack(compartment, installedCompartment.get());
+    /** The selected machine's compartment at its packed places, every bay; empty if it somehow does not pack. */
+    private List<MechCompartment.Placement> packed(MechFittingLayout layout) {
+        List<SocketDef> grids = new ArrayList<>();
+        for (SocketId id : MechCompartment.GRIDS) if (layout.hasSocket(id)) grids.add(layout.socket(id));
+        List<MechCompartment.Placement> placed = MechCompartment.pack(grids, installedCompartment.get());
         return placed != null ? placed : List.of();
+    }
+
+    /** Whether a card is the selected one: either compartment bay lights for the compartment. */
+    private static boolean selects(SocketId card, SocketId selected) {
+        return card == selected || card.compartment() && selected != null && selected.compartment();
     }
 
     static void drawCornerBrackets(CanvasContext c, float left, float top, float width, float height,
@@ -654,6 +661,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case "L. SHOULDER" -> "L. SHLDR";
             case "R. SHOULDER" -> "R. SHLDR";
             case "AUXILIARY" -> "AUX";
+            case "L. AUXILIARY" -> "L. AUX";
+            case "R. AUXILIARY" -> "R. AUX";
             default -> label;
         };
         return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
@@ -667,7 +676,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case RIGHT_ARM -> "R. ARM";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
-            case AUXILIARY -> "AUX";
+            case AUXILIARY, AUXILIARY_2 -> "AUX";
         };
         return name + " [" + cols + "×" + rows + "]";
     }
@@ -684,7 +693,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        if (socket == SocketId.CORE || socket == SocketId.AUXILIARY) return true;
+        if (socket == SocketId.CORE || socket.compartment()) return true;
         return weaponAt(deployment, socket) != null;
     }
 
@@ -717,7 +726,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /**
      * Lays the sockets out as the machine is built: the engine core in the middle of the panel,
      * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
-     * ahead-right), a shoulder either side, and the auxiliary compartment behind it. Every card
+     * ahead-right), a shoulder either side, and the auxiliary compartment behind it (two flank bays
+     * side by side where the chassis has them). Every card
      * keeps its fixed brick size; the rows are centred in the panel.
      */
     static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
@@ -730,7 +740,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
         float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
                 Math.max(cardHeight(leftArm), cardHeight(rightArm)));
-        float backH = cardHeight(byId.get(SocketId.AUXILIARY));
+        SocketDef bay = byId.get(SocketId.AUXILIARY);
+        SocketDef secondBay = byId.get(SocketId.AUXILIARY_2);
+        float backH = Math.max(cardHeight(bay), cardHeight(secondBay));
         float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
         float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
         float centerX = panelWidth * 0.5f;
@@ -747,7 +759,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);
         place(targets, right, centerX + coreW * 0.5f + SCHEMATIC_GAP_X + cardWidth(right) * 0.5f, coreY);
         float backY = coreY + coreH * 0.5f + SCHEMATIC_GAP_Y + backH * 0.5f;
-        place(targets, byId.get(SocketId.AUXILIARY), centerX, backY);
+        if (secondBay == null) {
+            place(targets, bay, centerX, backY);
+        } else {
+            place(targets, bay, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(bay) * 0.5f, backY);
+            place(targets, secondBay, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(secondBay) * 0.5f, backY);
+        }
         return List.copyOf(targets);
     }
 
