@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -154,7 +155,9 @@ public final class CoverPropDamage {
         // Sustained small-arms fire lands many hits on a prop that already shows its damage.
         if (props.get(entry.index).definitionId() != null
                 && props.get(entry.index).definitionId().equals(shown.id)) return;
-        props.set(entry.index, new Doodad(original.cellX, original.cellY, broken ? entry.destroyed : entry.damaged,
-                original.quarterTurns, original.mirrored));
+        TileRegistry registry = TileRegistry.installed();
+        Doodad state = new Doodad(original.cellX, original.cellY, shown, original.quarterTurns, original.mirrored);
+        // A damage state keeps the style the piece was dressed in, where that style draws one.
+        props.set(entry.index, FortWorks.dress(state, shown.id, original.look(), registry));
     }
 }

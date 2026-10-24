@@ -1,0 +1,699 @@
+{
+  "alphaMin": 16,
+  "blocks": [{
+    "doorBlock": "installation.dark-concrete-door",
+    "id": "installation.dark-concrete-wall@brutalist",
+    "layout": "wall-faces-4x4",
+    "rubbleBlock": "installation.dark-concrete-rubble",
+    "windowBlock": "installation.dark-concrete-window"
+  }],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s@brutalist",
+      "included": true,
+      "note": "Parapet collar piece s, brutalist look.",
+      "rect": [
+        393,
+        38,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n@brutalist",
+      "included": true,
+      "note": "Parapet collar piece n, brutalist look.",
+      "rect": [
+        393,
+        797,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e@brutalist",
+      "included": true,
+      "note": "Parapet collar piece e, brutalist look.",
+      "rect": [
+        16,
+        418,
+        188,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w@brutalist",
+      "included": true,
+      "note": "Parapet collar piece w, brutalist look.",
+      "rect": [
+        770,
+        418,
+        188,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-se@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-se, brutalist look.",
+      "rect": [
+        16,
+        38,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-sw@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, brutalist look.",
+      "rect": [
+        770,
+        38,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-ne@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, brutalist look.",
+      "rect": [
+        16,
+        797,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw@brutalist",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, brutalist look.",
+      "rect": [
+        770,
+        797,
+        188,
+        190
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-n@brutalist",
+      "included": true,
+      "note": "Barricade piece n, brutalist look.",
+      "rect": [
+        1170,
+        32,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-n@brutalist",
+      "included": true,
+      "note": "Barricade piece n, brutalist look.",
+      "rect": [
+        1170,
+        32,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-s@brutalist",
+      "included": true,
+      "note": "Barricade piece s, brutalist look.",
+      "rect": [
+        1170,
+        383,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-s@brutalist",
+      "included": true,
+      "note": "Barricade piece s, brutalist look.",
+      "rect": [
+        1170,
+        383,
+        176,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-w@brutalist",
+      "included": true,
+      "note": "Barricade piece w, brutalist look.",
+      "rect": [
+        993,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-w@brutalist",
+      "included": true,
+      "note": "Barricade piece w, brutalist look.",
+      "rect": [
+        993,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-e@brutalist",
+      "included": true,
+      "note": "Barricade piece e, brutalist look.",
+      "rect": [
+        1346,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-e@brutalist",
+      "included": true,
+      "note": "Barricade piece e, brutalist look.",
+      "rect": [
+        1346,
+        207,
+        177,
+        176
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-nw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-nw, brutalist look.",
+      "rect": [
+        993,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-nw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-nw, brutalist look.",
+      "rect": [
+        993,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-ne@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-ne, brutalist look.",
+      "rect": [
+        1346,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-ne@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-ne, brutalist look.",
+      "rect": [
+        1346,
+        32,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-sw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-sw, brutalist look.",
+      "rect": [
+        993,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-sw@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-sw, brutalist look.",
+      "rect": [
+        993,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-se@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-se, brutalist look.",
+      "rect": [
+        1346,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-se@brutalist",
+      "included": true,
+      "note": "Barricade piece corner-se, brutalist look.",
+      "rect": [
+        1346,
+        383,
+        177,
+        175
+      ]
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-0",
+      "included": true,
+      "rect": [
+        1019,
+        645,
+        77,
+        79
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-1",
+      "included": true,
+      "rect": [
+        1114,
+        645,
+        77,
+        79
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-2",
+      "included": true,
+      "rect": [
+        1210,
+        645,
+        77,
+        79
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-3",
+      "included": true,
+      "rect": [
+        1306,
+        645,
+        76,
+        79
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-4",
+      "included": true,
+      "rect": [
+        1019,
+        741,
+        77,
+        78
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-5",
+      "included": true,
+      "rect": [
+        1114,
+        741,
+        77,
+        78
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-6",
+      "included": true,
+      "rect": [
+        1210,
+        741,
+        77,
+        78
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-7",
+      "included": true,
+      "rect": [
+        1306,
+        741,
+        76,
+        78
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-8",
+      "included": true,
+      "rect": [
+        1019,
+        837,
+        77,
+        77
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-9",
+      "included": true,
+      "rect": [
+        1114,
+        837,
+        77,
+        77
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-10",
+      "included": true,
+      "rect": [
+        1210,
+        837,
+        77,
+        77
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-11",
+      "included": true,
+      "rect": [
+        1306,
+        837,
+        76,
+        77
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-12",
+      "included": true,
+      "rect": [
+        1019,
+        932,
+        77,
+        77
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-13",
+      "included": true,
+      "rect": [
+        1114,
+        932,
+        77,
+        77
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-14",
+      "included": true,
+      "rect": [
+        1210,
+        932,
+        77,
+        77
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.dark-concrete-wall@brutalist",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@brutalist.faces-15",
+      "included": true,
+      "rect": [
+        1306,
+        932,
+        76,
+        77
+      ],
+      "slot": "faces-15"
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the brutalist emplacement style, look 'brutalist': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/brutalist.prompt.txt, raw retained unmodified. Cuts are measured from the raw (make_doc.py). Every id is a look <base id>@brutalist of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/brutalist.raw.png",
+  "sheetName": "fortworks-brutalist"
+}
