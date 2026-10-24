@@ -59,8 +59,8 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
  *
  * <p>The frame is built to be the paged run's hard case: overlapping quads from ten sheets in turn, so painter
  * order decides every overlap and a run of eight pages has to close and open again; quads turned, mirrored, tinted
- * and faded; additive quads among the normal ones, which share the run premultiplied; and an additive sprite and a
- * solid fill in the middle. Colour is compared within {@link #COLOUR_TOLERANCE}, the premultiplied rounding, and
+ * and faded; additive quads among the normal ones, which share the run premultiplied; whole sprites of either blend,
+ * turned and tinted, which join the run as quads of their own texture; and a solid fill in the middle. Colour is compared within {@link #COLOUR_TOLERANCE}, the premultiplied rounding, and
  * alpha is reported rather than compared. Every pixel of the paged frame is compared with the fixed-function one.
  *
  * <p>It carries the {@link UnitAtlasGlEvidence} controls against measuring nothing: the frame has to be painted,
@@ -129,7 +129,8 @@ class PagedQuadRunGlEvidence {
                         + displaced.differingPixels() + " against the frame moved one column");
                 assertEquals(perSheet.sheetQuads(), pagedCensus.sheetQuads(), "the same quads either way");
                 assertTrue(pagedCensus.drawCalls() < perSheet.drawCalls() / 4,
-                        "a paged run closes only for the additive sprite and a full page table");
+                        "a paged run closes only for a full page table");
+                assertEquals(perSheet.sprites(), pagedCensus.sprites(), "and the same whole sprites");
                 assertTrue(same.painted() > 20_000, "the frame has to have art in it; painted " + same.painted());
                 assertTrue(displaced.differingPixels() > 20 * Math.max(1, same.differingPixels()),
                         "a metric that cannot tell a displaced frame from a matching one measures nothing");
@@ -164,6 +165,16 @@ class PagedQuadRunGlEvidence {
                 }
                 if (n == 55) {
                     out.addAdditiveSprite(RenderLayer.UNITS, sheets.get(s), cx, cy, w, h, 20f, 1f, 0.8f, 0.5f, 0.8f);
+                    continue;
+                }
+                if (n % 7 == 3) {
+                    // A whole sprite, normal or additive, turned and tinted among the sheet quads: a shot.
+                    if (n % 2 == 0) {
+                        out.addSprite(RenderLayer.UNITS, sheets.get(s), cx, cy, w, h, n * 17f, tint, 1f, tint, alpha);
+                    } else {
+                        out.addAdditiveSprite(RenderLayer.UNITS, sheets.get(s), cx, cy, w, h, n * 13f,
+                                1f, tint, 0.6f, alpha);
+                    }
                     continue;
                 }
                 if (n >= 20 && n % 3 == 0) {

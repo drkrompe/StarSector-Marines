@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.battle.combat.FireGroups;
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.PointAimDispersion;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
 import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
@@ -17,8 +19,13 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
+import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleFireGroups;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -105,8 +112,8 @@ public final class DirectControlFireMarks {
     private static Mark mech(BattleSimulation sim, long id, FireTrigger trigger, float aimX, float aimY) {
         MechLoadoutComponent loadout = sim.world().mechLoadout(id);
         MechWeaponMount[] mounts = loadout.mounts();
-        int mask = trigger == FireTrigger.LEFT ? sim.directControl().mechPicks().leftMask(mounts)
-                : sim.directControl().mechPicks().rightMask(mounts);
+        int mask = trigger == FireTrigger.LEFT ? sim.directControl().triggerPicks().leftMask(MechFireGroups.mounts(mounts))
+                : sim.directControl().triggerPicks().rightMask(MechFireGroups.mounts(mounts));
         float x = sim.world().renderX(id);
         float y = sim.world().renderY(id);
         float distance = (float) Math.hypot(aimX - x, aimY - y);
@@ -133,17 +140,42 @@ public final class DirectControlFireMarks {
         return DirectControlAimLane.trace(sim.getGrid(), x, y, muzzle.x(), muzzle.y()).blocked();
     }
 
-    /** The turret is the left button; a vehicle has nothing on the right. */
+    /**
+     * The best mark among the hull's mounts each button's pick fires ({@link VehicleFireGroups}): the main turret
+     * on the left, and on a hull with a second gun, that gun on the right.
+     */
     private static Marks vehicle(BattleSimulation sim, long id, float aimX, float aimY) {
         var turret = sim.convoy().turret(id);
         var type = sim.convoy().vehicleType(id);
         var body = sim.convoy().body(id);
-        if (turret == null || type == null || body == null || type.turretStructure() == null
-                || turret.destroyed() || !sim.convoy().isArmed(id)) return Marks.NONE;
-        var mountDef = type.turretStructure().mount;
+        if (turret == null || type == null || body == null || type.turretStructure() == null) return Marks.NONE;
+        FireGroups.Mount[] mounts = VehicleFireGroups.mounts(type, turret);
+        TriggerPicks picks = sim.directControl().triggerPicks();
+        int left = picks.leftMask(mounts);
+        int right = picks.rightMask(mounts);
+        Mark leftMark = Mark.NONE, rightMark = Mark.NONE;
+        for (int index = 0; index < mounts.length; index++) {
+            if (!FireGroups.contains(left | right, index)) continue;
+            Mark mark;
+            if (index == VehicleFireGroups.MAIN) {
+                mark = turret(sim, body, turret, type.turretStructure().mount,
+                        GroundVehicleTurretSystem.mountPoint(type, body), aimX, aimY);
+            } else {
+                MountedGun gun = turret.secondaries.get(index - 1);
+                mark = turret(sim, body, gun.turret(), gun.mount().structure().mount,
+                        GroundVehicleTurretSystem.mountPoint(body, gun.mount().mountX(), gun.mount().mountY()),
+                        aimX, aimY);
+            }
+            if (FireGroups.contains(left, index)) leftMark = leftMark.best(mark);
+            if (FireGroups.contains(right, index)) rightMark = rightMark.best(mark);
+        }
+        return new Marks(leftMark, rightMark);
+    }
+
+    /** One turret's mark: grey when it is off the cursor's bearing, empty, blocked at the barrel or too close. */
+    private static Mark turret(BattleSimulation sim, GroundBody body, GroundTurret turret, TurretMountDef mountDef,
+                               TurretMountGeometry.Point ring, float aimX, float aimY) {
         WeaponDef weapon = mountDef.weapon;
-        if (!ManualPointFire.supportsPointFire(weapon)) return Marks.NONE;
-        TurretMountGeometry.Point ring = GroundVehicleTurretSystem.mountPoint(type, body);
         float distance = (float) Math.hypot(aimX - ring.x(), aimY - ring.y());
         boolean aligned = Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg,
                 TurretAim.bearingTo(ring.x(), ring.y(), aimX, aimY))) <= TurretAim.FIRE_ARC_DEG;
@@ -152,7 +184,7 @@ public final class DirectControlFireMarks {
         boolean blocked = DirectControlAimLane.trace(sim.getGrid(), body.x, body.y, muzzle.x(), muzzle.y()).blocked();
         boolean fires = aligned && !empty && !blocked && !ManualPointFire.tooClose(weapon, distance);
         float optimal = ManualPointFire.optimalRangeCells(weapon);
-        return new Marks(of(fires, distance, optimal, weapon.range), Mark.NONE);
+        return of(fires, distance, optimal, weapon.range);
     }
 
     /**

@@ -170,8 +170,11 @@ class UnitAtlasGlEvidence {
                             "a unit layer through the atlas binds once per interruption of "
                                     + "the run, not once per layer; got "
                                     + atlasCounts.textureBinds());
-                    assertTrue(atlasCounts.drawCalls() < spriteCounts.drawCalls(),
-                            "and takes fewer draws than the whole-sprite path did");
+                    // Whole sprites join the paged run too (law 27), so both paths can be one draw; what
+                    // the atlas still saves is the binds.
+                    assertTrue(atlasCounts.drawCalls() <= spriteCounts.drawCalls()
+                                    && atlasCounts.textureBinds() < spriteCounts.textureBinds(),
+                            "and takes no more draws and fewer binds than the whole-sprite path did");
                     // Bodies, not commands: the control frame also carries the
                     // one custom pass that builds the atlas, and the frame after
                     // it deliberately does not.

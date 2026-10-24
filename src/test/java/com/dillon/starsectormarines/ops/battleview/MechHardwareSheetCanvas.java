@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -52,11 +51,6 @@ public final class MechHardwareSheetCanvas implements CanvasProducer {
                     + internal.footprintRows, internal.footprintColumns, internal.footprintRows,
                     HardpointBricks.tone(internal.role),
                     (cc, x, y, w, h) -> HardwareArt.draw(cc, internal, x, y, w, h, 255)));
-        }
-        for (MissileReplenisherComponent loader : List.of(MissileReplenisherComponent.STANDARD,
-                MissileReplenisherComponent.ACCELERATED_FEED)) {
-            pieces.add(new Piece(loader.displayName(), "LOADER  2x1", 2, 1, HardpointBricks.UTILITY,
-                    (cc, x, y, w, h) -> HardwareArt.draw(cc, loader, x, y, w, h, 255)));
         }
         for (int i = 0; i < pieces.size(); i++) {
             Piece piece = pieces.get(i);
