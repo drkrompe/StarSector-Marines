@@ -207,9 +207,11 @@ public record ArmorSide(List<Unit> units) {
                         internal(variant, MechInternal.Role.CAPACITOR_BANK, value));
                 case "vents" -> fit = fit.withInternal(MechInternal.Role.VENT_ARRAY,
                         internal(variant, MechInternal.Role.VENT_ARRAY, value));
+                case "loader" -> fit = fit.withInternal(MechInternal.Role.LOADER,
+                        internal(variant, MechInternal.Role.LOADER, value));
                 case "role" -> role = role(value);
                 default -> throw new IllegalArgumentException("Unknown mech fit key '" + key
-                        + "'; known: arms, la, ra, ls, rs, engine, plating, capacitors, vents, role");
+                        + "'; known: arms, la, ra, ls, rs, engine, plating, capacitors, vents, loader, role");
             }
         }
         if (refit) fit = bestRefit(fit);
@@ -248,8 +250,8 @@ public record ArmorSide(List<Unit> units) {
 
     private static MechInternal internal(MechVariant variant, MechInternal.Role role, String value) {
         if (value.equals("none") || value.equals("-")) {
-            if (role != MechInternal.Role.VENT_ARRAY) {
-                throw new IllegalArgumentException("Only the vents socket may be left empty; use the factory part");
+            if (role != MechInternal.Role.VENT_ARRAY && role != MechInternal.Role.LOADER) {
+                throw new IllegalArgumentException("Only vents and the loader may be left out; use the factory part");
             }
             return null;
         }
@@ -324,6 +326,7 @@ public record ArmorSide(List<Unit> units) {
             case PLATING -> "plating";
             case CAPACITOR_BANK -> "capacitors";
             case VENT_ARRAY -> "vents";
+            case LOADER -> "loader";
         };
     }
 

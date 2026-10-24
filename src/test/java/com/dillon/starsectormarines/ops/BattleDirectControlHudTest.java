@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
@@ -97,7 +97,7 @@ class BattleDirectControlHudTest {
             @Override public void cycle(FireTrigger trigger) { asked.add("cycle " + trigger); }
             @Override public void pick(FireTrigger trigger, int member) { asked.add("pick " + trigger + " " + member); }
         };
-        try (Fixture fixture = fixture(Path.of("mod"), bulwark(MechTriggerPicks.LINKED), 0, false,
+        try (Fixture fixture = fixture(Path.of("mod"), bulwark(TriggerPicks.LINKED), 0, false,
                 actions, () -> {}, () -> {})) {
             assertEquals("WEAPON GROUPS", fixture.weapons.requireElement("direct-weapons-title").text());
             assertEquals(List.of("direct-hud-weapon-LEFT_ARM", "direct-hud-weapon-RIGHT_ARM"),
@@ -120,7 +120,7 @@ class BattleDirectControlHudTest {
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-RIGHT_SHOULDER");
             assertEquals(List.of("cycle LEFT", "pick RIGHT " + (MechMountSlot.RIGHT_SHOULDER.ordinal() + 1)), asked);
         }
-        var rightArm = new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechFireGroups.LINKED);
+        var rightArm = new TriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechFireGroups.LINKED);
         try (Fixture fixture = fixture(Path.of("mod"), bulwark(rightArm), 0, false, actions, () -> {}, () -> {})) {
             var picked = fixture.weapons.requireElement("direct-hud-weapon-RIGHT_ARM");
             var held = fixture.weapons.requireElement("direct-hud-weapon-LEFT_ARM");
@@ -155,8 +155,17 @@ class BattleDirectControlHudTest {
                         fixture.weapons.requireElement("direct-hud-ability-SHIELD-state").text());
                 assertEquals(new String[]{"READY", "THROW", "EMPTY", "READY"}[state],
                         fixture.weapons.requireElement("direct-hud-ability-SMOKE-state").text());
-                assertEquals(state == 2 ? "0 / 2" : "2 / 2",
-                        fixture.weapons.requireElement("direct-hud-ability-SMOKE-ammo").text());
+                assertEquals("", fixture.weapons.requireElement("direct-hud-ability-SMOKE-ammo").text(),
+                        "drawn throws need no count");
+                String smoke = new String[]{"live", "loading", "spent", "live"}[state];
+                for (int i = 0; i < 2; i++) {
+                    assertEquals("graphics/ui/direct-control/round-smoke-" + smoke + ".svg", fixture.weapons
+                            .requireElement("direct-hud-ability-SMOKE-round-" + i).imageSource());
+                }
+                assertEquals("graphics/ui/direct-control/round-shield-"
+                                + new String[]{"live", "live", "loading", "spent"}[state] + ".svg",
+                        fixture.weapons.requireElement("direct-hud-ability-SHIELD-round-0").imageSource(),
+                        "the shield is lit up or ready, dimmed recharging, an outline broken");
                 assertEquals(new String[]{"100%", "RUN", "REST", "REST"}[state],
                         fixture.status.requireElement("direct-status-stamina-value").text());
                 var stamina = fixture.status.requireElement("direct-status-stamina-fill");
@@ -206,7 +215,11 @@ class BattleDirectControlHudTest {
             assertEquals("[E]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
             assertEquals("", fixture.weapons.requireElement("direct-hud-ability-GRENADE-key").text(),
                     "a grenade has no hotkey of its own; E and the right button reach it");
-            assertEquals("2 / 3", fixture.weapons.requireElement("direct-hud-ability-GRENADE-ammo").text());
+            assertEquals("", fixture.weapons.requireElement("direct-hud-ability-GRENADE-ammo").text());
+            assertEquals(List.of("live", "live", "spent"), List.of(0, 1, 2).stream()
+                    .map(i -> fixture.weapons.requireElement("direct-hud-ability-GRENADE-round-" + i).imageSource())
+                    .map(src -> src.substring(src.lastIndexOf('-') + 1, src.length() - 4)).toList(),
+                    "two grenades left of three, the thrown one an outline");
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-ability-SHIELD");
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-group-rmb-header");
             assertEquals(List.of("RIGHT 1", "cycle RIGHT"), picks,
@@ -381,7 +394,7 @@ class BattleDirectControlHudTest {
     }
 
     /** A Bulwark with a chaingun on each arm and an SRM-5 on each shoulder, on {@code picks}. */
-    static Snapshot bulwark(MechTriggerPicks picks) {
+    static Snapshot bulwark(TriggerPicks picks) {
         MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
         mounts[MechMountSlot.LEFT_ARM.ordinal()] = new MechWeaponMount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN);
         mounts[MechMountSlot.RIGHT_ARM.ordinal()] = new MechWeaponMount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN);

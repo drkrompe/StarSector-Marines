@@ -14,10 +14,11 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  *   <li><b>Raise and lower.</b> The arc grows out from its facing as the shield rises and folds back into it as it
  *   lowers; folded away, nothing is drawn.</li>
  *   <li><b>Strain.</b> The capacitors' fill is the dome's flux level: the field brightens and whitens toward
- *   overload, and near it the arc stutters with the capacitors ({@link TurretFluxCapacitors}).</li>
+ *   overload, and near it the arc stutters with the hardware ({@link TurretFluxHeat}).</li>
  *   <li><b>Blocks.</b> Each round the shield stopped lights the rim where it came from.</li>
- *   <li><b>Break.</b> On overload the arc shatters, its cells flickering out in the shield's own pale colour, and
- *   for the rest of the overload a ghost rim re-forms across the arc as the capacitors vent.</li>
+ *   <li><b>Break.</b> On overload the arc breaks over {@link #SHATTER_SECONDS}: its cells flicker out as shards in
+ *   the shield's own pale colour, the arc narrows into its facing and a ring blows off it. After that nothing is
+ *   drawn until the overload is over and the shield is raised again.</li>
  * </ul>
  *
  * <p>Pure arithmetic, no GL.
@@ -26,7 +27,7 @@ final class TurretShieldField {
 
     /** How many times smaller than a dome's the shield's hex field is drawn. */
     static final float HEX_DENSITY = 4f;
-    /** How long the shatter flickers after a break, in seconds. */
+    /** How long a break plays, in seconds; after it a broken shield draws nothing. */
     static final float SHATTER_SECONDS = 0.8f;
     /**
      * How much stronger than a dome's the shield is drawn: the dome's faint fill is made for a bubble tens of cells
@@ -48,12 +49,14 @@ final class TurretShieldField {
 
     /**
      * Fills {@code draw} for {@code shield}, fitted to a gun at ({@code x}, {@code y}) in {@code tint}. False, with
-     * {@code draw} untouched, when there is nothing to draw: the shield folded away and no break still showing.
+     * {@code draw} untouched, when there is nothing to draw: the shield folded away, or broken and its break over.
      */
     static boolean describe(ShieldDomeDraw draw, long id, float x, float y, FluxShield shield, ShieldTint tint,
                             BattleCamera camera, float cellPx, long tick, float alpha) {
         boolean overloaded = shield.overloaded();
         if (!overloaded && shield.extent() <= 0f) return false;
+        float broken = overloaded ? shield.sinceBreak() / SHATTER_SECONDS : 0f;
+        if (broken >= 1f) return false;
         FluxShieldSpec spec = shield.spec();
         float radiusCells = spec.radiusCells();
         draw.sx = camera.cellToScreenX(x);
@@ -66,14 +69,18 @@ final class TurretShieldField {
         System.arraycopy(strain, 0, draw.collapse, 0, 3);
         draw.level = shield.fluxShare();
         draw.overloaded = overloaded;
-        draw.recovery = overloaded ? shield.overloadShare() : 0f;
+        // A broken shield shows nothing of its recovery: the raise brings it back.
+        draw.recovery = overloaded ? 1f : 0f;
         draw.dropFlash = shatter(shield.sinceBreak());
         // Near breaking the arc stutters with its capacitors, on the same beat as their flicker.
-        float stutter = TurretFluxCapacitors.strain(shield);
-        draw.alpha = alpha * PRESENCE * (1f - 0.4f * stutter * TurretFluxCapacitors.hash01(id, tick, 1));
+        float stutter = TurretFluxHeat.strain(shield);
+        draw.alpha = alpha * PRESENCE * (1f - 0.4f * stutter * TurretFluxHeat.hash01(id, tick, 1))
+                * (1f - broken * broken);
 
-        // The arc, in the dome's local frame: a broken shield keeps its full width so its break fills the arc it held.
-        float halfArc = overloaded ? 0.5f * spec.arcDegrees() : shield.halfArcDegrees();
+        // The arc, in the dome's local frame: a breaking shield starts from the full arc it held and narrows into
+        // its facing as it goes.
+        float halfArc = overloaded ? 0.5f * spec.arcDegrees() * (1f - 0.75f * broken * broken)
+                : shield.halfArcDegrees();
         float facing = (float) Math.toRadians(shield.facingDegrees());
         float dirX = camera.cellToScreenX(x + (float) Math.cos(facing)) - draw.sx;
         float dirY = camera.cellToScreenY(y + (float) Math.sin(facing)) - draw.sy;

@@ -1,4 +1,4 @@
-Status: IN PROGRESS — stages A to C landed (law 27); D open
+Status: IN PROGRESS — stages A to C and whole sprites landed (law 27); D open
 Written: 2026-10-24
 Updated: 2026-10-24 — normal and additive quads share a run, colour within three levels on `PagedQuadRunGlEvidence`
 
@@ -44,8 +44,8 @@ rounds colour times alpha once where the blend unit multiplied, and stacked
 translucent quads carry that rounding up.
 
 **It fails soft.** No program (compile or link refused, fewer than two units)
-leaves the drain on today's fixed-function path, unchanged. A control switch
-`battle.render.pagedBatch` holds it off for the A/B.
+leaves the drain on the fixed-function path, one run per sheet. The A/B switch
+that held it off was retired once stages A to C were read against it.
 
 ## Stages
 
@@ -69,6 +69,14 @@ leaves the drain on today's fixed-function path, unchanged. A control switch
   run made a quad's rounding depend on what shared its run, and
   `renderEvidence`'s culled-against-unculled check caught a one-level
   difference where culling had changed a run's company.
+- **Whole sprites in the run. Landed.** A `SPRITE`, and each image of a mesh
+  with no atlas, is a quad of its own texture on a page, so a shot no longer
+  closes the run. It matches `Sprite.renderAtCenter` as decompiled: the
+  sprite's `texX..texX + texWidth` by `texY..texY + texHeight` upright, turned
+  about its middle, colour sent as bytes with the alpha truncated from
+  `255 * alphaMult`. A sprite's own centre or offset is not followed; no caller
+  of the drain sets one. On the stress scene `SHOTS` went from 36 draws to 2 at
+  every framing, frames within one level of the control.
 - **D. Effects.** Per-quad parameters as vertex attributes: hit flash, dissolve,
   outline, faction mask recolour, lit units. Each is its own story once A to C
   have settled the stream.

@@ -2,12 +2,13 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
 import java.awt.Color;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -18,20 +19,20 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
 
     private final Supplier<SocketDef> socket;
     private final Supplier<MechWeaponComponent> weapon;
-    private final Supplier<MissileReplenisherComponent> replenisher;
+    private final Supplier<List<MechCompartment.Placement>> compartment;
     private final Supplier<MechInternal> internal;
     private final BooleanSupplier occupied;
     private final Supplier<LayeredMechAssets> assets;
 
     public MechEquipmentGridCanvas(Supplier<SocketDef> socket,
                                    Supplier<MechWeaponComponent> weapon,
-                                   Supplier<MissileReplenisherComponent> replenisher,
+                                   Supplier<List<MechCompartment.Placement>> compartment,
                                    Supplier<MechInternal> internal,
                                    BooleanSupplier occupied,
                                    Supplier<LayeredMechAssets> assets) {
         this.socket = socket;
         this.weapon = weapon;
-        this.replenisher = replenisher;
+        this.compartment = compartment;
         this.internal = internal;
         this.occupied = occupied;
         this.assets = assets;
@@ -39,10 +40,9 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     }
 
     public static MechEquipmentGridCanvas catalog(MechWeaponComponent weapon,
-                                                   MissileReplenisherComponent replenisher,
                                                    MechInternal internal,
                                                    Supplier<LayeredMechAssets> assets) {
-        return new MechEquipmentGridCanvas(() -> null, () -> weapon, () -> replenisher,
+        return new MechEquipmentGridCanvas(() -> null, () -> weapon, List::of,
                 () -> internal, () -> true, assets);
     }
 
@@ -56,7 +56,6 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
 
         SocketDef definition = socket.get();
         MechWeaponComponent component = weapon.get();
-        MissileReplenisherComponent subsystem = replenisher.get();
         MechInternal part = component == null ? internal.get() : null;
 
         int gridColumns = definition != null ? definition.gridColumns()
@@ -68,12 +67,25 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         HardpointBricks.Layout layout = HardpointBricks.fit(inset, inset,
                 width - inset * 2f, height - inset * 2f, gridColumns, gridRows, gap);
 
-        // A fitted weapon fills its socket; an internal or replenisher fills the socket it sits in.
+        // A fitted weapon fills its socket; an internal fills its own footprint.
         Color tone = component != null ? HardpointBricks.tone(component.hardpointType)
                 : part != null ? HardpointBricks.tone(part.role)
                 : definition != null ? HardpointBricks.tone(definition.type())
                 : HardpointBricks.UTILITY;
         if (definition != null) HardpointBricks.drawEmpty(context, layout, tone);
+        List<MechCompartment.Placement> packed = definition != null && component == null
+                ? compartment.get() : null;
+        if (packed != null && !packed.isEmpty()) {
+            // The compartment draws each part where the packing rule put it.
+            for (MechCompartment.Placement placed : packed) {
+                HardpointBricks.drawFilled(context, layout, placed.column(), placed.row(),
+                        placed.columns(), placed.rows(), HardpointBricks.tone(placed.part().role));
+                HardwareArt.draw(context, placed.part(), layout.brickX(placed.column()), layout.brickY(placed.row()),
+                        layout.span(placed.columns(), layout.brickWidth()),
+                        layout.span(placed.rows(), layout.brickHeight()), 255);
+            }
+            return;
+        }
         if (part != null) {
             // An internal fills its own footprint, which may be smaller than the socket.
             int columns = Math.min(layout.columns(), part.footprintColumns);
@@ -83,11 +95,11 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                     layout.span(columns, layout.brickWidth()), layout.span(rows, layout.brickHeight()), 255);
             return;
         }
-        boolean filled = component != null || subsystem != null || occupied.getAsBoolean();
+        boolean filled = component != null || occupied.getAsBoolean();
         if (filled) {
             HardpointBricks.drawFilled(context, layout, 0, 0, layout.columns(), layout.rows(), tone);
         }
-        drawEquipment(context, component, subsystem, layout);
+        drawEquipment(context, component, layout);
     }
 
     record GridMetrics(int columns, int rows, float cellWidth, float cellHeight) {}
@@ -108,7 +120,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     }
 
     private void drawEquipment(CanvasContext context, MechWeaponComponent component,
-                               MissileReplenisherComponent subsystem, HardpointBricks.Layout layout) {
+                               HardpointBricks.Layout layout) {
         float areaWidth = layout.width();
         float areaHeight = layout.height();
         if (component != null && HardwareArt.draw(context, component, layout.left(), layout.top(),
@@ -124,11 +136,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                         layout.centerX(), layout.centerY(),
                         sprite.pxWidth * scale, sprite.pxHeight * scale,
                         0f, new Color(1f, 1f, 1f, 0.95f));
-                return;
             }
-        }
-        if (subsystem != null) {
-            HardwareArt.draw(context, subsystem, layout.left(), layout.top(), areaWidth, areaHeight, 255);
         }
     }
 

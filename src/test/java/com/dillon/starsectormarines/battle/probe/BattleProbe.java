@@ -10,12 +10,14 @@ import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.HitLog;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
@@ -62,6 +64,8 @@ import java.util.Set;
  *   hitlog on|off|clear|status            record every resolved hit from now (an observer; changes nothing)
  *   entity ID                             everything readable about one body
  *   near ID R | near-cell X Y R           bodies within R cells, nearest first
+ *   sight ID R                            hostiles within R cells of a unit: line of sight, clear shot, threat
+ *                                         density, squad belief, and the target the unit's picker chooses now
  *   find [label=TEXT]                      bodies whose label (FACTION:TYPE) contains TEXT
  *   hits [target=ID] [attacker=ID] [label=TEXT] [targetLabel=TEXT] [attackerLabel=TEXT]
  *        [since=T] [until=T] [died=true] [limit=N]
@@ -108,6 +112,7 @@ public final class BattleProbe {
         commands.put("entity", a -> entity(a.longAt(0)));
         commands.put("near", this::near);
         commands.put("near-cell", this::nearCell);
+        commands.put("sight", this::sight);
         commands.put("find", this::find);
         commands.put("hits", this::hits);
         commands.put("hits-by", this::hitsBy);
@@ -419,6 +424,13 @@ public final class BattleProbe {
                 long target = world.targetId(id);
                 return target == 0 ? JSONObject.NULL : brief(target);
             });
+            put(out, "fire", () -> {
+                long threat = sim.combat().reflexTargetId(id);
+                return new JSONObject().put("gate", sim.combat().lastFireGate(id).name())
+                        .put("gateTick", sim.combat().lastFireGateTick(id))
+                        .put("threat", threat == 0 ? JSONObject.NULL : brief(threat))
+                        .put("registering", round(sim.combat().reflexTimer(id)));
+            });
             put(out, "velocity", () -> new JSONArray(List.of(round(sim.movement().velX(id)), round(sim.movement().velY(id)))));
             put(out, "waypointsLeft", () -> sim.movement().waypointCount(id) - sim.movement().nextWaypointIndex(id));
             if (sim.squad().hasSquad(id)) {
@@ -439,6 +451,33 @@ public final class BattleProbe {
     private JSONObject near(Args a) throws Exception {
         long id = a.longAt(0);
         return within(sim.world().x(id), sim.world().y(id), a.floatAt(1), id);
+    }
+
+    /** What one unit can see of the hostiles around it, and whom its target picker would choose now. */
+    private JSONObject sight(Args a) throws Exception {
+        long self = a.longAt(0);
+        float radius = a.floatAt(1);
+        World world = sim.world();
+        TacticalScoring scoring = sim.getTacticalScoring();
+        Faction faction = sim.identity().faction(self);
+        Squad squad = sim.squad().hasSquad(self) ? sim.getSquad(sim.squad().squadId(self)) : null;
+        List<JSONObject> rows = new ArrayList<>();
+        JSONArray around = within(world.x(self), world.y(self), radius, self).getJSONArray("bodies");
+        for (int i = 0; i < around.length(); i++) {
+            JSONObject body = around.getJSONObject(i);
+            long id = body.getLong("id");
+            if (!sim.identity().has(id) || !faction.hostileTo(sim.identity().faction(id))) continue;
+            body.put("los", TacticalScoring.canSeePair(sim.getGrid(), world.cellX(self), world.cellY(self),
+                    world.cellX(id), world.cellY(id), 0f, 0f));
+            body.put("clearShot", scoring.hasClearShot(self, id));
+            body.put("density", scoring.threatDensityAt(id, faction));
+            body.put("believed", squad != null && squad.believedContact(id) != null);
+            rows.add(body);
+        }
+        long pick = scoring.findBestTarget(self);
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("range", world.attackRange(self))
+                .put("vision", sim.vision().visionRange(self))
+                .put("pick", pick == 0L ? JSONObject.NULL : brief(pick)).put("hostiles", new JSONArray(rows));
     }
 
     private JSONObject nearCell(Args a) throws Exception {

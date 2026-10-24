@@ -58,6 +58,9 @@ matured creep, a mixed crowd of every body kind with a third of it dead, a few
 settle ticks for shots in flight, and a fire aged on its own field to The
 Burn's shape (crowns and walls hot enough to throw embers, burnt and smoking
 cells). It is a render-cost fixture only, with no balance meaning.
+`-PrenderMaps=stress` also profiles `400x240 stress at night`, the same scene
+on a dark night with no lamps, where the night shade covers the whole frame;
+`-PrenderMaps=stress at night` runs that one alone.
 
 ### Reading it
 
@@ -69,7 +72,7 @@ cells). It is a render-cost fixture only, with no balance meaning.
   (`-Dbattle.render.doodadAtlas=false`, `-Dbattle.render.creep=false`,
   `-Dbattle.render.cliffLook=false` with `-PrenderMaps=overlook`,
   `-Dbattle.render.settledBodyMesh=false`,
-  `-Dbattle.render.collectCulling=false`, `-Dbattle.render.pagedBatch=false`),
+  `-Dbattle.render.collectCulling=false`),
   never against a number in a document, and never against a delta under the
   run-to-run spread (about 0.06 ms per layer). Times are medians of nine frames
   after thirty warm-up frames; fewer warm-up frames measure the JIT.

@@ -952,6 +952,20 @@ tasks.register('patchLwjgl3Gl11', JavaExec) {
 def snapshotGl = providers.gradleProperty('snapshotGl').getOrElse(
         System.getProperty('os.name', '').toLowerCase(Locale.ROOT).contains('mac') ? 'lwjgl3' : 'lwjgl2')
 
+// `shaderEvidence` on the same binding, so an evidence that makes its context through `GlSurface` reads the Mac's
+// own driver: the field evidence asks what precision a driver really stores (`NightShadeFieldGlEvidence`). Only the
+// evidences that make their context through `GlSurface` are handed to JUnit, since discovery loads every class it
+// is given and the rest are written against LWJGL 2, which is not on this classpath.
+tasks.named('shaderEvidence') {
+    if (snapshotGl == 'lwjgl3') {
+        include '**/NightShadeFieldGlEvidence*' 
+        dependsOn tasks.named('patchLwjgl3Gl11'), tasks.named('gl3Classes')
+        classpath = files(patchedLwjgl3Dir) + sourceSets.gl3.output + configurations.lwjgl3 +
+                sourceSets.test.runtimeClasspath.filter { it.name != 'lwjgl.jar' }
+        systemProperty 'snapshot.gl.context', 'com.dillon.starsectormarines.testsupport.gl3.Lwjgl3Surface'
+    }
+}
+
 tasks.register('createSnapshots', JavaExec) {
     group = 'verification'
     description = 'Create deterministic visual snapshots without launching Starsector'

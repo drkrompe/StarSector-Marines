@@ -14,14 +14,15 @@ import java.util.Locale;
  * cartridges for cells ({@link #burst}): one round a shot of the burst, spent as the click's burst
  * goes out, and chambered again over the cycle.
  *
- * <p>A flamer's tank is drawn with the same cells ({@link #fuel}): one cell a charge of fuel, lit while it
- * is in the tank and dark once the held jet has spent it.
+ * <p>A flamer's tank is drawn with the same gauge ({@link #fuel}) in fuel canisters for cells: one a charge
+ * of fuel, lit while it is in the tank and dark once the held jet has spent it.
  *
  * @param charge cells' worth of charge, from 0 to {@code cells}
  * @param held whether flux holds the next shot
  * @param rounds whether the cells are drawn as cartridges rather than charge cells
+ * @param fuel whether the cells are drawn as fuel canisters
  */
-public record ChargeGauge(int cells, float charge, boolean held, boolean rounds) implements AmmoStrip {
+public record ChargeGauge(int cells, float charge, boolean held, boolean rounds, boolean fuel) implements AmmoStrip {
 
     public static final int SINGLE_SHOT_CELLS = 5;
     private static final int MAX_CELLS = 10;
@@ -32,6 +33,10 @@ public record ChargeGauge(int cells, float charge, boolean held, boolean rounds)
     public ChargeGauge {
         cells = Math.max(1, cells);
         charge = Math.max(0f, Math.min(cells, charge));
+    }
+
+    public ChargeGauge(int cells, float charge, boolean held, boolean rounds) {
+        this(cells, charge, held, rounds, false);
     }
 
     /**
@@ -60,7 +65,7 @@ public record ChargeGauge(int cells, float charge, boolean held, boolean rounds)
     public static ChargeGauge fuel(int capacity, int left) {
         int cells = Math.max(1, Math.min(MAX_CELLS, capacity));
         float charge = capacity <= 0 ? 0f : (float) Math.max(0, left) * cells / capacity;
-        return new ChargeGauge(cells, charge, false, false);
+        return new ChargeGauge(cells, charge, false, false, true);
     }
 
     public Cell cell(int index) {
@@ -71,7 +76,7 @@ public record ChargeGauge(int cells, float charge, boolean held, boolean rounds)
 
     @Override public int icons() { return cells; }
 
-    @Override public String iconKind() { return rounds ? "rifle" : "cell"; }
+    @Override public String iconKind() { return rounds ? "rifle" : fuel ? "fuel" : "cell"; }
 
     @Override public String iconState(int index) {
         Cell cell = cell(index);

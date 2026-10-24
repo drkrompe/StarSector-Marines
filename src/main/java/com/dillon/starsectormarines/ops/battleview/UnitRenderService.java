@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -38,6 +39,9 @@ import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureLook;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
+import com.dillon.starsectormarines.battle.turret.FluxShield;
+import com.dillon.starsectormarines.battle.turret.ShieldTint;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -413,9 +417,10 @@ public final class UnitRenderService implements RenderSystem {
                 // Painted base: the whole footprint, upright, in place of the flat pad.
                 float w = spanX * cellPx;
                 float h = spanY * cellPx;
-                out.addSprite(RenderLayer.UNITS, artBase.sprite,
-                        cam.cellToScreenX(cx) + w * 0.5f, cam.cellToScreenY(cy) + h * 0.5f,
-                        w, h, 0f, 1f, 1f, 1f, alphaMult);
+                float mx = cam.cellToScreenX(cx) + w * 0.5f;
+                float my = cam.cellToScreenY(cy) + h * 0.5f;
+                out.addSprite(RenderLayer.UNITS, artBase.sprite, mx, my, w, h, 0f, 1f, 1f, 1f, alphaMult);
+                emitFluxDevice(ctx, out, u, mx, my, w, h, alphaMult);
                 continue;
             }
             if (standsOnSurface(ctx.sim.getTopology(), cx, cy, spanX, spanY)) continue;
@@ -500,6 +505,58 @@ public final class UnitRenderService implements RenderSystem {
         }
         return extent;
     }
+
+    /**
+     * A shielded structure's flux device over its painted base ({@link TurretFluxHeat}): the capacitor and radiator
+     * painted cold, the same device at full charge laid over them at the shield's heat, the charge lamps in the
+     * shield's colour, and the flux haze off the radiator ({@link FluxHaze}), a plume while the shield is broken.
+     */
+    private void emitFluxDevice(RenderContext ctx, DrawList out, long id, float x, float y, float w, float h,
+                              float alphaMult) {
+        TurretShieldService.Fitted fitted = ctx.sim.turretShields().fitted(id);
+        if (fitted == null) return;
+        StructureLook look = ctx.sim.turretState().structure(id).look(ctx.sim.structureStyle(id));
+        if (look == null || look.fluxDevicePath() == null) return;
+        ShuttleSpriteCache cold = sprites.spriteByPath(look.fluxDevicePath());
+        if (cold == null) return;
+        out.addSprite(RenderLayer.UNITS, cold.sprite, x, y, w, h, 0f, 1f, 1f, 1f, alphaMult);
+        float hot = TurretFluxHeat.hotAlpha(id, fitted.shield, ctx.sim.getSimTickIndex());
+        ShuttleSpriteCache glow = hot > 0.01f ? sprites.spriteByPath(look.fluxDeviceHotPath()) : null;
+        if (glow != null) out.addSprite(RenderLayer.UNITS, glow.sprite, x, y, w, h, 0f, 1f, 1f, 1f, hot * alphaMult);
+
+        sprites.ensureEngineFxSprites();
+        SpriteAPI lampGlow = sprites.engineGlowSprite();
+        if (lampGlow == null) return;
+        // The sprite's cells, from its top-left corner (image y runs down the screen).
+        float cell = w / 3f;
+        float left = x - w * 0.5f;
+        float top = y + h * 0.5f;
+        float[] colour = fitted.tint == ShieldTint.ORANGE ? TurretShieldField.ORANGE : TurretShieldField.BLUE;
+        long tick = ctx.sim.getSimTickIndex();
+        for (int k = 0; k < TurretFluxHeat.LAMPS; k++) {
+            float lit = TurretFluxHeat.lamp(id, fitted.shield, tick, k);
+            if (lit <= 0.01f) continue;
+            double a = 2 * Math.PI * k / TurretFluxHeat.LAMPS;
+            float lx = left + (TurretFluxHeat.CAPACITOR_X + TurretFluxHeat.LAMP_RING * (float) Math.sin(a)) * cell;
+            float ly = top - (TurretFluxHeat.CAPACITOR_Y - TurretFluxHeat.LAMP_RING * (float) Math.cos(a)) * cell;
+            out.addAdditiveSprite(RenderLayer.UNITS, lampGlow, lx, ly, cell * 0.24f, cell * 0.24f, 0f,
+                    colour[0], colour[1], colour[2], lit * alphaMult);
+            out.addAdditiveSprite(RenderLayer.UNITS, lampGlow, lx, ly, cell * 0.09f, cell * 0.09f, 0f,
+                    1f, 1f, 1f, 0.8f * lit * alphaMult);
+        }
+        // The haze rises north off the radiator: a hull facing south drifts it that way.
+        BattleCamera cam = ctx.camera;
+        FluxShield shield = fitted.shield;
+        float level = shield.overloaded() ? shield.overloadShare() : shield.fluxShare();
+        float hazeX = cam.screenToCellX(left + TurretFluxHeat.RADIATOR_X * cell);
+        float hazeY = cam.screenToCellY(top - TurretFluxHeat.RADIATOR_Y * cell);
+        FluxHaze.collect(out, RenderLayer.UNITS, lampGlow, cam, cam.cellPxSize(), hazeX, hazeY, 180f,
+                TurretFluxHeat.RADIATOR_HALF_WIDTH * cell / cam.cellPxSize(), HAZE_SCALE, level, shield.overloaded(),
+                tick * BattleSimulation.TICK_DT, alphaMult);
+    }
+
+    /** How large the flux haze off a hardpoint's radiator draws against a ground hull's vents. */
+    private static final float HAZE_SCALE = 0.6f;
 
     /** The painted base of a structure that has one and whose sprite loaded, else null (the flat pad is drawn). */
     private ShuttleSpriteCache structureBase(RenderContext ctx, long id, TurretStateService turretState) {
@@ -1736,6 +1793,10 @@ public final class UnitRenderService implements RenderSystem {
                 boolean firing = pose == LayeredAppearance.POSE_ROCKET_FIRE
                         || pose == LayeredAppearance.POSE_AMR_FIRE;
                 variantId = layerClips.variant();
+                if (!firing && (flags & LayeredAppearance.FLAG_SPECIAL_CARRIED) != 0
+                        && layerClips.walking() != null) {
+                    return carriedSpecialPose(layouts, layerClips, locomotionPhase, actionPhase);
+                }
                 animationId = firing && layerClips.firing() != null
                         ? layerClips.firing() : layerClips.using();
                 phase = actionPhase;
@@ -1777,6 +1838,20 @@ public final class UnitRenderService implements RenderSystem {
         LayerPose source = sourceClip.sample(fromMoving ? locomotionPhase : 0f);
         return LayerPose.blendMatching(source, sampled,
                 phase / LayeredAppearance.ACTION_ENTRY_BLEND_PHASE);
+    }
+
+    /**
+     * A readied special carried in its walking clip at the stride, blended toward the aim by how far it is carried
+     * ({@code carried}, 0 at the aim to 1 fully carried), so a Marine stopping raises it rather than snapping.
+     */
+    private static LayerPose carriedSpecialPose(UnitLayerLayouts layouts, LayerClips layerClips,
+                                                float locomotionPhase, float carried) {
+        AnimationClip walking = layouts.clip("marine-line", layerClips.variant(), layerClips.walking());
+        AnimationClip aiming = layouts.clip("marine-line", layerClips.variant(), layerClips.using());
+        if (walking == null) return aiming != null ? aiming.sample(1f) : null;
+        LayerPose carry = walking.sample(locomotionPhase);
+        if (aiming == null || carried >= 1f) return carry;
+        return LayerPose.blendMatching(aiming.sample(1f), carry, carried);
     }
 
     private static LayerPose mechPose(int chassis, float locomotionPhase, int flags) {
