@@ -89,7 +89,8 @@
      and ticking it puts the squad in that card. No word: the box is the whole control. */
   .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 5px 3px; border-width: 0px; }
   .doctrine-issue-button:hover .doctrine-issue-box { border-color: #dfc588; }
-  .doctrine-issue-box { flex-direction: column; align-items: center; width: 18px; height: 18px; padding: 1px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
+  /* The box's inner area is exactly the tick's size, padded evenly, so the tick sits dead centre. */
+  .doctrine-issue-box { flex-direction: column; align-items: center; width: 12px; height: 12px; padding: 4px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
   .doctrine-issue-button.issued .doctrine-issue-box { border-color: #78d494; background-color: #1d5a38; }
   .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
   .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
