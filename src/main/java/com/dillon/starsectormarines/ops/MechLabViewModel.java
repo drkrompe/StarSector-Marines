@@ -74,6 +74,8 @@ public final class MechLabViewModel {
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final MutableSignal<CategoryFilter> catalogFilter;
+    /** A vacant pad's weight class, the second filter beside walkers and vehicles; null shows all. */
+    private final MutableSignal<MechPattern.WeightClass> weightFilter;
     /** The machine a first press of SCRAP armed; any other selection disarms it. */
     private final MutableSignal<String> scrapArmedId;
     /** The pattern selected on a vacant pad: previewed on the pad, built only by BUILD. */
@@ -192,6 +194,7 @@ public final class MechLabViewModel {
                 Strings.get("openingMechLabSelectAnOccupiedGantryToRefitOr"));
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
         catalogFilter = reactor.signal(CategoryFilter.ALL);
+        weightFilter = reactor.signal(null);
         scrapArmedId = reactor.signal(null);
         previewRecipeId = reactor.signal(null);
         hoveredWeapon = reactor.signal(null);
@@ -478,15 +481,18 @@ public final class MechLabViewModel {
 
     private List<MechFabricationCatalog.Recipe> shownPatterns() {
         CategoryFilter filter = effectiveFilter();
+        MechPattern.WeightClass weight = weightFilter.get();
         List<MechFabricationCatalog.Recipe> shown = new ArrayList<>();
         if (filter != CategoryFilter.VEHICLES) {
             for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
-                if (bay.canFabricate(recipe.variant())) shown.add(recipe);
+                if (bay.canFabricate(recipe.variant())
+                        && (weight == null || MechPattern.of(recipe.variant()).weightClass() == weight)) shown.add(recipe);
             }
         }
         if (filter != CategoryFilter.WALKERS) {
             for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
-                if (bay.canFabricate(recipe.vehicle())) shown.add(recipe);
+                if (bay.canFabricate(recipe.vehicle())
+                        && (weight == null || MechPattern.weightClass(recipe.vehicle()) == weight)) shown.add(recipe);
             }
         }
         return shown;
@@ -538,6 +544,10 @@ public final class MechLabViewModel {
             return recipe.variant() != null ? chassisKind(recipe.variant()) : vehicleKind(recipe.vehicle());
         }));
         props.put("buildLore", reactor.computed(() -> lore(previewRecipe())));
+        props.put("buildMeters", reactor.computed(() -> patternMeters(previewRecipe())));
+        // A vacant pad's catalog needs no socket rule: every pattern goes onto the same pad.
+        props.put("catalogRuleClasses", reactor.computed(() -> fabricatingChassis()
+                ? "hidden" : "label heading surface-dark catalog-rule"));
         props.put("buildCredit", reactor.computed(() -> credit(previewRecipe())));
         props.put("buildCrest", reactor.computed(() -> {
             MechPatternCredits.Credit credit = creditOf(previewRecipe());
@@ -576,6 +586,35 @@ public final class MechLabViewModel {
     }
 
     public Runnable buildAction() { return this::buildPreviewed; }
+
+    /**
+     * The pattern card's bars: a chassis's standard fit read on the specifications' own scales
+     * (with the ship's armor shop and coolant plant over it, as it would deploy), or a vehicle's
+     * hull figures.
+     */
+    private List<PerformanceMeter> patternMeters(MechFabricationCatalog.Recipe recipe) {
+        if (recipe == null) return List.of();
+        if (recipe.vehicle() != null) return vehicleMeters(recipe.vehicle(), "build-");
+        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(recipe.variant());
+        MechRefit refit = refit();
+        float armor = stock.armorCapacity() * refit.armorMult();
+        float dissipation = stock.dissipationPerSecond() * refit.dissipationMult();
+        float range = weaponRange(stock);
+        int missiles = finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder());
+        return List.of(
+                meter("build-armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
+                        armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(), armor, armor, PLATE_TONE),
+                meter("build-mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(stock.moveSpeed())),
+                        stock.moveSpeed(), maximum(MechFrameBudget::refitMoveSpeed), stock.moveSpeed(), stock.moveSpeed(), ENGINE_TONE),
+                meter("build-flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(stock.fluxCapacity())),
+                        stock.fluxCapacity(), maximumFluxCapacity(), stock.fluxCapacity(), stock.fluxCapacity(), FLUX_TONE),
+                meter("build-dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
+                        dissipation, maximumDissipation() * refit.dissipationMult(), dissipation, dissipation, FLUX_TONE),
+                meter("build-range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(range)),
+                        range, maximumWeaponRange(), range, range, WEAPON_TONE),
+                meter("build-endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", missiles),
+                        missiles, maximumMissileTriggers(), missiles, missiles, MISSILE_TONE));
+    }
 
     private void buildPreviewed() {
         MechFabricationCatalog.Recipe recipe = previewRecipe();
@@ -1089,7 +1128,7 @@ public final class MechLabViewModel {
     private List<PerformanceMeter> buildPerformanceMeters() {
         revision.get();
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicleMeters(vehicle.type());
+        if (vehicle != null) return vehicleMeters(vehicle.type(), "");
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechFrameBudget.Fit fit = mech.fit();
@@ -2340,16 +2379,17 @@ public final class MechLabViewModel {
     }
 
     /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
-    private static List<PerformanceMeter> vehicleMeters(VehicleType type) {
+    /** @param prefix keeps the pattern card's bars apart from the specifications' own ids */
+    private static List<PerformanceMeter> vehicleMeters(VehicleType type, String prefix) {
         return List.of(
-                meter("structure", Strings.get("openingMechLabStructure"), number(type.maxStructure),
+                meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(type.maxStructure),
                         type.maxStructure, vehicleMaximum(t -> t.maxStructure), type.maxStructure),
-                meter("armor", Strings.get("openingMechLabArmor"),
+                meter(prefix + "armor", Strings.get("openingMechLabArmor"),
                         Strings.format("openingMechLabVehicleArmor", number(type.maxArmor), number(type.armorRating)),
                         type.maxArmor, vehicleMaximum(t -> t.maxArmor), type.maxArmor),
-                meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(type.maxSpeed)),
+                meter(prefix + "mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(type.maxSpeed)),
                         type.maxSpeed, vehicleMaximum(t -> t.maxSpeed), type.maxSpeed),
-                meter("capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", type.capacity),
+                meter(prefix + "capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", type.capacity),
                         type.capacity, vehicleMaximum(t -> t.capacity), type.capacity));
     }
 
@@ -2498,7 +2538,41 @@ public final class MechLabViewModel {
             String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
             pills.add(new FilterPill(id, f.label(), f.icon(), f.tone(), classes, () -> setFilter(f)));
         }
+        if (fabricatingChassis()) pills.addAll(weightPills());
         return List.copyOf(pills);
+    }
+
+    /*
+     * A vacant pad filters on two axes at once: what the machine is, and how heavy. The weight
+     * symbols are rank chevrons on a danger ramp, pale to amber to red, because weight is how
+     * much a machine can take and deal.
+     */
+    private List<FilterPill> weightPills() {
+        MechPattern.WeightClass current = weightFilter.get();
+        List<FilterPill> pills = new ArrayList<>();
+        for (MechPattern.WeightClass weight : MechPattern.WeightClass.values()) {
+            String name = weight.name().toLowerCase(Locale.ROOT);
+            String label = switch (weight) {
+                case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
+                case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
+                case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
+            };
+            pills.add(new FilterPill("mech-weight:" + name, label,
+                    "graphics/ui/mech-hardware/weight-" + name + ".svg",
+                    switch (weight) {
+                        case LIGHT -> "#c9c3a0";
+                        case MEDIUM -> "#e2a248";
+                        case HEAVY -> "#d8604c";
+                    },
+                    weight == current ? "catalog-filter-pill selected" : "catalog-filter-pill",
+                    () -> setWeightFilter(weight)));
+        }
+        return pills;
+    }
+
+    /** Chooses a weight class, or clears it when it is already chosen. */
+    public void setWeightFilter(MechPattern.WeightClass weight) {
+        weightFilter.set(weight == weightFilter.get() ? null : weight);
     }
 
     /**
