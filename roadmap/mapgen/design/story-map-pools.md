@@ -6,7 +6,7 @@ biome; Conquest and skirmish stay fully random.
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — the Cordon's rural and town pools re-screened for the
+Updated: 2026-10-24 — the Cordon's gap law is acceptance
 redoubts on the crest; gap readings in the report.
 
 A story mission's map is the generator's, but the mission does not take any
@@ -103,8 +103,9 @@ failure names the map and the seed and what it now lacks; the fix is a patch,
 a swap for another seed, or the mapgen change itself. Writes
 `build/reports/story-map-pools/summary.md`. A Cordon row's detail carries
 the line's gap readings (`CordonGapLaw`: each neighbouring pair's widest
-gun-to-gun step, `!` where it breaks the law, and the towers' own distance),
-which are readings and never fail a seed. When the redoubts went up onto the
+gun-to-gun step, `!` where it breaks the law, and the towers' own distance)
+and its picket nests per course, with how many were added to close the gaps
+and how many of those stand at street mouths. When the redoubts went up onto the
 ridge's crest, a Cordon map whose redoubt could not stand there stopped being
 a Cordon map, and the rural and town pools were re-screened over seeds 1 to
 40: a swapped-in seed's note says every redoubt is on the crest.
@@ -115,7 +116,9 @@ cannot disagree:
 - **Cordon**: a clear landing field; every redoubt walled; the base packed a
   shed and a carrier can drive from its apron to every redoubt; four redoubts
   west to east spanning the map; on the Road, the compound walled and a
-  drivable corridor from the rear edge to it. Both vehicle proofs run on the
+  drivable corridor from the rear edge to it; and the gap law holds on every
+  neighbouring pair, its picket nests included (`cordon-nouns.md`, Picket
+  line). Both vehicle proofs run on the
   edge-aware clearance mask the convoys lay their routes on, so a fence or low
   wall along a cell edge that would stop a hull fails the map rather than
   jamming a carrier or a truck in play.

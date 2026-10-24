@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-24 — redoubts and the city base are built from a mix of constructions; the redoubts stand on the crest, ramped from the rear; the base publishes no capture beacon
+Updated: 2026-10-24 — the gap law is closed with gap nests (street mouths in built country) and is acceptance
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -94,7 +94,31 @@ funnels, across rural and town country, its street mouths barricaded in a
 town; in a city a sandbag course that runs along the house fronts where the
 buildings stand across it, and barricaded street mouths. The garrison seats
 its own light gun (`ALLY`) in every nest of the picket, so the works between
-redoubts are covered from the first tick. Behind the middle of the line, the
+redoubts are covered from the first tick.
+
+**The gap law** (`cordon-map-intent.md`; `CordonGapLaw`). No stretch of the
+line is ground neither side's guns reach: on the best chain of guns from one
+redoubt's guns through the picket nests between to the next redoubt's, no
+step is longer than twice the line gun's reach plus its spread and splash at
+each end (53.6 cells for the heavy machine gun every redoubt and nest
+mounts). The nests a course digs at its run ends do not always meet it (a
+road gap, a wide redoubt lawn, a course a town broke), so once the redoubts
+are built, every pair still breaking it is given more **gap nests**
+(`CordonGapNests`): each as far along the line as a gun's reach from the guns
+already joined to the western redoubt, until the chain reaches the eastern
+one, on open floor clear of every road and of the ways the line leaves open,
+on the highest ground across the line. In open country that is the crest the
+course is dug along. In a town or a city a nest at a **street mouth**, beside a
+street that runs from the line toward the front and in view of it, is
+preferred: the whole gap stood at mouths when that costs at most one nest
+more, else a mouth wherever one costs none, because a range ring overstates
+what a gun sees between buildings and a street is where it sees furthest and
+where the swarm comes. A gap nest is a picket nest in every way: it is
+sandbagged across its front and flanks where it stands off the trench, it is
+recorded on its course with the rest, and the garrison mans it, the
+ammunition trucks rearm it and the allied rules count it as they do the
+course's own. The law is acceptance: a map whose line still breaks it,
+nests and all, is not a Cordon map. Behind the middle of the line, the
 redoubt with the most room has an unmanned **switch line**, a shorter trench
 a garrison falls back to (beat L3). The beats' other set pieces stand where the layout found
 room for them (`cordon-map-intent.md`): a farmstead in the near front, an
@@ -340,7 +364,10 @@ in the way.
 **Convoy (the Road).** An allied column of trucks that sets out from the
 logistics base where the corridor passes it, drives the corridor to the town,
 waits at the compound's gate while the townspeople board, and drives back to
-the base. It does not fight its way through: it stops when the road ahead is
+the base. Only a truck at the gate takes people aboard: a truck still on its
+way when the first arrives drives on to the gate, and the convoy waits for it
+(a loading's length past its own, then turns for home without it, the
+straggler driving back empty). It does not fight its way through: it stops when the road ahead is
 blocked by the swarm, and goes on when it is clear. Past the gap, in the
 swarm's country, it rolls only with an escort beside it: a convoy nobody
 escorts waits at the line. A convoy is **lost** when all its trucks are
@@ -369,8 +396,11 @@ beside it, the pair drives at the slower one's pace, and it holds whenever the
 escort falls behind; with no escort free, or one that never came, it goes
 alone for good, and the company walks with it. The radio's Escorted counts an
 armed hull, a Hound or a street team within reach. The company walks with a convoy only
-where no armed allied hull is with it, which is where the armour has not come
-or has died, and clears the road ahead of one the swarm has halted. One escort
+where the armour does not escort it: where its escort went short (a hull for
+every post, one of them alongside, or it is not escorted), has not come or has
+died; a sector's hull it passes at the gap is not its escort. It clears the
+road ahead of one the swarm has halted, and goes to one the swarm has reached
+where nothing lies ahead of it (at the gate while it loads, from the side). One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole
 column roll.
 
