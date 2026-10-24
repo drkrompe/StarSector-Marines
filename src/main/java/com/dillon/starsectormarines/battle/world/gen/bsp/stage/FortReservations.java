@@ -175,6 +175,15 @@ public final class FortReservations {
         boolean[][] held = held(ctx, plan);
         // Ground held from the fields alone is published for them, never kept from growth.
         if (!plan.landscape().heldFromGrowth()) held = null;
+        boolean[][] kept = kept(ctx, plan);
+        if (kept != null) {
+            if (held == null) held = new boolean[ctx.width][ctx.height];
+            else held = copy(held);
+            // A road arm still grows out of the kept place itself.
+            for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) {
+                if (kept[x][y] && !nearASeed(plan, x, y)) held[x][y] = true;
+            }
+        }
         if (boxes.isEmpty() && held == null) return sites;
         boolean[][] mask = sites != null ? sites : new boolean[ctx.width][ctx.height];
         for (int[] box : boxes) {
@@ -205,13 +214,40 @@ public final class FortReservations {
         boolean[][] bound = ctx.get(BspKeys.HELD_GROUND);
         if (bound != null) return bound;
         List<RidgePlanner.Band> bands = plan.landscape().held();
-        if (bands.isEmpty()) return null;
-        boolean[][] held = RidgePlanner.heldGround(bands, ctx.width, ctx.height, HELD_MARGIN);
+        boolean[][] kept = kept(ctx, plan);
+        if (bands.isEmpty() && kept == null) return null;
+        boolean[][] held = bands.isEmpty() ? new boolean[ctx.width][ctx.height]
+                : RidgePlanner.heldGround(bands, ctx.width, ctx.height, HELD_MARGIN);
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) if (held[x][y] && nearASeed(plan, x, y)) held[x][y] = false;
         }
+        // Kept ground is no field's either: a field is made ground, and a terrace's cliff stands in open country.
+        if (kept != null) for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) held[x][y] |= kept[x][y];
         ctx.put(BspKeys.HELD_GROUND, held);
         return held;
+    }
+
+    /**
+     * The boxes the plan's landscape keeps open round places that will stand high ({@link Landscape#kept}), or
+     * {@code null} when it keeps none. A place's own claim is never released over one; only the zoned places'
+     * claims, the road arms and the fields keep off.
+     */
+    static boolean[][] kept(GenContext ctx, PrecinctPlan plan) {
+        List<Landscape.Track> boxes = plan.landscape().kept();
+        if (boxes.isEmpty()) return null;
+        boolean[][] kept = new boolean[ctx.width][ctx.height];
+        for (Landscape.Track box : boxes) {
+            for (int x = Math.max(0, box.x0()); x <= Math.min(ctx.width - 1, box.x1()); x++) {
+                for (int y = Math.max(0, box.y0()); y <= Math.min(ctx.height - 1, box.y1()); y++) kept[x][y] = true;
+            }
+        }
+        return kept;
+    }
+
+    private static boolean[][] copy(boolean[][] grid) {
+        boolean[][] out = new boolean[grid.length][];
+        for (int x = 0; x < grid.length; x++) out[x] = grid[x].clone();
+        return out;
     }
 
     /** Releases the town's claim on the reserved ground; changes nothing when the mission reserved none. */
@@ -237,11 +273,14 @@ public final class FortReservations {
             }
         }
         boolean[][] held = held(ctx, plan);
-        if (held == null || !plan.landscape().heldFromGrowth()) return;
+        if (held != null && !plan.landscape().heldFromGrowth()) held = null;
+        boolean[][] kept = kept(ctx, plan);
+        if (held == null && kept == null) return;
         for (int x = 0; x < Math.min(claim.length, ctx.width); x++) {
             for (int y = 0; y < Math.min(claim[x].length, ctx.height); y++) {
                 int owner = claim[x][y];
-                if (!held[x][y] || owner == GrownTrunkPlan.UNOWNED) continue;
+                boolean off = (held != null && held[x][y]) || (kept != null && kept[x][y]);
+                if (!off || owner == GrownTrunkPlan.UNOWNED) continue;
                 if (plan.precincts().get(owner).isProgrammed()) continue;
                 claim[x][y] = GrownTrunkPlan.UNOWNED;
             }

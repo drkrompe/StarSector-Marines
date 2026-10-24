@@ -41,10 +41,21 @@ public final class ElevationBrush {
     /** Reserved cells are a host's circulation and objective ground; elevation never touches them. */
     public static ElevationMap stamp(ElevationPlan plan, NavigationGrid grid, CellTopology topology,
                                      boolean[] reserved) {
+        return stamp(plan, grid, topology, reserved, null);
+    }
+
+    /**
+     * As {@link #stamp(ElevationPlan, NavigationGrid, CellTopology, boolean[])}, with built ground a terrace stands
+     * on ({@link TerracePlanner}): a {@code built} cell the plan makes top ground or ramp is raised with whatever
+     * stands on it, walls, buildings, roads and all, so a place stands on one level. A face is never let onto
+     * built ground, here or anywhere.
+     */
+    public static ElevationMap stamp(ElevationPlan plan, NavigationGrid grid, CellTopology topology,
+                                     boolean[] reserved, boolean[] built) {
         int w = plan.width(), h = plan.height();
         if (grid.getWidth() != w || grid.getHeight() != h
                 || topology.getWidth() != w || topology.getHeight() != h
-                || (reserved != null && reserved.length != w * h)) {
+                || (reserved != null && reserved.length != w * h) || (built != null && built.length != w * h)) {
             throw new IllegalArgumentException("Elevation and map dimensions differ");
         }
         if (grid.elevation() != null) {
@@ -55,6 +66,7 @@ public final class ElevationBrush {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (!layout.touched(x, y)) continue;
+                if (built != null && built[y * w + x] && !layout.isFace(x, y)) continue;
                 boolean natural = switch (topology.getGroundKind(x, y)) {
                     case GRASS, DIRT, STONE, SAND, SNOW -> true;
                     default -> false;
