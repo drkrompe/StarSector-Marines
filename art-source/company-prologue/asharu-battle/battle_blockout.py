@@ -216,7 +216,8 @@ TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
 HIDES = {
     'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
-    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112)),
+    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112),
+                     peek=-.75),     # her stern and drive block clear of the hulk: S3's lamps, then drives
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
