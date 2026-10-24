@@ -1002,6 +1002,8 @@ KEYFRAMES = {
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
+            # the Colossus's fire on the Mk.III walks wide: about a quarter to a third lands, the rest
+            # flies on past her (coordinator, 2026-10-24)
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0)),
             # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
