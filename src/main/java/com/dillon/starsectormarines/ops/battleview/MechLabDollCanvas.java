@@ -96,7 +96,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private List<StripTarget> lastStripTargets = List.of();
     /** Each compartment part's box from the last frame, {left, top, right, bottom}, for lifting it off. */
     private Map<MechInternal, float[]> lastPartBoxes = Map.of();
-    private static final float STRIP_SIZE = 14f;
+    private static final float STRIP_SIZE = MechSocketConsole.STRIP_SIZE;
     private StripTarget hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
@@ -609,14 +609,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             if (socket.factoryLocked() || dragPreview != null) continue;
             if (socket.id().compartment()) {
-                // Each part in the compartment comes out on its own, from an X on its corner.
+                // Each part comes out on its own, from an X just right of it, however many share the socket.
                 for (MechCompartment.Placement part : MechCompartment.in(packed(layout), socket.id())) {
                     float[] box = MechSocketConsole.partBox(target, socket, part);
                     partBoxes.putIfAbsent(part.part(), box);
-                    strips.add(new StripTarget(socket.id(), part.part(), null, box[2] - STRIP_SIZE - 2f, box[1] + 2f));
+                    float[] at = MechSocketConsole.stripAt(box);
+                    strips.add(new StripTarget(socket.id(), part.part(), null, at[0], at[1]));
                 }
-            } else if (weaponAt(deployment, socket.id()) != null || installedInternals.apply(socket.id()) != null) {
-                strips.add(new StripTarget(socket.id(), null, null, target.right() - STRIP_SIZE - 4f, target.top() + 4f));
+            } else {
+                MechWeaponComponent weapon = weaponAt(deployment, socket.id());
+                MechInternal internal = weapon == null ? installedInternals.apply(socket.id()) : null;
+                if (weapon != null || internal != null) {
+                    float[] at = MechSocketConsole.stripAt(MechSocketConsole.fittedBox(target, socket, weapon, internal));
+                    strips.add(new StripTarget(socket.id(), null, null, at[0], at[1]));
+                }
             }
         }
         drawStrips(c, strips);
@@ -673,13 +679,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
             boolean rack = socket.id() == SocketId.AUXILIARY;
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
                     VehicleDoll.art(type, socket.id()),
-                    VehicleDoll.caption(type, socket.id(), kits), rack ? kits : List.of(),
+                    rack ? kits : List.of(),
                     rack && selectedSocket.get() == SocketId.AUXILIARY, hoveredSocket == socket.id(),
                     elapsedSeconds.getAsDouble());
             if (!rack) continue;
             for (int row = 0; row < kits.size(); row++) {
                 float[] box = MechSocketConsole.kitBox(target, socket, row);
-                strips.add(new StripTarget(socket.id(), null, kits.get(row), box[2] - STRIP_SIZE - 2f, box[1] + 2f));
+                float[] at = MechSocketConsole.stripAt(box);
+                strips.add(new StripTarget(socket.id(), null, kits.get(row), at[0], at[1]));
             }
         }
         drawStrips(c, strips);

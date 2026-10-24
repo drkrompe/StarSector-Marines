@@ -1312,9 +1312,9 @@ public final class MechLabViewModel {
                     : internalSocket && internal == null;
             boolean armed = weapon != null || internalSocket && !missing;
             String badge = locked ? Strings.get("openingMechLabLocked") : missing ? Strings.get("mechLabSlotRequired")
-                    : internalSocket ? Strings.get("openingMechLabFitted") : armed ? Strings.get("openingMechLabArmed") : Strings.get("openingMechLabEmpty");
+                    : FittedBadge.label(armed);
             String badgeClasses = locked ? "slot-badge locked" : missing ? "slot-badge required"
-                    : armed ? "slot-badge armed" : "slot-badge empty";
+                    : FittedBadge.slotClasses(armed);
 
             String telemetry;
             if (weapon != null) {

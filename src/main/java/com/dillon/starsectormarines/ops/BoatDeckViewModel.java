@@ -639,7 +639,7 @@ public final class BoatDeckViewModel {
             String base = "boat-mount:" + slot.key();
             String key = slot.key();
             FittingSlotCard card = new FittingSlotCard(base, "doll-slot selected", slot.title(),
-                    Strings.get("openingBoatDeckFitted"), "slot-badge armed", slot.fitted(), slot.tier(),
+                    FittedBadge.label(true), FittedBadge.slotClasses(true), slot.fitted(), slot.tier(),
                     kindSingular(slot.kind()) + " / " + Strings.format("boatDeckGrid", socket[0], socket[1]),
                     false, "hidden", () -> selectDollSlot(key), null);
             return List.of(new SlotRow(card, key, slot.kind(), slot.itemId()));

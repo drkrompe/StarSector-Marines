@@ -765,7 +765,7 @@ class MechLabViewModelTest {
         for (MechLabViewModel.SlotRow slot : viewModel.slotRows().get()) {
             if (slot.socketId() == SocketId.LEFT_ARM) {
                 foundArms = true;
-                assertEquals("EMPTY", slot.badge());
+                assertEquals("", slot.badge(), "an empty socket wears no badge");
                 assertFalse(slot.canStrip());
             }
         }
