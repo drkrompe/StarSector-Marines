@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.ops.battleview.BoatHardware;
 import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.ops.fitting.PointerDrag;
 import com.dillon.starsectormarines.ops.fitting.FittingDragGhost;
+import com.dillon.starsectormarines.ops.fitting.FittingBricks;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -108,6 +109,8 @@ public final class BoatDeckScreen implements Screen {
         context = ctx;
         this.dismissDialog = dismissDialog;
         viewport = MarineOpsUiViewport.from(position);
+        // One brick size for the room, from the document it lays out on, before any card is built.
+        FittingBricks.fitTo(viewport.documentHeight());
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
@@ -162,7 +165,8 @@ public final class BoatDeckScreen implements Screen {
             built.canvases().set(bayElement, bayCanvas);
             ghostElement = candidate.requireElement("boat-drag-ghost");
             built.canvases().set(ghostElement, dragGhost);
-            specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
+            specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built))
+                    .heldWhile(boardHover::held);
             // A fitted part on the doll opens the sheet its stores card does, beside the part.
             BoatDeckSpecSheets.bindDoll(specSheets, built, bayElement, () -> bayCanvas);
             wireStores(candidate, built);
