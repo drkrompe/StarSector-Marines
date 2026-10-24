@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6e-6110-7fe1-bd43-eb990a87cc0e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6e-6110-7fe1-bd43-eb990a87cc0e\\exec-9f709125-9e41-4019-94d6-f2637550e445.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\export-destroyed.raw.png",
+    "sha256": "563e35a0aa137f292c7a7b71a023f0f53d2d99516c611616989662c457ad7824",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\export-destroyed.prompt.txt",
+  "promptSha256": "dd50a83094d1a16488e6893e15de132485e003afac6f3abf0efc1190f1e23f40",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile crossing a cell boundary. Material and style: Sindrian Diktat prepared works in export grade: sand-ochre ceramic-steel panels with rust-brown trim, crisp red unit bands along the parapet top and the wall rims, flush rivet lines, dust and sun-bleaching, clean military finish; the barricade a run of ochre ceramic-steel barrier panels with a red band. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\export.raw.png",
+      "sha256": "f08e298bef6bde8826489a7fbf60c079da2757215ff7924a70996a89a255ddeb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to apply the shattered, scorched surfaces while preserving the sheet’s layout and cell boundaries."
+  ],
+  "usage": {
+    "input_tokens": 41178,
+    "cached_input_tokens": 33024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 530,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 87.1
+}

@@ -117,6 +117,14 @@ that side and leaves the flanks and rear open. Point guns carry none.
   draws it with the dome shader cut to the arc: strain whitening the field as flux fills,
   a flare on the rim at each block, a flickering shatter at a break and a ghost rim
   re-forming during the overload.
+- **Capacitors you can read.** The plinth wears its capacitors (`TurretFluxCapacitors`): a ring of
+  sixteen cells round the head that fill with flux, blue, whitening over the last quarter. Past
+  three quarters they flicker and arcs crackle over the plinth, and the shield arc stutters with
+  them; at a break the cells flash white and dump, the plinth vents vapour and sparks (`TurretFx`),
+  and through the overload they refill in a dim charging tint until the shield can rise. Read off
+  the shield's state and hashed from the tick, so it changes nothing in a battle. Strips along the
+  plinth rim and a projector-ring glow are kept as alternatives
+  (`-Dsnapshot.groundTurrets.capacitors=all` renders all three at 80%).
 
 `createSnapshots -Psnapshot=ground-turret-look` plays a `shield-<style>` shot for each
 shielded style: a squad with rockets in front of the cannon hardpoint and a rifleman on its

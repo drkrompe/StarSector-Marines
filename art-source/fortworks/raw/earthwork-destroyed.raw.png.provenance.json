@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6d-177a-7cf0-a6e4-bc4215238a71",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6d-177a-7cf0-a6e4-bc4215238a71\\exec-6b1b58b0-2b48-4a20-8622-0edf4a4a843e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\earthwork-destroyed.raw.png",
+    "sha256": "73320ae5fc6a9701a7579dcb81280037718841570118dca268bd0af297029bff",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\earthwork-destroyed.prompt.txt",
+  "promptSha256": "db351a29cf99cc3ba6461649e64d75f11c9ea31759f6ad332114140be7bde4b0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile crossing a cell boundary. Material and style: low-tech field works dug and filled by a garrison: tan sandbags in tidy courses, gabion baskets of wire mesh filled with stones, rammed earth and timber revetting; the parapet a sandbagged earth berm faced with planks, the hard-standing packed earth and gravel, the wall caps the tops of earth-filled gabion walls with sandbags along the exposed edges; the barricade a run of sandbags. No concrete, no paint. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\earthwork.raw.png",
+      "sha256": "b5b9de84b2eb63abe4c04fc359125a23bf540beb931ab32b02b7668b7d0dbc21",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to damage the surfaces while preserving the sheet’s layout and cell boundaries.\n"
+  ],
+  "usage": {
+    "input_tokens": 41188,
+    "cached_input_tokens": 33024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 494,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 76.5
+}

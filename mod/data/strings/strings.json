@@ -3047,6 +3047,7 @@
     "openingMechLabBuildAndInstallThisAssemblyUsingThe": "Build and install this assembly using the listed materials.",
     "openingMechLabChassis": "CHASSIS",
     "openingMechLabSpeedArmor": "SPEED {0} · ARMOR {1}",
+    "openingMechLabFrameStats": "ARMOR {0} · STRUCTURE {1}",
     "openingMechLabLanceFull": "LANCE FULL",
     "openingMechLabThisWorkshopHasNoVacantGantry": "This lance has no vacant pad.",
     "openingMechLabBuildThisChassisIntoTheVacantGantry": "Build this chassis onto the vacant pad.",

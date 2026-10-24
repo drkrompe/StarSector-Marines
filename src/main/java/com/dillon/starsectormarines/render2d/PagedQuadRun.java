@@ -7,6 +7,11 @@ import org.lwjgl.BufferUtils;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_CLIENT_VERTEX_ARRAY_BIT;
+import static org.lwjgl.opengl.GL11.GL_ONE;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_RGBA8;
@@ -64,6 +69,14 @@ import static org.lwjgl.opengl.GL20.GL_MAX_TEXTURE_IMAGE_UNITS;
  * white texel on a page of its own, tinted by its colour: white times the colour is the colour a fill draws
  * untextured, so a flame and the ember over it no longer close the run between them.
  *
+ * <p><b>Blends share a run.</b> An additive quad carries its page past the page table ({@link #lane}). Every run
+ * draws premultiplied with {@code ONE, ONE_MINUS_SRC_ALPHA}: a normal quad's colour is then its colour
+ * times its alpha over the rest, as before, and an additive quad writes alpha zero, which adds its colour over
+ * everything under it. The alpha channel keeps the normal blend's factors, so the destination alpha a normal quad
+ * writes is unchanged (the ground composite blends by it); an additive quad leaves the alpha under it alone where
+ * the fixed-function path added its own squared. Always premultiplied, never only when a run holds an additive
+ * quad: what a quad's pixels round to must not depend on what else shares its run, which culling changes.
+ *
  * <p><b>Fails soft.</b> {@link #ready()} is false when the program does not build or the driver offers fewer than
  * two texture units to a fragment shader, and the drain then keeps one fixed-function run per sheet, as before.
  * NOT thread-safe, like every batch on the render path.
@@ -74,10 +87,12 @@ public final class PagedQuadRun {
     public static final int MAX_PAGES = 8;
 
     private static final String VERTEX = "#version 120\n"
-            + "varying vec2 uv; varying vec4 tint; varying float page;\n"
+            + "varying vec2 uv; varying vec4 tint; varying float page; varying float additive;\n"
             + "void main(){\n"
             + "  gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, 0.0, 1.0);\n"
-            + "  uv = gl_MultiTexCoord0.xy; tint = gl_Color; page = gl_Vertex.z;\n"
+            + "  uv = gl_MultiTexCoord0.xy; tint = gl_Color;\n"
+            + "  additive = gl_Vertex.z > " + MAX_PAGES + ".0 - 0.5 ? 1.0 : 0.0;\n"
+            + "  page = gl_Vertex.z - additive * " + MAX_PAGES + ".0;\n"
             + "}\n";
 
     private static final String FRAGMENT;
@@ -85,7 +100,7 @@ public final class PagedQuadRun {
     static {
         StringBuilder fragment = new StringBuilder("#version 120\n");
         for (int i = 0; i < MAX_PAGES; i++) fragment.append("uniform sampler2D page").append(i).append(";\n");
-        fragment.append("varying vec2 uv; varying vec4 tint; varying float page;\n")
+        fragment.append("varying vec2 uv; varying vec4 tint; varying float page; varying float additive;\n")
                 .append("void main(){\n  vec4 texel;\n");
         // Each page owns the interval around its number, so an interpolated z that is a hair off
         // its integer still finds it.
@@ -93,7 +108,10 @@ public final class PagedQuadRun {
             fragment.append(i == 0 ? "  if" : "  else if").append(" (page < ").append(i).append(".5) texel = texture2D(page")
                     .append(i).append(", uv);\n");
         }
-        fragment.append("  else texel = vec4(0.0);\n  gl_FragColor = texel * tint;\n}\n");
+        // Premultiplied, an additive quad is one that covers nothing: its colour is added whole and its alpha,
+        // zero, keeps everything under it.
+        fragment.append("  else texel = vec4(0.0);\n  vec4 c = texel * tint;\n")
+                .append("  gl_FragColor = vec4(c.rgb * c.a, c.a * (1.0 - additive));\n}\n");
         FRAGMENT = fragment.toString();
     }
 
@@ -176,6 +194,14 @@ public final class PagedQuadRun {
         return pageCount++;
     }
 
+    /**
+     * The z a quad of {@code page} carries: the page itself for a normal-blend quad, and past the page table for an
+     * additive one.
+     */
+    public static int lane(int page, boolean additive) {
+        return additive ? page + MAX_PAGES : page;
+    }
+
     public boolean isEmpty() {
         return quadCount == 0;
     }
@@ -217,6 +243,10 @@ public final class PagedQuadRun {
             for (int i = 0; i < MAX_PAGES; i++) program.set1i("page" + i, i);
             samplersSet = true;
         }
+        // Colour premultiplied, alpha as the normal blend writes it, so the destination alpha a normal quad leaves
+        // is the same either way; only an additive quad's differs: it leaves the alpha under it where the
+        // fixed-function additive blend adds its own squared.
+        glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         int verts = quadCount * VERTS_PER_QUAD;
         // As QuadBatch.flush: client arrays need no buffer bound, and reading the old binding back would stall.
@@ -230,6 +260,7 @@ public final class PagedQuadRun {
         glColorPointer(4, 0, colArray.upload(colData, verts * 4));
         glDrawArrays(GL_QUADS, 0, verts);
         glPopClientAttrib();
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         ShaderProgram.useNone();
         for (int i = pageCount - 1; i >= 1; i--) {

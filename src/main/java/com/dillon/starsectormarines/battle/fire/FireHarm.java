@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.fire;
 
+import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.marine.ArmorClass;
 
 import java.util.Arrays;
 
@@ -12,8 +14,12 @@ import java.util.Arrays;
  * step a unit in a burning cell takes damage scaled by the cell's intensity,
  * and one beside a burning cell a tenth of the hottest neighbour's. The damage
  * carries morale, so a team standing in fire breaks as one under fire does.
- * Fire damage passes through armour that stops bullets; a mech's or vehicle's
- * hull takes a tenth of it. Static things (turrets, hubs, bores, the swarm's
+ * What it does depends on what is burning, not on what stops bullets: a soft
+ * body (infantry in ordinary armour, militia, civilians, the swarm) takes it
+ * straight to health, its armour untouched, so a marine stood in full flame is
+ * dead in about three seconds; the swarm, being flesh, takes half as much again.
+ * A sealed power suit's armour soaks it as it soaks a round, and a mech's or
+ * vehicle's hull takes a tenth of it. Static things (turrets, hubs, bores, the swarm's
  * growths) take nothing from fire: they are fought through their durability, and
  * growths die with the creep the fire burns.
  *
@@ -31,8 +37,10 @@ public final class FireHarm {
     public static final float BESIDE_SHARE = 0.1f;
     /** The share a mech's or vehicle's hull takes. */
     public static final float HULL_SHARE = 0.1f;
-    /** Penetration of fire damage: past armour that stops rifle rounds. */
+    /** Penetration of fire damage against a sealed suit or a hull: past armour that stops rifle rounds. */
     public static final float PENETRATION = 15f;
+    /** How much more the swarm takes: flesh, with nothing over it. */
+    public static final float SWARM_SHARE = 1.5f;
 
     private long[] ids = new long[64];
     private float[] amounts = new float[64];
@@ -54,14 +62,31 @@ public final class FireHarm {
                 if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue;
                 float share = exposure(field, cx, cy);
                 if (share <= 0f) continue;
-                if (type.isMech() || type.isMachineFrame() || type.isGroundVehicle()) share *= HULL_SHARE;
-                add(t.entityAt(r), share * DPS_IN * FireField.STEP_SECONDS);
+                add(t.entityAt(r), share * bodyShare(type) * DPS_IN * FireField.STEP_SECONDS);
             }
         }
         for (int i = 0; i < count; i++) {
-            if (sim.getRoster().isAliveById(ids[i])) sim.applyDamage(ids[i], amounts[i], PENETRATION, 1f);
+            long id = ids[i];
+            if (!sim.getRoster().isAliveById(id)) continue;
+            boolean through = throughArmor(sim.identity().type(id), sim.identity().armorClass(id));
+            sim.applyDamage(id, amounts[i], through ? DamageResolver.THROUGH_ARMOR : PENETRATION, 1f);
         }
         consumeSwarmDead(sim, field, c);
+    }
+
+    /** The share of fire damage a body of this kind takes: a tenth for a hull, half as much again for the swarm. */
+    static float bodyShare(UnitType type) {
+        if (isHull(type)) return HULL_SHARE;
+        return type.isSwarm() || type.isFlier() ? SWARM_SHARE : 1f;
+    }
+
+    /** Whether fire goes past this body's armour to its health: everything soft, which is all but suits and hulls. */
+    static boolean throughArmor(UnitType type, ArmorClass armor) {
+        return !isHull(type) && armor != ArmorClass.POWER_SUIT;
+    }
+
+    private static boolean isHull(UnitType type) {
+        return type.isMech() || type.isMachineFrame() || type.isGroundVehicle();
     }
 
     /** 0..1: the cell's own intensity, else a tenth of its hottest neighbour's. */

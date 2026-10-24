@@ -1041,7 +1041,7 @@ class RenderBudgetEvidence {
             Object page = null;
             switch (c.kind()) {
                 case SHEET_QUAD -> {
-                    boolean inRun = PAGED && !c.additive();
+                    boolean inRun = PAGED;
                     key = inRun ? paged : c.additive() ? "additive@" + System.identityHashCode(c.sprite()) : c.sprite();
                     reason = c.additive() ? "additive quad" : "sheet change";
                     if (inRun) page = c.sprite();
