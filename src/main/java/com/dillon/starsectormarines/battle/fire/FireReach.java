@@ -74,7 +74,7 @@ public final class FireReach {
             for (int dx = -lit; dx <= lit; dx++) {
                 int local = (half + dy) * span + half + dx;
                 int from = startingDistance(field, x + dx, y + dy);
-                if (from < 0) continue;
+                if (from == NONE) continue;
                 distance[local] = from;
                 queued[local] = true;
                 queue[(head + size++) % queue.length] = local;
@@ -108,10 +108,13 @@ public final class FireReach {
         return reach;
     }
 
-    /** A lit cell's distance: nought for fuel the blast sets alight, the field's own for one already burning; -1 for none. */
+    /** No fire starts here: neither burning nor able to burn. */
+    private static final int NONE = Integer.MIN_VALUE;
+
+    /** A lit cell's distance: nought for fuel the blast sets alight, the field's own for one already burning (below nought in a blaze); {@link #NONE} for none. */
     private static int startingDistance(FireField field, int x, int y) {
         if (field.isBurning(x, y)) return field.distanceAt(y * field.width() + x);
-        return field.canBurn(x, y) ? 0 : -1;
+        return field.canBurn(x, y) ? 0 : NONE;
     }
 
     /** Whether a cell's fire keeps counting its distance onward, rather than lighting afresh as creep and buildings do. */

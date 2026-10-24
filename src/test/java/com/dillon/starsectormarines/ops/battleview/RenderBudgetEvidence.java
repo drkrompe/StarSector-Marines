@@ -323,7 +323,8 @@ class RenderBudgetEvidence {
                 new MapSpec("overlook raised ground", MapSpec::raisedGround),
                 new MapSpec("400x240 the burn", () -> theBurn(false)),
                 new MapSpec("400x240 the burn at night", () -> theBurn(true)),
-                new MapSpec(MapSpec.STRESS_ID, MapSpec::stress, false));
+                new MapSpec(MapSpec.STRESS_ID, MapSpec::stress, false),
+                new MapSpec("400x240 stress at night", MapSpec::stressAtNight, false));
 
         static final String CONQUEST_ID = "560x336 conquest";
         /** {@link RenderStressScene}: stood up dense with no playout; {@code -PrenderMaps=stress} runs it alone. */
@@ -452,6 +453,13 @@ class RenderBudgetEvidence {
             RenderStressScene.Stood stood = RenderStressScene.build();
             PILE_FOCUS.put(stood.sim(), stood.focus());
             return stood.sim();
+        }
+
+        /** The stress scene on a dark night with no lamps, so the night shade has the whole frame to cover. */
+        static BattleSimulation stressAtNight() throws Exception {
+            BattleSimulation sim = stress();
+            sim.getTopology().setNightLighting(NIGHT);
+            return sim;
         }
 
         /** Seconds the green colony burns for before it is drawn: the front well into its groves. */

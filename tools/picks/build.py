@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--blurb", default="Open look decisions, as pictures. Tap the option you want under "
                         "each question; tap it again to clear it. Add a note if none is quite right. Choices save "
                         "as you go and go back to the session that owns each piece.")
-    parser.add_argument("--previews", help="previews.json: sets to look at, shown above the questions")
+    parser.add_argument("--previews", help="previews.json: sets to look at, shown below the questions")
     parser.add_argument("questions")
     parser.add_argument("out")
     args = parser.parse_args()

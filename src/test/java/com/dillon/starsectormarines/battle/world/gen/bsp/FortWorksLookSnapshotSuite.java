@@ -51,7 +51,7 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
     /** Ticks played before the still, so smoke and the guns' first turn have settled. */
     private static final int SETTLE_TICKS = 30;
     /** The free-standing post's layout: a line of guns behind its parapet or barricade. */
-    private static final String POST_VARIANT = "trapezoid";
+    private static final String POST_VARIANT = "line-h";
 
     @Override public String id() { return "fort-works-look"; }
 
