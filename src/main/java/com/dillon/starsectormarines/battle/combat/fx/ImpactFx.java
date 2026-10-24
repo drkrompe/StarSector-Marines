@@ -292,11 +292,12 @@ public final class ImpactFx {
 
     /**
      * A claw or bite raked across a body at ({@code x},{@code y}) on its way along ({@code dirX},{@code dirY}): a fan
-     * of dust kicked off the ground behind it, a few sparks struck off its plate and thrown on along the stroke, and,
-     * when it {@code bleeds}, a spray of blood flung the same way with a faint red mist where it opened. Small and
-     * quick, because a pack's dive lands several in a second and each must still read on its own.
+     * of dust kicked off the ground behind it, a few sparks struck off its plate and thrown on along the stroke, and
+     * a spray of blood flung the same way with a faint red mist where it opened, {@code blood} heavy (0 for a body
+     * that does not bleed). Small and quick, because a pack's dive lands several in a second and each must still
+     * read on its own.
      */
-    public void spawnClawStrike(float x, float y, float dirX, float dirY, boolean bleeds) {
+    public void spawnClawStrike(float x, float y, float dirX, float dirY, float blood) {
         if (glowSprite == null) return;
         float sideX = -dirY, sideY = dirX;
         for (int i = 0; i < 5; i++) {
@@ -318,21 +319,21 @@ public final class ImpactFx {
             p.color = SPARK_COLOR;
             p.additive = true;
         }
-        if (!bleeds) return;
+        if (blood <= 0f) return;
         Particle mist = streak(x, y, dirX * .6f, dirY * .6f);
-        mist.lifetimeRemaining = mist.lifetimeMax = .45f;
-        mist.radiusCells = .2f;
+        mist.lifetimeRemaining = mist.lifetimeMax = .45f * (float) Math.sqrt(blood);
+        mist.radiusCells = .2f * (float) Math.sqrt(blood);
         mist.radiusGrowthPerSec = .35f;
         mist.color = BLOOD_MIST_COLOR;
         mist.alpha = .45f;
         mist.angleDeg = rng.nextFloat() * 360f;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0, n = Math.round(6 * blood); i < n; i++) {
             float across = (rng.nextFloat() - .5f) * 1.1f;
             float speed = 1.8f + rng.nextFloat() * 2.2f;
             Particle p = streak(x, y, (dirX + sideX * across) * speed, (dirY + sideY * across) * speed);
             p.dragPerSecond = 6f;
             p.lifetimeRemaining = p.lifetimeMax = .4f + rng.nextFloat() * .25f;
-            p.radiusCells = .06f + rng.nextFloat() * .05f;
+            p.radiusCells = (.06f + rng.nextFloat() * .05f) * (float) Math.sqrt(blood);
             p.aspectRatio = .55f;
             p.color = BLOOD_COLOR;
             p.alpha = .9f;
