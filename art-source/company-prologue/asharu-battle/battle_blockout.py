@@ -887,8 +887,8 @@ KEYFRAMES = {
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
         # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
-        knobs={'falcon-p': {'thr_glow': 4.0}},
-        lamp_gain={'falcon-p': 3.0},     # the crash zoom's subject: her lamps read at 300 mm before her drives
+        knobs={'falcon-p': {'thr_glow': 5.5}},
+        lamp_gain={'falcon-p': 4.0},     # the crash zoom's subject: her lamps read at 300 mm before her drives
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
