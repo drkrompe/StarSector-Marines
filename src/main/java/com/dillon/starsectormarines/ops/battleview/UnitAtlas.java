@@ -5,6 +5,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Every image a unit's body is composed from, composited into one GL texture so
@@ -31,10 +32,24 @@ import java.util.List;
  * first time it misses and taken in by {@link #grow} before the next collect,
  * into rows the plan reserved for it. That is what closed the turret collars
  * and the downed poses falling out of the batch, and it closes the next image
- * nobody adds to the seed: the only way out is over the cap, and that is
- * reported. An additive draw of a held image is a quad of this sheet too,
+ * nobody adds to the seed. An additive draw of a held image is a quad of this sheet too,
  * drained as its own run beside the normal one, so a shield screen's
  * replayed silhouettes join the batch rather than each binding its body.
+ *
+ * <p><b>An image over the cap joins at the size it is drawn.</b> A downed pose
+ * is 360x520 and a mother bore 736 across, but on a 560x336 map a downed body
+ * is never more than 75 pixels tall on screen, even at the closest zoom: the
+ * texels past that are never seen, and holding them whole is what the cap is
+ * there to refuse. So an image larger than {@link #MAX_IMAGE_PX} that is drawn
+ * in these layers takes a slot sized to the largest it can appear — the size
+ * its draw gave it, taken to the camera's closest zoom — filtered down once
+ * when it is uploaded ({@link SpriteAtlas.Source#imageW}), as long as that is
+ * within {@link #MAX_COPY_PX}. Drawn at the closest zoom it is one texel to a
+ * pixel, as close as the whole image got; drawn farther out it is minified
+ * from a filtered copy rather than from texels a bilinear tap skips. The rule
+ * is the draw again, not a list: whatever is too big to hold and small on
+ * screen joins, and only what is big on screen as well stays on its own
+ * texture, reported as over the cap.
  *
  * <p><b>The redirect is one place.</b> {@link DrawList#addSprite} resolves a
  * sprite to its slot and emits a rotated sheet quad instead, so no composer
@@ -78,6 +93,16 @@ public final class UnitAtlas extends SpriteAtlas {
      */
     private static final int MAX_IMAGE_PX = 320;
 
+    /**
+     * The longest side a filtered copy of an image over {@link #MAX_IMAGE_PX} may take.
+     *
+     * <p>A copy holds only texels the screen can show, so what bounds it is not whether its texels earn their place
+     * but how many such slots the reserved rows hold: at 512 a copy is at most a sixty-fourth of the 4096 atlas. It
+     * admits every hive structure and the spitter's death sheet on a 400x240 map, where a mother bore reaches 442
+     * pixels at the closest zoom, and a downed pose on any map at all.
+     */
+    static final int MAX_COPY_PX = 512;
+
     /** The host the plan was seeded from: what sizes an image the atlas only saw drawn. */
     private BattleSprites host;
 
@@ -118,16 +143,25 @@ public final class UnitAtlas extends SpriteAtlas {
      * batch must be built again.
      */
     public Growth grow() {
-        List<SpriteAPI> images = takeMissed();
+        List<Missed> images = takeMissed();
         if (images.isEmpty()) return Growth.NONE;
         List<Source> additions = new ArrayList<>();
-        for (SpriteAPI image : images) {
-            ModTextures.Loaded loaded = loadedImage(image);
+        for (Missed missed : images) {
+            ModTextures.Loaded loaded = loadedImage(missed.image());
             if (loaded == null) {
                 exclude(Exclusion.NO_SIZE, "image its host cannot size");
                 continue;
             }
-            consider(additions, image, loaded.width(), loaded.height(), loaded.path());
+            String name = loaded.path();
+            Exclusion refused = offer(additions, missed.image(), loaded.width(), loaded.height(),
+                    missed.closestW(), missed.closestH(), name);
+            if (refused != null) {
+                exclude(refused, (name == null ? "image" : name) + " " + loaded.width() + "x" + loaded.height()
+                        + (refused == Exclusion.OVER_CAP && missed.closestW() > 0f
+                                ? String.format(Locale.ROOT, " (drawn up to %.0fx%.0f)",
+                                        missed.closestW(), missed.closestH())
+                                : ""));
+            }
         }
         return extend(additions);
     }
@@ -199,10 +233,15 @@ public final class UnitAtlas extends SpriteAtlas {
         consider(into, cache.sprite, cache.pxW, cache.pxH, kind + " " + cache.pxW + "x" + cache.pxH);
     }
 
-    /** {@link #offer}, recording whatever it turns away. */
+    /**
+     * {@link #offer}, recording whatever it turns away, except an image over the cap: the seed cannot know how big
+     * such an image is drawn, so it is judged when it is ({@link #grow}), and reported then if it is still too big.
+     */
     private void consider(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
         Exclusion refused = offer(into, sprite, recordedW, recordedH, name);
-        if (refused != null) exclude(refused, (name == null ? "image" : name) + " " + recordedW + "x" + recordedH);
+        if (refused != null && refused != Exclusion.OVER_CAP) {
+            exclude(refused, (name == null ? "image" : name) + " " + recordedW + "x" + recordedH);
+        }
     }
 
     /**
@@ -226,14 +265,35 @@ public final class UnitAtlas extends SpriteAtlas {
     }
 
     static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
+        return offer(into, sprite, recordedW, recordedH, Float.NaN, Float.NaN, name);
+    }
+
+    /**
+     * As {@link #offer(List, SpriteAPI, int, int, String)}, for an image drawn at up to {@code closestW x closestH}
+     * screen pixels at the closest zoom ({@code NaN} when unknown): one over {@link #MAX_IMAGE_PX} is offered as a
+     * copy at that size, scaled evenly and never larger than the image, when the copy is within
+     * {@link #MAX_COPY_PX}.
+     */
+    static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH,
+                           float closestW, float closestH, String name) {
         if (sprite == null) return null;
         if (recordedW <= 0 || recordedH <= 0) return Exclusion.NO_SIZE;
         // A whole-image slot holds the texels the texture really has: a fitted image's slot is its
         // shipped size (texture-fit.md), so the cap and the atlas both see the art as it ships.
         int texW = ModTextures.shippedWidth(sprite, recordedW);
         int texH = ModTextures.shippedHeight(sprite, recordedH);
-        if (texW > MAX_IMAGE_PX || texH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
-        into.add(new Source(sprite, texW, texH, name));
+        if (texW <= MAX_IMAGE_PX && texH <= MAX_IMAGE_PX) {
+            into.add(new Source(sprite, texW, texH, name));
+            return null;
+        }
+        if (!(closestW > 0f) || !(closestH > 0f)) return Exclusion.OVER_CAP;
+        // One scale for both axes, the larger the draw asks for, so the copy keeps the image's proportions and a
+        // draw that stretches it is still met texel for pixel on its longer side.
+        float scale = Math.min(1f, Math.max(closestW / texW, closestH / texH));
+        int copyW = Math.max(1, (int) Math.ceil(texW * scale - 0.001f));
+        int copyH = Math.max(1, (int) Math.ceil(texH * scale - 0.001f));
+        if (copyW > MAX_COPY_PX || copyH > MAX_COPY_PX) return Exclusion.OVER_CAP;
+        into.add(new Source(sprite, copyW, copyH, name, texW, texH));
         return null;
     }
 }

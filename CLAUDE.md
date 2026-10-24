@@ -672,11 +672,12 @@ yet creates one when it has its first question and adds a row to
   the card landed in the next framing's median as noise several times the effect
   being measured.
   Where it stands: **nothing is submission-bound, and nothing collects more than
-  the camera shows.** `UNITS` is two to eight draws at every framing on the
-  canonical maps (2026-10-23), because the unit atlas takes in whatever the unit
-  layers draw rather than a hand-kept list, and additive draws batch beside the
-  normal run; what still draws alone is over the atlas's size cap and named in
-  the **Atlases** section (downed poses, hive structures, aircraft hulls).
+  the camera shows.** `UNITS` is one to nine draws at every framing on every
+  map it profiles (2026-10-23), because the unit atlas takes in whatever the unit
+  layers draw rather than a hand-kept list, an image too big to hold whole joins
+  as a copy at the size it is drawn at the closest zoom, and additive draws batch
+  beside the normal run; what still draws alone is big on screen too and named
+  in the **Atlases** section (the creep ooze and spray sheets on The Burn).
   `ROOFS` is one custom pass and one command, and `GROUND` is three
   draws and **no texture binds at all**. Collectors now visit what is in view:
   at a compound framing on the 560x336 map `UNITS` collects 160 commands where

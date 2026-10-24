@@ -74,7 +74,8 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
  * seam as every other sheet's. The pixels are copied at drain time inside a
  * layer's own custom pass: each image is read back from its own texture and
  * written into its slot, so the atlas holds the images' exact texels rather than
- * a resample of them.
+ * a resample of them — except where a subclass asks for a slot smaller than its
+ * image ({@link Source#imageW}), which holds a copy filtered down to that size.
  *
  * <p><b>Whole images or regions of them.</b> A slot holds either a whole image
  * ({@link Source}) or one rectangle cut from a sheet ({@link Region}). A region
@@ -122,12 +123,30 @@ public abstract class SpriteAtlas {
     /** One source image and where its content sits in the atlas. */
     public record Placement(int x, int y, int width, int height) { }
 
-    /** One image offered to the layout, with the content size it actually uses. */
-    public record Source(SpriteAPI sheet, int contentW, int contentH, String name) {
+    /**
+     * One image offered to the layout, with the content size its slot holds.
+     *
+     * <p>{@code imageW x imageH} are the texels the image's own texture has; zero, the usual case, means the slot
+     * holds exactly those ({@code contentW x contentH}). A slot smaller than its image holds a copy filtered down to
+     * the slot's size once, at upload: the form an image too large to hold whole takes when it is never drawn larger
+     * than that ({@link UnitAtlas}). Callers address it in the image's own pixels as they always did, since every
+     * redirect already scales those into the slot.
+     */
+    public record Source(SpriteAPI sheet, int contentW, int contentH, String name, int imageW, int imageH) {
         public Source(SpriteAPI sheet, int contentW, int contentH) {
             this(sheet, contentW, contentH, null);
         }
+
+        public Source(SpriteAPI sheet, int contentW, int contentH, String name) {
+            this(sheet, contentW, contentH, name, 0, 0);
+        }
     }
+
+    /**
+     * An image drawn in a gathered layer that the atlas does not hold, and the largest size it was drawn at in the
+     * frames before it was taken, scaled to the camera's closest zoom; {@code NaN} when no draw could say.
+     */
+    public record Missed(SpriteAPI image, float closestW, float closestH) { }
 
     /**
      * One rectangle of a sheet offered to the layout.
@@ -214,6 +233,8 @@ public abstract class SpriteAtlas {
 
     /** Images drawn in a gathered layer that the atlas did not hold, in the order they were first drawn. */
     private final List<SpriteAPI> missed = new ArrayList<>();
+    /** Each image in {@link #missed}: the largest whole-image size it was drawn at, at the closest zoom. */
+    private final Map<SpriteAPI, float[]> missedSize = new IdentityHashMap<>();
     /** Every image already noted, offered or not: an image is judged once, not once per frame it is drawn. */
     private final Set<SpriteAPI> judged = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -231,12 +252,13 @@ public abstract class SpriteAtlas {
      * One slot: the rectangle {@code srcX, srcY, w, h} of {@code sheet}, whose
      * content is {@code sheetW x sheetH}, copied with {@code apron} texels of its
      * surroundings and its content placed at {@code x, y} in the atlas. A whole
-     * image is the rectangle that is all of it, with no apron.
+     * image is the rectangle that is all of it, with no apron. {@code imageW x imageH}
+     * is the image texture's own texel size when the slot holds a smaller copy of it, else zero.
      */
     private record Slot(SpriteAPI sheet, int sheetW, int sheetH, int srcX, int srcY,
-                        int w, int h, int apron, int x, int y, String name) {
+                        int w, int h, int apron, int x, int y, String name, int imageW, int imageH) {
         Slot at(int px, int py) {
-            return new Slot(sheet, sheetW, sheetH, srcX, srcY, w, h, apron, px, py, name);
+            return new Slot(sheet, sheetW, sheetH, srcX, srcY, w, h, apron, px, py, name, imageW, imageH);
         }
 
         boolean wholeImage() {
@@ -286,7 +308,7 @@ public abstract class SpriteAtlas {
                     region.width(), region.height()))) continue;
             distinct.add(new Slot(region.sheet(), region.sheetW(), region.sheetH(),
                     region.srcX(), region.srcY(), region.width(), region.height(),
-                    Math.max(0, apronPx), 0, 0, region.name()));
+                    Math.max(0, apronPx), 0, 0, region.name(), 0, 0));
         }
         return settle(distinct, minimumRegions);
     }
@@ -424,7 +446,8 @@ public abstract class SpriteAtlas {
         }
         for (Slot existing : into) if (existing.sheet() == source.sheet()) return;
         into.add(new Slot(source.sheet(), source.contentW(), source.contentH(), 0, 0,
-                source.contentW(), source.contentH(), 0, 0, 0, source.name()));
+                source.contentW(), source.contentH(), 0, 0, 0, source.name(),
+                Math.max(0, source.imageW()), Math.max(0, source.imageH())));
     }
 
     private boolean layOut(List<Slot> candidates) {
@@ -520,8 +543,36 @@ public abstract class SpriteAtlas {
      * and is never noted.
      */
     public final void noteMissed(SpriteAPI image) {
+        noteMissed(image, Float.NaN, Float.NaN);
+    }
+
+    /**
+     * As {@link #noteMissed(SpriteAPI)}, with the size the whole image was drawn at by this draw, scaled to the
+     * camera's closest zoom ({@code NaN} when unknown). Until {@link #takeMissed} hands it on, the largest such size
+     * is kept, so an image is judged by the biggest anyone drew it in the frame that first drew it.
+     */
+    public final void noteMissed(SpriteAPI image, float closestW, float closestH) {
         if (image == null || image instanceof AtlasSprite || !planned || broken) return;
-        if (judged.add(image)) missed.add(image);
+        if (judged.add(image)) {
+            missed.add(image);
+            missedSize.put(image, new float[]{closestW, closestH});
+            return;
+        }
+        if (!(closestW > 0f) || missedSize.isEmpty()) return;
+        float[] size = missedSize.get(image);
+        if (size == null) return;
+        if (!(size[0] >= closestW)) size[0] = closestW;
+        if (!(size[1] >= closestH)) size[1] = closestH;
+    }
+
+    /**
+     * Whether a draw of {@code image} still has something to tell the atlas: it has not been judged yet, or it has
+     * been noted and not taken. False for an image held or already turned away, so a caller can skip working out a
+     * size nobody will read.
+     */
+    public final boolean awaitsJudgement(SpriteAPI image) {
+        if (image == null || image instanceof AtlasSprite || !planned || broken) return false;
+        return !judged.contains(image) || missedSize.containsKey(image);
     }
 
     /**
@@ -533,10 +584,15 @@ public abstract class SpriteAtlas {
     }
 
     /** The images noted since the last call, oldest first; each is noted once for the atlas's life. */
-    protected final List<SpriteAPI> takeMissed() {
+    protected final List<Missed> takeMissed() {
         if (missed.isEmpty()) return Collections.emptyList();
-        List<SpriteAPI> out = new ArrayList<>(missed);
+        List<Missed> out = new ArrayList<>(missed.size());
+        for (SpriteAPI image : missed) {
+            float[] size = missedSize.get(image);
+            out.add(size == null ? new Missed(image, Float.NaN, Float.NaN) : new Missed(image, size[0], size[1]));
+        }
         missed.clear();
+        missedSize.clear();
         return out;
     }
 
@@ -923,8 +979,8 @@ public abstract class SpriteAtlas {
         }
         // The texture's own texel size: smaller than the sheet's logical size when the build fitted
         // the image (texture-fit.md), and then the padding must be worked out from it.
-        int texW = ModTextures.shippedWidth(source, first.sheetW());
-        int texH = ModTextures.shippedHeight(source, first.sheetH());
+        int texW = first.imageW() > 0 ? first.imageW() : ModTextures.shippedWidth(source, first.sheetW());
+        int texH = first.imageH() > 0 ? first.imageH() : ModTextures.shippedHeight(source, first.sheetH());
         int paddedW = Math.max(texW, Math.round(texW / usedU));
         int paddedH = Math.max(texH, Math.round(texH / usedV));
         int needed = paddedW * paddedH * 4;
@@ -944,7 +1000,12 @@ public abstract class SpriteAtlas {
             return buffer;
         }
 
-        if (texW != first.sheetW() || texH != first.sheetH()) {
+        if (first.imageW() > 0 && first.sheetW() <= texW && first.sheetH() <= texH) {
+            // A slot smaller than its image: a copy filtered down once, every source texel weighed by
+            // the area it covers, as a mipmap would hold it at the size it is drawn.
+            buffer = downsample(buffer, paddedW, texW, texH, first.sheetW(), first.sheetH());
+            paddedW = first.sheetW();
+        } else if (texW != first.sheetW() || texH != first.sheetH()) {
             // Slots addressed in source pixels over a fitted texture: the sheet is resampled up to
             // its logical size once, so every rectangle and apron reads where it always did.
             buffer = resample(buffer, paddedW, texW, texH, first.sheetW(), first.sheetH());
@@ -1002,6 +1063,52 @@ public abstract class SpriteAtlas {
                 out.put(o + 1, (byte) (a > 0f ? Math.round(g / a) : 0));
                 out.put(o + 2, (byte) (a > 0f ? Math.round(b / a) : 0));
                 out.put(o + 3, (byte) Math.round(a));
+            }
+        }
+        out.limit(outW * outH * 4);
+        return out;
+    }
+
+    /**
+     * Box-filtered reduction of the {@code w x h} image at the start of {@code src} (rows {@code stride} texels apart)
+     * into a tightly packed {@code outW x outH} buffer, rows in the same order, for {@code outW <= w} and
+     * {@code outH <= h}: each output texel is the area-weighted mean of the source texels its footprint covers.
+     * Premultiplied while filtering, as {@link #resample} is, so transparent texels lend no colour to an edge.
+     *
+     * <p>Not {@link #resample}'s four taps: a bilinear tap reduced four to one reads four texels of sixteen, the
+     * sparkle a mipmap exists to remove, and a copy filtered once carries that removal for free.
+     */
+    static ByteBuffer downsample(ByteBuffer src, int stride, int w, int h, int outW, int outH) {
+        ByteBuffer out = BufferUtils.createByteBuffer(outW * outH * 4);
+        double sx = (double) w / outW;
+        double sy = (double) h / outH;
+        for (int y = 0; y < outH; y++) {
+            double y0 = y * sy;
+            double y1 = Math.min(h, y0 + sy);
+            for (int x = 0; x < outW; x++) {
+                double x0 = x * sx;
+                double x1 = Math.min(w, x0 + sx);
+                double r = 0, g = 0, b = 0, a = 0, area = 0;
+                for (int py = (int) y0; py < y1; py++) {
+                    double wy = Math.min(y1, py + 1) - Math.max(y0, py);
+                    if (wy <= 0) continue;
+                    for (int px = (int) x0; px < x1; px++) {
+                        double weight = wy * (Math.min(x1, px + 1) - Math.max(x0, px));
+                        if (weight <= 0) continue;
+                        int at = (py * stride + px) * 4;
+                        double alpha = (src.get(at + 3) & 0xFF) * weight;
+                        r += (src.get(at) & 0xFF) * alpha;
+                        g += (src.get(at + 1) & 0xFF) * alpha;
+                        b += (src.get(at + 2) & 0xFF) * alpha;
+                        a += alpha;
+                        area += weight;
+                    }
+                }
+                int o = (y * outW + x) * 4;
+                out.put(o, (byte) (a > 0 ? Math.round(r / a) : 0));
+                out.put(o + 1, (byte) (a > 0 ? Math.round(g / a) : 0));
+                out.put(o + 2, (byte) (a > 0 ? Math.round(b / a) : 0));
+                out.put(o + 3, (byte) (area > 0 ? Math.round(a / area) : 0));
             }
         }
         out.limit(outW * outH * 4);
@@ -1088,6 +1195,7 @@ public abstract class SpriteAtlas {
         pendingUploads.clear();
         pendingPlacements.clear();
         missed.clear();
+        missedSize.clear();
         judged.clear();
         layoutToken = new Object();
         built = false;
