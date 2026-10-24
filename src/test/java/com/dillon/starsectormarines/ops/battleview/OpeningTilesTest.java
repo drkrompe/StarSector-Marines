@@ -3,8 +3,11 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +46,23 @@ class OpeningTilesTest {
         assertEquals("colony.masonry-door", OpeningTiles.skin(registry, topology, 1, 1, Direction.S, false).id);
         topology.setWall(0, 1, false);
         assertEquals("colony.ceramic-window", OpeningTiles.skin(registry, topology, 1, 1, Direction.N, true).id);
+    }
+
+    @Test
+    void anOpeningInAFortificationLotIsDrawnInItsStyleWhereTheStyleHasALook() throws Exception {
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(new JSONObject("{sheet:'kit.png',cellPx:64,blocks:["
+                + "{id:'wall',layout:'wall-faces-4x4',origin:[0,0],windowBlock:'window',doorBlock:'door'},"
+                + "{id:'window',layout:'cardinal-2x2',origin:[4,0]},{id:'door',layout:'cardinal-2x2',origin:[6,0]},"
+                + "{id:'window@modular',layout:'cardinal-2x2',origin:[8,0]}]}"));
+        CellTopology topology = new CellTopology(3, 3);
+        topology.setSurface(0, 1, topology.surfaceIndex("wall"));
+        topology.setWall(0, 1, true);
+        assertEquals("window", OpeningTiles.skin(registry, topology, 1, 1, Direction.N, true).id);
+        FortWorks.mark(topology, 1, 1, EmplacementStyle.MODULAR);
+        assertEquals("window@modular", OpeningTiles.skin(registry, topology, 1, 1, Direction.N, true).id);
+        // A style with no look for the piece draws the base art.
+        assertEquals("door", OpeningTiles.skin(registry, topology, 1, 1, Direction.S, false).id);
     }
 
     @Test

@@ -78,15 +78,18 @@ class RoofCoverTest {
     }
 
     @Test
-    void anOutsideDoorIsLeftBareWhileADoorBetweenRoomsIsRoofedOver() {
+    void anOutsideDoorTakesAShallowEaveUpToItsLeafWhileADoorBetweenRoomsIsRoofedOver() {
         CellTopology t = house();
         // An exterior door in the east wall, and a door through the partition, neither a building cell.
         t.setWall(7, 3, false);
         t.setWall(4, 3, false);
-        assertCovers(t, 7, 3, RoofCover.Piece.NONE, 0f);
+        int door = assertCovers(t, 7, 3, RoofCover.Piece.EAVE, RoofCover.DOOR_EAVE_DEPTH);
+        assertEquals(RoofCover.Edge.DOOR, RoofCover.edge(door));
+        assertEquals(1, RoofCover.facing(door), "it faces east, out of the doorway");
+        assertTrue(covered(door, 0.1f, 0.5f));
+        assertFalse(covered(door, 0.5f, 0.5f), "the leaf across the doorway's middle shows");
         assertCovers(t, 4, 3, RoofCover.Piece.FULL, 1f);
-        // The roof runs right up to the outside door: the floor inside is covered whole, not cut back to an eave,
-        // and the walls either side keep their ordinary eaves.
+        // The floor inside is covered whole, not cut back to an eave, and the walls either side keep theirs.
         assertCovers(t, 6, 3, RoofCover.Piece.FULL, 1f);
         assertCovers(t, 5, 3, RoofCover.Piece.FULL, 1f);
         assertCovers(t, 7, 2, RoofCover.Piece.EAVE, D);
@@ -94,11 +97,12 @@ class RoofCoverTest {
     }
 
     @Test
-    void aWindowIsLeftBareAndTheWallsBesideItKeepTheirEaves() {
+    void aSlitWindowTakesAnEaveUpToItsPaneAndTheWallsBesideItKeepTheirs() {
         CellTopology t = house();
         t.setWall(5, 5, false);
         t.setWindow(5, 5, true);
-        assertCovers(t, 5, 5, RoofCover.Piece.NONE, 0f);
+        int window = assertCovers(t, 5, 5, RoofCover.Piece.EAVE, RoofCover.PANE_EAVE_DEPTH);
+        assertEquals(RoofCover.Edge.PANE, RoofCover.edge(window));
         assertCovers(t, 5, 4, RoofCover.Piece.FULL, 1f);
         assertCovers(t, 6, 5, RoofCover.Piece.EAVE, D);
     }
@@ -140,13 +144,13 @@ class RoofCoverTest {
         int cover = RoofCover.of(t, x, y);
         assertEquals(piece, RoofCover.piece(cover), "piece at " + x + "," + y);
         float sum = 0f;
-        for (float[] r : RoofCover.rects(cover, D)) sum += (r[2] - r[0]) * (r[3] - r[1]);
+        for (float[] r : RoofCover.rects(cover)) sum += (r[2] - r[0]) * (r[3] - r[1]);
         assertEquals(area, sum, 1e-5f, "area covered at " + x + "," + y);
         return cover;
     }
 
     private static boolean covered(int cover, float px, float py) {
-        for (float[] r : RoofCover.rects(cover, D)) {
+        for (float[] r : RoofCover.rects(cover)) {
             if (px >= r[0] && px <= r[2] && py >= r[1] && py <= r[3]) return true;
         }
         return false;
