@@ -35,27 +35,35 @@ Rounds 1 to 3 explored legged firers (a domed vent or mortar mass on the back, l
 body), after which the owner parked the strain. Round 4 tried bipeds with a dome; the owner
 rejected all of them and asked for something "more hydralisk like".
 
-Round 5 settled it: **the cobra hood in indigo-black**, a "vertical" creature. It is an upright
-serpent seen from above:
-- a haunched back is reared up on the tail;
-- the tail curls from under the chest, shows at one hip, and trails out behind; it slithers
-  when the creature moves;
-- two arms each end in a single short hooked talon (the owner's call over the round 5 scythes);
-- a hood stays folded at rest and pops open, venom-green inside, to fire.
+Round 5 settled the body: **the cobra hood in indigo-black**, a "vertical" creature, an upright
+serpent seen from above. The owner then reworked it into a hydralisk knockoff:
+- no arms or claws;
+- the body rears out of a thick tail that lies curled round its base when it stands or fires, and
+  stays planted while only the body and head rear and lunge; its root bends to stay joined to the body;
+- on the move the tail uncurls to the same length and slithers to show direction; there is no turret,
+  the tail follows the facing;
+- the head is **Ridge** (head round 4, `exploration/rounds/spitter-head-1..4/`): one ivory crest line
+  from the snout down the spine and tail, two slim crest blades;
+- to spit, the head rears back with the crest flared and the lower jaw thrust forward, so the camera
+  above sees the mouth only as a gap at the front, never on top of the skull;
+- dead, it bursts as a Brute does (`RavBurst`): the head comes away, one or two lengths of tail are
+  thrown, over the Runner's red blood.
 
 The acid stays a dark venom green.
 
-It is built from separate parts, the way infantry are. Production sources are in `spitter/`:
-- `raw/hero-open-v2.png` is the whole creature with talon arms (over round 5's `hero-open.png`);
-- `guides/part-*.png` are that plate with only one part left, the geometry guide for each part;
-- `raw/part-back.png`, `part-tail.png`, `part-arm.png` and `part-head-open.png` were each
-  generated over their guide, and `part-head-shut.png` over the flared head;
+It is built from separate parts, the way infantry are. ImageGen copies guide shapes literally, so every
+guide is a top-down render of a 3D swept-sphere pose model (`exploration/spitter_pose_model.py`, which
+also renders side and three-quarter views to check the pose). Production sources are in `spitter/`:
+- `guides/ridge-part-*.png` are the pose model's renders of each part alone, in one shared frame;
+- `raw/ridge-body.png`, `ridge-head.png`, `ridge-head-spit.png` and `ridge-tail.png` were each
+  generated over their guide, with head round 4's `p2-ridge.png` as the design reference
+  (`ridge-head-spit-v1.png` is the rejected first spit head, mouth on top);
 - `raw/acid.png` is the acid sheet: the glob, two splashes and a pool.
 
 Each has its prompt and provenance. `export_spitter_rig.py` exports the parts into
 `mod/graphics/battle/rav-spitter/`, cuts the straight tail into short slices, and appends the
 splashes and the pool to the decal strip. `RavSpitterRig` and `RavSpitterComposer` animate the
-parts, and the `rav-spitter-motion` snapshot suite shows the lob.
+parts, and the `rav-spitter-motion` snapshot suite shows the glide, the lob and the death.
 
 ## Matriarch (design settled 2026-10-21)
 

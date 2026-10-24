@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f2c-ef2f-76c3-907d-6233aea12e09",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f2c-ef2f-76c3-907d-6233aea12e09\\exec-77d95e2a-f21b-4db1-94e6-36f41bc632de.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-3\\raw\\v1-helm.png",
+    "sha256": "b18da95685f56053df6b9c405ffed2392f38b79c9307e0767e2f1a406e8a82a6",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-3\\prompts\\v1-helm.prompt.txt",
+  "promptSha256": "73db2d64fd3a0a36e1fadc5358445babae74cc5085c4a0246ad3897c9284e89c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Outline, placement, scale and shading: fill it in, keep it this slender\nImage 2: Colours and material only; not layout or design\n\nA production top-down sprite for a tactical game: the whole Rav Bloom Spitter, a slender serpentine beast that rears up out of its own tail like a cobra and lobs acid, seen from DIRECTLY ABOVE, head facing UP. It has NO arms and NO claws.\n\nReference image 1 is a smooth shaded blockout: it is the exact outline, placement, scale and shading of the animal. Fill it in with armour and anatomy that follow its outline closely, keeping it as slender as the blockout. Do NOT add bulges, round segments or width it does not have. Its brightness falls from the head to the tail because the head is high, nearest the camera, and the tail lies on the ground: keep that light-to-dark ramp, so the animal reads as standing upright. The narrow neck, the slightly broader chest and haunch beneath it, then the tail tapering away to a spike.\n\nReference image 2 is for colours and material only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in the gaps, ivory bone, small amber eyes.\n\nKEEP IT CLEAN AND READABLE AT SMALL SIZE: a few long smooth plates that follow the body, not many small ones; few spines; no busy texture.\n\nDESIGN: A sleek bone-helmet head: one large smooth ivory plate over the skull with two amber eye slits, swept back into the neck. Long smooth indigo plates down the body.\n\nStrict overhead orthographic view, light from the upper left. Plain flat light grey background (#afafaf), no cast shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-3\\guides\\slender-guide.png",
+      "sha256": "89492df3e8c255165311fcb154a33ecd384503b5d2417ca4e2eba99f4aab785d",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Outline, placement, scale and shading: fill it in, keep it this slender"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and material only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the slender blockout for shape and shading, and the second reference for colors and materials only.\n"
+  ],
+  "usage": {
+    "input_tokens": 45062,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 629,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 46.9
+}

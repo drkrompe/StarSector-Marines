@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f23-fe52-7523-9b77-b100209af766",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f23-fe52-7523-9b77-b100209af766\\exec-579b7ba5-54d9-4efc-88c6-6fd886a98136.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\raw\\h2-cobra.png",
+    "sha256": "0cc4967351c0164ab590319cc36f24f23ce88213cb90eedabfc35252b3670879",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\prompts\\h2-cobra.prompt.txt",
+  "promptSha256": "5ffb814f3266b37fcbcc03efeeb60294f68bcf1a5e591aaaaa8bd26591999e3c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Position and scale on the canvas only; the design is new\nImage 2: Colours and plate finish only; not layout or design\n\nA single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter, an upright serpentine beast that lobs acid, seen from DIRECTLY ABOVE, facing UP, as its own separate part. Reference image 1 fixes only the part's position and scale on the canvas (the head sits in the same place, about the same size, its neck ending in a rounded closed stump at the bottom that tucks under the body); the DESIGN is new, as described below. Reference image 2 is the whole creature, for colours and plate finish only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone, small amber eyes, and deep venom-green acid glowing where it is stored.\n\nDESIGN: COBRA HOOD, REFINED. A compact wedge head with the cobra hood flared wide behind it, the hood ribbed with fine ivory spines and its inner membrane glowing venom green in two teardrop panels, a dark spine ridge running down its centre.\n\nNo arms, no claws, no shoulders, no body, no tail. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\part-head-open.png",
+      "sha256": "0974056459cdf5884402d7009bdaca6e5f150654640237c8377df8913bf422e9",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Position and scale on the canvas only; the design is new"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and plate finish only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one head sprite using the imagegen skill, with the first reference guiding placement and the second guiding color and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 83905,
+    "cached_input_tokens": 67584,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 644,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 58.3
+}

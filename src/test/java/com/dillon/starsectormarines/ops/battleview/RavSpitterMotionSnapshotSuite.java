@@ -23,8 +23,8 @@ import java.util.function.Function;
  * The Spitter's motion, large enough to judge: its skeleton ({@link RavSpitterRig}) stepped every tick and drawn
  * through the production {@link RavSpitterComposer}, so this is exactly what the battle draws, magnified. No battle
  * is played. Four panels: gliding north (the wave down the tail), weaving (the tail lagging each turn), standing and
- * lobbing as the battle's cooldown cycles (the hood popping, the rear, the lunge, the fold), and its corpse in its
- * pool. A still of the lob's beats goes with the GIF.
+ * lobbing as the battle's cooldown cycles (the head rearing to spit, the lunge, the fold), and its death: standing,
+ * then bursting over the Runner's blood. Stills of the lob's and the death's beats go with the GIF.
  * 1920x1080 at 100% scale, one frame per simulation tick.
  */
 public final class RavSpitterMotionSnapshotSuite implements SnapshotSuite {
@@ -35,12 +35,15 @@ public final class RavSpitterMotionSnapshotSuite implements SnapshotSuite {
     private static final float PPC = 200f;
     /** The lob panel's cooldown: the battle's Spitter strike cooldown, near enough. */
     private static final float COOLDOWN = 2.0f;
+    /** The tick the dying Spitter dies on, and the death sheet's beats after it, seconds. */
+    private static final int DEATH_TICK = 15;
+    private static final float[] DEATH_BEATS = {0.12f, 0.35f, 0.8f, 2.45f};
     private final Map<String, BufferedImage> images = new HashMap<>();
     private Path modRoot;
 
     @Override public String id() { return "rav-spitter-motion"; }
 
-    @Override public String label() { return "Rav Spitter: the glide, the tail through turns, the lob, and its corpse, magnified"; }
+    @Override public String label() { return "Rav Spitter: the glide, the tail through turns, the lob, and its death, magnified"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -56,11 +59,17 @@ public final class RavSpitterMotionSnapshotSuite implements SnapshotSuite {
         };
         RavSpitterAssets art = RavSpitterAssets.load(loader);
         if (art == null) throw new IllegalStateException("Rav Spitter art missing under " + modRoot);
+        LayeredSpriteCache[] splat = new LayeredSpriteCache[4];
+        for (int i = 0; i < splat.length; i++) splat[i] = loader.apply(RavRunnerAssets.ROOT + "ichor-splat-" + i + ".png");
+        LayeredSpriteCache drop = loader.apply(RavRunnerAssets.ROOT + "ichor-drop.png");
 
         RavSpitterRig walker = new RavSpitterRig(3L), weaver = new RavSpitterRig(4L), lobber = new RavSpitterRig(5L);
+        RavSpitterRig dying = new RavSpitterRig(6L);
         float walkY = 0f, weaveX = 0f, weaveY = 0f, cooldown = 0.9f;
         List<BufferedImage> frames = new ArrayList<>();
         List<float[]> beats = new ArrayList<>();
+        List<BufferedImage> deathFrames = new ArrayList<>();
+        int nextBeat = 0;
         for (int tick = 0; tick < TICKS; tick++) {
             walkY += 1.4f * DT;
             walker.advance(0f, walkY, 0f, 1f, false, DT);
@@ -73,6 +82,8 @@ public final class RavSpitterMotionSnapshotSuite implements SnapshotSuite {
             if (cooldown <= 0f) cooldown = COOLDOWN;     // the lob: the battle resets the cooldown as it fires
             lobber.advance(0f, 0f, 0f, cooldown, true, DT);
             beats.add(new float[]{lobber.brace(), lobber.hood()});
+            if (tick < DEATH_TICK) dying.advance(0f, 0f, 20f, 1f, false, DT);
+            else dying.advanceDead(0f, 0f, DT);
 
             BufferedImage output = canvas();
             Graphics2D g = graphics(output);
@@ -83,17 +94,28 @@ public final class RavSpitterMotionSnapshotSuite implements SnapshotSuite {
             text(g, "Gliding north", 50, 1050, 15);
             text(g, "Weaving: the tail lags the turn %+.0f°".formatted(weaver.tailAngle(2)), 515, 1050, 15);
             text(g, "Lobbing: brace %.2f, hood %.2f".formatted(lobber.brace(), lobber.hood()), 980, 1050, 15);
-            text(g, "Dead: dulled in its acid", 1445, 1050, 15);
+            text(g, dying.dead() ? "Dead: burst, %.1f s".formatted(dying.burst().sinceDeath()) : "About to die",
+                    1445, 1050, 15);
             draw(g, art, walker, 262, 620);
             draw(g, art, weaver, 727, 620);
             draw(g, art, lobber, 1192, 620);
-            drawDead(g, art, 1657, 620);
+            if (dying.dead()) {
+                RavSpitterComposer.emitDead(emitter(g), art, splat, drop, dying, 1657, 1080f - 620, PPC, 1f);
+            } else {
+                draw(g, art, dying, 1657, 620);
+            }
             g.dispose();
             frames.add(output);
+            if (tick == DEATH_TICK - 1 || nextBeat < DEATH_BEATS.length && dying.dead()
+                    && dying.burst().sinceDeath() >= DEATH_BEATS[nextBeat]) {
+                if (dying.dead()) nextBeat++;
+                deathFrames.add(output);
+            }
         }
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         artifacts.add(SnapshotArtifact.colorAnimation("rav-spitter-motion.gif", frames, 33));
         artifacts.add(new SnapshotArtifact("rav-spitter-lob.png", lobSheet(frames, beats)));
+        artifacts.add(new SnapshotArtifact("rav-spitter-death.png", deathSheet(deathFrames)));
         return artifacts;
     }
 
@@ -120,13 +142,25 @@ public final class RavSpitterMotionSnapshotSuite implements SnapshotSuite {
         return output;
     }
 
+    /** The death panel at its beats: alive, then the burst in the air, landing, and settled. */
+    private static BufferedImage deathSheet(List<BufferedImage> frames) {
+        String[] names = {"alive", "the burst", "pieces in the air", "landing", "settled"};
+        BufferedImage output = canvas();
+        Graphics2D g = graphics(output);
+        text(g, "RAV BLOOM SPITTER / DEATH", 40, 46, 26);
+        int n = Math.min(frames.size(), names.length);
+        for (int i = 0; i < n; i++) {
+            int x = i * 384, y = 100;
+            g.drawImage(frames.get(i), x, y, x + 384, y + 720, 1440, 150, 1905, 1020, null);
+            text(g, names[i], x + 16, y + 760, 16);
+        }
+        g.dispose();
+        return output;
+    }
+
     private void draw(Graphics2D g, RavSpitterAssets art, RavSpitterRig rig, float x, float y) {
         // the pose is in the body's own frame, so each panel keeps its Spitter centred as it walks
         RavSpitterComposer.emit(emitter(g), art, rig, x, 1080f - y, PPC, 1f);
-    }
-
-    private void drawDead(Graphics2D g, RavSpitterAssets art, float x, float y) {
-        RavSpitterComposer.emitDead(emitter(g), art, x, 1080f - y, 20f, PPC, 1f);
     }
 
     private LayeredUnitComposer.SpriteEmitter emitter(Graphics2D g) {

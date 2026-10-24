@@ -1349,10 +1349,16 @@ public final class UnitRenderService implements RenderSystem {
                     else RavBruteComposer.emitDead(out, bruteArt, splat, drop, deadBrute, bx, by, ppc, alpha);
                     continue;
                 }
-                if (deadSpitterArt != null && ravRigs != null && ravRigs[r] instanceof RavSpitterRig deadSpitter) {
-                    // A dead Spitter lies dulled where it fell, in the acid its burst dome spilled.
-                    RavSpitterComposer.emitDead(out, deadSpitterArt, cam.cellToScreenX(rx[r]),
-                            cam.cellToScreenY(ry[r]), corpseFacing[r], cam.cellPxSize() * deadSpitter.scale() * shrink, alpha);
+                if (deadSpitterArt != null && ravRigs != null && ravRigs[r] instanceof RavSpitterRig deadSpitter
+                        && deadSpitter.dead()) {
+                    // A dead Spitter has burst as a Brute does, over the same blood.
+                    LayeredSpriteCache[] splat = ravArt != null ? ravArt.splat : null;
+                    LayeredSpriteCache drop = ravArt != null ? ravArt.drop : null;
+                    float bx = cam.cellToScreenX(deadSpitter.bodyX()), by = cam.cellToScreenY(deadSpitter.bodyY());
+                    float ppc = cam.cellPxSize() * deadSpitter.scale() * shrink;
+                    QuadMesh settled = settledBodies.spitter(deadSpitter, deadSpitterArt, splat, drop);
+                    if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
+                    else RavSpitterComposer.emitDead(out, deadSpitterArt, splat, drop, deadSpitter, bx, by, ppc, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead

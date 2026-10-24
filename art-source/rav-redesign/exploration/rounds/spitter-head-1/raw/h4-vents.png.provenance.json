@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f23-fe43-7091-8a73-13e32d14709e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f23-fe43-7091-8a73-13e32d14709e\\exec-2fe9049c-cc4b-4b71-b2bb-81d4462ff63b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\raw\\h4-vents.png",
+    "sha256": "e320dedad0431cf9e2a83344ff524e3b2b299529694a13e315c907ff9ec97bc2",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\prompts\\h4-vents.prompt.txt",
+  "promptSha256": "5aa7bb025a16d08de07203014273de7e70d911af7a40065b6aae2912cd1863c8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Position and scale on the canvas only; the design is new\nImage 2: Colours and plate finish only; not layout or design\n\nA single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter, an upright serpentine beast that lobs acid, seen from DIRECTLY ABOVE, facing UP, as its own separate part. Reference image 1 fixes only the part's position and scale on the canvas (the head sits in the same place, about the same size, its neck ending in a rounded closed stump at the bottom that tucks under the body); the DESIGN is new, as described below. Reference image 2 is the whole creature, for colours and plate finish only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone, small amber eyes, and deep venom-green acid glowing where it is stored.\n\nDESIGN: MORTAR VENTS. A blunt heavy skull like a battering ram, crowned with a cluster of five short bony vent tubes pointing up and back from the top of the head, their openings glowing venom green, plates layered like armour over the brow.\n\nNo arms, no claws, no shoulders, no body, no tail. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\part-head-open.png",
+      "sha256": "0974056459cdf5884402d7009bdaca6e5f150654640237c8377df8913bf422e9",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Position and scale on the canvas only; the design is new"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and plate finish only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one head-layer image with the specified mortar vents, placement, and palette."
+  ],
+  "usage": {
+    "input_tokens": 110425,
+    "cached_input_tokens": 102528,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 684,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 46.6
+}

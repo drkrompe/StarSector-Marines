@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f23-fde4-74a0-a56f-944464e54258",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f23-fde4-74a0-a56f-944464e54258\\exec-9149f80e-fbe8-4a91-b308-d954b2f3242f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\raw\\h1-crest.png",
+    "sha256": "1fd93f5a103f1cd8feaa04bde9b1ae211ea7289abb4a1959cdbc855686024ee5",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-1\\prompts\\h1-crest.prompt.txt",
+  "promptSha256": "ad7ccaa107c598736f833ddb3e63e49cfc448a884011cd969baeae8646f5c663",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Position and scale on the canvas only; the design is new\nImage 2: Colours and plate finish only; not layout or design\n\nA single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter, an upright serpentine beast that lobs acid, seen from DIRECTLY ABOVE, facing UP, as its own separate part. Reference image 1 fixes only the part's position and scale on the canvas (the head sits in the same place, about the same size, its neck ending in a rounded closed stump at the bottom that tucks under the body); the DESIGN is new, as described below. Reference image 2 is the whole creature, for colours and plate finish only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone, small amber eyes, and deep venom-green acid glowing where it is stored.\n\nDESIGN: HYDRALISK CREST. A long narrow wedge-shaped skull with a heavy armoured brow, and a broad swept-back cowl of overlapping bone plates fanning out behind the head like a hood made of armour, its plate edges ivory. Jaws slightly parted showing a green glow in the throat.\n\nNo arms, no claws, no shoulders, no body, no tail. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\part-head-open.png",
+      "sha256": "0974056459cdf5884402d7009bdaca6e5f150654640237c8377df8913bf422e9",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Position and scale on the canvas only; the design is new"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and plate finish only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one head layer using the first image for placement and scale, and the second for colours and plate finish."
+  ],
+  "usage": {
+    "input_tokens": 43038,
+    "cached_input_tokens": 36224,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 541,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.9
+}

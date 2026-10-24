@@ -1,23 +1,23 @@
-"""Exports the Spitter's parts (the cobra hood in indigo-black, built as layers the way infantry are) into the sprites
-RavSpitterComposer draws, and the acid sheet into its glob, its corpse's pool and its ground splats.
+"""Exports the Spitter's parts (the Ridge design in indigo-black, built as layers the way infantry are) into the sprites
+RavSpitterComposer draws, and the acid sheet into its glob and its ground splats.
 
   python export_spitter_rig.py [--preview <png>]
 
-Each part was generated on its own over a guide cut from the whole creature (raw/hero-open-v2.png, guides/part-*.png),
-on the same 1024 x 1536 canvas, so every part's pixels share one frame:
-  back       raw/part-back.png: the haunched back, chest and shoulders, with a neck stump, closed shoulder sockets
-             and a rounded haunch; no head, arms or tail;
-  head-open  raw/part-head-open.png: the head with the hood flared and jaws open;
-  head-shut  raw/part-head-shut.png: the same head with the hood folded (generated over head-open);
-  tail-0..11 raw/part-tail.png: the straight tail, cut into short slices from the root down, each overlapping the
-             next, so it can coil under the haunch and slither in a smooth curve;
-  dead       the parts assembled straight, dulled.
+Each part was generated on its own over a top-down render of a 3D pose model of that part
+(exploration/spitter_pose_model.py, guides/ridge-part-*.png), on the same 1024 x 1536 canvas, so every part's
+pixels share one frame:
+  back       raw/ridge-body.png: the body from where it rises off the tail to a neck stump;
+  head-shut  raw/ridge-head.png: the head, jaws closed;
+  head-open  raw/ridge-head-spit.png: the head reared back to spit, crest flared, the lower jaw thrust forward;
+  tail-0..11 raw/ridge-tail.png: the straight tail, cut into short slices from the root down, each overlapping the
+             next, so it can curl round the base and slither in a smooth curve.
+A dead Spitter bursts into these same parts (RavBurst), so it has no corpse sprite of its own.
 Boxes and pivots are canvas pixels; RavSpitterRig and RavSpitterComposer name the same ones. Sprites are written at
 SCALE of the canvas into mod/graphics/battle/rav-spitter/.
 
 The acid sheet (raw/acid.png) has four items in its quarters: the glob in flight (turned to travel up, as projectile
-sprites do), two splashes and a pool. The glob ships as the acid weapon's projectile sprite and the pool as the bed
-a dead Spitter lies in; the splashes and the pool are appended to the decal strip mod/graphics/decals/decals.png as
+sprites do), two splashes and a pool. The glob ships as the acid weapon's projectile sprite; the splashes and the
+pool are appended to the decal strip mod/graphics/decals/decals.png as
 DecalKind ACID_SPLASH, ACID_SPLASH_LONG and ACID_POOL (a rerun rebuilds them from the strip's first 2048 columns).
 """
 import argparse
@@ -36,13 +36,13 @@ SCALE = 0.25
 
 # Canvas pixel geometry (1024 x 1536, facing up), mirrored about CENTRE_COL.
 CENTRE_COL = 512
-BACK_BOX = (240, 230, 784, 900)
-HEAD_BOX = (220, 10, 804, 490)            # both hood states share it
-TAIL_TOP, TAIL_TIP = 480, 1503            # the tail's root (hidden under the haunch) and its spike's point
+BACK_BOX = (360, 360, 664, 790)           # the body from the tail to the neck
+HEAD_BOX = (300, 200, 724, 580)           # both head states share it
+TAIL_TOP, TAIL_TIP = 560, 1404            # the tail's root (hidden under the haunch) and its spike's point
 TAIL_SLICES = 12
 TAIL_SEAMS = tuple(round(TAIL_TOP + (TAIL_TIP - TAIL_TOP) * i / TAIL_SLICES) for i in range(TAIL_SLICES + 1))
 TAIL_OVERLAP = 14                         # each slice reaches this far past its seams, so a bend shows no gap
-TAIL_COLS = (380, 644)
+TAIL_COLS = (400, 624)
 DECAL_HEIGHT = 160
 ORIGINAL_DECAL_WIDTH = 2048
 
@@ -98,29 +98,21 @@ def cut_tail(tail):
 
 
 def parts():
-    back, tail = (keyed(RAW / f"part-{n}.png") for n in ("back", "tail"))
+    back, tail = (keyed(RAW / f"ridge-{n}.png") for n in ("body", "tail"))
     layers = {"back": (back, BACK_BOX),
-              "head-open": (keyed(RAW / "part-head-open.png"), HEAD_BOX),
-              "head-shut": (keyed(RAW / "part-head-shut.png"), HEAD_BOX)}
+              "head-open": (keyed(RAW / "ridge-head-spit.png"), HEAD_BOX),
+              "head-shut": (keyed(RAW / "ridge-head.png"), HEAD_BOX)}
     layers.update(cut_tail(tail))
     return layers, assembled(back, tail, layers["head-shut"][0])
 
 
 def assembled(back, tail, head):
-    """The parts put together straight, as the dead body lies: tail, back, folded head."""
+    """The parts put together straight, for the preview: tail, back, closed head."""
     canvas = to_image(np.zeros_like(back))
     canvas.alpha_composite(to_image(tail))
     canvas.alpha_composite(to_image(back))
     canvas.alpha_composite(to_image(head))
     return np.asarray(canvas).astype(float)
-
-
-def dead(plate):
-    """The whole plate dulled: plates greyer and darker, the bone yellowed and dimmed."""
-    rgb = plate[..., :3]
-    grey = rgb.mean(2, keepdims=True)
-    rgb = (rgb * 0.55 + grey * 0.45) * 0.62
-    return np.dstack([rgb, plate[..., 3]])
 
 
 def acid_items():
@@ -161,12 +153,10 @@ def main():
     for stale in OUT.glob("*.png"):
         stale.unlink()
     layers, whole = parts()
-    layers["dead"] = (dead(whole), (0, 0, whole.shape[1], whole.shape[0]))
     for name, (rgba, box) in layers.items():
         shrink(to_image(rgba).crop(box)).save(OUT / f"{name}.png", optimize=True)
     glob, splash, splash_long, pool = acid_items()
     shrink(glob, 96 / max(glob.size)).save(OUT / "acid-glob.png", optimize=True)
-    shrink(pool, 256 / max(pool.size)).save(OUT / "acid-pool.png", optimize=True)
     width = append_decals([splash, splash_long, pool])
     print("boxes", {k: v[1] for k, v in layers.items()}, "decal strip", width)
     if args.preview:
