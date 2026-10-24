@@ -1736,6 +1736,10 @@ public final class UnitRenderService implements RenderSystem {
                 boolean firing = pose == LayeredAppearance.POSE_ROCKET_FIRE
                         || pose == LayeredAppearance.POSE_AMR_FIRE;
                 variantId = layerClips.variant();
+                if (!firing && (flags & LayeredAppearance.FLAG_SPECIAL_CARRIED) != 0
+                        && layerClips.walking() != null) {
+                    return carriedSpecialPose(layouts, layerClips, locomotionPhase, actionPhase);
+                }
                 animationId = firing && layerClips.firing() != null
                         ? layerClips.firing() : layerClips.using();
                 phase = actionPhase;
@@ -1777,6 +1781,20 @@ public final class UnitRenderService implements RenderSystem {
         LayerPose source = sourceClip.sample(fromMoving ? locomotionPhase : 0f);
         return LayerPose.blendMatching(source, sampled,
                 phase / LayeredAppearance.ACTION_ENTRY_BLEND_PHASE);
+    }
+
+    /**
+     * A readied special carried in its walking clip at the stride, blended toward the aim by how far it is carried
+     * ({@code carried}, 0 at the aim to 1 fully carried), so a Marine stopping raises it rather than snapping.
+     */
+    private static LayerPose carriedSpecialPose(UnitLayerLayouts layouts, LayerClips layerClips,
+                                                float locomotionPhase, float carried) {
+        AnimationClip walking = layouts.clip("marine-line", layerClips.variant(), layerClips.walking());
+        AnimationClip aiming = layouts.clip("marine-line", layerClips.variant(), layerClips.using());
+        if (walking == null) return aiming != null ? aiming.sample(1f) : null;
+        LayerPose carry = walking.sample(locomotionPhase);
+        if (aiming == null || carried >= 1f) return carry;
+        return LayerPose.blendMatching(aiming.sample(1f), carry, carried);
     }
 
     private static LayerPose mechPose(int chassis, float locomotionPhase, int flags) {

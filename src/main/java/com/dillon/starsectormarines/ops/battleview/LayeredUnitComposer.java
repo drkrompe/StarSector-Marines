@@ -260,15 +260,26 @@ final class LayeredUnitComposer {
                 : treating ? assets.specialEquipment(TreatmentKitLayer.ASSET_KEY)
                 : packedSprite != null ? packedSprite
                 : assets.specialEquipment(specialDef.id());
+        // Carried in its walking clip, the phase is how far it is carried and the item sits fully in use.
+        boolean specialCarried = specialUsing && !treating && packedSprite == null
+                && (flags & LayeredAppearance.FLAG_SPECIAL_CARRIED) != 0;
         EquipmentLayerComposer.Placement specialPlacement = specialSprite != null
-                ? equipmentPlacement(specialLayer, specialUsing, specialFiring, weaponPhase,
+                ? equipmentPlacement(specialLayer, specialUsing, specialFiring,
+                        specialCarried ? 1f : weaponPhase,
                         assets, authoredPose, actorX, actorY, pxPerSw, facingDeg)
                 : null;
         LayerTransform specialTransform = layer(authoredPose, "special");
-        // The kit is set down on the ground before the medic at its own size; the
-        // clip's hand transform is authored for satchel art and would shrink it.
-        if (!treating && specialPlacement != null && specialTransform != null
+        if (specialCarried && specialPlacement != null && specialTransform != null) {
+            // The walking clip places the item in the hands whatever it is attached to, from its held place at
+            // the aim to its carry as the Marine starts walking, and back again when it stops.
+            specialPlacement = blendPlacement(specialPlacement,
+                    carriedEquipmentPlacement(specialLayer, specialTransform, actorX, actorY, pxPerSw,
+                            facingDeg, specialPlacement.occlusion()),
+                    smoothstep(clamp01(weaponPhase)));
+        } else if (!treating && specialPlacement != null && specialTransform != null
                 && specialLayer.attachment() == EquipmentLayerDef.Attachment.ACTOR) {
+            // The kit is set down on the ground before the medic at its own size; the
+            // clip's hand transform is authored for satchel art and would shrink it.
             specialPlacement = authoredEquipmentPlacement(specialSprite, specialTransform,
                     actorX, actorY, pxPerSw, facingDeg, specialPlacement);
         }
@@ -709,6 +720,33 @@ final class LayeredUnitComposer {
                 sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx,
                 sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx,
                 angle, fallback.occlusion());
+    }
+
+    /**
+     * An item in its walking clip: the clip's {@code special} layer says where the hands hold it, the item's own
+     * layer how big it is, so the carry and the aim draw the same launcher or rifle.
+     */
+    private static EquipmentLayerComposer.Placement carriedEquipmentPlacement(
+            EquipmentLayerDef equipment, LayerTransform transform,
+            float actorX, float actorY, float swPx, float facingDeg,
+            EquipmentLayerDef.Occlusion occlusion) {
+        float[] pivot = worldPoint(actorX, actorY, transform.offsetX(), transform.offsetY(), swPx, facingDeg);
+        float width = equipment.widthShoulders() * transform.scaleX() * swPx;
+        float height = equipment.heightShoulders() * transform.scaleY() * swPx;
+        float angle = facingDeg + transform.angleDegrees();
+        float[] centerOffset = rotate((0.5f - transform.pivotX()) * width,
+                (transform.pivotY() - 0.5f) * height, angle);
+        return new EquipmentLayerComposer.Placement(pivot[0] + centerOffset[0], pivot[1] + centerOffset[1],
+                width, height, angle, occlusion);
+    }
+
+    /** {@code from} moved {@code t} of the way to {@code to}, turning the short way; {@code to}'s occlusion. */
+    private static EquipmentLayerComposer.Placement blendPlacement(EquipmentLayerComposer.Placement from,
+            EquipmentLayerComposer.Placement to, float t) {
+        float turn = LayeredAppearance.wrapDegrees(to.angleDegrees() - from.angleDegrees());
+        return new EquipmentLayerComposer.Placement(lerp(from.centerX(), to.centerX(), t),
+                lerp(from.centerY(), to.centerY(), t), lerp(from.width(), to.width(), t),
+                lerp(from.height(), to.height(), t), from.angleDegrees() + turn * t, to.occlusion());
     }
 
     /** The handset's size is its own authored art; the clip owns where the hand puts it. */

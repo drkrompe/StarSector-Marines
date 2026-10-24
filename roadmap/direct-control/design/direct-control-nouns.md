@@ -563,7 +563,8 @@ primary on its own. The pick resets to the primary on takeover and handback, and
 a special no longer carried returns it there. The controlled Marine **holds the
 picked special** in place of the primary, the launcher on the shoulder or the
 rifle in the hands: raised over the wind-up, through its firing clip for the
-follow-through after a round, and in its aim pose on walking feet while moving.
+follow-through after a round, and carried in the item's own walking clip while
+it walks with the special readied, coming back up to the aim when it stops.
 Autonomous Marines use their specials through their AI policy as before.
 
 The **flamer is a held stream** rather than a single round. Picked, it readies over
