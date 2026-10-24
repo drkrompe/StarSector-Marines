@@ -202,6 +202,18 @@ KIT_CLOSE = (
     "transparency is impossible, flat pure white). Coarse readable detail that survives being shrunk to about 32 to "
     "64 pixels per square; hand-painted gritty Starsector-like finish, light from the upper left.")
 
+# A kit variant whose windows are open loopholes rather than glazed (an owner question for the field-built styles): an
+# edit of the accepted kit sheet that touches only its four window slots.
+LOOPHOLE = (
+    "Use case: image edit of a finished sprite sheet. Image 1 is this set's kit sheet and the authoritative edit target: "
+    "keep EVERYTHING exactly as it is, the same 1536x1024 canvas, every piece, position, size, material and the "
+    "transparent background, except the four WINDOWS in the top-left 2x2 block of 144-pixel squares (the framed glazed "
+    "openings lying along one edge of each square). Repaint only those four as OPEN FIRING LOOPHOLES: the same frame "
+    "outline, length and position along the same edge, in the same material as the frame now, but no glass, no panes and "
+    "no mullion: the opening between the frame's two ends is a narrow dark open gap, a slot to shoot through, with the "
+    "frame's material splayed round it. Everything else on the sheet is untouched. Straight overhead orthographic view, "
+    "no text, no labels.")
+
 
 def main():
     look = sys.argv[1]
@@ -209,13 +221,17 @@ def main():
     state = sys.argv[sys.argv.index('--state') + 1] if '--state' in sys.argv else None
     gatehouse = '--gatehouse' in sys.argv
     kit = '--kit' in sys.argv
+    loophole = '--kit-loophole' in sys.argv
     style, brief = LOOKS[look]
-    name = ('kit-' + look) if kit else ('gatehouse-' + look) if gatehouse else look if state is None else look + '-' + state
+    name = ('kit-' + look + '-loophole') if loophole else ('kit-' + look) if kit else ('gatehouse-' + look) if gatehouse else look if state is None else look + '-' + state
     prompt = HERE / 'prompts' / (name + '.prompt.txt')
     raw = HERE / 'raw' / (name + '.raw.png')
     prompt.parent.mkdir(exist_ok=True)
     raw.parent.mkdir(exist_ok=True)
-    if kit:
+    if loophole:
+        prompt.write_text(LOOPHOLE + '\n', encoding='utf-8')
+        refs = ['%s=The kit sheet: edit target; change only its four window slots' % (HERE / 'raw' / ('kit-' + look + '.raw.png'))]
+    elif kit:
         prompt.write_text(KIT + brief + KIT_CLOSE + '\n', encoding='utf-8')
         refs = ['%s=Geometry authority and edit target: keep every piece where and how big it is'
                 % (HERE / 'guides/kit-guide.png'),

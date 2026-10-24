@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f48-a1c9-7920-ab56-174c1a474ea0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f48-a1c9-7920-ab56-174c1a474ea0\\exec-e0105c62-5fa2-4939-aa55-3da383ef90a7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\kit-derelict-pirate-loophole.raw.png",
+    "sha256": "2b8f9ca1e8c552404bc1d666da9ddbcbfa1d51ce52ec5735a126cbd23e4fcc9e",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\kit-derelict-pirate-loophole.prompt.txt",
+  "promptSha256": "bae399c01199e4bdee4cda74c2101801d37971639838709278d0872bbe9022fe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The kit sheet: edit target; change only its four window slots\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's kit sheet and the authoritative edit target: keep EVERYTHING exactly as it is, the same 1536x1024 canvas, every piece, position, size, material and the transparent background, except the four WINDOWS in the top-left 2x2 block of 144-pixel squares (the framed glazed openings lying along one edge of each square). Repaint only those four as OPEN FIRING LOOPHOLES: the same frame outline, length and position along the same edge, in the same material as the frame now, but no glass, no panes and no mullion: the opening between the frame's two ends is a narrow dark open gap, a slot to shoot through, with the frame's material splayed round it. Everything else on the sheet is untouched. Straight overhead orthographic view, no text, no labels.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\kit-derelict-pirate.raw.png",
+      "sha256": "06de4e90cd8aff2f4cab4458c52a93aae06d22c9ecf75084e0946ec86a7cf3c5",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The kit sheet: edit target; change only its four window slots"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use ImageGen to change only the four window openings into open firing loopholes, preserving the rest of the sheet.\n"
+  ],
+  "usage": {
+    "input_tokens": 39715,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 369,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.5
+}

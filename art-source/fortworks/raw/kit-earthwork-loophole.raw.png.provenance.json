@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f48-a1c8-70e1-9903-76d752cefd61",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f48-a1c8-70e1-9903-76d752cefd61\\exec-0596ee24-f33a-449f-b7c9-67fc347afc3b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\kit-earthwork-loophole.raw.png",
+    "sha256": "04d671c7aaa8fce2d08b1dc521d8793e8298150b8e95b1e812901655b0e47ec8",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\kit-earthwork-loophole.prompt.txt",
+  "promptSha256": "bae399c01199e4bdee4cda74c2101801d37971639838709278d0872bbe9022fe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The kit sheet: edit target; change only its four window slots\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's kit sheet and the authoritative edit target: keep EVERYTHING exactly as it is, the same 1536x1024 canvas, every piece, position, size, material and the transparent background, except the four WINDOWS in the top-left 2x2 block of 144-pixel squares (the framed glazed openings lying along one edge of each square). Repaint only those four as OPEN FIRING LOOPHOLES: the same frame outline, length and position along the same edge, in the same material as the frame now, but no glass, no panes and no mullion: the opening between the frame's two ends is a narrow dark open gap, a slot to shoot through, with the frame's material splayed round it. Everything else on the sheet is untouched. Straight overhead orthographic view, no text, no labels.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\kit-earthwork.raw.png",
+      "sha256": "775b5b9d9203026456e6309e17fe1131b5ec090d051ed05c82d35b64b3792108",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The kit sheet: edit target; change only its four window slots"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to change only the four window openings into narrow, open firing loopholes, preserving the rest of the sheet.\n"
+  ],
+  "usage": {
+    "input_tokens": 40651,
+    "cached_input_tokens": 35456,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 394,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.9
+}
