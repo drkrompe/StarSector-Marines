@@ -790,6 +790,13 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         return mech != null ? mech.compartment() : List.of();
     }
+
+    /** The selected mech's compartment parts that pack into one bay, at their places there. */
+    public List<MechCompartment.Placement> compartmentPlacements(SocketId bay) {
+        CampaignMech mech = selectedMech();
+        if (mech == null || bay == null || !bay.compartment()) return List.of();
+        return MechCompartment.in(MechCompartment.pack(MechCompartment.of(mech.variant()), mech.compartment()), bay);
+    }
     public Runnable selectSlotAction(SocketId slot) { return () -> selectSlot(slot); }
     public Runnable stripWeaponAction(SocketId slot) { return () -> stripWeapon(slot); }
     public Signal<String> feedbackText() { return feedbackText; }
@@ -822,7 +829,7 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         return mech != null && (installedWeapon(id) != null
                 || id == SocketId.CORE && installedInternal(id) != null
-                || id == SocketId.AUXILIARY && !mech.compartment().isEmpty());
+                || id != null && id.compartment() && !compartmentPlacements(id).isEmpty());
     }
 
     /** Selects a socket directly from the physical fitting doll. */
@@ -859,7 +866,8 @@ public final class MechLabViewModel {
      */
     public boolean canDropCatalogInternal(MechInternal internal, SocketId target) {
         CampaignMech mech = selectedMech();
-        if (mech == null || internal == null || target == null || internal.role.socket() != target
+        if (mech == null || internal == null || target == null
+                || (internal.role.compartment() ? !target.compartment() : internal.role.socket() != target)
                 || MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal
                 || !inStores(internal) || !bay.canInstallInternal(mech.id(), internal)) return false;
         return bay.withinBudget(mech.id(), mech.fit().withInternal(internal.role, internal));
@@ -1278,7 +1286,7 @@ public final class MechLabViewModel {
             MechWeaponComponent weapon = slotWeapon(mech, slot);
             boolean locked = definition.factoryLocked();
             MechInternal internal = roleFor(slot) != null ? mech.internal(roleFor(slot)) : null;
-            boolean compartment = slot == SocketId.AUXILIARY;
+            boolean compartment = slot.compartment();
             boolean internalSocket = roleFor(slot) != null || compartment;
             // An empty engine well, or a compartment without a capacitor bank, keeps the mech off
             // the drop manifest.
@@ -1296,7 +1304,7 @@ public final class MechLabViewModel {
             } else if (internal != null) {
                 telemetry = internalTelemetry(mech.fit(), internal);
             } else if (compartment && !missing) {
-                telemetry = compartmentTelemetry(mech, definition);
+                telemetry = compartmentTelemetry(mech);
             } else if (missing) {
                 telemetry = Strings.get("mechLabSlotRequiredTelemetry");
             } else {
@@ -1333,7 +1341,7 @@ public final class MechLabViewModel {
         if (browsingStores.get()) return Strings.get("openingMechLabAllPartsCopy");
         return switch (selectedSlot.get()) {
             case CORE -> Strings.get("openingMechLabEngineCopy");
-            case AUXILIARY -> Strings.get("openingMechLabCompartmentCopy");
+            case AUXILIARY, AUXILIARY_2 -> Strings.get("openingMechLabCompartmentCopy");
             case ARMS, LEFT_ARM, RIGHT_ARM, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals(Strings.get("openingMechLabEmptyHardpoint"))
                             ? Strings.get("openingMechLabEmptyMountFitCompatibleMissileHardwareHere")
@@ -1363,7 +1371,7 @@ public final class MechLabViewModel {
         if (selectedVehicle() != null) return List.of();
         if (mech != null && platingSelected.get()) return internalCatalog(mech, MechInternal.Role.PLATING);
         if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
-        if (selectedSlot.get() == SocketId.AUXILIARY && mech != null) {
+        if (selectedSlot.get().compartment() && mech != null) {
             List<CatalogRow> rows = new ArrayList<>(internalCatalog(mech, MechInternal.Role.CAPACITOR_BANK));
             rows.addAll(internalCatalog(mech, MechInternal.Role.VENT_ARRAY));
             rows.addAll(internalCatalog(mech, MechInternal.Role.LOADER));
@@ -1377,7 +1385,7 @@ public final class MechLabViewModel {
         SocketDef definition = selectedSocketDefinition();
         boolean occupied = slotWeapon(mech, selectedSlot.get()) != null
                 || selectedSlot.get() == SocketId.CORE
-                || selectedSlot.get() == SocketId.AUXILIARY;
+                || selectedSlot.get().compartment();
         return List.of(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
                 base + ":stock", base + ":telemetry", base + ":delta",
                 base + ":detail", base + ":action", base + ":materials", base + ":body",
@@ -1725,12 +1733,16 @@ public final class MechLabViewModel {
         };
     }
 
-    /** The compartment's fill and what its parts make of the frame: cells used, flux and venting. */
-    private static String compartmentTelemetry(CampaignMech mech, SocketDef compartment) {
+    /**
+     * The compartment's fill across every bay and what its parts make of the frame: cells used,
+     * flux and venting.
+     */
+    private static String compartmentTelemetry(CampaignMech mech) {
         int used = 0;
         for (MechInternal part : mech.compartment()) used += part.footprintColumns * part.footprintRows;
         MechFrameBudget.Fit fit = mech.fit();
-        return Strings.format("openingMechLabCompartmentTelemetry", used, compartment.capacity(),
+        return Strings.format("openingMechLabCompartmentTelemetry", used,
+                MechCompartment.capacity(MechCompartment.of(mech.variant())),
                 number(fit.fluxCapacity()), number(fit.dissipationPerSecond()));
     }
 
@@ -2128,7 +2140,7 @@ public final class MechLabViewModel {
 
     public void stripWeapon(SocketId slot) {
         // The compartment's parts come out one at a time (removeCompartmentPart), never as a well.
-        if (slot == SocketId.AUXILIARY) return;
+        if (slot != null && slot.compartment()) return;
         if (slot != null && roleFor(slot) != null) {
             removeInstalledInternal(slot);
             return;
@@ -2403,14 +2415,16 @@ public final class MechLabViewModel {
             case RIGHT_ARM -> componentName(mech.rightArm());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
-            case AUXILIARY -> compartmentNames(mech);
+            case AUXILIARY, AUXILIARY_2 -> compartmentNames(mech, slot);
         };
     }
 
-    /** The compartment's parts by name, or that it is empty. */
-    private static String compartmentNames(CampaignMech mech) {
+    /** The parts packed into one compartment bay by name, or that it is empty. */
+    private static String compartmentNames(CampaignMech mech, SocketId bay) {
         List<String> names = new ArrayList<>();
-        for (MechInternal part : mech.compartment()) names.add(part.displayName());
+        List<MechCompartment.Placement> placed = MechCompartment.pack(MechCompartment.of(mech.variant()),
+                mech.compartment());
+        for (MechCompartment.Placement part : MechCompartment.in(placed, bay)) names.add(part.part().displayName());
         return names.isEmpty() ? Strings.get("openingMechLabEmptySocket")
                 : String.join(Strings.get("separatorDot"), names);
     }

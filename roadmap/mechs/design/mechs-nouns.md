@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-24 — capacitor banks, vent arrays and loaders share one auxiliary compartment; loaders are inventory parts.
+Updated: 2026-10-24 — capacitor banks, vent arrays and loaders share one auxiliary compartment, two columns wide (the Bulwark's in two flank bays); loaders are inventory parts.
 
 ## Purpose
 
@@ -224,22 +224,27 @@ increasing an encounter's total armored threat.
   engine, factory plating, and a factory capacitor bank and standard loader in the
   compartment; an existing mech with no recorded internals resolves to it. Each
   internal replaces or adds one part; none multiplies the chassis.
-- The **auxiliary compartment** (`AUXILIARY`) is one shared well per chassis: a grid
-  of limited space the player fills from stores, trading room to tune the design.
-  It replaced the separate capacitor and mini-fab sockets (2026-10-24). Capacity is
-  per chassis: the Hound 2x2, the Warden 3x2, the Bulwark 3x3. Every part that goes
-  in it is 2x1 (columns x rows, a quarter-turn allowed as everywhere) except the
-  military capacitor bank, 2x2: the factory and double banks, a vent array, and
-  the standard and accelerated loaders. A fit is legal only when every part in the
-  compartment **packs**: each footprint placed whole on the grid with no overlap
+- The **auxiliary compartment** is one shared well per chassis: limited space
+  the player fills from stores, trading room to tune the design. It replaced the
+  separate capacitor and mini-fab sockets (2026-10-24). Every part that goes in it
+  is two columns wide, one row deep (the factory and double banks, a vent array,
+  the standard and accelerated loaders) or two (the military capacitor bank), so
+  the compartment is two columns wide too and **a part never turns** in it: a
+  third column, or a part on end, would be space nothing can use. Its size is
+  rows: the Hound 2x2, the Warden 2x3 (columns x rows). The Bulwark's is **two
+  flank bays** of 2x2 (`AUXILIARY` and `AUXILIARY_2`, left and right behind the
+  core) that pool into one compartment: the role limits count across both, and a
+  part lands whole in one bay or the other. A fit is legal only when every part in
+  the compartment **packs**: each footprint placed whole in a bay with no overlap
   (`MechCompartment`). The arrangement is computed, not stored: the doll draws the
   packing the rule finds, largest pieces first, so a refit never leaves a hole the
   player has to shuffle around. Exactly one capacitor bank goes in (it is the
   reservoir) and at most one loader; vent arrays stack, each adding its
   dissipation and its mass. So a stock Hound's compartment is full, bank and
   loader, and a Hound that wants the military bank or a vent array gives up its
-  loader; a Warden has room for a vent beside bank and loader; a Bulwark carries
-  the big bank and two more parts, or a small bank and three. Further equipment
+  loader; a Warden has room for a vent beside bank and loader, or the big bank
+  and a loader; a Bulwark carries the big bank in one bay and two more parts in
+  the other, or a small bank and three. Further equipment
   joins by taking a role and a footprint, never a socket of its own.
 - The **loader** is the missile replenisher, an ordinary inventory part: built from
   its pattern, held in stores, dragged in and out of the compartment, lost with the
@@ -431,9 +436,11 @@ increasing an encounter's total armored threat.
   draws the sockets as a **schematic**, not as docks around the machine: the
   engine core in the middle of a drafting panel on the left, the arm mount
   ahead of it (on a two-armed chassis, an arm card ahead-left and one
-  ahead-right), a shoulder either side, and the auxiliary compartment behind, each
-  wired back to the core in its hardpoint colour. The compartment card draws every
-  part it holds at its packed place, each with its own X. The fitting camera stands the
+  ahead-right), a shoulder either side, and the auxiliary compartment behind (the
+  Bulwark's two bays side by side), each wired back to the core in its hardpoint
+  colour. A compartment card draws every part packed into it at its place, each
+  with its own X; selecting either bay selects the compartment, and a part dropped
+  on either bay goes wherever the packing puts it. The fitting camera stands the
   machine itself in the right of the view, beside the schematic.
   Presentation may enforce a minimum pointer hit area for usability without
   changing that grid or making the asset physically larger. Inactive cells remain
