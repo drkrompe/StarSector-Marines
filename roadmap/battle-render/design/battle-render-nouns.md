@@ -286,7 +286,12 @@ card, per pixel, with the pools as textures (`NightShadeField`); a Java2D host
 builds it as tinted quads at a grid of points in each cell. Both evaluate the
 same function (`NightLightingRenderSystem.shade`), which the field's GL evidence
 holds it to, so the two differ only in where they sample, and the field is the
-smoother of the two zoomed out. A field that fails, or a driver that stores its
+smoother of the two zoomed out. The field's textures cover the whole map and
+stay resident: fire's pools and the cell mask take only the box that changed
+since their last upload (the boxes fire's lights cleared and filled, the cells in
+the topology's change log, the reveal log's rectangles), so a whole-map view of a
+burn repacks the burn, not the map. Filling fire's pools is still CPU work each
+frame, bounded by the lights in view. A field that fails, or a driver that stores its
 pools at fewer than twelve bits (which would band the shade), logs once and the
 next frame builds quads. Real-driver evidence reads the stored precision on
 Windows and on the Mac's GL 2.1 context.
