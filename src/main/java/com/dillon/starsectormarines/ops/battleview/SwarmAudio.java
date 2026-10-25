@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.WeakHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 
 /**
  * The swarm bodies' sound (`colony-breach-nouns.md`, Sound), keyed to what each
@@ -143,6 +145,8 @@ public final class SwarmAudio {
     /** Per battle: the last tick heard, gait and health last seen, and the voices. */
     public static final class Mix {
         private int tick = -1;
+        /** The pitch jitter's source: the thread's own in a battle; seeded where a review needs the same mix twice. */
+        private RandomGenerator jitter;
         final VoicePool<Sound, Spot> voices = new VoicePool<>(Sound.class, sound -> sound.layering);
         // Readings by body, as float bits (fastutil-core has no float maps); absent reads NaN.
         private final Long2IntOpenHashMap gait = readings();
@@ -150,6 +154,17 @@ public final class SwarmAudio {
         private final Long2IntOpenHashMap seenGait = readings();
         private final Long2IntOpenHashMap seenHealth = readings();
         private int strides;
+
+        /** This mix with its pitch jitter drawn from {@code seed}, so the same battle starts the same sounds. */
+        public Mix seeded(long seed) {
+            jitter = new SplittableRandom(seed);
+            return this;
+        }
+
+        float jitter() {
+            RandomGenerator source = jitter != null ? jitter : ThreadLocalRandom.current();
+            return source.nextFloat(-PITCH_JITTER, PITCH_JITTER);
+        }
 
         private static Long2IntOpenHashMap readings() {
             Long2IntOpenHashMap map = new Long2IntOpenHashMap();
@@ -285,6 +300,11 @@ public final class SwarmAudio {
             if (stride % 2 != 0) return null;
             return stride % 6 == 0 ? Sound.RUNNER_CLATTER : Sound.RUNNER_GALLOP;
         }
+        // a skitterer's patter is the Runner's clatter, thinner still, played up at its size
+        if (strain == UnitType.SWARM_WORKER) {
+            if (carrying) return Sound.BODY_DRAG;
+            return stride % 3 == 0 ? Sound.RUNNER_CLATTER : null;
+        }
         return null;
     }
 
@@ -335,22 +355,25 @@ public final class SwarmAudio {
     }
 
     static Sound pain(UnitType strain) {
-        if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_PAIN;
+        if (strain == UnitType.SWARM_RUNNER || strain == UnitType.SWARM_WORKER) return Sound.RUNNER_PAIN;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_PAIN;
         if (heavy(strain)) return Sound.BRUTE_PAIN;
         return null;
     }
 
     static Sound death(UnitType strain) {
-        if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_DEATH;
+        if (strain == UnitType.SWARM_RUNNER || strain == UnitType.SWARM_WORKER) return Sound.RUNNER_DEATH;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_DEATH;
         if (heavy(strain)) return Sound.BRUTE_DEATH;
         return null;
     }
 
-    /** A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up. */
+    /**
+     * A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up; a skitterer,
+     * smaller than any whelp, higher still.
+     */
     static float pitch(UnitType strain, SwarmStage stage) {
-        return 1f / SwarmStage.of(stage).scale(strain);
+        return 1f / (SwarmStage.of(stage).scale(strain) * (strain == UnitType.SWARM_WORKER ? strain.renderScale : 1f));
     }
 
     /** A body's loudness by its stage, against the adult's. */
@@ -367,7 +390,7 @@ public final class SwarmAudio {
                              int tick, UnitType strain, SwarmStage stage, int heldFor) {
         if (sound == null || !sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) return;
         if (mix.voices.offer(sound, body, tick, new Spot(x, y, strain, stage), heldFor) != VoicePool.Admit.START) return;
-        float pitch = sound.pitch * pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
+        float pitch = sound.pitch * pitch(strain, stage) * (1f + mix.jitter());
         out.add(new Play(sound, x, y, pitch, sound.volume * volume(stage) * mix.voices.gain(sound)));
     }
 }

@@ -64,12 +64,13 @@ class BroodSpiresTest {
     }
 
     @Test
-    void itsBroodFillsBackOntoTheHooksOverTheGap() {
-        assertEquals(0, BroodSpires.perched(true, GAP * 10), "none while its pack flies");
-        assertEquals(0, BroodSpires.perched(false, 0), "none the moment it launched");
-        assertEquals(BroodSpires.PERCHES / 2, BroodSpires.perched(false, GAP / 2), "half way through the gap");
-        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, GAP), "a full roost is ready to launch");
-        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, Integer.MAX_VALUE / 2), "never more than its hooks");
+    void itsBroodFillsBackOntoTheHooksOverItsGap() {
+        assertEquals(0, BroodSpires.perched(true, GAP * 10, GAP), "none while its pack flies");
+        assertEquals(0, BroodSpires.perched(false, 0, GAP), "none the moment it launched");
+        assertEquals(BroodSpires.PERCHES / 2, BroodSpires.perched(false, GAP / 2, GAP), "half way through the gap");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, GAP, GAP), "a full roost is ready to launch");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, GAP / 2, GAP / 2), "a tended spire fills sooner");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, Integer.MAX_VALUE / 2, GAP), "never more than its hooks");
     }
 
     @Test

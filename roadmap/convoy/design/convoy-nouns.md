@@ -743,9 +743,10 @@ its phase. Steering and traction remain the ordinary vehicle motion model.
 Every APC variant retains separately registered wreck hull and MG art at their
 final bearings, with torn troop roofs, damaged tires and bent turret plates.
 The up-armored APC is the same hull drawn darker for its welded plate. The
-fire-support APC keeps the hull and replaces the sheet's MG with its heavy-mortar
-mount's own catalog art, drawn on the roof bearing at the mount's intrinsic size
-the way an aircraft's hull turrets are, and darkened on the wreck.
+fire-support APC and the LRM carrier keep the hull and carry their own turret
+frames at the hull's scale (`art-source/vehicles/mortar-carrier/`,
+`art-source/vehicles/missile-carriers/`). A wrecked turret is always a damage edit
+of its live art, torn and gutted, never the live frame darkened.
 Destruction stops the tread animation and leaves the wreck after the effects cool.
 
 A directly controlled hull repels bodies exactly as an autonomous one does.
@@ -1221,7 +1222,7 @@ The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the heavy APC's hu
 with the troop bay given over to one mech LRM-15 pod on a turntable, which stands up on its
 tail hinge to fire
 (`art-source/vehicles/missile-carriers/`). It is the APC line's long arm against
-armor, where the fire-support APC's mortar is its short arm against men. Its rounds
+armor, where the fire-support APC is its steadier arm against anything. Its rounds
 arc, and it fires **on a spotter's call** at a machine it cannot see itself:
 somebody else on its side must be looking at the target right now
 (`SideObservers`) — a hull with the target in its own sight range and line of
@@ -1238,6 +1239,15 @@ sight, and holds fire entirely without the spotter. A carrier fitted with the
 **sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
 drones hold station beyond the bow, and what they see counts as eyes on the
 target (`SideObservers`), so it fires over a wall with nobody else looking.
+
+The **fire-support APC** (`FIRE_SUPPORT_APC`, the mortar carrier) is the same hull
+with a 120 mm mortar on an open roof turntable in place of the seats. It fires the
+same way as the LRM carrier: rounds that arc onto anything somebody on its side is
+looking at (`SideObservers`), from stand-off. Unlike the carrier it fires on men
+as readily as on machines. One bomb every few seconds from a deep rack hits far
+softer than a ten-missile salvo, but it keeps falling after the launcher's
+magazine is empty: the LRM wins the short fight against armor and the mortar the
+long one. Acceptance for its shelling is the `fire-support-apc` scene.
 
 The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the
 pickup with a mech SRM-5 pod on its pintle ring and the technical's welded plate

@@ -13,12 +13,19 @@ what the hulls fire.
 
 Turret frames are drawn at the hull's own pixel scale, so each `VehicleType` sets turretVisualCells to its hull's
 visual length and the frame's centre is the turntable's pivot. Pods are drawn nose-up in their own sprites and
-are turned to face LEFT like every vehicle sheet. Run from anywhere:
+are turned to face LEFT like every vehicle sheet. A wrecked pod is the pod's ImageGen damage edit
+(`<name>-wreck-raw.png`, made from `wreck_guide.py`'s edit target with `<name>-wreck.prompt.txt`), thrown a few degrees
+askew on its mount. Run from anywhere:
     python art-source/vehicles/missile-carriers/pack.py
 """
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+import sys
+
+from PIL import Image, ImageDraw, ImageFilter
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from wreck_fit import fit_to  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -34,7 +41,8 @@ LIVE, TURRET, WRECK, WRECK_TURRET = 0, 1, 2, 3
 APC_PX_PER_CELL = SLOT_W / 2.4
 TECHNICAL_PX_PER_CELL = SLOT_W / 3.0
 LRM_POD_CELLS = 0.72                 # nose to tail; VehicleType.LRM_CARRIER's raise hinge is half of it
-APC_ROOF_BEARING = (335, 288)       # the twin MG's bearing in the APC's live and wreck frames (apc/README.md)
+APC_ROOF_BEARING = (335, 288)
+WRECK_GUIDE_LENGTH_PX = 720           # the pod's nose-to-tail length in wreck_guide.py's edit targets       # the twin MG's bearing in the APC's live and wreck frames (apc/README.md)
 
 
 def slot(sheet, index):
@@ -51,10 +59,15 @@ def pod(path, length_px):
     return out.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
 
 
-def char(sprite, brightness):
-    rgb = ImageEnhance.Brightness(sprite.convert("RGB")).enhance(brightness)
-    rgb.putalpha(sprite.getchannel("A"))
-    return rgb
+def wrecked_pod(name, length_px):
+    """The pod's ImageGen damage edit (`<name>-wreck-raw.png`), fitted over its edit target and scaled like the pod."""
+    guide = Image.open(HERE / f"{name}-wreck-guide.png").convert("RGBA")
+    raw = Image.open(HERE / f"{name}-wreck-raw.png").convert("RGBA")
+    fitted = fit_to(raw, guide)
+    scale = length_px / WRECK_GUIDE_LENGTH_PX
+    out = fitted.convert("RGBa").resize((round(fitted.width * scale), round(fitted.height * scale)),
+                                        Image.LANCZOS).convert("RGBA")
+    return out.crop(out.getbbox()).filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
 
 
 def shadowed(frame, sprite, center, offset=(8, 8), alpha=0.42):
@@ -80,9 +93,8 @@ def lrm_launcher(broken=False):
     """One LRM pod centred on the frame centre (the turntable pivot); the plate is on the hull."""
     frame = Image.new("RGBA", (SLOT_W, SLOT_H), (0, 0, 0, 0))
     center = (SLOT_W // 2, SLOT_H // 2)
-    one = pod(LRM_POD, round(LRM_POD_CELLS * APC_PX_PER_CELL))
-    if broken:
-        one = char(one, 0.45).rotate(-11, resample=Image.BICUBIC, expand=True)
+    length = round(LRM_POD_CELLS * APC_PX_PER_CELL)
+    one = wrecked_pod("lrm", length).rotate(-11, resample=Image.BICUBIC, expand=True) if broken         else pod(LRM_POD, length)
     shadowed(frame, one, center)
     return frame
 
@@ -97,9 +109,8 @@ def srm_pod(broken=False):
     frame = Image.new("RGBA", (SLOT_W, SLOT_H), (0, 0, 0, 0))
     center = (SLOT_W // 2, SLOT_H // 2)
     plate(frame, center, round(0.32 * TECHNICAL_PX_PER_CELL), broken)
-    one = pod(SRM_POD, round(1.05 * TECHNICAL_PX_PER_CELL))
-    if broken:
-        one = char(one, 0.45).rotate(14, resample=Image.BICUBIC, expand=True)
+    length = round(1.05 * TECHNICAL_PX_PER_CELL)
+    one = wrecked_pod("srm", length).rotate(14, resample=Image.BICUBIC, expand=True) if broken         else pod(SRM_POD, length)
     shadowed(frame, one, center)
     return frame
 

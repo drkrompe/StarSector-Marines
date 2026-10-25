@@ -1,0 +1,7 @@
+Repaint the supplied grey geometry guide as a finished top-down game sprite: the roof turret of a six-wheeled armoured personnel carrier, refitted as a 120 mm breech-loading turret mortar (like a compact NEMO or AMOS mortar turret). Strict orthographic overhead view, looking straight down; no perspective tilt, no visible sidewalls.
+
+Geometry: the guide is the exact authority for silhouette, placement, scale and canvas. Keep every part where it is and the same size: the low hexagonal armoured turret house, its flat roof with two round crew hatches and a small sight block, the rear magazine bustle, the front mantlet, and the single long barrel in a thermal jacket pointing LEFT with a muzzle brake at its tip. Lighter grey planes stand higher; darker planes are chamfers and lower parts. Do not move, rotate, lengthen or shorten anything; the barrel stays exactly on the horizontal centre line.
+
+Materials: match the second reference exactly (worn olive-drab and dusty cream military paint, fine dark outlines, rivets, weld seams, scuffed edges, small panel details, the same soft top-left light). It must look like it belongs on that APC hull. The barrel is dark gunmetal with a few heat-blued bands; the muzzle brake has dark side ports.
+
+Output: the same canvas size, a true transparent background including all space around the turret; no ground, no cast shadow, no border, no text, no hull, nothing else in the image.

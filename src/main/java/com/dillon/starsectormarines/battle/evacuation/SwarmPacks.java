@@ -214,7 +214,8 @@ public final class SwarmPacks {
     private void recruit(BattleSimulation sim, List<Pack> led) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long body = sim.liveUnitAt(i);
-            if (!sim.identity().type(body).isSwarm() || boltUntil.containsKey(body)) continue;
+            if (!sim.identity().type(body).isSwarm() || sim.identity().type(body).isSwarmWorker()
+                    || boltUntil.containsKey(body)) continue;
             Pack own = packOf.get(body);
             boolean ownLed = own != null && own.led();
             for (Pack pack : led) {

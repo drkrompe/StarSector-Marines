@@ -6,19 +6,30 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.BattleSoundLog;
+import com.dillon.starsectormarines.ops.battleview.BattleSoundMix;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.tools.snapshot.CompressedFrameList;
+import com.dillon.starsectormarines.tools.snapshot.FfmpegVideo;
+import com.dillon.starsectormarines.tools.snapshot.RawFrameDump;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -32,9 +43,12 @@ import java.util.function.Function;
  * look frame answers "how does this look in a battle", which only the battle's own ground, props, smoke, contrails
  * and shadows can.
  *
- * <p>A shot is written as {@code look/<shot>-<view>.gif} (full-colour palette, so smoke and glow are not banded)
- * plus {@code look/<shot>-<view>-<n>.png} stills of that view's busiest moments: the recorded frames with the most
- * effect particles (launch smoke, trails, blasts, dust) laid inside it, at least a second apart. A {@link BehaviorSceneSnapshotSuite} lists its shots in
+ * <p>A shot is written as {@code look/<shot>-<view>.mp4} (H.264, streamed into {@code ffmpeg} as the frames render,
+ * {@link FfmpegVideo}) plus {@code look/<shot>-<view>-<n>.png} stills of that view's busiest moments: the recorded
+ * frames with the most effect particles (launch smoke, trails, blasts, dust) laid inside it, at least a second apart.
+ * {@code -Dsnapshot.video=gif} writes a full-colour GIF instead, as does a machine with no {@code ffmpeg}, saying so.
+ * {@code -Dsnapshot.lookSound=true} logs the battle's sound starts ({@link BattleSoundLog}) and muxes a soundtrack
+ * mixed from them ({@link BattleSoundMix}) into each MP4. A {@link BehaviorSceneSnapshotSuite} lists its shots in
  * {@link BehaviorSceneSnapshotSuite#lookShots()} and gets them alongside its verdict loops; any other suite calls
  * {@link #record}.
  */
@@ -233,23 +247,60 @@ public final class LookReview {
         }
     }
 
-    /** Plays {@code shot} once and returns its animations and stills, each {@link #WIDTH} x {@link #HEIGHT}. */
+    /** {@code mp4} (the default) or {@code gif}: what a view's recording is written as. */
+    public static final String VIDEO_PROPERTY = "snapshot.video";
+    /** {@code true} gives each MP4 a soundtrack mixed from the battle's own sound starts ({@link BattleSoundLog}). */
+    public static final String SOUND_PROPERTY = "snapshot.lookSound";
+    /** Where the sound logs ({@code <shot>.jsonl}) are written; default {@code build/look-sound}. */
+    public static final String SOUND_LOG_DIR_PROPERTY = "snapshot.lookSound.logDir";
+
+    private static final AtomicBoolean NO_FFMPEG_SAID = new AtomicBoolean();
+
+    /** Plays {@code shot} once and returns its recordings and stills, each {@link #WIDTH} x {@link #HEIGHT}. */
     public static List<SnapshotArtifact> record(Path modRoot, Shot shot) throws Exception {
         int width = WIDTH;
         int height = HEIGHT;
+        Path projectRoot = modRoot.toAbsolutePath().normalize().getParent();
+        boolean mp4 = mp4();
+        boolean sound = Boolean.getBoolean(SOUND_PROPERTY);
+        if (sound && !mp4) {
+            System.out.println("    [look/" + shot.name() + "] no soundtrack: " + SOUND_PROPERTY
+                    + " needs the MP4 recording");
+            sound = false;
+        }
+        boolean raw = !blank(System.getProperty(RawFrameDump.PROPERTY));
         MapResult map = shot.ground().generate();
         LookGround.Site site = LookGround.openSite(map, shot.footprintW(), shot.footprintH());
         Placement placement = new Placement(shot.ground(), map, site);
         List<View> views = shot.views().apply(placement);
         BattleSimulation sim = shot.stage().apply(placement);
+        Path soundLog = null;
+        if (sound) {
+            String dir = System.getProperty(SOUND_LOG_DIR_PROPERTY);
+            soundLog = (blank(dir) ? projectRoot.resolve("build/look-sound") : Path.of(dir))
+                    .resolve(shot.name() + ".jsonl");
+            // A view of its own as the ear: asking the recorded one would move a following camera's memory.
+            BattleSoundLog.attach(placement, shot.views().apply(placement).get(0), soundLog);
+        }
+        Path scratch = projectRoot.resolve("build/tmp/look-video");
+        List<FfmpegVideo> encoders = new ArrayList<>();
         try {
             ReviewImpactFx fx = new ReviewImpactFx(modRoot);
+            int gap = Math.max(1, Math.round(1f / (BattleSimulation.TICK_DT * shot.everyTicks())));
             List<BattleReviewFrameRenderer> renderers = new ArrayList<>(views.size());
             List<List<BufferedImage>> frames = new ArrayList<>(views.size());
+            List<StillCandidates> candidates = new ArrayList<>(views.size());
+            if (mp4) Files.createDirectories(scratch);
             for (View view : views) {
                 float[] f = view.focus().apply(sim);
                 renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2]));
-                frames.add(new CompressedFrameList());
+                frames.add(!mp4 || raw ? new CompressedFrameList() : List.of());
+                candidates.add(new StillCandidates(shot.stillFrames(), shot.stills(), gap));
+                if (mp4) {
+                    Path out = Files.createTempFile(scratch, shot.name() + "-" + view.name() + "-", ".mp4");
+                    encoders.add(FfmpegVideo.open(out, width, height,
+                            Math.round(1f / BattleSimulation.TICK_DT) + "/" + shot.everyTicks()));
+                }
             }
             List<List<Integer>> activity = new ArrayList<>();
             for (int v = 0; v < views.size(); v++) activity.add(new ArrayList<>());
@@ -265,12 +316,22 @@ public final class LookReview {
                 for (int v = 0; v < views.size(); v++) {
                     float[] f = views.get(v).focus().apply(sim);
                     BattleReviewFrameRenderer renderer = renderers.get(v).refocus(f[0], f[1], f[2]);
-                    frames.get(v).add(renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+                    BufferedImage frame = renderer.render(sim, "", ReviewAnnotations.NONE, fx);
                     // Launch smoke, trails, blasts and dust laid in this view: its busiest moments are its stills.
+                    int index = activity.get(v).size();
                     activity.get(v).add(fx.lastPainted());
+                    candidates.get(v).offer(index, fx.lastPainted(), frame);
+                    if (mp4) encoders.get(v).add(frame);
+                    if (!mp4 || raw) frames.get(v).add(frame);
                 }
             }
-            int gap = Math.max(1, Math.round(1f / (BattleSimulation.TICK_DT * shot.everyTicks())));
+            int recordedFrames = activity.get(0).size();
+            Path wav = null;
+            if (sound) {
+                wav = Files.createTempFile(scratch, shot.name() + "-", ".wav");
+                BattleSoundMix.mix(modRoot, soundLog,
+                        recordedFrames * shot.everyTicks() * (double) BattleSimulation.TICK_DT, wav);
+            }
             int delay = Math.max(20, Math.round(1000f * BattleSimulation.TICK_DT * shot.everyTicks()));
             List<SnapshotArtifact> artifacts = new ArrayList<>();
             StringBuilder stillsAt = new StringBuilder();
@@ -281,19 +342,99 @@ public final class LookReview {
                         : busiest(activity.get(v), shot.stills(), gap);
                 stillsAt.append(' ').append(views.get(v).name()).append(Arrays.toString(picked));
                 String stem = "look/" + shot.name() + "-" + views.get(v).name();
-                artifacts.add(SnapshotArtifact.colorAnimation(stem + ".gif", frames.get(v), delay));
+                if (mp4) {
+                    Path video = encoders.get(v).finish();
+                    if (wav != null) {
+                        Path scored = Files.createTempFile(scratch, shot.name() + "-" + views.get(v).name() + "-",
+                                ".mp4");
+                        FfmpegVideo.mux(video, wav, scored);
+                        Files.delete(video);
+                        video = scored;
+                    }
+                    artifacts.add(SnapshotArtifact.video(stem + ".mp4", video, frames.get(v)));
+                } else {
+                    artifacts.add(SnapshotArtifact.colorAnimation(stem + ".gif", frames.get(v), delay));
+                }
                 for (int i = 0; i < picked.length; i++) {
                     artifacts.add(new SnapshotArtifact(String.format("%s-%02d.png", stem, i + 1),
-                            frames.get(v).get(picked[i])));
+                            candidates.get(v).frame(picked[i])));
                 }
             }
+            if (wav != null) Files.deleteIfExists(wav);
             System.out.printf("    [look/%s] window %d,%d %dx%d (%d blocked cells), %d frames, %d rounds fired,"
                             + " stills at%s%n",
                     shot.name(), site.x0(), site.y0(), site.width(), site.height(), site.blockedCells(),
-                    activity.get(0).size(), fired, stillsAt);
+                    recordedFrames, fired, stillsAt);
             return artifacts;
         } finally {
+            for (FfmpegVideo encoder : encoders) encoder.close();
             sim.close();
+        }
+    }
+
+    /** True unless {@code -Dsnapshot.video=gif} asks for GIFs, or there is no ffmpeg to encode with. */
+    private static boolean mp4() {
+        String video = System.getProperty(VIDEO_PROPERTY, "mp4").trim().toLowerCase(Locale.ROOT);
+        if (video.equals("gif")) return false;
+        if (!video.equals("mp4")) throw new IllegalArgumentException(VIDEO_PROPERTY + " must be mp4 or gif: " + video);
+        if (FfmpegVideo.executable() != null) return true;
+        if (NO_FFMPEG_SAID.compareAndSet(false, true)) {
+            System.out.println("    [look] ffmpeg is not on PATH (nor named by FFMPEG): writing look recordings as"
+                    + " GIFs, which are far larger; install ffmpeg for MP4s");
+        }
+        return false;
+    }
+
+    private static boolean blank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    /**
+     * The frames of one view that can still become its stills, kept as they are recorded so the whole recording never
+     * has to be held: the named frames when the shot names them, otherwise the best frames by activity (ties to the
+     * earlier) that {@link #busiest} could still pick. Its k-th pick is ranked at worst {@code (k-1)(2*gap-1)+1}, as
+     * every frame ranked above it is a pick or within {@code gap - 1} of one, so that many are enough.
+     */
+    static final class StillCandidates {
+        private final Set<Integer> named = new HashSet<>();
+        private final int keep;
+        /** Best first: higher activity, then the earlier frame. Entries are {@code {activity, index}}. */
+        private final TreeSet<int[]> ranked = new TreeSet<>((a, b) -> a[0] != b[0]
+                ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
+        private final Map<Integer, List<BufferedImage>> kept = new HashMap<>();
+
+        StillCandidates(int[] stillFrames, int stills, int gap) {
+            for (int f : stillFrames) named.add(f);
+            keep = stillFrames.length > 0 ? 0 : Math.max(0, (stills - 1) * (2 * gap - 1) + 1);
+        }
+
+        void offer(int index, int activity, BufferedImage frame) {
+            if (!named.isEmpty()) {
+                if (named.contains(index)) kept.put(index, packed(frame));
+                return;
+            }
+            if (keep == 0) return;
+            int[] entry = {activity, index};
+            if (ranked.size() >= keep && ranked.comparator().compare(entry, ranked.last()) > 0) return;
+            ranked.add(entry);
+            kept.put(index, packed(frame));
+            if (ranked.size() > keep) kept.remove(ranked.pollLast()[1]);
+        }
+
+        int size() {
+            return kept.size();
+        }
+
+        BufferedImage frame(int index) {
+            List<BufferedImage> frame = kept.get(index);
+            if (frame == null) throw new IllegalStateException("frame " + index + " was not kept as a still candidate");
+            return frame.get(0);
+        }
+
+        private static List<BufferedImage> packed(BufferedImage frame) {
+            CompressedFrameList one = new CompressedFrameList();
+            one.add(frame);
+            return one;
         }
     }
 

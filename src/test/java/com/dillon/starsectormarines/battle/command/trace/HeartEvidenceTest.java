@@ -220,6 +220,7 @@ class HeartEvidenceTest {
                 .put("directorReason", director == null ? "" : director.pressureReason())
                 .put("liveSwarm", director == null ? 0 : director.liveRunners())
                 .put("harriers", HarrierReading.line(sim))
+                .put("skitterers", sim.swarmWorkers().summary(sim))
                 .put("bores", bores).put("beats", beats).put("objectives", objectives(sim))
                 .put("vehicleOrders", vehicleOrders);
     }
@@ -242,6 +243,7 @@ class HeartEvidenceTest {
                 .append(s.getInt("ticks")).append(", winner ").append(s.getString("winner")).append(", ")
                 .append(s.getInt("marinesAlive")).append(" marines and ").append(s.getInt("liveSwarm"))
                 .append(" swarm left. Landfall at ").append(s.getInt("landfallTick")).append(".\n\n")
+                .append("Nests: ").append(s.optString("skitterers", "—")).append("\n\n")
                 .append("Harriers: ").append(s.optString("harriers")).append(".\n\n")
                 .append("| bore | cell | tier | integrity | surges | bodies | matriarch | collapsed |\n|---|---|---|---|---|---|---|---|\n");
         JSONArray bores = s.getJSONArray("bores");
@@ -311,6 +313,7 @@ class HeartEvidenceTest {
         }
         for (String template : MATRIX) {
             BloomHeartBattleFixture heart = (BloomHeartBattleFixture) loadFixture(template);
+            if (!formSelected(heart.form())) continue;
             for (Density density : densities()) {
                 String d = density == Density.RURAL ? "" : "-" + density.name().toLowerCase(Locale.ROOT);
                 for (SurfacePalette biome : SurfacePalette.values()) {
@@ -324,6 +327,13 @@ class HeartEvidenceTest {
             }
         }
         return out;
+    }
+
+    /** {@code -Pforms=front} (or {@code burn}) plays only that form's pools; both by default. */
+    private static boolean formSelected(Form form) {
+        String named = System.getProperty(PREFIX + "forms", "").trim().toLowerCase(Locale.ROOT);
+        if (named.isBlank()) return true;
+        return named.contains(form == Form.BROAD_FRONT ? "front" : "burn");
     }
 
     /** {@code -Pdensities=town,city} plays only those densities' pools; every density by default. */
