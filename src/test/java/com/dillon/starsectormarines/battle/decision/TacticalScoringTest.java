@@ -565,6 +565,38 @@ public class TacticalScoringTest {
                 "friendly, non-combatant, and occluded candidates must not retarget");
     }
 
+    /** A spore colony shoots only at the air: harmless on the ground, so a Marine shoots the armed enemy first. */
+    @Test
+    public void harmlessStructureLosesToAnArmedEnemyFurtherOff() {
+        BattleSimulation sim = openArena(40, 12);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 30f);
+        long colony = turret(sim, Faction.DEFENDER, "structure.spore-colony-maw", 9, 5);
+        long armed = unit(sim, Faction.DEFENDER, UnitType.SWARM_SPITTER, 25, 5);
+        TacticalScoring scoring = sim.getTacticalScoring();
+
+        assertTrue(scoring.harmlessToGround(colony));
+        assertFalse(scoring.harmlessToGround(armed));
+        assertFalse(scoring.harmlessToGround(turret(sim, Faction.DEFENDER, "structure.swarm-bore", 30, 9)),
+                "a bore is the work: rounds on it are what bring it down");
+        assertEquals(armed, scoring.findBestTarget(marine), "the armed enemy, not the nearer colony");
+        assertEquals(armed, scoring.closestEnemyInAttackRange(marine), "return fire goes to the armed enemy too");
+        assertFalse(scoring.shouldKeepPursuing(marine, colony), "a Marine on the colony turns to the armed enemy");
+    }
+
+    @Test
+    public void harmlessStructureIsStillShotWhenNothingArmedIsInSight() {
+        BattleSimulation sim = openArena(40, 12);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 30f);
+        long colony = turret(sim, Faction.DEFENDER, "structure.spore-colony-maw", 9, 5);
+        TacticalScoring scoring = sim.getTacticalScoring();
+
+        assertEquals(colony, scoring.findBestTarget(marine));
+        assertEquals(colony, scoring.closestEnemyInAttackRange(marine));
+        assertTrue(scoring.shouldKeepPursuing(marine, colony));
+    }
+
     @Test
     public void shouldKeepPursuingRetargetsForDefenderSymmetrically() {
         BattleSimulation sim = openArena(30, 12);

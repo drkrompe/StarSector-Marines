@@ -295,6 +295,7 @@ class HeartEvidenceTest {
         }
         for (String template : MATRIX) {
             BloomHeartBattleFixture heart = (BloomHeartBattleFixture) loadFixture(template);
+            if (!formSelected(heart.form())) continue;
             for (Density density : densities()) {
                 String d = density == Density.RURAL ? "" : "-" + density.name().toLowerCase(Locale.ROOT);
                 for (SurfacePalette biome : SurfacePalette.values()) {
@@ -308,6 +309,13 @@ class HeartEvidenceTest {
             }
         }
         return out;
+    }
+
+    /** {@code -Pforms=front} (or {@code burn}) plays only that form's pools; both by default. */
+    private static boolean formSelected(Form form) {
+        String named = System.getProperty(PREFIX + "forms", "").trim().toLowerCase(Locale.ROOT);
+        if (named.isBlank()) return true;
+        return named.contains(form == Form.BROAD_FRONT ? "front" : "burn");
     }
 
     /** {@code -Pdensities=town,city} plays only those densities' pools; every density by default. */
