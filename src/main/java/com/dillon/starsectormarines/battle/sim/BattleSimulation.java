@@ -1661,9 +1661,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     || rosterService.convoy().isVehicle(id)
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
-        // Fire discipline before the trigger: a trained rifleman, a disciplined crew and a chassis's fire control
-        // look down the lane and at where a burst will land, and hold rather than fire through or onto their own
-        // side. A trained shooter held there longer than a new target takes to register shoots one with a clear
+        // Fire discipline before the trigger: a trained rifleman, a disciplined crew, a chassis's fire control
+        // and a suit's missile pod look down the lane and at where a burst will land, and hold rather than fire
+        // through or onto their own side. A trained shooter held there longer than a new target takes to register shoots one with a clear
         // lane instead (LaneRetarget). -Dbattle.fire.laneDiscipline=false is the control, leaving only the
         // after-the-fact hold roll.
         if (Boolean.parseBoolean(System.getProperty("battle.fire.laneDiscipline", "true"))) {
@@ -1673,6 +1673,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             infantry.setLaneDiscipline(true);
             turretFire.setLaneDiscipline(true);
             heavy.setLaneDiscipline(true);
+            integralSystemSystem.setLaneDiscipline(true);
         }
         blade = new DozerBlade(navigation, mapEditor, doodadService);
         groundSystem.setBlade(blade);
