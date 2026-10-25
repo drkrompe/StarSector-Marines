@@ -222,7 +222,7 @@ public final class MechBay implements Serializable {
         int serial = Math.max(1, nextVehicleSerial);
         String number = String.format(Locale.ROOT, "%02d", serial);
         CampaignVehicle vehicle = new CampaignVehicle(vehicleId(serial),
-                CampaignVehicle.typeName(type) + " " + String.format(Strings.locale(), "%02d", serial), type);
+                CampaignVehicle.className(type) + " " + String.format(Strings.locale(), "%02d", serial), type);
         if (!addVehicle(squadId, vehicle)) return null;
         nextVehicleSerial = serial + 1;
         return vehicle;
