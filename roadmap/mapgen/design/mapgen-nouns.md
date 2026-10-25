@@ -855,7 +855,9 @@ visually pave a room simply because the room changed ground kind later.
 
 Road documents are versioned and round-trip through the Roads authoring page.
 Relief, Counterattack, Open the Junction, Last Lift and Relay Nine each consume
-an authored road plan, as does Thunder Run. Public freight routes, service
+an authored road plan, as do Thunder Run and Saltwell Cross (`DustLedgerCrossing`,
+whose ridge is authored elevation in the recipe, since a terrain plan raises only
+masses nobody stands on). Public freight routes, service
 lanes and boat aprons may carry distinct materials and wear while their mission
 route graphs, objectives and landing requirements retain their own authority.
 Open the Junction and Relay Nine derive their road graphs from the same sampled

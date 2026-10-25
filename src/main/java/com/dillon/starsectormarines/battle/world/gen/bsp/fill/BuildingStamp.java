@@ -149,7 +149,29 @@ public enum BuildingStamp {
             "#...........#",
             "#c.........c#",
             "#...........#",
-            "#####+++#####");
+            "#####+++#####"),
+    /**
+     * Saltwell Cross's old terraforming pump house (`dust-ledger-crossing.md`): the pump hall on the west, and
+     * off a through corridor the broker's office and the radio room to the north, the counting room and the ledger
+     * room to the south. The ledger room opens on the corridor and through the counting room. Story map only.
+     */
+    PUMP_HOUSE("Pump house", BuildingKind.CIVIC, BuildingStyle.CIVIC,
+            "###nnn#nnn#####nnn#####nnn###",
+            "#k.........k#d.....k#c.....c#",
+            "#...........#.......#.......#",
+            "w...........#d......#c......e",
+            "#...........#.......#.......#",
+            "#...........#.......#.......#",
+            "#...........####+#######+####",
+            "#...........+...............+",
+            "#...........+...............+",
+            "#...........####+#######+####",
+            "#...........#.......#.......#",
+            "w...........#.......#.......e",
+            "#...........#.......+.......#",
+            "#...........#.......#.......#",
+            "#k.........k#d.d.d..#kk...kk#",
+            "##s##++##s#####sss#####sss###");
 
     /**
      * The plans a city lot may draw. The farm buildings stand only where the
@@ -400,8 +422,8 @@ public enum BuildingStamp {
                 }
             }
         }
-        PointOfInterest.Kind poiKind = kind == BuildingKind.INDUSTRIAL
-                ? PointOfInterest.Kind.DEPOT : PointOfInterest.Kind.RESIDENTIAL;
+        PointOfInterest.Kind poiKind = kind == BuildingKind.INDUSTRIAL ? PointOfInterest.Kind.DEPOT
+                : kind == BuildingKind.CIVIC ? PointOfInterest.Kind.ADMINISTRATIVE : PointOfInterest.Kind.RESIDENTIAL;
         ctx.pois.add(new PointOfInterest(poiKind, left, bottom,
                 left + width(turns) - 1, bottom + height(turns) - 1,
                 entrance[0], entrance[1], interior[0], interior[1]));

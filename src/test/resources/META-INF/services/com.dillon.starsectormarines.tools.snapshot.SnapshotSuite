@@ -350,3 +350,4 @@ com.dillon.starsectormarines.battle.setpiece.HallProcessionLookSuite
 com.dillon.starsectormarines.battle.setup.StreetKitLookSuite
 com.dillon.starsectormarines.battle.setup.TownPlanLookSuite
 com.dillon.starsectormarines.battle.setup.CordonedFacilityLookSuite
+com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossingSnapshotSuite

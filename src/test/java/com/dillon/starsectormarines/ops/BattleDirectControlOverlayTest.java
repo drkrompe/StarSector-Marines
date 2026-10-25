@@ -134,7 +134,7 @@ class BattleDirectControlOverlayTest {
                 MarineOpsUiViewport.from(position), BattleDirectControlOverlay.entryViewport(position, mech),
                 BattleSquadOverlay.viewport(position), BattleMechOverlay.viewport(position),
                 BattlePowerOverlay.viewport(position, 5, true),
-                BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
+                BattleRetreatOverlay.viewport(position, 0f, 0f, BattleRetreatOverlayModel.Presentation.CONFIRM),
                 BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
                 BattleDirectControlOverlay.statusViewport(position, BattleDamageDollPlate.DOCUMENT_HEIGHT, mech),
                 BattleDirectControlOverlay.weaponsViewport(position, SAMPLE_WEAPONS_HEIGHT),
