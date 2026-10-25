@@ -16,7 +16,7 @@ import java.util.Locale;
 
 /**
  * How often the main street district ({@code set-piece-districts.md}) stands on medium city maps and colonies:
- * per map, the street's length and width, whether its plaza and hall door were laid. Writes
+ * per map, the street's length and width, whether its plaza, its market square and hall door were laid. Writes
  * {@code build/reports/set-pieces/main-street.md}. Asserts nothing about the count: it states coverage.
  */
 @Tag("generated-space-evidence")
@@ -29,10 +29,10 @@ class MainStreetPlacementEvidence {
         Path root = Path.of(System.getProperty("user.dir"));
         DiskRegistries.installMapGeneration(root);
         TileRegistryTestInstaller.install(root);
-        StringBuilder out = new StringBuilder("# Main streets\n\n| map | seed | length | width | plaza | hall door |\n|---|---|---|---|---|---|\n");
+        StringBuilder out = new StringBuilder("# Main streets\n\n| map | seed | length | width | plaza | market square | hall door |\n|---|---|---|---|---|---|---|\n");
         StringBuilder totals = new StringBuilder();
         for (boolean colony : new boolean[]{false, true}) {
-            int streets = 0;
+            int streets = 0, squares = 0;
             for (long seed = 1; seed <= SEEDS; seed++) {
                 MapScale scale = colony ? MapScale.COLONY : MapScale.MEDIUM;
                 MapResult map = colony
@@ -40,15 +40,16 @@ class MainStreetPlacementEvidence {
                                 BattleSetup.colonyPlanFor(scale, seed))
                         : new BspCityGenerator().generate(scale.width, scale.height, seed);
                 if (!map.mainStreets.isEmpty()) streets++;
+                if (map.mainStreets.stream().anyMatch(street -> street.square() != null)) squares++;
                 for (MainStreet street : map.mainStreets) {
                     float length = Math.abs(street.endX() - street.startX()) + Math.abs(street.endY() - street.startY());
-                    out.append(String.format(Locale.ROOT, "| %s | %d | %.0f | %d | %s | %s |%n", colony ? "colony" : "city",
-                            seed, length, street.width(), street.plazaLeft() >= 0 ? "yes" : "",
+                    out.append(String.format(Locale.ROOT, "| %s | %d | %.0f | %d | %s | %s | %s |%n", colony ? "colony" : "city",
+                            seed, length, street.width(), street.plazaLeft() >= 0 ? "yes" : "", street.square() != null ? "yes" : "",
                             street.landmarkDoorX() >= 0 ? street.landmarkDoorX() + "," + street.landmarkDoorY() : ""));
                 }
             }
-            totals.append(String.format(Locale.ROOT, "%s: a main street on %d of %d maps%n",
-                    colony ? "Colonies" : "Medium city maps", streets, SEEDS));
+            totals.append(String.format(Locale.ROOT, "%s: a main street on %d of %d maps, %d with the market square at its plaza end%n",
+                    colony ? "Colonies" : "Medium city maps", streets, SEEDS, squares));
         }
         out.append('\n').append(totals);
         Path dir = root.resolve("build/reports/set-pieces");

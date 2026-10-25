@@ -105,9 +105,8 @@ class MissionDebriefConversationTest {
             assertEquals(run.victory(), MissionDebriefConversation.jangalaClosing(outcome, route),
                     "an exhausted account is a failure, not a goodbye");
             if (!run.victory()) continue;
-            var lines = MissionDebriefConversation.jangalaLines(outcome, catalog());
-            assertEquals(run.marinesLost() > 0 ? 6 : 5, lines.size());
-            assertEquals(run.marinesLost() > 0, lines.stream().anyMatch(l -> l.event().equals("debrief.jangala.cost")));
+            var lines = MissionDebriefConversation.jangalaLines(catalog());
+            assertEquals(4, lines.size());
             assertTrue(lines.get(0).speaker().startsWith("MARA"));
             var next = lines.get(lines.size() - 1);
             assertTrue(next.speaker().startsWith("CASTLE"));

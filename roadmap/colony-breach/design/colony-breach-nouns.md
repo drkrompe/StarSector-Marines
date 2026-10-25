@@ -582,8 +582,9 @@ clearance, never closer to another site than an eighth of the map's short side,
 and always on ground the swarm can walk from to the shelter. The bloom came in
 from the outskirts (owner, 2026-10-25: bores flank the landing zone and grow
 inward): the **first wave** is four sites, two on each flank of the landing
-field (a place off the line from the field in to the shelter by at least four
-tenths of its distance from the field), nearest the field first, the seed
+field (a place at least two site spacings, a quarter of the map's short side,
+off the line from the field in to the shelter, so the company walks in down a
+street rather than between two bores; owner, 2026-10-25), nearest the field first, the seed
 shuffling places within a site's spacing; a flank short of places is made up
 from the other, then from the outskirts straight ahead. They are open when the
 company comes down. The **mother site** is the place spaced from the rest
@@ -2043,20 +2044,39 @@ that and the Hegemony's regard is the owner's call and not yet settled.
 
 **Side objectives.** Optional objectives (`optional-objectives.md`) the breach
 offers beside the rescue, rolled at setup and advanced on the breach's own
-clock; they succeed or fail only themselves, never the cohort or the lift. Today
-there is one, **Secure the loading** (`staffed-buildings.md`): the colony's largest
-warehouse, worked by its own people, is loading the colony's stores onto a truck
-in its yard, and the company that holds the yard until the truck is away is paid
-out of what it carries. A colony whose warehouse has no stand a truck can leave
-from offers none.
+clock; they succeed or fail only themselves, never the cohort or the lift. The
+pool holds what the colony's set pieces can host (`set-piece-blocks.md`), and
+one is rolled per battle (`battle.colonyBreach.objectives` forces one):
 
-A side objective may bring its own **pressure** rather than make the breach's
-swarm aware of it (`set-piece-blocks.md`, Lanes and pressure). A loading in a
-freight yard has one: a held bore of its own (numbered 90, clear of the
-eruptions) opened down the street, whose surges the objective calls on its own
-beats, before the tremor as after it, and whose broods it sends in by the yard's
-gate and side gap. Collapsing that bore ends the pressure, which a guard may
-gamble on. When the objective ends its survivors wander as the rest of the swarm.
+- **Secure the loading** (`staffed-buildings.md`): the colony's largest
+  warehouse, worked by its own people, is loading the colony's stores onto a
+  truck in its yard, and the company that holds the yard until the truck is away
+  is paid out of what it carries. Needs a warehouse.
+- **Strip the workshop**: three of the factory row's hands carry its largest
+  workshop's gear across the service lane to a stack against the far side, and
+  the company holds the lane, which the swarm comes down from both gates. Done
+  at the count; lost when no hand is left. Needs a factory row.
+- **Hold the muster**: the colony's people have gathered in the market square,
+  and the company holds it for a hundred seconds against what comes in by
+  its mouths. Lost the moment fewer than half the muster are alive. Needs a
+  market square.
+- **Empty the hall**: the people sheltering in the main street's civic hall
+  come out two at a time and walk the street to the plaza, and the company keeps
+  the street open against what comes in from its side streets and gaps. Done
+  when everyone left has reached the plaza; lost when fewer than half are
+  alive. Needs a main street with its hall.
+
+The colony's people in the last two are brought for the objective, stand
+together, run from the swarm when it comes within a few cells and come back
+when it has gone; like a staffed crew they never count toward the rescue.
+
+A side objective brings its own **pressure** rather than make the breach's
+swarm aware of it (`set-piece-blocks.md`, Lanes and pressure): a held bore of
+its own (numbered from 90, clear of the eruptions) opened on the street near
+the set piece, whose surges the objective calls on its own beats, before the
+tremor as after it, and whose broods it sends in down the set piece's lanes.
+Collapsing that bore ends the pressure, which a guard may gamble on. When the
+objective ends its survivors wander as the rest of the swarm.
 
 ## Flow
 

@@ -38,6 +38,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.colonyBreach.livingField` | experiment | 2026-10-22 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.livingField.arms` | experiment | 2026-10-22 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.livingField.density` | experiment | 2026-10-22 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
+| `battle.colonyBreach.objectives` | control | 2026-10-25 | Permanent evidence lever: forces a Colony Breach battle's side objectives (`all`, `none`, or pool keys such as `secure_loading`, `strip_workshop`, `hold_muster`, `empty_hall`) instead of rolling one, so look suites and evidence can play each on demand (colony-breach-nouns.md, Side objectives). |
 | `battle.colonyBreach.loopholes` | experiment | 2026-10-22 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.militia` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.redoubtWorks` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |

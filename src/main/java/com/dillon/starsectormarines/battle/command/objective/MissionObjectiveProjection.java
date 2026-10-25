@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
+import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
 import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
 import com.dillon.starsectormarines.battle.setup.TermsOfProtectionSequence;
@@ -72,6 +73,7 @@ public final class MissionObjectiveProjection {
             else if (objective instanceof TermsOfProtectionSequence terms) items.add(MissionObjectiveFamilies.termsOfProtection(terms));
             else if (objective instanceof LimitedWarrantSequence warrant) items.add(MissionObjectiveFamilies.limitedWarrant(warrant));
             else if (objective instanceof DistrictEscortSequence escort) items.add(MissionObjectiveFamilies.districtEscort(escort));
+            else if (objective instanceof DustLedgerSequence ledger) items.addAll(DustLedgerChecklist.items(ledger, sim));
             else if (objective instanceof ColdStartSequence repair) {
                 items.add(MissionObjectiveFamilies.coldStart(repair));
                 for (var post : repair.pickets()) items.add(MissionObjectiveFamilies.coldStartPicket(post));

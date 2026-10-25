@@ -53,10 +53,8 @@ losses.
 The won Thunder Run ends with a written Jangala conversation on Results that
 closes Wayline's brush with bankruptcy. Mara says the road to the star port is
 Wayline's again and the contracts it was on the hook for ship this month; she no
-longer has to plan the sale. Sabine reports the drivers celebrating and the
-militia holding the road, with a separate line when the company lost people.
-Castle names the pattern in the ambushes, and Mara admits she still cannot say
-who knew Wayline's business, or why it was them. Castle closes the account,
+longer has to plan the sale. Castle names the pattern in the ambushes, and Mara
+admits she still cannot say who knew Wayline's business, or why it was them. Castle closes the account,
 notes Mara's steady escort work and points the company to Asharu. What brings it
 there belongs to The Dust Ledger, so that closing line is the seam to rewrite
 with it.

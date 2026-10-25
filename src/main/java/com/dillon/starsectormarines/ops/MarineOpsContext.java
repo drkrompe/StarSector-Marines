@@ -149,6 +149,11 @@ public class MarineOpsContext {
     private boolean lootSettlementStarted;
     private LootSettlementPlan lootSettlement;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
+    /** The in-battle story retry allowance; its free retry returns at mission select. */
+    private final StoryRetryAllowance storyRetry = new StoryRetryAllowance(StoryRetryAllowance.StoryPoints.LIVE);
+    /** The survey seed the current battle was launched on, and whether a retry asked the briefing to reuse it. */
+    private Long launchedSurveySeed;
+    private boolean surveySeedRetained;
     /** Screen and ready-seat target associated with the current armory visit. */
     private String requestedArmorySquadId;
     private boolean prepareAfterSettlement;
@@ -546,7 +551,30 @@ public class MarineOpsContext {
         }
         if (screen == ScreenId.BARRACKS && CompanyPreparation.required(roster))
             officerInductionRequested = true;
+        if (screen == ScreenId.MISSION_SELECT) storyRetry.reset();
         this.currentScreen = screen;
+    }
+
+    StoryRetryAllowance storyRetry() {
+        return storyRetry;
+    }
+
+    /** Records the seed the briefing launched the current battle on. */
+    void recordLaunchedSurveySeed(long seed) {
+        launchedSurveySeed = seed;
+        surveySeedRetained = false;
+    }
+
+    /** Asks the next briefing to survey the same map the erased attempt was fought on. */
+    void retainLaunchedSurveySeed() {
+        surveySeedRetained = launchedSurveySeed != null;
+    }
+
+    /** The seed a retry kept for the briefing, once; null for an ordinary fresh survey. */
+    Long takeRetainedSurveySeed() {
+        Long seed = surveySeedRetained ? launchedSurveySeed : null;
+        surveySeedRetained = false;
+        return seed;
     }
 
     /** Whether the company ship can be walked around yet. */
@@ -673,6 +701,11 @@ public class MarineOpsContext {
 
     public BattleFixture getBattleFixture() {
         return battleFixture;
+    }
+
+    /** Whether this battle's campaign writeback has been claimed; an erased retry must come before it. */
+    boolean battleSettlementStarted() {
+        return battleSettlementStarted;
     }
 
     /** Claims campaign writeback before side effects, including repeated exit callbacks. */

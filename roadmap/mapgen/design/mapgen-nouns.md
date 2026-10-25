@@ -6,6 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-10-25 — districts: the industrial zone, a working street hosting the freight yard and the factory row, publishes `IndustrialZone`.
 
+Earlier 2026-10-25 — districts: a member can take a set-piece role; main street's plaza end is the market square where two end members hold it.
+
 Earlier 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
 
 Earlier 2026-10-25 — set pieces: the freight yard has a planned parcel of its own, in two sizes, and each bay publishes its turn.
@@ -375,7 +377,9 @@ trunk, smallest fitting lot, one per map, no random draw). A lot the square
 cannot stand in is an ordinary plaza. The square publishes an **open square**
 (`OpenSquare` on `MapResult`): its centre, its open extent and each mouth's
 cells with the step out onto the street, for an objective to hold, cross or
-send pressure through.
+send pressure through. A district can give it a member's ground as a role
+(main street's plaza end, below); the market lot then keeps far enough from
+that square that the two never reach onto the same street.
 
 A **district** is a set piece over several adjacent leaves and the streets between them
 (`set-piece-districts.md`). A district program asks for a claim shape, a **spine** (one straight street
@@ -389,9 +393,13 @@ leaves are labelled and before compound claims, which take each district's compo
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
 district, a cluster with no streets of its own. **Main street** is the first program: rows of shopfronts behind
 pavements on both sides of one straight street, the kerb dressed as cover (street lamps, planters, stalls,
-parked vans) and an awning over each shop door, a plaza at one end and a civic hall at the other, in a
-civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on
-`MapResult` (the centre line, the plaza and the hall's door). **Street dressing** (`StreetDressing`) is the
+parked vans) and an awning over each shop door, a square at one end and a civic hall at the other, in a
+civic, mixed or residential pocket, so a high street can stand among houses. A member can take a
+**set-piece role**, an existing set piece laid on that member's ground: where the two members at one end of
+a side hold the market square facing the main street, they and the cross street between them (which keeps
+its width and runs through the square) are its lot; elsewhere the end is a plain plaza. It publishes
+`MainStreet` on `MapResult` (the centre line, the plaza, the market square's `OpenSquare` where it stands,
+and the hall's door). **Street dressing** (`StreetDressing`) is the
 kit districts lay along their streets: standing pieces (lamps, gantry columns, jersey barriers, bollards,
 boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, pipe rack cells) and the
 boom-gate arm block nothing and carry no cover. The **cordoned facility** stands on a quarter: an admin block, labs or
@@ -420,6 +428,13 @@ residential, civic or mixed town and the one minor street between them, joined a
 the market lot have claimed and before the road graph: only across a street that runs the whole of their
 shared side from one cross street to the next, with the ring round the block complete and no trunk crossed, so
 no dead end is made and every planned claim stays where it was. Conquest's biome-banded lots build neither.
+
+A map that is one settlement has a **town plan** over its rolled zoning (`TownZoning`): a two-by-two **civic
+core** at the trunk crossing, a **high street ring** of mixed town round it where main street and the market
+find their pocket, and an **industrial edge** along the map edge farthest from the core (two blocks deep, so a
+service street can be lined from both sides). Elsewhere the roll stands, except that a civic block off the core and an industrial block
+not touching the belt are homes: one centre, one industrial edge. The coast keeps its waterfront. A map of
+precincts plans each place by its character instead.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
@@ -840,7 +855,9 @@ visually pave a room simply because the room changed ground kind later.
 
 Road documents are versioned and round-trip through the Roads authoring page.
 Relief, Counterattack, Open the Junction, Last Lift and Relay Nine each consume
-an authored road plan, as does Thunder Run. Public freight routes, service
+an authored road plan, as do Thunder Run and Saltwell Cross (`DustLedgerCrossing`,
+whose ridge is authored elevation in the recipe, since a terrain plan raises only
+masses nobody stands on). Public freight routes, service
 lanes and boat aprons may carry distinct materials and wear while their mission
 route graphs, objectives and landing requirements retain their own authority.
 Open the Junction and Relay Nine derive their road graphs from the same sampled

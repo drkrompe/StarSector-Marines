@@ -8,6 +8,7 @@ final class BattleCompletion {
     private final CivilianEvacuationTracker evacuation;
     private boolean enabled = true;
     private boolean complete;
+    private boolean retreated;
     private Faction winner;
 
     BattleCompletion(CivilianEvacuationTracker evacuation) {
@@ -15,6 +16,8 @@ final class BattleCompletion {
     }
 
     boolean isComplete() { return complete; }
+    /** Whether the terminal result was the player's withdrawal rather than objectives. */
+    boolean retreated() { return retreated; }
     Faction winner() { return winner; }
 
     /** First terminal result wins; non-mission room hosts cannot be completed. */
@@ -28,7 +31,9 @@ final class BattleCompletion {
     }
 
     boolean retreat() {
-        return finish(Faction.DEFENDER);
+        if (!finish(Faction.DEFENDER)) return false;
+        retreated = true;
+        return true;
     }
 
     /** Setup seam for embedded rooms, matching their non-terminal battle clock. */
@@ -36,6 +41,7 @@ final class BattleCompletion {
         this.enabled = enabled;
         if (!enabled) {
             complete = false;
+            retreated = false;
             winner = null;
         }
     }

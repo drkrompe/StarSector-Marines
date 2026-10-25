@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "width": 192,
+  "height": 112,
+  "finish": "ROCK",
+  "faceDepth": 3.6,
+  "ruggedness": 0.7,
+  "seed": 6110,
+  "strokes": [
+    {
+      "mode": "RAISE",
+      "radius": 7,
+      "points": [
+        [
+          0,
+          111
+        ],
+        [
+          36,
+          110
+        ],
+        [
+          72,
+          111
+        ],
+        [
+          110,
+          110
+        ],
+        [
+          150,
+          111
+        ],
+        [
+          191,
+          110
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          0,
+          104
+        ],
+        [
+          10,
+          108
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          191,
+          104
+        ],
+        [
+          181,
+          109
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3,
+      "points": [
+        [
+          0,
+          20
+        ],
+        [
+          40,
+          20
+        ],
+        [
+          74,
+          20
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3,
+      "points": [
+        [
+          91,
+          20
+        ],
+        [
+          120,
+          20
+        ],
+        [
+          148,
+          20
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3,
+      "points": [
+        [
+          162,
+          20
+        ],
+        [
+          191,
+          20
+        ]
+      ]
+    }
+  ],
+  "previewRoad": "mod/data/world/roads/dust-ledger.road.json"
+}
