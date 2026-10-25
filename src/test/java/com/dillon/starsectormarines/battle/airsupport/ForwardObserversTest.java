@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -144,5 +145,19 @@ class ForwardObserversTest {
         assertEquals(1f, officer.lossesNear(110f, 50f, 30));
         assertEquals(0f, officer.lossesNear(140f, 50f, 30), "far from where it fell");
         assertEquals(0f, officer.lossesNear(110f, 50f, AirStrikeDirector.LOSS_TICKS + 1), "forgotten after a while");
+    }
+
+    @Test
+    void aLanePostTakesTheTeamThatStepsOffNotTheCrewAlreadyStandingThere() {
+        SceneWorld world = garrison(SceneBuilder.openGround(40, 40).missionCompletion(false)).build();
+        BattleSimulation sim = world.sim();
+        ForwardObservers.Post lane = ForwardObservers.band(Faction.ALLY, true, 10, 5);
+        assertEquals(List.of(), lane.squads(sim), "the garrison was standing in the band when the post first looked");
+        int wave = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        for (int i = 0; i < 3; i++) {
+            long member = sim.spawn(new EntitySpec("wave " + i, Faction.ALLY, UnitType.MILITIA, 11 + i, 30).squad(wave));
+            if (i == 0) sim.getSquad(wave).leaderId = member;
+        }
+        assertEquals(List.of(wave), lane.squads(sim));
     }
 }

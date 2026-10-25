@@ -26,6 +26,8 @@ public final class TurnAwareCorridor {
     private static final float LENGTH_EPS = 1e-3f;
     /** Sharpest bend (degrees) route proof keeps as a pivot; a sharper one is the route doubling back. */
     private static final float MAX_PIVOT_BEND_DEG = 135f;
+    /** Shortest route (cells) an order's end may be shortened to; shorter, and the order is refused as before. */
+    private static final float MIN_ORDER_ROUTE_CELLS = 1f;
 
     /** Refined points, or {@code null} plus the route location that failed. */
     public record Result(float[][] points, float failedX, float failedY) {
@@ -36,6 +38,34 @@ public final class TurnAwareCorridor {
     private TurnAwareCorridor() {}
 
     public static Result refine(float[][] route, VehicleType type, NavigationGrid grid) {
+        return refine(route, type, grid, null);
+    }
+
+    /**
+     * {@link #refine} for a route a hull standing at {@code departure} is ordered along, so that its two ends are
+     * judged for what they are rather than as any other stretch of road.
+     *
+     * <p>The slack the corridor is sampled with is a margin for tracking error on the way, and a hull that is
+     * already standing at the start has made none: within a hull's length of the start the footprint need only
+     * clear the ground exactly. Where even that clips (the route's first leg points where the hull's own pose does
+     * not fit), the hull may still back and fill onto the corridor from where it really stands
+     * ({@link VehicleController#canTurnOntoRouteAt}), and the route is accepted if it can. Within a hull's length of
+     * the end, ground the slackened footprint cannot stand on shortens the route to the last pose that clears it:
+     * the hull arrives a little short instead of being refused. {@code null} judges both ends like the rest, as
+     * dispatch does, where an end is a drop point or a map edge rather than a hull or a click.
+     */
+    public static Result refine(float[][] route, VehicleType type, NavigationGrid grid, Pose departure) {
+        return refine(route, type, grid, departure, null);
+    }
+
+    /**
+     * {@link #refine(float[][], VehicleType, NavigationGrid, Pose)} with every footprint judged brushing
+     * ({@link SoftBrush#fits}): whole and slackened against {@code soft}, the grid with the hull's soft ground open,
+     * and exact but inset by the brush depth against {@code grid}. The last rung of an order's proof; {@code null}
+     * judges strictly. Bends, pivots and the departure maneuver are judged strictly either way.
+     */
+    static Result refine(float[][] route, VehicleType type, NavigationGrid grid, Pose departure,
+                         NavigationGrid soft) {
         int given = Math.min(route[0].length, route[1].length);
         if (given < 2) return Result.failure(given == 0 ? 0f : route[0][0], given == 0 ? 0f : route[1][0]);
 
@@ -102,8 +132,9 @@ public final class TurnAwareCorridor {
             addDistinct(outX, outY, owner, -1, xs[count - 1], ys[count - 1]);
 
             float[][] refined = arrays(outX, outY);
-            float[] failed = firstInfeasible(refined, length, width, grid);
+            float[] failed = firstInfeasible(refined, length, width, grid, type, departure, soft);
             if (failed == null) return Result.success(refined);
+            if (failed.length > 3) return Result.success(truncated(refined, (int) failed[2], failed[3], failed[4]));
             int bend = owner.get((int) failed[2]);
             if (!pivots || bend < 0 || !pivotFits(xs, ys, bend, length, width, grid)) {
                 return Result.failure(failed[0], failed[1]);
@@ -115,8 +146,19 @@ public final class TurnAwareCorridor {
     /**
      * The first pose along {@code refined} whose slackened footprint does not clear the ground, as
      * {@code {x, y, index}} with the index of the point that ends its segment; {@code null} when every pose clears.
+     * With a {@code departure} (see {@link #refine(float[][], VehicleType, NavigationGrid, Pose)}) the start is held
+     * to the exact footprint or the departure maneuver, and a failure near the end is returned as
+     * {@code {x, y, index, lastClearX, lastClearY}}, the place to shorten the route to.
      */
-    private static float[] firstInfeasible(float[][] refined, float length, float width, NavigationGrid grid) {
+    private static float[] firstInfeasible(float[][] refined, float length, float width, NavigationGrid grid,
+                                           VehicleType type, Pose departure, NavigationGrid soft) {
+        float total = 0f;
+        for (int i = 1; i < refined[0].length; i++) {
+            total += distance(refined[0][i - 1], refined[1][i - 1], refined[0][i], refined[1][i]);
+        }
+        float grace = departure == null ? 0f : type.visualLengthCells;
+        boolean departureAsked = false, departs = false;
+        float run = 0f, clearX = refined[0][0], clearY = refined[1][0], clearRun = 0f;
         for (int i = 1; i < refined[0].length; i++) {
             float ax = refined[0][i - 1], ay = refined[1][i - 1];
             float bx = refined[0][i], by = refined[1][i];
@@ -128,12 +170,50 @@ public final class TurnAwareCorridor {
             for (int sample = 0; sample <= samples; sample++) {
                 float t = sample / (float) samples;
                 float x = ax + dx * t, y = ay + dy * t;
-                if (!VehicleFootprint.isPoseFeasible(x, y, facing, length, width, grid)) {
+                float along = run + segmentLength * t;
+                if (along < grace) {
+                    if (departs || fits(x, y, facing, type.visualLengthCells, type.visualWidthCells,
+                            type, grid, soft)) continue;
+                    if (!departureAsked) {
+                        departureAsked = true;
+                        departs = VehicleController.canTurnOntoRouteAt(grid, type, departure.x, departure.y,
+                                departure.facingDeg, refined[0], refined[1]);
+                    }
+                    if (departs) continue;
                     return new float[]{x, y, i};
                 }
+                if (fits(x, y, facing, length, width, type, grid, soft)) {
+                    clearX = x;
+                    clearY = y;
+                    clearRun = along;
+                    continue;
+                }
+                if (grace > 0f && total - along < grace && clearRun >= MIN_ORDER_ROUTE_CELLS) {
+                    return new float[]{x, y, i, clearX, clearY};
+                }
+                return new float[]{x, y, i};
             }
+            run += segmentLength;
         }
         return null;
+    }
+
+    /** The footprint test route proof samples with: strict, or brushing where {@code soft} is given. */
+    private static boolean fits(float x, float y, float facing, float length, float width, VehicleType type,
+                                NavigationGrid grid, NavigationGrid soft) {
+        if (soft == null) return VehicleFootprint.isPoseFeasible(x, y, facing, length, width, grid);
+        return SoftBrush.fits(x, y, facing, length, width, type.visualLengthCells, type.visualWidthCells, grid, soft);
+    }
+
+    /** {@code refined} ending at ({@code x}, {@code y}) on the segment that ends at point {@code index}. */
+    private static float[][] truncated(float[][] refined, int index, float x, float y) {
+        List<Float> outX = new ArrayList<>();
+        List<Float> outY = new ArrayList<>();
+        List<Integer> owner = new ArrayList<>();
+        for (int i = 0; i < index; i++) addDistinct(outX, outY, owner, -1, refined[0][i], refined[1][i]);
+        addDistinct(outX, outY, owner, -1, x, y);
+        if (outX.size() < 2) addDistinct(outX, outY, owner, -1, refined[0][index], refined[1][index]);
+        return arrays(outX, outY);
     }
 
     /**

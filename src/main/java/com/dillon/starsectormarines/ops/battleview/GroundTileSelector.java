@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 
@@ -59,6 +60,19 @@ final class GroundTileSelector {
         if (!grid.inBounds(x, y)) return false;
         if (topology.isWall(x, y)) return true;
         return isSidewalkCell(grid, topology, x, y);
+    }
+
+    /**
+     * Whether a ground drawn from {@code blockId} ends at the neighbour {@code (x, y)}: the
+     * neighbour is a wall, or draws its floor from any other block. The map edge is not an end.
+     */
+    static boolean endsGround(CellTopology topology, GenMappingRegistry mapping, String blockId, int x, int y) {
+        if (!topology.inBounds(x, y)) return false;
+        if (topology.isWall(x, y)) return true;
+        int surface = topology.getSurface(x, y);
+        String drawn = surface > 0 ? topology.surfaceId(surface)
+                : mapping == null ? null : mapping.groundBlockId(topology.getGroundKind(x, y));
+        return !blockId.equals(drawn);
     }
 
     static boolean isInBoundsWall(CellTopology topology, int x, int y) {

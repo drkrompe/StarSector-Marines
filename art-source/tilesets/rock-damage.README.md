@@ -1,26 +1,69 @@
 # Rock damage states
 
-Seven built-in nature rock groups have cracked and shattered states, generated
-with built-in ImageGen from the retained geometry and material-reference plates.
-The exact request is `rock-damage.prompt.txt`; the returned image is
-`rock-damage.raw.png`. `rock-damage.tileset-authoring.json` records the reviewed
-cuts from its actual 1254 x 1254 canvas. The returned row spacing differs from
-the guide, so cuts use the observed transparent gutters rather than assuming
-four equal rows. Export preserves generated alpha and does not trim/recenter.
+The seven nature rock groups (`nature.rock-small-1..2`, `-medium-1..2`,
+`-large-1..3`) have cracked and shattered states. All three states are painted
+from geometry guides, in order:
 
-Regenerate the guide and actual combat-state previews with:
+1. `art-source/templates/field-stones-guide.py` draws the seven groups as smooth,
+   top-lit stones, one per frame on a 4x2 sheet. ImageGen reskins it into
+   `field-stones/field-stones.png` (`field-stones.prompt.txt`).
+2. `art-source/templates/field-stones-damage-guide.py` reads those accepted stones
+   and draws the guides for each state. The damaged guide keeps each silhouette
+   with cracks and chips. The destroyed guide breaks it into chunks drawn in
+   toward their own centres, with gravel between them. ImageGen reskins the guides
+   into `field-stones-damaged.png` and `-destroyed.png`, with the intact sheet as
+   the identity reference.
+3. `art-source/tilesets/nature-tiles-refit.py` cuts all three states at the
+   intact group's alpha box:
+   - It joins the intact frames into the nature strip.
+   - It writes `rock-damage.raw.png` with the damaged sheet above the destroyed
+     sheet, and rewrites the fourteen rects here.
+   - It shifts each state onto its group's mean colour.
+   - It slides apart any stones that sit side by side with clear columns between
+     them, moving every state the same way. The strip loader would otherwise
+     split such a group into two frames.
+
+   Both the strip and this export stretch a cut to one cell, so equal boxes keep
+   the three states in register.
+
+Field stones follow the world's ground. `STONE_SETS` at the top of the refit
+script lists one set per biome, and `RockDamage.Biome` names the same four:
+
+| Set | Ids | Ground (`SurfacePalette`) | Folder and grade |
+|---|---|---|---|
+| Mossed | `nature.rock-<group>` | VERDANT | `field-stones/mossed/`, `quiet` |
+| Sandstone | `nature.rock-sandstone-<group>` | ARID | `field-stones/sandstone/`, `dusty` |
+| Basalt | `nature.rock-basalt-<group>` | ROCK | `field-stones/basalt/`, `weathered` |
+| Frost | `nature.rock-frost-<group>` | FROZEN | `field-stones/frost/`, `none` |
+
+Each set's three states have their own prompts and provenance in its folder.
+The intact sheets reskin `field-stones-guide.png`, with the pale stones in
+`field-stones/` as the form reference. The pale stones read too bright on
+woodland ground and no longer ship; they remain the identity source for the
+damage guides.
+
+- The mapping's `surfaceFillers` rock pools name each palette's set.
+- `SurfacePalette.stones()` gives the set to code that scatters stones itself
+  (`SummitDressing`, `BlackSluice`).
+- New strip entries and damage entries are appended after the existing ones,
+  so no shipped frame moves.
+- `rock-damage.raw.png` stacks each set's damaged sheet over its destroyed
+  sheet, in set order.
+
+Then export both sheets and re-derive the relief maps:
 
 ```powershell
 $env:JAVA_HOME = 'C:/Program Files/JetBrains/IntelliJ IDEA 2025.3.2/jbr'
-.\gradlew.bat createSnapshots '-Psnapshot=rock-damage'
+'{"name":"nature-tiles"}' | tools/authoring.cmd tileset_export -
 '{"name":"rock-damage"}' | tools/authoring.cmd tileset_export -
+.\gradlew.bat :asset-pipeline:deriveTileMaps
+.\gradlew.bat createSnapshots '-Psnapshot=rock-damage'
 ```
 
-`RockDamageReskinTemplate` reads intact source silhouettes, overlays branching
-crack guides, and lays out small separated fragment guides. These are constraints
-for the ImageGen reskin, not final procedural art. The seven identities keep
-their ordering: small 1/2, medium 1/2, large 1/2/3. The final atlas contains
-seven damaged frames followed by seven destroyed frames, each one game cell.
+The `rock-damage` suite renders intact, cracked and shattered rows at 32 and 64
+pixels per cell through the map renderer and the combat mutation path; that is
+the registration check. The floor look shot in `undergrowth-look` shows the
+stones in a scene.
 
 `RockDamage` owns per-cell structure (50/100/200 by size). The first structural
 hit replaces the nature overlay with the matching doodad; surviving damage
@@ -28,8 +71,5 @@ keeps original cover. Rubble has zero cover and opens blocking boulders through
 `MapEditor`. Walkable nature cover is removable independently of static props.
 Original ground, neighboring cover and permanent cliffs remain. Existing weapon
 wall-damage payloads, both direct and radial, drive these transitions.
-
 `RockDamageTest` checks all identities, state/cover/navigation transitions,
-overlap and cliff preservation. The registered visual suite renders intact,
-cracked and shattered rows at 32 and 64 pixels per cell through the actual map
-renderer and combat mutation seam.
+overlap and cliff preservation.

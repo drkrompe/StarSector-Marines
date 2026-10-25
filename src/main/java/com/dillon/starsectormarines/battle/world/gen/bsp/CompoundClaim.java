@@ -25,7 +25,7 @@ import java.util.Set;
  *
  * <p>Driven by a list of {@link ClaimSpec} so multiple compound kinds
  * (MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER, INDUSTRIAL_COMPOUND,
- * MEDICAL_CAMPUS) can run in one pass with
+ * FACTORY_ROW, MEDICAL_CAMPUS) can run in one pass with
  * different size budgets / per-map caps / demotion targets. Specs are
  * processed in the order given; once a leaf is claimed (by any spec) it
  * can't seed another compound.
@@ -73,6 +73,15 @@ public final class CompoundClaim {
         }
     }
 
+    /**
+     * The factory row ({@code set-piece-blocks.md}) stands on its seed lot and the street frame round it;
+     * one neighbour widens the ground it may choose from, and a lone seed still claims.
+     */
+    private static final ClaimSpec FACTORY_ROW_SPEC = new ClaimSpec(BlockKind.FACTORY_ROW,
+            BlockKind.BUILDING_INDUSTRIAL, 1, 2, 1, 2, 11, 7,
+            EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
+                    BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND, BlockKind.NATURE_BEACH));
+
     /** Default spec set — non-Conquest missions. One compound per kind max. */
     public static final List<ClaimSpec> DEFAULT_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
@@ -89,6 +98,7 @@ public final class CompoundClaim {
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
                             BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND,
                             BlockKind.NATURE_BEACH)),
+            FACTORY_ROW_SPEC,
             new ClaimSpec(BlockKind.AIRBASE_COMPOUND, BlockKind.AIRBASE_PAD,
                     1, 2, 2, 3, 14, 12,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE,
@@ -122,6 +132,7 @@ public final class CompoundClaim {
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD,
                             BlockKind.BUILDING_CIVIC, BlockKind.NATURE_WETLAND,
                             BlockKind.NATURE_BEACH)),
+            FACTORY_ROW_SPEC,
             new ClaimSpec(BlockKind.AIRBASE_COMPOUND, BlockKind.AIRBASE_PAD,
                     1, 2, 2, 3, 14, 12,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE,
@@ -232,6 +243,8 @@ public final class CompoundClaim {
 
     private static boolean isEligible(BlockLeaf leaf, ClaimSpec spec) {
         if (leaf.kind == BlockKind.COMPOUND_MEMBER) return false;
+        // Ground planned for a set piece is already somebody's (set-piece-blocks.md).
+        if (leaf.kind == BlockKind.FREIGHT_YARD)    return false;
         if (leaf.kind == spec.seedKind)             return false;
         for (ClaimSpec other : DEFAULT_SPECS) {
             if (other.seedKind != spec.seedKind && leaf.kind == other.seedKind) return false;

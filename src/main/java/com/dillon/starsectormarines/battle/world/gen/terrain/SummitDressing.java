@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.Random;
+import java.util.stream.Stream;
 
 /** Rocks and unattended equipment on permanent summits; no new walkable upper level. */
 public final class SummitDressing {
@@ -46,7 +47,7 @@ public final class SummitDressing {
                 place(x, y, shape.id(), turns);
         }
         var registry = TileRegistry.installed();
-        String[] stones = {"nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1"};
+        String[] stones = Stream.of("small-1", "small-2", "medium-1").map(palette.stones()::stone).toArray(String[]::new);
         for (int y = 0; y < context.height; y++) for (int x = 0; x < context.width; x++) {
             if (!fits(x, y, 1, 1)) continue;
             float chance = clusters.sample(x, y) < .65f ? .22f : .035f;

@@ -165,6 +165,18 @@ def compose(layers, plate=None, backdrop=None):
     return over(fg, bg), bg, np.clip(fg[..., 3:4], 0.0, 1.0), used
 
 
+LUMA = np.array([.2126, .7152, .0722], dtype=np.float32)
+
+
+def effects_owned(effects, rgba):
+    """How much of each pixel the effects layer makes, 0-1: its alpha, or its share of the composite's
+    linear luminance, whichever is more. The effects go over everything premultiplied, so their RGB is
+    what they add. Alpha alone missed every additive emitter (S5, 2026-10-25: a Harpoon's ignition
+    flash, 943 px near white with alpha .009, read as no effect at all)."""
+    share = (effects[..., :3] @ LUMA) / np.maximum(rgba[..., :3] @ LUMA, 1e-6)
+    return np.clip(np.maximum(effects[..., 3], share), 0.0, 1.0)
+
+
 def save_png(rgba, path, scene, depth='8'):
     """Through the scene's view transform, as a render's PNG is written."""
     import bpy
@@ -238,7 +250,7 @@ def compose_frame(exr, png, scene, plate=None, backdrop=None, log=print, glow=0.
     if missing:
         raise SystemExit(f'{exr}: no {", ".join(missing)} layer (has {", ".join(layers)})')
     rgba, bg, cover, used = compose(layers, plate, backdrop)
-    compose_frame.effects_alpha = np.clip(layers['effects']['Combined'][..., 3], 0.0, 1.0)     # the white-blob lint's
+    compose_frame.effects_owned = effects_owned(layers['effects']['Combined'], rgba)     # the white-blob lint's
     if glow:            # a key frame's bloom (its spec's 'bloom'): from the effects layer, over everything
         rgba = rgba.copy()
         rgba[..., :3] += bloom(layers['effects']['Combined'][..., :3], glow)

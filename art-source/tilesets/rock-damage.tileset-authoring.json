@@ -6,7 +6,7 @@
   "gridRows": 4,
   "idPrefix": "nature",
   "alphaMin": 40,
-  "note": "Geometry-first built-in ImageGen reskin; reviewed full frames from the returned 1254-square image. Upper two source rows are cracked stone; lower two are separated rubble. Uneven returned row pitch is recorded in cuts, including transparent margins. No alpha trimming or recentering. Runtime rock state retains original cover until destroyed.",
+  "note": "Field-stone damage states, cut and written by art-source/tilesets/nature-tiles-refit.py: the upper half is field-stones/field-stones-damaged.png, the lower half -destroyed.png, each colour-matched to its intact group. Every rect is the intact group's alpha box, the same box the nature strip cuts, so the three states register when export stretches each rect to its cell. Do not re-cut by hand. Runtime rock state retains original cover until destroyed.",
   "entries": [
     {
       "id": "nature.rock-small-1-damaged",
@@ -18,10 +18,10 @@
         1
       ],
       "rect": [
-        0,
-        50,
-        314,
-        314
+        29,
+        52,
+        289,
+        356
       ]
     },
     {
@@ -34,10 +34,10 @@
         1
       ],
       "rect": [
-        314,
-        50,
-        314,
-        314
+        526,
+        52,
+        323,
+        358
       ]
     },
     {
@@ -50,10 +50,10 @@
         1
       ],
       "rect": [
-        628,
-        50,
-        314,
-        314
+        935,
+        58,
+        365,
+        355
       ]
     },
     {
@@ -66,10 +66,10 @@
         1
       ],
       "rect": [
-        942,
-        50,
-        312,
-        314
+        1389,
+        67,
+        346,
+        339
       ]
     },
     {
@@ -82,10 +82,10 @@
         1
       ],
       "rect": [
-        0,
-        380,
-        314,
-        314
+        24,
+        489,
+        392,
+        352
       ]
     },
     {
@@ -98,10 +98,10 @@
         1
       ],
       "rect": [
-        314,
-        380,
-        314,
-        314
+        478,
+        504,
+        371,
+        321
       ]
     },
     {
@@ -114,10 +114,10 @@
         1
       ],
       "rect": [
-        628,
-        380,
-        314,
-        314
+        925,
+        512,
+        375,
+        327
       ]
     },
     {
@@ -130,10 +130,10 @@
         1
       ],
       "rect": [
-        0,
-        710,
-        314,
-        270
+        29,
+        939,
+        289,
+        356
       ]
     },
     {
@@ -146,10 +146,10 @@
         1
       ],
       "rect": [
-        314,
-        710,
-        314,
-        270
+        526,
+        939,
+        323,
+        358
       ]
     },
     {
@@ -162,10 +162,10 @@
         1
       ],
       "rect": [
-        628,
-        710,
-        314,
-        270
+        935,
+        945,
+        365,
+        355
       ]
     },
     {
@@ -178,10 +178,10 @@
         1
       ],
       "rect": [
-        942,
-        710,
-        312,
-        270
+        1389,
+        954,
+        346,
+        339
       ]
     },
     {
@@ -194,10 +194,10 @@
         1
       ],
       "rect": [
-        0,
-        978,
-        314,
-        270
+        24,
+        1376,
+        392,
+        352
       ]
     },
     {
@@ -210,10 +210,10 @@
         1
       ],
       "rect": [
-        314,
-        978,
-        314,
-        270
+        478,
+        1391,
+        371,
+        321
       ]
     },
     {
@@ -226,10 +226,682 @@
         1
       ],
       "rect": [
-        628,
-        978,
-        314,
-        270
+        925,
+        1399,
+        375,
+        327
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        1825,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        2712,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        1828,
+        313,
+        355
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        2715,
+        313,
+        355
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        1834,
+        366,
+        355
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        2721,
+        366,
+        355
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        1840,
+        346,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        2727,
+        346,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        2264,
+        391,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        3151,
+        391,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        479,
+        2279,
+        370,
+        319
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        479,
+        3166,
+        370,
+        319
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        2288,
+        378,
+        326
+      ]
+    },
+    {
+      "id": "nature.rock-sandstone-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        3175,
+        378,
+        326
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        3598,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        4485,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        3602,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        4489,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        3608,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        4495,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        3614,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        4501,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        4035,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        4922,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        4051,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        4938,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        4062,
+        375,
+        325
+      ]
+    },
+    {
+      "id": "nature.rock-basalt-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        4949,
+        375,
+        325
+      ]
+    },
+    {
+      "id": "nature.rock-frost-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        5381,
+        286,
+        352
+      ]
+    },
+    {
+      "id": "nature.rock-frost-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        6268,
+        286,
+        352
+      ]
+    },
+    {
+      "id": "nature.rock-frost-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        525,
+        5379,
+        310,
+        353
+      ]
+    },
+    {
+      "id": "nature.rock-frost-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        525,
+        6266,
+        310,
+        353
+      ]
+    },
+    {
+      "id": "nature.rock-frost-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        934,
+        5384,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-frost-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        934,
+        6271,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-frost-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1391,
+        5393,
+        343,
+        336
+      ]
+    },
+    {
+      "id": "nature.rock-frost-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1391,
+        6280,
+        343,
+        336
+      ]
+    },
+    {
+      "id": "nature.rock-frost-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        28,
+        5817,
+        389,
+        348
+      ]
+    },
+    {
+      "id": "nature.rock-frost-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        28,
+        6704,
+        389,
+        348
+      ]
+    },
+    {
+      "id": "nature.rock-frost-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        483,
+        5832,
+        362,
+        313
+      ]
+    },
+    {
+      "id": "nature.rock-frost-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        483,
+        6719,
+        362,
+        313
+      ]
+    },
+    {
+      "id": "nature.rock-frost-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        926,
+        5838,
+        374,
+        324
+      ]
+    },
+    {
+      "id": "nature.rock-frost-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        926,
+        6725,
+        374,
+        324
       ]
     }
   ]

@@ -334,6 +334,8 @@ public class BattleRenderer {
                     else DecalRenderSystem.collect(ctx.sim.getDecals(),sprites.decalSheet(),sprites.decalFrames(),
                             ctx.camera,ctx.alphaMult,out);
                 }),
+                // A nest's clutter lies on the creep with the decals, under everything that stands on it.
+                new NestClutterRenderSystem(sprites),
                 new ParkedAircraftRenderSystem(sprites),
                 // A deck's Deficit dressing lies under its fixtures; its dead screens are the fixtures, unlit.
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
@@ -389,6 +391,7 @@ public class BattleRenderer {
                 // Overhead machinery such as a bay's travelling crane passes over whoever stands beneath it.
                 new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases),
                 new DroneRenderSystem(sprites),
+                new SpirePerchRenderSystem(sprites),
                 new HarrierRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),

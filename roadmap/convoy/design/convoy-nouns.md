@@ -630,6 +630,35 @@ after four seconds braked with its reroute spent follows its corridor the same
 way: the last rung before an order is given up, turning in place beating
 standing still for the rest of the battle. A pivot reports its yaw to the
 hull's gun the way a driven turn does (what presents the front).
+
+**Brushing soft ground.** What a hull still cannot do once pivots, order ends
+judged from where it stands, refused-goal memory and stands have all had their
+say is mostly a footprint that would fit but for a corner in a bush, a crown's
+edge or a fence. A real driver shoves through that, and a move order's hull
+does too, as its last rung (`SoftBrush`). Soft ground is a closed natural cell
+the creep or youth has made growth (`CRUSHABLE`; a lone boulder carries the tag
+too but is no natural solid, and stays hard), the outer crown of a standing
+tree for a medium or heavy hull (a crown cell outside its trunk, the trunk
+being the cells `CreepVegetation` keeps blocking a dead tree by), and a piece of
+industrial fence. For a hull whose tracks flatten growth that growth is open
+ground already. Brushing is two checks with the footprint test that exists:
+the whole footprint clears the hull's ground with its soft ground opened, so it
+touches nothing hard, and the footprint inset by the brush depth (0.3 of a
+cell) clears the real ground, so it touches soft ground no deeper; a sweep
+keeps the shorter proven travel of the two. The controller brushes once a move
+order has been braked six seconds (the order is given up at eight): a tracked
+or hover hull follows its corridor by pivot as above, a wheeled one crawls it on
+its wheels, both at 0.3 of top speed, and the failure clock holds while it
+brushes on. The forward planner takes the hull back the moment it finds a
+trajectory, and a hull that arrives brushing arrives as it stands. The order's
+route proof has the same rung: an order refused strictly has its cheapest
+route over the clearance mask refined once more with its footprint judged
+brushing (slackened whole against the soft view, exact and inset against the
+real ground), and a route accepted that way is brushed from the start. The
+clearance mask never opens soft ground, so no route is found through a hedge,
+only one that grazes it; a bend the chassis cannot make is refused either way.
+The ground is left as it was: fences stay standing and nothing is scraped.
+`-Dbattle.vehicle.softBrush=false` is the control.
 Docking aligns the parked APC with its outbound corridor. The only pose playback
 is that short validated maneuver; ordinary route travel is always body-driven.
 When docking or ordinary pursuit can reach the exact drop-off, they remain
@@ -654,7 +683,12 @@ brake and reroute, never "drive the rejected coarse corner anyway."
 Recovery is progressive rather than permission to clip geometry. Ordinary
 feasible drift receives a fresh local trajectory. A wall-blocked or
 geometrically impossible forward turn commits to a bounded reverse that creates
-room for a new forward plan. Loss of corridor progress invokes a cost-field
+room for a new forward plan, and so does a hull with no plan at all from where
+it stands: once its reroute has been tried and it has held two seconds planless
+(not held there by its driver), it backs off as far as is clear behind and
+plans again from there, before a wheeled hull's last-resort pivot (a truck
+nosed into a house in a town's loading yard otherwise stood all battle, its
+convoy waiting behind it). Loss of corridor progress invokes a cost-field
 reroute around the failing area, with failed areas excluded for that travel leg
 so later attempts cannot ping-pong through an earlier bad bend. If no such route
 exists, reroute attempts are rate-limited while ordinary tracking continues;
@@ -856,6 +890,16 @@ retains the same existing cross-domain behavior as an autonomous hull.
   is what turns it round. Short deliberately — a nearer goal buys a tighter
   swing, and lateral room is the scarce thing. The attempt is bounded, because
   a pose no maneuver can rescue must cost a couple of tries rather than loop.
+- An order's route is proved from where the hull stands. The proof samples the
+  corridor with a margin for tracking error, and a hull already standing at the
+  start has made none, so within a hull's length of the start its footprint
+  need only clear exactly; where even that clips on the first leg's heading, the
+  route is accepted if the hull can back and fill onto it from its real pose
+  (the departure turnaround below). Within a hull's length of the end, ground
+  the margin cannot stand on shortens the route to the last pose that clears
+  it, so the hull arrives a little short rather than being refused. Dispatch
+  keeps both ends to the margin, because its ends are drop points and map
+  edges, not hulls and clicks.
 - An order that cannot be carried out is refused, out loud. A dispatched route
   is proven before dispatch commits to it, and a destination somebody picked is
   not — so a move order is where feasibility is actually decided, and the
@@ -1013,8 +1057,15 @@ retains the same existing cross-domain behavior as an autonomous hull.
   side, where a gate carrying a term it had no business carrying put a
   fighter's wheels down a runway's length from the numbers.
 - A vehicle moves under its own body or performs a bounded recovery. It never
-  solves failure by crossing a wall or snapping through a corner; the durable
-  terminal outcome for an unrecoverable route remains open.
+  crosses **hard** ground (a wall, a building, a barricade, water it does not
+  float on, a tree's trunk, a boulder, another hull, the map edge) and never
+  snaps through a corner. As the last rung before a move order is given up it
+  may **brush soft ground** (growth it cannot flatten, a tree's outer crown for
+  a medium or heavy hull, an industrial fence) by at most 0.3 of a cell at any
+  point of its footprint, at a crawl, without damage and without editing the
+  map (Brushing soft ground). Dispatch, docking and allied command's stands never
+  plan on it. The durable terminal outcome for an unrecoverable route remains
+  open.
 - Passenger deboarding uses the same faction roster and squad/objective
   conventions as other reinforcement means. The convoy creates delivery; it
   does not create a separate infantry ruleset.
@@ -1113,13 +1164,16 @@ delivery proof is unchanged; the blade reaches player-ordered and directly
 driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
 troop APC drives through, against a control where the APC alone is refused.
 
-A Heavy-lift hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
+A medium or heavy hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the
-small oak), any tree the creep has killed, or a lone large boulder. A cell under
+small oak), any tree the creep has killed, a patch of forest undergrowth
+(`mapgen-nouns.md`, Authored forests), or a lone large boulder. A cell under
 two crowns is crushable only while every standing tree on it is undergrowth, so
 a dead tree leaning into a living oak holds where they meet, and a summit cell
-never is. Infantry and every lighter hull are stopped by it as by any natural
-solid. Every Heavy-lift hull (the gun tanks and the dozer) drives into it:
+never is. Infantry, light hulls (the pickups, the scout car and the hauler) and hover
+hulls are stopped by it as by any natural solid. Every hull of medium weight
+or more (the APC lines, the rocket technical, the dozer and the gun tanks)
+drives into it, so an APC is never trapped in a wood a tank can leave:
 whatever crushable cells its footprint covers after a move are crushed through
 the map editor's destruction path, so a tree falls whole to its felled art, a
 boulder to its rubble, and the ground is open for everyone afterwards. A tick
@@ -1134,12 +1188,13 @@ rubble, so a tank goes round a thicket where going round is cheap and through it
 where it is not. Living mature trees, mineral formations, hills and every wall
 stay solid; the dozer's breach view is laid over its crush view. Small and
 medium rocks, shrubs and grass tufts were open ground for every hull already.
-Which living trees count as young is the owner's open pick
-(`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
-is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
+Living young trees give way as dead ones do (owner's pick, over dead trees
+only), which the forest generator relies on when it replants a tank lane with
+young trees; `-Dbattle.vehicle.crushUndergrowth=false` is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
 across young or creep-killed wood drives through it, felling what it touches
-(dead trees fall as bleached dead wood, `colony-breach-nouns.md`), while a
-living mature wood and a troop APC in young wood are held.
+(a dead tree falls flattened, a stump and short butts, `colony-breach-nouns.md`), while a
+living mature wood holds every hull, and a scout car is held by the young wood
+that a troop APC crushes through.
 
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the
@@ -1237,7 +1292,7 @@ fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
 wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
 sight, and holds fire entirely without the spotter. A carrier fitted with the
 **sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
-drones hold station beyond the bow, and what they see counts as eyes on the
+drones search the ground round it, and what they see counts as eyes on the
 target (`SideObservers`), so it fires over a wall with nobody else looking.
 
 The **fire-support APC** (`FIRE_SUPPORT_APC`, the mortar carrier) is the same hull
@@ -1376,9 +1431,18 @@ ground scale:
 
 - An **escort** flies the loose formation round the hull, engages what comes into its
   reach, and is held by a leash.
-- A **sensor** holds station ahead of the bow. It is a sight source on the scout's terms,
-  so it looks round the corner the hull cannot see past, and it carries only a light ion
-  sting.
+- A **sensor** searches (`SensorSearch`). The ring round the hull is four quadrants, and
+  the wing remembers when each was last in a sensor's sight, from sample cells far out
+  where a drone's own sight is the only sight there is. Each sensor holds the stalest
+  quadrant not already taken, leaning toward the way the hull faces, for a spell, then
+  moves on when it reads fresh, so ground goes stale and is searched again. The memory is
+  the wing's own, so any side's hull has it; it reads nothing from the player's fog. When
+  a sensor sees a hostile its hull has no line to, an armoured one before a soft one and
+  the nearest first, it **shadows** it: it holds a point between the hull and the target,
+  short of it by most of its sight and within the leash, turned until it has a line, while
+  the other sensor keeps searching. A target out of every sensor's sight is chased to where
+  it was last seen, then let go. A sensor is a sight source on the scout's terms, so it
+  looks round the corner the hull cannot see past, and it carries only a light ion sting.
 - A **halo** drone orbits tight round the hull wearing a carried point-defence mount
   (`PointDefenseService`), so it takes rockets and shells out of the air near the hull.
   The mount ends when the drone falls.
@@ -1414,8 +1478,12 @@ drone bay, with no gun. Its bay holds two escorts, two halo drones and a strike 
 Acceptance is the `hover-line` scene:
 - The scout crosses a river at which a wheeled APC is refused.
 - It drives over standing marines and shoves none, against the spotter pickup's control.
-- Its sensor pair holds station ahead and puts a defender the hull cannot see into the
+- Its sensor pair searches round the hull and puts a defender the hull cannot see into the
   side's picture.
+- `sensor-search`: a carrier's sensor pair, starting on the empty ground it faces, goes
+  round to find riflemen behind a wall; with no kit it finds nothing; and one sensor
+  shadows a tank driving a road beyond a long wall, keeping a spotter's call on it
+  while the carrier fires.
 - The skimmer's drones launch, stay on the leash and fight. Its strike drone detonates on
   a picket and is rebuilt. Its halo takes incoming rockets out of the air, and the flight
   falls with the hull.

@@ -708,6 +708,19 @@ def kit_ready_rack():
     return s
 
 
+def kit_sensor_pair():
+    """A sensor pair: two quad-rotor drones, a lens at each hub, on a tether between them."""
+    s = stroke('M 46 50 L 104 50', '#000000', .58, 3)
+    for cx in (46, 104):
+        s += stroke(f'M {cx - 12} 38 L {cx + 12} 62 M {cx + 12} 38 L {cx - 12} 62', '#000000', .58, 4)
+        for dx, dy in ((-14, -14), (14, -14), (-14, 14), (14, 14)):
+            s += ell(cx + dx, 50 + dy, 9, 9, D)
+            s += ell(cx + dx, 50 + dy, 2.6, 2.6, L)
+        s += block(cx - 8, 42, cx + 8, 58, 3, MID)
+        s += ell(cx, 50, 4.5, 4.5, L)
+    return s
+
+
 def kit_skirts():
     """Spaced skirts: armour panels hung clear of the road wheels on their hangers."""
     s = ''
@@ -737,6 +750,7 @@ def vehicles(f):
     f['kit-spall-liner'] = banded(150, 100, kit_liner(), 'SPL')
     f['kit-ready-rack'] = banded(150, 100, kit_ready_rack(), 'RDY')
     f['kit-spaced-skirts'] = banded(150, 100, kit_skirts(), 'SKT')
+    f['kit-sensor-pair'] = banded(150, 100, kit_sensor_pair(), 'SNS')
 
 
 def fabricator_icon():

@@ -41,6 +41,15 @@ Terrain is authored too, through the elevation planner
 - **The start line on a rise.** The cordon dug in on the last high ground
   before the bloom: a low ridge along the farmland's far edge, looking down
   into the overgrowth. The guns (The Burn) and the vehicle park sit behind it.
+  It is regular because it was built: a defence berm the colony graded years
+  ago as planetary defence works (owner, 2026-10-25), straight runs cut square
+  at every lane (`elevation-nouns.md`, Relief).
+- **Natural relief everywhere else.** The hollow's rim, the brook's valley
+  sides and the country's outcrops are natural ground: they swell, narrow,
+  wander and taper, the two valley sides differ, and a handful of outcrops and
+  mesas stand about the approach off every lane and ride (`HeartCountry.outcrops`),
+  rather than hills laid along the lines the mission drew (owner, 2026-10-25:
+  "hills and mesa's that aren't so convenient").
 - **The bloom in the low ground.** The country falls away into the woods. The
   workings and the reservoir sit in a hollow at the far edge, so the heart is
   something the attack goes down into.

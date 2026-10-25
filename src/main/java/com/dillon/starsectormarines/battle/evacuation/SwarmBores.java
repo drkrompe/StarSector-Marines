@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
 import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -68,6 +69,12 @@ public final class SwarmBores {
     private static final float WITHER_DAMAGE = 1_000_000f;
     /** A first-wave bore's growth clock runs at a seeded rate within this share of the base. */
     public static final float RATE_SPREAD = 0.15f;
+    /**
+     * Seconds a mouth colony's root takes to dig out and thicken before the colony rises at its end
+     * (`colony-breach-nouns.md`, Nest, Roots grow). Not foreseen: a colony sprouts the moment a feed crosses a tier,
+     * so it stands this much later than the crossing.
+     */
+    public static final float COLONY_LEAD_SECONDS = 5f;
 
     /** What happened to a bore, for the beats. */
     public enum EventKind { GREW, COLLAPSED, SURGE, FED, MATRIARCH, MATRIARCH_MATURED }
@@ -213,6 +220,7 @@ public final class SwarmBores {
     public void tick(BattleSimulation sim) {
         cues.beginFrame();
         int tick = sim.getSimTickIndex();
+        rise(sim, tick);
         for (int i = 0; i < pending.size(); ) {
             Pending p = pending.get(i);
             if (tryOpen(sim, p.number, p.mother, p.x, p.y) != null) pending.remove(i);
@@ -327,26 +335,59 @@ public final class SwarmBores {
     private void grew(BattleSimulation sim, SwarmBore bore, BoreTier from, BoreTier reached, int tick) {
         for (BoreTier tier = from.next(); tier != null && tier.ordinal() <= reached.ordinal(); tier = tier.next()) {
             events.add(new Event(tick, EventKind.GREW, bore, tier));
-            sprout(sim, bore, tier, tier.sporeColonies - bore.colonies().size());
+            sprout(sim, bore, tier, tier.sporeColonies - bore.colonies().size() - bore.growing().size());
         }
         cues.add(BoreCues.Kind.GREW, bore, tick);
     }
 
-    /** Sprouts up to {@code count} colonies of {@code grade} on the bore's free growth sites. */
+    /**
+     * Sprouts up to {@code count} colonies of {@code grade} on the bore's free growth sites. At setup a colony stands
+     * at once, its root grown; in play its root digs out first and the colony rises when it has come ({@link #rise}).
+     */
     private void sprout(BattleSimulation sim, SwarmBore bore, BoreTier grade, int count) {
         List<int[]> sites = BoreGrowthSites.cells(sim.getGrid(), bore, seed);
+        int tick = sim.getSimTickIndex();
         for (int[] site : sites) {
             if (count <= 0) break;
             if (taken(sim, bore, site) || nearBody(sim, site[0], site[1], 0.9f)) continue;
-            String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
-                    + " Spore Colony " + (bore.colonies().size() + 1);
-            long colony = sim.spawn(bodySpec(name, grade.sporeColonyStructure(), site[0], site[1]));
-            bore.sprouted(colony);
+            if (tick == 0) {
+                standColony(sim, bore, grade, site[0], site[1]);
+            } else {
+                bore.beginGrowing(new SwarmBore.Growing(grade, site[0], site[1], tick,
+                        Math.round(COLONY_LEAD_SECONDS / BattleSimulation.TICK_DT)));
+            }
             count--;
         }
     }
 
+    /**
+     * Raises every colony whose root has come, where the root ends, in a burst of creep thrown up off the ground; one
+     * whose site a body is standing on waits for it to move.
+     */
+    private void rise(BattleSimulation sim, int tick) {
+        for (SwarmBore bore : bores) {
+            if (bore.collapsed() || bore.growing().isEmpty()) continue;
+            for (SwarmBore.Growing g : new ArrayList<>(bore.growing())) {
+                if (!g.arrived(tick) || nearBody(sim, g.x(), g.y(), 0.9f)) continue;
+                standColony(sim, bore, g.grade(), g.x(), g.y());
+                bore.doneGrowing(g);
+                for (int i = 0; i < 6; i++) {
+                    double a = Math.PI * 2 * i / 6;
+                    sim.emitGroundDust(g.x() + 0.5f, g.y() + 0.5f, (float) Math.cos(a) * 0.9f, (float) Math.sin(a) * 0.9f,
+                            0.45f, EffectsService.DUST_WHEEL);
+                }
+            }
+        }
+    }
+
+    private static void standColony(BattleSimulation sim, SwarmBore bore, BoreTier grade, int x, int y) {
+        String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
+                + " Spore Colony " + (bore.colonies().size() + 1);
+        bore.sprouted(sim.spawn(bodySpec(name, grade.sporeColonyStructure(), x, y)));
+    }
+
     private static boolean taken(BattleSimulation sim, SwarmBore bore, int[] site) {
+        for (SwarmBore.Growing g : bore.growing()) if (g.x() == site[0] && g.y() == site[1]) return true;
         for (long colony : bore.colonies()) {
             if (sim.resolveUnit(colony) == 0L) continue;
             if (sim.world().cellX(colony) == site[0] && sim.world().cellY(colony) == site[1]) return true;

@@ -269,4 +269,20 @@ class SwarmHarvestTest {
             assertFalse(harvest.isCarried(body));
         }
     }
+
+    @Test
+    void aFedBodySlidesIntoTheMouthThenSinksOutOfSight() {
+        SwarmHarvest.Feed feed = new SwarmHarvest.Feed(1L, 10f, 4f, 12f, 4f, 0);
+        int slide = Math.round(SwarmHarvest.FEED_SLIDE_SECONDS / BattleSimulation.TICK_DT);
+        int gone = Math.round(SwarmHarvest.FEED_SECONDS / BattleSimulation.TICK_DT);
+        assertEquals(10f, SwarmHarvest.fedAt(feed, 0)[0], 1e-4f, "let go where it was");
+        float mid = SwarmHarvest.fedAt(feed, slide / 2)[0];
+        assertTrue(mid > 11f && mid < 12f, "eased: past halfway at half the slide, " + mid);
+        assertEquals(12f, SwarmHarvest.fedAt(feed, slide)[0], 1e-4f, "at the mouth");
+        assertEquals(12f, SwarmHarvest.fedAt(feed, gone)[0], 1e-4f, "and stays there");
+        assertEquals(0f, SwarmHarvest.sunk(feed, slide), 1e-4f, "it sinks only once at the mouth");
+        float half = SwarmHarvest.sunk(feed, (slide + gone) / 2);
+        assertTrue(half > 0.3f && half < 0.7f, "sinking, " + half);
+        assertEquals(1f, SwarmHarvest.sunk(feed, gone), 1e-4f);
+    }
 }

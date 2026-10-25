@@ -2408,9 +2408,10 @@ def blender_main(cfg):
 
     blob_state = {}
 
-    def white_blob_lint(kf, display, effects_alpha):
+    def white_blob_lint(kf, display, effects_owned):
         """blob_lint on a finished span frame: near-white regions the effects own, held too long. The
-        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs."""
+        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs.
+        Each frame's regions are saved beside it (<span>_blobs_f<n>.json) for the cross-seam check."""
         import blob_lint
         from bpy_extras.object_utils import world_to_camera_view
         spec_ = KEYFRAMES[kf]
@@ -2425,7 +2426,11 @@ def blender_main(cfg):
         st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
         n_ = int(kf.rsplit('_f', 1)[1])
         dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
-        rows_, flagged_ = st['lint'].frame(n_, dt, display, effects_alpha, engines)
+        kept_ = blob_lint.found(display, effects_owned, engines)
+        # this frame's regions, for the shot's assembly to chain across chunk seams (assemble_shot --blobs)
+        (raw / f'{span_}_blobs_f{n_:05d}.json').write_text(json.dumps(
+            dict(frame=n_, dt=dt, width=w_, regions=[[a, list(b), cy, cx] for a, b, cy, cx in kept_])))
+        rows_, flagged_ = st['lint'].step(n_, dt, w_, kept_)
         st['last_t'] = spec_['span_t']
         print(f'ASHARU blob lint {kf}: {len(rows_)} white regions, {len(flagged_)} held'
               + ''.join(f'; {r_}' for r_ in rows_[:4]), flush=True)
@@ -2953,19 +2958,29 @@ def blender_main(cfg):
             vl.use_pass_cryptomatte_asset = True
             vl.use_pass_cryptomatte_material = True
             role = ROLES[name]
-            for lc in walk(vl.layer_collection):
-                if lc is vl.layer_collection:
-                    continue
+            lcs = [lc for lc in walk(vl.layer_collection) if lc is not vl.layer_collection]
+            for lc in lcs:
                 lc.exclude = base.get(lc.collection.name, False)
                 lc.holdout = lc.indirect_only = False
-                r = role.get(lc.collection.name)
-                if r == 'exclude':
-                    lc.exclude = True
-                elif r == 'holdout':
-                    lc.holdout = True
-                elif r == 'indirect':
-                    lc.indirect_only = True
+            # The roles once the whole tree is synced: synced parent first, a child's include put an
+            # excluded Stage back on the backdrop layer, which then drew every ship and effect, and the
+            # composite counted each additive effect twice (S5 audit, 2026-10-25; the owner took the
+            # fix for new renders, finished finals keep theirs)
+            for lc in lcs:
+                apply_role(lc, role.get(lc.collection.name))
+        bd_ = scene.view_layers['backdrop']
+        print(f'ASHARU layers {kf}: backdrop excludes ' + ', '.join(
+            f'{lc.collection.name} {lc.exclude}' for lc in walk(bd_.layer_collection) if lc.collection.name.startswith('Stage')),
+            flush=True)
         return layer_audit(kf)
+
+    def apply_role(lc, r):
+        if r == 'exclude':
+            lc.exclude = True
+        elif r == 'holdout':
+            lc.holdout = True
+        elif r == 'indirect':
+            lc.indirect_only = True
 
     def layer_audit(kf):
         """What each layer will draw, from the collections alone: a kit object inside a hull copy would render
@@ -2996,7 +3011,8 @@ def blender_main(cfg):
                                        world_n['Star gain'].inputs[1].default_value,
                                        scene.render.resolution_percentage,
                                        min(cfg['samples'], composite_layers.BACKDROP_SAMPLES),
-                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
+                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL)),
+                                       'clean']).encode())     # never one cached with the ships and effects in it
         return h.hexdigest()[:16]
 
     def ship_matrix_at(spec):
@@ -3419,7 +3435,7 @@ def blender_main(cfg):
                                            log=lambda m: print(m, flush=True),
                                            glow=KEYFRAMES.get(kf, {}).get('bloom', 0.0))
             if cfg.get('swfx') and 'span_t' in KEYFRAMES.get(kf, {}):
-                white_blob_lint(kf, composite_layers.read_png(partial), composite_layers.compose_frame.effects_alpha)
+                white_blob_lint(kf, composite_layers.read_png(partial), composite_layers.compose_frame.effects_owned)
         else:
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'

@@ -20,7 +20,8 @@ import java.util.List;
  *
  * <p>Those loops are verdict evidence. The owner is shown {@code look/apc-shelling-*}: the mortar carrier shelling a
  * militia picket on real generated ground through the look preset, at play zoom, on the picket and close on the
- * carrier's turret; and {@code look/carrier-wrecks-*}: the mortar carrier, the LRM carrier and the SRM technical
+ * carrier's turret; {@code look/carrier-idle-*}: the carrier parked, its head turned and quiet, so the shape is judged
+ * with nothing drawn over it; and {@code look/carrier-wrecks-*}: the mortar carrier, the LRM carrier and the SRM technical
  * knocked out side by side, so their wreck turrets can be read against each other.
  */
 public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
@@ -49,7 +50,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      * close as the shells land.
      */
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(shelling(), armor(), wrecks());
+        return List.of(idle(), shelling(), armor(), wrecks());
     }
 
     private static LookReview.Shot shelling() {
@@ -73,6 +74,25 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
         }, placement -> List.of(LookReview.View.followAtPlay(placement, "apc", "picket"),
                 LookReview.View.follow("picket", placement, 24f, "picket"),
                 LookReview.View.follow("turret", placement, 9f, "apc")), 1500);
+    }
+
+    /**
+     * The mortar carrier parked with nothing to shoot at, its turret turned off the hull's axis: the head's shape with
+     * no flash or smoke over it, close and at play zoom.
+     */
+    private static LookReview.Shot idle() {
+        return LookReview.Shot.of("carrier-idle", 24, 14, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            float[] at = placement.openNear(12f, 7f);
+            long apc = sim.convoy().spawn(VehicleType.FIRE_SUPPORT_APC, Faction.MARINE,
+                    VehicleMission.deployed(at[0], at[1]));
+            sim.convoy().body(apc).teleport(at[0], at[1], 0f);
+            sim.convoy().turret(apc).facingDeg = 35f;
+            placement.subject("apc", apc);
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 6f, "apc"),
+                LookReview.View.followAtPlay(placement, "apc")), 60).withStills(2);
     }
 
     /** The mortar carrier shelling a parked enemy APC 30 cells east: what its bombs do to a machine. */

@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.ArmorClass;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +51,11 @@ import java.util.function.LongPredicate;
  * there), and either way it stops being drawn and counts as one colonist's
  * biomass in the bore it went into.
  *
+ * <p><b>A delivered body goes down the hole</b> (owner, 2026-10-25): it counts the moment its carrier reaches the
+ * mouth and lets go, then slides from where it was let go into the mouth over {@link #FEED_SLIDE_SECONDS} and sinks
+ * out of sight by {@link #FEED_SECONDS} ({@link #feeding}, {@link #sunk}), so the haul is seen dropped in the hole
+ * rather than vanishing beside it. Nothing reads a feeding body: it is nobody's load, never loose, never prey.
+ *
  * <p><b>What can be harvested</b> is a body the swarm hunts: a colonist, a
  * militia fighter or a Marine on foot. Never a power suit, a machine or a
  * structure, and never one of the cohort while a Marine or a militia fighter
@@ -78,6 +84,10 @@ import java.util.function.LongPredicate;
  * on the field, fighting only what is already within its reach, and attacks like
  * any Runner once nothing is left to fetch.
  *
+ * <p><b>Harriers carry too</b> (`colony-breach-nouns.md`, Harrier, Carrying feed): a body a Harrier's bite killed
+ * lies loose ({@link #airStruck}), and a Harrier sent off its pack takes a loose body up
+ * ({@link #takeUpByFlier}) and flies it to the mouth, dragged and delivered as any load is.
+ *
  * <p>{@code -Dbattle.colonyBreach.harvest=false} is the control: Runners leave
  * the dead where they fall, as they did before harvest.
  * {@code -Dbattle.colonyBreach.impale=false} keeps harvest and turns impales
@@ -94,6 +104,10 @@ public final class SwarmHarvest {
     public static final float TRAIL_CELLS = 0.55f;
     /** A carrier this close to a living bore's centre has reached its mouth. */
     public static final float DELIVER_RADIUS = 1.6f;
+    /** How long a delivered body takes to slide from where it was let go into the mouth. */
+    public static final float FEED_SLIDE_SECONDS = 0.4f;
+    /** How long a delivered body takes to go into the mouth and sink out of sight, its slide included. */
+    public static final float FEED_SECONDS = 1.2f;
     /** A loose body is taken up by a Runner this close to it. */
     public static final float SEIZE_RADIUS = 1.25f;
     /** A cohort evacuee with a Marine or militia fighter this close is under escort and not harvested. */
@@ -134,6 +148,9 @@ public final class SwarmHarvest {
     /** One fact about a living body a Runner took, for the beats and the snapshot. */
     public record Event(int tick, EventKind kind, long body, Faction faction) { }
 
+    /** A body going down a bore's mouth: where it was let go, the mouth's centre, and the tick it was let go. */
+    public record Feed(long body, float fromX, float fromY, float mouthX, float mouthY, int tick) { }
+
     private final boolean enabled;
     private final boolean impaleOn;
     private final boolean areaHitsHeld;
@@ -145,6 +162,9 @@ public final class SwarmHarvest {
     private final List<Long> fallen = new ArrayList<>();
     /** Runners that died this tick: their bodies go loose for the swarm to recycle. */
     private final List<Long> fallenRunners = new ArrayList<>();
+    /** Bodies a Harrier bit since the last tick, and those of them that died: a flier's kill lies loose for the nest. */
+    private final Set<Long> airStrikes = new HashSet<>();
+    private final List<Long> airFallen = new ArrayList<>();
     /** Runners of a scavenger pack: they fetch the swarm's dead before they fight. */
     private final Set<Long> scavengers = new HashSet<>();
     /** Carrier to load, in the order they were seized. */
@@ -159,6 +179,8 @@ public final class SwarmHarvest {
     private final Map<Long, Integer> recovering = new HashMap<>();
     /** Bodies delivered alive whose death has not been drained yet; hidden when it is. */
     private final Set<Long> consumed = new HashSet<>();
+    /** Bodies going down a mouth, in the order they were let go. */
+    private final LinkedHashMap<Long, Feed> feeding = new LinkedHashMap<>();
     /** Marines delivered alive into a bore, in the order they were taken. */
     private final Set<Long> takenMarines = new LinkedHashSet<>();
     private final List<Event> events = new ArrayList<>();
@@ -173,6 +195,7 @@ public final class SwarmHarvest {
     private int taken;
     private int firstHarvestTick = -1;
     private int hauledByWorkers;
+    private int hauledByFliers;
 
     public SwarmHarvest(boolean enabled) {
         this(enabled, impaleByDefault(), areaHitsHeldByDefault());
@@ -326,6 +349,58 @@ public final class SwarmHarvest {
     /** Bodies, recycled or delivered, that a skitterer rather than a Runner brought into a bore. */
     public int hauledByWorkers() { return hauledByWorkers; }
 
+    /** Bodies, recycled or delivered, that a Harrier flew into a bore. */
+    public int hauledByFliers() { return hauledByFliers; }
+
+    /**
+     * A Harrier bit {@code target}. Serial, from the fliers' tick; if the bite kills, the body lies loose
+     * ({@link #isLoose}) for anything of the nest's to fetch, as a dropped load does.
+     */
+    public void airStruck(long target) {
+        if (open) airStrikes.add(target);
+    }
+
+    /**
+     * Serial: a Harrier ({@code flier}) takes up the loose {@code body} to fly it to a bore. Refused (false) while
+     * harvest is shut, or when the body is not loose or already held, or the flier already carries.
+     */
+    public boolean takeUpByFlier(BattleSimulation sim, long flier, long body) {
+        if (!open || !loose.contains(body) || carriers.containsKey(body) || loads.containsKey(flier)) return false;
+        if (!sim.world().hasPosition(body) || sim.resolveUnit(flier) == 0L || !sim.world().isAlive(flier)) return false;
+        loads.put(flier, body);
+        carrierPace.put(flier, 1f);
+        carriers.put(body, flier);
+        loose.remove(body);
+        if (!isRavBody(sim, body)) {
+            seized++;
+            if (firstHarvestTick < 0) firstHarvestTick = sim.getSimTickIndex();
+        }
+        return true;
+    }
+
+    /** The bodies going down a mouth now, in the order they were let go. Presentation reads it. */
+    public Collection<Feed> feeding() { return Collections.unmodifiableCollection(feeding.values()); }
+
+    /** How far {@code body} has sunk into its mouth at {@code tick}: 0 while it is not going down or still sliding, 1 gone. */
+    public float sunk(long body, int tick) {
+        Feed feed = feeding.get(body);
+        return feed == null ? 0f : sunk(feed, tick);
+    }
+
+    /** How far a fed body has sunk at {@code tick}: 0 through its slide, rising to 1 at {@link #FEED_SECONDS}. */
+    static float sunk(Feed feed, int tick) {
+        float seconds = (tick - feed.tick()) * BattleSimulation.TICK_DT;
+        return Math.max(0f, Math.min(1f, (seconds - FEED_SLIDE_SECONDS) / (FEED_SECONDS - FEED_SLIDE_SECONDS)));
+    }
+
+    /** Where a fed body lies at {@code tick}: from where it was let go into the mouth, eased out, then at the mouth. */
+    static float[] fedAt(Feed feed, int tick) {
+        float t = Math.max(0f, Math.min(1f, (tick - feed.tick()) * BattleSimulation.TICK_DT / FEED_SLIDE_SECONDS));
+        float eased = 1f - (1f - t) * (1f - t);
+        return new float[] {feed.fromX() + (feed.mouthX() - feed.fromX()) * eased,
+                feed.fromY() + (feed.mouthY() - feed.fromY()) * eased};
+    }
+
     /**
      * A Runner landed a blow on {@code target}. Called from the parallel unit
      * update; if the blow kills, the death drain finds it here.
@@ -369,6 +444,7 @@ public final class SwarmHarvest {
     public void onDeath(DeathEvent event) {
         long id = event.unitId();
         if (strikes.containsKey(id)) fallen.add(id);
+        else if (airStrikes.contains(id)) airFallen.add(id);
         else fallenRunners.add(id);
     }
 
@@ -381,6 +457,7 @@ public final class SwarmHarvest {
         SwarmBores bores = sim.swarmBores();
         boolean boreLives = bores.livingCount() > 0;
         int tick = sim.getSimTickIndex();
+        sink(sim, tick);
         hideConsumed(sim);
         recovering.values().removeIf(until -> tick >= until);
         if (enabled) {
@@ -394,6 +471,9 @@ public final class SwarmHarvest {
                 for (long body : fallenRunners) {
                     if (isRavBody(sim, body) && sim.world().hasPosition(body) && !loose.contains(body)) loose.add(body);
                 }
+                for (long body : airFallen) {
+                    if (harvestable(sim, body) && !carriers.containsKey(body) && !loose.contains(body)) loose.add(body);
+                }
                 takeUpLoose(sim);
             } else {
                 loose.removeIf(body -> !sim.world().hasPosition(body));
@@ -403,6 +483,8 @@ public final class SwarmHarvest {
         impales.clear();
         fallen.clear();
         fallenRunners.clear();
+        airStrikes.clear();
+        airFallen.clear();
         open = enabled && boreLives;
     }
 
@@ -543,10 +625,11 @@ public final class SwarmHarvest {
                     && bores.feed(sim, bore, rav ? RAV_BODY_BIOMASS : 1f)) {
                 release(carrier, body);
                 if (alive) take(sim, carrier, body, tick);
-                consume(sim, body, bore);
+                feed(sim, body, bore, tick);
                 if (rav) recycled++;
                 else delivered++;
                 if (sim.identity().type(carrier) == UnitType.SWARM_WORKER) hauledByWorkers++;
+                if (sim.identity().type(carrier) == UnitType.SWARM_HARRIER) hauledByFliers++;
             }
         }
     }
@@ -642,17 +725,32 @@ public final class SwarmHarvest {
     }
 
     /** A delivered body goes into the hole: moved onto it and no longer drawn. */
-    private static void consume(BattleSimulation sim, long body, SwarmBore bore) {
-        sim.world().setPos(body, bore.x() + 0.5f, bore.y() + 0.5f);
-        hide(sim, body);
+    /** A delivered body starts down the mouth from where it was let go. */
+    private void feed(BattleSimulation sim, long body, SwarmBore bore, int tick) {
+        feeding.put(body, new Feed(body, sim.world().x(body), sim.world().y(body), bore.x() + 0.5f, bore.y() + 0.5f,
+                tick));
     }
 
-    /** A body taken alive becomes a corpse only once its death is drained; hide that corpse too. */
+    /** Moves every body going down a mouth, and hides those that have sunk out of sight. */
+    private void sink(BattleSimulation sim, int tick) {
+        if (feeding.isEmpty()) return;
+        feeding.values().removeIf(feed -> {
+            if (!sim.world().hasPosition(feed.body())) return true;
+            float[] at = fedAt(feed, tick);
+            sim.world().setPos(feed.body(), at[0], at[1]);
+            if (sunk(feed, tick) < 1f) return false;
+            // one taken alive is hidden once its death has drained (hideConsumed)
+            if (!consumed.contains(feed.body())) hide(sim, feed.body());
+            return true;
+        });
+    }
+
+    /** A body taken alive becomes a corpse only once its death is drained; hide that corpse too, once it has sunk. */
     private void hideConsumed(BattleSimulation sim) {
         if (consumed.isEmpty()) return;
         BattleComponents c = sim.getBattleComponents();
         consumed.removeIf(body -> {
-            if (!sim.getEntityWorld().has(body, c.CORPSE)) return false;
+            if (feeding.containsKey(body) || !sim.getEntityWorld().has(body, c.CORPSE)) return false;
             hide(sim, body);
             return true;
         });

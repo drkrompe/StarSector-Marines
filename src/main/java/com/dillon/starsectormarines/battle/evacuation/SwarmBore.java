@@ -71,6 +71,25 @@ public final class SwarmBore {
     private final List<Long> colonyView = Collections.unmodifiableList(colonies);
     private final List<Long> outposts = new ArrayList<>();
     private final List<Long> outpostView = Collections.unmodifiableList(outposts);
+    /** Colonies on their way: each rises where its root ends once the root has come (`colony-breach-nouns.md`, Nest). */
+    private final List<Growing> growing = new ArrayList<>();
+    private final List<Growing> growingView = Collections.unmodifiableList(growing);
+
+    /**
+     * A colony on its way: its root digs out from the mouth to cell ({@code x}, {@code y}) and thickens from
+     * {@code startTick} over {@code leadTicks}, and the colony of {@code grade} rises there when it has come.
+     */
+    public record Growing(BoreTier grade, int x, int y, int startTick, int leadTicks) {
+        /** How far its root has come at {@code tick}, 0 to 1. */
+        public float progress(int tick) {
+            return leadTicks <= 0 ? 1f : Math.max(0f, Math.min(1f, (tick - startTick) / (float) leadTicks));
+        }
+
+        /** Whether its root has come and the colony may rise. */
+        public boolean arrived(int tick) {
+            return tick - startTick >= leadTicks;
+        }
+    }
 
     /**
      * @param number    the bore's number in eruption order, {@code 0} for the mother
@@ -218,8 +237,20 @@ public final class SwarmBore {
         outposts.add(colony);
     }
 
+    /** Its colonies on their way, in the order they were begun. */
+    public List<Growing> growing() { return growingView; }
+
+    void beginGrowing(Growing g) {
+        growing.add(g);
+    }
+
+    void doneGrowing(Growing g) {
+        growing.remove(g);
+    }
+
     void collapse(int tick) {
         if (collapsedTick < 0) collapsedTick = tick;
+        growing.clear();
     }
 
     private BoreTier addGrowth(float points, int tick) {

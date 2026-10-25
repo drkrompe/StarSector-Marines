@@ -47,7 +47,12 @@ NAMES = {
     "spore-colony-maw": "spore-colony-maw",
     "ground-colony": "ground-colony",
     "brood-spire": "brood-spire",
+    "nest-clutch": "nest-clutch",
+    "nest-pods": "nest-pods",
+    "nest-husk": "nest-husk",
 }
+# Parts drawn dried out like a dead body's remains, and without a glow layer: the nest's shed husk.
+DRIED = ("nest-husk",)
 
 # Rav Bloom CHITIN proposal (rav-palettes): luminance in -> colour out, for creature materials.
 CHITIN_RAMP = [
@@ -404,7 +409,7 @@ def main() -> None:
         if any(options.values()) and not option:
             continue
         for v in range(1, (1 if option else make_guide.VARIANTS[part]) + 1):
-            for state in (["intact"] if option else states):
+            for state in (["intact"] if option else [s for s in states if s in make_guide.part_states(part)]):
                 suffix = "" if state == "intact" else f"-{state}"
                 raw_path = here / "raw" / f"{part}-{v}{suffix}.raw.png"
                 guide_path = make_guide.guide_path(templates, part, v, state)
@@ -425,7 +430,7 @@ def main() -> None:
                 materials = reach(field.m, raw)
                 if args.palette != "raw":
                     raw = recolour(raw, materials, args.palette)
-                    if state == "remains":
+                    if state == "remains" or part in DRIED:
                         raw = husk(raw, materials)
                     raw = overgrow(raw, materials, withered if state == "remains" else berm)
                 sprite = make_guide.ground_layer(field)
@@ -435,7 +440,7 @@ def main() -> None:
                 body = out_dir / f"{name}.png"
                 sprite.save(body, optimize=True)
                 note = ""
-                if state != "remains":
+                if state != "remains" and part not in DRIED:
                     # The dead have no glow; the living (hurt or not) breathe.
                     lit = glow(raw).resize((edge, edge), Image.Resampling.LANCZOS)
                     lit.save(out_dir / f"{name}-glow.png", optimize=True)

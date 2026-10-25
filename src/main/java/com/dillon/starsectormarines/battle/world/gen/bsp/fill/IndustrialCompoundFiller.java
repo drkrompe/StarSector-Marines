@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.ServiceYardTemplate;
+import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundFiller;
@@ -51,6 +52,7 @@ public final class IndustrialCompoundFiller implements CompoundFiller {
         }
 
         boolean[][] memberCells = memberMask(compound, ctx.grid);
+        if (freightYard(compound, memberCells, ctx)) return;
         boolean[][] apron = repaintSharedApron(compound, memberCells,
                 ctx.get(BspKeys.ROAD_CELLS), ctx.get(BspKeys.ROAD_RESERVATION),
                 ctx.grid, ctx.topology);
@@ -72,6 +74,29 @@ public final class IndustrialCompoundFiller implements CompoundFiller {
         if (!BuildingStamp.tryPlaceFreight(utility, ctx)) carveBuilding(utility, UTILITY_CONFIG, utilityPlacement, ctx);
         carveFencedYard(yard, yardFrontage, apron, ctx);
         furnishApron(compound, apron, ctx.get(BspKeys.ROAD_RESERVATION), ctx);
+    }
+
+    /**
+     * The freight yard set piece where the claimed ground holds it ({@code set-piece-blocks.md}): it
+     * stands on the members and the street frames between them, and what it leaves of the members is
+     * open working ground.
+     */
+    private static boolean freightYard(Compound compound, boolean[][] memberCells, GenContext ctx) {
+        Bsp.Partition partition = ctx.get(BspKeys.PARTITION);
+        if (partition == null) return false;
+        boolean[][] leafCells = new boolean[ctx.grid.getWidth()][ctx.grid.getHeight()];
+        for (BlockLeaf leaf : partition.leaves) {
+            for (int y = leaf.top; y <= leaf.bottom; y++) {
+                for (int x = leaf.left; x <= leaf.right; x++) leafCells[x][y] = true;
+            }
+        }
+        FreightYard.Pose pose = FreightYard.choose(ctx,
+                compound.left - 1, compound.top - 1, compound.right + 1, compound.bottom + 1,
+                (x, y) -> memberCells[x][y] || !leafCells[x][y]);
+        if (pose == null) return false;
+        for (BlockLeaf member : compound.members) IndustrialYardFiller.paintOpenDirt(member, ctx.grid, ctx.topology);
+        FreightYard.place(ctx, pose);
+        return true;
     }
 
     private static boolean[][] memberMask(Compound compound, NavigationGrid grid) {

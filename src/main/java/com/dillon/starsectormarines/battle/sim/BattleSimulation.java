@@ -172,6 +172,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.HullSightings;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
+import com.dillon.starsectormarines.battle.vehicle.SoftBrush;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
@@ -299,8 +300,10 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
+import com.dillon.starsectormarines.battle.evacuation.SwarmDrives;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
+import com.dillon.starsectormarines.battle.evacuation.SwarmEmergence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
 import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
@@ -870,12 +873,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
     private static final long PACK_SEED_SALT = 0x50414B5F_4C4F5045L;
     private final SwarmBores swarmBores;
+    private final SwarmDrives swarmDrives = new SwarmDrives();
     private final CreepOutposts creepOutposts;
     private final GroundColonies groundColonies = new GroundColonies();
     /** The ground colonies the creep has grown against hostile emplacements. */
     public GroundColonies groundColonies() { return groundColonies; }
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+
+    /** Goals directors give the swarm's idle bodies ({@link SwarmDrives}). */
+    public SwarmDrives swarmDrives() { return swarmDrives; }
     @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
@@ -883,6 +890,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmEmergence swarmEmergence = new SwarmEmergence();
+    /** How bodies come up out of the bores and form up (`colony-breach-nouns.md`, Emergence). */
+    public SwarmEmergence swarmEmergence() { return swarmEmergence; }
     private final SwarmFliers swarmFliers = new SwarmFliers();
     private final BroodSpires broodSpires = new BroodSpires();
 
@@ -916,6 +926,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         broodSpires.grow(this);
         swarmWorkers.populate(this);
     }
+    /** An objective's own bore surges {@code budget} weight now ({@link SwarmReinforcementSystem#surgeScripted}). */
+    public boolean surgeScripted(SwarmBore bore, float budget) { return swarmReinforcements.surgeScripted(this, bore, budget); }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -1716,6 +1728,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             groundSystem.setTracks(tracks);
             blade.setTracks(tracks);
         }
+        // A move order's last rung brushes soft ground (SoftBrush); its switch is the control, under which the order is
+        // given up as before.
+        if (SoftBrush.enabled()) {
+            groundSystem.setBrush(new SoftBrush(new SoftBrush.Props() {
+                @Override public boolean fence(int x, int y) {
+                    String id = doodadService.damageablePropIdAt(x, y, topology);
+                    return id != null && id.startsWith("doodad.industrial-fence-");
+                }
+                @Override public boolean outerCrown(int x, int y) { return doodadService.outerCrownAt(x, y); }
+            }));
+        }
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
@@ -2326,6 +2349,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
     /** Rounds landed on plated Rav this tick; see {@code EffectsService.emitSwarmHit}. Drained into {@code ImpactFx.spawnSwarmHit}. */
     public List<float[]> getSwarmHitsThisFrame() { return effects.getSwarmHitsThisFrame(); }
+    /** Queues one puff of ground dust; see {@code EffectsService.emitGroundDust}. Presentation only. */
+    public void emitGroundDust(float x, float y, float vx, float vy, float radius, int kind) {
+        effects.emitGroundDust(x, y, vx, vy, radius, kind);
+    }
     /** Queues the look of a claw strike on a body; see {@code EffectsService.emitClawStrike}. */
     public void emitClawStrike(float x, float y, float dirX, float dirY, float blood) {
         effects.emitClawStrike(x, y, dirX, dirY, blood);
@@ -3933,6 +3960,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
+        swarmEmergence.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);

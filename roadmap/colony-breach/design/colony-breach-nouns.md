@@ -4,7 +4,19 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-25 — the skitterer, the nests' worker strain; a creep-killed tree is undergrowth a heavy tank pushes over.
+Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
+
+Updated: 2026-10-25 — the brood spire's deep raids: four round the flak to a soft target behind the line, and home.
+
+Updated: 2026-10-25 — Harriers carry feed: a pack with nothing to hunt flies the dead home into its bore's mouth.
+
+Updated: 2026-10-25 — the brood spire's patrols: three off a quiet, full roost fly a loop over the nest and land.
+
+Updated: 2026-10-25 — a fed body slides into the mouth, sinks and is swallowed with a gulp.
+
+Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
+
+Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
 
 Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
 
@@ -625,7 +637,12 @@ bore at four tenths of its own pace, slower than a walking Marine. The body
 trails a little behind it, lying along the drag. A carrier does not strike. At
 the bore's mouth the body goes into the hole: it is **biomass**, one
 colonist's worth through the feed seam, so the bore grows and its next surge
-comes forward and swells. A carrier killed on the way drops the body where it
+comes forward and swells. It counts the moment its carrier lets go at the
+mouth, and is seen going down (owner, 2026-10-25): it slides from where it was
+let go into the middle of the mouth in under half a second, then shrinks and
+fades as it sinks out of sight over the next, with its blood, and the bore
+swallows it with a wet gulp and the thud of it landing down inside
+(`SwarmHarvest.feeding`). A carrier killed on the way drops the body where it
 fell; the body lies **loose**, and the next Runner to come within reach takes
 it up again. A carrier whose last bore collapses drops its load the same way.
 Laws:
@@ -737,10 +754,55 @@ opens, then one per tier interval (shorter at higher tiers) swung by a seeded
 jitter. A pulse is the tier's size plus a few bodies per unit of fresh biomass,
 which the pulse spends. A due pulse waits while less than half of it fits under
 the director's population target, so a bore whose bodies are still alive on
-the field stays quiet. A released pulse leaves the mouth as a stream, one body
-every couple of ticks from the open cells around the hole, each body's strain
-drawn from the tier's table; a bore that collapses mid-pulse releases no
-more.
+the field stays quiet. A released pulse comes up out of the hole in clutches
+(*Emergence*), each body's strain drawn from the tier's table; a bore that
+collapses mid-pulse releases no more.
+
+**Emergence.** How a body comes into the battle (`SwarmEmergence`; the owner,
+2026-10-25: the packs "just pop out as a full pack"). Nothing of the swarm
+appears whole. It is presentation and order only: a pulse's size, its bodies
+and its surge tick are the director's as before, and so is the flier law.
+- **Clutches.** A pulse breaks out of the hole one to three bodies at a time,
+  seeded by the bore, the pulse and the clutch, with a seeded pause of a third
+  of a second to most of a second between clutches. A pack of eight is out in
+  about two seconds and a maw's whole pulse in four or five, where it was out
+  in under one. The Matriarch comes out alone, first. A body breaks out on the
+  hole or the ring round it, and only on the mouth's outer cells when those are
+  all taken.
+- **Climbing out.** A body is held in the hole for a moment: seven tenths of a
+  second for a Runner, nine for a Spitter, eleven for a Brute, six for a
+  skitterer, nearly two for the Matriarch (who roars once she is out). It does
+  nothing while it is held (no step, no blow, no quarry), but it is on the
+  field from its first tick, counted, sensed and **shot as any body is**, so a
+  gun laid on a mouth kills them as they come up. Its picture climbs out of the
+  dark of the shaft: drawn at three fifths of its size and nearly black, it
+  grows and lights to full on an ease-out as it comes out, facing out of the
+  hole, and casts its shadow only as it rises. The hole throws a ring of dust as
+  each body breaks out.
+- **Muster.** Out of the hole, a pack forms up before it moves. Each pack of a
+  pulse has a muster four cells down its lane toward its prey; a Runner of it
+  with nothing to fight walks to its own seeded spot round there and mills,
+  until the pack's last body is out of the hole, and never longer than four
+  seconds from the pack's first. Prey it senses breaks the muster at once. So a
+  surge is seen boiling up out of the ground, spreading round the mouth and
+  setting off together, rather than standing up as a finished block.
+- **Fliers hatch.** A Harrier pack is hatched, not placed (`SwarmFliers.hatch`):
+  one Harrier climbs out of its source now and the rest one by one, a quarter
+  to over half a second apart, each low and close over the source with a puff
+  of dust, and climbs out to the loiter ring. The pack does not commit to a
+  dive until the last is out. A brood spire's pack hatches out of its crown, its roost emptying a hook at a time as they go; a
+  Matriarch's brood hatches off her back as she climbs out of the mother, and
+  the hatch follows her; a pack a heart beat raises against the guns hatches
+  out of the nearest bore's mouth and flies out to its standoff, and a spore
+  colony's pack out of the colony. A source that dies mid-hatch stops it: the
+  rest never come.
+- **Unseen.** Emergence is a rule of the battle, not of the camera: off-screen
+  or in fog a body is held and musters exactly as on screen, and the fog hides
+  it as it hides any swarm body. The dust and the climb are presentation:
+  nothing in the battle reads them, and a replay plays the same drawn or not.
+- `-Dbattle.swarm.emergence=false` is the control: bodies come out whole and go
+  at once, one every couple of ticks, and Harrier packs appear whole. Look
+  suite: `swarm-emergence` (before and after, a bore surge and a spire launch).
 
 **Mother bore.** The one bore whose collapse ends spawning from its precinct
 cluster and is the target of the optional hive objective. It erupts later than
@@ -836,10 +898,14 @@ air defence of its own until it grows another tier. Laws: no air sortie should
 be able to collapse a bore that still has its colonies without taking losses;
 air is for after the ground push, or for after the colonies.
 
-Colonies stand on the bore's **growth sites**, a seeded ring of open cells
-round the mouth (`BoreGrowthSites`). Only spore colonies use them; a ground
-colony roots out on the creep instead, against the gun it answers (Creep:
-Ground colony).
+Colonies stand on the bore's **growth sites**, a broken crescent of open cells
+round the mouth (`BoreGrowthSites`; owner, 2026-10-25, over an even ring that
+packed them into a knot). The crescent wraps part of the way round, each site
+at its own seeded distance, and the rest of the circle is the den's open
+approach, turned per bore; the back of the den fills first, then the two
+horns, so a bore's first three colonies already read as a den with a way in.
+Only spore colonies use them; a ground colony roots out on the creep instead,
+against the gun it answers (Creep: Ground colony).
 
 **Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
 seeds spore colonies of its current grade on its creep, away from the mouth:
@@ -853,6 +919,40 @@ bore and four at maw; a dead outpost frees its place and the creep grows
 another elsewhere. Outposts wither with their bore like the mouth's colonies.
 So an air sortie that waits watches the defended sky spread with the creep,
 and a bore's creep is worth burning back before its outposts stand.
+
+**Nest.** A bore and everything it grew, read as one organism rather than
+growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
+- **Its mouth is a den**: the crescent of growth sites above.
+- **Roots** (`NestTrails`). A rope of sinew raised out of the creep runs from
+  the bore's rim to each of its living colonies, outposts and its spire, bowed
+  and meandering by a seeded amount and tapering out to the growth, ringed in
+  segments, with the creep's pulse running out along it (the owner's pick of
+  rope, over a worn furrow and a lit vein path). A root is drawn only: nothing
+  walks, stops or fights by it, and it goes with its growth or its bore.
+  `-Dbattle.render.nestTrails=false` is the control.
+- **Roots grow, and the growth rises where they end** (owner: thinner veins
+  "dig out and construct" from the bores, and the root must be the lead-up to
+  the growth, not follow it). A growth begun in play is first only its root: a
+  vein (a band of the creep's veins thickened and lit) digs out from the bore
+  over the first half of its lead and thickens into rope over the second, and
+  only when it has come does the colony or outpost rise at its end, throwing
+  the creep up round it. An outpost's lead is its twenty-second hold on its
+  cell (shortened as skitterers tend it), so it rises when it always did; the
+  creep counts a colony on its way as standing, so a held cell is never lost to
+  one rising. A mouth colony sprouts the moment a feed crosses a tier, which
+  nothing foresees, so its five-second lead stands it that much later than the
+  crossing. What stands at setup, and everything creep matured at setup grew,
+  stands at once with its rope; a satellite opened late is a bore, not a
+  growth, and erupts as one. Look: `nest-growth-look`.
+- **Its spire's roost**: the Brood spire's waiting brood (below).
+- **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
+- **Clutter** (`NestClutter`): egg clutches (glossy eggs with amber hearts in a
+  cup of sinew), brood pods (low ribbed sacs bound down by sinew) and shed husks
+  (dry split shells) lie on the creep, a piece every few cells beside each root
+  once it is rope, never at its ends, and a few in the gaps round the mouth of a
+  bore at bore tier (two) or maw (four), past its rim and clear of its colonies
+  and roots. Drawn only, with the decals: nothing walks round, hides behind or
+  shoots them. Geometry-first paintings, three of each, never turned.
 
 **Brood spire.** The tall growth an old bloom raises on its creep, which
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
@@ -871,8 +971,43 @@ through, made into a thing on the map the company can find and kill.
   launches a pack of seven off it, provided a marine or an ally stands within a
   Harrier's sense of it, no pack of its own is still in the air, at least
   forty-five seconds have passed since its last, and the flier law holds. The
-  pack rises off its crown, low and clustered, and is seen climbing out to its
-  loiter ring. A sleeping bore's spire is quiet with it.
+  pack hatches out of its crown one by one, low over it, and is seen climbing
+  out to its loiter ring (*Emergence*). A sleeping bore's spire is quiet with it.
+- **Its roost.** While it waits, its next brood clings to the hooks up its
+  flanks, wings folded, now and then half-opening them: none while its own pack
+  flies, then filling back one by one over the gap after a launch, so a full
+  roost is a spire ready to launch again. Drawn only: they are not units until
+  they rise (`SpirePerchRenderSystem`).
+- **Its patrols.** A quiet spire (its roost full, nothing to hunt within a
+  Harrier's sense of it, no pack of its own up, the flier law met) puts three of
+  its roost up every thirty to sixty seconds, counted from the last patrol's
+  return (`HarrierPatrol`; the owner's roving squads, 2026-10-25). They hatch
+  off the hooks as a launch does, then wheel round a seeded loop over the bore,
+  eighteen to thirty-two cells out and turning through just over half to most of
+  a lap, and come home and land on the crown one by one, back on its hooks and
+  off the field. On the loop a patrol only sees twenty-two cells, a scout's eye;
+  what it spots it hunts as any pack does, and with its prey gone it picks the
+  loop up where it left it. A patrol home short leaves the roost short, filling
+  back as after a launch, which holds off the spire's next launch too. So a line
+  that keeps clear of a spire is still found if it stands on the nest's beat,
+  and flak that thins a patrol buys time against the next pack. Scene:
+  `harrier-patrol`; look: `harrier-patrol-look`.
+- **Its raids** (`HarrierRaid`; the owner's "deep behind lines raids",
+  2026-10-25). On its own longer gap, ninety to a hundred and fifty seconds
+  from the last raid's return, the same quiet spire sends four of its roost
+  deep instead of a patrol: to the richest soft target fifty to a hundred and
+  sixty cells off that no anti-air reaches (the radio a forward observer calls
+  the air in with, an unarmed truck, a medic, a soldier on his own, a gun),
+  the nearer on a tie. Its way is bent round every air gun's reach with six
+  cells to spare, straight when it can be, else by one or two turning points
+  off the direct line; with no target or no such way it patrols, and looks
+  again a few seconds on. Out and home it hunts nothing. Over the target it
+  dives only on what is soft within sixteen cells of where it was sent, never
+  the guns, two dives and it turns for home (sooner with nothing there to
+  dive on), flies the same way back and lands as a patrol does. One sortie of
+  a spire's is up at a time. So the line's rear is never safe from a spire it
+  has left standing, and flak placed to cover the rear, not just the front,
+  is what closes the ways in. Scene: `harrier-raid`; look: `harrier-raid-look`.
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
@@ -1153,7 +1288,7 @@ not read in a soft shadow at play zoom.
     reaches it**; only an anti-air burst does. Unplated, 28 health: two rifle
     hits or one flak hit.
   - **What it hunts.** What the line is there to protect, over the line
-    itself: a gun or emplacement first, then a supply truck, then a medic,
+    itself: a gun or emplacement first, then the radio a forward observer carries, then a supply truck, then a medic,
     then a marine standing alone, and a rifleman in a squad last; an armed
     hull or a mech it only scratches. A target is worth less by every air gun
     whose reach covers it, so anti-air protects a line without shooting
@@ -1188,6 +1323,21 @@ not read in a soft shadow at play zoom.
     **splits** in two, and the halves come on separately and bleed the line
     slowly. A pack escorting a Matriarch loiters over her with no prey in
     reach, and scatters into fliers of one when she dies.
+  - **Carrying feed** (`HarrierCarry`; the owner's "some carry for feed",
+    2026-10-25). A body a Harrier's bite kills lies loose, as a dropped load
+    does (*Harvest*), for anything of the nest's to fetch. A pack with nothing
+    to hunt, every member hatched, sends its member nearest the nearest loose
+    body within twenty-two cells (a marine it killed, a colonist, or one of the
+    swarm's own dead) to fetch it: never more than one in three of its number
+    at once, and never a patrol already on its way home. The carrier swoops
+    low, takes the body up, and hauls it low and slow (three cells a second, at
+    about a third of its height, within reach of rifles) to the nearest living
+    bore, where the harvest feeds it in down the mouth as any load; then it
+    flies back up to its pack. A carrier never bites and is no part of its
+    pack's dives, but it is still one of the pack: shot, drawn and heard, and a
+    carrier shot down drops its load where it falls. So a line that kills the
+    carriers keeps the nest from feeding on its dead. Scene: `harrier-carry`;
+    look: `harrier-carry-look`.
   - **How it flies.** Its own steering, never the ground flow field, which is a
     map of walls a flier is not in: seek a goal, push off packmates, turn at a
     capped rate, move along the nose. Serial, in pack and slot order, with no
@@ -1195,8 +1345,8 @@ not read in a soft shadow at play zoom.
     hundred distance checks a tick.
   - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
     the flier law: off a satellite's **brood spire** with its bore's surge, and
-    as a Matriarch's **brood**, a pack of six that rises over her as she
-    emerges and flies as her escort. So the satellites and the front bores
+    as a Matriarch's **brood**, a pack of six that hatches off her back as she
+    emerges and flies as her escort (*Emergence*). So the satellites and the front bores
     send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
     the Runner's lilac carapace with bat wings grown from its spike arms.
@@ -1306,8 +1456,9 @@ not read in a soft shadow at play zoom.
     head down and pecks at it, each body to its own rhythm; one going to the
     spire carries a glob of amber feed in its mandibles, and one coming home
     from a tree a wad of pulp (`load-feed`, `load-pulp`). It has no
-    cry and no strike; its feet are the Runner's clatter, thinner, and its
-    hurt and death the Runner's, all pitched up by its size. Dead, it bursts as
+    cry and no strike; it is heard small and busy (Sound, below): a quick
+    chitin patter, a thin squeak when hurt or scattering, and a soft wet
+    working bed while it is head-down at its work. Dead, it bursts as
     a Runner does and the creep digests it.
   - **How the company treats it.** An ordinary body on the swarm's side, shot
     as any other; clearing a nest of its workers is the player's call.
@@ -1601,18 +1752,22 @@ against its own control in `renderEvidence`.
   reaching in from the crown's rim while the leaves start to turn; a crust
   rolling in from the rim with the creep's beaded lip while the leaves brown;
   the crown withering, its dead leaves falling from a bare skeleton; and the
-  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
-  trunk to the crown's own outline, veins running out along them, drawn with a
+  dead tree, a snag of weathered grey-brown limbs, fissured and silvered on
+  their lit ridges, reaching unevenly from a crusted trunk toward the crown's
+  outline, some snapped short, a few dead leaves caught in them and veins
+  running out along them (bleached, smooth and evenly radial, they read as
+  bone), drawn with a
   dark outline over a soft ground shadow so it stands up off the dark creep at
   play zoom. The skeleton is grown by the bake rather than taken from the
   damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
   sheet baked from the canopy art and the creep's own surface and palette
   (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
-  ground. A dead tree felled, by heavy tracks or by fire, lies as dead wood: the
-  destroyed tree's stump and fallen limbs bleached bone-pale and bare, the stump
-  crusted, baked the same way from the destroyed-tree art (a sheet of its own,
-  `forest-blight-felled`); a tree felled while it lived keeps its green felled
-  art. On vegetation (grass, crops and the plants on them) the edge is not
+  ground. A dead tree felled, by heavy tracks or by fire, lies flattened: the
+  destroyed tree's stump and the butts of its limbs snapped off short, in the
+  same dead bark, the stump crusted, so it reads as ground a vehicle drives over
+  rather than a fallen tree still in the way; it is baked the same way from the
+  destroyed-tree art (a sheet of its own, `forest-blight-felled`). A tree felled
+  while it lived keeps its green felled art. On vegetation (grass, crops and the plants on them) the edge is not
   clean as it is on pavement: the creep's coverage spread a few cells out turns
   the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
   into it ahead of the lip, so grass and crop rows are seen to be taken before
@@ -1819,6 +1974,23 @@ whether the mother collapsed beside the evacuation report. In the campaign it
 contains the bloom behind the call (*Campaign: blooms*); anything it pays beyond
 that and the Hegemony's regard is the owner's call and not yet settled.
 
+**Side objectives.** Optional objectives (`optional-objectives.md`) the breach
+offers beside the rescue, rolled at setup and advanced on the breach's own
+clock; they succeed or fail only themselves, never the cohort or the lift. Today
+there is one, **Secure the loading** (`staffed-buildings.md`): the colony's largest
+warehouse, worked by its own people, is loading the colony's stores onto a truck
+in its yard, and the company that holds the yard until the truck is away is paid
+out of what it carries. A colony whose warehouse has no stand a truck can leave
+from offers none.
+
+A side objective may bring its own **pressure** rather than make the breach's
+swarm aware of it (`set-piece-blocks.md`, Lanes and pressure). A loading in a
+freight yard has one: a held bore of its own (numbered 90, clear of the
+eruptions) opened down the street, whose surges the objective calls on its own
+beats, before the tremor as after it, and whose broods it sends in by the yard's
+gate and side gap. Collapsing that bore ends the pressure, which a guard may
+gamble on. When the objective ends its survivors wander as the rest of the swarm.
+
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge
@@ -1926,7 +2098,10 @@ one without drowning the fire around them; two voices of one sound never start
 on one tick (the second waits a tick or two), and one body does not repeat
 itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
 the listener, so a pack reads as a pack, and the swarm is heard only on ground
-the player has seen. **A thrown body lands with one thud** whatever threw it
+the player has seen. A body fed to a bore is swallowed as it
+reaches the mouth: a wet gulp (the Spitter's lob, slowed) near -29 LUFS and, a
+beat later, its landing down inside (the body thud, deeper) near -33, pitched by
+the fed body's size. **A thrown body lands with one thud** whatever threw it
 (owner, 2026-10-24): a marine a Brute tramples, a Matriarch's reap throws or a
 Harrier drops, and a shot Harrier reaching the ground, a little lighter; it is
 the landing body's own sound, posted by that body. A body's growth
@@ -1960,6 +2135,17 @@ Runner's cry, higher) and three wingbeats as it takes up, a few ticks apart; a
 Matriarch's brood rises with the same cue, quieter. A spire dying, shot down or
 withered with its bore, creaks (the wingbeat, slowed), cracks (the Brute's
 head-ram, deeper) and falls (the Brute's wall break, deeper).
+The skitterer, the nests' worker, never cries or strikes and is heard small and
+busy beside a Runner pack, all of it borrowed takes pitched up by its size: a
+light chitin patter on every stride (the Harrier's wingbeat, played higher; a
+Runner's feet fall on every other stride), the body drag while it hauls, a thin
+squeak when it is hurt and when it scatters from the company (the Runner's yelp,
+higher still; one hit that sends it running squeaks once), so a nest emptying
+under fire is heard, and the Runner's death. Head-down at a mend, a burn, a tree
+or an outpost it makes a soft wet working sound (the fissure's scratching
+ambience, raised): a loop placed on the seen workers at work nearest the
+camera, two at most, the second quieter by the crowd rule, so a busy nest
+murmurs and never drones. Everything it makes sits a few dB under a Runner.
 
 **The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
 creature sound's level is set from its take's measured loudness against the
@@ -1968,13 +2154,45 @@ and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
 LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
-since many bodies make them. A spire's launch sums near -23, by a Harrier
+since many bodies make them. The skitterer's squeak sits near -30 and its
+death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
 and rifle takes. A new sound or take is levelled the same way
-before it ships. The `swarm-sound` and `spire-sound` look suites log what the battle screen would
-start (`BattleSoundLog`) so a review hears the levels against the fire.
+before it ships. The `swarm-sound` and `spire-sound` look suites, run with
+`-Dsnapshot.lookSound=true`, log what the battle screen would start
+(`BattleSoundLog`) and mix it into their MP4s, so a review hears the levels
+against the fire.
+
+**Marines bark in the fight** (owner, 2026-10-25). When the Rav reach them the
+marines are heard in the mix (`MarineBarks`): background shouts, cries and grunts,
+never hero lines, so nothing is shown, subtitled or waited on. They are read off
+what the battle already reports, as the swarm's sounds are: a squad that was clear
+calls contact as a pack closes, a marine starting a reload with Rav near calls it,
+a marine a Runner seizes or impales cries out, one thrown yells as it lands, the
+marine nearest a Brute's charge tell or the Matriarch's run tell warns the rest,
+a Rav dying near the line draws relief (more for a Brute or the Matriarch), a
+marine dying with Rav near draws a squadmate's curse, and a marine hurt with a Rav
+at arm's length grunts with a scuffle of boots and gear. Each marine keeps one of
+six voices for the battle, the operation radio's cast heard dry rather than over
+comms, a little pitched apart; the lines of a kind take turns so one is never heard
+twice running. A squad has one voice at a time, save the cry of one being seized
+or thrown, which waits on no one; a marine and a squad keep their gaps, the most urgent bark goes first, and the battle has at most three sounding
+at once, so a big fight is a few overlapping shouts rather than a wall. They are
+heard only on seen ground. Takes are generated from a tracked catalog
+(`tools/generate_marine_barks.py`) and every take is levelled by its measured
+loudness to its kind's level, a little under the gunfire: calls near -26 LUFS a
+voice, cries and warnings -25, kills and reloads -28, grunts -29, the scuffle -31.
+**The colony is heard too** (owner, 2026-10-25). Three casts bark, each in its
+own voices and words from the lore guide's names: the marines (allied company
+infantry with them), the colony militia, four voices of its own, who say ravs and
+bugs, grabbers and breakers, and have no name for the Matriarch, only "the big
+one"; and the colonists, four more, who make no soldier's calls: they scream as
+the things close, cry out when seized, thrown or hurt, and grieve when someone
+near them dies. Colonists outside any squad share one voice channel with the
+colonists on their patch of ground, so a fleeing crowd is a few screams, not one
+each. The enemy's soldiers do not bark.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

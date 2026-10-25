@@ -8,13 +8,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /** Nature rocks retain ground and cover identity when their overlay becomes a damaged prop. */
 public final class RockDamage {
     public enum Result { NOT_ROCK, UNCHANGED, DAMAGED, DESTROYED }
-    public static final Set<String> IDS = Set.of("nature.rock-small-1", "nature.rock-small-2",
-            "nature.rock-medium-1", "nature.rock-medium-2", "nature.rock-large-1",
-            "nature.rock-large-2", "nature.rock-large-3");
+    /** The seven stone groups every set draws, smallest first. */
+    public static final List<String> GROUPS = List.of("small-1", "small-2", "medium-1", "medium-2",
+            "large-1", "large-2", "large-3");
+    /** Every nature rock: each group in each biome's stone set ({@link #stone}). */
+    public static final Set<String> IDS = Stream.of(Biome.values())
+            .flatMap(b -> GROUPS.stream().map(b::stone)).collect(Collectors.toUnmodifiableSet());
+
+    /**
+     * The field-stone sets, one per kind of wild ground: mossed stone on a living world (the unprefixed ids), sun-
+     * bleached sandstone on arid ones, dark basalt on bare rock and frost-capped stone on frozen worlds.
+     */
+    public enum Biome {
+        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-");
+
+        private final String prefix;
+
+        Biome(String prefix) { this.prefix = prefix; }
+
+        /** This set's id for {@code group}, one of {@link #GROUPS}. */
+        public String stone(String group) { return "nature.rock-" + prefix + group; }
+    }
     private static final class Entry {
         final int index;
         final String id;

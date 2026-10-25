@@ -1301,9 +1301,10 @@ public final class UnitRenderService implements RenderSystem {
                             && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
                     float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
-                    float poolAlpha = alphaMult * pileFadeAlpha(faded);
+                    float sunk = ctx.sim.swarmHarvest().sunk(t.entityAt(r), now);
+                    float poolAlpha = alphaMult * pileFadeAlpha(faded) * sinkAlpha(sunk);
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
-                            * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
+                            * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT) * sinkScale(sunk);
                     // The pool is lit and charred with its body.
                     effects.stampLight(out, rx[r], ry[r]);
                     effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
@@ -1337,9 +1338,11 @@ public final class UnitRenderService implements RenderSystem {
                 float digested = type.isSwarm() ? ctx.sim.creepDigestion().digested(t.entityAt(r)) : 0f;
                 // A body the pile cap is retiring settles and fades the same way, on any ground.
                 float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
-                float pileAlpha = pileFadeAlpha(faded);
+                // A body fed to a bore drops into its mouth: smaller as it goes down, then gone.
+                float sunk = ctx.sim.swarmHarvest().sunk(t.entityAt(r), ctx.sim.getSimTickIndex());
+                float pileAlpha = pileFadeAlpha(faded) * sinkAlpha(sunk);
                 float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
-                float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
+                float shrink = (1f - MELT_SHRINK * Math.max(digested, faded)) * sinkScale(sunk);
                 effects.stampLight(out, rx[r], ry[r]);
                 effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
                 if (type == UnitType.SWARM_HARRIER) {
@@ -1462,6 +1465,21 @@ public final class UnitRenderService implements RenderSystem {
 
     /** How much a digesting body shrinks by the time the creep has it all. */
     private static final float MELT_SHRINK = 0.2f;
+    /** The drawn size, as a share of whole, of a fed body at the bottom of its sink. */
+    static final float SINK_SCALE = 0.3f;
+
+    /** A fed body shrinks as it goes down the mouth, quickly at first as it drops. */
+    static float sinkScale(float sunk) {
+        if (sunk <= 0f) return 1f;
+        float t = Math.min(1f, sunk);
+        return 1f - (1f - SINK_SCALE) * (1f - (1f - t) * (1f - t));
+    }
+
+    /** A fed body stays solid for the first part of its sink, then fades into the dark of the hole. */
+    static float sinkAlpha(float sunk) {
+        float t = Math.max(0f, Math.min(1f, (sunk - 0.4f) / 0.6f));
+        return 1f - t * t * (3f - 2f * t);
+    }
 
     /** A body the pile cap retires fades out smoothly over the whole of its fade. */
     static float pileFadeAlpha(float faded) {
@@ -1670,18 +1688,24 @@ public final class UnitRenderService implements RenderSystem {
                             layeredFacing != null ? layeredFacing[r] : 0f,
                             ctx.sim.identity().swarmStage(entityId));
                 }
+                // Climbing out of a bore: drawn smaller and dark as it rises out of the hole, lit once it is out.
+                float rise = ctx.sim.swarmEmergence().progress(entityId, ctx.sim.getSimTickIndex());
+                float riseScale = EmergenceLook.scale(rise);
+                float riseShade = EmergenceLook.shade(rise);
+                float riseAlpha = unitAlpha * EmergenceLook.alpha(rise);
                 if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
                     // The Brute too; its rig is sized in cells, so only its growth stage scales it.
-                    RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
-                            cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
-                            cam.cellPxSize() * bruteRig.scale(), unitAlpha, ravWear(out, ctx.sim.world(), entityId));
+                    RavBruteComposer.emit(EmergenceLook.shaded(out, riseShade), bruteArt.forStage(bruteRig.stage()),
+                            bruteRig, cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
+                            cam.cellPxSize() * bruteRig.scale() * riseScale, riseAlpha,
+                            ravWear(out, ctx.sim.world(), entityId));
                     continue;
                 }
                 if (spitterArt != null && rig instanceof RavSpitterRig spitterRig && spitterRig.posed()) {
                     // The Spitter too, sized in cells like the Brute.
-                    RavSpitterComposer.emit(out, spitterArt, spitterRig,
+                    RavSpitterComposer.emit(EmergenceLook.shaded(out, riseShade), spitterArt, spitterRig,
                             cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
-                            cam.cellPxSize() * spitterRig.scale(), unitAlpha);
+                            cam.cellPxSize() * spitterRig.scale() * riseScale, riseAlpha);
                     if (spitterRig.brace() > 0f) {
                         sprites.ensureEngineFxSprites();
                         RavSpitterComposer.emitGlow(out, sprites.engineGlowSprite(), spitterArt, spitterRig,
@@ -1693,7 +1717,7 @@ public final class UnitRenderService implements RenderSystem {
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
                     RavMatriarchComposer.emit(out, matriarchArt, matriarchRig,
                             cam.cellToScreenX(matriarchRig.bodyX()), cam.cellToScreenY(matriarchRig.bodyY()),
-                            cam.cellPxSize() * matriarchRig.scale(), unitAlpha,
+                            cam.cellPxSize() * matriarchRig.scale() * riseScale, riseAlpha,
                             ravWear(out, ctx.sim.world(), entityId));
                     continue;
                 }
@@ -1703,7 +1727,7 @@ public final class UnitRenderService implements RenderSystem {
                     // at its growth stage's size and in its stage's colours.
                     RavRunnerComposer.emit(out, ravArt.forRig(ravRig), ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * ravRig.scale(), 1f, unitAlpha);
+                            cam.cellPxSize() * ravRig.scale() * riseScale, riseShade, riseAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered

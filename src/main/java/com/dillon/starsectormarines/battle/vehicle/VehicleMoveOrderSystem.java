@@ -74,6 +74,14 @@ public final class VehicleMoveOrderSystem {
      */
     static final float GIVE_UP_SECONDS = 8f;
 
+    /**
+     * Whether an order's route is proved from where the hull stands, its ends judged as an order's
+     * ({@link VehicleRoutePlanner#routeDrivableFrom}). {@code -Dbattle.vehicle.orderEnds=false} is the control, both
+     * ends held to the sampling margin as dispatch's are: remove it with the losing path once The Burn's
+     * vehicle-order evidence has been read against it.
+     */
+    static final boolean ORDER_ENDS = Boolean.parseBoolean(System.getProperty("battle.vehicle.orderEnds", "true"));
+
     /** How far the resolver may look for drivable ground near the clicked cell. */
     private static final int SNAP_RADIUS = 6;
     /** Cells around an ordered cell searched for the nearest one the hull can reach ({@link #goal}). */
@@ -91,6 +99,8 @@ public final class VehicleMoveOrderSystem {
     private final NavigationService navigation;
     private final VehicleControlSystem controlSystem;
     private final VehicleTransportService transport;
+    /** Whether the route {@link #planRoute} last returned was proved only by brushing soft ground. */
+    private boolean routeBrushed;
 
     public VehicleMoveOrderSystem(VehicleMoveOrderService service, ConvoyService convoy,
                                   NavigationService navigation,
@@ -184,6 +194,7 @@ public final class VehicleMoveOrderSystem {
                     : guardPlanner.plan(request.vehicleId, request.cellX, request.cellY);
             int goalX = assault != null ? assault.standoffX() : guard != null ? guard.guardX() : request.cellX;
             int goalY = assault != null ? assault.standoffY() : guard != null ? guard.guardY() : request.cellY;
+            routeBrushed = false;
             float[][] route = planRoute(request.vehicleId, goalX, goalY);
             if (route == null) {
                 service.refuse(request.vehicleId, request.cellX, request.cellY,
@@ -202,6 +213,8 @@ public final class VehicleMoveOrderSystem {
                 GroundBody body = convoy.body(request.vehicleId);
                 route = new float[][]{{body.x, body.x}, {body.y, body.y}};
             }
+            // A route proved only by brushing is brushed from the start, not after the controller's failure window.
+            convoy.control(request.vehicleId).brushRouteXs = routeBrushed ? route[0] : null;
             service.activate(request.vehicleId, new ActiveOrder(request.cellX, request.cellY,
                     route[0], route[1], request.facingDegrees));
         }
@@ -326,8 +339,18 @@ public final class VehicleMoveOrderSystem {
                     ? new float[][]{new float[0], new float[0]} : null;
         }
 
-        return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
-                grid, cost, clearance, type);
+        Pose departure = new Pose(body.x, body.y, body.facingDegrees);
+        float[][] route = ORDER_ENDS
+                ? VehicleRoutePlanner.routeDrivableFrom(departure, from[0], from[1], to[0], to[1],
+                        grid, cost, clearance, type)
+                : VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], grid, cost, clearance, type);
+        SoftBrush brush = controlSystem.brush();
+        if (route != null || brush == null) return route;
+        // The proof's last rung: the cheapest route once more, its footprint allowed to brush soft ground.
+        route = VehicleRoutePlanner.routeBrushing(ORDER_ENDS ? departure : null, from[0], from[1], to[0], to[1],
+                grid, brush.softView(grid, type), cost, clearance, type);
+        routeBrushed = route != null;
+        return route;
     }
 
     /**

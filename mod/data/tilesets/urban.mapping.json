@@ -5,7 +5,7 @@
     "STREET":    "urban3.street-square",
     "COURTYARD": "road.courtyard",
     "TILE":      "road.tile",
-    "STRIPED":   "road.striped",
+    "STRIPED":   "apron.marked",
     "GRASS":     "floors.grass",
     "DIRT":      "floors.dirt",
     "STONE":     "floors.stone",
@@ -19,7 +19,7 @@
     "STREET": "terrain.blast-paving",
     "COURTYARD": "terrain.blast-paving",
     "TILE": "terrain.blast-metal",
-    "STRIPED": "terrain.blast-metal",
+    "STRIPED": "terrain.blast-paving",
     "GRASS": "terrain.blast-earth",
     "DIRT": "terrain.blast-earth",
     "STONE": "terrain.blast-paving",
@@ -68,7 +68,7 @@
         "plantChance": 0.0,
         "rockChance": 0.20,
         "plantPool": [],
-        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+        "rockPool": ["nature.rock-basalt-small-1", "nature.rock-basalt-small-2", "nature.rock-basalt-medium-1", "nature.rock-basalt-medium-2"]
       },
       "NATURE_BEACH": {
         "groundPool": [
@@ -77,7 +77,7 @@
         "plantChance": 0.0,
         "rockChance": 0.22,
         "plantPool": [],
-        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+        "rockPool": ["nature.rock-basalt-small-1", "nature.rock-basalt-small-2", "nature.rock-basalt-medium-1", "nature.rock-basalt-medium-2"]
       }
     },
     "ARID": {
@@ -88,7 +88,7 @@
         "plantChance": 0.0,
         "rockChance": 0.14,
         "plantPool": [],
-        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+        "rockPool": ["nature.rock-sandstone-small-1", "nature.rock-sandstone-small-2", "nature.rock-sandstone-medium-1", "nature.rock-sandstone-medium-2"]
       }
     },
     "FROZEN": {
@@ -99,7 +99,7 @@
         "plantChance": 0.0,
         "rockChance": 0.16,
         "plantPool": [],
-        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+        "rockPool": ["nature.rock-frost-small-1", "nature.rock-frost-small-2", "nature.rock-frost-medium-1", "nature.rock-frost-medium-2"]
       },
       "NATURE_BEACH": {
         "groundPool": [
@@ -108,7 +108,7 @@
         "plantChance": 0.0,
         "rockChance": 0.18,
         "plantPool": [],
-        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+        "rockPool": ["nature.rock-frost-small-1", "nature.rock-frost-small-2", "nature.rock-frost-medium-1", "nature.rock-frost-medium-2"]
       }
     }
   },

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepGrowth;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -28,7 +29,8 @@ import java.util.function.LongPredicate;
  *   {@link #INTERIOR} cells round it, so an outpost roots inside the growth
  *   and never on its ragged edge, and clear of bodies.</li>
  *   <li><b>Time.</b> A chosen cell must stay good for {@link #HOLD_SECONDS}
- *   before anything roots there.</li>
+ *   before anything roots there. Through the hold the bore's root digs out to
+ *   it and thickens ({@link #rootProgress}); the outpost rises as it comes.</li>
  *   <li><b>Cap.</b> {@link #capFor} living outposts per bore by tier; a dead
  *   outpost frees its place, so the creep regrows one elsewhere: where one
  *   fell counts as an anchor for its bore's next ({@link #fallen}), so it never
@@ -75,6 +77,18 @@ public final class CreepOutposts {
     public int[] pendingCell(long boreId) {
         Pending held = pending.get(boreId);
         return held == null ? null : new int[]{held.x, held.y};
+    }
+
+    /**
+     * How far the root to a bore's pending outpost has come at {@code tick}, 0 to 1, or -1 with none pending: it digs
+     * out from the bore as the cell is first held and has come, thickened, as the hold is done and the outpost rises
+     * (`colony-breach-nouns.md`, Nest, Roots grow). A tended hold brings it on as much sooner.
+     */
+    public float rootProgress(long boreId, int tick) {
+        Pending held = pending.get(boreId);
+        if (held == null) return -1f;
+        float hold = HOLD_SECONDS / BattleSimulation.TICK_DT;
+        return Math.max(0f, Math.min(1f, (tick - held.sinceTick) / hold));
     }
 
     /** A skitterer stood on a bore's pending outpost for {@code ticks}: its hold counts that much more. */
@@ -194,6 +208,12 @@ public final class CreepOutposts {
                 + " Spore Outpost " + (bore.outposts().size() + 1);
         long colony = sim.spawn(SwarmBores.bodySpec(name, bore.tier().sporeColonyStructure(), x, y));
         bore.outposted(colony);
+        // It rises where its root has come, throwing the creep up round it.
+        for (int i = 0; i < 6; i++) {
+            double a = Math.PI * 2 * i / 6;
+            sim.emitGroundDust(x + 0.5f, y + 0.5f, (float) Math.cos(a) * 0.9f, (float) Math.sin(a) * 0.9f, 0.45f,
+                    EffectsService.DUST_WHEEL);
+        }
         rootedAt.put(colony, new float[]{x + 0.5f, y + 0.5f});
     }
 
@@ -225,6 +245,8 @@ public final class CreepOutposts {
             anchors.add(new float[]{bore.x() + 0.5f, bore.y() + 0.5f});
             addLiving(sim, bore.colonies(), anchors);
             addLiving(sim, bore.outposts(), anchors);
+            // A colony on its way counts as standing, so a held cell is never lost to it rising.
+            for (SwarmBore.Growing g : bore.growing()) anchors.add(new float[]{g.x() + 0.5f, g.y() + 0.5f});
         }
         return anchors;
     }

@@ -19,10 +19,12 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -67,6 +69,12 @@ public final class CordonLineCommand {
     private final Map<String, Integer> refusals = new TreeMap<>();
     private long dryGunTicks;
     private final Map<Integer, Integer> dryPeak = new TreeMap<>();
+    /** The picket nests' guns, each with the redoubt whose stock it draws on. */
+    private final Map<Long, CordonRedoubt> picketGuns = new LinkedHashMap<>();
+    /** Picket guns that ran dry, and those a truck filled again after they did. */
+    private final Set<Long> picketsDry = new HashSet<>(), picketsRearmed = new HashSet<>();
+    /** Picket guns destroyed: the nest overrun. */
+    private final Set<Long> picketsLost = new HashSet<>();
 
     /**
      * @param pickets the picket nests' guns; each joins the stock of the redoubt it stands nearest
@@ -101,7 +109,10 @@ public final class CordonLineCommand {
         }
         for (long gun : pickets) {
             CordonRedoubt near = nearest(redoubts, sim.world().x(gun), sim.world().y(gun));
-            if (near != null) stocks.get(near).add(gun);
+            if (near != null) {
+                stocks.get(near).add(gun);
+                picketGuns.put(gun, near);
+            }
         }
         for (int squad : armour.mortarTeams()) {
             long leader = sim.getSquad(squad) == null ? 0L : sim.getSquad(squad).leaderId;
@@ -167,6 +178,17 @@ public final class CordonLineCommand {
             int dry = e.getValue().dry();
             dryGunTicks += (long) dry * CordonArmour.REVIEW_TICKS;
             if (dry > 0) dryPeak.merge(e.getKey().number(), dry, Math::max);
+        }
+        for (Map.Entry<Long, CordonRedoubt> e : picketGuns.entrySet()) {
+            long gun = e.getKey();
+            if (picketsLost.contains(gun)) continue;
+            if (sim.resolveUnit(gun) == 0L || !sim.world().isAlive(gun)) {
+                picketsLost.add(gun);
+                continue;
+            }
+            int left = stocks.get(e.getValue()).rounds(gun);
+            if (left <= 0) picketsDry.add(gun);
+            else if (picketsDry.contains(gun) && left >= reserve.roundsPerGun()) picketsRearmed.add(gun);
         }
         if (shed == null) return;
         AlliedTool cover = CordonAlliedRules.coverTool(density);
@@ -285,6 +307,11 @@ public final class CordonLineCommand {
         out.append("); ");
         out.append(String.format(Locale.ROOT, "dry gun-min %.1f", dryGunTicks * BattleSimulation.TICK_DT / 60f));
         if (!dryPeak.isEmpty()) out.append(" (most dry at once by redoubt ").append(dryPeak).append(')');
+        if (!picketGuns.isEmpty()) {
+            out.append("; picket nests ").append(picketGuns.size() - picketsLost.size()).append('/').append(picketGuns.size())
+                    .append(" standing, ").append(picketsDry.size()).append(" ran dry, ")
+                    .append(picketsRearmed.size()).append(" rearmed");
+        }
         float[] escorts = armour.escortReadings();
         out.append(String.format(Locale.ROOT, "; road hulls escorted %.0f/%.0f, escort hull-min %.1f taken %.1f short"
                         + ", road-hull min %.1f alongside %.1f alone",

@@ -10,7 +10,7 @@ APC sheet as material reference:
 
 - **open** (`open-guide.png`, `open.prompt.txt`, `open-raw.png`): an open turntable, the 120 mm tube raised steeply
   with its bore toward the eye, ready bombs racked round the rear. The muzzle is the bore, 0.36 cells ahead of the
-  pivot (`mount.vehicle-mortar`). Shipped.
+  pivot (`mount.vehicle-mortar`). Rejected by the owner (see below).
 - **enclosed** (`enclosed-guide.png`, `enclosed.prompt.txt`, `enclosed-raw.png`): a low NEMO-style turret house with
   one long breech-loaded tube; its muzzle brake is 0.78 cells ahead of the pivot.
 
@@ -20,7 +20,15 @@ and pivot against its guide (`REGISTRATION`) and lays the wreck over the live ra
 
 ```
 python art-source/vehicles/mortar-carrier/guide.py
-python art-source/vehicles/mortar-carrier/pack.py [open|enclosed]
+python art-source/vehicles/mortar-carrier/pack.py [open-v2b|open|enclosed]
 ```
+
+The owner rejected the first open head: ImageGen follows the shapes a guide implies, and the flat disc drawn for
+the muzzle came back as a perfect-circle bore on a tube that read as lying flat. `open-v2-guide.png` (`open_raised`
+in `guide.py`) draws the solid instead: the tube a cylinder shaded round its length and lightening as it rises at 45
+degrees, its shadow on the turntable widening toward the muzzle, the muzzle an ellipse squeezed along the gun by
+sin(45) with the lit inner wall on the breech side of the bore. `open-v2b-raw.png` is the kept generation
+(`open-v2.prompt.txt`; a second one was weaker and is not kept), `open-v2b-wreck-raw.png` its wreck. The owner picked it
+over `enclosed`: it ships, and is `pack.py`'s default, at the same 0.36-cell muzzle.
 
 Switching to `enclosed` also moves `mount.vehicle-mortar`'s `muzzleOffsetCells` to 0.78.
