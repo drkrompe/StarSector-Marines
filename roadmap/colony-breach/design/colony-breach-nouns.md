@@ -367,7 +367,8 @@ field the same machines twice.
 
 **Shelter, cohort, lift.** As in Civilian Rescue (see
 `extraction-command.md`): the cohort is sealed in the shelter until a Marine
-reaches it, then walks to the lift under escort and boards only once a shuttle
+reaches it, then follows a squad of the company out to the lift (the squad leads, the people
+follow it) and boards only once a shuttle
 is physically down. On the colony the cohort is spread over several redoubts,
 and the **lift is on the landing field**: the shuttles taking the survivors off
 come down where the company came down, for the same reason, at the clear pickup
