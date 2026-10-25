@@ -153,8 +153,8 @@ is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`).
 **Street dressing kit for the next two programs** (`StreetDressing`, art `industrial-street-kit`): the
 industrial zone lays its pipe gantries with `pipeRun` (a column and beam at each end and every `bay` cells,
 overhead rack between: across a street it is one gantry on its two kerbs, along one a pipe rack); the
-cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figure walks under),
-`jerseyBarrier` and `bollard`. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
+cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figure walks under) and
+`bollard`; `jerseyBarrier` is there for a program that wants a chicane. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
 main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the owner's style choice for
 main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
 
@@ -180,14 +180,16 @@ then walls the quarter's outer rim at the strength its character asks (`Fortific
 `CivilDefenceCompound.WALL_HP` for a civil-defence centre), dressed as a precinct wall
 (`InstallationWalls.perimeter`) with the military base's firing slits (`CompoundWallApertures`) and
 turreted corners. Each gatehouse is solid either side of its lane to a cell past each kerb, its lane
-striped as a checkpoint, turreted posts at the wall line and a sandbag course facing out just inside it.
+striped as a checkpoint, turreted posts at the wall line, a boom gate across the lane on the first row inside
+(its post on open ground beside the lane, off the road reservation) beside a sandbag course facing out, and a
+bollard before each jamb on the street outside where that is off the reservation.
 Buildings back onto the wall with a pavement onto their streets and face the main cross street, doors and
 windows there only (`BuildingPlacement.frontOnly`): the admin block a civic headquarters, labs a clinic's
 rooms (a workshop's at a depot), the depot a vehicle bay behind a striped forecourt with an APC, cargo truck
 or utility truck parked on it. The yard is striped hardstanding with crates, pallets and drums; the
 courtyard a brick square with a stone border, a planter at each corner and a radar mast in the middle
-except at a depot. The inner streets are paved city street with hedgehogs on their kerbs every four cells,
-off the road reservation and clear of crossings and gatehouses. It publishes `CordonedFacility` on
+except at a depot. The inner streets are paved city street with hedgehogs and cobra-head street lamps by
+turns on their kerbs every four cells, off the road reservation and clear of crossings and gatehouses. It publishes `CordonedFacility` on
 `MapResult.cordonedFacilities`: its character and wall bounds, each gatehouse's lane with the step out and
 the step in, the courtyard, and each building's role, shell and front door.
 
@@ -197,8 +199,7 @@ rare in the partition). Main street keeps 15 and 14; running the facility first 
 than one map. `storyMapPools` passes 144 of 144 with no seed swapped. Look:
 `createSnapshots -Psnapshot=cordoned-facility-look`.
 
-Open on the cordoned facility: boom gates and street lamps have no art (the striped lane, posts and
-sandbags stand in); no tactical node or mission reads the mark yet; a research station did not reach the
+Open on the cordoned facility: no tactical node or mission reads the mark yet; a research station did not reach the
 look stills, its seeds' battles laying another map.
 
 ## Order

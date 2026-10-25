@@ -395,7 +395,7 @@ boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, 
 boom-gate arm block nothing and carry no cover. The **cordoned facility** stands on a quarter: an admin block, labs or
 workshops, a depot with its forecourt, a yard and a courtyard on the quarter's own streets inside one wall
 on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed to a three-cell lane
-between solid jambs; a street ending against a lot is walled across. It publishes `CordonedFacility` on
+between solid jambs with a boom gate across it just inside; a street ending against a lot is walled across. It publishes `CordonedFacility` on
 `MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door).
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,

@@ -25,7 +25,7 @@ import java.util.Locale;
 
 /**
  * The industrial and checkpoint street kit ({@link StreetDressing}) staged on a colony's main street, ahead of the
- * industrial zone and the cordoned facility that will lay it: a pipe gantry across the street a third of the way
+ * industrial zone that will lay its gantries (the cordoned facility lays the boom gate at its gatehouses): a pipe gantry across the street a third of the way
  * from the plaza, and a boom gate with bollards across it near the hall. A preview of the hooks on a real street,
  * not a map the game lays. Before staging, the street as laid is framed twice for the owner's style choice: as
  * shipped (cast-iron lamps, canvas awnings) and restyled industrial (cobra-head lamps, steel canopies). Look-preset
