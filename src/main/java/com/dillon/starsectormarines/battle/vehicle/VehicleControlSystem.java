@@ -941,7 +941,10 @@ public final class VehicleControlSystem {
                 new Pose(body.x, body.y, body.facingDegrees), type.visualLengthCells,
                 type.visualWidthCells, motionGrid(type), allowOffMap);
         applyPose(body, step.pose());
-        if (step.blocked()) body.speed = 0f;
+        if (step.blocked()) {
+            body.recordBlocked(body.speed);
+            body.speed = 0f;
+        }
         if (tracks != null && type.crushesUndergrowth()) tracks.crush(body, type);
         return step.blocked();
     }

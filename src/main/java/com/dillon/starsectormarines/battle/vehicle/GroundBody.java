@@ -50,6 +50,28 @@ public abstract class GroundBody {
     /** The hull rocking on its suspension after a hit: offset from the chassis, cells, and its rate. */
     public float joltX, joltY, joltVx, joltVy;
 
+    /**
+     * Bumps: how many times the hull has run into something that stopped it ({@link #recordBlocked}), and how fast it
+     * was going the last time. Presentation reads them for the impact sound; nothing in the simulation does.
+     */
+    public int bumps;
+    public float lastBumpSpeed;
+
+    /** Below this speed, cells a second, a stopped move is the hull leaning on what holds it, not running into it. */
+    public static final float BUMP_MIN_SPEED = .5f;
+
+    /**
+     * A move was stopped by terrain at {@code impactSpeed}, the speed the hull had before it was stopped. Counts as a
+     * bump only at {@link #BUMP_MIN_SPEED} or more, so a hull held against a wall, which creeps up from a standstill
+     * each tick, bumps once as it hits and not again while it pushes.
+     */
+    public void recordBlocked(float impactSpeed) {
+        float speed = Math.abs(impactSpeed);
+        if (!(speed >= BUMP_MIN_SPEED)) return;
+        bumps++;
+        lastBumpSpeed = speed;
+    }
+
     /** Accepted signed chassis travel for distance-driven tread UVs, never a render clock. */
     public double visualTravelCells, visualYawRadians;
 

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — heavy tracks: a Heavy-lift hull flattens the undergrowth and lone boulders it drives into.
+Updated: 2026-10-25 — heavy tracks flatten undergrowth and lone boulders; a hull running into what stops it is heard as a bump.
 
 ## Purpose and boundary
 
@@ -1101,6 +1101,14 @@ Which living trees count as young is the owner's open pick
 is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
 across young or creep-killed wood drives through it, felling what it touches,
 while a living mature wood and a troop APC in young wood are held.
+
+A hull that runs into something that stops it is heard: a stopped move at half
+a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the
+machinery audio plays a heavy impact for it (`MachineAudio`, vanilla's
+ship-on-rock collision), louder the faster it hit and deeper the heavier the
+hull. A hull held against a wall creeps up from a standstill each tick, so it
+bumps once as it hits, not again while it pushes. There is no automatic back-off
+for a wedged, manually driven hull (owner, 2026-10-25).
 
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
