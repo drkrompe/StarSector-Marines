@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17500-d910-7d93-9fa1-3a20636088b0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17500-d910-7d93-9fa1-3a20636088b0\\exec-4efd8b9b-7ed2-4a71-9bd1-3162f0e1d19b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\street-lamps.raw.png",
+    "sha256": "44d45212f47ca14fd24ccc0faf380b24198a64d1a7a0af358f153d2cd8fc139f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\street-lamps.prompt.txt",
+  "promptSha256": "493cb0ed3a74f145575bb5e509dc95c5162cd7e67e5262a94a8173ce9241046b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact positions, outlines, sizes and empty space\nImage 2: Material and rendering style only; not layout\n\nUse case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites from the same game); do not copy its objects or layout.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. From directly above a street lamp is only its head: the post is hidden underneath it. No perspective, no visible vertical side faces, no visible pole or post, no cast shadows, no ground under the objects.\n\nPaint four street lamps, in reading order:\n1. Top left, a colonial cast-iron lantern seen from straight above: a fluted hexagonal black iron roof with six raised ribs meeting at a small round finial in the centre, and around its edge a thin ring of warm lit cream glass where the lantern's panes show past the roof.\n2. Top right, an industrial cobra-head street lamp seen from straight above: an elongated rounded grey cast-aluminium housing with a raised crown, a thin rim of pale warm light escaping round the edge of its downward lens, and a short dark arm stub leaving the housing's south end.\n3. Bottom left, the same colonial lantern hung from a building wall: a dark iron wall plate along the top of the frame, a short scrolled iron bracket reaching down from it, and the lantern roof with its warm glass ring at the bracket's end.\n4. Bottom right, an industrial flood lamp hung from the same kind of wall plate on a short steel bracket: a rectangular grey housing with cooling fins on its back, a thin rim of pale warm light round its edge.\n\nGrounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, chipped paint, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style, no text, numbers or letters anywhere.\n\nTrue alpha transparency around every object and in every gap of the guide; no floor, no background, no light pool on the ground, no shadow slab, no border, no labels, no watermark. Paint only these four objects and nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\street-lamps-guide.png",
+      "sha256": "e0d9f6e92f4e8ddecd77de219120c5593d84eb8ace4c3a59f8cf37f6eb4b9598",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact positions, outlines, sizes and empty space"
+    },
+    {
+      "path": "art-source\\tilesets\\street-dressing.raw.png",
+      "sha256": "bb1abf554a049e73cb9b3379dca49b02ee6a3d82769c8e1cca6bb5dbe715725c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and rendering style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and the second image’s worn material style.\n"
+  ],
+  "usage": {
+    "input_tokens": 45262,
+    "cached_input_tokens": 37760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 525,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.0
+}
