@@ -510,8 +510,10 @@ public final class CordonSetup {
                 Collections.emptyList(), cordon.battleSeed()).sim();
         sim.setSurface(BattleSetup.surfaceOf(country(cordon.biome())));
         BattleSetup.recordLzPads(sim, pads);
+        // The Cordon is fought late in the campaign: the company it stands up is a well-found one.
         BattleSetup.landCompany(sim, pads, manifest, rng,
-                SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
+                SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"),
+                InfantryLoadoutRolls::lateCampaignSquad);
         List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, map, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
         List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
