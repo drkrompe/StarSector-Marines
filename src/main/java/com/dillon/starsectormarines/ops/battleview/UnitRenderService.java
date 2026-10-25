@@ -235,6 +235,7 @@ public final class UnitRenderService implements RenderSystem {
     private final BattleSprites sprites;
     /** Draws each layered mech's parts and the worn plate on them ({@code combat-durability-nouns.md}). */
     private final MechScuffSink mechScuffs;
+    private final RavWear.Painter ravWear;
     private final SystemHaloComposer halo = new SystemHaloComposer();
     /**
      * How each destroyed airframe's hull came apart, worked out on first draw
@@ -255,6 +256,7 @@ public final class UnitRenderService implements RenderSystem {
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
         this.mechScuffs = new MechScuffSink(sprites);
+        this.ravWear = new RavWear.Painter(sprites);
     }
 
     /** Lights bodies from {@code lights}, the event lights the ground composite draws; null lights nobody. */
@@ -1672,7 +1674,7 @@ public final class UnitRenderService implements RenderSystem {
                     // The Brute too; its rig is sized in cells, so only its growth stage scales it.
                     RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
-                            cam.cellPxSize() * bruteRig.scale(), unitAlpha);
+                            cam.cellPxSize() * bruteRig.scale(), unitAlpha, ravWear(out, ctx.sim.world(), entityId));
                     continue;
                 }
                 if (spitterArt != null && rig instanceof RavSpitterRig spitterRig && spitterRig.posed()) {
@@ -1691,7 +1693,8 @@ public final class UnitRenderService implements RenderSystem {
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
                     RavMatriarchComposer.emit(out, matriarchArt, matriarchRig,
                             cam.cellToScreenX(matriarchRig.bodyX()), cam.cellToScreenY(matriarchRig.bodyY()),
-                            cam.cellPxSize() * matriarchRig.scale(), unitAlpha);
+                            cam.cellPxSize() * matriarchRig.scale(), unitAlpha,
+                            ravWear(out, ctx.sim.world(), entityId));
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && rig instanceof RavRunnerRig runnerRig ? runnerRig : null;
@@ -2080,5 +2083,11 @@ public final class UnitRenderService implements RenderSystem {
      */
     private static boolean hasTakenFire(CombatTelemetryService telemetry, long id) {
         return telemetry.isRecorded(id) && telemetry.damageTaken(id) > 0f;
+    }
+
+    /** A living Rav's worn chitin ({@link RavWear}) from its plate and health, or null while it is whole. */
+    private RavWear.Marks ravWear(DrawList out, World world, long entityId) {
+        float shell = world.hasArmor(entityId) ? RavWear.shellWear(world.armor(entityId), world.maxArmor(entityId)) : 0f;
+        return ravWear.begin(out, entityId, shell, RavWear.fleshWear(world.hp(entityId), world.maxHp(entityId)));
     }
 }
