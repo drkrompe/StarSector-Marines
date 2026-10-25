@@ -4,10 +4,13 @@ package com.dillon.starsectormarines.ops.battleview;
  * Lays the marks {@link VehicleScuffs#place} hands over onto one drawn image ({@code combat-durability-nouns.md}): a
  * hull frame, a turret or a mech part, centred on a screen point and turned with it. Source pixels map to screen pixels
  * by the image's own scales; each mark is one cell of the scuff sheet, turned by its own spin on top of the image's
- * angle. Reused: {@link #begin} aims it at the next image.
+ * angle. Reused: {@link #begin} aims it at the next image. A Rav's worn chitin ({@link RavWear}) is laid the same way
+ * from its own sheet.
  */
 final class ScuffMark implements VehicleScuffs.Sink {
 
+    private final String sheetPath;
+    private final int cell;
     DrawList out;
     private RenderLayer layer;
     private BattleSprites sprites;
@@ -22,6 +25,17 @@ final class ScuffMark implements VehicleScuffs.Sink {
     private float sin;
     private float sizePx;
     private float alpha;
+
+    /** Marks from the vehicle scuff sheet. */
+    ScuffMark() {
+        this(VehicleScuffs.SHEET, VehicleScuffs.SHEET_CELL);
+    }
+
+    /** Marks from the sheet at {@code sheetPath}, {@code cell} px a mark, a row per kind and a column per variant. */
+    ScuffMark(String sheetPath, int cell) {
+        this.sheetPath = sheetPath;
+        this.cell = cell;
+    }
 
     /**
      * Aims at an {@code imageW x imageH} image drawn centred on screen point {@code (centreX, centreY)}, a source
@@ -48,13 +62,12 @@ final class ScuffMark implements VehicleScuffs.Sink {
 
     @Override
     public void mark(float x, float y, int kind, int variant, float spinDegrees, float strength) {
-        ShuttleSpriteCache sheet = sprites.spriteByPath(VehicleScuffs.SHEET);
+        ShuttleSpriteCache sheet = sprites.spriteByPath(sheetPath);
         if (sheet == null || sheet.pxW <= 0) return;
         float lx = (x - imageW * 0.5f) * sx;
         float ly = (imageH * 0.5f - y) * sy;
         out.addImageRegion(layer, sheet.sprite, sheet.pxW, sheet.pxH,
-                variant * VehicleScuffs.SHEET_CELL, kind * VehicleScuffs.SHEET_CELL,
-                VehicleScuffs.SHEET_CELL, VehicleScuffs.SHEET_CELL,
+                variant * cell, kind * cell, cell, cell,
                 centreX + lx * cos - ly * sin, centreY + lx * sin + ly * cos, sizePx, sizePx,
                 angleDeg + spinDegrees, 1f, 1f, 1f, strength * alpha);
     }

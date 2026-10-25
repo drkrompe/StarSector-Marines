@@ -694,6 +694,11 @@ tasks.register('commanderEvidence', Test) {
         if (!densities.isBlank()) {
             systemProperty "${prefix}.densities", densities
         }
+        // -Pforms=front plays only Broad Front's pools (the heart; burn for The Burn); both forms by default.
+        def forms = providers.gradleProperty('forms').getOrElse('').trim()
+        if (!forms.isBlank()) {
+            systemProperty "${prefix}.forms", forms
+        }
         def repeat =providers.gradleProperty('repeat')
                 .orElse(providers.systemProperty('commander.evidence.repeat'))
                 .getOrElse('').trim()

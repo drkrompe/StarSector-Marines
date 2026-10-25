@@ -81,6 +81,8 @@ public final class HeartObjectives {
     static final int LAST_STRETCH_SECONDS = 240;
     /** The flak position the air beats dig for the company. */
     static final String FLAK = "structure.turret-anti-air-flak";
+    /** A beat that would dig flak this near a flak position already standing uses that one. */
+    static final float FLAK_REUSE = 6f;
     /** Harriers in a pack the beats raise. */
     static final int PACK = 5;
     /** How far from the guns the breakout's pack rises: just inside a Harrier's sense. */
@@ -600,8 +602,44 @@ public final class HeartObjectives {
     }
 
     static long digFlak(BattleSimulation sim, String name, int x, int y) {
+        long standing = flakNear(sim, x, y);
+        if (standing != 0L) return standing;
         int[] cell = openCellNear(sim, x, y, 8);
         return cell == null ? 0L : sim.spawn(MapTurret.create(name, Faction.MARINE, FLAK, cell[0], cell[1]));
+    }
+
+    /** The company's flak position already dug within {@link #FLAK_REUSE} of {@code (x, y)}, or 0. */
+    private static long flakNear(BattleSimulation sim, int x, int y) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.MARINE || !sim.turretState().isTurret(u)
+                    || !FLAK.equals(sim.turretState().structure(u).id)) continue;
+            float dx = sim.world().x(u) - x, dy = sim.world().y(u) - y;
+            if (dx * dx + dy * dy <= FLAK_REUSE * FLAK_REUSE) return u;
+        }
+        return 0L;
+    }
+
+    /**
+     * The logistics base's air defence (`heart-nouns.md`, Logistics base): a flak position at the first ammunition
+     * dump and one at the vehicle park, and on The Burn one among the battery ({@code battery} its centre, or
+     * {@code null}), each on the guns' stock so it spends rounds and calls trucks. It is what lets the flier law be
+     * met over the heart: with no anti-air standing, no brood spire launches and no brood rises
+     * (`colony-breach-nouns.md`, Brood spire). The beats that dig flak at the dump and the battery (F3, B3) find
+     * these rather than digging a second.
+     */
+    public static void airDefence(BattleSimulation sim, LaidLayout laid, HeartGuns guns, int[] battery) {
+        int[] dump = bounds(laid, HeartLayout.AMMO_DUMP + 1, 0);
+        if (dump != null) baseFlak(sim, guns, HeartGuns.DUMP, "dump-flak", (dump[0] + dump[2]) / 2, (dump[1] + dump[3]) / 2);
+        int[] park = bounds(laid, HeartLayout.VEHICLE_PARK, 0);
+        if (park != null) baseFlak(sim, guns, HeartGuns.PARK_FLAK, "park-flak", (park[0] + park[2]) / 2, (park[1] + park[3]) / 2);
+        if (battery != null) baseFlak(sim, guns, HeartGuns.BATTERY_FLAK, "battery-flak", battery[0], battery[1]);
+    }
+
+    private static void baseFlak(BattleSimulation sim, HeartGuns guns, String place, String name, int x, int y) {
+        long gun = digFlak(sim, name, x, y);
+        if (gun == 0L) return;
+        guns.place(place, HeartGuns.FLAK_ROUNDS, new int[]{x, y}).add(place, gun);
     }
 
     /** The walkable open cell nearest {@code (x0, y0)}: no building, wall, door or prop. */

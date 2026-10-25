@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1735c-d6ca-7493-8892-7769b3f298ad",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1735c-d6ca-7493-8892-7769b3f298ad\\exec-f363a64e-98c3-49bc-b748-f77fd795abe6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\missile-carriers\\srm-wreck-raw.png",
+    "sha256": "f428a1fd81df7405b2bbcf2527cea5fc3bbfe572a7f31433a18bf69906a03002",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\missile-carriers\\srm-wreck.prompt.txt",
+  "promptSha256": "2323a40039bbea9b3c41b9236496d1e6d658a25b15fa2a03ba27bb3a7bbaeff7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: keep its footprint, scale and orientation\nImage 2: Condition and style reference only; not shape or layout\n\nRepaint the first image, a top-down 2D game sprite of an olive equipment box, so that it shows the same worn-out, broken-scrap condition as the second image: torn and peeled sheet-metal edges, punched holes, a lifted and split cover plate showing dark inner framing and loose cables, two of its round openings crushed, bare dark metal where paint has flaked off, and grime marks. The second image is a condition and style reference only; do not copy its shape.\n\nKeep the first image's exact footprint, position, size, left-facing orientation and strict orthographic overhead view so it lines up exactly; same illustration style, outline weight and olive materials; soft top-left light.\n\nOutput the same canvas size as the first image with a true transparent background, including through any holes; no flames, no smoke, no ground, no shadow, no border, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\missile-carriers\\srm-wreck-guide.png",
+      "sha256": "7c8ffc42d28ef7bd39ecd4f29dd6a01a8c79feada755200785f69e84d3a09b29",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target: keep its footprint, scale and orientation"
+    },
+    {
+      "path": "art-source\\vehicles\\missile-carriers\\lrm-wreck-raw.png",
+      "sha256": "0a4c1523163527445b070269b99cf3f2d63fe445686f03a485c8ab52fa3935ab",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Condition and style reference only; not shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to apply the damaged condition while preserving the first image’s footprint and layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 42540,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 373,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.4
+}

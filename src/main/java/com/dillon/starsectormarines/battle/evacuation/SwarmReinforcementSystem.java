@@ -652,7 +652,7 @@ public final class SwarmReinforcementSystem {
 
     private static boolean isOwnedRunner(long unit, BattleSimulation sim) {
         return sim.identity().faction(unit) == Faction.DEFENDER
-                && sim.identity().type(unit).isSwarm()
+                && sim.identity().type(unit).isSwarm() && !sim.identity().type(unit).isSwarmWorker()
                 && sim.role().role(unit) == UnitRole.SWARM_PRESSURE;
     }
 
@@ -691,14 +691,14 @@ public final class SwarmReinforcementSystem {
     /**
      * The living swarm's weight against the population target: each body
      * counts its stage's weight, so an elder fills more of the target than a
-     * whelp. With every body an adult it is the head count.
+     * whelp. With every body an adult it is the head count. Skitterers are not
+     * counted (`colony-breach-nouns.md`, Skitterer).
      */
     private static float liveWeight(BattleSimulation sim) {
         float weight = 0f;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) == Faction.DEFENDER
-                    && sim.identity().type(unit).isSwarm()) {
+            if (sim.identity().faction(unit) == Faction.DEFENDER && fights(sim.identity().type(unit))) {
                 weight += sim.identity().swarmStage(unit).populationWeight;
             }
         }
@@ -709,10 +709,14 @@ public final class SwarmReinforcementSystem {
         int count = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) == Faction.DEFENDER
-                    && sim.identity().type(unit).isSwarm()) count++;
+            if (sim.identity().faction(unit) == Faction.DEFENDER && fights(sim.identity().type(unit))) count++;
         }
         return count;
+    }
+
+    /** A swarm body the population counts: every strain but the skitterer, which its bore broods under its own cap. */
+    private static boolean fights(UnitType type) {
+        return type.isSwarm() && !type.isSwarmWorker();
     }
 
     private static float distanceSquared(int x, int y, long unit,

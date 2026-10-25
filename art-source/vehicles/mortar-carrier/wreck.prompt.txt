@@ -1,0 +1,5 @@
+Edit the supplied top-down game sprite of a vehicle's roof mortar turret (seen from directly above, gun pointing LEFT) into its destroyed wreck, as it sits on a knocked-out armoured carrier. Real battle damage, not a colour change: the mortar tube split and bent near the muzzle, its end torn open; armour plates buckled and peeled back with jagged edges; a hatch blown off or hanging open showing a scorched, gutted interior; ready rounds burst or missing, leaving empty blackened sockets; shrapnel holes and gouges; paint burnt off to bare dark metal with soot streaks around every breach.
+
+Keep: the same strict orthographic overhead view; the same overall footprint, position, size and orientation as the input so it registers in place; the same art style, outline weight and the same worn olive/cream military materials where the paint survives; the soft top-left light.
+
+Output: the same canvas size with a true transparent background, including through any holes torn clean through; no fire, no smoke, no ground, no cast shadow, no border, no text.

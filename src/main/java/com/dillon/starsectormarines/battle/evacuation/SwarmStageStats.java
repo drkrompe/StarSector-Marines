@@ -41,6 +41,9 @@ public final class SwarmStageStats {
             new Stats(20f, 0f, 0f, 10f, 16f, 2.4f),
     };
 
+    /** The skitterer has no stage: every one is this, unplated, one rifle hit, a little slower than a Runner. */
+    private static final Stats WORKER = new Stats(10f, 0f, 0f, 0f, 0f, 2.8f);
+
     /**
      * The Matriarch's stage as multipliers on her adult kit: health, plate and damage, and speed. Her stage
      * comes from her mother's feeding, not the age table ({@link #matriarchStage}).
@@ -69,6 +72,7 @@ public final class SwarmStageStats {
             return new Stats(type.maxHp * d, SwarmStrains.MATRIARCH_ARMOR * d, SwarmStrains.MATRIARCH_ARMOR_RATING,
                     type.attackDamage * d, type.attackRange, type.moveSpeed * MATRIARCH_SPEED[i]);
         }
+        if (type == UnitType.SWARM_WORKER) return WORKER;
         Stats[] table = switch (type) {
             case SWARM_RUNNER -> RUNNER;
             case SWARM_BRUTE -> BRUTE;

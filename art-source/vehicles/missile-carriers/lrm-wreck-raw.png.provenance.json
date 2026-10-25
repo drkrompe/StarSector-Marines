@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17358-b314-7460-a9c7-845e2c8e2703",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17358-b314-7460-a9c7-845e2c8e2703\\exec-334783a6-71c9-4810-8565-2332c12ea275.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\missile-carriers\\lrm-wreck-raw.png",
+    "sha256": "0a4c1523163527445b070269b99cf3f2d63fe445686f03a485c8ab52fa3935ab",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\missile-carriers\\lrm-wreck.prompt.txt",
+  "promptSha256": "3eb80b2779ad8da35c4ee6efec1cab615438284ec2f27599d15089e27fd09d59",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: the live pod to damage in place; keep its footprint, scale and orientation\n\nEdit the supplied top-down game sprite of a fifteen-tube LRM launcher box (seen from directly above, nose pointing LEFT) into its destroyed wreck, as it would lie on the roof mount of a knocked-out military vehicle. Real battle damage, not a colour change: the casing torn open and buckled by an internal explosion, one corner blown out with jagged peeled-back sheet metal, several launch tubes split, bent or missing with their black empty bores showing, the lid or hatch plate warped and partly torn away exposing scorched internals and wiring, shrapnel holes and gouges across the plate, paint burnt off to bare dark metal and soot streaks around the breaches.\n\nKeep: the same strict orthographic overhead view, the same overall footprint, position, size and nose-left orientation as the input so it registers in place; the same art style, outline weight, and the same worn olive and dark military materials where the paint survives; the soft top-left light.\n\nOutput: the same canvas size with a true transparent background, including inside any holes torn clean through; no fire, no smoke, no ground, no cast shadow, no border, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\missile-carriers\\lrm-wreck-guide.png",
+      "sha256": "8cf5a568bc6cb67d77618eaf4c2c6f926151e799aca9a992e7a3272e7a615269",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target: the live pod to damage in place; keep its footprint, scale and orientation"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one wrecked version, keeping the launcher’s alignment and footprint with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 39627,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 394,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.6
+}

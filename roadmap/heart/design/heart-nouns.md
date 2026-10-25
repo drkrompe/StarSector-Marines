@@ -155,6 +155,14 @@ the road for good (F6). The gunship is not road-borne.
   on open air, and one ammunition truck.
 - On The Burn, which has no lanes, it holds ammunition trucks alone.
 Every truck in the heart comes from it, the B5 beat's included.
+The base digs **flak** at its first ammunition dump and its vehicle park, and on
+The Burn among the battery (`HeartObjectives.airDefence`), each on the guns'
+stock. That is what meets the flier law over the heart: while any of it stands,
+the satellites' brood spires launch Harrier packs with their surges and each
+Matriarch comes out with her brood (`colony-breach-nouns.md`, Brood spire); with
+none standing, nothing flies. The packs hunt wherever the flak does not reach,
+which is most of the country: the lanes and the company far more than the base.
+The air beats (F3, B3) use these pits rather than digging their own.
 
 **Rounds on hand.** The heart's own guns, the Burn's battery and the flak pits
 the beats dig, keep a stock of rounds per place (`GunStock`). Every barrage
