@@ -111,6 +111,11 @@ final class WarshipShield {
 
     /** Reads the shield a hull carries; a hull with none (or a phase cloak) gets {@link #NONE}'s figures. */
     static WarshipShield read(JSONObject hull, Map<String, String> row) {
+        return read(hull, row, WarshipScale.hullCells(1f));
+    }
+
+    /** As above, at {@code k} cells per hull pixel: a hull fitted at its own presence. */
+    static WarshipShield read(JSONObject hull, Map<String, String> row, float k) {
         Type type = typeOf(row == null ? null : row.get("shield type"));
         if (type == Type.NONE) return new WarshipShield(Type.NONE, 0f, 0f, 0f, 0f, 0f, 1f);
         float arc = type == Type.OMNI ? Math.min(360f, number(row.get("shield arc"), 360f))
@@ -121,8 +126,7 @@ final class WarshipShield {
         float vx = c == null ? 0f : (float) c.optDouble(0, 0.0);
         float vy = c == null ? 0f : (float) c.optDouble(1, 0.0);
         // The same frame every slot is read in: the first figure runs along the nose.
-        return new WarshipShield(type, arc, WarshipScale.hullCells(radiusPx),
-                -WarshipScale.hullCells(vy), WarshipScale.hullCells(vx),
+        return new WarshipShield(type, arc, radiusPx * k, -vy * k, vx * k,
                 Math.max(0f, number(row.get("shield upkeep"), DEFAULT_UPKEEP)),
                 Math.max(0.01f, number(row.get("shield efficiency"), DEFAULT_EFFICIENCY)));
     }
