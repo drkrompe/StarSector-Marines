@@ -197,7 +197,7 @@ a rock or ice formation never opens a hole in its supporting mountain, regardles
 of summit material. Continuous terrain ridges remain permanent and cannot be breached
 through this prop damage channel.
 
-The seven built-in nature rock groups also spend weapon-authored structure:
+The seven built-in nature rock groups, in each biome's stone set (`RockDamage.Biome`), also spend weapon-authored structure:
 50 for small stones, 100 for medium cover rocks, and 200 for blocking boulders.
 A surviving hit exposes cracks while retaining cover. Destruction leaves
 separated low rubble, removes physical or directional cover, and opens a
