@@ -1311,11 +1311,11 @@ not read in a soft shadow at play zoom.
     a Runner does and the creep digests it.
   - **How the company treats it.** An ordinary body on the swarm's side, shot
     as any other; clearing a nest of its workers is the player's call.
-  - **Its look** (`art-source/rav-redesign/worker`): three body plans painted
-    geometry-first over the Runner's own body layer and cut to its bones, the
-    owner's open pick (`swarm-worker-look`: hauler, a squat back with a cradle
-    of ivory ribs; tender, an amber gut sac; mite, a round pale shield).
-    Hauler is built on.
+  - **Its look** (`art-source/rav-redesign/worker`): the hauler, a squat back
+    with a cradle of ivory ribs where loads ride, one amber node and short
+    hooked mandibles, painted geometry-first over the Runner's own body layer
+    and cut to its bones (the owner's pick over a tender with an amber gut sac
+    and a mite with a round pale shield; `swarm-worker-look`).
   - Control: `-Dbattle.swarm.workers=false` broods none. Scene: `swarm-workers`
     (a verdict per job, the speed-ups each against a control). Look:
     `swarm-worker-look`.
