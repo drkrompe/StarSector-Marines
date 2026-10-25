@@ -1453,7 +1453,11 @@ against its own control in `renderEvidence`.
   damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
   sheet baked from the canopy art and the creep's own surface and palette
   (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
-  ground. On vegetation (grass, crops and the plants on them) the edge is not
+  ground. A dead tree felled, by heavy tracks or by fire, lies as dead wood: the
+  destroyed tree's stump and fallen limbs bleached bone-pale and bare, the stump
+  crusted, baked the same way from the destroyed-tree art (a sheet of its own,
+  `forest-blight-felled`); a tree felled while it lived keeps its green felled
+  art. On vegetation (grass, crops and the plants on them) the edge is not
   clean as it is on pavement: the creep's coverage spread a few cells out turns
   the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
   into it ahead of the lip, so grass and crop rows are seen to be taken before

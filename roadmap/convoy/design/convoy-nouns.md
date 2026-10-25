@@ -1099,8 +1099,9 @@ medium rocks, shrubs and grass tufts were open ground for every hull already.
 Which living trees count as young is the owner's open pick
 (`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
 is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
-across young or creep-killed wood drives through it, felling what it touches,
-while a living mature wood and a troop APC in young wood are held.
+across young or creep-killed wood drives through it, felling what it touches
+(dead trees fall as bleached dead wood, `colony-breach-nouns.md`), while a
+living mature wood and a troop APC in young wood are held.
 
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
