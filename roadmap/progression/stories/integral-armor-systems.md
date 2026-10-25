@@ -95,7 +95,9 @@ spent. Aegis and Arbalest also declare physical shoulder hardpoints: resolved
 missiles and visual shots launch from their muzzle, while an actual launch
 triggers a short pod brace, kick, muzzle flash, and return to the carried pose.
 The pod may aim independently of the wearer's primary. A blocked body-to-muzzle
-segment prevents the launch before ammunition is spent. Opening covers and
+segment prevents the launch before ammunition is spent. So does fire discipline:
+a friend in the lane, or any resolved missile bursting where a friend or the
+wearer stands, holds the salvo (`ballistics-nouns.md`). Opening covers and
 individual loaded-tube states remain later animation work.
 
 Pod carriers share a squad firing cadence. One eligible suit launches a salvo,

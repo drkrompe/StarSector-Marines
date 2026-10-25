@@ -99,11 +99,22 @@ class MissilePodTest {
      * already have: a friendly caught in the splash takes damage recorded as
      * its own quantity, distinct from (and not netted against) the damage
      * credited against the intended hostile.
+     *
+     * <p>Fire discipline would hold this salvo, so the scene is built under
+     * the {@code battle.fire.laneDiscipline} control: the accounting still
+     * matters for a friend who walks into a burst while it is in flight.
      */
     @Test
     void collateralIsRecordedAsItsOwnQuantityNotNettedAway() {
         IntegralSystemDef pod = pod();
-        BattleSimulation sim = arena();
+        BattleSimulation sim;
+        String discipline = System.setProperty("battle.fire.laneDiscipline", "false");
+        try {
+            sim = arena();
+        } finally {
+            if (discipline == null) System.clearProperty("battle.fire.laneDiscipline");
+            else System.setProperty("battle.fire.laneDiscipline", discipline);
+        }
         long shooter = sim.spawn(new EntitySpec("gunner", Faction.MARINE, UnitType.MARINE,
                 SHOOTER_X, ROW).integralSystem(pod));
         // Durable rather than merely alive: the pod must still have something
