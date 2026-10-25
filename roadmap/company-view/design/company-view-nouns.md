@@ -586,7 +586,29 @@ personnel deployment: campaign objects do not enter battle.
 The Boat Deck is the Mech Lab's grammar over a different noun: the room shows
 the hull's hangar as it actually is with the boats standing on their berths, an
 overview card per berth, and — once a berth is chosen — that boat's slots and a
-catalog scoped to the selected one. Selecting the already-open `BOATS` route
+catalog scoped to the selected one. Choosing a boat moves the camera, the way
+choosing a pad does in the lab: it eases in on her berth and stands her right of
+a drafting board, the **boat doll**, while the stores take the left of the room
+and her specifications, condition and selected mount the right. The doll is the
+lab's socket schematic, not a picture of the boat: each slot is a socket of
+bricks with the fitted piece drawn over them in its socket's colour, wired to an
+airframe core — door guns across the top, port to starboard, plating and drive on
+its flanks and the hold beneath — and the stores show each part on its own
+bricks. Where a gun sits is shown on the boat herself: each hardpoint is ringed on
+the berthed boat where her hull's weapon slot puts it, with its traverse as a
+wedge, and the gun fitted there stands on it as its turret, the same sprite at the
+same size it lifts with. A socket, the selected-mount card and the spot it names on
+the boat are one selection.
+
+**Fitting is drag-only, as in the Mech Lab.** The stores list every part the boat
+can take, narrowed by a filter strip of her socket kinds (selecting a socket sets
+it); a card carries its tier, effect, footprint and bill but no fit button. Dragging
+a card onto a doll socket lights it green where the part fits and is affordable,
+red where it does not, and dropping commits the same atomic workshop command a fit
+always ran. The stores cards, filter pills, meters and selected-mount card are the
+shared **fitting kit** (`FittingCard`, `FittingFilterPill`, `FittingMeter`,
+`FittingSlotCard`, `PointerDrag`, `FittingDragGhost`) that the Mech Lab is built on
+too, so the two rooms draw one vocabulary rather than two copies of it. Selecting the already-open `BOATS` route
 puts the deck back rather than acting as a dead control, the way the lab's own
 route does. A hull with more than one hangar gets the same fore-to-aft pager,
 and one with none shows the route greyed, exactly as a hull with no vehicle bay
@@ -693,8 +715,18 @@ strip for the shared fabrication materials, separate from the selected fitting's
 or boat's cost rows. Material badges resolve through the same shared commodity
 presentation the Fleet Armory and the Mech Lab use.
 
+**A hardpoint carries a door gun, fitted per hardpoint.** A boat has as many
+hardpoints as its pattern and each holds one gun from the yard's door-gun catalog;
+hardpoints are fitted by index, not as a fourth slot. A hardpoint nobody has refitted
+carries the gun an air-to-ground sortie kit gives that mount, so a boat from before
+hardpoints were refittable flies exactly as it did, and putting that yard gun back
+is free. Any other gun is installed work with a bill, like a fitting. The gun stands
+on the hull's turret slots before its fixed hardpoints, so the place the doll rings
+is the place the battle mounts and fires it from. The fitted guns replace the kit
+only for an air-to-ground sortie; other roles still arm by role.
+
 **The Hermes is a dead-end courier design.** Repair and replacement retain its
-standard fit, but the workshop refuses plating and drive upgrades before charging.
+standard fit, but the workshop refuses plating, drive and door-gun upgrades before charging.
 Its slots are inspection-only in Boat Deck; better lift comes from replacing the
 airframe. Aeroshuttles retain their fitting progression. Already-installed fittings
 in older saves remain intact, without allowing further Hermes upgrades.
@@ -1622,7 +1654,7 @@ deployment at launch, beside its fit's own frame values, so a battle never
 reads the ship; a mech the company does not own deploys neutral. Field repair
 stays in the campaign: a repair's clock is shorter, and with the spares rack a
 replacement weapon assembly (what refitting a mount lost in battle comes to)
-costs less to fabricate, both read whenever the Mech Lab quotes an order. The
+costs less to fabricate; the clock is read when settlement starts a repair. The
 selected mech's sheet in the Mech Lab shows the deployed figures and names the
 refits in its header, and the briefing line carries the same text. The vehicle
 bay is a track with no orders until company vehicles can deploy.
@@ -1695,6 +1727,22 @@ ceiling; requested scale is limited only by the host's practical runtime resourc
 and missions still apply their real arrival policy. Player-side vehicle support remains deferred until a
 production vehicle deployment seam exists.
 
+The stage bounds what each squad is dealt, not what the briefing may issue. Once
+dealt, the debug company holds every weapon card and tactic sheet, and no warrant
+withholds any of them, so any squad can be given any card. The briefing's kit
+picker shows each squad's two cards as chips and each bay slot as a picture of
+what stands in it; choosing one opens a modal of every option drawn the way the
+game draws it: the Armory's own loadout cards, or the Mech Lab's chassis and hull
+previews. The choice can be issued to one squad or to every squad at once.
+
+The briefing can also field an operation commander for one battle. That
+commander is a top-rank officer with every training point the game grants, and
+the developer assigns its specialties on the same tree Barracks draws. An
+untrained one leads as a junior officer would. It is a setting, not a person: a
+fresh officer is built at launch, joins the detached company only while the
+deployment freezes its training into each squad's command profile, and is gone
+again. It is off by default, so squads fight under their acting NCOs as before.
+
 ## Invariants for future work
 
 - `MarineRoster` remains authoritative for enduring personnel and organization.
@@ -1728,9 +1776,8 @@ and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.
 
-Boat fittings may later be authored in data rather than in a code catalog and
-gain a hardpoint slot — each of those extends the same campaign authority rather
-than adding a second one, and none of them makes the room the owner of what the
+Boat fittings and door guns may later be authored in data rather than in a code
+catalog — that extends the same campaign authority rather than adding a second one, and none of them makes the room the owner of what the
 company has. Recovering a downed boat's hull or crew is deliberately not on that
 list: a lost boat is lost.
 

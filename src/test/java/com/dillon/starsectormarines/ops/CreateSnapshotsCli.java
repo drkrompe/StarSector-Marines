@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotCatalog;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotRunner;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import com.dillon.starsectormarines.ui.retained.LayoutLint;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -37,13 +38,36 @@ public final class CreateSnapshotsCli {
         SnapshotCatalog catalog = SnapshotCatalog.discover();
         List<SnapshotSuite> suites = catalog.select(selector);
         if (TextureUsageCapture.install("snapshots")) suites = labelled(suites);
+        if (LayoutLint.enabled()) suites = linted(suites);
         try (var strings = new HeadlessStrings(projectRoot.resolve("mod"))) {
             List<Path> outputs = new SnapshotRunner().create(
                     new SnapshotContext(projectRoot, starsectorCore),
                     suites, outputRoot, true);
             System.out.println("Created " + outputs.size() + " visual snapshots from "
                     + suites.size() + " suite(s) under " + outputRoot.toAbsolutePath());
+        } finally {
+            // A stale suite rethrows at the end of the run; what the others laid out is still worth reading.
+            if (LayoutLint.enabled()) {
+                LayoutLint.write(LayoutLint.reportDirectory());
+                System.out.println("Layout lint written under " + LayoutLint.reportDirectory());
+            }
         }
+    }
+
+    /** Each suite's documents linted under its own id ({@code -Dsnapshot.layoutLint=<dir>}, {@link LayoutLint}). */
+    private static List<SnapshotSuite> linted(List<SnapshotSuite> suites) {
+        List<SnapshotSuite> out = new ArrayList<>(suites.size());
+        for (SnapshotSuite suite : suites) {
+            out.add(new SnapshotSuite() {
+                @Override public String id() { return suite.id(); }
+                @Override public String label() { return suite.label(); }
+                @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+                    LayoutLint.suite(suite.id());
+                    return suite.render(context);
+                }
+            });
+        }
+        return out;
     }
 
     /**

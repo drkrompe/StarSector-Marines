@@ -42,7 +42,7 @@
 .prologue-copy { white-space: normal; }
 #prologue-narrative, #prologue-dialogue { font-family: prose; }
 .prologue-story { width: 0px; flex-grow: 1; flex-direction: column; padding: 24px; gap: 22px; border-width: 1px; }
-.prologue-title { white-space: normal; height: 60px; }
+.prologue-title { white-space: normal; min-height: 60px; }
 .prologue-reading { flex-direction: column; height: 0px; flex-grow: 1; gap: 24px; overflow: scroll; }
 .prologue-contact { flex-direction: row; height: 104px; gap: 20px; align-items: center; }
 .prologue-portrait { width: 104px; height: 104px; }
@@ -53,9 +53,9 @@
 .prologue-next { width: 0px; flex-grow: 1; border-width: 2px; text-align: center; white-space: normal; }
 .prologue-footer { flex-direction: row; height: 42px; align-items: center; gap: 16px; }
 .prologue-note { flex-grow: 1; white-space: normal; }
-.prologue-skip { white-space: normal; width: 200px; height: 38px; text-align: center; border-width: 1px; }
+.prologue-skip { white-space: normal; width: 200px; min-height: 38px; text-align: center; border-width: 1px; }
 /* A flow with no way out but through (the yard storybook) keeps the slot and drops the control. */
 /* A single page has nowhere to go back to (the Second Wind buy-back), so it drops Back the same way. */
-.prologue-back.prologue-back-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
-.prologue-skip.prologue-skip-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+.prologue-back.prologue-back-off { display: none; }
+.prologue-skip.prologue-skip-off { display: none; }
 </style>

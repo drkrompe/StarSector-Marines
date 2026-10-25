@@ -19,12 +19,13 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
     public static final String ENABLED_PROPERTY = "battle.pathfinding.asyncClearance";
     /**
      * {@code -Dbattle.pathfinding.clearanceFailureBackoff=false} lets a refused intent
-     * be searched again as soon as the body has drifted half a cell.
+     * be searched again as soon as the body has drifted half a cell or the map's
+     * topology has moved.
      */
     public static final String FAILURE_BACKOFF_PROPERTY = "battle.pathfinding.clearanceFailureBackoff";
     private static final boolean FAILURE_BACKOFF =
             Boolean.parseBoolean(System.getProperty(FAILURE_BACKOFF_PROPERTY, "true"));
-    /** Ticks a completed refusal stands before body drift may reopen it. */
+    /** Ticks a completed refusal stands before body drift or a topology change may reopen it. */
     static final int FAILURE_RETRY_TICKS = 90;
     private static final int QUANTUM = 256;
     private static final int RETAIN_TICKS = 300;
@@ -150,11 +151,18 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
         var completed = entry != null && entry.task.future.isDone()
                 && !entry.task.future.isCompletedExceptionally() ? entry.task.future.getNow(null) : null;
         if (completed != null && entry.doneTick < 0) entry.doneTick = tick;
-        boolean moved = completed != null && completed.status() != ClearanceRoutePlanner.Status.FOUND
+        boolean refused = completed != null && completed.status() != ClearanceRoutePlanner.Status.FOUND;
+        boolean refusalStands = refused && FAILURE_BACKOFF && tick - entry.doneTick < FAILURE_RETRY_TICKS;
+        boolean moved = refused && !refusalStands
                 && Math.hypot(request.startX - entry.request.startX,
-                request.startY - entry.request.startY) > .5d
-                && (!FAILURE_BACKOFF || tick - entry.doneTick >= FAILURE_RETRY_TICKS);
-        if (entry == null || entry.revision != revision || moved || !entry.request.sameIntent(request)) {
+                request.startY - entry.request.startY) > .5d;
+        // A refusal also stands against a moved topology. Proving a goal unreachable floods
+        // the whole lattice, and a burning or crumbling map moves its revision every few
+        // ticks: a mech asking for one walled-in cell re-flooded for about 290 ms every six
+        // ticks for minutes of The Burn. A wall opened meanwhile is found when the refusal
+        // lapses; a found route is still proved again on every change.
+        boolean stale = entry != null && entry.revision != revision && !refusalStands;
+        if (entry == null || stale || moved || !entry.request.sameIntent(request)) {
             if (entry != null) cancel(entry);
             entries.remove(owner);
             long pending = entries.values().stream().filter(row -> !row.task.future.isDone()).count();
@@ -200,9 +208,22 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
         }
     }
 
+    /**
+     * Drops the owner's proof and stops any search still running for it. A completed refusal is
+     * kept until its backoff lapses: it claims no worker, and a mech that clears its path between
+     * asks would otherwise lose it and flood the whole lattice again for the same walled-in goal.
+     */
     public synchronized void forget(long owner) {
-        Entry entry = entries.remove(owner);
-        if (entry != null) cancel(entry);
+        Entry entry = entries.get(owner);
+        if (entry == null) return;
+        if (FAILURE_BACKOFF && entry.task.future.isDone() && !entry.task.future.isCancelled()
+                && !entry.task.future.isCompletedExceptionally()
+                && entry.task.future.getNow(null).status() != ClearanceRoutePlanner.Status.FOUND
+                && entry.doneTick >= 0 && tick - entry.doneTick < FAILURE_RETRY_TICKS) {
+            return;
+        }
+        entries.remove(owner);
+        cancel(entry);
     }
 
     private void cancel(Entry entry) {

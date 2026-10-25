@@ -48,6 +48,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Java2D drain for the ordinary battle renderer's collected embedded-scene frame. */
 public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRenderer {
@@ -97,6 +98,8 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             // work rather than as art that was never loaded.
             sprites.ensureUnitSheets();
             sprites.ensureEngineFxSprites();
+            // No line up front: each hull's sheet loads on its first draw, as the deck's do.
+            sprites.ensureConvoySprites(Set.of());
             renderer = new BattleRenderer(sprites);
             this.skipUnsupportedCommands = skipUnsupportedCommands;
             nightRasterizer = new HeadlessUiRenderer(resourceRoots(modRoot), (pass, context, viewport, alpha) -> {

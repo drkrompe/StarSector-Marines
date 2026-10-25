@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.model.RoofDamage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -105,7 +106,8 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         if (ground == CellTopology.GroundKind.GRASS) mask |= FireFuel.GRASS.bit;
         int overlay = topology.getNatureOverlayIndex(x, y);
         if (overlay >= 0 && overlay < overlayFuel.length) mask |= overlayFuel[overlay];
-        if (!grid.isWalkableAt(idx) && grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID) && isTree(x, y)) {
+        if (!grid.isWalkableAt(idx) && grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID) && isTree(x, y)
+                && inCanopy(x, y)) {
             mask |= FireFuel.CROWN.bit;
         }
         mask |= structureFuel(idx, x, y, ground);
@@ -192,6 +194,22 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         return EnvironmentMaterial.forProp(doodads.damageablePropIdAt(x, y, topology)) == EnvironmentMaterial.WOOD;
     }
 
+    /**
+     * Whether a cell of a tree lies within its round canopy: the circle its footprint's square holds, so a crown
+     * burns round as it is drawn, and the square's corners burn as whatever lies under them.
+     */
+    private boolean inCanopy(int x, int y) {
+        int[] footprint = new int[4];
+        return !doodads.naturalPropFootprintAt(x, y, footprint) || inCanopy(x, y, footprint);
+    }
+
+    /** Whether a cell's centre lies in the ellipse a footprint {cellX, cellY, width, height} holds. */
+    static boolean inCanopy(int x, int y, int[] footprint) {
+        float rx = footprint[2] / 2f, ry = footprint[3] / 2f;
+        float dx = (x + 0.5f - footprint[0] - rx) / rx, dy = (y + 0.5f - footprint[1] - ry) / ry;
+        return dx * dx + dy * dy <= 1f;
+    }
+
     private boolean isTree(int x, int y) {
         if (doodads == null) return false;
         String id = doodads.damageablePropIdAt(x, y, topology);
@@ -205,8 +223,12 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         CreepField c = creep.get();
         if (c != null && (FireFuel.CREEP.in(fuelMask) || FireFuel.DEAD_CREEP.in(fuelMask))) c.scorch(idx);
         smoke.ignited(idx, fuelMask, field.windX(), field.windY(), field.windStrength());
-        // A room on fire burns through its roof: the fire is seen, and the room is open to the sky.
-        if (FireFuel.FURNISHING.in(fuelMask) && mapEditor != null) mapEditor.destroyRoof(idx % width, idx / width);
+        // A room on fire burns through its roof: the fire is seen, and the room is open to the sky. A wall alight
+        // (a flashed-over room's) burns the eave it carries.
+        boolean wallAlight = FireFuel.STRUCTURE.in(fuelMask) && topology.getBuildingId(idx % width, idx / width) == 0;
+        if ((FireFuel.FURNISHING.in(fuelMask) || wallAlight) && mapEditor != null) {
+            mapEditor.destroyRoof(idx % width, idx / width, RoofDamage.BURNT);
+        }
     }
 
     @Override

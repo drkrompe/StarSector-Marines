@@ -206,16 +206,11 @@
   }
 
   .squad-tooltip-hidden {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    gap: 0px;
-    border-width: 0px;
-    opacity: 0;
+    display: none;
   }
 
   .tooltip-title { width: 100%; height: 16px; color: #c5d6cb; }
-  .tooltip-team { width: 100%; height: 28px; white-space: normal; color: #a0ada8; }
+  .tooltip-team { width: 100%; min-height: 28px; white-space: normal; color: #a0ada8; }
   .tooltip-line { width: 100%; height: 14px; color: #c1cbc3; }
   .tooltip-primary { color: #78d494; }
   .tooltip-special { color: #ffd464; }

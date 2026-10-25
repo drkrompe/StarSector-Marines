@@ -47,6 +47,9 @@ public final class UiLayoutEngine {
         if (allChildren.isEmpty()) return;
 
         List<UiElement> children = inFlow(allChildren);
+        for (UiElement child : allChildren) {
+            if (!child.displayed()) collapse(child, content.x(), content.y());
+        }
         arrangePositioned(allChildren, content);
         if (children.isEmpty()) return;
 
@@ -74,18 +77,35 @@ public final class UiLayoutEngine {
     /**
      * The children row, column, grid, and stack distribute between them. An
      * absolutely positioned child is out of flow, so it neither consumes main
-     * axis space nor shifts its siblings.
+     * axis space nor shifts its siblings; a {@code display: none} child is not
+     * laid out at all, so it takes no space and no gap slot either.
      */
     private static List<UiElement> inFlow(List<UiElement> children) {
         for (int index = 0; index < children.size(); index++) {
-            if (children.get(index).position() != UiPosition.ABSOLUTE) continue;
+            if (flows(children.get(index))) continue;
             List<UiElement> flow = new ArrayList<>(children.size() - 1);
             for (UiElement child : children) {
-                if (child.position() != UiPosition.ABSOLUTE) flow.add(child);
+                if (flows(child)) flow.add(child);
             }
             return flow;
         }
         return children;
+    }
+
+    private static boolean flows(UiElement child) {
+        return child.displayed() && child.position() != UiPosition.ABSOLUTE;
+    }
+
+    /**
+     * Gives a {@code display: none} subtree empty boxes at its parent's content
+     * origin, so nothing that reads a box afterwards finds a stale one.
+     */
+    private static void collapse(UiElement element, float x, float y) {
+        element.box().place(new Rect(x, y, 0f, 0f), Insets.ZERO, 0f);
+        element.box().scrollHeight(0f);
+        element.clearLayoutDirty();
+        element.clearDescendantLayoutDirty();
+        for (UiElement child : element.children()) collapse(child, x, y);
     }
 
     /**
@@ -96,7 +116,7 @@ public final class UiLayoutEngine {
      */
     private void arrangePositioned(List<UiElement> children, Rect content) {
         for (UiElement child : children) {
-            if (child.position() != UiPosition.ABSOLUTE) continue;
+            if (child.position() != UiPosition.ABSOLUTE || !child.displayed()) continue;
             float left = orZero(child.resolvedLeft(content.width()));
             float top = orZero(child.resolvedTop(content.height()));
             float width = orRemaining(
@@ -133,14 +153,25 @@ public final class UiLayoutEngine {
         float totalGrow = 0f;
 
         for (UiElement child : children) {
-            totalBasis += preferredMain(child, horizontal, content.width(), content.height());
+            totalBasis += flowBasis(parent, child, horizontal, content);
             totalGrow += child.grow();
         }
 
         float free = Math.max(0f, mainExtent - totalGap - totalBasis);
         float cursor = horizontal ? content.x() : content.y();
+        // A growing child takes the free space; otherwise justify-content places it.
+        if (totalGrow <= 0f) {
+            switch (parent.justifyContent()) {
+                case CENTER -> cursor += free * 0.5f;
+                case END -> cursor += free;
+                case SPACE_BETWEEN -> {
+                    if (children.size() > 1) gap += free / (children.size() - 1);
+                }
+                case START -> { }
+            }
+        }
         for (UiElement child : children) {
-            float main = preferredMain(child, horizontal, content.width(), content.height());
+            float main = flowBasis(parent, child, horizontal, content);
             if (child.grow() > 0f && totalGrow > 0f) {
                 main += free * child.grow() / totalGrow;
             }
@@ -165,6 +196,20 @@ public final class UiLayoutEngine {
     }
 
     /**
+     * A child's main-axis basis. A column measures its child's height at the width
+     * the child will be given, so wrapped text in a narrower box takes its real lines.
+     */
+    private float flowBasis(UiElement parent, UiElement child, boolean horizontal, Rect content) {
+        if (horizontal) return preferredMain(child, true, content.width(), content.height());
+        UiAlign align = parent.alignItems() != null ? parent.alignItems() : child.horizontalAlign();
+        float preferredWidth = preferredAxis(child, true, content.width(), content.height());
+        float width = Float.isNaN(preferredWidth) || align == UiAlign.STRETCH
+                ? content.width() : Math.min(content.width(), Math.max(0f, preferredWidth));
+        float height = preferredAxis(child, false, content.width(), content.height(), width);
+        return Float.isNaN(height) ? 0f : Math.max(0f, height);
+    }
+
+    /**
      * Auto-filling fixed-item grid. The widest preferred child defines the
      * column width; columns wrap responsively as the content box changes.
      * Rows use their tallest child's preferred height and participate in the
@@ -186,8 +231,7 @@ public final class UiLayoutEngine {
         int rows = (children.size() + columns - 1) / columns;
         float[] rowHeights = new float[rows];
         for (int index = 0; index < children.size(); index++) {
-            float height = preferredMain(children.get(index), false,
-                    content.width(), content.height());
+            float height = gridHeight(children.get(index), content, columnWidth);
             rowHeights[index / columns] = Math.max(rowHeights[index / columns], height);
         }
 
@@ -206,13 +250,20 @@ public final class UiLayoutEngine {
                     content.width(), content.height());
             float width = preferredWidth > 0f
                     ? Math.min(columnWidth, preferredWidth) : columnWidth;
-            float preferredHeight = preferredMain(child, false,
-                    content.width(), content.height());
+            float preferredHeight = gridHeight(child, content, columnWidth);
             float height = preferredHeight > 0f ? preferredHeight : rowHeights[row];
             arrange(child, new Rect(
                     content.x() + column * (columnWidth + columnGap),
                     rowOrigins[row], width, height), content.width());
         }
+    }
+
+    /** A grid item's height, measured at the width its column gives it. */
+    private float gridHeight(UiElement child, Rect content, float columnWidth) {
+        float preferredWidth = preferredMain(child, true, content.width(), content.height());
+        float width = preferredWidth > 0f ? Math.min(columnWidth, preferredWidth) : columnWidth;
+        float height = preferredAxis(child, false, content.width(), content.height(), width);
+        return Float.isNaN(height) ? 0f : Math.max(0f, height);
     }
 
     private void arrangeStack(List<UiElement> children, Rect content) {
@@ -248,8 +299,22 @@ public final class UiLayoutEngine {
         return preferredAxis(element, horizontal, widthBasis, heightBasis, widthBasis);
     }
 
+    /**
+     * The declared or measured size on one axis, raised to the element's
+     * {@code min-width} / {@code min-height}: a box holds its minimum and grows
+     * past it for content such as a second line of wrapped text.
+     */
     private float preferredAxis(UiElement element, boolean horizontal,
                                 float widthBasis, float heightBasis, float allocatedWidth) {
+        float preferred = declaredOrMeasured(element, horizontal, widthBasis, heightBasis, allocatedWidth);
+        float minimum = horizontal ? element.resolvedMinWidth(widthBasis)
+                : element.resolvedMinHeight(heightBasis, widthBasis);
+        if (Float.isNaN(minimum) || Float.isNaN(preferred)) return preferred;
+        return Math.max(minimum, preferred);
+    }
+
+    private float declaredOrMeasured(UiElement element, boolean horizontal,
+                                     float widthBasis, float heightBasis, float allocatedWidth) {
         float preferred = horizontal ? element.resolvedPreferredWidth(widthBasis)
                 : element.resolvedPreferredHeight(heightBasis, widthBasis);
         if (!Float.isNaN(preferred)) return preferred;
@@ -273,6 +338,41 @@ public final class UiLayoutEngine {
                 // A percentage cannot derive a definite height from an auto-height parent.
                 float childHeight = preferredAxis(child, false, textWidth, 0f, childWidth);
                 height += Float.isNaN(childHeight) ? 0f : Math.max(0f, childHeight);
+            }
+            return height + padding.vertical() + element.borderWidth() * 2f;
+        }
+        // A content-sized row likewise spans its in-flow children, so a row of fixed
+        // pieces takes its own width instead of collapsing under the next sibling.
+        if (horizontal && element.layout() == UiLayout.ROW && !element.children().isEmpty()) {
+            List<UiElement> children = inFlow(element.children());
+            float width = element.resolvedGap(textWidth) * Math.max(0, children.size() - 1);
+            for (UiElement child : children) {
+                float childWidth = preferredAxis(child, true, textWidth, heightBasis);
+                width += Float.isNaN(childWidth) ? 0f : Math.max(0f, childWidth);
+            }
+            return width + padding.horizontal() + element.borderWidth() * 2f;
+        }
+        // A row that declares min-height is as tall as its tallest child at the width
+        // the row will give that child, so it grows for a wrapped label instead of
+        // squashing it on the cross axis. Other auto-height rows keep their own text
+        // height: there is no flex-shrink, so a growing row given its children's
+        // height as a basis could only overflow its column.
+        if (!horizontal && element.layout() == UiLayout.ROW && !element.children().isEmpty()
+                && !Float.isNaN(element.resolvedMinHeight(heightBasis, widthBasis))) {
+            List<UiElement> children = inFlow(element.children());
+            float totalBasis = element.resolvedGap(textWidth) * Math.max(0, children.size() - 1);
+            float totalGrow = 0f;
+            for (UiElement child : children) {
+                totalBasis += preferredMain(child, true, textWidth, 0f);
+                totalGrow += child.grow();
+            }
+            float free = Math.max(0f, textWidth - totalBasis);
+            float height = 0f;
+            for (UiElement child : children) {
+                float main = preferredMain(child, true, textWidth, 0f);
+                if (child.grow() > 0f && totalGrow > 0f) main += free * child.grow() / totalGrow;
+                float childHeight = preferredAxis(child, false, textWidth, 0f, main);
+                if (!Float.isNaN(childHeight)) height = Math.max(height, childHeight);
             }
             return height + padding.vertical() + element.borderWidth() * 2f;
         }

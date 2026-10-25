@@ -1,0 +1,536 @@
+{
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@brutalist",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        8,
+        1
+      ],
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@brutalist",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        12,
+        1
+      ],
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Parapet collar piece s, brutalist look.",
+      "name": "doodad.fort-emplacement-s@brutalist",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Parapet collar piece n, brutalist look.",
+      "name": "doodad.fort-emplacement-n@brutalist",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Parapet collar piece e, brutalist look.",
+      "name": "doodad.fort-emplacement-e@brutalist",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Parapet collar piece w, brutalist look.",
+      "name": "doodad.fort-emplacement-w@brutalist",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Parapet collar piece inner-se, brutalist look.",
+      "name": "doodad.fort-emplacement-inner-se@brutalist",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Parapet collar piece inner-sw, brutalist look.",
+      "name": "doodad.fort-emplacement-inner-sw@brutalist",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Parapet collar piece inner-ne, brutalist look.",
+      "name": "doodad.fort-emplacement-inner-ne@brutalist",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Parapet collar piece inner-nw, brutalist look.",
+      "name": "doodad.fort-emplacement-inner-nw@brutalist",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Barricade piece n, brutalist look.",
+      "name": "doodad.fort-sandbag-n@brutalist",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Barricade piece n, brutalist look.",
+      "name": "doodad.sandbag-straight-n@brutalist",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Barricade piece s, brutalist look.",
+      "name": "doodad.fort-sandbag-s@brutalist",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "Barricade piece s, brutalist look.",
+      "name": "doodad.sandbag-straight-s@brutalist",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "Barricade piece w, brutalist look.",
+      "name": "doodad.fort-sandbag-w@brutalist",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Barricade piece w, brutalist look.",
+      "name": "doodad.sandbag-straight-w@brutalist",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "Barricade piece e, brutalist look.",
+      "name": "doodad.fort-sandbag-e@brutalist",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "Barricade piece e, brutalist look.",
+      "name": "doodad.sandbag-straight-e@brutalist",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Barricade piece corner-nw, brutalist look.",
+      "name": "doodad.fort-sandbag-corner-nw@brutalist",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "Barricade piece corner-nw, brutalist look.",
+      "name": "doodad.sandbag-corner-nw@brutalist",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "Barricade piece corner-ne, brutalist look.",
+      "name": "doodad.fort-sandbag-corner-ne@brutalist",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "Barricade piece corner-ne, brutalist look.",
+      "name": "doodad.sandbag-corner-ne@brutalist",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "Barricade piece corner-sw, brutalist look.",
+      "name": "doodad.fort-sandbag-corner-sw@brutalist",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "Barricade piece corner-sw, brutalist look.",
+      "name": "doodad.sandbag-corner-sw@brutalist",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "Barricade piece corner-se, brutalist look.",
+      "name": "doodad.fort-sandbag-corner-se@brutalist",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "Barricade piece corner-se, brutalist look.",
+      "name": "doodad.sandbag-corner-se@brutalist",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.dark-concrete-wall@brutalist faces-0",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north",
+      "name": "installation.dark-concrete-wall@brutalist faces-1",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east",
+      "name": "installation.dark-concrete-wall@brutalist faces-2",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.dark-concrete-wall@brutalist faces-3",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south",
+      "name": "installation.dark-concrete-wall@brutalist faces-4",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.dark-concrete-wall@brutalist faces-5",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.dark-concrete-wall@brutalist faces-6",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.dark-concrete-wall@brutalist faces-7",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on west",
+      "name": "installation.dark-concrete-wall@brutalist faces-8",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-9",
+      "row": 3
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-10",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-11",
+      "row": 3
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-12",
+      "row": 4
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-13",
+      "row": 4
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-14",
+      "row": 4
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.dark-concrete-wall@brutalist faces-15",
+      "row": 4
+    },
+    {
+      "col": 12,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.light-concrete-wall@brutalist faces-0",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north",
+      "name": "installation.light-concrete-wall@brutalist faces-1",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east",
+      "name": "installation.light-concrete-wall@brutalist faces-2",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.light-concrete-wall@brutalist faces-3",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on south",
+      "name": "installation.light-concrete-wall@brutalist faces-4",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.light-concrete-wall@brutalist faces-5",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.light-concrete-wall@brutalist faces-6",
+      "row": 2
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.light-concrete-wall@brutalist faces-7",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on west",
+      "name": "installation.light-concrete-wall@brutalist faces-8",
+      "row": 3
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.light-concrete-wall@brutalist faces-9",
+      "row": 3
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.light-concrete-wall@brutalist faces-10",
+      "row": 3
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.light-concrete-wall@brutalist faces-11",
+      "row": 3
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.light-concrete-wall@brutalist faces-12",
+      "row": 4
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.light-concrete-wall@brutalist faces-13",
+      "row": 4
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.light-concrete-wall@brutalist faces-14",
+      "row": 4
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.light-concrete-wall@brutalist faces-15",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-s@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-n@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-e@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-w@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-se@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-sw@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-ne@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-inner-nw@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 8,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-n@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-n@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 10,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-s@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 11,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-s@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 12,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-w@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 13,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-w@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 14,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-e@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 15,
+      "cover": "heavy",
+      "id": "doodad.sandbag-straight-e@brutalist",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-nw@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-nw@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-ne@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-ne@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-sw@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-sw@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-sandbag-corner-se@brutalist",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.sandbag-corner-se@brutalist",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/tilesets/fortworks-brutalist.png"
+}

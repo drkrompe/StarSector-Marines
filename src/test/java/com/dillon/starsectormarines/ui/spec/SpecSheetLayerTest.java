@@ -39,6 +39,27 @@ class SpecSheetLayerTest {
         }
     }
 
+    /** A symbol row clips each lit symbol to its fill, inside the stat's one line. */
+    @Test
+    void ratingSymbolsClipTheLitPictureToItsQuarterOnTheStatLine() {
+        try (MarkupInstance instance = SpecSheetDocuments.instance()) {
+            UiDocument document = SpecSheetDocuments.laidOut(instance);
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheet sheet = new SpecSheet("Dockside Issue", "", null, "weapon",
+                    List.of(new SpecSheet.Stat("rating", "Firepower", "5%", .05f, RatingSymbols.SWORD)), List.of());
+
+            layer.show(sheet, instance.requireElement("near-left"));
+            document.layout(SpecSheetDocuments.WIDTH, SpecSheetDocuments.HEIGHT);
+
+            String stat = SpecSheetLayer.ELEMENT_ID + "-stat-0";
+            Rect slot = instance.requireElement(stat + "-rating-0").box().borderBox();
+            assertEquals(slot.width() * .5f, instance.requireElement(stat + "-rating-0-lit").box().borderBox().width(), EPSILON);
+            assertEquals(0f, instance.requireElement(stat + "-rating-1-lit").box().borderBox().width(), EPSILON);
+            Rect line = instance.requireElement(stat + "-line").box().borderBox();
+            assertTrue(slot.y() >= line.y() && slot.bottom() <= line.bottom(), "the symbols left the stat line");
+        }
+    }
+
     /** A tutorial shade mounted after install must not paint over an open sheet. */
     @Test
     void paintsAboveLayersMountedAfterInstall() {

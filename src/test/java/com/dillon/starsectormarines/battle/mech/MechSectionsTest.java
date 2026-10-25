@@ -225,4 +225,24 @@ class MechSectionsTest {
         assertFalse(report.fitted()[MechSection.RIGHT_SHOULDER.ordinal()]);
         assertNull(report.lostMounts()[MechMountSlot.ARMS.ordinal()]);
     }
+
+    @Test
+    void carriedWearIsLaidOnEachSectionAndNoSectionDropsDestroyed() {
+        MechSections sections = houndSections();
+        float[] structure = new float[MechSection.VALUES.length];
+        float[] armor = new float[MechSection.VALUES.length];
+        structure[MechSection.HEAD.ordinal()] = 0.5f;
+        armor[MechSection.TORSO.ordinal()] = 0.25f;
+        structure[MechSection.LEGS.ordinal()] = 1f;
+
+        sections.carryWear(new MechCarriedWear(structure, armor));
+
+        assertEquals(0.5f * sections.maxStructure(MechSection.HEAD), sections.structure(MechSection.HEAD), 1e-4f);
+        assertEquals(0.75f * sections.maxArmor(MechSection.TORSO), sections.armor(MechSection.TORSO), 1e-4f);
+        assertEquals(0.75f * sections.maxRearArmor(), sections.rearArmor(), 1e-4f);
+        assertEquals(MechSections.CARRIED_STRUCTURE_FLOOR * sections.maxStructure(MechSection.LEGS),
+                sections.structure(MechSection.LEGS), 1e-4f);
+        assertFalse(sections.destroyed(MechSection.LEGS));
+        assertEquals(sections.maxStructure(MechSection.TORSO), sections.structure(MechSection.TORSO), 1e-4f);
+    }
 }

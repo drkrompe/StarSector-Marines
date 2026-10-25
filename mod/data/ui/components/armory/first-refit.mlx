@@ -56,7 +56,7 @@
   .refit-dialogue { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
   .refit-heading { font-family: heading; height: 22px; }
   .refit-progress { height: 18px; }
-  .refit-copy { height: 42px; white-space: normal; }
+  .refit-copy { min-height: 42px; white-space: normal; }
   .refit-work { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; }
   .refit-hint { height: 18px; }
   .refit-squads { flex-direction: row; height: 32px; gap: 6px; overflow: scroll; }
@@ -74,8 +74,8 @@
   .refit-squad-column { flex-direction: column; width: 0px; flex-grow: 1; }
   .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
   .refit-comparison { flex-direction: column; height: 0px; flex-grow: 1; }
-  .refit-status { height: 28px; white-space: normal; }
+  .refit-status { min-height: 28px; white-space: normal; }
   .refit-actions { flex-direction: row; height: 40px; gap: 12px; }
   .refit-action { width: 260px; height: 30px; padding: 7px 12px; }
-  .refit-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .refit-hidden { display: none; }
 </style>

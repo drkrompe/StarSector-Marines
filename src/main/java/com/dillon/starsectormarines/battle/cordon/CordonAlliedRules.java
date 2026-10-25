@@ -21,7 +21,6 @@ public final class CordonAlliedRules {
 
     /** A redoubt as the allied command sees it. */
     record Post(int number, boolean manned, boolean calling, int standing, int machines, boolean hadMachines) { }
-
     /** What could escort a road hull: a hull, one of a sector's mechs, or a street mouth's rifle team. */
     enum Kind {
         HULL, MECH, TEAM;
@@ -131,6 +130,22 @@ public final class CordonAlliedRules {
             out.add(h);
         }
         return out;
+    }
+
+    /**
+     * Whether a convoy is Escorted, the company's cue to leave it to the armour (rule 3): the armour gave it a hull for
+     * every one of its posts, and one of them is alongside a truck. A convoy that went short is not, whatever armour
+     * stands near it: a sector's own hull beside the road at the gap is not going with it, and one technical at the
+     * compound's gate is not an escort of three. Reading any armed hull near a truck as its escort kept the company at
+     * the hinge while a convoy loaded alone in the swarm's country (town Road, arid 7: the trucks eaten at the gate,
+     * the company 116 cells back).
+     *
+     * @param wanted    the convoy's escort posts
+     * @param taken     the hulls the armour sent to them
+     * @param alongside whether an armed allied hull is within reach of one of its trucks
+     */
+    static boolean convoyEscorted(int wanted, int taken, boolean alongside) {
+        return wanted > 0 && taken >= wanted && alongside;
     }
 
     /**

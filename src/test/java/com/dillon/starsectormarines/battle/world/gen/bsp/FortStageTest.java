@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -173,8 +174,8 @@ class FortStageTest {
         ctx.put(BspKeys.TACTICAL_MAP, linked);
         FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
 
-        assertEquals(1 + BatteryFort.PLAN.rooms().stream().filter(r -> !r.stands().isEmpty()).count(),
-                linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the picket and each crew");
+        assertEquals(1 + BatteryFort.PLAN.buildings().stream().filter(r -> !r.stands().isEmpty()).count(),
+                linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the picket and each crew, the gate towers included");
         assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
     }
 
@@ -379,13 +380,14 @@ class FortStageTest {
         ArrayDeque<int[]> open = new ArrayDeque<>();
         open.add(new int[]{sx, sy});
         seen[sx][sy] = true;
-        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
         while (!open.isEmpty()) {
             int[] at = open.poll();
-            for (int[] step : steps) {
-                int nx = at[0] + step[0];
-                int ny = at[1] + step[1];
+            // A step honours the grid's edges: a window is open floor with a barrier on its outer edge.
+            for (Direction step : Direction.CARDINALS) {
+                int nx = at[0] + step.dx;
+                int ny = at[1] + step.dy;
                 if (!grid.inBounds(nx, ny) || seen[nx][ny] || !grid.isWalkable(nx, ny)) continue;
+                if (!grid.isEdgePassable(at[0], at[1], step)) continue;
                 seen[nx][ny] = true;
                 open.add(new int[]{nx, ny});
             }

@@ -138,4 +138,13 @@ class BuildingFireTest {
         for (int y = 0; y < 5; y++) if (f.stateAt(y * 20 + wallX + 1) != FireField.UNBURNT) return true;
         return false;
     }
+
+    @Test
+    void aTreeCrownBurnsRoundNotAsItsSquareFootprint() {
+        int[] fourByFour = {10, 20, 4, 4};
+        assertTrue(BattleFire.inCanopy(11, 21, fourByFour), "the middle of the crown");
+        assertTrue(BattleFire.inCanopy(10, 21, fourByFour), "the middle of its edge");
+        assertFalse(BattleFire.inCanopy(10, 20, fourByFour), "not its corner");
+        assertFalse(BattleFire.inCanopy(13, 23, fourByFour), "nor the opposite one");
+    }
 }

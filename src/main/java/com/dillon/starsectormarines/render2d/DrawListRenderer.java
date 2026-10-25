@@ -60,6 +60,23 @@ public final class DrawListRenderer {
                              Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch,
                              LineBatch lineBatch, RibbonBatch ribbonBatch, BattleCamera camera,
                              DrawCensus census) {
+        drain(buf, count, batchBySheet, solidBatch, lineBatch, ribbonBatch, camera, census, null);
+    }
+
+    /**
+     * As {@link #drain(DrawCommand[], int, Map, SolidQuadBatch, LineBatch, RibbonBatch, BattleCamera, DrawCensus)},
+     * keeping sheet quads of either blend, meshes, whole sprites and solid fills in one {@code paged} run across
+     * changes of sheet, texture and blend when the context can page ({@link PagedQuadRun#ready()}); null, or a
+     * context that cannot, drains one run per sheet and blend and draws each whole sprite alone. Painter order is
+     * the same either way: a paged run closes wherever a run per sheet would have closed for any reason but the
+     * sheet, the blend, a fill or a whole sprite.
+     */
+    public static void drain(DrawCommand[] buf, int count,
+                             Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch,
+                             LineBatch lineBatch, RibbonBatch ribbonBatch, BattleCamera camera,
+                             DrawCensus census, PagedQuadRun paged) {
+        boolean paging = paged != null && count > 0 && paged.ready();
+        boolean pagedPending = false;     // the paged run has queued quads
         GlStateBracket bracket = null;
         QuadBatch activeSheet = null;     // sheet batch with pending appends (else null)
         SpriteAPI activeSheetKey = null;
@@ -79,6 +96,73 @@ public final class DrawListRenderer {
         for (int i = 0; i < count; i++) {
             DrawCommand c = buf[i];
             if (census != null) census.recordCommand(c.kind);
+            boolean fill = c.kind == DrawCommand.Kind.SOLID_RECT || c.kind == DrawCommand.Kind.POLY;
+            boolean pagedQuad = paging && (c.kind == DrawCommand.Kind.SHEET_QUAD
+                    || (c.kind == DrawCommand.Kind.MESH && c.mesh != null)
+                    || (c.kind == DrawCommand.Kind.SPRITE && c.sprite != null)
+                    || fill);
+            if (pagedPending && !pagedQuad) { flushPaged(paged, census); pagedPending = false; }
+            if (pagedQuad) {
+                if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
+                if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
+                else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
+                if (additiveBlend) { GlStateBracket.applyBlend(false); additiveBlend = false; }
+                if (fill) {
+                    int page = paged.whitePage();
+                    if (page < 0) {
+                        flushPaged(paged, census);
+                        page = paged.whitePage();
+                    }
+                    if (c.kind == DrawCommand.Kind.SOLID_RECT) {
+                        solidBatch.appendRect(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1)
+                    } else if (c.poly != null) {
+                        c.poly.appendTo(solidBatch);
+                    }
+                    solidBatch.moveQueuedTo(paged, PagedQuadRun.lane(page, false, c.flash), c.light, c.lightAngle, c.wear,
+                            0.5f, 0.5f);
+                    pagedPending = true;
+                    continue;
+                }
+                if (c.kind == DrawCommand.Kind.SPRITE) {
+                    appendPagedSprite(paged, census, c.sprite, c.cx, c.cy, c.w, c.h, c.angleDeg,
+                            c.r, c.g, c.b, c.a, c.additive, c);
+                    pagedPending = true;
+                    continue;
+                }
+                if (c.sprite == null) {
+                    // An atlas-less mesh: each quad is the whole-image draw it was recorded from.
+                    QuadMesh m = c.mesh;
+                    for (int q = 0, n = m.size(); q < n; q++) {
+                        appendPagedSprite(paged, census, m.image(q), c.cx + m.centerX(q) * c.w,
+                                c.cy + m.centerY(q) * c.w, m.width(q) * c.w, m.height(q) * c.w, m.angleDegrees(q),
+                                m.red(q), m.green(q), m.blue(q), m.alpha(q) * c.a, false, c);
+                    }
+                    if (census != null) census.recordMeshQuads(m.size(), true);
+                    if (m.size() > 0) pagedPending = true;
+                    continue;
+                }
+                QuadBatch batch = batchBySheet.get(c.sprite);
+                if (batch == null) continue;
+                int page = paged.pageOf(c.sprite);
+                if (page < 0) {
+                    flushPaged(paged, census);
+                    page = paged.pageOf(c.sprite);
+                }
+                if (c.kind == DrawCommand.Kind.MESH) {
+                    c.mesh.appendTo(batch, c.cx, c.cy, c.w, c.a);
+                    if (census != null) census.recordMeshQuads(c.mesh.size(), false);
+                } else {
+                    appendSheetQuad(batch, c);
+                }
+                batch.moveQueuedTo(paged,
+                        PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive, c.flash),
+                        c.light, c.lightAngle, c.wear);
+                pagedPending = true;
+                continue;
+            }
             switch (c.kind) {
                 case SHEET_QUAD: {
                     if (c.sprite != activeSheetKey || c.additive != activeAdditive) {
@@ -93,23 +177,7 @@ public final class DrawListRenderer {
                     if (bracket == null) { bracket = GlStateBracket.textured2D(); additiveBlend = false; }
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; additiveBlend = false; }
                     if (additiveBlend != c.additive) { GlStateBracket.applyBlend(c.additive); additiveBlend = c.additive; }
-                    if (activeSheet != null) {
-                        if (c.part) {
-                            activeSheet.appendRotatedPart(c.srcX, c.srcY, c.srcW, c.srcH, c.cx, c.cy, c.w, c.h,
-                                    c.angleDeg, c.flipV, c.partX0, c.partX1, c.partY0, c.partY1, c.r, c.g, c.b, c.a);
-                        } else if(c.patch()!=null) {
-                            activeSheet.appendPatch(c.srcX,c.srcY,c.srcW,c.srcH,c.cx,c.cy,c.w,c.h,c.r,c.g,c.b,c.a,c.patch());
-                        } else if (c.angleDeg != 0f) {
-                            activeSheet.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
-                                    c.cx, c.cy, c.w, c.h, c.angleDeg, c.flipV, c.r, c.g, c.b, c.a);
-                        } else if (c.flipV) {
-                            activeSheet.appendFlippedV(c.srcX, c.srcY, c.srcW, c.srcH,
-                                    c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
-                        } else {
-                            activeSheet.append(c.srcX, c.srcY, c.srcW, c.srcH,
-                                    c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
-                        }
-                    }
+                    if (activeSheet != null) appendSheetQuad(activeSheet, c);
                     break;
                 }
                 case SOLID_RECT: {
@@ -228,6 +296,7 @@ public final class DrawListRenderer {
             }
         }
 
+        if (pagedPending) flushPaged(paged, census);
         if (activeSheet != null) flushSheet(activeSheet, census);
         if (solidPending) flushSolid(solidBatch, census);
         if (linePending) flushLines(lineBatch, census);
@@ -248,6 +317,47 @@ public final class DrawListRenderer {
         if (batch == null) return;
         if (census != null && !batch.isEmpty()) census.recordTexturedDraw();
         batch.flush();
+    }
+
+    /** Queues one {@code SHEET_QUAD} into its sheet's batch, by the shape it asks for. */
+    private static void appendSheetQuad(QuadBatch batch, DrawCommand c) {
+        if (c.part) {
+            batch.appendRotatedPart(c.srcX, c.srcY, c.srcW, c.srcH, c.cx, c.cy, c.w, c.h,
+                    c.angleDeg, c.flipV, c.partX0, c.partX1, c.partY0, c.partY1, c.r, c.g, c.b, c.a);
+        } else if (c.patch() != null) {
+            batch.appendPatch(c.srcX, c.srcY, c.srcW, c.srcH, c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a, c.patch());
+        } else if (c.angleDeg != 0f) {
+            batch.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
+                    c.cx, c.cy, c.w, c.h, c.angleDeg, c.flipV, c.r, c.g, c.b, c.a);
+        } else if (c.flipV) {
+            batch.appendFlippedV(c.srcX, c.srcY, c.srcW, c.srcH,
+                    c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
+        } else {
+            batch.append(c.srcX, c.srcY, c.srcW, c.srcH,
+                    c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
+        }
+    }
+
+    /**
+     * Queues a whole sprite into the open paged run as the quad {@link #drawSprite} would have drawn alone, on the
+     * page of its own texture, flushing first when the run has no page left for it.
+     */
+    private static void appendPagedSprite(PagedQuadRun run, DrawCensus census, SpriteAPI sprite,
+                                          float cx, float cy, float w, float h, float angleDeg,
+                                          float r, float g, float b, float a, boolean additive, DrawCommand effects) {
+        int page = run.pageOf(sprite);
+        if (page < 0) {
+            flushPaged(run, census);
+            page = run.pageOf(sprite);
+        }
+        run.appendSprite(sprite, PagedQuadRun.lane(page, additive, effects.flash), effects.light, effects.lightAngle,
+                effects.wear, cx, cy, w, h, angleDeg, r, g, b, a);
+    }
+
+    /** Draws the open paged run, recording one draw and a bind per page it used. */
+    private static void flushPaged(PagedQuadRun run, DrawCensus census) {
+        if (census != null && !run.isEmpty()) census.recordPagedDraw(run.pageCount());
+        run.flush();
     }
 
     private static void flushSolid(SolidQuadBatch batch, DrawCensus census) {

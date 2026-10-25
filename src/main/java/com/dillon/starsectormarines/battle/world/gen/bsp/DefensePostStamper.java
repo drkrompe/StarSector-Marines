@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutDef;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -90,6 +91,9 @@ public final class DefensePostStamper implements GenStage {
 
     /** Minimum center-to-center distance between any two placed posts. Stops clumping. */
     private static final int POST_MIN_SEPARATION = 14;
+
+    /** The ground under a field-works gun: dug earth, as a trench's floor. */
+    private static final String FIELD_PAD = "floors.dirt";
     /** Anchor offset from the attacker-facing edge of FORTRESS_DISTRICT — 1-cell biome-edge gap + 1-cell footprint margin. Cells right at the biome boundary would half-spill into PORT. */
     private static final int FORTRESS_EDGE_BUFFER_NEAR = 2;
     /** Anchor max-offset from the attacker-facing biome edge — keeps posts in the kill-zone strip ahead of the wall (the wall sits ~12 cells in via {@code FortressWallStamper.SETBACK_CELLS}; post footprint reaches 1 cell past anchor). Cells inside the wall fail walkability validation anyway, but bounding the search keeps placement attempts efficient. */
@@ -417,7 +421,7 @@ public final class DefensePostStamper implements GenStage {
             // post boxing in one of its OWN open footprint cells (a vent ring's
             // corner trapped between the ring arms and pre-existing water/wall).
             // Pass the actual blocked cells, not the bbox — sparse footprints
-            // (LIGHT cross, TRAPEZOID notches) leave bbox cells walkable,
+            // (LIGHT cross, TRIANGLE_FORMATION gaps) leave bbox cells walkable,
             // and those open cells must stay in the connectivity check.
             //
             // Asked locally rather than of the whole map. The map-wide form
@@ -451,7 +455,7 @@ public final class DefensePostStamper implements GenStage {
      * centered at {@code (cx, cy)} turns non-walkable. Used by the partition
      * guard so it sees the post's real
      * (often sparse) silhouette rather than a solid bbox: LIGHT is a cardinal
-     * cross with open corners, TRAPEZOID notches its back row, and only
+     * cross with open corners, TRIANGLE_FORMATION leaves gaps in its rows, and only
      * those open cells can be boxed in by adjacent water/walls.
      */
     static int[][] blockedFootprint(DefensePostKind tier, DefensePostShape shape, int cx, int cy) {
@@ -602,6 +606,9 @@ public final class DefensePostStamper implements GenStage {
                                          List<Doodad> doodads, DefensePostLayoutDef layout,
                                          int cx, int cy, EmplacementStyle style) {
         clearFootprint(doodads, layout, cx, cy);
+        // The post is a lot of its own: its parapets and ring draw in its guns' style.
+        for (DefensePostLayoutDef.Cell cell : layout.cells)
+            FortWorks.mark(topology, cx + cell.offset().x(), cy + cell.offset().y(), style);
         boolean fieldWorks = style.militia;
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;
@@ -626,7 +633,7 @@ public final class DefensePostStamper implements GenStage {
 
         boolean concreteRing = !fieldWorks && layout.hasApron();
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
-            concreteRing |= cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
+            concreteRing |= !fieldWorks && cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
                     && cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE;
         }
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
@@ -652,6 +659,9 @@ public final class DefensePostStamper implements GenStage {
                 // the same concrete the fort paves. Surface only; the cell's kind and topology are untouched.
                 topology.setSurface(x, y, topology.surfaceIndex(
                         Material.CONCRETE.block(RoadRasterizer.age(.55, 0L, x, y))));
+            } else if (fieldWorks && grid.inBounds(x, y)) {
+                // Field works pave nothing: the gun's pit is the dug earth of its sandbag ring, not a grey square.
+                topology.setSurface(x, y, topology.surfaceIndex(FIELD_PAD));
             }
         }
 

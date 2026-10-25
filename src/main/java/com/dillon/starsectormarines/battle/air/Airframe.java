@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.EngineVisualOffsets;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 
 /**
  * A kind of aircraft that can stand on a berth: what it looks like, which hull
@@ -60,6 +61,16 @@ public interface Airframe {
      * actually has them.
      */
     int hardpoints();
+
+    /**
+     * Which turret structure goes on each hardpoint for a sortie flown in
+     * {@code role}, in hardpoint order. The role decides it, through
+     * {@link ShuttleType#kitFor}, unless the airframe was fitted with guns of
+     * its own — a company's boat carries what the yard put on it.
+     */
+    default String[] kitFor(TurretRole role) {
+        return ShuttleType.kitFor(role, hardpoints());
+    }
 
     /**
      * How this aircraft flies.

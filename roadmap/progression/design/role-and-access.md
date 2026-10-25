@@ -363,19 +363,14 @@ which is the point — a single scalar that priced a field-aid satchel against a
 millimetre of ceramic would be an invention rather than a measurement, and
 CARRIES says what the RATING cannot.
 
-**The list can also be narrowed to what the fleet can pay for today.** Rarity is
-a radio and supplies are a switch, so they are separate controls: the supplies
-filter hides any loadout whose issue to the selected squad would cost more cargo
+**The list can also be narrowed to what the fleet can pay for today.** Tier and
+supplies are separate controls. Tier is a pill per tier, drawn as the Mech Lab
+draws its weight classes, and none chosen shows every tier, so there is no "all"
+to choose. The supplies filter hides any loadout whose issue to the selected squad would cost more cargo
 than the fleet is carrying. It asks only the supplies question — a stationed or
 under-strength squad cannot be issued anything at all, and hiding every tile
 behind that would empty the list with no explanation the apply row does not
 already give.
-
-**Compare Patterns shows what the company holds, not what exists.** The screen
-answers "what is my kit and which of it should the section be in", and a table
-mostly made of suits nobody has ever held answers a different question badly. Its
-summary still names the catalog's size, so the fact that there is more out there
-survives without pretending it is choosable.
 
 **The third line is what the section would carry.** SECTION says which jobs the
 sheet organises and ISSUED says which patterns fill them; neither tells a player

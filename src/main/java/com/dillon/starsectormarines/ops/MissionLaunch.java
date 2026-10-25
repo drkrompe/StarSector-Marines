@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 
@@ -201,6 +202,7 @@ public final class MissionLaunch {
             var manifest = DebugMissionCatalog.manifest(m, committedShuttles, ctx.getDebugCompanyRoster().lineReadySoldiers().size());
             Detachment det = new Detachment(manifest, FlybyRoster.EMPTY, List.of());
             if (debugMechs != null) det = debugMechs.applyTo(det);
+            det = DebugMechRoster.withEasterEggs(det);
             det = CommandDeck.apply(det, selectedPowerIds);
             Detachment frozen = det;
             return new ScenarioPlan(Arrays.asList(m.id, seed, manifest), det,
@@ -221,6 +223,7 @@ public final class MissionLaunch {
                         : DetachmentResolver.resolve(m, committedShuttles, m.source.isDebug() ? FlybyRoster.EMPTY : committedWings,
                                 m.source.isDebug() ? List.of() : committedPowerSources);
         if (debugMechs != null) det = debugMechs.applyTo(det);
+        if (m.source.isDebug()) det = DebugMechRoster.withEasterEggs(det);
         det = CommandDeck.apply(det, selectedPowerIds);
         if (DetachmentResolver.usesSelectedPersonnel(m)) {
             int selectedPersonnel = m.source.isDebug()
@@ -541,8 +544,21 @@ public final class MissionLaunch {
             // squad tags, NCO leaders and multi-lift joins the campaign gets.
             if (m.source.isDebug()) {
                 MarineRoster company = ctx.getDebugCompanyRoster();
-                deployment = CampaignMarineDeployment.freezeSelection(company,
-                        new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats);
+                MarineCaptain commander = ctx.debugCommander().captain();
+                if (commander == null) {
+                    deployment = CampaignMarineDeployment.freezeSelection(company,
+                            new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats);
+                } else {
+                    // The commander joins the detached company only for the freeze, which captures
+                    // its training into each squad's command profile; it leaves again at once.
+                    company.add(commander);
+                    try {
+                        deployment = CampaignMarineDeployment.freezeSelection(company,
+                                new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats, commander);
+                    } finally {
+                        company.removeById(commander.id());
+                    }
+                }
             } else if (personnel != null) {
                 deployment = CampaignMarineDeployment.freezeSelection(personnel.roster(),
                         ctx.getSelectedMarineSquadIds(), playerSeats, ctx.getSelectedCaptain(),
@@ -583,7 +599,7 @@ public final class MissionLaunch {
             }
             var debugScenario = DebugMissionCatalog.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
-                    && debugScenario.corvus() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
+                    && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
             if (authoredDebugLift && !sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(

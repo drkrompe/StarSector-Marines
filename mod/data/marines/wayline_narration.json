@@ -2117,9 +2117,9 @@
       "id": "marines_mara_relief_briefing_01",
       "missionId": "story_opening_relief",
       "event": "briefing.01",
-      "text": "Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline, and since the spring I run it, because our director took a post off-world and somebody had to.",
-      "synthesisText": "Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline, and since the spring I run it, because our director took a post off-world and somebody had to.",
-      "durationSeconds": 12.8,
+      "text": "Castle sent your particulars, and I've read them twice. I broker for Wayline, and since the spring I run it, because our director took a post off-world and somebody had to.",
+      "synthesisText": "Castle sent your particulars, and I've read them twice. I broker for Wayline, and since the spring I run it, because our director took a post off-world and somebody had to.",
+      "durationSeconds": 11.52,
       "priority": 10,
       "expiresSeconds": 18,
       "supersedes": []

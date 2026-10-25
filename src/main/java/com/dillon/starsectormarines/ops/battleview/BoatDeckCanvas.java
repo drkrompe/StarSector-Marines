@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.ops.fitting.BoardHover;
+import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.BayDoor;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.DoubleSupplier;
 import java.util.function.IntPredicate;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -62,6 +65,37 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private static final Color HAZARD = new Color(0xE8, 0xB4, 0x3A);
     private static final Color HAZARD_DARK = new Color(0x1A, 0x1A, 0x16);
     private static final Color MOVING = new Color(0xFF, 0x6A, 0x3A, 230);
+    private static final Color TURRET = new Color(0xE2, 0x8F, 0x4A, 235);
+    /** How far a turret's traverse wedge is drawn out from its mount, in cells. */
+    private static final float TRAVERSE_CELLS = 2.2f;
+
+    /**
+     * A mount's traverse as a wedge in deck cells. The hull's nose is its
+     * local {@code +Y}, which the parked facing turns into the world, and a
+     * spec angle swings toward port, so the wedge's middle is the nose bearing
+     * turned by the mount's own angle.
+     */
+    private static void traverse(CanvasContext context, Projection p, float worldX, float worldY,
+                                 float noseDegrees, float arcDeg, float reach, Color tone, boolean lit) {
+        float half = Math.min(180f, Math.max(4f, arcDeg * 0.5f));
+        int steps = Math.max(6, Math.round(half / 6f));
+        Color fill = BoatDollPanel.withAlpha(tone, lit ? 60 : 34);
+        Color edge = BoatDollPanel.withAlpha(tone, lit ? 220 : 140);
+        float cx = p.x(worldX), cy = p.y(worldY);
+        float[] previous = null;
+        for (int i = -steps; i <= steps; i++) {
+            // Nose bearing in the world: the local +Y axis turned by the parked facing.
+            double bearing = Math.toRadians(noseDegrees + half * i / steps);
+            float ex = p.x(worldX - (float) Math.sin(bearing) * reach);
+            float ey = p.y(worldY + (float) Math.cos(bearing) * reach);
+            if (previous != null) {
+                context.fillQuad(cx, cy, previous[0], previous[1], ex, ey, cx, cy, fill);
+                context.line(previous[0], previous[1], ex, ey, edge, 1.2f);
+            }
+            if (i == -steps || i == steps) context.line(cx, cy, ex, ey, edge, 1f);
+            previous = new float[]{ex, ey};
+        }
+    }
     /** How thick a leaf is through the hull, in cells. */
     private static final float LEAF_DEPTH = 1.0f;
     /** Width of the striped band on each leaf's meeting edge, in cells. */
@@ -89,6 +123,110 @@ public final class BoatDeckCanvas implements CanvasProducer {
         return this;
     }
     private int hovered = -1;
+    private Supplier<BoatDoll> doll = () -> null;
+    private DoubleSupplier seconds = () -> 0d;
+    private List<BoatDollPanel.CardTarget> cards = List.of();
+    private String hoveredCard;
+    /** The pointer on the board, shared with the room's drag; @see BoardHover */
+    private BoardHover hover = new BoardHover();
+    private BoatDollPanel.Drop drop;
+
+    /** Lights the socket a carried catalog piece is over: green where it would fit, red where not. */
+    public void previewDrop(String key, boolean valid) {
+        drop = key == null ? null : new BoatDollPanel.Drop(key, valid);
+    }
+
+    public void clearDropPreview() { drop = null; }
+
+    /**
+     * Where the camera is and where it is going, eased the way the Mech Lab's
+     * is. {@code focus} runs from the wide shot of the bay at 0 to one berth
+     * filling the right of the panel at 1; the look-at point travels with it.
+     */
+    private float lookX = Float.NaN, lookY = Float.NaN, focus;
+    private float fromX, fromY, fromFocus, toX, toY, toFocus;
+    private float transition = TRANSITION_SECONDS;
+    static final float TRANSITION_SECONDS = 0.72f;
+    /** How much of the right-hand view a focused berth fills. */
+    private static final float FOCUS_FILL = 0.82f;
+    /** Cells of deck kept round a focused berth so the boat is not cropped at its wingtips. */
+    private static final float FOCUS_SURROUND = 3f;
+
+    /**
+     * The selected boat as the doll draws her, or null while the room is not
+     * opened on one. While it answers, the camera closes on her berth and the
+     * board stands over the left of the panel.
+     */
+    public BoatDeckCanvas doll(Supplier<BoatDoll> doll, DoubleSupplier seconds) {
+        this.doll = Objects.requireNonNull(doll);
+        this.seconds = Objects.requireNonNull(seconds);
+        return this;
+    }
+
+    /** Puts the camera where it is going without easing, for a room opened on a boat. */
+    public void snap() {
+        retarget();
+        lookX = toX;
+        lookY = toY;
+        focus = toFocus;
+        transition = TRANSITION_SECONDS;
+    }
+
+    /** Eases the camera toward the selected berth, or back out to the bay. Returns whether it moved. */
+    public boolean advance(float dt) {
+        float wasX = lookX, wasY = lookY, wasFocus = focus;
+        if (!retarget()) return false;
+        if (Float.isNaN(lookX)) {
+            snap();
+            return true;
+        }
+        transition = Math.min(TRANSITION_SECONDS, transition + Math.max(0f, Float.isFinite(dt) ? dt : 0f));
+        float linear = transition / TRANSITION_SECONDS;
+        float eased = linear * linear * (3f - 2f * linear);
+        lookX = fromX + (toX - fromX) * eased;
+        lookY = fromY + (toY - fromY) * eased;
+        focus = fromFocus + (toFocus - fromFocus) * eased;
+        return lookX != wasX || lookY != wasY || focus != wasFocus;
+    }
+
+    /** Sets where the camera is going; false when there is no bay to look at. */
+    private boolean retarget() {
+        ShipDeckBattleScene aboard = ship.drawable();
+        DeckGraph.Compartment hangar = aboard != null ? bay.get() : null;
+        if (hangar == null) return false;
+        ShipDeckBattleScene.RoomView wide = hangarView(hangar, aboard.bayDoor(hangar));
+        Gantry focused = focusedBerth(aboard, hangar);
+        float x = focused != null ? focused.worldCenterX() : wide.centerCellX();
+        float y = focused != null ? focused.worldCenterY() : wide.centerCellY();
+        float f = focused != null ? 1f : 0f;
+        if (x != toX || y != toY || f != toFocus || Float.isNaN(lookX)) {
+            fromX = Float.isNaN(lookX) ? x : lookX;
+            fromY = Float.isNaN(lookY) ? y : lookY;
+            fromFocus = focus;
+            toX = x;
+            toY = y;
+            toFocus = f;
+            transition = 0f;
+        }
+        return true;
+    }
+
+    /** The berth on screen the doll is about, or null while the room shows the whole bay. */
+    private Gantry focusedBerth(ShipDeckBattleScene aboard, DeckGraph.Compartment hangar) {
+        if (doll.get() == null) return null;
+        List<Gantry> berths = boatBerthsIn(aboard, hangar);
+        int local = selectedBerth.getAsInt() - berthOffset.getAsInt();
+        return local >= 0 && local < berths.size() ? berths.get(local) : null;
+    }
+
+    /** The doll card at this canvas-local point, by its slot key, or null. */
+    public String slotAt(float canvasX, float canvasY) {
+        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
+        for (BoatDollPanel.CardTarget card : cards) {
+            if (card.contains(canvasX, canvasY)) return card.key();
+        }
+        return null;
+    }
 
     /**
      * @param selectedBerth the campaign deck's berth index, which counts every
@@ -116,10 +254,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
 
     /** Keep annotations in document pixels rather than stretching their fonts with the camera. */
     public static void fitSurface(UiElement canvas) {
-        if (canvas.box() == null) return;
-        int width = Math.max(1, Math.round(canvas.box().contentBox().width()));
-        int height = Math.max(1, Math.round(canvas.box().contentBox().height()));
-        if (width != canvas.canvasWidth() || height != canvas.canvasHeight()) canvas.canvasSize(width, height);
+        canvas.fitCanvasToBox();
     }
 
     /**
@@ -152,7 +287,10 @@ public final class BoatDeckCanvas implements CanvasProducer {
             return;
         }
         BayAperture aperture = aboard.bayDoor(hangar);
-        ShipDeckBattleScene.RoomView view = hangarView(hangar, aperture);
+        ShipDeckBattleScene.RoomView wide = hangarView(hangar, aperture);
+        if (Float.isNaN(lookX)) snap();
+        Gantry focused = focusedBerth(aboard, hangar);
+        ShipDeckBattleScene.RoomView view = framing(aboard, wide, focused, width, height);
 
         CanvasHostViewport[] host = new CanvasHostViewport[1];
         BattleSceneHostPass backdrop = aboard.pass(view, BACKDROP_LAYERS);
@@ -181,7 +319,75 @@ public final class BoatDeckCanvas implements CanvasProducer {
         if (aperture != null) threshold(context, projection, aperture, aboard.bayDoorLeaves(hangar));
         markBerths(context, projection, boatBerthsIn(aboard, hangar));
         context.hostPass(aboard.pass(view, ACTOR_LAYERS));
-        markRecovery(context);
+        BoatDoll shown = doll.get();
+        if (shown != null && focused != null && focus > 0.5f) {
+            markTurrets(context, projection, focused, shown);
+            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, seconds.getAsDouble());
+            recoveryTargets = List.of();
+        } else {
+            cards = List.of();
+            markRecovery(context);
+        }
+    }
+
+    /**
+     * The bay as the camera sees it this frame: the whole hangar, eased in
+     * toward the focused berth and slid right so the boat stands clear of the
+     * board, by however far {@link #focus} has got.
+     */
+    private ShipDeckBattleScene.RoomView framing(ShipDeckBattleScene aboard, ShipDeckBattleScene.RoomView wide,
+                                                 Gantry focused, float width, float height) {
+        if (!(focus > 0f) || !(width > 0f) || !(height > 0f)) return wide;
+        float notches = focus * focusNotches(wide, focused, width, height);
+        ShipDeckBattleScene.RoomView closer = wide.lookingAt(lookX, lookY, notches);
+        float cellPx = aboard.cameraFor(closer, 0f, 0f, width, height).cellPxSize();
+        if (!(cellPx > 0f)) return closer;
+        float shift = focus * ((1f + BoatDollPanel.SHARE) * 0.5f - 0.5f);
+        return wide.lookingAt(lookX - shift * width / cellPx, lookY, notches);
+    }
+
+    /** Wheel notches in from the bay's fitted scale at which one berth fills the view beside the board. */
+    private static float focusNotches(ShipDeckBattleScene.RoomView wide, Gantry berth, float width, float height) {
+        if (berth == null) return 0f;
+        float fitted = wide.fittedCellPx(width, height);
+        float room = Math.min(width * (1f - BoatDollPanel.SHARE), height) * FOCUS_FILL;
+        float across = Math.max(berth.width(), berth.height()) + FOCUS_SURROUND * 2f;
+        float wanted = room / across;
+        if (!(fitted > 0f) || !(wanted > fitted)) return 0f;
+        return (float) (Math.log(wanted / fitted) / Math.log(1.2));
+    }
+
+    /**
+     * Each hardpoint on the boat standing in the focused berth: where its gun
+     * sits on the hull and which way it can turn. Placed the way a parked
+     * airframe is drawn, at the berth's centre and facing and at ground scale,
+     * so the mark lands on the hull's own painted mount, and its traverse is a
+     * wedge about the mount's facing — port positive off the nose, as the spec
+     * writes it.
+     */
+    private static void markTurrets(CanvasContext context, Projection p, Gantry berth, BoatDoll doll) {
+        float facing = (float) Math.toRadians(berth.facing.degrees());
+        float cos = (float) Math.cos(facing);
+        float sin = (float) Math.sin(facing);
+        float originX = berth.centerX + 0.5f;
+        float originY = berth.centerY + 0.5f;
+        for (BoatDoll.Slot slot : doll.slots()) {
+            if (slot.kind() != BoatDoll.Kind.HARDPOINT || !slot.placed()) continue;
+            float lx = slot.localX() * AirAppearance.GROUND_SCALE;
+            float ly = slot.localY() * AirAppearance.GROUND_SCALE;
+            float worldX = originX + lx * cos - ly * sin;
+            float worldY = originY + lx * sin + ly * cos;
+            float x = p.x(worldX);
+            float y = p.y(worldY);
+            Color tone = slot.selected() ? MARK : TURRET;
+            traverse(context, p, worldX, worldY, berth.facing.degrees() + slot.facingDeg(), slot.arcDeg(),
+                    TRAVERSE_CELLS, tone, slot.selected());
+            BoatDollPanel.ring(context, x, y, slot.selected() ? 9f : 7f, new Color(0, 0, 0, 190), 4f);
+            BoatDollPanel.ring(context, x, y, slot.selected() ? 9f : 7f, tone, 2f);
+            String label = Strings.format("boatDeckHardpointShort", BoatDoll.hardpointOf(slot.key()) + 1);
+            context.fillRect(x + 11f, y - 9f, Fonts.ORBITRON_10.measureWidth(label) + 8f, 16f, new Color(8, 12, 14, 220));
+            context.text(Fonts.ORBITRON_10, label, x + 15f, y - 7f, tone);
+        }
     }
 
     /** Keep the exit and the space beyond it in view along with every berth. */
@@ -321,9 +527,40 @@ public final class BoatDeckCanvas implements CanvasProducer {
         context.fillQuad(p.x(x0), p.y(y0), p.x(x1), p.y(y1), p.x(x2), p.y(y2), p.x(x3), p.y(y3), color);
     }
 
+    /**
+     * The part fitted in the socket under the pointer and that socket's box in canvas pixels,
+     * for the room to open the part's spec sheet beside; null while a part is in hand or the
+     * pointer is on no socket.
+     */
+    public PointedPart pointedPart() {
+        if (!hover.names() || hoveredCard == null) return null;
+        BoatDoll shown = doll.get();
+        if (shown == null) return null;
+        for (BoatDollPanel.CardTarget card : cards) {
+            if (!card.key().equals(hoveredCard)) continue;
+            for (BoatDoll.Slot slot : shown.slots()) {
+                if (!slot.key().equals(hoveredCard) || slot.itemId() == null) continue;
+                return new PointedPart(slot.kind(), slot.itemId(), card.left(), card.top(),
+                        card.left() + card.width(), card.top() + card.height());
+            }
+        }
+        return null;
+    }
+
+    /** A part on the boat's doll: its kind and id, and where its socket is drawn. */
+    public record PointedPart(BoatDoll.Kind kind, String itemId, float left, float top, float right, float bottom) { }
+
+    /** The board's pointer, which the room's drag holds while a part is in hand. */
+    public BoatDeckCanvas hover(BoardHover hover) {
+        this.hover = hover;
+        return this;
+    }
+
     /** Records hover over the berths drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
-        hovered = localBerthAt(canvasX, canvasY);
+        hover.at(canvasX, canvasY);
+        hoveredCard = slotAt(canvasX, canvasY);
+        hovered = hoveredCard != null ? -1 : localBerthAt(canvasX, canvasY);
     }
 
     /**
@@ -332,6 +569,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
      * the one the player clicked on.
      */
     public int berthAt(float canvasX, float canvasY) {
+        if (slotAt(canvasX, canvasY) != null) return -1;
         int local = localBerthAt(canvasX, canvasY);
         return local < 0 ? -1 : berthOffset.getAsInt() + local;
     }

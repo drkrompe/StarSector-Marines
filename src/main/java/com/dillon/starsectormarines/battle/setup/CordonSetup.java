@@ -21,11 +21,15 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.cordon.CordonCommand;
+import com.dillon.starsectormarines.battle.cordon.CordonConstruction;
+import com.dillon.starsectormarines.battle.cordon.CordonConstructions;
 import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonGround;
+import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
+import com.dillon.starsectormarines.battle.cordon.CordonGapNests;
 import com.dillon.starsectormarines.battle.cordon.CordonGarrisons;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -67,6 +71,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -224,6 +229,14 @@ public final class CordonSetup {
         List<String> roads = new ArrayList<>();
         for (Piece piece : plan.layout().pieces()) if (piece instanceof Road && !piece.required()) roads.add(piece.name());
         List<List<String>> fallbacks = new ArrayList<>();
+        // A redoubt's terrace that cannot stand with its own supply road (one crossing its cliff at a corner, where
+        // no ramp climbs) is tried without that road first, so the other redoubts keep theirs.
+        for (int n = 1; n <= CordonPlan.REDOUBTS; n++) {
+            String road = CordonPlan.SUPPLY_ROAD + n;
+            if (whole.missing().contains(CordonPlan.CREST + CordonPlan.REDOUBT_PLACE + n + " ") && roads.contains(road)) {
+                fallbacks.add(List.of(road));
+            }
+        }
         if (roads.contains(CordonPlan.SECOND_ROAD)) fallbacks.add(List.of(CordonPlan.SECOND_ROAD));
         if (!roads.isEmpty()) fallbacks.add(roads);
         for (List<String> drop : fallbacks) {
@@ -241,18 +254,39 @@ public final class CordonSetup {
             for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
             plan = plan.withLayout(new MissionLayout(kept));
         }
-        MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, country(biome), plan);
-        if (!drop.isEmpty()) {
-            List<Laid> laid = new ArrayList<>(map.layout.pieces());
-            for (String name : drop) {
-                laid.add(Laid.refused(name, Laid.Kind.ROAD, false, "left out: with it, " + why));
-            }
-            map = map.withLayout(new LaidLayout(laid));
-        }
+        MapResult map = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed, true);
         String missing = missing(variant, map, plan);
-        if (missing != null) return new Generated(null, missing);
+        if (missing != null) {
+            // A redoubt or base built from what stood there that costs the map its Cordon is not worth the map: the
+            // same map with the generated compounds and shed instead.
+            MapResult plain = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed, false);
+            String plainMissing = missing(variant, plain, plan);
+            if (plainMissing != null) return new Generated(null, missing);
+            map = plain;
+        }
         List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(convoyGrid(map), map.topology, plan) : null;
         return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome, density), null);
+    }
+
+    /** The generated map from {@code plan} less the layout pieces named in {@code drop}, reported refused for {@code why}. */
+    private static MapResult generated(long battleSeed, SurfacePalette biome, PrecinctPlan plan, List<String> drop,
+                                       String why) {
+        MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, country(biome), plan);
+        if (drop.isEmpty()) return map;
+        List<Laid> laid = new ArrayList<>(map.layout.pieces());
+        for (String name : drop) laid.add(Laid.refused(name, Laid.Kind.ROAD, false, "left out: with it, " + why));
+        return map.withLayout(new LaidLayout(laid));
+    }
+
+    /**
+     * The map with its redoubts and base built as the seed picks ({@link CordonConstructions}); with {@code mixed}
+     * false, every one the generated compound or shed.
+     */
+    private static MapResult constructed(MapResult map, PrecinctPlan plan, CordonPlan.Density density, long battleSeed,
+                                         boolean mixed) {
+        MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed);
+        // The line's gaps closed with picket nests once the redoubts' guns stand where they will be manned.
+        return CordonGapNests.lay(built, plan, density, battleSeed);
     }
 
     /** What this map lacks, or {@code null} when it carries the whole Cordon. */
@@ -260,7 +294,7 @@ public final class CordonSetup {
         if (!MapFeature.OPEN_FIELD_LANDING.presentIn(map)) return "no clear landing field";
         List<Precinct> redoubts = CordonPlan.redoubts(plan);
         for (int i = 0; i < redoubts.size(); i++) {
-            if (!walled(map.topology, redoubts.get(i))) return "redoubt " + (i + 1) + " has no wall";
+            if (!walled(map, redoubts.get(i), i + 1)) return "redoubt " + (i + 1) + " has no wall";
         }
         for (Precinct precinct : plan.precincts()) {
             if (precinct.name().equals(CordonPlan.BASE_PLACE) && !shedNear(map, precinct)) {
@@ -274,6 +308,11 @@ public final class CordonSetup {
         }
         List<String> layout = MissionLayoutCheck.problems(map.grid, map.layout);
         if (!layout.isEmpty()) return "the layout: " + layout.get(0);
+        CordonGapLaw.Gap broken = CordonGapLaw.broken(gaps(map, plan));
+        if (broken != null) {
+            return String.format(Locale.ROOT, "the gap law: redoubts %d-%d leave a step of %.1f cells (law %.1f)",
+                    broken.west(), broken.east(), broken.widestStep(), CordonGapLaw.LIMIT);
+        }
         if (variant == CordonVariant.ROAD) {
             for (Precinct precinct : plan.precincts()) {
                 if (precinct.name().equals(CivilDefenceCompound.PLACE) && !walled(map.topology, precinct)) {
@@ -287,6 +326,25 @@ public final class CordonSetup {
             }
         }
         return null;
+    }
+
+    /**
+     * The line's gaps, west to east ({@link CordonGapLaw}): each neighbouring pair of redoubts' gun towers as their
+     * walls will be dressed, with the picket course's nests between them, those {@link CordonGapNests} added to close
+     * the gaps included. Part of {@link #missing}: a map whose line still breaks the law is not a Cordon map.
+     */
+    public static List<CordonGapLaw.Gap> gaps(MapResult map, PrecinctPlan plan) {
+        List<Precinct> redoubts = CordonPlan.redoubts(plan);
+        int front = CordonFront.frontward(plan);
+        List<List<int[]>> towers = new ArrayList<>();
+        for (int i = 0; i < redoubts.size(); i++) towers.add(CordonGarrisons.towers(map, redoubts.get(i), i + 1, front));
+        List<CordonGapLaw.Gap> out = new ArrayList<>();
+        for (int n = 1; n < redoubts.size(); n++) {
+            Laid picket = map.layout.find(CordonPlan.PICKET_LINE + n + "-" + (n + 1));
+            List<int[]> nests = picket == null || !picket.isLaid() ? List.of() : picket.nests();
+            out.add(CordonGapLaw.measure(n, n + 1, towers.get(n - 1), towers.get(n), nests));
+        }
+        return out;
     }
 
     /**
@@ -314,6 +372,24 @@ public final class CordonSetup {
                     && Math.abs(g.centerY - base.seedY()) <= BASE_SHED_REACH) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether redoubt {@code number} stands walled: a compound's perimeter, or for one built from what stood there,
+     * as many cells of wall of any kind inside the bounds its construction recorded.
+     */
+    private static boolean walled(MapResult map, Precinct precinct, int number) {
+        CordonConstruction built = CordonConstructions.redoubt(map.layout, number);
+        if (built.generated()) return walled(map.topology, precinct);
+        Laid works = map.layout.find(CordonConstructions.WORKS + number);
+        if (works == null || works.cells().size() != 2) return false;
+        int count = 0;
+        for (int y = works.cells().get(0)[1]; y <= works.cells().get(1)[1]; y++) {
+            for (int x = works.cells().get(0)[0]; x <= works.cells().get(1)[0]; x++) {
+                if (map.topology.inBounds(x, y) && map.topology.isWall(x, y)) count++;
+            }
+        }
+        return count >= MIN_WALL_CELLS;
     }
 
     private static boolean walled(CellTopology topology, Precinct precinct) {
@@ -401,7 +477,7 @@ public final class CordonSetup {
         BattleSetup.recordLzPads(sim, pads);
         BattleSetup.landCompany(sim, pads, manifest, rng,
                 SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
-        List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, cordon.plan(), GARRISON_RISK,
+        List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, map, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
         List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
         CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
@@ -437,6 +513,7 @@ public final class CordonSetup {
             CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
+            convoys.escortedBy(armour::convoyEscort);
         }
         sequence.attachLine(new CordonLineCommand(sim, sequence, armour, logistics, cordon.density(), table, pickets,
                 map.layout));

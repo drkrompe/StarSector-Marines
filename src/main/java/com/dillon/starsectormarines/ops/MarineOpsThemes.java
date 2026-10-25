@@ -74,6 +74,12 @@ final class MarineOpsThemes {
                 .spec-card.spec-sheet-armor { border-color: #dfb84d; }
                 .spec-card:hover { background-color: #0e1a26; }
                 .spec-card.selected { background-color: #16242f; border-color: #f2cf68; border-style: solid; }
+                /* In a list of cards, every card but the chosen one rests with its kind's edge dimmed. */
+                .spec-card.spec-sheet-weapon.resting { border-color: #2a5566; }
+                .spec-card.spec-sheet-armor.resting { border-color: #6b5a2a; }
+                /* A card's issue control is its check box alone, with no button drawn around it. */
+                .doctrine-issue-button, .doctrine-issue-button:hover, .doctrine-issue-button:active,
+                .doctrine-issue-button:disabled { background-color: transparent; background-image: none; border-color: transparent; }
                 .formation-select:hover { background-color: #ffffff08; }
                 .formation.stationed .formation-select:disabled { opacity: 0.72; }
                 #marine-ops-page-nav {
@@ -184,35 +190,31 @@ final class MarineOpsThemes {
 
                 /* Shared command keys and latching selectors; dimensions belong to each surface. */
                 .console-action, .slot-strip-action, .fabricate-action,
-                #compare-armor-patterns, #fireteam-breadcrumb button,
-                #comparison-breadcrumb button, #marine-ops-page-routes button,
+                #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
-                .loadout-filter, .supply-filter, .catalog-filter-pill,
+                .supply-filter, .catalog-filter-pill,
                 .team-tab {
                     color: #dfe3d4; background-color: #3c453e; border-color: #919887;
                     border-style: outset;
                     background-image: linear-gradient(to bottom, #ffffff15 0%, #ffffff00 12%, #00000000 80%, #00000044 82%, #00000044 100%);
                 }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
-                #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
-                #comparison-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
-                .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
+                .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #525d4e; }
                 .console-action:active, .slot-strip-action:active, .fabricate-action:active,
-                #compare-armor-patterns:active, #fireteam-breadcrumb button:active,
-                #comparison-breadcrumb button:active, #marine-ops-page-routes button:active,
+                #marine-ops-page-routes button:active,
                 .console-toggle:active, .fire-team-tab:active, .equipment-picker-tab:active,
-                .loadout-filter:active, .supply-filter:active, .catalog-filter-pill:active,
+                .supply-filter:active, .catalog-filter-pill:active,
                 .team-tab:active { background-color: #222b24; border-style: inset; }
                 .console-action:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
-                #compare-armor-patterns:focus-visible, #fireteam-breadcrumb button:focus-visible,
-                #comparison-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
+                #marine-ops-page-routes button:focus-visible,
                 .console-toggle:focus-visible, .fire-team-tab:focus-visible, .equipment-picker-tab:focus-visible,
-                .loadout-filter:focus-visible, .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
+                .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
                 .team-tab:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 .console-toggle.selected, .fire-team-tab.selected, .equipment-picker-tab.selected,
-                .loadout-filter.selected, .supply-filter.selected, .catalog-filter-pill.selected,
+                .supply-filter.selected, .catalog-filter-pill.selected,
                 .team-tab.selected {
                     background-color: #20291f; border-color: #a89b70; color: #e9d29b;
                     border-style: inset; background-image: none;
@@ -344,20 +346,18 @@ final class MarineOpsThemes {
                 }
 
                 .console-action, .slot-strip-action, .fabricate-action,
-                #compare-armor-patterns, #fireteam-breadcrumb button,
-                #comparison-breadcrumb button, #marine-ops-page-routes button,
+                #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
-                .loadout-filter, .supply-filter, .catalog-filter-pill,
+                .supply-filter, .catalog-filter-pill,
                 .team-tab { background-color: #102b42; border-color: #d2f3ff; color: #ffffff; }
                 .console-action { text-align: center; }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
-                #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
-                #comparison-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
-                .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
+                .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #15577b; }
                 .console-toggle.selected, .fire-team-tab.selected, .equipment-picker-tab.selected,
-                .loadout-filter.selected, .supply-filter.selected, .catalog-filter-pill.selected,
+                .supply-filter.selected, .catalog-filter-pill.selected,
                 .team-tab.selected { background-color: #225b75; border-color: #ffe45c; }
                 .console-action.danger-surface { color: #ff9d91; border-color: #ff9d91; }
                 .console-action.good-surface { color: #78ff9d; border-color: #78ff9d; }

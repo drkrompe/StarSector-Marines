@@ -1,9 +1,14 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingMeter;
+import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
+import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -50,18 +55,55 @@ class BoatDeckViewModelTest {
                 new Reactor(), boats, TestResources.stocked(200), "Buffalo");
         model.selectBoatAction(0).run();
 
-        List<BoatDeckViewModel.SlotRow> rack = model.slotRows().get();
-        assertEquals(3, rack.size());
-        assertEquals(BoatFitting.STANDARD_LIFT.displayName(), rack.get(2).fitting());
+        assertTrue(model.filterPills().get().stream().anyMatch(pill -> pill.id().equals("boat-filter:lift")));
         model.selectSlotAction(BoatFittingSlot.LIFT).run();
         assertEquals(3, model.catalogRows().get().size());
+        assertEquals(BoatFitting.STANDARD_LIFT.displayName(), model.slotRows().get().get(0).fitting());
+    }
+
+    @Test
+    void aGunDraggedOntoAHardpointArmsTheDoll() {
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+        model.selectBoatAction(0).run();
+        model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 0);
+
+        assertEquals("DOOR GUNS", model.selectedSlotTitle().get());
+        assertEquals(BoatGun.catalog().size(), model.catalogRows().get().size());
+        String mount = BoatDoll.HARDPOINT_KEY + 0;
+        assertFalse(model.canDropOnSocket(BoatDoll.Kind.HARDPOINT, BoatGun.HEAVY_MG.id(), mount),
+                "the yard gun is already on");
+        assertFalse(model.canDropOnSocket(BoatDoll.Kind.HARDPOINT, BoatGun.ARBALEST.id(),
+                BoatDoll.slotKey(BoatFittingSlot.DRIVE)), "a gun does not go in the drive");
+        model.dropOnSocket(BoatDoll.Kind.HARDPOINT, BoatGun.ARBALEST.id(), mount);
+
+        BoatDoll.Slot hardpoint = model.doll().get().slots().stream()
+                .filter(slot -> slot.kind() == BoatDoll.Kind.HARDPOINT).findFirst().orElseThrow();
+        assertEquals(BoatGun.ARBALEST.displayName(), hardpoint.fitted());
+        assertTrue(hardpoint.selected());
+    }
+
+    @Test
+    void theStoresShowEveryPartUntilAFilterOrASocketNarrowsThem() {
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+        model.selectBoatAction(0).run();
+
+        List<BoatDoll.Kind> kinds = model.catalogRows().get().stream()
+                .map(BoatDeckViewModel.CatalogRow::kind).distinct().toList();
+        assertEquals(List.of(BoatDoll.Kind.HARDPOINT, BoatDoll.Kind.PLATING, BoatDoll.Kind.DRIVE), kinds);
+        model.selectSlotAction(BoatFittingSlot.DRIVE).run();
+        assertTrue(model.catalogRows().get().stream().allMatch(row -> row.kind() == BoatDoll.Kind.DRIVE));
+        model.filterPills().get().get(0).select().run();
+        assertEquals(kinds, model.catalogRows().get().stream()
+                .map(BoatDeckViewModel.CatalogRow::kind).distinct().toList());
     }
 
     private static final float EPSILON = 0.01f;
     private static final int BERTHS = 6;
-    private static final List<String> COMPONENTS = List.of(
-            "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
-            "mod/data/ui/components/boat-deck/boat-deck.mlx");
+    private static final List<String> COMPONENTS = FittingComponents.with(List.of(
+            "data/ui/components/company/company-resource-stock.mlx", "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/boat-deck/boat-deck.mlx")).stream().map(path -> "mod/" + path).toList();
 
     @Test
     void aFreshDeckShowsOneCardPerBerthAtStandardFit() {
@@ -98,39 +140,33 @@ class BoatDeckViewModelTest {
         assertTrue(viewModel.overviewClasses().get().contains("hidden"));
         assertFalse(viewModel.fittingClasses().get().contains("hidden"));
 
-        List<BoatDeckViewModel.SlotRow> rack = viewModel.slotRows().get();
-        assertEquals(2, rack.size());
-        assertEquals("PLATING", rack.get(0).name());
-        assertEquals(BoatFitting.STANDARD_PLATING.displayName(), rack.get(0).fitting());
-        assertEquals("DRIVE", rack.get(1).name());
-        assertEquals(BoatFitting.STANDARD_DRIVE.displayName(), rack.get(1).fitting());
-        assertTrue(rack.get(0).classes().contains("selected"),
-                "opening a boat did not scope the catalog to a slot");
+        List<BoatDeckViewModel.SlotRow> mount = viewModel.slotRows().get();
+        assertEquals(1, mount.size(), "the selected mount is the one socket the board has selected");
+        assertEquals("PLATING", mount.get(0).name());
+        assertEquals(BoatFitting.STANDARD_PLATING.displayName(), mount.get(0).fitting());
+        assertEquals(List.of("boat-filter:all", "boat-filter:hardpoint", "boat-filter:plating", "boat-filter:drive"),
+                viewModel.filterPills().get().stream().map(FittingFilterPill::id).toList());
     }
 
     @Test
-    void fittingADriveSpendsItsWholeBillAndMovesTheRackAndTheMeters() {
+    void droppingADriveSpendsItsWholeBillAndMovesTheMountAndTheMeters() {
         BoatDeck deck = deck();
         TestResources resources = TestResources.stocked(100);
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 new Reactor(), deck, resources, "Valkyrie");
         viewModel.boatRows().get().get(0).select().run();
-        viewModel.selectSlotAction(BoatFittingSlot.DRIVE).run();
 
-        row(viewModel.catalogRows().get(), BoatFitting.TUNED_DRIVE.id()).action().run();
+        viewModel.dropOnSocket(BoatDoll.Kind.DRIVE, BoatFitting.TUNED_DRIVE.id(),
+                BoatDoll.slotKey(BoatFittingSlot.DRIVE));
 
-        assertEquals(BoatFitting.TUNED_DRIVE.id(),
-                deck.boats().get(0).drive().id());
+        assertEquals(BoatFitting.TUNED_DRIVE.id(), deck.boats().get(0).drive().id());
         assertEquals(85, resources.available(Commodities.SUPPLIES));
         assertEquals(95, resources.available(Commodities.HEAVY_MACHINERY));
-        assertEquals(BoatFitting.TUNED_DRIVE.displayName(),
-                viewModel.slotRows().get().get(1).fitting());
-        assertEquals(BoatFitting.TUNED_DRIVE.displayName(),
-                viewModel.boatRows().get().get(0).drive());
-        // 10 cells/s of pattern at the drive's 1.20, against the catalog's own
-        // 1.45 ceiling.
+        assertEquals(BoatFitting.TUNED_DRIVE.displayName(), viewModel.slotRows().get().get(0).fitting());
+        assertEquals(BoatFitting.TUNED_DRIVE.displayName(), viewModel.boatRows().get().get(0).drive());
+        // 10 cells/s of pattern at the drive's 1.20, read as gain past the pattern's own figure.
         assertEquals("12 CELLS/S", meter(viewModel, "SPEED").value());
-        assertEquals("width: 83%;", meter(viewModel, "SPEED").fillStyle());
+        assertEquals("meter-gain", meter(viewModel, "SPEED").gainClasses());
         assertTrue(viewModel.feedbackText().get().contains("fitted to"));
         assertTrue(viewModel.feedbackClasses().get().contains("tone-good"));
     }
@@ -146,10 +182,13 @@ class BoatDeckViewModelTest {
 
         BoatDeckViewModel.CatalogRow reinforced = row(viewModel.catalogRows().get(),
                 BoatFitting.REINFORCED_PLATING.id());
-        assertTrue(reinforced.actionDisabled());
-        assertEquals("SHORT METALS", reinforced.reason());
+        String plating = BoatDoll.slotKey(BoatFittingSlot.PLATING);
+        assertFalse(viewModel.canDropOnSocket(reinforced.kind(), reinforced.itemId(), plating));
+        // The card says which line is short by that line's own chip, not by a word.
+        assertTrue(reinforced.materials().stream()
+                .anyMatch(line -> line.id().endsWith(Commodities.METALS) && line.shortfall() > 0));
 
-        reinforced.action().run();
+        viewModel.dropOnSocket(reinforced.kind(), reinforced.itemId(), plating);
 
         assertEquals(BoatFitting.STANDARD_PLATING.id(), deck.boats().get(0).plating().id());
         assertEquals(3, resources.available(Commodities.METALS));
@@ -388,7 +427,7 @@ class BoatDeckViewModelTest {
                 .findFirst().orElseThrow();
     }
 
-    private static BoatDeckViewModel.PerformanceMeter meter(BoatDeckViewModel viewModel,
+    private static FittingMeter meter(BoatDeckViewModel viewModel,
                                                             String label) {
         return viewModel.performanceMeters().get().stream()
                 .filter(row -> row.label().equals(label))
@@ -415,6 +454,12 @@ class BoatDeckViewModelTest {
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("filterPills", viewModel.filterPills());
+        props.put("filterClasses", viewModel.filterClasses());
+        props.put("backClasses", viewModel.backClasses());
+        props.put("stageTitle", viewModel.stageTitle());
+        props.put("stageStatus", viewModel.stageStatus());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
         props.put("fabricationClasses", viewModel.fabricationClasses());

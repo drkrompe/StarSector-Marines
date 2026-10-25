@@ -13,9 +13,9 @@ import java.util.Set;
  * one term per issuing tradition, with its obligation period clock and standing.
  *
  * <p>A term records only what the warrant's obligations need: when the current period began,
- * whether service has been done in it, whether loyalty has been broken in it, the service call
- * the issuer sent, and which contracts have already been counted for or against the issuer, so
- * a contract is never counted twice.
+ * whether loyalty has been broken in it, and which contracts have already been counted against
+ * the issuer, so a contract is never counted twice. Service is no longer asked: the campaign
+ * offers no generic contracts to serve with ({@code contracts-nouns.md}).
  */
 public final class WarrantObligationLedger implements Serializable {
 
@@ -23,7 +23,7 @@ public final class WarrantObligationLedger implements Serializable {
     public enum Status {
         /** Terms kept: the warrant opens its suits. */
         ACTIVE,
-        /** A missed period or broken loyalty: no new acquisition or fitting until one honoured period. */
+        /** Broken loyalty: no new acquisition or fitting until one honoured period. */
         SUSPENDED,
         /** Relations fell to hostile: suspended permanently, until a new warrant is granted. */
         REVOKED
@@ -34,9 +34,15 @@ public final class WarrantObligationLedger implements Serializable {
         private Status status = Status.ACTIVE;
         private final int openedDay;
         private int periodStart;
+        /** Retired with service calls; kept so older saves load. */
+        @Deprecated
         private boolean serviceDone;
         private boolean loyaltyBroken;
+        /** Retired with service calls; kept so older saves load. */
+        @Deprecated
         private long serviceCallId = -1L;
+        /** Retired with service calls; kept so older saves load. */
+        @Deprecated
         private int serviceCallDeadline = -1;
         private int honouredPeriods;
         private int statusDay;
@@ -52,20 +58,10 @@ public final class WarrantObligationLedger implements Serializable {
         /** The day the terms were first stated; contracts accepted before it are never held against them. */
         public int openedDay() { return openedDay; }
         public int periodStart() { return periodStart; }
-        public boolean serviceDone() { return serviceDone; }
         public boolean loyaltyBroken() { return loyaltyBroken; }
-        public long serviceCallId() { return serviceCallId; }
-        public int serviceCallDeadline() { return serviceCallDeadline; }
         public int honouredPeriods() { return honouredPeriods; }
         /** The day the current status began. */
         public int statusDay() { return statusDay; }
-
-        /** Counts {@code contractId} for the issuer once; true when this call counted it. */
-        public boolean creditService(long contractId) {
-            if (!counted.add(contractId)) return false;
-            serviceDone = true;
-            return true;
-        }
 
         /** Counts {@code contractId} against the issuer once; true when this call counted it. */
         public boolean breakLoyalty(long contractId) {
@@ -77,9 +73,9 @@ public final class WarrantObligationLedger implements Serializable {
         /** Loyalty broken by standing rather than by a contract. */
         public void breakLoyalty() { loyaltyBroken = true; }
 
-        public void recordServiceCall(long contractId, int deadline) {
-            serviceCallId = contractId;
-            serviceCallDeadline = deadline;
+        /** A suspended period that ended with loyalty broken: still suspended, with a fresh period. */
+        public void restartPeriod(int day) {
+            beginPeriod(day);
         }
 
         /** An honoured period: the warrant stands (restored if suspended) and the next period begins. */
@@ -90,7 +86,7 @@ public final class WarrantObligationLedger implements Serializable {
             beginPeriod(day);
         }
 
-        /** A missed period or broken loyalty: suspended, with a fresh period to earn restoration in. */
+        /** Broken loyalty: suspended, with a fresh period to earn restoration in. */
         public void suspend(int day) {
             if (status != Status.ACTIVE) return;
             status = Status.SUSPENDED;
@@ -113,10 +109,7 @@ public final class WarrantObligationLedger implements Serializable {
 
         private void beginPeriod(int day) {
             periodStart = day;
-            serviceDone = false;
             loyaltyBroken = false;
-            serviceCallId = -1L;
-            serviceCallDeadline = -1;
         }
     }
 

@@ -62,7 +62,9 @@
     text-align: center;
   }
 
-  #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: normal; }
+  #marine-ops-page-routes .console-key-legend { width: 0px; flex-grow: 1; white-space: nowrap; }
+  /* A room with news widens to hold its badge beside the whole name, rather than break the name. */
+  #marine-ops-page-routes .page-nav-new { flex-grow: 1.45; }
 
   #marine-ops-page-routes .page-nav-current {
     background-color: #183b50;
@@ -118,15 +120,15 @@
     white-space: normal;
     border-width: 2px;
   }
-  .page-nav-news { position: absolute; width: 0px; height: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .page-nav-news { display: none; }
   #marine-ops-page-routes .page-nav-new .page-nav-news {
-    position: static; width: auto; height: auto; opacity: 1;
+    display: flex;
     color: #ffd464;
     padding: 1px 2px;
     border-width: 1px;
     border-color: #aa8742;
     background-color: #27271f;
   }
-  #marine-ops-page-routes .page-nav-new .console-toggle-lamp { position: absolute; width: 0px; height: 0px; opacity: 0; }
+  #marine-ops-page-routes .page-nav-new .console-toggle-lamp { display: none; }
   #page-nav-return-lamp { width: 0px; border-width: 0px; }
 </style>

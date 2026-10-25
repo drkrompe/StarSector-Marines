@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.assault.MachineGuard;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.ActiveOrder;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.Refus
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -74,6 +76,15 @@ public final class VehicleMoveOrderSystem {
 
     /** How far the resolver may look for drivable ground near the clicked cell. */
     private static final int SNAP_RADIUS = 6;
+    /** Cells around an ordered cell searched for the nearest one the hull can reach ({@link #goal}). */
+    static final int REACHABLE_SNAP_RADIUS = 24;
+
+    /**
+     * Route proofs {@link #tickPending} makes in one tick; zero plans every queued order at once, the control for an
+     * A/B against the budget. A tuning lever ({@code switches.md}): fold it into this constant once the convoy and
+     * story-mission evidence has been read against it.
+     */
+    static final int PLANS_PER_TICK = Integer.getInteger("battle.vehicle.orderPlansPerTick", 2);
 
     private final VehicleMoveOrderService service;
     private final ConvoyService convoy;
@@ -113,7 +124,16 @@ public final class VehicleMoveOrderSystem {
         service.resume(id);
     }
 
-    /** Resolves every queued request. Call once per tick, before driving. */
+    /**
+     * Resolves queued requests, planning at most {@link #PLANS_PER_TICK} routes. Call once per tick, before driving.
+     *
+     * <p>A route proof is the expensive part of an order, and orders come in blocks: a restocked lane hands every
+     * fresh hull its post on one tick, and their refusals and pull-backs then follow in step. Planning them all at
+     * once was a frame hitch every time. The queue is planned in a fixed order instead, the player's own hulls first
+     * and then oldest first, and what does not fit waits at the head of the queue for the next tick; a hull already
+     * under orders keeps driving them meanwhile. The allowance counts plans rather than time, so a replay plans the
+     * same orders on the same ticks.
+     */
     public void tickPending() {
         for (long id : new ArrayList<>(service.suspendedIds())) {
             if (!manuallyCommandable(id)) service.forget(id);
@@ -121,7 +141,12 @@ public final class VehicleMoveOrderSystem {
         for (Map.Entry<Long, ActiveOrder> entry : new ArrayList<>(service.activeEntries())) {
             if (!commandable(entry.getKey())) service.forget(entry.getKey());
         }
-        for (PendingOrder request : service.drainPending()) {
+        List<PendingOrder> queue = new ArrayList<>(service.drainPending());
+        // Stable, so each group keeps its queue order: a player's click never waits behind allied traffic.
+        queue.sort(Comparator.comparing(order -> service.isEnlisted(order.vehicleId)));
+        int planned = 0;
+        for (int i = 0; i < queue.size(); i++) {
+            PendingOrder request = queue.get(i);
             if (service.isSuspended(request.vehicleId)) {
                 service.retain(request.vehicleId, request.cellX, request.cellY, request.facingDegrees);
                 continue;
@@ -142,6 +167,11 @@ public final class VehicleMoveOrderSystem {
                         Refusal.NOT_COMMANDABLE);
                 continue;
             }
+            if (PLANS_PER_TICK > 0 && planned >= PLANS_PER_TICK) {
+                service.defer(queue.subList(i, queue.size()));
+                break;
+            }
+            planned++;
             // Any new order supersedes a standing assault or guard, including another of either.
             service.endAssault(request.vehicleId);
             service.endGuard(request.vehicleId);
@@ -174,6 +204,11 @@ public final class VehicleMoveOrderSystem {
             }
             service.activate(request.vehicleId, new ActiveOrder(request.cellX, request.cellY,
                     route[0], route[1], request.facingDegrees));
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.VEHICLE_ORDER_PLANNED, planned);
+            profile.recordCount(TickInnerProfile.Bucket.VEHICLE_ORDER_WAITING, service.pendingCount());
         }
     }
 
@@ -275,14 +310,14 @@ public final class VehicleMoveOrderSystem {
         // A bladed hull proves its route over the ground it can open, and a hover hull over the water it floats on.
         NavigationGrid grid = controlSystem.planningGrid(type);
 
-        VehicleClearance clearance = VehicleClearance.erode(grid,
-                VehicleClearance.radiusForWidth(type.visualWidthCells));
+        VehicleClearance clearance = convoy.clearances().of(grid, type);
         TerrainCostField cost = controlSystem.costField(type);
 
         int[] from = VehicleRoutePlanner.snapToMask(clearance,
                 (int) Math.floor(body.x), (int) Math.floor(body.y), SNAP_RADIUS);
-        int[] to = VehicleRoutePlanner.snapToMask(clearance, cellX, cellY, SNAP_RADIUS);
-        if (from == null || to == null) return null;
+        if (from == null) return null;
+        int[] to = goal(grid, type, clearance, from, cellX, cellY);
+        if (to == null) return null;
         if (from[0] == to[0] && from[1] == to[1]) {
             // Manual driving may already have fulfilled a retained destination.
             // A distant snap is not arrival: the real body must be near the resolved point.
@@ -293,6 +328,26 @@ public final class VehicleMoveOrderSystem {
 
         return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
                 grid, cost, clearance, type);
+    }
+
+    /**
+     * The cell an order to ({@code cellX}, {@code cellY}) drives to: the nearest one, within
+     * {@link #REACHABLE_SNAP_RADIUS}, this chassis can get to from {@code from}, where the grid's components are held.
+     *
+     * <p>An order into a walled yard, onto a building or across water used to snap to the nearest cell the footprint
+     * fits in, which is often inside the same yard: the order was refused, or proved by flooding everything the hull
+     * could reach first, and a hull its command ordered there again stood parked. The nearest reachable cell is the
+     * closest the hull can actually come. A planning view (a blade's, a skirt's) is a new grid each time the map
+     * moves and would be labelled afresh, so it keeps the plain snap.
+     */
+    private int[] goal(NavigationGrid grid, VehicleType type, VehicleClearance clearance, int[] from,
+                       int cellX, int cellY) {
+        if (grid == navigation.getGrid()) {
+            int[] reachable = VehicleRoutePlanner.snapToComponent(clearance,
+                    convoy.clearances().components(grid, type), from[0], from[1], cellX, cellY, REACHABLE_SNAP_RADIUS);
+            if (reachable != null) return reachable;
+        }
+        return VehicleRoutePlanner.snapToMask(clearance, cellX, cellY, SNAP_RADIUS);
     }
 
     /** Live orders, for the highlight overlay. */

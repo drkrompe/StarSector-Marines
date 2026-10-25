@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 
@@ -39,10 +40,13 @@ public final class MechBay implements Serializable {
     public static final String STARTER_MECH_ID = "support_mech_01";
 
     private List<CampaignMechSquad> squads = new ArrayList<>();
+    /** Migration input only: loader stock from before loaders were internals. */
     private Map<String, Integer> ownedReplenishers = new HashMap<>();
     private Map<String, Integer> ownedWeapons = new HashMap<>();
     /** Owned internal assemblies by {@link MechInternal#id}, installed copies included. */
     private Map<String, Integer> ownedInternals = new HashMap<>();
+    /** Vehicle kits owned, fitted and spare alike; null in a save from before kits. */
+    private Map<String, Integer> ownedKits = new HashMap<>();
     private String activeSquadId;
     private int nextFabricatedSerial = 1;
     private int nextVehicleSerial = 1;
@@ -77,6 +81,10 @@ public final class MechBay implements Serializable {
         return internal != null && knowsPattern(MechPattern.of(internal).id());
     }
 
+    public boolean canFabricate(VehicleKit kit) {
+        return kit != null && knowsPattern(MechPattern.of(kit).id());
+    }
+
     public boolean knowsPattern(String patternId) {
         return patternId != null && knownPatternIds.contains(patternId);
     }
@@ -98,12 +106,13 @@ public final class MechBay implements Serializable {
 
     /**
      * What a pre-pattern save's unrestricted workshop could build: every chassis and weapon.
-     * Internals did not exist then, so it gets only the stock ones.
+     * Internals and vehicle kits did not exist then, so it gets only the stock internals and no kits.
      */
     private static Set<String> allPatternIds() {
         Set<String> ids = new LinkedHashSet<>();
         for (MechPattern pattern : MechPattern.all()) {
-            if (pattern.kind() != MechPattern.Kind.INTERNAL || pattern.starter()) ids.add(pattern.id());
+            boolean later = pattern.kind() == MechPattern.Kind.INTERNAL || pattern.kind() == MechPattern.Kind.KIT;
+            if (!later || pattern.starter()) ids.add(pattern.id());
         }
         return ids;
     }
@@ -229,28 +238,39 @@ public final class MechBay implements Serializable {
         if (vehicleIds == null) return 0;
         int lost = 0;
         for (String vehicleId : vehicleIds) {
-            for (CampaignMechSquad squad : squads) {
-                CampaignVehicle vehicle = squad.vehicleById(vehicleId);
-                if (vehicle != null && squad.remove(vehicle)) {
-                    lost++;
-                    break;
-                }
-            }
+            CampaignVehicle vehicle = removeVehicle(vehicleId);
+            if (vehicle == null) continue;
+            // The kits on its rack go down with it.
+            for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+            lost++;
         }
         return lost;
+    }
+
+    /** Takes a vehicle off its gantry; null when no gantry holds it. */
+    private CampaignVehicle removeVehicle(String vehicleId) {
+        for (CampaignMechSquad squad : squads) {
+            CampaignVehicle vehicle = squad.vehicleById(vehicleId);
+            if (vehicle != null && squad.remove(vehicle)) return vehicle;
+        }
+        return null;
     }
 
     /**
      * Battle damage writeback for the company's own mechs ({@code mechs-nouns.md},
      * After the battle). A destroyed torso loses the chassis: it leaves its gantry and every
      * part fitted to it leaves stores with it. Otherwise a destroyed mount loses its weapon
-     * assembly from stores and the mount comes back empty, the pattern kept; every damaged
-     * section is recorded for repair, and the mech stays out of drops until it is repaired.
+     * assembly from stores and the mount comes back empty, the pattern kept. Every damaged
+     * section goes into the gantry for a free repair that costs only time: the clock restarts on
+     * {@code day} over the worse of what the mech carried in and what it brought back, at the
+     * length {@code fieldRepair} quotes.
      *
      * <p>Idempotent: a replayed result finds the chassis gone, the mount already empty and the
-     * same damage recorded, so nothing is struck twice. Unknown ids are ignored.
+     * same damage on the same clock, so nothing is struck twice. Unknown ids are ignored.
      */
-    public Settlement settleBattleDamage(Collection<CompanyMechLedger.Damage> damage) {
+    public Settlement settleBattleDamage(Collection<CompanyMechLedger.Damage> damage, float day,
+                                         MechFieldRepair fieldRepair) {
+        startPendingRepairs(day, fieldRepair);
         if (damage == null || damage.isEmpty()) return Settlement.NONE;
         int chassisLost = 0;
         int assembliesLost = 0;
@@ -274,7 +294,7 @@ public final class MechBay implements Serializable {
             }
             MechDamage taken = MechDamage.of(report);
             if (taken != null) {
-                mech.recordDamage(taken);
+                startRepair(mech, MechDamage.worst(mech.damageOn(day), taken), day, fieldRepair);
                 damaged++;
             }
         }
@@ -282,8 +302,30 @@ public final class MechBay implements Serializable {
     }
 
     /**
+     * Starts the clock on any damage that has none: a save from before repairs were free kept its
+     * damage waiting for a paid order that no longer exists.
+     */
+    public void startPendingRepairs(float day, MechFieldRepair fieldRepair) {
+        for (CampaignMechSquad squad : squads) {
+            for (CampaignMech mech : squad.mechs()) {
+                if (mech.repairPending()) startRepair(mech, mech.damageOn(day), day, fieldRepair);
+            }
+        }
+    }
+
+    private static void startRepair(CampaignMech mech, MechDamage damage, float day, MechFieldRepair fieldRepair) {
+        MechRepairs.Estimate estimate = MechRepairs.estimate(mech.variant(), damage);
+        if (estimate == null) {
+            mech.startRepair(null, day, day);
+            return;
+        }
+        MechFieldRepair refit = fieldRepair != null ? fieldRepair : MechFieldRepair.NEUTRAL;
+        mech.startRepair(damage, day, day + refit.repairDays(estimate.days()));
+    }
+
+    /**
      * Breaks a chassis up on its gantry so the berth can take another machine. Unlike a loss in
-     * battle, nothing fitted is destroyed: its weapons, internals and replenisher stay owned and,
+     * battle, nothing fitted is destroyed: its weapons, internals and loader stay owned and,
      * with no frame to sit in, are spares in stores again.
      */
     public boolean scrapMech(String mechId) {
@@ -295,9 +337,9 @@ public final class MechBay implements Serializable {
         return false;
     }
 
-    /** Breaks a vehicle up; it carries nothing the bay counts, so only the berth comes back. */
+    /** Breaks a vehicle up; its kits stay owned and are spares in stores again. */
     public boolean scrapVehicle(String vehicleId) {
-        return vehicleId != null && loseVehicles(List.of(vehicleId)) == 1;
+        return vehicleId != null && removeVehicle(vehicleId) != null;
     }
 
     /** The chassis and everything fitted to it leave the bay; its gantry stands empty. */
@@ -308,11 +350,7 @@ public final class MechBay implements Serializable {
                 MechWeaponComponent component = mech.weaponAt(slot);
                 if (component != null) strike(ownedWeapons, component.id);
             }
-            for (MechInternal.Role role : MechInternal.Role.values()) {
-                MechInternal internal = mech.internal(role);
-                if (internal != null) strike(ownedInternals, internal.id);
-            }
-            strike(ownedReplenishers, mech.missileReplenisherId());
+            for (MechInternal internal : fittedInternals(mech)) strike(ownedInternals, internal.id);
             return true;
         }
         return false;
@@ -339,7 +377,6 @@ public final class MechBay implements Serializable {
         CampaignMechSquad squad = squadById(squadId);
         if (squad == null || mech == null || mechById(mech.id()) != null
                 || !squad.add(mech)) return false;
-        addReplenisher(mech.missileReplenisherId(), 1);
         addInstalledWeapons(mech);
         addInstalledInternals(mech);
         return true;
@@ -362,6 +399,26 @@ public final class MechBay implements Serializable {
     }
 
     /** Builds one standard-fit chassis into a vacant gantry in the selected lance. */
+    /**
+     * A bought chassis: {@link #fabricateChassis} stripped to its frame. Every weapon that is not
+     * factory-locked, the engine and the whole compartment come off; none of them was ever in
+     * stores, so stripping them makes no spares. It stays in its gantry until an engine and a
+     * capacitor bank are fitted ({@link CampaignMech#missingInternals}).
+     */
+    public CampaignMech fabricateFrame(String squadId, MechVariant variant) {
+        CampaignMech mech = fabricateChassis(squadId, variant);
+        if (mech == null) return null;
+        // fabricateChassis owned the standard fit's parts; a frame never had them.
+        for (MechInternal internal : fittedInternals(mech)) strike(ownedInternals, internal.id);
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponComponent component = mech.weaponAt(slot);
+            if (component != null && !MechFrameBudget.integral(variant, slot)) strike(ownedWeapons, component.id);
+        }
+        mech.stripToFrame();
+        for (MechInternal internal : fittedInternals(mech)) addInternal(internal.id, 1);
+        return mech;
+    }
+
     public CampaignMech fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || !canAddMech(squadId)) return null;
         int serial = nextAvailableSerial();
@@ -372,25 +429,6 @@ public final class MechBay implements Serializable {
         if (!addMech(squadId, mech)) return null;
         nextFabricatedSerial = serial + 1;
         return mech;
-    }
-
-    public int ownedReplenisher(String componentId) {
-        return Math.max(0, ownedReplenishers.getOrDefault(componentId, 0));
-    }
-
-    public int installedReplenisher(String componentId) {
-        int installed = 0;
-        for (CampaignMechSquad squad : squads) {
-            for (CampaignMech mech : squad.mechs()) {
-                if (mech.missileReplenisherId().equals(componentId)) installed++;
-            }
-        }
-        return installed;
-    }
-
-    public int availableReplenisher(String componentId) {
-        return Math.max(0, ownedReplenisher(componentId)
-                - installedReplenisher(componentId));
     }
 
     public int ownedWeapon(String componentId) {
@@ -430,10 +468,21 @@ public final class MechBay implements Serializable {
         int installed = 0;
         for (CampaignMechSquad squad : squads) {
             for (CampaignMech mech : squad.mechs()) {
-                if (mech.internal(internal.role) == internal) installed++;
+                for (MechInternal fitted : fittedInternals(mech)) if (fitted == internal) installed++;
             }
         }
         return installed;
+    }
+
+    /** Every internal on {@code mech}: its engine and plating, then each part in its compartment. */
+    private static List<MechInternal> fittedInternals(CampaignMech mech) {
+        List<MechInternal> fitted = new ArrayList<>();
+        MechInternal engine = mech.internal(MechInternal.Role.ENGINE);
+        if (engine != null) fitted.add(engine);
+        MechInternal plating = mech.internal(MechInternal.Role.PLATING);
+        if (plating != null) fitted.add(plating);
+        fitted.addAll(mech.compartment());
+        return fitted;
     }
 
     public int availableInternal(String internalId) {
@@ -446,24 +495,62 @@ public final class MechBay implements Serializable {
         ownedInternals.merge(internalId, quantity, Integer::sum);
     }
 
+    public int ownedKit(String kitId) {
+        return Math.max(0, ownedKits.getOrDefault(kitId, 0));
+    }
+
+    /** Kits of {@code kitId} on a vehicle's rack, across every lance. */
+    public int installedKit(String kitId) {
+        VehicleKit kit = VehicleKit.findById(kitId);
+        if (kit == null) return 0;
+        int installed = 0;
+        for (CampaignMechSquad squad : squads) {
+            for (CampaignVehicle vehicle : squad.vehicles()) if (vehicle.kits().contains(kit)) installed++;
+        }
+        return installed;
+    }
+
+    public int availableKit(String kitId) {
+        return Math.max(0, ownedKit(kitId) - installedKit(kitId));
+    }
+
+    /** Acquisition seam for fabricated or recovered kits. */
+    public void addKit(String kitId, int quantity) {
+        if (VehicleKit.findById(kitId) == null || quantity <= 0) return;
+        ownedKits.merge(kitId, quantity, Integer::sum);
+    }
+
+    /** Puts a spare {@code kit} on a vehicle's rack; false with no spare, no slot, or a hull it does not suit. */
+    public boolean fitKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        if (vehicle == null || kit == null || availableKit(kit.id) <= 0) return false;
+        return vehicle.fit(kit);
+    }
+
+    /** Takes {@code kit} off a vehicle's rack back to stores. */
+    public boolean stripKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && vehicle.remove(kit);
+    }
+
     /**
-     * Whether {@code internal} physically fits this mech: its role's socket exists on the
-     * chassis and holds the part's whole footprint (plating covers the frame and needs no
-     * socket), and a vent array never shares the utility socket with a non-standard loader.
-     * Mass is a separate question ({@link #withinBudget}).
+     * Whether {@code internal} physically fits this mech. An engine needs the core to hold its
+     * footprint; plating covers the frame and needs no socket; a compartment part needs the
+     * compartment, after the refit (a bank or loader replacing the one there, a vent going in
+     * beside the others), to keep its role limits and pack ({@link MechCompartment}). Mass is a
+     * separate question ({@link #withinBudget}).
      */
     public boolean canInstallInternal(String mechId, MechInternal internal) {
         CampaignMech mech = mechById(mechId);
         if (mech == null || internal == null) return false;
-        SocketId socketId = internal.role.socket();
-        if (socketId != null) {
-            SocketDef socket = MechFittingLayout.forVariant(mech.variant()).socket(socketId);
-            if (socket == null || !socket.accommodates(internal.footprintColumns, internal.footprintRows)) {
-                return false;
-            }
+        if (internal.role.compartment()) {
+            return MechCompartment.fits(mech.variant(),
+                    mech.fit().withInternal(internal.role, internal).compartment());
         }
-        return internal.role != MechInternal.Role.VENT_ARRAY
-                || !MechFrameBudget.loaderOccupiesUtility(mech.missileReplenisher());
+        SocketId socketId = internal.role.socket();
+        if (socketId == null) return true;
+        SocketDef socket = MechFittingLayout.forVariant(mech.variant()).socket(socketId);
+        return socket != null && socket.accommodates(internal.footprintColumns, internal.footprintRows);
     }
 
     /**
@@ -484,34 +571,31 @@ public final class MechBay implements Serializable {
     public boolean installInternal(String mechId, MechInternal internal) {
         CampaignMech mech = mechById(mechId);
         if (!canInstallInternal(mechId, internal)) return false;
-        if (mech.internal(internal.role) == internal) return true;
+        if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) return true;
         if (availableInternal(internal.id) <= 0
                 || !withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) return false;
         mech.installInternal(internal.role, internal);
         return true;
     }
 
-    /** Empties the optional utility socket; the vent array returns to stores. */
-    public boolean stripVentArray(String mechId) {
-        return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
-    }
-
     /**
-     * Empties one socketed internal back to stores. An engine or capacitor bank may be left
-     * empty too; the mech is then {@link CampaignMech.Readiness#INCOMPLETE} and stays off the
-     * drop manifest until one is fitted. Plating covers the frame and is only ever replaced.
+     * Takes one internal of {@code role} back to stores: the engine, or the first compartment part
+     * of that role. An engine or capacitor bank may be left out too; the mech is then
+     * {@link CampaignMech.Readiness#INCOMPLETE} and stays off the drop manifest until one is
+     * fitted. Plating covers the frame and is only ever replaced.
      */
     public boolean stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = mechById(mechId);
         if (mech == null || role == null || role.socket() == null || mech.internal(role) == null) return false;
+        if (role.compartment()) return mech.removePart(mech.internal(role));
         mech.installInternal(role, null);
         return true;
     }
 
-    /** Acquisition seam for salvage, fabrication, rewards, and tests. */
-    public void addReplenisher(String componentId, int quantity) {
-        if (MissileReplenisherComponent.findById(componentId) == null || quantity <= 0) return;
-        ownedReplenishers.merge(componentId, quantity, Integer::sum);
+    /** Takes one {@code part} out of the mech's compartment back to stores. */
+    public boolean stripPart(String mechId, MechInternal part) {
+        CampaignMech mech = mechById(mechId);
+        return mech != null && part != null && part.role.compartment() && mech.removePart(part);
     }
 
     /**
@@ -526,12 +610,6 @@ public final class MechBay implements Serializable {
      */
     public int loseSpares() {
         int destroyed = 0;
-        for (String componentId : new ArrayList<>(ownedReplenishers.keySet())) {
-            int installed = installedReplenisher(componentId);
-            destroyed += Math.max(0, ownedReplenisher(componentId) - installed);
-            if (installed <= 0) ownedReplenishers.remove(componentId);
-            else ownedReplenishers.put(componentId, installed);
-        }
         for (String componentId : new ArrayList<>(ownedWeapons.keySet())) {
             int installed = installedWeapon(componentId);
             destroyed += Math.max(0, ownedWeapon(componentId) - installed);
@@ -544,23 +622,13 @@ public final class MechBay implements Serializable {
             if (installed <= 0) ownedInternals.remove(internalId);
             else ownedInternals.put(internalId, installed);
         }
+        for (String kitId : new ArrayList<>(ownedKits.keySet())) {
+            int installed = installedKit(kitId);
+            destroyed += Math.max(0, ownedKit(kitId) - installed);
+            if (installed <= 0) ownedKits.remove(kitId);
+            else ownedKits.put(kitId, installed);
+        }
         return destroyed;
-    }
-
-    /** Atomic one-slot refit; failure leaves the installed component untouched. */
-    public boolean installReplenisher(String mechId, String componentId) {
-        CampaignMech mech = mechById(mechId);
-        MissileReplenisherComponent candidate =
-                MissileReplenisherComponent.findById(componentId);
-        if (mech == null || candidate == null) return false;
-        if (candidate.id().equals(mech.missileReplenisherId())) return true;
-        if (availableReplenisher(candidate.id()) <= 0) return false;
-        // A faster loader takes the utility socket a vent array would otherwise hold.
-        if (MechFrameBudget.loaderOccupiesUtility(candidate)
-                && (!MechFittingLayout.forVariant(mech.variant()).hasSocket(SocketId.MINI_FAB)
-                    || mech.internal(MechInternal.Role.VENT_ARRAY) != null)) return false;
-        mech.installMissileReplenisher(candidate.id());
-        return true;
     }
 
     public boolean canInstallWeapon(String mechId, MechMountSlot slot, String componentId) {
@@ -614,8 +682,8 @@ public final class MechBay implements Serializable {
 
     /**
      * Frozen values for the active squad's mechs that can deploy now; campaign objects stay in
-     * the roster. A damaged mech, one under repair, or one missing a required internal stays in
-     * its gantry ({@link #heldBack}).
+     * the roster. A mech under repair drops carrying the wear left on it; one missing a required
+     * internal stays in its gantry ({@link #heldBack}).
      */
     public List<MechDeploymentSpec> activeDeployment() {
         return activeDeployment(CampaignClock.dayFloat());
@@ -626,8 +694,8 @@ public final class MechBay implements Serializable {
         if (squad == null) return List.of();
         List<MechDeploymentSpec> deployment = new ArrayList<>();
         for (CampaignMech mech : squad.mechs()) {
-            if (mech.readiness(day) == CampaignMech.Readiness.READY) {
-                deployment.add(mech.freezeForDeployment());
+            if (mech.readiness(day) != CampaignMech.Readiness.INCOMPLETE) {
+                deployment.add(mech.freezeForDeployment(day));
             }
         }
         return Collections.unmodifiableList(deployment);
@@ -640,15 +708,13 @@ public final class MechBay implements Serializable {
         List<HeldBack> held = new ArrayList<>();
         for (CampaignMech mech : squad.mechs()) {
             CampaignMech.Readiness readiness = mech.readiness(day);
-            if (readiness != CampaignMech.Readiness.READY) {
-                held.add(new HeldBack(mech, readiness, mech.repairDaysRemaining(day)));
-            }
+            if (readiness == CampaignMech.Readiness.INCOMPLETE) held.add(new HeldBack(mech, readiness));
         }
         return Collections.unmodifiableList(held);
     }
 
-    /** A mech the drop manifest leaves out: awaiting a repair order, or under one. */
-    public record HeldBack(CampaignMech mech, CampaignMech.Readiness reason, float daysRemaining) {
+    /** A mech the drop manifest leaves out: one missing a required internal. */
+    public record HeldBack(CampaignMech mech, CampaignMech.Readiness reason) {
     }
 
     /** Frozen vehicles on the active squad's gantries, in gantry order. */
@@ -679,23 +745,16 @@ public final class MechBay implements Serializable {
                     MissileReplenisherComponent.STANDARD.id()));
         }
         activeSquadId = squad.id();
-        putAtLeast(MissileReplenisherComponent.STANDARD.id(), 1);
-        putAtLeast(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        // The legacy starter shipped with a spare accelerated loader beside the fitted one.
+        ownedInternals.merge(MechInternal.ACCELERATED_LOADER.id, 1, Math::max);
         for (CampaignMech mech : squad.mechs()) {
             addInstalledWeapons(mech);
             addInstalledInternals(mech);
         }
     }
 
-    private void putAtLeast(String componentId, int quantity) {
-        ownedReplenishers.merge(componentId, quantity, Math::max);
-    }
-
     private void addInstalledInternals(CampaignMech mech) {
-        for (MechInternal.Role role : MechInternal.Role.values()) {
-            MechInternal internal = mech.internal(role);
-            if (internal != null) addInternal(internal.id, 1);
-        }
+        for (MechInternal internal : fittedInternals(mech)) addInternal(internal.id, 1);
     }
 
     private void addInstalledWeapons(CampaignMech mech) {
@@ -729,6 +788,7 @@ public final class MechBay implements Serializable {
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
         if (ownedWeapons == null) ownedWeapons = new HashMap<>();
         if (ownedInternals == null) ownedInternals = new HashMap<>();
+        if (ownedKits == null) ownedKits = new HashMap<>();
         if (knownPatternIds == null) {
             knownPatternIds = starterPatternsOnly ? starterPatternIds() : allPatternIds();
         }
@@ -740,9 +800,14 @@ public final class MechBay implements Serializable {
         foundingModelInitialized = true;
         CampaignMechSquad active = activeSquad();
         activeSquadId = active != null ? active.id() : null;
-        for (MissileReplenisherComponent component : MissileReplenisherComponent.catalog()) {
-            putAtLeast(component.id(), installedReplenisher(component.id()));
+        // Loader stock from before loaders were parts: each replenisher id becomes its loader.
+        for (Map.Entry<String, Integer> stock : ownedReplenishers.entrySet()) {
+            MechInternal loader = MechInternal.loaderFor(stock.getKey());
+            if (loader != null && stock.getValue() != null && stock.getValue() > 0) {
+                ownedInternals.merge(loader.id, stock.getValue(), Math::max);
+            }
         }
+        ownedReplenishers.clear();
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
             ownedWeapons.merge(component.id, installedWeapon(component.id), Math::max);
         }

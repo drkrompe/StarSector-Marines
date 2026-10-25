@@ -1,0 +1,980 @@
+{
+  "alphaMin": 16,
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@export",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@export",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s@export",
+      "included": true,
+      "note": "Parapet collar piece s, export look.",
+      "rect": [
+        406,
+        38,
+        184,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n@export",
+      "included": true,
+      "note": "Parapet collar piece n, export look.",
+      "rect": [
+        406,
+        792,
+        184,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e@export",
+      "included": true,
+      "note": "Parapet collar piece e, export look.",
+      "rect": [
+        40,
+        415,
+        183,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w@export",
+      "included": true,
+      "note": "Parapet collar piece w, export look.",
+      "rect": [
+        773,
+        415,
+        183,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-se@export",
+      "included": true,
+      "note": "Parapet collar piece inner-se, export look.",
+      "rect": [
+        40,
+        38,
+        183,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-sw@export",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, export look.",
+      "rect": [
+        773,
+        38,
+        183,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-ne@export",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, export look.",
+      "rect": [
+        40,
+        792,
+        183,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw@export",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, export look.",
+      "rect": [
+        773,
+        792,
+        183,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-n@export",
+      "included": true,
+      "note": "Barricade piece n, export look.",
+      "rect": [
+        1167,
+        32,
+        174,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-n@export",
+      "included": true,
+      "note": "Barricade piece n, export look.",
+      "rect": [
+        1167,
+        32,
+        174,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-s@export",
+      "included": true,
+      "note": "Barricade piece s, export look.",
+      "rect": [
+        1167,
+        373,
+        174,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-s@export",
+      "included": true,
+      "note": "Barricade piece s, export look.",
+      "rect": [
+        1167,
+        373,
+        174,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-w@export",
+      "included": true,
+      "note": "Barricade piece w, export look.",
+      "rect": [
+        994,
+        203,
+        173,
+        170
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-w@export",
+      "included": true,
+      "note": "Barricade piece w, export look.",
+      "rect": [
+        994,
+        203,
+        173,
+        170
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-e@export",
+      "included": true,
+      "note": "Barricade piece e, export look.",
+      "rect": [
+        1341,
+        203,
+        173,
+        170
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-e@export",
+      "included": true,
+      "note": "Barricade piece e, export look.",
+      "rect": [
+        1341,
+        203,
+        173,
+        170
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-nw@export",
+      "included": true,
+      "note": "Barricade piece corner-nw, export look.",
+      "rect": [
+        994,
+        32,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-nw@export",
+      "included": true,
+      "note": "Barricade piece corner-nw, export look.",
+      "rect": [
+        994,
+        32,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-ne@export",
+      "included": true,
+      "note": "Barricade piece corner-ne, export look.",
+      "rect": [
+        1341,
+        32,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-ne@export",
+      "included": true,
+      "note": "Barricade piece corner-ne, export look.",
+      "rect": [
+        1341,
+        32,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-sw@export",
+      "included": true,
+      "note": "Barricade piece corner-sw, export look.",
+      "rect": [
+        994,
+        373,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-sw@export",
+      "included": true,
+      "note": "Barricade piece corner-sw, export look.",
+      "rect": [
+        994,
+        373,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-se@export",
+      "included": true,
+      "note": "Barricade piece corner-se, export look.",
+      "rect": [
+        1341,
+        373,
+        173,
+        171
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-se@export",
+      "included": true,
+      "note": "Barricade piece corner-se, export look.",
+      "rect": [
+        1341,
+        373,
+        173,
+        171
+      ]
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-0",
+      "included": true,
+      "rect": [
+        1022,
+        642,
+        76,
+        78
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-1",
+      "included": true,
+      "rect": [
+        1116,
+        642,
+        76,
+        78
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-2",
+      "included": true,
+      "rect": [
+        1210,
+        642,
+        77,
+        78
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-3",
+      "included": true,
+      "rect": [
+        1305,
+        642,
+        76,
+        78
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-4",
+      "included": true,
+      "rect": [
+        1022,
+        739,
+        76,
+        76
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-5",
+      "included": true,
+      "rect": [
+        1116,
+        739,
+        76,
+        76
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-6",
+      "included": true,
+      "rect": [
+        1210,
+        739,
+        77,
+        76
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-7",
+      "included": true,
+      "rect": [
+        1305,
+        739,
+        76,
+        76
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-8",
+      "included": true,
+      "rect": [
+        1022,
+        834,
+        76,
+        76
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-9",
+      "included": true,
+      "rect": [
+        1116,
+        834,
+        76,
+        76
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-10",
+      "included": true,
+      "rect": [
+        1210,
+        834,
+        77,
+        76
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-11",
+      "included": true,
+      "rect": [
+        1305,
+        834,
+        76,
+        76
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-12",
+      "included": true,
+      "rect": [
+        1022,
+        929,
+        76,
+        76
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-13",
+      "included": true,
+      "rect": [
+        1116,
+        929,
+        76,
+        76
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-14",
+      "included": true,
+      "rect": [
+        1210,
+        929,
+        77,
+        76
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.dark-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@export.faces-15",
+      "included": true,
+      "rect": [
+        1305,
+        929,
+        76,
+        76
+      ],
+      "slot": "faces-15"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-0",
+      "included": true,
+      "rect": [
+        1022,
+        642,
+        76,
+        78
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-1",
+      "included": true,
+      "rect": [
+        1116,
+        642,
+        76,
+        78
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-2",
+      "included": true,
+      "rect": [
+        1210,
+        642,
+        77,
+        78
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-3",
+      "included": true,
+      "rect": [
+        1305,
+        642,
+        76,
+        78
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-4",
+      "included": true,
+      "rect": [
+        1022,
+        739,
+        76,
+        76
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-5",
+      "included": true,
+      "rect": [
+        1116,
+        739,
+        76,
+        76
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-6",
+      "included": true,
+      "rect": [
+        1210,
+        739,
+        77,
+        76
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-7",
+      "included": true,
+      "rect": [
+        1305,
+        739,
+        76,
+        76
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-8",
+      "included": true,
+      "rect": [
+        1022,
+        834,
+        76,
+        76
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-9",
+      "included": true,
+      "rect": [
+        1116,
+        834,
+        76,
+        76
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-10",
+      "included": true,
+      "rect": [
+        1210,
+        834,
+        77,
+        76
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-11",
+      "included": true,
+      "rect": [
+        1305,
+        834,
+        76,
+        76
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-12",
+      "included": true,
+      "rect": [
+        1022,
+        929,
+        76,
+        76
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-13",
+      "included": true,
+      "rect": [
+        1116,
+        929,
+        76,
+        76
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-14",
+      "included": true,
+      "rect": [
+        1210,
+        929,
+        77,
+        76
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.light-concrete-wall@export",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@export.faces-15",
+      "included": true,
+      "rect": [
+        1305,
+        929,
+        76,
+        76
+      ],
+      "slot": "faces-15"
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the export emplacement style, look 'export': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/export.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@export of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/export.raw.png",
+  "sheetName": "fortworks-export"
+}

@@ -1,9 +1,11 @@
 # Mission layout
 
-Status: ACTIVE — lines of works, sites, roads, structures, blocks and ridges are
+Status: ACTIVE — lines of works, sites, roads, structures, blocks, props and ridges are
 built.
 
 Written: 2026-10-23
+
+Updated: 2026-10-24 — props set down by hand; a Ridge may carry terraces, places stood on its crest.
 
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
@@ -43,7 +45,10 @@ optional (reported, and the map stands).
   only on open country, not across another place's ground or the surveyed
   country (that ground's own streets serve), and only where it joins the
   network: a stretch cut off is left out rather than welded across somebody's
-  ground.
+  ground. A road that reaches the ground of the walled square place it leads
+  to is joined there, since that place's wall opens onto it or its arms reach
+  out to it: in a town no other road need run near (a town's Cordon supply
+  roads touched nothing at either end and were all thrown away).
 - **Structure.** Something raised at a place the mission chose, by kind: a
   farmstead (a farmhouse and a barn on a yard), a granary (a long store on a
   yard), an ammo dump (a sandbag ring round stacked crates), an observation
@@ -56,6 +61,14 @@ optional (reported, and the map stands).
   crates, which fire breaks and a dozer blade pushes), a wreck across a road
   (closed to vehicles until a dozer clears it; laid as crate stacks until
   there is wreck art), or sandbag positions facing a direction.
+- **Props.** Props set down by hand, each a doodad by id at a cell and turn,
+  laid with the works through the ordinary prop placement, which skips one
+  whose ground is not open. One piece, laid when any prop stood and reporting
+  how many did: set dressing that says what a place was (a freight yard's
+  containers, a lab's tank racks), never a building or cover a beat relies on.
+  A tree's canopy is set down through the forest brush, as the woods are: it
+  is planted, so paving under it is lifted to a grass bed, and it is refused
+  over a road, a building or anything already standing.
 - **Ridge.** High ground the works stand on: a band along a path
   (`elevation-nouns.md`, Ridges), raised at the start of the works phase,
   before any line is laid, so a line resolved along it is dug on its crest. It
@@ -69,7 +82,17 @@ optional (reported, and the map stands).
   banks kept for them; a band held for a layout Ridge is raised once.
   Plateaus are planned apart, so a plan asking for plateaus beside a Ridge is
   refused at generation rather than losing them silently. The Cordon's line
-  and the heart's forward line stand on one.
+  and the heart's forward line stand on one. A Ridge may carry **terraces**
+  (`elevation-nouns.md`, Terraces): places' boxes stood on its crest, their
+  roads ramped down, which the band runs on into rather than breaking at.
+  Each is reported as a ground piece of its own under its name (its box's
+  corners, its ramps' feet as the ways up), and a required one that cannot
+  stand fails the layout check like any required piece. A landscape's knolls
+  (`elevation-nouns.md`, Knolls) are terraces raised in the same stamp and
+  reported the same way, and a plan with a knoll runs the works phase even
+  when its layout is empty. A deferred piece can ask whether the landscape
+  held a cell before the places grew (`LayoutGround.isHeld`), to keep a site
+  off a ridge it would otherwise break.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,

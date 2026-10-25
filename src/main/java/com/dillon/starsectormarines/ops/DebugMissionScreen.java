@@ -26,7 +26,20 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     }
     @Override protected List<String> requiredElementIds() { return List.of("debug-missions-root", "debug-launch", "debug-back"); }
     @Override protected Map<String, Object> props() {
-        return model(catalog, selected, group, page, location, this::location, this::select, this::group, this::page, this::launch, this::onCancel);
+        Map<String, Object> props = model(catalog, selected, group, page, location, this::location, this::select,
+                this::group, this::page, this::launch, this::onCancel);
+        props.put("ravDensity", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleDensity));
+        props.put("ravBiome", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleBiome));
+        props.put("ravSeed", (Runnable) () -> rechoose(RavBloomDebugChoice::cycleSeed));
+        return props;
+    }
+    /** Changes the Rav Bloom choice and rebuilds the catalog so the selected mission carries its new seed. */
+    private void rechoose(Runnable change) {
+        change.run();
+        String id = selected == null ? null : selected.id;
+        catalog = DevConfig.DEBUG_CLIENT ? DebugMissionCatalog.missions(context.planet) : List.of();
+        selected = catalog.stream().filter(m -> m.id.equals(id)).findFirst().orElse(selected);
+        rebuildDocument();
     }
     static String allLocations() { return Strings.get("debugMissionAllLocations"); }
     private void select(Mission m) { selected = m; rebuildDocument(); }
@@ -72,7 +85,8 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     }
     static Map<String, Object> previewProps() {
         List<Mission> entries = DebugMissionCatalog.missions(null);
-        return model(entries, entries.get(1), 0, 0, m -> { }, i -> { }, i -> { }, () -> { }, () -> { });
+        Map<String, Object> props = model(entries, entries.get(1), 0, 0, m -> { }, i -> { }, i -> { }, () -> { }, () -> { });
+        return props;
     }
     static Map<String, Object> model(List<Mission> catalog, Mission selected, int group, int page,
                                      Consumer<Mission> choose, Consumer<Integer> filter, Consumer<Integer> turn,
@@ -129,6 +143,13 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         props.put("previous", (Runnable) () -> turn.accept(current - 1));
         props.put("next", (Runnable) () -> turn.accept(current + 1));
         props.put("previousDisabled", current == 0); props.put("nextDisabled", current + 1 >= pages);
+        var choosable = DebugMissionCatalog.scenario(selected);
+        props.put("ravOptionsDisabled", choosable == null || !choosable.ravBloom());
+        props.put("ravDensityLabel", RavBloomDebugChoice.densityLabel());
+        props.put("ravBiomeLabel", RavBloomDebugChoice.biomeLabel());
+        props.put("ravSeedLabel", RavBloomDebugChoice.seedLabel());
+        Runnable none = () -> { };
+        props.put("ravDensity", none); props.put("ravBiome", none); props.put("ravSeed", none);
         props.put("launch", launch); props.put("back", back); props.put("launchDisabled", selected == null);
         props.put("title", selected == null ? Strings.get("debugMissionUnavailable") : selected.name);
         var selectedStory = DebugMissionCatalog.scenario(selected);

@@ -1,0 +1,7 @@
+A single sprite LAYER for a top-down tactical game: the HEAD of the Rav Bloom Spitter as it SPITS acid, seen from DIRECTLY ABOVE, facing UP, as its own separate part.
+
+Reference image 1 is a shaded 3D render of exactly this pose from directly above: the exact silhouette, placement, scale and shading; fill it in, never move or reshape it. In it the head has reared back on its neck with the snout tilted up toward the camera, so the skull looks shorter and we see its top and back; the two crest blades are flared out wide; and the lower jaw has dropped and thrust forward past the snout, so the only part of the open mouth the camera can see is the dark gap at the front between the snout and the jaw's tip. Paint that gap as the open mouth glowing deep venom green, with a bead of acid at the lips. Do NOT paint a mouth on top of the head.
+
+Reference image 2 is the same head at rest: match its design exactly (narrow indigo skull, the single ivory crest ridge down its centre, amber eyes, slim ivory crest blades, dark wine-red sinew).
+
+Only the head: no body. Strict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.

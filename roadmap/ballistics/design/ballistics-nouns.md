@@ -283,7 +283,11 @@ half past the target, within the friend's radius plus a quarter cell of the
 line. The rifleman's refusal spends no cooldown, so the round goes the tick the
 lane clears, and each round of a burst checks again. A crew or a chassis also
 never puts a burst over its own hull, and a chassis never bursts a round where a
-friend's footprint reaches (`BallisticResolver.friendInBlast`). The checks read
+friend's footprint reaches (`BallisticResolver.friendInBlast`). A suit's missile
+pod keeps both: it holds a salvo with a friend in its lane, resolves every
+missile before committing any, and keeps the whole salvo on the rail, spending
+nothing, if one would burst where a friend or the wearer stands, which is how a
+round clipping cover beside the squad is caught. The checks themselves read
 only and draw nothing from the battle's random stream. Point fire a player aims
 is never held. Before it, an allied front of militia waves, technicals and
 Hounds spent much of its fire on itself: on the Broad Front at seed 404, 584

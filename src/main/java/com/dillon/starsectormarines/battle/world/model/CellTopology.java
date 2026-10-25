@@ -265,6 +265,10 @@ public class CellTopology {
     private byte[] plinthTiers;
     /** The tallest plinth ever raised on this map, in tiers; never lowered, because it sizes the sun's march. */
     private int highestPlinthTiers;
+    /** Each cell's fortification works style, by {@link #getWorksStyle}; null until a lot is marked. */
+    private byte[] worksStyle;
+    /** Each cell's roof damage as a {@link RoofDamage} ordinal, by {@link #getRoofDamage}; null until a roof is hit. */
+    private byte[] roofDamage;
 
     public String getWallGroundSurfaceId(int x, int y) {
         return inBounds(x, y) ? wallGroundSurfaces.get(y * width + x) : null;
@@ -455,7 +459,11 @@ public class CellTopology {
     public boolean isCrosswalkStripesHorizontal(int x, int y)              { return hasTag(x, y, Tag.CROSSWALK_HORIZ); }
     public void    setCrosswalkStripesHorizontal(int x, int y, boolean v)  { setTag(x, y, Tag.CROSSWALK_HORIZ, v); }
     public boolean isRoofDestroyed(int x, int y)                           { return hasTag(x, y, Tag.ROOF_DESTROYED); }
-    public void    setRoofDestroyed(int x, int y, boolean v)               { setTag(x, y, Tag.ROOF_DESTROYED, v); }
+    /** Opens or rebuilds the roof over a cell; a rebuilt roof is whole again ({@link #getRoofDamage}). */
+    public void setRoofDestroyed(int x, int y, boolean v) {
+        if (!v) setRoofDamage(x, y, RoofDamage.INTACT);
+        setTag(x, y, Tag.ROOF_DESTROYED, v);
+    }
     public boolean isFixture(int x, int y)                                 { return hasTag(x, y, Tag.FIXTURE); }
     public boolean isShallowWater(int x, int y)                            { return hasTag(x, y, Tag.SHALLOW_WATER); }
     public void    setFixture(int x, int y, boolean v)                     { setTag(x, y, Tag.FIXTURE, v); }
@@ -465,6 +473,36 @@ public class CellTopology {
     /** True iff the cell is part of a building and still has its intact roof — the aerial/indirect-fire shield discriminator. */
     public boolean isRoofIntact(int x, int y) {
         return getBuildingId(x, y) != 0 && !isRoofDestroyed(x, y);
+    }
+
+    // ----- Roof damage -----
+
+    /**
+     * What has happened to the roof over this cell: how it is drawn, never whether it shields (that is
+     * {@link #isRoofDestroyed}). A roof opened without a recorded cause reads as {@link RoofDamage#COLLAPSED}.
+     */
+    public RoofDamage getRoofDamage(int x, int y) {
+        if (!inBounds(x, y)) return RoofDamage.INTACT;
+        RoofDamage recorded = roofDamage == null ? RoofDamage.INTACT
+                : RoofDamage.ofOrdinal(roofDamage[index(x, y)]);
+        if (recorded == RoofDamage.INTACT && isRoofDestroyed(x, y)) return RoofDamage.COLLAPSED;
+        return recorded;
+    }
+
+    /**
+     * Records what has happened to the roof over this cell, as drawn. It opens nothing on its own: a roof over a
+     * wall has a state to draw but no shield to lose, so {@code MapEditor} sets the two separately.
+     */
+    public void setRoofDamage(int x, int y, RoofDamage damage) {
+        if (!inBounds(x, y)) return;
+        if (roofDamage == null) {
+            if (damage == RoofDamage.INTACT) return;
+            roofDamage = new byte[width * height];
+        }
+        int idx = index(x, y);
+        if (roofDamage[idx] == damage.ordinal()) return;
+        roofDamage[idx] = (byte) damage.ordinal();
+        markChanged(idx);
     }
 
     // ----- Wall direction mask -----
@@ -635,6 +673,32 @@ public class CellTopology {
     /** The tallest plinth ever raised on this map, in tiers; zero on a map that never had one. */
     public int highestPlinthTiers() {
         return highestPlinthTiers;
+    }
+
+    // ----- Works style -----
+
+    /**
+     * Which emplacement style the fortification works on this cell were built in, as
+     * {@code EmplacementStyle.ordinal() + 1}, or zero for a cell that is no fortification lot's.
+     * Presentation only: {@code FortWorks} reads it to draw a lot's walls, parapets and
+     * barricades in its guns' family, and no rule reads it.
+     */
+    public int getWorksStyle(int x, int y) {
+        if (worksStyle == null || !inBounds(x, y)) return 0;
+        return worksStyle[index(x, y)];
+    }
+
+    /** Sets the cell's works style; see {@link #getWorksStyle}. */
+    public void setWorksStyle(int x, int y, int style) {
+        if (!inBounds(x, y)) return;
+        if (worksStyle == null) {
+            if (style == 0) return;
+            worksStyle = new byte[width * height];
+        }
+        int idx = index(x, y);
+        if (worksStyle[idx] == style) return;
+        worksStyle[idx] = (byte) style;
+        markChanged(idx);
     }
 
     /**

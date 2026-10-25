@@ -56,7 +56,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fire` | control | 2026-10-22 | Standing control: master fire cost control that renderEvidence and the fire-colony/burn readings are measured against. |
 | `battle.fire.creepFilm` | experiment | 2026-10-22 | Fire: retire it, keeping the rule, once the owner accepts the bloom-m3 Burn re-render with 5-cell breaks. |
 | `battle.fire.laneDiscipline` | experiment | 2026-10-23 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.spread.<fuel>` | experiment | 2026-10-24 | Fire: cells one fuel (`brush`, `crown`, ...) carries a fire, in place of `FireFuel.spread`. Remove it with the losing arm once the owner answers the fire-flamer-woods pick, folding the answer into `FireFuel`. |
 | `battle.fire.spreadScale` | experiment | 2026-10-23 | Fire: a multiplier on each limited fuel's spread (0 = the old unbounded spread). Remove it with the losing arm once the owner picks how far a grass fire runs, folding the pick into `FireFuel`. |
 | `battle.fire.smoke` | control | 2026-10-22 | Standing control: the control loop of the fire-smoke scene verdict. Retire it with that loop. |
 | `battle.fire.stepOut` | control | 2026-10-22 | Standing control: the control loop of the fire-fear scene verdict. Retire it with that loop. |
@@ -65,7 +64,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.harrier.blood` | experiment | 2026-10-24 | Harrier sessions: remove with the losing modes once the owner answers the picks question harrier-blood (colony-breach-nouns.md, Harrier). |
 | `battle.heart.armourByNeed` | experiment | 2026-10-23 | Broad Front lanes call armour pairs from the vehicle park's tool shed by need, not on the waves' timetable (`heart-allied-commander.md`). Remove with the losing arm at the first played comparison once the owner answers `heart-allied-tool`; `false` is the control, the timetable. |
 | `battle.heart.broadArmourBehind` | experiment | 2026-10-23 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadArmourWaves` | experiment | 2026-10-23 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
@@ -85,7 +83,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.companySector` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.followBarrage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.frontage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
-| `battle.heart.gunshipPolicy` | experiment | 2026-10-24 | How the Broad Front commander risks its gunship, the owner's `heart-gunship` question (`HeartGunship.Policy`: REACHABLE_ONLY, ACCEPT_LOSSES, CLEAR_PATH, TOUGHER). Remove with the losing policies once the owner picks. |
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.laneFormation` | experiment | 2026-10-23 | Broad Front lanes as screened advances, screen by country (`heart-allied-commander.md`). Remove with the losing arm once the owner answers `heart-lane-formation`; `false` is the control, straight to the bore. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
@@ -125,7 +122,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.pathfinding.asyncDefendTrack` | config | 2026-09-22 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendTrack.queueCapacity` | config | 2026-09-22 | Permanent: the capacity of the async route queue. |
 | `battle.pathfinding.asyncDefendTrack.workers` | config | 2026-09-22 | Permanent: the size of the async route worker pool. |
-| `battle.pathfinding.casualtyRouteCost` | control | 2026-08-30 | Standing control: the CLAUDE.md worked example of a control run (killing-ground). Retire it when the example moves to another switch. |
+| `battle.pathfinding.casualtyRouteCost` | control | 2026-08-30 | Standing control: the worked example of a control run (killing-ground) in `snapshot-suites.md`. Retire it when the example moves to another switch. |
 | `battle.pathfinding.clearanceFailureBackoff` | experiment | 2026-10-14 | Mech clearance routing (mechs-nouns.md, 2026-10-14): remove once profileConvoyRoute has been read against it. |
 | `battle.pathfinding.fireRouteCost` | control | 2026-10-22 | Standing control: FireFearScene and FireHarmScene compare against the off arm. Fire-system session; retire with those loops. |
 | `battle.pathfinding.shareExhaustedFlood` | experiment | 2026-10-14 | As clearanceFailureBackoff. |
@@ -133,17 +130,17 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
-| `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (CLAUDE.md). |
-| `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (`render-evidence.md`). |
+| `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.creep` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
 | `battle.render.creepPalette` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
-| `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | control | 2026-10-22 | Standing control: fire render cost control for renderEvidence, as for battle.fire. |
-| `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
@@ -170,7 +167,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.unitUpdate.minimumParallelUnits` | config | 2026-08-24 | Permanent: determinism. Evidence tasks force the serial unit update with it. |
 | `battle.unitUpdate.parallelism` | config | 2026-09-26 | Permanent: an explicit unit-worker count for profiling runs. |
 | `battle.vehicle.activeProtection` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
-| `battle.vehicle.armorArcs` | control | 2026-10-19 | Standing control: the armorMatchup facing-dependent armour question (CLAUDE.md). Retire once facing is accepted in the vehicle balance pass. |
+| `battle.vehicle.armorArcs` | control | 2026-10-19 | Standing control: the armorMatchup facing-dependent armour question (`evidence-tasks.md`). Retire once facing is accepted in the vehicle balance pass. |
 | `battle.vehicle.backingTurnDegrees` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.crossfire` | experiment | 2026-10-23 | Crossfire (convoy-nouns.md): keep the rule and drop the switch if, against it as the control, two Hounds in a pincer beat the single approach against the laser, breakthrough and screened tanks (32 seeds) while the default ladder's one-on-one rows hold within noise; remove the class otherwise. |
 | `battle.vehicle.disarmedWithdraw` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
@@ -180,6 +177,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.vehicle.faceKnownOnly` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.faceWorstThreat` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.pivotAccuracy` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
+| `battle.vehicle.orderPlansPerTick` | tuning | 2026-10-24 | Move-order route proofs per tick (`VehicleMoveOrderSystem`); 0 plans every queued order at once, the control. Fold into the constant once the convoy and story-mission evidence has been read against it. |
 | `battle.vehicle.progressiveRecovery` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.recoveryExpansionsPerTick` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.rejectInvalidPlannerStart` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |

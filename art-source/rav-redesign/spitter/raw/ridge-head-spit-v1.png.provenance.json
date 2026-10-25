@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f40-8cbd-7e23-a120-bb3110174b6e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f40-8cbd-7e23-a120-bb3110174b6e\\exec-d6edbc47-04fd-4372-bbc4-939fa54c4c3b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\ridge-head-spit.png",
+    "sha256": "ae7f23d50201ff53b33cef54a6f1c72be97f53b4e3e35205fd7fef0ec8419f4f",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\ridge-head-spit.prompt.txt",
+  "promptSha256": "45dff15005849ce7630b7fa5d1271c722c3f9846dbc816f66810a20debb680e4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, position, scale and identity authority: keep everything except the open jaws and flared crest\n\nThe SAME image as reference image 1, pixel for pixel (same head, same scale, same position, same neck stump, colours, lighting and background), with ONE change: the head is SPITTING. Its jaws gape wide open at the snout, the mouth and throat glowing a deep venom green with a bead of acid at the lips, and its two ivory crest blades flare out wider to the sides. Still only the head, from directly above, facing up: no body.\n\nStrict overhead orthographic view, light from the upper left. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\ridge-head.png",
+      "sha256": "c5f241136934194025b7035860ab04a58bf8e54ed16ea32202f9563b35a19a1b",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry, position, scale and identity authority: keep everything except the open jaws and flared crest"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to make one edit, preserving the head’s placement and appearance while opening the jaws and flaring the crest blades.\n"
+  ],
+  "usage": {
+    "input_tokens": 60757,
+    "cached_input_tokens": 51968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 480,
+    "reasoning_output_tokens": 34
+  },
+  "elapsedSeconds": 38.8
+}

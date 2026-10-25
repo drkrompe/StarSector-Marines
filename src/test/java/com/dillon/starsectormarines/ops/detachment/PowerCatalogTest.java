@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -57,6 +58,12 @@ class PowerCatalogTest {
     @Test
     void aFrozenCloseAirSupportCommitmentRestoresThroughTheSameConstructor() {
         assertEquals(CloseAirSupport.ID, PowerCatalog.restore(CloseAirSupport.ID, List.of()).id);
+    }
+
+    @Test
+    void theDebugOnslaughtSurvivesTheLaunchCommitmentRoundTrip() {
+        CommandPower restored = CommandPowerCommitment.capture(new SpawnInOnslaught()).toPower();
+        assertEquals(SpawnInOnslaught.ID, restored.id);
     }
 
     @Test

@@ -443,7 +443,7 @@ public final class UiDocument {
 
     private static UiElement elementAt(UiElement element, float x, float y,
                                        Rect inheritedClip) {
-        if (element.pointerEvents() == PointerEvents.NONE) return null;
+        if (!element.displayed() || element.pointerEvents() == PointerEvents.NONE) return null;
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
         List<UiElement> children = element.children();
@@ -476,6 +476,7 @@ public final class UiDocument {
     }
 
     private static void collectTabOrder(UiElement element, List<UiElement> into) {
+        if (!element.displayed()) return;
         if (element.tabbable()) into.add(element);
         for (UiElement child : element.children()) collectTabOrder(child, into);
     }

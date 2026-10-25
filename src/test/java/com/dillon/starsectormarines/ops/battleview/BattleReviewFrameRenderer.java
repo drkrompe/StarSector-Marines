@@ -76,6 +76,7 @@ public final class BattleReviewFrameRenderer {
     private boolean impactEffects;
     private boolean unitShadows;
     private boolean roofs;
+    private boolean missionMarkers;
     private boolean presentation;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
@@ -145,6 +146,21 @@ public final class BattleReviewFrameRenderer {
      */
     public BattleReviewFrameRenderer withRoofs() {
         this.roofs = true;
+        return this;
+    }
+
+    /**
+     * Opts this renderer into {@link RenderLayer#MISSION_MARKERS}, for a look whose subject is one of its readouts
+     * (the lift timer). Its labels are battle glass, haloed text with no plate, so headless they draw as they do live.
+     */
+    public BattleReviewFrameRenderer withMissionMarkers() {
+        this.missionMarkers = true;
+        return this;
+    }
+
+    /** Takes the roof layer back off, for a look still that shows what stands under a building's roof. */
+    public BattleReviewFrameRenderer withoutRoofs() {
+        this.roofs = false;
         return this;
     }
 
@@ -346,6 +362,7 @@ public final class BattleReviewFrameRenderer {
         if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
         if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
         if (roofs) layers.add(RenderLayer.ROOFS);
+        if (missionMarkers) layers.add(RenderLayer.MISSION_MARKERS);
         return layers;
     }
 

@@ -5,12 +5,15 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.infantry.SquadRejoin;
+import com.dillon.starsectormarines.battle.mech.MechCarriedWear;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -149,7 +152,9 @@ public final class AirDeliveryContext {
 
     /** As above, for a frozen company vehicle whose loss writes back to its gantry. */
     public long deployVehicle(VehicleDeploymentSpec spec, float x, float y, float facingDeg) {
-        long id = deployVehicle(spec.type(), x, y, facingDeg);
+        VehicleMission mission = VehicleMission.deployed(x, y);
+        long id = roster.convoy().spawn(spec.type(), spec.kits(), faction, mission);
+        roster.convoy().body(id).teleport(x, y, facingDeg);
         roster.convoy().tagCompanyVehicle(id, spec.campaignId());
         return id;
     }
@@ -214,6 +219,25 @@ public final class AirDeliveryContext {
 
     public void attachMechLoadout(long unit, MechLoadoutComponent loadout) {
         roster.world().attachMechLoadout(unit, loadout);
+    }
+
+    /**
+     * Lays an unfinished repair's wear on a landed mech: its sections are divided now rather than
+     * at the first hit, and the chassis columns take their totals, so the health bar, the damage
+     * doll and the writeback all start from the worn body.
+     */
+    public void carryMechWear(long unit, MechLoadoutComponent loadout, MechCarriedWear wear) {
+        if (wear == null || wear.isEmpty() || !MechSections.ENABLED) return;
+        World world = roster.world();
+        boolean hasArmor = world.hasArmor(unit);
+        MechSections sections = loadout.sectionsFor(world.hp(unit), world.maxHp(unit),
+                hasArmor ? world.armor(unit) : 0f, hasArmor ? world.maxArmor(unit) : 0f);
+        sections.carryWear(wear);
+        world.setHp(unit, sections.totalStructure());
+        if (hasArmor) {
+            world.setMaxArmor(unit, sections.totalMaxArmor());
+            world.setArmor(unit, sections.totalArmor());
+        }
     }
 
     /** Marks a landed mech as the company's own {@code campaignId}, so its damage writes back. */

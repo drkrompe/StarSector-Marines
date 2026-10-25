@@ -192,6 +192,20 @@ public final class UiElement {
         return this;
     }
 
+    /**
+     * Sizes the drawing surface to the laid-out content box, one surface unit to one document
+     * pixel. A canvas whose box is shaped by the layout rather than by its surface would
+     * otherwise stretch everything drawn in it (glyphs, icons, cards) by the box's aspect.
+     * Call after layout; a canvas not yet laid out is left alone.
+     */
+    public void fitCanvasToBox() {
+        requireCanvas();
+        if (box() == null) return;
+        int width = Math.max(1, Math.round(box().contentBox().width()));
+        int height = Math.max(1, Math.round(box().contentBox().height()));
+        if (width != canvasWidth || height != canvasHeight) canvasSize(width, height);
+    }
+
     public int canvasWidth() {
         requireCanvas();
         return canvasWidth;
@@ -420,6 +434,24 @@ public final class UiElement {
                 + computedStyle.borderWidth() * 2f;
     }
 
+    /** The border-box {@code min-width}, or NaN when none is declared. */
+    float resolvedMinWidth(float basis) {
+        if (computedStyle == null) return Float.NaN;
+        float contentWidth = computedStyle.minWidth(basis);
+        if (Float.isNaN(contentWidth)) return Float.NaN;
+        return contentWidth + computedStyle.padding(basis).horizontal()
+                + computedStyle.borderWidth() * 2f;
+    }
+
+    /** The border-box {@code min-height}, or NaN when none is declared. */
+    float resolvedMinHeight(float heightBasis, float widthBasis) {
+        if (computedStyle == null) return Float.NaN;
+        float contentHeight = computedStyle.minHeight(heightBasis);
+        if (Float.isNaN(contentHeight)) return Float.NaN;
+        return contentHeight + computedStyle.padding(widthBasis).vertical()
+                + computedStyle.borderWidth() * 2f;
+    }
+
     public UiElement grow(float grow) {
         this.grow = Math.max(0f, grow);
         authoredStyle.put(StyleProperty.FLEX_GROW, this.grow);
@@ -452,6 +484,11 @@ public final class UiElement {
         return computedStyle == null ? null : computedStyle.alignItems();
     }
 
+    /** CSS main-axis placement for this element's row or column children. */
+    public UiJustify justifyContent() {
+        return computedStyle == null ? UiJustify.START : computedStyle.justifyContent();
+    }
+
     public UiElement overflow(Overflow overflow) {
         this.overflow = Objects.requireNonNull(overflow, "overflow");
         authoredStyle.put(StyleProperty.OVERFLOW, overflow);
@@ -462,6 +499,14 @@ public final class UiElement {
     public Overflow overflow() {
         if (computedStyle != null) return computedStyle.overflow();
         return overflow;
+    }
+
+    /**
+     * False under {@code display: none}: the element and its subtree leave layout, gap
+     * slots, paint, hit-testing and tab order. Authored through CSS only.
+     */
+    public boolean displayed() {
+        return computedStyle == null || computedStyle.displayed();
     }
 
     /**

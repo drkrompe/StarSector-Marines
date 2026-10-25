@@ -6,6 +6,8 @@ Written: 2026-10-21
 
 Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of the water cells' squares.
 
+Updated: 2026-10-24 — a bloom's calls are the only missions the campaign seeds by planet.
+
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
 fixture lineage and Marine rescue commander, with a colony worth fighting
@@ -82,7 +84,9 @@ lifecycle (`campaign-event-nouns.md`). A rescue with no bloom behind it would
 be a Colony Breach with nothing coming out of the ground, so there is none.
 The live system is `RavBloomSystem`; everything it does to a market goes
 through a `BloomWorld`, so the rules run unchanged over a synthetic sector in
-evidence.
+evidence. A bloom's calls are the **only missions the campaign seeds by
+planet** (owner, 2026-10-24; `contracts-nouns.md`, Where missions come from):
+everything else is story work.
 
 **Spores travel with people** (owner, 2026-10-22). Dormant Bloom material rides
 on cargo and arrives with people who do not know they carry it, all through
@@ -1077,10 +1081,10 @@ not read in a soft shadow at play zoom.
     bites once as it passes; one whose body is gone gives its dive up. A bite
     kicks dust off the ground and strikes sparks off the plate, and on a body
     that bleeds throws blood on along the stroke (`ImpactFx.spawnClawStrike`,
-    queued by the sim as presentation). How heavy the blood is, and whether a
-    bite leaves a short-lived stain on the ground (a small blood pool that
-    spreads and fades over twenty seconds), is open to the owner's pick
-    (`-Dbattle.harrier.blood`, `HarrierBlood`). Rarely, a seeded share of bites on a
+    queued by the sim as presentation), and leaves a short-lived stain where it
+    landed: a spatter of fine droplets thrown on along the stroke, drawn from
+    the fallen-body pool art, that fades over twenty seconds (owner's pick).
+    Rarely, a seeded share of bites on a
     marine who lives through them (`HarrierRules.LIFT_CHANCE`), it **lifts** the
     marine off its feet and throws it a couple of cells on along the dive
     (`HarrierLift`): up and down again in under a second, turning over, its
@@ -1724,9 +1728,17 @@ bed. **Rav Bloom sound re-uses rather than multiplies** (owner): a new sound
 is first tried as an accepted take of another played at another pitch, which
 also sets its tempo, and ships no audio of its own when that serves; the
 creep bed is the bore-tier ambience slowed, the spine strike the Brute's
-head-ram quickened and its wall hit slowed, drawn from one pool. Each strain's sound is admitted under its own gap and
-footfalls come from the few bodies nearest the listener, so a pack reads as a
-pack, and the swarm is heard only on ground the player has seen. A body's growth
+head-ram quickened and its wall hit slowed, drawn from one pool. **A crowd is heard by layering** (owner, 2026-10-24): several voices of one
+sound play at once, up to that sound's voice count, each quieter the more are
+sounding, so many bodies doing one thing are thicker and somewhat louder than
+one without drowning the fire around them; two voices of one sound never start
+on one tick (the second waits a tick or two), and one body does not repeat
+itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
+the listener, so a pack reads as a pack, and the swarm is heard only on ground
+the player has seen. **A thrown body lands with one thud** whatever threw it
+(owner, 2026-10-24): a marine a Brute tramples, a Matriarch's reap throws or a
+Harrier drops, and a shot Harrier reaching the ground, a little lighter; it is
+the landing body's own sound, posted by that body. A body's growth
 stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
@@ -1735,7 +1747,20 @@ no voice. The Matriarch is the biggest of the Runner's and Brute's family and
 sounds it: only her roar (out of the bore and at each moult) and the whoosh
 and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
 wall breaking, pain and death are the Brute's, played deeper, slower and
-further apart.
+further apart. The Harrier is the other way round, lighter and quicker
+(`HarrierAudio`): chitin wingbeats on the downstroke of every flier within
+earshot, its one take of its own, cut short from the Runner's clatter and
+levelled so a stroke is heard; the Runner's cry as a screech the moment each
+member's wings fold for the dive, its strike as the bite and its impale as the
+snatch of a marine it lifts (the throw lands with the body thud), the Runner's
+yelp when flak hurts it, a Spitter's death shriek played lower as it is killed,
+and the body thud, lighter, where its fall reaches the ground. It is read
+off the pack and its falls and throws rather than posted by them, so the flier's
+simulation stays silent. Its pack layers by the crowd rule above, a lone
+flier's voice set low for the same reason, and each sound's level is set from
+its borrowed takes' measured loudness, since those differ by some 25 dB. Timing
+and jitter run on simulation time and a seed, so a replay
+sounds the same and a review can mix its soundtrack from the same rules.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

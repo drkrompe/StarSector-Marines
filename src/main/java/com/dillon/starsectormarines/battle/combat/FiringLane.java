@@ -19,24 +19,17 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
  * directly in front reads its lane as clear, keeps its target and fires into
  * their back.
  *
- * <p>The geometry here is the one {@code OverwatchKillZone} already uses to
- * reject an overwatch position whose firing lane a friendly occupies, and the
- * constants are deliberately shared with it and with the ballistic model rather
- * than restated: a body inside
- * {@link BallisticResolver#PROXIMITY_CATCH_ZERO_DISTANCE} of the muzzle has no
- * catch chance, so it does not block, and a lane is as wide as the body in it.
+ * <p>The geometry is the firing gate's own, {@link BallisticResolver#inLane},
+ * asked per gathered body rather than restated. A reflex that steps out of a
+ * blocked lane has to agree with the rule that holds the trigger, or it
+ * declines on a lane the gate holds on (a friend just past the target, in
+ * melee with him) and refuses cells the gate would fire from (a lane drawn
+ * wider than the body in it walls off every cell beside a packed squad).
  *
  * <p>This answers only <em>is somebody in the way</em>. What that is worth is
- * the caller's judgement: the target picker treats it as a cost rather than a
- * veto, because a squad in column all declining to fire at once is a worse
- * answer than the shot they would otherwise take.
+ * the caller's judgement.
  */
 public final class FiringLane {
-
-    /** Minimum lane half-width in cells, for a body smaller than the round needs. */
-    public static final float CLEARANCE_CELLS = 1.5f;
-    /** Added to a body's own radius when that is the wider of the two. */
-    public static final float RADIUS_MARGIN_CELLS = 0.5f;
 
     private FiringLane() {}
 
@@ -117,30 +110,17 @@ public final class FiringLane {
 
     /**
      * True when one of {@code allies} stands in the lane from
-     * {@code (fromX, fromY)} to {@code (toX, toY)}.
-     *
-     * <p>Deliberately excludes a body at either end: one closer to the muzzle
-     * than the ballistic model's zero-catch distance cannot take the round, and
-     * one at or past the target is not between anything.
+     * {@code (fromX, fromY)} to {@code (toX, toY)}, by the lane the firing gate
+     * holds on ({@link BallisticResolver#inLane}): clear of the muzzle's
+     * zero-catch distance, within a body's radius plus a margin of the line, and
+     * as far as just past the target, where a missed round goes first.
      */
     public static boolean blocked(Friendlies allies,
                                   float fromX, float fromY,
                                   float toX, float toY) {
-        float dx = toX - fromX;
-        float dy = toY - fromY;
-        float lengthSq = dx * dx + dy * dy;
-        if (lengthSq < 1e-4f) return false;
-        float length = (float) Math.sqrt(lengthSq);
         for (int i = 0; i < allies.size; i++) {
-            float relX = allies.xs[i] - fromX;
-            float relY = allies.ys[i] - fromY;
-            float progress = (relX * dx + relY * dy) / length;
-            if (progress <= BallisticResolver.PROXIMITY_CATCH_ZERO_DISTANCE) continue;
-            if (progress >= length) continue;
-            float lateral = Math.abs(relX * -dy + relY * dx) / length;
-            float clearance = Math.max(CLEARANCE_CELLS,
-                    allies.radii[i] + RADIUS_MARGIN_CELLS);
-            if (lateral < clearance) return true;
+            if (BallisticResolver.inLane(fromX, fromY, toX, toY,
+                    allies.xs[i], allies.ys[i], allies.radii[i])) return true;
         }
         return false;
     }

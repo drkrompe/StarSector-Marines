@@ -7,9 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Pins the decision-side lane test: whether one of the shooter's own stands
- * between the muzzle and the target, asked with the same boundaries
- * {@code BallisticResolver} uses from the round's side. {@code LaneSidestep}
- * and the mech overwatch position search are built on it.
+ * in the lane to the target, by the same lane the firing gate holds on.
+ * {@code LaneSidestep} is built on it.
  */
 public class FiringLaneTest {
 
@@ -29,7 +28,32 @@ public class FiringLaneTest {
     @Test
     public void somebodyStandingWellOffTheLineIsNot() {
         assertFalse(FiringLane.blocked(at(20f, 24f, 0.4f), 10f, 20f, 30f, 20f),
-                "four cells to the side of a lane a cell and a half wide");
+                "four cells to the side of the lane");
+    }
+
+    /**
+     * The lane is the firing gate's, as wide as the body in it and a margin. A
+     * squadmate a shoulder off the line leaves it clear: a lane drawn wider than
+     * the gate's walls off every cell beside a packed squad, so the sidestep
+     * found nowhere to go while the gate held the trigger.
+     */
+    @Test
+    public void somebodyAShoulderOffTheLineLeavesItClearAsTheGateDoes() {
+        float x = 20f, y = 21f, radius = 0.4f;
+        assertFalse(FiringLane.blocked(at(x, y, radius), 10f, 20f, 30f, 20f));
+        assertFalse(BallisticResolver.inLane(10f, 20f, 30f, 20f, x, y, radius));
+    }
+
+    /**
+     * A friend in melee with the target, just past him, is where a missed round
+     * goes first, and the gate holds on him. A lane that stopped at the target
+     * declined to step on a lane the gate would not fire down.
+     */
+    @Test
+    public void somebodyJustPastTheTargetIsInTheWayAsTheGateHolds() {
+        float x = 31f, y = 20f, radius = 0.4f;
+        assertTrue(FiringLane.blocked(at(x, y, radius), 10f, 20f, 30f, 20f));
+        assertTrue(BallisticResolver.inLane(10f, 20f, 30f, 20f, x, y, radius));
     }
 
     /**
@@ -46,7 +70,7 @@ public class FiringLaneTest {
     }
 
     @Test
-    public void somebodyBeyondTheTargetIsNotBetweenAnything() {
+    public void somebodyWellBeyondTheTargetIsNotInTheWay() {
         assertFalse(FiringLane.blocked(at(40f, 20f, 0.4f), 10f, 20f, 30f, 20f));
     }
 }

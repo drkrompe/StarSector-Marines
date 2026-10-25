@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.turret.FortWorks;
+
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
@@ -47,6 +49,7 @@ import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
+import com.dillon.starsectormarines.battle.infantry.LaneRetarget;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.HeldSpecialPose;
@@ -66,6 +69,8 @@ import com.dillon.starsectormarines.battle.fort.FortSystem;
 import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.fort.FortTag;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FluxShieldSpec;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -234,6 +239,7 @@ import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.nav.ReachableRegion;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
@@ -248,7 +254,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
 import com.dillon.starsectormarines.battle.nav.SquadRouteRequest;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
@@ -552,6 +557,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
+    /** The dozer's blade: what it pushes, and the view of the map a bladed hull's route proof reads. */
+    private DozerBlade blade;
     private final List<ParkedAircraft> parkedAircraft = new ArrayList<>();
     /**
      * Transient visual side-effects — persistent ground decals, smoking wrecks,
@@ -1473,6 +1480,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.engagement = new EngagementService(rosterService);
         this.damageService = new DamageService(
                 (target, attacker, damage, penetration, moraleImpact, part) -> {
+                    // A hardpoint's raised shield stops a round from its arc whole, before armour sees it.
+                    if (turretShields.absorbs(target, attacker, damage, shieldPositions)) return;
                     BodyCarrier carrier = rosterService.bodies().carrierOf(target);
                     if (carrier != null) {
                         bodyDamageResolver.resolve(carrier, target, attacker,
@@ -1652,16 +1661,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     || rosterService.convoy().isVehicle(id)
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
-        // Fire discipline before the trigger: a trained rifleman, a disciplined crew and a chassis's fire control
-        // look down the lane and at where a burst will land, and hold rather than fire through or onto their own
-        // side. -Dbattle.fire.laneDiscipline=false is the control, leaving only the after-the-fact hold roll.
+        // Fire discipline before the trigger: a trained rifleman, a disciplined crew, a chassis's fire control
+        // and a suit's missile pod look down the lane and at where a burst will land, and hold rather than fire
+        // through or onto their own side. A trained shooter held there longer than a new target takes to register shoots one with a clear
+        // lane instead (LaneRetarget). -Dbattle.fire.laneDiscipline=false is the control, leaving only the
+        // after-the-fact hold roll.
         if (Boolean.parseBoolean(System.getProperty("battle.fire.laneDiscipline", "true"))) {
             firingSystem.setFriendInLane(ballisticResolver::friendInLane);
+            rosterService.combat().setFireRedirect(new LaneRetarget(ballisticResolver::friendInLane,
+                    tacticalScoring, rosterService.combat(), rosterService.world(), this::getSimTickIndex));
             infantry.setLaneDiscipline(true);
             turretFire.setLaneDiscipline(true);
             heavy.setLaneDiscipline(true);
+            integralSystemSystem.setLaneDiscipline(true);
         }
-        groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        blade = new DozerBlade(navigation, mapEditor, doodadService);
+        groundSystem.setBlade(blade);
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
@@ -1836,10 +1851,46 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Structures built in a style other than the default, by entity; kept for the battle, through a change of hands. */
     private final Long2ObjectOpenHashMap<EmplacementStyle> structureStyles = new Long2ObjectOpenHashMap<>();
 
-    /** Records how structure {@code id} was built ({@link DefensePost#style}); presentation only. */
+    /**
+     * Records how structure {@code id} was built ({@link DefensePost#style}). Presentation, except that a look may fit
+     * the structure's flux shield ({@link StructureDef#fluxShieldIn}), which is fitted or taken away here.
+     */
     public void setStructureStyle(long id, EmplacementStyle style) {
         if (style == null || style == EmplacementStyle.BRUTALIST) structureStyles.remove(id);
         else structureStyles.put(id, style);
+        fitFluxShield(id);
+    }
+
+    /** Fits turret {@code id} with the flux shield its structure carries in the style it was built in, or none. */
+    private void fitFluxShield(long id) {
+        TurretStateService state = rosterService.turretState();
+        StructureDef structure = state.isTurret(id) ? state.structure(id) : null;
+        FluxShieldSpec spec = structure != null ? structure.fluxShieldIn(structureStyle(id)) : null;
+        if (spec == null) {
+            turretShields.remove(id);
+            return;
+        }
+        // The turret's facing is its barrel's, a quarter turn from a bearing.
+        turretShields.fit(id, spec, structure.look(structureStyle(id)).shield(), state.facingDegrees(id) + 90f);
+    }
+
+    /** The battle's hardpoint flux shields ({@link TurretShieldService}). */
+    public TurretShieldService turretShields() { return turretShields; }
+
+    private final TurretShieldService turretShields = new TurretShieldService();
+
+    /** Where an entity is for a shield's bearing, or {@code NaN} when it has no position left to read. */
+    private final TurretShieldService.Positions shieldPositions = new TurretShieldService.Positions() {
+        @Override public float x(long id) { return positionOrNaN(id, true); }
+        @Override public float y(long id) { return positionOrNaN(id, false); }
+    };
+
+    private float positionOrNaN(long id, boolean xAxis) {
+        try {
+            return xAxis ? world.x(id) : world.y(id);
+        } catch (RuntimeException released) {
+            return Float.NaN;
+        }
     }
 
     /** How structure {@code id} was built: {@link EmplacementStyle#BRUTALIST} unless its post said otherwise. */
@@ -1896,6 +1947,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public float physicalRadius(long id) {
         return rosterService.radius(id);
+    }
+
+    @Override
+    public ReachableRegion mechReachableRegion(long unit) {
+        return navigation.mechReachableRegion(world().x(unit), world().y(unit), physicalRadius(unit));
     }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
@@ -2079,6 +2135,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fogOfWar.setBuildings(buildings);
     }
     public void addDoodad(Doodad d) {
+        // A fortification lot's pieces wear its style's art; nothing else about them changes.
+        d = FortWorks.dress(d, topology, TileRegistry.installed());
         doodadService.addDoodad(d);
         if (d.hasFogSurface()) fogOfWar.registerSolidProp(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY);
     }
@@ -2484,7 +2542,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         compoundService.initFrom(map);
     }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
-    public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
+    public void setDefensePosts(List<DefensePost> posts) {
+        FortWorks.settle(topology, posts);
+        tactical.setDefensePosts(posts);
+    }
 
     /**
      * How far each cell is from the thing the battle is about, or {@code null}
@@ -2585,6 +2646,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The runtime map-modification ops: breaches, rubble, and opened sally doors. */
     public MapEditor mapEditor() { return mapEditor; }
+
+    /** The dozer's blade, whose {@link DozerBlade#planningGrid} is the map a bladed hull's move order is proved over. */
+    public DozerBlade blade() { return blade; }
 
     /** The battle's sally doors: forts' ports and the doors walled places have where their walls send a holder round. */
     public SallyDoors sallyDoors() { return sallyDoors; }
@@ -3474,10 +3538,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // still at its tick-start position. Workers only read the published
         // fields; a step advanced during dispatch falls back until next tick.
         goapStageStart = System.nanoTime();
-        List<SquadRouteRequest> routeRequests =
-                SharedGoalPolicy.usesSquadRouteCorridors(liveUnitCount())
-                        ? SquadRoutePreparationSystem.collect(this)
-                        : List.of();
+        List<SquadRouteRequest> routeRequests = SquadRoutePreparationSystem.collect(this);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_COLLECTION,
                 System.nanoTime() - goapStageStart);
         goapStageStart = System.nanoTime();
@@ -3594,7 +3655,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
         // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
-                directControl.intent().secondary(), directControl.mechPicks());
+                directControl.intent().secondary(), directControl.triggerPicks());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Squads told to open a wall spend what their ordinary firing left on it.
         wallBreach.tick(this);
@@ -3618,6 +3679,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         SmokeTactics.serveScreens(this);
         // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
         shieldDomes.tick(TICK_DT, rosterService);
+        // Hardpoint shields face their threat, rise or fold, drain and recover; a destroyed gun's goes with it.
+        tickTurretShields();
         // Cover screens build, age, and retire here. Nothing downstream of
         // this pass depends on the ordering: a screen changes only cover,
         // which every reader samples live at the moment a round resolves.
@@ -3788,7 +3851,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Standing assaults on garrisonables end or aim their turrets, from the side's beliefs, first.
         MachineAssaults.tickVehicles(this);
         MachineGuards.tickVehicles(this);
-        groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
+        groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent(), directControl.triggerPicks());
         // A hull a Brute ran into slides and rocks on top of its own drive (HullSlide).
         for (long hull : convoy().entityIds()) {
             GroundBody body = convoy().body(hull);
@@ -4337,9 +4400,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                                 Faction shooterFaction, StructureDef structure, long target,
                                 boolean aerialShooter, boolean hasLos,
                                 float mountFacingDegrees, int releaseIndex) {
-        return turretFire.fire(shooterId, fromX, fromY, shooterFaction,
+        boolean released = turretFire.fire(shooterId, fromX, fromY, shooterFaction,
                 structure, target, aerialShooter, hasLos,
                 mountFacingDegrees, releaseIndex);
+        if (released) turretShields.noteRound(shooterId);
+        return released;
+    }
+
+    private void tickTurretShields() {
+        for (int i = turretShields.size() - 1; i >= 0; i--) {
+            long id = turretShields.at(i).id;
+            if (!world.isAlive(id)) turretShields.remove(id);
+        }
+        turretShields.tick(TICK_DT, shieldPositions, this::targetOf);
     }
 
     /**

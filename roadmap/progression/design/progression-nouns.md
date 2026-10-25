@@ -6,6 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-10-23 — a billet may carry a second, thrown special on the belt.
 
+Updated: 2026-10-24 — warrant obligations ask loyalty only; service and service calls retired with generic contracts.
+
 ## Purpose
 
 Progression is the cross-tier model for a mercenary company's growing combat
@@ -204,12 +206,10 @@ legibility.
   teaches nothing by itself. Always written in full: the Agreus contracts'
   *civil-security procurement warrant* is a contract term that opens no access
   tier, and neither noun stands for the other.
-- **Warrant obligations** — what a held military warrant costs to keep: service
-  and loyalty in each obligation period. A warrant that is kept is *active*; one
-  whose period was missed or whose loyalty was broken is *suspended*; one whose
-  issuer turned hostile is *revoked*. An *honoured* period is one in which both
-  terms were kept. A *service call* is an ordinary contract the issuer sends the
-  company directly, with a deadline.
+- **Warrant obligations** — what a held military warrant costs to keep: loyalty
+  in each obligation period. A warrant that is kept is *active*; one whose
+  loyalty was broken is *suspended*; one whose issuer turned hostile is
+  *revoked*. An *honoured* period is one that ended with loyalty kept.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
   carries it. Authored stock the market channel displays, not a fifth channel.
@@ -523,10 +523,10 @@ The print-stock economy they fed — owned counts, per-soldier allocation agains
 those counts, and fabrication materials — has been deleted along with the
 retired fire-team refit APIs that were its only readers. Equipment is owned as
 cards, and fitting is free. **Victory milestones grant authored cards**, each paid
-once and recorded so a load never pays it again: Checkpoint Issue at two victories,
-the Sindrian Security sheet at three, Trench-Clearing Issue at four, and Line
-Infantry Issue at five victories with one of them high-risk
-(`VictoryMilestones`). Story copy may call such a reward access to military
+once and recorded so a load never pays it again: the Sindrian Security sheet at
+three victories, Trench-Clearing Issue at four, and Line Infantry Issue at five
+with one of them high-risk (`VictoryMilestones`). Nothing is paid at two: the
+Wayline opening's cards are A Proper Issue's choice and Checkpoint Issue on sale. Story copy may call such a reward access to military
 equipment; what the company receives is the card. The ladder is deliberately
 modest: a reward, not twelve marines with a delete button. A deterministic **safety
 net** keeps the collection at or above a floor of cards beyond the starter pair: one
@@ -717,33 +717,32 @@ somebody's auxiliary (`meta-progression.md` refuses Capability with no
 counter-pressure). Every warrant, standing or authored, states its terms when first
 held, and the same terms bind both:
 
-- **Service:** in each 90-day obligation period the company completes at least one
-  contract for the issuer. A service call counts, and is how the issuer makes sure
-  there is one: thirty days before a period ends without service, it sends an
-  ordinary contract from its own houses, open until the period ends.
 - **Loyalty:** the company takes no contract against the issuer, and keeps the
   relationship at the warrant's floor. The floor is Favorable for an authored
   warrant, the licence threshold it was offered at, and the standing rule's own
   Cooperative for a standing one.
 
-A period with both is honoured and the next begins; the Hegemony auxiliary
-warrant's first honoured period is what opens its stage two. A period that ends
-without service, a contract taken against the issuer, or the relationship slipping
-below the floor **suspends** the warrant at once. Ninety days is the length chosen:
-shorter makes the warrant a chore that dictates the campaign, longer makes the
-obligation a formality.
+**Service** (a contract completed for the issuer each period, with a *service
+call* the issuer sent when none was) is retired: the campaign no longer offers
+generic contracts to serve with (`contracts-nouns.md`, Where missions come from).
+What a warrant asks of a company in their place belongs to the progression
+rework (`v0.2.md`).
+
+A 90-day period that ends with loyalty kept is honoured and the next begins; the
+Hegemony auxiliary warrant's first honoured period is what opens its stage two. A
+contract taken against the issuer, or the relationship slipping below the floor,
+**suspends** the warrant at once.
 
 A suspended warrant's cards are not warranted: they cannot be acquired again, and
 no squad can be **newly given** one. A squad already holding the card keeps it, and
 its replacements are dressed from it as from any card, because a squad's kit is
 always what its cards issue. Nothing learned is revoked and no squad's card is taken
 away; the warrant caps how many squads field its cards, which is where a powered
-company feels the pressure over a long campaign. The issuer sends a suspended company a service call at once, and one
-completed service with the relationship back at the floor restores the warrant and
-begins a fresh period.
+company feels the pressure over a long campaign. A suspension begins a fresh period,
+and the first one that ends with loyalty kept restores the warrant.
 
 A relationship that falls to hostile **revokes** the warrant: the suspension rules
-apply permanently, and no service lifts them. An authored warrant is never
+apply permanently, and no loyal period lifts them. An authored warrant is never
 re-offered, but the standing rule still applies, and a fresh standing grant from
 the same tradition replaces the revoked one.
 

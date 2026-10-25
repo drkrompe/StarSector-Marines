@@ -552,10 +552,20 @@ public final class HeartLanes {
     /** The supply road the base's armour and ammunition come up (F6). */
     private HeartSupplyRoad road = new HeartSupplyRoad(List.of());
 
+    /** The grounds of the lanes that take waves, in lane order: the allied lanes beside the company's. */
+    public List<HeartLane> waveGrounds() {
+        List<HeartLane> out = new ArrayList<>();
+        for (Lane lane : lanes) if (lane.teams > 0) out.add(lane.ground);
+        return out;
+    }
+
     /** Each lane as it stands, for a probe: its aim, militia, formation and marching columns. */
     public List<String> describe(BattleSimulation sim) {
         List<String> out = new ArrayList<>();
+        out.add("map " + sim.getGrid().getWidth() + "x" + sim.getGrid().getHeight());
+        if (companySector != null) out.add("company sector " + companySector.across() + " +/- " + companySector.halfWidth());
         for (Lane lane : lanes) {
+            out.add("ground " + lane.ground.across() + " +/- " + lane.ground.halfWidth());
             int alive = 0;
             if (lane.squads != null) for (int squad : lane.squads) alive += sim.squadMemberCount(squad);
             out.add("lane " + lane.number + " aim " + lane.targetX + "," + lane.targetY + (lane.broken ? " broken" : "")

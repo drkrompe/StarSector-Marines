@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -14,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
+import java.util.ArrayDeque;
 import java.util.Random;
 
 /**
@@ -40,7 +42,7 @@ public final class SpawnAnchorStage implements GenStage {
             // actually grew - on a map whose garrison is in the west it puts
             // the attacker on top of it. The plan already says both things.
             marine = outOfDoors(grid, ctx.topology, pickPlacementSpawn(grid, ctx, plan, rng));
-            defender = pickObjectiveSpawn(grid, ctx, plan, rng);
+            defender = pickObjectiveSpawn(grid, ctx, plan, reachableFrom(grid, marine), rng);
         } else if (axis != null) {
             marine   = pickBiomeSpawn(grid, ctx.topology, biomeMap, BiomeKind.BEACH,
                     rng, axis, false);
@@ -191,9 +193,16 @@ public final class SpawnAnchorStage implements GenStage {
      * <p>Its claim rather than its seed, because a seed is one cell and may have
      * been built on. Falls back to the far half of the map when nothing on it is
      * programmed, which is a map with no installation to hold.
+     *
+     * <p>A cell of the claim the attacker can walk to, not merely one in the
+     * claim's box. The box of a walled place takes in ground the place never
+     * claimed — a corner between its wall and the map's edge, which nothing
+     * opens onto — and a defender drawn there is a side of the battle nobody
+     * can reach: measured on an Assault garrison, the spawn landed in a 428-cell
+     * corner pocket outside the wall.
      */
     private static int[] pickObjectiveSpawn(NavigationGrid grid, GenContext ctx,
-                                            PrecinctPlan plan, Random rng) {
+                                            PrecinctPlan plan, boolean[] reachable, Random rng) {
         Precinct objective = plan.objective();
         int[][] claim = ctx.get(BspKeys.PRECINCT_CLAIM);
         if (objective == null || claim == null) {
@@ -214,7 +223,45 @@ public final class SpawnAnchorStage implements GenStage {
             }
         }
         if (x1 < 0) return new int[]{objective.seedX(), objective.seedY()};
+        int w = ctx.width;
+        int spanX = Math.max(1, x1 - x0);
+        int spanY = Math.max(1, y1 - y0);
+        for (int i = 0; i < 64; i++) {
+            int x = x0 + rng.nextInt(spanX);
+            int y = y0 + rng.nextInt(spanY);
+            if (claim[x][y] == who && reachable[y * w + x]) return new int[]{x, y};
+        }
+        for (int y = y0; y <= y1; y++) {
+            for (int x = x0; x <= x1; x++) {
+                if (claim[x][y] == who && reachable[y * w + x]) return new int[]{x, y};
+            }
+        }
         return pickSpawnAnchor(grid, x0, y0, x1, y1, rng);
+    }
+
+    /**
+     * Every cell a unit standing on {@code from} can walk to, by the
+     * pathfinder's own step rule, indexed {@code y * width + x}.
+     */
+    private static boolean[] reachableFrom(NavigationGrid grid, int[] from) {
+        int w = grid.getWidth();
+        boolean[] seen = new boolean[w * grid.getHeight()];
+        if (!grid.inBounds(from[0], from[1]) || !grid.isWalkable(from[0], from[1])) return seen;
+        ArrayDeque<int[]> frontier = new ArrayDeque<>();
+        seen[from[1] * w + from[0]] = true;
+        frontier.add(from);
+        while (!frontier.isEmpty()) {
+            int[] at = frontier.poll();
+            for (Direction d : Direction.ALL) {
+                int nx = at[0] + d.dx;
+                int ny = at[1] + d.dy;
+                if (!grid.inBounds(nx, ny) || seen[ny * w + nx]) continue;
+                if (!grid.canTraverseCellStep(at[0], at[1], d)) continue;
+                seen[ny * w + nx] = true;
+                frontier.add(new int[]{nx, ny});
+            }
+        }
+        return seen;
     }
 
     /**

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
+import com.dillon.starsectormarines.ui.retained.UiJustify;
 import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
@@ -34,10 +35,11 @@ final class StyleValues {
             case DISPLAY -> parseDisplay(value);
             case FLEX_DIRECTION -> parseDirection(value);
             case ALIGN_ITEMS -> parseAlignItems(value);
+            case JUSTIFY_CONTENT -> parseJustifyContent(value);
             case POSITION -> parsePosition(value);
             case LEFT, TOP -> parseLength(value, true);
             case POINTER_EVENTS -> parsePointerEvents(value);
-            case WIDTH, HEIGHT -> parseLength(value, true);
+            case WIDTH, HEIGHT, MIN_WIDTH, MIN_HEIGHT -> parseLength(value, true);
             case FLEX_GROW -> nonNegativeNumber(property, value);
             case ROW_GAP, COLUMN_GAP,
                  PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT -> parseLength(value, false);
@@ -60,7 +62,8 @@ final class StyleValues {
         return switch (value.toLowerCase(Locale.ROOT)) {
             case "flex" -> UiDisplay.FLEX;
             case "grid" -> UiDisplay.GRID;
-            default -> throw new UiStyleException("display supports flex or grid, not \""
+            case "none" -> UiDisplay.NONE;
+            default -> throw new UiStyleException("display supports flex, grid, or none, not \""
                     + value + "\".");
         };
     }
@@ -90,6 +93,17 @@ final class StyleValues {
             case "end", "flex-end" -> UiAlign.END;
             case "stretch" -> UiAlign.STRETCH;
             default -> throw new UiStyleException("align-items supports start, center, end, or stretch: " + value);
+        };
+    }
+
+    private static UiJustify parseJustifyContent(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "start", "flex-start" -> UiJustify.START;
+            case "center" -> UiJustify.CENTER;
+            case "end", "flex-end" -> UiJustify.END;
+            case "space-between" -> UiJustify.SPACE_BETWEEN;
+            default -> throw new UiStyleException(
+                    "justify-content supports start, center, end, or space-between: " + value);
         };
     }
 

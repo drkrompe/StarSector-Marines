@@ -1,0 +1,141 @@
+{
+ "sheetName": "origin-lab-kit",
+ "sheet": "art-source/tilesets/origin-lab-kit.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-lab-kit",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-lab-kit.png",
+ "note": "The research site's specimen tank rack (water tanks, a crustacean in each) and sample freezer, broken open from inside and empty once grown. Geometry-first ImageGen reskin of art-source/templates/heart-lab-kit-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1208x1302 against a 832x896 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + lab-kit.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    70,
+    70,
+    558,
+    186
+   ],
+   "id": "origin-lab.tank-rack-clean",
+   "cover": "med",
+   "ballisticHalfHeight": 0.5,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    70,
+    395,
+    558,
+    186
+   ],
+   "id": "origin-lab.tank-rack",
+   "cover": "med",
+   "ballisticHalfHeight": 0.5,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    70,
+    721,
+    558,
+    186
+   ],
+   "id": "origin-lab.tank-rack-damaged",
+   "cover": "med",
+   "ballisticHalfHeight": 0.5,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    70,
+    1046,
+    558,
+    186
+   ],
+   "id": "origin-lab.tank-rack-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    3,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    767,
+    70,
+    372,
+    186
+   ],
+   "id": "origin-lab.sample-freezer-clean",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    767,
+    395,
+    372,
+    186
+   ],
+   "id": "origin-lab.sample-freezer",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    767,
+    721,
+    372,
+    186
+   ],
+   "id": "origin-lab.sample-freezer-damaged",
+   "cover": "med",
+   "ballisticHalfHeight": 0.4,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    767,
+    1046,
+    372,
+    186
+   ],
+   "id": "origin-lab.sample-freezer-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    1
+   ],
+   "included": true
+  }
+ ]
+}

@@ -1,27 +1,29 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The painted Mech Lab icon for each weapon, internal and missile loader: a flat pictogram in a dark shade and a light
+ * The painted Mech Lab icon for each weapon and internal (loaders among them): a flat pictogram in a dark shade and a light
  * highlight, laid over the hardware's coloured bricks so the hardpoint colour is the icon's
  * own ground (after MechWarrior 4's lab). Each drawing's viewBox matches its footprint, so it
- * fills the piece it sits on. Fragmentation racks are their rack plus a burst mark.
+ * fills the piece it sits on. Fragmentation racks are their rack plus a burst mark. A sealed vehicle
+ * card ({@link VehicleDoll}) and each rack kit draw the same way.
  */
 final class HardwareArt {
     private static final String ROOT = "graphics/ui/mech-hardware/";
     private static final Map<MechWeaponComponent, SvgAsset> ART = new EnumMap<>(MechWeaponComponent.class);
     private static final Map<MechInternal, SvgAsset> INTERNALS = new EnumMap<>(MechInternal.class);
-    private static SvgAsset standardLoader;
-    private static SvgAsset acceleratedLoader;
+    private static final Map<String, SvgAsset> VEHICLE = new HashMap<>();
+    private static final Map<VehicleKit, SvgAsset> KITS = new EnumMap<>(VehicleKit.class);
     private static SvgAsset fragMark;
     private static boolean loaded;
 
@@ -39,10 +41,27 @@ final class HardwareArt {
                 INTERNALS.put(internal, SvgAsset.load(ROOT + stem(internal) + ".svg"));
             }
         }
-        standardLoader = SvgAsset.load(ROOT + "loader-standard.svg");
-        acceleratedLoader = SvgAsset.load(ROOT + "loader-accelerated.svg");
+        for (String stem : VehicleDoll.ART) VEHICLE.put(stem, SvgAsset.load(ROOT + stem + ".svg"));
+        for (VehicleKit kit : VehicleKit.values()) KITS.put(kit, SvgAsset.load(ROOT + stem(kit) + ".svg"));
         fragMark = SvgAsset.load(ROOT + "frag-mark.svg");
         loaded = true;
+    }
+
+    /** A sealed vehicle card's drawing ({@link VehicleDoll#art}) inside the box; false for none. */
+    static boolean drawVehicle(CanvasContext c, String stem, float x, float y, float width, float height, int alpha) {
+        preload();
+        return draw(c, stem != null ? VEHICLE.get(stem) : null, x, y, width, height, alpha);
+    }
+
+    /** A rack kit's icon inside the box. */
+    static boolean draw(CanvasContext c, VehicleKit kit, float x, float y, float width, float height, int alpha) {
+        preload();
+        return draw(c, KITS.get(kit), x, y, width, height, alpha);
+    }
+
+    /** {@code kit.applique-plate} draws from {@code kit-applique-plate.svg}. */
+    private static String stem(VehicleKit kit) {
+        return kit.id.replace('.', '-');
     }
 
     /** Draws the icon inside the box; false only for an empty box. */
@@ -71,13 +90,6 @@ final class HardwareArt {
         return draw(c, INTERNALS.get(internal), x, y, width, height, alpha);
     }
 
-    static boolean draw(CanvasContext c, MissileReplenisherComponent loader,
-                        float x, float y, float width, float height, int alpha) {
-        preload();
-        return draw(c, MissileReplenisherComponent.ACCELERATED_FEED.equals(loader)
-                ? acceleratedLoader : standardLoader, x, y, width, height, alpha);
-    }
-
     private static boolean draw(CanvasContext c, SvgAsset art,
                                 float x, float y, float width, float height, int alpha) {
         if (art == null || width <= 0f || height <= 0f) return false;
@@ -94,6 +106,8 @@ final class HardwareArt {
             case DOUBLE_CAPACITOR_BANK -> "capacitor-double";
             case MILITARY_CAPACITOR_BANK -> "capacitor-military";
             case AUXILIARY_VENT_ARRAY -> "vent-auxiliary";
+            case STANDARD_LOADER -> "loader-standard";
+            case ACCELERATED_LOADER -> "loader-accelerated";
             case FACTORY_PLATING, COMPOSITE_PLATING, HEAVY_PLATING -> null;
         };
     }

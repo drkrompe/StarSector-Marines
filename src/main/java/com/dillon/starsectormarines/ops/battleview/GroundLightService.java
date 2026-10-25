@@ -212,6 +212,47 @@ public final class GroundLightService {
         return count;
     }
 
+    /**
+     * The light falling on a body standing at {@code x, y}: every live and fire light reaching it, each its colour
+     * times its intensity times the ground's radial falloff squared, into {@code out[0..2]}; and in {@code out[3]}
+     * the direction, in radians in cell space, the strongest share of it comes from. Zeroes where nothing reaches.
+     * Every light, not only the eight the ground composite selects: those are chosen for the camera's centre, and a
+     * body at the edge of the view should still catch the blast beside it.
+     */
+    void lightAt(float x, float y, float[] out) {
+        float r = 0f, g = 0f, b = 0f, dirX = 0f, dirY = 0f;
+        for (int i = 0, n = live.size() + fireLights.size(); i < n; i++) {
+            Light light = i < live.size() ? live.get(i) : fireLights.get(i - live.size());
+            float dx = light.x - x, dy = light.y - y;
+            float reach = light.radius;
+            if (Math.abs(dx) >= reach || Math.abs(dy) >= reach) continue;
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            float radial = 1f - distance / Math.max(reach, 0.001f);
+            if (radial <= 0f) continue;
+            float strength = light.effectiveIntensity() * radial * radial;
+            r += light.color.getRed() / 255f * strength;
+            g += light.color.getGreen() / 255f * strength;
+            b += light.color.getBlue() / 255f * strength;
+            if (distance > 1e-4f) {
+                dirX += dx / distance * strength;
+                dirY += dy / distance * strength;
+            }
+        }
+        out[0] = r;
+        out[1] = g;
+        out[2] = b;
+        out[3] = (float) Math.atan2(dirY, dirX);
+    }
+
+    /** The short-lived event lights (muzzles, impacts, blasts, bolts), not the fire's: night draws fire itself. */
+    int eventCount() {
+        return live.size();
+    }
+
+    Light event(int index) {
+        return live.get(index);
+    }
+
     Light selected(int index) {
         return selected[index];
     }

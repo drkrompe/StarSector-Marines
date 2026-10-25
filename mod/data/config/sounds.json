@@ -923,4 +923,8 @@
 	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
 	"marines_breach_creep_spread": [{"file": "sounds/battle/colony-breach/marines_breach_bore_ambience_bore_1.ogg", "pitch": 0.85, "volume": 0.7}, {"file": "sounds/battle/colony-breach/marines_breach_bore_ambience_bore_2.ogg", "pitch": 0.85, "volume": 0.7}],
 	"marines_breach_spine_strike": [{"file": "sounds/battle/colony-breach/marines_breach_brute_impact_1.ogg", "pitch": 1.15, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_brute_impact_2.ogg", "pitch": 1.15, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_brute_impact_3.ogg", "pitch": 1.15, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_brute_charge_hit_wall_1.ogg", "pitch": 0.85, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_brute_charge_hit_wall_2.ogg", "pitch": 0.85, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_brute_charge_hit_wall_3.ogg", "pitch": 0.85, "volume": 1.0}],
+	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
+	"marines_breach_harrier_wingbeat": [{"file": "sounds/battle/colony-breach/marines_breach_harrier_wingbeat_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_harrier_wingbeat_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_harrier_wingbeat_3.ogg", "pitch": 1.0, "volume": 1.0}],
+	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
+	"marines_breach_body_thud": [{"file": "sounds/battle/colony-breach/marines_breach_body_thud_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_body_thud_3.ogg", "pitch": 1.0, "volume": 1.0}],
 }

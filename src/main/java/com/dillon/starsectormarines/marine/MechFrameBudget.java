@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechFrame;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The engine budget and the frame values one fit resolves to. Engine output is a mass
@@ -97,20 +100,37 @@ public final class MechFrameBudget {
         };
     }
 
-    /** One fit's budget and frame, computed from what is installed; nothing is stored. */
+    /** Whether {@code slot}'s hardware on this chassis is factory-locked: part of the frame. */
+    public static boolean integral(MechVariant variant, MechMountSlot slot) {
+        MechFittingLayout.SocketId socket = switch (slot) {
+            case ARMS -> MechFittingLayout.SocketId.ARMS;
+            case LEFT_ARM -> MechFittingLayout.SocketId.LEFT_ARM;
+            case RIGHT_ARM -> MechFittingLayout.SocketId.RIGHT_ARM;
+            case LEFT_SHOULDER -> MechFittingLayout.SocketId.LEFT_SHOULDER;
+            case RIGHT_SHOULDER -> MechFittingLayout.SocketId.RIGHT_SHOULDER;
+        };
+        MechFittingLayout.SocketDef def = MechFittingLayout.forVariant(variant).socket(socket);
+        return def != null && def.factoryLocked();
+    }
+
+    /**
+     * One fit's budget and frame, computed from what is installed; nothing is stored. The
+     * compartment holds capacitor banks, vent arrays and loaders in fitted order
+     * ({@link MechCompartment}); whether it packs is a separate question from the budget.
+     */
     public record Fit(MechVariant variant,
                       MechWeaponComponent arms,
                       MechWeaponComponent leftArm, MechWeaponComponent rightArm,
                       MechWeaponComponent leftShoulder,
                       MechWeaponComponent rightShoulder,
                       MechInternal engine, MechInternal plating,
-                      MechInternal capacitorBank, MechInternal ventArray) {
+                      List<MechInternal> compartment) {
 
         public Fit {
             if (variant == null) throw new IllegalArgumentException("Mech variant is required");
             if (engine == null) engine = MechInternal.INDUSTRIAL_ENGINE;
             if (plating == null) plating = MechInternal.FACTORY_PLATING;
-            if (capacitorBank == null) capacitorBank = MechInternal.FACTORY_CAPACITOR_BANK;
+            compartment = compartment == null ? List.of() : List.copyOf(compartment);
         }
 
         /**
@@ -119,13 +139,12 @@ public final class MechFrameBudget {
          */
         public Fit(MechVariant variant, MechWeaponComponent armWeapon,
                    MechWeaponComponent leftShoulder, MechWeaponComponent rightShoulder,
-                   MechInternal engine, MechInternal plating,
-                   MechInternal capacitorBank, MechInternal ventArray) {
+                   MechInternal engine, MechInternal plating, List<MechInternal> compartment) {
             this(variant,
                     variant != null && !variant.twoArmed() ? armWeapon : null,
                     variant != null && variant.twoArmed() ? armWeapon : null,
                     variant != null && variant.twoArmed() ? armWeapon : null,
-                    leftShoulder, rightShoulder, engine, plating, capacitorBank, ventArray);
+                    leftShoulder, rightShoulder, engine, plating, compartment);
         }
 
         /** The arm gun this fit carries: the centreline gun, or the left arm's on a two-armed chassis. */
@@ -143,20 +162,39 @@ public final class MechFrameBudget {
         /** This fit's internals around {@code weapons}' guns. */
         public Fit withWeaponsOf(Fit weapons) {
             return new Fit(variant, weapons.arms, weapons.leftArm, weapons.rightArm,
-                    weapons.leftShoulder, weapons.rightShoulder, engine, plating, capacitorBank, ventArray);
+                    weapons.leftShoulder, weapons.rightShoulder, engine, plating, compartment);
         }
 
-        /** The chassis's factory fit on industrial parts. */
+        /** The stock compartment: a factory capacitor bank and the standard loader. */
+        public static List<MechInternal> stockCompartment() {
+            return List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER);
+        }
+
+        /**
+         * A bought chassis as it leaves the fabricator: its plating and any factory-locked
+         * hardware, which are the frame, and nothing else. Its engine here is only the budget's
+         * stand-in and its compartment is empty; the frame cannot drop until both are fitted.
+         */
+        public static Fit frame(MechVariant variant) {
+            return new Fit(variant, integral(variant, MechMountSlot.ARMS) ? variant.arms : null,
+                    integral(variant, MechMountSlot.LEFT_ARM) ? variant.leftArm : null,
+                    integral(variant, MechMountSlot.RIGHT_ARM) ? variant.rightArm : null,
+                    integral(variant, MechMountSlot.LEFT_SHOULDER) ? variant.leftShoulder : null,
+                    integral(variant, MechMountSlot.RIGHT_SHOULDER) ? variant.rightShoulder : null,
+                    null, null, List.of());
+        }
+
+        /** The chassis's factory fit on stock parts. */
         public static Fit stock(MechVariant variant) {
             return new Fit(variant, variant.arms, variant.leftArm, variant.rightArm,
-                    variant.leftShoulder, variant.rightShoulder, null, null, null, null);
+                    variant.leftShoulder, variant.rightShoulder, null, null, stockCompartment());
         }
 
         public static Fit of(CampaignMech mech) {
             return new Fit(mech.variant(), mech.arms(), mech.leftArm(), mech.rightArm(),
                     mech.leftShoulder(), mech.rightShoulder(),
                     mech.internal(MechInternal.Role.ENGINE), mech.internal(MechInternal.Role.PLATING),
-                    mech.internal(MechInternal.Role.CAPACITOR_BANK), mech.internal(MechInternal.Role.VENT_ARRAY));
+                    mech.compartment());
         }
 
         public MechWeaponComponent weaponAt(MechMountSlot slot) {
@@ -176,25 +214,59 @@ public final class MechFrameBudget {
                     slot == MechMountSlot.RIGHT_ARM ? component : rightArm,
                     slot == MechMountSlot.LEFT_SHOULDER ? component : leftShoulder,
                     slot == MechMountSlot.RIGHT_SHOULDER ? component : rightShoulder,
-                    engine, plating, capacitorBank, ventArray);
+                    engine, plating, compartment);
         }
 
+        /** The first part of {@code role}; null when the compartment holds none. */
         public MechInternal internal(MechInternal.Role role) {
             return switch (role) {
                 case ENGINE -> engine;
                 case PLATING -> plating;
-                case CAPACITOR_BANK -> capacitorBank;
-                case VENT_ARRAY -> ventArray;
+                default -> {
+                    for (MechInternal part : compartment) if (part.role == role) yield part;
+                    yield null;
+                }
             };
         }
 
-        /** Replaces the part in {@code role}; a null vent array empties the utility socket. */
+        /** The reservoir: the fitted bank, or the factory bank standing in for an empty compartment. */
+        public MechInternal capacitorBank() {
+            MechInternal bank = internal(MechInternal.Role.CAPACITOR_BANK);
+            return bank != null ? bank : MechInternal.FACTORY_CAPACITOR_BANK;
+        }
+
+        /** The first vent array, or null. */
+        public MechInternal ventArray() {
+            return internal(MechInternal.Role.VENT_ARRAY);
+        }
+
+        /**
+         * Replaces the engine or plating, or changes the compartment as a refit would: a capacitor
+         * bank or loader replaces the one there, a vent array goes in beside the others, and null
+         * takes every part of the role out.
+         */
         public Fit withInternal(MechInternal.Role role, MechInternal internal) {
-            return new Fit(variant, arms, leftArm, rightArm, leftShoulder, rightShoulder,
-                    role == MechInternal.Role.ENGINE ? internal : engine,
-                    role == MechInternal.Role.PLATING ? internal : plating,
-                    role == MechInternal.Role.CAPACITOR_BANK ? internal : capacitorBank,
-                    role == MechInternal.Role.VENT_ARRAY ? internal : ventArray);
+            if (!role.compartment()) {
+                return new Fit(variant, arms, leftArm, rightArm, leftShoulder, rightShoulder,
+                        role == MechInternal.Role.ENGINE ? internal : engine,
+                        role == MechInternal.Role.PLATING ? internal : plating, compartment);
+            }
+            List<MechInternal> parts = new ArrayList<>(compartment);
+            if (internal == null || MechCompartment.limit(role) == 1) parts.removeIf(part -> part.role == role);
+            if (internal != null) parts.add(internal);
+            return new Fit(variant, arms, leftArm, rightArm, leftShoulder, rightShoulder, engine, plating, parts);
+        }
+
+        /** This fit with one {@code part} taken out of the compartment. */
+        public Fit withoutPart(MechInternal part) {
+            List<MechInternal> parts = new ArrayList<>(compartment);
+            parts.remove(part);
+            return new Fit(variant, arms, leftArm, rightArm, leftShoulder, rightShoulder, engine, plating, parts);
+        }
+
+        /** Whether the compartment's parts obey its role limits and pack onto its grid. */
+        public boolean compartmentFits() {
+            return MechCompartment.fits(variant, compartment);
         }
 
         public float output() {
@@ -206,9 +278,8 @@ public final class MechFrameBudget {
             for (MechMountSlot slot : MechMountSlot.values()) {
                 mass += MechFrameBudget.mass(weaponAt(slot));
             }
-            for (MechInternal.Role role : MechInternal.Role.values()) {
-                mass += MechFrameBudget.mass(internal(role), variant);
-            }
+            mass += MechFrameBudget.mass(engine, variant) + MechFrameBudget.mass(plating, variant);
+            for (MechInternal part : compartment) mass += MechFrameBudget.mass(part, variant);
             return mass;
         }
 
@@ -225,12 +296,15 @@ public final class MechFrameBudget {
         }
 
         public float fluxCapacity() {
-            return capacitorBank.fluxCapacity;
+            return capacitorBank().fluxCapacity;
         }
 
+        /** The bank's base dissipation, every vent array's addition and the engine's penalty. */
         public float dissipationPerSecond() {
-            float dissipation = capacitorBank.dissipation + engine.dissipation
-                    + (ventArray != null ? ventArray.dissipation : 0f);
+            float dissipation = capacitorBank().dissipation + engine.dissipation;
+            for (MechInternal part : compartment) {
+                if (part.role == MechInternal.Role.VENT_ARRAY) dissipation += part.dissipation;
+            }
             return Math.max(0f, dissipation);
         }
 
@@ -241,10 +315,5 @@ public final class MechFrameBudget {
         private static float band(float stock, float refit, float fraction) {
             return fraction <= 0f ? stock : stock + (refit - stock) * Math.min(1f, fraction);
         }
-    }
-
-    /** True when a loader other than the standard one occupies the utility socket. */
-    static boolean loaderOccupiesUtility(MissileReplenisherComponent loader) {
-        return loader != null && !MissileReplenisherComponent.STANDARD.id().equals(loader.id());
     }
 }

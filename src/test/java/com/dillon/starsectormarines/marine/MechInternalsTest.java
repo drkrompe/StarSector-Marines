@@ -136,20 +136,22 @@ class MechInternalsTest {
     }
 
     @Test
-    void aFasterLoaderAndAVentArrayShareTheUtilitySocket() {
+    void compartmentPartsReplaceOrStackWhileTheyPack() {
         MechBay bay = MechBay.legacyStarterFixture();
-        learnAll(bay);
         MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(500));
         String id = MechBay.STARTER_MECH_ID;
-        assertTrue(bay.installReplenisher(id, MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        assertEquals(MechWorkshop.Status.INCOMPATIBLE,
-                workshop.fitInternal(id, MechInternal.AUXILIARY_VENT_ARRAY).status());
-        assertTrue(bay.installReplenisher(id, MissileReplenisherComponent.STANDARD.id()));
-        assertTrue(workshop.fitInternal(id, MechInternal.AUXILIARY_VENT_ARRAY).succeeded());
-        assertFalse(bay.installReplenisher(id, MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        // A loader replaces the one fitted; the standard one goes back to stores.
+        assertTrue(bay.installInternal(id, MechInternal.ACCELERATED_LOADER));
+        assertEquals(1, bay.availableInternal(MechInternal.STANDARD_LOADER.id));
+        // Vents stack: bank, loader and two vents are eight of the Bulwark's nine cells.
+        bay.addInternal(MechInternal.AUXILIARY_VENT_ARRAY.id, 3);
+        assertTrue(bay.installInternal(id, MechInternal.AUXILIARY_VENT_ARRAY));
+        assertTrue(bay.installInternal(id, MechInternal.AUXILIARY_VENT_ARRAY));
+        assertFalse(bay.canInstallInternal(id, MechInternal.AUXILIARY_VENT_ARRAY), "a third would need ten cells");
         assertEquals(MechWorkshop.Status.STRIPPED, workshop.stripVentArray(id).status());
-        assertNull(bay.mechById(id).internal(MechInternal.Role.VENT_ARRAY));
-        assertEquals(1, bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id));
+        assertEquals(1, bay.mechById(id).compartment().stream()
+                .filter(part -> part == MechInternal.AUXILIARY_VENT_ARRAY).count());
+        assertEquals(2, bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id));
     }
 
     @Test
@@ -186,8 +188,7 @@ class MechInternalsTest {
 
     private static MechBay houndBay() {
         MechBay bay = new MechBay();
-        new MechWorkshop(bay, TestResources.stocked(500))
-                .fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
+        bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
         return bay;
     }
 

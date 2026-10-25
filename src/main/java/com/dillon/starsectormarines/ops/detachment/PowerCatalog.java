@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
@@ -492,6 +493,7 @@ public final class PowerCatalog {
         if (MarineInsertion.ID.equals(id)) return new MarineInsertion();
         if (VehicleSupport.ID.equals(id)) return new VehicleSupport();
         if (CloseAirSupport.ID.equals(id)) return new CloseAirSupport();
+        if (SpawnInOnslaught.ID.equals(id)) return new SpawnInOnslaught();
         return null;
     }
 }

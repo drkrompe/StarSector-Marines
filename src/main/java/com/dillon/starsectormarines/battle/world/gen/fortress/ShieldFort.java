@@ -20,8 +20,8 @@ import java.util.List;
  *   <li>the <b>outer belt</b> ({@link FortBelt}): an irregular ring of trench, sandbag line, fence line and nests standing off
  *       the works across a glacis, as for every fort;</li>
  *   <li>the <b>main works</b>: an octagon, its four corners cut deep, with a round tower on each diagonal face instead of
- *       a pointed bastion at each corner, and <em>three</em> gates (a main gate and two posterns), each with a gatehouse
- *       and a baffle;</li>
+ *       a pointed bastion at each corner, and <em>three</em> gates (a main gate and two posterns), each with a baffle
+ *       and two towers set into the wall ({@link GateTowers}) that the garrison fights from;</li>
  *   <li>the <b>inner keep</b>: a ring wall round the generator, two cells thick, open only at two diagonal gaps on
  *       opposite sides, so that getting through an outer gate puts a squad in a yard, not at the emitter;</li>
  *   <li>the <b>buildings</b>, kept to the far half of the works from the main gate: the power plant (whose loss drops the
@@ -52,18 +52,12 @@ public final class ShieldFort {
     public static final List<int[]> GATE_CELLS = gateCells();
 
     /**
-     * The gatehouse pieces: the two 3x3 towers either side of each gate and the leaves over the passage, the art turned
-     * to face its gate (west as authored; north one quarter, east two, south three).
+     * The gatehouse pieces: the leaves over each passage, the art turned to face its gate (west as authored; north one
+     * quarter, east two, south three).
      */
     public static final List<FortPlan.Piece> GATEHOUSE = List.of(
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 18, OY + 41, 3, 3, 3),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 24, OY + 41, 3, 3, 3),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + 21, OY + WORKS - 2, 3, 2, 3),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 18, 3, 3, 0),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + 2, OY + 24, 3, 3, 0),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX, OY + 21, 2, 3, 0),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + WORKS - 5, OY + 18, 3, 3, 2),
-            new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + WORKS - 5, OY + 24, 3, 3, 2),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + WORKS - 2, OY + 21, 2, 3, 2));
 
     /** The one sally port, in the middle of the north face, the only face with no gate: two cells of the two-deep wall. */
@@ -74,6 +68,9 @@ public final class ShieldFort {
             new FortPlan.Gate(OX + 22, OY + WORKS, 0, 1),
             new FortPlan.Gate(OX - 1, OY + 22, -1, 0),
             new FortPlan.Gate(OX + WORKS, OY + 22, 1, 0));
+
+    /** The towers either side of each gate, set into the wall and standing proud of it over the approach. */
+    private static final List<FortRoom> GATE_TOWERS = GateTowers.flanking(GATES);
 
     /**
      * Each round tower's centre (footprint frame), the diagonal its missile battery stands toward, and the axis its nest
@@ -139,16 +136,12 @@ public final class ShieldFort {
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) INSIDE[x][y] = trace(x - OX, y - OY);
         }
-        // Gatehouse towers and baffles stand inside the trace as solid blocks.
+        // The gate towers are part of the works where they stand proud of the trace.
+        for (FortRoom tower : GATE_TOWERS) for (int[] c : GateTowers.footprint(tower)) INSIDE[c[0]][c[1]] = true;
+        // The baffles stand inside the trace as solid blocks.
         boolean[][] block = new boolean[WIDTH][HEIGHT];
-        mark(block, OX + 18, OY + 41, 3, 3);
-        mark(block, OX + 24, OY + 41, 3, 3);
         mark(block, OX + 19, OY + 37, 9, 2);
-        mark(block, OX + 2, OY + 18, 3, 3);
-        mark(block, OX + 2, OY + 24, 3, 3);
         mark(block, OX + 7, OY + 19, 2, 9);
-        mark(block, OX + WORKS - 5, OY + 18, 3, 3);
-        mark(block, OX + WORKS - 5, OY + 24, 3, 3);
         mark(block, OX + WORKS - 9, OY + 19, 2, 9);
         boolean[][] layer1 = new boolean[WIDTH][HEIGHT];
         for (int x = 0; x < WIDTH; x++) {
@@ -165,6 +158,8 @@ public final class ShieldFort {
             }
         }
         for (int[] gate : GATE_CELLS) WALL[gate[0]][gate[1]] = false;
+        // A tower is a building: its ring is stamped as one, and its floor is open.
+        for (FortRoom tower : GATE_TOWERS) for (int[] c : GateTowers.footprint(tower)) WALL[c[0]][c[1]] = false;
         List<int[]> nests = new ArrayList<>();
         for (int[] b : BASTIONS) {
             int[] nest = BastionSites.embrasure(INSIDE, b[0], b[1], b[4], b[5]);
@@ -261,10 +256,13 @@ public final class ShieldFort {
         return x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT && WALL[x][y];
     }
 
-    /** The layout: every room of every aspect's suite. Walls, belt, lanes and dressing are the host's to stamp from this frame. */
+    /**
+     * The layout: every room of every aspect's suite, then the gate towers. Walls, belt, lanes and dressing are the
+     * host's to stamp from this frame.
+     */
     public static CompoundLayout layout() {
         List<Building> core = new ArrayList<>();
-        for (FortRoom room : ROOMS) core.add(room.building());
+        for (FortRoom room : PLAN.buildings()) core.add(room.building());
         return new CompoundLayout(RoomShape.rectangle(WIDTH, HEIGHT), List.of(
                 new Cluster("Shield fort buildings", core)), List.of(), List.of());
     }
@@ -312,6 +310,7 @@ public final class ShieldFort {
         @Override public List<FortBelt.Cell> belt() { return BELT; }
         @Override public List<FortAspect> aspects() { return aspects; }
         @Override public List<FortRoom> rooms() { return ROOMS; }
+        @Override public List<FortRoom> towers() { return GATE_TOWERS; }
         @Override public int[] floor(FortAspect aspect) { return ShieldFort.floor(aspect); }
         @Override public int[] door(FortAspect aspect) { return ShieldFort.door(aspect); }
         @Override public int[] coreCentre(FortAspect aspect) { return ShieldFort.coreCentre(aspect); }

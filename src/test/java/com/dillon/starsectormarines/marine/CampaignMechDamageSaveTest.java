@@ -22,28 +22,31 @@ class CampaignMechDamageSaveTest {
         CampaignMech old = roundTrip(new CampaignMech("old", "Old Faithful", MechVariant.BULWARK,
                 MechRole.ARMORED_SUPPORT, MissileReplenisherComponent.STANDARD.id()), true);
 
-        assertNull(old.damage());
+        assertNull(old.damageOn(100f));
         assertEquals(0f, old.repairUntilDay());
         assertEquals(CampaignMech.Readiness.READY, old.readiness(100f));
     }
 
-    @Test void damageAndTheRepairClockSurviveASave() throws Exception {
-        CampaignMech damaged = new CampaignMech("d", "Damaged", MechVariant.HOUND, null,
+    @Test void aRepairPaidForBeforeRepairsWereFreeDropsWhole() throws Exception {
+        CampaignMech paid = new CampaignMech("p", "Paid", MechVariant.HOUND, null,
                 MissileReplenisherComponent.STANDARD.id());
-        damaged.recordDamage(MechDamage.of(MechDamageTest.ReportFixture.whole()
-                .section(MechSection.LEGS, 0.25f, 0f).build()));
+        setField(paid, "repairUntilDay", 42.5f);
+
+        assertEquals(CampaignMech.Readiness.READY, roundTrip(paid, false).readiness(40f));
+    }
+
+    @Test void damageAndTheRepairClockSurviveASave() throws Exception {
         CampaignMech repairing = new CampaignMech("r", "Repairing", MechVariant.HOUND, null,
                 MissileReplenisherComponent.STANDARD.id());
-        repairing.beginRepair(42.5f);
+        repairing.startRepair(MechDamage.of(MechDamageTest.ReportFixture.whole()
+                .section(MechSection.LEGS, 0.25f, 0f).build()), 40f, 42f);
 
-        CampaignMech loadedDamage = roundTrip(damaged, false);
-        CampaignMech loadedRepair = roundTrip(repairing, false);
+        CampaignMech loaded = roundTrip(repairing, false);
 
-        assertEquals(0.75f, loadedDamage.damage().structureLost(MechSection.LEGS), 1e-6f);
-        assertEquals(1f, loadedDamage.damage().armorLost(MechSection.LEGS), 1e-6f);
-        assertEquals(CampaignMech.Readiness.DAMAGED, loadedDamage.readiness(0f));
-        assertEquals(42.5f, loadedRepair.repairUntilDay(), 1e-6f);
-        assertEquals(CampaignMech.Readiness.UNDER_REPAIR, loadedRepair.readiness(40f));
+        assertEquals(0.75f, loaded.damageOn(40f).structureLost(MechSection.LEGS), 1e-6f);
+        assertEquals(0.5f, loaded.damageOn(41f).armorLost(MechSection.LEGS), 1e-6f);
+        assertEquals(42f, loaded.repairUntilDay(), 1e-6f);
+        assertEquals(CampaignMech.Readiness.UNDER_REPAIR, loaded.readiness(41f));
     }
 
     /**
@@ -53,8 +56,9 @@ class CampaignMechDamageSaveTest {
      */
     private static CampaignMech roundTrip(CampaignMech mech, boolean asOldSave) throws Exception {
         if (asOldSave) {
-            set(mech, "damage", null);
-            set(mech, "repairUntilDay", 0f);
+            setField(mech, "damage", null);
+            setField(mech, "repairUntilDay", 0f);
+            setField(mech, "repairStartDay", 0f);
         }
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
@@ -65,9 +69,13 @@ class CampaignMechDamageSaveTest {
         }
     }
 
-    private static void set(CampaignMech mech, String field, Object value) throws Exception {
-        Field f = CampaignMech.class.getDeclaredField(field);
-        f.setAccessible(true);
-        f.set(mech, value);
+    static void setField(CampaignMech mech, String field, Object value) {
+        try {
+            Field f = CampaignMech.class.getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(mech, value);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

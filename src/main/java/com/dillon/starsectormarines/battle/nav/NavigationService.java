@@ -123,6 +123,8 @@ public final class NavigationService implements AutoCloseable {
      */
     private UnitRosterService roster;
     private final AsyncClearanceRoutes clearanceRoutes;
+    /** Where refused mech proofs found their bodies can go ({@link MechReachability}). */
+    private final MechReachability mechReachability = new MechReachability();
 
     public NavigationService(NavigationGrid grid, CellTopology topology) {
         this(grid, topology, Boolean.parseBoolean(System.getProperty(AsyncClearanceRoutes.ENABLED_PROPERTY, "true")));
@@ -1129,6 +1131,7 @@ public final class NavigationService implements AutoCloseable {
         var request = new AsyncClearanceRoutes.Request(x, y, goalX, goalY, radius);
         var reply = clearanceRoutes.pollOrSubmit(id, request, grid);
         if (reply.status() != PathRequestStatus.READY) {
+            if (reply.proof() != null) mechReachability.learn(id, reply.proof().reached());
             if (!Paths.isEmpty(world.path(id)) || current != null) replacePath(id, GridPathfinder.EMPTY_PATH, null);
             return reply.status();
         }
@@ -1202,7 +1205,15 @@ public final class NavigationService implements AutoCloseable {
         setPath(id, GridPathfinder.EMPTY_PATH);
     }
 
-    public void beginClearanceTick(int tick) { clearanceRoutes.beginTick(tick); }
+    public void beginClearanceTick(int tick) {
+        clearanceRoutes.beginTick(tick);
+        mechReachability.beginTick(tick);
+    }
+
+    /** The ground a body of {@code radius} at ({@code x}, {@code y}) was last proved able to reach, or null when unknown. */
+    public ReachableRegion mechReachableRegion(float x, float y, float radius) {
+        return mechReachability.regionFor(x, y, radius);
+    }
 
     @Override public void close() {
         cancelRouteJobs();

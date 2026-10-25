@@ -24,6 +24,7 @@ com.dillon.starsectormarines.ops.battleview.SunShadowSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.YieldFreezeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.SwarmOverkillSceneSnapshotSuite
 com.dillon.starsectormarines.battle.air.ShipsBoatsSnapshotSuite
+com.dillon.starsectormarines.battle.air.LiftTimerSnapshotSuite
 com.dillon.starsectormarines.battle.squad.PlayerOrderSceneSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.FiringLineSceneSnapshotSuite
 com.dillon.starsectormarines.battle.decision.goap.action.ProsecutionHoldSceneSnapshotSuite
@@ -34,6 +35,7 @@ com.dillon.starsectormarines.battle.squad.SquadTrafficSceneSnapshotSuite
 com.dillon.starsectormarines.ops.MissionUiSnapshotSuite
 
 com.dillon.starsectormarines.ops.MechConsoleSnapshotSuite
+com.dillon.starsectormarines.ops.BoatConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksCommandSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksMedicSnapshotSuite
 com.dillon.starsectormarines.ops.OfficerDossierSnapshotSuite
@@ -233,6 +235,7 @@ com.dillon.starsectormarines.ops.battleview.SwarmStrainLayerSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavRunnerMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.RavShadowSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavBruteMotionSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.RavSpitterMotionSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.DeckPropMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackSceneSnapshotSuite
@@ -266,6 +269,9 @@ com.dillon.starsectormarines.battle.fire.FireColonySnapshotSuite
 com.dillon.starsectormarines.battle.fire.FireBurnSnapshotSuite
 com.dillon.starsectormarines.battle.fire.FlamerForestLookSuite
 com.dillon.starsectormarines.battle.fire.FlamerForestLookSuite$Woods
+com.dillon.starsectormarines.battle.fire.FireBlazeLookSuite
+com.dillon.starsectormarines.battle.fire.FireFlashoverLookSuite
+com.dillon.starsectormarines.battle.world.RoofLookSuite
 com.dillon.starsectormarines.battle.fire.FireBuildingsSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdSceneSnapshotSuite
 com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
@@ -284,6 +290,7 @@ com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
 com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.ops.GroundTurretFamilyDraftSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.LargePostLookSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.FortWorksLookSnapshotSuite
 com.dillon.starsectormarines.battle.turret.RaisedGunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
 com.dillon.starsectormarines.ops.MarineRightButtonSnapshotSuite
@@ -294,9 +301,13 @@ com.dillon.starsectormarines.battle.mech.MechFluxHazeSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.flier.HarrierPackSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.HeartAlliesLookSuite
 com.dillon.starsectormarines.battle.evacuation.HeartCommanderLookSuite
-com.dillon.starsectormarines.battle.evacuation.HeartGunshipOptionsLookSuite
 com.dillon.starsectormarines.battle.command.allied.HeartLaneFormationLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlliesLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
+com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite
+com.dillon.starsectormarines.battle.world.gen.overgrown.OriginPropsLookSuite
+com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOriginLookSuite

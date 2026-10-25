@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
@@ -124,6 +125,31 @@ public final class CompanyDeck {
         if (gettingReady != null) throw new IllegalStateException("deck preparation already started");
         groundedBoats = grounded;
         return this;
+    }
+
+    /** The door guns on each of her boats, mount by mount; read on this thread, as she is adopted and on each {@link #refitDoorGuns()}. */
+    private Supplier<String[][]> doorGuns = () -> null;
+
+    public CompanyDeck doorGuns(Supplier<String[][]> guns) {
+        doorGuns = guns == null ? () -> null : guns;
+        return this;
+    }
+
+    /** The company's vehicles, parked in the berths after the lance; read on this thread, as the lance is. */
+    private Supplier<List<VehicleDeploymentSpec>> vehicles = List::of;
+
+    public CompanyDeck vehicles(Supplier<List<VehicleDeploymentSpec>> parked) {
+        vehicles = parked == null ? List::of : parked;
+        return this;
+    }
+
+    /**
+     * Puts the company's door guns on her parked boats again, after a refit.
+     *
+     * <p>Nothing to do before she is ready: adopting her reads them.
+     */
+    public void refitDoorGuns() {
+        if (scene != null) scene.fitDoorGuns(doorGuns.get());
     }
 
     /**
@@ -525,16 +551,18 @@ public final class CompanyDeck {
     private CompletableFuture<ShipDeckBattleScene> getReady() {
         if (gettingReady != null) return gettingReady;
         List<MechVariant> berthed = lance.get();
+        List<VehicleDeploymentSpec> parked = vehicles.get();
         List<MarineSoldier> roll = company.get();
         boolean[] held = boatsHeld.get();
         boolean[] wrecks = boatWrecks.get();
         boolean[] grounded = groundedBoats.get();
-        gettingReady = LaidDecks.off(() -> muster(berthed, roll, held, wrecks, grounded));
+        gettingReady = LaidDecks.off(() -> muster(berthed, parked, roll, held, wrecks, grounded));
         return gettingReady;
     }
 
     /** @see #getReady() */
-    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MarineSoldier> roll,
+    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<VehicleDeploymentSpec> parked,
+                                       List<MarineSoldier> roll,
                                        boolean[] held, boolean[] wrecks, boolean[] grounded) {
         work = Work.LAYING_OUT;
         generate();
@@ -543,6 +571,7 @@ public final class CompanyDeck {
         manned.dress(dressing == null ? CoreDressing.of(ship) : dressing);
         manned.dress(facilities);
         manned.occupyGantries(berthed);
+        manned.parkVehicles(berthed.size(), parked);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with
         // hands who are not.
@@ -565,6 +594,7 @@ public final class CompanyDeck {
         }
         if (dressing != null) scene.dress(dressing);
         scene.dress(facilities);
+        scene.fitDoorGuns(doorGuns.get());
     }
 
     /**
@@ -645,6 +675,8 @@ public final class CompanyDeck {
         steps.add(new TextureLoadQueue.Step("mech set", () -> s.ensureLayeredMechSprites(Set.of())));
         steps.add(new TextureLoadQueue.Step("projectiles", s::ensureMarineSecondarySprites));
         steps.add(new TextureLoadQueue.Step("aircraft", s::ensureAirframeSprites));
+        // The guns on her parked boats: a gun fitted at the Boat Deck stands on its hull.
+        steps.add(new TextureLoadQueue.Step("door guns", s::ensureTurretSprites));
         // Her renderer too, on a frame she is not drawn, so a deck screen's first frame is an
         // ordinary one.
         ShipDeckBattleScene drawn = scene;

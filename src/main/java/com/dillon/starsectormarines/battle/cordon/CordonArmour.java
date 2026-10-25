@@ -118,6 +118,8 @@ public final class CordonArmour {
     private long escortLooksTaken, escortLooksShort;
     /** Looks a road hull had an armed allied hull alongside, and looks it had none, for evidence. */
     private long alongsideLooks, aloneLooks;
+    /** Each convoy's escort at the last look, in the order its posts were asked: {posts wanted, hulls taken}. */
+    private final List<int[]> convoyEscorts = new ArrayList<>();
     /** Each escort on its way to a road hull, and how it is closing on it. */
     private final Map<Long, Closing> closing = new HashMap<>();
     /** Hulls that were sent to escort and did not close on their road hull, and the tick they may be sent again. */
@@ -174,6 +176,15 @@ public final class CordonArmour {
     public long escortOf(long roadHull) {
         for (Map.Entry<Long, Long> e : escortOf.entrySet()) if (e.getValue() == roadHull) return e.getKey();
         return 0L;
+    }
+
+    /**
+     * The escort the convoy whose posts came {@code index}th at the last look was given, {posts wanted, hulls taken}, or
+     * {@code null} where no such convoy was asked for. A convoy given fewer hulls than it has posts went short, and the
+     * company walks with it ({@link CordonAlliedRules#convoyEscorted}).
+     */
+    public int[] convoyEscort(int index) {
+        return index >= 0 && index < convoyEscorts.size() ? convoyEscorts.get(index).clone() : null;
     }
 
     /** Each hull escorting a road hull at the last look, and the road hull it is with, for review frames. */
@@ -391,6 +402,7 @@ public final class CordonArmour {
         Map<Long, Long> kept = new HashMap<>();
         for (Map.Entry<Long, Long> e : escortOf.entrySet()) kept.put(e.getValue(), e.getKey());
         escortOf.clear();
+        convoyEscorts.clear();
         if (escorts == null && hullEscorts == null) return sent;
         List<int[][]> needs = new ArrayList<>(escorts == null ? List.of() : escorts.apply(sim));
         int convoyNeeds = needs.size();
@@ -399,7 +411,10 @@ public final class CordonArmour {
         Map<CordonRedoubt, Integer> left = new HashMap<>(count);
         for (int n = 0; n < needs.size(); n++) {
             int[][] posts = needs.get(n);
-            if (posts.length == 0) continue;
+            if (posts.length == 0) {
+                if (n < convoyNeeds) convoyEscorts.add(new int[]{0, 0});
+                continue;
+            }
             List<CordonAlliedRules.Escort> free = new ArrayList<>();
             for (long h : hulls) {
                 if (command.carrying(h) || !home.containsKey(h) || sent.contains(h) || !sim.convoy().isArmed(h)
@@ -430,6 +445,7 @@ public final class CordonArmour {
             }
             escortLooksTaken += got.size();
             escortLooksShort += posts.length - got.size();
+            if (n < convoyNeeds) convoyEscorts.add(new int[]{posts.length, got.size()});
             if (wanting != 0L) hullsWanting.add(wanting);
             List<CordonAlliedRules.Escort> unplaced = new ArrayList<>(got);
             for (int[] post : posts) {
@@ -865,7 +881,10 @@ public final class CordonArmour {
                 // The rear wall's band: a row inside the ground to two outside it.
                 for (int d = -1; d <= 2 && !wall[i]; d++) {
                     int y = rear - frontward * d;
-                    wall[i] = topology.isWall(x, y) && InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y));
+                    // A compound's rear wall is its perimeter; a redoubt built from what stood there is walled by
+                    // its buildings and whatever its builders raised between them.
+                    wall[i] = topology.isWall(x, y) && (!r.construction().generated()
+                            || InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y)));
                 }
             }
             int gate = gateAlong(wall, r.centreX() - (r.left() - 1));

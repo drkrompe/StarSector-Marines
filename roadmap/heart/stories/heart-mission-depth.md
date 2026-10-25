@@ -3,7 +3,7 @@
 Status: ACTIVE. Beats, allied forces and the allied commander shipped; the maps' last pieces are left, then tuning. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
-Updated: 2026-10-24 — lanes no longer stall (stragglers, columns joining at the front, neighbour-only re-aims); the whole-pool reading added; the company wipe and gunship losses join the open list.
+Updated: 2026-10-24 — the knoll and a sealed hollow built; win rates are readings, not targets (owner).
 
 ## Why
 
@@ -20,25 +20,33 @@ and 12,500 (seed 5 on every biome, seed 2 arid and frozen) with one or two
 satellites down. Seven timed out at 27,000 with four or five satellites down and
 at most one mother. The Burn: four of 12 won, one lost, seven timed out, most
 with one mother down. On Broad Front every tool was called (118 armour calls, 36
-sorties, 70 shoots, 25 road cuts, 67 re-aims, 52 gaps closed). The evidence does
-not record aircraft lost, so how many sorties were shot down is unread.
+sorties, 70 shoots, 25 road cuts, 67 re-aims, 52 gaps closed).
+
+After the company fix and the owner's gunship answer (main at cebbdc3e3):
+Broad Front none won, one lost, eleven timed out, most with the company alive
+(10 to 22 marines) but no mother down; 44 sorties, 38 shot down
+(`gunship_lost_N`). The Burn unchanged.
 
 ## What is left
 
 Ranked by what it unblocks:
 
-1. **Broad Front's company wipe.** Five seeds lose the company at about the same
-   time, on every biome for seed 5: a consistent cause (landing, a surge, the
-   lanes leaving it alone), to find with `battleProbe` before any tuning.
-2. **Gunship losses in the evidence.** A beat when an allied aircraft is lost, so
-   the owner's gunship question can be read across the pool.
-3. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
+1. **Marines never shoot the spitters.** Frozen seed 2 loses the company at tick
+   ~8,000, before its own satellite falls: 22 of 23 marines are killed by satellite
+   3's spitters, 13 to 20 cells off, while every one of the marines' 96 hits in
+   that half-minute lands on the runners and brutes charging them. Infantry target
+   choice, not the heart's: shared by every mission, so its own piece of work.
+2. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
    brook valley, the hollow's rim, the cordon's works, every beat's set piece
-   that needs ground (F6's road satellite with it), and the town and city densities. Open:
-   - a full hollow;
-   - the knoll;
-   - pooling the denser maps.
-4. **Tuning win rates**, only after the map work (owner: no overtuning yet).
+   that needs ground (F6's road satellite with it), the town and city densities
+   (a city's line on its edge, with no ridge, and its streets for the supply road),
+   a pool for each density (three seeds per biome), the knoll under Broad
+   Front's town and a sealed hollow. Open: the hollow's last breaks (the brook,
+   short gaps).
+3. **No win-rate tuning** (owner, 2026-10-24: "I just don't want us trying to
+   force wins/loses to be even when run by our AI. Specific commander or story
+   behaviors we should continue to work on though"). A fix is accepted when the
+   behaviour it targets works; held, broken and sortie-loss counts are readings.
 
 ## Constraints
 

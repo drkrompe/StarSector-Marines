@@ -3,24 +3,24 @@
   "map": "cordon-line",
   "biomes": {
     "VERDANT": [
-      { "seed": 3, "note": "rear south; redoubt guns 1-2-2-2" },
-      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2" },
-      { "seed": 22, "note": "rear north; redoubt guns 2-2-2-0" }
+      { "seed": 3, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 22, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" }
     ],
     "ARID": [
-      { "seed": 3, "note": "rear south; redoubt guns 1-2-2-2" },
-      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2" },
-      { "seed": 11, "note": "rear north; redoubt guns 2-1-2-1" }
+      { "seed": 3, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 5, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" }
     ],
     "ROCK": [
-      { "seed": 3, "note": "rear south; redoubt guns 1-2-2-2" },
-      { "seed": 11, "note": "rear north; redoubt guns 2-2-2-1" },
-      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2" }
+      { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 5, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" }
     ],
     "FROZEN": [
-      { "seed": 3, "note": "rear south; redoubt guns 1-2-2-2" },
-      { "seed": 11, "note": "rear north; redoubt guns 2-2-2-1" },
-      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2" }
+      { "seed": 3, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 5, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" }
     ]
   }
 }

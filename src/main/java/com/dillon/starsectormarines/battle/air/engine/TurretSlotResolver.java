@@ -38,7 +38,7 @@ public final class TurretSlotResolver {
             "BALLISTIC", "ENERGY", "MISSILE", "COMPOSITE", "HYBRID", "UNIVERSAL", "SYNERGY");
 
     /** Keyed on hull id, filled lazily during a battle, and concurrent because two battles can run in one JVM. The value is a pure function of the id, so a race would only re-parse the spec. */
-    private static final Map<String, float[][]> CACHE_BY_HULL =
+    private static final Map<String, List<WeaponSlot>> CACHE_BY_HULL =
             new ConcurrentHashMap<>();
 
     /**
@@ -66,30 +66,46 @@ public final class TurretSlotResolver {
     /**
      * Returns the mountable weapon-slot positions for {@code hullId}, each a
      * {@code {localX, localY}} pair in the shuttle-local frame (cells, {@code +Y}
-     * nose / {@code +X} starboard), in spec order. Lazy-loaded; cached. Never
+     * nose / {@code +X} starboard), in {@link #mounts} order. Lazy-loaded; cached. Never
      * null — null/empty id or any failure yields an empty array.
      */
     public static float[][] resolve(String hullId) {
-        if (hullId == null || hullId.isEmpty()) return EMPTY;
-        return CACHE_BY_HULL.computeIfAbsent(
-                hullId, TurretSlotResolver::doResolve);
+        List<WeaponSlot> slots = mounts(hullId);
+        if (slots.isEmpty()) return EMPTY;
+        float[][] out = new float[slots.size()][];
+        for (int i = 0; i < out.length; i++) out[i] = new float[]{ slots.get(i).localX(), slots.get(i).localY() };
+        return out;
     }
 
-    private static float[][] doResolve(String hullId) {
+    /**
+     * The hull's mountable weapon slots in the order hardpoints are filled:
+     * its traversing turrets first, then its fixed hardpoints, each in spec
+     * order. A door gun is a turret, so a boat whose spec lists two fixed
+     * missile rails before its turret still carries its gun on the turret —
+     * where the Kite's single gun was on a wing rail until the Boat Deck
+     * started drawing where each gun sits. Never null.
+     */
+    public static List<WeaponSlot> mounts(String hullId) {
+        if (hullId == null || hullId.isEmpty()) return List.of();
+        return CACHE_BY_HULL.computeIfAbsent(hullId, TurretSlotResolver::doResolve);
+    }
+
+    private static List<WeaponSlot> doResolve(String hullId) {
         String path = "data/hulls/" + hullId + ".ship";
         try {
             JSONObject spec = loadSpec(hullId, path);
-            List<float[]> out = new ArrayList<>();
+            List<WeaponSlot> turrets = new ArrayList<>();
+            List<WeaponSlot> fixed = new ArrayList<>();
             for (WeaponSlot slot : WeaponSlotParser.parse(spec)) {
-                if (MOUNTABLE.contains(slot.type())) {
-                    out.add(new float[]{ slot.localX(), slot.localY() });
-                }
+                if (!MOUNTABLE.contains(slot.type())) continue;
+                (slot.turret() ? turrets : fixed).add(slot);
             }
-            return out.toArray(new float[0][]);
+            turrets.addAll(fixed);
+            return List.copyOf(turrets);
         } catch (Exception e) {
             LOG.warn("TurretSlotResolver: " + hullId + " (" + path + ") — "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
-            return EMPTY;
+            return List.of();
         }
     }
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
+import com.dillon.starsectormarines.render2d.PagedQuadRun;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.QuadMesh;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
@@ -73,7 +74,48 @@ public final class DrawList {
             buf[c] = cmd;
         }
         counts[li] = c + 1;
+        cmd.setEffects(flash, light, lightAngle, wear);
         return cmd;
+    }
+
+    /** The hit flash stamped on every command added until it is set again; see {@link #setFlash}. */
+    private float flash;
+    /** The packed light, its direction and the packed wear stamped likewise; see {@link #setLight}, {@link #setWear}. */
+    private float light, lightAngle, wear;
+
+
+    /**
+     * Stamps every command added from now on with the light on it, each channel a multiple of its own colour added
+     * to it, coming from {@code angleRadians} on screen (law 27); zero is none. Paged runs draw it.
+     */
+    public void setLight(float r, float g, float b, float angleRadians) {
+        light = PagedQuadRun.packLight(r, g, b);
+        lightAngle = light == 0f ? 0f : angleRadians;
+    }
+
+    /**
+     * Stamps every command added from now on with its wear (law 27), each 0 to 1: {@code charred} by fire and
+     * glowing {@code embers} while it burns. Paged runs draw it.
+     */
+    public void setWear(float charred, float embers) {
+        wear = PagedQuadRun.packWear(charred, embers);
+    }
+
+    /** Clears every per-quad effect: flash, light and wear. */
+    public void clearEffects() {
+        flash = 0f;
+        light = 0f;
+        lightAngle = 0f;
+        wear = 0f;
+    }
+
+    /**
+     * Stamps every command added from now on with a hit flash of {@code amount}, the share of white in its colour
+     * (law 27), until set again: a unit's collector sets it before emitting the unit and zero after. Paged runs draw
+     * it; the per-sheet path and the Java2D drain do not.
+     */
+    public void setFlash(float amount) {
+        flash = amount;
     }
 
     public void addSheetQuad(RenderLayer layer, SpriteAPI sheet,
@@ -375,5 +417,6 @@ public final class DrawList {
     /** Resets every layer's count to 0, retaining the pooled command objects. Call once per frame. */
     public void clear() {
         Arrays.fill(counts, 0);
+        clearEffects();
     }
 }

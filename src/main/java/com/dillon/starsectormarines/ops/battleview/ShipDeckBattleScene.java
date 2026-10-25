@@ -33,6 +33,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -65,6 +67,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -152,7 +155,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final List<Gantry> gantries;
     private final List<FixtureTask> fixtureTasks;
     private final boolean[] occupiedBerths;
+    /** The berth registered for the company's k-th boat, or null where she has none. */
+    private final List<AirfieldService.Berth> boatBerths = new ArrayList<>();
     private final long[] berthedMachines;
+    /** The vehicle hull parked in each berth, by index into {@link #gantries}; 0 where none is. */
+    private final long[] berthedVehicles;
+    /** Which campaign vehicle each parked hull is, so a re-sync leaves one where it stands. */
+    private final String[] berthedVehicleIds;
     /**
      * Which of the deck's berths hold machines, by index into {@link #gantries}.
      *
@@ -290,6 +299,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
         berthedMachines = new long[gantries.size()];
+        berthedVehicles = new long[gantries.size()];
+        berthedVehicleIds = new String[gantries.size()];
         machineBerths = machineBerthsIn(gantries);
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
@@ -655,6 +666,38 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         }
     }
 
+    /**
+     * Parks the company's vehicles in the machine berths after the lance's {@code mechs}, the order
+     * the Mech Lab numbers its pads in: one hull per vehicle, set down with its kits and facing down
+     * its berth as a mech does. A hull already parked for the same vehicle stays where it stands; a
+     * berth whose vehicle has gone, or that a mech now takes, gives its hull up.
+     */
+    public void parkVehicles(int mechs, List<VehicleDeploymentSpec> vehicles) {
+        for (int seat = 0; seat < machineBerths.length; seat++) {
+            int index = machineBerths[seat];
+            int slot = seat - mechs;
+            VehicleDeploymentSpec vehicle = vehicles != null && slot >= 0 && slot < vehicles.size()
+                    ? vehicles.get(slot) : null;
+            if (vehicle != null && berthedVehicles[index] != 0L
+                    && Objects.equals(vehicle.campaignId(), berthedVehicleIds[index])) continue;
+            if (berthedVehicles[index] != 0L) {
+                simulation.convoy().despawn(berthedVehicles[index]);
+                berthedVehicles[index] = 0L;
+                berthedVehicleIds[index] = null;
+                occupiedBerths[index] = berthedMachines[index] != 0L;
+            }
+            if (vehicle == null) continue;
+            Gantry gantry = gantries.get(index);
+            float x = gantry.worldCenterX(), y = gantry.worldCenterY();
+            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.kits(), Faction.MARINE,
+                    VehicleMission.deployed(x, y));
+            simulation.convoy().body(hull).teleport(x, y, parkedFacing(gantry));
+            berthedVehicles[index] = hull;
+            berthedVehicleIds[index] = vehicle.campaignId();
+            occupiedBerths[index] = true;
+        }
+    }
+
     /** Cardinal heading along the berth axis toward its inboard service-lane mouth. */
     private float parkedFacing(Gantry gantry) {
         return gantry.facing.degrees();
@@ -718,6 +761,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     || boatsHeld[boatBerth];
             boolean wreck = !held && boatWrecks != null && boatBerth < boatWrecks.length && boatWrecks[boatBerth];
             boatBerth++;
+            boatBerths.add(null);
             if (wreck) {
                 // Dismantled starting hull, not an active aircraft or ambient servicing job.
                 // No terrain stamp: home layouts are cached and repair must leave clear deck.
@@ -730,6 +774,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             AirfieldService.Berth registered = bays.addBayBerth(berth, boats,
                     route == null ? null : new float[]{route.outside().x(), route.outside().y()});
             registered.shipRoute = route;
+            boatBerths.set(boatBerth - 1, registered);
             registered.grounded = groundedBoats != null && boatBerth - 1 < groundedBoats.length
                     && groundedBoats[boatBerth - 1];
             occupiedBerths[index] = true;
@@ -747,6 +792,21 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     task.fixtureX(), task.fixtureY(), onTheField, task.inService()));
         }
         bays.installApronWork(servicing);
+    }
+
+    /**
+     * Puts the company's door guns on the boats in her bays, boat by boat in berth order, each
+     * mount by mount; a null boat, or one past the end, keeps the guns she has.
+     *
+     * <p>Presentation only: a refit at the Boat Deck shows on the parked hull at once rather
+     * than waiting for the ship to be laid out again.
+     */
+    public void fitDoorGuns(String[][] guns) {
+        if (guns == null) return;
+        for (int boat = 0; boat < boatBerths.size() && boat < guns.length; boat++) {
+            AirfieldService.Berth berth = boatBerths.get(boat);
+            if (berth != null && guns[boat] != null) berth.doorGuns = guns[boat].clone();
+        }
     }
 
     /**

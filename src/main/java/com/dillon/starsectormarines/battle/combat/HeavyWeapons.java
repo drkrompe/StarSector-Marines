@@ -105,7 +105,7 @@ public class HeavyWeapons {
 
     /** Manual triggers join the same mount clocks and continuation pass as autonomous fire. */
     public void tick(long controlledId, PointFireAim aim, boolean trigger) {
-        tick(controlledId, aim, trigger, false, MechTriggerPicks.LINKED);
+        tick(controlledId, aim, trigger, false, TriggerPicks.LINKED);
     }
 
     /**
@@ -115,14 +115,14 @@ public class HeavyWeapons {
      * chassis flux reservoir. A rotary mount fires for as long as its button is held
      * ({@link #advanceRotary}).
      */
-    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, MechTriggerPicks picks) {
+    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, TriggerPicks picks) {
         int continuing = 0;
         int held = 0;
         if (roster.isAliveById(controlledId) && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
             MechWeaponMount[] mounts = loadout.mounts();
-            int left = picks.leftMask(mounts);
-            int right = picks.rightMask(mounts);
+            int left = picks.leftMask(MechFireGroups.mounts(mounts));
+            int right = picks.rightMask(MechFireGroups.mounts(mounts));
             continuing = left | right;
             int pulled = (primary ? left : 0) | (secondary ? right : 0);
             held = pulled;

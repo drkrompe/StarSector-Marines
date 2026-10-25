@@ -22,7 +22,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *       {@code r/g/b/a}. Batched per-sheet through a {@link QuadBatch}.</li>
  *   <li>{@code SPRITE} — {@code sprite} = whole-texture sprite; {@code cx/cy} =
  *       center, {@code w/h} = size, {@code angleDeg} = rotation; tint
- *       {@code r/g/b/a}. Drawn via {@code renderAtCenter} (no batching win).</li>
+ *       {@code r/g/b/a}. A quad of its own texture in the paged run; drawn alone via
+ *       {@code renderAtCenter} where the context cannot page.</li>
  *   <li>{@code SOLID_RECT} — untextured fill; {@code cx/cy} reused as corner
  *       {@code (x0,y0)} and {@code w/h} as the opposing corner {@code (x1,y1)};
  *       color {@code r/g/b/a}. Batched through a {@link SolidQuadBatch}.</li>
@@ -94,6 +95,13 @@ public final class DrawCommand {
      */
     boolean additive;
     float r, g, b, a;
+    /** The hit flash this command draws with, the share of white in its colour; zero for most. Paged runs only. */
+    float flash;
+    /**
+     * The light on it ({@code PagedQuadRun.packLight}), the direction that light comes from in radians on screen,
+     * and its wear ({@code PagedQuadRun.packWear}); zero for most. Paged runs only.
+     */
+    float light, lightAngle, wear;
     /** {@code RIBBON} only: the contrail sample history the drain expands. */
     ContrailTrail trail;
     /** {@code POLY} only: the tessellated solid-quad fan (annulus / arc) the drain replays. */
@@ -117,6 +125,19 @@ public final class DrawCommand {
     public boolean flippedVertically() { return flipV; }
     /** Whether this sprite adds light rather than compositing over what is beneath it. */
     public boolean additive() { return additive; }
+    public float flash() { return flash; }
+    /** Set by the list that hands this slot out, from its current flash ({@code DrawList.setFlash}). */
+    public void setFlash(float flash) { this.flash = flash; }
+    public float light() { return light; }
+    public float lightAngle() { return lightAngle; }
+    public float wear() { return wear; }
+    /** Set by the list that hands this slot out, from its current effects ({@code DrawList.setLight}, {@code setWear}). */
+    public void setEffects(float flash, float light, float lightAngle, float wear) {
+        this.flash = flash;
+        this.light = light;
+        this.lightAngle = lightAngle;
+        this.wear = wear;
+    }
     public PolyMesh polygon() { return poly; }
     /** {@code MESH} only: the recorded quads, drawn at {@link #centerX}, {@link #centerY} by {@link #meshScale}. */
     public QuadMesh mesh() { return mesh; }

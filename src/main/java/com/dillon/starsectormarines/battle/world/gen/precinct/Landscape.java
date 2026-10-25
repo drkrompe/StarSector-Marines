@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 
 import java.util.ArrayList;
@@ -37,9 +38,23 @@ import java.util.List;
  *                 ground as well as their fields; false holds it from the
  *                 fields alone, so the places grow exactly as they would have
  *                 and only ploughing yields to the ridge
+ * @param kept     boxes held open round places that will stand on high ground
+ *                 (a terrace, {@code elevation-nouns.md}): kept from the other
+ *                 places' growth, claims, road arms and fields whatever
+ *                 {@code heldFromGrowth} says, so the cliff round the place has
+ *                 open country to stand in. Never raised themselves.
+ * @param sealed   ridges whose ground is held as {@code held} is, from growth whatever {@code heldFromGrowth}
+ *                 says, and is also gone round by everything generation routes: the welds between road networks,
+ *                 a place's road off the map, the layout's roads, the tracks, a landing's approach and the
+ *                 landscape's access routes. Its bands are crossed
+ *                 only at the gaps between them, the passes the mission left, so a ring of them stands as one: a
+ *                 hollow's rim ({@code elevation-nouns.md}, Sealed ground)
+ * @param knolls   places stood on a knoll ({@link Knoll}): grown inside a flat top round their seed, with a ring of
+ *                 open country kept round it for the cliff and roads that leave it only through gates
  */
 public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
-                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held, boolean heldFromGrowth) {
+                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held, boolean heldFromGrowth,
+                        List<Track> kept, List<RidgePlanner.Band> sealed, List<Knoll> knolls) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -60,12 +75,19 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
     /** A landscape with no held ground. */
     public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
                      List<RidgePlanner.Band> ridges) {
-        this(woodland, tracks, brooks, raggedMargin, ridges, List.of(), true);
+        this(woodland, tracks, brooks, raggedMargin, ridges, List.of(), true, List.of());
+    }
+
+    /** A landscape with no sealed ground and no knolls. */
+    public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
+                     List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held, boolean heldFromGrowth,
+                     List<Track> kept) {
+        this(woodland, tracks, brooks, raggedMargin, ridges, held, heldFromGrowth, kept, List.of(), List.of());
     }
 
     /** This landscape with these ridges held open before the places grow. */
     public Landscape withHeld(List<RidgePlanner.Band> held) {
-        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, true);
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, true, kept, sealed, knolls);
     }
 
     /**
@@ -73,7 +95,33 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
      * grow and claim as they would have, and no field is ploughed on the band.
      */
     public Landscape withUnploughed(List<RidgePlanner.Band> held) {
-        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, false);
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, false, kept, sealed, knolls);
+    }
+
+    /** This landscape with these boxes kept open round places that will stand high ({@link #kept}). */
+    public Landscape withKept(List<Track> kept) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, heldFromGrowth, kept, sealed,
+                knolls);
+    }
+
+    /** This landscape with these ridges sealed: held from growth and gone round by every route ({@link #sealed}). */
+    public Landscape withSealed(List<RidgePlanner.Band> sealed) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, heldFromGrowth, kept, sealed,
+                knolls);
+    }
+
+    /** This landscape with these places stood on knolls ({@link Knoll}). */
+    public Landscape withKnolls(List<Knoll> knolls) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, heldFromGrowth, kept, sealed,
+                knolls);
+    }
+
+    /** Every band the landscape holds before growth: its held ridges and its sealed ones. */
+    public List<RidgePlanner.Band> allHeld() {
+        if (sealed.isEmpty()) return held;
+        List<RidgePlanner.Band> out = new ArrayList<>(held);
+        out.addAll(sealed);
+        return out;
     }
 
     public Landscape {
@@ -83,6 +131,45 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
         brooks = brooks == null ? List.of() : List.copyOf(brooks);
         ridges = ridges == null ? List.of() : List.copyOf(ridges);
         held = held == null ? List.of() : List.copyOf(held);
+        kept = kept == null ? List.of() : List.copyOf(kept);
+        sealed = sealed == null ? List.of() : List.copyOf(sealed);
+        knolls = knolls == null ? List.of() : List.copyOf(knolls);
+    }
+
+    /**
+     * A place stood on a knoll ({@code elevation-nouns.md}, Knolls): a flat top {@code halfWidth} by
+     * {@code halfHeight} cells either side of the place's seed (moved in from the map's edge as far as it must be),
+     * the place growing only inside it, and {@code ring} cells of open country kept round it that nothing grows,
+     * claims, ploughs or welds a road across, for the terrace's cliff and its ramps. The place's roads leave through
+     * a gate on each side {@code gates} names: a straight road from its streets out across the ring, which the
+     * terrace ramps down. The knoll is raised as a terrace with the map's other elevation and reported under
+     * {@code name}; a required one that cannot stand fails its map.
+     *
+     * @param gates the sides the place's roads leave by, as cardinal directions (north is up the map, +y)
+     */
+    public record Knoll(String name, String place, int halfWidth, int halfHeight, int ring, List<Direction> gates,
+                        boolean required) {
+        /** Cells of ring that leave the terrace its margin, its cliff and its apron, and a road's reservation beyond. */
+        public static final int STOCK_RING = 14;
+
+        public Knoll {
+            if (name == null || name.isEmpty() || place == null || place.isEmpty()) {
+                throw new IllegalArgumentException("a knoll names itself and its place");
+            }
+            if (halfWidth < 6 || halfHeight < 6) throw new IllegalArgumentException("a knoll's top is 13 cells across at least");
+            if (ring < 10) throw new IllegalArgumentException("a knoll's ring leaves room for a cliff: 10 cells at least");
+            gates = gates == null ? List.of() : List.copyOf(gates);
+            if (gates.isEmpty()) throw new IllegalArgumentException("a knoll's place needs a gate to leave by");
+            for (Direction d : gates) {
+                if (d.dx != 0 && d.dy != 0) throw new IllegalArgumentException("a gate faces a side: " + d);
+            }
+            if (gates.stream().distinct().count() != gates.size()) throw new IllegalArgumentException("a side has one gate");
+        }
+
+        /** A knoll with the stock ring. */
+        public Knoll(String name, String place, int halfWidth, int halfHeight, List<Direction> gates, boolean required) {
+            this(name, place, halfWidth, halfHeight, STOCK_RING, gates, required);
+        }
     }
 
     /**

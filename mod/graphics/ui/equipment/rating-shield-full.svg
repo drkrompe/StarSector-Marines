@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- One protection symbol, lit: the armour accent on a dark edge. Drawn over its empty twin, clipped to show a quarter, half, three quarters or all of it. -->
+  <path d="M6 4 H26 V14 C26 22 21 27 16 30 C11 27 6 22 6 14 Z" fill="#dfb84d" stroke="#171006" stroke-width="1.8" stroke-linejoin="miter"/>
+  <path d="M16 6.5 V27" fill="none" stroke="#171006" stroke-width="1.6"/>
+</svg>

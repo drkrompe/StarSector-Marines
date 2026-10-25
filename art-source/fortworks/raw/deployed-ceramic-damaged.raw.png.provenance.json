@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f5d-d698-7e71-82c7-36a8e70fbcd1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f5d-d698-7e71-82c7-36a8e70fbcd1\\exec-79464fe8-4ed6-4a83-aa24-0dcc19ae70e2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\deployed-ceramic-damaged.raw.png",
+    "sha256": "1802f4f2a75dc883278d60ad37ac2015a60c95fb31f74e7384e36dc445f43df2",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\deployed-ceramic-damaged.prompt.txt",
+  "promptSha256": "22ddeefc2bccf165c16a6b6a413c46fc1ab2d4e8a2950200a076787e7e63c262",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint battle damage into the same pieces: on the parapet plate, chipped and spalled edges, dents and gouges, short dark cracks, scorch and soot blooms and bullet pitting, a few small loose fragments on the flat hard-standing; on the barricade ring, the same kind of hits, its pieces dented, holed and scorched; the wall tiles scuffed and pitted. Everything is still standing and complete: nothing missing, no gaps, every band still full width. Spread the damage so it looks alike on all four sides and the four corners, with no single large feature and no hard lines along cell boundaries. Material and style: Tri-Tachyon high-tech deployed kit, field-emplaced armour: modular slabs of MATTE off-white and pale warm-grey ceramic composite armour plate, the same stuff as a Tri-Tachyon warship's hull, with faceted chamfered edges, crisp dark recessed panel seams dividing each slab into large plates, a faint coarse hexagonal ceramic tiling on the plate faces, slight dust and scuffing and a few scorch marks; the slabs stand in dark graphite frames with hinge brackets, locking clamps and short anchor feet where they were set down. Accents are restrained: a thin muted slate-blue stripe or small unit stencil block on some plates and tiny dim status pips, nothing more. NO glow, NO light lines, NO translucent or hard-light panes, NO bright cyan or electric blue, no energy effects: every surface is solid matte ceramic or graphite. The parapet a ring of chamfered ceramic armour slabs in graphite frames on a pale composite deck pad, the wall caps the tops of tall ceramic armour slabs, the barricade a run of low chamfered ceramic slabs on graphite feet. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\deployed-ceramic.raw.png",
+      "sha256": "b0eb004d184ece278d7d42d281a4284d3e85db8898b705611eeba195e2236e92",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one damaged version, preserving the sheet’s geometry and layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 39598,
+    "cached_input_tokens": 32256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 507,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.9
+}

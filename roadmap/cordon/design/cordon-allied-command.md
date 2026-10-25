@@ -10,7 +10,7 @@ base as a producer). Still open: the lift is decided (`liftWorth`) but not
 asked for until a Marine carry exists.
 
 Written: 2026-10-23
-Updated: 2026-10-24 — escorted means alongside; trucks drive a city's streets; town armour on the streets
+Updated: 2026-10-24 — a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
 
 Step 4 of the owner's plan for the Cordon: how the AI commanders use the
 allied forces and their tools. `cordon-nouns.md` is the model (*The allies
@@ -104,7 +104,7 @@ allies say what they are already doing about it:
 | **Help coming** (redoubt N) | a loaded carrier or a column is bound for it | it arrives or is lost |
 | **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
 | **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
-| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: an armed hull, a Hound or a street team within 14 cells) | none is |
+| **Escorted** (a convoy, truck or dozer) | an armed allied hull is alongside it (a truck or dozer: an armed hull, a Hound or a street team within 14 cells; a convoy: the armour gave it a hull for every post, and one is alongside) | none is, or a convoy's escort went short |
 
 Breached and Bled are the redoubt's existing Calling state split by its two
 causes; Uncovered is new. The company is never told what the swarm is doing
@@ -130,7 +130,11 @@ convoys and beat hulls on the road; the density), returning tasks the
    dozer, each takes the nearest hulls above their sector's floor, at most one
    hull from any one sector, and never a calling redoubt's last hull. What it
    cannot take that way it goes without, and says so (*Escorted* is false), so
-   the company knows to walk with it. The hulls go home when the escort ends.
+   the company knows to walk with it. A convoy is *Escorted* only when the
+   armour gave it a hull for every post and one is alongside a truck: a
+   sector's own hull standing beside the road at the gap is not going with it,
+   and one technical at the compound's gate is not an escort of three
+   (`CordonAlliedRules.convoyEscorted`). The hulls go home when the escort ends.
    In a city, which fields no hulls, a truck or dozer with no hull free takes a
    walking escort out of the same surplus (`CordonAlliedRules.escorts` takes
    hulls, mechs and teams alike): a Hound from a sector above its pair, or a
@@ -234,9 +238,11 @@ items above), in priority order. A squad already on a duty keeps it while the
 duty stands, rather than being re-chosen each frame.
 
 1. **Squads the player or a lease owns stay theirs** (today's rule).
-2. **The Road's convoys.** Clear the road ahead of a halted convoy (two
-   squads); walk with a convoy that is not *Escorted* past the gap (three).
-   Unchanged: it is already "allies first, the company where they are not".
+2. **The Road's convoys.** Clear the road ahead of a halted convoy, or where
+   the swarm is on one of its trucks with the road ahead open, at the gate
+   while it loads say (two squads); walk with a convoy that is not *Escorted*
+   past the gap (three). It is already "allies first, the company where they
+   are not".
 3. **A breached redoubt: a relief detachment.** The two nearest free squads
    go at once and fight in behind the rear wall. They **hold until the
    redoubt is settled**: holding, nothing inside its wall and nothing in their
@@ -280,7 +286,7 @@ duty stands, rather than being re-chosen each frame.
 | A redoubt bleeds | a carrier or column brings a squad (*Help coming*) | nothing while help comes | the help joins |
 | The swarm is inside a wall | the sector's machines fight from their posts | a two-squad relief | the redoubt is settled for twenty seconds |
 | A sector loses its machines | the next machine built goes there first | two squads hold its posts | a machine is on its post |
-| A convoy or a beat's hull is on the road | surplus hulls escort it | walks with it only where it is not *Escorted*; clears its road when halted | it is home, or an escort reaches it |
+| A convoy or a beat's hull is on the road | surplus hulls escort it | walks with it only where it is not *Escorted*; clears its road when halted or when the swarm is on a truck | it is home, or a whole escort reaches it |
 | The base is overrun | sends nothing, its machines fight on | two squads to the apron | the apron is clear |
 | A tide | nothing new: sectors hold | the reserve's floor drops; the town's hinge moves into its gaps | the tide is over |
 

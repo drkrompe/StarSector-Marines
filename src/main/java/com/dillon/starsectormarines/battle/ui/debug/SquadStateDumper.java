@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
 import com.dillon.starsectormarines.battle.nav.NavigationService.SquadRouteDiagnostic;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
@@ -1485,7 +1484,6 @@ public final class SquadStateDumper {
         SquadRouteDiagnostic route = sim.inspectSquadRoute(squad.id, squad.routingEpoch,
                 step, goal.x(), goal.y(), starts);
         JSONObject o = buildRouteDiagnosticJson(route);
-        o.put("enabled", SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount()));
         o.put("goalX", goal.x());
         o.put("goalY", goal.y());
         boolean inBounds = sim.getGrid().inBounds(goal.x(), goal.y());

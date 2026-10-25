@@ -111,7 +111,7 @@
 
 <style>
   .company-news { padding: 5px 10px; color: #ffd464; border-color: #aa8742; }
-  .company-news.hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .company-news.hidden { display: none; }
   .mission-select-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-select-header { flex-direction: row; height: 58px; padding: 8px 10px; gap: 10px; border-width: 2px; }
@@ -128,8 +128,8 @@
   .client-card.locked { opacity: 0.45; }
   .client-crest { width: 38px; height: 38px; }
   .client-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
-  .client-name { height: 32px; white-space: normal; }
-  .client-reputation { height: 30px; white-space: normal; }
+  .client-name { min-height: 32px; white-space: normal; }
+  .client-reputation { min-height: 30px; white-space: normal; }
   .mission-client-footer { flex-direction: row; height: 32px; padding: 3px; gap: 4px; border-width: 2px; }
   .mission-client-footer button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 4px; gap: 4px; border-width: 3px; text-align: center; font-family: heading; }
   .mission-catalog-panel { flex-direction: column; width: 37%; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
@@ -138,7 +138,7 @@
   #mission-catalog-title { height: 23px; }
   #mission-catalog-summary { height: 18px; }
   .broker-dossier { flex-direction: row; height: 150px; padding: 10px; gap: 12px; border-width: 1px; }
-  .broker-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .broker-hidden { display: none; }
   .broker-portrait { width: 96px; height: 96px; }
   .broker-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
   .broker-progress { height: auto; white-space: normal; }
@@ -153,8 +153,8 @@
 
   .mission-glyph { width: 31px; height: 31px; padding: 4px; text-align: center; }
   .mission-card-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
-  .mission-card-title { height: 30px; white-space: normal; }
-  .mission-card-meta { height: 30px; white-space: normal; }
+  .mission-card-title { min-height: 30px; white-space: normal; }
+  .mission-card-meta { min-height: 30px; white-space: normal; }
   .mission-card-payout { width: 118px; height: 20px; padding: 3px; text-align: right; }
   .type-assault .mission-glyph { color: #e98b83; }
   .type-sabotage .mission-glyph { color: #ffd464; }
@@ -175,7 +175,7 @@
   .mission-detail-rows { flex-direction: column; gap: 4px; }
   .detail-row { flex-direction: column; height: 52px; padding: 8px; gap: 5px; border-width: 1px; }
   .detail-label { height: 16px; }
-  .detail-value { height: 30px; white-space: normal; }
+  .detail-value { min-height: 30px; white-space: normal; }
   .mission-detail-actions { flex-direction: row; height: 32px; padding: 3px; gap: 5px; border-width: 2px; }
   .mission-detail-actions button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
   .mission-detail-actions .mission-brief { flex-grow: 3; }

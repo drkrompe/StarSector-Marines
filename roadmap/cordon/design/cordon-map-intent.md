@@ -1,8 +1,10 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, the ridge the line stands on (rural and town; the redoubts stand in its passes, not on its crest), and the beats as optional objectives over the set pieces.
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, the ridge the line stands on with every redoubt on its crest (rural and town), and the beats as optional objectives over the set pieces.
 
 Written: 2026-10-23
+
+Updated: 2026-10-24 — the gap law is closed with picket nests and is acceptance.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -37,10 +39,20 @@ A line drawn across country by someone who has had weeks to choose:
   the allies move.
 - **Redoubts where roads cross.** Each redoubt guards a road through the line.
   The gaps between them are covered from both sides, never wider than two
-  redoubts' guns can reach.
+  redoubts' guns can reach. Measured (`CordonGapLaw`) gun to gun along the
+  line, a redoubt's towers through the picket nests to the next redoubt's,
+  against twice the heavy machine gun's range plus its spread and splash at
+  each end (53.6 cells). Redoubts stand a quarter of the map apart, a hundred
+  and more cells, so the towers alone never meet and the nests carry the law.
+  The owner closed it with more picket nests (2026-10-24): once the redoubts
+  are built, every pair still breaking it gets nests along the line until no
+  step is over the law, on the crest in open country and at street mouths in
+  a town or a city, where a gun sees down the street rather than into a wall
+  (`cordon-nouns.md`, Picket line). It is acceptance: a map whose line still
+  breaks it is not a Cordon map.
 - **A picket line between them.** A trench with wire in front runs redoubt to
   redoubt along the crest, broken where roads pass (the gaps). Nests stand at
-  each end of a course.
+  each end of a course, and more wherever the gap law needs one.
 - **A switch line behind.** A second, shorter trench behind the middle of the
   line, unmanned at the start: where a garrison falls back to (beat L3).
 - **Supply roads.** A road from the logistics base to the rear gate of each
@@ -52,15 +64,19 @@ A line drawn across country by someone who has had weeks to choose:
 ## By density
 
 The same works at each density (`cordon-nouns.md`, Density). Density changes
-what they are built from:
+what they are built from. The owner asked for a mix rather than one look per
+density (2026-10-24): the compound is the professional post, the farm, school,
+walled-up block and tenement are troops making do, and a line that mixes them
+reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
+(`cordon-nouns.md`, Construction):
 
 | | Rural | Town | Urban |
 | --- | --- | --- | --- |
-| Redoubt | Earth-and-timber work on the crest at a crossroads | A fortified farm or school at the village's edge | A fortified block: the buildings round a crossroads walled up |
+| Redoubt | Earth-and-timber work on the crest at a crossroads | A mix: the compound, a fortified farm, a fortified school | A mix: the compound, the buildings round a crossroads walled up, a fortified tenement |
 | Picket line | Trench and wire across fields | Trench across fields, barricades across streets | Barricaded street mouths and loopholed houses; no trench |
 | Switch line | A trench behind the middle | A trench and a barricaded street | A second row of barricaded blocks |
 | Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets; armour held to the boulevard |
-| Base | A fenced yard on the main road | The town's goods yard | A depot in a car park or a warehouse block |
+| Base | A fenced yard on the main road | A fenced yard on the main road (*not built:* the town's goods yard) | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
 
 ## The beats' set pieces
 
@@ -111,9 +127,11 @@ corridor is proved through its ground. R2 to R4 need no new structure.
    map its Cordon is left out of that map and reported.
 2. The authored ground (the ridge), from the heart's side of the machinery.
    Built (`cordon-nouns.md`, The map): a layout ridge raised before the works,
-   so the picket lines are dug on its crest; the redoubts stand in its passes
-   at their roads, on the low ground, because a place is built before
-   elevation goes down. Rural and town; an urban line has none.
+   so the picket lines are dug on its crest, and every redoubt stood on the
+   crest at its road as a terrace (`elevation-nouns.md`, Terraces), its roads
+   ramped down to the rear and the front falling away. A map on which a
+   redoubt cannot stand so is not a Cordon map. Rural and town; an urban line
+   has none.
 3. The set pieces, one per beat, each checked on the pools. Built; R1's
    wreck is laid by its beat (above).
 4. Then the optional-objective mechanism, shared with the heart, which rolls

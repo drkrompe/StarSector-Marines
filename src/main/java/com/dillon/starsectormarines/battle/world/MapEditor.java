@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.RoofCover;
+import com.dillon.starsectormarines.battle.world.model.RoofDamage;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.NaturalPropDamage;
@@ -345,22 +347,34 @@ public final class MapEditor {
     }
 
     private void peelRoofAround(int wallX, int wallY) {
-        destroyRoof(wallX - 1, wallY);
-        destroyRoof(wallX + 1, wallY);
-        destroyRoof(wallX, wallY - 1);
-        destroyRoof(wallX, wallY + 1);
+        destroyRoof(wallX - 1, wallY, RoofDamage.COLLAPSED);
+        destroyRoof(wallX + 1, wallY, RoofDamage.COLLAPSED);
+        destroyRoof(wallX, wallY - 1, RoofDamage.COLLAPSED);
+        destroyRoof(wallX, wallY + 1, RoofDamage.COLLAPSED);
+    }
+
+    /** {@link #destroyRoof(int, int, RoofDamage)} for a cave-in: the roof falls in. */
+    public void destroyRoof(int x, int y) {
+        destroyRoof(x, y, RoofDamage.COLLAPSED);
     }
 
     /**
-     * Cracks open the roof above a building cell — flips
-     * {@link CellTopology#setRoofDestroyed} and fires the
-     * {@link #roofCollapseSink} cave-in decal. No-op off-map, on non-building
-     * cells, or where the roof is already gone.
+     * Damages the roof over a cell by what hit it ({@link RoofDamage}). Over a building's floor that opens the roof
+     * — flips {@link CellTopology#setRoofDestroyed} and fires the {@link #roofCollapseSink} cave-in decal the first
+     * time — and records the damage, keeping the worse of a second blow. Over a wall the roof's eave has no shield
+     * to lose, so only its damage is recorded ({@link RoofCover}). No-op off-map or where no roof is drawn.
      */
-    public void destroyRoof(int x, int y) {
-        if (!grid.inBounds(x, y)) return;
-        if (topology.getBuildingId(x, y) == 0) return;
-        if (topology.isRoofDestroyed(x, y)) return;
+    public void destroyRoof(int x, int y, RoofDamage cause) {
+        if (!grid.inBounds(x, y) || cause == RoofDamage.INTACT) return;
+        if (topology.getBuildingId(x, y) == 0) {
+            if (RoofCover.isRoofed(topology, x, y)) {
+                topology.setRoofDamage(x, y, topology.getRoofDamage(x, y).worse(cause));
+            }
+            return;
+        }
+        boolean wasOpen = topology.isRoofDestroyed(x, y);
+        topology.setRoofDamage(x, y, topology.getRoofDamage(x, y).worse(cause));
+        if (wasOpen) return;
         topology.setRoofDestroyed(x, y, true);
         if (roofCollapseSink != null) roofCollapseSink.accept(x, y);
     }

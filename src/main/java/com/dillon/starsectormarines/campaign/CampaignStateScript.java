@@ -8,9 +8,7 @@ import com.dillon.starsectormarines.campaign.systems.CadreTrainingSystem;
 import com.dillon.starsectormarines.campaign.systems.CampaignEventLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.CaptainTraitDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
-import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
-import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
 import com.dillon.starsectormarines.campaign.systems.DiscoveryPropagationSystem;
@@ -38,9 +36,7 @@ import com.dillon.starsectormarines.campaign.systems.StationingLapseSystem;
 import com.dillon.starsectormarines.campaign.systems.GarrisonMarketLossSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingReleaseSystem;
 import com.dillon.starsectormarines.campaign.systems.StrandedDetachmentSystem;
-import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
-import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import com.fs.starfarer.api.EveryFrameScript;
@@ -98,7 +94,6 @@ public class CampaignStateScript implements EveryFrameScript {
                 new ChainAdvancementSystem(),
                 new ThroneClaimResolutionSystem(),
                 new HouseConsolidationSystem(),
-                new ContractGenerator(),
                 new VanillaRaidGarrisonSystem(),
                 new InternalFlipGarrisonSystem(),
                 new StationingDefaultSystem(),
@@ -126,9 +121,6 @@ public class CampaignStateScript implements EveryFrameScript {
                 new StrandedDetachmentSystem(),
                 new DiscoveryPropagationSystem(),
                 new DefectorAsylumSpawnSystem(),
-                new SilentColonySpawnSystem(),
-                new CivilWarParticipationOfferSystem(),
-                new ThreatInterventionOfferSystem(),
                 // Before the stationed-strength write, so the day's derived polity roster
                 // is standing by the time anything reads a ground defence off a market.
                 new PolityRosterSystem(),

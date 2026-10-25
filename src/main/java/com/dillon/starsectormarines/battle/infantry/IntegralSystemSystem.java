@@ -157,6 +157,7 @@ public final class IntegralSystemSystem {
     private final TreeMap<Integer, PodCandidate> podCandidates = new TreeMap<>();
     /** Reused by the serial per-carrier pass; no policy keeps it past its own call. */
     private final PolicyMotion motionScratch = new PolicyMotion(false, 0f, 0f);
+    private boolean laneDiscipline;
 
     private record PodCandidate(long shooter, long target, float bodyBearing,
                                 MissilePodMountGeometry.Pose mount, IntegralSystemDef def,
@@ -168,6 +169,15 @@ public final class IntegralSystemSystem {
         this.resolver = resolver;
         this.shots = shots;
         this.rng = rng;
+    }
+
+    /**
+     * Whether a pod holds a salvo with a friend in its lane, or one whose resolved burst would reach a friend or
+     * the wearer ({@link BallisticResolver#friendInLane}, {@link BallisticResolver#friendInBlast}): the fire
+     * control a chassis already has. A held salvo spends nothing and is offered again on the next tick.
+     */
+    public void setLaneDiscipline(boolean laneDiscipline) {
+        this.laneDiscipline = laneDiscipline;
     }
 
     /**
@@ -226,7 +236,12 @@ public final class IntegralSystemSystem {
                         boolean legalOrigin = def.missilePod().mount() == null
                                 || legalPodOrigin(sim.getGrid(), rosterService.world().renderX(id),
                                     rosterService.world().renderY(id), mount);
-                        if (legalOrigin) {
+                        // A squadmate between the rail and the target is where the round goes first.
+                        boolean clearLane = !laneDiscipline || !resolver.friendInLane(id,
+                                mount.muzzleX(), mount.muzzleY(), rosterService.identity().faction(id),
+                                rosterService.world().renderX(target),
+                                rosterService.world().renderY(target), target);
+                        if (legalOrigin && clearLane) {
                             PodCandidate candidate = new PodCandidate(id, target, bodyBearing,
                                     mount, def, squad);
                             if (squad == null) {
@@ -275,9 +290,14 @@ public final class IntegralSystemSystem {
     }
 
     private void launchPod(PodCandidate candidate, IntegralSystemService systems, int tick) {
+        MissilePodSpec pod = candidate.def().missilePod();
+        BallisticResolver.Resolution[] salvo = resolveSalvo(candidate.shooter(), candidate.target(),
+                pod, candidate.mount());
+        // Where each round will actually stop, cover clipped near the rail included: a salvo with any
+        // burst reaching a friend or the wearer stays on the rail.
+        if (laneDiscipline && salvoEndangersFriends(candidate.shooter(), pod.weaponDef(), salvo)) return;
         if (!systems.activate(candidate.shooter())) return;
-        fireMissilePod(candidate.shooter(), candidate.target(), candidate.def().missilePod(),
-                candidate.mount());
+        fireMissilePod(candidate.shooter(), pod, candidate.mount(), salvo);
         systems.recordPodLaunch(candidate.shooter(), candidate.mount().muzzleX(),
                 candidate.mount().muzzleY(), candidate.bodyBearing(),
                 candidate.mount().bearingDegrees());
@@ -565,19 +585,14 @@ public final class IntegralSystemSystem {
      * ({@code moddable-weapons-nouns.md}) — a pod gets no exemption from the
      * collateral discipline the shipped specials already carry.
      */
-    private void fireMissilePod(long shooter, long target, MissilePodSpec pod,
-                                MissilePodMountGeometry.Pose mount) {
+    private void fireMissilePod(long shooter, MissilePodSpec pod,
+                                MissilePodMountGeometry.Pose mount,
+                                BallisticResolver.Resolution[] salvo) {
         WeaponDef weapon = pod.weaponDef();
         Faction shooterFaction = rosterService.identity().faction(shooter);
         float fromX = mount.muzzleX();
         float fromY = mount.muzzleY();
-        BallisticResolver.Source source = new BallisticResolver.Source(shooter, fromX, fromY,
-                0f, shooterFaction);
-        int missiles = Math.max(1, weapon.projectilesPerShot());
-        for (int i = 0; i < missiles; i++) {
-            BallisticResolver.Resolution res = resolver.resolve(source, target,
-                    weapon.accuracy(), weapon.hitSpread(), weapon.roundVelocity(),
-                    weapon.range(), rng);
+        for (BallisticResolver.Resolution res : salvo) {
             rosterService.telemetry().recordRoundFired(shooter);
             PendingDetonation onArrival = res.impacts()
                     ? new PendingDetonation(shooter, res.endX(), res.endY(), res.flightTime(),
@@ -596,6 +611,36 @@ public final class IntegralSystemSystem {
                     res.victimId() != 0L, res.kind(), shooter));
         }
         rosterService.telemetry().recordSecondaryUsed(shooter);
+    }
+
+    /**
+     * Every missile of one salvo, each independently resolved from the muzzle, before any of it is committed:
+     * {@link WeaponDef#projectilesPerShot()} rounds, never fewer than one.
+     */
+    private BallisticResolver.Resolution[] resolveSalvo(long shooter, long target, MissilePodSpec pod,
+                                                        MissilePodMountGeometry.Pose mount) {
+        WeaponDef weapon = pod.weaponDef();
+        BallisticResolver.Source source = new BallisticResolver.Source(shooter, mount.muzzleX(),
+                mount.muzzleY(), 0f, rosterService.identity().faction(shooter));
+        BallisticResolver.Resolution[] salvo =
+                new BallisticResolver.Resolution[Math.max(1, weapon.projectilesPerShot())];
+        for (int i = 0; i < salvo.length; i++) {
+            salvo[i] = resolver.resolve(source, target, weapon.accuracy(), weapon.hitSpread(),
+                    weapon.roundVelocity(), weapon.range(), rng);
+        }
+        return salvo;
+    }
+
+    /** Whether any round of {@code salvo} would burst where a friend's footprint, or the wearer's, reaches. */
+    private boolean salvoEndangersFriends(long shooter, WeaponDef weapon,
+                                          BallisticResolver.Resolution[] salvo) {
+        if (weapon.aoeRadius <= 0f) return false;
+        Faction side = rosterService.identity().faction(shooter);
+        for (BallisticResolver.Resolution res : salvo) {
+            if (res.impacts() && resolver.friendInBlast(shooter, side, res.endX(), res.endY(),
+                    weapon.aoeRadius)) return true;
+        }
+        return false;
     }
 
     static boolean legalPodOrigin(NavigationGrid grid, float bodyX, float bodyY,

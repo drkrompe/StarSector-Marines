@@ -56,6 +56,31 @@ class SpecSheetBinderTest {
         }
     }
 
+    /** A part in hand shuts the open sheet and keeps it shut until the drop, over the same hover. */
+    @Test
+    void aHeldPartClosesTheSheetUntilItIsLetGo() {
+        try (MarkupInstance instance = SpecSheetDocuments.instance()) {
+            UiDocument document = SpecSheetDocuments.laidOut(instance);
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            boolean[] held = {false};
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer).heldWhile(() -> held[0]);
+            UiElement anchor = instance.requireElement("near-left");
+            binder.bind(anchor, SpecSheetDocuments.sheet("weapon"));
+            hover(document, anchor);
+            binder.update();
+            assertTrue(layer.visible());
+
+            held[0] = true;
+            binder.update();
+            assertFalse(layer.visible());
+            assertNull(binder.openTarget());
+
+            held[0] = false;
+            binder.update();
+            assertTrue(layer.visible());
+        }
+    }
+
     @Test
     void movingOffABoundElementClosesTheSheet() {
         try (MarkupInstance instance = SpecSheetDocuments.instance()) {

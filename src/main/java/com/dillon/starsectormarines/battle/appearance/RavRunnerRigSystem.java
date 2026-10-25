@@ -13,7 +13,7 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 
 /**
- * Advances every live Runner's, Brute's and Matriarch's skeleton from the tick's settled state: where the body stands,
+ * Advances every live Runner's, Brute's, Spitter's and Matriarch's skeleton from the tick's settled state: where the body stands,
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
  * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
@@ -80,6 +80,11 @@ public final class RavRunnerRigSystem {
                             chargePhase.applyAsInt(id), stunned.test(id), dt);
                     continue;
                 }
+                if (state instanceof RavSpitterRig spitter) {
+                    spitter.setStage(stage(table.entityAt(row)));
+                    spitter.advance(posX[row], posY[row], facing[row], cooldown[row], target[row] != 0L, dt);
+                    continue;
+                }
                 if (state instanceof RavMatriarchRig matriarch) {
                     long id = table.entityAt(row);
                     matriarch.setStage(stage(id));
@@ -104,6 +109,7 @@ public final class RavRunnerRigSystem {
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 if (rigs[row] instanceof RavRunnerRig rig) rig.advanceDead(posX[row], posY[row], dt);
                 else if (rigs[row] instanceof RavBruteRig brute) brute.advanceDead(posX[row], posY[row], dt);
+                else if (rigs[row] instanceof RavSpitterRig spitter) spitter.advanceDead(posX[row], posY[row], dt);
             }
         }
     }

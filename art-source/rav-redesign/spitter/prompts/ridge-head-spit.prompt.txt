@@ -1,0 +1,3 @@
+The SAME image as reference image 1, pixel for pixel (same head, same scale, same position, same neck stump, colours, lighting and background), with ONE change: the head is SPITTING. Its jaws gape wide open at the snout, the mouth and throat glowing a deep venom green with a bead of acid at the lips, and its two ivory crest blades flare out wider to the sides. Still only the head, from directly above, facing up: no body.
+
+Strict overhead orthographic view, light from the upper left. Plain flat light grey background (#afafaf), no shadow, no ground, no text, no border.

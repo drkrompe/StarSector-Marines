@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
-import com.dillon.starsectormarines.ops.battleview.MechReplenisherArt;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.Rect;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -54,17 +57,44 @@ final class MechLabSpecSheets {
             if (binder.isBound(name)) continue;
             if (row.chassisPreview() != null) {
                 binder.bind(name, SpecSheets.mech(row.chassisPreview()));
-            } else if (row.weaponPreview() != null) {
-                MechWeaponComponent weapon = row.weaponPreview();
-                if (viewModel == null) binder.bind(name, SpecSheets.mechWeapon(weapon));
-                else binder.bind(name, () -> SpecSheets.mechWeapon(weapon,
-                        viewModel.selectedFluxCapacity(), viewModel.selectedDissipationPerSecond()));
-            } else if (row.replenisherPreview() != null) {
-                binder.bind(name, replenisherSheet(row.replenisherPreview()));
-            } else if (row.internalPreview() != null) {
-                binder.bind(name, internalSheet(row.internalPreview()));
+            } else if (row.weaponPreview() != null || row.internalPreview() != null) {
+                binder.bind(name, () -> partSheet(row.weaponPreview(), row.internalPreview(), viewModel));
             }
         }
+    }
+
+    /**
+     * The doll answers like the stores: a fitted part under the pointer opens its
+     * {@link #partSheet}, beside the part rather than the whole board. While a part is in hand
+     * the doll points at nothing, so no sheet covers the socket it is going into.
+     */
+    static void bindDoll(SpecSheetBinder binder, UiDocument document, UiElement dollElement,
+                         MechLabDollCanvas doll, MechLabViewModel viewModel) {
+        binder.bindLive(dollElement, () -> {
+            MechLabDollCanvas.PointedPart part = doll.pointedPart();
+            return part == null ? null : partSheet(part.weapon(), part.internal(), viewModel);
+        }, () -> {
+            MechLabDollCanvas.PointedPart part = doll.pointedPart();
+            if (part == null) return null;
+            CanvasMetrics metrics = document.canvasMetrics(dollElement, 1f);
+            float left = metrics.toDocumentX(part.left());
+            float top = metrics.toDocumentY(part.top());
+            return new Rect(left, top, metrics.toDocumentX(part.right()) - left,
+                    metrics.toDocumentY(part.bottom()) - top);
+        });
+    }
+
+    /**
+     * A weapon's or an internal's sheet: the same in stores and fitted on the doll, so a part
+     * reads alike wherever the player points at it. With a view model, a weapon's flux lines read
+     * against the selected mech's own capacitors and dissipation. Null when there is no part.
+     */
+    static SpecSheet partSheet(MechWeaponComponent weapon, MechInternal internal, MechLabViewModel viewModel) {
+        if (weapon != null) {
+            return viewModel == null ? SpecSheets.mechWeapon(weapon) : SpecSheets.mechWeapon(weapon,
+                    viewModel.selectedFluxCapacity(), viewModel.selectedDissipationPerSecond());
+        }
+        return internal != null ? internalSheet(internal) : null;
     }
 
     /** One internal's own numbers; what it does to a particular frame is the catalog row's. */
@@ -90,18 +120,28 @@ final class MechLabSpecSheets {
             }
             case VENT_ARRAY -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecDissipation"),
                     signed(internal.dissipation)));
+            case LOADER -> {
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsSrmCycle"),
+                        Strings.format("openingMechLabSpecSheetsS", internal.replenisher().srmReplenishmentSeconds())));
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"),
+                        Strings.format("openingMechLabSpecSheetsS", internal.replenisher().lrmReplenishmentSeconds())));
+            }
         }
+        if (internal.role.compartment()) stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecFootprint"),
+                internal.footprintColumns + "x" + internal.footprintRows));
         String role = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabRoleEngine");
             case PLATING -> Strings.get("openingMechLabRolePlating");
             case CAPACITOR_BANK -> Strings.get("openingMechLabRoleCapacitorBank");
             case VENT_ARRAY -> Strings.get("openingMechLabRoleVentArray");
+            case LOADER -> Strings.get("openingMechLabRoleLoader");
         };
         String copy = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabEngineCopy");
             case PLATING -> Strings.get("openingMechLabPlatingCopy");
             case CAPACITOR_BANK -> Strings.get("openingMechLabCapacitorBankCopy");
-            case VENT_ARRAY -> Strings.get("openingMechLabUtilityCopy");
+            case VENT_ARRAY -> Strings.get("openingMechLabVentArrayCopy");
+            case LOADER -> Strings.get("openingMechLabLoaderCopy");
         };
         return new SpecSheet(internal.displayName(), role, null, "item", List.copyOf(stats), List.of(copy));
     }
@@ -130,20 +170,11 @@ final class MechLabSpecSheets {
         }
     }
 
-    private static SpecSheet replenisherSheet(MissileReplenisherComponent component) {
-        return new SpecSheet(component.displayName(), Strings.get("openingMechLabSpecSheetsMissileMiniFab"),
-                MechReplenisherArt.icon(component), "item", List.of(
-                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsSrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.srmReplenishmentSeconds())),
-                        SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"), Strings.format("openingMechLabSpecSheetsS", component.lrmReplenishmentSeconds()))),
-                List.of(Strings.get("openingMechLabSpecSheetsBuildsOneMissileTriggerPackPerCycle"),
-                        Strings.get("openingMechLabSpecSheetsInstallFromFleetSparesThisSystemCannot")));
-    }
-
     /** A category symbol names itself on hover, since it carries no word. */
     static void bindFilterPills(SpecSheetBinder binder, MarkupInstance markup,
-                                List<MechLabViewModel.FilterPill> pills) {
+                                List<FittingFilterPill> pills) {
         if (binder == null) return;
-        for (MechLabViewModel.FilterPill pill : pills) {
+        for (FittingFilterPill pill : pills) {
             UiElement element = markup.requireElement(pill.id());
             if (binder.isBound(element) || pill.icon() == null) continue;
             binder.bind(element, new SpecSheet(pill.label(), Strings.get("openingMechLabFilterSubtitle"),

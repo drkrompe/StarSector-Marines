@@ -41,6 +41,14 @@ public final class TurretBehavior implements UnitBehavior {
         // burst recoils per round, not just on the trigger pull.
         turretState.setRecoilTimer(id, turretState.recoilTimer(id) + BattleSimulation.TICK_DT);
 
+        // An overloaded flux shield trips the generator the gun shares: it is silent, and drops any burst, until
+        // the capacitors have vented.
+        if (sim.turretShields().silenced(id)) {
+            turretState.setBurstRemaining(id, 0);
+            turretState.setBurstTargetId(id, 0L);
+            return;
+        }
+
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
         // AirSystem.tickShuttleTurrets. Reads the TURRET_STATE-shadow
@@ -85,6 +93,9 @@ public final class TurretBehavior implements UnitBehavior {
         s.target = sim.targetOf(u);
         s.indirectFire = weapon.indirectFire;
         s.tracksFliers = weapon.tracksFliers();
+        // A beam opens off target, as a tank's lance does: it lands short and rakes across onto its target as the
+        // mount comes round, striking and scorching what it crosses (TurretFireSystem.fireBeam).
+        if (weapon.hitscanBeam()) s.fireArcDeg = TurretAim.BEAM_OPEN_ARC_DEG;
         if (tube != null) {
             // A tube fires for the squad that serves it: what that squad believes, and
             // nothing it has not been shown. A lone gunner works it at a slower cycle.

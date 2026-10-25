@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.fire;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Burning as simulation state the battle owns (`fire-nouns.md`, Fire field).
@@ -36,10 +35,10 @@ public final class FireField {
     /** Ticks a burnt cell refuses creep after it burns out: three minutes. */
     public static final int CREEP_REFUSAL_TICKS = 30 * 180;
     /**
-     * Steps a caught cell takes to reach its peak: four seconds. It sets the front's pace (a grass front walks
-     * about 0.65 cells a second, a third of a marine's walk) without changing peak heat or reach, so breaks hold.
+     * Steps a caught cell takes to reach its peak: six seconds. It sets the front's pace, well under a marine's walk,
+     * without changing peak heat or reach, so breaks hold.
      */
-    static final int RAMP_STEPS = 20;
+    static final int RAMP_STEPS = 30;
     /** The share of a cell's load left when its fire starts to die down. */
     static final int TAIL_DIVISOR = 4;
     /** Heat a cell keeps each step, in 1/8: the rest cools away. */
@@ -52,17 +51,43 @@ public final class FireField {
      * (`fire-nouns.md`, Spread), folding the pick into {@link FireFuel}.
      */
     public static final String SPREAD_SCALE_PROPERTY = "battle.fire.spreadScale";
-    /**
-     * Temporary A/B switch, composed with a fuel's lower-case name ({@code battle.fire.spread.brush=3}): how many cells
-     * that fuel carries a fire, in place of its {@link FireFuel#spread}; unset keeps it. Remove it with its losing arm
-     * once the owner answers the fire-flamer-woods pick (whether a flamer squad can be used in a wood), folding the
-     * answer into {@link FireFuel}.
-     */
-    public static final String SPREAD_PROPERTY_PREFIX = "battle.fire.spread.";
     /** How many times its spread a fire carries in dry country ({@link #setTinder}). */
     static final int TINDER_SPREAD = 3;
     /** Wind strength at or above which a fire reaches a ring further downwind. */
     static final float STRONG_WIND = 0.6f;
+    /**
+     * Distances from a fire's ignition are counted in quarter cells, straight-line (Euclidean) per hop, so a fire's
+     * carry limit is a disc round where it was lit rather than a box.
+     */
+    static final int QUARTERS = 4;
+    /** A distance past any fuel's carry: what a cell of unlimited fuel never reaches. */
+    private static final int FAR = Short.MAX_VALUE / 2;
+    /**
+     * How much a cell's own carry limit and ignition vary, seeded per cell: its carry is 65% to 115% of its fuel's,
+     * its ignition 85% to 120%, half from the cell and half from the three-cell block round it, so a burn's edge is
+     * ragged and clumped rather than ruled.
+     */
+    static final float CARRY_LOW = 0.65f, CARRY_SPAN = 0.5f, CATCH_LOW = 0.85f, CATCH_SPAN = 0.35f;
+    /** Cells round a burning cell, in a square, that its {@link #massAt mass} counts. */
+    static final int MASS_RADIUS = 3;
+    /** The most a cell's mass can be: every other cell of its square burning. */
+    public static final int MASS_MAX = (2 * MASS_RADIUS + 1) * (2 * MASS_RADIUS + 1) - 1;
+    /** Cells round a burning cell, in a square, that decide whether it is part of a {@link #isBlaze blaze}. */
+    static final int BLAZE_RADIUS = 6;
+    /**
+     * Burning cells in a cell's {@link #BLAZE_RADIUS} square at which it is a blaze: 96 of the 168 round it, more than
+     * any one flamer charge sets burning at once (about 70 in forest) and less than a sweep of charges through brush or
+     * forest or a napalm footprint. Dry country ({@link #setTinder}) needs no lower bar: its fires carry three times
+     * as far, so they grow to it sooner.
+     */
+    static final int BLAZE_MASS = 96;
+    /**
+     * The share of a room, in quarters, that must have caught for the rest of it to flash over (`fire-nouns.md`,
+     * Buildings). A room is the furnished floor walls close round, cut off at doorways; one of more than
+     * {@link #ROOM_MAX} cells is a hall, and burns as a floor does.
+     */
+    static final int FLASHOVER_QUARTERS = 2;
+    static final int ROOM_MAX = 400;
     /** Side of a change-tracking tile, in cells. */
     public static final int TILE = 32;
 
@@ -81,18 +106,38 @@ public final class FireField {
     private final FireTerrain terrain;
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
     private final float spreadScale = spreadScale(System.getProperty(SPREAD_SCALE_PROPERTY));
-    private final int[] fuelSpread = fuelSpread();
     private Listener listener = new Listener() { };
 
     private final int[] heat;
     private final byte[] state;
     private final short[] fuel, load;
     private final byte[] peak, age, intensity, mask, reach;
+    /** Per burning cell, as of the last step: how many cells round it are burning too ({@link #massAt}). */
+    private final byte[] mass;
+    /** Per burning cell, as of the last step: whether it is part of a blaze ({@link #isBlaze}). */
+    private final boolean[] blaze;
     /**
-     * A burning cell's distance, in cells, from where its fire was lit ({@code 0} where it was lit and on fuel of
+     * Per burning cell, whether it is a blaze's (lit by a blaze, or by what a blaze lit); per warm cell, whether the
+     * nearest fire heating it is. What a blaze lights never becomes a blaze itself, so a blaze is one burst onward, not a chain across every wood.
+     */
+    private final boolean[] blazeBorn, heatFromBlaze;
+    /** Scratch for the blaze count: a summed-area table over the burning cells' bounding box. */
+    private int[] areaSum = new int[0];
+    /**
+     * Per cell, its room as of {@link #barrierRevision}: {@code 0} not yet asked, {@code -1} none (not furnished
+     * floor, a doorway, or a hall), else an index into {@link #rooms} plus one. Cleared when the walls change.
+     */
+    private final int[] roomOf;
+    private final List<int[]> rooms = new ArrayList<>();
+    private final List<Boolean> flashed = new ArrayList<>();
+    /** Furnished cells caught this step, whose rooms are asked whether they flash over. */
+    private int[] caughtFloor = new int[64];
+    private int caughtFloorSize;
+    /**
+     * A burning cell's distance, in quarter cells ({@link #QUARTERS}), from where its fire was lit ({@code 0} where it was lit and on fuel of
      * {@link FireFuel#UNLIMITED} spread); for a warm cell, the nearest of the fires heating it, plus the way.
      */
-    private final byte[] distance, heatDistance;
+    private final short[] distance, heatDistance;
     private final int[] burntTick;
     /** Cells that stop heat passing over them, as of {@link #barrierRevision}; see {@link FireTerrain#blocksHeat}. */
     private final boolean[] barrier;
@@ -110,6 +155,8 @@ public final class FireField {
     /** Offsets and weights a burning cell heats, per reach 1..4 (4 only downwind in a strong wind). */
     private int[][] offsets = new int[5][];
     private int[][] weights = new int[5][];
+    /** Per reach, each offset's straight-line length in quarter cells. */
+    private int[][] hops = new int[5][];
 
     private final int tilesX, tilesY;
     private final long[] tileRevision;
@@ -134,8 +181,13 @@ public final class FireField {
         this.intensity = new byte[cells];
         this.mask = new byte[cells];
         this.reach = new byte[cells];
-        this.distance = new byte[cells];
-        this.heatDistance = new byte[cells];
+        this.mass = new byte[cells];
+        this.blaze = new boolean[cells];
+        this.blazeBorn = new boolean[cells];
+        this.roomOf = new int[cells];
+        this.heatFromBlaze = new boolean[cells];
+        this.distance = new short[cells];
+        this.heatDistance = new short[cells];
         this.burntTick = new int[cells];
         this.barrier = new boolean[cells];
         this.warm = new boolean[cells];
@@ -191,18 +243,21 @@ public final class FireField {
                 double factor = 1.0 + windStrength * cos;
                 int w = (int) Math.round(RING_WEIGHT[ring] * factor);
                 if (w <= 0) continue;
-                out.add(new int[]{dx, dy, w});
+                out.add(new int[]{dx, dy, w, (int) Math.round(QUARTERS * d)});
             }
         }
         int[] off = new int[out.size() * 2];
         int[] wt = new int[out.size()];
+        int[] hop = new int[out.size()];
         for (int i = 0; i < out.size(); i++) {
+            hop[i] = out.get(i)[3];
             off[i * 2] = out.get(i)[0];
             off[i * 2 + 1] = out.get(i)[1];
             wt[i] = out.get(i)[2];
         }
         offsets[maxReach] = off;
         weights[maxReach] = wt;
+        hops[maxReach] = hop;
     }
 
     // ---- Igniting ------------------------------------------------------
@@ -210,7 +265,7 @@ public final class FireField {
     /** Puts heat into one cell: an incendiary's touch, a shell's blast on it. */
     public void addHeat(int x, int y, int amount) {
         if (!enabled || amount <= 0 || x < 0 || y < 0 || x >= width || y >= height) return;
-        warmUp(y * width + x, amount, 0);
+        warmUp(y * width + x, amount, 0, false);
     }
 
     /** Puts heat into every cell whose centre lies within a radius, full at the centre and half at the edge. */
@@ -225,7 +280,7 @@ public final class FireField {
                 float d2 = dx * dx + dy * dy;
                 if (d2 > r2) continue;
                 float falloff = r2 == 0f ? 1f : 1f - 0.5f * d2 / r2;
-                warmUp(y * width + x, Math.round(amount * falloff), 0);
+                warmUp(y * width + x, Math.round(amount * falloff), 0, false);
             }
         }
     }
@@ -241,14 +296,17 @@ public final class FireField {
         igniters.add(new Igniter(id, y * width + x, heatPerStep, untilTick));
     }
 
-    /** Heat into a cell from a fire {@code from} cells from where it was lit; an igniter's own heat is {@code 0}. */
-    private void warmUp(int idx, int amount, int from) {
+    /** Heat into a cell from a fire {@code from} quarter cells from where it was lit; an igniter's own heat is {@code 0}. */
+    private void warmUp(int idx, int amount, int from, boolean fromBlaze) {
         byte s = state[idx];
         if (s == BURNING) return;
         if (s == BURNT && !refusalOver(idx)) return;
         heat[idx] = (int) Math.min(Integer.MAX_VALUE / 2, (long) heat[idx] + amount);
-        int d = Math.min(FireFuel.UNLIMITED, from);
-        if (!warm[idx] || d < heatDistance[idx]) heatDistance[idx] = (byte) d;
+        int d = Math.min(FAR, from);
+        if (!warm[idx] || d < heatDistance[idx]) {
+            heatDistance[idx] = (short) d;
+            heatFromBlaze[idx] = fromBlaze;
+        }
         if (!warm[idx]) {
             warm[idx] = true;
             if (warmSize == warmList.length) warmList = Arrays.copyOf(warmList, warmSize * 2);
@@ -272,27 +330,85 @@ public final class FireField {
         for (int i = igniters.size() - 1; i >= 0; i--) {
             Igniter ig = igniters.get(i);
             if (now >= ig.untilTick) { igniters.remove(i); continue; }
-            emit(ig.idx, ig.heat, 1, false, 0);
-            warmUp(ig.idx, ig.heat, 0);
+            emit(ig.idx, ig.heat, 1, false, 0, false);
+            warmUp(ig.idx, ig.heat, 0, false);
         }
-        // Heat goes out from every burning cell before anything is decided.
+        // Heat goes out from every burning cell before anything is decided. A blaze throws its heat a ring further.
         for (int i = 0; i < burningSize; i++) {
             int idx = burning[i];
-            emit(idx, intensity[idx] & 0xFF, reach[idx], true, distance[idx]);
+            boolean b = blaze[idx];
+            emit(idx, intensity[idx] & 0xFF, reach[idx] + (b ? 1 : 0), true, distance[idx], b || blazeBorn[idx]);
         }
         burnDown();
         coolAndCatch();
+        flashOver();
+        weighMass();
+        weighBlaze();
         if (dirtyThisStep) {
             dirtyThisStep = false;
             revision = revision + 1;
         }
     }
 
-    private void emit(int idx, int power, int maxReach, boolean jitter, int from) {
+    /** Counts, for every burning cell, the burning cells in the square round it: a small fire's or a big one's. */
+    private void weighMass() {
+        for (int i = 0; i < burningSize; i++) {
+            int idx = burning[i];
+            int x = idx % width, y = idx / width, n = 0;
+            for (int ny = Math.max(0, y - MASS_RADIUS); ny <= Math.min(height - 1, y + MASS_RADIUS); ny++) {
+                int row = ny * width;
+                for (int nx = Math.max(0, x - MASS_RADIUS); nx <= Math.min(width - 1, x + MASS_RADIUS); nx++) {
+                    if (state[row + nx] == BURNING) n++;
+                }
+            }
+            mass[idx] = (byte) (n - 1);
+        }
+    }
+
+    /**
+     * Marks every burning cell with at least {@link #BLAZE_MASS} burning cells in its {@link #BLAZE_RADIUS} square, and
+     * not itself lit by a blaze, as a blaze: lit afresh with twice its fuel's carry. Counted through a summed-area table over the burning cells' bounding box, so the cost follows the fire.
+     */
+    private void weighBlaze() {
+        if (burningSize == 0) return;
+        int x0 = width, y0 = height, x1 = -1, y1 = -1;
+        for (int i = 0; i < burningSize; i++) {
+            int idx = burning[i], x = idx % width, y = idx / width;
+            x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+        }
+        int bw = x1 - x0 + 2, bh = y1 - y0 + 2;
+        if (areaSum.length < bw * bh) areaSum = new int[bw * bh];
+        // areaSum[(y + 1) * bw + (x + 1)] counts burning cells in [x0, x0 + x] x [y0, y0 + y].
+        Arrays.fill(areaSum, 0, bw, 0);
+        for (int y = 0; y < bh - 1; y++) {
+            int row = (y + y0) * width + x0, run = 0, out = (y + 1) * bw;
+            areaSum[out] = 0;
+            for (int x = 0; x < bw - 1; x++) {
+                if (state[row + x] == BURNING) run++;
+                areaSum[out + x + 1] = areaSum[out - bw + x + 1] + run;
+            }
+        }
+        for (int i = 0; i < burningSize; i++) {
+            int idx = burning[i], x = idx % width - x0, y = idx / width - y0;
+            int ax = Math.max(0, x - BLAZE_RADIUS), bx = Math.min(bw - 2, x + BLAZE_RADIUS) + 1;
+            int ay = Math.max(0, y - BLAZE_RADIUS), by = Math.min(bh - 2, y + BLAZE_RADIUS) + 1;
+            int n = areaSum[by * bw + bx] - areaSum[ay * bw + bx] - areaSum[by * bw + ax] + areaSum[ay * bw + ax] - 1;
+            boolean big = n >= BLAZE_MASS && !blazeBorn[idx];
+            if (big != blaze[idx]) {
+                blaze[idx] = big;
+                markDirty(idx);
+                // Lit afresh where it stands, with twice its fuel's carry onward.
+                if (big && distance[idx] != 0) distance[idx] = (short) -spreadLimitAt(idx, mask[idx] & 0xFF);
+            }
+        }
+    }
+
+    private void emit(int idx, int power, int maxReach, boolean jitter, int from, boolean fromBlaze) {
         if (power <= 0) return;
-        int r = Math.max(1, Math.min(3, maxReach));
+        int r = Math.max(1, Math.min(4, maxReach));
+        if (r == 4 && windStrength < STRONG_WIND) r = 3;
         if (r == 3 && windStrength >= STRONG_WIND) r = 4;
-        int[] off = offsets[r], wt = weights[r];
+        int[] off = offsets[r], wt = weights[r], hop = hops[r];
         int x = idx % width, y = idx / width;
         for (int k = 0; k < wt.length; k++) {
             int dx = off[k * 2], dy = off[k * 2 + 1];
@@ -303,7 +419,7 @@ public final class FireField {
             int amount = power * wt[k];
             if (jitter) amount = (int) ((long) amount * (128 + jitter(n)) >> 8);
             amount >>= 8;
-            if (amount > 0) warmUp(n, amount, from + Math.max(Math.abs(dx), Math.abs(dy)));
+            if (amount > 0) warmUp(n, amount, from + hop[k], fromBlaze);
         }
     }
 
@@ -330,6 +446,9 @@ public final class FireField {
         long rev = terrain.barrierRevision();
         if (rev == barrierRevision) return;
         barrierRevision = rev;
+        Arrays.fill(roomOf, 0);
+        rooms.clear();
+        flashed.clear();
         boolean any = false;
         for (int i = 0; i < cells; i++) {
             boolean b = terrain.blocksHeat(i);
@@ -357,6 +476,7 @@ public final class FireField {
             if (left <= 0) {
                 fuel[idx] = 0;
                 intensity[idx] = 0;
+                blaze[idx] = false;
                 state[idx] = BURNT;
                 burntTick[idx] = now;
                 everBurnt++;
@@ -394,7 +514,7 @@ public final class FireField {
             if (h >= FireFuel.MIN_IGNITION) {
                 int m = terrain.fuelMask(idx);
                 if (s == BURNT) m &= FireFuel.CREEP.bit | FireFuel.DEAD_CREEP.bit;
-                if (m != 0 && h >= FireFuel.ignition(m) && heatDistance[idx] <= spreadLimit(m)) {
+                if (m != 0 && h >= ignitionAt(idx, m) && heatDistance[idx] <= spreadLimitAt(idx, m)) {
                     catchFire(idx, m);
                     heat[idx] = 0;
                     warm[idx] = false;
@@ -417,31 +537,130 @@ public final class FireField {
         fuel[idx] = (short) l;
         peak[idx] = (byte) FireFuel.peak(m);
         reach[idx] = (byte) FireFuel.reach(m);
-        distance[idx] = FireFuel.spread(m) >= FireFuel.UNLIMITED ? 0 : heatDistance[idx];
+        distance[idx] = spreadLimitAt(idx, m) == Integer.MAX_VALUE ? 0 : heatDistance[idx];
+        blazeBorn[idx] = heatFromBlaze[idx];
         age[idx] = 0;
         intensity[idx] = (byte) intensityFor(FireFuel.peak(m), l, l, 0);
         if (burningSize == burning.length) burning = Arrays.copyOf(burning, burningSize * 2);
         burning[burningSize++] = idx;
         markDirty(idx);
+        if (FireFuel.FURNISHING.in(m)) {
+            if (caughtFloorSize == caughtFloor.length) caughtFloor = Arrays.copyOf(caughtFloor, caughtFloorSize * 2);
+            caughtFloor[caughtFloorSize++] = idx;
+        }
         listener.ignited(idx, m);
     }
 
-    /** How far from its ignition a fire may be and still catch a cell of this fuel. */
+    /**
+     * Flashes over every room enough of which has caught: the rest of its floor catches at once, so a room burns whole
+     * once a fire has a hold in it and its walls are held in the heat of all of it. What flashes over has a cell of
+     * carry left, so it scorches its doorways and walls but takes no other room with it.
+     */
+    private void flashOver() {
+        for (int i = 0; i < caughtFloorSize; i++) {
+            int r = roomAt(caughtFloor[i]);
+            if (r < 0 || flashed.get(r)) continue;
+            int[] room = rooms.get(r);
+            int caught = 0;
+            for (int c : room) if (state[c] != UNBURNT) caught++;
+            if (caught * 4 < room.length * FLASHOVER_QUARTERS) continue;
+            flashed.set(r, true);
+            for (int c : room) {
+                if (state[c] != UNBURNT) continue;
+                int m = terrain.fuelMask(c);
+                if (m == 0) continue;
+                // A cell's carry less one cell: the room's walls are held in its heat and a doorway's edge scorches,
+                // but a flashed room does not carry its fire on through the rest of the house.
+                int limit = spreadLimitAt(c, m);
+                heatDistance[c] = (short) (limit == Integer.MAX_VALUE ? 0 : Math.max(0, limit - QUARTERS));
+                heatFromBlaze[c] = false;
+                heat[c] = 0;
+                catchFire(c, m);
+            }
+        }
+        caughtFloorSize = 0;
+    }
+
+    /** A cell's room index, finding it the first time it is asked; {@code -1} for none. */
+    private int roomAt(int idx) {
+        int known = roomOf[idx];
+        if (known != 0) return known - 1;
+        if (!isRoomFloor(idx)) { roomOf[idx] = -1; return -1; }
+        int[] queue = new int[64];
+        int head = 0, size = 0;
+        queue[size++] = idx;
+        roomOf[idx] = Integer.MIN_VALUE;
+        boolean hall = false;
+        while (head < size) {
+            int c = queue[head++];
+            int x = c % width, y = c / width;
+            for (int k = 0; k < 4; k++) {
+                int nx = x + (k == 0 ? 1 : k == 1 ? -1 : 0), ny = y + (k == 2 ? 1 : k == 3 ? -1 : 0);
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                int n = ny * width + nx;
+                if (roomOf[n] != 0 || !isRoomFloor(n)) continue;
+                roomOf[n] = Integer.MIN_VALUE;
+                if (size == queue.length) queue = Arrays.copyOf(queue, size * 2);
+                queue[size++] = n;
+                if (size > ROOM_MAX) hall = true;
+            }
+        }
+        int id = hall ? -1 : rooms.size();
+        if (!hall) {
+            rooms.add(Arrays.copyOf(queue, size));
+            flashed.add(false);
+        }
+        for (int i = 0; i < size; i++) roomOf[queue[i]] = id < 0 ? -1 : id + 1;
+        return id;
+    }
+
+    /** Furnished floor that is not a doorway: a cell walls close on from both sides is a gap between rooms. */
+    private boolean isRoomFloor(int idx) {
+        if (barrier[idx] || !FireFuel.FURNISHING.in(terrain.fuelMask(idx))) return false;
+        int x = idx % width, y = idx / width;
+        return !(walled(x - 1, y) && walled(x + 1, y)) && !(walled(x, y - 1) && walled(x, y + 1));
+    }
+
+    private boolean walled(int x, int y) {
+        return x < 0 || y < 0 || x >= width || y >= height || barrier[y * width + x];
+    }
+
+    /**
+     * How far, in quarter cells, from its fire's ignition this cell may be and still catch with this fuel standing on
+     * it: its fuel's carry ({@link #spreadLimit}) times the cell's own seeded share; {@link Integer#MAX_VALUE} for fuel
+     * that carries a fire as far as it stands.
+     */
+    int spreadLimitAt(int idx, int m) {
+        int cells = spreadLimit(m);
+        if (cells >= FireFuel.UNLIMITED) return Integer.MAX_VALUE;
+        return Math.round(cells * QUARTERS * (CARRY_LOW + CARRY_SPAN * texture(idx, 0x5EED_C0FFEEL)));
+    }
+
+    /** The heat this cell needs to catch with this fuel: the fuel's ignition times the cell's own seeded share. */
+    int ignitionAt(int idx, int m) {
+        return Math.round(FireFuel.ignition(m) * (CATCH_LOW + CATCH_SPAN * texture(idx, 0x1617_7105L)));
+    }
+
+    /** 0..1, fixed per cell for the battle: half the cell's own hash, half its three-cell block's. */
+    private float texture(int idx, long salt) {
+        int x = idx % width, y = idx / width;
+        int block = (y / 3) * ((width + 2) / 3) + x / 3;
+        return (hash01(idx, salt) + hash01(block, salt ^ 0xB10CL)) * 0.5f;
+    }
+
+    private float hash01(int key, long salt) {
+        long z = seed ^ salt ^ (key * 0x9E3779B97F4A7C15L);
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return ((z ^ (z >>> 31)) & 0xFFFF) / 65535f;
+    }
+
+    /** How far from its ignition a fire may be and still catch a cell of this fuel, in whole cells, before a cell's own share. */
     int spreadLimit(int m) {
-        int spread = 0;
-        for (FireFuel f : FireFuel.values()) if (f.in(m)) spread = Math.max(spread, fuelSpread[f.ordinal()]);
+        int spread = FireFuel.spread(m);
         if (spread >= FireFuel.UNLIMITED || spreadScale <= 0f) return FireFuel.UNLIMITED;
         float limit = spread * spreadScale * (tinder ? TINDER_SPREAD : 1);
         return Math.min(FireFuel.UNLIMITED, Math.round(limit));
-    }
-
-    private static int[] fuelSpread() {
-        FireFuel[] fuels = FireFuel.values();
-        int[] out = new int[fuels.length];
-        for (FireFuel f : fuels) {
-            out[f.ordinal()] = Integer.getInteger(SPREAD_PROPERTY_PREFIX + f.name().toLowerCase(Locale.ROOT), f.spread);
-        }
-        return out;
     }
 
     static float spreadScale(String value) {
@@ -453,7 +672,7 @@ public final class FireField {
         }
     }
 
-    /** A burning cell's distance from where its fire was lit; see {@link FireFuel#spread}. */
+    /** A burning cell's distance from where its fire was lit, in quarter cells ({@link #QUARTERS}); see {@link FireFuel#spread}. */
     public int distanceAt(int idx) { return distance[idx]; }
 
     private boolean refusalOver(int idx) { return now - burntTick[idx] >= CREEP_REFUSAL_TICKS; }
@@ -481,6 +700,17 @@ public final class FireField {
     public boolean canBurn(int x, int y) { return inBounds(x, y) && state[y * width + x] == UNBURNT && terrain.fuelMask(y * width + x) != 0; }
     /** 0..255 while burning, else 0. */
     public int intensityAt(int idx) { return intensity[idx] & 0xFF; }
+    /**
+     * 0..{@link #MASS_MAX} while burning: how many of the cells within {@link #MASS_RADIUS} burn with it, as of the
+     * last step. A flamer's patch is a few; the heart of a big fire is most of them.
+     */
+    public int massAt(int idx) { return state[idx] == BURNING ? mass[idx] : 0; }
+    /**
+     * Whether a burning cell is part of a blaze: a fire grown big enough, by heavy use or a napalm footprint, to be lit
+     * afresh where it stands and throw its heat a ring further, so it runs on through fuel until a break stops it
+     * (`fire-nouns.md`, Blazes).
+     */
+    public boolean isBlaze(int idx) { return state[idx] == BURNING && blaze[idx]; }
     public int intensityAt(int x, int y) { return inBounds(x, y) ? intensity[y * width + x] & 0xFF : 0; }
     /** The fuel mask a burning or burnt cell caught with; 0 for an unburnt one. */
     public int burnedMaskAt(int idx) { return mask[idx] & 0xFF; }

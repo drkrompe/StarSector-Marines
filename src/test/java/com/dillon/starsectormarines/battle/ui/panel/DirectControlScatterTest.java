@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -18,20 +18,20 @@ class DirectControlScatterTest {
     void gunsHaveNoSpreadAndRocketsGrowOneOnTheirOwnButton() {
         var guns = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.CHAINGUN,
                 null, null, MechRole.ARMORED_SUPPORT);
-        assertTrue(DirectControlScatter.mech(guns, MechTriggerPicks.LINKED, FireTrigger.LEFT, 15f) < 0f);
+        assertTrue(DirectControlScatter.mech(guns, TriggerPicks.LINKED, FireTrigger.LEFT, 15f) < 0f);
 
         var rockets = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, null, MechRole.ARMORED_SUPPORT);
         float range = rockets.mount(MechMountSlot.LEFT_SHOULDER).weaponDef().range;
-        assertTrue(DirectControlScatter.mech(rockets, MechTriggerPicks.LINKED, FireTrigger.LEFT, range) < 0f,
+        assertTrue(DirectControlScatter.mech(rockets, TriggerPicks.LINKED, FireTrigger.LEFT, range) < 0f,
                 "the guns' button has no ground burst");
-        float near = DirectControlScatter.mech(rockets, MechTriggerPicks.LINKED, FireTrigger.RIGHT, range * 0.5f);
-        float atRange = DirectControlScatter.mech(rockets, MechTriggerPicks.LINKED, FireTrigger.RIGHT, range);
-        float far = DirectControlScatter.mech(rockets, MechTriggerPicks.LINKED, FireTrigger.RIGHT, range * 1.5f);
+        float near = DirectControlScatter.mech(rockets, TriggerPicks.LINKED, FireTrigger.RIGHT, range * 0.5f);
+        float atRange = DirectControlScatter.mech(rockets, TriggerPicks.LINKED, FireTrigger.RIGHT, range);
+        float far = DirectControlScatter.mech(rockets, TriggerPicks.LINKED, FireTrigger.RIGHT, range * 1.5f);
         assertTrue(near > 0f && near < atRange);
         assertTrue(far > atRange * 1.5f, "past range the disk outgrows distance");
-        assertEquals(DirectControlScatter.mech(rockets, MechTriggerPicks.LINKED, FireTrigger.RIGHT, range * 2f),
-                DirectControlScatter.mech(rockets, MechTriggerPicks.LINKED, FireTrigger.RIGHT, range * 5f), 1e-5f,
+        assertEquals(DirectControlScatter.mech(rockets, TriggerPicks.LINKED, FireTrigger.RIGHT, range * 2f),
+                DirectControlScatter.mech(rockets, TriggerPicks.LINKED, FireTrigger.RIGHT, range * 5f), 1e-5f,
                 "a point past the ceiling lands at the ceiling");
     }
 

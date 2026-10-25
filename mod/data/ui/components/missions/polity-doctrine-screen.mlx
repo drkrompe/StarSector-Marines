@@ -98,7 +98,7 @@
   .polity-axis-detail { height: 0px; flex-grow: 1; white-space: normal; }
   .polity-axis-value { width: 66px; padding: 44px 0px; text-align: center; }
   .polity-axis button { width: 54px; padding: 52px 15px; border-width: 1px; font-family: title; text-align: center; }
-  .polity-caption { height: 56px; white-space: normal; }
+  .polity-caption { min-height: 56px; white-space: normal; }
   .polity-field-rows { flex-direction: column; height: 538px; gap: 7px; overflow: hidden; }
   /* Five rows and four gaps come to exactly the 538px above: a row that grows
      does not push the column, it is clipped off the bottom of it. */
@@ -124,10 +124,8 @@
   .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }
-  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
-  /* Same as .hidden, plus the flex-grow reset a growing field box needs: a
-     hidden value line that still grows would halve the space its spans want. */
-  .polity-field-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
+  .hidden { display: none; }
+  .polity-field-hidden { display: none; }
   .flow-header-lock { width: 32px; height: 38px; }
   .mission-flow-actions button { height: 32px; padding: 5px 10px; }
   .polity-column { width: 455px; padding: 9px; gap: 7px; }

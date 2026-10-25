@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.ApproachBound;
+import com.dillon.starsectormarines.battle.infantry.LaneSidestep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -18,7 +19,6 @@ import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -438,13 +438,13 @@ abstract class AbstractZoneAction implements Action {
                 case MOVED -> { return; }
                 case NO_POSITION -> {
                     if (!prosecutionFallThrough || !prosecutionOnly) {
-                        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                        LaneSidestep.holdGround(member, sim);
                         return;
                     }
                     // fall through to the objective
                 }
                 case UNREACHABLE -> {
-                    if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                    LaneSidestep.holdGround(member, sim);
                     return;
                 }
                 case NOT_WORTH_THE_WALK -> { /* fall through to the objective */ }
@@ -457,7 +457,7 @@ abstract class AbstractZoneAction implements Action {
         // silently resuming the objective path; opportunity fire above still
         // answers any target that becomes legal.
         if (doctrineHold) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            LaneSidestep.holdGround(member, sim);
             return;
         }
 
@@ -508,8 +508,7 @@ abstract class AbstractZoneAction implements Action {
         // Another member can advance the shared plan during execution.
         // Only a matching prepared step may serve this action's route.
         Object routeToken = step != null && step.action == this ? step : null;
-        boolean squadRouting = SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount());
-        if (squadRouting && sim.isSquadRoutePending(squad.id, squad.routingEpoch,
+        if (sim.isSquadRoutePending(squad.id, squad.routingEpoch,
                 routeToken, destX, destY)) {
             // Combat above retains its own movement/fire authority. The old
             // objective path is not proven to belong to this pending intent,
@@ -535,17 +534,8 @@ abstract class AbstractZoneAction implements Action {
             // biasing that would move somebody off cover for a reason having
             // nothing to do with the shot in front of them.
             RouteCostField losses = sim.getRouteCostField(squad.faction);
-            sim.setPath(member,
-                    squadRouting
-                            ? sim.findSquadPathToGoal(squad.id, squad.routingEpoch,
-                                    routeToken, memberX, memberY, destX, destY, losses)
-                            : SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
-                            ? sim.findSharedPathToGoal(memberX, memberY,
-                                    destX, destY, losses)
-                            : GridPathfinder.findPathWithCost(sim.getGrid(),
-                                    memberX, memberY, destX, destY,
-                                    GridPathfinder.USE_CARDINAL_NAVIGATION,
-                                    sim.getOccupancyMap(), losses));
+            sim.setPath(member, sim.findSquadPathToGoal(squad.id, squad.routingEpoch,
+                    routeToken, memberX, memberY, destX, destY, losses));
             // Admission alone did not authorize the pre-wait path. The new
             // current-intent installation does, including an empty failed route.
             sim.movement().objectiveRouteRefreshed(member);
@@ -905,7 +895,7 @@ abstract class AbstractZoneAction implements Action {
     }
 
     private static void holdOverwatch(long member, long threat, BattleControl sim) {
-        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        LaneSidestep.holdGround(member, sim);
         if (canFireAt(member, threat, sim)) {
             sim.world().setTargetId(member, threat);
             sim.combat().setFireIntent(member, threat, FireStance.STANCED, false);

@@ -26,7 +26,14 @@
         <div id="barracks-command-list" class="command-list">
           <div each="group in command.commands" key="{group.id}" id="{group.cardId}" class="command-entry" style="{group.cardStyle}">
           <button id="{group.id}" class="{group.classes}" onclick="{group.select}">
-            <img id="{group.commanderportraitId}" class="commander-portrait" src="{group.portrait}" />
+            <div id="{group.commanderbadgeId}" class="commander-badge">
+              <div id="{group.portraitframeId}" class="commander-portrait-frame">
+                <img id="{group.commanderportraitId}" class="commander-portrait" src="{group.portrait}" />
+                <img id="{group.pointId}" class="{group.pointClasses}" src="graphics/ui/officers/training-point.svg" />
+              </div>
+              <div id="{group.levelId}" class="{group.levelClasses}">{group.level}</div>
+              <div id="{group.xpTrackId}" class="{group.xpTrackClasses}"><div id="{group.xpFillId}" class="xp-fill" style="{group.xpStyle}" /></div>
+            </div>
             <div id="{group.commandercopyId}" class="commander-copy">
               <div id="{group.commandnameId}" class="label heading wrap command-name">{group.name}</div>
               <div id="{group.commandsummaryId}" class="label warm wrap command-summary">{group.summary}</div>
@@ -40,11 +47,18 @@
       </div>
       <div id="officer-dossier" class="{command.dossierClasses}">
         <div id="officer-header" class="officer-header">
-          <img id="officer-portrait" class="officer-portrait" src="{command.officerPortrait}" />
+          <div id="officer-portrait-frame" class="officer-portrait-frame">
+            <img id="officer-portrait" class="officer-portrait" src="{command.officerPortrait}" />
+            <img id="officer-training-point" class="{command.officerPointClasses}" src="graphics/ui/officers/training-point.svg" />
+          </div>
           <div id="officer-identity" class="officer-identity">
             <div id="officer-name" class="label heading warm wrap officer-line">{command.officerName}</div>
             <div id="officer-status" class="label muted wrap officer-line">{command.officerStatus}</div>
-            <div id="officer-progress" class="label heading warm officer-line">{command.officerProgress}</div>
+            <div id="officer-progress-row" class="officer-progress-row">
+              <div id="officer-level" class="label heading warm officer-level">{command.officerLevel}</div>
+              <div id="officer-progress" class="label heading warm officer-progress">{command.officerProgress}</div>
+            </div>
+            <div id="officer-xp" class="xp-track officer-xp"><div id="officer-xp-fill" class="xp-fill" style="{command.officerXpStyle}" /></div>
             <div id="officer-service" class="label officer-line">{command.officerService}</div>
           </div>
           <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">{i18n.openingUiShipboardBarracksViewFormations}</button>
@@ -123,12 +137,12 @@
               <div id="{squad.founderHeadingId}" class="raise-squad-heading">
                 <div id="{squad.founderTitleId}" class="label heading warm raise-squad-title">{i18n.openingUiShipboardBarracksRaiseSquad}</div>
               </div>
-              <div id="{squad.founderTopSpacerId}" class="raise-squad-spacer"></div>
-              <div id="{squad.founderEmblemId}" class="raise-squad-emblem">
-                <img id="{squad.founderEmblemIconId}" class="raise-squad-emblem-icon" src="graphics/ui/company/raise-squad.svg" />
+              <div id="{squad.founderMiddleId}" class="raise-squad-middle">
+                <div id="{squad.founderEmblemId}" class="raise-squad-emblem">
+                  <img id="{squad.founderEmblemIconId}" class="raise-squad-emblem-icon" src="graphics/ui/company/raise-squad.svg" />
+                </div>
+                <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
               </div>
-              <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
-              <div id="{squad.founderBottomSpacerId}" class="raise-squad-spacer"></div>
               <div id="{squad.founderCostsId}" class="raise-squad-costs">
                 <div each="cost in squad.founderCosts" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
                   <img id="{cost.iconId}" class="raise-cost-icon" src="{cost.icon}" />
@@ -245,13 +259,21 @@
   .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #242b28; border-color: #60685c; }
   .command-card.selected, .formation.selected { background-color: #393b2e; border-color: #dfc588; }
   .command-card:hover { border-color: #dfc588; }
-  .commander-portrait { width: 58px; height: 58px; }
+  .commander-badge { flex-direction: column; align-items: center; width: 62px; height: 92px; gap: 4px; pointer-events: none; }
+  .commander-portrait-frame { width: 62px; height: 62px; }
+  .commander-portrait { position: absolute; left: 0px; top: 4px; width: 58px; height: 58px; }
+  /* An unspent training point: a gold diamond pinned to the portrait's corner. */
+  .training-point { position: absolute; left: 38px; top: 0px; width: 24px; height: 24px; pointer-events: none; }
+  .commander-level { width: 62px; height: 16px; text-align: center; font-family: compact; }
+  .xp-track { flex-direction: row; height: 6px; border-width: 1px; border-color: #586154; background-color: #101512; }
+  .xp-fill { height: 100%; background-color: #dfc588; }
+  .commander-xp { width: 58px; }
   .commander-copy { flex-direction: column; width: 0px; height: 92px; flex-grow: 1; gap: 4px; }
   .command-name { height: 34px; } .command-summary { height: 30px; } .command-capacity { height: 30px; }
   .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
   .board-title { height: 26px; color: #dfc588; }
   .board-tools, .selection-tools, .page-tools { flex-direction: row; align-items: center; height: 40px; gap: 6px; }
-  .tool-button { white-space: normal; width: 126px; height: 36px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .tool-button { white-space: normal; width: 126px; min-height: 36px; padding: 0px 4px; text-align: center; font-family: heading; }
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
@@ -272,7 +294,7 @@
   .card-faces { flex-direction: column; height: 72px; gap: 4px; }
   .card-faces .card-chip { width: 242px; }
   .fill-button { flex-direction: row; align-items: center; width: 56px; height: 28px; padding: 0px 6px; gap: 4px; }
-  .fill-button.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .fill-button.hidden { display: none; }
   .fill-icon { width: 18px; height: 18px; }
   .fill-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
   .card-footer-spacer { width: 0px; flex-grow: 1; height: 1px; }
@@ -283,8 +305,8 @@
   .raise-squad { flex-direction: column; align-items: center; width: 100%; height: 100%; gap: 6px; padding: 0px; border-width: 0px; text-align: left; }
   .raise-squad-heading { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 6px; }
   .raise-squad-title { width: 0px; flex-grow: 1; height: 20px; }
-  .raise-squad-spacer { width: 1px; height: 0px; flex-grow: 1; }
-  .raise-squad-emblem { flex-direction: row; align-items: center; width: 46px; height: 60px; padding: 0px 0px 0px 14px; border-width: 2px; border-color: #586154; background-color: #1d251f; }
+  .raise-squad-middle { flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 0px; flex-grow: 1; gap: 6px; }
+  .raise-squad-emblem { flex-direction: row; align-items: center; justify-content: center; width: 60px; height: 60px; padding: 0px; border-width: 2px; border-color: #586154; background-color: #1d251f; }
   .raise-squad-emblem-icon { width: 32px; height: 32px; }
   .raise-squad:hover .raise-squad-emblem { border-color: #dfc588; }
   .raise-squad-copy { width: 100%; height: 34px; text-align: center; }
@@ -300,7 +322,7 @@
   .barracks-surface { width: 100%; height: 100%; overflow: hidden; }
   .barracks-root { width: 100%; height: 100%; }
   .guide-callout { position: absolute; left: 340px; top: 200px; flex-direction: column; width: 500px; height: 232px; padding: 12px; gap: 6px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
-  .guide-callout.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .guide-callout.hidden { display: none; }
   .guide-spotlight { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .guide-target { position: absolute; width: 0px; height: 0px; border-width: 0px; pointer-events: none; background-color: transparent; }
   .guide-heading { height: 44px; white-space: normal; overflow: scroll; }
@@ -309,11 +331,11 @@
   .guide-text { width: 0px; flex-grow: 1; height: 116px; overflow: scroll; }
   #guide-status { height: 42px; overflow: scroll; }
   #guide-controls { height: 40px; }
-  #guide-controls .tool-button { width: 112px; height: 40px; white-space: normal; }
+  #guide-controls .tool-button { width: 112px; min-height: 40px; white-space: normal; }
   .guide-dismiss { width: 82px; height: 28px; font-family: heading; text-align: center; }
-  .guide-close-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; font-family: compact; }
+  .guide-close-hint { width: 0px; flex-grow: 1; min-height: 30px; white-space: normal; font-family: compact; }
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
-  .flow-button { white-space: normal; width: 190px; height: 38px; font-family: heading; text-align: center; }
+  .flow-button { white-space: normal; width: 190px; min-height: 38px; font-family: heading; text-align: center; }
   .assignment-reason { height: 35px; }
   .recruit-stock { flex-direction: row; align-items: center; width: 290px; height: 36px; gap: 8px; padding: 0px 8px; }
   .recruit-draw { flex-direction: row; align-items: center; height: 30px; gap: 8px; }
@@ -322,8 +344,14 @@
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
   .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
   .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
-  .officer-header { flex-direction: row; align-items: start; height: 112px; gap: 16px; }
-  .officer-portrait { width: 100px; height: 100px; }
+  .officer-header { flex-direction: row; align-items: start; height: 124px; gap: 16px; }
+  .officer-portrait-frame { width: 110px; height: 108px; }
+  .officer-portrait { position: absolute; left: 0px; top: 8px; width: 100px; height: 100px; }
+  .officer-point { left: 80px; top: 0px; width: 30px; height: 30px; }
+  .officer-progress-row { flex-direction: row; align-items: center; height: 23px; gap: 10px; }
+  .officer-level { width: 56px; height: 23px; }
+  .officer-progress { width: 0px; flex-grow: 1; height: 23px; }
+  .officer-xp { width: 420px; height: 8px; }
   .officer-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
   .officer-line { height: 23px; }
   .officer-scroll { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }
@@ -340,7 +368,7 @@
   .specialty-drop { width: 2px; height: 16px; }
   .specialty-path-header { flex-direction: column; align-items: center; width: 100%; height: 90px; gap: 6px; }
   .specialty-emblem { width: 44px; height: 44px; }
-  .specialty-path-title { width: 100%; height: 40px; white-space: normal; text-align: center; }
+  .specialty-path-title { width: 100%; min-height: 40px; white-space: normal; text-align: center; }
   .specialty-node { width: 68px; height: 68px; padding: 2px; }
   .specialty-node-image { width: 64px; height: 64px; pointer-events: none; }
   .specialty-link { width: 8px; height: 22px; }
@@ -372,5 +400,5 @@
   .roster-step-off { background-color: #121719; }
   .roster-step-median { border-color: #f2d27a; border-width: 2px; }
   .roster-step-label { width: 0px; flex-grow: 1; height: 20px; padding: 0px 0px 0px 6px; font-family: body; }
-  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
+  .hidden { display: none; }
 </style>

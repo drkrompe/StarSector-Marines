@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f28-7ddc-7ea1-b8f8-43678e5dd626",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f28-7ddc-7ea1-b8f8-43678e5dd626\\exec-88048568-ad53-459a-8b8f-1238cf77cc95.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-2\\raw\\u3-helm.png",
+    "sha256": "d9e7d22a75678c44caa793a29e6e4c3ae2d90f4c3278c431fa3565762c684f14",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-2\\prompts\\u3-helm.prompt.txt",
+  "promptSha256": "40fd70f1101fd940c79b8ddef40320d7e9fd98d527e563a17bfff755c4bbf6e2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Silhouette, placement, scale and value plan: fill it in, never move it\nImage 2: Colours and material only; not layout or design\n\nA production top-down sprite for a tactical game: the UPPER BODY of the Rav Bloom Spitter, an upright serpentine beast that rears up out of its tail like a cobra and lobs acid, seen from DIRECTLY ABOVE, head facing UP. It has NO arms and NO claws.\n\nReference image 1 is the exact silhouette, placement, scale and VALUE plan: fill it in, never move it. Its shapes, top to bottom, are the creature's parts at falling height:\n- the HEAD (brightest, the part nearest the camera, so the largest and sharpest-lit);\n- the CHEST rising beneath it (a step darker);\n- the HAUNCH, a broad dark hump where the body bends backward into the tail (darker again);\n- the TAIL ROOT on the ground leaving behind (darkest).\nEach part overlaps the one below it. Keep that light-to-dark gradient from head to tail: it is what makes the animal read as standing upright.\n\nReference image 2 is for colours and material only: near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in the gaps, ivory bone, small amber eyes.\n\nKEEP IT CLEAN AND READABLE AT SMALL SIZE: a few large smooth carapace plates, not many small ones; few spines; strong simple shapes; no busy texture.\n\nDESIGN: A sleek bone-helmet head, almost featureless, one large smooth ivory plate over the skull with two amber eye slits, swept back into the neck. The chest and haunch in large smooth indigo plates, very little detail.\n\nStrict overhead orthographic view, light from the upper left. Plain flat light grey background (#afafaf), no cast shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-head-2\\guides\\upright-guide.png",
+      "sha256": "1c38792c0a6c95b93dc1b31f28fbe9ad0484e98d1b2758b97763bcf7c1137c40",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Silhouette, placement, scale and value plan: fill it in, never move it"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Colours and material only; not layout or design"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s exact silhouette and value hierarchy, with the second reference supplying only colors and materials."
+  ],
+  "usage": {
+    "input_tokens": 45145,
+    "cached_input_tokens": 37760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 656,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.1
+}

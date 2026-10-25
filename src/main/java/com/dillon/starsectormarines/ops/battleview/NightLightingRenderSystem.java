@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 
 import java.util.Arrays;
 
@@ -20,7 +22,9 @@ final class NightLightingRenderSystem implements RenderSystem {
     private final DoodadRenderSystem doodads;
 
     NightLightingRenderSystem(BattleSprites sprites) { doodads = new DoodadRenderSystem(sprites); }
-    void dispose() { pass.dispose(); }
+    void dispose() { pass.dispose(); field.dispose(); }
+    /** The shade computed on the card, for a host that can run a custom pass owning its GL. */
+    private final NightShadeField field = new NightShadeField();
     private CellTopology topology;
     private NightLighting lighting;
     private float[] pools, reds, greens, blues;
@@ -32,9 +36,19 @@ final class NightLightingRenderSystem implements RenderSystem {
     static final int MAX_FILLED = 160;
     private int[] filled = new int[MAX_FILLED * 4];
     private int filledCount;
+    /** Half-cell box fire's pools changed in this frame, the boxes cleared and filled; empty when x1 < x0. */
+    private int changedX0, changedY0, changedX1, changedY1;
     private int[] inView = new int[64];
 
     public RenderLayer layer() { return RenderLayer.NIGHT_LIGHTING; }
+
+    /** The battle's event lights, which light the night as fire does; null leaves the night to lamps and fire. */
+    private GroundLightService events;
+
+    /** Lights the night from {@code lights}' muzzles, impacts and blasts as well as from lamps and fire. */
+    void useLights(GroundLightService lights) {
+        events = lights;
+    }
 
     public void collect(RenderContext ctx, DrawList out) {
         var ground = ctx.sim.getTopology();
@@ -46,11 +60,21 @@ final class NightLightingRenderSystem implements RenderSystem {
         boolean burning = fillFire(ground, FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
                 FireLight.clock(ctx.animationTimeSeconds),
                 visible.minX(), visible.minY(), visible.maxX(), visible.maxY());
+        field.fire(firePools, burning, changedX0, changedY0, changedX1, changedY1);
         var fog=ctx.sim.getFogOfWar();
         boolean useFog=ctx.hostProfile.fogClipsLighting() && fog.isInitialized();
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
+        if (ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
+            field.cells(ground, useFog ? fog.cellShownArray() : null, useFog ? fog.revealChanges() : null);
+            field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), night.darkness(),
+                    ctx.alphaMult, camera);
+            pass.useField(field, masked, useFog);
+            out.addCustom(layer(), pass);
+            lamps(ctx, out, night, visible, useFog, fog);
+            return;
+        }
         int steps = shadeSteps(camera.cellPxSize());
         shade.reset();
         PolyMesh dimMesh = masked ? pass.fogShade() : shade;
@@ -95,6 +119,13 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
         if (masked) out.addCustom(layer(), pass);
         else out.addPoly(layer(),shade);
+        lamps(ctx, out, night, visible, useFog, fog);
+    }
+
+    /** The fixtures and their halos, over the shade. */
+    private void lamps(RenderContext ctx, DrawList out, NightLighting night, VisibleCellRect visible, boolean useFog,
+                       FogOfWarService fog) {
+        var camera = ctx.camera;
         for (var lamp:night.lamps()) {
             if (!visible.contains((int)lamp.x(),(int)lamp.y())) continue;
             if (useFog
@@ -125,19 +156,28 @@ final class NightLightingRenderSystem implements RenderSystem {
     /** The shade over a point lit by {@code pool} of lamp light and {@code firePool} of fire; null where it is clear. */
     private float[] shadeColour(NightLighting night, float pool, float firePool, float red, float green, float blue,
                                 float alphaMult) {
+        float[] c = pool == 0f && firePool == 0f ? new float[4] : colour;
+        return shade(night.darkness(), pool, firePool, red, green, blue, alphaMult, c) ? c : null;
+    }
+
+    /**
+     * The night shade over a point into {@code c} (straight colour and alpha); false where it is clear. The one
+     * definition: {@link NightShadeField}'s fragment shader is this function, and its GL evidence holds it to it.
+     */
+    static boolean shade(float darkness, float pool, float firePool, float red, float green, float blue,
+                         float alphaMult, float[] c) {
         float lit=pool+firePool;
-        float dark=night.darkness()*(1-.92f*Math.min(1,lit));
+        float dark=darkness*(1-.92f*Math.min(1,lit));
         // Fire tints what it lights harder than a lamp does: it is the only light there.
         float warm=Math.min(1,.11f*Math.min(1,pool)+.2f*Math.min(1,firePool));
         float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
-        if (alpha<=0f) return null;
+        if (alpha<=0f) return false;
         float divisor=Math.max(.001f,lit);
-        float[] c = pool == 0f && firePool == 0f ? new float[4] : colour;
         c[0]=(.012f*weight+warm*(red+firePool*FireLight.RED)/divisor)/alpha;
         c[1]=(.019f*weight+warm*(green+firePool*FireLight.GREEN)/divisor)/alpha;
         c[2]=(.037f*weight+warm*(blue+firePool*FireLight.BLUE)/divisor)/alpha;
         c[3]=alpha*alphaMult;
-        return c;
+        return true;
     }
 
     /**
@@ -227,12 +267,16 @@ final class NightLightingRenderSystem implements RenderSystem {
             firePools = new float[pools.length];
             filledCount = 0;
         }
-        for (int i = 0; i < filledCount; i += 4)
+        changedX0 = changedY0 = Integer.MAX_VALUE;
+        changedX1 = changedY1 = -1;
+        for (int i = 0; i < filledCount; i += 4) {
             for (int y = filled[i + 1]; y <= filled[i + 3]; y++)
                 Arrays.fill(firePools, y * width + filled[i], y * width + filled[i + 2] + 1, 0f);
+            changed(filled[i], filled[i + 1], filled[i + 2], filled[i + 3]);
+        }
         filledCount = 0;
-        if (fire.count() == 0) return false;
         int height = pools.length / width;
+        if (fire.count() == 0) return fillEvents(ground, height, viewMinX, viewMinY, viewMaxX, viewMaxY);
         // Only the lights whose pools reach the view, and of those the brightest.
         int n = 0;
         for (int l = 0; l < fire.count(); l++) {
@@ -242,7 +286,7 @@ final class NightLightingRenderSystem implements RenderSystem {
             if (n == inView.length) inView = Arrays.copyOf(inView, n * 2);
             inView[n++] = l;
         }
-        if (n == 0) return false;
+        if (n == 0) return fillEvents(ground, height, viewMinX, viewMinY, viewMaxX, viewMaxY);
         if (n > MAX_FILLED) {
             Integer[] order = new Integer[n];
             for (int i = 0; i < n; i++) order[i] = inView[i];
@@ -268,12 +312,65 @@ final class NightLightingRenderSystem implements RenderSystem {
             filled[filledCount++] = gy0;
             filled[filledCount++] = gx1;
             filled[filledCount++] = gy1;
+            changed(gx0, gy0, gx1, gy1);
         }
+        fillEvents(ground, height, viewMinX, viewMinY, viewMaxX, viewMaxY);
         return true;
+    }
+
+    /**
+     * Adds the event lights in view to fire's pools: a muzzle flash or a blast lights the night round it for as long
+     * as it lasts, on its own side of a roof, with the ground composite's falloff. They share fire's pool and its
+     * warm colour, which suits nearly all of them. True when any reached the view.
+     */
+    private boolean fillEvents(CellTopology ground, int height, int viewMinX, int viewMinY, int viewMaxX,
+                               int viewMaxY) {
+        if (events == null) return false;
+        boolean any = false;
+        for (int i = 0, n = events.eventCount(); i < n && filledCount < filled.length; i++) {
+            GroundLightService.Light light = events.event(i);
+            float r = light.radius, strength = light.effectiveIntensity() * EVENT_POOL;
+            if (strength <= 0f || r <= 0f) continue;
+            if (light.x + r < viewMinX || light.x - r > viewMaxX + 1
+                    || light.y + r < viewMinY || light.y - r > viewMaxY + 1) continue;
+            int gx0 = Math.max(0, (int) ((light.x - r) * 2)), gx1 = Math.min(width - 1, (int) ((light.x + r) * 2) + 1);
+            int gy0 = Math.max(0, (int) ((light.y - r) * 2)), gy1 = Math.min(height - 1, (int) ((light.y + r) * 2) + 1);
+            int owner = ground.getBuildingId(Math.max(0, Math.min(ground.getWidth() - 1, (int) light.x)),
+                    Math.max(0, Math.min(ground.getHeight() - 1, (int) light.y)));
+            for (int y = gy0; y <= gy1; y++)
+                for (int x = gx0; x <= gx1; x++) {
+                    if (ground.getBuildingId(Math.min(ground.getWidth() - 1, x / 2), Math.min(ground.getHeight() - 1, y / 2)) != owner) continue;
+                    float dx = x * .5f - light.x, dy = y * .5f - light.y;
+                    float radial = 1f - (float) Math.sqrt(dx * dx + dy * dy) / r;
+                    if (radial > 0f) firePools[y * width + x] += radial * radial * strength;
+                }
+            filled[filledCount++] = gx0;
+            filled[filledCount++] = gy0;
+            filled[filledCount++] = gx1;
+            filled[filledCount++] = gy1;
+            changed(gx0, gy0, gx1, gy1);
+            any = true;
+        }
+        return any;
+    }
+
+    /** An event light's pool against its intensity: a heavy blast lights the night as a well-fed fire does. */
+    static final float EVENT_POOL = 1.6f;
+
+    private void changed(int x0, int y0, int x1, int y1) {
+        changedX0 = Math.min(changedX0, x0);
+        changedY0 = Math.min(changedY0, y0);
+        changedX1 = Math.max(changedX1, x1);
+        changedY1 = Math.max(changedY1, y1);
     }
 
     private void bake(CellTopology ground, NightLighting night) {
         topology=ground; lighting=night; width=ground.getWidth()*2+1;
+        bakePools(ground, night);
+        field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
+    }
+
+    private void bakePools(CellTopology ground, NightLighting night) {
         int height=ground.getHeight()*2+1;
         pools=new float[width*height]; reds=new float[pools.length]; greens=new float[pools.length]; blues=new float[pools.length];
         for (var lamp:night.lamps()) {

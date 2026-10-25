@@ -10,43 +10,27 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The armor-drop manifest leaves damaged, repairing and incomplete mechs in their gantries. */
+/** A repairing mech drops carrying the wear left on it; only an incomplete frame stays behind. */
 class MechBayDropManifestTest {
 
-    @Test void damagedAndRepairingMechsAreHeldBackWithTheirReason() {
-        MechBay bay = new MechBay();
-        CampaignMech ready = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
-        CampaignMech damaged = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.BULWARK);
-        CampaignMech repairing = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.WARDEN);
-        damage(bay, damaged);
-        damage(bay, repairing);
-        repairing.beginRepair(12f);
-
-        List<MechDeploymentSpec> manifest = bay.activeDeployment(10f);
-        List<MechBay.HeldBack> held = bay.heldBack(10f);
-
-        assertEquals(1, manifest.size());
-        assertEquals(ready.id(), manifest.get(0).campaignId());
-        assertEquals(2, held.size());
-        assertSame(damaged, held.get(0).mech());
-        assertEquals(CampaignMech.Readiness.DAMAGED, held.get(0).reason());
-        assertSame(repairing, held.get(1).mech());
-        assertEquals(CampaignMech.Readiness.UNDER_REPAIR, held.get(1).reason());
-        assertEquals(2f, held.get(1).daysRemaining(), 1e-5f);
-    }
-
-    @Test void aFinishedRepairReturnsTheMechToTheManifest() {
+    @Test void aRepairingMechDropsCarryingTheWearItsClockHasNotTakenOff() {
         MechBay bay = new MechBay();
         CampaignMech mech = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
-        damage(bay, mech);
-        mech.beginRepair(12f);
+        bay.settleBattleDamage(List.of(new CompanyMechLedger.Damage(mech.id(),
+                MechDamageTest.ReportFixture.whole().section(MechSection.HEAD, 0.5f, 0f).build(), false)),
+                10f, MechFieldRepair.NEUTRAL);
+        float halfway = 10f + (mech.repairUntilDay() - 10f) / 2f;
 
-        assertEquals(List.of(), bay.activeDeployment(11.9f));
-        assertEquals(1, bay.activeDeployment(12f).size());
-        assertEquals(List.of(), bay.heldBack(12f));
+        List<MechDeploymentSpec> manifest = bay.activeDeployment(halfway);
+
+        assertEquals(1, manifest.size());
+        assertEquals(mech.id(), manifest.get(0).campaignId());
+        assertEquals(0.25f, manifest.get(0).wear().structureLost(MechSection.HEAD), 1e-4f);
+        assertEquals(0.5f, manifest.get(0).wear().armorLost(MechSection.HEAD), 1e-4f);
+        assertEquals(List.of(), bay.heldBack(halfway));
+        assertTrue(bay.activeDeployment(mech.repairUntilDay()).get(0).wear().isEmpty());
     }
 
     @Test void aMechMissingAnEngineOrCapacitorsStaysOffTheManifestUntilRefitted() {
@@ -73,10 +57,5 @@ class MechBayDropManifestTest {
         CampaignMech mech = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
 
         assertEquals(mech.id(), bay.activeDeployment(0f).get(0).campaignId());
-    }
-
-    private static void damage(MechBay bay, CampaignMech mech) {
-        bay.settleBattleDamage(List.of(new CompanyMechLedger.Damage(mech.id(),
-                MechDamageTest.ReportFixture.whole().section(MechSection.HEAD, 0.5f, 0f).build(), false)));
     }
 }

@@ -317,6 +317,28 @@
       "volume": 1.0
     },
     {
+      "id": "body_thud",
+      "prompt": "A body thrown through the air landing flat on hard packed ground: one heavy dull thud of full body weight hitting the dirt, a short soft crunch of webbing and gear, a little grit scattering, close, low and weighty, no voices, no grunt, no metal ringing, no music",
+      "durationSeconds": 0.8,
+      "variants": 4,
+      "loop": false,
+      "volume": 1.0,
+      "cut": [
+        2,
+        4
+      ],
+      "note": "Takes 2 and 4 cut on measurement (thin, little below 200 Hz), pending the owner's ear. One landing for every thrown body: a marine a Harrier or a Brute threw, and a shot Harrier reaching the ground (owner, 2026-10-24)."
+    },
+    {
+      "id": "harrier_wingbeat",
+      "trimmedFrom": "runner_clatter",
+      "prompt": "The loudest 0.28 s of runner_clatter takes 1, 3 and 4, faded and levelled so one Harrier wingbeat is heard (owner, 2026-10-24); trimmed, not generated. Receipts name the source take.",
+      "durationSeconds": 0.28,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
       "id": "body_drag",
       "prompt": "A heavy sack being dragged slowly across dirt and loose gravel: a soft continuous scrape of rough cloth on earth, grit crunching and shifting under its weight, an occasional dull bump as it rolls over a stone, no voices, no music, seamless loop",
       "durationSeconds": 2.0,

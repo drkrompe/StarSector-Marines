@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
  * <p>{@code refit} is what the company ship's Mech Lab was worth at launch ({@link MechRefit});
  * neutral for every mech the company does not own. {@code frame} stays the fit's own values, so
  * the refit is never folded in twice: {@link #deployedFrame()} is the two together.
+ *
+ * <p>{@code wear} is what an unfinished repair still leaves missing ({@link MechCarriedWear});
+ * {@link MechCarriedWear#NONE} for a whole mech and every mech the company does not own.
  */
 public record MechDeploymentSpec(
         MechVariant variant,
@@ -27,7 +30,8 @@ public record MechDeploymentSpec(
         String displayName,
         MechFrame frame,
         String campaignId,
-        MechRefit refit) {
+        MechRefit refit,
+        MechCarriedWear wear) {
 
     public MechDeploymentSpec {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
@@ -37,10 +41,27 @@ public record MechDeploymentSpec(
         }
         if (frame == null) frame = MechFrame.stock(variant);
         if (refit == null) refit = MechRefit.NEUTRAL;
+        if (wear == null) wear = MechCarriedWear.NONE;
         if (displayName != null) {
             displayName = displayName.trim();
             if (displayName.isEmpty()) displayName = null;
         }
+    }
+
+    /** A whole mech. */
+    public MechDeploymentSpec(MechVariant variant, MechRole role,
+                              MissileReplenisherComponent missileReplenisher,
+                              MechWeaponComponent arms,
+                              MechWeaponComponent leftArm,
+                              MechWeaponComponent rightArm,
+                              MechWeaponComponent leftShoulder,
+                              MechWeaponComponent rightShoulder,
+                              String displayName,
+                              MechFrame frame,
+                              String campaignId,
+                              MechRefit refit) {
+        this(variant, role, missileReplenisher, arms, leftArm, rightArm, leftShoulder, rightShoulder,
+                displayName, frame, campaignId, refit, MechCarriedWear.NONE);
     }
 
     /** A mech off the founding hull's refits: neutral. */
@@ -125,7 +146,13 @@ public record MechDeploymentSpec(
     /** This deployment with the ship's refit frozen over it. */
     public MechDeploymentSpec withRefit(MechRefit refit) {
         return new MechDeploymentSpec(variant, role, missileReplenisher, arms, leftArm, rightArm,
-                leftShoulder, rightShoulder, displayName, frame, campaignId, refit);
+                leftShoulder, rightShoulder, displayName, frame, campaignId, refit, wear);
+    }
+
+    /** This deployment carrying {@code carried} out of an unfinished repair. */
+    public MechDeploymentSpec withWear(MechCarriedWear carried) {
+        return new MechDeploymentSpec(variant, role, missileReplenisher, arms, leftArm, rightArm,
+                leftShoulder, rightShoulder, displayName, frame, campaignId, refit, carried);
     }
 
     /** A live loadout carrying exactly this fit, deliberately empty mounts included. */

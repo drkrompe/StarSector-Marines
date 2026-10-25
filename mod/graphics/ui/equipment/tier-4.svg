@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <!-- A tier as rank chevrons, one a tier: pale insignia bars with a dark edge, a lit top and a
+       shadow under each, so they stand off the tier's tone rather than printing on it. -->
+    <polygon points="40,34 75,12 110,34 110,45 75,23 40,45" fill="#000000" fill-opacity="0.45"/>
+    <polygon points="40,30 75,8 110,30 110,41 75,19 40,41" fill="#fff4d6" stroke="#1c140a" stroke-width="4" stroke-linejoin="miter"/>
+    <polyline points="43,30.5 75,10.5 107,30.5" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.9"/>
+    <polygon points="40,51 75,29 110,51 110,62 75,40 40,62" fill="#000000" fill-opacity="0.45"/>
+    <polygon points="40,47 75,25 110,47 110,58 75,36 40,58" fill="#fff4d6" stroke="#1c140a" stroke-width="4" stroke-linejoin="miter"/>
+    <polyline points="43,47.5 75,27.5 107,47.5" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.9"/>
+    <polygon points="40,68 75,46 110,68 110,79 75,57 40,79" fill="#000000" fill-opacity="0.45"/>
+    <polygon points="40,64 75,42 110,64 110,75 75,53 40,75" fill="#fff4d6" stroke="#1c140a" stroke-width="4" stroke-linejoin="miter"/>
+    <polyline points="43,64.5 75,44.5 107,64.5" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.9"/>
+    <polygon points="40,85 75,63 110,85 110,96 75,74 40,96" fill="#000000" fill-opacity="0.45"/>
+    <polygon points="40,81 75,59 110,81 110,92 75,70 40,92" fill="#fff4d6" stroke="#1c140a" stroke-width="4" stroke-linejoin="miter"/>
+    <polyline points="43,81.5 75,61.5 107,81.5" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.9"/>
+</svg>

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -10,10 +11,12 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
+import com.dillon.starsectormarines.marine.MechFrameBudget;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -27,7 +30,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
@@ -59,8 +64,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
+    /** The machines on the pads: mechs are units, a company vehicle a live hull on the convoy layer. */
     private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(
-            RenderLayer.UNITS, RenderLayer.VEHICLES);
+            RenderLayer.UNITS, RenderLayer.VEHICLES, RenderLayer.CONVOY);
 
     private final Supplier<List<MechDeploymentSpec>> deployments;
     private final IntSupplier selectedGantry;
@@ -87,12 +93,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
-    private List<StripTarget> lastStripTargets = List.of();
-    private static final float STRIP_SIZE = 14f;
-    private SocketId hoveredStrip;
+    /** Each rack kit's box from the last frame, for lifting it off. */
+    private List<KitBox> lastKitBoxes = List.of();
+    /** Each compartment part's box from the last frame, {left, top, right, bottom}, for lifting it off. */
+    private Map<MechInternal, float[]> lastPartBoxes = Map.of();
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
+    /** The fitted part under the pointer in the last frame, or null. */
+    private PointedPart pointed;
+    /** The pointer on the board, shared with the room's drag; @see BoardHover */
+    private BoardHover hover = new BoardHover();
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
+    private Supplier<List<MechInternal>> installedCompartment = List::of;
+    private Supplier<VehicleType> selectedVehicle = () -> null;
+    private Supplier<List<VehicleKit>> installedKits = List::of;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
@@ -116,6 +130,21 @@ public final class MechLabDollCanvas implements CanvasProducer {
      */
     public void installedInternals(Function<SocketId, MechInternal> source) {
         installedInternals = source != null ? source : socket -> null;
+    }
+
+    /** What the selected machine's auxiliary compartment holds, in fitted order. */
+    public void installedCompartment(Supplier<List<MechInternal>> source) {
+        installedCompartment = source != null ? source : List::of;
+    }
+
+    /** The selected vehicle's hull, for its sealed doll; null while a mech or nothing is selected. */
+    public void selectedVehicle(Supplier<VehicleType> source) {
+        selectedVehicle = source != null ? source : () -> null;
+    }
+
+    /** The kits on the selected vehicle's rack, in fitted order. */
+    public void installedKits(Supplier<List<VehicleKit>> source) {
+        installedKits = source != null ? source : List::of;
     }
 
     private record DragPreview(MechWeaponComponent component, SocketId source,
@@ -171,6 +200,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     @Override
     public void draw(CanvasContext context) {
+        pointed = null;
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         List<MechDeploymentSpec> lance = deployments.get();
@@ -220,11 +250,52 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawVacantGantryActions(context, sceneCamera, host[0], standing,
                 Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0),
                 !fittingOverlaysVisible.getAsBoolean());
+        VehicleType vehicle = selected == null ? selectedVehicle.get() : null;
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), candidateWeapon.get(), width, height);
+        } else if (vehicle != null && fittingOverlaysVisible.getAsBoolean()) {
+            drawVehicleSchematic(context, vehicle, installedKits.get(), width, height);
         } else {
             lastSocketTargets = List.of();
+            lastKitBoxes = List.of();
+            Object preview = padPreview != null && fittingOverlaysVisible.getAsBoolean() ? padPreview.get() : null;
+            if (preview instanceof MechVariant pattern) drawPatternSchematic(context, pattern, width, height);
+        }
+    }
+
+    /**
+     * A previewed pattern's doll, where a built mech's stands: the same schematic on the left of
+     * the view, as the chassis is bought: a bare frame, its engine and capacitor sockets warning
+     * empty and only factory-locked hardware fitted. Read-only; a vehicle has no sockets and so
+     * draws none.
+     */
+    private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
+        MechFrameBudget.Fit frame = MechFrameBudget.Fit.frame(variant);
+        MechFittingLayout layout = MechFittingLayout.forVariant(variant);
+        float panelWidth = width * SCHEMATIC_SHARE;
+        drawSchematicPanel(c, panelWidth, height);
+        List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, height);
+        SocketDropTarget core = null;
+        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
+        for (SocketDropTarget target : targets) {
+            if (core == null || target == core) continue;
+            Color wire = HardpointBricks.tone(layout.socket(target.id()).type());
+            List<float[]> path = wireToCore(target, core);
+            for (int i = 0; i < path.size() - 1; i++) {
+                float[] a = path.get(i), b = path.get(i + 1);
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f);
+            }
+            float[] end = path.get(path.size() - 1);
+            drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
+        }
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = layout.socket(target.id());
+            MechMountSlot mount = mountFor(socket.id());
+            MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
+                    null, socket.id().compartment() ? List.of() : null, assets.get(),
+                    false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
 
@@ -241,6 +312,25 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return view.lookingAt(view.centerCellX() - share * width / cellPx, view.centerCellY(), view.zoomNotches());
     }
 
+    /**
+     * The fitted weapon or internal under the pointer and its box in canvas pixels, for the
+     * room to open that part's spec sheet beside; null while a part is in hand or nothing
+     * fitted is pointed at.
+     */
+    public PointedPart pointedPart() {
+        return hover.names() ? pointed : null;
+    }
+
+    /** A fitted part on the board: one of {@code weapon} and {@code internal}, and where it is drawn. */
+    public record PointedPart(MechWeaponComponent weapon, MechInternal internal,
+                              float left, float top, float right, float bottom) { }
+
+    /** The board's pointer, which the room's drag holds while a part is in hand. */
+    public MechLabDollCanvas withHover(BoardHover hover) {
+        this.hover = hover;
+        return this;
+    }
+
     /** Where the subject stands across the view, from the lab camera's eased pose. */
     public MechLabDollCanvas withSideShift(DoubleSupplier shift) {
         this.sideShift = shift;
@@ -255,9 +345,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
+        hover.at(canvasX, canvasY);
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
-        hoveredStrip = stripAt(canvasX, canvasY);
     }
 
     /** The socket dock target at this canvas-local point, or null outside all sockets. */
@@ -269,12 +359,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return null;
     }
 
-    /** The socket whose strip X is at this canvas-local point, or null when no X is there. */
-    public SocketId stripAt(float canvasX, float canvasY) {
-        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
-        for (StripTarget target : lastStripTargets) {
-            if (canvasX >= target.left() && canvasX <= target.left() + STRIP_SIZE
-                    && canvasY >= target.top() && canvasY <= target.top() + STRIP_SIZE) return target.id();
+    /** The compartment part drawn at this canvas-local point, or null. */
+    public MechInternal partAt(float canvasX, float canvasY) {
+        for (Map.Entry<MechInternal, float[]> part : lastPartBoxes.entrySet()) {
+            float[] box = part.getValue();
+            if (canvasX >= box[0] && canvasX <= box[2] && canvasY >= box[1] && canvasY <= box[3]) return part.getKey();
+        }
+        return null;
+    }
+
+    /** The rack kit drawn at this canvas-local point, or null. */
+    public VehicleKit kitAt(float canvasX, float canvasY) {
+        for (KitBox kit : lastKitBoxes) {
+            float[] box = kit.box();
+            if (canvasX >= box[0] && canvasX <= box[2] && canvasY >= box[1] && canvasY <= box[3]) return kit.kit();
         }
         return null;
     }
@@ -361,8 +459,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float centerY = target.y() + target.height() * 0.5f;
         if (preview instanceof MechVariant variant) {
             if (previewMech == null || previewMech.variant() != variant) {
-                previewMech = new CampaignMech("pad-preview", variant.displayName(), variant,
-                        variant.defaultRole, MissileReplenisherComponent.STANDARD.id());
+                previewMech = CampaignMech.frame("pad-preview", variant);
                 previewMechArt = new MechChassisPreviewCanvas(previewMech, assets);
             }
             previewMechArt.drawAt(context, centerX, centerY,
@@ -446,7 +543,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDropTarget target : targets) {
             if (core == null || target == core) continue;
             SocketDef socket = layout.socket(target.id());
-            boolean selected = socket.id() == selectedSocket;
+            boolean selected = selects(socket.id(), selectedSocket);
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean compatible = active != null && isSocketCompatible(socket, active);
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
@@ -470,45 +567,136 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
-            boolean selected = socket.id() == selectedSocket;
+            boolean selected = selects(socket.id(), selectedSocket);
             MechWeaponComponent component = weaponAt(deployment, socket.id());
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
             boolean rejected = draggingHere && !dragPreview.valid();
             boolean compatible = draggingHere ? dragPreview.valid()
                     : active != null && isSocketCompatible(socket, active);
-            MechInternal internal = installedInternals.apply(socket.id());
+            boolean compartment = socket.id().compartment();
             MechSocketConsole.draw(c, target, socket, component,
                     draggingHere ? active : null,
-                    deployment != null && internal == null ? deployment.missileReplenisher() : null,
-                    internal, assets.get(), selected,
+                    compartment ? null : installedInternals.apply(socket.id()),
+                    compartment ? packed(layout) : null, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }
         lastSocketTargets = List.copyOf(targets);
-        List<StripTarget> strips = new ArrayList<>();
+        // A part comes off by being dragged off; each compartment part is lifted by its own box.
+        Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
-            boolean removable = !socket.factoryLocked() && dragPreview == null
-                    && (weaponAt(deployment, socket.id()) != null
-                    || installedInternals.apply(socket.id()) != null);
-            if (!removable) continue;
-            StripTarget strip = new StripTarget(socket.id(), target.right() - STRIP_SIZE - 4f, target.top() + 4f);
-            strips.add(strip);
-            boolean hot = hoveredStrip == socket.id();
-            c.fillRect(strip.left(), strip.top(), STRIP_SIZE, STRIP_SIZE,
-                    hot ? new Color(0x45, 0x1a, 0x1a, 235) : new Color(0x2a, 0x15, 0x15, 215));
-            Color ink = hot ? new Color(0xff, 0x6e, 0x6e) : new Color(0xe9, 0x8b, 0x83);
-            float inset = 3.5f;
-            c.line(strip.left() + inset, strip.top() + inset,
-                    strip.left() + STRIP_SIZE - inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
-            c.line(strip.left() + STRIP_SIZE - inset, strip.top() + inset,
-                    strip.left() + inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
+            if (socket.factoryLocked() || dragPreview != null || !socket.id().compartment()) continue;
+            for (MechCompartment.Placement part : MechCompartment.in(packed(layout), socket.id())) {
+                partBoxes.putIfAbsent(part.part(), MechSocketConsole.partBox(target, socket, part));
+            }
         }
-        lastStripTargets = List.copyOf(strips);
+        lastPartBoxes = partBoxes;
+        if (hoveredSocket != null && layout.hasSocket(hoveredSocket)) {
+            SocketDef socket = layout.socket(hoveredSocket);
+            MechInternal part = socket.id().compartment() ? partAt(hover.x(), hover.y())
+                    : installedInternals.apply(socket.id());
+            MechWeaponComponent weapon = weaponAt(deployment, socket.id());
+            if (part != null || weapon != null) {
+                // A fitted part is described by its spec sheet, the one its stores card opens.
+                float[] box = socket.id().compartment() ? partBoxes.get(part) : null;
+                for (SocketDropTarget target : targets) {
+                    if (target.id() != socket.id()) continue;
+                    pointed = box != null ? new PointedPart(weapon, part, box[0], box[1], box[2], box[3])
+                            : new PointedPart(weapon, part, target.left(), target.top(), target.right(), target.bottom());
+                }
+            } else if (!socket.id().compartment()) {
+                // An empty socket has no sheet of its own; the board names what it takes.
+                BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, socket.label(),
+                        socket.type().label() + " / " + socket.gridColumns() + "x" + socket.gridRows());
+            }
+        }
     }
 
-    private record StripTarget(SocketId id, float left, float top) { }
+    /**
+     * A vehicle's doll where a mech's stands ({@link VehicleDoll}): the same schematic, every card sealed
+     * but the kit rack, whose kits each come off by their own X.
+     */
+    private void drawVehicleSchematic(CanvasContext c, VehicleType type, List<VehicleKit> kits,
+                                      float canvasWidth, float canvasHeight) {
+        float panelWidth = canvasWidth * SCHEMATIC_SHARE;
+        drawSchematicPanel(c, panelWidth, canvasHeight);
+        List<SocketDef> sockets = VehicleDoll.sockets(type);
+        List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, canvasHeight);
+        SocketDropTarget core = null;
+        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
+        for (SocketDropTarget target : targets) {
+            if (core == null || target == core) continue;
+            Color wire = VehicleDoll.tone(type, target.id());
+            List<float[]> path = wireToCore(target, core);
+            for (int i = 0; i < path.size() - 1; i++) {
+                float[] a = path.get(i), b = path.get(i + 1);
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f);
+            }
+            float[] end = path.get(path.size() - 1);
+            drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
+        }
+        List<KitBox> kitBoxes = new ArrayList<>();
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = socketById(sockets, target.id());
+            boolean rack = socket.id() == SocketId.AUXILIARY;
+            MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
+                    VehicleDoll.art(type, socket.id()),
+                    rack ? kits : List.of(),
+                    rack && selectedSocket.get() == SocketId.AUXILIARY, hoveredSocket == socket.id(),
+                    elapsedSeconds.getAsDouble());
+            if (!rack) continue;
+            for (int row = 0; row < kits.size(); row++) {
+                kitBoxes.add(new KitBox(kits.get(row), MechSocketConsole.kitBox(target, socket, row)));
+            }
+        }
+        // Only the rack answers the pointer: sealed cards take no drops and no selection.
+        List<SocketDropTarget> live = new ArrayList<>();
+        for (SocketDropTarget target : targets) if (target.id() == SocketId.AUXILIARY) live.add(target);
+        lastSocketTargets = List.copyOf(live);
+        lastKitBoxes = List.copyOf(kitBoxes);
+        lastPartBoxes = Map.of();
+        for (SocketDropTarget target : targets) {
+            if (!target.contains(hover.x(), hover.y())) continue;
+            SocketDef socket = socketById(sockets, target.id());
+            String title = VehicleDoll.caption(type, socket.id(), kits);
+            if (socket.id() == SocketId.AUXILIARY) {
+                // On the rack, the kit under the pointer.
+                title = null;
+                for (int row = 0; row < kits.size(); row++) {
+                    float[] box = MechSocketConsole.kitBox(target, socket, row);
+                    if (hover.x() >= box[0] && hover.x() <= box[2] && hover.y() >= box[1] && hover.y() <= box[3]) {
+                        title = kits.get(row).displayName();
+                    }
+                }
+            }
+            BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, title, socket.label());
+            break;
+        }
+    }
+
+    private static SocketDef socketById(List<SocketDef> sockets, SocketId id) {
+        for (SocketDef socket : sockets) if (socket.id() == id) return socket;
+        throw new IllegalArgumentException("no card " + id);
+    }
+
+    /** One kit on the rack and the box it is drawn in, {left, top, right, bottom}. */
+    private record KitBox(VehicleKit kit, float[] box) { }
+
+    /** The selected machine's compartment at its packed places, every bay; empty if it somehow does not pack. */
+    private List<MechCompartment.Placement> packed(MechFittingLayout layout) {
+        List<SocketDef> grids = new ArrayList<>();
+        for (SocketId id : MechCompartment.GRIDS) if (layout.hasSocket(id)) grids.add(layout.socket(id));
+        List<MechCompartment.Placement> placed = MechCompartment.pack(grids, installedCompartment.get());
+        return placed != null ? placed : List.of();
+    }
+
+    /** Whether a card is the selected one: either compartment bay lights for the compartment. */
+    private static boolean selects(SocketId card, SocketId selected) {
+        return card == selected || card.compartment() && selected != null && selected.compartment();
+    }
 
     static void drawCornerBrackets(CanvasContext c, float left, float top, float width, float height,
                                    Color color, float stroke, float bracketLength, float chamfer) {
@@ -569,7 +757,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case "ENGINE CORE" -> "CORE";
             case "L. SHOULDER" -> "L. SHLDR";
             case "R. SHOULDER" -> "R. SHLDR";
-            case "CAPACITORS" -> "CAPS";
+            case "AUXILIARY" -> "AUX";
+            case "L. AUXILIARY" -> "L. AUX";
+            case "R. AUXILIARY" -> "R. AUX";
             default -> label;
         };
         return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
@@ -583,8 +773,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case RIGHT_ARM -> "R. ARM";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
-            case CAPACITORS -> "CAPS";
-            case MINI_FAB -> "MINI-FAB";
+            case AUXILIARY, AUXILIARY_2 -> "AUX";
         };
         return name + " [" + cols + "×" + rows + "]";
     }
@@ -601,7 +790,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        if (socket == SocketId.CORE || socket == SocketId.CAPACITORS || socket == SocketId.MINI_FAB) return true;
+        if (socket == SocketId.CORE || socket.compartment()) return true;
         return weaponAt(deployment, socket) != null;
     }
 
@@ -634,7 +823,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /**
      * Lays the sockets out as the machine is built: the engine core in the middle of the panel,
      * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
-     * ahead-right), a shoulder either side, and the capacitors and mini-fab behind it. Every card
+     * ahead-right), a shoulder either side, and the auxiliary compartment behind it (two flank bays
+     * side by side where the chassis has them). Every card
      * keeps its fixed brick size; the rows are centred in the panel.
      */
     static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
@@ -642,12 +832,18 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDef socket : sockets) byId.put(socket.id(), socket);
         if (byId.isEmpty()) return List.of();
         float coreW = cardWidth(byId.get(SocketId.CORE));
-        float coreH = cardHeight(byId.get(SocketId.CORE));
+        SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
+        SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
+        // The middle row is as tall as its tallest card, so a deep shoulder rack never reaches
+        // into the arm or compartment row whatever the brick size.
+        float coreH = Math.max(cardHeight(byId.get(SocketId.CORE)), Math.max(cardHeight(left), cardHeight(right)));
         SocketDef leftArm = byId.get(SocketId.LEFT_ARM);
         SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
         float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
                 Math.max(cardHeight(leftArm), cardHeight(rightArm)));
-        float backH = Math.max(cardHeight(byId.get(SocketId.CAPACITORS)), cardHeight(byId.get(SocketId.MINI_FAB)));
+        SocketDef bay = byId.get(SocketId.AUXILIARY);
+        SocketDef secondBay = byId.get(SocketId.AUXILIARY_2);
+        float backH = Math.max(cardHeight(bay), cardHeight(secondBay));
         float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
         float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
         float centerX = panelWidth * 0.5f;
@@ -659,18 +855,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
         place(targets, byId.get(SocketId.ARMS), centerX, armsY);
         place(targets, leftArm, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
         place(targets, rightArm, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
-        SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
-        SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
         place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);
         place(targets, right, centerX + coreW * 0.5f + SCHEMATIC_GAP_X + cardWidth(right) * 0.5f, coreY);
-        SocketDef capacitors = byId.get(SocketId.CAPACITORS);
-        SocketDef miniFab = byId.get(SocketId.MINI_FAB);
         float backY = coreY + coreH * 0.5f + SCHEMATIC_GAP_Y + backH * 0.5f;
-        if (capacitors != null && miniFab != null) {
-            place(targets, capacitors, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(capacitors) * 0.5f, backY);
-            place(targets, miniFab, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(miniFab) * 0.5f, backY);
+        if (secondBay == null) {
+            place(targets, bay, centerX, backY);
         } else {
-            place(targets, capacitors != null ? capacitors : miniFab, centerX, backY);
+            place(targets, bay, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(bay) * 0.5f, backY);
+            place(targets, secondBay, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(secondBay) * 0.5f, backY);
         }
         return List.copyOf(targets);
     }

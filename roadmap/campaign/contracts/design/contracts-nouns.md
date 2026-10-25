@@ -6,6 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-10-15 — stranded detachments: absent-defence reports, pickup recovery, attrition, captured markets and breach pickup.
 
+Updated: 2026-10-24 — the campaign no longer generates patron offers; where missions come from (owner).
+
 Campaign contracts turn the player's relationship with a patron into a bounded
 piece of work. They sit between the campaign's political chains and an
 operation: a chain supplies strategic context, a contract fixes the commercial
@@ -68,11 +70,34 @@ not own the political simulation, battle presentation, cargo, or narrator.
 - A **settlement** is the one terminal contract outcome: completed, failed,
   employer-breached/defaulted, abandoned, or expired before acceptance.
 
+## Where missions come from
+
+The owner's rule (2026-10-24): **the only missions the game seeds by planet
+are the Rav Bloom's.** Everything else is authored story work and the
+repeatable jobs a story seeds. In full:
+
+- **Planet-seeded (Bloom):** a bloom's calls, raised by `RavBloomSystem`
+  (`colony-breach-nouns.md`, Campaign: blooms). Today that is Colony Breach;
+  the Cordon and the heart join when their campaign events land.
+- **Story and story-seeded:** faction contacts project only
+  `StoryMissionRegistry` work, chapters and recurring jobs.
+- **The player's own:** a posting, the defence of the player's own colony
+  against a vanilla raid (`PolityDefenceMissionFactory`), and the player's own
+  Nexerelin invasion, fought as a Conquest.
+
+**No patron offers are generated.** The standard generator, threat
+intervention, civil-war participation offers and warrant service calls are
+retired. Offers already in a save expire on their own deadlines; accepted
+contracts run to settlement through the machinery below, which stays for them,
+for postings and for recovery. `ContractType` keeps every value, since rows
+persist its ordinal. Generic work returns only as missions with map and
+mission planning at the Bloom missions' bar (`v0.2.md`).
+
 ## Shape and authority
 
-The standard offer surface serves eligible active Tier 1–3 patrons. Current
-standard generation gives Tier 1 Strike and Escort work; stationing begins at
-Tier 2; Planetary Assault is Tier 3 work. Tier 4 is outside the ordinary
+The rest of this doc describes contracts as they stand in a save. The retired
+standard offer surface served eligible active Tier 1–3 patrons: Tier 1 Strike
+and Escort work; stationing from Tier 2; Planetary Assault as Tier 3 work. Tier 4 is outside the ordinary
 contract surface and belongs to `t3-endgame-nouns.md`. A patron's eligibility
 combines its standing as an active house with the player's house relationship
 and MRB credibility; no individual offer invents a parallel gate.
@@ -84,7 +109,7 @@ that result to its Reinforced floor. The accepted operation consumes the stored
 scale, so later political changes or risk interpretation cannot resize work the
 player was already shown.
 
-Standard supply is geographically sparse. An origin market may hold at most one
+Standard supply was geographically sparse. An origin market may hold at most one
 open offer, and the markets in one star system may hold at most three between
 them; the per-patron and sector-wide ceilings remain additional backstops. These
 are ceilings rather than quotas: a market or whole system may legitimately have

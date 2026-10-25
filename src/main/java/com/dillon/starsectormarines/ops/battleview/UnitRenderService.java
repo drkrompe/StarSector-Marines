@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
+import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.WorkMotion;
@@ -14,9 +16,11 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.Animation
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
+import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.GroundWreck;
+import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -31,6 +35,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
+import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -38,7 +43,11 @@ import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.StructureLook;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
+import com.dillon.starsectormarines.battle.turret.FluxShield;
+import com.dillon.starsectormarines.battle.turret.ShieldTint;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
@@ -116,9 +125,12 @@ public final class UnitRenderService implements RenderSystem {
     static final float LIFTED_SCALE_PER_CELL = 0.14f;
     /** The size a Harrier bite's stain spreads to, cells, and how long it takes to fade at the end. */
     static final float STRIKE_STAIN_CELLS = 0.5f;
+    /** How many fine droplets a spatter strings out besides its splash, and how far along the stroke, cells. */
+    static final int SPATTER_MIN_DROPS = 5, SPATTER_MAX_DROPS = 9;
+    static final float SPATTER_REACH_CELLS = 0.8f;
     static final float STRIKE_STAIN_FADE_SECONDS = 5f;
     /** A bite's stain is thinner than a body's pool: blood thrown, not drained. */
-    static final float STRIKE_STAIN_ALPHA = 0.7f;
+    static final float STRIKE_STAIN_ALPHA = 0.8f;
     /**
      * A sleeper against the live shoulder scale: the same as a fallen body. At 0.9 a marine in
      * bed read as a giant beside the standing figure, whose head and shoulders are all that shows.
@@ -234,12 +246,21 @@ public final class UnitRenderService implements RenderSystem {
      * the wreck exists.
      */
     private final Map<Object, HullBreakup> wrecks = new IdentityHashMap<>();
+    /** The guns on each parked hull, kept per berth while its kit stays the same. */
+    private final Map<AirfieldService.Berth, ParkedGuns> parkedGuns = new IdentityHashMap<>();
     /** The burst Rav dead that have stopped moving, each drawn from the mesh it was recorded into once. */
     private final SettledBodyMeshes settledBodies = new SettledBodyMeshes();
+    /** The light and wear each body is stamped with as it is emitted (law 27). */
+    private final BodyEffects effects = new BodyEffects();
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
         this.mechScuffs = new MechScuffSink(sprites);
+    }
+
+    /** Lights bodies from {@code lights}, the event lights the ground composite draws; null lights nobody. */
+    void useLights(GroundLightService lights) {
+        effects.useLights(lights);
     }
 
     @Override
@@ -255,7 +276,9 @@ public final class UnitRenderService implements RenderSystem {
         sweepHubBodies(ctx, out);
         sweepBasedAircraft(ctx, out);
         sweepDeadSprites(ctx, out);
+        out.clearEffects();
         sweepLiveSprites(ctx, out);
+        out.clearEffects();
         sweepDurabilityBars(ctx, out);
     }
 
@@ -410,9 +433,10 @@ public final class UnitRenderService implements RenderSystem {
                 // Painted base: the whole footprint, upright, in place of the flat pad.
                 float w = spanX * cellPx;
                 float h = spanY * cellPx;
-                out.addSprite(RenderLayer.UNITS, artBase.sprite,
-                        cam.cellToScreenX(cx) + w * 0.5f, cam.cellToScreenY(cy) + h * 0.5f,
-                        w, h, 0f, 1f, 1f, 1f, alphaMult);
+                float mx = cam.cellToScreenX(cx) + w * 0.5f;
+                float my = cam.cellToScreenY(cy) + h * 0.5f;
+                out.addSprite(RenderLayer.UNITS, artBase.sprite, mx, my, w, h, 0f, 1f, 1f, 1f, alphaMult);
+                emitFluxDevice(ctx, out, u, mx, my, w, h, alphaMult);
                 continue;
             }
             if (standsOnSurface(ctx.sim.getTopology(), cx, cy, spanX, spanY)) continue;
@@ -497,6 +521,58 @@ public final class UnitRenderService implements RenderSystem {
         }
         return extent;
     }
+
+    /**
+     * A shielded structure's flux device over its painted base ({@link TurretFluxHeat}): the capacitor and radiator
+     * painted cold, the same device at full charge laid over them at the shield's heat, the charge lamps in the
+     * shield's colour, and the flux haze off the radiator ({@link FluxHaze}), a plume while the shield is broken.
+     */
+    private void emitFluxDevice(RenderContext ctx, DrawList out, long id, float x, float y, float w, float h,
+                              float alphaMult) {
+        TurretShieldService.Fitted fitted = ctx.sim.turretShields().fitted(id);
+        if (fitted == null) return;
+        StructureLook look = ctx.sim.turretState().structure(id).look(ctx.sim.structureStyle(id));
+        if (look == null || look.fluxDevicePath() == null) return;
+        ShuttleSpriteCache cold = sprites.spriteByPath(look.fluxDevicePath());
+        if (cold == null) return;
+        out.addSprite(RenderLayer.UNITS, cold.sprite, x, y, w, h, 0f, 1f, 1f, 1f, alphaMult);
+        float hot = TurretFluxHeat.hotAlpha(id, fitted.shield, ctx.sim.getSimTickIndex());
+        ShuttleSpriteCache glow = hot > 0.01f ? sprites.spriteByPath(look.fluxDeviceHotPath()) : null;
+        if (glow != null) out.addSprite(RenderLayer.UNITS, glow.sprite, x, y, w, h, 0f, 1f, 1f, 1f, hot * alphaMult);
+
+        sprites.ensureEngineFxSprites();
+        SpriteAPI lampGlow = sprites.engineGlowSprite();
+        if (lampGlow == null) return;
+        // The sprite's cells, from its top-left corner (image y runs down the screen).
+        float cell = w / 3f;
+        float left = x - w * 0.5f;
+        float top = y + h * 0.5f;
+        float[] colour = fitted.tint == ShieldTint.ORANGE ? TurretShieldField.ORANGE : TurretShieldField.BLUE;
+        long tick = ctx.sim.getSimTickIndex();
+        for (int k = 0; k < TurretFluxHeat.LAMPS; k++) {
+            float lit = TurretFluxHeat.lamp(id, fitted.shield, tick, k);
+            if (lit <= 0.01f) continue;
+            double a = 2 * Math.PI * k / TurretFluxHeat.LAMPS;
+            float lx = left + (TurretFluxHeat.CAPACITOR_X + TurretFluxHeat.LAMP_RING * (float) Math.sin(a)) * cell;
+            float ly = top - (TurretFluxHeat.CAPACITOR_Y - TurretFluxHeat.LAMP_RING * (float) Math.cos(a)) * cell;
+            out.addAdditiveSprite(RenderLayer.UNITS, lampGlow, lx, ly, cell * 0.24f, cell * 0.24f, 0f,
+                    colour[0], colour[1], colour[2], lit * alphaMult);
+            out.addAdditiveSprite(RenderLayer.UNITS, lampGlow, lx, ly, cell * 0.09f, cell * 0.09f, 0f,
+                    1f, 1f, 1f, 0.8f * lit * alphaMult);
+        }
+        // The haze rises north off the radiator: a hull facing south drifts it that way.
+        BattleCamera cam = ctx.camera;
+        FluxShield shield = fitted.shield;
+        float level = shield.overloaded() ? shield.overloadShare() : shield.fluxShare();
+        float hazeX = cam.screenToCellX(left + TurretFluxHeat.RADIATOR_X * cell);
+        float hazeY = cam.screenToCellY(top - TurretFluxHeat.RADIATOR_Y * cell);
+        FluxHaze.collect(out, RenderLayer.UNITS, lampGlow, cam, cam.cellPxSize(), hazeX, hazeY, 180f,
+                TurretFluxHeat.RADIATOR_HALF_WIDTH * cell / cam.cellPxSize(), HAZE_SCALE, level, shield.overloaded(),
+                tick * BattleSimulation.TICK_DT, alphaMult);
+    }
+
+    /** How large the flux haze off a hardpoint's radiator draws against a ground hull's vents. */
+    private static final float HAZE_SCALE = 0.6f;
 
     /** The painted base of a structure that has one and whose sprite loaded, else null (the flat pad is drawn). */
     private ShuttleSpriteCache structureBase(RenderContext ctx, long id, TurretStateService turretState) {
@@ -750,6 +826,7 @@ public final class UnitRenderService implements RenderSystem {
                 continue;
             emitHull(out, cam, berth.airframe, berth.facingDegrees, world.renderX(u), world.renderY(u),
                     cellPx, 1f, 1f, 1f, alphaMult);
+            emitParkedGuns(out, cam, berth, world.renderX(u), world.renderY(u), cellPx, alphaMult);
         }
         for (AirfieldService.Berth berth : airfield.berths()) {
             if (!berth.wreckOnPad) continue;
@@ -972,6 +1049,40 @@ public final class UnitRenderService implements RenderSystem {
                 * AirAppearance.GROUND_SCALE * AUTHORED_EXTENT_SLACK;
     }
 
+    /**
+     * Draws the guns on a parked hull, on its weapon slots and trained along its nose, at the
+     * ground scale its hull is drawn at: the same guns, in the same places, that it lifts with.
+     *
+     * <p>A berth a yard has refitted carries its own {@link AirfieldService.Berth#doorGuns};
+     * any other carries its airframe's kit. Worked out again only when that kit changes.
+     */
+    private void emitParkedGuns(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
+                                float centerCellX, float centerCellY, float cellPx, float alphaMult) {
+        String[] kit = berth.doorGuns != null ? berth.doorGuns : berth.airframe.kitFor(TurretRole.A2G);
+        ParkedGuns guns = parkedGuns.get(berth);
+        if (guns == null || !Arrays.equals(guns.kit(), kit)) {
+            guns = new ParkedGuns(kit.clone(), AirArmament.mounts(kit, berth.airframe.renderHullId(),
+                    berth.facingDegrees));
+            parkedGuns.put(berth, guns);
+        }
+        if (guns.mounts().length == 0) return;
+        float rad = (float) Math.toRadians(berth.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float sn = (float) Math.sin(rad);
+        float scale = AirAppearance.GROUND_SCALE;
+        for (MountedTurret mt : guns.mounts()) {
+            float lx = mt.mount.localOffsetX * scale;
+            float ly = mt.mount.localOffsetY * scale;
+            float screenX = cam.cellToScreenX(centerCellX + lx * c - ly * sn);
+            float screenY = cam.cellToScreenY(centerCellY + lx * sn + ly * c);
+            ShuttleRenderSystem.emitTurret(out, RenderLayer.UNITS, sprites, mt, screenX, screenY, scale,
+                    cellPx, alphaMult);
+        }
+    }
+
+    /** The guns drawn on one parked hull, and the kit they were laid out from. */
+    private record ParkedGuns(String[] kit, MountedTurret[] mounts) {}
+
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,
                           float r, float g, float b, float alphaMult) {
@@ -1063,6 +1174,52 @@ public final class UnitRenderService implements RenderSystem {
                 size, size * splat.pxHeight / splat.pxWidth, facing, 1f, 1f, 1f, alpha);
     }
 
+    /**
+     * A bite's spatter: a small streaked splash where the claws opened the body, and a string of finer droplets
+     * thrown on along the stroke, mostly small, thinning and shrinking with distance, each a pool drawing squeezed
+     * along its flight. Seeded off the stain, so it is the same drop pattern every frame and every replay.
+     */
+    private static void emitSpatter(DrawList out, BattleCamera cam, List<LayeredSpriteCache> pools,
+                                    SwarmFliers.Stain stain, float spread, float alpha) {
+        double rad = Math.toRadians(stain.facing());
+        float dirX = (float) Math.cos(rad), dirY = (float) Math.sin(rad);
+        long seed = (stain.tick() * 0x9E3779B97F4A7C15L) ^ Float.floatToIntBits(stain.x()) * 31L
+                ^ Float.floatToIntBits(stain.y());
+        float cellPx = cam.cellPxSize();
+        int drops = 1 + SPATTER_MIN_DROPS + (int) (unit(seed, 0) * (SPATTER_MAX_DROPS - SPATTER_MIN_DROPS + 1));
+        for (int i = 0; i < drops; i++) {
+            float along, across, size, stretch;
+            if (i == 0) {
+                along = 0f;
+                across = 0f;
+                size = STRIKE_STAIN_CELLS * .45f * spread;
+                stretch = 1.6f;
+            } else {
+                float u = unit(seed, 4 * i + 1);
+                along = .08f + (float) Math.pow(u, .7) * SPATTER_REACH_CELLS;
+                across = (unit(seed, 4 * i + 2) - .5f) * .3f * (1f + along);
+                float heft = unit(seed, 4 * i + 3);
+                size = (.035f + .1f * heft * heft) * (1f - .5f * along / SPATTER_REACH_CELLS);
+                stretch = 1.2f + 1.4f * unit(seed, 4 * i + 4);
+            }
+            float x = stain.x() + dirX * along - dirY * across;
+            float y = stain.y() + dirY * along + dirX * across;
+            LayeredSpriteCache pool = pools.get((int) Math.floorMod(seed + i, (long) pools.size()));
+            float px = size * cellPx;
+            out.addSprite(RenderLayer.UNITS, pool.sprite, cam.cellToScreenX(x), cam.cellToScreenY(y),
+                    px * stretch, px * pool.pxHeight / pool.pxWidth, stain.facing(), 1f, 1f, 1f, alpha);
+        }
+    }
+
+    /** A number in [0, 1) from {@code seed} and {@code salt}: the spatter's drop pattern, the same every frame. */
+    private static float unit(long seed, int salt) {
+        long h = (seed + salt * 0xD6E8FEB86659FD93L) * 0x9E3779B97F4A7C15L;
+        h ^= h >>> 29;
+        h *= 0xBF58476D1CE4E5B9L;
+        h ^= h >>> 32;
+        return (float) ((h >>> 40) & 0xFFFFFF) / 0x1000000;
+    }
+
     /** Heaves a second a carrier hauls its load with, and how far each heave jolts and rocks the body. */
     private static final float DRAG_HEAVE_HZ = 1.8f;
     private static final float DRAG_JOLT_CELLS = 0.05f;
@@ -1116,17 +1273,12 @@ public final class UnitRenderService implements RenderSystem {
         List<LayeredSpriteCache> pools = sprites.bloodPools();
         if (!pools.isEmpty()) {
             int now = ctx.sim.getSimTickIndex();
-            // Blood a Harrier's bite left on the ground: a small pool that spreads as a body's does, then fades.
+            // Blood a Harrier's bite left on the ground: a spatter thrown on along the stroke, then fading.
             for (SwarmFliers.Stain stain : ctx.sim.swarmFliers().stains()) {
-                if (!view.visible(stain.x(), stain.y(), STRIKE_STAIN_CELLS)) continue;
+                if (!view.visible(stain.x(), stain.y(), STRIKE_STAIN_CELLS + SPATTER_REACH_CELLS)) continue;
                 float age = (now - stain.tick()) * BattleSimulation.TICK_DT;
                 float fade = Math.max(0f, Math.min(1f, (HarrierRules.STAIN_SECONDS - age) / STRIKE_STAIN_FADE_SECONDS));
-                LayeredSpriteCache pool = pools.get(Math.floorMod(stain.tick(), pools.size()));
-                float size = cam.cellPxSize() * STRIKE_STAIN_CELLS * bloodSpread(age);
-                out.addSprite(RenderLayer.UNITS, pool.sprite,
-                        cam.cellToScreenX(stain.x()), cam.cellToScreenY(stain.y()),
-                        size, size * pool.pxHeight / pool.pxWidth, stain.facing(),
-                        1f, 1f, 1f, alphaMult * STRIKE_STAIN_ALPHA * fade);
+                emitSpatter(out, cam, pools, stain, bloodSpread(age), alphaMult * STRIKE_STAIN_ALPHA * fade);
             }
             for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
                 Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
@@ -1147,15 +1299,20 @@ public final class UnitRenderService implements RenderSystem {
                     if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
                             && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
-                    float poolAlpha = alphaMult * pileFadeAlpha(ctx.sim.bodyPileCap().faded(t.entityAt(r)));
+                    float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
+                    float poolAlpha = alphaMult * pileFadeAlpha(faded);
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
                             * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
+                    // The pool is lit and charred with its body.
+                    effects.stampLight(out, rx[r], ry[r]);
+                    effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
                     out.addSprite(RenderLayer.UNITS, pool.sprite,
                             cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
                             size, size * pool.pxHeight / pool.pxWidth, facing[r],
                             1f, 1f, 1f, poolAlpha);
                 }
             }
+            out.clearEffects();
         }
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
@@ -1167,8 +1324,9 @@ public final class UnitRenderService implements RenderSystem {
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets deadBruteArt = sprites.ravBruteSprites();
-            Object[] ravRigs = (ravArt != null || deadBruteArt != null) && t.has(c.RAV_RIG)
-                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
+            RavSpitterAssets deadSpitterArt = sprites.ravSpitterSprites();
+            Object[] ravRigs = (ravArt != null || deadBruteArt != null || deadSpitterArt != null)
+                    && t.has(c.RAV_RIG) ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
@@ -1181,6 +1339,8 @@ public final class UnitRenderService implements RenderSystem {
                 float pileAlpha = pileFadeAlpha(faded);
                 float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
                 float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
+                effects.stampLight(out, rx[r], ry[r]);
+                effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
                 if (type == UnitType.SWARM_HARRIER) {
                     // A shot flier lies where its fall landed, as its look's corpse drawing.
                     if (ctx.sim.swarmFliers().falling(t.entityAt(r))) continue;
@@ -1202,6 +1362,18 @@ public final class UnitRenderService implements RenderSystem {
                     QuadMesh settled = settledBodies.brute(deadBrute, bruteArt, splat, drop);
                     if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
                     else RavBruteComposer.emitDead(out, bruteArt, splat, drop, deadBrute, bx, by, ppc, alpha);
+                    continue;
+                }
+                if (deadSpitterArt != null && ravRigs != null && ravRigs[r] instanceof RavSpitterRig deadSpitter
+                        && deadSpitter.dead()) {
+                    // A dead Spitter has burst as a Brute does, over the same blood.
+                    LayeredSpriteCache[] splat = ravArt != null ? ravArt.splat : null;
+                    LayeredSpriteCache drop = ravArt != null ? ravArt.drop : null;
+                    float bx = cam.cellToScreenX(deadSpitter.bodyX()), by = cam.cellToScreenY(deadSpitter.bodyY());
+                    float ppc = cam.cellPxSize() * deadSpitter.scale() * shrink;
+                    QuadMesh settled = settledBodies.spitter(deadSpitter, deadSpitterArt, splat, drop);
+                    if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
+                    else RavSpitterComposer.emitDead(out, deadSpitterArt, splat, drop, deadSpitter, bx, by, ppc, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
@@ -1351,6 +1523,8 @@ public final class UnitRenderService implements RenderSystem {
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
+        CombatService combat = roster.combat();
+        int tick = ctx.sim.getSimTickIndex();
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.liveSprites)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
@@ -1365,7 +1539,9 @@ public final class UnitRenderService implements RenderSystem {
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets bruteArt = sprites.ravBruteSprites();
             RavMatriarchAssets matriarchArt = sprites.ravMatriarchSprites();
-            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null) && t.has(c.RAV_RIG)
+            RavSpitterAssets spitterArt = sprites.ravSpitterSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null || spitterArt != null)
+                    && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1441,6 +1617,9 @@ public final class UnitRenderService implements RenderSystem {
                 if (uv == FogOfWarService.VIS_HIDDEN) continue;
                 float unitAlpha = alphaMult;
                 if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(denseIdx);
+                out.setFlash(HitFlash.amount(combat, entityId, tick));
+                effects.stampLight(out, rx[r], ry[r]);
+                effects.stampLiveWear(out, ctx.sim, rx[r], ry[r]);
 
                 UnitType type = (UnitType) types[r];
                 LayeredMechAssets mechAssets = hasMechLayered
@@ -1498,6 +1677,13 @@ public final class UnitRenderService implements RenderSystem {
                     RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
                             cam.cellPxSize() * bruteRig.scale(), unitAlpha);
+                    continue;
+                }
+                if (spitterArt != null && rig instanceof RavSpitterRig spitterRig && spitterRig.posed()) {
+                    // The Spitter too, sized in cells like the Brute.
+                    RavSpitterComposer.emit(out, spitterArt, spitterRig,
+                            cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
+                            cam.cellPxSize() * spitterRig.scale(), unitAlpha);
                     continue;
                 }
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
@@ -1692,6 +1878,10 @@ public final class UnitRenderService implements RenderSystem {
                 boolean firing = pose == LayeredAppearance.POSE_ROCKET_FIRE
                         || pose == LayeredAppearance.POSE_AMR_FIRE;
                 variantId = layerClips.variant();
+                if (!firing && (flags & LayeredAppearance.FLAG_SPECIAL_CARRIED) != 0
+                        && layerClips.walking() != null) {
+                    return carriedSpecialPose(layouts, layerClips, locomotionPhase, actionPhase);
+                }
                 animationId = firing && layerClips.firing() != null
                         ? layerClips.firing() : layerClips.using();
                 phase = actionPhase;
@@ -1733,6 +1923,20 @@ public final class UnitRenderService implements RenderSystem {
         LayerPose source = sourceClip.sample(fromMoving ? locomotionPhase : 0f);
         return LayerPose.blendMatching(source, sampled,
                 phase / LayeredAppearance.ACTION_ENTRY_BLEND_PHASE);
+    }
+
+    /**
+     * A readied special carried in its walking clip at the stride, blended toward the aim by how far it is carried
+     * ({@code carried}, 0 at the aim to 1 fully carried), so a Marine stopping raises it rather than snapping.
+     */
+    private static LayerPose carriedSpecialPose(UnitLayerLayouts layouts, LayerClips layerClips,
+                                                float locomotionPhase, float carried) {
+        AnimationClip walking = layouts.clip("marine-line", layerClips.variant(), layerClips.walking());
+        AnimationClip aiming = layouts.clip("marine-line", layerClips.variant(), layerClips.using());
+        if (walking == null) return aiming != null ? aiming.sample(1f) : null;
+        LayerPose carry = walking.sample(locomotionPhase);
+        if (aiming == null || carried >= 1f) return carry;
+        return LayerPose.blendMatching(aiming.sample(1f), carry, carried);
     }
 
     private static LayerPose mechPose(int chassis, float locomotionPhase, int flags) {

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
@@ -22,6 +23,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
@@ -206,9 +208,25 @@ public final class CordonPlan {
         for (Precinct r : redoubts(plan)) seeds.add(new int[]{r.seedX(), r.seedY(), r.seedX(), r.seedY()});
         List<RidgePlanner.Band> held = heldBands(seeds, new int[]{0, south ? 1 : -1}, width);
         // In open country the band is held from everything that grows; a town's places grow as they would and only
-        // its fields keep off (held from its growth, five of the pooled town maps lost their Cordon).
-        return plan.withLandscape(density == Density.RURAL ? plan.landscape().withHeld(held)
-                : plan.landscape().withUnploughed(held));
+        // its fields keep off (held from its growth, five of the pooled town maps lost their Cordon). Round each
+        // redoubt, in either, the ground its terrace's cliff stands in is kept from the other places.
+        Landscape landscape = density == Density.RURAL ? plan.landscape().withHeld(held)
+                : plan.landscape().withUnploughed(held);
+        return plan.withLandscape(landscape.withKept(crestGround(seeds)));
+    }
+
+    /**
+     * Cells either side of a redoubt's seed kept open for its terrace: half its claim, the terrace's margin, the
+     * cliff and its apron, and the landscape's two-cell reservation round whatever grows beside it.
+     */
+    static final int CREST_HALF = 28;
+
+    /** The ground kept round each redoubt's seed for the terrace that stands it on the crest. */
+    static List<Landscape.Track> crestGround(List<int[]> seeds) {
+        List<Landscape.Track> out = new ArrayList<>();
+        for (int[] s : seeds) out.add(new Landscape.Track(s[0] - CREST_HALF, s[1] - CREST_HALF, s[0] + CREST_HALF,
+                s[1] + CREST_HALF));
+        return out;
     }
 
     /** The ridge the line stands on ({@code cordon-map-intent.md}, The line on the high ground). */
@@ -270,15 +288,39 @@ public final class CordonPlan {
         return path;
     }
 
-    /** The ridge resolved off the redoubts' claimed ground, or none when a redoubt has none. */
+    /** The terrace that stands redoubt {@code n} on the ridge's crest is this plus the redoubt's place name. */
+    public static final String CREST = "crest-";
+    /**
+     * Cells a redoubt's terrace box lies inside its claimed ground: the claim is the wall with a three-cell lawn
+     * ring round it, and the terrace's own margin puts that ring on the top anyway, so the box is the wall and one
+     * cell beyond it. Two cells less on every side is two cells more for the cliff between the redoubt and whatever
+     * grew beside it.
+     */
+    static final int CREST_INSET = 2;
+
+    /**
+     * The ridge resolved off the redoubts' claimed ground, or none when a redoubt has none. It carries every
+     * redoubt on its crest ({@code cordon-map-intent.md}, The line on the high ground): each claimed box is a
+     * terrace the ridge runs on into, its roads ramped down from its gates, and a map on which one cannot stand is
+     * not a Cordon map.
+     */
     static List<Piece> ridge(LayoutGround ground, int[] front) {
         List<int[]> bounds = new ArrayList<>();
+        List<TerracePlanner.Terrace> terraces = new ArrayList<>();
         for (int n = 1; n <= REDOUBTS; n++) {
             int[] b = ground.claimBounds(REDOUBT_PLACE + n);
             if (b == null) return List.of();
             bounds.add(b);
+            // Supplied from the rear: its cliff there is ramped whether or not the supply road was laid to it.
+            terraces.add(new TerracePlanner.Terrace(CREST + REDOUBT_PLACE + n, b[0] + CREST_INSET, b[1] + CREST_INSET,
+                    b[2] - CREST_INSET, b[3] - CREST_INSET, true, rear(front)));
         }
-        return List.of(new Ridge(RIDGE, ridgeBand(bounds, front, ground.width()), false));
+        return List.of(new Ridge(RIDGE, ridgeBand(bounds, front, ground.width()), false, terraces));
+    }
+
+    /** The side of a redoubt facing the rear, where its supply comes from: y is up, so a front up the map is a rear down it. */
+    static TerracePlanner.Edge rear(int[] front) {
+        return front[1] > 0 ? TerracePlanner.Edge.SOUTH : TerracePlanner.Edge.NORTH;
     }
 
     /** The layout's picket courses, resolved once the redoubts have claimed their ground. */

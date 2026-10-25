@@ -13,8 +13,8 @@ import java.util.List;
  */
 public interface FortPlan {
 
-    /** What a gatehouse piece is: a tower cap standing on solid wall, or the leaves of the gate over its open passage. */
-    enum PieceKind { TOWER, GATE }
+    /** What a gatehouse piece is: the leaves of the gate over its open passage (its towers are rooms, {@link #towers()}). */
+    enum PieceKind { GATE }
 
     /**
      * One piece of gatehouse art in the footprint frame: the cells it covers and the clockwise quarter turns its sprite
@@ -196,6 +196,21 @@ public interface FortPlan {
             maxY = Math.max(maxY, f[1] + f[3]);
         }
         return new int[]{minX, minY, maxX - minX, maxY - minY};
+    }
+
+    /**
+     * The gatehouse towers, two flanking each gate ({@link GateTowers}): rooms of no aspect that the garrison holds and
+     * fights from, stamped after {@link #rooms()} in the layout. None by default.
+     */
+    default List<FortRoom> towers() {
+        return List.of();
+    }
+
+    /** Every room the layout stamps, in its order: the aspects' suites, then the gatehouse towers. */
+    default List<FortRoom> buildings() {
+        List<FortRoom> out = new ArrayList<>(rooms());
+        out.addAll(towers());
+        return out;
     }
 
     /** The aspects housed in buildings, in the order their cores are stamped. */

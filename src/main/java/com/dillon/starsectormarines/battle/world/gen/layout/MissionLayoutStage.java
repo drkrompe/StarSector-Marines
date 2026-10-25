@@ -8,8 +8,17 @@ import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -24,8 +33,9 @@ import java.util.Set;
  * lanes, before the landscape grows round them ({@link Phase#WORKS}), and
  * binds what it made under {@link BspKeys#MISSION_LAYOUT_LAID}.
  *
- * <p>Only ever in a recipe whose plan states a layout, so a map without one is
- * generated exactly as before. Every placement yields to what is there: a cell
+ * <p>Only ever in a recipe whose plan states a layout or stands a place on a
+ * knoll (raised and reported here with the layout's ridges), so a map without
+ * either is generated exactly as before. Every placement yields to what is there: a cell
  * that is not open ground, or is road, is skipped, so a line through a town is
  * broken by its buildings and reported {@link Laid.Status#PARTIAL}. A line is
  * never allowed to seal the map: wire and nests that would cut the walkable
@@ -58,7 +68,7 @@ public final class MissionLayoutStage implements GenStage {
     public void run(GenContext ctx) {
         PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
         MissionLayout layout = plan == null ? MissionLayout.NONE : plan.layout();
-        if (layout.isEmpty()) return;
+        if (layout.isEmpty() && (plan == null || plan.landscape().knolls().isEmpty())) return;
         LayoutGround ground = new LayoutGround(ctx);
         boolean[][] held = layout.keepClear(ctx.width, ctx.height);
         List<Piece> pieces = new ArrayList<>();
@@ -101,15 +111,35 @@ public final class MissionLayoutStage implements GenStage {
                     layoutRidges.add(ridge);
                 }
             }
-            if (!layoutRidges.isEmpty()) {
+            // A knoll is a terrace of its own, raised with the ridges; one refused before growth is reported so.
+            List<TerracePlanner.Terrace> knolls = new ArrayList<>();
+            for (KnollGround.Resolved knoll : knolls(ctx, plan)) {
+                if (knoll.stands()) {
+                    knolls.add(new TerracePlanner.Terrace(knoll.knoll().name(), knoll.x0(), knoll.y0(), knoll.x1(),
+                            knoll.y1(), knoll.knoll().required()));
+                } else {
+                    out.add(Laid.refused(knoll.knoll().name(), Laid.Kind.GROUND, knoll.knoll().required(),
+                            knoll.refusal()));
+                }
+            }
+            if (!layoutRidges.isEmpty() || !knolls.isEmpty()) {
                 List<RidgePlanner.Band> bands = new ArrayList<>();
-                for (Ridge ridge : layoutRidges) bands.add(ridge.band());
+                List<TerracePlanner.Terrace> terraces = new ArrayList<>(knolls);
+                for (Ridge ridge : layoutRidges) {
+                    bands.add(ridge.band());
+                    terraces.addAll(ridge.terraces());
+                }
                 // A band the landscape holds for a layout Ridge (the Cordon holds its line's) is the same ground once.
                 for (RidgePlanner.Band band : OutdoorLandscapeStage.landscapeBands(ctx)) {
                     if (!bands.contains(band)) bands.add(band);
                 }
-                List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, bands, held);
+                OutdoorLandscapeStage.Raised raised = OutdoorLandscapeStage.raiseRidges(ctx, bands, held, terraces);
+                List<int[]> feet = raised.feet();
                 closed = !feet.isEmpty();
+                for (TerracePlanner.Planned terrace : raised.terraces()) {
+                    closed |= terrace.stands();
+                    out.add(terraceLaid(terrace));
+                }
                 // Each ramp's foot belongs to the ridge whose ground it stands on; the landscape's report none.
                 for (Ridge ridge : layoutRidges) {
                     boolean[][] band = RidgePlanner.heldGround(List.of(ridge.band()), ctx.width, ctx.height, 1);
@@ -152,6 +182,10 @@ public final class MissionLayoutStage implements GenStage {
                 Laid laid = LayoutBlocks.lay(ctx, block, held);
                 out.add(laid);
                 for (int[] c : laid.cells()) closed |= !ctx.grid.isWalkable(c[0], c[1]);
+            } else if (piece instanceof Props props) {
+                Laid laid = layProps(ctx, props);
+                out.add(laid);
+                closed |= laid.isLaid();
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
                 Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
@@ -172,6 +206,79 @@ public final class MissionLayoutStage implements GenStage {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
         ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
+    }
+
+    /** The plan's knolls as the places' growth read them, or worked out again where nothing bound them. */
+    private static List<KnollGround.Resolved> knolls(GenContext ctx, PrecinctPlan plan) {
+        if (plan.landscape().knolls().isEmpty()) return List.of();
+        List<KnollGround.Resolved> bound = ctx.get(BspKeys.KNOLLS);
+        return bound != null ? bound : KnollGround.resolve(plan, ctx.width, ctx.height);
+    }
+
+    /**
+     * A terrace as reported: its place's ground by its corners, its ramps' feet as the ways up, or refused with why.
+     */
+    static Laid terraceLaid(TerracePlanner.Planned planned) {
+        TerracePlanner.Terrace t = planned.terrace();
+        if (!planned.stands()) return Laid.refused(t.name(), Laid.Kind.GROUND, t.required(), planned.refusal());
+        return new Laid(t.name(), Laid.Kind.GROUND, Laid.Status.LAID, planned.ramps().size() + " ramps", t.required(),
+                List.of(new int[]{t.x0(), t.y0()}, new int[]{t.x1(), t.y1()}), planned.feet(), List.of());
+    }
+
+    /**
+     * Each prop through the ordinary placement, and a tree's canopy through the forest brush, which refuses it on
+     * ground a tree may not stand on; laid when any stood, reported by the low corners of those that did.
+     */
+    static Laid layProps(GenContext ctx, Props props) {
+        TileRegistry tiles = TileRegistry.installed();
+        List<int[]> stood = new ArrayList<>();
+        for (Props.Placement p : props.props()) {
+            TreeCanopy canopy = canopy(p.doodad());
+            if (canopy != null) {
+                if (tree(ctx, new ForestField.Tree(p.x(), p.y(), canopy, p.quarterTurns()))) stood.add(new int[]{p.x(), p.y()});
+                continue;
+            }
+            DoodadDef def = tiles == null ? null : tiles.doodad(p.doodad());
+            if (def != null && PreparedGround.prop(ctx, p.x(), p.y(), def, p.quarterTurns())) stood.add(new int[]{p.x(), p.y()});
+        }
+        return stood.isEmpty()
+                ? Laid.refused(props.name(), Laid.Kind.BLOCK, props.required(), "no prop had open ground")
+                : new Laid(props.name(), Laid.Kind.BLOCK, Laid.Status.LAID, stood.size() + " of " + props.props().size(),
+                        props.required(), stood, List.of(), List.of());
+    }
+
+    private static TreeCanopy canopy(String doodad) {
+        for (TreeCanopy c : TreeCanopy.values()) if (c.id.equals(doodad)) return c;
+        return null;
+    }
+
+    /**
+     * One tree stamped as the woods are: planted, so paving under its canopy is lifted to a grass bed first. Refused
+     * where its canopy would cover a road, a building or anything already standing.
+     */
+    private static boolean tree(GenContext ctx, ForestField.Tree tree) {
+        if (tree.x() < 0 || tree.y() < 0 || tree.x() + tree.width() > ctx.width || tree.y() + tree.height() > ctx.height) return false;
+        RoadSurface roads = ctx.topology.roadSurface();
+        for (int y = tree.y(); y < tree.y() + tree.height(); y++) {
+            for (int x = tree.x(); x < tree.x() + tree.width(); x++) {
+                if (!tree.blocks(x, y)) continue;
+                if (!PreparedGround.open(ctx, x, y) || ctx.topology.getBuildingId(x, y) != 0
+                        || roads != null && roads.underlay(x, y) != null) return false;
+            }
+        }
+        for (int y = tree.y(); y < tree.y() + tree.height(); y++) {
+            for (int x = tree.x(); x < tree.x() + tree.width(); x++) {
+                if (!tree.blocks(x, y)) continue;
+                ctx.topology.setGroundKind(x, y, CellTopology.GroundKind.GRASS);
+                ctx.topology.setSurface(x, y, 0);
+            }
+        }
+        try {
+            ForestBrush.stampTrees(List.of(tree), ctx.grid, ctx.topology, ctx.doodads, null, false);
+            return true;
+        } catch (IllegalArgumentException | IllegalStateException refused) {
+            return false;
+        }
     }
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {

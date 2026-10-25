@@ -282,6 +282,18 @@ public final class Warship {
         lowHoverHeight = height;
     }
 
+    /** How many times the shared density this hull's body was fitted at ({@link WarshipScale#HULL_PRESENCE} unless fitted otherwise). */
+    private float presence = WarshipScale.HULL_PRESENCE;
+
+    /** How many times the shared density this hull's body is drawn and fitted at. */
+    public float presence() { return presence; }
+
+    /** This hull's presence over the standard one: what a body figure read at {@link WarshipScale#hullCells} is multiplied by. */
+    public float presenceShare() { return presence / WarshipScale.HULL_PRESENCE; }
+
+    /** Hull-spec pixels to cells at this hull's own presence: {@link WarshipScale#hullCells} for a standard hull. */
+    public float hullCells(float hullPixels) { return WarshipScale.cells(hullPixels) * presence; }
+
     /** Ratio of a berthed body to the same hull in flight; 1 for a ship never put in a berth. */
     private float berthFactor = 1f;
     private boolean berthed;
@@ -306,7 +318,7 @@ public final class Warship {
     public void berth(float centreX, float centreY) {
         if (departing || departed || destroyed()) throw new IllegalStateException("Only a ship present can berth");
         berthed = true;
-        berthFactor = LandedScale.berthFactor();
+        berthFactor = LandedScale.berthFactor(presence);
         liftSeconds = -1f;
         liftRun = null;
         liftDone = 0f;
@@ -2615,20 +2627,31 @@ public final class Warship {
     /** Fits whatever {@code loadout} names; the stock and fleet-member paths both end here. */
     public static Warship fit(WarshipLoadout loadout, Faction faction,
                               float x, float y, float facingDegrees) throws Exception {
+        return fit(loadout, faction, x, y, facingDegrees, WarshipScale.HULL_PRESENCE);
+    }
+
+    /**
+     * As above, with the body at {@code presence} times the shared density rather than
+     * {@link WarshipScale#HULL_PRESENCE}: its length, beam, pivot, slots and shield, and so how far its mounts sit from
+     * the ground they reach. Gun reach, ground and hull alike, does not change with it.
+     */
+    public static Warship fit(WarshipLoadout loadout, Faction faction,
+                              float x, float y, float facingDegrees, float presence) throws Exception {
+        if (!(presence > 0f)) throw new IllegalArgumentException("a hull's presence must be positive");
         // A skin (a Wolf (H), a Hound (P)) is its base hull with its own sprite: the spec, table row and engines are
         // the base's, the picture is the skin's.
         WarshipSkins.Skin skin = WarshipSkins.resolve(loadout.hullId());
         String hullId = skin.baseHullId();
         JSONObject hull = VanillaData.json("data/hulls/" + WarshipSkins.hullFile(hullId) + ".ship");
         List<Mount> mounts = new ArrayList<>();
-        for (WarshipSlot slot : WarshipSlot.parse(hull)) {
+        float k = WarshipScale.cells(1f) * presence;
+        for (WarshipSlot slot : WarshipSlot.parse(hull, k)) {
             VanillaWeapon weapon = VanillaWeapons.get(loadout.weaponInSlot(slot.id()));
             if (weapon == null) continue;
             Mount mount = new Mount(slot, weapon);
             mount.headingDegrees = facingDegrees + slot.angleDegrees();
             mounts.add(mount);
         }
-        float k = WarshipScale.hullCells(1f);
         float w = (float) hull.optDouble("width", 0.0);
         float h = (float) hull.optDouble("height", 0.0);
         JSONArray c = hull.optJSONArray("center");
@@ -2642,7 +2665,8 @@ public final class Warship {
         String sprite = skin.spriteName() != null ? skin.spriteName() : hull.optString("spriteName");
         Warship ship = new Warship(hullId, sprite, h * k, pivotX, pivotY,
                 handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts,
-                fluxFigures(hullId), WarshipShield.read(hull, row));
+                fluxFigures(hullId), WarshipShield.read(hull, row, k));
+        ship.presence = presence;
         if (platingGridEnabled() && w > 0f && h > 0f) {
             JSONArray b = hull.optJSONArray("bounds");
             float[] bounds = null;

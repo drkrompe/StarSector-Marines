@@ -120,8 +120,7 @@ dependencies {
 // Raised from 2g to 6g (owner, 2026-10-22): long framed evidence runs - The Burn's
 // review frames at 1920x1080 - kept dying of OutOfMemoryError. The machine has 32 GB;
 // this is a cap, not a reservation. -PtestHeap=<size> overrides it per run.
-// What actually held the memory was measured afterwards (CLAUDE.md, "Memory
-// budget"): the headless sprite tokens kept every decoded sheet resident, 1.3 GB
+// What actually held the memory was measured afterwards (evidence-tasks.md, "Memory"): the headless sprite tokens kept every decoded sheet resident, 1.3 GB
 // before a battle began. With that fixed The Burn's whole framed run fits in 2g.
 def evidenceHeap = (findProperty('testHeap') ?: '6g').toString()
 // -PtestJvmArgs="<args>" adds JVM flags to an evidence fork for one run - a flight
@@ -354,6 +353,8 @@ tasks.register('garrisonEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    // -Pcases=FORT_BATTERY_FORT,FORT_SHIELD_FORT surveys only those cases.
+    systemProperty 'garrison.cases', (findProperty('cases') ?: '').toString()
     forwardBattleSwitches(delegate)
     testLogging {
         showStandardStreams = true
@@ -439,6 +440,11 @@ tasks.register('loadoutMatchup', Test) {
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     systemProperty 'loadoutMatchup.dir', layout.buildDirectory.dir('reports/loadout-matchups').get().asFile.absolutePath
+    // `-PsnapshotBackend=gl` records the GIFs through the shipping renderer on the GPU (`ReviewSceneBackend`),
+    // which draws what Java2D does not: relief, sun shadows, event lights and per-quad effects such as hit flash.
+    if (providers.gradleProperty('snapshotBackend').isPresent()) {
+        systemProperty 'snapshot.backend', providers.gradleProperty('snapshotBackend').get()
+    }
     ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'gifs', 'gifSeeds', 'fireMission'].each { name ->
         if (providers.gradleProperty(name).isPresent()) {
             systemProperty "loadoutMatchup.${name}", providers.gradleProperty(name).get()
@@ -544,12 +550,36 @@ tasks.register('renderEvidence', Test) {
     }
     if (project.hasProperty('renderMaps')) {
         systemProperty 'render.evidence.maps', project.property('renderMaps')
+        // A map selection is a question for the budget run alone; the creep look evidence
+        // shares the tag and would add its own half minute to a one-map comparison.
+        filter.includeTestsMatching 'com.dillon.starsectormarines.ops.battleview.RenderBudgetEvidence'
     }
     if (project.hasProperty('renderBurnSeconds')) {
         systemProperty 'render.evidence.burnSeconds', project.property('renderBurnSeconds')
     }
     if (project.hasProperty('renderPileBodies')) {
         systemProperty 'render.evidence.pileBodies', project.property('renderPileBodies')
+    }
+    // The same run, replayable without Gradle: `build/nsys/render-evidence.cmd` changes
+    // into the project and starts this fork's JVM directly (`RenderEvidenceMain`), with
+    // this run's classpath, heap and properties. It is what goes under Nsight Systems --
+    // a Gradle launch under nsys injects into every JVM Gradle forks, and its toolchain
+    // probe hung there.
+    doFirst {
+        File dir = file('build/nsys')
+        dir.mkdirs()
+        // An argfile reads a backslash inside quotes as an escape, so every path goes in with forward slashes.
+        def slash = { Object path -> path.toString().replace(File.separator, '/') }
+        List<String> args = []
+        args.addAll(allJvmArgs)
+        args.add('-cp')
+        args.add(classpath.files.collect { slash(it) }.join(File.pathSeparator))
+        args.add('com.dillon.starsectormarines.ops.battleview.RenderEvidenceMain')
+        File argFile = new File(dir, 'render-evidence.args')
+        argFile.setText(args.collect { '"' + slash(it) + '"' }.join('\n') + '\n', 'UTF-8')
+        new File(dir, 'render-evidence.cmd').setText(
+                "@echo off\r\ncd /d \"${projectDir}\"\r\n"
+                        + "\"${javaLauncher.get().executablePath.asFile}\" %* @\"${argFile}\"\r\n", 'UTF-8')
     }
     testLogging {
         showStandardStreams = true
@@ -928,6 +958,20 @@ tasks.register('patchLwjgl3Gl11', JavaExec) {
 // default on a Mac, where LWJGL 2 cannot load; `-PsnapshotGl=lwjgl3` runs the same path on Windows.
 def snapshotGl = providers.gradleProperty('snapshotGl').getOrElse(
         System.getProperty('os.name', '').toLowerCase(Locale.ROOT).contains('mac') ? 'lwjgl3' : 'lwjgl2')
+
+// `shaderEvidence` on the same binding, so an evidence that makes its context through `GlSurface` reads the Mac's
+// own driver: the field evidence asks what precision a driver really stores (`NightShadeFieldGlEvidence`). Only the
+// evidences that make their context through `GlSurface` are handed to JUnit, since discovery loads every class it
+// is given and the rest are written against LWJGL 2, which is not on this classpath.
+tasks.named('shaderEvidence') {
+    if (snapshotGl == 'lwjgl3') {
+        include '**/NightShadeFieldGlEvidence*' 
+        dependsOn tasks.named('patchLwjgl3Gl11'), tasks.named('gl3Classes')
+        classpath = files(patchedLwjgl3Dir) + sourceSets.gl3.output + configurations.lwjgl3 +
+                sourceSets.test.runtimeClasspath.filter { it.name != 'lwjgl.jar' }
+        systemProperty 'snapshot.gl.context', 'com.dillon.starsectormarines.testsupport.gl3.Lwjgl3Surface'
+    }
+}
 
 tasks.register('createSnapshots', JavaExec) {
     group = 'verification'

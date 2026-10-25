@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f5d-d6ab-7372-9313-cd20c8ff061a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f5d-d6ab-7372-9313-cd20c8ff061a\\exec-10095c2a-f3a6-48ef-80ca-0ea0baf6c918.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\gatehouse-deployed-ceramic.raw.png",
+    "sha256": "e766b08f4b03c049d05f486c844fcfc0df7ba855cb43e9f0b37aa9d8e2eb8037",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\gatehouse-deployed-ceramic.prompt.txt",
+  "promptSha256": "2ff2c0da9b53c56b2778b31b9fc3a405282868ee86070eb94a91d21835ecaa88",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep every panel where and how big it is\nImage 2: Wall material reference only; not layout\nImage 3: Finish reference only, a Tri-Tachyon warship hull: matte faceted ceramic armour plates with dark seams. Take its material and restraint; ignore its glowing lines, its beams, the black space and the perspective; not layout\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target on a 1536x1024 canvas: reskin it into finished painted game sprites, preserving every shape, position, size, registration and all transparent empty space exactly; do not move, rescale, rotate, merge, add or remove pieces. Image 2 is the same set's wall and barricade sheet and image 3 a finish reference (a warship hull): MATERIAL AND STYLE REFERENCES ONLY, never layout. The gate must be built of the same stuff as those walls. The sheet is parts of a fortress GATEHOUSE seen from directly above, three panels in the first three quadrants of a 2x2 grid of 768x512 quadrants (the fourth stays empty), each a 2-wide by 3-tall portrait panel exactly where the guide places it. Top-left: a gate-tower roof, a hardened cap with chamfered corners and a raised inner cap, narrow dark embrasure slits along the left flank and on both the top and bottom ends, and a small round roof hatch. Top-right: a heavy GATE: the passage between them stays open and transparent, and two thick gate leaves stand folded back against the jambs along the top and bottom edges, with big hinge pins and a thin worn threshold sill line across the middle. Bottom-left: the same tower roof DAMAGED: cracked, scorched, one embrasure blown wide. Same materials and registration across panels. Material and style: Tri-Tachyon high-tech deployed kit, field-emplaced armour: modular slabs of MATTE off-white and pale warm-grey ceramic composite armour plate, the same stuff as a Tri-Tachyon warship's hull, with faceted chamfered edges, crisp dark recessed panel seams dividing each slab into large plates, a faint coarse hexagonal ceramic tiling on the plate faces, slight dust and scuffing and a few scorch marks; the slabs stand in dark graphite frames with hinge brackets, locking clamps and short anchor feet where they were set down. Accents are restrained: a thin muted slate-blue stripe or small unit stencil block on some plates and tiny dim status pips, nothing more. NO glow, NO light lines, NO translucent or hard-light panes, NO bright cyan or electric blue, no energy effects: every surface is solid matte ceramic or graphite. The parapet a ring of chamfered ceramic armour slabs in graphite frames on a pale composite deck pad, the wall caps the tops of tall ceramic armour slabs, the barricade a run of low chamfered ceramic slabs on graphite feet. Straight 90-degree overhead orthographic camera: no perspective, no visible vertical faces, no cast or drop shadow, no ground outside the guide shapes, no labels, text, watermark, grid lines or UI marks. Genuine transparent background everywhere the guide is empty. Coarse readable detail that survives being shrunk to about 40 pixels per cell; hand-painted Starsector-like finish, light from the upper left.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\templates\\fort-buildings-gatehouse-guide.png",
+      "sha256": "49d557cca0298b6c48748c226bb9466b5075e29fdc530fef185f1cc589ed6e6e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep every panel where and how big it is"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\deployed-ceramic.raw.png",
+      "sha256": "b0eb004d184ece278d7d42d281a4284d3e85db8898b705611eeba195e2236e92",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Wall material reference only; not layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\guides\\paragon-ceramic-finish.png",
+      "sha256": "4b955a6eff0923c355e3ac4d81f2aa45a54eb9f261f46e63841a33d290e22074",
+      "dimensions": [
+        960,
+        720
+      ],
+      "mode": "RGB",
+      "role": "Finish reference only, a Tri-Tachyon warship hull: matte faceted ceramic armour plates with dark seams. Take its material and restraint; ignore its glowing lines, its beams, the black space and the perspective; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed geometry and the other two images only for material and finish, generating one sprite sheet.\n"
+  ],
+  "usage": {
+    "input_tokens": 47718,
+    "cached_input_tokens": 39168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 891,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.4
+}

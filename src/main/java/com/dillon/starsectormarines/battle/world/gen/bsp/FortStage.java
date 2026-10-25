@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
+
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.fort.FortTag;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -36,6 +40,8 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoomFurnisher;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
+import com.dillon.starsectormarines.battle.world.gen.fortress.GateTowers;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationFloors;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
@@ -654,6 +660,15 @@ public final class FortStage implements GenStage {
         levelRocks(ctx, (x, y) -> ctx.grid.inBounds(x, y) && cleared[x][y]);
         ctx.doodads.removeIf(d -> ctx.grid.inBounds(d.cellX, d.cellY) && cleared[d.cellX][d.cellY]);
 
+        // The fort is one lot, belt included: its wall, parapets and barricades draw in its guns' style.
+        EmplacementStyle style = EmplacementStylePolicy.forDefenders(ctx.get(BspKeys.MARKET_PROFILE));
+        for (int lx = 0; lx < w; lx++) {
+            for (int ly = 0; ly < h; ly++) {
+                int[] cell = at.cell(lx, ly);
+                FortWorks.mark(topology, cell[0], cell[1], style);
+            }
+        }
+
         // The ground: every cell of the works starts as bare earth; aprons and lanes are paved over it below.
         for (int lx = 0; lx < w; lx++) {
             for (int ly = 0; ly < h; ly++) {
@@ -668,9 +683,10 @@ public final class FortStage implements GenStage {
             }
         }
 
-        // The rooms: shelled, windowed and doored by the compound machinery, left bare until their cores stand.
+        // The rooms: shelled, windowed and doored by the compound machinery, left bare until their cores stand. The gate
+        // towers come last and are part of the wall: its strength and its material, and the slits cut below.
         List<RoomPacker.Placed> rooms = new ArrayList<>(at.buildings());
-        List<FortRoom> specs = new ArrayList<>(plan.rooms());
+        List<FortRoom> specs = new ArrayList<>(plan.buildings());
         // The cores stand and each room is fitted from its authored layout before the windows are cut, so no fixture
         // lands on a core's ground and no window opens behind a console bank.
         shell(ctx, rooms, () -> {
@@ -681,6 +697,9 @@ public final class FortStage implements GenStage {
             }
             for (int i = 0; i < specs.size(); i++) FortRoomFurnisher.furnish(ctx, rooms.get(i), specs.get(i));
         });
+        for (int i = 0; i < specs.size(); i++) {
+            if (specs.get(i).purpose() == RoomPurpose.GATE_TOWER) hardenTower(ctx, rooms.get(i));
+        }
 
         // The structures: the fort's centrepiece and a nest in each bastion (the cores stand with their rooms above).
         int[] centrepiece = plan.centrepiece();
@@ -734,9 +753,20 @@ public final class FortStage implements GenStage {
         paveGates(ctx, plan, at);
         if (air) stampAirMounts(ctx, plan, at, fortId);
         dressInterior(ctx, plan, at, lane, air);
+        // The slits are cut once the yard is dressed, which would otherwise take an open slit for yard.
+        cutSlits(ctx, plan, at);
         garrisonRooms(ctx, specs, at);
         stampBelt(ctx, plan, at, fortId, ground);
     }
+
+    /**
+     * How a fort's buildings are windowed (owner: "more windows on structures to shoot out of"): every building a window
+     * every third cell along each wall that looks out over open ground, so a squad holding one fires out of it from
+     * every side. Two rooms stay blind: the magazine's store, an ammunition vault whose only opening is the door to its
+     * loading bay, and a gate tower, which is slit where it looks out of the works instead ({@link GateTowers#slits}).
+     */
+    private static final FortressInterior.FacadeWindows FORT_WINDOWS =
+            new FortressInterior.FacadeWindows(EnumSet.of(RoomPurpose.ARMORY, RoomPurpose.GATE_TOWER), 3);
 
     /**
      * Shells a set of rooms: floors, walls, windows and doors by the compound machinery, and every ring cell the machinery
@@ -744,7 +774,7 @@ public final class FortStage implements GenStage {
      * rings are tagged by hand (it would also tag the structures).
      */
     private static void shell(GenContext ctx, List<RoomPacker.Placed> rooms, Runnable fill) {
-        FortressInterior.author(ctx, rooms, rooms, fill);
+        FortressInterior.author(ctx, rooms, rooms, fill, FORT_WINDOWS);
         for (RoomPacker.Placed room : rooms) {
             for (int[] cell : room.shape().wall()) {
                 int x = room.originX() + cell[0];
@@ -754,6 +784,46 @@ public final class FortStage implements GenStage {
                 ctx.topology.setWall(x, y, true);
             }
         }
+    }
+
+    /**
+     * Makes a gate tower's ring part of the works' wall: as strong as the wall round it, so a breach is the same work
+     * there as anywhere along the face, and drawn in the wall's material.
+     */
+    private static void hardenTower(GenContext ctx, RoomPacker.Placed tower) {
+        int surface = ctx.topology.surfaceIndex(InstallationWalls.PERIMETER);
+        for (int[] cell : tower.shape().wall()) {
+            int x = tower.originX() + cell[0];
+            int y = tower.originY() + cell[1];
+            if (!ctx.grid.inBounds(x, y) || ctx.grid.isWalkable(x, y)) continue;
+            ctx.grid.setWallHp(x, y, FORT_WALL_HP);
+            ctx.topology.setSurface(x, y, surface);
+        }
+    }
+
+    /**
+     * Cuts each gate tower's slits ({@link GateTowers#slits}): windows like any building's, each a barrier on its outward
+     * edge that the garrison shoots through and nobody walks through. Cut once the wall stands and the yard is dressed.
+     * The ring was already made wall, so each slit is then laid as an ordinary building's window is: no wall left in the
+     * cell and the tower's floor under it, so whoever stands at the slit stands on floor with the wall either side.
+     */
+    private static void cutSlits(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
+        for (FortRoom tower : plan.towers()) {
+            int floor = ctx.topology.surfaceIndex(InstallationFloors.material(tower.purpose()));
+            for (int[] slit : GateTowers.slits(tower, plan::isWorks)) {
+                int[] cell = at.cell(slit[0], slit[1]);
+                int[] outside = at.cell(slit[0] + slit[2], slit[1] + slit[3]);
+                Direction outward = cardinal(outside[0] - cell[0], outside[1] - cell[1]);
+                FortressInterior.openWindow(ctx, cell[0], cell[1], outward);
+                ctx.topology.setWall(cell[0], cell[1], false);
+                ctx.topology.setSurface(cell[0], cell[1], floor);
+            }
+        }
+    }
+
+    private static Direction cardinal(int dx, int dy) {
+        for (Direction d : Direction.CARDINALS) if (d.dx == dx && d.dy == dy) return d;
+        throw new IllegalArgumentException("not a cardinal step: " + dx + "," + dy);
     }
 
     /**
@@ -915,7 +985,7 @@ public final class FortStage implements GenStage {
             case BATTERY_FORT -> dressBatteryInterior(d, lane);
             case SHIELD_FORT -> dressShieldInterior(d, lane);
         }
-        List<FortRoom> specs = new ArrayList<>(plan.rooms());
+        List<FortRoom> specs = new ArrayList<>(plan.buildings());
         if (air) specs.add(plan.airDefence().room());
         traverseDoors(d, specs);
     }
@@ -924,11 +994,13 @@ public final class FortStage implements GenStage {
      * One short offset bag screen in front of every door that opens on the works: two short runs of bags two cells out
      * either side of the door, so the way in turns once and a squad at the door is covered from both sides. It is the one
      * protective element a room's door carries (the rooms are the hardening; no ring of bags stands round them). A door
-     * between two rooms of a suite, and the loading bay's wide door onto the road, carry none.
+     * between two rooms of a suite, the loading bay's wide door onto the road and a gate tower's door onto the lane
+     * behind the gate carry none.
      */
     private static void traverseDoors(FortDressing d, List<FortRoom> rooms) {
         for (FortRoom room : rooms) {
-            if (room.purpose() == RoomPurpose.LOADING_BAY || room.aspect() == FortAspect.AIR_DEFENCE) continue;
+            if (room.purpose() == RoomPurpose.LOADING_BAY || room.purpose() == RoomPurpose.GATE_TOWER
+                    || room.aspect() == FortAspect.AIR_DEFENCE) continue;
             for (int[] door : room.doorCells()) {
                 int outX = door[0] < room.x() ? -1 : door[0] >= room.x() + room.width() ? 1 : 0;
                 int outY = door[1] < room.y() ? -1 : door[1] >= room.y() + room.height() ? 1 : 0;
@@ -1113,6 +1185,17 @@ public final class FortStage implements GenStage {
     /** The outer wall: the footprint ring less the gates, with a face on every open side so it draws. */
     private static void stampWall(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
         boolean[][] wall = new boolean[ctx.width][ctx.height];
+        // The gate towers' rings carry the wall on through them, so neither draws a face against the other.
+        boolean[][] tower = new boolean[ctx.width][ctx.height];
+        for (FortRoom room : plan.towers()) {
+            for (int[] local : GateTowers.footprint(room)) {
+                int[] cell = at.cell(local[0], local[1]);
+                if (ctx.grid.inBounds(cell[0], cell[1]) && !ctx.grid.isWalkable(cell[0], cell[1])
+                        && !ctx.grid.isDoorway(cell[0], cell[1])) {
+                    tower[cell[0]][cell[1]] = true;
+                }
+            }
+        }
         for (int lx = 0; lx < plan.width(); lx++) {
             for (int ly = 0; ly < plan.height(); ly++) {
                 if (!plan.isWall(lx, ly)) continue;
@@ -1130,10 +1213,21 @@ public final class FortStage implements GenStage {
                 int[] cell = at.cell(lx, ly);
                 int x = cell[0], y = cell[1];
                 int mask = 0;
-                if (y + 1 >= ctx.height || !wall[x][y + 1]) mask |= CellTopology.WALL_DIR_N;
-                if (y == 0 || !wall[x][y - 1]) mask |= CellTopology.WALL_DIR_S;
-                if (x + 1 >= ctx.width || !wall[x + 1][y]) mask |= CellTopology.WALL_DIR_E;
-                if (x == 0 || !wall[x - 1][y]) mask |= CellTopology.WALL_DIR_W;
+                if (y + 1 >= ctx.height || !(wall[x][y + 1] || tower[x][y + 1])) mask |= CellTopology.WALL_DIR_N;
+                if (y == 0 || !(wall[x][y - 1] || tower[x][y - 1])) mask |= CellTopology.WALL_DIR_S;
+                if (x + 1 >= ctx.width || !(wall[x + 1][y] || tower[x + 1][y])) mask |= CellTopology.WALL_DIR_E;
+                if (x == 0 || !(wall[x - 1][y] || tower[x - 1][y])) mask |= CellTopology.WALL_DIR_W;
+                ctx.topology.setWallDirMask(x, y, mask);
+            }
+        }
+        for (int x = 1; x + 1 < ctx.width; x++) {
+            for (int y = 1; y + 1 < ctx.height; y++) {
+                if (!tower[x][y]) continue;
+                int mask = ctx.topology.getWallDirMask(x, y);
+                if (wall[x][y + 1]) mask &= ~CellTopology.WALL_DIR_N;
+                if (wall[x][y - 1]) mask &= ~CellTopology.WALL_DIR_S;
+                if (wall[x + 1][y]) mask &= ~CellTopology.WALL_DIR_E;
+                if (wall[x - 1][y]) mask &= ~CellTopology.WALL_DIR_W;
                 ctx.topology.setWallDirMask(x, y, mask);
             }
         }

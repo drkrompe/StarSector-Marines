@@ -43,14 +43,14 @@ grass under a hedge under creep is three loads.
 
 | Fuel | Where it comes from | Load | Burns for | Catches | Spread | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| Grass | `GRASS` ground, a grass overlay tuft | 30 | 6 s | easily | 3 | The fast carrier, but green: a patch, not a meadow. |
-| Brush | a shrub or tuft on the nature overlay (a hedge) | 60 | 12 s | easily | 4 | Gone from the overlay once burnt. |
-| Crown | a standing tree's crown cells | 200 | 40 s | hard | 5 | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
+| Grass | `GRASS` ground, a grass overlay tuft | 30 | 6 s | easily | 2 | The fast carrier, but green: a patch, not a meadow. |
+| Brush | a shrub or tuft on the nature overlay (a hedge) | 60 | 12 s | easily | 3 | Gone from the overlay once burnt. |
+| Crown | a standing tree's crown: the cells of its footprint inside the round canopy the art draws, so a crown burns round; the square's corners burn as what lies under them | 200 | 40 s | hard | 4 | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
 | Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | all | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
 | Dead creep | creep dying back | 40 | 8 s | easily | all | Dry; the edge a source has abandoned goes up fast. |
-| Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | 3 | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
-| Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | all | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
-| Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | all | A room's furniture and boards; a room that catches loses its roof. |
+| Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | 2 | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
+| Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | 4 | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
+| Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | 3, then the room | A room's furniture and boards; a room half caught flashes over whole (Buildings), and a cell that catches loses its roof. |
 
 Fuels stack: grass under a hedge under creep burns for all three loads,
 at the hottest one's intensity, and catches as easily as the easiest.
@@ -80,7 +80,7 @@ incendiary blast, a flamer's stream, a burning wreck, an ordinary shell's
 blast on dry fuel. An igniter is not a new delivery system; it is a property
 of the weapon or effect that already lands there (Starting fires).
 
-**Burning.** A burning cell has an **intensity** that rises over four seconds
+**Burning.** A burning cell has an **intensity** that rises over six seconds
 as it catches, peaks, and falls as its fuel runs out; it spends its fuel at a fixed rate, so
 its load is its burn time. Each fire step it gives heat to the cells round
 it by ring: a quarter of its intensity to the cells touching it, about a
@@ -99,25 +99,50 @@ everyone). It does not change how hot a fire gets or how far it throws heat,
 so the firebreak widths below hold as they did.
 
 **Spread.** A fire carries only so far from where it was lit
-(`FireFuel.spread`): each burning cell knows its distance, in cells, from its
-fire's ignition, a cell it heats would be one ring further, and a cell further
-from the ignition than its fuel's spread does not catch. Grass carries a fire
-three cells, brush four, a crown five, debris three; creep, living or dead, a
-light wall and a room's boards carry it as far as they stand, and a cell of
-such fuel is a fresh ignition for whatever it lights. So a flamer's burst in a
-meadow burns a patch three cells round where it landed and goes out, a fire
-that reaches creep runs through all of it, and a house that catches burns room
-by room. Dry country (`FireField.setTinder`, a mission's word) carries a
+(`FireFuel.spread`): each burning cell knows its distance from its fire's
+ignition, counted in a straight line hop by hop (in quarter cells), and a cell
+further from the ignition than it can carry does not catch. What a cell can
+carry is its fuel's spread times its own share, 65% to 115%, seeded per cell
+and clumped in three-cell blocks; its ignition varies the same way, 85% to
+120%. So a burn is a ragged disc round where it was lit, never a box: a
+flamer sweep's patch fills about three quarters of its bounding box, where
+counting distance as rings filled all of it. Grass carries a fire two cells,
+brush three, a crown four, debris two, a light wall four and a room's boards
+three; creep, living or dead, carries it as far as it stands, and a cell of
+creep is a fresh ignition for whatever it lights. So a flamer's burst in a
+meadow burns a patch about two cells round where it landed and goes out, and a
+fire that reaches creep runs through all of it. A room is the exception: once
+half of it has caught it flashes over (Buildings). Dry country (`FireField.setTinder`, a mission's word) carries a
 fire three times as far. Every igniter (an incendiary's splash, a burning
 wreck, a shell's blast on dry fuel) lights at distance nought, so a second
 burst further on starts a second patch. `-Dbattle.fire.spreadScale` scales
 every limited spread, `0` being the old unbounded fire, while the owner picks
-how far grass carries it. `-Dbattle.fire.spread.<fuel>` (`brush`, `crown`, ...) sets one
-fuel's spread, for the owner's fire-flamer-woods pick: a flamer throws only
-where its fire cannot come back (Starting fires), which on grass needs the
-target about 6.5 cells off (two cells lit, three carried, one beside), so a
-7-cell flamer standing on any fuel has half a cell to throw in; from bare
-ground it throws freely.
+how far grass carries it. A flamer throws only where its fire cannot come
+back (Starting fires): on grass that needs the target about five and a half
+cells off (two cells lit, up to two and a third carried, one beside), in
+brush six and a half and among crowns eight, which is why the flamer reaches
+eight cells (the owner's fire-flamer-woods pick, 2026-10-24); at seven it
+had half a cell to throw in from any fuel. An eight-charge sweep at full
+reach burns about 85 cells of meadow, 100 of brush or 120 of wood, and its
+nearest flame stays five, four or three cells from the squad.
+
+**Blazes.** A fire big enough becomes a **blaze** (`FireField.isBlaze`): a
+burning cell with 96 or more of the 168 cells in the 13-cell square round it
+burning too. A blaze is lit afresh where it stands with twice its fuel's carry
+onward, and throws its heat a ring further, so a big fire runs on through fuel
+a burst further than a small one would. Nothing a blaze lights, nor anything
+those cells light in turn, can become a blaze itself, so a blaze is one burst
+outward that dies down inside the fuel, not a chain across every wood. One
+flamer charge never sets enough burning at once to blaze (about 70 cells at
+most, in forest), nor does a sweep of charges through meadow or brush. A sweep
+through forest does, and so does a firebomb stick
+(`AirOrdnance.INCENDIARY_BOMBS`, the napalm strike: six rounds, each lighting a
+disc four cells round) into brush or wood. A forest sweep that would burn about
+200 cells burns about 780. Dry country needs no lower bar: its fires carry three
+times as far and grow to a blaze sooner. A break still holds against a blaze if it
+is up to a cell wider than one that stops the same fire unblazed (a crown blaze
+reaches a fourth ring only in a strong wind, downwind, as a crown fire does). A flamer's throw gate (Starting fires) does not
+foresee a blaze, because one throw never makes one.
 
 **Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
 firebreak by definition. It stays scorched for the battle (it does not
@@ -169,9 +194,21 @@ is gone when the fire is. `-Dbattle.fire.smoke=false` is the control.
 (`FireHarm`). Every fire step a unit in a burning cell takes damage scaled by
 the cell's intensity (8 hit points a second at full heat, so a marine dies in
 about three seconds in a crown fire and a few more in a grass fire); a unit
-beside a burning cell takes a tenth of its hottest neighbour's. Fire damage
-passes through armour that stops rifle rounds; a mech's or vehicle's hull
-takes a tenth of it, so armour can drive through a grass fire.
+beside a burning cell takes a tenth of its hottest neighbour's.
+
+**What fire does depends on what is burning, not on what stops bullets.**
+Plate that turns a rifle round does not keep heat off the body inside it, so
+fire is judged by the kind of target rather than by its armour pool:
+
+- **Soft bodies** (infantry in ordinary armour, militia, civilians) take fire
+  straight to health, their armour untouched. A marine in full flame is dead
+  in about three seconds.
+- **The swarm** is flesh with nothing over it and takes half as much again: a
+  brute dies in about three seconds, a matriarch in about a minute and a half.
+- **Sealed power suits** are the armour that does keep heat out: their armour
+  soaks fire as it soaks a round, and a suit lasts several times as long.
+- **Hulls** (mechs, machine frames, vehicles) take a tenth, so armour can drive
+  through a grass fire.
 
 **Morale.** Fire damage carries morale as being hit does, so a team standing
 in fire drains toward breaking as one under fire would; fire near a team that
@@ -239,10 +276,29 @@ itself burns. A light wall held in a fire catches slowly; once it burns
 through it falls to rubble as a breach does (`MapEditor.damageWall`), opening
 the building to movement and sight, and its rubble is burnt ground.
 
-**Rooms burn one by one.** Fire that gets in catches the room's floor, spreads
-room to room as through a meadow, and burns through the roof above each cell
-that catches, so the burning is seen from above and the room is open to the
-sky. Burnt rooms char and ash as burnt ground does.
+**Rooms flash over.** A **room** is the furnished floor its walls close round,
+cut off at its doorways: a floor cell walled on both sides is a doorway, not
+part of either room. Fire that gets in catches a patch of the floor, carried
+three cells as through brush. Once half the room has caught, the rest of it
+**flashes over**: every cell left catches at once, and the room burns whole
+with its walls held in the heat of all of it. Floor joined without a doorway,
+an open-plan house's, is one room and goes at once. A floor of more than
+400 cells is a hall, not a room, and burns only as far as its boards carry.
+Each cell that catches burns through the roof above it, so the burning is seen
+from above and the room is open to the sky. Burnt rooms char and ash as burnt
+ground does.
+
+**A house burns as hard as it is hit.** Fire passes from a room to the next
+through a doorway or a wall that burns through. A flashed room keeps a single
+cell of carry beyond itself: it holds its walls in its heat, so they burn and
+fall, and scorches its doorways, but does not carry its fire on into the next
+room. So one flamer charge into a room of a light-walled house burns that room
+whole and leaves the rest standing, and a house burns down room by room only as
+fast as fire is put into it: charges into several rooms, a grass front against
+its walls, a firebomb. The
+flamer's throw gate (Starting fires) takes a building's floors and walls to
+burn as far as they stand, so it never throws into a room its squad stands in
+or beside.
 
 **What it costs.** Whether a cell stops heat is cached in the field and
 reread only on a step after the map's walls have changed, and a map with no
@@ -286,10 +342,10 @@ does not set Conquest alight.
   through any gap of three cells or less, which heat crosses, and no further
   from where it was lit than each cell's fuel carries a fire (Spread), counted
   as the field counts it; a friend on that ground or beside it vetoes the
-  throw. So the check is the fire the field will actually burn: a flamer seven
-  cells back from a meadow or a stretch of brush throws, one five cells back
-  holds, and in a wood whose crowns carry a fire five cells the same throw
-  holds too. A squad on a road, a firebreak or burnt ground throws freely.
+  throw. So the check is the fire the field will actually burn: a flamer at
+  its eight-cell reach throws into a meadow, brush or a wood, and one closer
+  holds when the fuel between could carry the fire back. A squad on a road, a
+  firebreak or burnt ground throws freely.
   `-Dbattle.fire.throwSafety=false` is the control, for thrown fire, rounds
   and firebombs alike.
 - **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
@@ -321,7 +377,17 @@ nothing is drawn for a battle that never lit anything.
   draws it (`ScorchShader`, a multiply then an overlay, inside the ground's
   colour target with the creep) and its CPU model (`ScorchShading`) draws
   review frames; `shaderEvidence` holds the two to the same pixels.
-- **Glow** is a warm wash over each burning cell, under its flames.
+- **Glow** is a soft warm disc under each burning cell, a little wider than
+  the cell, so a small fire's ground glows round rather than in squares.
+- **Small fires and big ones look different.** The field weighs every burning
+  cell's **mass**, the cells within three of it burning too
+  (`FireField.massAt`, 0 to 48). A small fire (a flamer's patch, a
+  smouldering edge: a mass of 22 or less) draws one small flame tuft and a
+  scatter of glowing embers per cell; a big one (42 and more, the heart of a
+  wide fire) draws the full flame beds below; between, a cell grows from the
+  one into the other. So a squad's flamer work reads as embers and small
+  flames with a few hot cores, and the big flame carpet is kept for a fire
+  that has grown large. The same mass is what a blaze will be judged on.
 - **Flames** are seen from straight above, as the rest of the battle is:
   patches of burning ground, irregular, with several hot spots and a ragged
   rim, never a starburst (a ring of long tongues round one core reads from

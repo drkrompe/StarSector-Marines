@@ -1,0 +1,980 @@
+{
+  "alphaMin": 16,
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@modular",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@modular",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s@modular",
+      "included": true,
+      "note": "Parapet collar piece s, modular look.",
+      "rect": [
+        404,
+        35,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n@modular",
+      "included": true,
+      "note": "Parapet collar piece n, modular look.",
+      "rect": [
+        404,
+        797,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e@modular",
+      "included": true,
+      "note": "Parapet collar piece e, modular look.",
+      "rect": [
+        35,
+        416,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w@modular",
+      "included": true,
+      "note": "Parapet collar piece w, modular look.",
+      "rect": [
+        773,
+        416,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-se@modular",
+      "included": true,
+      "note": "Parapet collar piece inner-se, modular look.",
+      "rect": [
+        35,
+        35,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-sw@modular",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, modular look.",
+      "rect": [
+        773,
+        35,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-ne@modular",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, modular look.",
+      "rect": [
+        35,
+        797,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw@modular",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, modular look.",
+      "rect": [
+        773,
+        797,
+        185,
+        191
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-n@modular",
+      "included": true,
+      "note": "Barricade piece n, modular look.",
+      "rect": [
+        1164,
+        39,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-n@modular",
+      "included": true,
+      "note": "Barricade piece n, modular look.",
+      "rect": [
+        1164,
+        39,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-s@modular",
+      "included": true,
+      "note": "Barricade piece s, modular look.",
+      "rect": [
+        1164,
+        372,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-s@modular",
+      "included": true,
+      "note": "Barricade piece s, modular look.",
+      "rect": [
+        1164,
+        372,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-w@modular",
+      "included": true,
+      "note": "Barricade piece w, modular look.",
+      "rect": [
+        995,
+        205,
+        169,
+        167
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-w@modular",
+      "included": true,
+      "note": "Barricade piece w, modular look.",
+      "rect": [
+        995,
+        205,
+        169,
+        167
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-e@modular",
+      "included": true,
+      "note": "Barricade piece e, modular look.",
+      "rect": [
+        1333,
+        205,
+        169,
+        167
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-e@modular",
+      "included": true,
+      "note": "Barricade piece e, modular look.",
+      "rect": [
+        1333,
+        205,
+        169,
+        167
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-nw@modular",
+      "included": true,
+      "note": "Barricade piece corner-nw, modular look.",
+      "rect": [
+        995,
+        39,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-nw@modular",
+      "included": true,
+      "note": "Barricade piece corner-nw, modular look.",
+      "rect": [
+        995,
+        39,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-ne@modular",
+      "included": true,
+      "note": "Barricade piece corner-ne, modular look.",
+      "rect": [
+        1333,
+        39,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-ne@modular",
+      "included": true,
+      "note": "Barricade piece corner-ne, modular look.",
+      "rect": [
+        1333,
+        39,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-sw@modular",
+      "included": true,
+      "note": "Barricade piece corner-sw, modular look.",
+      "rect": [
+        995,
+        372,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-sw@modular",
+      "included": true,
+      "note": "Barricade piece corner-sw, modular look.",
+      "rect": [
+        995,
+        372,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-se@modular",
+      "included": true,
+      "note": "Barricade piece corner-se, modular look.",
+      "rect": [
+        1333,
+        372,
+        169,
+        166
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-se@modular",
+      "included": true,
+      "note": "Barricade piece corner-se, modular look.",
+      "rect": [
+        1333,
+        372,
+        169,
+        166
+      ]
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-0",
+      "included": true,
+      "rect": [
+        1017,
+        611,
+        76,
+        78
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-1",
+      "included": true,
+      "rect": [
+        1115,
+        611,
+        77,
+        78
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-2",
+      "included": true,
+      "rect": [
+        1213,
+        611,
+        76,
+        78
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-3",
+      "included": true,
+      "rect": [
+        1310,
+        611,
+        76,
+        78
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-4",
+      "included": true,
+      "rect": [
+        1017,
+        709,
+        76,
+        78
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-5",
+      "included": true,
+      "rect": [
+        1115,
+        709,
+        77,
+        78
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-6",
+      "included": true,
+      "rect": [
+        1213,
+        709,
+        76,
+        78
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-7",
+      "included": true,
+      "rect": [
+        1310,
+        709,
+        76,
+        78
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-8",
+      "included": true,
+      "rect": [
+        1017,
+        807,
+        76,
+        75
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-9",
+      "included": true,
+      "rect": [
+        1115,
+        807,
+        77,
+        75
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-10",
+      "included": true,
+      "rect": [
+        1213,
+        807,
+        76,
+        75
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-11",
+      "included": true,
+      "rect": [
+        1310,
+        807,
+        76,
+        75
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-12",
+      "included": true,
+      "rect": [
+        1017,
+        902,
+        76,
+        82
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-13",
+      "included": true,
+      "rect": [
+        1115,
+        902,
+        77,
+        82
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-14",
+      "included": true,
+      "rect": [
+        1213,
+        902,
+        76,
+        82
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.dark-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@modular.faces-15",
+      "included": true,
+      "rect": [
+        1310,
+        902,
+        76,
+        82
+      ],
+      "slot": "faces-15"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-0",
+      "included": true,
+      "rect": [
+        1017,
+        611,
+        76,
+        78
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-1",
+      "included": true,
+      "rect": [
+        1115,
+        611,
+        77,
+        78
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-2",
+      "included": true,
+      "rect": [
+        1213,
+        611,
+        76,
+        78
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-3",
+      "included": true,
+      "rect": [
+        1310,
+        611,
+        76,
+        78
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-4",
+      "included": true,
+      "rect": [
+        1017,
+        709,
+        76,
+        78
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-5",
+      "included": true,
+      "rect": [
+        1115,
+        709,
+        77,
+        78
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-6",
+      "included": true,
+      "rect": [
+        1213,
+        709,
+        76,
+        78
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-7",
+      "included": true,
+      "rect": [
+        1310,
+        709,
+        76,
+        78
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-8",
+      "included": true,
+      "rect": [
+        1017,
+        807,
+        76,
+        75
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-9",
+      "included": true,
+      "rect": [
+        1115,
+        807,
+        77,
+        75
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-10",
+      "included": true,
+      "rect": [
+        1213,
+        807,
+        76,
+        75
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-11",
+      "included": true,
+      "rect": [
+        1310,
+        807,
+        76,
+        75
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-12",
+      "included": true,
+      "rect": [
+        1017,
+        902,
+        76,
+        82
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-13",
+      "included": true,
+      "rect": [
+        1115,
+        902,
+        77,
+        82
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-14",
+      "included": true,
+      "rect": [
+        1213,
+        902,
+        76,
+        82
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.light-concrete-wall@modular",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@modular.faces-15",
+      "included": true,
+      "rect": [
+        1310,
+        902,
+        76,
+        82
+      ],
+      "slot": "faces-15"
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the modular emplacement style, look 'modular': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/modular.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@modular of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families. Graded by art-source/fortworks/trim.py at export: export through make_doc.py, never tileset_export alone, or the atlas ships ungraded.",
+  "sheet": "art-source/fortworks/raw/modular.raw.png",
+  "sheetName": "fortworks-modular"
+}

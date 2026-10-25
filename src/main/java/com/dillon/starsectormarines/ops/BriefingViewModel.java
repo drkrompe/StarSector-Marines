@@ -68,6 +68,10 @@ final class BriefingViewModel {
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
         putDebugDrawer(props, false, false, () -> { });
+        props.put("debugKitRows", List.of());
+        props.put("debugBaySlots", List.of());
+        props.put("kitPicker", DebugKitPicker.modal(null, 0, null, new DebugBaySlot[0], card -> { }, slot -> { }, () -> { }));
+        props.put("debugCommander", DebugKitPicker.commanderRow(new DebugCommander(), () -> { }));
         return withEmptyStyles(props);
     }
 
@@ -265,6 +269,20 @@ final class BriefingViewModel {
         if (!Boolean.TRUE.equals(props.get("debugExpanded"))) {
             UiElement drawer = markup.requireElement("mission-debug-drawer");
             drawer.parent().remove(drawer);
+        }
+        // The kit picker is in the document only while it is choosing, and shows only its own grid.
+        Map<?, ?> picker = props.get("kitPicker") instanceof Map<?, ?> map ? map : Map.of();
+        if (!Boolean.TRUE.equals(picker.get("open"))) {
+            UiElement modal = markup.requireElement("mission-kit-picker");
+            modal.parent().remove(modal);
+            return;
+        }
+        Map<String, String> grids = Map.of("weaponTiles", "kit-picker-weapons", "armorTiles", "kit-picker-armor",
+                "bayTiles", "kit-picker-bay", "specialtyTiles", "kit-picker-commander");
+        for (Map.Entry<String, String> grid : grids.entrySet()) {
+            if (!((List<?>) picker.get(grid.getKey())).isEmpty()) continue;
+            UiElement unused = markup.requireElement(grid.getValue());
+            unused.parent().remove(unused);
         }
     }
 
@@ -488,7 +506,7 @@ final class BriefingViewModel {
         // An empty list gives its space to the empty-state line instead of leaving a blank well.
         for (String key : List.of("power", "source")) {
             boolean empty = ((List<?>) props.getOrDefault(key + "Rows", List.of())).isEmpty();
-            props.put(key + "ListStyle", empty ? "height: 0px; overflow: hidden" : "");
+            props.put(key + "ListStyle", empty ? "height: 0px; flex-grow: 0; overflow: hidden" : "");
         }
         return props;
     }

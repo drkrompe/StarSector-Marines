@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <!-- A weight block with its lifting ring, sized by class. Dark detail over the chip's tone. -->
+  <g transform="translate(75 97) scale(1.0) translate(-75 -97)">
+    <path d="M75,2 a19,19 0 1,0 0.01,0 Z M75,12 a9,9 0 1,1 -0.01,0 Z" fill="#000000" fill-opacity="0.66" fill-rule="evenodd"/>
+    <polygon points="44,40 106,40 126,96 24,96" fill="#000000" fill-opacity="0.66"/>
+    <rect x="48" y="47" width="54" height="5" fill="#ffffff" fill-opacity="0.4"/>
+  </g>
+</svg>

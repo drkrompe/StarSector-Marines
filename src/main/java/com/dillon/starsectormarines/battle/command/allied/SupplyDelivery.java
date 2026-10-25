@@ -105,7 +105,7 @@ public final class SupplyDelivery {
      *
      * @param way the route's points ({@code way[0]} xs, {@code way[1]} ys), or {@code null}
      */
-    static float facing(float[][] way, float x, float y, float toX, float toY) {
+    public static float facing(float[][] way, float x, float y, float toX, float toY) {
         float aimX = toX, aimY = toY;
         if (way != null && way[0].length > 1) {
             int n = way[0].length;
@@ -141,7 +141,7 @@ public final class SupplyDelivery {
             if (to == null) return state = State.LOST;
             int[] from = depot.dispatchCell(sim);
             if (from == null) return state;
-            VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
+            VehicleClearance mask = sim.convoy().clearances().of(sim.getGrid(), type);
             int[] at = VehicleRoutePlanner.snapToMask(mask, from[0], from[1], STAND_REACH);
             if (at == null) return state;
             int[] goal = VehicleRoutePlanner.snapToMask(mask, to[0], to[1], STAND_REACH);

@@ -292,7 +292,7 @@ public final class SpecSheets {
         return new SpecSheet(
                 variant.displayName(),
                 joined(entry.designation(), entry.role()),
-                null,
+                entry.factionLogo(),
                 ACCENT_MECH,
                 mechStats(variant),
                 notes);
@@ -337,7 +337,7 @@ public final class SpecSheets {
                     component.displayName(),
                     joined(entry.designation(), mountLabel(component),
                             Strings.get("gearHardpoint" + component.hardpointType.name())),
-                    null,
+                    entry.factionLogo(),
                     ACCENT_MECH,
                     List.of(stat("Spin-up", Strings.format("gearSeconds", oneDecimal(rotary.spinUpSeconds()))),
                             stat("Full rate", Strings.format("gearRoundsPerSecond", whole(rotary.fullRate()))),
@@ -352,7 +352,7 @@ public final class SpecSheets {
                 component.displayName(),
                 joined(entry.designation(), mountLabel(component),
                         Strings.get("gearHardpoint" + component.hardpointType.name())),
-                null,
+                entry.factionLogo(),
                 ACCENT_MECH,
                 List.of(new Stat("cycle", component.cycleLabel(), Strings.format("gearSeconds", Float.toString(component.cycleSeconds())), Stat.NO_METER),
                         stat("Flux / burst", whole(component.fluxPerTrigger()) + " / " + whole(fluxCapacity)),

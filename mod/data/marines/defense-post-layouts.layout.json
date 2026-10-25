@@ -9,8 +9,8 @@
         { "offset": [-1, 0], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
         { "offset": [1, 0], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
         { "offset": [0, 0], "kind": "pad" },
-        { "offset": [-1, -1], "kind": "apron" }, { "offset": [1, -1], "kind": "apron" },
-        { "offset": [-1, 1], "kind": "apron" }, { "offset": [1, 1], "kind": "apron" }
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "concrete", "facing": [-1, -1] }, { "offset": [1, -1], "kind": "barrier", "appearance": "concrete", "facing": [1, -1] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "concrete", "facing": [-1, 1] }, { "offset": [1, 1], "kind": "barrier", "appearance": "concrete", "facing": [1, 1] }
       ],
       "turrets": [
         { "offset": [0, 0], "structure": "structure.turret-vulcan" }
@@ -78,27 +78,6 @@
       "turrets": [
         { "offset": [0, 1], "structure": "structure.turret-hephaestus" },
         { "offset": [0, -1], "structure": "structure.turret-hephaestus" }
-      ]
-    },
-    {
-      "id": "layout.defense-post-large-trapezoid", "tier": "large", "variant": "trapezoid",
-      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
-      "cells": [
-        { "offset": [-2, 1], "kind": "barrier", "appearance": "concrete", "facing": [-1, 1] },
-        { "offset": [-1, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [0, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [1, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [2, 1], "kind": "barrier", "appearance": "concrete", "facing": [1, 1] },
-        { "offset": [-2, 0], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
-        { "offset": [2, 0], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
-        { "offset": [-1, -1], "kind": "barrier", "appearance": "concrete", "facing": [-1, -1] },
-        { "offset": [0, -1], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
-        { "offset": [1, -1], "kind": "barrier", "appearance": "concrete", "facing": [1, -1] },
-        { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }
-      ],
-      "turrets": [
-        { "offset": [-1, 0], "structure": "structure.turret-hephaestus" },
-        { "offset": [1, 0], "structure": "structure.turret-hephaestus" }
       ]
     },
     {

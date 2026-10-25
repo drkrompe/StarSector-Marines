@@ -172,6 +172,21 @@ public final class FortressInterior {
      */
     public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms, List<RoomPacker.Placed> bare,
                                 Runnable hostFill) {
+        return author(ctx, rooms, bare, hostFill, null);
+    }
+
+    /**
+     * A host's own rule for its buildings' windows, in place of the compound's ({@link #WINDOWED} rooms, one aperture a
+     * {@link #WINDOW_PITCH}): every room not {@code blind} takes a window every {@code pitch} cells along each straight
+     * facade that looks out over open ground, shifted a cell either way where a fixture stands inside the wall, so a
+     * fitted room is still windowed round its fittings. A window is never cut at a corner nor beside a door (the facade
+     * rule already holds both: a cell beside a doorway or round a corner is not a straight facade cell).
+     */
+    public record FacadeWindows(Set<RoomPurpose> blind, int pitch) { }
+
+    /** As {@link #author(GenContext, List, List, Runnable)}, the windows cut by {@code windows} where it is given. */
+    public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms, List<RoomPacker.Placed> bare,
+                                Runnable hostFill, FacadeWindows windows) {
         for (var room : rooms) {
             for (int[] cell : room.shape().wall()) {
                 int x = room.originX() + cell[0], y = room.originY() + cell[1];
@@ -196,7 +211,8 @@ public final class FortressInterior {
         Map<RoomPacker.Placed, List<WindowCell>> planned = planWindowsFirst(ctx, rooms);
         furnish(ctx, rooms.stream().filter(room -> !bare.contains(room)).toList(), true, planned);
         hostFill.run();
-        stampWindows(ctx, rooms, planned);
+        if (windows == null) stampWindows(ctx, rooms, planned);
+        else stampFacadeWindows(ctx, rooms, windows);
         InstallationFloors.dress(ctx, rooms);
         InstallationWalls.dress(ctx, rooms);
         return new Result(rooms, List.of());
@@ -525,6 +541,77 @@ public final class FortressInterior {
 
     private static final Direction[] FACADES = { Direction.N, Direction.S, Direction.E, Direction.W };
 
+    /** Cuts every room's windows by a host's {@link FacadeWindows} rule. */
+    private static void stampFacadeWindows(GenContext ctx, List<RoomPacker.Placed> placed, FacadeWindows rule) {
+        Set<Long> occupied = occupied(placed);
+        for (RoomPacker.Placed room : placed) {
+            if (rule.blind().contains(room.purpose())) continue;
+            Set<Long> floor = floorOf(room);
+            for (Direction outward : FACADES) {
+                for (int[] cell : facadeCells(ctx, room, floor, occupied, outward, rule.pitch())) {
+                    openWindow(ctx, cell[0], cell[1], outward);
+                }
+            }
+        }
+    }
+
+    /**
+     * The windows of one facade by a {@link FacadeWindows} pitch: each run of straight facade wall is given a window
+     * every {@code pitch} cells, centred on the run; where a fixture stands inside the planned cell the window moves a
+     * cell along if that keeps a wall cell between it and its neighbour, and is dropped otherwise.
+     */
+    static List<int[]> facadeCells(GenContext ctx, RoomPacker.Placed room, Set<Long> floor, Set<Long> occupied,
+                                   Direction outward, int pitch) {
+        int stepX = outward.dy, stepY = outward.dx;
+        List<int[]> out = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (int[] ring : room.shape().wall()) {
+            int x = room.originX() + ring[0], y = room.originY() + ring[1];
+            if (seen.contains(cellKey(x, y)) || !facade(ctx, x, y, floor, occupied, outward)) continue;
+            if (facade(ctx, x - stepX, y - stepY, floor, occupied, outward)) continue;
+            List<int[]> run = new ArrayList<>();
+            for (int cx = x, cy = y; facade(ctx, cx, cy, floor, occupied, outward); cx += stepX, cy += stepY) {
+                run.add(new int[]{cx, cy});
+                seen.add(cellKey(cx, cy));
+            }
+            int count = 1 + (run.size() - 1) / pitch;
+            int first = (run.size() - 1 - (count - 1) * pitch) / 2;
+            int last = -2;
+            for (int i = 0; i < count; i++) {
+                int planned = first + i * pitch;
+                for (int at : new int[]{planned, planned + 1, planned - 1}) {
+                    if (at < 0 || at >= run.size() || at - last < 2) continue;
+                    int[] cell = run.get(at);
+                    if (!ctx.grid.isWalkable(cell[0] - outward.dx, cell[1] - outward.dy)) continue;
+                    out.add(cell);
+                    last = at;
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Whether the cell is straight facade wall of this building looking out over open ground: {@link #eligible} without
+     * asking that the floor inside it be clear, since a fixture inside moves a window rather than ending the facade.
+     */
+    private static boolean facade(GenContext ctx, int x, int y, Set<Long> floor, Set<Long> occupied, Direction outward) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        if (ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)) return false;
+        if (!floor.contains(cellKey(x - outward.dx, y - outward.dy))) return false;
+        int outsideX = x + outward.dx, outsideY = y + outward.dy;
+        if (!ctx.grid.inBounds(outsideX, outsideY) || !ctx.grid.isWalkable(outsideX, outsideY)) return false;
+        if (occupied.contains(cellKey(outsideX, outsideY))) return false;
+        for (Direction side : Direction.CARDINALS) {
+            if (side == outward) continue;
+            int nx = x + side.dx, ny = y + side.dy;
+            if (!ctx.grid.inBounds(nx, ny) || floor.contains(cellKey(nx, ny))) continue;
+            if (ctx.grid.isWalkable(nx, ny)) return false;
+        }
+        return true;
+    }
+
     /** The windows of every {@link #WINDOWS_FIRST} room, laid out on its bare floor. */
     private static Map<RoomPacker.Placed, List<WindowCell>> planWindowsFirst(GenContext ctx,
                                                                              List<RoomPacker.Placed> placed) {
@@ -637,8 +724,11 @@ public final class FortressInterior {
         return true;
     }
 
-    /** Turn one wall cell into a window onto the ground beyond it. */
-    private static void openWindow(GenContext ctx, int x, int y, Direction outward) {
+    /**
+     * Turn one wall cell into a window onto the ground beyond it. Public for a host that authors its own apertures (a
+     * fort's gate towers are slit where they look out of the works, not by the facade rule).
+     */
+    public static void openWindow(GenContext ctx, int x, int y, Direction outward) {
         int outsideX = x + outward.dx;
         int outsideY = y + outward.dy;
         if (ctx.grid.getEdgeBarrier(x, y, outward) != null) return;

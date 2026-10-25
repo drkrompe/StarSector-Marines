@@ -7,10 +7,16 @@ import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.cordon.CordonFront;
+import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
+import com.dillon.starsectormarines.battle.cordon.CordonGapNests;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,6 +27,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -78,11 +85,8 @@ class StoryMapPoolEvidenceTest {
         long start = System.nanoTime();
         String failure = null, detail = "";
         try {
-            switch (job.map()) {
-                case HEART_BURN -> detail = heart(Form.THE_BURN, job.biome(), job.entry());
-                case HEART_FRONT -> detail = heart(Form.BROAD_FRONT, job.biome(), job.entry());
-                default -> detail = cordon(job.map(), job.biome(), job.entry());
-            }
+            Form form = BloomHeartSetup.formOf(job.map());
+            detail = form != null ? heart(job.map(), job.biome(), job.entry()) : cordon(job.map(), job.biome(), job.entry());
         } catch (Exception | AssertionError e) {
             failure = String.valueOf(e.getMessage());
         }
@@ -115,6 +119,26 @@ class StoryMapPoolEvidenceTest {
             works.append(works.length() == 0 ? "" : ", ").append(laid.name()).append(' ').append(laid.status().name().toLowerCase(Locale.ROOT));
         }
         detail += "; layout " + works;
+        StringBuilder gaps = new StringBuilder();
+        for (CordonGapLaw.Gap gap : CordonSetup.gaps(cordon.map(), cordon.plan())) {
+            gaps.append(gaps.length() == 0 ? "" : " ").append(String.format(Locale.ROOT, "%d-%d %.0f%s (towers %.0f)",
+                    gap.west(), gap.east(), gap.widestStep(), gap.holds() ? "" : "!", gap.towerToTower()));
+        }
+        detail += String.format(Locale.ROOT, "; gaps %s, law %.1f", gaps, CordonGapLaw.LIMIT);
+        StringBuilder nests = new StringBuilder();
+        int added = 0, mouths = 0;
+        CordonGapNests.Ground ground = CordonGapNests.mapGround(cordon.map().grid, cordon.map().topology, Set.of());
+        int front = CordonFront.frontward(cordon.plan());
+        for (int n = 1; n < redoubts.size(); n++) {
+            Laid picket = cordon.map().layout.find(CordonPlan.PICKET_LINE + n + "-" + (n + 1));
+            nests.append(nests.length() == 0 ? "" : "-").append(picket == null ? 0 : picket.nests().size());
+            int k = CordonGapNests.added(picket);
+            added += k;
+            for (int i = picket == null ? 0 : picket.nests().size() - k; k > 0 && i < picket.nests().size(); i++) {
+                if (CordonGapNests.mouth(ground, picket.nests().get(i)[0], picket.nests().get(i)[1], front)) mouths++;
+            }
+        }
+        detail += "; picket nests " + nests + " (" + added + " added for the gaps, " + mouths + " at street mouths)";
         try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD)) {
             if (sim.getCordon() == null) throw new AssertionError("the battle has no cordon");
             StringBuilder guns = new StringBuilder();
@@ -124,11 +148,27 @@ class StoryMapPoolEvidenceTest {
         return detail;
     }
 
-    private static String heart(Form form, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
-        BloomHeartSetup.Built built = BloomHeartSetup.country(form, biome, entry);
+    private static String heart(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), biome,
+                BloomHeartSetup.densityOf(map), entry);
         try (BattleSimulation sim = built.sim()) {
-            return built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
-                    + built.plan().landingPlace().seedY();
+            int laid = 0, pieces = 0;
+            StringBuilder missing = new StringBuilder();
+            String dressing = "none";
+            for (Laid piece : built.map().layout.pieces()) {
+                pieces++;
+                if (piece.name().equals(HeartLayout.ORIGIN_DRESSING) && piece.isLaid()) dressing = piece.reason();
+                if (piece.isLaid()) laid++;
+                else missing.append(missing.length() == 0 ? "" : ", ").append(piece.name())
+                        .append(piece.reason().isBlank() ? "" : ": " + piece.reason());
+            }
+            return HeartOrigin.of(HeartCountry.place(built.plan(), HeartCountry.WORKINGS)).name().toLowerCase(Locale.ROOT) + " origin"
+                    + (BloomHeartSetup.originCore(built.map(), built.plan()) == null ? " (no core)" : "")
+                    + "; " + built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
+                    + built.plan().landingPlace().seedY() + "; layout " + laid + " of " + pieces + " laid"
+                    + "; dressing " + dressing
+                    + "; supply road " + BloomHeartSetup.supplyRoad(built.map(), built.plan()).size() + " cells"
+                    + (missing.length() == 0 ? "" : " (not " + missing + ")");
         }
     }
 

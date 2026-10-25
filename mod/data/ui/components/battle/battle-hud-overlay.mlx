@@ -106,9 +106,9 @@
   .mission-name { width: 0px; flex-grow: 1; height: 18px; color: #e6e7da; }
   .mission-phase { width: 100%; height: 15px; color: #ffd464; }
   .mission-steps { width: 100%; height: 15px; color: #a7ccc4; }
-  .mission-instruction { white-space: normal; overflow: hidden; width: 100%; height: 30px; color: #d4ddd5; }
+  .mission-instruction { white-space: normal; overflow: hidden; width: 100%; min-height: 30px; color: #d4ddd5; }
   .mission-secondary { width: 100%; height: 15px; color: #a8b6c6; }
-  .mission-blocker { white-space: normal; overflow: hidden; width: 100%; height: 30px; color: #efb283; }
+  .mission-blocker { white-space: normal; overflow: hidden; width: 100%; min-height: 30px; color: #efb283; }
   .mission-complete { border-color: #78d49480; }
   .mission-complete .mission-phase { color: #78d494; }
   .mission-failed { border-color: #e98b8380; }
@@ -121,7 +121,7 @@
   .mission-squad-name { width: 0px; flex-grow: 1; color: #a7ccc4; }
   .mission-squad-status { width: 152px; text-align: right; color: #a8b6c6; }
   .mission-squad-task { width: 100%; height: 15px; color: #ffd464; }
-  .mission-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .mission-hidden { display: none; }
 
   .battle-hud-overlay {
     width: 100%;
@@ -199,11 +199,7 @@
   }
 
   .objective-panel-hidden {
-    height: 0px;
-    padding: 0px;
-    gap: 0px;
-    border-width: 0px;
-    opacity: 0;
+    display: none;
   }
 
   .objective-header { width: 100%; height: 17px; flex-direction: row; }
@@ -231,7 +227,7 @@
   .objective-raid { width: 166px; }
   .objective-pending { border-color: #c3cec933; color: #a8b6c6; }
   .objective-locate { width: 60px; height: 17px; font-family: heading; text-align: center; color: #ffd464; background-color: #3a3018; }
-  .objective-locate-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .objective-locate-hidden { display: none; }
 
   .objective-hostile { background-color: #e98b8326; border-color: #e98b83aa; color: #e98b83; }
   .objective-contested { background-color: #ffd46426; border-color: #ffd464aa; color: #ffd464; }
@@ -240,7 +236,7 @@
   .objective-tally { width: 100%; height: 15px; color: #a8b6c6; }
 
   .objective-focus { width: 100%; height: 27px; flex-direction: column; gap: 4px; }
-  .objective-focus-hidden { height: 0px; gap: 0px; opacity: 0; overflow: hidden; }
+  .objective-focus-hidden { display: none; }
   .objective-focus-label { width: 100%; height: 15px; color: #ffd464; }
   .objective-progress-track { width: 100%; height: 4px; background-color: #0000008c; }
   .objective-progress-fill { height: 100%; background-color: #ffd464; }
@@ -257,12 +253,7 @@
   }
 
   .conquest-command-panel-hidden {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    gap: 0px;
-    border-width: 0px;
-    opacity: 0;
+    display: none;
   }
 
   .conquest-command-header {
@@ -350,10 +341,7 @@
     overflow: hidden;
   }
   .conquest-groups-hidden, .conquest-lanes-hidden {
-    height: 0px;
-    gap: 0px;
-    opacity: 0;
-    overflow: hidden;
+    display: none;
   }
   .conquest-group {
     width: 100%;

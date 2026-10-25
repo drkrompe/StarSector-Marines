@@ -1,12 +1,16 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.List;
+import java.util.Map;
+import java.util.EnumMap;
 import java.util.Locale;
 
 /**
@@ -14,6 +18,9 @@ import java.util.Locale;
  * transplutonics (the game's {@code rare_metals}); the lab spends no supplies.
  */
 public final class MechFabricationCatalog {
+
+    /** Each chassis's authored standard-fit bill: what a machine that can fight costs, frame and parts. */
+    private static final Map<MechVariant, FabricationCost> STANDARD_FIT = new EnumMap<>(MechVariant.class);
 
     private static final List<Recipe> WEAPONS = List.of(
             weapon(MechWeaponComponent.CHAINGUN, "@gearFabricationStandardIssue"),
@@ -56,7 +63,16 @@ public final class MechFabricationCatalog {
             internal(MechInternal.FACTORY_CAPACITOR_BANK, "@gearFabricationStandardIssue"),
             internal(MechInternal.DOUBLE_CAPACITOR_BANK, "@gearFabricationMilitaryPattern"),
             internal(MechInternal.MILITARY_CAPACITOR_BANK, "@gearFabricationMilitaryPattern"),
-            internal(MechInternal.AUXILIARY_VENT_ARRAY, "@gearFabricationStandardIssue"));
+            internal(MechInternal.AUXILIARY_VENT_ARRAY, "@gearFabricationStandardIssue"),
+            internal(MechInternal.STANDARD_LOADER, "@gearFabricationStandardIssue"),
+            internal(MechInternal.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"));
+
+    /** Bolt-on vehicle kits; bills are derived like a part's. */
+    private static final List<Recipe> KITS = List.of(
+            kit(VehicleKit.APPLIQUE_PLATE, "@gearFabricationStandardIssue"),
+            kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
+            kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
+            kit(VehicleKit.SPACED_SKIRTS, "@gearFabricationMilitaryPattern"));
 
     /**
      * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
@@ -111,6 +127,15 @@ public final class MechFabricationCatalog {
 
     public static List<Recipe> internals() { return INTERNALS; }
 
+    public static List<Recipe> kits() { return KITS; }
+
+    public static Recipe kit(VehicleKit kit) {
+        for (Recipe recipe : KITS) {
+            if (recipe.kit() == kit) return recipe;
+        }
+        return null;
+    }
+
     public static Recipe internal(MechInternal internal) {
         for (Recipe recipe : INTERNALS) {
             if (recipe.internal() == internal) return recipe;
@@ -125,6 +150,14 @@ public final class MechFabricationCatalog {
         return null;
     }
 
+    /**
+     * What the chassis costs fitted to its standard roll-out: the frame's bill plus its parts'.
+     * Repairs and the armor economy price a fighting machine, so they read this, not the frame.
+     */
+    public static FabricationCost standardFitCost(MechVariant variant) {
+        return STANDARD_FIT.get(variant);
+    }
+
     public static Recipe chassis(MechVariant variant) {
         for (Recipe recipe : CHASSIS) {
             if (recipe.variant() == variant) return recipe;
@@ -134,24 +167,67 @@ public final class MechFabricationCatalog {
 
     private static Recipe weapon(MechWeaponComponent component, String provenance) {
         return new Recipe("recipe." + component.id, null, provenance,
-                component, null, null, null, weaponCost(component));
+                component, null, null, null, null, weaponCost(component));
     }
 
     private static Recipe internal(MechInternal internal, String provenance) {
         return new Recipe("recipe." + internal.id, null, provenance,
-                null, null, internal, null, internalCost(internal));
+                null, null, internal, null, null, internalCost(internal));
     }
 
+    /**
+     * A chassis is sold as a bare frame: the authored bill is the standard-fit machine's, less
+     * what its removable weapons, engine and compartment parts cost as parts. Plating and
+     * factory-locked hardware are the frame and stay in its price.
+     */
     private static Recipe chassis(MechVariant variant, String provenance,
                                   int metals, int machinery, int transplutonics) {
+        STANDARD_FIT.put(variant, cost(metals, machinery, transplutonics));
+        int[] bill = {metals, machinery, transplutonics};
+        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(variant);
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponComponent weapon = stock.weaponAt(slot);
+            if (weapon != null && !MechFrameBudget.integral(variant, slot)) less(bill, weaponCost(weapon));
+        }
+        less(bill, internalCost(stock.engine()));
+        for (MechInternal part : stock.compartment()) less(bill, internalCost(part));
         return new Recipe("recipe.chassis." + variant.id, null,
-                provenance, null, variant, null, null, cost(metals, machinery, transplutonics));
+                provenance, null, variant, null, null, null, cost(bill[0], bill[1], bill[2]));
+    }
+
+    /** Takes a part's bill off a frame's, never below one unit of any material. */
+    private static void less(int[] bill, FabricationCost part) {
+        for (FabricationCost.Line line : part.lines()) {
+            int index = switch (line.commodityId()) {
+                case Commodities.METALS -> 0;
+                case Commodities.HEAVY_MACHINERY -> 1;
+                default -> 2;
+            };
+            bill[index] = Math.max(1, bill[index] - line.quantity());
+        }
     }
 
     private static Recipe vehicle(VehicleType type, String provenance,
                                   int metals, int machinery, int transplutonics) {
         return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
-                provenance, null, null, null, type, cost(metals, machinery, transplutonics));
+                provenance, null, null, null, type, null, cost(metals, machinery, transplutonics));
+    }
+
+    private static Recipe kit(VehicleKit kit, String provenance) {
+        return new Recipe("recipe." + kit.id, null, provenance, null, null, null, null, kit, kitCost(kit));
+    }
+
+    /**
+     * A kit is priced like a part: its tier's worth, in what it is made of. Plate and skirts are mostly
+     * metal, a liner is woven and bonded, a ready rack is racking and feed.
+     */
+    private static FabricationCost kitCost(VehicleKit kit) {
+        float value = kitValue(kit);
+        return switch (kit) {
+            case APPLIQUE_PLATE, SPACED_SKIRTS -> split(value, .70f, .20f, .10f);
+            case SPALL_LINER -> split(value, .45f, .30f, .25f);
+            case READY_RACK -> split(value, .40f, .45f, .15f);
+        };
     }
 
     /*
@@ -195,8 +271,15 @@ public final class MechFabricationCatalog {
             case ENGINE -> 4000f;
             case PLATING -> 2300f;
             case CAPACITOR_BANK, VENT_ARRAY -> 1550f;
+            // A loader is a small autoforge: guidance stock and feed mechanism.
+            case LOADER -> 1200f;
         };
         return base * tierMultiplier(internal.tier);
+    }
+
+    /** A kit's worth in credits: a common bolt-on's, times its tier. */
+    public static float kitValue(VehicleKit kit) {
+        return 900f * tierMultiplier(MechPattern.of(kit).accessTier());
     }
 
     private static FabricationCost weaponCost(MechWeaponComponent component) {
@@ -217,6 +300,7 @@ public final class MechFabricationCatalog {
             case ENGINE -> split(value, .25f, .60f, .15f);
             case PLATING -> split(value, .80f, .15f, .05f);
             case CAPACITOR_BANK, VENT_ARRAY -> split(value, .20f, .25f, .55f);
+            case LOADER -> split(value, .30f, .40f, .30f);
         };
     }
 
@@ -239,10 +323,11 @@ public final class MechFabricationCatalog {
 
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         MechInternal internal, VehicleType vehicle, FabricationCost cost) {
+                         MechInternal internal, VehicleType vehicle, VehicleKit kit, FabricationCost cost) {
         public String displayName() {
             if (displayName != null) return Strings.resolve(displayName);
             if (internal != null) return internal.displayName();
+            if (kit != null) return kit.displayName();
             if (vehicle != null) return CampaignVehicle.typeName(vehicle);
             return component != null ? component.displayName()
                     : Strings.format("gearChassisName", variant.displayName());
@@ -252,7 +337,7 @@ public final class MechFabricationCatalog {
 
         public Recipe {
             int targets = (component != null ? 1 : 0) + (variant != null ? 1 : 0)
-                    + (internal != null ? 1 : 0) + (vehicle != null ? 1 : 0);
+                    + (internal != null ? 1 : 0) + (vehicle != null ? 1 : 0) + (kit != null ? 1 : 0);
             if (targets != 1) {
                 throw new IllegalArgumentException("recipe requires one fabrication target");
             }

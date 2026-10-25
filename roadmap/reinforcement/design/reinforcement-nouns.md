@@ -4,7 +4,9 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — a commander-called mech drop is a paid delivery claimed for its caller, neither a means nor an arrival policy.
+Updated: 2026-10-24 — the lift timer: each of the player's drop-off points shows when its next lift sets down, read off the transports themselves.
+
+Earlier 2026-10-13 — a commander-called mech drop is a paid delivery claimed for its caller, neither a means nor an arrival policy.
 
 Earlier 2026-09-02 — a marine arrival policy is not a means: the marines' lift is orbital and descends onto its berths, while defender delivery stays planetary.
 
@@ -138,6 +140,18 @@ How much lift the marines get is the standing ferry's shape: a lift sized from
 the seats committed and a landing share was tried and lost to it in the
 Conquest matrix. `conquest-nouns.md` owns the arrival policy's shape and the
 measurement behind it.
+
+**The lift timer is the arrival policy's readout, not a schedule of its own.**
+A **drop-off point** is the ground one or more of a side's troop lifts set down
+on: a pad, or an arrival area's two berths, which the player reads as one place.
+Over each of the player's, a glass label says when the next lift will be down
+and how many lifts are still to come there, over a thin bar that fills as it comes in
+(`LiftSchedule`, `LiftTimerRenderSystem`). Every figure is read off a live
+transport: its re-arm countdown, the distance it still has to fly at its
+airframe's speed, and a fixed settle allowance for the hover onto the pad. A
+lift that has just left with sorties behind it is already the next lift, so the
+timer runs through the whole turnaround rather than restarting when the craft
+reappears. Gunships, strikes, cover and pickups bring nobody and are not lifts.
 
 **A commander-called drop is neither a means nor an arrival policy.** A side's
 commander may call a mech lance down on its own authority, paid from a

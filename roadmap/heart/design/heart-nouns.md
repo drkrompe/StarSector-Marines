@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-24 — Broad Front waves join a standing lane, and a column held at its lane's front joins there
+Updated: 2026-10-24 — Broad Front waves join a standing lane; a satellite nearer an allied lane is that lane's, not the company's; gunship_lost beat
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -74,8 +74,12 @@ country of an open-field landing (`mapgen-nouns.md`, Rural country), where the
 company comes down and which the creep has not yet taken. Past it, **woods**
 thicker than any other map's, the **dark settlement** (Broad Front's market town
 in the middle of the map; The Burn's village near the start, at the infection's
-edge), and the **workings** against the far edge, a few sheds and a yard on
-short roads, where the mothers stand.
+edge), and the **origin** against the far edge, where the mothers stand: the
+facility the bloom came up in, drawn from the seed stepped by form and density
+(`HeartOrigin`, `heart-origins.md`): the reservoir's pump station, a freight
+terminal or a research compound, fenced, or an open park, its yard dressed
+with the clean props of what it was, and its core building (the park's pond) broken
+open by the authored damage layer from the side the first mother came up on.
 
 **Matured bloom.** The heart's creep is the bores' own, grown to full reach at
 setup as creep weeks old (`colony-breach-nouns.md`, Creep can be matured): it
@@ -89,22 +93,32 @@ farmland: a band of hill segments across the whole front, each climbed by a
 ramp from the cordon's side, with a pass wherever a road, a lane, a ride or a
 settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
 it, and it looks down into the overgrowth. The Burn's village stands across most of its
-band, so The Burn's ridge is short.
+band, so The Burn's ridge is short. A city's cordon has no ridge: a city's
+height is its buildings (`elevation-nouns.md`), its blocks fill the band, and
+the line is dug on the last open ground before the streets instead.
 
 **Hollow.** The low ground the workings sit in: a rim of high ground wrapped
 round them on the attack's side, climbed from outside, its inner face a cliff
 over the yard, with a pass straight toward the start and wherever a road or
-route crosses it. The rim's ground is held before the places grow
-(`elevation-nouns.md`, Held ground), so the workings' roads and the town's
-fields grow round it. Today it stands as one to three arcs rather than a ring
-(`heart-map-intent.md`).
+route crosses it. The rim's ground is sealed before the places grow
+(`elevation-nouns.md`, Sealed ground): the places grow round it and every road,
+weld and route goes round it and crosses only at its passes. It stands as most
+of a ring, broken by The Burn's brook and short gaps (`heart-map-intent.md`).
+
+**Knoll.** The rise Broad Front's market town was built on, the reason it is
+where it is: the town grows only on the knoll's top (`elevation-nouns.md`,
+Knolls), its gates roads ramped down toward the start and either side, so the
+lost column's holdout has height over the lanes round it. Rural and town maps;
+a city has none.
 
 **Cordon's works.** What the cordon dug and built facing the bloom, laid as
 named pieces of the heart's mission layout: the forward line of trench and
 wire along the cordon ridge's crest, broken at every lane; an observation post forward
 of it in each half of the front; and on the farmland behind it the logistics
 base's ammunition dumps and vehicle park, with a supply road up to the
-settlement. Each beat's set piece is laid the
+settlement. Where no road can be laid (a city's ground) the streets are the
+supply road, as the Cordon's are: the way a truck drives from the landing to the
+settlement, a street priced cheapest. Each beat's set piece is laid the
 same way (the lost column's holdout, the reservoir yard, the battery's flank
 works, the village holdout, the company's ford). The heart's runtime holds
 what was laid by name, so a beat that needs a place asks whether it is there
@@ -361,8 +375,13 @@ collapses a bore by fiat.
    `mother_collapsed_N`.
 
    **The company falls back.** Its own satellite down, the company does not go
-   on alone to a mother. It falls back to its landing and holds there while
-   any satellite still stands. When the last one falls it goes for the mothers
+   on alone to a mother. Its own is the satellite nearest its line: the bands
+   overlap, and a satellite an allied lane's line lies nearer is that lane's,
+   even inside the company's band. On seed 5 (2026-10-24) the company took
+   lane 3's satellite beside the mothers for its own, went for it as the heart
+   woke, and was wiped there on every biome. It falls back to its landing and holds there while
+   any satellite still stands, breaking off from whatever it is fighting (a squad
+told only to defend a cell far behind it fought where it stood). When the last one falls it goes for the mothers
    with the converging lanes. Its satellite sits nearest the heart, so the
    heart's waking surge and the first Matriarchs come for it first. Holding
    the taken ground kept more of the company alive but still lost it there on
@@ -450,6 +469,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
 | `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
 | `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
+| `gunship_called_N`, `gunship_lost_N` | Broad Front | the commander's Nth sortie is granted; the Nth sortie is shot down |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |

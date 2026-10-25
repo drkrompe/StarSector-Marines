@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctClaim;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -166,8 +167,8 @@ public final class FortReservations {
 
     /**
      * Ground no road arm may grow into, or {@code null} when the mission reserved none: the forts' boxes, every
-     * site the plan's mission layout states up front ({@code MissionLayout.keepClear}), and the ground its landscape
-     * holds for ridges ({@link #held}).
+     * site the plan's mission layout states up front ({@code MissionLayout.keepClear}), the ground its landscape
+     * holds for ridges ({@link #held}), and the ground it seals or keeps round its knolls ({@link #barred}).
      */
     static boolean[][] keepClear(GenContext ctx, PrecinctPlan plan) {
         List<int[]> boxes = boxes(ctx, plan);
@@ -175,7 +176,17 @@ public final class FortReservations {
         boolean[][] held = held(ctx, plan);
         // Ground held from the fields alone is published for them, never kept from growth.
         if (!plan.landscape().heldFromGrowth()) held = null;
-        if (boxes.isEmpty() && held == null) return sites;
+        boolean[][] kept = kept(ctx, plan);
+        if (kept != null) {
+            if (held == null) held = new boolean[ctx.width][ctx.height];
+            else held = copy(held);
+            // A road arm still grows out of the kept place itself.
+            for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) {
+                if (kept[x][y] && !nearASeed(plan, x, y)) held[x][y] = true;
+            }
+        }
+        boolean[][] barred = barred(ctx, plan);
+        if (boxes.isEmpty() && held == null && barred == null) return sites;
         boolean[][] mask = sites != null ? sites : new boolean[ctx.width][ctx.height];
         for (int[] box : boxes) {
             for (int x = Math.max(0, box[0] - box[2]); x <= Math.min(ctx.width - 1, box[0] + box[2]); x++) {
@@ -189,11 +200,92 @@ public final class FortReservations {
                 for (int y = 0; y < ctx.height; y++) mask[x][y] |= held[x][y];
             }
         }
+        if (barred != null) {
+            for (int x = 0; x < ctx.width; x++) {
+                for (int y = 0; y < ctx.height; y++) mask[x][y] |= barred[x][y];
+            }
+        }
         return mask;
+    }
+
+    /**
+     * The ground the plan's landscape seals ({@link Landscape#sealed}): each band's sides out to
+     * {@link #SEALED_MARGIN}, never past its ends, so the passes between bands stay as wide as the mission drew them;
+     * less the ground round each place's seed. Published under {@link BspKeys#SEALED_GROUND}; {@code null} when it
+     * seals none.
+     */
+    static boolean[][] sealed(GenContext ctx, PrecinctPlan plan) {
+        List<RidgePlanner.Band> bands = plan.landscape().sealed();
+        if (bands.isEmpty()) return null;
+        boolean[][] bound = ctx.get(BspKeys.SEALED_GROUND);
+        if (bound != null) return bound;
+        boolean[][] sealed = RidgePlanner.sideGround(bands, ctx.width, ctx.height, SEALED_MARGIN);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) if (sealed[x][y] && nearASeed(plan, x, y)) sealed[x][y] = false;
+        }
+        ctx.put(BspKeys.SEALED_GROUND, sealed);
+        return sealed;
+    }
+
+    /** The plan's knolls as they stand on this map, worked out once and kept on the context. */
+    static List<KnollGround.Resolved> knolls(GenContext ctx, PrecinctPlan plan) {
+        if (plan.landscape().knolls().isEmpty()) return List.of();
+        List<KnollGround.Resolved> bound = ctx.get(BspKeys.KNOLLS);
+        if (bound != null) return bound;
+        List<KnollGround.Resolved> knolls = List.copyOf(KnollGround.resolve(plan, ctx.width, ctx.height));
+        ctx.put(BspKeys.KNOLLS, knolls);
+        return knolls;
+    }
+
+    /**
+     * Ground every place's growth and claims keep off whatever {@link Landscape#heldFromGrowth} says: the sealed
+     * ground and the rings round the standing knolls. A knoll's top is kept from the other places by the growth
+     * bounds ({@link KnollGround#bounds}) and the release, and is its own place's to grow on. {@code null} when
+     * there is none.
+     */
+    static boolean[][] barred(GenContext ctx, PrecinctPlan plan) {
+        boolean[][] sealed = sealed(ctx, plan);
+        List<KnollGround.Resolved> knolls = knolls(ctx, plan);
+        if (sealed == null && knolls.stream().noneMatch(KnollGround.Resolved::stands)) return null;
+        boolean[][] out = sealed == null ? new boolean[ctx.width][ctx.height] : copy(sealed);
+        for (KnollGround.Resolved k : knolls) {
+            if (!k.stands()) continue;
+            int r = k.knoll().ring();
+            for (int x = Math.max(0, k.x0() - r); x <= Math.min(ctx.width - 1, k.x1() + r); x++) {
+                for (int y = Math.max(0, k.y0() - r); y <= Math.min(ctx.height - 1, k.y1() + r); y++) {
+                    if (k.onRing(x, y)) out[x][y] = true;
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * What a weld between road networks goes round: the sealed ground and each standing knoll's top and ring, so a
+     * knoll's place is joined only through its gates. {@code null} when there is none.
+     */
+    static boolean[][] weldBlocked(GenContext ctx, PrecinctPlan plan) {
+        boolean[][] barred = barred(ctx, plan);
+        if (barred == null) return null;
+        boolean[][] out = copy(barred);
+        for (KnollGround.Resolved k : knolls(ctx, plan)) {
+            if (!k.stands()) continue;
+            for (int x = Math.max(0, k.x0()); x <= Math.min(ctx.width - 1, k.x1()); x++) {
+                for (int y = Math.max(0, k.y0()); y <= Math.min(ctx.height - 1, k.y1()); y++) out[x][y] = true;
+            }
+        }
+        return out;
     }
 
     /** Cells kept round held ground for what the landscape pass reserves beside built things: a road's two and one over. */
     static final int HELD_MARGIN = 3;
+
+    /**
+     * Cells kept round sealed ground for whatever is built beside it: the held margin, a street's half width (an arm
+     * stops where its middle line meets the ground, and its band runs on either side of that line) and a building
+     * anchor's five-cell reservation, so nothing that grows up against the band reserves any of the ridge's own.
+     */
+    static final int SEALED_MARGIN = HELD_MARGIN + 4;
 
     /**
      * The ground the plan's landscape holds open before the places grow
@@ -205,13 +297,43 @@ public final class FortReservations {
         boolean[][] bound = ctx.get(BspKeys.HELD_GROUND);
         if (bound != null) return bound;
         List<RidgePlanner.Band> bands = plan.landscape().held();
-        if (bands.isEmpty()) return null;
-        boolean[][] held = RidgePlanner.heldGround(bands, ctx.width, ctx.height, HELD_MARGIN);
+        boolean[][] kept = kept(ctx, plan);
+        boolean[][] barred = barred(ctx, plan);
+        if (bands.isEmpty() && kept == null && barred == null) return null;
+        boolean[][] held = bands.isEmpty() ? new boolean[ctx.width][ctx.height]
+                : RidgePlanner.heldGround(bands, ctx.width, ctx.height, HELD_MARGIN);
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) if (held[x][y] && nearASeed(plan, x, y)) held[x][y] = false;
         }
+        // Kept ground is no field's either: a field is made ground, and a terrace's cliff stands in open country.
+        if (kept != null) for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) held[x][y] |= kept[x][y];
+        // Sealed ground and a knoll's ring are no field's either.
+        if (barred != null) for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) held[x][y] |= barred[x][y];
         ctx.put(BspKeys.HELD_GROUND, held);
         return held;
+    }
+
+    /**
+     * The boxes the plan's landscape keeps open round places that will stand high ({@link Landscape#kept}), or
+     * {@code null} when it keeps none. A place's own claim is never released over one; only the zoned places'
+     * claims, the road arms and the fields keep off.
+     */
+    static boolean[][] kept(GenContext ctx, PrecinctPlan plan) {
+        List<Landscape.Track> boxes = plan.landscape().kept();
+        if (boxes.isEmpty()) return null;
+        boolean[][] kept = new boolean[ctx.width][ctx.height];
+        for (Landscape.Track box : boxes) {
+            for (int x = Math.max(0, box.x0()); x <= Math.min(ctx.width - 1, box.x1()); x++) {
+                for (int y = Math.max(0, box.y0()); y <= Math.min(ctx.height - 1, box.y1()); y++) kept[x][y] = true;
+            }
+        }
+        return kept;
+    }
+
+    private static boolean[][] copy(boolean[][] grid) {
+        boolean[][] out = new boolean[grid.length][];
+        for (int x = 0; x < grid.length; x++) out[x] = grid[x].clone();
+        return out;
     }
 
     /** Releases the town's claim on the reserved ground; changes nothing when the mission reserved none. */
@@ -237,16 +359,44 @@ public final class FortReservations {
             }
         }
         boolean[][] held = held(ctx, plan);
-        if (held == null || !plan.landscape().heldFromGrowth()) return;
+        if (held != null && !plan.landscape().heldFromGrowth()) held = null;
+        boolean[][] kept = kept(ctx, plan);
+        if (held == null && kept == null) return;
         for (int x = 0; x < Math.min(claim.length, ctx.width); x++) {
             for (int y = 0; y < Math.min(claim[x].length, ctx.height); y++) {
                 int owner = claim[x][y];
-                if (!held[x][y] || owner == GrownTrunkPlan.UNOWNED) continue;
+                boolean off = (held != null && held[x][y]) || (kept != null && kept[x][y]);
+                if (!off || owner == GrownTrunkPlan.UNOWNED) continue;
                 if (plan.precincts().get(owner).isProgrammed()) continue;
                 claim[x][y] = GrownTrunkPlan.UNOWNED;
             }
         }
     }
+
+    /**
+     * Releases the claims sealed ground and the knolls keep off ({@link #barred}), and holds each knoll's place to
+     * its top less the lane round its edge ({@link KnollGround#LANE}): whatever it claimed beyond that, and whatever
+     * another grown place claimed on its top or its ring, is nobody's. Changes nothing when the landscape seals nothing and stands no knoll.
+     */
+    static void releaseBarred(GenContext ctx, PrecinctPlan plan, int[][] claim) {
+        boolean[][] barred = barred(ctx, plan);
+        if (barred == null) return;
+        List<KnollGround.Resolved> knolls = knolls(ctx, plan);
+        for (int x = 0; x < Math.min(claim.length, ctx.width); x++) {
+            for (int y = 0; y < Math.min(claim[x].length, ctx.height); y++) {
+                int owner = claim[x][y];
+                if (owner == GrownTrunkPlan.UNOWNED) continue;
+                boolean off = barred[x][y];
+                for (KnollGround.Resolved k : knolls) {
+                    if (!k.stands()) continue;
+                    if (owner == k.place() ? !k.buildable(x, y) : k.onGround(x, y)) off = true;
+                }
+                if (!off || plan.precincts().get(owner).isProgrammed()) continue;
+                claim[x][y] = GrownTrunkPlan.UNOWNED;
+            }
+        }
+    }
+
     private static boolean nearASeed(PrecinctPlan plan, int x, int y) {
         for (Precinct p : plan.precincts()) {
             if (Math.abs(p.seedX() - x) <= SEED_CLEARANCE && Math.abs(p.seedY() - y) <= SEED_CLEARANCE) return true;

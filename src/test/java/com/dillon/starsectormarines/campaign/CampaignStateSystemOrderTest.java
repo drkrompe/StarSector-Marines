@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
-import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
 import com.dillon.starsectormarines.campaign.bloom.RavBloomSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
@@ -30,7 +29,6 @@ import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingLapseSystem;
 import com.dillon.starsectormarines.campaign.systems.StakeDriftSystem;
-import com.dillon.starsectormarines.campaign.systems.ThreatInterventionOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.ThroneClaimResolutionSystem;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem;
 import org.junit.jupiter.api.Test;
@@ -55,14 +53,10 @@ class CampaignStateSystemOrderTest {
         int chainAdvancement = indexOf(systems, ChainAdvancementSystem.class);
         int throneResolution = indexOf(systems, ThroneClaimResolutionSystem.class);
         int consolidation = indexOf(systems, HouseConsolidationSystem.class);
-        int contractGeneration = indexOf(systems,
-                com.dillon.starsectormarines.campaign.systems.ContractGenerator.class);
         int discovery = indexOf(systems, DiscoveryPropagationSystem.class);
         int defectorAsylum = indexOf(systems, DefectorAsylumSpawnSystem.class);
         int defectorConsequences = indexOf(systems,
                 DefectorAsylumConsequenceSystem.class);
-        int interventionOffers = indexOf(systems, ThreatInterventionOfferSystem.class);
-        int civilWarOffers = indexOf(systems, CivilWarParticipationOfferSystem.class);
         int raidDefense = indexOf(systems, VanillaRaidGarrisonSystem.class);
         int flipDefense = indexOf(systems, InternalFlipGarrisonSystem.class);
         int retainers = indexOf(systems, ContractRetainerSystem.class);
@@ -94,11 +88,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(chainAdvancement < throneResolution);
         assertTrue(throneResolution < consolidation);
         assertTrue(chainAdvancement < consolidation);
-        assertTrue(consolidation < contractGeneration);
-        assertTrue(discovery < interventionOffers);
         assertTrue(discovery < defectorAsylum);
-        assertTrue(discovery < civilWarOffers);
-        assertTrue(civilWarOffers < interventionOffers);
         assertTrue(raidDefense < defaults);
         assertTrue(flipDefense < defaults);
         assertTrue(defaults < training);

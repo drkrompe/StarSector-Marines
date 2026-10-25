@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ede-4591-7d61-9be9-83c1d69680d4",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ede-4591-7d61-9be9-83c1d69680d4\\exec-ee8b7f8d-9620-4737-83c1-6e194daf68e8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-lab-annex.raw.png",
+    "sha256": "417dbb18cfca940fc87642693165432061bd3fa6f9954482dfe7ae4ca1f9223e",
+    "dimensions": [
+      1690,
+      931
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\lab-annex.prompt.txt",
+  "promptSha256": "a07cab472b70404ddddf846f9695ccd801028358822e354b41430ce865412609",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the research site's telling object, a sealed laboratory annex, 5x4 cells, five states of ONE object, left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.\n(1) CLEAN: a squat windowless concrete annex from above: thick parapet walls, a pale flat roof inset, three round sealed steel roof vents, a dark roof plant strip, a heavy yellow-and-black airlock door on the south wall, hazard-yellow blocks along the north parapet. Secure, institutional, built to keep something in.\n(2) GROWN: the same annex BLOWN OUTWARD FROM INSIDE: the roof gone, the walls thrown outward as tilted slabs lying away from the building on every side, concrete chunks scattered out, the clean white lab floor open to the sky with three burst round aquarium tanks along the north: steel-ringed, their glass broken outward from inside, drained, a last film of dark teal water in the bottom. Thick old creep rises from the floor and spreads out over the thrown walls. It must read, wordlessly, as \"what they kept in here broke out\".\n(3) SWALLOWED: the same blown annex with the growth thickest: its west half buried under a raised creep mound with plates and spurs, the east wall slabs and white floor still showing.\n(4) DAMAGED: state (2) after a fight: scorch, cracks, burnt and torn creep.\n(5) DESTROYED: low separated concrete, steel and white floor fragments scattered wide, a thin dark creep scab at the bottom, transparent between pieces, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-lab-annex-guide.png",
+      "sha256": "40b224143062f910daa1c58c85d74d41aec6c4fdf8f2d4d83679e27fe345e58c",
+      "dimensions": [
+        2208,
+        1216
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent atlas, preserving Image 1’s geometry and using Images 2 and 3 only for materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 52596,
+    "cached_input_tokens": 41600,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1078,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 89.5
+}

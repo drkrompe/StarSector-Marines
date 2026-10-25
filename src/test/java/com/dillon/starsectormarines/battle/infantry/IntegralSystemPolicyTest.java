@@ -193,6 +193,20 @@ class IntegralSystemPolicyTest {
     }
 
     /**
+     * Fire discipline on a delivered payload: a friend standing between the
+     * rail and its target is where the salvo would burst, so the pod holds
+     * and spends nothing. The same friend off the lane, behind the wearer,
+     * changes nothing.
+     */
+    @Test
+    void aFriendInTheLaneHoldsTheSalvo() {
+        assertFalse(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 8, /*friendDistance*/ 4),
+                "a salvo through a friend's back is never spent");
+        assertTrue(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 8, /*friendDistance*/ -3),
+                "a friend clear of the lane does not hold it");
+    }
+
+    /**
      * The waste guard. The same scene, the same incoming, and the only
      * difference is what the suit believes is worth its cooldown: a suit that
      * wants a real volume of fire holds while one that answers the first burst
@@ -666,11 +680,18 @@ class IntegralSystemPolicyTest {
      * left the rack is the answer.
      */
     private static boolean podSpendsASalvo(float standoffCells, int hostileDistance) {
+        return podSpendsASalvo(standoffCells, hostileDistance, /*friendDistance*/ 0);
+    }
+
+    /** As above, with a stationary friend {@code friendDistance} cells down the same row (none when zero). */
+    private static boolean podSpendsASalvo(float standoffCells, int hostileDistance,
+                                           int friendDistance) {
         BattleSimulation sim = arena();
         long gunner = sim.spawn(carrier("gunner", Faction.MARINE).integralSystem(pod(standoffCells)));
         int startingAmmo = sim.integralSystems().ammo(gunner);
         sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + hostileDistance)
                 .health(OUTLASTS_THE_RACK));
+        if (friendDistance != 0) sim.spawn(named("friend", Faction.MARINE, CARRIER_X + friendDistance));
         advance(sim, OBSERVATION_TICKS);
         return sim.integralSystems().ammo(gunner) < startingAmmo;
     }

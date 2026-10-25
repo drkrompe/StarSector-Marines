@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.ShipStationing;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipLoadout;
+import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -103,6 +105,12 @@ public final class ShipOnStation extends CommandPower {
      */
     public static Warship call(ShipSupportSource source, Faction side, float stationX, float stationY,
                                BattleControl battle) throws Exception {
+        return call(source, side, stationX, stationY, WarshipScale.HULL_PRESENCE, battle);
+    }
+
+    /** As above, a warship's body fitted at {@code presence} ({@link Warship#fit(WarshipLoadout, Faction, float, float, float, float)}); a tender keeps its own. */
+    public static Warship call(ShipSupportSource source, Faction side, float stationX, float stationY,
+                               float presence, BattleControl battle) throws Exception {
         int w = battle.getGrid().getWidth();
         int h = battle.getGrid().getHeight();
         Tender tender = null;
@@ -114,9 +122,9 @@ public final class ShipOnStation extends CommandPower {
             tender = Tender.fit(side, p.x(), p.y(), p.facingDegrees());
             ship = tender.ship();
         } else {
-            Warship probe = Warship.fit(source, side, 0f, 0f, 0f);
+            Warship probe = Warship.fit(source, side, 0f, 0f, 0f, presence);
             p = ShipStationing.callIn(side, battle.shipAxis(), w, h, probe.lengthCells, stationX, stationY);
-            ship = Warship.fit(source, side, p.x(), p.y(), p.facingDegrees());
+            ship = Warship.fit(source, side, p.x(), p.y(), p.facingDegrees(), presence);
         }
         ship.calledFrom(source);
         ship.stationTo(stationX, stationY);

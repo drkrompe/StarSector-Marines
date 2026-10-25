@@ -67,7 +67,7 @@ CINEMATIC_BUILD = ROOT / "build" / "cinematic"
 
 # The owner-approved final frames of each shot, under the shared Drive's builds/ folder (README.md,
 # "Final renders"). `--from-drive` copies them into <frames-root>/<output>/frames before encoding:
-# Drive is storage, so nothing reads frames off it in place (CLAUDE.md, "Large files").
+# Drive is storage, so nothing reads frames off it in place (owner-review.md, "Google Drive").
 # Each shot lists one or more frame folders; a later folder replaces the earlier ones' frames where
 # it has them (C4's plume pass re-rendered only frames 0-359). A folder is either flat (frames in
 # name order from 0) or split into render-queue chunks named "<first>-<last>/".

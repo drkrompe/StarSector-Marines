@@ -39,7 +39,7 @@
   .card-chip-compact .card-chip-seal { width: 14px; height: 14px; }
   .card-chip-compact .card-chip-seal.card-chip-seal-absent { width: 0px; height: 0px; }
   .card-chip-compact .card-chip-icon { width: 30px; height: 30px; }
-  .card-chip-compact .card-chip-kind { height: 0px; opacity: 0; }
+  .card-chip-compact .card-chip-kind { display: none; }
   .card-chip-compact .card-chip-rating { width: 34px; }
-  .card-chip.card-chip-empty { height: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .card-chip.card-chip-empty { display: none; }
 </style>

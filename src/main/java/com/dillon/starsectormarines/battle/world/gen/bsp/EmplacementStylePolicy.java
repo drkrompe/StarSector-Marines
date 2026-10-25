@@ -9,7 +9,8 @@ import java.util.Set;
 
 /**
  * The one place a generated map decides how its defenders' posts are built (`ground-turret-tiers.md`). A pirate
- * world holds old works rather than building its own, so its posts are {@link EmplacementStyle#DERELICT}. Otherwise
+ * world holds old works patched with scrap rather than building its own, so its posts are
+ * {@link EmplacementStyle#PATCHWORK}. Otherwise
  * the defenders build in their faction's tech family (`tech-families.md`): the Persean League builds midline in
  * League standard, the Diktat and the Lion's Guard midline in Diktat export grade, Tri-Tachyon high-tech, everyone
  * else low-tech. Within the family a garrison on a world with no prepared
@@ -27,7 +28,7 @@ public final class EmplacementStylePolicy {
 
     private EmplacementStylePolicy() {}
 
-    /** The faction whose worlds are squatted old works. */
+    /** The faction whose worlds are squatted old works, patched with scrap. */
     static final String PIRATES = "pirates";
 
     /** The faction whose works are midline in League coalition standards. */
@@ -42,7 +43,7 @@ public final class EmplacementStylePolicy {
     public static EmplacementStyle forDefenders(TargetProfile profile) {
         if (profile == null || profile.marketSize() <= 0) return EmplacementStyle.BRUTALIST;
         String faction = profile.factionId();
-        if (PIRATES.equals(faction)) return EmplacementStyle.DERELICT;
+        if (PIRATES.equals(faction)) return EmplacementStyle.PATCHWORK;
         boolean prepared = profile.groundDefences() || profile.heavyBatteries()
                 || profile.defenseLevel() > MILITIA_MAX_DEFENSE_LEVEL;
         if (LEAGUE.contains(faction)) return prepared ? EmplacementStyle.MODULAR : EmplacementStyle.BARRIER;
@@ -53,8 +54,10 @@ public final class EmplacementStylePolicy {
 
     /**
      * Every post in {@code posts}, in place, built in {@code style}: the hook a mission uses to theme its ground, called
-     * on the posts it hands to {@code BattleSetup.buildMap}. A militia style's sandbags are laid when a post is stamped,
-     * so restyling to one afterwards changes the guns and their bases but not the parapets.
+     * on the posts it hands to {@code BattleSetup.buildMap}. The lot each post stands in follows it, so its walls,
+     * parapets and barricades are drawn in the new style too ({@code FortWorks.settle}, `fort-works.md`). What a post
+     * is built of is still decided when it is stamped: a militia post's ring is a barricade and a prepared one's a
+     * parapet, so restyling between the two redraws the pieces it has rather than swapping one for the other.
      */
     public static void restyle(List<DefensePost> posts, EmplacementStyle style) {
         posts.replaceAll(post -> post.withStyle(style));

@@ -38,13 +38,13 @@
   .obj-name { width: 0px; flex-grow: 1; font-family: heading; color: #f2f5f0; white-space: nowrap; overflow: hidden; }
   .obj-phase { font-family: heading; white-space: nowrap; }
   .obj-steps { font-family: body; width: 100%; height: 15px; padding-left: 14px; color: #b9d8d0; white-space: nowrap; overflow: hidden; }
-  .obj-instruction { width: 100%; height: 32px; padding-left: 14px; white-space: normal; overflow: hidden; color: #e4e9e2; }
+  .obj-instruction { width: 100%; min-height: 32px; padding-left: 14px; white-space: normal; overflow: hidden; color: #e4e9e2; }
   .obj-progress { width: 100%; height: 16px; padding-left: 14px; flex-direction: row; gap: 8px; align-items: center; }
   .obj-progress-text { color: #cfd8e2; white-space: nowrap; }
   .obj-track { width: 0px; flex-grow: 1; height: 4px; flex-direction: row; border-width: 1px; border-color: #00000099; background-color: #00000066; }
   .obj-fill { height: 100%; background-color: #ffd464; background-image: linear-gradient(to bottom, #ffffff55 0%, #ffffff00 70%); }
-  .obj-blocker { width: 100%; height: 30px; padding-left: 14px; white-space: normal; overflow: hidden; color: #f5b98c; }
-  .obj-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; overflow: hidden; }
+  .obj-blocker { width: 100%; min-height: 30px; padding-left: 14px; white-space: normal; overflow: hidden; color: #f5b98c; }
+  .obj-hidden { display: none; }
   .obj-active .obj-mark { border-color: #ffd464; background-color: #ffd46455; }
   .obj-active .obj-phase { color: #ffd464; }
   .obj-complete .obj-mark { border-color: #78d494; background-color: #78d494; }

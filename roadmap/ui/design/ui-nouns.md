@@ -138,6 +138,13 @@ them.
   the stamp, in the same colours. The stamp is flavour drawn from the
   card's issuing tradition; the Restricted mark is derived from what the card
   carries, never authored beside it.
+- A **rating row** draws a loadout card's rating as ten symbols on an absolute
+  scale: each symbol is a tenth of the catalog ceiling and lights in quarters,
+  floored, so a card never shows more than it holds and the same rating looks
+  the same everywhere. The symbol names the aspect rated — swords for firepower,
+  shields for protection, and a symbol of its own for any later aspect, such as
+  equipment's offensive capability. A card's tier stays its chevrons; symbols
+  never mean tier. The card and its spec sheet draw the same row.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,
   a squad, or a doctrine template is a dossier rather than a subject: it is
   described by its own screen, and only the catalog items it names carry
@@ -349,6 +356,13 @@ element contributes its glyph advance plus padding and border before free space 
 distributed; in a column, its measured block height contributes on the main axis. A
 declared size still wins. Changing retained text marks geometry dirty so the next
 document update buys one layout pass rather than leaving a stale box.
+`min-height` and `min-width` are floors under that declared or measured size: wrapped
+text authored as `min-height: Npx` holds N for one line and grows for a second
+instead of falling out of a fixed box. A column measures a child's height at the width
+the child is given, so a narrow wrapped label counts its real lines. A row that declares
+`min-height` is as tall as its tallest child at the width the row gives it; a row without
+one keeps its own text height, because without `flex-shrink` a growing row based on its
+children's height could only overflow its column.
 
 Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs
@@ -357,6 +371,10 @@ to authored copy: all caps is a heading treatment, not a global font policy. Hor
 For composed controls, `align-items` places row or column children on the cross
 axis with `start`, `center`, `end`, or `stretch`. Centered legends use their
 intrinsic line height, so padding does not become a second alignment authority.
+`justify-content` places them on the main axis with `start`, `center`, `end`, or
+`space-between` when no child grows (a growing child takes the free space instead).
+It replaces growing spacer elements and padding nudges as the way to centre or push
+content along a row or column.
 `text-shadow` takes one colour and stamps a one-pixel halo of it behind every line,
 inherited like `color`. It exists for text with nothing behind it: the takeover HUD
 floats over the battle, and a halo keeps a pale label readable over pale ground from
@@ -520,6 +538,15 @@ wrapping. Each row takes its tallest child's preferred height. `column-gap` and
 `row-gap` remain ordinary CSS lengths, and wrapped rows contribute to the existing
 vertical `scrollHeight` contract. The first production consumer is Fleet Armory's
 owned-company portrait-card gallery.
+
+## Hiding
+
+`display: none` removes an element and its whole subtree from layout, `gap` slots,
+paint, hit-testing and tab order; the subtree's boxes collapse to empty rectangles at
+the parent's content origin. It is the one way to hide: a state class toggles it
+rather than zeroing width, height, padding and opacity, which left the box in flow
+holding a `gap` slot. `opacity: 0` stays for a box that keeps its place while
+invisible, such as an unticked check in its frame.
 
 ## Overflow and clipping
 

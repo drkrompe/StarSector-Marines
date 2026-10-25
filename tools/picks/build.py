@@ -12,7 +12,7 @@ question (a GIF of a finished feature, a set of stills), newest first, as
 [{id, area, date, title, note, lead?, shots: [{file, label}]}] with each `file`
 under media/<preview id>/; `lead: true` draws the first shot full width. Publish
 out.html with the Artifact tool, declaring the `db` capability, and pass the
-images through `files`. See "Questions for the owner" in CLAUDE.md.
+images through `files`. See `owner-review.md` (Questions: the picks page).
 """
 import argparse
 import json
@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--blurb", default="Open look decisions, as pictures. Tap the option you want under "
                         "each question; tap it again to clear it. Add a note if none is quite right. Choices save "
                         "as you go and go back to the session that owns each piece.")
-    parser.add_argument("--previews", help="previews.json: sets to look at, shown above the questions")
+    parser.add_argument("--previews", help="previews.json: sets to look at, shown below the questions")
     parser.add_argument("questions")
     parser.add_argument("out")
     args = parser.parse_args()

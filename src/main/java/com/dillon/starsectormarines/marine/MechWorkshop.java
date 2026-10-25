@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +80,9 @@ public final class MechWorkshop {
     public Result fitInternal(String mechId, MechInternal internal) {
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || internal == null) return Result.of(Status.INVALID);
-        if (mech.internal(internal.role) == internal) return Result.of(Status.ALREADY_INSTALLED);
+        if (MechCompartment.limit(internal.role) == 1 && mech.internal(internal.role) == internal) {
+            return Result.of(Status.ALREADY_INSTALLED);
+        }
         if (!bay.canInstallInternal(mechId, internal)) return Result.of(Status.INCOMPATIBLE);
         if (!bay.withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) {
             return Result.of(Status.OVER_BUDGET);
@@ -125,7 +128,38 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED);
     }
 
-    /** Empties the optional utility socket. */
+    /** Builds one vehicle kit into the bay's stores against its known pattern. */
+    public Result fabricateKit(VehicleKit kit) {
+        if (kit == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(kit)) return Result.of(Status.PATTERN_LOCKED);
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.kit(kit);
+        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+            return Result.of(Status.INSUFFICIENT_MATERIALS);
+        }
+        bay.addKit(kit.id, 1);
+        return Result.of(Status.FABRICATED);
+    }
+
+    /** Puts a spare kit on a vehicle's rack. Kits fit from stores only; building one is its own step. */
+    public Result fitKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || kit == null) return Result.of(Status.INVALID);
+        if (vehicle.kits().contains(kit)) return Result.of(Status.ALREADY_INSTALLED);
+        if (!vehicle.canFit(kit)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableKit(kit.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitKit(vehicleId, kit) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /** Takes a kit off a vehicle's rack back to stores. */
+    public Result stripKit(String vehicleId, VehicleKit kit) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || kit == null) return Result.of(Status.INVALID);
+        if (!vehicle.kits().contains(kit)) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripKit(vehicleId, kit) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
+    }
+
+    /** Takes the first vent array out of the compartment. */
     public Result stripVentArray(String mechId) {
         return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
     }
@@ -139,6 +173,14 @@ public final class MechWorkshop {
         if (mech == null || role == null || role.socket() == null) return Result.of(Status.INVALID);
         if (mech.internal(role) == null) return Result.of(Status.ALREADY_STRIPPED);
         return bay.stripInternal(mechId, role) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
+    }
+
+    /** Takes one part out of the compartment back to stores. */
+    public Result stripPart(String mechId, MechInternal part) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null || part == null || !part.role.compartment()) return Result.of(Status.INVALID);
+        if (!mech.compartment().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripPart(mechId, part) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {
@@ -170,7 +212,7 @@ public final class MechWorkshop {
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
         }
-        CampaignMech mech = bay.fabricateChassis(squadId, variant);
+        CampaignMech mech = bay.fabricateFrame(squadId, variant);
         if (mech == null) {
             throw new IllegalStateException("validated chassis could not enter its vacant gantry");
         }
@@ -242,32 +284,9 @@ public final class MechWorkshop {
         return new Result(Status.SCRAPPED, null, vehicle);
     }
 
-    /** The quoted bill and clock for repairing {@code mechId}'s battle damage, or null if whole. */
-    public RepairQuote repairQuote(String mechId) {
-        CampaignMech mech = bay.mechById(mechId);
-        MechRepairs.Estimate estimate = MechRepairs.estimate(mech);
-        if (estimate == null) return null;
-        return new RepairQuote(mechId, estimate.wear(), fieldRepair.get().repairDays(estimate.days()),
-                resources.quote(estimate.bill()));
-    }
-
-    /**
-     * Orders the repair of a damaged mech: the whole bill is spent, or nothing is and the
-     * damage stands. A paid order clears the damage and starts the clock; the mech stays out of
-     * drops until {@code day} plus the quoted days.
-     */
-    public Result repair(String mechId, float day) {
-        CampaignMech mech = bay.mechById(mechId);
-        if (mech == null || !Float.isFinite(day)) return Result.of(Status.INVALID);
-        RepairQuote quote = repairQuote(mechId);
-        if (quote == null) return Result.of(Status.NOT_DAMAGED);
-        if (!resources.spend(quote.bill())) return new Result(Status.INSUFFICIENT_MATERIALS, mech);
-        mech.beginRepair(day + quote.days());
-        return new Result(Status.REPAIR_STARTED, mech);
-    }
-
-    /** A repair order as the player reviews it: wear, days in the gantry and the quoted bill. */
-    public record RepairQuote(String mechId, float wear, float days, FabricationCost bill) {
+    /** Starts the free repair clock on any damage still waiting for one (an older save's). */
+    public void startPendingRepairs(float day) {
+        bay.startPendingRepairs(day, fieldRepair.get());
     }
 
     public enum Status {
@@ -284,10 +303,6 @@ public final class MechWorkshop {
         VEHICLE_FABRICATED,
         /** A machine was broken up; its gantry is vacant and its salvage is in stores. */
         SCRAPPED,
-        /** A repair order was paid; the mech is in its gantry until the clock runs out. */
-        REPAIR_STARTED,
-        /** There is no battle damage to repair. */
-        NOT_DAMAGED,
         INCOMPATIBLE,
         /** The fit would weigh more than the engine can carry. */
         OVER_BUDGET,
@@ -310,8 +325,7 @@ public final class MechWorkshop {
                     || status == Status.ALREADY_STRIPPED
                     || status == Status.CHASSIS_FABRICATED
                     || status == Status.VEHICLE_FABRICATED
-                    || status == Status.SCRAPPED
-                    || status == Status.REPAIR_STARTED;
+                    || status == Status.SCRAPPED;
         }
     }
 }

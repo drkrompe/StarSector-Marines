@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
@@ -146,9 +147,9 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
             props.put("activeBayLabel", selected == 0 ? "BAY 01 / 02" : sealed ? "02/02 SEALED" : "BAY 02 / 02");
             props.put("bayNoteClasses", sealed ? "bay-sealed-note label tone-muted" : "hidden");
             if (wings != null) { wings.refresh(); props.put("wings", wings.row()); }
-            var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
+            var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), FittingComponents.with(List.of(
                     "data/ui/components/company/company-resource-stock.mlx",
-            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx"));
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/boat-deck/boat-deck.mlx")));
             loader.reload();
             try (var markup = loader.build(reactor, "boat-deck", props)) {
                 var document = new UiDocument(markup.root());

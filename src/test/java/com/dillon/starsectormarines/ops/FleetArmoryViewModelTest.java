@@ -20,7 +20,6 @@ import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
-import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -92,7 +91,7 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
             "mod/data/ui/components/armory/armory-loadout-card.mlx", "mod/data/ui/components/armory/armory-squad-view.mlx", "mod/data/ui/components/armory/armory-card-chip.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx",
-            "mod/data/ui/components/armory/armory-armor-comparison.mlx");
+            "mod/data/ui/components/fitting/fitting-filter-pill.mlx");
 
     @Test
     void startingCompanyHasOneRealIssueAndLearningSpecsAddsDistinctChoices() {
@@ -216,7 +215,7 @@ class FleetArmoryViewModelTest {
                                 viewModel.selectedWeaponDoctrineId()))
                         .findFirst().orElseThrow();
         assertEquals("Common", assignedLoadout.rarity());
-        assertTrue(assignedLoadout.metadata().contains("TIER I"));
+        assertEquals(1, assignedLoadout.tier());
         assertEquals("graphics/factions/neutral_traders.png",
                 assignedLoadout.factionLogo());
         assertTrue(assignedLoadout.description().length() > 120);
@@ -226,12 +225,15 @@ class FleetArmoryViewModelTest {
         // company holds; missing roles may fall back within that class.
         assertEquals(roster.armory().armorDoctrines().stream().map(SquadArmorDoctrine::issueIds).distinct().count(),
                 viewModel.armorDoctrineTiles().get().size());
+        assertNull(viewModel.loadoutFilter(), "no tier chosen shows every tier");
         viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.TIER_1).run();
         assertEquals(FleetArmoryViewModel.LoadoutFilter.TIER_1, viewModel.loadoutFilter());
         assertFalse(viewModel.weaponDoctrineTiles().get().isEmpty());
         assertTrue(viewModel.weaponDoctrineTiles().get().stream()
-                .allMatch(loadout -> loadout.metadata().contains("TIER I ")));
+                .allMatch(loadout -> loadout.tier() == 1));
         assertTrue(viewModel.loadoutBrowserSummary().get().contains(" of "));
+        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.TIER_1).run();
+        assertNull(viewModel.loadoutFilter(), "choosing the chosen tier clears it");
 
         assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.applySquadEquipmentSelection());
@@ -283,9 +285,47 @@ class FleetArmoryViewModelTest {
         assertEquals(card.id(), "weapon-doctrine:" + viewModel.selectedWeaponDoctrineId());
         var issued = viewModel.weaponDoctrineTiles().get().stream()
                 .filter(tile -> tile.id().equals(card.id())).findFirst().orElseThrow();
-        assertEquals("Issued", issued.markupProperty("issueLabel"));
-        assertEquals(true, issued.markupProperty("issueDisabled"));
+        assertEquals("doctrine-issue-check", issued.markupProperty("issueCheckClasses"));
+        // The issued card's box stays lit, not greyed out, and ticking it again changes nothing.
+        assertEquals(false, issued.markupProperty("issueDisabled"));
+        ((Runnable) issued.markupProperty("issue")).run();
+        assertEquals(card.id(), "weapon-doctrine:" + roster.squads().get(0).weaponDoctrineId());
         assertEquals("", viewModel.transactionSummary().get());
+    }
+
+    /**
+     * A card's tier chip and check box are centred by layout (an align-items row and growing
+     * spacers), not by padding sums, so they stay centred at any document size: the smallest
+     * the screen fits and a large panel that lays out wider.
+     */
+    @Test
+    void cardTierChipAndCheckBoxStayCentredAtAnyDocumentSize() throws Exception {
+        MarineRoster roster = fullSquad();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel model = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
+        try (MarkupInstance instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
+            UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
+            instance.styles().forEach(document::addStyleSheet);
+            SpecSheetLayer.install(document);
+            for (float[] size : new float[][] {{1744f, 938f}, {2560f, 1440f}}) {
+                document.layout(size[0], size[1]);
+                for (FleetArmoryViewModel.DoctrineTile tile : model.weaponDoctrineTiles().get()) {
+                    UiElement heading = instance.requireElement(tile.headerId());
+                    UiElement chip = instance.requireElement(tile.id() + ":tier");
+                    UiElement chevrons = instance.requireElement(tile.id() + ":tier-icon");
+                    UiElement box = instance.requireElement(tile.id() + ":issue-box");
+                    UiElement tick = instance.requireElement(tile.id() + ":issue-check");
+                    String at = tile.id() + " at " + (int) size[0] + "x" + (int) size[1];
+                    assertEquals(centerX(chip), centerX(chevrons), 0.01f, "chevrons centred across the chip, " + at);
+                    assertEquals(centerY(chip), centerY(chevrons), 0.01f, "chevrons centred down the chip, " + at);
+                    assertEquals(centerY(heading), centerY(chip), 0.01f, "chip centred on the heading, " + at);
+                    assertEquals(centerY(heading), centerY(box), 0.01f, "box centred on the heading, " + at);
+                    assertEquals(centerX(box), centerX(tick), 0.01f, "tick centred across the box, " + at);
+                    assertEquals(centerY(box), centerY(tick), 0.01f, "tick centred down the box, " + at);
+                }
+            }
+        }
     }
 
     @Test
@@ -297,6 +337,7 @@ class FleetArmoryViewModelTest {
         try (MarkupInstance instance = loader.reloadAndBuild(reactor, "fleet-armory-fireteam", props(model))) {
             UiDocument document = new UiDocument(instance.root()).theme(MarineOpsThemes.standard());
             instance.styles().forEach(document::addStyleSheet);
+            SpecSheetLayer.install(document);
             document.layout(1920, 1080);
             UiElement list = instance.requireElement("weapon-doctrine-list");
             UiElement first = list.childAt(0);
@@ -412,6 +453,10 @@ class FleetArmoryViewModelTest {
                 }
                 assertFalse(binder.isBound(instance.requireElement(tile.nameId())),
                         "a loadout is a definition, not a catalog item");
+                // The card face prints no field note; hovering the card itself shows it.
+                assertTrue(binder.isBound(instance.requireElement(tile.id())),
+                        tile.id() + " keeps its field note nowhere a reader can reach");
+                entries++;
             }
             assertEquals(entries, binder.size());
 
@@ -515,32 +560,6 @@ class FleetArmoryViewModelTest {
         return quoted;
     }
 
-    @Test
-    void armorComparisonListsEveryHeldPatternSortedByTierThenName() {
-        MarineRoster roster = fullSquad();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
-
-        List<MarineArmorCatalogDef> expectedOrder = new ArrayList<>();
-        for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
-            if (roster.armory().ownsArmorTemplate(pattern.id())) expectedOrder.add(pattern);
-        }
-        expectedOrder.sort(Comparator.comparingInt(MarineArmorCatalogDef::tier)
-                .thenComparing(MarineArmorCatalogDef::displayName));
-
-        List<FleetArmoryViewModel.ArmorComparisonCard> cards =
-                viewModel.armorComparisonCards().get();
-        assertEquals(expectedOrder.size(), cards.size());
-        for (int index = 0; index < expectedOrder.size(); index++) {
-            assertEquals(expectedOrder.get(index).displayName(), cards.get(index).name());
-            MarineArmorCatalogDef armor = expectedOrder.get(index);
-            assertEquals(armor.armorClass().displayName(), cards.get(index).unitClass());
-            assertEquals("ROLE · " + armor.role().displayName() + "\n" + armor.description(),
-                    cards.get(index).description());
-        }
-        assertTrue(viewModel.armorComparisonSummary().get()
-                .startsWith(expectedOrder.size() + " of "));
-    }
-
     /**
      * <b>The decision surface has to carry the decision.</b> A sheet's other two
      * lines say which roles it organises and which patterns fill them; neither
@@ -583,81 +602,6 @@ class FleetArmoryViewModelTest {
         }
         assertTrue(inspected > 0,
                 "no armour sheet issues a single capability, so this proves nothing");
-    }
-
-    @Test
-    void armorComparisonReadsTheSameIntegralSystemCopyEveryOtherSurfaceUses() {
-        MarineRoster roster = fullSquad();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
-
-        MarineArmorCatalogDef withSystem = MarineArmorCatalogRegistry.installed().all().stream()
-                .filter(MarineArmorCatalogDef::hasIntegralSystem)
-                .filter(armor -> roster.armory().ownsArmorTemplate(armor.id()))
-                .findFirst().orElseThrow();
-        MarineArmorCatalogDef withoutSystem = MarineArmorCatalogRegistry.installed().all().stream()
-                .filter(armor -> !armor.hasIntegralSystem())
-                .filter(armor -> roster.armory().ownsArmorTemplate(armor.id()))
-                .findFirst().orElseThrow();
-
-        Map<String, FleetArmoryViewModel.ArmorComparisonCard> byName = new LinkedHashMap<>();
-        for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
-            byName.put(card.name(), card);
-        }
-
-        FleetArmoryViewModel.ArmorComparisonCard carrierCard = byName.get(withSystem.displayName());
-        FleetArmoryViewModel.ArmorComparisonCard bareCard = byName.get(withoutSystem.displayName());
-        assertEquals(IntegralSystemCopy.tile(withSystem), carrierCard.system());
-        assertTrue(carrierCard.systemClasses().contains("tone-accent"));
-        assertEquals(IntegralSystemCopy.tile(withoutSystem), bareCard.system());
-        assertEquals("No integral system", bareCard.system());
-        assertTrue(bareCard.systemClasses().contains("tone-muted"));
-
-        assertNotNull(carrierCard.systemIcon(), "a carried system has a family icon to show");
-        assertEquals(IntegralSystemCopy.iconPath(withSystem), carrierCard.systemIcon());
-        assertNull(bareCard.systemIcon(), "a pattern carrying nothing offers no icon");
-
-        for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
-            assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVASION"), card.stats().stream()
-                    .map(StatMeter::label).toList());
-        }
-    }
-
-    @Test
-    void armorComparisonMarkupBindsEveryHeldPatternWithoutMissingElements()
-            throws Exception {
-        MarineRoster roster = fullSquad();
-        Reactor reactor = new Reactor();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
-        MarkupLoader loader = new MarkupLoader(
-                path -> Files.readString(Path.of(path)), COMPONENTS);
-        loader.reload();
-
-        Map<String, Object> props = new LinkedHashMap<>();
-        props.put("selectedSquadName", viewModel.selectedSquadName());
-        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
-        props.put("armorComparisonCards", viewModel.armorComparisonCards());
-        props.put("backToFireTeams", (Runnable) () -> { });
-        props.put("back", (Runnable) () -> { });
-        putPageNavigation(props);
-
-        try (MarkupInstance instance = loader.build(reactor, "armory-armor-comparison", props)) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            document.layout(1920f, 1080f);
-
-            assertFalse(viewModel.armorComparisonCards().get().isEmpty(),
-                    "a fresh company holds something to compare");
-            for (FleetArmoryViewModel.ArmorComparisonCard card
-                    : viewModel.armorComparisonCards().get()) {
-                assertEquals(card.name(), instance.requireElement(card.nameId()).text());
-                assertEquals(card.description(),
-                        instance.requireElement(card.descriptionId()).text());
-                assertEquals(card.system(), instance.requireElement(card.systemId()).text());
-                assertEquals(card.systemIcon(),
-                        instance.requireElement(card.systemIconId()).imageSource());
-            }
-        }
     }
 
     @Test
@@ -714,6 +658,7 @@ class FleetArmoryViewModelTest {
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -721,8 +666,6 @@ class FleetArmoryViewModelTest {
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
-        props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
-        props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
         props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
         props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
         props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
@@ -731,9 +674,6 @@ class FleetArmoryViewModelTest {
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
-        props.put("showArmorComparison", (Runnable) () -> { });
-        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
-        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("inspection", viewModel.inspection());
         props.put("transactionSummary", viewModel.transactionSummary());
@@ -794,32 +734,6 @@ class FleetArmoryViewModelTest {
             assertTrue(preview.canApply());
             assertTrue(preview.issueCost().isZero());
         }
-    }
-
-    /**
-     * <b>Compare Patterns is a stock list, not a catalog.</b> The twenty-seventh
-     * pattern is not an option a company can weigh, it is a rumour, and putting
-     * it in the table makes the screen answer a different question badly. The
-     * summary still names the catalog's size so the rumour survives.
-     */
-    @Test
-    void comparingPatternsShowsOnlyWhatTheCompanyHolds() {
-        MarineRoster roster = fullSquad();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
-
-        List<FleetArmoryViewModel.ArmorComparisonCard> cards =
-                viewModel.armorComparisonCards().get();
-        int catalogued = MarineArmorCatalogRegistry.installed().all().size();
-        assertTrue(cards.size() < catalogued,
-                "fixture assumption: a fresh company does not hold the whole catalog");
-        for (FleetArmoryViewModel.ArmorComparisonCard card : cards) {
-            String armorId = card.id().substring("armor-comparison:".length());
-            assertTrue(roster.armory().ownsArmorTemplate(armorId),
-                    armorId + " is on the comparison screen and has never been held");
-        }
-        assertTrue(viewModel.armorComparisonSummary().get()
-                        .contains(cards.size() + " of " + catalogued),
-                "the summary names both numbers: " + viewModel.armorComparisonSummary().get());
     }
 
     private static List<String> tileIds(List<FleetArmoryViewModel.DoctrineTile> tiles) {

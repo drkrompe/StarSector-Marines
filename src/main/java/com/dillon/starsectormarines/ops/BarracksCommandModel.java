@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
 import com.dillon.starsectormarines.marine.OfficerCareer;
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -136,6 +137,10 @@ public final class BarracksCommandModel {
                 ? "graphics/ui/console/service-plate.svg" : selectedOfficer().portraitSprite());
         bind(reactor, "officerStatus", this::officerStatus);
         bind(reactor, "officerProgress", this::officerProgress);
+        bind(reactor, "officerLevel", () -> selectedOfficer() == null ? "" : level(selectedOfficer()));
+        bind(reactor, "officerXpStyle", () -> selectedOfficer() == null ? "width: 0%;" : xpStyle(selectedOfficer()));
+        bind(reactor, "officerPointClasses", () -> selectedOfficer() != null && canTrain(selectedOfficer())
+                ? "training-point officer-point" : "hidden");
         bind(reactor, "officerService", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandOperationsVictoriesMissionXpRecorded", selectedOfficer().career().deployments(), selectedOfficer().career().victories(), selectedOfficer().career().earnedXp()));
         bind(reactor, "officerSquads", () -> selectedOfficer() == null ? "" : Strings.format("openingBarracksCommandHomeCommand", lineSquads().stream()
                 .filter(squad -> command.equals(squad.homeCaptainId())).map(MarineSquad::name)
@@ -192,7 +197,7 @@ public final class BarracksCommandModel {
             guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
         props.put("guideDismiss", (Runnable) this::dismissGuide);
         bind(reactor, "title", this::title);
-        bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnelReserves", lineSquads().size(), roster.lineReadySoldiers().size(), roster.readyReserveCount()));
+        bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnel", lineSquads().size(), roster.lineReadySoldiers().size()));
         bind(reactor, "healTimer", this::healTimer);
         bind(reactor, "scopeSummary", () -> Strings.format("openingBarracksCommandSquadsInViewSelected", filtered().size(), selected.size()));
         bind(reactor, "empty", () -> filtered().isEmpty() ? Strings.get("openingBarracksCommandNoSquadsMatchThisViewChooseRaise") : "");
@@ -293,6 +298,21 @@ public final class BarracksCommandModel {
         return officer.rank().isTerminal() ? Strings.get("openingBarracksCommandColonelHighestCommandRank")
                 : Strings.format("openingBarracksCommandXpTo", officer.xp(), officer.rank().xpToNext(), officer.rank().promote().displayName());
     }
+    /** The officer's rank as a level, counted from one at the bottom of the ladder. */
+    private static String level(MarineCaptain officer) {
+        return Strings.format("openingBarracksCommandLevel", officer.rank().ordinal() + 1);
+    }
+
+    /** XP toward the next rank as a fill width; the top rank reads full. */
+    private static String xpStyle(MarineCaptain officer) {
+        return "width: " + Math.round(100f * xpFraction(officer.xp(), officer.rank())) + "%;";
+    }
+
+    static float xpFraction(int xp, Rank rank) {
+        if (rank.isTerminal()) return 1f;
+        return Math.max(0f, Math.min(1f, (float) xp / rank.xpToNext()));
+    }
+
     private static final String TREE_LINE = "#738578";
     private static final String TREE_LINE_TRAINED = "#dec58a";
 
@@ -447,6 +467,15 @@ public final class BarracksCommandModel {
                 "reason", assignment.reason(),
                 "name", id.equals("all") ? Strings.get("openingBarracksCommandAllFormations") : captainName(captain),
                 "portrait", captain != null && captain.portraitSprite() != null ? captain.portraitSprite() : "graphics/ui/console/service-plate.svg",
+                "commanderbadgeId", "command:" + id + ":badge", "portraitframeId", "command:" + id + ":portrait-frame",
+                "pointId", "command:" + id + ":point",
+                "pointClasses", captain != null && canTrain(captain) ? "training-point" : "hidden",
+                "levelId", "command:" + id + ":level",
+                "levelClasses", captain == null ? "hidden" : "label heading warm commander-level",
+                "level", captain == null ? "" : level(captain),
+                "xpTrackId", "command:" + id + ":xp", "xpFillId", "command:" + id + ":xp-fill",
+                "xpTrackClasses", captain == null ? "hidden" : "xp-track commander-xp",
+                "xpStyle", captain == null ? "" : xpStyle(captain),
                 "summary", Strings.format("openingBarracksCommandReadyAssigned", ready, squads.size()),
                 "capacity", captain == null ? Strings.get("openingBarracksCommandCompanyRoll")
                         : Strings.format("openingBarracksCommandOfCommandSlots", captain.status(), squads.size(), captain.rank().squadCommandCap()),
@@ -510,7 +539,7 @@ public final class BarracksCommandModel {
     private void founderFields(Map<String, Object> row, String prefix, boolean shown) {
         String id = shown ? prefix : prefix + ":raise";
         row.put("founderId", id);
-        for (String part : List.of("Heading", "Title", "TopSpacer", "Emblem", "EmblemIcon", "Destination", "BottomSpacer", "Costs"))
+        for (String part : List.of("Heading", "Title", "Middle", "Emblem", "EmblemIcon", "Destination", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
         boolean ready = shown && raiseCommander() != null && foundingResources.canAfford(SquadFoundingCost.STANDARD);
         row.put("founderClasses", shown ? "raise-squad" : "hidden");
@@ -629,7 +658,7 @@ public final class BarracksCommandModel {
         int reserves = Math.min(vacancies, roster.readyReserveCount());
         int wounded = lineSquads().stream().filter(s -> squadIds.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
         int shortfall = vacancies - reserves - recruitsRequired(squadIds);
-        String summary = Strings.format("companyResourceRecruitment", vacancies, reserves, recruitsRequired(squadIds), wounded);
+        String summary = Strings.format("companyResourceRecruitment", vacancies, recruitsRequired(squadIds), wounded);
         return shortfall > 0 ? summary + " " + Strings.format("companyResourceRecruitmentShort", shortfall) : summary;
     }
     private int recruitsRequired(Set<String> squadIds) {
@@ -645,11 +674,9 @@ public final class BarracksCommandModel {
                 ? roster.squadById(squadIds.iterator().next()).name()
                 : Strings.format("openingBarracksCommandSquadsSelected", squadIds.size());
         int vacancies = vacancies(squadIds);
-        int reserves = Math.min(vacancies, roster.readyReserveCount());
         return new SpecSheet(Strings.get("openingBarracksCommandFillVacancies"), subject,
                 resources.commodityIcon(Commodities.MARINES), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandVacant"), Integer.toString(vacancies)),
-                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandNamedReserves"), Integer.toString(reserves)),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(squadIds)))),
                 List.of(recruitment(squadIds), Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
     }
@@ -695,10 +722,9 @@ public final class BarracksCommandModel {
         return new SpecSheet(Strings.get("openingBarracksCommandMarinesAvailableRecruits"), Strings.get("openingBarracksCommandUnenlistedPersonnelInFleetCargo"),
                 resources.commodityIcon(Commodities.MARINES), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandInCargo"), Integer.toString(cargoMarines.getAsInt())),
-                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandNamedReserves"), Integer.toString(roster.readyReserveCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(Set.copyOf(selected))))),
                 List.of(Strings.get("openingBarracksCommandTheMarinesCommodityRepresentsPersonnelOutsideYour"),
-                        Strings.get("openingBarracksCommandFillVacanciesTransfersReadyCompanyReservesFirst"),
+                        Strings.get("openingBarracksCommandFillVacanciesEnlistsCargoMarines"),
                         Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
     }
 
@@ -707,10 +733,7 @@ public final class BarracksCommandModel {
         return List.of(row("id", "barracks-recruit-stock", "copyId", "barracks-recruit-stock-copy", "iconId", "barracks-recruit-stock-icon",
                 "labelId", "barracks-recruit-stock-count", "nameId", "barracks-recruit-stock-label",
                 "name", resources.commodityName(Commodities.MARINES), "icon", resources.commodityIcon(Commodities.MARINES),
-                "stock", CompanyResources.number(cargoMarines.getAsInt())),
-                row("id", "barracks-reserve-stock", "copyId", "barracks-reserve-copy", "iconId", "barracks-reserve-icon", "labelId", "barracks-reserve-count",
-                "nameId", "barracks-reserve-label", "name", Strings.get("openingBarracksCommandNamedReserves"),
-                "icon", resources.commodityIcon(Commodities.MARINES), "stock", CompanyResources.number(roster.readyReserveCount())));
+                "stock", CompanyResources.number(cargoMarines.getAsInt())));
     }
 
     public void reinforceSelected() { fill(Set.copyOf(selected)); }
@@ -724,7 +747,7 @@ public final class BarracksCommandModel {
             reserves += result.reservesAssigned(); cargo += result.cargoMarinesConsumed();
         }
         if (guideVisible() && guideStep == 2 && reserves + cargo > 0) guideStep = 3;
-        feedback = Strings.format("openingBarracksCommandFilledBilletsReservesRecruitsEnlisted", (reserves + cargo), reserves, cargo);
+        feedback = Strings.format("openingBarracksCommandFilledBilletsEnlisted", reserves + cargo);
         refresh();
     }
     private boolean campaignGuidance;

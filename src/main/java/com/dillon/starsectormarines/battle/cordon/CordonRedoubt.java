@@ -17,6 +17,7 @@ public final class CordonRedoubt {
      */
     public enum State { HOLDING, CALLING, RELIEVED, FALLEN, GIVEN_UP }
 
+    private final CordonConstruction construction;
     private final int number;
     private final int left, top, right, bottom;
     private final List<Integer> teams;
@@ -29,6 +30,13 @@ public final class CordonRedoubt {
 
     public CordonRedoubt(int number, int left, int top, int right, int bottom,
                          List<Integer> teams, List<Long> guns, int garrison) {
+        this(number, left, top, right, bottom, teams, guns, garrison, CordonConstruction.COMPOUND);
+    }
+
+    /** As the compound's constructor, for a redoubt built as {@code construction}. */
+    public CordonRedoubt(int number, int left, int top, int right, int bottom,
+                         List<Integer> teams, List<Long> guns, int garrison, CordonConstruction construction) {
+        this.construction = construction;
         this.number = number;
         this.left = left;
         this.top = top;
@@ -40,6 +48,8 @@ public final class CordonRedoubt {
         this.garrison = garrison;
     }
 
+    /** What it is built from: the allies' compound, or what the country had standing. */
+    public CordonConstruction construction() { return construction; }
     /** West to east from 1. */
     public int number() { return number; }
     /** The ground inside the wall, inclusive. */

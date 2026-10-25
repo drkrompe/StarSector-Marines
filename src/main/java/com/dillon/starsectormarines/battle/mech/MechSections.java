@@ -125,6 +125,25 @@ public final class MechSections {
         rearArmor = maxRearArmor * a;
     }
 
+    /**
+     * Lays the wear a mech carries out of an unfinished repair on its sections, before any hit.
+     * No section enters battle destroyed: what is left of its structure never reads below
+     * {@link #CARRIED_STRUCTURE_FLOOR}, the gantry crew's patch on a section the last battle took off.
+     */
+    public void carryWear(MechCarriedWear wear) {
+        if (wear == null || wear.isEmpty()) return;
+        for (MechSection section : MechSection.VALUES) {
+            int i = section.ordinal();
+            if (!fitted[i]) continue;
+            structure[i] = maxStructure[i] * Math.max(CARRIED_STRUCTURE_FLOOR, 1f - wear.structureLost(section));
+            armor[i] = maxArmor[i] * (1f - wear.armorLost(section));
+        }
+        rearArmor = maxRearArmor * (1f - wear.armorLost(MechSection.TORSO));
+    }
+
+    /** The least of a section's structure a carried mech drops with. */
+    public static final float CARRIED_STRUCTURE_FLOOR = 0.1f;
+
     /** The torso's rear plate: what a hit from behind meets. Zero under the control. */
     public float rearArmor() {
         return rearArmor;

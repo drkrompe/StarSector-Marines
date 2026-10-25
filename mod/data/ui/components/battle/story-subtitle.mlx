@@ -13,5 +13,5 @@
   #story-portrait { width: 88px; height: 88px; border-width: 1px; border-color: #647569; background-color: #121719; }
   #story-copy { width: 0px; flex-grow: 1; height: 100%; flex-direction: column; gap: 8px; }
   #story-speaker { height: 18px; }
-  #story-dialogue { height: 66px; white-space: normal; }
+  #story-dialogue { min-height: 66px; white-space: normal; }
 </style>

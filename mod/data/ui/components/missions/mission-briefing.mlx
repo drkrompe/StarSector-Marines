@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -75,6 +75,15 @@
             <div each="row in missionRows" key="{row.id}" id="{row.id}" class="info-row">
               <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
               <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+            </div>
+          </div>
+          <div id="mission-employer-block" class="briefing-section">
+            <div id="mission-employer-heading" class="label heading tone-muted info-label">{employerHeader}</div>
+            <div id="mission-employer-list" class="info-list">
+              <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row employer-row">
+                <div id="{row.labelId}" class="label tone-edge info-label">{row.label}</div>
+                <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+              </div>
             </div>
           </div>
           <div id="mission-term-actions" class="mission-term-actions" style="{termActionsStyle}">
@@ -163,21 +172,21 @@
               <div id="mission-power-empty" class="label tone-muted empty-copy" style="{powerEmptyStyle}">{powerEmpty}</div>
             </div>
             <div id="mission-logistics" class="mission-logistics">
-              <div id="mission-source-block" class="briefing-section">
-                <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
-                <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
-                  <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
-                    <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
-                    <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
-                    <div id="{source.copyId}" class="choice-copy">
-                      <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
-                      <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
-                    </div>
-                  </button>
-                </div>
-                <div id="mission-source-empty" class="label tone-muted empty-copy" style="{sourceEmptyStyle}">{sourceEmpty}</div>
-              </div>
               <div id="mission-support-stack" class="mission-support-stack">
+                <div id="mission-source-block" class="briefing-section">
+                  <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
+                  <div id="mission-source-list" class="choice-list source-list" style="{sourceListStyle}">
+                    <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
+                      <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
+                      <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
+                      <div id="{source.copyId}" class="choice-copy">
+                        <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
+                        <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
+                      </div>
+                    </button>
+                  </div>
+                  <div id="mission-source-empty" class="label tone-muted empty-copy" style="{sourceEmptyStyle}">{sourceEmpty}</div>
+                </div>
                   <div id="mission-transport-block" class="briefing-section">
                     <div id="mission-transport-heading" class="label heading tone-edge section-heading">{transportHeader}</div>
                     <div id="mission-transport-readout" class="landing-craft-readout console-readout" tabindex="0">
@@ -203,15 +212,6 @@
                       </button>
                     </div>
                   </div>
-                <div id="mission-employer-block" class="briefing-section">
-                  <div id="mission-employer-heading" class="label heading tone-edge section-heading">{employerHeader}</div>
-                  <div id="mission-employer-list" class="info-list">
-                    <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
-                      <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-                      <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -246,6 +246,38 @@
               </button>
             </div>
             <div id="mission-debug-controls" class="mission-debug-controls">
+              <!-- Each squad's two cards and each bay slot, drawn as the game draws them; pressing
+                   one opens the kit picker (DebugKitPicker) on every choice there is. -->
+              <div id="mission-debug-commander-heading" class="label heading tone-edge section-heading">COMMANDER  ·  THIS BATTLE ONLY</div>
+              <button id="mission-debug-commander" class="{debugCommander.classes}" onclick="{debugCommander.open}">
+                <img id="mission-debug-commander-portrait" class="debug-kit-commander-portrait" src="{debugCommander.portrait}" />
+                <div id="mission-debug-commander-summary" class="label debug-kit-commander-summary">{debugCommander.summary}</div>
+              </button>
+              <div id="mission-debug-kit-heading" class="label heading tone-edge section-heading">SQUAD KIT  ·  EVERY CARD UNLOCKED</div>
+              <div id="mission-debug-kit" class="debug-kit-list">
+                <div each="row in debugKitRows" key="{row.id}" id="{row.id}" class="debug-kit-row console-readout">
+                  <div id="{row.labelId}" class="label heading tone-muted debug-kit-label">{row.label}</div>
+                  <div id="{row.cardsId}" class="debug-kit-cards">
+                    <button id="{row.weaponId}" class="debug-kit-card" onclick="{row.openWeapons}">
+                      <armory-card-chip chip="{row.weaponChip}" />
+                      <div id="{row.weaponNoteId}" class="{row.weaponNoteClasses}">{row.weaponNote}</div>
+                    </button>
+                    <button id="{row.armorId}" class="debug-kit-card" onclick="{row.openArmor}">
+                      <armory-card-chip chip="{row.armorChip}" />
+                      <div id="{row.armorNoteId}" class="{row.armorNoteClasses}">{row.armorNote}</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="mission-debug-bay-heading" class="label heading tone-edge section-heading">MECH BAY</div>
+              <div id="mission-debug-bay" class="debug-kit-bay">
+                <button each="slot in debugBaySlots" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
+                  <canvas id="{slot.pictureId}" class="debug-kit-slot-picture" width="96" height="64" />
+                  <div id="{slot.nameId}" class="label debug-kit-slot-name">{slot.name}</div>
+                </button>
+              </div>
+              <div id="mission-debug-fixture-heading" class="label heading tone-edge section-heading">FIXTURE</div>
+              <div id="mission-debug-control-list" class="debug-control-list">
               <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
                 <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
                 <div id="{control.bankId}" class="debug-control-bank">
@@ -256,6 +288,7 @@
                   <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
                   <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
                 </div>
+              </div>
               </div>
             </div>
             <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
@@ -297,6 +330,58 @@
 
           </div>
 
+    <!-- The debug kit picker: every choice for one squad card or bay slot, laid out whole. -->
+    <div id="mission-kit-picker" class="kit-picker-backdrop">
+      <div id="kit-picker-space-above" class="kit-picker-space" />
+      <div id="kit-picker-dialog" class="kit-picker-dialog console-readout">
+        <div id="kit-picker-header" class="kit-picker-header console-header">
+          <img id="kit-picker-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
+          <div id="kit-picker-heading" class="kit-picker-heading">
+            <div id="kit-picker-title" class="label title tone-edge">{kitPicker.title}</div>
+            <div id="kit-picker-subtitle" class="label tone-muted">{kitPicker.subtitle}</div>
+          </div>
+          <button id="kit-picker-close" class="kit-picker-close" onclick="{kitPicker.close}">{i18n.briefingVmDebugClose}</button>
+        </div>
+        <div id="kit-picker-weapons" class="kit-picker-grid">
+          <armory-loadout-card each="tile in kitPicker.weaponTiles" key="{tile.id}" tile="{tile}" />
+        </div>
+        <div id="kit-picker-armor" class="kit-picker-grid">
+          <armory-loadout-card each="tile in kitPicker.armorTiles" key="{tile.id}" tile="{tile}" />
+        </div>
+        <div id="kit-picker-commander" class="kit-picker-commander">
+          <div id="kit-commander-bar" class="kit-commander-bar console-readout">
+            <img id="kit-commander-portrait" class="kit-commander-portrait" src="{kitPicker.commanderPortrait}" />
+            <div id="kit-commander-copy" class="kit-commander-copy">
+              <div id="kit-commander-status" class="label heading tone-edge">{kitPicker.commanderStatus}</div>
+              <div id="kit-commander-points" class="label heading tone-accent">{kitPicker.pointsLabel}</div>
+            </div>
+            <button id="kit-commander-toggle" class="kit-commander-toggle" onclick="{kitPicker.toggleCommander}">{kitPicker.toggleLabel}</button>
+          </div>
+          <div id="kit-commander-specialties" class="kit-commander-specialties">
+            <div each="spec in kitPicker.specialtyTiles" key="{spec.id}" id="{spec.id}" class="{spec.classes}">
+              <img id="{spec.iconId}" class="kit-specialty-icon" src="{spec.icon}" />
+              <div id="{spec.titleId}" class="label heading kit-specialty-title">{spec.title}</div>
+              <button id="{spec.rank1Id}" class="kit-specialty-node" disabled="{spec.rank1Disabled}" onclick="{spec.rank1}">
+                <img id="{spec.rank1ImageId}" class="kit-specialty-node-image" src="{spec.rank1Icon}" />
+                <div id="{spec.rank1TextId}" class="label kit-specialty-effect">{spec.rank1Effect}</div>
+              </button>
+              <button id="{spec.rank2Id}" class="kit-specialty-node" disabled="{spec.rank2Disabled}" onclick="{spec.rank2}">
+                <img id="{spec.rank2ImageId}" class="kit-specialty-node-image" src="{spec.rank2Icon}" />
+                <div id="{spec.rank2TextId}" class="label kit-specialty-effect">{spec.rank2Effect}</div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="kit-picker-bay" class="kit-picker-bay-grid">
+          <button each="tile in kitPicker.bayTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+            <canvas id="{tile.pictureId}" class="kit-bay-picture" width="234" height="150" />
+            <div id="{tile.nameId}" class="label heading kit-bay-name">{tile.name}</div>
+            <div id="{tile.detailId}" class="label tone-muted kit-bay-detail">{tile.detail}</div>
+          </button>
+        </div>
+      </div>
+      <div id="kit-picker-space-below" class="kit-picker-space" />
+    </div>
   </div>
 </template>
 
@@ -325,14 +410,64 @@
   .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
   .debug-drawer-toggle { flex-direction: row; align-items: center; width: 112px; height: 24px; padding: 3px 5px; gap: 6px; border-width: 3px; font-family: heading; text-align: center; }
   .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 2px; overflow: hidden; }
-  .tier-summary { height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
+  .tier-summary { min-height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
   .mission-tier-track { flex-direction: row; height: 54px; gap: 3px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 2px; text-align: center; }
   .tier-step.locked { opacity: 0.28; }
   .tier-numeral { height: 17px; text-align: center; }
-  .tier-label { height: 24px; font-family: compact; text-align: center; white-space: normal; }
+  .tier-label { min-height: 24px; font-family: compact; text-align: center; white-space: normal; }
   .mission-debug-controls { flex-direction: column; height: 0px; flex-grow: 1; gap: 3px; padding: 1px; overflow: scroll; }
-  .debug-control-row { flex-direction: row; align-items: center; height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
+  .debug-control-list { flex-direction: column; gap: 3px; }
+  .debug-kit-list { flex-direction: column; gap: 3px; }
+  .debug-kit-row { flex-direction: row; align-items: center; height: 82px; padding: 3px; gap: 4px; border-width: 1px; }
+  .debug-kit-label { width: 70px; height: auto; white-space: normal; }
+  .debug-kit-cards { flex-direction: column; align-items: flex-start; width: 0px; flex-grow: 1; gap: 4px; }
+  .debug-kit-card { flex-direction: row; align-items: center; width: 292px; height: 36px; padding: 0px; border-width: 1px; }
+  .debug-kit-cards .card-chip { pointer-events: none; }
+  .debug-kit-card:hover { border-color: #f2cf68; }
+  .debug-kit-note { width: 0px; flex-grow: 1; padding: 0px 8px; color: #d8bd67; }
+  .debug-kit-note-absent { display: none; }
+  .debug-kit-bay { flex-direction: row; height: 100px; gap: 4px; }
+  .debug-kit-slot { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 100px; padding: 2px; gap: 2px; border-width: 1px; }
+  .debug-kit-slot:hover { border-color: #f2cf68; }
+  .debug-kit-slot-picture { width: 96px; height: 64px; background-color: #0d202c; pointer-events: none; }
+  .debug-kit-slot-name { width: 100%; height: 28px; font-family: compact; text-align: center; white-space: normal; pointer-events: none; }
+  .kit-picker-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12e0; }
+  .kit-picker-space { height: 0px; flex-grow: 1; }
+  .kit-picker-dialog { flex-direction: column; width: 1800px; height: 960px; padding: 12px; gap: 10px; border-width: 2px; border-color: #c9b77a; background-color: #101a1f; }
+  .kit-picker-header { flex-direction: row; align-items: center; height: 60px; padding: 8px; gap: 10px; border-width: 1px; }
+  .kit-picker-heading { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
+  #kit-picker-title { height: 27px; }
+  #kit-picker-subtitle { height: 18px; }
+  .kit-picker-close { width: 120px; height: 36px; border-width: 2px; font-family: heading; text-align: center; }
+  .kit-picker-grid { display: grid; height: 0px; flex-grow: 1; gap: 14px; padding: 12px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; overflow: scroll; }
+  .kit-picker-bay-grid { display: grid; height: 0px; flex-grow: 1; gap: 12px; padding: 12px 20px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; overflow: scroll; }
+  .debug-kit-option { flex-direction: column; width: 250px; height: 214px; padding: 6px; gap: 4px; border-width: 2px; border-color: #2a5566; background-color: #09131d; }
+  .debug-kit-option:hover { background-color: #0e1a26; border-color: #53c6e8; }
+  .debug-kit-option.selected { background-color: #16242f; border-color: #f2cf68; }
+  .kit-bay-picture { width: 234px; height: 150px; background-color: #0d202c; pointer-events: none; }
+  .kit-bay-name { height: 18px; color: #eaf3ff; pointer-events: none; }
+  .debug-kit-commander { flex-direction: row; align-items: center; height: 52px; padding: 3px; gap: 8px; border-width: 1px; }
+  .debug-kit-commander:hover { border-color: #f2cf68; }
+  .debug-kit-commander.fielded { border-color: #78d494; }
+  .debug-kit-commander-portrait { width: 44px; height: 44px; pointer-events: none; }
+  .debug-kit-commander-summary { width: 0px; flex-grow: 1; height: auto; white-space: normal; pointer-events: none; }
+  .kit-picker-commander { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; padding: 16px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; }
+  .kit-commander-bar { flex-direction: row; align-items: center; height: 92px; padding: 8px; gap: 14px; border-width: 1px; }
+  .kit-commander-portrait { width: 72px; height: 72px; pointer-events: none; }
+  .kit-commander-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
+  .kit-commander-toggle { width: 220px; height: 40px; border-width: 2px; font-family: heading; text-align: center; }
+  .kit-commander-specialties { flex-direction: row; height: 0px; flex-grow: 1; gap: 16px; }
+  .kit-specialty { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 2px; border-color: #2a5566; background-color: #09131d; }
+  .kit-specialty.trained { border-color: #78d494; }
+  .kit-specialty-icon { width: 96px; height: 96px; pointer-events: none; }
+  .kit-specialty-title { width: 100%; height: 22px; text-align: center; pointer-events: none; }
+  .kit-specialty-node { flex-direction: row; align-items: center; width: 100%; height: 150px; padding: 8px; gap: 10px; border-width: 1px; }
+  .kit-specialty-node:hover { border-color: #f2cf68; }
+  .kit-specialty-node-image { width: 64px; height: 64px; pointer-events: none; }
+  .kit-specialty-effect { width: 0px; flex-grow: 1; height: auto; white-space: normal; pointer-events: none; }
+  .kit-bay-detail { height: 28px; font-family: compact; white-space: normal; pointer-events: none; }
+  .debug-control-row { flex-direction: row; align-items: center; min-height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
   .debug-control-bank { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 28px; gap: 2px; }
   .debug-control-label { width: 112px; height: auto; white-space: normal; }
   .debug-control-row button { width: 22px; padding: 2px 1px; border-width: 2px; text-align: center; font-family: heading; }
@@ -351,15 +486,16 @@
   .force-card-role { height: 12px; }
   .group-command-copy { width: 100%; flex-direction: column; gap: 4px; }
   .group-command-summary { width: 100%; height: auto; white-space: normal; }
-  .captain-role-summary { height: 48px; white-space: normal; }
+  .captain-role-summary { min-height: 48px; white-space: normal; }
   .force-card-title { height: auto; white-space: nowrap; }
   .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
   .commitment-grid .briefing-section { height: 78px; }
-  #mission-transport-block { height: 116px; }
   .landing-craft-image { height: 48px; }
   .landing-craft-line { height: auto; padding: 0px; white-space: normal; }
-  #mission-employer-block { width: 0px; flex-grow: 1; }
+  #mission-employer-block { height: auto; gap: 6px; }
+  #mission-employer-list { gap: 10px; }
+  .employer-row { height: auto; gap: 2px; }
   .commitment-summary { height: auto; white-space: normal; }
   .commitment-note { height: auto; white-space: normal; }
   .deck-heading-row .label { width: 0px; flex-grow: 1; }
@@ -367,7 +503,7 @@
   .mission-briefing-actions .briefing-assign-hidden { width: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; }
   .debug-rack-header { flex-direction: row; height: 38px; padding: 6px; gap: 8px; border-width: 1px; }
   .debug-service-plate { width: 64px; height: 32px; pointer-events: none; }
-  #mission-debug-heading { width: 0px; flex-grow: 1; height: 34px; white-space: normal; }
+  #mission-debug-heading { width: 0px; flex-grow: 1; min-height: 34px; white-space: normal; }
   .console-rocker { width: 16px; height: 26px; pointer-events: none; }
   .debug-air-row .console-rocker { width: 12px; height: 20px; }
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
@@ -380,7 +516,7 @@
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
   .mission-threat { flex-direction: row; align-items: center; width: 398px; height: 48px; gap: 8px; }
-  .threat-symbols { flex-direction: row; align-items: center; height: 26px; gap: 4px; }
+  .threat-symbols { flex-direction: row; align-items: center; min-height: 26px; gap: 4px; }
   #mission-scale-symbols { width: 126px; }
   #mission-scale-name { width: 86px; height: auto; white-space: normal; }
   #mission-risk-symbols { width: 170px; }
@@ -401,7 +537,7 @@
   .mission-term-actions button { flex-direction: column; width: auto; flex-grow: 0; padding: 6px; gap: 4px; border-width: 1px; text-align: center; height: 38px; }
   .mission-term-actions .choice-row.selected { background-color: #35433f; border-color: #f2cf68; border-width: 2px; }
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 12px; gap: 5px; border-width: 0px; overflow: hidden; }
-  .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 24px; overflow: scroll; }
+  .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 16px; overflow: scroll; }
   .briefing-section { flex-direction: column; padding: 0px; gap: 8px; border-width: 0px; background-color: transparent; }
   .section-heading { height: 20px; }
   .force-comparison { width: 550px; flex-direction: row; align-items: center; height: 78px; gap: 14px; }
@@ -412,7 +548,7 @@
   .force-meter { flex-direction: row; height: 9px; gap: 4px; }
   .force-meter .indicator { width: 42px; height: 9px; border-width: 1px; background-color: #8fae98; }
   .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
-  .mission-loadout-grid { flex-direction: column; height: auto; gap: 22px; overflow: hidden; }
+  .mission-loadout-grid { flex-direction: column; height: auto; gap: 16px; overflow: hidden; }
   .command-deck { height: auto; align-items: start; }
   .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
   .command-power-list { display: grid; height: 145px; gap: 8px; overflow: scroll; width: 100%; }
@@ -420,25 +556,20 @@
   .command-power-list .console-rocker { width: 18px; height: 12px; }
   .power-icon { width: 42px; height: 42px; }
   .command-power-list .choice-copy { width: 128px; height: 45px; flex-grow: 0; gap: 4px; }
-  .command-power-list .choice-title { height: 25px; white-space: normal; text-align: center; }
+  .command-power-list .choice-title { min-height: 25px; white-space: normal; text-align: center; }
   .command-power-list .choice-detail { height: 14px; text-align: center; }
-  .mission-logistics { flex-direction: column; height: auto; gap: 20px; overflow: hidden; }
-  #mission-source-block { height: auto; }
-  #mission-source-list { height: 46px; flex-grow: 0; display: grid; gap: 8px; }
-  .source-list .choice-row { width: 280px; height: 30px; }
-  .source-list .choice-icon { width: 32px; height: 28px; }
-  .mission-support-stack { flex-direction: row; height: 182px; gap: 18px; overflow: scroll; display: grid; }
-  #mission-transport-block, #mission-carrier-block, #mission-employer-block { width: 256px; height: 170px; flex-grow: 0; }
-  .landing-craft-readout { flex-direction: row; align-items: center; height: 100px; padding: 4px; gap: 7px; background-color: transparent; }
+  .mission-logistics { flex-direction: column; height: auto; overflow: hidden; }
+  /* Fleet support, landing craft and fighter cover share one row so the column never scrolls. */
+  .mission-support-stack { flex-direction: row; height: 132px; gap: 14px; overflow: hidden; }
+  #mission-source-block, #mission-transport-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 132px; gap: 6px; }
+  .landing-craft-readout { flex-direction: row; align-items: center; height: 104px; padding: 4px; gap: 7px; background-color: transparent; }
   .landing-craft-copy { flex-direction: column; height: 96px; width: 0px; flex-grow: 1; gap: 2px; }
-  #mission-carrier-list { height: 114px; overflow: scroll; }
-  #mission-employer-list { height: 134px; flex-grow: 0; overflow: scroll; gap: 12px; }
-  #mission-employer-list .info-row { height: 42px; }
+  #mission-carrier-list { height: 0px; flex-grow: 1; overflow: scroll; }
   .mission-briefing-actions { flex-direction: row; height: 40px; padding: 8px; gap: 14px; border-width: 0px; overflow: hidden; }
   .mission-briefing-actions button { flex-direction: row; align-items: center; width: 158px; flex-grow: 0; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; height: 30px; }
   #mission-briefing-back { width: 114px; }
   #mission-action-spacer { width: 0px; flex-grow: 1; }
-  #mission-deployment-status { width: 360px; height: 32px; text-align: right; white-space: normal; }
+  #mission-deployment-status { width: 360px; min-height: 32px; text-align: right; white-space: normal; }
   .force-heading-row { flex-direction: row; align-items: center; height: 30px; width: 100%; gap: 20px; }
   #mission-force-heading { width: 0px; flex-grow: 1; }
   #mission-assign { flex-direction: row; align-items: center; width: 192px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
@@ -459,22 +590,21 @@
   .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
   #mission-reward-header { height: 18px; }
   #mission-reward-value { height: 26px; }
-  #mission-reward-terms { height: 34px; white-space: normal; }
+  #mission-reward-terms { min-height: 34px; white-space: normal; }
   .mission-survey-slot { flex-direction: column; width: 594px; }
   .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 2px; }
   #mission-survey-heading { height: 24px; }
-  #mission-survey-status { height: 30px; white-space: normal; }
+  #mission-survey-status { min-height: 30px; white-space: normal; }
   #mission-survey-canvas { height: 410px; }
-  #mission-survey-legend { height: 32px; white-space: normal; }
+  #mission-survey-legend { min-height: 32px; white-space: normal; }
   #mission-survey-details { height: 24px; }
   .survey-objectives { flex-direction: column; height: 190px; gap: 4px; overflow: scroll; }
-  .survey-objective { height: 24px; white-space: normal; }
-  #mission-survey-footer { height: 34px; white-space: normal; }
+  .survey-objective { min-height: 24px; white-space: normal; }
+  #mission-survey-footer { min-height: 34px; white-space: normal; }
   #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
-  .source-list .choice-row { height: 48px; width: 310px; }
-  .source-list .choice-icon { width: 54px; height: 44px; }
-  #mission-source-block { height: 96px; }
-  #mission-source-list { height: 64px; }
+  #mission-source-list { height: 0px; flex-grow: 1; }
+  .source-list .choice-row { height: 40px; width: 100%; }
+  .source-list .choice-icon { width: 40px; height: 34px; }
   .mission-factions { flex-direction: row; height: 62px; gap: 10px; width: 100%; }
   .faction-identity { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; gap: 6px; }
   .faction-crest { pointer-events: none; }

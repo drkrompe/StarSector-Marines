@@ -137,7 +137,8 @@ public final class FireIgnitionScene implements BehaviorScene {
         builder.squad("targets-a").faction(Faction.DEFENDER).at(11, 10).inFile(11, 10, 0, 1).size(5).unarmed().stationary().done();
         // A lone man hard enough to outlast the flamers' rifles while they ready a throw.
         builder.squad("target-b").faction(Faction.DEFENDER).at(37, 11).inFile(37, 11, 0, 1).size(1).health(600f).unarmed().stationary().done();
-        builder.squad("targets-c").faction(Faction.DEFENDER).at(70, 10).inFile(70, 10, 0, 1).size(3).unarmed().stationary().done();
+        // Close enough that a fire lit on them would carry back over the squad's own meadow.
+        builder.squad("targets-c").faction(Faction.DEFENDER).at(67, 10).inFile(67, 10, 0, 1).size(3).unarmed().stationary().done();
         SceneWorld world = builder.build();
         String[] carriers = {"grenadiers", "flamers", "in-meadow"};
         try (BattleSimulation sim = world.sim()) {

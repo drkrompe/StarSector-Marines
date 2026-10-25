@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16f63-f67c-7723-92e6-bb841a4750a9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16f63-f67c-7723-92e6-bb841a4750a9\\exec-d95ee1bd-eaf7-4f4f-854e-a2ba234d79f8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\raw\\field-emitter-militia-hardpoint-v2-ceramic.raw.png",
+    "sha256": "156f158a371b9b4e5b74dd944cf75335719fec6ab2fa11c39937dd2b2b557424",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\prompts\\field-emitter-militia-hardpoint-v2-ceramic.prompt.txt",
+  "promptSha256": "eb51550c92d842070a4f16f413b06db1e32fd6419a9b7fe0ad67a0b12597c5e3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and geometry authority: repaint only the left platform; keep the right object unchanged\nImage 2: Material reference only, the same set's ceramic works; not layout\nImage 3: Finish reference only, a warship hull: matte ceramic plate with dark seams; ignore its lights, beams, black background and perspective; not layout\n\nUse case: image edit of a finished game sprite sheet. Image 1 is the edit target: keep its 1536x1024 canvas, keep every shape exactly where and how big it is, keep all transparent space transparent. It holds two objects seen from directly above: on the LEFT a raised deployable gun platform (rounded deck, dark skirt below its south and east edges, four splayed struts to round foot pads, curved shells round its foot on the north, west and east, a folding ladder down the south, an empty dark circular ring well in the deck); on the RIGHT a heavy rotating gun house. Leave the RIGHT object exactly as it is, pixel for pixel.\nRepaint ONLY the left platform, keeping its silhouette, struts, feet, ladder, well and shading exactly: the glowing translucent pale-blue hard-light arcs and panes round its foot become SOLID curved armour shells of matte off-white and pale warm-grey ceramic composite plate, chamfered, with dark recessed panel seams and graphite clamp brackets, the same stuff as image 2's barricade and parapet slabs; the deck and housings become the same matte off-white ceramic armour plate with dark seams and a faint coarse hexagonal tiling, as on the warship hull of image 3; struts, feet and frames dark graphite. Accents are restrained: a small slate-grey stencil block or thin slate stripe, tiny dim status pips at most. NO glow, NO light lines, NO emitter glow, NO translucent or hard-light panes, NO bright cyan or electric blue anywhere on the platform; the four corner beacons become small dark graphite caps. Leave the ring well dark and plain.\nStraight 90-degree overhead orthographic camera, no perspective tilt, sun from the upper left as in image 1. Hand-painted gritty Starsector-like game-sprite finish, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, letters, numbers, labels, watermark, UI, ground, grass, extra slab or border, no cast shadow outside the objects. Transparent background exactly where image 1 has it.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\raw\\field-emitter-militia-hardpoint-v2-hex.raw.png",
+      "sha256": "516625e25712e2f5faaa46620a17eae8ec23884ee744a6090d276aed76c95cdf",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target and geometry authority: repaint only the left platform; keep the right object unchanged"
+    },
+    {
+      "path": "art-source\\fortworks\\raw\\deployed-ceramic.raw.png",
+      "sha256": "b0eb004d184ece278d7d42d281a4284d3e85db8898b705611eeba195e2236e92",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material reference only, the same set's ceramic works; not layout"
+    },
+    {
+      "path": "art-source\\fortworks\\guides\\paragon-ceramic-finish.png",
+      "sha256": "4b955a6eff0923c355e3ac4d81f2aa45a54eb9f261f46e63841a33d290e22074",
+      "dimensions": [
+        960,
+        720
+      ],
+      "mode": "RGB",
+      "role": "Finish reference only, a warship hull: matte ceramic plate with dark seams; ignore its lights, beams, black background and perspective; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one edit using the supplied references, repainting only the left platform and preserving the right object.\n"
+  ],
+  "usage": {
+    "input_tokens": 47221,
+    "cached_input_tokens": 38784,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 753,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.3
+}

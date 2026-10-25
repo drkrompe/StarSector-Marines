@@ -4,7 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory previews and the ops dialog's UI images each hold their own textures and give them back (`battle-textures.md`).
+Updated: 2026-10-24 — Roofs have styles, cover the walls under them (whole inside, an eave outside) and show what broke them, cell by cell (Roofs, law 25).
+
+Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory previews and the ops dialog's UI images each hold their own textures and give them back (`battle-textures.md`).
 
 ## Vocabulary
 
@@ -14,6 +16,9 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
 - A **render layer** is one named stratum in the world stack. Its ordinal is paint order; it is an occlusion contract, not a depth-sort hint.
 - A **prop** is scenery: authored, placed at generation, drawn from a sheet, and never a simulation actor. Size and subject do not promote one — a parked truck draws in the same layer, from the same registry, and with the same cover model as a crate. A second render path for scenery that merely looks important is duplication, and it drifts: the one this replaced had grown its own list, its own sheet cache, its own footprint stamp, and a cover rule nothing else in the game used.
 - A **render system** is a GL-free, per-frame producer. It reads the frame context and appends commands for its one layer without putting render data on simulation entities.
+- A **roof** is drawn over every building cell and over the walls that carry it (`RoofCover`, `RoofTiles`). Where nothing outside touches a cell, a floor, a partition, a party wall, it is covered whole, so from outside an interior reads as one roof. Where a cell faces the outside, an exterior wall or doorway, the roof stops at an **eave** in from the building's side that reaches just to what the cell shows (`RoofCover.Edge`): over a wall, to the inner edge of an exterior window's frame; over an exterior door, to its leaf; over a slit window, to its pane; with a trim and a short shadow along its open edge, so every window and the outer face of the wall stay in view before a building is revealed; an outside corner keeps only its inner square, an inside corner all but the square the outside touches. A roof over a wall is presentation only: whether a roof shields is the floor cell's `isRoofIntact`.
+- A roof is drawn in its building's **roof style** (`RoofStyle`): clay tile, poured slab, corrugated sheet or armour plate, from the fort lot's works family, else the wall material, else the building kind. Its courses run along the building's long side, from a seamless two-by-two swatch, so a roof has no cell seams.
+- A roof is broken **cell by cell, by what hit it** (`RoofDamage`): a shell or the edge of a bomb **holes** it, a bomb's core, a crash, creep or the wall under it falling **collapses** it, fire, a room's flashover and a wall alight **burn it through**. A second blow keeps the worse. Every broken state is open to the sky, which is all a rule reads; each draws its own frame of the style's sheet, cut to the cell's cover, and an eave keeps no trim once broken. An eave over a wall takes its own damage and has no shield to lose.
 - A **swing door** hangs in every one-cell doorway on a battle map (`SwingDoor`, `SwingDoorRenderSystem`): a leaf hinged on one jamb that swings into the building as someone comes in line with the doorway and falls shut as they leave. Its angle is read each frame from where people stand, never stored, so it needs no home for state and paints the same in every host; it does not lock, block or shade anything. A wide doorway is a gap and has none, rubble removes it, and ship decks draw their own sliding compartment doors instead.
 - A **field-cache marker** reads the battle's optional salvage ledger. Unknown caches emit no commands; discovered caches retain a last-seen marker, while current recovery progress requires current visibility. Its pickup art is a nonblocking interaction cue, not a new scenery or cover authority. Bitmap world labels carry the same text and font metrics into live and headless drains.
 - The **frame context** is the current simulation view plus camera, layout, alpha, selection/highlight state, and host-owned frame inputs. It is temporary and is not retained as gameplay state.
@@ -278,6 +283,25 @@ premultiplied lit and fog-clipped treatments continuously, and overlapping props
 combine coverage without applying the lighting twice. The final night pass
 changes shading only, never repainting scenery over actors, roofs or aircraft.
 Coverage grants neither observation nor an illuminated patch of unseen ground.
+
+The shade itself is one function of the light pools, sampled bilinearly at
+half-cell resolution: the lamps' pools baked once per map, fire's refilled each
+frame. The battle's event lights (muzzles, impacts, blasts, bolts) add to fire's
+pools while they last, on their own side of a roof, so gunfire and blasts light
+the night as they light the ground composite by day. A host that can run a custom pass owning its own GL evaluates it on the
+card, per pixel, with the pools as textures (`NightShadeField`); a Java2D host
+builds it as tinted quads at a grid of points in each cell. Both evaluate the
+same function (`NightLightingRenderSystem.shade`), which the field's GL evidence
+holds it to, so the two differ only in where they sample, and the field is the
+smoother of the two zoomed out. The field's textures cover the whole map and
+stay resident: fire's pools and the cell mask take only the box that changed
+since their last upload (the boxes fire's lights cleared and filled, the cells in
+the topology's change log, the reveal log's rectangles), so a whole-map view of a
+burn repacks the burn, not the map. Filling fire's pools is still CPU work each
+frame, bounded by the lights in view. A field that fails, or a driver that stores its
+pools at fewer than twelve bits (which would band the shade), logs once and the
+next frame builds quads. Real-driver evidence reads the stored precision on
+Windows and on the Mac's GL 2.1 context.
 
 The headless drain rasterizes those same commands and shade meshes and performs
 the same pixel composition. Real-driver evidence checks corners, internal gaps,
@@ -554,15 +578,16 @@ change the physical crash corridor.
     topology and of which building owns the cell, and it paints *above* units —
     so the mesh is a resident layer in its own painter slot rather than another
     sub-layer of GROUND, and law 20 carries over whole. What is new is the
-    invalidation's two shapes. A cave-in is geometry and comes from the same
-    `CellTopology` change log, and it re-resolves **exactly the cell that
-    caved**: a roof tile is picked by hashing its own coordinates, so unlike a
-    ground autotile it has no neighbour to disturb. A building fading as the
-    player walks inside it is not geometry at all — it is that building's alpha
-    — so its cells are baked as one contiguous span and a fade is a patch of
-    that span's vertex colours. The stream's own rule that a roof under a
-    threshold is not drawn survives as an alpha of zero, or a resident quad
-    would put a roof over an interior the streamed path leaves clear.
+    invalidation's two shapes. A blow to a roof is geometry and comes from the
+    same `CellTopology` change log, and it re-resolves the cell it names and the
+    eight beside it, and no more: a cell's frame is its own, but its cover is cut
+    by whether its neighbours are outside, which a fallen wall changes. A
+    building fading as the player walks inside it is not geometry at all — it
+    is that building's alpha — so its cells, floor then the walls it carries,
+    are baked as one contiguous span of fixed slots per cell, and a fade is a
+    patch of that span's vertex colours. The stream's own rule that a roof
+    under a threshold is not drawn survives as an alpha of zero, or a resident
+    quad would put a roof over an interior the streamed path leaves clear.
 26. A collector visits what the camera can see, and pays for the visit once.
     Culling is the standing answer to a collector's cost the way residency is to
     a submitter's: a body whose drawn extent cannot land in the viewport is not
@@ -602,6 +627,49 @@ change the physical crash corridor.
     already pays. It remains the right instrument for a proximity question,
     which this is not: this asks a fixed rectangle about every body, not a body
     about its neighbours.
+
+27. A run closes for what a program cannot carry, not for which texture or
+    which fill. Every textured quad and solid fill drains through one GLSL 1.20
+    program (`PagedQuadRun`): a run binds up to eight textures as **pages**, each
+    vertex names its page, and a fill is a quad of one opaque white texel on a
+    page of its own, so a flame and the ember over it, or a body on the unit
+    atlas and a prop on another sheet, are one draw. An additive quad shares the
+    run too: every run draws premultiplied (`ONE, ONE_MINUS_SRC_ALPHA`),
+    where an additive quad is one whose alpha is zero, so a disc and the glow
+    over it are one draw. The alpha channel keeps the normal blend's factors, so
+    the destination alpha a normal quad writes is unchanged, because the ground
+    composite blends by its target's alpha; an additive quad leaves the alpha
+    under it alone. A whole sprite, and each image of a mesh drawn without an
+    atlas, is a quad of its own texture on a page: the quad `renderAtCenter`
+    draws, its texture rectangle (its padded extent) upright, turned about its
+    middle, its colour rounded to bytes as the engine sends it. Painter order is
+    untouched; what still closes a run is a line, a ribbon or a custom pass, and
+    a full page table. The
+    shader is fixed-function `GL_MODULATE`, premultiplied, accepted on colour within
+    three levels (the premultiplied rounding) against the per-sheet path
+    (`PagedQuadRunGlEvidence`), and a context that cannot build it or offers
+    fewer than two units drains one run per sheet, as before. GL 2.1 with no
+    extension, because that is the Mac's floor; a texture array would need more.
+    The page rides in the position's z rather than a generic attribute, because
+    the fixed-function arrays are what an async-renderer bridge is known to
+    carry, and per-quad effects ride in z's fraction for the same reason (a
+    secondary-colour or normal array wants entry points the Mac's headless
+    binding does not keep): positions and texture coordinates go at four
+    components, and the spare ones carry the effects, zero for an ordinary
+    quad, which then draws exactly as before. A body is stamped with them as
+    it is emitted, every one a pure function of simulation state and the
+    lights the screen already keeps: the **hit flash**, mixed toward white for
+    a moment from the tick a hit lands (`HitFlash`, read off
+    `CombatService.ticksSinceDamaged`, before cover and armour have their
+    say); the **light** on it from the event lights, brightest on the
+    silhouette edge facing them (`BodyEffects`); and its **wear**: embers
+    while the ground under it burns, char once it has burnt. A body the cap
+    retires fades out by alpha; a dissolve in blotches was tried and declined
+    (owner, 2026-10-24). There is no selection outline: it was tried and the
+    owner kept the ground rings (2026-10-24). There is no faction recolour: it needs an authored mask the art does not
+    have, and each faction's art already carries its own colours. Only the
+    paged run draws these; the per-sheet fallback and the Java2D review drain
+    draw the body plain.
 
 Authored spline roads retain a `RoadSurface` beside their grid footprint. The
 surface samples signed distances at cell corners and clips each cell's two

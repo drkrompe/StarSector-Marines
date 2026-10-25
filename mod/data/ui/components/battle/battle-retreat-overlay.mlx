@@ -41,12 +41,7 @@
   .battle-exit-action:active { background-color: #222b24; }
 
   .battle-exit-action-hidden {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    border-width: 0px;
-    opacity: 0;
-    overflow: hidden;
+    display: none;
   }
 
   .battle-retreat-confirm {
@@ -61,13 +56,7 @@
   }
 
   .battle-retreat-confirm-hidden {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    gap: 0px;
-    border-width: 0px;
-    opacity: 0;
-    overflow: hidden;
+    display: none;
   }
 
   .retreat-prompt {

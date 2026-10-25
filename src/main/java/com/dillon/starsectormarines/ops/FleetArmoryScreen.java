@@ -37,14 +37,13 @@ import java.util.Map;
 public final class FleetArmoryScreen implements Screen {
 
     private static final String FIRETEAM_COMPONENT = "fleet-armory-fireteam";
-    private static final String ARMOR_COMPARISON_COMPONENT = "armory-armor-comparison";
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/fitting/fitting-filter-pill.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
-            "data/ui/components/armory/armory-armor-comparison.mlx",
             "data/ui/components/armory/first-refit.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -131,7 +130,6 @@ public final class FleetArmoryScreen implements Screen {
     private void installDocument(boolean reloadSource) {
         String componentName = switch (view) {
             case FIRETEAMS -> FIRETEAM_COMPONENT;
-            case ARMOR_COMPARISON -> ARMOR_COMPARISON_COMPONENT;
             case FIRST_REFIT -> "first-refit";
         };
         PreparedReload prepared = reloadSource
@@ -150,7 +148,6 @@ public final class FleetArmoryScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(switch (view) {
                 case FIRETEAMS -> this::returnFromWorkspace;
-                case ARMOR_COMPARISON -> this::showFireTeams;
                 case FIRST_REFIT -> this::leaveFirstRefit;
             });
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
@@ -216,6 +213,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("lesson", firstRefit.row());
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -223,8 +221,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
-        props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
-        props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
         props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
         props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
         props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
@@ -233,9 +229,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
-        props.put("showArmorComparison", (Runnable) this::showArmorComparison);
-        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
-        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("inspection", viewModel.inspection());
         props.put("testLoadout", (Runnable) this::testLoadout);
@@ -248,7 +241,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) this::returnFromWorkspace);
-        props.put("backToFireTeams", (Runnable) this::showFireTeams);
         putPageNavigation(props);
         return props;
     }
@@ -268,21 +260,15 @@ public final class FleetArmoryScreen implements Screen {
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRST_REFIT
                 ? List.of("first-refit-root", "refit-claim", "refit-issue", "loadout-billets")
-                : view == View.FIRETEAMS
-                ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
+                : List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "fireteam-breadcrumb", "armory-first-refit", "fireteam-body",
+                "armory-first-refit", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
                 "loadout-squad-head", "loadout-billets", "loadout-inspection", "squad-equip-row",
-                "transaction-result", "transaction-feedback")
-                : List.of("armor-comparison-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-mech-lab", "page-nav-boats",
-                "comparison-breadcrumb", "back-to-fireteams",
-                "comparison-intro", "comparison-list");
+                "transaction-result", "transaction-feedback");
         for (String id : required) {
             component.requireElement(id);
         }
@@ -325,11 +311,6 @@ public final class FleetArmoryScreen implements Screen {
     private void showFireTeams() {
         viewModel.refresh();
         view = View.FIRETEAMS;
-        if (viewport != null) installDocument(false);
-    }
-
-    private void showArmorComparison() {
-        view = View.ARMOR_COMPARISON;
         if (viewport != null) installDocument(false);
     }
 
@@ -447,5 +428,5 @@ public final class FleetArmoryScreen implements Screen {
         }
     }
 
-    private enum View { FIRETEAMS, ARMOR_COMPARISON, FIRST_REFIT }
+    private enum View { FIRETEAMS, FIRST_REFIT }
 }

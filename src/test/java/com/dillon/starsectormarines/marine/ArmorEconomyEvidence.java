@@ -163,7 +163,8 @@ class ArmorEconomyEvidence {
             MechVariant v = recipe.variant();
             float dps = 0f;
             for (MechMountSlot slot : MechMountSlot.values()) dps += weaponDps(v.stockWeapon(slot));
-            list.add(new Machine(v.name(), false, v.liftClass(), MechPattern.of(v).accessTier(), recipe.cost(),
+            list.add(new Machine(v.name(), false, v.liftClass(), MechPattern.of(v).accessTier(),
+                    MechFabricationCatalog.standardFitCost(v),
                     v.maxStructure, v.armorCapacity, v.armorRating, v.moveSpeed, dps, 0,
                     "stock weapons " + (v.twoArmed() ? "2x " : "") + v.stockArmWeapon().name() + "/" + v.leftShoulder.name()
                             + (v.rightShoulder != null ? "/" + v.rightShoulder.name() : "")));

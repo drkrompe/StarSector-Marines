@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
+import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
@@ -106,6 +107,16 @@ public final class WeaponDef {
     /** A mech rotary gun's spin and belt, or {@code null} for a weapon fired a trigger pull at a time. */
     private RotaryFeedDef rotary;
 
+    private static DecalKind parseDecal(JSONObject render, String id) throws JSONException {
+        String name = render != null ? emptyToNull(render.optString("impactDecal", null)) : null;
+        if (name == null) return null;
+        try {
+            return DecalKind.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            throw new JSONException("Weapon '" + id + "' names unknown render.impactDecal '" + name + "'");
+        }
+    }
+
     /** Incendiary heat a blast of this weapon carries, 0 for an ordinary one. */
     public int incendiaryHeat() { return incendiaryHeat; }
     /** The handheld primary's magazine, or {@code null} when the weapon cycles without one. */
@@ -137,6 +148,14 @@ public final class WeaponDef {
     private boolean tracksFliers;
 
     public boolean tracksFliers() { return tracksFliers; }
+
+    /**
+     * The weapon's own mark on the ground where a round lands ({@code render.impactDecal}, a {@link DecalKind} name),
+     * in place of the crater or hole its effect layers would otherwise pick; null for that default.
+     */
+    private DecalKind impactDecal;
+
+    public DecalKind impactDecal() { return impactDecal; }
     /** Whether an interceptable projectile accelerates through the shared boost-then-cruise motion curve. */
     public final boolean boostRamp;
     /** A two-stage missile's unpowered coast out of the tube before its motor lights, or {@code null}. */
@@ -406,6 +425,7 @@ public final class WeaponDef {
         }
         def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
         def.tracksFliers = sim.optBoolean("tracksFliers", false);
+        def.impactDecal = parseDecal(render, id);
         def.magazine = MagazineDef.parse(sim.optJSONObject("magazine"), id);
         if (def.magazine != null && def.mount != MountClass.MARINE_PRIMARY) {
             throw new JSONException("Weapon '" + id + "' declares a magazine outside the marine-primary mount class");

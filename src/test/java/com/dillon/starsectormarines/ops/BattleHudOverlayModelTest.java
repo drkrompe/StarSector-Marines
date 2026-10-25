@@ -48,7 +48,7 @@ class BattleHudOverlayModelTest {
             var track = instance.requireElement("mission-construction-track");
             var fill = instance.requireElement("mission-construction-progress");
             assertEquals(0f, track.box().borderBox().height(), .01f);
-            assertEquals(0f, track.opacity(), .01f);
+            assertFalse(track.displayed());
             assertEquals(0f, fill.box().borderBox().width(), .01f);
             assertTrue(fill.box().borderBox().width() >= 0f);
             assertEquals("Awaiting construction", instance.requireElement("mission-construction-progressText").text());

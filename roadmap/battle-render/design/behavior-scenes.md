@@ -4,7 +4,28 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-The individual behavior scenes (`FrontageScene` through `LateArrivalScene`): why each exists, what it recorded and the traps its instrument fell into. Moved verbatim from `CLAUDE.md` (Behavior scenes); the standing rules for writing a scene's verdicts stay there. Ordinal references ("the second", "the fourth") count in the order scenes appear here.
+Updated: 2026-10-24 — `FiringLineScene` measures held triggers since the lane gate; the rules for writing a scene's verdicts moved here from `CLAUDE.md`
+
+The individual behavior scenes (`FrontageScene` through `LateArrivalScene`): why each exists, what it recorded and the traps its instrument fell into. Ordinal references ("the second", "the fourth") count in the order scenes appear here.
+
+## Writing a scene
+
+**Prefer a scene over a mission harness** whenever the question is about one behaviour rather than a whole battle's
+balance, and add another scene rather than widening one past what its name claims. `sceneEvidence` plays the
+catalog for its verdicts (`evidence-tasks.md`); `createSnapshots` draws it.
+
+**A scene's verdicts assert mechanics; outcomes are readings.** Features keep landing, and every one of them moves
+who wins a fight: a verdict such as "the wall came down", "the company took the bunker" or "at least N defenders
+died" goes red on an unrelated merge or a seed change without anything it protects having broken. Assert what the
+machinery does: the plan gave the breach to squads that carry the kit, a breacher with the wall in reach and kit
+ready spent it within a few seconds, a planted charge damaged the wall it was set on, nothing is fired at your own
+side. Where the mechanic needs a precondition the fight may not supply (a breacher alive at the wall), make the
+verdict conditional on it and say so in the detail. Wall-down ticks, rounds, kills, losses and who held what go in
+the report's metrics. A scripted, deterministic effect (a placed barrage on a fixed target) may still be asserted;
+an unscripted fight may not. `assault-muster` takes `-Dbattle.scene.assaultMuster.seed=<long>` so a verdict's
+seed-stability can be shown rather than assumed.
+
+## The scenes
 
 `FrontageScene` is a small, purpose-built battle — one production-stamped
 compound, a configurable number of defender garrisons and marine assault
@@ -223,8 +244,8 @@ both lost Conquest captures; this one steps aside instead.
 **A corridor three cells wide answers the question by removing the option.**
 That was the first version, and it looks right — a file down the middle with a
 lane either side of it. It recorded not one sidestep in nine hundred ticks. A
-firing lane is a cell and a half of half-width, so leaving one takes more than a
-cell of lateral movement, and three cells offer exactly one. The reading — no
+firing lane was then a cell and a half of half-width, so leaving one took more
+than a cell of lateral movement, and three cells offer exactly one. The reading — no
 sidesteps, identical friendly fire in both loops — was indistinguishable from a
 reflex that did not work. Five cells is the narrowest passage in which stepping
 aside is a move that exists.
@@ -250,10 +271,18 @@ weaker form of it — "at least one moved" — passed on the broken version, as 
 the friendly-fire and damage figures. Three plant sites now consult
 `LaneSidestep.isStepping`.
 
-What it records: the control puts 5.9 HP into its own men and the subject puts
-none, both loops land the identical 100.0 HP on the enemy, and all six marines
-are alive at the end of both. Five sidesteps carry the whole difference, and
-every one covers ground. Conquest is where it is decided, and two shapes of the
+**Since the lane gate it measures a held trigger, not friendly fire.** The gate
+holds a trained shooter's trigger while a friend is in his lane, so the control
+no longer shoots its own men and the old instrument read nought in both loops.
+`control-holds-in-lane` and `sidestep-reduces-lane-holds` count the ticks the
+gate held a marine for a friend in the lane: over the eight seeds the control
+is held 1,127 ticks and the subject 558, both land the same 800 HP on the
+enemy, nobody is hit by his own side, and all 39 sidesteps cover ground.
+
+What it first recorded, before the gate: the control put 5.9 HP into its own
+men and the subject none, both loops landed the identical 100.0 HP on the
+enemy, and all six marines were alive at the end of both. Five sidesteps carried the whole difference, and
+every one covered ground. Conquest is where it is decided, and two shapes of the
 same step were measured there. Consuming the tick cost reinforced-south ten of
 its fourteen captures; handing it back recovers almost all of that — 12 captures
 and 11 held against the control's 14 and 9, with 56 more defenders killed. It
