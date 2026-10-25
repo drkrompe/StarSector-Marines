@@ -153,6 +153,7 @@ public final class BattleFixtureJson {
             root.put("biome", cordon.biome().name());
             if (cordon.density() != CordonPlan.Density.RURAL) root.put("density", cordon.density().name());
             if (cordon.posture() != CordonPosture.DEFAULT) root.put("posture", cordon.posture().name());
+            if (!cordon.mechDrops().isNone()) root.put("declaredMechDrops", mechDropsToJson(cordon.mechDrops()));
             root.put("shuttles", shuttlesToJson(cordon.manifest()));
             return root;
         }
@@ -211,6 +212,7 @@ public final class BattleFixtureJson {
             if (heart.density() != Density.RURAL) root.put("density", heart.density().name());
             if (!heart.objectives().isEmpty()) root.put("objectives", new JSONArray(heart.objectives()));
             root.put("shuttles", shuttlesToJson(heart.manifest()));
+            if (!heart.mechDrops().isNone()) root.put("declaredMechDrops", mechDropsToJson(heart.mechDrops()));
             return root;
         }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
@@ -285,7 +287,7 @@ public final class BattleFixtureJson {
                             ? enumValue(CordonPlan.Density.class, root.getString("density"), "density")
                             : CordonPlan.Density.RURAL, shuttlesFromJson(root.getJSONArray("shuttles")),
                     root.has("posture") ? enumValue(CordonPosture.class, root.getString("posture"), "posture")
-                            : CordonPosture.DEFAULT);
+                            : CordonPosture.DEFAULT, declaredMechDrops(root));
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
             case DustLedgerBattleFixture.KIND -> new DustLedgerBattleFixture(root.getLong("seed"),
                     shuttlesFromJson(root.getJSONArray("shuttles")),
@@ -298,7 +300,7 @@ public final class BattleFixtureJson {
                     enumValue(Form.class, root.getString("form"), "form"),
                     storyBiome(root), root.has("density")
                             ? enumValue(Density.class, root.getString("density"), "density") : Density.RURAL,
-                    shuttlesFromJson(root.getJSONArray("shuttles")), heartObjectives(root));
+                    shuttlesFromJson(root.getJSONArray("shuttles")), heartObjectives(root), declaredMechDrops(root));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };

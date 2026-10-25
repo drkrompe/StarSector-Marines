@@ -299,19 +299,26 @@ final class CordonBuilders {
 
     /** Rows either side of the middle a goods yard's own drive takes, where no road crosses the yard. */
     static final int YARD_DRIVE = 1;
+    /** Rows a goods yard needs either side of its road: the goods shed and its apron in front, the gantries behind. */
+    static final int YARD_SIDE = 20;
 
     /**
      * Town base: the town's goods yard. The goods shed on the front side of the road, its loading doors on an apron
      * where flatbeds and cargo trucks stand beside a cargo loader, the freight waiting to go out stacked in rows along
-     * it; behind the road the two open-air gantries, the yard's workshop and its stores; an industrial fence round it.
-     * Where the main road only reaches the gate, the yard's own drive takes its place across the middle.
+     * it; behind the road the two open-air gantries, the yard's workshop and its stores, and past them the yard's vans
+     * and tankers in marked bays, a fuel corner and the freight that came in; worn asphalt under all of it and an
+     * industrial fence round it. Where the main road only reaches the gate, the yard's own drive takes its place
+     * across the middle.
      */
     static Built goodsYard(CordonWorks w, Frame f, Site site) {
         int[] main = roadRows(w, f, site);
-        // A town's main road may reach the gate without crossing the yard: then the yard's own drive crosses its middle.
-        int[] road = main[1] - main[0] > (site.y1() - site.y0()) / 2 ? new int[]{-YARD_DRIVE, YARD_DRIVE} : main;
         int hu = (site.x1() - site.x0()) / 2, hv = (site.y1() - site.y0()) / 2;
-        CordonWorks.Ground yard = w.sample(site.cx(), site.cy(), GroundKind.SIDEWALK);
+        // A town's main road may reach the gate, or run along the fence, without crossing the yard with room either
+        // side for the shed and the gantries: then the yard's own drive crosses its middle.
+        boolean through = main[0] + hv >= YARD_SIDE && hv - main[1] >= YARD_SIDE;
+        int[] road = through ? main : new int[]{-YARD_DRIVE, YARD_DRIVE};
+        CordonWorks.Ground yard = new CordonWorks.Ground(GroundKind.COURTYARD,
+                w.topology.surfaceIndex("pavement.asphalt.worn"), -1);
         f.clear(w, -hu - 1, -hv - 1, hu + 1, hv + 1, yard, (x, y) -> street(w, x, y) && inBand(f.v(x, y), road[0], road[1]));
         Built built = Built.at(0f, road[0] - 3f);
         // The goods shed, its doors on the apron by the road, and the freight waiting beside it: the shed on the west
@@ -350,6 +357,23 @@ final class CordonBuilders {
         f.prop(w, -hu + 3, v0 + 2, "main-stores.cases", 0, true);
         f.prop(w, -hu + 3, v0 + 5, "main-stores.drums", 0, true);
         f.prop(w, -hu + 6, v0 + 2, "main-stores.pallet", 0, true);
+        // The rear, past the gantries: the yard's own vans and tankers in marked bays along the fence, a fuel corner
+        // behind the workshop, and the freight that came in, stacked in a block between them.
+        String[] parked = {"doodad.parked-box-van", "doodad.parked-tanker-truck", "doodad.parked-utility-truck"};
+        int bays = -hv + 2;
+        for (int k = 0, u = -hu + 3; u + 1 <= -2; u += 3, k++) {
+            f.prop(w, u, bays + 3, "doodad.fl-striped-yellow", 0, false);
+            f.prop(w, u + 1, bays + 3, "doodad.fl-striped-yellow", 0, false);
+            if (k % 4 != 2) f.prop(w, u, bays, parked[k % parked.length], 1, true);
+        }
+        for (int u = hu - 4; u >= hu - 14; u -= 5) f.prop(w, u, -hv + 3, "doodad.industrial-fluid-tank", 0, true);
+        f.prop(w, hu - 4, -hv + 8, "doodad.industrial-drum-cluster", 0, true);
+        f.prop(w, hu - 9, -hv + 8, "doodad.industrial-drum-cluster", 0, true);
+        for (int v = bays + 6; v <= road[0] - 18; v += 4) {
+            for (int u = 2; u <= hu - 18; u += 3) {
+                f.obstacle(w, u, v, Math.floorMod(u + v, 2) == 0 ? CRATES : "doodad.industrial-pallet-stack");
+            }
+        }
         fenceRing(w, f, hu, hv, road);
         return built;
     }

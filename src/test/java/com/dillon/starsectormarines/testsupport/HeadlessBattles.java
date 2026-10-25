@@ -107,7 +107,8 @@ public final class HeadlessBattles {
         SurfacePalette biome = SurfacePalette.valueOf(options.optString("biome", "VERDANT").toUpperCase(Locale.ROOT));
         long seed = options.optLong("seed", template.seed());
         CordonPosture posture = CordonPosture.valueOf(options.optString("posture", "hold").toUpperCase(Locale.ROOT));
-        return new CordonBattleFixture(seed, variant, biome, density, template.manifest(), posture).build();
+        return new CordonBattleFixture(seed, variant, biome, density, template.manifest(), posture, template.mechDrops())
+                .build();
     }
 
     /** The Relief ground start: twelve named starter recruits ashore at tick zero, the employer's shuttle flying. */

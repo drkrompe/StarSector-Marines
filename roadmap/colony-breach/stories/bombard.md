@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: IN PROGRESS — steps 1 (the spore haze) and 2 (the body and the lob) are built and scene-tested.
+Status: IN PROGRESS — steps 1 to 4 (the spore haze, the body and the lob, the counters, the look) are built, steps 1 to 3 scene-tested, and the probe (step 6) read on Cordon and Colony Breach with the battle cap in. The sound (step 5) is with the creature sound session.
 
 Written: 2026-10-25
 
@@ -73,7 +73,9 @@ line. It spoils its aim, so the Runners get across.
   shell wears by the Matriarch's worn-chitin law. When it dies, the sac
   bursts into one last small haze where it falls.
 - **Rarity.** Drawn from a bore's strain table at **maw tier only**, at a small
-  weight, and at most **one living Bombard per bore**. An old bloom's nests may
+  weight, at most **one living Bombard per bore**, and at most **three across the
+  battle** (`BombardQuota`), drawn only by the three such bores nearest the line;
+  one that dies frees its place, so the long arm regrows. An old bloom's nests may
   stand with one at setup. In a fresh Colony Breach it appears only once a bore
   has been fed to maw, as part of the feeding ramp.
 - **The tell.** Everything shows on the creature and in the air: the tail
@@ -125,16 +127,50 @@ prompts and provenance.
    lands there; it never lobs into melee; off creep it does not fire; a squad
    inside its minimum range is never lobbed on. **Built**
    (`SwarmBombardBehavior`, `SwarmBombards`, `BoreStrainTable.Slot#BOMBARD`,
-   `weapon.swarm-bombard`); it draws as a stand-in on the Spitter's family until
-   step 4, and its glob uses the acid glob's sprite.
+   `weapon.swarm-bombard`).
 3. **Counters.** The step-out reaction, the launch reveal, the officer's
-   designation.
+   designation. **Built**: `InfantryReflexes.IN_HAZE` (`HazeStepOut`) and the
+   haze edge wait (`HazeEdge`), scene-tested in `bombard-haze`; the launch
+   reveal (`SwarmBombards#launchReveals`, projected into fog by the battle
+   screen), checked in `bombard`; planted Bombards as `AirStrikeDirector`
+   candidates, which no scene covers yet (the probe will). The garrison's step
+   back from a hazed window is the same reflex, since the haze lies indoors too.
+   The melee exception has no loop: marines back off a melee anyway.
 4. **Look.** Cut the G1 master into a rig (body, sac, tail segments, sling,
    legs, claws) with the wind-up and release; the glob and its falling shadow;
-   the amber haze; sac wear. Look suite `bombard-look` at 1920x1080.
+   the amber haze; sac wear. Look suite `bombard-look` at 1920x1080. **Built**:
+   `RavBombardRig` and `RavBombardComposer`, cut by
+   `art-source/rav-redesign/artillery/export_bombard_rig.py` (legs, shell, six tail
+   slices, sling, glob); the tail curls over the back through the wind-up and
+   whips straight on the throw, the sac glows and flares, the shell wears
+   (`RavWear` slots 0 to 6), and a dead one bursts as a Spitter does. The glob
+   flies on its own sprite with a ground shadow that tightens as it lands
+   (`groundShadow` on the weapon's render block). `bombard-look` shows the walk,
+   the lob's beats and the death; the battle frames are `bombard`'s `bombard-lob`
+   look shot. The haze's amber was already in `SmokeRenderSystem`.
 5. **Sound.** Wind-up creak, whip and hinge crack, burst, haze hiss.
 6. **Probe.** One or two probe fixtures (`cordon-line`, then
    `colony-breach-v1`), judged by behaviour.
+   **First reading** (`BombardProbe`, printed as `[bombard]` by the
+   `cordon-line` and `colony-breach` evidence): over Cordon's 36 pooled seeds a
+   maw bore keeps its one Bombard all battle, about seven planted per battle
+   from the first minute, and few die (16 of 275). They throw rarely, 100 globs
+   in all, none in 17 battles, since the line seldom stands 20 to 55 cells off
+   creep. The globs hazed 81 troops, who stepped out in about two seconds on
+   average; each throw gave a launch reveal; 10 of 409 allied air calls went at
+   planted Bombards, and 8 Bombards died under one. Ground fire almost never
+   reaches them. Colony Breach v1: 7 fielded, 2 globs, 3 troops hazed. The
+   one-per-bore cap, not the slot's weight, set how many there were.
+   The air gap was a bug: the launch reveal reached only the player's fog, so the
+   strike director could designate a Bombard only on an operator's own sight,
+   and they plant beyond it. A revealed Bombard is now remembered while it stays
+   planted and called on belief, at a score above all but a dense pack: over
+   the same seeds, air calls on Bombards rose from 10 to 65 and Bombards killed
+   under one from 8 to 25 (35 held, 1 broken).
+   The owner picked a few at once (`bombard-count`): with the battle cap of
+   three, at most 3 alive in every battle, 122 fielded over the 36 seeds with
+   regrowth, 59 globs (81 uncapped), 48 troops hazed, 49 air calls on them;
+   33 held, 3 broken.
 
 ## Acceptance
 

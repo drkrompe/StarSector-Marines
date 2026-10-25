@@ -31,6 +31,9 @@ import java.util.Map;
  *       and land less of it.</li>
  *   <li>{@code pulses}: unarmed marines in one haze and swarm Brutes in another, far apart. The marines are stung by
  *       the burst and then by its pulses; the swarm is spared; the haze thins away and leaves nothing on the grid.</li>
+ *   <li>{@code steps-out}: a squad free to move, hazed where it stands. It walks out of the haze and does not walk
+ *       back in to stand in it. (The exception, a marine with a Rav in melee reach staying, has no loop: marines back
+ *       off a melee anyway, haze or none, so a loop could not tell the rule from the retreat.)</li>
  * </ul>
  *
  * <p>The verdicts assert mechanics; damage dealt and taken is reported, never tuned against. Every number is UNTUNED.
@@ -54,14 +57,20 @@ public final class BombardHazeScene implements BehaviorScene {
     private static final int MARINE_HAZE_X = 20;
     private static final int SWARM_HAZE_X = 76;
 
-    private static final List<String> LOOPS = List.of("clear", "hazed", "pulses");
+    private static final List<String> LOOPS = List.of("clear", "hazed", "pulses", "steps-out");
+    /** Ten seconds: a haze is whole for twelve. */
+    private static final int STEP_TICKS = 300;
+    /** By this tick, three seconds after the burst, a squad free to leave has left. */
+    private static final int OUT_BY_TICK = BURST_TICK + 90;
+    /** Ticks a squad settling just outside may jostle back over the edge in all: one second. */
+    private static final int REENTRY_ALLOWANCE_TICKS = 30;
 
     @Override public String id() { return "bombard-haze"; }
 
     @Override
     public String label() {
         return "Bombard spore haze: it spoils the aim of a squad shooting out of it without hiding anything, stings"
-                + " marines in pulses, spares the swarm, and thins away.";
+                + " marines in pulses, spares the swarm, and thins away; a squad free to move steps out of it.";
     }
 
     @Override public int frameDelayMillis() { return 70; }
@@ -73,6 +82,8 @@ public final class BombardHazeScene implements BehaviorScene {
         for (String loop : LOOPS) {
             if (loop.equals("pulses")) {
                 reports.add(playPulses(frames));
+            } else if (loop.equals("steps-out")) {
+                reports.add(playStepOut(loop, frames));
             } else {
                 ShootTrace trace = playShooting(loop, frames);
                 if (loop.equals("clear")) clearDamage = trace.damageDealt;
@@ -149,6 +160,47 @@ public final class BombardHazeScene implements BehaviorScene {
         metrics.put("woundTicksAfterBurst", trace.woundTicksAfterBurst);
         metrics.put("hazeGoneTick", trace.goneTick);
         return new SceneReport(id(), "pulses", PULSE_TICKS, verdicts, metrics);
+    }
+
+    private SceneReport playStepOut(String loop, FrameSink frames) {
+        SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(20261025L);
+        builder.squad("squad").faction(Faction.MARINE).size(4).at(MARINE_HAZE_X, ROW_Y).primary("weapon.field-rifle")
+                .health(2000f).done();
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        long[] squad = world.members("squad");
+        int[] inHazeAtCheck = {-1};
+        int[] firstClearTick = {-1};
+        int[] reentrySamples = {0};
+        TickObserver trace = (s, tick) -> {
+            if (tick == BURST_TICK) s.sporeHazes().burst(s, 0L, MARINE_HAZE_X + 0.5f, ROW_Y + 0.5f, 1f);
+            if (tick <= BURST_TICK) return;
+            World w = s.world();
+            int inHaze = 0;
+            for (long id : squad) {
+                if (w.isAlive(id) && s.getGrid().hasHaze(w.cellX(id), w.cellY(id))) inHaze++;
+            }
+            if (tick == OUT_BY_TICK) inHazeAtCheck[0] = inHaze;
+            if (inHaze == 0 && firstClearTick[0] < 0) firstClearTick[0] = tick;
+            else if (inHaze > 0 && firstClearTick[0] >= 0) reentrySamples[0]++;
+        };
+        SceneRun.of(world).observe(trace)
+                .frames(frames, loop, FRAME_EVERY_TICKS, tick -> String.format(Locale.ROOT,
+                        "bombard haze / %s / tick %d / %s", loop, tick, hazeCaption(sim)))
+                .run(STEP_TICKS);
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("it-walked-out", inHazeAtCheck[0] == 0,
+                inHazeAtCheck[0] + " marines in the haze three seconds after the burst (wanted none); clear at tick "
+                        + firstClearTick[0]));
+        verdicts.add(Verdict.of("it-did-not-walk-back-in", firstClearTick[0] >= 0
+                        && reentrySamples[0] <= REENTRY_ALLOWANCE_TICKS,
+                reentrySamples[0] + " ticks with a marine back over the edge after the squad was clear (wanted at most "
+                        + REENTRY_ALLOWANCE_TICKS + ", the squad settling)"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("inHazeAtCheck", inHazeAtCheck[0]);
+        metrics.put("firstClearTick", firstClearTick[0]);
+        metrics.put("reentryTicks", reentrySamples[0]);
+        return new SceneReport(id(), loop, STEP_TICKS, verdicts, metrics);
     }
 
     private static String hazeCaption(BattleSimulation sim) {

@@ -932,8 +932,9 @@
       "render": {
         "tracerColor": "E89A3C",
         "tracerTailCells": 0.8,
-        "projectileSprite": "graphics/battle/rav-spitter/acid-glob.png",
-        "projectileVisualCells": 0.7
+        "projectileSprite": "graphics/battle/rav-bombard/glob.png",
+        "projectileVisualCells": 0.55,
+        "groundShadow": true
       },
       "fx": {
         "muzzle": [

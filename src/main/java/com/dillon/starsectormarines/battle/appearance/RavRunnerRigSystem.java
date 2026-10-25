@@ -13,7 +13,7 @@ import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 
 /**
- * Advances every live Runner's, Brute's, Spitter's and Matriarch's skeleton from the tick's settled state: where the body stands,
+ * Advances every live Runner's, Brute's, Spitter's, Matriarch's and Bombard's skeleton from the tick's settled state: where the body stands,
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
  * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, a skitterer at work ({@link #setWork}) heads down over it, and a dead
@@ -35,6 +35,8 @@ public final class RavRunnerRigSystem {
     private LongPredicate stunned = id -> false;
     private LongToIntFunction matriarchAction = id -> RavMatriarchRig.NONE;
     private LongToDoubleFunction matriarchAge = id -> 0.0;
+    private LongToDoubleFunction bombardWindup = id -> 0.0;
+    private LongToDoubleFunction bombardPlanted = id -> 0.0;
 
     public RavRunnerRigSystem(EntityWorld world, BattleComponents components) {
         this.world = world;
@@ -67,6 +69,12 @@ public final class RavRunnerRigSystem {
         this.matriarchAge = ageSeconds;
     }
 
+    /** Where a Bombard's wind-up and plant (each 0 to 1) come from. */
+    public void bombardState(LongToDoubleFunction windup, LongToDoubleFunction planted) {
+        this.bombardWindup = windup;
+        this.bombardPlanted = planted;
+    }
+
     public void tick(float dt) {
         for (ArchetypeTable table : world.matched(runners)) {
             Object[] rigs = table.objects(components.RAV_RIG, BattleComponents.RAV_RIG_STATE).array();
@@ -89,6 +97,13 @@ public final class RavRunnerRigSystem {
                 if (state instanceof RavSpitterRig spitter) {
                     spitter.setStage(stage(table.entityAt(row)));
                     spitter.advance(posX[row], posY[row], facing[row], cooldown[row], target[row] != 0L, dt);
+                    continue;
+                }
+                if (state instanceof RavBombardRig bombard) {
+                    long id = table.entityAt(row);
+                    bombard.setStage(stage(id));
+                    bombard.advance(posX[row], posY[row], facing[row], cooldown[row],
+                            (float) bombardWindup.applyAsDouble(id), (float) bombardPlanted.applyAsDouble(id), dt);
                     continue;
                 }
                 if (state instanceof RavMatriarchRig matriarch) {
@@ -117,6 +132,7 @@ public final class RavRunnerRigSystem {
                 if (rigs[row] instanceof RavRunnerRig rig) rig.advanceDead(posX[row], posY[row], dt);
                 else if (rigs[row] instanceof RavBruteRig brute) brute.advanceDead(posX[row], posY[row], dt);
                 else if (rigs[row] instanceof RavSpitterRig spitter) spitter.advanceDead(posX[row], posY[row], dt);
+                else if (rigs[row] instanceof RavBombardRig bombard) bombard.advanceDead(posX[row], posY[row], dt);
             }
         }
     }

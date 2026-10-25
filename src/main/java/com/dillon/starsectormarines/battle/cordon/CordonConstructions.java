@@ -104,12 +104,13 @@ public final class CordonConstructions {
                 CordonWorks works = new CordonWorks(map.grid, map.topology, map.doodads, seed ^ BASE_SALT,
                         site.cx(), site.cy());
                 Laid dump = map.layout.find(CordonSetPieces.AMMO_DUMP);
-                if (dump != null && dump.isLaid() && dump.cells().size() == 2) {
-                    works.protect(new int[]{dump.cells().get(0)[0] - 1, dump.cells().get(0)[1] - 1,
-                            dump.cells().get(1)[0] + 1, dump.cells().get(1)[1] + 1});
-                }
+                int[] kept = dump != null && dump.isLaid() && dump.cells().size() == 2
+                        ? new int[]{dump.cells().get(0)[0] - 1, dump.cells().get(0)[1] - 1,
+                        dump.cells().get(1)[0] + 1, dump.cells().get(1)[1] + 1} : null;
+                works.protect(kept);
                 CordonBuilders.Frame frame = new CordonBuilders.Frame(site.cx(), site.cy(), front);
                 CordonBuilders.Built built = builder.build(works, frame, site);
+                works.refloor(kept);
                 works.finish();
                 buildings = works.buildings(buildings);
                 // A work point stands on open floor: what the builder put down after the gantries may have taken one.

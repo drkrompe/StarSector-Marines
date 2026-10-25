@@ -18,13 +18,15 @@ public final class SwarmFootprint {
     private static final float RUNNER_AHEAD = 0.85f, RUNNER_BEHIND = 0.65f, RUNNER_ACROSS = 0.46f;
     private static final float BRUTE_AHEAD = 0.94f, BRUTE_BEHIND = 0.57f, BRUTE_ACROSS = 0.92f;
     private static final float MATRIARCH_AHEAD = 2.60f, MATRIARCH_BEHIND = 1.80f, MATRIARCH_ACROSS = 1.90f;
+    private static final float BOMBARD_AHEAD = 0.86f, BOMBARD_BEHIND = 0.82f, BOMBARD_ACROSS = 0.95f;
 
     private SwarmFootprint() {
     }
 
     /** Whether {@code type} has a drawn footprint here: the long-bodied Rav strains. */
     public static boolean has(UnitType type) {
-        return type == UnitType.SWARM_RUNNER || type == UnitType.SWARM_BRUTE || type == UnitType.SWARM_MATRIARCH;
+        return type == UnitType.SWARM_RUNNER || type == UnitType.SWARM_BRUTE || type == UnitType.SWARM_MATRIARCH
+                || type == UnitType.SWARM_BOMBARD;
     }
 
     /** Nose to rump, cells. */
@@ -47,6 +49,7 @@ public final class SwarmFootprint {
             case SWARM_RUNNER -> RUNNER_AHEAD;
             case SWARM_BRUTE -> BRUTE_AHEAD;
             case SWARM_MATRIARCH -> MATRIARCH_AHEAD;
+            case SWARM_BOMBARD -> BOMBARD_AHEAD;
             default -> 0f;
         };
     }
@@ -56,6 +59,7 @@ public final class SwarmFootprint {
             case SWARM_RUNNER -> RUNNER_BEHIND;
             case SWARM_BRUTE -> BRUTE_BEHIND;
             case SWARM_MATRIARCH -> MATRIARCH_BEHIND;
+            case SWARM_BOMBARD -> BOMBARD_BEHIND;
             default -> 0f;
         };
     }
@@ -65,6 +69,7 @@ public final class SwarmFootprint {
             case SWARM_RUNNER -> RUNNER_ACROSS;
             case SWARM_BRUTE -> BRUTE_ACROSS;
             case SWARM_MATRIARCH -> MATRIARCH_ACROSS;
+            case SWARM_BOMBARD -> BOMBARD_ACROSS;
             default -> 0f;
         };
     }

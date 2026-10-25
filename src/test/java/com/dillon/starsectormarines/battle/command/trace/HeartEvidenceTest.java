@@ -342,7 +342,8 @@ class HeartEvidenceTest {
                 for (SurfacePalette biome : SurfacePalette.values()) {
                     String b = biome.name().toLowerCase(Locale.ROOT);
                     for (StoryMapPool.Entry entry : StoryMapPools.pool(BloomHeartSetup.storyMap(heart.form(), density)).entries(biome)) {
-                        out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), biome, density, heart.manifest()),
+                        out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), biome, density, heart.manifest(),
+                                heart.objectives(), heart.mechDrops()),
                                 fixtureId(template) + d + "-" + b + "-seed" + entry.seed(),
                                 template + " at pooled " + density.name().toLowerCase(Locale.ROOT) + " " + b + " seed " + entry.seed()));
                     }

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * arrival tick: {@link #tick} bursts it in the serial pass through {@link SporeHazes#burst}, which detonates, so
  * it may not run on a worker. The same pass bursts a dead Bombard's sac into its last small haze, and frees its
  * bore to draw another.
+ *
+ * <p>A launch gives the Bombard away as a muzzle flash does: for {@link #LAUNCH_REVEAL_SECONDS} its cell is
+ * observed ({@link #launchReveals}), so the player sees what threw the glob even through fog of war.
  */
 public final class SwarmBombards {
 
@@ -26,6 +30,10 @@ public final class SwarmBombards {
     static final float WINDUP_SECONDS = 3f;
     /** The death burst's haze against a glob's. */
     static final float DEATH_HAZE_SCALE = 0.5f;
+    /** Seconds a launch keeps the Bombard's cell observed. */
+    public static final float LAUNCH_REVEAL_SECONDS = 4f;
+    /** Cells of sight round a launching Bombard: enough to show the body and its creep, no more. */
+    public static final int LAUNCH_REVEAL_RANGE = 2;
 
     /** What a Bombard is doing. */
     enum Phase { WALKING, PLANTING, PLANTED, WINDING_UP, UPROOTING }
@@ -43,8 +51,11 @@ public final class SwarmBombards {
         SwarmBore bore;
     }
 
-    /** A glob in the air that bursts at ({@code x}, {@code y}) once the sim reaches {@code arrivalTick}. */
-    record Glob(long shooter, float x, float y, float scale, int arrivalTick) {}
+    /** A glob in the air, flung from ({@code fromX}, {@code fromY}), that bursts at ({@code x}, {@code y}) once the sim reaches {@code arrivalTick}. */
+    record Glob(long shooter, int fromX, int fromY, float x, float y, float scale, int arrivalTick) {}
+
+    /** A launch seen through fog: the cell it was flung from, observed until {@code untilTick}. */
+    public record Reveal(int cellX, int cellY, int untilTick) {}
 
     private static final Comparator<Glob> GLOB_ORDER = Comparator
             .comparingInt(Glob::arrivalTick).thenComparingLong(Glob::shooter);
@@ -53,6 +64,8 @@ public final class SwarmBombards {
     private final ConcurrentLinkedQueue<Glob> posted = new ConcurrentLinkedQueue<>();
     private final List<Glob> inFlight = new ArrayList<>();
     private final List<Long> dead = new ArrayList<>();
+    private final List<Reveal> reveals = new ArrayList<>();
+    private final List<Reveal> revealView = Collections.unmodifiableList(reveals);
     private int globsLanded;
     private int deathBursts;
 
@@ -73,17 +86,31 @@ public final class SwarmBombards {
     }
 
     /** Thread-safe; called from a Bombard's update as it flings. */
-    void postGlob(long shooter, float x, float y, float scale, int arrivalTick) {
-        posted.add(new Glob(shooter, x, y, scale, arrivalTick));
+    void postGlob(long shooter, int fromX, int fromY, float x, float y, float scale, int arrivalTick) {
+        posted.add(new Glob(shooter, fromX, fromY, x, y, scale, arrivalTick));
+    }
+
+    /** The launches observed now; a read-only view, kept by {@link #tick}. */
+    public List<Reveal> launchReveals() {
+        return revealView;
     }
 
     /** Serial: bursts every glob that has landed, and every dead Bombard's sac. */
     public void tick(BattleSimulation sim) {
-        if (stances.isEmpty() && inFlight.isEmpty() && posted.isEmpty()) return;
-        int before = inFlight.size();
-        for (Glob glob; (glob = posted.poll()) != null; ) inFlight.add(glob);
-        if (inFlight.size() > before) inFlight.sort(GLOB_ORDER);
+        if (stances.isEmpty() && inFlight.isEmpty() && posted.isEmpty() && reveals.isEmpty()) return;
         int now = sim.getSimTickIndex();
+        reveals.removeIf(reveal -> reveal.untilTick() < now);
+        int before = inFlight.size();
+        int revealTicks = Math.round(LAUNCH_REVEAL_SECONDS / BattleSimulation.TICK_DT);
+        for (Glob glob; (glob = posted.poll()) != null; ) {
+            inFlight.add(glob);
+            reveals.add(new Reveal(glob.fromX(), glob.fromY(), now + revealTicks));
+        }
+        if (inFlight.size() > before) {
+            inFlight.sort(GLOB_ORDER);
+            reveals.sort(Comparator.comparingInt(Reveal::cellX).thenComparingInt(Reveal::cellY)
+                    .thenComparingInt(Reveal::untilTick));
+        }
         for (int i = 0; i < inFlight.size(); ) {
             Glob glob = inFlight.get(i);
             if (glob.arrivalTick() > now) {
@@ -117,6 +144,36 @@ public final class SwarmBombards {
     public boolean planted(long body) {
         Stance stance = stances.get(body);
         return stance != null && (stance.phase == Phase.PLANTED || stance.phase == Phase.WINDING_UP);
+    }
+
+    /** The planted Bombards, lowest id first, for a side picking what to strike. Serial. */
+    public List<Long> plantedBodies() {
+        List<Long> out = new ArrayList<>();
+        for (Map.Entry<Long, Stance> entry : stances.entrySet()) {
+            Phase phase = entry.getValue().phase;
+            if (phase == Phase.PLANTED || phase == Phase.WINDING_UP) out.add(entry.getKey());
+        }
+        out.sort(null);
+        return out;
+    }
+
+    /** How far into its wind-up a Bombard is, 0 to 1; 0 when it is not winding up. For the look. */
+    public float windupShare(long body) {
+        Stance stance = stances.get(body);
+        if (stance == null || stance.phase != Phase.WINDING_UP) return 0f;
+        return Math.max(0f, Math.min(1f, 1f - stance.timer / WINDUP_SECONDS));
+    }
+
+    /** How far planted a Bombard is: 0 walking, rising through its plant to 1, falling as it uproots. For the look. */
+    public float plantedShare(long body) {
+        Stance stance = stances.get(body);
+        if (stance == null) return 0f;
+        return switch (stance.phase) {
+            case WALKING -> 0f;
+            case PLANTING -> Math.max(0f, Math.min(1f, 1f - stance.timer / PLANT_SECONDS));
+            case UPROOTING -> Math.max(0f, Math.min(1f, stance.timer / PLANT_SECONDS));
+            case PLANTED, WINDING_UP -> 1f;
+        };
     }
 
     /** Whether a Bombard has its tail cocked back for a lob, for evidence and the look. */

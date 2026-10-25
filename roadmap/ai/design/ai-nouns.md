@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-25 — a marine steps out of a Bombard's spore haze just below the fire, and waits at its edge rather than walk back in to stand in it. Earlier the same day: squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -234,6 +234,13 @@ arrival with a rocket tube and a turret in view is exactly the marine that rank
 exists for. It also outranks the broken-fire-team peel, which would otherwise
 send him to cover on his own rather than back to the squad he is trying to
 reach. Return fire is not initiation and is not withheld by it.
+
+A marine **in a spore haze** (`bombard.md`) steps out of it, ranked just below
+the fire: the fire burns where the haze only stings, and both rank above
+everything that shoots, because the haze is what spoils the shot. He leaves for
+the nearest clear cell unless a Rav is in melee reach, and once out his walking
+waits at the haze's edge rather than step back in to stand in it; a route that
+crosses a haze to clear ground beyond goes on.
 
 A **fire team** is the standing organizational element between the squad and
 the individual: a small, stable billet group a marine belongs to for the whole

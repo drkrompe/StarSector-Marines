@@ -272,12 +272,13 @@ system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 **Logistics base.** The allies' depot behind the middle of the line: a
 fenced compound with a vehicle shed, stores and a muster yard
 (`FortressProgram.logisticsBase`). A town's base is that shed or, as likely,
-the town's **goods yard**: a goods shed on the front side of the yard's road (or
-of its own drive across the middle, where the town's road only reaches the
-gate), flatbeds and cargo trucks on its apron beside a cargo loader, the
-freight waiting to go out stacked in rows, and behind the road the yard's
-workshop and the same two open-air gantries as a city's depots, an industrial
-fence round it all. A city's base mixes that **shed** with two
+the town's **goods yard**, under worn asphalt: a goods shed on the front side
+of the yard's road (or of its own drive across the middle, where the town's
+road only reaches the gate or runs along the fence), flatbeds and cargo trucks
+on its apron beside a cargo loader, the freight waiting to go out stacked in
+rows; behind the road the yard's workshop and the same two open-air gantries as
+a city's depots; past them the yard's vans and tankers in marked bays along the
+rear fence and a fuel corner; an industrial fence round it all. A city's base mixes that **shed** with two
 constructions (`CordonConstruction`, picked from the seed, each equally
 likely): a **warehouse depot** (two freight warehouses on the road's front side
 with trucks on their apron, an industrial fence round the yard) and a **car
@@ -490,6 +491,15 @@ The Road also has a **second road** through the line, from the base's gate
 through the gap beside redoubt 2 to the compound's rear gate (beat R5),
 carved where the country is open; the corridor is still the cheapest way,
 whichever that is.
+
+**A well-found company.** The Cordon is fought late in the campaign, so the
+company it stands up itself is the same strong one as the heart's (owner pick,
+2026-10-25): veterans and elites in heavy suits with Milspec or Masterwork
+issue (`InfantryLoadoutRolls.lateCampaignSquad`, `heart-nouns.md`). A campaign
+launch lands the player's own company over those seats, and its machines
+through Mech Support; a fixture's `declaredMechDrops` brings down a Marine lance
+for debug launches and evidence, called just after landfall and claimed by the
+company's commander. The Line and Road evidence fixtures declare one.
 
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),
