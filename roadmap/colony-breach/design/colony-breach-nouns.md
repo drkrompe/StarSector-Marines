@@ -2192,7 +2192,7 @@ Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. The skitterer's squeak sits near -30 and its
 death -28, its drag -35, each work loop -36 and its patter -39. A Runner clutch's claw-up sits near
--34 and the Matriarch's -31. A spire's launch sums near -23, by a Harrier
+-32, three bodies' -29 and the Matriarch's -30. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion

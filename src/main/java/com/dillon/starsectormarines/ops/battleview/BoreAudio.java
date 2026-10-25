@@ -37,10 +37,10 @@ public final class BoreAudio {
     static final String CLAW_UP = "marines_breach_bore_clawup";
     static final float PITCH_JITTER = 0.06f;
     /**
-     * One body's claw-up alone. The take is levelled to -20 LUFS, so a Runner's lands near -33, under the
-     * footfalls' crowd and far under the surge cue and the gunfire's -24 to -28.
+     * One body's claw-up alone. The take is levelled to -20 LUFS, so a Runner's lands near -32 and a clutch of three
+     * near -29, under the gunfire's -24 to -28 and far under the surge cue.
      */
-    static final float CLAW_UP_VOLUME = 0.22f;
+    static final float CLAW_UP_VOLUME = 0.3f;
     /** Ticks of missed emergence a frame looks back over, when the screen draws slower than the battle runs. */
     static final int CATCH_UP_TICKS = 30;
     private static final float AMBIENCE_VOLUME = 0.45f;
@@ -172,7 +172,7 @@ public final class BoreAudio {
         for (UnitType type : bodies) pitch = Math.min(pitch, pitch(type));
         if (bodies.isEmpty()) pitch = 1f;
         float volume = (float) Math.pow(Math.max(1, bodies.size()), 0.25);
-        if (bodies.contains(UnitType.SWARM_MATRIARCH)) volume *= 1.6f;
+        if (bodies.contains(UnitType.SWARM_MATRIARCH)) volume *= 1.4f;
         return new Claw(pitch, volume);
     }
 
