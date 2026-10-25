@@ -95,12 +95,14 @@ public class CommandFrame {
                 memberCellXs[memberIndex] = memberX;
                 memberCellYs[memberIndex] = memberY;
                 memberZoneIds[memberIndex] = sim.getZoneGraph().zoneIdAt(memberX, memberY);
-                if (sim.world().pathIdx(member)
+                // A rider has no path or velocity of its own (VehicleTransportService): it is carried, not walking.
+                boolean riding = sim.isRiding(member);
+                if (!riding && sim.world().pathIdx(member)
                         < Paths.cellCount(sim.world().path(member))) {
                     activePathMembers++;
                 }
-                float velocityX = sim.movement().velX(member);
-                float velocityY = sim.movement().velY(member);
+                float velocityX = riding ? 0f : sim.movement().velX(member);
+                float velocityY = riding ? 0f : sim.movement().velY(member);
                 if (velocityX * velocityX + velocityY * velocityY > 0.0001f) {
                     movingMembers++;
                 }

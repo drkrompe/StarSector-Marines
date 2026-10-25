@@ -97,6 +97,23 @@ class VehicleTransportTest {
     }
 
     @Test
+    void aPassengerCanStillWalkWhenItGetsOut() {
+        // Move speed lives in MOVEMENT, which a rider gives up and gets back zeroed: without carrying it through
+        // the ride, a marine set down stood where it got out for the rest of the battle.
+        BattleSimulation sim = arena();
+        long apc = apcAt(sim, 30.5f, 30.5f);
+        int squadId = squadBeside(sim, 30, 30);
+        long marine = firstSquadMember(sim, squadId);
+        float speedBefore = sim.movement().moveSpeed(marine);
+        assertTrue(speedBefore > 0f, "fixture check: the marine starts able to walk");
+
+        sim.transport().mountSquad(apc, squadId);
+        sim.transport().dismountAll(apc);
+
+        assertEquals(speedBefore, sim.movement().moveSpeed(marine), 0.001f, "it walks as fast as it did before");
+    }
+
+    @Test
     void aRiddenSquadForgetsWhereItWasToldToGo() {
         // A ride across the map invalidates the objective by construction: a
         // squad that kept it would dismount and walk back the way it came.

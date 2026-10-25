@@ -52,6 +52,13 @@ public final class VehicleControlComponent {
     public float localPlanFailureTime;
     /** True after the immediate re-route attempt for the current uninterrupted local-plan failure. */
     public boolean localPlanFailureRerouteAttempted;
+    /**
+     * Planless back-offs in a row without getting clear of where the first was ({@code VehicleControlSystem}): each
+     * restarts the plan-failure clock, so the count is what says a sealed-in hull has stopped converging.
+     */
+    public int planlessReverses;
+    /** Where the first of {@link #planlessReverses} began. */
+    public float planlessAnchorX, planlessAnchorY;
 
     /** Active Reeds-Shepp docking path, or {@code null} when not docking. */
     public ReedsShepp.Path dockingPath;

@@ -538,7 +538,7 @@ public final class CordonSetup {
         }
         sequence.attachLine(new CordonLineCommand(sim, sequence, armour, logistics, cordon.density(), table, pickets,
                 map.layout));
-        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density()),
+        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density(), logistics),
                 CordonCommand.disclosure(sequence));
         CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,
                 cordon.corridor(), cordon.battleSeed());

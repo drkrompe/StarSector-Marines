@@ -34,6 +34,11 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     public static final String ISSUER = "cordon-company";
     /** Squads of the reserve stand this far apart along the line. */
     static final int RESERVE_SPACING = CordonCompanyRules.POST_SPACING;
+    /**
+     * Ticks a squad whose lift was called off walks before it may ask again (20 s): a call that comes and goes
+     * would otherwise have a carrier granted and called off every review.
+     */
+    static final int LIFT_COOLDOWN_TICKS = 600;
     /** How near the asked-for cell a squad's ground is looked for. */
     private static final int SNAP = 5;
 
@@ -48,9 +53,14 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         /** The base's apron while the swarm is on it, else {@code null}. */
         final int[] baseOverrun;
         final boolean tide;
+        /** The base's carriers free to lift a squad; empty in a city or without a base. */
+        final List<CordonLogistics.Carrier> carriers;
+        /** Where the carrier lifting each squad stands, by squad. */
+        final Map<Integer, float[]> lifting;
 
         Frame(CommandFrame base, List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> escorts,
-              List<int[]> beats, int[] baseOverrun, boolean tide) {
+              List<int[]> beats, int[] baseOverrun, boolean tide, List<CordonLogistics.Carrier> carriers,
+              Map<Integer, float[]> lifting) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.radio = radio;
             this.roadBlocks = roadBlocks;
@@ -58,6 +68,8 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             this.beats = beats;
             this.baseOverrun = baseOverrun;
             this.tide = tide;
+            this.carriers = carriers;
+            this.lifting = lifting;
         }
     }
 
@@ -81,7 +93,10 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             CordonLogistics logistics = sequence.logistics();
             int[] overrun = logistics == null || sim == null || logistics.dispatchCell(sim) != null ? null
                     : new int[]{logistics.musterX(), logistics.musterY()};
-            return new Frame(base, List.copyOf(radio), blocks, escorts, beats, overrun, sequence.inTide());
+            List<CordonLogistics.Carrier> carriers = logistics == null || sim == null ? List.of() : logistics.liftable(sim);
+            Map<Integer, float[]> lifting = logistics == null || sim == null ? Map.of() : logistics.lifting(sim);
+            return new Frame(base, List.copyOf(radio), blocks, escorts, beats, overrun, sequence.inTide(), carriers,
+                    lifting);
         };
     }
 
@@ -89,11 +104,16 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     private final CordonPlan.Density density;
     /** The duty each squad was last given, by key, so it keeps it while it stands. */
     private final Map<Integer, String> onDuty = new HashMap<>();
+    /** The base the company asks for lifts, or {@code null} where there is none. */
+    private final CordonLogistics depot;
+    /** The tick each squad's lift was last called off, by squad. */
+    private final Map<Integer, Integer> calledOff = new HashMap<>();
 
-    public CordonCommand(int reserveX, int reserveY, CordonPlan.Density density) {
+    public CordonCommand(int reserveX, int reserveY, CordonPlan.Density density, CordonLogistics depot) {
         this.reserveX = reserveX;
         this.reserveY = reserveY;
         this.density = density;
+        this.depot = depot;
     }
 
     @Override public Faction faction() { return Faction.MARINE; }
@@ -129,11 +149,33 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         List<int[]> posts = CordonCompanyRules.reservePosts(density, line, reserveX, reserveY, waiting.size(), frame.tide);
 
         String phase = phase(assigned);
+        List<CordonLogistics.Carrier> free = new ArrayList<>(frame.carriers);
         for (CommandSquadState squad : owned) {
             Duty duty = assigned.get(squad.squadId());
             ObjectiveAssignment next;
             String reason;
-            if (duty != null) {
+            float[] ride = frame.lifting.get(squad.squadId());
+            if (ride != null && depot != null && (duty == null
+                    || Math.hypot(duty.x() - ride[2], duty.y() - ride[3]) > CordonLogistics.LIFT_REACH)) {
+                // The duty it rides for has ended or moved: set down where it is rather than carried to the old one.
+                depot.callOff(squad.squadId());
+                calledOff.put(squad.squadId(), frame.tick());
+                ride = null;
+            }
+            if (duty != null && ride != null) {
+                // Lifted: walk to the carrier and board; the base sets the squad down at its duty.
+                next = ObjectiveAssignment.attackMove(squad.squadId(), (int) ride[0], (int) ride[1]);
+                reason = "CORDON_LIFT_" + duty.key();
+            } else if (duty != null) {
+                CordonLogistics.Carrier carrier = nearest(free, squad.centroidX(), squad.centroidY(),
+                        squad.aliveMembers());
+                Integer off = calledOff.get(squad.squadId());
+                boolean cooling = off != null && frame.tick() - off < LIFT_COOLDOWN_TICKS;
+                if (depot != null && carrier != null && !cooling && CordonCompanyRules.liftWorth(density, squad.centroidX(),
+                        squad.centroidY(), duty.x(), duty.y(), carrier.x(), carrier.y())) {
+                    depot.ask(carrier.hull(), squad.squadId(), duty.x(), duty.y());
+                    free.remove(carrier);
+                }
                 int[] cell = ground(frame, squad, duty.x(), duty.y());
                 next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
                 reason = "CORDON_" + duty.kind() + "_" + duty.key();
@@ -152,6 +194,14 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         return new CommandPlan<>(faction(), strategyId(), phase, frame.tick(),
                 frame.influence() == null ? -1 : frame.influence().updatedTick(), owned.size(), 0,
                 List.of(phase), proposals, phase);
+    }
+
+    /** The free carrier nearest a squad that seats it whole, or {@code null}: a squad rides together or walks. */
+    static CordonLogistics.Carrier nearest(List<CordonLogistics.Carrier> carriers, float x, float y, int members) {
+        CordonLogistics.Carrier best = null;
+        for (CordonLogistics.Carrier c : carriers)
+            if (c.seats() >= members && (best == null || Math.hypot(c.x() - x, c.y() - y) < Math.hypot(best.x() - x, best.y() - y))) best = c;
+        return best;
     }
 
     /** The most urgent duty anyone is on names the phase. */
