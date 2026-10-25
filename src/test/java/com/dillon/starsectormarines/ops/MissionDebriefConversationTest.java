@@ -91,7 +91,7 @@ class MissionDebriefConversationTest {
         assertEquals("RECOVERY AGREEMENT / TRANSCRIPT", MissionDebriefConversation.title(salvage));
     }
 
-    @Test void onlyTheWonFreightRunClosesJangalaAndPointsAtAsharu() {
+    @Test void onlyTheWonFreightRunClosesJangalaAndPointsAtAsharu() throws Exception {
         record Run(boolean victory, List<Integer> delivered, List<Integer> lost, int marinesLost) { }
         for (var run : List.of(new Run(true, List.of(0, 1, 2), List.of(), 0), new Run(true, List.of(0, 1), List.of(2), 3),
                 new Run(false, List.of(), List.of(0, 1, 2), 0), new Run(false, List.of(), List.of(0), 0))) {
@@ -105,13 +105,15 @@ class MissionDebriefConversationTest {
             assertEquals(run.victory(), MissionDebriefConversation.jangalaClosing(outcome, route),
                     "an exhausted account is a failure, not a goodbye");
             if (!run.victory()) continue;
-            var lines = MissionDebriefConversation.jangalaLines(outcome);
+            var lines = MissionDebriefConversation.jangalaLines(outcome, catalog());
             assertEquals(run.marinesLost() > 0 ? 6 : 5, lines.size());
             assertEquals(run.marinesLost() > 0, lines.stream().anyMatch(l -> l.event().equals("debrief.jangala.cost")));
             assertTrue(lines.get(0).speaker().startsWith("MARA"));
             var next = lines.get(lines.size() - 1);
             assertTrue(next.speaker().startsWith("CASTLE"));
             assertTrue(next.text().contains("Asharu") && next.text().contains("plot a course"));
+            assertTrue(lines.subList(0, lines.size() - 1).stream().allMatch(WaylineNarration.Line::voiced));
+            assertFalse(next.voiced(), "the Asharu handoff waits on its lead before it is recorded");
         }
     }
 

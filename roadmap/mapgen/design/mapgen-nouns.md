@@ -386,12 +386,16 @@ see one network. Planning is read-only until it commits, draws no random number,
 leaves are labelled and before compound claims, which take each district's compound first; a district
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
 district, a cluster with no streets of its own. **Main street** is the first program: rows of shopfronts behind
-pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
-hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
-door). The **cordoned facility** stands on a quarter: an admin block, labs or
+pavements on both sides of one straight street, the kerb dressed as cover (street lamps, planters, stalls,
+parked vans) and an awning over each shop door, a plaza at one end and a civic hall at the other, in a
+civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on
+`MapResult` (the centre line, the plaza and the hall's door). **Street dressing** (`StreetDressing`) is the
+kit districts lay along their streets: standing pieces (lamps, gantry columns, jersey barriers, bollards,
+boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, pipe rack cells) and the
+boom-gate arm block nothing and carry no cover. The **cordoned facility** stands on a quarter: an admin block, labs or
 workshops, a depot with its forecourt, a yard and a courtyard on the quarter's own streets inside one wall
 on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed to a three-cell lane
-between solid jambs; a street ending against a lot is walled across. It publishes `CordonedFacility` on
+between solid jambs with a boom gate across it just inside; a street ending against a lot is walled across. It publishes `CordonedFacility` on
 `MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door).
 
 A town's lots are built along their streets (`town-plan.md`). A **frontage row** cuts an ordinary shop or
