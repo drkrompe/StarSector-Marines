@@ -34,7 +34,7 @@ header p{margin:8px 0 0;color:var(--muted);max-width:64ch}
 .chosen{font:600 13px var(--body);color:var(--done)}
 .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
 .opt{display:grid;gap:8px;text-align:left;padding:10px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit;min-width:0}
-.opt img{width:100%;height:auto;display:block;border-radius:6px;background:#0d0b10}
+.opt img,.opt video{width:100%;height:auto;display:block;border-radius:6px;background:#0d0b10}
 .shot{position:relative;display:block;padding:0;border:0;background:none;cursor:zoom-in;border-radius:6px}
 .shot .zoomhint{position:absolute;right:8px;bottom:8px;font:600 12px var(--body);background:rgba(13,11,16,.75);color:#fff;padding:3px 8px;border-radius:4px}
 .extras{display:flex;gap:6px;flex-wrap:wrap}
@@ -104,7 +104,7 @@ function render(){
       <div class="q-head"><span class="owner">${esc(q.area)}</span><h2>${esc(q.question)}</h2>
       ${chosen.length ? `<span class="chosen">Picked ${chosen.map(c => esc(c.key) + ": " + esc(c.label)).join("; ")}</span>` : (q.multi ? `<span class="owner">Pick any number</span>` : "")}</div>
       <div class="opts">${q.options.map(o => `<div class="opt" id="o-${q.id}-${o.key}" aria-pressed="${on(p, o.key)}">
-        <button type="button" class="shot" data-zoom="${esc(o.file)}" data-title="${esc(o.key + ' — ' + o.label)}" aria-label="Zoom ${esc(o.label)}"><img src="${esc(o.file)}" alt="${esc(o.label)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>
+        ${o.video ? `<video src="${esc(o.video)}" poster="${esc(o.file)}" controls playsinline preload="metadata" aria-label="${esc(o.label)}"></video>` : `<button type="button" class="shot" data-zoom="${esc(o.file)}" data-title="${esc(o.key + ' — ' + o.label)}" aria-label="Zoom ${esc(o.label)}"><img src="${esc(o.file)}" alt="${esc(o.label)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>`}
         ${(o.extra || []).length ? `<div class="extras">${o.extra.map(x => `<button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(o.key + ' — ' + (x.label || ''))}" aria-label="Zoom ${esc(x.label || o.label)}"><img src="${esc(x.file)}" alt="${esc(x.label || '')}" loading="lazy"></button>`).join("")}</div>` : ""}
         <span class="lab"><span class="key">${esc(o.key)}</span><span class="name">${esc(o.label)}</span></span>
         ${o.note ? `<span class="note">${esc(o.note)}</span>` : ""}

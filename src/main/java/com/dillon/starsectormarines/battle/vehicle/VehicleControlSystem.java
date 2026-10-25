@@ -59,6 +59,8 @@ public final class VehicleControlSystem {
     private HoverSkirt skirt;
     /** Heavy-lift hulls' tracks, or {@code null} where no map editor is wired: such a hull then drives the live grid. */
     private HeavyTracks tracks;
+    /** Soft ground a move order's hull may brush as its last rung, or {@code null} where it never does. */
+    private SoftBrush brush;
 
     public VehicleControlSystem(ConvoyService convoy, NavigationService navigation) {
         this(convoy, navigation, Boolean.parseBoolean(System.getProperty(
@@ -79,6 +81,12 @@ public final class VehicleControlSystem {
 
     /** Gives heavy-lift hulls their tracks. Without them a tank stops at undergrowth as a lighter hull does. */
     public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
+
+    /** Lets a move order's last rung brush soft ground ({@link SoftBrush}). Without it the order is given up as before. */
+    public void setBrush(SoftBrush brush) { this.brush = brush; }
+
+    /** The soft ground a move order may brush, or {@code null} where none may. */
+    SoftBrush brush() { return brush; }
 
     /** Hulls that hold still this tick, whatever their route says. */
     public void setStall(LongPredicate stalled) { this.stalled = stalled; }
@@ -245,6 +253,7 @@ public final class VehicleControlSystem {
         s.timeSinceProgress = 0f;
         s.pivotTracking = false;
         s.pivotDirection = 0;
+        s.brushing = false;
         if (clearRescueFirstSteps) {
             s.rescueFirstStepTriedMask = 0;
             s.rerouteAvoidCount = 0;
@@ -330,7 +339,8 @@ public final class VehicleControlSystem {
         float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
         float threshold = VehicleController.arrivalDist(leg.arrivalFloorCells(), body, dt);
         if (distToLast < threshold) {
-            if (leg.snapsToEndpoint()) {
+            // A brushed pose overlaps soft ground, so a strict snap from it would never move: it arrives as it stands.
+            if (leg.snapsToEndpoint() && !s.brushing) {
                 Pose from = new Pose(body.x, body.y, body.facingDegrees);
                 var step = VehicleTerrainMotion.sweep(from, new Pose(xs[lastIdx], ys[lastIdx], body.facingDegrees),
                         type.visualLengthCells, type.visualWidthCells, motionGrid(type), false);
@@ -393,16 +403,26 @@ public final class VehicleControlSystem {
             // route proof drove at the chassis's turning circle wherever one fits and pivots it at the bends where
             // none does, stopping to pivot whenever the corridor turns further than it can steer. Tracks and skirts
             // do so at once; wheels only once braking and the reroute have both failed.
-            boolean pivotDue = NeutralPivot.onRoutes(type) || s.pivotTracking
+            boolean pivotDue = !s.brushing && (NeutralPivot.onRoutes(type) || s.pivotTracking
                     || s.localPlanFailureRerouteAttempted
-                    && s.localPlanFailureTime >= NeutralPivot.LAST_RESORT_SECONDS;
-            if (pivotDue && pivotTrack(mission, body, type, s, xs, ys, dt)) {
+                    && s.localPlanFailureTime >= NeutralPivot.LAST_RESORT_SECONDS);
+            if (pivotDue && pivotTrack(mission, body, type, s, xs, ys, dt, false)) {
                 s.pivotTracking = true;
                 s.localPlanFailureTime = 0f;
                 s.localPlanFailureRerouteAttempted = false;
                 return;
             }
             s.pivotTracking = false;
+            // The last rung of a move order, once every legal answer has failed: brush soft ground at a crawl
+            // (SoftBrush). The failure clock holds while the hull brushes on, so an order that cannot brush either is
+            // still given up on time.
+            boolean brushDue = brush != null && leg == VehicleLeg.MOVE_ORDER && (s.brushing
+                    || s.brushRouteXs == xs || s.localPlanFailureTime >= SoftBrush.START_SECONDS);
+            if (brushDue && brushTrack(mission, body, type, s, xs, ys, dt)) {
+                s.brushing = true;
+                return;
+            }
+            if (s.brushing) endPivotTracking(body, s);
             s.localPlanFailureTime += dt;
             body.speed = 0f;
             if (!recoveryWorked && s.pendingRecovery == null && !s.localPlanFailureRerouteAttempted
@@ -416,7 +436,7 @@ public final class VehicleControlSystem {
         if (s.trajectory != null) {
             s.localPlanFailureTime = 0f;
             s.localPlanFailureRerouteAttempted = false;
-            if (s.pivotTracking || s.pivotDirection != 0) endPivotTracking(body, s);
+            if (s.pivotTracking || s.pivotDirection != 0 || s.brushing) endPivotTracking(body, s);
         }
 
         // --- Track (trajectory if we have one, else the coarse corridor) ---
@@ -508,9 +528,11 @@ public final class VehicleControlSystem {
      * advisory corridor.
      */
     private boolean needsReplan(GroundBody body, VehicleControlComponent s) {
-        // Following the corridor by pivot is a plan of its own; asking the forward planner every tick would only
-        // repeat its refusal.
-        if (s.trajectory == null) return !s.pivotTracking || s.sinceReplan >= VehicleController.REPLAN_INTERVAL_SEC;
+        // Following the corridor by pivot or brushing is a plan of its own; asking the forward planner every tick
+        // would only repeat its refusal.
+        if (s.trajectory == null) {
+            return !s.pivotTracking && !s.brushing || s.sinceReplan >= VehicleController.REPLAN_INTERVAL_SEC;
+        }
         if (s.sinceReplan >= VehicleController.REPLAN_INTERVAL_SEC) return true;
         if (s.trajCarrotAtEnd) return true;
         if (s.trajProgress >= s.trajectory.lengthCells() * VehicleController.REPLAN_CONSUMED_FRACTION) return true;
@@ -525,10 +547,12 @@ public final class VehicleControlSystem {
      * within {@link NeutralPivot#ALIGNED_DEG}, the way that keeps its footprint clear. Every move is swept like any
      * other, so the corridor's proof is a guide and the live ground the authority.
      *
+     * <p>{@code brushing}, the sweeps and turns are judged by {@link SoftBrush} and the hull crawls.
+     *
      * @return whether the hull moved or turned this tick; {@code false} leaves it to the ordinary brake and reroute
      */
     private boolean pivotTrack(VehicleMission mission, GroundBody body, VehicleType type,
-                               VehicleControlComponent s, float[] xs, float[] ys, float dt) {
+                               VehicleControlComponent s, float[] xs, float[] ys, float dt, boolean brushing) {
         float rate = NeutralPivot.rateDegPerSec(type);
         if (rate <= 0f || !(body instanceof BicycleBody bicycle) || mission.speedCap <= 0f) return false;
         PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, xs, ys, s.corridor.cursor(),
@@ -543,9 +567,9 @@ public final class VehicleControlSystem {
             if (Math.abs(body.speed) > NeutralPivot.STANDSTILL_SPEED) {
                 // Stop first: tracks counter-rotate from a standstill.
                 body.tick(carrot.x, carrot.y, 0f, dt);
-                return !applySweep(body, type, prevX, prevY, prevFacing, false);
+                return !applySweep(body, type, prevX, prevY, prevFacing, false, brushing);
             }
-            if (!pivotStep(bicycle, type, s, bearing, rate, dt)) return false;
+            if (!pivotStep(bicycle, type, s, bearing, rate, dt, brushing)) return false;
             // Turning toward the corridor is progress, even though no ground is covered.
             s.timeSinceProgress = 0f;
             return true;
@@ -557,14 +581,49 @@ public final class VehicleControlSystem {
         float remaining = s.corridor.remainingLength(body.x, body.y);
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
         float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
-        float targetSpeed = Math.min(Math.min(type.maxSpeed * NeutralPivot.TRACK_SPEED_FRACTION, terrainSpeed),
+        float fraction = brushing ? SoftBrush.CRAWL_FRACTION : NeutralPivot.TRACK_SPEED_FRACTION;
+        float targetSpeed = Math.min(Math.min(type.maxSpeed * fraction, terrainSpeed),
                 Math.min(taper, mission.speedCap));
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
-        if (!applySweep(body, type, prevX, prevY, prevFacing, false)) return true;
+        if (!applySweep(body, type, prevX, prevY, prevFacing, false, brushing)) return true;
         // Driving at a carrot a few degrees off can still clip a bend's corner: square up exactly before driving on.
-        s.pivotDirection = NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, bearing,
-                type.visualLengthCells, type.visualWidthCells, motionGrid(type));
+        s.pivotDirection = clearDirection(body, type, bearing, brushing);
         return false;
+    }
+
+    /**
+     * One tick of a move order's last rung ({@link SoftBrush}): the hull follows its corridor brushing soft ground. A
+     * hull that pivots on its routes follows it as {@link #pivotTrack} does; a wheeled one crawls it on its wheels,
+     * steering as it would, since route proof laid the corridor at its turning circle and a wheeled hull spinning on
+     * the spot reads worse than one shoving through a hedge.
+     *
+     * @return whether the hull moved or turned this tick
+     */
+    private boolean brushTrack(VehicleMission mission, GroundBody body, VehicleType type,
+                               VehicleControlComponent s, float[] xs, float[] ys, float dt) {
+        if (NeutralPivot.onRoutes(type)) return pivotTrack(mission, body, type, s, xs, ys, dt, true);
+        if (mission.speedCap <= 0f) return false;
+        PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, xs, ys, s.corridor.cursor(),
+                VehicleController.MIN_LOOKAHEAD_CELLS);
+        float dx = carrot.x - body.x, dy = carrot.y - body.y;
+        if (dx * dx + dy * dy < 1e-6f) return false;
+        float error = NeutralPivot.signedDegrees(AirBody.facingToward(dx, dy) - body.facingDegrees);
+        if (Math.abs(error) > 90f) return false;
+        float remaining = s.corridor.remainingLength(body.x, body.y);
+        float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
+        float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
+        float targetSpeed = Math.min(Math.min(type.maxSpeed * SoftBrush.CRAWL_FRACTION, terrainSpeed),
+                Math.min(taper, mission.speedCap));
+        float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+        body.tick(carrot.x, carrot.y, targetSpeed, dt);
+        return !applySweep(body, type, prevX, prevY, prevFacing, false, true);
+    }
+
+    /** {@link NeutralPivot#clearDirection} for the hull as it stands, judged by {@link SoftBrush} when brushing. */
+    private int clearDirection(GroundBody body, VehicleType type, float targetDeg, boolean brushing) {
+        if (brushing) return brush.clearDirection(body.x, body.y, body.facingDegrees, targetDeg, type, motionGrid(type));
+        return NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, targetDeg,
+                type.visualLengthCells, type.visualWidthCells, motionGrid(type));
     }
 
     /**
@@ -575,18 +634,17 @@ public final class VehicleControlSystem {
      * @return whether it turned; {@code false} when no way round is clear, which ends the pivot
      */
     private boolean pivotStep(BicycleBody body, VehicleType type, VehicleControlComponent s,
-                              float targetDeg, float rate, float dt) {
+                              float targetDeg, float rate, float dt, boolean brushing) {
         // A target that has slid past the nose would read as nearly a whole turn the old way: choose afresh.
         if (s.pivotDirection == 0
                 || NeutralPivot.positiveDegrees(s.pivotDirection * (targetDeg - body.facingDegrees)) > 180f) {
-            s.pivotDirection = NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, targetDeg,
-                    type.visualLengthCells, type.visualWidthCells, motionGrid(type));
+            s.pivotDirection = clearDirection(body, type, targetDeg, brushing);
             if (s.pivotDirection == 0) return false;
         }
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         float owed = NeutralPivot.positiveDegrees(s.pivotDirection * (targetDeg - body.facingDegrees));
         body.pivot(s.pivotDirection * Math.min(rate * dt, owed), dt);
-        if (applySweep(body, type, prevX, prevY, prevFacing, false)) {
+        if (applySweep(body, type, prevX, prevY, prevFacing, false, brushing)) {
             endPivotTracking(body, s);
             return false;
         }
@@ -605,7 +663,7 @@ public final class VehicleControlSystem {
         float rate = NeutralPivot.rateDegPerSec(type);
         if (!NeutralPivot.onRoutes(type) || !(body instanceof BicycleBody bicycle)) return false;
         if (Math.abs(NeutralPivot.signedDegrees(goalFacingDeg - body.facingDegrees)) <= NeutralPivot.ALIGNED_DEG
-                || !pivotStep(bicycle, type, s, goalFacingDeg, rate, dt)) {
+                || !pivotStep(bicycle, type, s, goalFacingDeg, rate, dt, false)) {
             endPivotTracking(body, s);
             return false;
         }
@@ -613,10 +671,11 @@ public final class VehicleControlSystem {
         return true;
     }
 
-    /** Hand the hull back from following its corridor by pivot to the rolling forward plan. */
+    /** Hand the hull back from following its corridor by pivot, or brushing, to the rolling forward plan. */
     private static void endPivotTracking(GroundBody body, VehicleControlComponent s) {
         s.pivotTracking = false;
         s.pivotDirection = 0;
+        s.brushing = false;
         if (body instanceof BicycleBody bicycle) bicycle.endPivot();
     }
 
@@ -1060,9 +1119,16 @@ public final class VehicleControlSystem {
 
     private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,
                                boolean allowOffMap) {
-        var step = VehicleTerrainMotion.sweep(new Pose(x, y, facing),
-                new Pose(body.x, body.y, body.facingDegrees), type.visualLengthCells,
-                type.visualWidthCells, motionGrid(type), allowOffMap);
+        return applySweep(body, type, x, y, facing, allowOffMap, false);
+    }
+
+    /** {@code brushing}, the move is swept by {@link SoftBrush} rather than held to the ground strictly. */
+    private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,
+                               boolean allowOffMap, boolean brushing) {
+        Pose from = new Pose(x, y, facing), to = new Pose(body.x, body.y, body.facingDegrees);
+        var step = brushing ? brush.sweep(from, to, type, motionGrid(type), allowOffMap)
+                : VehicleTerrainMotion.sweep(from, to, type.visualLengthCells, type.visualWidthCells,
+                        motionGrid(type), allowOffMap);
         applyPose(body, step.pose());
         if (step.blocked()) {
             body.recordBlocked(body.speed);

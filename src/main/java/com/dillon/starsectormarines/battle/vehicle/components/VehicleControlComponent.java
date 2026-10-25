@@ -84,6 +84,13 @@ public final class VehicleControlComponent {
     public boolean pivotTracking;
     /** The way the current pivot turns, {@code +1} counterclockwise or {@code -1} clockwise; {@code 0} when not pivoting. */
     public int pivotDirection;
+    /**
+     * True while the hull follows its corridor brushing soft ground ({@code SoftBrush}), the last rung of a move
+     * order; it ends when the rolling planner finds a trajectory again.
+     */
+    public boolean brushing;
+    /** The route xs of a move order whose proof needed brushing, so its hull brushes from the start; else null. */
+    public float[] brushRouteXs;
 
     /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse recovery. */
     public float wallStuckTime;

@@ -1,6 +1,6 @@
 {
   "sheetName": "forest-destroyed",
-  "sheet": "art-source/tilesets/forest-destroyed.raw.png",
+  "sheet": "art-source/tilesets/forest-destroyed-flat/forest-destroyed.flat.png",
   "cellPx": 64,
   "gridCols": 3,
   "gridRows": 2,

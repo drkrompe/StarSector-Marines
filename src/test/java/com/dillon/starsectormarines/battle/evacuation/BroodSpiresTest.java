@@ -74,6 +74,28 @@ class BroodSpiresTest {
     }
 
     @Test
+    void aQuietFullRoostPatrolsAfterItsGap() {
+        assertTrue(BroodSpires.patrols(true, false, false, true, false, 100, 100));
+        assertFalse(BroodSpires.patrols(false, false, false, true, false, 100, 100), "the flier law");
+        assertFalse(BroodSpires.patrols(true, true, false, true, false, 100, 100), "its pack is up");
+        assertFalse(BroodSpires.patrols(true, false, true, true, false, 100, 100), "a patrol is up");
+        assertFalse(BroodSpires.patrols(true, false, false, false, false, 100, 100), "its roost is filling");
+        assertFalse(BroodSpires.patrols(true, false, false, true, true, 100, 100), "prey near is a launch's work");
+        assertFalse(BroodSpires.patrols(true, false, false, true, false, 99, 100), "too soon");
+    }
+
+    @Test
+    void aPatrolHomeShortLeavesTheRoostShort() {
+        int tick = 10_000;
+        int last = BroodSpires.roostAfterPatrol(Integer.MIN_VALUE / 2, tick, 0, GAP);
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, tick - last, GAP), "home whole: still full");
+        last = BroodSpires.roostAfterPatrol(Integer.MIN_VALUE / 2, tick, 2, GAP);
+        assertEquals(BroodSpires.PERCHES - 2, BroodSpires.perched(false, tick - last, GAP), "two lost: two hooks bare");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, tick + GAP - last, GAP), "and it fills back");
+        assertFalse(BroodSpires.releases(true, false, tick - last, true), "and holds off its launch meanwhile");
+    }
+
+    @Test
     void theSameBoreGrowsItsSpireOnTheSameCell() {
         assertArrayEquals(BroodSpires.choose(ALL, 50, 60, 0.37f, List.of(), List.of()),
                 BroodSpires.choose(ALL, 50, 60, 0.37f, List.of(), List.of()));

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
@@ -90,6 +91,8 @@ public final class AlliedCommand {
     public static final float REFUSAL_MOVED_CELLS = 1.5f;
     /** Doublings of {@link #STALL_RETRY_TICKS} a hull that keeps stalling where it stands waits through, at most. */
     public static final int STALL_BACKOFF_LIMIT = 3;
+    /** Stands tried for one post after refusals before the goal is pulled back toward the hull instead. */
+    public static final int STAND_LIMIT = 4;
     /**
      * Whether the commander remembers its hulls' refused goals and backs off its stall retries ({@link RefusedGoals}).
      * {@code -Dbattle.allied.refusalMemory=false} is the control, every pull-back and retry asked again: remove it
@@ -103,8 +106,16 @@ public final class AlliedCommand {
     private static final class Task {
         Phase phase;
         int postX, postY;
-        /** Where it was last sent: the post, or the post pulled back after a refusal. */
+        /** The way the post faces the enemy, or zero for a post that faces no way ({@link PostStand}). */
+        float aheadX, aheadY;
+        /** Where it was last sent: a stand for the post, or the goal pulled back after a refusal. */
         int goalX, goalY;
+        /** Whether the goal is a stand chosen for the post, not a waypoint pulled back toward the hull. */
+        boolean onStand;
+        /** Stands tried for the post since it was last placed afresh. */
+        int stands;
+        /** The post's stands and pull-backs are spent: allied command cannot serve it from here. */
+        boolean unservable;
         int pullbacks;
         int vias;
         /** Tick it was last sent anywhere. */
@@ -151,6 +162,15 @@ public final class AlliedCommand {
 
     /** Sends a hull to a place to fight from. A new task replaces the old. */
     public void station(BattleSimulation sim, long hull, int x, int y) {
+        station(sim, hull, x, y, 0f, 0f);
+    }
+
+    /**
+     * {@link #station} at a post that faces the enemy along ({@code aheadX}, {@code aheadY}), a slot in a line: the
+     * hull stands on the line, sliding along it or back from it to ground it can reach and leave, never forward
+     * ({@link PostStand}).
+     */
+    public void station(BattleSimulation sim, long hull, int x, int y, float aheadX, float aheadY) {
         Task held = tasks.get(hull);
         if (held != null && held.phase == Phase.STATION
                 && Math.abs(held.postX - x) < RESTATION && Math.abs(held.postY - y) < RESTATION) return;
@@ -158,8 +178,46 @@ public final class AlliedCommand {
         task.phase = Phase.STATION;
         task.postX = task.goalX = x;
         task.postY = task.goalY = y;
+        task.aheadX = aheadX;
+        task.aheadY = aheadY;
         tasks.put(hull, task);
+        placeOnPost(sim, hull, task);
         drive(sim, hull, task);
+    }
+
+    /**
+     * Whether the hull's post cannot be served from where it stands: every stand near it and every pull-back toward
+     * the hull was refused. The mission that chose the post decides what the hull is for instead; until then it
+     * holds, and its stall retry asks again.
+     */
+    public boolean postUnservable(long hull) {
+        Task task = tasks.get(hull);
+        return task != null && task.phase == Phase.STATION && task.unservable;
+    }
+
+    /**
+     * Sets the goal to the best stand for the post ({@link PostStand}), passing over what the hull was already
+     * refused; where none serves, the post itself, as before stands.
+     */
+    private void placeOnPost(BattleSimulation sim, long hull, Task task) {
+        int[] stand = standFor(sim, hull, task);
+        task.goalX = stand == null ? task.postX : stand[0];
+        task.goalY = stand == null ? task.postY : stand[1];
+        task.onStand = stand != null;
+    }
+
+    private int[] standFor(BattleSimulation sim, long hull, Task task) {
+        VehicleType type = sim.convoy().vehicleType(hull);
+        if (type == null) return null;
+        GroundBody body = sim.convoy().body(hull);
+        VehicleClearance clearance = sim.convoy().clearances().of(sim.getGrid(), type);
+        ClearanceComponents components = sim.convoy().clearances().components(sim.getGrid(), type);
+        int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) body.x, (int) body.y, SNAP_REACH);
+        if (from == null) return null;
+        RefusedGoals held = refusals(sim, hull);
+        return PostStand.choose(sim.getGrid(), type, clearance, components, from[0], from[1],
+                task.postX, task.postY, task.aheadX, task.aheadY,
+                (x, y) -> held != null && held.refused(x, y));
     }
 
     /**
@@ -322,8 +380,9 @@ public final class AlliedCommand {
                         if (held != null) held.stallRetried();
                         task.pullbacks = 0;
                         task.vias = 0;
-                        task.goalX = task.postX;
-                        task.goalY = task.postY;
+                        task.stands = 0;
+                        task.unservable = false;
+                        placeOnPost(sim, hull, task);
                         drive(sim, hull, task);
                     } else if (!within(convoy.body(hull), task.goalX, task.goalY, STATION_LEASH)) {
                         drive(sim, hull, task);
@@ -399,7 +458,7 @@ public final class AlliedCommand {
      */
     private static boolean stalled(Task task, int tick, RefusedGoals held) {
         int wait = held == null ? STALL_RETRY_TICKS : held.stallWait(STALL_RETRY_TICKS, STALL_BACKOFF_LIMIT);
-        return (task.goalX != task.postX || task.goalY != task.postY) && tick - task.sentAt >= wait;
+        return !task.onStand && (task.goalX != task.postX || task.goalY != task.postY) && tick - task.sentAt >= wait;
     }
 
     /**
@@ -420,11 +479,28 @@ public final class AlliedCommand {
         if (refused == null || refused.requestedX() != task.goalX || refused.requestedY() != task.goalY
                 || !stopped(sim, hull)) return false;
         rememberRefused(sim, hull, task.goalX, task.goalY);
+        // A refused stand is first answered by another stand on the same post: the post is what the hull is for,
+        // and ground toward the hull is only where it already was.
+        if (task.phase == Phase.STATION && task.onStand && task.stands < STAND_LIMIT) {
+            task.stands++;
+            int[] stand = standFor(sim, hull, task);
+            if (stand != null && (stand[0] != task.goalX || stand[1] != task.goalY)) {
+                task.goalX = stand[0];
+                task.goalY = stand[1];
+                drive(sim, hull, task);
+                return true;
+            }
+        }
+        task.onStand = false;
         // Out of steps: a station stays put until it is retried; a carrier sets its riders down where it stands.
         if (task.pullbacks >= PULLBACK_LIMIT) {
+            task.unservable = true;
             return task.phase == Phase.STATION && !stalled(task, sim.getSimTickIndex(), refusals(sim, hull));
         }
-        if (!stepBack(sim, hull, task)) return task.phase == Phase.STATION;
+        if (!stepBack(sim, hull, task)) {
+            task.unservable = true;
+            return task.phase == Phase.STATION;
+        }
         drive(sim, hull, task);
         return true;
     }
@@ -502,13 +578,13 @@ public final class AlliedCommand {
      * @return whether it was sent on this tick
      */
     private boolean reachedVia(BattleSimulation sim, long hull, Task task) {
-        if (task.goalX == task.postX && task.goalY == task.postY) return false;
+        if (task.onStand || task.goalX == task.postX && task.goalY == task.postY) return false;
         if (task.vias >= VIA_LIMIT || !stopped(sim, hull)) return false;
         if (!within(sim.convoy().body(hull), task.goalX, task.goalY, VIA_REACH)) return false;
         task.vias++;
         task.pullbacks = 0;
-        task.goalX = task.postX;
-        task.goalY = task.postY;
+        task.stands = 0;
+        placeOnPost(sim, hull, task);
         drive(sim, hull, task);
         return true;
     }

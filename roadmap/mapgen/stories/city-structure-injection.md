@@ -10,6 +10,10 @@ Do not add generic structures for variety. When a concrete city objective or
 tactical need exists, introduce one structure through the recipe with explicit
 purpose, ingress, and deployment constraints.
 
+The owner (2026-10-25) set this bar aside for set pieces: interesting blocks
+are worth building for their own sake (`set-piece-blocks.md`). This story
+still covers single goal-driven structures injected into an ordinary city.
+
 ## Re-entry condition
 
 A named game need identifies the structure's tactical job and the city family

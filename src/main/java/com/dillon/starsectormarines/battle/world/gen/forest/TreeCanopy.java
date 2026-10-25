@@ -13,15 +13,6 @@ public enum TreeCanopy implements NaturalPropShape {
     PINE_LARGE("pine-large", 4, 4, 11, 0x3F6750, false),
     CEDAR("cedar", 4, 6, 10, 0x536C45, false);
 
-    /**
-     * Whether the young canopies are undergrowth a heavy tank pushes over (`convoy-nouns.md`, heavy tracks).
-     * Experiment awaiting the owner's pick between young trees and dead trees only: remove it with the losing arm
-     * once the pick is made.
-     */
-    public static final String YOUNG_TREES_CRUSH_PROPERTY = "battle.vehicle.crushYoungTrees";
-    private static final boolean YOUNG_TREES_CRUSH =
-            !"false".equalsIgnoreCase(System.getProperty(YOUNG_TREES_CRUSH_PROPERTY));
-
     public record Lobe(double x, double y, double rx, double ry) {
         public boolean intersectsCell(int x, int y) {
             double dx = Math.max(x - this.x, Math.max(0, this.x - (x + 1))) / rx;
@@ -54,7 +45,8 @@ public enum TreeCanopy implements NaturalPropShape {
     public int width() { return width; }
     public int height() { return height; }
     public int hitPoints() { return 200; }
-    @Override public boolean undergrowth() { return young && YOUNG_TREES_CRUSH; }
+    /** A young tree is undergrowth a crushing hull pushes over while it lives (owner; `convoy-nouns.md`, heavy tracks). */
+    @Override public boolean undergrowth() { return young; }
     public int width(int turns) { return (turns & 1) == 0 ? width : height; }
     public int height(int turns) { return (turns & 1) == 0 ? height : width; }
 

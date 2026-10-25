@@ -215,6 +215,11 @@ public final class DoodadService {
         return id;
     }
 
+    /** Whether the cell is a standing natural object's outer crown, not its trunk ({@link NaturalPropDamage#outerCrownAt}). */
+    public boolean outerCrownAt(int x, int y) {
+        return naturalProps.outerCrownAt(x, y);
+    }
+
     /** The footprint, {cellX, cellY, width, height}, of the standing natural object (a tree, a bush) on a cell; false for none. */
     public boolean naturalPropFootprintAt(int x, int y, int[] out) {
         return naturalProps.standingFootprintAt(x, y, out);

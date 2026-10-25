@@ -77,7 +77,10 @@ needing an arbitrary bonus against every unit classified as hardened.
 - **Material efficiency** — the share of a direct round's payload damage that
   wears a material: none while penetration is under half the rating, rising
   linearly to full at the rating. It reads the armor law's ratio and ceiling
-  but not its chip floor.
+  but not its chip floor. A **burning round** (a beam, or an authored energy
+  weapon) chars what burns, wood and timber, with its whole payload whatever its
+  penetration, so a laser tank cuts trees down that a rifle only scars; every
+  other material reads it as an ordinary round.
 - **Resolved damage** — actual armor and structure removed, each clamped to
   the capacity that existed, plus the mitigated damage a screen absorbed. Requested
   damage and resisted energy are not credited as resolved damage; mitigated
@@ -178,7 +181,8 @@ that fixture. Original ground and permanent terrain remain.
 Trees use the same weapon-authored structural damage channel, with one pool
 per tree across all its canopy cells. A blast spends damage once per tree,
 including where crowns overlap. Surviving damage exposes broken limbs but
-retains the full obstruction. Felling leaves low broken trunks and branches;
+retains the full obstruction. Felling leaves a low broken stump and the short butts of its limbs,
+flat enough to read as ground a vehicle drives over;
 only cells free of surviving crowns and underlying hills reopen. Original
 ground and permanent terrain remain, and neither actor durability nor
 building collapse owns these changes.
