@@ -437,7 +437,8 @@ public final class DirectControlSession {
         ObjectiveAssignment assignment = squad.assignedObjective;
         CommandDirective shelved = battle.getShelvedSquadDirective(squad.id);
         return (assignment == null || assignment.kind() != AssignmentKind.WITHDRAW)
-                && (shelved == null || shelved.assignment().kind() != AssignmentKind.WITHDRAW)
+                && (shelved == null || shelved.assignment() == null
+                        || shelved.assignment().kind() != AssignmentKind.WITHDRAW)
                 && !squad.moraleBroken && !squad.fallbackInProgress
                 && !squad.fireTeamBroken(battle.squad().fireTeamIndex(id));
     }
