@@ -112,8 +112,20 @@ The heart seals its rim, and the reservoir yard keeps off it. Measured, the
 rim now raises about 120 to 130 of its 168 cells on Broad Front's rural and
 town maps (up to about 140 can stand once segment ends are trimmed) and 64 to
 112 of 144 on The Burn's; on a city, where it stood nowhere, 112 to 131 and 25
-to 67. What still breaks it: The Burn's brook, a natural pass, and two runs
-split by a short break, which the run-gap rule drops to one.
+to 67. The Burn's rim then lost most of its west face to the corners of the
+biggest fenced origins' yards, and its brook's valley cut it where the workings
+sat far west. Both forms' hollows now share one radius, 52 cells, which clears
+those yards, and the brook bends round the hollow (`HeartCountry.roundHollow`)
+so its valley stops short of the rim's apron. Measured on the verdant pools
+(the biomes with raised ground), The Burn's rim raises 170 to 188 of its 210
+path cells on every density, the rest being the trimmed segment ends.
+
+**The cordon ridge is held before growth** on rural and town maps (a city has
+none), so the towns grow round it rather than over it: Broad Front's ridge
+raises 438 to 484 of 560 cells on those maps (town maps had dropped to 101),
+The Burn's 105 to 206 of 240 (its town maps had none or a stub). A Broad Front
+lane that would run into the town's knoll stops at the knoll's foot and turns
+along it to the south gate's road (`HeartCountry.laneTracks`).
 
 **Built: Broad Front's town stands on its knoll** on rural and town maps: the
 top 64 by 48 cells round the town's seed (80 by 56 on a town world), gates
@@ -135,8 +147,9 @@ the cliff, and leaves by gates the terrace ramps down.
 
 What a field commander who has held this line for weeks would have built,
 laid by the heart's mission layout (`mission-layout.md`, `HeartLayout`) as
-named pieces, every one optional, none of them ground held before growth, so
-the pooled maps keep the ground they were vetted on:
+named pieces, every one optional; only the cordon ridge's ground is held
+before growth (above), so the pooled maps otherwise keep the ground they were
+vetted on:
 
 - **The cordon ridge** (`cordon-ridge`): a layout ridge, raised before the
   works with the hollow's rim and the valley sides in one stamp.

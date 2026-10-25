@@ -33,6 +33,12 @@ public final class HullSightings {
     private final LongBucket scratch = new LongBucket();
     private final Map<Faction, long[]> sightings = new EnumMap<>(Faction.class);
     private final Map<Faction, Integer> counts = new EnumMap<>(Faction.class);
+    /** The extra observers (sensor drones) of the last tick, kept so a vehicle target can be asked of them too. */
+    private Faction[] extraSide = new Faction[8];
+    private float[] extraX = new float[8];
+    private float[] extraY = new float[8];
+    private float[] extraRange = new float[8];
+    private int extraCount;
 
     /** Whether an observer at ({@code sx},{@code sy}) with {@code range} cells of sight sees ({@code tx},{@code ty}). */
     public static boolean sees(NavigationGrid grid, float sx, float sy, float tx, float ty, float range) {
@@ -63,6 +69,7 @@ public final class HullSightings {
     public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
                      NavigationGrid grid, Observers extra) {
         counts.clear();
+        extraCount = 0;
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long id = convoy.vehicleAt(i);
             VehicleType type = convoy.vehicleType(id);
@@ -70,7 +77,21 @@ public final class HullSightings {
             GroundBody body = convoy.body(id);
             observe(convoy.faction(id), body.x, body.y, type.observeCells(), roster, index, grid);
         }
-        extra.forEach((side, x, y, range) -> observe(side, x, y, range, roster, index, grid));
+        extra.forEach((side, x, y, range) -> {
+            if (extraCount == extraSide.length) {
+                int cap = extraCount * 2;
+                extraSide = Arrays.copyOf(extraSide, cap);
+                extraX = Arrays.copyOf(extraX, cap);
+                extraY = Arrays.copyOf(extraY, cap);
+                extraRange = Arrays.copyOf(extraRange, cap);
+            }
+            extraSide[extraCount] = side;
+            extraX[extraCount] = x;
+            extraY[extraCount] = y;
+            extraRange[extraCount] = range;
+            extraCount++;
+            observe(side, x, y, range, roster, index, grid);
+        });
         // Sorted and de-duplicated, so two scouts seeing one body report it once and the order never depends on
         // the spatial index's buckets.
         for (Map.Entry<Faction, Integer> entry : counts.entrySet()) {
@@ -97,6 +118,17 @@ public final class HullSightings {
                 record(side, target);
             }
         }
+    }
+
+    /**
+     * Whether one of {@code side}'s extra observers, a sensor drone, sees ({@code tx},{@code ty}) now. The sightings
+     * above carry roster bodies only; a vehicle is asked of the observers by place.
+     */
+    public boolean extraSees(NavigationGrid grid, Faction side, float tx, float ty) {
+        for (int i = 0; i < extraCount; i++) {
+            if (extraSide[i] == side && sees(grid, extraX[i], extraY[i], tx, ty, extraRange[i])) return true;
+        }
+        return false;
     }
 
     /** Every hostile body {@code side}'s hulls saw on the last tick, once each, in id order. */

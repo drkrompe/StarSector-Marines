@@ -87,8 +87,8 @@ class VehicleVariantLadderTest {
 
         VehicleType support = VehicleType.FIRE_SUPPORT_APC;
         assertEquals(0, support.capacity);
-        assertEquals(TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID, support.turretStructureId);
-        assertTrue(support.hasTurretWeapon() && support.turretArtFromMount());
+        assertEquals(TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID, support.turretStructureId);
+        assertTrue(support.hasTurretWeapon());
 
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
         VehicleType dozer = VehicleType.DOZER_BREACHER;

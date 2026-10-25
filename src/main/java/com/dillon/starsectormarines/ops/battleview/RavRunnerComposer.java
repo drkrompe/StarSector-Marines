@@ -29,6 +29,13 @@ final class RavRunnerComposer {
     private static final int[] LEG_ORDER = {2, 3, 0, 1};
     /** The spike's length against the body's, by growth stage: whelp nubs, an elder's grown out. */
     private static final float WHELP_SPIKE = 0.55f, ELDER_SPIKE = 1.30f;
+    /**
+     * A skitterer's head down over its work: how much shorter it draws as it pitches toward the ground, and how much
+     * darker in the body's shadow, at full dip.
+     */
+    private static final float DIP_SHORTEN = 0.35f, DIP_SHADE = 0.18f;
+    /** What it carries, cells across, held this far out past the head's tip. */
+    private static final float LOAD_CELLS = 0.2f, LOAD_REACH_CELLS = 0.03f;
 
     private RavRunnerComposer() {
     }
@@ -89,13 +96,22 @@ final class RavRunnerComposer {
         float dx = p1[0] - p0[0], dy = p1[1] - p0[1];
         float d = (float) Math.hypot(dx, dy);
         float full = FORE_CELLS * ppc;
-        if (d > 1e-4f) {
-            p1[0] = p0[0] + dx / d * full;
-            p1[1] = p0[1] + dy / d * full;
+        float dip = rig.headDip(), drawn = full * (1f - DIP_SHORTEN * dip);
+        float ux = d > 1e-4f ? dx / d : (float) -Math.sin(Math.toRadians(f.facing));
+        float uy = d > 1e-4f ? dy / d : (float) Math.cos(Math.toRadians(f.facing));
+        p1[0] = p0[0] + ux * drawn;
+        p1[1] = p0[1] + uy * drawn;
+        bone(out, art.fore, FORE_PX, p0, p1, full, 1f, 1f, f.facing, shade * (1f - DIP_SHADE * dip), alpha, 0.2f);
+        int held = rig.held();
+        LayeredSpriteCache load = held == RavRunnerRig.WORK_FEED ? art.loadFeed
+                : held == RavRunnerRig.WORK_PULP ? art.loadPulp : null;
+        if (load != null) {
+            float size = LOAD_CELLS * ppc, reach = LOAD_REACH_CELLS * ppc;
+            out.add(load, p1[0] + ux * reach, p1[1] + uy * reach, size, size,
+                    (float) Math.toDegrees(Math.atan2(-ux, uy)), shade, shade, shade, alpha);
         }
-        bone(out, art.fore, FORE_PX, p0, p1, full, 1f, 1f, f.facing, shade, alpha, 0.2f);
-        // spike arms on top
-        for (int a = 0; a < 2; a++) {
+        // spike arms on top; a skitterer has none, its mandibles are in its head
+        for (int a = 0; a < 2 && art.arm[0][0] != null; a++) {
             int start = RavRunnerRig.ARM_START[a];
             f.piece = RavRunnerRig.PIECE_ARM + a;
             for (int i = 0; i < 3; i++) {

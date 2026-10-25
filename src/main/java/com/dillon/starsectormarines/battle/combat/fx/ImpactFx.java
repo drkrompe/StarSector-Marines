@@ -342,6 +342,95 @@ public final class ImpactFx {
         }
     }
 
+    /**
+     * A round landing on a plated Rav ({@code SwarmHitFeedback}; {@link EffectsService#emitSwarmHit}), from its queued
+     * {x, y, dirX, dirY, normalX, normalY, scale, kind}. A glance skips off the rim: a pinpoint spark and a chip of
+     * chitin thrown along the round's path mirrored about the rim. A bite into the shell kicks a puff of shell dust
+     * back off the rim with a chip or two; a bite into the flesh throws a puff of ichor back toward the gun and a few
+     * droplets on through. Sized by {@code scale}, a rifle round's being 1. No flash: a body hit does not glow.
+     */
+    public void spawnSwarmHit(float[] hit) {
+        if (glowSprite == null) return;
+        float x = hit[0], y = hit[1], dx = hit[2], dy = hit[3], nx = hit[4], ny = hit[5], k = hit[6];
+        int kind = (int) hit[7];
+        float sk = (float) Math.sqrt(k);
+        if (kind == SWARM_GLANCE) {
+            float dot = dx * nx + dy * ny;
+            float rx = dx - 2f * dot * nx, ry = dy - 2f * dot * ny;
+            spawnSparkFlash(x, y, .1f * sk, .06f, SPARK_COLOR);
+            for (int i = 0; i < 2; i++) {
+                float jitter = (rng.nextFloat() - .5f) * .5f;
+                float speed = 6f + rng.nextFloat() * 4f;
+                Particle p = streak(x, y, (rx - ry * jitter) * speed, (ry + rx * jitter) * speed);
+                p.dragPerSecond = 8f;
+                p.lifetimeRemaining = p.lifetimeMax = .09f + rng.nextFloat() * .06f;
+                p.radiusCells = .05f * sk;
+                p.aspectRatio = .2f;
+                p.color = SPARK_COLOR;
+                p.additive = true;
+            }
+            spawnChitinChip(x, y, rx, ry, 2.5f, .045f * sk);
+            Particle dust = streak(x, y, rx * .5f, ry * .5f);
+            dust.lifetimeRemaining = dust.lifetimeMax = .25f;
+            dust.radiusCells = .12f * sk;
+            dust.radiusGrowthPerSec = .3f;
+            dust.color = CHITIN_DUST_COLOR;
+            dust.alpha = .45f;
+            return;
+        }
+        boolean flesh = kind == SWARM_ICHOR;
+        // The puff blows back off the rim, toward the gun: the side of the body being shot.
+        Particle puff = streak(x, y, (nx - dx) * .35f, (ny - dy) * .35f);
+        puff.lifetimeRemaining = puff.lifetimeMax = (flesh ? .45f : .38f) * sk;
+        puff.radiusCells = (flesh ? .2f : .18f) * sk;
+        puff.radiusGrowthPerSec = .6f * sk;
+        puff.color = flesh ? RAV_ICHOR_MIST_COLOR : CHITIN_DUST_COLOR;
+        puff.alpha = flesh ? .85f : .8f;
+        puff.angleDeg = rng.nextFloat() * 360f;
+        if (!flesh) {
+            for (int i = 0, n = 2 + Math.round(1.5f * k); i < n; i++) {
+                float across = (rng.nextFloat() - .5f) * 1.6f;
+                spawnChitinChip(x, y, nx - ny * across, ny + nx * across, 1.4f + rng.nextFloat() * 1.4f,
+                        (.03f + .02f * rng.nextFloat()) * sk);
+            }
+            return;
+        }
+        // Droplets: most thrown back off the wound, a few carried on through by a heavy round.
+        for (int i = 0, n = Math.round(6 + 6 * k); i < n; i++) {
+            boolean through = i % 3 == 2;
+            float bx = through ? dx : nx, by = through ? dy : ny;
+            float across = (rng.nextFloat() - .5f) * 1.3f;
+            float speed = 1.2f + rng.nextFloat() * rng.nextFloat() * 3.5f * sk;
+            Particle p = streak(x, y, (bx - by * across) * speed, (by + bx * across) * speed);
+            p.dragPerSecond = 5f + rng.nextFloat() * 3f;
+            p.lifetimeRemaining = p.lifetimeMax = .25f + rng.nextFloat() * .3f;
+            float heft = rng.nextFloat();
+            p.radiusCells = (.02f + .045f * heft * heft) * sk;
+            p.aspectRatio = .3f + rng.nextFloat() * .45f;
+            p.color = RAV_ICHOR_COLOR;
+            p.alpha = .8f + .2f * heft;
+        }
+    }
+
+    /** A flake of chitin tumbling away along ({@code dirX},{@code dirY}) at about {@code speed} cells a second. */
+    private void spawnChitinChip(float x, float y, float dirX, float dirY, float speed, float radiusCells) {
+        if (shardSprite == null) return;
+        Particle p = new Particle();
+        p.x = x;
+        p.y = y;
+        p.vx = dirX * speed;
+        p.vy = dirY * speed;
+        p.dragPerSecond = 3.5f;
+        p.radiusCells = radiusCells * 1.4f;
+        p.aspectRatio = .6f + rng.nextFloat() * .4f;
+        p.angleDeg = rng.nextFloat() * 360f;
+        p.angularVelocityDegPerSec = (rng.nextFloat() - .5f) * 720f;
+        p.lifetimeRemaining = p.lifetimeMax = .35f + rng.nextFloat() * .25f;
+        p.color = CHITIN_CHIP_COLOR;
+        p.sprite = shardSprite;
+        particles.add(p);
+    }
+
     /** A glow-sprite particle at ({@code x},{@code y}) moving at ({@code vx},{@code vy}), drawn along its motion. */
     private Particle streak(float x, float y, float vx, float vy) {
         Particle p = new Particle();
@@ -356,6 +445,17 @@ public final class ImpactFx {
     }
 
     private static final Color BLOOD_COLOR = new Color(0x8A, 0x10, 0x0C);
+    /** {@code SwarmHitFeedback}'s kinds, as its queue carries them. */
+    private static final int SWARM_GLANCE = 0;
+    private static final int SWARM_ICHOR = 2;
+    /**
+     * A Rav's ichor and its mist, a wet crimson that reads over her wine-red sinew; the dust and flakes a round knocks
+     * off her shell, its pale under-layer, since the charcoal outside of a flake vanishes against the charcoal plate.
+     */
+    private static final Color RAV_ICHOR_COLOR = new Color(0xB0, 0x14, 0x18);
+    private static final Color RAV_ICHOR_MIST_COLOR = new Color(0x92, 0x1A, 0x1C);
+    private static final Color CHITIN_DUST_COLOR = new Color(0xB4, 0xA8, 0x98);
+    private static final Color CHITIN_CHIP_COLOR = new Color(0xD8, 0xCC, 0xB4);
     private static final Color BLOOD_MIST_COLOR = new Color(0x70, 0x14, 0x10);
 
     private static final float CASING_GLINT_SECONDS = .32f;

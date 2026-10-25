@@ -58,8 +58,54 @@ public final class CreepVegetation {
     /** One tree: where it stands, the crown cells it blocks and which of them are its trunk. */
     record Tree(int x, int y, int[] crown, boolean[] trunk, int threshold) { }
 
-    /** Every tree of the map, found once, and each one's death tick (-1 while it lives). */
-    private record Index(List<Tree> trees, Map<Long, Integer> byOrigin, Map<Integer, int[]> owners, int[] diedAt) { }
+    /**
+     * Every tree of the map, found once, each one's death tick (-1 while it lives) and the coverage skitterers have
+     * stripped off its remaining hold.
+     */
+    private record Index(List<Tree> trees, Map<Long, Integer> byOrigin, Map<Integer, int[]> owners, int[] diedAt,
+                         int[] stripped) { }
+
+    /** Mean living crown coverage a tree needs before a skitterer can work it: the creep's veins are in it. */
+    public static final int STRIPPABLE_COVERAGE = 64;
+
+    /**
+     * The living, standing tree nearest {@code (x, y)} within {@code radius} whose crown the creep has reached
+     * ({@link #STRIPPABLE_COVERAGE}), as {@code {tree, crownCellX, crownCellY}} (a crown cell a worker can stand
+     * beside), or {@code null}; nothing before the first look. Serial.
+     */
+    public int[] nearestStrippable(BattleSimulation sim, float x, float y, float radius) {
+        Index idx = index;
+        CreepField field = sim.creepFieldIfPresent();
+        if (!enabled || idx == null || field == null) return null;
+        NavigationGrid grid = sim.getGrid();
+        int width = grid.getWidth();
+        int[] best = null;
+        float bestDistance = radius * radius;
+        for (int t = 0; t < idx.trees.size(); t++) {
+            if (idx.diedAt[t] >= 0) continue;
+            Tree tree = idx.trees.get(t);
+            float dx = tree.x + 0.5f - x, dy = tree.y + 0.5f - y;
+            float distance = dx * dx + dy * dy;
+            if (distance >= bestDistance) continue;
+            if (!standing(tree, grid) || livingCoverage(tree, field) < STRIPPABLE_COVERAGE) continue;
+            int cell = tree.crown[0];
+            best = new int[]{t, cell % width, cell / width};
+            bestDistance = distance;
+        }
+        return best;
+    }
+
+    /** Whether tree {@code t} (from {@link #nearestStrippable}) has died. */
+    public boolean dead(int t) {
+        Index idx = index;
+        return idx != null && idx.diedAt[t] >= 0;
+    }
+
+    /** A skitterer worked tree {@code t}: {@code points} of coverage off what the creep still has to climb. */
+    public void strip(int t, int points) {
+        Index idx = index;
+        if (idx != null && idx.diedAt[t] < 0) idx.stripped[t] += Math.max(0, points);
+    }
 
     /** Once per simulation tick, after the creep has spread. No-op while there is no creep. */
     public void tick(BattleSimulation sim) {
@@ -98,7 +144,7 @@ public final class CreepVegetation {
             if (idx.diedAt[t] >= 0) continue;
             Tree tree = idx.trees.get(t);
             if (!standing(tree, grid)) continue;
-            if (livingCoverage(tree, field) < tree.threshold) continue;
+            if (livingCoverage(tree, field) + idx.stripped[t] < tree.threshold) continue;
             idx.diedAt[t] = tick;
             wither.died(tree.x, tree.y);
             for (int cell : tree.crown) {
@@ -173,7 +219,7 @@ public final class CreepVegetation {
         holders.forEach((cell, list) -> owners.put(cell, list.stream().mapToInt(Integer::intValue).toArray()));
         int[] diedAt = new int[trees.size()];
         Arrays.fill(diedAt, -1);
-        return new Index(List.copyOf(trees), byOrigin, owners, diedAt);
+        return new Index(List.copyOf(trees), byOrigin, owners, diedAt, new int[trees.size()]);
     }
 
     /** The canopy a tree placement draws, intact, damaged or felled; null for anything else. */

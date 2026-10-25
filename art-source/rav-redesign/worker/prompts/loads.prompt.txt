@@ -1,0 +1,13 @@
+Two tiny carried-load sprites for a top-down 2D game, painted side by side on one sheet: things that the SKITTERER, a small nest-worker creature of the Rav Bloom (an engineered alien swarm), carries in its mandibles. Each will be shown only about 8-12 pixels across in game.
+
+Reference 1 is the GEOMETRY AUTHORITY: a flat colour-blocked guide. Keep both objects exactly where they are on the canvas, at the same size, with the same outer silhouette and colour layout; repaint the flat blocks as finished, volumetric painted art. Do not add a third object, do not move or merge them.
+
+Reference 2 is the STYLE AND PALETTE AUTHORITY only (not layout): the skitterer's own body, painted pale pearly lilac chitin with dusky violet shading, deep crimson sinew and ivory bone. Match its painterly finish, its lilac, and its lighting.
+
+LEFT object, the FEED: a glistening glob of raw biomass. A plump, rounded, slightly lumpy blob. Its core is warm glowing amber-orange, translucent and wet, with a bright specular highlight toward the upper left; deep crimson sinew strands run through it and wrap over its surface; it is held in a thin translucent pale-lilac membrane skin that forms a clear, smooth, continuous rim around the whole glob. It reads as warm, juicy organic food.
+
+RIGHT object, the PULP: a ragged wad of chewed tree bark. Matte, dry, dead and woody: torn dark-brown bark fibres and a few short pale splintered wood shards poking out of the edge, with a few curled dead grey-brown leaves stuck in it, all bound together by a few thin pale-lilac creep veins wrapped around it like string. It reads cool, brown, dry and ragged, clearly different from the feed: no glow, no gloss, no orange. Keep it a compact wad; splinters stick out only a little.
+
+Both: strict overhead orthographic view looking straight down, soft light from the upper left, big clear shapes and a strong dark-to-light value contrast with a clear darker rim so each silhouette survives at a few pixels; no fine noise, no texture grain, no tiny detail.
+
+Background: keep the flat pure chroma green (#00B140) of reference 1 everywhere outside the two objects, perfectly flat and uniform. No cast shadow, no ground, no glow spill onto the background, no text, no labels, no border.

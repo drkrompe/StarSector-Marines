@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 
 import java.util.ArrayList;
@@ -19,6 +20,11 @@ public final class RavRunnerAssets {
     /** The whelp's and the elder's sets, by the same export. */
     public static final String WHELP_ROOT = "graphics/battle/rav-runner-whelp/";
     public static final String ELDER_ROOT = "graphics/battle/rav-runner-elder/";
+    /**
+     * The skitterer's own bones (`colony-breach-nouns.md`, Skitterer), cut to the Runner's registration so they pose on
+     * its skeleton: trunk, head and legs, no spike arms. By {@code art-source/rav-redesign/worker/export_worker_rig.py}.
+     */
+    public static final String WORKER_ROOT = "graphics/battle/rav-worker/";
 
     /** The trunk in two halves that meet at mid-spine, so it bends through a turn. */
     final LayeredSpriteCache trunkFront;
@@ -30,8 +36,12 @@ public final class RavRunnerAssets {
     /** Ichor a burst Runner leaves, by {@code art-source/rav-redesign/export_ichor.py}. */
     final LayeredSpriteCache[] splat = new LayeredSpriteCache[4];
     LayeredSpriteCache drop;
+    /** What a skitterer carries in its mandibles: feed for the spire, pulp off a tree. Null where missing. */
+    LayeredSpriteCache loadFeed, loadPulp;
     /** The stage sets, or null where one is missing and the adult's stands in. */
     private RavRunnerAssets whelp, elder;
+    /** The skitterer's set, or null where it is missing and the Runner's stands in. */
+    private RavRunnerAssets worker;
 
     private RavRunnerAssets(LayeredSpriteCache trunkFront, LayeredSpriteCache trunkRear,
                             LayeredSpriteCache fore) {
@@ -52,7 +62,8 @@ public final class RavRunnerAssets {
         if (assets.drop == null) return null;
         assets.whelp = bones(WHELP_ROOT, loader);
         assets.elder = bones(ELDER_ROOT, loader);
-        for (RavRunnerAssets stage : new RavRunnerAssets[]{assets.whelp, assets.elder}) {
+        assets.worker = armless(WORKER_ROOT, loader);
+        for (RavRunnerAssets stage : new RavRunnerAssets[]{assets.whelp, assets.elder, assets.worker}) {
             if (stage == null) continue;
             System.arraycopy(assets.splat, 0, stage.splat, 0, assets.splat.length);
             stage.drop = assets.drop;
@@ -64,6 +75,23 @@ public final class RavRunnerAssets {
     public RavRunnerAssets forStage(SwarmStage stage) {
         RavRunnerAssets own = stage == SwarmStage.WHELP ? whelp : stage == SwarmStage.ELDER ? elder : null;
         return own != null ? own : this;
+    }
+
+    /** The set {@code rig} is drawn with: a skitterer's own, else its stage's. */
+    public RavRunnerAssets forRig(RavRunnerRig rig) {
+        if (rig.worker() && worker != null) return worker;
+        return forStage(rig.stage());
+    }
+
+    /** A set with no spike arms, the skitterer's; null when any bone is missing. */
+    private static RavRunnerAssets armless(String root, Function<String, LayeredSpriteCache> loader) {
+        RavRunnerAssets assets = new RavRunnerAssets(loader.apply(root + "trunk-front.png"),
+                loader.apply(root + "trunk-rear.png"), loader.apply(root + "fore.png"));
+        if (assets.trunkFront == null || assets.trunkRear == null || assets.fore == null) return null;
+        if (!fill(assets.front, root + "front", loader) || !fill(assets.hind, root + "hind", loader)) return null;
+        assets.loadFeed = loader.apply(root + "load-feed.png");
+        assets.loadPulp = loader.apply(root + "load-pulp.png");
+        return assets;
     }
 
     private static RavRunnerAssets bones(String root, Function<String, LayeredSpriteCache> loader) {
@@ -83,6 +111,7 @@ public final class RavRunnerAssets {
         all.add(drop);
         if (whelp != null) whelp.addBones(all);
         if (elder != null) elder.addBones(all);
+        if (worker != null) worker.addBones(all);
         return all;
     }
 
@@ -90,8 +119,11 @@ public final class RavRunnerAssets {
         all.add(trunkFront);
         all.add(trunkRear);
         all.add(fore);
+        if (loadFeed != null) all.add(loadFeed);
+        if (loadPulp != null) all.add(loadPulp);
         for (LayeredSpriteCache[][] bones : new LayeredSpriteCache[][][]{front, hind, arm}) {
             for (LayeredSpriteCache[] pair : bones) {
+                if (pair[0] == null) continue;
                 all.add(pair[0]);
                 all.add(pair[1]);
             }

@@ -57,8 +57,12 @@ gates are where they cross its wall (a road that only runs past a square
 place's side opens it only where a street leaves, and a square place no road
 grew into is given arms off the road past it); the garrison makes the rest of it at
 setup: a gun tower beside each gate, firing slits and wall posts along its
-runs, floodlights at its corners. Its wall is field grade: a Brute, a charge or
-a ground colony's spines open it. Each redoubt is numbered across the line from
+runs, floodlights at its corners, and a flak position in its yard
+(`CordonGarrisons`; on the redoubt's ammunition with its guns). The flak is what
+meets the flier law over the line: the front's brood spires launch Harrier packs
+with their bores' surges only while some of it stands (`colony-breach-nouns.md`,
+Brood spire), and the packs hunt what it does not cover. Its wall is field
+grade: a Brute, a charge or a ground colony's spines open it. Each redoubt is numbered across the line from
 west to east, from 1.
 
 **Construction.** What a redoubt is built from (`CordonConstruction`; owner,

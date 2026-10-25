@@ -1,0 +1,42 @@
+{
+  "builtFrom": [
+    {
+      "source": "explosions/explosion06.wav",
+      "sourceAudioSha256": "733f36ae96536bd11e962b131b40516d7bb6b7c2ebe767762f52239ca10cea60",
+      "startAfterOnset": 0.0,
+      "onset": 0.005,
+      "length": 0.4,
+      "pitch": 0.5,
+      "gainDb": 0.0,
+      "filters": "lowpass=f=700"
+    },
+    {
+      "source": "explosions/explosion08.wav",
+      "sourceAudioSha256": "09038e1698057b454ae3e567787c07df8472cbf8370cfa2241f7448ca0a1d632",
+      "startAfterOnset": 0.0,
+      "onset": 0.0,
+      "length": 0.35,
+      "pitch": 0.38,
+      "gainDb": -2.0,
+      "filters": "lowpass=f=140"
+    },
+    {
+      "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav",
+      "sourceAudioSha256": "c4c1d67581e65b178e6f9b35e52fad1bf5e33fd37401dc6a31b71930ab8dae57",
+      "startAfterOnset": 0.0,
+      "onset": 0.025,
+      "length": 0.06,
+      "pitch": 0.45,
+      "gainDb": -11.0,
+      "filters": "highpass=f=120,lowpass=f=1800,afade=t=out:st=0.03:d=0.06"
+    }
+  ],
+  "pitch": "asetrate+aresample: lower and slower together",
+  "filterComplex": "[0:a]aformat=channel_layouts=mono,aresample=44100,atrim=0.005:0.405,asetpts=PTS-STARTPTS,asetrate=22050,aresample=44100,lowpass=f=700,volume=0.0dB,apad[l0];[1:a]aformat=channel_layouts=mono,aresample=44100,atrim=0.000:0.350,asetpts=PTS-STARTPTS,asetrate=16758,aresample=44100,lowpass=f=140,volume=-2.0dB,apad[l1];[2:a]aformat=channel_layouts=mono,aresample=44100,atrim=0.025:0.085,asetpts=PTS-STARTPTS,asetrate=19845,aresample=44100,highpass=f=120,lowpass=f=1800,afade=t=out:st=0.03:d=0.06,volume=-11.0dB,apad[l2];[l0][l1][l2]amix=inputs=3:normalize=0,highpass=f=42,highpass=f=42,equalizer=f=65:t=o:w=1:g=5,atrim=0:0.600,afade=t=in:d=0.004,afade=t=out:st=0.200:d=0.400[raw]",
+  "level": "volume=-2.90dB,alimiter=limit=0.89:level=false",
+  "note": "The flak gun's report: a fast explosion's first 0.4 s pitched about an octave down for the body, a sub layer of another explosion under it, and the first 60 ms of a rifle report pitched down for the breech's bite, with 50-90 Hz lifted; built from the mod's own takes, not generated (owner, 2026-10-25: 'we need a deeper thump and pop for the flak shooting and exploding'). Levelled so one voice sits at -22 LUFS, over the line's -24 to -28.",
+  "integratedLufs": -22.0,
+  "audioSha256": "698fa6c99450f6364acd633affadc59c7385c50aeca48e8eefba8d4963d0d517",
+  "durationSeconds": 0.6,
+  "outputFormat": "pcm_s16le_44100_mono"
+}

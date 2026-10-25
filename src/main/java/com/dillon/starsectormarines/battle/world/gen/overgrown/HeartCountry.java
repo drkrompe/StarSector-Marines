@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -189,9 +190,13 @@ public final class HeartCountry {
         PrecinctPlan plan = PrecinctPlan.laidOut(places, form.startEdge, LandingKind.OPEN_FIELD,
                 form.scale.width, form.scale.height, rng);
         Precinct workings = place(plan, WORKINGS);
-        Landscape landscape = landscapeFor(form, seed);
+        Landscape.Knoll knoll = form == Form.BROAD_FRONT && density != Density.CITY ? knoll(density) : null;
+        Landscape landscape = landscapeFor(form, seed, workings, knoll == null ? null : place(plan, SETTLEMENT), knoll);
         if (workings != null) landscape = landscape.withSealed(hollow(form, workings.seedX(), workings.seedY()));
-        if (form == Form.BROAD_FRONT && density != Density.CITY) landscape = landscape.withKnolls(List.of(knoll(density)));
+        // The cordon ridge's ground is held before growth, as the Cordon holds its line's: in open country from
+        // everything that grows, in a town from the fields alone. A city digs its forward line instead.
+        if (density != Density.CITY) landscape = landscape.withHeld(List.of(ridge(form)));
+        if (knoll != null) landscape = landscape.withKnolls(List.of(knoll));
         return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, density, seed));
     }
 
@@ -281,9 +286,12 @@ public final class HeartCountry {
      * along each allied lane from the farmland toward the heart, so a column
      * has a way in; The Burn's forest is thicker and crossed by rides, the
      * cleared strips a forester cuts to stop a fire, which are the firebreaks
-     * the company lights its line behind.
+     * the company lights its line behind. The brook bends round the workings'
+     * hollow, when there is one, so its valley never cuts the rim, and a lane
+     * that would run into the town's knoll turns along its foot to the south
+     * gate's road ({@link #laneTracks}).
      */
-    static Landscape landscapeFor(Form form, long seed) {
+    static Landscape landscapeFor(Form form, long seed, Precinct workings, Precinct town, Landscape.Knoll knoll) {
         int w = form.scale.width, h = form.scale.height;
         // The cordon ridge is the layout's (HeartLayout), raised before the works so the line is dug on its crest.
         List<RidgePlanner.Band> ridges = List.of();
@@ -292,7 +300,7 @@ public final class HeartCountry {
             int top = Math.round(LANE_DEPTH * (h - 1));
             for (float across : LANE_ACROSS) {
                 int x = Math.round(across * (w - 1)) - TRACK_WIDTH / 2;
-                tracks.add(new Landscape.Track(x, 0, x + TRACK_WIDTH - 1, top));
+                tracks.addAll(laneTracks(x, top, town, knoll));
             }
             return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN, ridges);
         }
@@ -300,7 +308,27 @@ public final class HeartCountry {
             int x = Math.round(depth * (w - 1)) - RIDE_WIDTH / 2;
             tracks.add(new Landscape.Track(x, 0, x + RIDE_WIDTH - 1, h - 1));
         }
-        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)), FIELD_MARGIN, ridges);
+        Landscape.Brook brook = brook(w, h, seed);
+        if (workings != null) brook = roundHollow(brook, workings.seedX(), workings.seedY());
+        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook), FIELD_MARGIN, ridges);
+    }
+
+    /**
+     * One lane's track from the start edge to {@code top}, its west side at
+     * {@code x}. A lane whose course meets the knoll's ground (its top and ring,
+     * round the town's seed) stops a cell short of it and turns along the foot
+     * to the south gate, whose road runs down from the ring at the seed's line:
+     * a column on it reaches the town by the gate, not a cliff.
+     */
+    static List<Landscape.Track> laneTracks(int x, int top, Precinct town, Landscape.Knoll knoll) {
+        int x1 = x + TRACK_WIDTH - 1;
+        if (town == null || knoll == null) return List.of(new Landscape.Track(x, 0, x1, top));
+        int kx0 = town.seedX() - knoll.halfWidth() - knoll.ring(), kx1 = town.seedX() + knoll.halfWidth() + knoll.ring();
+        int foot = town.seedY() - knoll.halfHeight() - knoll.ring() - 1;
+        if (x1 < kx0 || x > kx1 || top <= foot || foot < TRACK_WIDTH) return List.of(new Landscape.Track(x, 0, x1, top));
+        int gate = town.seedX();
+        return List.of(new Landscape.Track(x, 0, x1, foot),
+                new Landscape.Track(Math.min(x, gate), foot - TRACK_WIDTH + 1, Math.max(x1, gate), foot));
     }
 
     /**
@@ -330,8 +358,12 @@ public final class HeartCountry {
         return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH);
     }
 
-    /** Cells from the workings' seed to the middle of the hollow's rim, by form. */
-    static final int BROAD_FRONT_HOLLOW_RADIUS = 52, THE_BURN_HOLLOW_RADIUS = 44;
+    /**
+     * Cells from the workings' seed to the middle of the hollow's rim: far enough that the rim and its apron clear
+     * the corners of the biggest fenced origin's yard, which a tighter rim breaks on (The Burn's at 44 lost most of
+     * its west face to them).
+     */
+    static final int HOLLOW_RADIUS = 52;
     /** Cells through the hollow's rim. */
     static final int HOLLOW_RIM = 10;
     /** Degrees either side of the start's direction that the rim wraps round the workings. */
@@ -356,17 +388,16 @@ public final class HeartCountry {
      * roads and yards would otherwise leave no room for it.
      */
     static List<RidgePlanner.Band> hollow(Form form, int cx, int cy) {
-        int radius = form == Form.BROAD_FRONT ? BROAD_FRONT_HOLLOW_RADIUS : THE_BURN_HOLLOW_RADIUS;
         // The direction from the workings toward the start edge.
         double facing = form.advancesAlongY() ? -90 : 180;
-        double pass = Math.toDegrees(HOLLOW_PASS / (double) radius) / 2;
+        double pass = Math.toDegrees(HOLLOW_PASS / (double) HOLLOW_RADIUS) / 2;
         List<RidgePlanner.Band> out = new ArrayList<>();
         for (double from = -HOLLOW_SWEEP; from < HOLLOW_SWEEP; ) {
             double next = Math.floor((from + pass) / HOLLOW_PASS_EVERY + 1) * HOLLOW_PASS_EVERY;
             double to = Math.min(HOLLOW_SWEEP, next);
             double a = from == -HOLLOW_SWEEP ? from : from + pass;
             double b = to == HOLLOW_SWEEP ? to : to - pass;
-            if (b > a) out.add(arc(cx, cy, radius, facing + a, facing + b));
+            if (b > a) out.add(arc(cx, cy, HOLLOW_RADIUS, facing + a, facing + b));
             from = to;
         }
         return out;
@@ -401,6 +432,55 @@ public final class HeartCountry {
         }
         path.add(new int[]{x, h - 1});
         return new Landscape.Brook(path, BROOK_WIDTH, BROOK_FORD_EVERY, BROOK_FORD_WIDTH, VALLEY_SIDE);
+    }
+
+    /** Cells from the brook's middle to the outer foot of a valley side, its apron included (`OutdoorLandscapeStage`). */
+    static final int BROOK_VALLEY_REACH = 25;
+    /**
+     * Cells, at least, from the workings' seed to the brook's middle: the
+     * hollow out to the rim's outer foot and its apron, then the brook's valley
+     * and a margin, so the valley side stops short of the rim.
+     */
+    static final int BROOK_HOLLOW_CLEARANCE = HOLLOW_RADIUS + HOLLOW_RIM / 2
+            + PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1 + BROOK_VALLEY_REACH + 2;
+    /** Cells, along the brook's line, between the points of a stretch bent round the hollow. */
+    private static final int BROOK_BEND_STEP = 4;
+
+    /**
+     * The brook bent round the hollow centred on {@code (cx, cy)}: a stretch that
+     * would come within {@link #BROOK_HOLLOW_CLEARANCE} is pushed out to that
+     * circle on whichever side it ran, west of the workings or east; the rest of
+     * its course is the brook as it was.
+     */
+    static Landscape.Brook roundHollow(Landscape.Brook brook, int cx, int cy) {
+        List<int[]> path = brook.path();
+        List<int[]> out = new ArrayList<>();
+        out.add(clear(path.get(0), cx, cy));
+        for (int i = 0; i + 1 < path.size(); i++) {
+            int[] a = path.get(i), b = path.get(i + 1);
+            int steps = Math.max(1, Math.abs(b[1] - a[1]) / BROOK_BEND_STEP);
+            List<int[]> bent = new ArrayList<>();
+            boolean moved = false;
+            for (int k = 1; k <= steps; k++) {
+                int[] p = {Math.round(a[0] + (b[0] - a[0]) * k / (float) steps), Math.round(a[1] + (b[1] - a[1]) * k / (float) steps)};
+                int[] c = clear(p, cx, cy);
+                moved |= c[0] != p[0];
+                bent.add(c);
+            }
+            if (moved) out.addAll(bent);
+            else out.add(b);
+        }
+        return new Landscape.Brook(out, brook.width(), brook.fordEvery(), brook.fordWidth(), brook.banks());
+    }
+
+    /** The point, or the point on the clearance circle level with it on its own side when it lies inside. */
+    private static int[] clear(int[] p, int cx, int cy) {
+        int dy = p[1] - cy;
+        long r2 = (long) BROOK_HOLLOW_CLEARANCE * BROOK_HOLLOW_CLEARANCE;
+        if ((long) dy * dy >= r2) return p;
+        int half = (int) Math.ceil(Math.sqrt(r2 - (long) dy * dy));
+        if (Math.abs(p[0] - cx) >= half) return p;
+        return new int[]{p[0] < cx ? cx - half : cx + half, p[1]};
     }
 
     /** The plan's place of this name, or {@code null}. */

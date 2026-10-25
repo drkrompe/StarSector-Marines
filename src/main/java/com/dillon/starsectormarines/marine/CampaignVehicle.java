@@ -90,8 +90,13 @@ public final class CampaignVehicle implements Serializable {
         return new VehicleDeploymentSpec(id, displayName, type, kits());
     }
 
-    /** Player-facing name of a vehicle hull. */
+    /** Player-facing name of a vehicle hull: its role and weapon, short ("LRM Standoff Carrier"). */
     public static String typeName(VehicleType type) {
         return type == null ? "" : Strings.get("vehicleTypeName" + type.name());
+    }
+
+    /** The hull's in-universe class name ("Longshot"), which also names the hulls a bay fabricates. */
+    public static String className(VehicleType type) {
+        return type == null ? "" : Strings.get("vehicleTypeClass" + type.name());
     }
 }

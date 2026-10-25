@@ -9,20 +9,19 @@ import java.util.List;
 /** One of the debug briefing's player bay slots: empty, a mech chassis or a vehicle. */
 public final class DebugBaySlot {
     public static final int SLOTS = 4;
-    public static final DebugBaySlot EMPTY = new DebugBaySlot(null, null, "Empty");
+    public static final DebugBaySlot EMPTY = new DebugBaySlot(null, null);
 
     private static final List<DebugBaySlot> OPTIONS = options();
 
     public final MechVariant mech;
     public final VehicleType vehicle;
-    public final String label;
 
-    private DebugBaySlot(MechVariant mech, VehicleType vehicle, String label) {
-        this.mech = mech; this.vehicle = vehicle; this.label = label;
+    private DebugBaySlot(MechVariant mech, VehicleType vehicle) {
+        this.mech = mech; this.vehicle = vehicle;
     }
 
-    public static DebugBaySlot of(MechVariant mech) { return new DebugBaySlot(mech, null, "Mech: " + mech.name()); }
-    public static DebugBaySlot of(VehicleType vehicle) { return new DebugBaySlot(null, vehicle, "Vehicle: " + vehicle.name()); }
+    public static DebugBaySlot of(MechVariant mech) { return new DebugBaySlot(mech, null); }
+    public static DebugBaySlot of(VehicleType vehicle) { return new DebugBaySlot(null, vehicle); }
 
     /** Empty first, then every mech chassis, then every vehicle. */
     public static List<DebugBaySlot> options() {

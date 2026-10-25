@@ -78,6 +78,7 @@ public final class EffectsService {
     private final List<float[]> wallDustsThisFrame = new ArrayList<>();
     private final List<float[]> heavyImpactsThisFrame = new ArrayList<>();
     private final List<float[]> clawStrikesThisFrame = new ArrayList<>();
+    private final List<float[]> swarmHitsThisFrame = new ArrayList<>();
     /**
      * Rounds released onto the ground this frame. Unlike the {@code float[]}
      * queues above, a delivery carries a {@link OrdnanceDelivery} as well as a
@@ -347,10 +348,23 @@ public final class EffectsService {
         clawStrikesThisFrame.add(new float[]{x, y, dirX, dirY, blood});
     }
 
+    /**
+     * A round that landed on a plated Rav ({@code SwarmHitFeedback}) at ({@code x},{@code y}), travelling along
+     * ({@code dirX},{@code dirY}), on a rim facing ({@code normalX},{@code normalY}) (unit vectors): a puff of chitin or
+     * ichor {@code scale} times a rifle round's, or a glance skipping off. Presentation only; the hit already resolved.
+     */
+    public void emitSwarmHit(float x, float y, float dirX, float dirY, float normalX, float normalY, float scale,
+                             int kind) {
+        swarmHitsThisFrame.add(new float[]{x, y, dirX, dirY, normalX, normalY, scale, kind});
+    }
+
     // ---- Per-frame event drains ----
 
     /** Claw strikes queued this tick, each {x, y, dirX, dirY, blood}; see {@link #emitClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return clawStrikesThisFrame; }
+
+    /** Rounds landed on plated Rav this tick, each {x, y, dirX, dirY, normalX, normalY, scale, kind}; see {@link #emitSwarmHit}. */
+    public List<float[]> getSwarmHitsThisFrame() { return swarmHitsThisFrame; }
 
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
     public List<float[]> getGroundDustThisFrame() { return groundDustThisFrame; }
@@ -371,6 +385,7 @@ public final class EffectsService {
         wallDustsThisFrame.clear();
         heavyImpactsThisFrame.clear();
         clawStrikesThisFrame.clear();
+        swarmHitsThisFrame.clear();
         rollingBlastsThisFrame.clear();
         ordnanceReleasesThisFrame.clear();
     }
