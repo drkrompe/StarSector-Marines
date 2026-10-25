@@ -331,6 +331,7 @@
   "marines_mara_jangala_debrief_road": [{"file": "sounds/story/wayline/marines_mara_jangala_debrief_road.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_castle_jangala_debrief_manifests": [{"file": "sounds/story/wayline/marines_castle_jangala_debrief_manifests.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_jangala_debrief_why": [{"file": "sounds/story/wayline/marines_mara_jangala_debrief_why.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_castle_jangala_debrief_next": [{"file": "sounds/story/wayline/marines_castle_jangala_debrief_next.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_thunder_run_briefing": [{"file": "sounds/story/wayline/marines_mara_thunder_run_briefing.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_thunder_run_started": [{"file": "sounds/story/wayline/marines_mara_thunder_run_started.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_thunder_run_player_landed": [{"file": "sounds/story/wayline/marines_mara_thunder_run_player_landed.ogg", "pitch": 1.0, "volume": 1.0}],
