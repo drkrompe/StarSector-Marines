@@ -15,10 +15,12 @@ import java.util.List;
  * alike, and tapers from the mouth to its growth. It is pure over its endpoints: the same nest gives the same roots.
  * {@link #rasterize} lays them into a per-cell distance field the creep's shader reads.
  *
- * <p>A root grows (owner, 2026-10-25: thinner veins "dig out and construct" from the bore over time): from the tick
- * its growth sprouted, a thin vein digs out from the bore at {@link #DIG_CELLS_PER_SECOND}, and once it has reached
- * the growth it thickens into rope over {@link #THICKEN_SECONDS} ({@link #growth}). A growth from creep matured at
- * setup is weeks old and its root fully grown.
+ * <p>A root grows, and its growth rises where it ends (owner, 2026-10-25: thinner veins "dig out and construct"
+ * from the bore, and the root is the lead-up to the growth, not its sequel): a thin vein digs out from the bore over
+ * the first {@link #DIG_SHARE} of the growth's lead and thickens into rope over the rest ({@link #growth}), and only
+ * then does the colony or outpost stand at its end. A mouth colony's lead is {@link SwarmBores#COLONY_LEAD_SECONDS};
+ * an outpost's is its hold ({@link CreepOutposts#HOLD_SECONDS}). A standing growth, from setup or risen, has its root
+ * fully grown.
  */
 public final class NestTrails {
 
@@ -32,8 +34,8 @@ public final class NestTrails {
     static final float BOW = 0.22f, MEANDER = 0.45f, MEANDER_WAVELENGTH = 6f;
     /** Cells from the bore's centre where a root starts, under the rim of its painting. */
     static final float MOUTH_START = 1f;
-    /** How fast a root's vein digs out from the bore, and how long it then takes to thicken into rope. */
-    public static final float DIG_CELLS_PER_SECOND = 1.2f, THICKEN_SECONDS = 15f;
+    /** The share of a growth's lead its root spends digging out; it thickens into rope over the rest. */
+    public static final float DIG_SHARE = 0.5f;
     /**
      * Half-width laid for a root still a vein, in cells: below what the field can hold as a rope, so the creep's
      * shader draws it as a band of thickened, lit veins instead. A thickening rope starts at {@link #ROPE_START}.
@@ -50,54 +52,72 @@ public final class NestTrails {
                         float reach, float thick) { }
 
     /**
-     * How far a root of {@code length} cells has grown {@code ageSeconds} after its growth sprouted: its reach along
-     * its length and its thickness, each 0..1, into {@code out}. It digs out at {@link #DIG_CELLS_PER_SECOND}, then
-     * thickens over {@link #THICKEN_SECONDS}.
+     * How far a root has grown {@code progress} (0..1) through its growth's lead: its reach along its length and its
+     * thickness, each 0..1, into {@code out}. It digs out over the first {@link #DIG_SHARE}, then thickens.
      */
-    public static void growth(float length, float ageSeconds, float[] out) {
-        float dig = Math.max(length, 0.01f) / DIG_CELLS_PER_SECOND;
-        out[0] = Math.max(0f, Math.min(1f, ageSeconds / dig));
-        out[1] = Math.max(0f, Math.min(1f, (ageSeconds - dig) / THICKEN_SECONDS));
+    public static void growth(float progress, float[] out) {
+        out[0] = Math.max(0f, Math.min(1f, progress / DIG_SHARE));
+        out[1] = Math.max(0f, Math.min(1f, (progress - DIG_SHARE) / (1f - DIG_SHARE)));
     }
 
     private NestTrails() { }
 
-    /** Every living bore's roots to its living colonies, outposts and spire, in a stable order. */
+    /**
+     * Every living bore's roots, in a stable order: grown to its living colonies, outposts and spire, and growing to
+     * the colonies on their way and the outpost whose cell it holds.
+     */
     public static List<Trail> of(BattleSimulation sim) {
         List<Trail> out = new ArrayList<>();
         SwarmBores bores = sim.swarmBores();
         if (bores == null) return out;
+        int tick = sim.getSimTickIndex();
+        CreepOutposts outposts = sim.creepOutposts();
         for (SwarmBore bore : bores.bores()) {
             if (bore.collapsed() || !sim.world().isAlive(bore.entityId())) continue;
-            float bx = bore.x() + 0.5f, by = bore.y() + 0.5f;
-            for (long id : bore.colonies()) {
-                add(sim, out, bore, bx, by, id, HALF_WIDTH_STUB, HALF_WIDTH_STUB * 0.75f, bore.bornTick(id));
+            for (long id : bore.colonies()) addTo(sim, out, bore, id, HALF_WIDTH_STUB, HALF_WIDTH_STUB * 0.75f);
+            for (long id : bore.outposts()) addTo(sim, out, bore, id, HALF_WIDTH_ROOT, HALF_WIDTH_TIP);
+            for (SwarmBore.Growing g : bore.growing()) {
+                add(out, bore, g.x(), g.y(), HALF_WIDTH_STUB, HALF_WIDTH_STUB * 0.75f, g.progress(tick));
             }
-            for (long id : bore.outposts()) add(sim, out, bore, bx, by, id, HALF_WIDTH_ROOT, HALF_WIDTH_TIP, bore.bornTick(id));
+            float held = outposts == null ? -1f : outposts.rootProgress(bore.entityId(), tick);
+            if (held >= 0f) {
+                int[] cell = outposts.pendingCell(bore.entityId());
+                add(out, bore, cell[0], cell[1], HALF_WIDTH_ROOT, HALF_WIDTH_TIP, held);
+            }
         }
         for (BroodSpires.Spire spire : sim.broodSpires().spires()) {
             if (spire.bore.collapsed()) continue;
-            // A spire grows only with creep matured at setup, so its root is as old as the bloom.
-            add(sim, out, spire.bore, spire.bore.x() + 0.5f, spire.bore.y() + 0.5f, spire.entityId,
-                    HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f, SwarmBore.OLD);
+            addTo(sim, out, spire.bore, spire.entityId, HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f);
+        }
+        for (BroodSpires.Rising r : sim.broodSpires().rising()) {
+            if (r.bore().collapsed()) continue;
+            add(out, r.bore(), r.x(), r.y(), HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f, r.progress(tick));
         }
         return out;
     }
 
-    private static void add(BattleSimulation sim, List<Trail> out, SwarmBore bore, float bx, float by, long id,
-                            float from, float to, int bornTick) {
+    /** A standing growth's root, fully grown. */
+    private static void addTo(BattleSimulation sim, List<Trail> out, SwarmBore bore, long id, float from, float to) {
         if (sim.resolveUnit(id) == 0L || !sim.world().isAlive(id)) return;
-        float gx = sim.world().cellX(id) + 0.5f, gy = sim.world().cellY(id) + 0.5f;
+        add(out, bore, sim.world().cellX(id), sim.world().cellY(id), from, to, 1f);
+    }
+
+    /**
+     * A root from {@code bore} to cell ({@code cx}, {@code cy}), {@code progress} through its growth's lead. Seeded off
+     * the bore and the cell, so a root keeps its line as the growth rises at its end.
+     */
+    private static void add(List<Trail> out, SwarmBore bore, int cx, int cy, float from, float to, float progress) {
+        float bx = bore.x() + 0.5f, by = bore.y() + 0.5f;
+        float gx = cx + 0.5f, gy = cy + 0.5f;
         float dx = gx - bx, dy = gy - by, len = (float) Math.hypot(dx, dy);
         if (len < SwarmBores.MOUTH_RADIUS + 0.5f) return;
         // Leave from under the bore's own painting, so the root runs out of its rim rather than beside it.
         float sx = bx + dx / len * MOUTH_START, sy = by + dy / len * MOUTH_START;
         float[] grown = new float[2];
-        float age = bornTick == SwarmBore.OLD ? Float.MAX_VALUE
-                : (sim.getSimTickIndex() - bornTick) * BattleSimulation.TICK_DT;
-        growth((float) Math.hypot(gx - sx, gy - sy), age, grown);
+        growth(progress, grown);
         if (grown[0] <= 0f) return;
-        out.add(new Trail(sx, sy, gx, gy, from, to, SwarmBores.mix(bore.number() * 0x9E3779B97F4A7C15L ^ id),
+        long cell = cx * 73856093L ^ cy * 19349663L;
+        out.add(new Trail(sx, sy, gx, gy, from, to, SwarmBores.mix(bore.number() * 0x9E3779B97F4A7C15L ^ cell),
                 grown[0], grown[1]));
     }
 

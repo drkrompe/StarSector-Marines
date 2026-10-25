@@ -419,8 +419,10 @@ public final class HoverLineScene implements BehaviorScene {
                 for (long id : sensors) {
                     if (!sim.world().isAlive(id)) continue;
                     aheadSamples++;
-                    // The hull faces +X: how far beyond its bow the sensor flies.
-                    if (sim.world().x(id) - body.x >= halfLength + DroneWing.SENSOR_AHEAD_CELLS - 3f) stationed++;
+                    // Out on a search station, inside the leash: the pair searches the ground round the hull
+                    // (SensorSearch) rather than holding a place off its bow.
+                    float out = (float) Math.hypot(sim.world().x(id) - body.x, sim.world().y(id) - body.y);
+                    if (out >= 3f && out <= DroneWing.LEASH_CELLS + 3f) stationed++;
                 }
             }
             if (tick % frameEvery == 0) {
@@ -432,9 +434,9 @@ public final class HoverLineScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("sensor-pair-launched", sensors.size() == 2,
                 sensors.size() + " sensor drones left the scout's bay"));
-        verdicts.add(Verdict.of("sensors-hold-ahead", aheadSamples > 0 && stationed >= aheadSamples * .8f,
-                stationed + " of " + aheadSamples + " sensor samples over the last 300 ticks were at least "
-                        + (DroneWing.SENSOR_AHEAD_CELLS - 3f) + " cells beyond the bow"));
+        verdicts.add(Verdict.of("sensors-hold-station", aheadSamples > 0 && stationed >= aheadSamples * .8f,
+                stationed + " of " + aheadSamples + " sensor samples over the last 300 ticks were between 3 and "
+                        + (DroneWing.LEASH_CELLS + 3f) + " cells from the hull"));
         verdicts.add(Verdict.of("sensors-see-past-the-wall", hiddenSightings > 0,
                 "the side's picture held the lurker the hull could not see on " + hiddenSightings
                         + " ticks, the first at tick " + firstHiddenSighting));

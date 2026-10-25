@@ -333,6 +333,8 @@ class CordonCommandEvidenceTest {
                 .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
                 .append('\n')
                 .append("- Harriers: ").append(HarrierReading.line(sim)).append('\n');
+        out.append("- Outer picket: ").append(cordon.outerPicket() == null ? "none" : cordon.outerPicket().readings())
+                .append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")
@@ -397,7 +399,8 @@ class CordonCommandEvidenceTest {
             }
         }
         for (CordonRedoubt r : cordon.redoubts()) {
-            out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())
+            out.append("- Redoubt ").append(r.number())
+                    .append(r.construction() == null ? "" : " (" + r.construction().id + ")").append(": cells ").append(r.left()).append(',').append(r.top())
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")
                     .append(r.guns().size()).append('\n');
         }

@@ -160,17 +160,47 @@ public final class CordonGarrisons {
         if (posts.size() < seats) return null;
         seatFlak(sim, number, guns, posts, left, top, right, bottom, centreX, centreY);
         List<Integer> teams = new ArrayList<>();
-        int radius = Math.max(right - left, bottom - top) / 2 + 2;
-        for (int t = 0; t < TEAMS; t++) {
-            // Interleaved, so each team holds the whole front rather than one end of it.
-            List<int[]> cells = new ArrayList<>();
-            for (int k = t; k < seats; k += TEAMS) cells.add(posts.get(k));
-            int squad = ColonyMilitia.seatTeam(sim, cells, "Redoubt " + number + " wall team " + (t + 1), risk, rng);
-            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, centreX, centreY, radius),
+        // Each team its own stretch of the posts, held there: told to hold the whole redoubt round its middle, a
+        // built redoubt's teams left its windows and sandbags for the yard before the swarm came (a compound's slits
+        // keep them; a building's windows do not), and town Line arid 10's school fell inside a minute.
+        for (List<int[]> cells : stretches(posts, TEAMS)) {
+            int squad = ColonyMilitia.seatTeam(sim, cells, "Redoubt " + number + " wall team " + (teams.size() + 1),
+                    risk, rng);
+            int[] hold = hold(cells);
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, hold[0], hold[1], hold[2]),
                     CommandAuthority.GARRISON, ISSUER, "hold redoubt " + number);
             teams.add(squad);
         }
         return new CordonRedoubt(number, left, top, right, bottom, teams, guns, seats, built);
+    }
+
+    /**
+     * The posts split into {@code teams} stretches of equal size along the face, west to east (then south to north):
+     * each team's posts side by side, so it holds its stretch rather than the yard.
+     */
+    static List<List<int[]>> stretches(List<int[]> posts, int teams) {
+        List<int[]> along = new ArrayList<>(posts);
+        along.sort(Comparator.<int[]>comparingInt(c -> c[0]).thenComparingInt(c -> c[1]));
+        List<List<int[]>> out = new ArrayList<>();
+        int each = along.size() / teams;
+        for (int t = 0; t < teams; t++) out.add(new ArrayList<>(along.subList(t * each, (t + 1) * each)));
+        return out;
+    }
+
+    /** Where a team holds its stretch, {x, y, radius}: the post nearest the stretch's middle, out to its farthest post. */
+    static int[] hold(List<int[]> stretch) {
+        float mx = 0, my = 0;
+        for (int[] c : stretch) {
+            mx += c[0];
+            my += c[1];
+        }
+        mx /= stretch.size();
+        my /= stretch.size();
+        int[] at = stretch.get(0);
+        for (int[] c : stretch) if (Math.hypot(c[0] - mx, c[1] - my) < Math.hypot(at[0] - mx, at[1] - my)) at = c;
+        int radius = 1;
+        for (int[] c : stretch) radius = Math.max(radius, (int) Math.ceil(Math.hypot(c[0] - at[0], c[1] - at[1])));
+        return new int[]{at[0], at[1], radius};
     }
 
     /** The prefix of the sandbag pieces' doodad ids: a cell holding one is a post behind cover. */

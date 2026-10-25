@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -120,6 +121,100 @@ class VehicleControlSystemTest {
         assertEquals(0f, body.speed, 0.001f);
         assertTrue(convoy.control(id).localPlanFailureRerouteAttempted,
                 "an uninterrupted null plan makes only its immediate re-route attempt once");
+    }
+
+    /**
+     * The captured stall (urban Road frozen 11): an outbound truck in the town's loading yard, nosed west against a
+     * house with its way out running south of it. No forward plan exists from that pose and no reroute helps; it stood
+     * there all battle with its convoy waiting behind it. It backs off and plans again from the roomier pose.
+     */
+    @Test
+    void aTruckWithNoPlanFromItsPoseBacksOffAndGoesOn() {
+        NavigationGrid grid = capturedYardGrid();
+        NavigationService navigation = new NavigationService(grid, new CellTopology(320, 130));
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(320, 130), null);
+        ConvoyService convoy = roster.convoy();
+        float[] xs = {287.04f, 288f, 280f, 270f, 250f};
+        float[] ys = {99.24f, 95f, 94.5f, 94.5f, 94.5f};
+        VehicleMission mission = new VehicleMission(xs, ys, xs, ys, 0f, 4);
+        long id = convoy.spawn(VehicleType.SUPPLY_TRUCK, Faction.DEFENDER, mission);
+        GroundBody body = convoy.body(id);
+        body.teleport(287.04f, 99.24f, 82.05f);
+        body.speed = 0f;
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        boolean stuck = false, reversed = false, replanned = false;
+        for (int i = 0; i < 400 && !replanned; i++) {
+            controls.tick(id, 0.05f, xs, ys, VehicleLeg.MOVE_ORDER);
+            VehicleControlComponent s = convoy.control(id);
+            stuck |= s.localPlanFailureRerouteAttempted;
+            reversed |= s.recovery == VehicleControlComponent.Recovery.REVERSING;
+            replanned = reversed && s.recovery == VehicleControlComponent.Recovery.NONE && s.hasTrajectory();
+        }
+
+        assertTrue(stuck, "the captured pose has no plan of its own");
+        assertTrue(reversed, "with no plan from its pose the truck backs off");
+        assertTrue(replanned, "and plans forward again from where it backed to (at " + body.x + "," + body.y
+                + " @ " + body.facingDegrees + ")");
+    }
+
+    @Test
+    void aHeldTruckDoesNotBackOff() {
+        VehicleMission mission = new VehicleMission(new float[]{0f, 1f}, new float[]{0f, 0f},
+                new float[]{1f, 0f}, new float[]{0f, 0f}, 0f, 4);
+        VehicleControlComponent s = new VehicleControlComponent();
+        s.localPlanFailureRerouteAttempted = true;
+        s.localPlanFailureTime = VehicleController.PLANLESS_REVERSE_SECONDS;
+        assertTrue(VehicleControlSystem.planlessReverseDue(mission, s));
+        mission.speedCap = 0f;
+        assertFalse(VehicleControlSystem.planlessReverseDue(mission, s), "held by its driver, it waits");
+        mission.speedCap = Float.POSITIVE_INFINITY;
+        s.localPlanFailureRerouteAttempted = false;
+        assertFalse(VehicleControlSystem.planlessReverseDue(mission, s), "its reroute comes first");
+    }
+
+    /** The town's loading yard round the stuck truck, x 272-306 and y 88-114, with the lane west out of it. */
+    private static NavigationGrid capturedYardGrid() {
+        NavigationGrid grid = new NavigationGrid(320, 130);
+        String[] northToSouth = {
+                ".,,,,,,,.#####.#####......,,,,,,,,,",
+                ".,,,,,,,............#####.,,,,,,,,,",
+                ".,,,,,,,.#####.########.#.,,,,,,,,,",
+                ",,,,,,,,.#...#.#...##...#.,,,,,,,,,",
+                ",,,,,,,,.#.,.#.#.,........,,,,,,,,,",
+                ",,,,,,,,.....#.#...######.,,,,,,,,,",
+                ",,,,,,,,.#####.##########.,,,,,,,,,",
+                ",,,,,,,,..................,,,,,,,,,",
+                ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,..........,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,.######.#.,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,.###....#.,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,.#...,.##.,,,,,,,,,,,,,,,,,,,,,,",
+                ",,,.#..,,.##.,,,,,,,,,,,,,,,,,,,,..",
+                ",,,.##....##.,,,,,,,,,,,,,,,,,,,,.#",
+                ",,,.##.#####.,,,,,,,,,,,,,,,,,,,,.#",
+                ",,,..........,,,,,,,,,,,,,,,,,,,,.#",
+                ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#",
+                ",,,,...............,,...........,.#",
+                "..,,.###..###.#.##.,,.###.##.##.,.#",
+                "#.,,.###...##....#.,,.###.....#.,.#",
+                "#.,,.##..,.###.,.#.,,...........,.#",
+                "#.,,....,,.#...,...,,.######.##.,.#",
+                "#.,,.#.....#.....#.,,.###.##..#.,.#",
+                "..,,.####.###.####.,,...........,.#"
+        };
+        int originX = 272;
+        int originY = 88;
+        for (int row = 0; row < northToSouth.length; row++) {
+            int y = originY + northToSouth.length - 1 - row;
+            for (int col = 0; col < northToSouth[row].length(); col++) {
+                if (northToSouth[row].charAt(col) != '#') grid.setWalkableFloor(originX + col, y);
+            }
+        }
+        carve(grid, 230, 93, originX - 1, 96);
+        return grid;
     }
 
     private static void carve(NavigationGrid grid, int x0, int y0, int x1, int y1) {

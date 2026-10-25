@@ -1,0 +1,568 @@
+{
+  "sheetName": "marked-apron",
+  "sheet": "art-source/tilesets/marked-apron.raw.png",
+  "cellPx": 64,
+  "alphaMin": 40,
+  "idPrefix": "apron",
+  "gridCols": 6,
+  "gridRows": 6,
+  "blocks": [
+    {
+      "id": "apron.marked",
+      "layout": "edge-faces-4x4",
+      "damageBlock": "colony.concrete-damage"
+    },
+    {
+      "id": "apron.keep-clear",
+      "layout": "edge-faces-4x4",
+      "damageBlock": "colony.concrete-damage"
+    }
+  ],
+  "entries": [
+    {
+      "id": "apron.marked.faces-0",
+      "block": "apron.marked",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        8,
+        8,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-1",
+      "block": "apron.marked",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        217,
+        8,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-2",
+      "block": "apron.marked",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        426,
+        8,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-3",
+      "block": "apron.marked",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        635,
+        8,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-4",
+      "block": "apron.marked",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        843,
+        8,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-5",
+      "block": "apron.marked",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1052,
+        8,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-6",
+      "block": "apron.marked",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        8,
+        217,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-7",
+      "block": "apron.marked",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        217,
+        217,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-8",
+      "block": "apron.marked",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        426,
+        217,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-9",
+      "block": "apron.marked",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        635,
+        217,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-10",
+      "block": "apron.marked",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        843,
+        217,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-11",
+      "block": "apron.marked",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1052,
+        217,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.marked.faces-12",
+      "block": "apron.marked",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        8,
+        426,
+        194,
+        193
+      ]
+    },
+    {
+      "id": "apron.marked.faces-13",
+      "block": "apron.marked",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        217,
+        426,
+        193,
+        193
+      ]
+    },
+    {
+      "id": "apron.marked.faces-14",
+      "block": "apron.marked",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        426,
+        426,
+        193,
+        193
+      ]
+    },
+    {
+      "id": "apron.marked.faces-15",
+      "block": "apron.marked",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        635,
+        426,
+        193,
+        193
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-0",
+      "block": "apron.keep-clear",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        843,
+        426,
+        194,
+        193
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-1",
+      "block": "apron.keep-clear",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1052,
+        426,
+        194,
+        193
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-2",
+      "block": "apron.keep-clear",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        8,
+        634,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-3",
+      "block": "apron.keep-clear",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        217,
+        634,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-4",
+      "block": "apron.keep-clear",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        426,
+        634,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-5",
+      "block": "apron.keep-clear",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        635,
+        634,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-6",
+      "block": "apron.keep-clear",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        843,
+        634,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-7",
+      "block": "apron.keep-clear",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1052,
+        634,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-8",
+      "block": "apron.keep-clear",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        8,
+        843,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-9",
+      "block": "apron.keep-clear",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        217,
+        843,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-10",
+      "block": "apron.keep-clear",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        426,
+        843,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-11",
+      "block": "apron.keep-clear",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        635,
+        843,
+        193,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-12",
+      "block": "apron.keep-clear",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        843,
+        843,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-13",
+      "block": "apron.keep-clear",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1052,
+        843,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-14",
+      "block": "apron.keep-clear",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        8,
+        1052,
+        194,
+        194
+      ]
+    },
+    {
+      "id": "apron.keep-clear.faces-15",
+      "block": "apron.keep-clear",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        217,
+        1052,
+        193,
+        194
+      ]
+    }
+  ],
+  "note": "Marked apron for GroundKind.STRIPED: weathered concrete hardstanding with worn traffic paint, generated as a reskin of art-source/templates/marked-apron-guide.png (prompt: marked-apron.prompt.txt). A 6x6 plate with dark gutters, no alpha; cut on the measured gutters, each cell trimmed 1 px inside its gutter. Frames 0-15 are apron.marked, 16-31 apron.keep-clear, each block's slot the exposed-edge mask (N=1 E=2 S=4 W=8); frames 32-35 are spare open apron and are not cut.\n\nBoth blocks use edge-faces-4x4: the renderer asks where the ground ends (a wall, or any neighbour drawn from another block), not where the walls are, so a run of apron is outlined by its painted line wherever it stops and the open field is plain concrete. apron.keep-clear fills the field with a diagonal hatch on a whole number of periods per cell, so a hatched zone tiles; it is the no-stand margin before a dock door and is placed as a surface override.\n\nThis replaces road.striped (urban-tileset-2), which the owner rejected: a dark blue-grey panel whose open cells repeated one edge piece."
+}

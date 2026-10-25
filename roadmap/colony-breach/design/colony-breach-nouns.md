@@ -4,6 +4,10 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
+
+Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
+
 Updated: 2026-10-25 — the brood spire's deep raids: four round the flak to a soft target behind the line, and home.
 
 Updated: 2026-10-25 — Harriers carry feed: a pack with nothing to hunt flies the dead home into its bore's mouth.
@@ -928,13 +932,20 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
   rope, over a worn furrow and a lit vein path). A root is drawn only: nothing
   walks, stops or fights by it, and it goes with its growth or its bore.
   `-Dbattle.render.nestTrails=false` is the control.
-- **Roots grow** (owner: thinner veins "dig out and construct" from the bores
-  over time). From the moment its growth sprouts, a root digs out from the
-  bore as a vein, a band of the creep's veins thickened and lit, at 1.2 cells a
-  second, and once it reaches the growth it thickens into rope over fifteen
-  seconds. Creep matured at setup is weeks old, so the growths it starts with
-  have their ropes; an outpost that roots in the battle, or a satellite opened
-  late, grows its roots in sight.
+- **Roots grow, and the growth rises where they end** (owner: thinner veins
+  "dig out and construct" from the bores, and the root must be the lead-up to
+  the growth, not follow it). A growth begun in play is first only its root: a
+  vein (a band of the creep's veins thickened and lit) digs out from the bore
+  over the first half of its lead and thickens into rope over the second, and
+  only when it has come does the colony or outpost rise at its end, throwing
+  the creep up round it. An outpost's lead is its twenty-second hold on its
+  cell (shortened as skitterers tend it), so it rises when it always did; the
+  creep counts a colony on its way as standing, so a held cell is never lost to
+  one rising. A mouth colony sprouts the moment a feed crosses a tier, which
+  nothing foresees, so its five-second lead stands it that much later than the
+  crossing. What stands at setup, and everything creep matured at setup grew,
+  stands at once with its rope; a satellite opened late is a bore, not a
+  growth, and erupts as one. Look: `nest-growth-look`.
 - **Its spire's roost**: the Brood spire's waiting brood (below).
 - **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
 - **Clutter** (`NestClutter`): egg clutches (glossy eggs with amber hearts in a
@@ -949,8 +960,17 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
 kind of spire like spawner"). It is the swarm's answer to a line it cannot walk
 through, made into a thing on the map the company can find and kill.
-- **Only an old bloom has one.** Spires grow when a battle's creep is matured
-  at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
+- **An old bloom has grown them; a fresh one grows them by eating** (owner,
+  2026-10-25). Where a battle's creep is matured at setup as weeks old (the
+  Cordon and the heart) its spires stand at once. In any battle, a fresh Colony
+  Breach among them, a satellite bore that has reached maw having eaten four
+  colonists' worth raises one (`BroodSpires.raises`): once its creep holds ground
+  for one by the rule below, the spire's root digs out and thickens over ten
+  seconds and the spire rises at its end in a burst of creep, as a colony does
+  (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
+  every colonist kept from it is a spire that never grows. A bore raises one
+  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and
   twenty-eight cells from its mouth and five clear of its colonies, and never
@@ -1334,9 +1354,9 @@ not read in a soft shadow at play zoom.
     capped rate, move along the nose. Serial, in pack and slot order, with no
     random draw, so a replay flies the same; a pack of twenty costs four
     hundred distance checks a tick.
-  - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
-    the flier law: off a satellite's **brood spire** with its bore's surge, and
-    as a Matriarch's **brood**, a pack of six that hatches off her back as she
+  - **Where it comes from** (`BroodSpires`). Only under the flier law: off a
+    satellite's **brood spire** with its bore's surge (an old bloom's, or one a
+    fed bore raised), and, in an old bloom, as a Matriarch's **brood**, a pack of six that hatches off her back as she
     emerges and flies as her escort (*Emergence*). So the satellites and the front bores
     send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
@@ -1973,6 +1993,14 @@ warehouse, worked by its own people, is loading the colony's stores onto a truck
 in its yard, and the company that holds the yard until the truck is away is paid
 out of what it carries. A colony whose warehouse has no stand a truck can leave
 from offers none.
+
+A side objective may bring its own **pressure** rather than make the breach's
+swarm aware of it (`set-piece-blocks.md`, Lanes and pressure). A loading in a
+freight yard has one: a held bore of its own (numbered 90, clear of the
+eruptions) opened down the street, whose surges the objective calls on its own
+beats, before the tremor as after it, and whose broods it sends in by the yard's
+gate and side gap. Collapsing that bore ends the pressure, which a guard may
+gamble on. When the objective ends its survivors wander as the rest of the swarm.
 
 ## Flow
 

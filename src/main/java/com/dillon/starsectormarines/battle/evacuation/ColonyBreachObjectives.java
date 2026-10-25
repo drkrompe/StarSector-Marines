@@ -10,7 +10,9 @@ import com.dillon.starsectormarines.battle.objective.optional.Reward;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.staffed.Loading;
 import com.dillon.starsectormarines.battle.staffed.LoadingObjective;
+import com.dillon.starsectormarines.battle.staffed.LoadingPressure;
 import com.dillon.starsectormarines.battle.staffed.StaffedBuildings;
+import com.dillon.starsectormarines.battle.world.gen.LoadingBay;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 
 import java.util.EnumSet;
@@ -41,14 +43,18 @@ public final class ColonyBreachObjectives {
      * could stand at its door and leave, and then no objective is offered.
      */
     public static ObjectiveBoard install(BattleSimulation sim, MapResult map, long battleSeed) {
-        // A freight yard's warehouse first: its bay is where a truck is meant to stand (set-piece-blocks.md).
+        // A freight yard's warehouse first: its bay is where a truck is meant to stand (set-piece-blocks.md),
+        // where a truck standing there can drive off the map. With no such bay, any warehouse but a yard's:
+        // a yard whose street a truck cannot follow out is a cul-de-sac for one parked by search too.
+        List<LoadingBay> bays = Loading.drivable(sim.getGrid(), sim.getTopology(), map.loadingBays);
         List<StaffedBuildings.Staffed> staffed = StaffedBuildings.install(sim, map, battleSeed ^ SALT,
                 EnumSet.of(BuildingWork.Kind.WAREHOUSE), 1,
-                building -> Loading.bayOf(building, map.loadingBays) != null);
+                bays.isEmpty() ? building -> Loading.bayOf(building, map.loadingBays) == null
+                        : building -> Loading.bayOf(building, bays) != null);
         if (staffed.isEmpty()) return null;
-        Loading loading = Loading.install(sim, staffed.get(0), LOADING_CRATES, map.loadingBays);
+        Loading loading = Loading.install(sim, staffed.get(0), LOADING_CRATES, bays);
         if (loading == null) return null;
-        List<OptionalObjective> rolled = ObjectiveRoll.pick(pool(loading), map.layout, battleSeed ^ SALT, 1, 1);
+        List<OptionalObjective> rolled = ObjectiveRoll.pick(pool(loading, BorePressure.against(sim, Loading.bayOf(loading.building().building(), map.loadingBays))), map.layout, battleSeed ^ SALT, 1, 1);
         ObjectiveBoard board = new ObjectiveBoard(rolled, ObjectiveContext.forBattle(sim, map.layout, battleSeed,
                 ColonyBreachSequence.BEAT_PREFIX));
         board.start(sim.getSimTickIndex());
@@ -56,10 +62,10 @@ public final class ColonyBreachObjectives {
         return board;
     }
 
-    static List<OptionalObjective> pool(Loading loading) {
+    static List<OptionalObjective> pool(Loading loading, LoadingPressure pressure) {
         return List.of(LoadingObjective.entry("Secure the loading",
                 "The colony's stores are going onto a truck at the warehouse: hold the yard until it is away.",
                 1, new Reward(3_500, Map.of("supplies", 20), Map.of()), new Cost("bloom.colony.stores_lost", 1),
-                () -> loading));
+                () -> loading, l -> pressure));
     }
 }

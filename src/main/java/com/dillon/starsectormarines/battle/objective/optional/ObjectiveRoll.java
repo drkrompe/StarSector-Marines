@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.objective.optional;
 
-import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 
 import java.util.ArrayList;
@@ -53,12 +52,13 @@ public final class ObjectiveRoll {
         return List.copyOf(drawn);
     }
 
-    /** Whether every structure the objective needs stands on the map, whole or in part. */
+    /** Whether every structure the objective needs stands on the map, whole or in part (one of a need's alternatives). */
     public static boolean fits(OptionalObjective objective, LaidLayout laid) {
         LaidLayout layout = laid == null ? LaidLayout.EMPTY : laid;
-        for (String name : objective.needs()) {
-            Laid piece = layout.find(name);
-            if (piece == null || !piece.isLaid()) return false;
+        for (String need : objective.needs()) {
+            boolean stands = false;
+            for (String name : OptionalObjective.alternatives(need)) stands |= layout.has(name);
+            if (!stands) return false;
         }
         return true;
     }

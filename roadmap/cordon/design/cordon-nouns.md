@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-25 — a forward observer in each redoubt calls the allied air wing
+Updated: 2026-10-25 — a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -87,6 +87,11 @@ terrace's cliff or ramps, and is recorded in the map's layout (`cordon-works-N`:
 its construction, its bounds, its gun cells) for the battle to read. A city
 redoubt with no crossroads worth walling up stays the compound, and a map whose
 mix would cost it its Cordon is the same map with every redoubt the compound.
+A farm or school is bricked up as troops would: every door and archway in its
+front face and flanks (an opening of three cells or fewer with wall at both
+ends) is walled with its neighbour's wall, so the swarm comes over the
+sandbags or through a breach, never in at a side door; the gaps its roads come
+in by stay open.
 
 **Picket line.** The ground between two neighbouring redoubts, held by works
 rather than walls, run from one redoubt's claimed edge to the next's at their
@@ -125,9 +130,12 @@ course's own. The law is acceptance: a map whose line still breaks it,
 nests and all, is not a Cordon map. Behind the middle of the line, the
 redoubt with the most room has an unmanned **switch line**, a shorter trench
 a garrison falls back to (beat L3). The beats' other set pieces stand where the layout found
-room for them (`cordon-map-intent.md`): a farmstead in the near front, an
-ammo dump in the base, a square in the far rear hamlet, a granary on the
-colony's near side, an observation post forward of each flank redoubt and,
+room for them (`cordon-map-intent.md`): a farmstead in the near front (in a
+city, a tenement standing there), an ammo dump in the base, a square in the far
+rear hamlet, a granary on the colony's near side, an observation post forward
+of each flank redoubt (in a city, the biggest building there, its front
+windows sandbagged), open ground behind the line a bore may erupt on (in a
+city, a cleared lot inside its blocks) and,
 on the Road, sandbag positions either side of the corridor where it crosses
 the line. A
 picket line is broken by gaps the roads pass through, so the line is a set of
@@ -136,6 +144,22 @@ would seal the ground are not laid. A picket line is optional: one the town
 breaks is still a Cordon. A picket team
 mans its course under the same order a holdout's line team has, and falls back
 into the nearer redoubt when it breaks.
+
+**Outer picket** (`CordonOuterPicket`; owner, 2026-10-25). One allied team
+out in front of each redoubt, put there to be lost: the line's eyes while the
+company is still landing and moving up. It stands on the road the swarm comes
+down, a little under thirty cells out from the redoubt's front wall in the
+column of its first street mouth (a street's cell before open ground, nearer
+the wall where that row has none), and keeps some twenty-five cells off every
+bore, under garrison authority and never in the player's command pool. What it
+sees the player sees (an allied body casts the side's fog as a Marine does),
+and the battle hears it make contact. It holds its post until it is pressed
+(half its team down with the swarm on it, or outnumbered two to one where it
+stands), then withdraws down its road to its redoubt, and whoever gets in joins
+the garrison; most of it dies on the way. It never calls, and neither the allies
+nor the company are sent for it. The point is what the player thinks about in
+the opening, not the reading: lost pickets feed the swarm's harvest, and the
+first surge is drawn forward to them.
 
 **Gap.** Where a road crosses the line: between two redoubts, where it is left
 open in the picket works and the redoubts either side cover it, or through a
@@ -151,7 +175,10 @@ is dressed exactly as the colony's civil-defence compound is
 still manned, its teams inside it with no towers. Any other construction is
 manned from its record: a gun seated in each nest its builders laid, and its
 teams at its loopholes (the windows its buildings look out of) and its
-sandbags, the front first, the rest of the seats in its yard. Wherever the
+sandbags, the front first, the rest of the seats in its yard; each wall team
+holds its own stretch of those posts, side by side along the face, rather
+than the redoubt as a whole (told to hold the whole redoubt round its middle, a
+building's teams left their windows for the yard before the swarm came). Wherever the
 battle asks for a redoubt's gate, its guns or its yard (a truck's rear gate, the
 gun-to-gun reading, a city redoubt's mortar team) it asks the same of every
 construction: a built redoubt's rear gate is the gap in whatever walls its rear,
@@ -297,11 +324,14 @@ again a little later (`cordon-allied-command.md`, The producer). Outside a city 
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it, laid wherever it
 reaches the redoubt's ground even with no other road near it; across a town's or a
-city's ground its own streets are the supply road: a truck's way to a redoubt
-whose road was not laid, or was cut off short of it, is the route a truck
-drives through the streets from the base to the rear gate, and it sets out on
-the first street outside the base. A redoubt no truck can drive to is sent
-none.
+city's ground its own streets are the supply road. A city's are laid as such:
+each the way along its streets from the base's gate to the rear gate, the widest
+first (the boulevard before a back street), cleared of the props in its
+carriageway, and no barricade the works lay closes it (`mission-layout.md`,
+Road). A truck's way to a redoubt whose road was not laid, or was cut off short
+of it, is the route a truck drives through the streets from the base to the
+rear gate, and it sets out on the first street outside the base. A redoubt no
+truck can drive to is sent none.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -312,13 +342,19 @@ the door when its time to get clear is up (a carrier steers too wide to be
 proved a way out of a lane narrower than its clearance) is towed out onto the
 threshold by the tug when that ground is clear, and goes on from there; one that
 stood in the lane stopped the shed, since the next machine is drawn out into
-that same stretch. A carrier waits
+that same stretch. One out of the door but still standing in front of it when
+its time is up is towed the same way, clear onto the apron, and the next waits
+until it has: let out on top of it, the shed's machines piled up on one cell
+there for the battle. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
 doorway, on ground its footprint fits and can drive away from: every hull of
 the allies' is set down on the main body of the map's ground for its width,
 never in a pocket (the nearest cell that merely fitted once put the first slot
 inside a walled pen beside the shed, and nothing from the base reached the
-line); there are as many carriers as slots,
+line), each slot apart from the others and off the threshold (two slots
+snapped to the one cell near both that a carrier fitted, and the second
+carrier waited on the threshold for good, turning every later hull aside at
+the door); there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
 out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
@@ -438,8 +474,11 @@ from where it stands to the road a stretch further on and given the rest from
 there: headway, not standing still, since a truck circling a point it cannot
 turn onto is moving all the time. On a map whose corridor does not pass the
 base, trucks come on a few cells in from the rear edge, since a hull set down
-on the edge row has no route out of it. Nothing is parked within a few cells of
-the corridor.
+on the edge row has no route out of it. A truck is set down at the first
+cell a little past its entry from which it can set out whichever way its first
+leg points (set down on a corner a fence's width off its turn, one stood there
+all battle), the entry itself where none can. Nothing is parked within a few
+cells of the corridor.
 
 The Road also has a **second road** through the line, from the base's gate
 through the gap beside redoubt 2 to the compound's rear gate (beat R5),
@@ -497,7 +536,9 @@ short arms, and their gates are where roads cross their walls, so a road may
 run through a redoubt rather than beside it: the redoubt then guards that
 road's way through the line. A map on which a redoubt has no wall, or the
 landing's field of fire is not clear, re-rolls; so does one whose logistics
-base packed no shed, or whose apron a carrier cannot drive from to every
+base packed no shed, whose shed has no machine door (its door read as the
+muster, and the base built one machine all battle; an open-air depot's
+gantries have none to find), or whose apron a carrier cannot drive from to every
 redoubt, onto its level (a redoubt on the crest is reached on its top, not
 under its cliff) (a base fenced too narrowly for a carrier kept every one it built
 standing on its apron, refused a route, with the shed's lane jammed behind).
@@ -538,7 +579,13 @@ The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the
 finished map, not carved: the cheapest way a truck can drive from where the
 country road leaves the rear edge to a street at the compound, every cell
-open with room either side and road five times cheaper than open ground. It
+open with room either side and road five times cheaper than open ground, and
+a turn made on a cell with no room to turn on (two cells open all round) much
+dearer: a truck drives a lane three wide straight but cannot turn into one,
+and a corridor that turned into an alley wedged every convoy at its mouth. It
+is found on the ground as the battle will stand it, every nest a gun is seated
+in closed: a corridor found past a nest's open cell ran its trucks into a
+chicane between that gun and a redoubt's wall. It
 keeps to the country road and the streets where they go its way and crosses
 country where the generator left no road (it prunes links between places
 that carry nobody to a map edge). On the first seeds it runs 76 to 91% on
@@ -689,6 +736,9 @@ with the same keys.
 | --- | --- | --- | --- |
 | `landfall` | both | PLAYER | First Marine on the ground |
 | `line_contact` | both | PLAYER | First swarm body inside any redoubt's reach |
+| `picket_contact_N` | both | PLAYER | The swarm reaches outer picket post N |
+| `picket_back_N` | both | PLAYER | Outer picket N's survivors are inside their redoubt and join its garrison |
+| `picket_lost_N` | both | PLAYER | Outer picket N's last man dies |
 | `tide_N` | both | PLAYER | The Nth tide: every living bore surges at once |
 | `eruption_N` | both | PLAYER | The Nth eruption: a new bore opens in front of the line |
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
@@ -737,10 +787,10 @@ with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
 
 | Code | Key | Needs | Runs | Succeeds | Fails |
 | --- | --- | --- | --- | --- | --- |
-| L1 | `stragglers` | farmstead | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
+| L1 | `stragglers` | farmstead or a city's tenement | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
 | L2 | `guns_dry` | ammo dump | At 5:00 one redoubt's gun towers (seeded, never the switch line's) run out of rounds and fire at a quarter rate; the allied line command asks the base for a truck, which drives its supply road (in a city, its streets); a redoubt no truck can reach is never chosen, and with none the beat lapses | A truck reaches the redoubt: its guns and tubes are full again | A truck bound there dies or the redoubt is lost first |
 | L3 | `switch_line` | switch line | At the second tide the switch line's middle redoubt is given up and its garrison ordered back | Most of those who set out are in the switch line | Too few are left alive for most |
-| L4 | `bore_behind` | eruption site | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
+| L4 | `bore_behind` | eruption site (a city's cleared lot) | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
 | L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
 | L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
 | R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's dozer, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |

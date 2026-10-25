@@ -151,6 +151,14 @@ isolated piers. Both layouts remain wall candidates in the surface and room
 authoring tools. A breach changes the neighbouring cap; resident ground refreshes
 the two-cell neighbourhood needed by the apron and its edge selection.
 
+`edge-faces-4x4` is the same sixteen-mask address for a marked ground: a flag
+means the ground ends on that side, against a wall or against any cell drawn
+from another block, and the map edge is not an end. The renderer and the
+micro-height sampler supply that boundary mask instead of the wall mask, so a
+painted apron is outlined wherever it stops and its open field (`faces-0`)
+stays plain. `apron.marked` (STRIPED ground) and `apron.keep-clear` (its
+hatched no-stand zone, placed as a surface) use it.
+
 Geometry precedes material. `WallReskinTemplate` draws full-cell cap rectangles
 and narrow exposed-edge bands from that same layout, published by the
 `building-stamps` snapshot suite. The retained template lives under

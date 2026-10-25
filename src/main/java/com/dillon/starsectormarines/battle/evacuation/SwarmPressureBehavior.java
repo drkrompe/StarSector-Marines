@@ -205,6 +205,12 @@ public final class SwarmPressureBehavior implements UnitBehavior {
      */
     static void updateRoaming(long runner, long previousTarget,
                                       BattleSimulation sim) {
+        // A body a director owns walks to where it was sent instead of wandering (SwarmDrives).
+        int[] goal = sim.swarmDrives().goal(runner);
+        if (goal != null) {
+            SwarmMovement.pathDirect(runner, goal[0], goal[1], previousTarget != 0L, sim);
+            return;
+        }
         if (previousTarget != 0L) sim.clearPath(runner);
         int[] currentPath = sim.movement().path(runner);
         if (sim.movement().pathIdx(runner) < Paths.cellCount(currentPath)) {

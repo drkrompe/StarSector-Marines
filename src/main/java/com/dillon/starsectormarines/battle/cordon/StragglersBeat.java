@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
+import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 /**
@@ -39,7 +40,7 @@ final class StragglersBeat extends CordonBeat {
     protected Status step(BattleSimulation sim, int tick) {
         if (family == null) {
             if (tick < CordonSequence.ticks(RADIO_SECONDS)) return Status.ACTIVE;
-            int[] farm = beats.centre(CordonSetPieces.FARMSTEAD);
+            int[] farm = home();
             if (farm == null) return Status.LAPSED;
             family = CordonWalkers.stand(sim, "Straggler", farm[0], farm[1], PEOPLE);
             dest = destination(sim, farm);
@@ -66,7 +67,12 @@ final class StragglersBeat extends CordonBeat {
                 best = r;
             }
         }
-        return best == null ? null : beats.rearOf(sim, best.centreX(), best.centreY(), REAR_ROWS);
+        if (best == null) return null;
+        // On ground already safe: snapped to the nearest open cell, a destination on the line's side of that row
+        // left the family standing short of it all battle.
+        int y = best.centreY() - CordonFront.frontward(beats.plan()) * REAR_ROWS;
+        int[] at = CordonGround.nearestWalkable(sim.getGrid(), best.centreX(), y, (cx, cy) -> beats.behindLine(cy) >= SAFE_ROWS);
+        return at != null ? at : beats.rearOf(sim, best.centreX(), best.centreY(), REAR_ROWS);
     }
 
     @Override
@@ -74,9 +80,18 @@ final class StragglersBeat extends CordonBeat {
         return family != null && !reached && family.spawned() > 0 ? Status.FAILED : Status.LAPSED;
     }
 
+    /** The middle of the stragglers' home: the farmstead, or a city's tenement; {@code null} where neither stands. */
+    private int[] home() {
+        for (String name : OptionalObjective.alternatives(CordonSetPieces.STRAGGLERS_HOME)) {
+            int[] at = beats.centre(name);
+            if (at != null) return at;
+        }
+        return null;
+    }
+
     @Override
     String describe(BattleSimulation sim) {
-        int[] place = beats.centre(CordonSetPieces.FARMSTEAD);
+        int[] place = home();
         String at = place == null ? "no place" : "at " + place[0] + "," + place[1];
         if (family == null) return at;
         return at + ", " + family.onField() + " on the field, " + family.out() + " out, " + family.lost() + " lost"

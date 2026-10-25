@@ -100,4 +100,22 @@ class BroodSpiresTest {
         assertArrayEquals(BroodSpires.choose(ALL, 50, 60, 0.37f, List.of(), List.of()),
                 BroodSpires.choose(ALL, 50, 60, 0.37f, List.of(), List.of()));
     }
+
+    @Test
+    void aFedSatelliteAtMawRaisesOneSpire() {
+        float fed = BroodSpires.FED_BIOMASS;
+        assertTrue(BroodSpires.raises(false, BoreTier.MAW, fed, false));
+        assertFalse(BroodSpires.raises(false, BoreTier.MAW, fed - 0.5f, false), "not fed enough");
+        assertFalse(BroodSpires.raises(false, BoreTier.BORE, fed * 3, false), "fed but not yet maw");
+        assertFalse(BroodSpires.raises(true, BoreTier.MAW, fed, false), "a mother's air is her brood");
+        assertFalse(BroodSpires.raises(false, BoreTier.MAW, fed, true), "one spire a bore, never regrown");
+    }
+
+    @Test
+    void aRaisedSpireComesAtTheEndOfItsLead() {
+        BroodSpires.Rising r = new BroodSpires.Rising(null, 0, 0, 100, 200);
+        assertEquals(0.5f, r.progress(200), 1e-6f);
+        assertFalse(r.arrived(299));
+        assertTrue(r.arrived(300));
+    }
 }

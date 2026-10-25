@@ -39,7 +39,7 @@ import java.util.List;
  * yard's paving where the street has one beside it, and otherwise out of the
  * street's own outer cells while three cells of asphalt remain. The sidewalk is
  * <em>ground</em>, not pavement: it is the underlay of every city street cell
- * the asphalt touches or neighbours (two deep on a sidewalk flank), so a cell
+ * the asphalt comes within {@link #PADDING} cells of, so a cell
  * the asphalt only partly covers shows concrete beside it rather than the kerb
  * or paver tile it was, and the concrete meets the untouched paving on whole
  * cell edges. {@code -Dbattle.mapgen.cityRoadEnds=round} restores the round
@@ -193,10 +193,17 @@ public final class RoadSurfaceStage implements GenStage {
     }
 
     /**
-     * Concrete underlay for every footway cell not wholly under asphalt that the
-     * asphalt touches or neighbours, two deep where the footway is a sidewalk
-     * flank, and for every building apron and sidewalk flank in the city
-     * whether a road runs past or not: one sidewalk material throughout, rather
+     * How far from the asphalt a street's paving becomes its sidewalk. A street
+     * band is wider than its asphalt, and a sidewalk only one deep left the rest
+     * of the band as bare paving strips wherever the street met anything but a
+     * building (a landing apron, a yard); a road is padded out to its band's edge.
+     */
+    static final int PADDING = 3;
+
+    /**
+     * Concrete underlay for every footway cell not wholly under asphalt within
+     * {@link #PADDING} cells of the asphalt, and for every building apron and
+     * sidewalk flank in the city whether a road runs past or not: one sidewalk material throughout, rather
      * than concrete beside the roads and the old kerb tile everywhere else.
      * A precinct road's cells are not footway and keep their own ground.
      */
@@ -214,7 +221,7 @@ public final class RoadSurfaceStage implements GenStage {
             if (patch != null && patch.area() > 1 - 1e-6) continue;
             var kind = ctx.topology.getGroundKind(x, y);
             boolean apron = kind == GroundKind.SIDEWALK || kerb(ctx, x, y);
-            if (!apron && !near(asphalt, x, y, 1)) continue;
+            if (!apron && !near(asphalt, x, y, PADDING)) continue;
             int concrete = ctx.topology.surfaceIndex(Material.CONCRETE.block(RoadRasterizer.age(.4, ctx.seed, x, y)));
             sidewalk[x][y] = new RoadSurface.Underlay(kind, concrete, false, false);
         }

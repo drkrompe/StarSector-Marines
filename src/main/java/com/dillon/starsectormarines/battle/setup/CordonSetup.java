@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonConstruction;
 import com.dillon.starsectormarines.battle.cordon.CordonConstructions;
 import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
+import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
@@ -305,7 +306,8 @@ public final class CordonSetup {
         }
         List<int[]> lineMiddles = new ArrayList<>();
         for (Precinct r : redoubts) lineMiddles.add(new int[]{r.seedX(), r.seedY()});
-        if (!CordonLogistics.apronReaches(map.grid, map.gantries, lineMiddles)) {
+        if (!CordonLogistics.apronReaches(map.grid, map.gantries, lineMiddles,
+                CordonConstructions.base(map.layout) == CordonConstruction.SHED)) {
             return "the logistics base's apron has no way to the line for a carrier";
         }
         List<String> layout = MissionLayoutCheck.problems(map.grid, map.layout);
@@ -350,14 +352,24 @@ public final class CordonSetup {
     }
 
     /**
-     * The ground a convoy's road is proved on: the map's, with the wreck across the corridor (beat R1) cleared, as
-     * the dozer will clear it. The wreck closes the road to trucks until then, so the corridor runs through it.
+     * The ground a convoy's road is proved on: the map's as the battle will stand it, every nest a gun is seated in
+     * closed, with the wreck across the corridor (beat R1) cleared, as the dozer will clear it. The wreck closes the
+     * road to trucks until then, so the corridor runs through it. A nest is open floor on the map and a gun's cell from
+     * setup: a corridor found past a picket nest's open cell (urban Road seed 6, at the gap) ran its trucks into a
+     * chicane three cells wide between that gun and the redoubt's wall, and every convoy stood short of the gap.
      */
     static NavigationGrid convoyGrid(MapResult map) {
-        Laid wreck = map.layout.find(CordonPlan.CORRIDOR_WRECK);
-        if (wreck == null || !wreck.isLaid() || wreck.kind() != Laid.Kind.BLOCK) return map.grid;
         NavigationGrid copy = map.grid.copyRoutingTopology();
-        for (int[] c : wreck.cells()) copy.setWalkable(c[0], c[1], true);
+        for (Laid laid : map.layout.pieces()) {
+            if (!laid.isLaid()) continue;
+            boolean picket = laid.kind() == Laid.Kind.LINE && laid.name().startsWith(CordonPlan.PICKET_LINE);
+            if (!picket && !laid.name().startsWith(CordonConstructions.WORKS)) continue;
+            for (int[] nest : laid.nests()) copy.setWalkable(nest[0], nest[1], false);
+        }
+        Laid wreck = map.layout.find(CordonPlan.CORRIDOR_WRECK);
+        if (wreck != null && wreck.isLaid() && wreck.kind() == Laid.Kind.BLOCK) {
+            for (int[] c : wreck.cells()) copy.setWalkable(c[0], c[1], true);
+        }
         return copy;
     }
 
@@ -508,6 +520,10 @@ public final class CordonSetup {
             armour.deploy(sim, opening.get(i), WIDTH * (i + 1) / (opening.size() + 1), reserveY);
         }
         standMouths(sim, armour, redoubts, table, new Random(cordon.battleSeed() ^ MOUTH_SALT));
+        if (CordonOuterPicket.enabled()) {
+            sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts,
+                    CordonFront.frontward(cordon.plan()), GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT)));
+        }
         // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`).
         AlliedAirWing.install(sim, WIDTH / 2f, rearRow,
                 redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList());
@@ -574,6 +590,7 @@ public final class CordonSetup {
     /** Cells round its post a mouth's rifle team holds. */
     private static final int MOUTH_TEAM_HOLD = 4;
     private static final long MOUTH_SALT = 0x4D4F555448534C54L;
+    private static final long PICKET_SALT = 0x5049434B4554534CL;
 
     /**
      * Each refugee group's way out, in departure order: from the rear hamlets
