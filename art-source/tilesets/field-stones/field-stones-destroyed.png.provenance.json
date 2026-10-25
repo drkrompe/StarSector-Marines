@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173af-3ad5-78d3-9942-6fcc7c17f99f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173af-3ad5-78d3-9942-6fcc7c17f99f\\exec-f2310132-bacf-474b-afa5-0be4966a0c9c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\field-stones-destroyed.png",
+    "sha256": "a4eabdae19fe26f7b6c9c450d99e2a577047afab3f47099c1fe31eab877bb733",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\field-stones-destroyed.prompt.txt",
+  "promptSha256": "433c72ec24d8aaac329ed44e3bb6be2ea7e88c93cb99c0f988f5337ff32f9866",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every chunk's place and size, gravel dots\nImage 2: Identity: the intact stones, their material, light and rendering\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into the DESTROYED state of seven overhead field-stone groups for a top-down tactical game: each stone blasted apart into a low scatter of broken chunks lying where it stood. Image 2 is the intact sheet and is the IDENTITY authority: the same painterly weathered grey stone, the same soft upper-left light. Image 1 says where every chunk lies.\nPreserve image 1 exactly: 2:1 canvas, 4 columns x 2 rows, the eighth frame (bottom right) EMPTY. Paint one broken rock chunk on every grey shape in the guide, at its place and size, and small gravel on the guide's dots; leave the guide's open ground open. Do not join the chunks back into a stone and do not add chunks.\nCamera STRAIGHT DOWN from directly above, orthographic plan view, as in image 2.\nChunks are angular fresh breaks with paler fractured faces and weathered grey outer faces, lit from the upper left, lying low and flat. Muted: the scatter should read as rubble on the ground, quieter than the intact stones. It must read clearly at about 50 pixels across: distinct chunks, no fine noise.\nNo grass, soil, crater, scorch disc, ground patch or cast shadow outside the chunks, no labels, no text, no border. True transparent background around and between every chunk. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-destroyed-guide.png",
+      "sha256": "0fac5e08784af18f0b05808efef057942eb47990bb92918d43031abaa1267a80",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every chunk's place and size, gravel dots"
+    },
+    {
+      "path": "art-source\\tilesets\\field-stones\\field-stones.png",
+      "sha256": "926d51953713b30977d8e463350acbc1a67ad8e57da7e6e275f896f10bd07a23",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity: the intact stones, their material, light and rendering"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one rubble sheet, preserving the guide’s layout and transparency.\n"
+  ],
+  "usage": {
+    "input_tokens": 84144,
+    "cached_input_tokens": 67584,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 616,
+    "reasoning_output_tokens": 33
+  },
+  "elapsedSeconds": 78.7
+}

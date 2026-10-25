@@ -96,14 +96,16 @@ Export each with `tools/authoring.cmd tileset_export -` and
 The six one-cell floor plants (`nature.shrub-1..3`, `nature.tuft-1..3`) were
 redrawn overhead from `art-source/templates/forest-floor-plants-guide.py` into
 `art-source/tilesets/forest-floor-plants/forest-floor-plants.png`.
-`art-source/tilesets/nature-plants-refit.py` resamples them to the nature
+`art-source/tilesets/nature-tiles-refit.py` resamples them to the nature
 plate's scale, joins them to the right of the accepted plate without touching
-it, and points the six entries at them; then export `nature-tiles` and re-run
-`gradlew.bat :asset-pipeline:deriveTileMaps`.
+it, and points the six entries at them; it does the same for the seven field
+stones (`rock-damage.README.md`). Then export `nature-tiles` and `rock-damage`
+and re-run `gradlew.bat :asset-pipeline:deriveTileMaps`.
 
 `createSnapshots -Psnapshot=undergrowth-look` shows the guides, every species in
 its three states and four turns, and look shots: a wood whose tank lane is grown
-over, crossed by a breakthrough tank, and open ground with the floor plants.
+over, crossed by a breakthrough tank, and open ground with the floor plants and
+field stones in all three states.
 
 ## Outdoor map adoption
 

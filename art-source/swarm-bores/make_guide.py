@@ -70,6 +70,9 @@ CANVAS_CELLS = {
     "spore-colony-maw": 2.4,
     "ground-colony": 2.0,
     "brood-spire": 7.0,
+    "nest-clutch": 1.4,
+    "nest-pods": 1.5,
+    "nest-husk": 1.5,
 }
 # How much larger than the modelled body a part is drawn: its layer's `cells` is CANVAS_CELLS times this. The
 # heightfield is modelled at the body's physical size (one cell, one metre) so the sun's shadow length is right
@@ -83,6 +86,9 @@ DISPLAY_SCALE = {
     "spore-colony-maw": 1.4,
     "ground-colony": 1.4,
     "brood-spire": 1.45,
+    "nest-clutch": 1.35,
+    "nest-pods": 1.4,
+    "nest-husk": 1.4,
 }
 
 
@@ -99,6 +105,9 @@ VARIANTS = {
     "spore-colony-maw": 3,
     "ground-colony": 3,
     "brood-spire": 3,
+    "nest-clutch": 3,
+    "nest-pods": 3,
+    "nest-husk": 3,
 }
 PARTS = tuple(CANVAS_CELLS)
 # Damage states. ``wounded`` is drawn once a structure has lost half its durability: plates torn out of their
@@ -110,7 +119,15 @@ PARTS = tuple(CANVAS_CELLS)
 STATES = ("intact", "wounded", "remains")
 SEEDS = {"bore": 1100, "mother-bore": 2300, "spore-colony-fissure": 3100, "spore-colony-bore": 3700,
          "spore-colony-maw": 4100, "ground-colony": 5300,
-         "brood-spire": 6100}
+         "brood-spire": 6100, "nest-clutch": 7100, "nest-pods": 7300, "nest-husk": 7700}
+# A swarm nest's ground clutter (``clutch_body``, ``pods_body``, ``husk_body``) is drawn only: nothing hurts it,
+# so it has no damage states.
+INTACT_ONLY = ("nest-clutch", "nest-pods", "nest-husk")
+
+
+def part_states(part: str) -> tuple:
+    """The damage states a part is drawn in."""
+    return ("intact",) if part in INTACT_ONLY else STATES
 # The ground colony's body plan (``ground_colony_body``).
 GROUND_COLONY_STYLES = ("ridge", "star", "urchin")
 GROUND_COLONY_STYLE = "star"  # the owner's pick, 2026-10-22
@@ -1301,6 +1318,193 @@ def _stalk_pod(self: Field, x, y, z, r, glow=1.0):
 Field.stalk_pod = _stalk_pod
 
 
+def ovoid(f: Field, cx, cy, angle, a, b, h, material, taper=0.15, lean=0.0, ribs=0, groove=UNDER):
+    """An egg-shaped dome: ``a`` and ``b`` its half length and half width along ``angle``, ``h`` its height, fuller
+    towards the ``+angle`` end. ``lean`` pushes the crown along the long axis (a pod tipped over in the ground);
+    ``ribs`` cuts that many grooves across it, the floor of each showing ``groove``."""
+    ux, uy = math.cos(angle), math.sin(angle)
+    dx, dy = f.x - cx, f.y - cy
+    u = (dx * ux + dy * uy) / a
+    v = (-dx * uy + dy * ux) / b
+    v = v / (1 + taper * np.clip(u, -1, 1))
+    d0 = np.hypot(u, v)
+    mask = d0 < 1
+    pull = np.clip(1 - d0, 0, 1)
+    d = np.clip(np.hypot(u - lean * pull, v), 0, 1)
+    dome = h * np.sqrt(np.clip(1 - d * d, 0, 1))
+    if not ribs:
+        f.raise_(mask, dome, material)
+        return
+    cut = (0.5 + 0.5 * np.cos(u * ribs * math.pi)) ** 6
+    f.raise_(mask, dome * (1 - 0.22 * cut * (d < 0.92)), material)
+    seam = mask & (cut > 0.55) & (d < 0.85) & (f.m == material)
+    f.m[seam] = groove
+
+
+def clutch_body(f: Field):
+    """An egg clutch, ground clutter of a swarm nest: a few glossy eggs lit amber from inside, nested in a shallow cup
+    of sinew and membrane pressed into the creep. Low and small, never a sac cluster."""
+    rng = f.rng
+    sx, sy = to_sun_screen()
+    # Nudged towards the sun so the short shadow down-sun stays on the canvas.
+    cx, cy = sx * 0.06 + rng.uniform(-0.04, 0.04), sy * 0.06 + rng.uniform(-0.04, 0.04)
+    R = rng.uniform(0.42, 0.47)           # the cup's rim radius
+    angle = rng.uniform(0, math.pi)
+    squash = rng.uniform(0.74, 0.88)
+    ca, sa = math.cos(angle), math.sin(angle)
+
+    def on_cup(q, a):
+        lx, ly = q * math.cos(a), q * math.sin(a) * squash
+        return cx + lx * ca - ly * sa, cy + lx * sa + ly * ca
+
+    dx, dy = f.x - cx, f.y - cy
+    lx, ly = dx * ca + dy * sa, (-dx * sa + dy * ca) / squash
+    theta = np.arctan2(ly, lx)
+    ph = [rng.uniform(0, 2 * math.pi) for _ in range(2)]
+    edge = R * (1 + 0.08 * np.sin(3 * theta + ph[0]) + 0.05 * np.sin(5 * theta + ph[1]))
+    d = np.hypot(lx, ly) / edge
+    # The cup: a low ragged lip of sinew round a floor of wet membrane pressed a little into the creep.
+    # The lip is uneven, swelling into knots and thinning almost to nothing between them.
+    knots = np.clip(0.55 + 0.45 * np.sin(3 * theta + ph[0]) + 0.3 * np.sin(5 * theta + 2 * ph[1]), 0.15, 1.2)
+    lip = np.exp(-((d - 0.9) / (0.05 + 0.05 * knots)) ** 2) * knots
+    f.raise_(d < 1.05, 0.008 + 0.045 * lip, UNDER)
+    floor = d < 0.84
+    f.h[floor] = 0.012
+    f.m[floor] = FLESH
+    # Strands of sinew lacing out over the lip into the creep.
+    for _ in range(rng.randint(4, 6)):
+        a = rng.uniform(0, 2 * math.pi)
+        x0, y0 = on_cup(R * 0.85, a)
+        f.tube(f.wander(x0, y0, math.atan2(y0 - cy, x0 - cx), R * rng.uniform(0.3, 0.55), steps=5, jitter=0.5),
+               rng.uniform(0.018, 0.026), rng.uniform(0.025, 0.04), UNDER)
+    # The eggs, packed in the cup, each its own size and lie.
+    count = rng.randint(3, 7)
+    eggs = []
+    for _ in range(500):
+        if len(eggs) == count:
+            break
+        ex, ey = on_cup(R * 0.6 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi))
+        el = rng.uniform(0.09, 0.12)
+        if all(math.hypot(ex - x, ey - y) > (el + l) * 0.8 for x, y, l in eggs):
+            eggs.append((ex, ey, el))
+    for ex, ey, el in eggs:
+        ovoid(f, ex, ey, rng.uniform(0, 2 * math.pi), el, el * rng.uniform(0.66, 0.78),
+              0.012 + rng.uniform(0.09, 0.12), SAC, taper=0.18)
+        # The amber inside, a little down-sun of the crown where the shell shows it.
+        f.node(ex - sx * el * 0.15, ey - sy * el * 0.15, el * 0.62, rng.uniform(0.55, 0.7))
+    for _ in range(3):
+        a = rng.uniform(0, 2 * math.pi)
+        f.crack(*on_cup(R * 1.15, a), a + angle, rng.uniform(0.1, 0.18) * 0.7, 0.006)
+
+
+def pods_body(f: Field):
+    """Brood pods, ground clutter of a swarm nest: a few ribbed sacs of carapace half-buried in the creep at different
+    sizes and leans, sinew showing in their grooves and binding them down, small amber nodes. Low: a third of a
+    spore sac's height, and no pore."""
+    rng = f.rng
+    sx, sy = to_sun_screen()
+    cx, cy = sx * 0.08 + rng.uniform(-0.05, 0.05), sy * 0.08 + rng.uniform(-0.05, 0.05)
+    f.blob(cx, cy, rng.uniform(0.42, 0.48), 0.025, EARTH, lumps=rng.randint(3, 5), squash=rng.uniform(0.7, 0.9),
+           angle=rng.uniform(0, math.pi))
+    count = rng.randint(2, 4)
+    pods = []
+    a = rng.uniform(0, 2 * math.pi)
+    big = rng.uniform(0.3, 0.34)
+    for k in range(count):
+        length = big * (1.0 if k == 0 else rng.uniform(0.5, 0.78))
+        if k == 0:
+            px_, py_ = cx, cy
+        else:
+            a += rng.uniform(1.4, 2.4)
+            reach = big * 0.55 + length * 0.75
+            px_, py_ = cx + math.cos(a) * reach, cy + math.sin(a) * reach
+        pods.append((px_, py_, length, rng.uniform(0, 2 * math.pi)))
+    # Sinew binding them into the creep: a mat under each, strands from one to the next and out.
+    for px_, py_, length, lie in pods:
+        f.blob(px_, py_, length * 1.15, 0.035, UNDER, lumps=rng.randint(4, 6), squash=0.75, angle=lie)
+    for (ax, ay, _, _), (bx, by, _, _) in zip(pods, pods[1:]):
+        mid = ((ax + bx) / 2 + rng.uniform(-0.04, 0.04), (ay + by) / 2 + rng.uniform(-0.04, 0.04))
+        f.tube([(ax, ay), mid, (bx, by)], 0.03, 0.045, UNDER)
+    for _ in range(rng.randint(3, 4)):
+        px_, py_, length, _ = rng.choice(pods)
+        b = rng.uniform(0, 2 * math.pi)
+        pts = f.wander(px_ + math.cos(b) * length, py_ + math.sin(b) * length, b, rng.uniform(0.12, 0.22), steps=5,
+                       jitter=0.5)
+        pts = [(x, y) for x, y in pts if max(abs(x), abs(y)) < f.cells / 2 * 0.92]
+        if len(pts) >= 2:
+            f.tube(pts, rng.uniform(0.016, 0.024), 0.03, UNDER)
+    # The pods: half-buried ribbed domes, each tipped over its own way, a node or two at the waterline.
+    for px_, py_, length, lie in pods:
+        width = length * rng.uniform(0.62, 0.74)
+        ovoid(f, px_, py_, lie, length, width, length * rng.uniform(0.45, 0.6), CHITIN, taper=0.12,
+              lean=rng.uniform(0.15, 0.35), ribs=rng.randint(4, 6))
+        for _ in range(rng.randint(1, 2)):
+            t = rng.uniform(-0.6, 0.6)
+            side = rng.choice((-1, 1)) * width * rng.uniform(0.8, 0.95)
+            f.node(px_ + math.cos(lie) * length * t - math.sin(lie) * side,
+                   py_ + math.sin(lie) * length * t + math.cos(lie) * side, rng.uniform(0.018, 0.026), 0.9)
+    for _ in range(4):
+        b = rng.uniform(0, 2 * math.pi)
+        f.crack(cx + math.cos(b) * 0.5, cy + math.sin(b) * 0.5, b, rng.uniform(0.1, 0.2) * 0.6, 0.006)
+
+
+def husk_body(f: Field):
+    """A shed husk, ground clutter of a swarm nest: the empty segmented shell a Runner moulted, split open down its
+    back, the torn edges of the split curled up and out over a hollow, the legs broken off at the joint and a chip
+    of plate shed beside it; no glow. ``export.py`` dries it towards grey."""
+    rng = f.rng
+    sx, sy = to_sun_screen()
+    cx, cy = sx * 0.06 + rng.uniform(-0.05, 0.05), sy * 0.06 + rng.uniform(-0.05, 0.05)
+    axis = rng.uniform(0, 2 * math.pi)
+    ux, uy = math.cos(axis), math.sin(axis)
+    vx, vy = -uy, ux
+    L = rng.uniform(0.5, 0.56)            # half the husk's length
+    W = rng.uniform(0.24, 0.28)           # half its width
+
+    def at(t, s):
+        """A point ``t`` along the back (-1 tail, +1 head) and ``s`` out to one side."""
+        return cx + ux * L * t + vx * s, cy + uy * L * t + vy * s
+
+    # Legs torn off at the joint: a few stubs splayed out from under the shell.
+    for side in (-1, 1):
+        for t in rng.sample((-0.4, -0.05, 0.3), k=rng.randint(1, 3)):
+            a = axis + side * (math.pi / 2 + rng.uniform(-0.3, 0.5))
+            f.tube(f.wander(*at(t, side * W * 0.85), a, rng.uniform(0.12, 0.2), steps=4, jitter=0.5), 0.02, 0.025,
+                   CHITIN)
+    # The shell: a long low segmented dome, fuller at the head.
+    ribs = rng.randint(6, 7)
+    ovoid(f, cx, cy, axis, L, W, rng.uniform(0.09, 0.11), CHITIN, taper=0.2, ribs=ribs)
+    # The split down its back: a spindle of hollow, widest just behind the head, its edges curled up and out.
+    u = ((f.x - cx) * ux + (f.y - cy) * uy) / L
+    v = ((f.x - cx) * vx + (f.y - cy) * vy) / W
+    t0, t1 = rng.uniform(-0.85, -0.7), rng.uniform(0.8, 0.95)
+    q = np.clip((u - t0) / (t1 - t0), 0, 1)
+    wobble = 0.04 * np.sin(u * 11 + rng.uniform(0, 6)) + 0.03 * np.sin(u * 23 + rng.uniform(0, 6))
+    gap = rng.uniform(0.28, 0.36) * np.clip(np.sin(math.pi * q), 0, 1) ** 0.8 * (0.8 + 0.4 * q) + wobble * (q > 0) * (q < 1)
+    off = rng.uniform(-0.08, 0.08) + 0.06 * np.sin(u * 3 + rng.uniform(0, 6))
+    dv = np.abs(v - off)
+    rim = np.hypot(u, v / (1 + 0.2 * np.clip(u, -1, 1)))
+    shell = np.isin(f.m, (CHITIN, UNDER)) & (rim < 1)
+    # Each segment's edge stepped in at the joint, so the outline reads as overlapping plates, not a pod.
+    joint = (0.5 + 0.5 * np.cos(u * ribs * math.pi)) ** 4
+    notch = shell & (rim > 1 - 0.13 * joint)
+    f.h[notch] = 0.0
+    f.m[notch] = NONE
+    f.over &= ~notch
+    shell &= ~notch
+    hollow = shell & (dv < gap) & (q > 0) & (q < 1)
+    f.h[hollow] = 0.015 + 0.02 * dv[hollow]
+    f.m[hollow] = UNDER
+    lip = shell & ~hollow & (dv < gap + 0.16) & (q > 0.02) & (q < 0.98)
+    f.h[lip] += 0.035 * np.clip(1 - (dv[lip] - gap[lip]) / 0.16, 0, 1) ** 1.5
+    # A chip of plate shed loose beside it.
+    for _ in range(rng.randint(1, 2)):
+        side = rng.choice((-1, 1))
+        size = rng.uniform(0.1, 0.14)
+        f.slab(*at(rng.uniform(-0.6, 0.4), side * (W + rng.uniform(0.14, 0.2))), rng.uniform(0, 2 * math.pi), size,
+               size * rng.uniform(0.6, 0.8), rng.choice((-1, 1)), rng.uniform(0.02, 0.05), material=CHITIN)
+
+
 def build(part: str, variant: int, state: str = "intact", style: str | None = None) -> Field:
     f = Field(CANVAS_CELLS[part], SEEDS[part] + 17 * variant)
     f.state = state
@@ -1312,6 +1516,12 @@ def build(part: str, variant: int, state: str = "intact", style: str | None = No
         bore_body(f)
     elif part == "mother-bore":
         mother_body(f, style or MOTHER_STYLE)
+    elif part == "nest-clutch":
+        clutch_body(f)
+    elif part == "nest-pods":
+        pods_body(f)
+    elif part == "nest-husk":
+        husk_body(f)
     else:
         colony_body(f, part)
     return f
@@ -1436,7 +1646,7 @@ def main() -> None:
         return
     for part in PARTS:
         for v in range(1, VARIANTS[part] + 1):
-            for state in STATES:
+            for state in part_states(part):
                 if only and state not in only and part not in only:
                     continue
                 f = build(part, v, state)
