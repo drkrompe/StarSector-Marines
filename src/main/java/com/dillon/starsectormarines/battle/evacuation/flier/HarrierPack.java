@@ -48,6 +48,13 @@ public final class HarrierPack {
     int divedWith;
     boolean splitDue;
     int dives;
+    /** Harriers still to climb out of the hatch ({@link SwarmFliers#hatch}); the pack commits only at none. */
+    int unhatched;
+    int hatched;
+    int nextHatchTick;
+    long hatchSource;
+    float hatchX, hatchY;
+    HarrierLook hatchLook;
     private final float[] push = new float[2];
 
     public HarrierPack(int id, float anchorX, float anchorY) {
@@ -61,6 +68,8 @@ public final class HarrierPack {
     public Phase phase() { return phase; }
     public long target() { return target; }
     public int dives() { return dives; }
+    /** Harriers of this pack still to hatch. */
+    public int unhatched() { return unhatched; }
     public float loiterX() { return loiterX; }
     public float loiterY() { return loiterY; }
 
@@ -161,7 +170,7 @@ public final class HarrierPack {
             loiterY = anchorY;
         }
         for (HarrierFlight m : members) circle(m, loiterSeconds, dt);
-        if (target != 0L && loiterSeconds >= HarrierRules.MIN_LOITER_SECONDS && gathered()) commit();
+        if (target != 0L && unhatched <= 0 && loiterSeconds >= HarrierRules.MIN_LOITER_SECONDS && gathered()) commit();
     }
 
     /** Flies one member round the loiter ring, at its slot, {@code seconds} into the orbit. */

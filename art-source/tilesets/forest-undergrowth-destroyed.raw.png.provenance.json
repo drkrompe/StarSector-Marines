@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17388-7dfd-74e1-a9bd-bc66b29e2bca",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17388-7dfd-74e1-a9bd-bc66b29e2bca\\exec-7e00fd08-7deb-4bcc-8525-a0b73882ae79.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\forest-undergrowth-destroyed.raw.png",
+    "sha256": "6f7c61ed23b764077359896dff146286d0e143683b51af1cd21db71a7afcc0a2",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\forest-undergrowth-destroyed.prompt.txt",
+  "promptSha256": "414aa96948ba730b724527d19e7adace3385193bed5b092020b8ad8971c38f2c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: where fragments lie, sparse coverage, open ground\nImage 2: Species identity only (leaf shapes); not layout, not palette, not brightness\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a transparent sprite sheet of TRAMPLED undergrowth for a top-down tactical game: the sparse low remains left after a heavy tracked tank drove over each plant. Image 2 is the intact sheet and is the species identity only (leaf and frond shapes); this state is far quieter than it.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch. Follow its scatter: crushed leaf clusters only where the guide has them, the guide's open ground left open. Coverage stays as sparse as the guide, about a fifth of each patch; never fill the patch, never close it into a mat, never reach the patch's straight edges.\nCamera STRAIGHT DOWN, orthographic plan view.\nOrder: bramble patch, small bramble, thicket; small thicket, bracken bed, saplings. Each is a loose, natural scatter of pressed, wilted, torn leaves and fern fragments lying flat on the ground, every fragment at its own random angle, varied in size and shape; only an occasional thin dark stem fragment, never a stick laid across each cluster and no repeated motif. There is NO common direction: no streaks, no parallel strokes, no grain, so the patch looks the same when rotated.\nMUTED: low contrast, low saturation, dark dull olive and earthy brown-green, close in value to a shaded grass and soil floor, so the patch recedes into the ground like trodden vegetation. NO pale or light wood, no bright snapped ends, no white or cream flowers, no berries, no highlights, no bright greens. Soft ragged edges fading into transparency.\nPainterly realistic rendering in the game's woodland style. No soil, no tread marks, no mud, no ground disc, no shadow, no labels, no text, no border. True transparent background everywhere between the fragments. Keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\undergrowth-trampled.png",
+      "sha256": "3aecd306d5343dcbeb57b264acc018e80d17850f4a1f429d3775a75fb65b2722",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: where fragments lie, sparse coverage, open ground"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-undergrowth.raw.png",
+      "sha256": "976911bbb0223d6b10fff6d075440ce9657bcb9c5d90fb86dd95c735b14cf09b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Species identity only (leaf shapes); not layout, not palette, not brightness"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one transparent sheet, preserving Image 1’s sparse layout and using Image 2 only for leaf and frond shapes.\n"
+  ],
+  "usage": {
+    "input_tokens": 81453,
+    "cached_input_tokens": 66560,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 735,
+    "reasoning_output_tokens": 67
+  },
+  "elapsedSeconds": 72.1
+}

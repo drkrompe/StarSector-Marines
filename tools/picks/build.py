@@ -10,7 +10,8 @@ lets the owner pick any number of options (stored comma-joined).
 --previews takes a previews.json: things for the owner to look at that ask no
 question (a GIF of a finished feature, a set of stills), newest first, as
 [{id, area, date, title, note, lead?, shots: [{file, label}]}] with each `file`
-under media/<preview id>/; `lead: true` draws the first shot full width. Publish
+under media/<preview id>/ (an .mp4 plays in place, with its sound); `lead: true` draws the first shot
+full width. Publish
 out.html with the Artifact tool, declaring the `db` capability, and pass the
 images through `files`. See `owner-review.md` (Questions: the picks page).
 """

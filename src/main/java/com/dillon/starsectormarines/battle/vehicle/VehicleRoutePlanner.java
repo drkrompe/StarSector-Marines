@@ -101,6 +101,21 @@ public final class VehicleRoutePlanner {
     }
 
     /**
+     * {@link #routeDrivable} for an order to a hull standing at {@code departure}: the route's ends are judged as an
+     * order's ({@link TurnAwareCorridor#refine(float[][], VehicleType, NavigationGrid, Pose)}), so a hull is not
+     * refused for the margin around where it already stands, and arrives a little short of ground it cannot stand on.
+     */
+    public static float[][] routeDrivableFrom(Pose departure, int startX, int startY, int goalX, int goalY,
+                                              NavigationGrid grid, TerrainCostField costField,
+                                              VehicleClearance clearance, VehicleType type) {
+        DrivableRouteSearch search = new DrivableRouteSearch(startX, startY, goalX, goalY, grid, costField,
+                clearance.passableArray().clone(), clearance.passableArray(),
+                clearance.getWidth(), clearance.getHeight(), type).departingFrom(departure);
+        search.advance(new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS), Integer.MAX_VALUE);
+        return search.route();
+    }
+
+    /**
      * Re-route variant for the recovery ladder's "lap around" rung: like
      * {@link #route} but treats a disc of radius {@code avoidRadius} cells around
      * {@code (avoidX, avoidY)} as impassable, so the search detours around the

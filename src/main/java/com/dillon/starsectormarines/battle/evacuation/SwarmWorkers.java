@@ -256,6 +256,8 @@ public final class SwarmWorkers {
         String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.beatKey()) + " Skitterer " + (brooded + 1);
         long id = SwarmStrains.spawn(sim, name, UnitType.SWARM_WORKER, cell[0], cell[1]);
         workers.put(id, new Worker(id, bore, sim.world().hp(id), tick + (int) (id % DECIDE_TICKS)));
+        // Brooded in the field it climbs out of the hole; a nest full at setup stands with its brood already out.
+        if (!spread) sim.swarmEmergence().begin(sim, id, bore.x() + 0.5f, bore.y() + 0.5f);
         brooded++;
         return true;
     }
