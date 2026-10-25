@@ -45,6 +45,8 @@ public final class HarrierRules {
     public static final float LOITER_RADIUS = 4.5f;
     /** How far from a roost's crown a pack released off it starts, and how low: it is seen climbing out. */
     public static final float ROOST_SPREAD = 0.6f, ROOST_ALTITUDE = 0.2f;
+    /** Seconds between one Harrier climbing out of a hatching pack's source and the next, shortest and longest. */
+    public static final float HATCH_MIN_SECONDS = 0.25f, HATCH_MAX_SECONDS = 0.55f;
     /** Arc between neighbours on the loiter ring: about a wingspan, so the ring does not stack wings. */
     public static final float RING_SPACING = 2.2f;
     /** Angular speed round the loiter ring, degrees a second. */
