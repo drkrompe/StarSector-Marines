@@ -67,7 +67,7 @@ header p{margin:8px 0 0;color:var(--muted);max-width:64ch}
 .pv-shots .lead{grid-column:1/-1}
 .pv figure{margin:0;display:grid;gap:6px;min-width:0}
 .pv figcaption{font-size:13px;color:var(--muted)}
-.pv img{width:100%;height:auto;display:block;border-radius:6px;background:#0d0b10}
+.pv img,.pv video{width:100%;height:auto;display:block;border-radius:6px;background:#0d0b10}
 .empty{border:1px dashed var(--line);border-radius:10px;padding:20px;color:var(--muted);background:var(--surface)}
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 </style>
@@ -121,7 +121,7 @@ function renderPreviews(){
   el.innerHTML = PREVIEWS.length ? `<h2>Previews to look at · nothing to answer · newest first</h2>` + PREVIEWS.map(v => `<article class="pv" id="pv-${esc(v.id)}">
     <span class="owner">${esc(v.area)}${v.date ? " · " + esc(v.date) : ""}</span><h3>${esc(v.title)}</h3>
     ${v.note ? `<p>${esc(v.note)}</p>` : ""}
-    <div class="pv-shots">${(v.shots || []).map((x, i) => `<figure class="${i === 0 && v.lead ? "lead" : ""}"><button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(v.title + (x.label ? " — " + x.label : ""))}" aria-label="Zoom ${esc(x.label || v.title)}"><img src="${esc(x.file)}" alt="${esc(x.label || v.title)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>${x.label ? `<figcaption>${esc(x.label)}</figcaption>` : ""}</figure>`).join("")}</div>
+    <div class="pv-shots">${(v.shots || []).map((x, i) => `<figure class="${i === 0 && v.lead ? "lead" : ""}">${/\.mp4$/i.test(x.file) ? `<video src="${esc(x.file)}" controls playsinline preload="metadata" aria-label="${esc(x.label || v.title)}"></video>` : `<button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(v.title + (x.label ? " — " + x.label : ""))}" aria-label="Zoom ${esc(x.label || v.title)}"><img src="${esc(x.file)}" alt="${esc(x.label || v.title)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>`}${x.label ? `<figcaption>${esc(x.label)}</figcaption>` : ""}</figure>`).join("")}</div>
   </article>`).join("") : "";
 }
 renderPreviews();

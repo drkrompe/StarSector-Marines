@@ -104,6 +104,35 @@ class TurnAwareCorridorTest {
         assertTrue(result.points()[0].length > 3, "open ground keeps the arc");
     }
 
+    @Test
+    void anOrderIsNotRefusedForTheMarginAroundWhereTheHullAlreadyStands() {
+        NavigationGrid grid = new NavigationGrid(30, 40);
+        carve(grid, 0, 0, 29, 39);
+        // A wall just behind the hull's tail: the exact footprint clears it, the sampling margin does not.
+        for (int x = 8; x <= 12; x++) grid.setWalkable(x, 8, false);
+        float[][] route = {new float[]{10.5f, 10.5f}, new float[]{10.4f, 30.5f}};
+
+        assertNull(TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid).points());
+        assertNotNull(TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid,
+                new Pose(10.5f, 10.4f, 0f)).points());
+    }
+
+    @Test
+    void anOrderEndingWhereTheMarginClipsArrivesALittleShort() {
+        NavigationGrid grid = new NavigationGrid(30, 40);
+        carve(grid, 0, 0, 29, 39);
+        // A wall just past the end: the hull can stand at the end exactly, but not with the margin.
+        for (int x = 8; x <= 12; x++) grid.setWalkable(x, 22, false);
+        float[][] route = {new float[]{10.5f, 10.5f}, new float[]{5.5f, 20.6f}};
+
+        assertNull(TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid).points());
+        float[][] points = TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid,
+                new Pose(10.5f, 5.5f, 0f)).points();
+        assertNotNull(points);
+        float endY = points[1][points[1].length - 1];
+        assertTrue(endY < 20.6f && endY > 18f, "pulled back a little, to y=" + endY);
+    }
+
     private static void assertAllSegmentsFeasible(float[][] path, NavigationGrid grid) {
         float[] xs = path[0], ys = path[1];
         for (int i = 1; i < xs.length; i++) {
