@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.EnemyConcentration;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService.Outcome;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -42,8 +43,11 @@ import java.util.function.LongPredicate;
  */
 public final class AirStrikeDirector {
 
-    /** A sighted, planted Bombard's worth against a lone nest's 3: above it, so the long arm is struck first. UNTUNED. */
-    static final float BOMBARD_SCORE = 5f;
+    /**
+     * A planted Bombard's worth: above a lone nest's 3 and above all but a dense pack, since it hazes the line from
+     * where no rifle reaches it and only an airframe answers it. UNTUNED.
+     */
+    static final float BOMBARD_SCORE = 10f;
     /** Ticks between looks at the field. */
     static final int PERIOD_TICKS = 30;
     /** Range within which a unit of the side sights a hostile emplacement, in cells. UNTUNED. */
@@ -89,6 +93,8 @@ public final class AirStrikeDirector {
     private final Faction side;
     private final Set<Long> seenGuns = new HashSet<>();
     private final Set<Integer> seenForts = new HashSet<>();
+    /** Planted Bombards a launch has given away, remembered while they stay planted: a rooted one does not move. */
+    private final Set<Long> revealedBombards = new HashSet<>();
     private FortService fortLookup;
     private final List<Struck> struck = new ArrayList<>();
     private boolean debugDone;
@@ -345,13 +351,20 @@ public final class AirStrikeDirector {
         // Only a concentration some operator has in sight is a candidate: the densest group anywhere on the map is a
         // thing no radio and no fort has seen.
         List<Operator> eyes = CommsOperators.available(sim, side);
-        // A planted Bombard an operator has in sight is a designation of its own (`bombard.md`, Counters): soft,
-        // rooted and hazing the line, it is the ground target an airframe is for. A fighter's cannon is enough.
-        for (long bombard : sim.swarmBombards().plantedBodies()) {
+        // A planted Bombard an operator has in sight, or one its own launch gave away, is a designation of its own
+        // (`bombard.md`, Counters): soft, rooted and hazing the line, it is the ground target an airframe is for. A
+        // fighter's cannon is enough. A revealed one is called on belief, so an operator in radio range can direct it.
+        List<Long> planted = sim.swarmBombards().plantedBodies();
+        revealedBombards.retainAll(planted);
+        for (long bombard : planted) {
             if (!world.isAlive(bombard) || !side.hostileTo(sim.identity().faction(bombard))) continue;
             float x = world.x(bombard);
             float y = world.y(bombard);
-            if (recentlyStruck(x, y) || dangerClose(sim, x, y) || !sighted(sim, eyes, x, y)) continue;
+            if (revealed(sim.swarmBombards().launchReveals(), world.cellX(bombard), world.cellY(bombard))) {
+                revealedBombards.add(bombard);
+            }
+            if (recentlyStruck(x, y) || dangerClose(sim, x, y)) continue;
+            if (!revealedBombards.contains(bombard) && !sighted(sim, eyes, x, y)) continue;
             AirPoolKind kind = service.available(side, AirPoolKind.FIGHTER) > 0 ? AirPoolKind.FIGHTER
                     : service.available(side, AirPoolKind.BOMBER) > 0 ? AirPoolKind.BOMBER : null;
             if (kind == null) continue;
@@ -380,6 +393,17 @@ public final class AirStrikeDirector {
             }
         }
         return out;
+    }
+
+    /** Whether a launch reveal still standing marks the cell: a Bombard's own throw, seen where it was thrown from. */
+    static boolean revealed(List<SwarmBombards.Reveal> reveals, int cellX, int cellY) {
+        for (SwarmBombards.Reveal reveal : reveals) {
+            if (Math.abs(reveal.cellX() - cellX) <= SwarmBombards.LAUNCH_REVEAL_RANGE
+                    && Math.abs(reveal.cellY() - cellY) <= SwarmBombards.LAUNCH_REVEAL_RANGE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether {@code gun} is a dedicated anti-air mount: a flak or missile emplacement, a spore colony. */

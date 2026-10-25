@@ -159,6 +159,12 @@ prompts and provenance.
    planted Bombards, and 8 Bombards died under one. Ground fire almost never
    reaches them. Colony Breach v1: 7 fielded, 2 globs, 3 troops hazed. Open: the
    one-per-bore cap, not the slot's weight, sets how many there are.
+   The air gap was a bug: the launch reveal reached only the player's fog, so the
+   strike director could designate a Bombard only on an operator's own sight,
+   and they plant beyond it. A revealed Bombard is now remembered while it stays
+   planted and called on belief, at a score above all but a dense pack: over
+   the same seeds, air calls on Bombards rose from 10 to 65 and Bombards killed
+   under one from 8 to 25 (35 held, 1 broken).
 
 ## Acceptance
 
