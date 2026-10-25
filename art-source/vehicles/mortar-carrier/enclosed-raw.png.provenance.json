@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17357-db00-7e13-9b75-7218be39a8ff",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17357-db00-7e13-9b75-7218be39a8ff\\exec-e0fe8e94-8b55-4e78-8eb5-dcf4ece78e38.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\mortar-carrier\\enclosed-raw.png",
+    "sha256": "ffba7d93d20b23eca53859fbbb7ac542bd62f4488c6dac183915dcd52dc75444",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\mortar-carrier\\enclosed.prompt.txt",
+  "promptSha256": "0d52663adb42ef1c8fb78770cc16e2134728bfd4325b3fd7d9dd7a1a6274b9ae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: silhouette, placement, scale, canvas; repaint only\nImage 2: Material/style only (the APC hull and its roof MG turret); not layout\n\nRepaint the supplied grey geometry guide as a finished top-down game sprite: the roof turret of a six-wheeled armoured personnel carrier, refitted as a 120 mm breech-loading turret mortar (like a compact NEMO or AMOS mortar turret). Strict orthographic overhead view, looking straight down; no perspective tilt, no visible sidewalls.\n\nGeometry: the guide is the exact authority for silhouette, placement, scale and canvas. Keep every part where it is and the same size: the low hexagonal armoured turret house, its flat roof with two round crew hatches and a small sight block, the rear magazine bustle, the front mantlet, and the single long barrel in a thermal jacket pointing LEFT with a muzzle brake at its tip. Lighter grey planes stand higher; darker planes are chamfers and lower parts. Do not move, rotate, lengthen or shorten anything; the barrel stays exactly on the horizontal centre line.\n\nMaterials: match the second reference exactly (worn olive-drab and dusty cream military paint, fine dark outlines, rivets, weld seams, scuffed edges, small panel details, the same soft top-left light). It must look like it belongs on that APC hull. The barrel is dark gunmetal with a few heat-blued bands; the muzzle brake has dark side ports.\n\nOutput: the same canvas size, a true transparent background including all space around the turret; no ground, no cast shadow, no border, no text, no hull, nothing else in the image.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\mortar-carrier\\enclosed-guide.png",
+      "sha256": "9deeaaa544e6a370dc9d026a78d494feea432fe839154f73827b6f214ad886fc",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: silhouette, placement, scale, canvas; repaint only"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\army-apc.png",
+      "sha256": "f7295a9f5b0271394b7275a5a99a79e248ee0d596e1d585e5d0d7f3073f5e065",
+      "dimensions": [
+        3072,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (the APC hull and its roof MG turret); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the guide, preserving its geometry and matching the APC’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 62855,
+    "cached_input_tokens": 53504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 700,
+    "reasoning_output_tokens": 27
+  },
+  "elapsedSeconds": 72.8
+}

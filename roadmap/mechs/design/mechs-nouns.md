@@ -148,7 +148,7 @@ increasing an encounter's total armored threat.
   rig too: the pickup carrying a mech SRM-5 anti-armor pod.
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
-  Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
+  Medium lift) and fire-support APC (a 120 mm mortar where the troop bay was, no seats, spotted indirect fire,
   Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
   `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
