@@ -186,7 +186,7 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 - [x] Authored map renders from the look preset; no capture point exists except
   the mission's own objectives.
 - [x] Every site is reachable from the apron; all three approaches stay open.
-- [ ] Second map pass: detail, a road hierarchy and a larger compound with inner
+- [x] Second map pass: detail, a road hierarchy and a larger compound with inner
   structure, on a larger map if needed (owner, 2026-10-25).
 - [x] Quiet phase holds until a listed trigger; each trigger raises the alarm in
   a unit test.
@@ -198,13 +198,13 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
   debrief selects Castle's opening by grade, Mara's finding by grade and broker,
   and Castle's close by broker (`MissionDebriefConversation.dustLedgerLines`).
 - [ ] Headless playback with two squads wins with acceptable losses, with and
-  without side objectives. First playback (`commanderEvidence -Pmission=corvus
-  -Dbattle.corvus.chapter=DUST_LEDGER`) wins, but the autonomous company walks
-  into the ring, is sighted, and rushes the pump house. With six elite clerks
-  and gate guards it lost 24/24 infantry, the Hound winning alone. With the crew
-  all militia (current), it loses 12/24, against 1/24 on the old procedural map.
-  The pump house interior is the killing ground. Tune after the second map pass
-  rebuilds the compound.
+  without side objectives. Baseline on the second-pass compound
+  (`commanderEvidence -Pmission=corvus -Dbattle.corvus.chapter=DUST_LEDGER`):
+  victory in 224 s, losing 5/24 infantry against a militia-only crew. The
+  autonomous company walks into the ring, is sighted (alarm at tick 2860) and
+  takes no side objective, so this measures the worst approach only. On the
+  first compound the same run lost 12/24, and 24/24 with elite clerks. The
+  side-objective runs and live player-controlled tuning remain.
 - [ ] Live play on Asharu in a campaign, including save/reload mid-arc.
 
 ## Open questions
