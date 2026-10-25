@@ -1,0 +1,96 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.street-awning-striped",
+      "included": true,
+      "note": "Red and cream striped canvas shop awning, wall rail north, scalloped valance south. Overhead; no cover.",
+      "rect": [
+        40,
+        40,
+        900,
+        300
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.street-awning-canvas",
+      "included": true,
+      "note": "Plain bottle-green canvas shop awning, wall rail north, scalloped valance south. Overhead; no cover.",
+      "rect": [
+        40,
+        380,
+        900,
+        300
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.street-awning-steel",
+      "included": true,
+      "note": "Corrugated steel canopy on a dark fascia, wall rail north. Overhead; no cover.",
+      "rect": [
+        40,
+        720,
+        900,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.street-lamp-colonial",
+      "included": true,
+      "note": "Cast-iron street lamp, round lantern head; foot south, arm north over the carriageway.",
+      "rect": [
+        1020,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.street-lamp-industrial",
+      "included": true,
+      "note": "Cobra-head street lamp, rounded luminaire; foot south, arm north over the carriageway.",
+      "rect": [
+        1020,
+        380,
+        300,
+        300
+      ]
+    }
+  ],
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "doodad.street",
+  "note": "Main-street dressing (set-piece-districts.md): three 3x1 shop awnings and two 1x1 street lamps. Measured 1536x1024 RGBA, five pieces at every alpha threshold 16-160; interiors are alpha 253, not 255. Geometry-first reskin of templates/street-dressing-guide.png (street-dressing-guide.py), 300 px per world cell; every rect here is the guide frame, and the raw came back at the guide's own size. Awnings: the shop wall is the frame's north edge, the canopy runs south over the pavement; they carry no cover and never block, and draw in the roof pass through street-dressing-motions.tileset.json (a fixed overhead part on itself), so a figure under one is covered as by a roof eave. Lamps: the post foot sits low in the cell and the arm reaches north, so north of the frame is the carriageway. Exact prompt in street-dressing.prompt.txt.",
+  "outputSheet": "graphics/doodads/street-dressing.png",
+  "sheet": "art-source/tilesets/street-dressing.raw.png",
+  "sheetName": "street-dressing"
+}

@@ -1,0 +1,14 @@
+Use case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites); do not copy its objects or layout.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground under the objects.
+
+Paint five pieces of colonial main-street furniture, in reading order:
+1. Top left, a 3-cell-wide shop awning seen from above: a dark steel wall rail along its top edge, then a red and cream striped canvas falling away from the wall toward the viewer's bottom edge, ending in a scalloped valance. Weathered fabric, faint sag between ribs, sun-faded stripes, subtle soiling; the stripes run top to bottom exactly where the guide puts them.
+2. Middle left, the same awning in plain deep bottle-green canvas with a darker green scalloped valance.
+3. Bottom left, the same canopy as corrugated steel sheet on a dark fascia: ribbed galvanised metal with rust streaks, ribs exactly where the guide draws them.
+4. Top right, a colonial cast-iron street lamp seen from straight above: round base plate and post top low in the cell, a slim arm reaching up the frame to a round lantern head with a warm cream glass lens.
+5. Middle right, an industrial cobra-head street lamp: the same base and arm, a rounded grey luminaire housing with a pale lens.
+
+Grounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, chipped paint, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style.
+
+True alpha transparency around every object and in every gap of the guide, including the thin gap above each valance; no floor, no background, no shadow slab, no border, no labels, no text, no watermark. Paint only these five objects and nothing outside their silhouettes.
