@@ -580,7 +580,11 @@ in the mask only when the hull's whole block is walkable **and no wall stands on
 an edge inside it**: a fence or low wall along a cell edge leaves both its cells
 walkable, but the body collides with it, so a mask of cells alone proved routes
 that pinned trucks on fences beside their centre line. Every vehicle planner
-reads this one mask (`VehicleClearance.fitsAt`); there is no plain variant. Endpoint
+reads this one mask (`VehicleClearance.fitsAt`); there is no plain variant. A
+question asked during play (a move order, a pull-back, an engagement reposition)
+reads the battle's held mask for that grid and width (`VehicleClearances` on
+`ConvoyService`), which follows the grid's topology revision, rather than eroding
+the whole map per question. Endpoint
 snapping accounts for perimeter and wall-adjacent cells removed by clearance.
 The sparse result then receives a vehicle-specific turn pass: material vertices
 become footprint-checked minimum-radius fillets. A bend that the chassis cannot

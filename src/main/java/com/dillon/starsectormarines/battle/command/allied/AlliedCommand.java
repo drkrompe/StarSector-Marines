@@ -415,8 +415,7 @@ public final class AlliedCommand {
         VehicleType type = sim.convoy().vehicleType(hull);
         if (type == null) return null;
         GroundBody body = sim.convoy().body(hull);
-        VehicleClearance clearance = VehicleClearance.erode(sim.getGrid(),
-                VehicleClearance.radiusForWidth(type.visualWidthCells));
+        VehicleClearance clearance = sim.convoy().clearances().of(sim.getGrid(), type);
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) body.x, (int) body.y, SNAP_REACH);
         int[] to = VehicleRoutePlanner.snapToMask(clearance, goalX, goalY, SNAP_REACH);
         if (from == null || to == null) return null;

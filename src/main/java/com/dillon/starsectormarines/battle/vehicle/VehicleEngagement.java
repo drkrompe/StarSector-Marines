@@ -609,7 +609,7 @@ public final class VehicleEngagement {
     /** A drivable route along {@code away}, then at widening bearings off it; null when none is drivable. */
     private float[][] planWithdrawal(VehicleType type, GroundBody body, float[] away) {
         NavigationGrid grid = controlSystem.planningGrid(type);
-        VehicleClearance clearance = VehicleClearance.erode(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        VehicleClearance clearance = convoy.clearances().of(grid, type);
         TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 SNAP_RADIUS);
@@ -796,9 +796,9 @@ public final class VehicleEngagement {
         NavigationGrid grid = controlSystem.planningGrid(type);
         NavigationGrid live = navigation.getGrid();
         int fit = VehicleClearance.radiusForWidth(type.visualWidthCells);
-        VehicleClearance clearance = VehicleClearance.erode(grid, fit);
+        VehicleClearance clearance = convoy.clearances().of(grid, fit);
         // A firing position is one a hull can drive onto from any side, not one its footprint only just fits.
-        VehicleClearance roomy = VehicleClearance.erode(grid, fit + REPOSITION_ROOM_CELLS);
+        VehicleClearance roomy = convoy.clearances().of(grid, fit + REPOSITION_ROOM_CELLS);
         TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 SNAP_RADIUS);
@@ -861,7 +861,7 @@ public final class VehicleEngagement {
     private float[][] planToBand(long id, VehicleType type, GroundBody body, float[] target, Band band,
                                  boolean needSight) {
         NavigationGrid grid = controlSystem.planningGrid(type);
-        VehicleClearance clearance = VehicleClearance.erode(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        VehicleClearance clearance = convoy.clearances().of(grid, type);
         TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 SNAP_RADIUS);
