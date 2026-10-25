@@ -15,10 +15,14 @@ import java.util.Locale;
  * A look shot's soundtrack as data, for a review to mix offline: every sound the battle screen would start, written
  * per tick as a JSON line ({@code frame, id, x, y, pitch, volume, listenerX, listenerY}). The creatures' sounds come
  * from {@link SwarmAudio.Mix#hear} and {@link HarrierAudio.Mix#hear}, the same rules and levels the game plays them
- * at; the fire from {@link BattleShotAudio#cue}. The listener is the view's centre, as it is the screen's in a battle.
- * Impacts and held beam loops are not logged.
+ * at; the fire from {@link BattleShotAudio#cue}; impacts, a flak round's air-burst among them, from
+ * {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as the screen
+ * plays them. The listener is the view's centre, as it is the screen's in a battle. Held beam loops are not logged.
  */
 public final class BattleSoundLog {
+
+    /** The screen's fallback for an explosive impact with no authored sound ({@code BattleScreen.SFX_NEAR_EXPLOSION}). */
+    private static final String EXPLOSIVE_FALLBACK = "marines_explosion";
 
     private final Path file;
     private final SwarmAudio.Mix swarm = new SwarmAudio.Mix();
@@ -50,6 +54,10 @@ public final class BattleSoundLog {
         for (ShotEvent shot : sim.getShotsThisFrame()) {
             BattleShotAudio.Cue cue = BattleShotAudio.cue(shot);
             if (cue.soundId() != null) line(lines, cue.soundId(), shot.fromX, shot.fromY, 1f, cue.volume(), at);
+            if (!ShotFx.of(shot).travels()) impact(lines, shot, at);
+        }
+        for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
+            if (ShotFx.of(shot).travels()) impact(lines, shot, at);
         }
         frame++;
         try {
@@ -57,6 +65,11 @@ public final class BattleSoundLog {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private void impact(StringBuilder out, ShotEvent shot, float[] at) {
+        ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(shot, EXPLOSIVE_FALLBACK);
+        if (cue != null) line(out, cue.soundId(), shot.toX, shot.toY, 1f, cue.volume(), at);
     }
 
     private void line(StringBuilder out, String id, float x, float y, float pitch, float volume, float[] at) {

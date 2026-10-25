@@ -230,6 +230,11 @@ public final class UnitAtlas extends SpriteAtlas {
         if (scuffs != null && scuffs.pxW > 0 && scuffs.pxH > 0) {
             into(candidates, scuffs.sprite, scuffs.pxW, scuffs.pxH, "scuff sheet");
         }
+        // And a Rav's worn chitin (RavWear), cells of its own sheet over the Matriarch's and the Brute's bodies.
+        ShuttleSpriteCache ravWear = sprites.spriteByPath(RavWear.SHEET);
+        if (ravWear != null && ravWear.pxW > 0 && ravWear.pxH > 0) {
+            into(candidates, ravWear.sprite, ravWear.pxW, ravWear.pxH, "rav wear sheet");
+        }
         // Two images is already two binds and an atlas of them saves one; the
         // point of the layout is a field of bodies, so a host that loaded almost
         // no unit art stays on the sprite path rather than paying for a copy.

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17358-3bb7-7091-9a34-c8f352d31558",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17358-3bb7-7091-9a34-c8f352d31558\\exec-de931d3c-c2dd-4e66-a5f9-4f3d338f2515.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\options\\mother-bore-vault-1.raw.png",
+    "sha256": "a1dac670157cce8a3e1d0970ccaa9984e741d5ffbfb5fa99dcbb450c45c11574",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\mother-bore-vault.prompt.txt",
+  "promptSha256": "6c85e242f8b42d0b4ada5524e38c438cd164fa6002ea10c70b75e228c8fb9c9d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: the MOTHER BORE of the alien swarm for a top-down tactical game: the root of the whole infestation, months old, where its reservoir deep under an old colony's workings breaks the surface. It must look far older, deeper and more menacing than an ordinary bore: an abyss, not a pit. The throat is a wide, very deep gullet of wet ribbed flesh: ring after ring of glistening fleshy ribs, with sinew cords running down its walls, descending into total darkness; the far wall (lower right) catches the sun, the near wall falls into shadow; far, far down a faint amber glow and a few embers show where the reservoir is, and a pale limb is climbing. Round it the colony's concrete paving has been heaved up in broken tilted slabs riding up the mound of thrown earth, and thick sinew roots run far out from it in every direction, branching as they go. Its body plan is a VAULT: great chitin plates grown out from the rim and arching in over the hole, cupped like the petals of something about to close, each with a rib of bone along its spine, their torn tips leaving a ragged dark opening down into the throat. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Keep the throat as dark as the guide makes it: do not light up the abyss, do not fill it with detail it does not show. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks), smooth polished horn with growth rings, never striped or ribbed like a drill; dark grey-green tubes = sinew roots and cords; brown = churned, thrown-up soil; pale grey-tan tiles = broken slabs of human colony paving, real concrete pavers with chipped edges and cracks; dusky mauve = wet dark ribbed flesh; orange-amber spots and haze = glowing amber nodes and the reservoir's glow, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown about 150 to 350 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-mother-bore-vault-1-guide.png",
+      "sha256": "902354f4d441b3a1404dbd4d1b0614c0092dd997cec030cfe5f27ba153ada40f",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned sprite, preserving Image 1’s geometry and lighting and using Image 2 only for materials and painted style.\n"
+  ],
+  "usage": {
+    "input_tokens": 45017,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 787,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.1
+}

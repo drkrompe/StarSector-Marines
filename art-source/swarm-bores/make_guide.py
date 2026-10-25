@@ -64,7 +64,7 @@ GLOW = np.array((255, 176, 70), dtype=np.float32) / 255.0
 
 CANVAS_CELLS = {
     "bore": 3.8,
-    "mother-bore": 4.6,
+    "mother-bore": 6.0,
     "spore-colony-fissure": 1.6,
     "spore-colony-bore": 2.0,
     "spore-colony-maw": 2.4,
@@ -117,6 +117,9 @@ GROUND_COLONY_STYLE = "star"  # the owner's pick, 2026-10-22
 # The brood spire's body plan (``spire_body``).
 SPIRE_STYLES = ("roost", "chimney", "clutch")
 SPIRE_STYLE = "roost"  # the owner's pick, 2026-10-25
+# The mother bore's body plan (``mother_body``); ``jaw`` is built on until the owner picks.
+MOTHER_STYLES = ("jaw", "vault", "collapse")
+MOTHER_STYLE = "jaw"
 
 
 def to_sun_screen():
@@ -453,11 +456,11 @@ def rim_radius(theta, base, phases, collapse_angle, collapse):
     return r * (1 + collapse * np.clip(np.cos(theta - collapse_angle), 0, 1) ** 2)
 
 
-def bore_body(f: Field, mother: bool):
+def bore_body(f: Field):
     rng = f.rng
     half = f.cells / 2
-    R = 0.78 if mother else 0.58          # pit rim radius
-    D = 2.6 if mother else 1.8            # shaft depth
+    R = 0.58                              # pit rim radius
+    D = 1.8                               # shaft depth
     dead = f.state == "remains"
     hurt = f.state == "wounded"
     dmg = f.dmg
@@ -480,13 +483,13 @@ def bore_body(f: Field, mother: bool):
     rr = np.hypot(dx, dy)
     s = (rr - rim) / width
     berm_mask = (s > -0.2) & (s < 1)
-    berm_h = (0.10 + 0.32 * np.clip(upness, 0, 1) ** 1.5) * (1 if not mother else 1.25)
+    berm_h = (0.10 + 0.32 * np.clip(upness, 0, 1) ** 1.5)
     berm = berm_h * np.clip(np.sin(np.clip(s + 0.2, 0, 1.2) / 1.2 * math.pi), 0, 1) ** 0.8
     f.raise_(berm_mask, berm, EARTH)
-    for _ in range(rng.randint(9, 14) if mother else rng.randint(6, 10)):
+    for _ in range(rng.randint(6, 10)):
         a = up + rng.gauss(0, 1.3)
         r0 = R * rng.uniform(1.15, 1.85)
-        f.blob(c0[0] + math.cos(a) * r0, c0[1] + math.sin(a) * r0, rng.uniform(0.05, 0.13) * (1.3 if mother else 1),
+        f.blob(c0[0] + math.cos(a) * r0, c0[1] + math.sin(a) * r0, rng.uniform(0.05, 0.13),
                rng.uniform(0.05, 0.14), EARTH, lumps=rng.randint(3, 6))
 
     # The shaft: rings stepping down and towards the upheaved side, so that wall is sheer and the other a ramp.
@@ -507,7 +510,7 @@ def bore_body(f: Field, mother: bool):
     bottom = (c0[0] + math.cos(up) * slant, c0[1] + math.sin(up) * slant)
     if dead:
         # Rubble choking the hole: the berm and the lip slid in on top of the throat.
-        for _ in range(dmg.randint(7, 11) if mother else dmg.randint(5, 8)):
+        for _ in range(dmg.randint(5, 8)):
             a = dmg.uniform(0, 2 * math.pi)
             q = R * dmg.uniform(0.0, 0.7)
             f.blob(c0[0] + math.cos(a) * q, c0[1] + math.sin(a) * q, R * dmg.uniform(0.18, 0.34),
@@ -524,12 +527,12 @@ def bore_body(f: Field, mother: bool):
     f.node(bottom[0], bottom[1], R * 0.28, 0.22)
 
     # Plates: irregular in angle, size and count; reared up on the upheaved side, torn and slumped opposite.
-    count = rng.randint(12, 15) if mother else rng.randint(8, 10)
+    count = rng.randint(8, 10)
     # Crowded where the ground rose, sparse where it fell in.
     angles = sorted(up + rng.gauss(0, 1.35) for _ in range(count))
     nodes = rng.sample(range(count), k=min(count, rng.randint(2, 4)))
     # Torn out of their sockets: two of a wounded bore's plates, more of a dead one's.
-    tear_left = (3 if hurt else 4 if dead else 0) + (1 if mother and f.state != "intact" else 0)
+    tear_left = (3 if hurt else 4 if dead else 0)
     slump = 0.4 if dead else 1.0
     for i, a in enumerate(angles):
         k = math.cos(a - up)
@@ -546,28 +549,19 @@ def bore_body(f: Field, mother: bool):
         # Torn out of their sockets: the big reared plates on the upheaved side, where it shows.
         torn_here = tear_left > 0 and big > 0.1 and dmg.random() < 0.75
         tear_left -= 1 if torn_here else 0
-        length = R * (0.55 + 0.6 * big) * rng.uniform(0.75, 1.25) * (1.1 if mother else 1)
+        length = R * (0.55 + 0.6 * big) * rng.uniform(0.75, 1.25)
         width = R * rng.uniform(0.75, 1.1) * (0.8 + 0.35 * big)
-        h_in = 0.10 + (0.95 if mother else 0.7) * big ** 1.2 * rng.uniform(0.7, 1.15)
+        h_in = 0.10 + 0.7 * big ** 1.2 * rng.uniform(0.7, 1.15)
         h_out = 0.06 + 0.22 * big
         r_in = rim_here * rng.uniform(0.74, 0.92)
         mid = f.plate(c0[0] + math.cos(a) * r_in, c0[1] + math.sin(a) * r_in, a + twist, length, width,
                       h_in, h_out, bulge=0.06 + 0.06 * big, jagged=0.0 if k > -0.2 else rng.uniform(0.2, 0.45),
                       torn=torn_here, slump=slump)
         if i in nodes:
-            f.node(mid[0], mid[1], 0.028 * (1.2 if mother else 1), 1.0)
+            f.node(mid[0], mid[1], 0.028, 1.0)
     f.open_tears()
-    if mother:
-        # The mother bore's second, inner terrace of plates, only on the side that rose.
-        for _ in range(rng.randint(4, 6)):
-            a = up + rng.uniform(-1.3, 1.3)
-            rim_here = float(rim_radius(np.array(a), R, phases, down, 0.22))
-            f.plate(c0[0] + math.cos(a) * rim_here * 0.62, c0[1] + math.sin(a) * rim_here * 0.62, a + rng.uniform(-0.4, 0.4),
-                    R * rng.uniform(0.3, 0.45), R * rng.uniform(0.5, 0.7), rng.uniform(0.5, 0.9), 0.35,
-                    bulge=0.05, slump=slump)
-
     # Tusks: bone hooks leaning in over the hole from the upheaved side, each its own length, some snapped.
-    for _ in range(rng.randint(5, 8) if mother else rng.randint(2, 4)):
+    for _ in range(rng.randint(2, 4)):
         a = up + rng.uniform(-1.25, 1.25)
         rim_here = float(rim_radius(np.array(a), R, phases, down, 0.22))
         base = rim_here * rng.uniform(1.0, 1.25)
@@ -575,14 +569,14 @@ def bore_body(f: Field, mother: bool):
         if dead or (hurt and dmg.random() < 0.4):
             length *= dmg.uniform(0.3, 0.5)  # snapped
         f.tusk(c0[0] + math.cos(a) * base, c0[1] + math.sin(a) * base, a + math.pi + rng.uniform(-0.35, 0.35),
-               length, R * rng.uniform(0.09, 0.15), rng.uniform(0.35, 0.6), rng.uniform(0.75, 1.15) * (1.2 if mother else 1),
+               length, R * rng.uniform(0.09, 0.15), rng.uniform(0.35, 0.6), rng.uniform(0.75, 1.15),
                curl=rng.uniform(-0.9, 0.9))
 
     # Paving thrown up and cracked round the rim, mostly where the ground rose; a slab or two sliding in.
-    for _ in range(rng.randint(10, 15) if mother else rng.randint(6, 9)):
+    for _ in range(rng.randint(6, 9)):
         a = up + rng.gauss(0, 1.1)
         r0 = R * rng.uniform(1.05, 1.75)
-        size = rng.uniform(0.16, 0.36) * (1.2 if mother else 1)
+        size = rng.uniform(0.16, 0.36)
         toward_pit = a + math.pi
         f.slab(c0[0] + math.cos(a) * r0, c0[1] + math.sin(a) * r0, toward_pit + rng.uniform(-0.6, 0.6), size,
                size * rng.uniform(0.6, 1.0), rng.choice((-1, 1)), rng.uniform(0.08, 0.32))
@@ -596,7 +590,7 @@ def bore_body(f: Field, mother: bool):
 
     # Roots running out further on one side.
     root_side = up + rng.choice((-1, 1)) * rng.uniform(0.6, 1.6)
-    for _ in range(rng.randint(6, 9) if mother else rng.randint(4, 6)):
+    for _ in range(rng.randint(4, 6)):
         near = rng.random() < 0.65
         a = root_side + rng.uniform(-0.6, 0.6) if near else rng.uniform(0, 2 * math.pi)
         start = R * rng.uniform(1.05, 1.3)
@@ -604,16 +598,257 @@ def bore_body(f: Field, mother: bool):
         room = half * 0.93 - max(abs(sx), abs(sy))
         length = min(room, (R * rng.uniform(0.9, 1.6)) if near else R * rng.uniform(0.25, 0.55))
         if length > 0.08:
-            f.tube(f.wander(sx, sy, a, length, steps=8, jitter=0.4), rng.uniform(0.035, 0.06) * (1.2 if mother else 1),
+            f.tube(f.wander(sx, sy, a, length, steps=8, jitter=0.4), rng.uniform(0.035, 0.06),
                    rng.uniform(0.05, 0.09) * (0.5 if dead else 1.0), UNDER)
 
     # Cracks in the ground the body lifted.
-    for _ in range(rng.randint(9, 13) if mother else rng.randint(6, 9)):
+    for _ in range(rng.randint(6, 9)):
         a = up + rng.gauss(0, 1.4)
         r0 = R * rng.uniform(1.3, 1.7)
         f.crack(c0[0] + math.cos(a) * r0, c0[1] + math.sin(a) * r0, a, R * rng.uniform(0.4, 1.0), 0.012)
     if f.state != "intact":
-        f.scars((6 if hurt else 10) * (2 if mother else 1), c0, R * 1.6)
+        f.scars((6 if hurt else 10), c0, R * 1.6)
+
+
+def mother_body(f: Field, style: str):
+    """The mother bore: the root of the whole bloom, months old, the reservoir under the old workings reaching the
+    surface (`swarm-lore-guide.md`). It must read at a glance as far more than a bore: a wider, much deeper throat of
+    ribbed flesh falling away into the dark with a faint amber glow far down, the colony's paving heaved up in broken
+    rafts round it, and sinew roots running far out into the creep. Three body plans for the owner's pick
+    (``MOTHER_STYLES``):
+
+    - ``jaw``: a ring of great bone tusks round most of the rim, curving in and arching over the hole like a jaw
+      closing on it, chitin plates reared up behind them.
+    - ``vault``: great chitin plates grown out from the rim and arching in over the hole, cupped like a flower about
+      to close, leaving a ragged dark opening down into the throat.
+    - ``collapse``: lopsided: the upheaved side a towering wall of plates and tusks, the other side caved in to a long
+      slumped trough where the colony's paving slid down into the throat in tilted rafts.
+    """
+    rng = f.rng
+    half = f.cells / 2
+    dead = f.state == "remains"
+    hurt = f.state == "wounded"
+    dmg = f.dmg
+    slump = 0.4 if dead else 1.0
+    R = 1.0                               # rim radius
+    D = 5.2 * (0.28 if dead else 1.0)     # the throat's depth; caved in when dead
+    up = rng.uniform(0, 2 * math.pi)      # the side that rose
+    down = up + math.pi + rng.uniform(-0.35, 0.35)
+    c0 = (rng.uniform(-0.12, 0.12) - 0.18, rng.uniform(-0.12, 0.12) - 0.18)
+    phases = [rng.uniform(0, 2 * math.pi) for _ in range(3)]
+    collapse = 0.55 if style == "collapse" else 0.18
+    slant = R * (0.5 if style == "collapse" else 0.35)
+
+    def rim_at(a):
+        return float(rim_radius(np.array(a), R, phases, down, collapse))
+
+    def at(a, r):
+        return c0[0] + math.cos(a) * r, c0[1] + math.sin(a) * r
+
+    # Thrown earth: a broad berm, heaped where the ground rose.
+    dx, dy = f.x - c0[0], f.y - c0[1]
+    theta = np.arctan2(dy, dx)
+    rim = rim_radius(theta, R, phases, down, collapse)
+    upness = np.cos(theta - up)
+    width = R * (0.5 + 0.5 * np.clip(upness, 0, 1) ** 1.3) * (1 + 0.2 * np.sin(5 * theta + phases[1]))
+    rr = np.hypot(dx, dy)
+    s = (rr - rim) / width
+    berm = (0.12 + 0.42 * np.clip(upness, 0, 1) ** 1.5) * np.clip(np.sin(np.clip(s + 0.2, 0, 1.2) / 1.2 * math.pi), 0, 1) ** 0.8
+    f.raise_((s > -0.2) & (s < 1), berm * slump, EARTH)
+    for _ in range(rng.randint(12, 16)):
+        a = up + rng.gauss(0, 1.4)
+        r0 = R * rng.uniform(1.2, 2.0)
+        f.blob(*at(a, r0), rng.uniform(0.07, 0.17), rng.uniform(0.06, 0.16), EARTH, lumps=rng.randint(3, 6))
+
+    # The colony's paving, laid on a grid and heaved up with the ground round the hole: the pavers ride up the berm
+    # (draped on it), levered up towards the rim, broken in two and knocked askew the nearer they are, and gone in
+    # ragged gaps where it burst; further out they lie flat until the paving ends in a broken edge.
+    tile = rng.uniform(0.42, 0.48)
+    grid = rng.uniform(0, math.pi / 2)
+    gx, gy = math.cos(grid), math.sin(grid)
+    reach = int(half / tile) + 1
+    for i in range(-reach, reach + 1):
+        for j in range(-reach, reach + 1):
+            x = c0[0] + (i * gx - j * gy) * tile
+            y = c0[1] + (i * gy + j * gx) * tile
+            a = math.atan2(y - c0[1], x - c0[0])
+            r = math.hypot(x - c0[0], y - c0[1]) / rim_at(a)
+            upness_here = max(0.0, math.cos(a - up))
+            outer = 1.75 + 0.4 * upness_here + rng.uniform(-0.3, 0.1)
+            if r < 1.0 or r > outer or max(abs(x), abs(y)) > half * 0.92:
+                continue
+            near = max(0.0, 1.0 - (r - 1.0) / 0.8)
+            # Broken away towards the edge, so the paving frays out into the creep.
+            if rng.random() < 0.2 + 0.2 * near + 0.5 * (1 - near) * (r - 1.0) / (outer - 1.0):
+                continue
+            q = round((a + math.pi - grid) / (math.pi / 2))
+            toward = grid + q * math.pi / 2
+            lift = 0.02 + (0.1 + 0.45 * upness_here) * near ** 1.2 * rng.uniform(0.4, 1.1)
+            skew = rng.uniform(-0.5, 0.5) * near
+            pieces = [(0.0, 0.0, 0.9)]
+            if rng.random() < 0.25 + 0.5 * near:
+                # Broken in two along the axis facing the hole, the inner half lifted further.
+                ox, oy = math.cos(toward) * tile * 0.24, math.sin(toward) * tile * 0.24
+                pieces = [(-ox, -oy, 0.42), (ox, oy, 0.42)]
+            for k, (px_, py_, depth_) in enumerate(pieces):
+                f.slab(x + px_, y + py_, toward + skew + rng.uniform(-0.15, 0.15) * near, tile * depth_ * 1.05,
+                       tile * 0.88, 1, 2.5 * lift * (1.6 if k == 1 else 1.0) * slump, drape=True)
+
+    # The throat: rings stepping down towards the upheaved side, ribbed all the way down into the dark.
+    ribs = [0.08 + 0.085 * k + rng.uniform(-0.015, 0.015) for k in range(11)]
+    for k in range(161):
+        t = k / 160
+        cx = c0[0] + math.cos(up) * slant * t
+        cy = c0[1] + math.sin(up) * slant * t
+        ddx, ddy = f.x - cx, f.y - cy
+        th = np.arctan2(ddy, ddx)
+        radius = rim_radius(th, R, phases, down, collapse * (1 - t)) * (1 - 0.62 * min(1.0, t / 0.6) ** 0.75)
+        inside = np.hypot(ddx, ddy) < radius
+        depth = -D * t ** 1.25
+        for rib in ribs:
+            depth += 0.13 * (1 - 0.6 * t) * math.exp(-((t - rib) / 0.018) ** 2)
+        f.h[inside] = depth
+        f.m[inside] = FLESH
+        f.over |= inside
+    bottom = (c0[0] + math.cos(up) * slant, c0[1] + math.sin(up) * slant)
+    # Sinew cords running down the throat's walls, so its ribs read as a gullet rather than a funnel.
+    if not dead:
+        for k in range(rng.randint(7, 9)):
+            a = 2 * math.pi * k / 8 + rng.uniform(-0.25, 0.25)
+            pts = []
+            for q in np.linspace(0.04, 0.7, 9):
+                cxq, cyq = c0[0] + math.cos(up) * slant * q, c0[1] + math.sin(up) * slant * q
+                rq = rim_at(a) * (1 - 0.62 * min(1.0, q / 0.6) ** 0.75) * 0.93
+                pts.append((cxq + math.cos(a) * rq, cyq + math.sin(a) * rq))
+            image = Image.new("L", (N, N), 0)
+            ImageDraw.Draw(image).line([f.px(x, y) for x, y in pts], fill=255, width=max(2, int(0.05 * f.ppc)))
+            cord = (np.asarray(image) > 127) & (f.m == FLESH)
+            f.drape(cord, 0.05, UNDER)
+    if dead:
+        for _ in range(dmg.randint(9, 13)):
+            a = dmg.uniform(0, 2 * math.pi)
+            q = R * dmg.uniform(0.0, 0.75)
+            f.blob(*at(a, q), R * dmg.uniform(0.18, 0.34), dmg.uniform(0.04, 0.16), EARTH, lumps=dmg.randint(3, 6))
+
+    # Far down: the reservoir's light, a faint amber haze with a few embers, and a pale limb climbing.
+    a = rng.uniform(0, 2 * math.pi)
+    lx, ly = bottom[0] + math.cos(a) * R * 0.1, bottom[1] + math.sin(a) * R * 0.1
+    f.tusk(lx, ly, a + 2.2, R * 0.3, R * 0.06, -D * 0.95, -D * 0.83, curl=1.4, material=BONE)
+    for _ in range(rng.randint(4, 6)):
+        a = rng.uniform(0, 2 * math.pi)
+        q = rng.uniform(0.02, 0.16) * R
+        f.node(bottom[0] + math.cos(a) * q, bottom[1] + math.sin(a) * q, rng.uniform(0.02, 0.035), 0.75)
+    f.node(bottom[0], bottom[1], R * 0.34, 0.3)
+
+    tear_left = 0 if f.state == "intact" else (4 if hurt else 6)
+
+    def torn():
+        nonlocal tear_left
+        if tear_left > 0 and dmg.random() < 0.6:
+            tear_left -= 1
+            return True
+        return False
+
+    def tusk(a, base_r, length, width, h_base, h_tip, inward, curl):
+        if dead or (hurt and dmg.random() < 0.35):
+            length *= dmg.uniform(0.3, 0.5)  # snapped
+        f.tusk(*at(a, base_r), a + math.pi + inward, length, width, h_base, h_tip * slump, curl=curl)
+
+    # Plates reared up round the lip, crowded where the ground rose.
+    nodes = 0
+    plates = {"jaw": rng.randint(11, 13), "vault": rng.randint(9, 11), "collapse": rng.randint(12, 14)}[style]
+    for a in sorted(up + rng.gauss(0, 1.3 if style != "collapse" else 1.0) for _ in range(plates)):
+        k = math.cos(a - up)
+        big = max(0.0, k)
+        rim_here = rim_at(a)
+        if k < -0.4 and rng.random() < (0.75 if style == "collapse" else 0.5):
+            r_in = rim_here * rng.uniform(0.5, 0.8)
+            f.plate(*at(a, r_in), a + math.pi + rng.uniform(-0.6, 0.6), R * rng.uniform(0.38, 0.55),
+                    R * rng.uniform(0.5, 0.75), 0, 0, bulge=0.06, jagged=0.35, drape=True)
+            continue
+        tall = 1.0 + (0.6 if style == "collapse" else 0.0) * big
+        length = R * (0.6 + 0.6 * big) * rng.uniform(0.8, 1.2)
+        mid = f.plate(*at(a + rng.uniform(-0.05, 0.05), rim_here * rng.uniform(0.82, 0.96)), a + rng.uniform(-0.4, 0.4),
+                      length, R * rng.uniform(0.7, 1.0) * (0.8 + 0.35 * big),
+                      (0.14 + 1.05 * big ** 1.2 * rng.uniform(0.75, 1.1)) * tall, 0.08 + 0.25 * big,
+                      bulge=0.07 + 0.06 * big, jagged=0.0 if k > -0.2 else rng.uniform(0.2, 0.45),
+                      torn=torn(), slump=slump)
+        if nodes < 4 and rng.random() < 0.4:
+            nodes += 1
+            f.node(*mid, 0.04, 1.0)
+
+    if style == "vault":
+        # Great plates grown out from the rim and arching in over the hole, highest over the dark.
+        n = rng.randint(6, 7)
+        a0 = rng.uniform(0, 2 * math.pi)
+        for k in range(n):
+            a = a0 + 2 * math.pi * k / n + rng.uniform(-0.25, 0.25)
+            rim_here = rim_at(a)
+            reach = rng.uniform(0.75, 1.0) * (1.1 if math.cos(a - up) > 0 else 0.8)
+            f.plate(*at(a, rim_here * 1.08), a + math.pi + rng.uniform(-0.3, 0.3), R * reach, R * rng.uniform(0.55, 0.75),
+                    rng.uniform(0.5, 0.75), rng.uniform(1.0, 1.35), bulge=0.1, jagged=rng.uniform(0.25, 0.5),
+                    torn=torn(), slump=slump)
+            # A rib of bone along each one's spine.
+            tusk(a, rim_here * 1.05, R * reach * 0.8, R * 0.08, 0.7, 1.45, rng.uniform(-0.1, 0.1), rng.uniform(-0.3, 0.3))
+    f.open_tears()
+
+    # Tusks: bone hooks leaning in over the hole.
+    if style == "jaw":
+        n = rng.randint(9, 11)
+        a0 = up - 2.5
+        for k in range(n):
+            a = a0 + 5.0 * k / (n - 1) + rng.uniform(-0.12, 0.12)
+            big = max(0.0, math.cos(a - up))
+            # Hooked in over the hole, short of meeting: the jaw has not closed, so the dark shows between them.
+            tusk(a, rim_at(a) * rng.uniform(1.05, 1.2), R * (0.6 + 0.45 * big) * rng.uniform(0.85, 1.15),
+                 R * rng.uniform(0.15, 0.21), rng.uniform(0.4, 0.6), (1.0 + 0.7 * big) * rng.uniform(0.9, 1.15),
+                 rng.uniform(-0.25, 0.25), rng.choice((-1, 1)) * rng.uniform(0.5, 0.9))
+    else:
+        spread = 1.0 if style == "collapse" else 1.6
+        for _ in range(rng.randint(5, 7)):
+            a = up + rng.uniform(-spread, spread)
+            tusk(a, rim_at(a) * rng.uniform(1.0, 1.2), R * rng.uniform(0.5, 0.95), R * rng.uniform(0.1, 0.16),
+                 rng.uniform(0.4, 0.6), rng.uniform(0.9, 1.4) * (1.2 if style == "collapse" else 1.0),
+                 rng.uniform(-0.35, 0.35), rng.uniform(-0.9, 0.9))
+
+    if style == "collapse":
+        # The caved-in side: the lip fell into the throat, and the colony's paving slid down after it in tilted
+        # rafts lying on the funnel's slope.
+        for _ in range(rng.randint(6, 8)):
+            a = down + rng.uniform(-0.8, 0.8)
+            r0 = rim_at(a) * rng.uniform(0.55, 0.95)
+            size = rng.uniform(0.3, 0.46)
+            f.slab(*at(a, r0), a + rng.uniform(-0.7, 0.7), size, size * rng.uniform(0.6, 0.9), 1,
+                   rng.uniform(0.15, 0.4), drape=True)
+
+    # Roots running far out into the creep, branching as they go, thick at the rim.
+    for _ in range(rng.randint(8, 11)):
+        a = rng.uniform(0, 2 * math.pi)
+        start = rim_at(a) * rng.uniform(1.1, 1.35)
+        sx, sy = at(a, start)
+        room = half * 0.95 - max(abs(sx), abs(sy))
+        length = min(room * 1.3, R * rng.uniform(1.2, 2.4))
+        if length < 0.1:
+            continue
+        pts = f.wander(sx, sy, a, length, steps=10, jitter=0.35)
+        pts = [(x, y) for x, y in pts if max(abs(x), abs(y)) < half * 0.95]
+        if len(pts) < 3:
+            continue
+        thick = rng.uniform(0.05, 0.08)
+        f.tube(pts, thick, rng.uniform(0.07, 0.11) * (0.5 if dead else 1.0), UNDER)
+        if rng.random() < 0.7:
+            j = rng.randint(2, max(2, len(pts) - 2))
+            bx, by = pts[j]
+            branch = f.wander(bx, by, a + rng.choice((-1, 1)) * rng.uniform(0.5, 1.0), length * 0.4, steps=5, jitter=0.4)
+            branch = [(x, y) for x, y in branch if max(abs(x), abs(y)) < half * 0.95]
+            if len(branch) >= 3:
+                f.tube(branch, thick * 0.6, 0.05 * (0.5 if dead else 1.0), UNDER)
+
+    for _ in range(rng.randint(12, 16)):
+        a = up + rng.gauss(0, 1.5)
+        f.crack(*at(a, R * rng.uniform(1.4, 2.0)), a, R * rng.uniform(0.5, 1.2), 0.014)
+    if f.state != "intact":
+        f.scars(14 if hurt else 20, c0, R * 1.7)
 
 
 def colony_body(f: Field, grade: str):
@@ -1074,9 +1309,9 @@ def build(part: str, variant: int, state: str = "intact", style: str | None = No
     elif part == "ground-colony":
         ground_colony_body(f, style or GROUND_COLONY_STYLE)
     elif part == "bore":
-        bore_body(f, mother=False)
+        bore_body(f)
     elif part == "mother-bore":
-        bore_body(f, mother=True)
+        mother_body(f, style or MOTHER_STYLE)
     else:
         colony_body(f, part)
     return f
@@ -1102,7 +1337,8 @@ def sun_visibility(f: Field) -> np.ndarray:
     rise = step / f.ppc * math.tan(SUN_ELEVATION)
     h = f.h
     span = float(h.max() - h.min())
-    steps = int(span / rise) + 2
+    # A ray that has left the canvas meets nothing more (a deep throat would otherwise march past its edge).
+    steps = min(int(span / rise) + 2, int((N - 1) / max(abs(sx), abs(sy))))
     lit = np.ones((N, N), bool)
     for s in range(1, steps + 1):
         ox, oy = int(round(sx * step * s)), int(round(sy * step * s))
@@ -1191,6 +1427,13 @@ def guide_path(templates: Path, part: str, variant: int, state: str = "intact") 
 def main() -> None:
     templates = Path(__file__).resolve().parent.parent / "templates"
     only = set(sys.argv[1:])
+    if "options" in only:
+        # One guide per body plan still awaiting the owner's pick, for the look review.
+        for style in MOTHER_STYLES:
+            out = templates / f"swarm-mother-bore-{style}-1-guide.png"
+            guide_image(build("mother-bore", 1, "intact", style)).save(out, optimize=True)
+            print(out)
+        return
     for part in PARTS:
         for v in range(1, VARIANTS[part] + 1):
             for state in STATES:
