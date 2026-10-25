@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-25 — a creep-killed tree is undergrowth a heavy tank pushes over.
+Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost.
 
 Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
 
@@ -835,10 +835,14 @@ air defence of its own until it grows another tier. Laws: no air sortie should
 be able to collapse a bore that still has its colonies without taking losses;
 air is for after the ground push, or for after the colonies.
 
-Colonies stand on the bore's **growth sites**, a seeded ring of open cells
-round the mouth (`BoreGrowthSites`). Only spore colonies use them; a ground
-colony roots out on the creep instead, against the gun it answers (Creep:
-Ground colony).
+Colonies stand on the bore's **growth sites**, a broken crescent of open cells
+round the mouth (`BoreGrowthSites`; owner, 2026-10-25, over an even ring that
+packed them into a knot). The crescent wraps part of the way round, each site
+at its own seeded distance, and the rest of the circle is the den's open
+approach, turned per bore; the back of the den fills first, then the two
+horns, so a bore's first three colonies already read as a den with a way in.
+Only spore colonies use them; a ground colony roots out on the creep instead,
+against the gun it answers (Creep: Ground colony).
 
 **Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
 seeds spore colonies of its current grade on its creep, away from the mouth:
@@ -852,6 +856,20 @@ bore and four at maw; a dead outpost frees its place and the creep grows
 another elsewhere. Outposts wither with their bore like the mouth's colonies.
 So an air sortie that waits watches the defended sky spread with the creep,
 and a bore's creep is worth burning back before its outposts stand.
+
+**Nest.** A bore and everything it grew, read as one organism rather than
+growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
+- **Its mouth is a den**: the crescent of growth sites above.
+- **Roots** (`NestTrails`). A rope of sinew raised out of the creep runs from
+  the bore's rim to each of its living colonies, outposts and its spire, bowed
+  and meandering by a seeded amount and tapering out to the growth, ringed in
+  segments, with the creep's pulse running out along it. A root is drawn only:
+  nothing walks, stops or fights by it, and it goes with its growth or its bore.
+  The roots' look is open (rope, furrow or veins, `-Dbattle.render.nestRoots`);
+  `-Dbattle.render.nestTrails=false` is the control.
+- **Its spire's roost**: the Brood spire's waiting brood (below).
+- Next: clutter (egg clutches, pods, husks) along the roots and round the mouth,
+  and the skitterer, the nest's worker, which has its own story.
 
 **Brood spire.** The tall growth an old bloom raises on its creep, which
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
@@ -872,6 +890,11 @@ through, made into a thing on the map the company can find and kill.
   forty-five seconds have passed since its last, and the flier law holds. The
   pack rises off its crown, low and clustered, and is seen climbing out to its
   loiter ring. A sleeping bore's spire is quiet with it.
+- **Its roost.** While it waits, its next brood clings to the hooks up its
+  flanks, wings folded, now and then half-opening them: none while its own pack
+  flies, then filling back one by one over the gap after a launch, so a full
+  roost is a spire ready to launch again. Drawn only: they are not units until
+  they rise (`SpirePerchRenderSystem`).
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,

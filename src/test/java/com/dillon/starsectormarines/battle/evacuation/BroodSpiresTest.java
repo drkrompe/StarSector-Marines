@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -60,6 +61,15 @@ class BroodSpiresTest {
             @Override public boolean open(int x, int y) { return true; }
         };
         assertNull(BroodSpires.choose(bare, 100, 100, 0f, List.of(), List.of()));
+    }
+
+    @Test
+    void itsBroodFillsBackOntoTheHooksOverTheGap() {
+        assertEquals(0, BroodSpires.perched(true, GAP * 10), "none while its pack flies");
+        assertEquals(0, BroodSpires.perched(false, 0), "none the moment it launched");
+        assertEquals(BroodSpires.PERCHES / 2, BroodSpires.perched(false, GAP / 2), "half way through the gap");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, GAP), "a full roost is ready to launch");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, Integer.MAX_VALUE / 2), "never more than its hooks");
     }
 
     @Test
