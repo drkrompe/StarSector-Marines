@@ -63,8 +63,8 @@ public final class GroundDamageSnapshotSuite implements SnapshotSuite {
                 CellTopology.GroundKind.SAND,CellTopology.GroundKind.STREET,CellTopology.GroundKind.BRICK,
                 CellTopology.GroundKind.INDOOR,CellTopology.GroundKind.TILE,CellTopology.GroundKind.STRIPED,
                 CellTopology.GroundKind.INDOOR};
-        String[] surfaces = {null,null,null,null,null,"urban.floor","road.tile","road.striped","road.vent"};
-        String[] labels = {"GRASS","DIRT","SAND","STREET","BRICK","INDOOR","METAL","SAFETY FLOOR","GRATING"};
+        String[] surfaces = {null,null,null,null,null,"urban.floor","road.tile","apron.marked","road.vent"};
+        String[] labels = {"GRASS","DIRT","SAND","STREET","BRICK","INDOOR","METAL","MARKED APRON","GRATING"};
         NavigationGrid grid = new NavigationGrid(27,21);
         CellTopology topology = new CellTopology(27,21);
         for (int y=0;y<21;y++) for(int x=0;x<27;x++) {

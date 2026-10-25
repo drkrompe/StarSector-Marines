@@ -85,7 +85,7 @@ where the file holds `{"name": "<name>", "document": { ... }}`.
 - `blocks` — pre-declare the walls and corners the sheet is known to contain.
   A block's cells are chosen by `GridLayout` from a four-neighbour mask, so
   facing is never a field on a piece. Layouts: `single`, `floor-3x3`,
-  `wall-3x3`, `perimeter-3x3`, `striped-3x3`.
+  `wall-3x3`, `perimeter-3x3`, `wall-faces-4x4`, `edge-faces-4x4`, `cardinal-2x2`.
 - `note` — see below. This is the field that justifies the whole procedure.
 
 ### The note is the deliverable

@@ -4,7 +4,11 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — set pieces: the factory row, its own compound kind, publishes a service lane.
+Updated: 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
+
+Earlier 2026-10-25 — set pieces: the freight yard has a planned parcel of its own, in two sizes, and each bay publishes its turn.
+
+Earlier 2026-10-25 — set pieces: the factory row, its own compound kind, publishes a service lane.
 
 Earlier 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
 
@@ -309,17 +313,35 @@ story beats remain the mission's decisions.
 A **set piece** is a block whose relationships are authored
 (`set-piece-blocks.md`): which building faces which yard, where its gate meets
 the street, where a vehicle stands, which way its cover faces. The first is the
-**freight yard**, an industrial compound layout. A walled compound holds a
-warehouse whose loading door faces into a yard, a vehicle gate opposite it onto
-a street, a striped bay where a hauler stands nose to the gate, freight stacked
-two-deep along the yard walls as cover facing the gate, and a narrow side gap
-for people. It stands only on the compound's own ground (member leaves, and the
-street frames between members that belong to nobody), never on the road
-reservation. Its gate must open onto street where a hauler can turn either
-way. A compound that cannot hold it keeps the ordinary three-parcel works. The
-yard publishes a **loading bay** (`LoadingBay` on `MapResult`): the stand, its
-heading, the door and the gate. A mission that wants a vehicle loaded reads the
-bay rather than searching the finished map.
+**freight yard**. A walled compound holds a warehouse whose loading door faces
+into a yard, a vehicle gate opposite it onto a street, a striped bay where a
+hauler stands nose to the gate, freight stacked two-deep along the yard walls
+as cover facing the gate, and a narrow side gap for people. It comes in two
+sizes tried largest first, a **two-bay yard** (two gates and drives either side
+of an island of freight, before a bigger hall) and the **standard yard**, so
+short ground is a smaller yard rather than a hole.
+
+Its ground is a **freight-yard parcel** (`BlockKind.FREIGHT_YARD`), planned
+before compounds claim and before the streets become a graph, like the
+industrial template parcels: one per map, joined to a neighbour across their
+minor street where that is what holds the two-bay yard, with the outer street
+ring whole and no trunk crossed. Working parcels are taken before spare ones
+(shops, dense blocks, ruins, plazas), homes and civic blocks never, and of what
+fits, the parcel nearest the map's edge: a freight yard stands where the road
+leaves town. Compound claims, the spaceport district and the landmark seeds
+leave the parcel alone; Conquest's pinned recipe plans none. An industrial
+compound also lays a standard yard on its
+own ground (member leaves and the street frames between them, never the road
+reservation) where that ground holds one.
+
+Every gate must open onto street where a hauler can turn either way. The yard
+publishes a **loading bay** per gate (`LoadingBay` on `MapResult`): the stand,
+its heading, the door, the gate, the cell outside the side gap, and the
+**turn**, the point outside the gate where the yard proved the turn. A hauler drives straight out to the turn before
+routing off the map, since the cheapest path bends at the gate's mouth, which
+no hauler can follow. A mission that wants a vehicle loaded reads the bay rather
+than searching the finished map, and sends a loading only to a bay a truck can
+be proved to leave.
 
 The second set piece is the **factory row**, a compound kind of its own
 (`FACTORY_ROW`, promoted from the largest industrial lot left, or a commercial
@@ -333,6 +355,25 @@ owned ground as the freight yard and prefers gates on the reserved road over a
 longer row. A compound that cannot hold it fills as ordinary industrial lots. It
 publishes its **service lane** (`ServiceLane` on `MapResult`): the two gate
 cells, the centre line between them and the lane's width.
+
+The **market square** is a commercial set piece: an open paved square framed
+by shopfronts whose doors face it, crossed by two rows of stalls composed from
+existing counters, crates and fish boxes, with planters at its front corners
+and a bandstand as hard cover where the square is deep enough. Shops stand
+down each side; the back is a row of shops or a second street running
+through, and an alley may break each side row. Those openings are its
+**mouths**, one to four, and they are the lever that makes a fight in the
+square harder or easier. A road reservation crossing the square stays a
+street with no stall on it, and a shop it would stand on is left out, the
+street becoming one more mouth. The square stands on a **market lot**: after
+compound claims and before the road graph, two complete commercial, plaza,
+dense-block or residential parcels and the minor street between them are
+joined, under the industrial planning pass's rules (complete street ring, no
+trunk, smallest fitting lot, one per map, no random draw). A lot the square
+cannot stand in is an ordinary plaza. The square publishes an **open square**
+(`OpenSquare` on `MapResult`): its centre, its open extent and each mouth's
+cells with the step out onto the street, for an objective to hold, cross or
+send pressure through.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
