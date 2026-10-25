@@ -21,7 +21,7 @@ buildings and nature cover handed to the simulation) and drawn through the look 
 shadows and roofs on, no markers, annotations or caption), at play zoom (60 cells across, 32 px a cell) and close,
 1920x1080. The stills are each view's busiest moments. `-Dsnapshot.lookOnly=true` skips the verdict loops and
 writes only the look frames. Any other suite calls `LookReview.record`. Scenes with look shots: `fire-support-apc`
-(`apc-shelling`), `mech-duel-range` (`mech-duel`), `field-mortar` (`mortar-section`); the LRM carrier's look is its
+(`apc-shelling`), `mech-duel-range` (`mech-duel`), `field-mortar` (`mortar-section`), `tank-undergrowth` (`young-wood`, `dead-wood`); the LRM carrier's look is its
 own suite, `lrm-carrier-look`.
 
 A suite can be **opt-in**: `all` leaves it out and only `-Psnapshot=<id>` runs it

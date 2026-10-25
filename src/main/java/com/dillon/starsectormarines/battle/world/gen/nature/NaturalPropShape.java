@@ -9,6 +9,8 @@ public interface NaturalPropShape {
     int height();
     int hitPoints();
     boolean blocks(int x, int y, int turns);
+    /** Whether a heavy-lift hull flattens this object by driving into it while it stands. */
+    default boolean undergrowth() { return false; }
     default int width(int turns) { return (turns & 1) == 0 ? width() : height(); }
     default int height(int turns) { return (turns & 1) == 0 ? height() : width(); }
 
