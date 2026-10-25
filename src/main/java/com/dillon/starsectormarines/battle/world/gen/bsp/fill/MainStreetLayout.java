@@ -26,8 +26,8 @@ import java.util.function.BiPredicate;
  * pavement is two rows deep (three keep a clear walk behind it), all kept out of the doorways and the
  * cross-street corners. Each shop door has an awning over the pavement in front of it ({@link StreetDressing}),
  * one colourway to a shopfront. The plaza end is the {@link MarketSquare} set piece facing the street where its
- * lot holds it, framed by its own shops with the cross street between its two members running through it, and
- * otherwise an open paved square with a bandstand where it is large enough; the hall at the other end faces the
+ * lot holds it, framed by its own shops with the cross street between its two members running through it and
+ * whatever of its lot lies along the street past it lined with shopfronts too, and otherwise an open paved square with a bandstand where it is large enough; the hall at the other end faces the
  * street like the shops. The cross streets' narrowed edges become pavement. One shop keeps a licensed lobster
  * kitchen in its back room. Draws only from the map's random stream, inside the shell carve.
  */
@@ -45,6 +45,8 @@ final class MainStreetLayout {
     static final int RHYTHM = 3;
     /** Length of the van along the kerb, and the least frontage that takes one. */
     static final int VAN = 3, VAN_FRONTAGE = 9;
+    /** The least length along the street of what the market square leaves of its lot that takes a shop. */
+    static final int STRIP_MIN = 5;
     /** The least plaza side that holds the bandstand with a walk round it. */
     static final int BANDSTAND_SIDE = 10;
 
@@ -94,7 +96,7 @@ final class MainStreetLayout {
         OpenSquare square = null;
         if (!squareGround.isEmpty()) {
             plaza = streetEnd(s, squareGround, hall);
-            square = marketSquare(c, s, squareGround);
+            square = marketSquare(c, s, squareGround, registry);
             if (square == null) {
                 // The finished streets would not hold the square: a plain plaza at the end, shops behind it.
                 plaza(c, s, plaza, registry);
@@ -117,7 +119,10 @@ final class MainStreetLayout {
 
     /** Which way a member's front faces: onto the street. */
     static BuildingPlacement.Side side(SpineClaim.Spine s, BlockLeaf leaf) {
-        boolean near = s.onNearSide(leaf);
+        return side(s, s.onNearSide(leaf));
+    }
+
+    private static BuildingPlacement.Side side(SpineClaim.Spine s, boolean near) {
         if (s.horizontal) return near ? BuildingPlacement.Side.BOTTOM : BuildingPlacement.Side.TOP;
         return near ? BuildingPlacement.Side.RIGHT : BuildingPlacement.Side.LEFT;
     }
@@ -134,7 +139,12 @@ final class MainStreetLayout {
      */
     private static int[] frontage(GenContext c, SpineClaim.Spine s, BlockLeaf leaf, boolean hall,
                                   TileRegistry registry) {
-        boolean near = s.onNearSide(leaf);
+        return frontage(c, s, leaf, s.onNearSide(leaf), hall, registry);
+    }
+
+    /** {@link #frontage(GenContext, SpineClaim.Spine, BlockLeaf, boolean, TileRegistry)} on the given side. */
+    private static int[] frontage(GenContext c, SpineClaim.Spine s, BlockLeaf leaf, boolean near, boolean hall,
+                                  TileRegistry registry) {
         int cLo = s.acrossLo(leaf), cHi = s.acrossHi(leaf), aLo = s.alongLo(leaf), aHi = s.alongHi(leaf);
         int pave = pavement(cHi - cLo + 1);
         // The kerb row is the one on the street; the wall row is the shop's front wall.
@@ -145,11 +155,11 @@ final class MainStreetLayout {
         int bLo = near ? cLo : cLo + pave, bHi = near ? cHi - pave : cHi;
         BlockLeaf shell = s.horizontal ? new BlockLeaf(aLo, bLo, aHi, bHi, false)
                 : new BlockLeaf(bLo, aLo, bHi, aHi, false);
-        if (hall || !FrontageRow.place(shell, c, side(s, leaf), FrontageRow.SHOPFRONTS,
+        if (hall || !FrontageRow.place(shell, c, side(s, near), FrontageRow.SHOPFRONTS,
                 BuildingCommercialFiller.CONFIG, false)) {
             PointOfInterest poi = BuildingShellCore.carve(shell, c.grid, c.topology, c.doodads, c.rng,
                     hall ? BuildingCivicFiller.CONFIG : BuildingCommercialFiller.CONFIG,
-                    BuildingPlacement.frontOnly(side(s, leaf)));
+                    BuildingPlacement.frontOnly(side(s, near)));
             if (poi != null) c.pois.add(poi);
         }
 
@@ -313,9 +323,11 @@ final class MainStreetLayout {
 
     /**
      * The market square over its lot, facing the main street, or null where the finished streets do not hold
-     * it. What the square leaves of the lot is more paving, as round a standalone square.
+     * it. What the square leaves of the lot along the street past it is lined with shopfronts like any member
+     * ({@link #STRIP_MIN} along or more); the rest is more paving, as round a standalone square.
      */
-    private static OpenSquare marketSquare(GenContext c, SpineClaim.Spine s, List<BlockLeaf> ground) {
+    private static OpenSquare marketSquare(GenContext c, SpineClaim.Spine s, List<BlockLeaf> ground,
+                                           TileRegistry registry) {
         boolean[][] road = c.get(BspKeys.ROAD_CELLS);
         MarketSquare.Placement market = chooseSquare(s, ground, road, c.get(BspKeys.ROAD_RESERVATION),
                 c.width, c.height, c.landingPads);
@@ -330,7 +342,31 @@ final class MainStreetLayout {
                 }
             }
         }
-        return MarketSquare.place(c, market);
+        OpenSquare square = MarketSquare.place(c, market);
+        for (BlockLeaf leaf : ground) {
+            int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+            for (int y = leaf.top; y <= leaf.bottom; y++) {
+                for (int x = leaf.left; x <= leaf.right; x++) {
+                    if (!footprint[x][y]) continue;
+                    lo = Math.min(lo, s.along(x, y));
+                    hi = Math.max(hi, s.along(x, y));
+                }
+            }
+            if (lo > hi) lo = hi = s.alongHi(leaf) + 1;
+            strip(c, s, leaf, s.alongLo(leaf), lo - 1, registry);
+            strip(c, s, leaf, hi + 1, s.alongHi(leaf), registry);
+        }
+        return square;
+    }
+
+    /** Shopfronts on the stretch {@code aLo..aHi} along the street of the square's lot member {@code leaf}. */
+    private static void strip(GenContext c, SpineClaim.Spine s, BlockLeaf leaf, int aLo, int aHi,
+                              TileRegistry registry) {
+        if (aHi - aLo + 1 < STRIP_MIN) return;
+        int cLo = s.acrossLo(leaf), cHi = s.acrossHi(leaf);
+        BlockLeaf part = s.horizontal ? new BlockLeaf(aLo, cLo, aHi, cHi, false)
+                : new BlockLeaf(cLo, aLo, cHi, aHi, false);
+        frontage(c, s, part, s.onNearSide(leaf), false, registry);
     }
 
     /**
