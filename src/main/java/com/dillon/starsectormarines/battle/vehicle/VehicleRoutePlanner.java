@@ -427,6 +427,42 @@ public final class VehicleRoutePlanner {
         return null;
     }
 
+    /**
+     * {@link #snapToMask}, but only to a cell in the same component of {@code components} as ({@code fromX},
+     * {@code fromY}): the nearest place the chassis standing there can actually get to. {@code null} when the start
+     * is off the mask or no cell in range is in its component; the components must label {@code clearance}.
+     *
+     * <p>The plain snap takes the nearest cell the footprint fits in, and beside a walled compound that is often a
+     * yard inside it the hull can never enter, so the order is refused, or proved with a flood of the whole component
+     * first, and the hull stands where it is.
+     */
+    public static int[] snapToComponent(VehicleClearance clearance, ClearanceComponents components,
+                                        int fromX, int fromY, int x, int y, int maxRadius) {
+        int own = components.labelAt(fromX, fromY);
+        if (own == ClearanceComponents.NONE) return null;
+        for (int r = 0; r <= maxRadius; r++) {
+            int bestX = -1, bestY = -1, bestD2 = Integer.MAX_VALUE;
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int nx = x + dx, ny = y + dy;
+                    if (!clearance.isPassable(nx, ny) || components.labelAt(nx, ny) != own) continue;
+                    int d2 = dx * dx + dy * dy;
+                    if (d2 < bestD2) { bestD2 = d2; bestX = nx; bestY = ny; }
+                }
+            }
+            if (bestX >= 0) return new int[]{bestX, bestY};
+        }
+        return null;
+    }
+
+    /** {@link #snapToComponent} from {@code from} where {@code components} are known, else {@link #snapToMask}. */
+    public static int[] snapReachable(VehicleClearance clearance, ClearanceComponents components, int[] from,
+                                      int x, int y, int maxRadius) {
+        return components == null ? snapToMask(clearance, x, y, maxRadius)
+                : snapToComponent(clearance, components, from[0], from[1], x, y, maxRadius);
+    }
+
     /** Endpoint snapping over a stable on-demand footprint view. */
     public static int[] snapToMaskOnDemand(GridPathfinder.IndexedPassability passable,
                                             int width, int height,

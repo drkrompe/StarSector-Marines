@@ -76,6 +76,8 @@ public final class VehicleMoveOrderSystem {
 
     /** How far the resolver may look for drivable ground near the clicked cell. */
     private static final int SNAP_RADIUS = 6;
+    /** Cells around an ordered cell searched for the nearest one the hull can reach ({@link #goal}). */
+    static final int REACHABLE_SNAP_RADIUS = 24;
 
     /**
      * Route proofs {@link #tickPending} makes in one tick; zero plans every queued order at once, the control for an
@@ -313,8 +315,9 @@ public final class VehicleMoveOrderSystem {
 
         int[] from = VehicleRoutePlanner.snapToMask(clearance,
                 (int) Math.floor(body.x), (int) Math.floor(body.y), SNAP_RADIUS);
-        int[] to = VehicleRoutePlanner.snapToMask(clearance, cellX, cellY, SNAP_RADIUS);
-        if (from == null || to == null) return null;
+        if (from == null) return null;
+        int[] to = goal(grid, type, clearance, from, cellX, cellY);
+        if (to == null) return null;
         if (from[0] == to[0] && from[1] == to[1]) {
             // Manual driving may already have fulfilled a retained destination.
             // A distant snap is not arrival: the real body must be near the resolved point.
@@ -325,6 +328,26 @@ public final class VehicleMoveOrderSystem {
 
         return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
                 grid, cost, clearance, type);
+    }
+
+    /**
+     * The cell an order to ({@code cellX}, {@code cellY}) drives to: the nearest one, within
+     * {@link #REACHABLE_SNAP_RADIUS}, this chassis can get to from {@code from}, where the grid's components are held.
+     *
+     * <p>An order into a walled yard, onto a building or across water used to snap to the nearest cell the footprint
+     * fits in, which is often inside the same yard: the order was refused, or proved by flooding everything the hull
+     * could reach first, and a hull its command ordered there again stood parked. The nearest reachable cell is the
+     * closest the hull can actually come. A planning view (a blade's, a skirt's) is a new grid each time the map
+     * moves and would be labelled afresh, so it keeps the plain snap.
+     */
+    private int[] goal(NavigationGrid grid, VehicleType type, VehicleClearance clearance, int[] from,
+                       int cellX, int cellY) {
+        if (grid == navigation.getGrid()) {
+            int[] reachable = VehicleRoutePlanner.snapToComponent(clearance,
+                    convoy.clearances().components(grid, type), from[0], from[1], cellX, cellY, REACHABLE_SNAP_RADIUS);
+            if (reachable != null) return reachable;
+        }
+        return VehicleRoutePlanner.snapToMask(clearance, cellX, cellY, SNAP_RADIUS);
     }
 
     /** Live orders, for the highlight overlay. */

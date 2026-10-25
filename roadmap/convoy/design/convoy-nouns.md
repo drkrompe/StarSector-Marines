@@ -835,7 +835,13 @@ retains the same existing cross-domain behavior as an autonomous hull.
   clicked cell is resolved to the nearest ground the chassis can actually
   occupy — its footprint and its turning circle, not the infantry answer — and
   both the request and the destination are kept so the interface can say "here,
-  not quite there."
+  not quite there." Nearest means nearest the hull can get to from where it
+  stands: on the live grid the destination is the closest cell in the hull's
+  own clearance component (`ClearanceComponents`), so a click into a walled
+  yard or a post across water drives to its edge rather than being refused,
+  and an engagement's firing bearing behind a wall costs no flood. Only a
+  request with nothing reachable near it is refused for its ground; the rest
+  of what is refused is the turning circle.
 - **Carrying a number and carrying a person are different things.** Delivery
   counts passengers: a convoy holds a remaining count and mints a fresh marine
   per unload, and an evacuating civilian is deleted while a counter goes up.

@@ -132,9 +132,32 @@ class VehicleMoveOrderTest {
     }
 
     @Test
-    void aDestinationWithNoDrivableRouteIsRefusedOutright() {
-        // A sealed pocket on the far side of the map: reachable for nothing.
+    void aDestinationInASealedPocketBecomesTheNearestPointTheHullCanReach() {
+        // A sealed pocket just off the field: the hull goes as near as it can come, not nowhere.
         NavigationGrid grid = openField();
+        for (int y = 45; y <= 47; y++) {
+            for (int x = 100; x <= 102; x++) grid.setWalkableFloor(x, y);
+        }
+        Rig rig = apcOn(grid, -90f);
+        rig.orders().requestMove(rig.id(), 101, 46);
+
+        rig.system().tickPending();
+
+        VehicleMoveOrderService.ActiveOrder order = rig.orders().activeOrder(rig.id());
+        assertNotNull(order, "a pocket beside drivable ground is still an order");
+        assertEquals(101, order.requestedX(), "the request records what was clicked");
+        assertTrue(order.destinationY() < 41f && Math.abs(order.destinationX() - 101.5f) < 4f,
+                "and the hull goes to the field's edge nearest it (destination "
+                        + order.destinationX() + "," + order.destinationY() + ")");
+    }
+
+    @Test
+    void aDestinationWithNoReachableGroundNearItIsRefusedOutright() {
+        // A sealed pocket far beyond the field's end: nothing the hull can reach is anywhere near it.
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 20; y <= 40; y++) {
+            for (int x = 5; x <= 40; x++) grid.setWalkableFloor(x, y);
+        }
         for (int y = 45; y <= 47; y++) {
             for (int x = 100; x <= 102; x++) grid.setWalkableFloor(x, y);
         }

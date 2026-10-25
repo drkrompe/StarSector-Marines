@@ -32,6 +32,29 @@ public final class VehicleClearances {
 
     /** The mask a chassis of footprint {@code radiusCells} erodes on {@code grid} as it stands now. */
     public synchronized VehicleClearance of(NavigationGrid grid, int radiusCells) {
+        return slot(grid, radiusCells).cache.clearance(grid, grid.topologyRevision());
+    }
+
+    /** The mask {@code type}'s footprint erodes on {@code grid}. */
+    public VehicleClearance of(NavigationGrid grid, VehicleType type) {
+        return of(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
+    }
+
+    /**
+     * The connected components of {@link #of}'s mask, held and caught up with it, so "can this chassis get there
+     * from here at all" is a label compare. Labelling a grid the store has not held costs a whole-map pass, so this
+     * is for a grid that keeps its identity (the live one), not a planning view rebuilt each time the map moves.
+     */
+    public synchronized ClearanceComponents components(NavigationGrid grid, int radiusCells) {
+        return slot(grid, radiusCells).cache.components(grid, grid.topologyRevision());
+    }
+
+    /** The {@link #components(NavigationGrid, int)} of {@code type}'s footprint. */
+    public ClearanceComponents components(NavigationGrid grid, VehicleType type) {
+        return components(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
+    }
+
+    private Slot slot(NavigationGrid grid, int radiusCells) {
         int radius = Math.max(0, radiusCells);
         Slot held = null, oldest = null;
         int sameRadius = 0;
@@ -54,12 +77,7 @@ public final class VehicleClearances {
             held.grid = grid;
         }
         held.lastUse = ++useClock;
-        return held.cache.clearance(grid, grid.topologyRevision());
-    }
-
-    /** The mask {@code type}'s footprint erodes on {@code grid}. */
-    public VehicleClearance of(NavigationGrid grid, VehicleType type) {
-        return of(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        return held;
     }
 
     private static final class Slot {

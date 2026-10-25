@@ -614,12 +614,13 @@ public final class VehicleEngagement {
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 SNAP_RADIUS);
         if (from == null) return null;
+        ClearanceComponents components = liveComponents(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
         double base = Math.atan2(away[1], away[0]);
         for (float bearing : WITHDRAW_BEARINGS) {
             double angle = base + Math.toRadians(bearing);
             int gx = (int) Math.floor(body.x + Math.cos(angle) * away[2]);
             int gy = (int) Math.floor(body.y + Math.sin(angle) * away[2]);
-            int[] to = VehicleRoutePlanner.snapToMask(clearance, gx, gy, SNAP_RADIUS);
+            int[] to = VehicleRoutePlanner.snapReachable(clearance, components, from, gx, gy, SNAP_RADIUS);
             if (to == null || (from[0] == to[0] && from[1] == to[1])) continue;
             float[][] route = VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
                     grid, cost, clearance, type);
@@ -803,6 +804,7 @@ public final class VehicleEngagement {
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 SNAP_RADIUS);
         if (from == null) return null;
+        ClearanceComponents components = liveComponents(grid, fit);
         double base = Math.atan2(body.y - target[1], body.x - target[0]);
         float[] radii = {band.middle(), Math.min(distance, band.max())};
         for (float bearing : BEARINGS) {
@@ -810,7 +812,7 @@ public final class VehicleEngagement {
             for (float radius : radii) {
                 int gx = (int) Math.floor(target[0] + Math.cos(angle) * radius);
                 int gy = (int) Math.floor(target[1] + Math.sin(angle) * radius);
-                int[] to = VehicleRoutePlanner.snapToMask(roomy, gx, gy, SNAP_RADIUS);
+                int[] to = VehicleRoutePlanner.snapReachable(roomy, components, from, gx, gy, SNAP_RADIUS);
                 if (to == null) continue;
                 float cx = to[0] + 0.5f;
                 float cy = to[1] + 0.5f;
@@ -866,6 +868,7 @@ public final class VehicleEngagement {
         int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 SNAP_RADIUS);
         if (from == null) return null;
+        ClearanceComponents components = liveComponents(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
         double base = Math.atan2(body.y - target[1], body.x - target[0]);
         float radius = band.middle();
         int tx = (int) Math.floor(target[0]);
@@ -874,7 +877,7 @@ public final class VehicleEngagement {
             double angle = base + Math.toRadians(bearing);
             int gx = (int) Math.floor(target[0] + Math.cos(angle) * radius);
             int gy = (int) Math.floor(target[1] + Math.sin(angle) * radius);
-            int[] to = VehicleRoutePlanner.snapToMask(clearance, gx, gy, SNAP_RADIUS);
+            int[] to = VehicleRoutePlanner.snapReachable(clearance, components, from, gx, gy, SNAP_RADIUS);
             if (to == null) continue;
             float d = (float) Math.hypot(to[0] + 0.5f - target[0], to[1] + 0.5f - target[1]);
             // Sight is read off the live grid: the planning grid is a navigation-only copy.
@@ -887,6 +890,15 @@ public final class VehicleEngagement {
             if (route != null) return route;
         }
         return null;
+    }
+
+    /**
+     * The components of {@code grid}'s mask for footprint {@code fit} where {@code grid} is the live one, so a goal
+     * snaps only to ground the hull can reach and a bearing behind a wall costs no flood; {@code null} for a planning
+     * view, which is a new grid each time the map moves.
+     */
+    private ClearanceComponents liveComponents(NavigationGrid grid, int fit) {
+        return grid == navigation.getGrid() ? convoy.clearances().components(grid, fit) : null;
     }
 
     /**
