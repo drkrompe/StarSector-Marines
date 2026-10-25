@@ -57,7 +57,7 @@ generalise, not a second mechanism beside it.
 
 ## The seam
 
-Built: `DistrictPlanStage`, `DistrictProgram`, `SpineClaim`, `QuarterClaim` (interface only),
+Built: `DistrictPlanStage`, `DistrictProgram`, `SpineClaim`, `QuarterClaim`,
 `DistrictStreets`, and `District` published under `BspKeys.DISTRICTS`. The spaceport campus is now the
 first district (a `CLUSTER` with no streets of its own) and compound claiming takes every planned
 district's compound first. What the next programs build on:
@@ -75,9 +75,13 @@ district's compound first. What the next programs build on:
   touching entry cells where one outside street meets the claim are one mouth. A rewrite is committed only
   if every mouth keeps a street cell, any two mouths joined through the claim's streets before still are,
   and no trunk cell changes. So a program may narrow a street at its mouth but not close it.
-- `quarter`: `QuarterClaim.find` answers null until the cordoned facility builds it. Its contract is in
-  the class comment: members tile the block's rows and columns with only road between them, and
-  `Quarter.streets` are those roads whole.
+- **Quarter**: a rectangle the members and their streets tile exactly, up to `Spec.rows` rows of two to
+  `Spec.columns` members either side of a **main cross street** that runs its whole length. Each row's
+  members share its full depth with a cross street between neighbours running that depth, and the rows need
+  not line up (a row of two may face a row of three). `Quarter.streets` are the main streets first, then each
+  row's, every one whole. Found in both frames (main street along x, then y); no inner street may be road
+  inside a trunk's band, which the plan stage passes as a mask. Among quarters as deep in their pocket and as
+  many members, the larger ground wins.
 
 1. **A district plan stage**, after the leaves are labelled and before the
    compound claim and the road graph, the same slot `IndustrialTemplateParcelStage`
@@ -144,6 +148,46 @@ among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 Open on main street: street lamps and awnings have no art (planters, benches, stalls and parked vans
 stand in); the market square takes the plaza role once its lot can be a district member (today it joins
 two parcels after compound claims, so a district member is never its lot).
+
+**Cordoned facility, as built.** `CordonedFacilityProgram` runs after main street and asks for a quarter
+of up to two rows of three, inner streets no wider than five, members at least seven a side, of works,
+public buildings, shops, dense blocks, yards, squares, parks, rubble or homes, never on the map's border
+cells. Its pocket weighs the zoning's industrial, civic and military quarters 2 and the mixed town 1, plus 1
+for a lot already labelled a works, a civic building or a yard, so a facility stands among houses only
+where its zoning carries them. The member nearest the quarter's middle is the **courtyard**, the largest of
+the rest the **admin** block (the compound's seed), the next the **depot**; a quarter of five or six gives
+its smallest remaining member to a **yard**, and the rest are **labs** (workshops at a depot). Its
+character is read from the zoning at its middle: a **depot** in an industrial or harbour quarter, a
+**civil-defence centre** in a civic, residential or military one, otherwise a **research station**.
+
+Its rewrite is the gatehouses: every end of an inner street on the quarter's edge with street beyond it
+narrows, for three cells in, to a lane three wide nearest the street's middle that meets the street
+outside; the cells either side become the gatehouse. An inner street that ends against a lot rather than a
+street is no way in, so the rewrite closes its last cell and the wall runs across it. `CordonedFacilityLayout`
+then walls the quarter's outer rim at the strength its character asks (`Fortification.GARRISON`'s, or
+`CivilDefenceCompound.WALL_HP` for a civil-defence centre), dressed as a precinct wall
+(`InstallationWalls.perimeter`) with the military base's firing slits (`CompoundWallApertures`) and
+turreted corners. Each gatehouse is solid either side of its lane to a cell past each kerb, its lane
+striped as a checkpoint, turreted posts at the wall line and a sandbag course facing out just inside it.
+Buildings back onto the wall with a pavement onto their streets and face the main cross street, doors and
+windows there only (`BuildingPlacement.frontOnly`): the admin block a civic headquarters, labs a clinic's
+rooms (a workshop's at a depot), the depot a vehicle bay behind a striped forecourt with an APC, cargo truck
+or utility truck parked on it. The yard is striped hardstanding with crates, pallets and drums; the
+courtyard a brick square with a stone border, a planter at each corner and a radar mast in the middle
+except at a depot. The inner streets are paved city street with hedgehogs on their kerbs every four cells,
+off the road reservation and clear of crossings and gatehouses. It publishes `CordonedFacility` on
+`MapResult.cordonedFacilities`: its character and wall bounds, each gatehouse's lane with the step out and
+the step in, the courtyard, and each building's role, shell and front door.
+
+Coverage (`generatedSpaceEvidence --tests *CordonedFacilityPlacementEvidence`): 11 of 24 medium city maps
+and 21 of 24 colonies, nearly all two by two (one colony carries a two by three; two by three blocks are
+rare in the partition). Main street keeps 15 and 14; running the facility first moves neither by more
+than one map. `storyMapPools` passes 144 of 144 with no seed swapped. Look:
+`createSnapshots -Psnapshot=cordoned-facility-look`.
+
+Open on the cordoned facility: boom gates and street lamps have no art (the striped lane, posts and
+sandbags stand in); no tactical node or mission reads the mark yet; a research station did not reach the
+look stills, its seeds' battles laying another map.
 
 ## Order
 

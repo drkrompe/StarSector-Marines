@@ -388,7 +388,11 @@ that cannot claim leaves its leaves to fill as they would have. The spaceport ca
 district, a cluster with no streets of its own. **Main street** is the first program: shopfronts behind
 pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
 hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
-door).
+door). The **cordoned facility** stands on a quarter: an admin block, labs or
+workshops, a depot with its forecourt, a yard and a courtyard on the quarter's own streets inside one wall
+on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed to a three-cell lane
+between solid jambs; a street ending against a lot is walled across. It publishes `CordonedFacility` on
+`MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door).
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
