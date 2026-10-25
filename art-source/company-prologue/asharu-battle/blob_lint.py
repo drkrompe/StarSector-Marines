@@ -3,8 +3,9 @@ on each finished frame, a connected region of near-white pixels that an effect o
 blob's area, that persists past a flash's frames, is flagged with its frame and position.
 
   near-white  display luma above WHITE_LUMA (0-255) and saturation below WHITE_SAT
-  owned       the effects layer's alpha above OWNED there: what the kit drew, so the sun, the planet
-              and a sunlit hull (backdrop and ships layers) can never trip it
+  owned       the effects layer makes more than OWNED of the pixel (composite_layers.effects_owned: its
+              alpha or its share of the light, so an additive flash counts): what the kit drew, so the
+              sun, the planet and a sunlit hull (backdrop and ships layers) can never trip it
   big         at least AREA_PX pixels as measured at 1920 wide (scaled by the frame's own size)
   persists    the same region (overlapping boxes) on consecutive frames for longer than HOLD_24
               frames at 24 fps; a torn HE's single white frame passes, a held flash does not
@@ -55,15 +56,15 @@ class Lint:
     def __init__(self):
         self.prev, self.prev_frame = [], None
 
-    def frame(self, frame, dt, display, effects_alpha, engines_px=()):
+    def frame(self, frame, dt, display, effects_owned, engines_px=()):
         """frame: the span frame's number (consecutive frames chain); dt: seconds between frames;
-        display: (h, w, 3) 0-255, top row first; effects_alpha: (h, w), top row first; engines_px:
+        display: (h, w, 3) 0-255, top row first; effects_owned: (h, w) 0-1, top row first; engines_px:
         (x, y) pixel points, top-left origin. Returns (rows, flagged) for this frame."""
         h, w = display.shape[:2]
         mx, mn = display.max(-1), display.min(-1)
         luma = display @ np.array([.2126, .7152, .0722], dtype=np.float32)
         sat = (mx - mn) / np.maximum(mx, 1.0)
-        mask = (luma > WHITE_LUMA) & (sat < WHITE_SAT) & (effects_alpha > OWNED)
+        mask = (luma > WHITE_LUMA) & (sat < WHITE_SAT) & (effects_owned > OWNED)
         area = AREA_PX * (w / 1920.0) ** 2
         big = [r for r in regions(mask) if r[0] >= area]
         kept = []
