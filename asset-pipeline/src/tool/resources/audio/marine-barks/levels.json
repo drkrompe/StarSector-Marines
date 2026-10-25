@@ -899,6 +899,906 @@
     "seconds": 1.84,
     "volume": 0.359
   },
+  "marines_bark_militia_contact_a_1": {
+    "lufs": -13.8,
+    "seconds": 2.08,
+    "volume": 0.245
+  },
+  "marines_bark_militia_contact_a_2": {
+    "lufs": -14.4,
+    "seconds": 2.64,
+    "volume": 0.263
+  },
+  "marines_bark_militia_contact_a_3": {
+    "lufs": -15.3,
+    "seconds": 1.68,
+    "volume": 0.292
+  },
+  "marines_bark_militia_contact_b_1": {
+    "lufs": -17.6,
+    "seconds": 2.08,
+    "volume": 0.38
+  },
+  "marines_bark_militia_contact_b_2": {
+    "lufs": -17.6,
+    "seconds": 2.72,
+    "volume": 0.38
+  },
+  "marines_bark_militia_contact_b_3": {
+    "lufs": -16.6,
+    "seconds": 1.68,
+    "volume": 0.339
+  },
+  "marines_bark_militia_contact_c_1": {
+    "lufs": -16.5,
+    "seconds": 1.92,
+    "volume": 0.335
+  },
+  "marines_bark_militia_contact_c_2": {
+    "lufs": -17.6,
+    "seconds": 2.56,
+    "volume": 0.38
+  },
+  "marines_bark_militia_contact_c_3": {
+    "lufs": -18.1,
+    "seconds": 1.6,
+    "volume": 0.403
+  },
+  "marines_bark_militia_contact_d_1": {
+    "lufs": -15.2,
+    "seconds": 2.0,
+    "volume": 0.288
+  },
+  "marines_bark_militia_contact_d_2": {
+    "lufs": -14.8,
+    "seconds": 2.56,
+    "volume": 0.275
+  },
+  "marines_bark_militia_contact_d_3": {
+    "lufs": -17.9,
+    "seconds": 1.68,
+    "volume": 0.394
+  },
+  "marines_bark_militia_reload_a_1": {
+    "lufs": -14.7,
+    "seconds": 1.2,
+    "volume": 0.216
+  },
+  "marines_bark_militia_reload_a_2": {
+    "lufs": -16.3,
+    "seconds": 1.76,
+    "volume": 0.26
+  },
+  "marines_bark_militia_reload_a_3": {
+    "lufs": -14.5,
+    "seconds": 1.92,
+    "volume": 0.211
+  },
+  "marines_bark_militia_reload_b_1": {
+    "lufs": -18.8,
+    "seconds": 1.2,
+    "volume": 0.347
+  },
+  "marines_bark_militia_reload_b_2": {
+    "lufs": -19.4,
+    "seconds": 1.76,
+    "volume": 0.372
+  },
+  "marines_bark_militia_reload_b_3": {
+    "lufs": -17.1,
+    "seconds": 1.84,
+    "volume": 0.285
+  },
+  "marines_bark_militia_reload_c_1": {
+    "lufs": -15.6,
+    "seconds": 1.2,
+    "volume": 0.24
+  },
+  "marines_bark_militia_reload_c_2": {
+    "lufs": -18.0,
+    "seconds": 1.68,
+    "volume": 0.316
+  },
+  "marines_bark_militia_reload_c_3": {
+    "lufs": -17.8,
+    "seconds": 1.76,
+    "volume": 0.309
+  },
+  "marines_bark_militia_reload_d_1": {
+    "lufs": -15.1,
+    "seconds": 1.2,
+    "volume": 0.226
+  },
+  "marines_bark_militia_reload_d_2": {
+    "lufs": -14.2,
+    "seconds": 1.68,
+    "volume": 0.204
+  },
+  "marines_bark_militia_reload_d_3": {
+    "lufs": -18.1,
+    "seconds": 1.76,
+    "volume": 0.32
+  },
+  "marines_bark_militia_grabbed_a_1": {
+    "lufs": -12.6,
+    "seconds": 1.44,
+    "volume": 0.24
+  },
+  "marines_bark_militia_grabbed_a_2": {
+    "lufs": -14.7,
+    "seconds": 2.56,
+    "volume": 0.305
+  },
+  "marines_bark_militia_grabbed_a_3": {
+    "lufs": -14.1,
+    "seconds": 2.0,
+    "volume": 0.285
+  },
+  "marines_bark_militia_grabbed_b_1": {
+    "lufs": -17.0,
+    "seconds": 1.52,
+    "volume": 0.398
+  },
+  "marines_bark_militia_grabbed_b_2": {
+    "lufs": -16.0,
+    "seconds": 2.64,
+    "volume": 0.355
+  },
+  "marines_bark_militia_grabbed_b_3": {
+    "lufs": -15.6,
+    "seconds": 2.16,
+    "volume": 0.339
+  },
+  "marines_bark_militia_grabbed_c_1": {
+    "lufs": -15.1,
+    "seconds": 1.28,
+    "volume": 0.32
+  },
+  "marines_bark_militia_grabbed_c_2": {
+    "lufs": -16.9,
+    "seconds": 2.48,
+    "volume": 0.394
+  },
+  "marines_bark_militia_grabbed_c_3": {
+    "lufs": -16.3,
+    "seconds": 1.84,
+    "volume": 0.367
+  },
+  "marines_bark_militia_grabbed_d_1": {
+    "lufs": -15.9,
+    "seconds": 1.44,
+    "volume": 0.351
+  },
+  "marines_bark_militia_grabbed_d_2": {
+    "lufs": -18.2,
+    "seconds": 2.64,
+    "volume": 0.457
+  },
+  "marines_bark_militia_grabbed_d_3": {
+    "lufs": -15.9,
+    "seconds": 2.0,
+    "volume": 0.351
+  },
+  "marines_bark_militia_thrown_a_1": {
+    "lufs": -15.8,
+    "seconds": 2.0,
+    "volume": 0.347
+  },
+  "marines_bark_militia_thrown_a_2": {
+    "lufs": -17.7,
+    "seconds": 1.92,
+    "volume": 0.432
+  },
+  "marines_bark_militia_thrown_a_3": {
+    "lufs": -15.1,
+    "seconds": 1.2,
+    "volume": 0.32
+  },
+  "marines_bark_militia_thrown_b_1": {
+    "lufs": -17.9,
+    "seconds": 1.36,
+    "volume": 0.442
+  },
+  "marines_bark_militia_thrown_b_2": {
+    "lufs": -21.1,
+    "seconds": 1.76,
+    "volume": 0.638
+  },
+  "marines_bark_militia_thrown_b_3": {
+    "lufs": -17.1,
+    "seconds": 1.28,
+    "volume": 0.403
+  },
+  "marines_bark_militia_thrown_c_1": {
+    "lufs": -17.1,
+    "seconds": 1.28,
+    "volume": 0.403
+  },
+  "marines_bark_militia_thrown_c_2": {
+    "lufs": -19.1,
+    "seconds": 1.68,
+    "volume": 0.507
+  },
+  "marines_bark_militia_thrown_c_3": {
+    "lufs": -16.3,
+    "seconds": 1.2,
+    "volume": 0.367
+  },
+  "marines_bark_militia_thrown_d_1": {
+    "lufs": -17.8,
+    "seconds": 2.16,
+    "volume": 0.437
+  },
+  "marines_bark_militia_thrown_d_2": {
+    "lufs": -21.9,
+    "seconds": 2.0,
+    "volume": 0.7
+  },
+  "marines_bark_militia_thrown_d_3": {
+    "lufs": -17.2,
+    "seconds": 1.2,
+    "volume": 0.407
+  },
+  "marines_bark_militia_brute_a_1": {
+    "lufs": -14.7,
+    "seconds": 1.84,
+    "volume": 0.305
+  },
+  "marines_bark_militia_brute_a_2": {
+    "lufs": -14.8,
+    "seconds": 2.08,
+    "volume": 0.309
+  },
+  "marines_bark_militia_brute_a_3": {
+    "lufs": -14.2,
+    "seconds": 1.76,
+    "volume": 0.288
+  },
+  "marines_bark_militia_brute_b_1": {
+    "lufs": -18.7,
+    "seconds": 2.0,
+    "volume": 0.484
+  },
+  "marines_bark_militia_brute_b_2": {
+    "lufs": -18.0,
+    "seconds": 2.16,
+    "volume": 0.447
+  },
+  "marines_bark_militia_brute_b_3": {
+    "lufs": -18.6,
+    "seconds": 1.84,
+    "volume": 0.479
+  },
+  "marines_bark_militia_brute_c_1": {
+    "lufs": -17.2,
+    "seconds": 1.84,
+    "volume": 0.407
+  },
+  "marines_bark_militia_brute_c_2": {
+    "lufs": -17.8,
+    "seconds": 2.0,
+    "volume": 0.437
+  },
+  "marines_bark_militia_brute_c_3": {
+    "lufs": -17.3,
+    "seconds": 1.68,
+    "volume": 0.412
+  },
+  "marines_bark_militia_brute_d_1": {
+    "lufs": -15.6,
+    "seconds": 1.84,
+    "volume": 0.339
+  },
+  "marines_bark_militia_brute_d_2": {
+    "lufs": -16.7,
+    "seconds": 2.08,
+    "volume": 0.385
+  },
+  "marines_bark_militia_brute_d_3": {
+    "lufs": -18.0,
+    "seconds": 1.76,
+    "volume": 0.447
+  },
+  "marines_bark_militia_matriarch_a_1": {
+    "lufs": -14.8,
+    "seconds": 2.8,
+    "volume": 0.309
+  },
+  "marines_bark_militia_matriarch_a_2": {
+    "lufs": -14.7,
+    "seconds": 2.32,
+    "volume": 0.305
+  },
+  "marines_bark_militia_matriarch_a_3": {
+    "lufs": -14.9,
+    "seconds": 1.6,
+    "volume": 0.313
+  },
+  "marines_bark_militia_matriarch_b_1": {
+    "lufs": -17.3,
+    "seconds": 2.88,
+    "volume": 0.412
+  },
+  "marines_bark_militia_matriarch_b_2": {
+    "lufs": -18.5,
+    "seconds": 2.4,
+    "volume": 0.473
+  },
+  "marines_bark_militia_matriarch_b_3": {
+    "lufs": -17.4,
+    "seconds": 1.68,
+    "volume": 0.417
+  },
+  "marines_bark_militia_matriarch_c_1": {
+    "lufs": -17.5,
+    "seconds": 2.56,
+    "volume": 0.422
+  },
+  "marines_bark_militia_matriarch_c_2": {
+    "lufs": -17.4,
+    "seconds": 2.24,
+    "volume": 0.417
+  },
+  "marines_bark_militia_matriarch_c_3": {
+    "lufs": -17.1,
+    "seconds": 1.6,
+    "volume": 0.403
+  },
+  "marines_bark_militia_matriarch_d_1": {
+    "lufs": -16.6,
+    "seconds": 2.72,
+    "volume": 0.38
+  },
+  "marines_bark_militia_matriarch_d_2": {
+    "lufs": -17.6,
+    "seconds": 2.4,
+    "volume": 0.427
+  },
+  "marines_bark_militia_matriarch_d_3": {
+    "lufs": -16.3,
+    "seconds": 1.6,
+    "volume": 0.367
+  },
+  "marines_bark_militia_kill_a_1": {
+    "lufs": -15.2,
+    "seconds": 1.12,
+    "volume": 0.229
+  },
+  "marines_bark_militia_kill_a_2": {
+    "lufs": -15.5,
+    "seconds": 1.52,
+    "volume": 0.237
+  },
+  "marines_bark_militia_kill_a_3": {
+    "lufs": -15.5,
+    "seconds": 1.6,
+    "volume": 0.237
+  },
+  "marines_bark_militia_kill_b_1": {
+    "lufs": -17.1,
+    "seconds": 1.2,
+    "volume": 0.285
+  },
+  "marines_bark_militia_kill_b_2": {
+    "lufs": -16.8,
+    "seconds": 1.6,
+    "volume": 0.275
+  },
+  "marines_bark_militia_kill_b_3": {
+    "lufs": -18.7,
+    "seconds": 1.76,
+    "volume": 0.343
+  },
+  "marines_bark_militia_kill_c_1": {
+    "lufs": -16.7,
+    "seconds": 1.04,
+    "volume": 0.272
+  },
+  "marines_bark_militia_kill_c_2": {
+    "lufs": -17.2,
+    "seconds": 1.6,
+    "volume": 0.288
+  },
+  "marines_bark_militia_kill_c_3": {
+    "lufs": -18.2,
+    "seconds": 1.6,
+    "volume": 0.324
+  },
+  "marines_bark_militia_kill_d_1": {
+    "lufs": -15.0,
+    "seconds": 1.2,
+    "volume": 0.224
+  },
+  "marines_bark_militia_kill_d_2": {
+    "lufs": -18.3,
+    "seconds": 1.92,
+    "volume": 0.327
+  },
+  "marines_bark_militia_kill_d_3": {
+    "lufs": -14.9,
+    "seconds": 1.68,
+    "volume": 0.221
+  },
+  "marines_bark_militia_big_kill_a_1": {
+    "lufs": -14.7,
+    "seconds": 1.28,
+    "volume": 0.243
+  },
+  "marines_bark_militia_big_kill_a_2": {
+    "lufs": -14.2,
+    "seconds": 2.0,
+    "volume": 0.229
+  },
+  "marines_bark_militia_big_kill_a_3": {
+    "lufs": -18.9,
+    "seconds": 2.24,
+    "volume": 0.394
+  },
+  "marines_bark_militia_big_kill_b_1": {
+    "lufs": -17.6,
+    "seconds": 1.52,
+    "volume": 0.339
+  },
+  "marines_bark_militia_big_kill_b_2": {
+    "lufs": -18.4,
+    "seconds": 2.08,
+    "volume": 0.372
+  },
+  "marines_bark_militia_big_kill_b_3": {
+    "lufs": -20.3,
+    "seconds": 2.32,
+    "volume": 0.462
+  },
+  "marines_bark_militia_big_kill_c_1": {
+    "lufs": -17.0,
+    "seconds": 1.28,
+    "volume": 0.316
+  },
+  "marines_bark_militia_big_kill_c_2": {
+    "lufs": -19.5,
+    "seconds": 1.92,
+    "volume": 0.422
+  },
+  "marines_bark_militia_big_kill_c_3": {
+    "lufs": -21.1,
+    "seconds": 2.32,
+    "volume": 0.507
+  },
+  "marines_bark_militia_big_kill_d_1": {
+    "lufs": -15.7,
+    "seconds": 1.36,
+    "volume": 0.272
+  },
+  "marines_bark_militia_big_kill_d_2": {
+    "lufs": -16.3,
+    "seconds": 2.08,
+    "volume": 0.292
+  },
+  "marines_bark_militia_big_kill_d_3": {
+    "lufs": -21.7,
+    "seconds": 2.16,
+    "volume": 0.543
+  },
+  "marines_bark_militia_man_down_a_1": {
+    "lufs": -13.4,
+    "seconds": 1.36,
+    "volume": 0.234
+  },
+  "marines_bark_militia_man_down_a_2": {
+    "lufs": -14.1,
+    "seconds": 2.0,
+    "volume": 0.254
+  },
+  "marines_bark_militia_man_down_a_3": {
+    "lufs": -12.5,
+    "seconds": 1.68,
+    "volume": 0.211
+  },
+  "marines_bark_militia_man_down_b_1": {
+    "lufs": -17.0,
+    "seconds": 1.6,
+    "volume": 0.355
+  },
+  "marines_bark_militia_man_down_b_2": {
+    "lufs": -17.3,
+    "seconds": 2.24,
+    "volume": 0.367
+  },
+  "marines_bark_militia_man_down_b_3": {
+    "lufs": -16.8,
+    "seconds": 1.84,
+    "volume": 0.347
+  },
+  "marines_bark_militia_man_down_c_1": {
+    "lufs": -16.5,
+    "seconds": 1.28,
+    "volume": 0.335
+  },
+  "marines_bark_militia_man_down_c_2": {
+    "lufs": -16.1,
+    "seconds": 2.0,
+    "volume": 0.32
+  },
+  "marines_bark_militia_man_down_c_3": {
+    "lufs": -16.8,
+    "seconds": 1.6,
+    "volume": 0.347
+  },
+  "marines_bark_militia_man_down_d_1": {
+    "lufs": -14.7,
+    "seconds": 1.44,
+    "volume": 0.272
+  },
+  "marines_bark_militia_man_down_d_2": {
+    "lufs": -14.6,
+    "seconds": 2.08,
+    "volume": 0.269
+  },
+  "marines_bark_militia_man_down_d_3": {
+    "lufs": -12.8,
+    "seconds": 1.76,
+    "volume": 0.219
+  },
+  "marines_bark_militia_strain_a_1": {
+    "lufs": -16.7,
+    "seconds": 2.64,
+    "volume": 0.243
+  },
+  "marines_bark_militia_strain_a_2": {
+    "lufs": -17.0,
+    "seconds": 2.0,
+    "volume": 0.251
+  },
+  "marines_bark_militia_strain_a_3": {
+    "lufs": -17.8,
+    "seconds": 2.0,
+    "volume": 0.275
+  },
+  "marines_bark_militia_strain_b_1": {
+    "lufs": -20.6,
+    "seconds": 2.64,
+    "volume": 0.38
+  },
+  "marines_bark_militia_strain_b_2": {
+    "lufs": -20.7,
+    "seconds": 2.08,
+    "volume": 0.385
+  },
+  "marines_bark_militia_strain_b_3": {
+    "lufs": -20.5,
+    "seconds": 2.24,
+    "volume": 0.376
+  },
+  "marines_bark_militia_strain_c_1": {
+    "lufs": -18.6,
+    "seconds": 1.76,
+    "volume": 0.302
+  },
+  "marines_bark_militia_strain_c_2": {
+    "lufs": -21.6,
+    "seconds": 2.88,
+    "volume": 0.427
+  },
+  "marines_bark_militia_strain_c_3": {
+    "lufs": -19.7,
+    "seconds": 1.76,
+    "volume": 0.343
+  },
+  "marines_bark_militia_strain_d_1": {
+    "lufs": -20.4,
+    "seconds": 1.84,
+    "volume": 0.372
+  },
+  "marines_bark_militia_strain_d_2": {
+    "lufs": -20.4,
+    "seconds": 2.08,
+    "volume": 0.372
+  },
+  "marines_bark_militia_strain_d_3": {
+    "lufs": -20.5,
+    "seconds": 1.84,
+    "volume": 0.376
+  },
+  "marines_bark_civilian_contact_a_1": {
+    "lufs": -15.5,
+    "seconds": 1.84,
+    "volume": 0.299
+  },
+  "marines_bark_civilian_contact_a_2": {
+    "lufs": -17.7,
+    "seconds": 1.92,
+    "volume": 0.385
+  },
+  "marines_bark_civilian_contact_a_3": {
+    "lufs": -17.6,
+    "seconds": 2.64,
+    "volume": 0.38
+  },
+  "marines_bark_civilian_contact_b_1": {
+    "lufs": -13.7,
+    "seconds": 1.84,
+    "volume": 0.243
+  },
+  "marines_bark_civilian_contact_b_2": {
+    "lufs": -17.1,
+    "seconds": 2.08,
+    "volume": 0.359
+  },
+  "marines_bark_civilian_contact_b_3": {
+    "lufs": -17.4,
+    "seconds": 2.64,
+    "volume": 0.372
+  },
+  "marines_bark_civilian_contact_c_1": {
+    "lufs": -17.4,
+    "seconds": 1.92,
+    "volume": 0.372
+  },
+  "marines_bark_civilian_contact_c_2": {
+    "lufs": -20.1,
+    "seconds": 2.0,
+    "volume": 0.507
+  },
+  "marines_bark_civilian_contact_c_3": {
+    "lufs": -20.2,
+    "seconds": 2.8,
+    "volume": 0.513
+  },
+  "marines_bark_civilian_contact_d_1": {
+    "lufs": -12.3,
+    "seconds": 2.0,
+    "volume": 0.207
+  },
+  "marines_bark_civilian_contact_d_2": {
+    "lufs": -15.0,
+    "seconds": 1.92,
+    "volume": 0.282
+  },
+  "marines_bark_civilian_contact_d_3": {
+    "lufs": -14.5,
+    "seconds": 2.64,
+    "volume": 0.266
+  },
+  "marines_bark_civilian_grabbed_a_1": {
+    "lufs": -15.2,
+    "seconds": 2.72,
+    "volume": 0.324
+  },
+  "marines_bark_civilian_grabbed_a_2": {
+    "lufs": -16.3,
+    "seconds": 2.64,
+    "volume": 0.367
+  },
+  "marines_bark_civilian_grabbed_a_3": {
+    "lufs": -13.1,
+    "seconds": 2.24,
+    "volume": 0.254
+  },
+  "marines_bark_civilian_grabbed_b_1": {
+    "lufs": -13.3,
+    "seconds": 2.64,
+    "volume": 0.26
+  },
+  "marines_bark_civilian_grabbed_b_2": {
+    "lufs": -15.1,
+    "seconds": 2.56,
+    "volume": 0.32
+  },
+  "marines_bark_civilian_grabbed_b_3": {
+    "lufs": -12.2,
+    "seconds": 1.36,
+    "volume": 0.229
+  },
+  "marines_bark_civilian_grabbed_c_1": {
+    "lufs": -19.7,
+    "seconds": 2.64,
+    "volume": 0.543
+  },
+  "marines_bark_civilian_grabbed_c_2": {
+    "lufs": -20.1,
+    "seconds": 2.64,
+    "volume": 0.569
+  },
+  "marines_bark_civilian_grabbed_c_3": {
+    "lufs": -15.7,
+    "seconds": 1.36,
+    "volume": 0.343
+  },
+  "marines_bark_civilian_grabbed_d_1": {
+    "lufs": -14.1,
+    "seconds": 2.64,
+    "volume": 0.285
+  },
+  "marines_bark_civilian_grabbed_d_2": {
+    "lufs": -13.5,
+    "seconds": 2.64,
+    "volume": 0.266
+  },
+  "marines_bark_civilian_grabbed_d_3": {
+    "lufs": -10.3,
+    "seconds": 1.2,
+    "volume": 0.184
+  },
+  "marines_bark_civilian_thrown_a_1": {
+    "lufs": -14.2,
+    "seconds": 2.24,
+    "volume": 0.288
+  },
+  "marines_bark_civilian_thrown_a_2": {
+    "lufs": -17.0,
+    "seconds": 2.08,
+    "volume": 0.398
+  },
+  "marines_bark_civilian_thrown_a_3": {
+    "lufs": -17.0,
+    "seconds": 1.6,
+    "volume": 0.398
+  },
+  "marines_bark_civilian_thrown_b_1": {
+    "lufs": -11.6,
+    "seconds": 2.32,
+    "volume": 0.214
+  },
+  "marines_bark_civilian_thrown_b_2": {
+    "lufs": -16.9,
+    "seconds": 1.12,
+    "volume": 0.394
+  },
+  "marines_bark_civilian_thrown_b_3": {
+    "lufs": -15.1,
+    "seconds": 1.84,
+    "volume": 0.32
+  },
+  "marines_bark_civilian_thrown_c_1": {
+    "lufs": -17.4,
+    "seconds": 2.32,
+    "volume": 0.417
+  },
+  "marines_bark_civilian_thrown_c_2": {
+    "lufs": -20.6,
+    "seconds": 1.2,
+    "volume": 0.603
+  },
+  "marines_bark_civilian_thrown_c_3": {
+    "lufs": -19.1,
+    "seconds": 1.84,
+    "volume": 0.507
+  },
+  "marines_bark_civilian_thrown_d_1": {
+    "lufs": -12.6,
+    "seconds": 2.16,
+    "volume": 0.24
+  },
+  "marines_bark_civilian_thrown_d_2": {
+    "lufs": -15.1,
+    "seconds": 2.0,
+    "volume": 0.32
+  },
+  "marines_bark_civilian_thrown_d_3": {
+    "lufs": -14.1,
+    "seconds": 1.68,
+    "volume": 0.285
+  },
+  "marines_bark_civilian_man_down_a_1": {
+    "lufs": -19.9,
+    "seconds": 2.88,
+    "volume": 0.495
+  },
+  "marines_bark_civilian_man_down_a_2": {
+    "lufs": -19.0,
+    "seconds": 2.48,
+    "volume": 0.447
+  },
+  "marines_bark_civilian_man_down_a_3": {
+    "lufs": -17.1,
+    "seconds": 2.56,
+    "volume": 0.359
+  },
+  "marines_bark_civilian_man_down_b_1": {
+    "lufs": -16.0,
+    "seconds": 3.12,
+    "volume": 0.316
+  },
+  "marines_bark_civilian_man_down_b_2": {
+    "lufs": -17.6,
+    "seconds": 2.4,
+    "volume": 0.38
+  },
+  "marines_bark_civilian_man_down_b_3": {
+    "lufs": -15.4,
+    "seconds": 2.24,
+    "volume": 0.295
+  },
+  "marines_bark_civilian_man_down_c_1": {
+    "lufs": -22.9,
+    "seconds": 3.2,
+    "volume": 0.7
+  },
+  "marines_bark_civilian_man_down_c_2": {
+    "lufs": -20.1,
+    "seconds": 2.48,
+    "volume": 0.507
+  },
+  "marines_bark_civilian_man_down_c_3": {
+    "lufs": -20.8,
+    "seconds": 2.32,
+    "volume": 0.55
+  },
+  "marines_bark_civilian_man_down_d_1": {
+    "lufs": -16.2,
+    "seconds": 3.12,
+    "volume": 0.324
+  },
+  "marines_bark_civilian_man_down_d_2": {
+    "lufs": -16.0,
+    "seconds": 2.56,
+    "volume": 0.316
+  },
+  "marines_bark_civilian_man_down_d_3": {
+    "lufs": -13.1,
+    "seconds": 1.92,
+    "volume": 0.226
+  },
+  "marines_bark_civilian_strain_a_1": {
+    "lufs": -17.4,
+    "seconds": 2.0,
+    "volume": 0.295
+  },
+  "marines_bark_civilian_strain_a_2": {
+    "lufs": -17.4,
+    "seconds": 2.24,
+    "volume": 0.295
+  },
+  "marines_bark_civilian_strain_a_3": {
+    "lufs": -16.3,
+    "seconds": 1.2,
+    "volume": 0.26
+  },
+  "marines_bark_civilian_strain_b_1": {
+    "lufs": -15.4,
+    "seconds": 1.92,
+    "volume": 0.234
+  },
+  "marines_bark_civilian_strain_b_2": {
+    "lufs": -15.2,
+    "seconds": 2.4,
+    "volume": 0.229
+  },
+  "marines_bark_civilian_strain_b_3": {
+    "lufs": -14.9,
+    "seconds": 2.08,
+    "volume": 0.221
+  },
+  "marines_bark_civilian_strain_c_1": {
+    "lufs": -20.2,
+    "seconds": 2.08,
+    "volume": 0.407
+  },
+  "marines_bark_civilian_strain_c_2": {
+    "lufs": -19.6,
+    "seconds": 2.16,
+    "volume": 0.38
+  },
+  "marines_bark_civilian_strain_c_3": {
+    "lufs": -18.1,
+    "seconds": 1.28,
+    "volume": 0.32
+  },
+  "marines_bark_civilian_strain_d_1": {
+    "lufs": -16.4,
+    "seconds": 1.92,
+    "volume": 0.263
+  },
+  "marines_bark_civilian_strain_d_2": {
+    "lufs": -13.8,
+    "seconds": 2.16,
+    "volume": 0.195
+  },
+  "marines_bark_civilian_strain_d_3": {
+    "lufs": -13.2,
+    "seconds": 1.2,
+    "volume": 0.182
+  },
   "marines_bark_scuffle_1": {
     "lufs": -22.6,
     "seconds": 0.8,

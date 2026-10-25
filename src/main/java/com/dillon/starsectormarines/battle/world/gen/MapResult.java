@@ -178,6 +178,11 @@ public final class MapResult {
      * {@link LaidLayout#EMPTY} on every map whose plan stated none.
      */
     public final LaidLayout layout;
+    /**
+     * Where set pieces mean a hauler to stand while it is loaded ({@code set-piece-blocks.md}); empty on
+     * a map with none, and never null.
+     */
+    public final List<LoadingBay> loadingBays;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -444,20 +449,31 @@ public final class MapResult {
         this.lanes = lanes == null ? Collections.emptyList() : List.copyOf(lanes);
         this.fieldOfFire = null;
         this.layout = LaidLayout.EMPTY;
+        this.loadingBays = List.of();
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
-    public MapResult withInitialDamage(DamagePlan damage) { return new MapResult(this, damage, fieldOfFire, layout); }
+    public MapResult withInitialDamage(DamagePlan damage) {
+        return new MapResult(this, damage, fieldOfFire, layout, loadingBays);
+    }
 
     /** The same map, carrying the field of fire its landing promised. */
-    public MapResult withFieldOfFire(FieldOfFire field) { return new MapResult(this, initialDamage, field, layout); }
+    public MapResult withFieldOfFire(FieldOfFire field) {
+        return new MapResult(this, initialDamage, field, layout, loadingBays);
+    }
 
     /** The same map, carrying what its mission layout laid. */
     public MapResult withLayout(LaidLayout laid) {
-        return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid);
+        return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid, loadingBays);
     }
 
-    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid) {
+    /** The same map, carrying the loading bays its set pieces laid. */
+    public MapResult withLoadingBays(List<LoadingBay> bays) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, bays == null ? List.of() : List.copyOf(bays));
+    }
+
+    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
+                      List<LoadingBay> bays) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -485,5 +501,6 @@ public final class MapResult {
         lanes = base.lanes;
         fieldOfFire = field;
         layout = laid;
+        loadingBays = bays;
     }
 }

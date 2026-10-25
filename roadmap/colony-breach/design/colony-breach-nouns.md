@@ -2149,6 +2149,15 @@ heard only on seen ground. Takes are generated from a tracked catalog
 (`tools/generate_marine_barks.py`) and every take is levelled by its measured
 loudness to its kind's level, a little under the gunfire: calls near -26 LUFS a
 voice, cries and warnings -25, kills and reloads -28, grunts -29, the scuffle -31.
+**The colony is heard too** (owner, 2026-10-25). Three casts bark, each in its
+own voices and words from the lore guide's names: the marines (allied company
+infantry with them), the colony militia, four voices of its own, who say ravs and
+bugs, grabbers and breakers, and have no name for the Matriarch, only "the big
+one"; and the colonists, four more, who make no soldier's calls: they scream as
+the things close, cry out when seized, thrown or hurt, and grieve when someone
+near them dies. Colonists outside any squad share one voice channel with the
+colonists on their patch of ground, so a fleeing crowd is a few screams, not one
+each. The enemy's soldiers do not bark.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

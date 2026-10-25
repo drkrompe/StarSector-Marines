@@ -15,14 +15,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * The marines' background voice in a fight with the Rav (`colony-breach-nouns.md`, Sound): shouts, cries and grunts
- * heard in the mix under the fire, never hero lines, so nothing is shown and nothing waits on them. Read off what the
+ * The background voice of the people in a fight with the Rav (`colony-breach-nouns.md`, Sound): shouts, cries and
+ * grunts heard in the mix under the fire, never hero lines, so nothing is shown and nothing waits on them. Three
+ * {@link Cast casts} speak, each in its own voices and words: the marines (the player's and allied company infantry),
+ * the colony militia, and the colonists, who make no soldier's calls, only fear, pain and grief. Read off what the
  * battle already reports, as {@link SwarmAudio} is, so the simulation stays silent:
  * <ul>
  *   <li><b>Contact</b> when Rav close on a squad that was clear of them, called by its marine nearest them.</li>
@@ -34,9 +37,10 @@ import java.util.WeakHashMap;
  *       curse from a squadmate when a marine dies with Rav near (<b>man down</b>).</li>
  *   <li>A <b>strain</b> grunt and a <b>scuffle</b> of boots and gear when a marine is hurt with a Rav at arm's length.</li>
  * </ul>
- * Each marine keeps one of the six voices for the battle, dealt round its squad so squadmates differ, and a little
- * pitched from anyone sharing it; the lines of a
- * kind take turns, so the same line is not heard twice running. A squad has one voice at a time ({@link Channels}):
+ * Each speaker keeps one of its cast's voices for the battle, dealt round its squad so squadmates differ, and a
+ * little pitched from anyone sharing it; the lines of a kind take turns, so the same line is not heard twice running.
+ * People outside any squad, as most colonists are, share a channel with those of their cast on their patch of ground.
+ * A squad has one voice at a time ({@link Channels}):
  * nobody in it starts while another is speaking, a marine does not bark again inside its own gap, a squad does not
  * repeat a call soon after, and the whole battle has at most {@link #VOICES} barks sounding at once, the most urgent
  * first. Each kind also layers through a {@link VoicePool}. Heard only on ground the player has seen. Levels live in
@@ -77,7 +81,7 @@ public final class MarineBarks {
         MATRIARCH("matriarch", 2, true, 2.4f, 6f, 8f, 1),
         BRUTE("brute", 3, true, 2.1f, 6f, 6f, 1),
         MAN_DOWN("man_down", 4, true, 1.6f, 6f, 8f, 1),
-        STRAIN("strain", 5, true, 2.0f, 2.5f, 0f, 2),
+        STRAIN("strain", 5, true, 2.0f, 2.5f, 4f, 2),
         CONTACT("contact", 6, true, 1.8f, 6f, 15f, 2),
         BIG_KILL("big_kill", 7, true, 2.4f, 6f, 6f, 1),
         KILL("kill", 8, true, 1.3f, 6f, 7f, 1),
@@ -105,11 +109,32 @@ public final class MarineBarks {
         }
     }
 
-    /** The six marine voices, the operation radio's cast heard dry. */
-    enum Voice { KESTREL, HAMMER, VIPER, JACKAL, OX, RIVET }
+    /** Who speaks: the take names' prefix, the barks the cast has, and its voices (the take names' voice keys). */
+    enum Cast {
+        /** The operation radio's cast heard dry: the player's marines and allied company infantry. */
+        MARINE("", EnumSet.allOf(Bark.class), "kestrel", "hammer", "viper", "jackal", "ox", "rivet"),
+        /** The colony militia: ravs and bugs, grabbers and breakers. */
+        MILITIA("militia_", EnumSet.allOf(Bark.class), "a", "b", "c", "d"),
+        /** Colonists: no calls of their own to make, only fear, pain and grief. */
+        CIVILIAN("civilian_", EnumSet.of(Bark.CONTACT, Bark.GRABBED, Bark.THROWN, Bark.MAN_DOWN, Bark.STRAIN,
+                Bark.SCUFFLE), "a", "b", "c", "d");
 
-    /** A bark to offer: who says it, their squad's channel, and where. */
-    record Spot(Bark bark, long marine, long squad, float x, float y) { }
+        final String prefix;
+        final Set<Bark> barks;
+        final String[] voices;
+
+        Cast(String prefix, Set<Bark> barks, String... voices) {
+            this.prefix = prefix;
+            this.barks = barks;
+            this.voices = voices;
+        }
+    }
+
+    /** Cells a side of the patch of ground over which squadless people of one cast share a channel. */
+    static final int PATCH_CELLS = 12;
+
+    /** A bark to offer: who says it, of which cast, their channel, and where. */
+    record Spot(Bark bark, long speaker, Cast cast, long squad, float x, float y) { }
 
     /** A bark offered this tick, and the ticks it has already been held. */
     private record Offer(Spot spot, int heldFor) { }
@@ -170,7 +195,7 @@ public final class MarineBarks {
         private final Long2DoubleOpenHashMap reload = new Long2DoubleOpenHashMap();
         /** Squads in contact, by channel; absent is clear. */
         private final Long2IntOpenHashMap contact = new Long2IntOpenHashMap();
-        /** Each marine's voice, by ordinal, once it has spoken; and how many voices each squad has dealt. */
+        /** Each speaker's voice, as an index into its cast's, once it has spoken; how many each squad has dealt. */
         private final Long2IntOpenHashMap voiceOf = new Long2IntOpenHashMap();
         private final Long2IntOpenHashMap dealt = new Long2IntOpenHashMap();
 
@@ -178,17 +203,17 @@ public final class MarineBarks {
             voiceOf.defaultReturnValue(-1);
         }
 
-        /** {@code marine}'s voice for the battle: the next of the cast round its squad, from a place set by the squad. */
-        Voice voice(long marine, long squad) {
-            int v = voiceOf.get(marine);
+        /** {@code speaker}'s voice for the battle: the next of its cast's round its squad, from a place set by the squad. */
+        int voice(long speaker, long squad, Cast cast) {
+            int v = voiceOf.get(speaker);
             if (v < 0) {
-                v = (int) Math.floorMod(mix(squad) + dealt.addTo(squad, 1), (long) Voice.values().length);
-                voiceOf.put(marine, v);
+                v = (int) Math.floorMod(mix(squad) + dealt.addTo(squad, 1), (long) cast.voices.length);
+                voiceOf.put(speaker, v);
             }
-            return Voice.values()[v];
+            return v;
         }
 
-        /** What the marines say this tick, once per tick (empty on a tick already heard). */
+        /** What the people in the fight say this tick, once per tick (empty on a tick already heard). */
         public List<Play> hear(BattleSimulation sim) {
             List<Play> out = new ArrayList<>();
             int now = sim.getSimTickIndex();
@@ -213,11 +238,13 @@ public final class MarineBarks {
             if (!sim.getFogOfWar().isCellRevealed((int) Math.floor(spot.x()), (int) Math.floor(spot.y()))) return;
             float seconds = now * BattleSimulation.TICK_DT;
             Bark bark = spot.bark();
-            if (!channels.admits(bark, spot.marine(), spot.squad(), seconds)) return;
-            if (voices.offer(bark, spot.marine(), now, spot, heldFor) != VoicePool.Admit.START) return;
-            channels.start(bark, spot.marine(), spot.squad(), seconds);
-            out.add(new Play(soundId(bark, voice(spot.marine(), spot.squad()), turn(bark)), spot.x(), spot.y(),
-                    bark.voiced ? pitch(spot.marine()) : 1f, voices.gain(bark)));
+            if (!spot.cast().barks.contains(bark)) return;
+            if (!channels.admits(bark, spot.speaker(), spot.squad(), seconds)) return;
+            if (voices.offer(bark, spot.speaker(), now, spot, heldFor) != VoicePool.Admit.START) return;
+            channels.start(bark, spot.speaker(), spot.squad(), seconds);
+            int voice = voice(spot.speaker(), spot.squad(), spot.cast());
+            out.add(new Play(soundId(spot.cast(), bark, voice, turn(bark)), spot.x(), spot.y(),
+                    bark.voiced ? pitch(spot.speaker()) : 1f, voices.gain(bark)));
         }
 
         /** The next line of {@code bark}: lines take turns, so one is never heard twice running. */
@@ -239,7 +266,7 @@ public final class MarineBarks {
                     }
                     case CHARGE_TELL -> {
                         Bark warning = warning(cue.strain());
-                        int i = field.nearestMarine(cue.x(), cue.y(), WARN_CELLS);
+                        int i = warning == null ? -1 : field.nearest(cue.x(), cue.y(), WARN_CELLS, warning, null);
                         if (warning != null && i >= 0) offers.add(field.spot(warning, i));
                     }
                     default -> { }
@@ -254,21 +281,21 @@ public final class MarineBarks {
                 UnitType type = sim.identity().type(body);
                 float x = sim.world().renderX(body), y = sim.world().renderY(body);
                 if (type.isSwarm()) {
-                    int by = field.nearestMarine(x, y, NEAR_CELLS);
+                    int by = field.nearest(x, y, NEAR_CELLS, kill(type), null);
                     if (by >= 0) offers.add(field.spot(kill(type), by));
-                } else if (Field.speaker(sim, body) && field.nearestRav(x, y) <= NEAR_CELLS) {
+                } else if (Field.cast(sim, body) != null && field.nearestRav(x, y) <= NEAR_CELLS) {
                     int mate = field.nearestSquadmate(sim, body, x, y, NEAR_CELLS);
                     if (mate >= 0) offers.add(field.spot(Bark.MAN_DOWN, mate));
                 }
             }
         }
 
-        /** Grunts off each marine's health, reload calls off its magazine; readings of the dead are forgotten. */
+        /** Grunts off each speaker's health, reload calls off its magazine; readings of the dead are forgotten. */
         private void marines(BattleSimulation sim, Field field, List<Spot> offers) {
             Long2DoubleOpenHashMap seenHealth = new Long2DoubleOpenHashMap();
             Long2DoubleOpenHashMap seenReload = new Long2DoubleOpenHashMap();
-            for (int i = 0; i < field.marines.size(); i++) {
-                long marine = field.marines.getLong(i);
+            for (int i = 0; i < field.speakers.size(); i++) {
+                long marine = field.speakers.getLong(i);
                 float hp = sim.world().hp(marine);
                 float prior = (float) health.getOrDefault(marine, hp);
                 seenHealth.put(marine, hp);
@@ -290,12 +317,12 @@ public final class MarineBarks {
             reload.putAll(seenReload);
         }
 
-        /** Each squad's contact edge: the marine nearest the Rav calls it as the squad closes. */
+        /** Each channel's contact edge: the one of it nearest the Rav calls it as they close. */
         private void contacts(Field field, List<Spot> offers) {
             Long2IntOpenHashMap nearestBySquad = new Long2IntOpenHashMap();
             nearestBySquad.defaultReturnValue(-1);
-            float[] distance = new float[field.marines.size()];
-            for (int i = 0; i < field.marines.size(); i++) {
+            float[] distance = new float[field.speakers.size()];
+            for (int i = 0; i < field.speakers.size(); i++) {
                 distance[i] = field.nearestRav(field.x[i], field.y[i]);
                 int best = nearestBySquad.get(field.squad[i]);
                 if (best < 0 || distance[i] < distance[best]) nearestBySquad.put(field.squad[i], i);
@@ -323,13 +350,14 @@ public final class MarineBarks {
     }
 
     /**
-     * This tick's speaking marines and the Rav they face, gathered once: positions and channels, and the nearest-Rav
+     * This tick's speakers and the Rav they face, gathered once: positions, casts and channels, and the nearest-Rav
      * lookups the triggers share.
      */
     private static final class Field {
-        final LongArrayList marines = new LongArrayList();
+        final LongArrayList speakers = new LongArrayList();
         float[] x = new float[16], y = new float[16];
         long[] squad = new long[16];
+        Cast[] cast = new Cast[16];
         float[] ravX = new float[16], ravY = new float[16];
         int ravs;
 
@@ -340,25 +368,29 @@ public final class MarineBarks {
                 if (!sim.world().isAlive(unit)) continue;
                 UnitType type = sim.identity().type(unit);
                 float ux = sim.world().renderX(unit), uy = sim.world().renderY(unit);
-                if (type.isSwarm()) f.rav(ux, uy);
-                else if (speaker(sim, unit)) f.marine(unit, channel(sim, unit), ux, uy);
+                if (type.isSwarm()) {
+                    f.rav(ux, uy);
+                    continue;
+                }
+                Cast c = cast(sim, unit);
+                if (c != null) f.speaker(unit, c, channel(sim, unit, c), ux, uy);
             }
             return f;
         }
 
-        /** Marine infantry: the ones with a voice. */
-        static boolean speaker(BattleSimulation sim, long unit) {
-            UnitType type = sim.identity().type(unit);
-            return sim.identity().faction(unit) == Faction.MARINE && type.drawsLayeredWeapon();
+        /** Who {@code unit} speaks as, or null for one with no voice. */
+        static Cast cast(BattleSimulation sim, long unit) {
+            return MarineBarks.cast(sim.identity().faction(unit), sim.identity().type(unit));
         }
 
         boolean speaks(BattleSimulation sim, long unit) {
-            return sim.world().isAlive(unit) && speaker(sim, unit);
+            return sim.world().isAlive(unit) && cast(sim, unit) != null;
         }
 
-        /** A squad's channel; a marine outside any squad is a channel of its own. */
-        static long channel(BattleSimulation sim, long unit) {
-            return sim.squad().hasSquad(unit) ? sim.squad().squadId(unit) : 1L << 40 ^ unit;
+        /** A squad's channel; people outside any squad share one with their cast on their patch of ground. */
+        static long channel(BattleSimulation sim, long unit, Cast cast) {
+            if (sim.squad().hasSquad(unit)) return sim.squad().squadId(unit);
+            return patch(cast, sim.world().x(unit), sim.world().y(unit));
         }
 
         private void rav(float rx, float ry) {
@@ -370,17 +402,19 @@ public final class MarineBarks {
             ravY[ravs++] = ry;
         }
 
-        private void marine(long unit, long channel, float mx, float my) {
-            int n = marines.size();
+        private void speaker(long unit, Cast c, long channel, float mx, float my) {
+            int n = speakers.size();
             if (n == x.length) {
                 x = Arrays.copyOf(x, n * 2);
                 y = Arrays.copyOf(y, n * 2);
                 squad = Arrays.copyOf(squad, n * 2);
+                cast = Arrays.copyOf(cast, n * 2);
             }
-            marines.add(unit);
+            speakers.add(unit);
             x[n] = mx;
             y[n] = my;
             squad[n] = channel;
+            cast[n] = c;
         }
 
         /** Cells from {@code (px, py)} to the nearest living Rav, or infinity. */
@@ -393,11 +427,15 @@ public final class MarineBarks {
             return (float) Math.sqrt(best);
         }
 
-        /** The speaking marine nearest {@code (px, py)} within {@code range}, as an index, or -1. */
-        int nearestMarine(float px, float py, float range) {
+        /**
+         * The speaker nearest {@code (px, py)} within {@code range} whose cast has {@code bark}, and is {@code only}
+         * when that is not null, as an index, or -1.
+         */
+        int nearest(float px, float py, float range, Bark bark, Cast only) {
             int best = -1;
             float bestD2 = range * range;
-            for (int i = 0; i < marines.size(); i++) {
+            for (int i = 0; i < speakers.size(); i++) {
+                if (!cast[i].barks.contains(bark) || only != null && cast[i] != only) continue;
                 float dx = x[i] - px, dy = y[i] - py, d2 = dx * dx + dy * dy;
                 if (d2 <= bestD2) {
                     bestD2 = d2;
@@ -407,28 +445,31 @@ public final class MarineBarks {
             return best;
         }
 
-        /** The living squadmate of {@code dead} nearest it within {@code range}, else any marine that near, or -1. */
+        /** The living squadmate of {@code dead} nearest it within {@code range}, else any of its cast that near, or -1. */
         int nearestSquadmate(BattleSimulation sim, long dead, float px, float py, float range) {
-            long own = channel(sim, dead);
+            Cast own = cast(sim, dead);
+            long channel = channel(sim, dead, own);
             int best = -1;
             float bestD2 = range * range;
-            for (int i = 0; i < marines.size(); i++) {
-                if (squad[i] != own) continue;
+            for (int i = 0; i < speakers.size(); i++) {
+                if (squad[i] != channel) continue;
                 float dx = x[i] - px, dy = y[i] - py, d2 = dx * dx + dy * dy;
                 if (d2 <= bestD2) {
                     bestD2 = d2;
                     best = i;
                 }
             }
-            return best >= 0 ? best : nearestMarine(px, py, range);
+            return best >= 0 ? best : nearest(px, py, range, Bark.MAN_DOWN, own);
         }
 
         Spot spot(Bark bark, int i) {
-            return new Spot(bark, marines.getLong(i), squad[i], x[i], y[i]);
+            return new Spot(bark, speakers.getLong(i), cast[i], squad[i], x[i], y[i]);
         }
 
-        Spot spot(BattleSimulation sim, Bark bark, long marine) {
-            return new Spot(bark, marine, channel(sim, marine), sim.world().renderX(marine), sim.world().renderY(marine));
+        Spot spot(BattleSimulation sim, Bark bark, long speaker) {
+            Cast c = cast(sim, speaker);
+            return new Spot(bark, speaker, c, channel(sim, speaker, c), sim.world().renderX(speaker),
+                    sim.world().renderY(speaker));
         }
     }
 
@@ -443,10 +484,31 @@ public final class MarineBarks {
         }
     }
 
-    /** A take's sound id: a voiced bark's line in a voice, an effort sound's one pool. */
-    static String soundId(Bark bark, Voice voice, int line) {
+    /** A take's sound id: a voiced bark's line in one of its cast's voices, an effort sound's one pool for everyone. */
+    static String soundId(Cast cast, Bark bark, int voice, int line) {
         if (!bark.voiced) return PREFIX + bark.clip;
-        return PREFIX + bark.clip + "_" + voice.name().toLowerCase(Locale.ROOT) + "_" + line;
+        return PREFIX + cast.prefix + bark.clip + "_" + cast.voices[voice] + "_" + line;
+    }
+
+    /**
+     * Who a unit of {@code faction} and {@code type} speaks as: marines and allied company infantry as marines, the
+     * colony militia as militia, colonists as colonists; null for the enemy, the swarm, machines and the alien.
+     */
+    static Cast cast(Faction faction, UnitType type) {
+        if (type.isSwarm() || type == UnitType.ALIEN || !type.drawnAsLayers()) return null;
+        return switch (faction) {
+            case MARINE -> type.drawsLayeredWeapon() ? Cast.MARINE : null;
+            case ALLY -> type == UnitType.MILITIA ? Cast.MILITIA : type.drawsLayeredWeapon() ? Cast.MARINE : null;
+            case CIVILIAN -> Cast.CIVILIAN;
+            default -> null;
+        };
+    }
+
+    /** The channel squadless people of {@code cast} standing at {@code (x, y)} share: their patch of ground's. */
+    static long patch(Cast cast, float x, float y) {
+        long px = Math.floorDiv((int) Math.floor(x), PATCH_CELLS) & 0xFFFFL;
+        long py = Math.floorDiv((int) Math.floor(y), PATCH_CELLS) & 0xFFFFL;
+        return 1L << 40 | (long) cast.ordinal() << 32 | px << 16 | py;
     }
 
     /** A marine's own pitch, within four percent of its voice's, so two marines sharing a voice are two people. */

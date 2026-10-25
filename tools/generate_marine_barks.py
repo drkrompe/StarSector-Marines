@@ -3,9 +3,10 @@
 python tools/generate_marine_barks.py [--id ID] --generate [--replace]
 python tools/generate_marine_barks.py --register     (levels, audio.json + sounds.json entries, offline)
 
-Barks are the marines' background voice in a fight with the Rav (colony-breach-nouns.md, Sound):
-shouts, cries and grunts heard in the mix, never hero lines. Every voice in the catalog speaks every
-line of every kind, one take each, so a take's ID is <prefix><kind>_<voice>_<line>, the grid
+Barks are the background voice of the people in a fight with the Rav (colony-breach-nouns.md, Sound):
+shouts, cries and grunts heard in the mix, never hero lines. Each cast (the marines, the colony militia,
+the colonists) has its own voices and lines; every voice of a cast speaks every line of each of its
+kinds, one take each, so a take's ID is <prefix><cast prefix><kind>_<voice>_<line>, the grid
 MarineBarks plays from. Effort sounds (the scuffle) are sound generation, several variants under one ID.
 
 --register measures each take's integrated loudness (ffmpeg ebur128) and writes the sounds.json
@@ -35,16 +36,17 @@ HEADER = "Marine barks (tools/generate_marine_barks.py)"
 
 def plan(catalog):
     result = []
-    for kind in catalog["kinds"]:
-        for voice, voice_id in catalog["voices"].items():
-            for n, line in enumerate(kind["lines"], start=1):
-                sound_id = "%s%s_%s_%d" % (catalog["prefix"], kind["id"], voice, n)
-                if not re.fullmatch(r"[a-z0-9_]+", sound_id):
-                    raise SystemExit("Invalid sound ID; no request sent.")
-                url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id + "?output_format=" + FORMAT
-                result.append(dict(id=sound_id, sound=sound_id, dir=BARKS / "speech", url=url, voice=voice_id,
-                                   payload={"text": line, "model_id": catalog["speechModelId"]},
-                                   model=catalog["speechModelId"], lufs=kind["lufs"]))
+    for cast in catalog["casts"]:
+        for kind in cast["kinds"]:
+            for voice, voice_id in cast["voices"].items():
+                for n, line in enumerate(kind["lines"], start=1):
+                    sound_id = "%s%s%s_%s_%d" % (catalog["prefix"], cast["prefix"], kind["id"], voice, n)
+                    if not re.fullmatch(r"[a-z0-9_]+", sound_id):
+                        raise SystemExit("Invalid sound ID; no request sent.")
+                    url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id + "?output_format=" + FORMAT
+                    result.append(dict(id=sound_id, sound=sound_id, dir=BARKS / "speech", url=url, voice=voice_id,
+                                       payload={"text": line, "model_id": catalog["speechModelId"]},
+                                       model=catalog["speechModelId"], lufs=kind["lufs"]))
     for sfx in catalog["sfx"]:
         for variant in range(1, sfx["variants"] + 1):
             sound = catalog["prefix"] + sfx["id"]
