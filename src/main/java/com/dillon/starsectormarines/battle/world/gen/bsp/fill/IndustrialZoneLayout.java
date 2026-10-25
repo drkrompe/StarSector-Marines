@@ -207,6 +207,9 @@ final class IndustrialZoneLayout {
                 HALL, BuildingPlacement.frontOnly(side(s, leaf)));
         if (poi != null) c.pois.add(poi);
         loadingDoors(c, s, aLo, aHi, wallRow, step);
+        // A grey slat canopy over each loading door, above the apron's inner row.
+        StreetDressing.doorCanopies(c.grid, c.doodads, aLo, aHi, a -> new int[]{s.x(a, wallRow), s.y(a, wallRow)},
+                s.x(aLo, wallRow) - s.x(aLo, wallRow - step), s.y(aLo, wallRow) - s.y(aLo, wallRow - step));
         if (depth - apron - hall >= STOCK_MIN) stockYard(c, s, f, apron + hall, registry);
 
         // The docks: a keep-clear before each loading door, nothing parked or stacked before any door.
