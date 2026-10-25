@@ -54,7 +54,7 @@ public final class CordonedFacilityProgram implements DistrictProgram {
     /**
      * Kinds a facility may take over: working and public lots, spare ground and homes, which weigh nothing in its
      * pocket of their own, so a facility stands among houses only where its zoning carries them. A leaf on the
-     * map's edge is never a member: the wall would stand on the edge of the world.
+     * map's border cells is never a member: the wall would stand on the edge of the world.
      */
     private static final Set<BlockKind> KINDS = EnumSet.of(BlockKind.BUILDING_INDUSTRIAL, BlockKind.BUILDING_CIVIC,
             BlockKind.BUILDING_COMMERCIAL, BlockKind.DENSE_BLOCK, BlockKind.INDUSTRIAL_YARD, BlockKind.PLAZA,
@@ -68,7 +68,9 @@ public final class CordonedFacilityProgram implements DistrictProgram {
     public Request request(GenContext ctx) {
         DistrictMap zoning = ctx.get(BspKeys.DISTRICT_MAP);
         if (zoning == null) return null;
-        return new QuarterRequest(SPEC, leaf -> KINDS.contains(leaf.kind) && !leaf.touchesMapEdge,
+        int right = ctx.width - 1, bottom = ctx.height - 1;
+        return new QuarterRequest(SPEC, leaf -> KINDS.contains(leaf.kind) && leaf.left > 0 && leaf.top > 0
+                        && leaf.right < right && leaf.bottom < bottom,
                 leaf -> pocket(leaf.kind, zoning.themeAt(leaf.centerX(), leaf.centerY())));
     }
 

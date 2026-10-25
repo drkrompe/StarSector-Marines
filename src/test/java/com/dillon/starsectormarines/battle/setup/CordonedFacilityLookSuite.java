@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * The cordoned facility district ({@code set-piece-districts.md}) on Colony Breach colonies, one of each
- * character where the seeds have them: the whole facility at play zoom, the facility close with its roofs on
+ * character where the seeds have them: the facility at play zoom, the whole facility with its roofs on
  * and off, a gatehouse close and the courtyard. Look-preset stills. Opt-in.
  *
  * <p>The colony's map is generated once on its own to read its facility, which the battle does not keep, then
@@ -89,9 +89,9 @@ public final class CordonedFacilityLookSuite implements SnapshotSuite {
         float close = Math.max(f.right() - f.left(), (f.bottom() - f.top()) * 16f / 9f) + 2 * MARGIN;
         out.add(new SnapshotArtifact(stem + "-facility.png", BattleReviewFrameRenderer.look(context.modRoot(),
                 1920, 1080, cx, cy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, stem)));
-        out.add(new SnapshotArtifact(stem + "-close.png", BattleReviewFrameRenderer.look(context.modRoot(),
+        out.add(new SnapshotArtifact(stem + "-whole.png", BattleReviewFrameRenderer.look(context.modRoot(),
                 1920, 1080, cx, cy, close).render(sim, stem)));
-        out.add(new SnapshotArtifact(stem + "-close-open.png", BattleReviewFrameRenderer.look(context.modRoot(),
+        out.add(new SnapshotArtifact(stem + "-whole-open.png", BattleReviewFrameRenderer.look(context.modRoot(),
                 1920, 1080, cx, cy, close).withoutRoofs().render(sim, stem)));
         if (!f.gatehouses().isEmpty()) {
             CordonedFacility.Gatehouse g = f.gatehouses().get(0);
