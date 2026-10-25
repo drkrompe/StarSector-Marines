@@ -33,16 +33,16 @@ the strip that id resolves to, counting from the left.
 | 16 | `nature.sand` | sand | ground | none | yes | sand field with dune grass — defined but not currently dispatched to; the SAND ground kind maps to floors.sand | — |
 | 17 | `nature.water-1` | water | ground | none | yes | shallow water with reeds — defined but not currently dispatched to; the WATER ground kind maps to water.water | — |
 | 18 | `nature.water-2` | water-alt | ground | none | yes | open water — second water variant, likewise not dispatched to today | — |
-| 19 | `nature.shrub-1` | shrub | plant | none | yes | broad low rosette — the widest plant on the sheet | — |
-| 20 | `nature.shrub-2` | shrub-alt | plant | none | yes | small spiky shrub — the smallest plant, reads as scrub at cell size | — |
-| 21 | `nature.tuft-1` | grass-tuft | plant | none | yes | upright grass tuft | — |
-| 22 | `nature.tuft-2` | grass-tuft-alt | plant | none | yes | wider grass tuft, second variant | — |
-| 23 | `nature.shrub-3` | shrub-variant | plant | none | yes | young palm — the one plant with a visible trunk | — |
-| 24 | `nature.tuft-3` | grass-tuft-tall | plant | none | yes | tall wild grass tuft — the sheet’s sixth plant. It sat in the rock range and was scattered as a rock until 2026-08-29; the prompt asked for five plants and eight rock groups and the art came back with six and seven. | — |
+| 19 | `nature.shrub-1` | shrub | plant | none | yes | broad low fern rosette seen from above — the widest plant on the sheet | — |
+| 20 | `nature.shrub-2` | shrub-alt | plant | none | yes | small scrubby leafy bush — the smallest shrub, reads as scrub at cell size | — |
+| 21 | `nature.tuft-1` | grass-tuft | plant | none | yes | small upright grass tuft seen from above | — |
+| 22 | `nature.tuft-2` | grass-tuft-alt | plant | none | yes | wider, looser grass tuft | — |
+| 23 | `nature.shrub-3` | shrub-variant | plant | none | yes | low leafy bush with a scatter of small cream flowers | — |
+| 24 | `nature.tuft-3` | grass-tuft-tall | plant | none | yes | tall wild grass with pale seed heads | — |
 | 25 | `nature.rock-small-1` | rocks-small | rock | none | yes | three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on | — |
 | 26 | `nature.rock-small-2` | rocks-small-2 | rock | none | yes | three small stones, one larger — a tighter scatter than rock-small-1 | — |
 | 27 | `nature.rock-medium-1` | rock-medium | rock | light | yes | a boulder with two stones at its foot — light cover, still walkable | — |
 | 28 | `nature.rock-medium-2` | rock-medium-2 | rock | light | yes | a single tilted boulder with a detached pebble — light cover, still walkable | — |
-| 29 | `nature.rock-large-1` | rock-large | rock | heavy | no | a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP | — |
+| 29 | `nature.rock-large-1` | rock-large | rock | heavy | no | a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction | — |
 | 30 | `nature.rock-large-2` | rock-large-2 | rock | heavy | no | a leaning slab over a low stone — heavy cover, impassable | — |
 | 31 | `nature.rock-large-3` | rock-large-3 | rock | heavy | no | the tallest stack on the sheet — heavy cover, impassable | — |

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.tiles;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.forest.Undergrowth;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,6 +41,15 @@ class DoodadFogSurfaceTest {
                 for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++)
                     assertEquals(canopy.blocks(x, y, turns), prop.hasFogSurfaceAt(x, y));
                 assertTrue(TileRegistry.installed().doodad(canopy.id + "-destroyed").fogSurface.isEmpty());
+            }
+    }
+
+    @Test void denseUndergrowthMasksItsSilhouetteAndSparseGrowthHasNoSurface() {
+        for (Undergrowth growth : Undergrowth.values()) for (String suffix : new String[]{"", "-damaged"})
+            for (int turns = 0; turns < 4; turns++) {
+                var prop = new Doodad(0, 0, TileRegistry.installed().doodad(growth.id + suffix), turns);
+                for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++)
+                    assertEquals(!growth.seeThrough && growth.blocks(x, y, turns), prop.hasFogSurfaceAt(x, y));
             }
     }
 }
