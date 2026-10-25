@@ -89,6 +89,10 @@ public final class NestTrails {
             if (spire.bore.collapsed()) continue;
             addTo(sim, out, spire.bore, spire.entityId, HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f);
         }
+        for (BroodSpires.Rising r : sim.broodSpires().rising()) {
+            if (r.bore().collapsed()) continue;
+            add(out, r.bore(), r.x(), r.y(), HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f, r.progress(tick));
+        }
         return out;
     }
 
