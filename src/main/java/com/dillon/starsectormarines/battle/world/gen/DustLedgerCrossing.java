@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamageCatalog;
@@ -18,9 +19,13 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -31,10 +36,11 @@ import java.util.Random;
 
 /**
  * Saltwell Cross on Asharu, The Dust Ledger's authored map ({@code dust-ledger-crossing.md}): a public freight apron
- * on the west edge, a crossroads market where the apron road meets the crawler road, the Harrow salvage yard on the
- * crawler road, a standable ridge under the north escarpment, the dry canal with two crossings in the south, and
- * Sable Wake's pump house compound in the east. Mission behaviour belongs to the mission; this recipe lays the ground
- * and publishes the sites it needs as a {@link Layout}.
+ * on the west edge, a caravanserai market where the apron track meets the crawler road, the Harrow salvage yard on
+ * the crawler road, a standable ridge growing out of the north escarpment, the meandering dry canal with its
+ * irrigated plots and two crossings in the south, and Sable Wake's pump house compound in the east, fed by the broken
+ * terraforming pipeline from the canal. Mission behaviour belongs to the mission; this recipe lays the ground and
+ * publishes the sites it needs as a {@link Layout}.
  *
  * <p>Buildings are published only as held places, so the map itself adds no capture point. y grows north.
  */
@@ -109,11 +115,14 @@ public final class DustLedgerCrossing {
                          Map<Approach, List<Cell>> approaches,
                          List<PointOfInterest> warehouses, List<PointOfInterest> shops, List<PointOfInterest> homes) {}
 
-    static final Area APRON = new Area(6, 38, 34, 82);
-    static final Cell COMPANY_START = new Cell(22, 65);
-    static final Cell HAULER = new Cell(31, 66);
+    /** The apron slab: three berths down its west side, freight stacked between and along the east. */
+    static final Area APRON = new Area(4, 40, 29, 80);
+    private static final int BERTH_X = 16;
+    private static final int[] BERTH_Y = {45, 59, 73};
+    static final Cell COMPANY_START = new Cell(16, 66);
+    static final Cell HAULER = new Cell(28, 66);
     private static final int HAULER_HALF_WIDTH = 1, HAULER_HALF_LENGTH = 3;
-    static final Cell COUPLING_CRATE = new Cell(27, 66);
+    static final Cell COUPLING_CRATE = new Cell(24, 66);
     static final Cell CROSSROADS = new Cell(88, 60);
 
     static final Area COMPOUND = new Area(136, 30, 184, 70);
@@ -122,9 +131,11 @@ public final class DustLedgerCrossing {
     static final Cell POSTERN = new Cell(134, 38);
     static final Cell SOUTH_GATE = new Cell(155, 28);
     /** Pump house, bunkhouse and crawler garage corners inside the yard. */
-    private static final int PUMP_LEFT = 153, PUMP_BOTTOM = 44;
+    private static final int PUMP_LEFT = 156, PUMP_BOTTOM = 46;
     private static final int GARAGE_LEFT = 139, GARAGE_BOTTOM = 58;
     private static final int BUNK_LEFT = 139, BUNK_BOTTOM = 32;
+    /** The terraforming pipeline's line, from the canal bank north through the south wall to the pump gear. */
+    private static final int PIPELINE_X = 164;
 
     static final Area SKIMMER_PAD = new Area(151, 5, 159, 10);
     static final Cell SKIMMER_BOARDING = new Cell(155, 11);
@@ -137,10 +148,13 @@ public final class DustLedgerCrossing {
     private static final List<Cell> SALVAGE_TEAM_CELLS = List.of(new Cell(124, 76), new Cell(126, 76),
             new Cell(124, 78), new Cell(126, 78));
 
-    /** The ridge's ramps: west from the well lane, east above the gate. */
-    static final Cell WEST_RAMP_FOOT = new Cell(88, 83), EAST_RAMP_FOOT = new Cell(156, 84);
-    private static final ElevationPlan.Point WEST_RAMP_HEAD = new ElevationPlan.Point(88, 92);
-    private static final ElevationPlan.Point EAST_RAMP_HEAD = new ElevationPlan.Point(156, 92);
+    /** The caravanserai court at the crossroads' north-west corner, ringed by the cantina, shops and homes. */
+    static final Area COURT = new Area(58, 73, 86, 81);
+
+    /** The ridge's ramps: west at the spur's tip off the well lane, east above the gate. */
+    static final Cell WEST_RAMP_FOOT = new Cell(96, 85), EAST_RAMP_FOOT = new Cell(160, 83);
+    private static final ElevationPlan.Point WEST_RAMP_HEAD = new ElevationPlan.Point(96, 93);
+    private static final ElevationPlan.Point EAST_RAMP_HEAD = new ElevationPlan.Point(160, 90);
     /** Cells either side of an approach's line its route may use. */
     static final int APPROACH_CORRIDOR = 6;
 
@@ -152,9 +166,11 @@ public final class DustLedgerCrossing {
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         Sites s = new Sites();
         new GenRecipe("Saltwell Cross", List.of(DustLedgerCrossing::grounds,
-                context -> market(context, s), context -> compound(context, s),
+                context -> market(context, s), context -> compound(context, s), DustLedgerCrossing::ruins,
                 context -> RoadRasterizer.clearReplacedSurfaces(context.topology, WIDTH, HEIGHT),
-                DustLedgerCrossing::yardSurfaces, context -> dressing(context, s), DustLedgerCrossing::terrain,
+                DustLedgerCrossing::yardSurfaces, DustLedgerCrossing::groundWear,
+                DustLedgerCrossing::apronFreight, DustLedgerCrossing::marketDressing,
+                DustLedgerCrossing::compoundDressing, DustLedgerCrossing::hardpan, DustLedgerCrossing::terrain,
                 DustLedgerCrossing::ridge, new FinalizeStage(), new OutdoorLandscapeStage(anchors()))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, COMPANY_START.x(), COMPANY_START.y(),
                 s.pumpHouse.interiorAnchorX, s.pumpHouse.interiorAnchorY, c.pois, c.doodads,
@@ -200,13 +216,14 @@ public final class DustLedgerCrossing {
     /** The approaches' lines as authored, from the company's start to the compound's ways in. */
     static Map<Approach, List<Cell>> approachLines() {
         Map<Approach, List<Cell>> lines = new EnumMap<>(Approach.class);
-        lines.put(Approach.MARKET, List.of(COMPANY_START, new Cell(60, 60), CROSSROADS, new Cell(90, 46),
-                new Cell(90, 38), new Cell(115, 38), POSTERN));
-        lines.put(Approach.CRAWLER_ROAD, List.of(COMPANY_START, new Cell(60, 60), CROSSROADS, new Cell(106, 69),
-                new Cell(124, 77), new Cell(150, 77), GATE));
-        lines.put(Approach.RIDGE, List.of(COMPANY_START, new Cell(60, 60), CROSSROADS, new Cell(88, 79),
-                WEST_RAMP_FOOT, new Cell(88, 93), new Cell(120, 94), new Cell(150, 93), new Cell(156, 93),
-                EAST_RAMP_FOOT, new Cell(164, 78), GATE));
+        Cell apron = new Cell(40, 60);
+        lines.put(Approach.MARKET, List.of(COMPANY_START, apron, CROSSROADS, new Cell(91, 46), new Cell(91, 40),
+                new Cell(110, 39), new Cell(124, 40), POSTERN));
+        lines.put(Approach.CRAWLER_ROAD, List.of(COMPANY_START, apron, CROSSROADS, new Cell(100, 66),
+                new Cell(114, 73), new Cell(130, 77), new Cell(160, 78), GATE));
+        lines.put(Approach.RIDGE, List.of(COMPANY_START, apron, CROSSROADS, new Cell(88, 74), new Cell(89, 84),
+                WEST_RAMP_FOOT, new Cell(98, 95), new Cell(128, 93), new Cell(150, 92), new Cell(160, 92),
+                EAST_RAMP_FOOT, new Cell(166, 78), GATE));
         return lines;
     }
 
@@ -221,16 +238,11 @@ public final class DustLedgerCrossing {
             c.grid.setWalkableFloor(x, y);
             c.topology.setGroundKind(x, y, wild);
         }
-        // Dead terraforming fields along both banks of the canal: furrowed earth, never paving.
-        fields(c, 30, 26, 78, 34);
-        fields(c, 96, 26, 128, 33);
-        fields(c, 44, 8, 76, 15);
-        fields(c, 90, 9, 110, 15);
         var roads = RoadCatalog.plan(RoadCatalog.DUST_LEDGER);
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
         // Three berths on the public apron; Wayline's drop takes them all, one landing area.
-        for (int y : new int[]{44, 58, 72})
-            c.landingPads.add(new LandingPad(20, y, 8, 3, LandingPad.Approach.WEST, LandingPad.Purpose.FREIGHT_APRON));
+        for (int y : BERTH_Y)
+            c.landingPads.add(new LandingPad(BERTH_X, y, 7, 3, LandingPad.Approach.WEST, LandingPad.Purpose.FREIGHT_APRON));
         // Made ground, paved in yardSurfaces: the apron's slab, the compound yard and the skimmer pad.
         slab(c, APRON);
         slab(c, new Area(COMPOUND.left() + 1, COMPOUND.bottom() + 1, COMPOUND.right() - 1, COMPOUND.top() - 1));
@@ -244,34 +256,33 @@ public final class DustLedgerCrossing {
         }
     }
 
-    /** Furrows run east to west, two rows of turned earth to one of dry sand. */
-    private static void fields(GenContext c, int l, int b, int r, int t) {
-        for (int y = b; y <= t; y++) for (int x = l; x <= r; x++)
-            c.topology.setGroundKind(x, y, y % 3 == 0 ? GroundKind.SAND : GroundKind.DIRT);
-    }
-
+    /**
+     * The caravanserai: a court at the crossroads' north-west corner, ringed by shops, the cantina, the warden's well
+     * house and homes, each a two-cell alley from the next; the bonded warehouses south of the apron track; homes and
+     * shops packed along the crawler road and the back lane.
+     */
     private static void market(GenContext c, Sites s) {
-        // North of the apron road: a shop, the cantina and the warden's well house beside the well lane.
-        s.shops.add(stamp(c, BuildingStamp.CORNER_SHOP, 46, 66, 0));
-        s.cantina = stamp(c, BuildingStamp.MARKET_HALL, 62, 66, 0);
+        s.shops.add(stamp(c, BuildingStamp.CORNER_SHOP, 48, 64, 0));
+        s.cantina = stamp(c, BuildingStamp.MARKET_HALL, 61, 65, 0);
         s.shops.add(s.cantina);
-        s.wellHouse = stamp(c, BuildingStamp.FARMHOUSE, 76, 66, 0);
-        // Between the well lane and the crawler road.
+        s.wellHouse = stamp(c, BuildingStamp.FARMHOUSE, 76, 65, 0);
+        s.shops.add(stamp(c, BuildingStamp.MARKET_HALL, 50, 76, 1));
+        s.homes.add(stamp(c, BuildingStamp.COURT_HOUSE, 61, 82, 0));
+        s.homes.add(stamp(c, BuildingStamp.CORNER_HOME, 75, 82, 0));
+        // Between the well lane and the crawler road, facing the road.
         s.northShop = stamp(c, BuildingStamp.CORNER_SHOP, 93, 74, 0);
         s.shops.add(s.northShop);
-        // South of the apron road: the bonded warehouses, staffed.
-        s.warehouses.add(stamp(c, BuildingStamp.FREIGHT_L, 44, 37, 0));
-        s.warehouses.add(stamp(c, BuildingStamp.OFFSET_DEPOT, 68, 42, 0));
-        // East of the field track: the residential cluster on the back lane.
+        // South of the apron track: the bonded warehouses, staffed, a loading alley between them.
+        s.warehouses.add(stamp(c, BuildingStamp.FREIGHT_L, 40, 38, 0));
+        s.warehouses.add(stamp(c, BuildingStamp.OFFSET_DEPOT, 63, 45, 0));
+        // East of the field track: houses fronting the crawler road and the back lane.
+        s.homes.add(stamp(c, BuildingStamp.FARMHOUSE, 95, 53, 0));
         s.homes.add(stamp(c, BuildingStamp.COURT_HOUSE, 95, 42, 0));
         s.homes.add(stamp(c, BuildingStamp.CORNER_HOME, 110, 42, 0));
         s.eastHome = stamp(c, BuildingStamp.FARMHOUSE, 122, 42, 0);
         s.homes.add(s.eastHome);
         s.homes.add(s.wellHouse);
         s.homes.addAll(s.shops);
-        // The failed terraforming's ruins on the south hardpan, roofless since before the market (the damage plan).
-        stamp(c, BuildingStamp.FARMHOUSE, 9, 6, 0);
-        stamp(c, BuildingStamp.BARN, 115, 4, 0);
     }
 
     private static PointOfInterest stamp(GenContext c, BuildingStamp plan, int left, int bottom, int turns) {
@@ -294,6 +305,14 @@ public final class DustLedgerCrossing {
         }
     }
 
+    /** The failed terraforming's roofless buildings on the hardpan (the damage plan wrecks them). */
+    private static void ruins(GenContext c) {
+        stamp(c, BuildingStamp.FARMHOUSE, 9, 6, 0);
+        stamp(c, BuildingStamp.BARN, 115, 2, 0);
+        stamp(c, BuildingStamp.T_WORKSHOP, 32, 86, 0);
+        stamp(c, BuildingStamp.OFFSET_DEPOT, 138, 4, 1);
+    }
+
     private static void wall(GenContext c, int x, int y) {
         c.grid.setWalkable(x, y, false);
         c.grid.setSeeThrough(x, y, false);
@@ -309,65 +328,327 @@ public final class DustLedgerCrossing {
                 c.topology.setSurface(x, y, concrete[RoadRasterizer.age(.6, 6131, x, y)]);
     }
 
-    /** Working props: the apron's freight, the market's stalls, the salvage yard and the compound's posts. */
-    private static void dressing(GenContext c, Sites s) {
+    /**
+     * Ground people have walked: the court and a packed apron round every building, sand drifted against their walls,
+     * foot paths between doors and tracks, and the irrigated plots along the canal, furrowed with its bends.
+     */
+    private static void groundWear(GenContext c) {
+        for (Cell cell : COURT.cells()) packed(c, cell.x(), cell.y());
+        // Patches, not a rim: the trodden ground frays out two and three cells from a wall where feet go.
+        PatchField fray = new PatchField(6153, 2.5f);
+        for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {
+            int near = buildingDistance(c, x, y);
+            if (near == 0 || near > 3) continue;
+            if (near == 2 && fray.sample(x, y) > .65 || near == 3 && fray.sample(x, y) > .3) continue;
+            // A drift: on the windward west and north faces, sand piled against the wall survives the trampling.
+            boolean drift = near == 1 && hash(x, y, 6151) < .45 && (buildingAt(c, x + 1, y) || buildingAt(c, x, y - 1));
+            if (!drift) packed(c, x, y);
+        }
+        int[][] paths = {
+                {60, 73, 60, 64}, {74, 73, 74, 64}, {86, 77, 87, 77}, {58, 78, 58, 85},
+                {61, 55, 61, 44}, {52, 37, 52, 33}, {52, 33, 84, 33},
+                {108, 41, 108, 62}, {121, 41, 121, 54}, {120, 65, 120, 70}, {92, 78, 90, 78}};
+        for (int[] p : paths) footpath(c, p[0], p[1], p[2], p[3]);
+        plots(c);
+    }
+
+    /** Natural ground trodden to packed earth; paving, buildings and fixtures are left as they are. */
+    private static void packed(GenContext c, int x, int y) {
+        if (!c.grid.inBounds(x, y)) return;
+        GroundKind ground = c.topology.getGroundKind(x, y);
+        if (ground == GroundKind.SAND || ground == GroundKind.STONE || ground == GroundKind.GRASS || ground == GroundKind.SNOW)
+            c.topology.setGroundKind(x, y, GroundKind.DIRT);
+    }
+
+    private static boolean buildingAt(GenContext c, int x, int y) {
+        return c.grid.inBounds(x, y) && c.topology.hasBuildingKindHint(x, y);
+    }
+
+    /** Chebyshev cells to the nearest building cell, up to three; zero on a building. */
+    private static int buildingDistance(GenContext c, int x, int y) {
+        if (buildingAt(c, x, y)) return 0;
+        for (int r = 1; r <= 3; r++)
+            for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++)
+                if ((Math.abs(dx) == r || Math.abs(dy) == r) && buildingAt(c, x + dx, y + dy)) return r;
+        return 4;
+    }
+
+    private static void footpath(GenContext c, int x0, int y0, int x1, int y1) {
+        Cell a = new Cell(x0, y0), b = new Cell(x1, y1);
+        for (int y = Math.min(y0, y1) - 1; y <= Math.max(y0, y1) + 1; y++)
+            for (int x = Math.min(x0, x1) - 1; x <= Math.max(x0, x1) + 1; x++)
+                if (distanceToLeg(x, y, a, b) <= .9) packed(c, x, y);
+    }
+
+    /**
+     * Dead irrigated plots along the canal: a band five to twelve cells off its bank, cut into plots by earth bunds
+     * across it, furrowed parallel to the water so the rows follow each bend. Some plots lie fallow.
+     */
+    private static void plots(GenContext c) {
+        List<TerrainPlan.Stroke> canal = new ArrayList<>();
+        for (TerrainPlan.Stroke stroke : TerrainCatalog.plan(TerrainCatalog.DUST_LEDGER, c.get(BspKeys.MARKET_PROFILE).surface()).strokes())
+            if (stroke.mode() == TerrainPlan.Mode.EXCAVATE && stroke.radius() > 2.4) canal.add(stroke);
+        int[][] north = {{28, 74}, {96, 146}}, south = {{36, 74}, {88, 112}};
+        for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {
+            if (c.topology.getGroundKind(x, y) != GroundKind.SAND) continue;
+            double best = Double.MAX_VALUE, waterY = 0;
+            for (TerrainPlan.Stroke stroke : canal) {
+                TerrainPlan.Point p = stroke.points().get(0), q = stroke.points().get(stroke.points().size() - 1);
+                Cell a = new Cell((int) p.x(), (int) p.y()), b = new Cell((int) q.x(), (int) q.y());
+                double d = distanceToLeg(x, y, a, b) - stroke.radius();
+                if (d < best) {
+                    best = d;
+                    waterY = x <= a.x() ? a.y() : x >= b.x() ? b.y() : a.y() + (b.y() - a.y()) * (x - a.x()) / (double) (b.x() - a.x());
+                }
+            }
+            if (best < 3 || best > 10) continue;
+            int[][] ranges = y > waterY ? north : south;
+            boolean inside = false;
+            for (int[] r : ranges) inside |= x >= r[0] && x <= r[1];
+            if (!inside || x % 11 == 0) continue;
+            int plot = x / 11 + (y > waterY ? 0 : 100);
+            if (hash(plot, 0, 6152) < .22) continue;
+            c.topology.setGroundKind(x, y, (int) best % 3 == 0 ? GroundKind.SAND : GroundKind.DIRT);
+        }
+    }
+
+    /** A stable value in [0, 1) for a cell, independent of every random stream. */
+    private static double hash(int x, int y, int salt) {
+        long h = x * 73856093L ^ y * 19349663L ^ salt * 83492791L;
+        h ^= h >>> 13;
+        h *= 0x5bd1e995L;
+        h ^= h >>> 15;
+        return (h & 0xffffff) / (double) 0x1000000;
+    }
+
+    /** The apron's freight: stacks between and beside the berths, the bowser, Wayline's hauler stand kept clear. */
+    private static void apronFreight(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
-        // Apron: fuel bowser and stacked freight clear of the berths and the hauler stand.
-        yard.prop(31, 40, "parked-tanker-truck", 0);
-        yard.cargo(13, 79);
-        yard.cargo(28, 79);
-        // Market stalls along the south side of the crossroads.
-        for (int x : new int[]{96, 102}) yard.prop(x, 55, "mess-table-long", 0);
-        yard.prop(108, 55, "industrial-crate-stack", 0);
-        for (int x : new int[]{57, 70, 75}) yard.prop(x, 54, "mess-table-long", 0);
-        yard.prop(66, 54, "industrial-pallet-stack", 0);
-        yard.prop(80, 54, "industrial-crate-stack", 0);
-        // Wreckage of the old low-orbit battle on the open hardpan: a hull shell under the escarpment, plates south.
-        yard.prop(44, 89, "basin-scrap-hull-shell", 1);
-        yard.prop(60, 96, "basin-scrap-plate-stack", 0);
-        yard.prop(172, 5, "basin-scrap-rib-section", 2);
-        yard.prop(182, 6, "basin-scrap-plate-stack", 1);
-        // The warden's well behind the well house.
-        yard.prop(79, 75, "industrial-pump-set", 0);
-        // Harrow's yard: the stranded crawler waiting on its coupling, and the crew's stock.
+        yard.cargo(5, 51);
+        yard.cargo(13, 52);
+        yard.prop(21, 52, "stores-cargo-loader", 0);
+        yard.cargo(5, 65);
+        yard.prop(10, 66, "industrial-pallet-stack", 0);
+        yard.cargo(6, 79);
+        yard.cargo(15, 79);
+        yard.prop(26, 42, "parked-tanker-truck", 0);
+        for (int[] at : new int[][]{{27, 47}, {28, 47}, {27, 48}, {28, 53}, {27, 54}})
+            yard.prop(at[0], at[1], "industrial-crate-stack", 0);
+        yard.prop(26, 57, "industrial-pallet-stack", 0);
+        yard.prop(28, 57, "industrial-drum-cluster", 0);
+        yard.prop(26, 74, "parked-flatbed-truck", 0);
+        yard.prop(27, 78, "industrial-crate-stack", 0);
+        yard.prop(28, 78, "industrial-pallet-stack", 0);
+        // Freight staged in the strips between berths and along the apron's west edge; place() keeps berths clear.
+        for (int x = 6; x <= 26; x += 3) {
+            for (int y : new int[]{51, 53, 65, 67, 79, 81}) {
+                if (Math.abs(y - COMPANY_START.y()) <= 2 && (Math.abs(x - COMPANY_START.x()) <= 3
+                        || Math.abs(x - COUPLING_CRATE.x()) <= 2)) continue;
+                double roll = hash(x, y, 6154);
+                if (roll < .35) place(c, x, y, "industrial-crate-stack", 0);
+                else if (roll < .55) place(c, x, y, "industrial-pallet-stack", 0);
+                else if (roll < .65) place(c, x, y, "industrial-drum-cluster", 0);
+            }
+        }
+        for (int y = 42; y <= 78; y += 4) if (hash(5, y, 6155) < .6) place(c, 5, y, "industrial-crate-stack", 0);
+        lamp(c, 29, 50, -1, 0);
+        lamp(c, 29, 71, -1, 0);
+    }
+
+    /** Stalls clustered under awnings, carts and crawlers parked off the roads, cover strewn along the back lane. */
+    private static void marketDressing(GenContext c) {
+        // The court: the well at its heart, two stall clusters, a cart.
+        place(c, 71, 77, "industrial-pump-set", 0);
+        stall(c, 60, 75, 0);
+        stall(c, 60, 78, 1);
+        stall(c, 82, 74, 2);
+        stall(c, 82, 77, 0);
+        for (int[] at : new int[][]{{64, 74}, {65, 74}, {66, 79}, {76, 74}, {77, 74}, {69, 74}})
+            place(c, at[0], at[1], "industrial-crate-stack", 0);
+        place(c, 67, 75, "parked-utility-truck", 0);
+        for (int x : new int[]{63, 80}) place(c, x, 76, "chair-south-yellow", 0);
+        // Along the apron track: stalls on the south verge, a box van loading at the warehouses.
+        stall(c, 75, 54, 1);
+        stall(c, 80, 54, 2);
+        place(c, 85, 55, "industrial-pallet-stack", 0);
+        place(c, 64, 41, "parked-box-van", 0);
+        place(c, 69, 41, "industrial-pallet-stack", 0);
+        place(c, 71, 42, "industrial-crate-stack", 0);
+        place(c, 60, 52, "industrial-dumpster", 0);
+        // The crawler road's verges: a parked crawler and stalls at the corner, the Harrow yard.
+        place(c, 106, 75, "parked-flatbed-truck", 0);
+        place(c, 110, 76, "industrial-crate-stack", 0);
+        stall(c, 104, 59, 0);
+        place(c, 104, 62, "industrial-pallet-stack", 0);
+        harrowYard(c);
+        // The back lane: a broken line of fences, carts and stores between the homes and the plots.
+        for (int x = 93; x <= 99; x++) place(c, x, 35, "industrial-fence-straight-h", 0);
+        place(c, 102, 35, "industrial-crate-stack", 0);
+        place(c, 103, 34, "industrial-crate-stack", 0);
+        place(c, 111, 34, "parked-utility-truck", 0);
+        place(c, 117, 35, "industrial-pallet-stack", 0);
+        place(c, 124, 34, "industrial-drum-cluster", 0);
+        for (int x = 126; x <= 129; x++) place(c, x, 35, "industrial-fence-straight-h", 0);
+        barrier(c, 101, 41);
+        barrier(c, 117, 41);
+        for (int[] at : new int[][]{{72, 63}, {86, 64}, {92, 63}})
+            if (open(c, at[0], at[1], 1, 1))
+                StreetDressing.lamp(c.grid, c.topology, c.doodads, StreetDressing.LAMP, at[0], at[1], 0, -1);
+    }
+
+    /** A two-cell jersey barrier along x, where its ground is free. */
+    private static void barrier(GenContext c, int x, int y) {
+        if (open(c, x, y, 2, 1)) StreetDressing.jerseyBarrier(c.grid, c.topology, c.doodads, x, y, true);
+    }
+
+    private static void lamp(GenContext c, int x, int y, int dx, int dy) {
+        if (open(c, x, y, 1, 1)) StreetDressing.lamp(c.grid, c.topology, c.doodads, StreetDressing.LAMP_INDUSTRIAL, x, y, dx, dy);
+    }
+
+    /** A trestle stall with an awning over its keeper's side and a crate of stock beside it. */
+    private static void stall(GenContext c, int x, int y, int colour) {
+        if (!place(c, x, y, "mess-table-long", 0)) return;
+        StreetDressing.awning(c.doodads, StreetDressing.AWNINGS.get(colour % StreetDressing.AWNINGS.size()),
+                x + 1, y + 2, 0, -1);
+        place(c, x + 3, y, "industrial-crate-stack", 0);
+    }
+
+    private static void harrowYard(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
         yard.gravel(HARROW_YARD.left(), HARROW_YARD.bottom(), HARROW_YARD.right(), HARROW_YARD.top());
-        yard.prop(114, 57, "parked-flatbed-truck", 0);
-        yard.prop(122, 56, "field-salvage-machinery", 0);
-        yard.prop(126, 60, "field-salvage-metals", 0);
-        yard.prop(113, 63, "industrial-scrap-pile", 0);
-        // Compound: the crawler in front of its garage, drums by the pump hall, sandbags at the gate.
+        yard.perimeter(new int[]{120, 64}, HARROW_YARD.left(), HARROW_YARD.bottom(), HARROW_YARD.right(),
+                HARROW_YARD.bottom(), HARROW_YARD.right(), HARROW_YARD.top(), HARROW_YARD.left(), HARROW_YARD.top());
+        // The stranded crawler, its dropped drive on the ground beside it, and the crew's stock.
+        place(c, 115, 57, "parked-flatbed-truck", 0);
+        place(c, 115, 60, "basin-scrap-plate-stack", 0);
+        for (int[] at : new int[][]{{122, 57}, {124, 57}, {126, 59}, {114, 63}, {125, 62}})
+            place(c, at[0], at[1], at[0] % 2 == 0 ? "field-salvage-machinery" : "field-salvage-metals", 0);
+        place(c, 120, 57, "industrial-machine-tool", 0);
+        place(c, 118, 58, "industrial-cable-reel", 0);
+        place(c, 126, 56, "industrial-scrap-pile", 0);
+    }
+
+    /**
+     * The yard as the crew works it: the tank farm and pipe racks west of the pump house, the pump gear and the old
+     * pipeline south of it, stacked cargo and a chicane behind the gate.
+     */
+    private static void compoundDressing(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        for (int y = 48; y <= 54; y += 3) {
+            yard.prop(151, y, "industrial-fluid-tank", 0);
+            yard.prop(153, y, "industrial-fluid-tank", 0);
+        }
+        StreetDressing.pipeRun(c.grid, c.topology, c.doodads, 155, 47, 155, 57, 3);
+        yard.prop(158, 40, "industrial-turbine-set", 0);
+        yard.prop(167, 40, "industrial-reactor-housing", 0);
+        yard.prop(170, 41, "industrial-pump-set", 0);
+        yard.prop(175, 41, "industrial-generator", 0);
+        yard.prop(178, 41, "industrial-drum-cluster", 0);
+        yard.prop(179, 41, "industrial-drum-cluster", 0);
+        StreetDressing.pipeRun(c.grid, c.topology, c.doodads, PIPELINE_X, 31, PIPELINE_X, 38, 3);
+        // The crawler in front of its garage; cargo stacked for cover north of the pump house.
         yard.prop(141, 50, "parked-flatbed-truck", 0);
-        yard.prop(162, 39, "industrial-drum-cluster", 0);
-        yard.prop(168, 39, "industrial-fluid-tank", 0);
-        yard.prop(171, 39, "industrial-fluid-tank", 0);
-        yard.prop(176, 38, "industrial-generator", 0);
-        yard.cargo(158, 63);
-        yard.prop(152, 33, "industrial-pallet-stack", 0);
-        yard.prop(166, 33, "industrial-pipe-bundle", 0);
-        yard.prop(174, 33, "industrial-scrap-pile", 0);
         yard.prop(144, 47, "industrial-drum-cluster", 0);
+        yard.cargo(158, 62);
+        yard.cargo(167, 62);
         yard.prop(180, 62, "parked-cargo-truck", 1);
+        yard.prop(152, 33, "industrial-pallet-stack", 0);
+        yard.prop(170, 33, "industrial-scrap-pile", 0);
+        yard.prop(176, 33, "industrial-pipe-bundle", 0);
         yard.prop(182, 40, "industrial-cable-reel", 0);
+        // Sandbags behind the gate and a staggered barrier, so nothing drives straight in.
         for (int x = 167; x <= 169; x++) yard.prop(x, 66, "sandbag-straight-n", 0);
         for (int x = 175; x <= 177; x++) yard.prop(x, 66, "sandbag-straight-n", 0);
-        // The pump hall's pumps, the ledger room's records and burn barrel, the radio room's set.
-        yard.stock(PUMP_LEFT + 3, PUMP_BOTTOM + 8, "industrial-pump-set", 0, -9, -9);
-        yard.stock(PUMP_LEFT + 7, PUMP_BOTTOM + 4, "industrial-pump-set", 0, -9, -9);
-        Cell barrel = burnBarrel();
-        if (!yard.stock(barrel.x(), barrel.y(), "industrial-drum-cluster", 0, ledgerTarget().x(), ledgerTarget().y()))
-            throw new IllegalStateException("Ledger room has no room for its burn barrel");
-        yard.stock(PUMP_LEFT + 23, PUMP_BOTTOM + 1, "office-records-bank", 0, ledgerTarget().x(), ledgerTarget().y());
-        yard.stock(PUMP_LEFT + 23, PUMP_BOTTOM + 14, "industrial-switchboard", 0, PUMP_LEFT + 24, PUMP_BOTTOM + 12);
+        barrier(c, 170, 64);
+        barrier(c, 173, 61);
+        // Sandbagged corners for the wall sentries.
+        for (int x = 179; x <= 181; x++) yard.prop(x, 68, "sandbag-straight-n", 0);
+        for (int x = 180; x <= 182; x++) yard.prop(x, 31, "sandbag-straight-s", 0);
+        for (int[] at : new int[][]{{150, 60}, {183, 45}, {150, 44}}) lamp(c, at[0], at[1], 1, 0);
+        // Inside: the pump hall's pumps, the ledger room's records and burn barrel, the radio room's set.
+        inside(c, PUMP_LEFT + 2, PUMP_BOTTOM + 8, "industrial-pump-set");
+        inside(c, PUMP_LEFT + 2, PUMP_BOTTOM + 4, "industrial-pump-set");
+        inside(c, PUMP_LEFT + 5, PUMP_BOTTOM + 6, "industrial-switchboard");
+        inside(c, burnBarrel().x(), burnBarrel().y(), "industrial-drum-cluster");
+        inside(c, PUMP_LEFT + 17, PUMP_BOTTOM + 1, "office-records-bank");
+        inside(c, PUMP_LEFT + 17, PUMP_BOTTOM + 12, "industrial-switchboard");
+        // The pipeline outside the wall: broken lengths along the canal bank, the old feed from the water.
+        String[] lengths = {"industrial-pipe-bundle", "industrial-pipe-bundle-damaged", "industrial-pipe-bundle-destroyed"};
+        for (int y = 26; y <= 28; y++) place(c, PIPELINE_X, y, lengths[y % 3], 0);
+        int i = 0;
+        for (int x = 150; x >= 141; x -= 3) place(c, x, 28 + (i % 2), lengths[i++ % 3], 0);
+    }
+
+    /** Wreckage of the old low-orbit battle and the terraforming's ruins framing the hardpan. */
+    private static void hardpan(GenContext c) {
+        place(c, 48, 90, "basin-scrap-hull-shell", 1);
+        place(c, 68, 94, "basin-scrap-plate-stack", 0);
+        place(c, 4, 86, "basin-scrap-wreck-frame", 3);
+        place(c, 170, 1, "basin-scrap-rib-section", 2);
+        place(c, 182, 2, "basin-scrap-plate-stack", 1);
+        place(c, 56, 2, "basin-scrap-engine-break", 0);
+        place(c, 128, 2, "basin-scrap-intake-section", 1);
+        place(c, 26, 4, "basin-scrap-drive-section", 2);
+        for (int[] at : new int[][]{{20, 12}, {22, 11}, {46, 8}, {100, 4}, {104, 7}, {186, 34}, {188, 40}, {34, 82}})
+            place(c, at[0], at[1], "industrial-scrap-pile", 0);
+    }
+
+    /**
+     * A prop on open ground if its whole footprint is free and clear of doors, roads and berths; returns whether it
+     * stood. Dressing yields to circulation rather than refusing the map.
+     */
+    private static boolean place(GenContext c, int x, int y, String id, int turns) {
+        DoodadDef def = TileRegistry.installed().doodad("doodad." + id);
+        if (def == null) return false;
+        Doodad prop = new Doodad(x, y, def, turns);
+        if (!open(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
+        occupy(c, prop);
+        return true;
+    }
+
+    private static boolean open(GenContext c, int x, int y, int w, int h) {
+        for (int yy = y; yy < y + h; yy++) for (int xx = x; xx < x + w; xx++) {
+            if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy)
+                    || c.topology.hasBuildingKindHint(xx, yy) || c.topology.getGroundKind(xx, yy) == GroundKind.STREET)
+                return false;
+            for (int ty = yy - 1; ty <= yy + 1; ty++) for (int tx = xx - 1; tx <= xx + 1; tx++)
+                if (c.grid.inBounds(tx, ty) && c.grid.isDoorway(tx, ty)) return false;
+            for (LandingPad pad : c.landingPads)
+                if (xx >= pad.left() - 2 && xx <= pad.right() + 2 && yy >= pad.bottom() - 2 && yy <= pad.top() + 2)
+                    return false;
+            for (int hy = HAULER.y() - HAULER_HALF_LENGTH; hy <= HAULER.y() + HAULER_HALF_LENGTH; hy++)
+                if (Math.abs(xx - HAULER.x()) <= HAULER_HALF_WIDTH && yy == hy) return false;
+        }
+        return true;
+    }
+
+    /** A fitting on a room's floor; the rooms are authored, so one that does not fit is a plan error. */
+    private static void inside(GenContext c, int x, int y, String id) {
+        Doodad prop = new Doodad(x, y, TileRegistry.installed().doodad("doodad." + id), 0);
+        for (int yy = y; yy < y + prop.footprintCellsY; yy++) for (int xx = x; xx < x + prop.footprintCellsX; xx++)
+            if (!c.grid.isWalkable(xx, yy) || c.grid.isDoorway(xx, yy) || c.topology.isFixture(xx, yy))
+                throw new IllegalStateException("Pump house fitting does not fit: " + id + " at " + x + "," + y);
+        occupy(c, prop);
+    }
+
+    private static void occupy(GenContext c, Doodad prop) {
+        for (int yy = prop.cellY; yy < prop.cellY + prop.footprintCellsY; yy++)
+            for (int xx = prop.cellX; xx < prop.cellX + prop.footprintCellsX; xx++) {
+                c.grid.setWalkable(xx, yy, false);
+                c.grid.setSeeThrough(xx, yy, true);
+                c.topology.setFixture(xx, yy, true);
+            }
+        c.doodads.add(prop);
     }
 
     /** Pump house rooms, in the stamp's own columns and rows from its south-west corner. */
-    static Area ledgerRoom() { return room(21, 1, 27, 5); }
-    static Area countingRoom() { return room(13, 1, 19, 5); }
-    static Area brokerOfficeRoom() { return room(13, 10, 19, 14); }
-    static Area radioRoom() { return room(21, 10, 27, 14); }
-    static Cell ledgerTarget() { return new Cell(PUMP_LEFT + 24, PUMP_BOTTOM + 3); }
-    static Cell burnBarrel() { return new Cell(PUMP_LEFT + 27, PUMP_BOTTOM + 2); }
-    static Cell brokerOffice() { return new Cell(PUMP_LEFT + 16, PUMP_BOTTOM + 12); }
+    static Area ledgerRoom() { return room(16, 1, 21, 5); }
+    static Area countingRoom() { return room(9, 1, 14, 5); }
+    static Area brokerOfficeRoom() { return room(9, 9, 14, 12); }
+    static Area radioRoom() { return room(16, 9, 21, 12); }
+    static Cell ledgerTarget() { return new Cell(PUMP_LEFT + 19, PUMP_BOTTOM + 3); }
+    static Cell burnBarrel() { return new Cell(PUMP_LEFT + 21, PUMP_BOTTOM + 1); }
+    static Cell brokerOffice() { return new Cell(PUMP_LEFT + 11, PUMP_BOTTOM + 10); }
 
     private static Area room(int l, int b, int r, int t) {
         return new Area(PUMP_LEFT + l, PUMP_BOTTOM + b, PUMP_LEFT + r, PUMP_BOTTOM + t);
@@ -383,16 +664,18 @@ public final class DustLedgerCrossing {
     }
 
     /**
-     * The ridge under the escarpment: one tier up, climbed by the west ramp off the well lane and the east ramp
-     * above the gate. Authored here rather than in the terrain document, which raises only masses nobody stands on.
+     * The ridge: a spur of the escarpment one tier up, swelling over the compound and tapering west toward the
+     * market, climbed by the west ramp at its tip and the east ramp above the gate. Authored here rather than in the
+     * terrain document, which raises only masses nobody stands on.
      */
     static ElevationPlan ridgePlan() {
-        List<ElevationPlan.Point> line = List.of(new ElevationPlan.Point(76, 93), new ElevationPlan.Point(100, 94),
-                new ElevationPlan.Point(126, 93), new ElevationPlan.Point(150, 93), new ElevationPlan.Point(166, 92));
-        return new ElevationPlan(WIDTH, HEIGHT, 2, 2, .35, 6140,
-                List.of(new ElevationPlan.Plateau(1, 6.5, line, List.of(4.5, 6.0, 6.5, 6.5, 4.5), false)),
-                List.of(new ElevationPlan.Ramp(point(WEST_RAMP_FOOT), WEST_RAMP_HEAD, 3),
-                        new ElevationPlan.Ramp(point(EAST_RAMP_FOOT), EAST_RAMP_HEAD, 3)));
+        List<ElevationPlan.Point> line = List.of(new ElevationPlan.Point(98, 92), new ElevationPlan.Point(108, 95),
+                new ElevationPlan.Point(120, 92), new ElevationPlan.Point(134, 94), new ElevationPlan.Point(148, 90),
+                new ElevationPlan.Point(162, 92), new ElevationPlan.Point(173, 94));
+        return new ElevationPlan(WIDTH, HEIGHT, 2, 2, .45, 6140,
+                List.of(new ElevationPlan.Plateau(1, 7.5, line, List.of(6.0, 6.0, 4.5, 7.5, 6.5, 6.0, 3.0), false)),
+                List.of(new ElevationPlan.Ramp(point(WEST_RAMP_FOOT), WEST_RAMP_HEAD, 4),
+                        new ElevationPlan.Ramp(point(EAST_RAMP_FOOT), EAST_RAMP_HEAD, 4)));
     }
 
     private static ElevationPlan.Point point(Cell cell) { return new ElevationPlan.Point(cell.x(), cell.y()); }
@@ -404,10 +687,10 @@ public final class DustLedgerCrossing {
     private static Layout layout(MapResult map, Sites s) {
         Map<PostRole, List<Cell>> posts = new EnumMap<>(PostRole.class);
         posts.put(PostRole.GATE, List.of(new Cell(168, 65), new Cell(172, 67), new Cell(176, 65)));
-        posts.put(PostRole.WALL, List.of(new Cell(183, 68), new Cell(183, 31), new Cell(137, 68)));
-        posts.put(PostRole.ROOF, List.of(new Cell(PUMP_LEFT + 4, PUMP_BOTTOM + 14), new Cell(PUMP_LEFT + 24, PUMP_BOTTOM + 13)));
-        posts.put(PostRole.CLERKS, List.of(new Cell(PUMP_LEFT + 16, PUMP_BOTTOM + 7), new Cell(PUMP_LEFT + 16, PUMP_BOTTOM + 3),
-                new Cell(PUMP_LEFT + 22, PUMP_BOTTOM + 4)));
+        posts.put(PostRole.WALL, List.of(new Cell(180, 67), new Cell(181, 32), new Cell(137, 68)));
+        posts.put(PostRole.ROOF, List.of(new Cell(PUMP_LEFT + 3, PUMP_BOTTOM + 12), new Cell(PUMP_LEFT + 19, PUMP_BOTTOM + 11)));
+        posts.put(PostRole.CLERKS, List.of(new Cell(PUMP_LEFT + 12, PUMP_BOTTOM + 7), new Cell(PUMP_LEFT + 11, PUMP_BOTTOM + 3),
+                new Cell(PUMP_LEFT + 18, PUMP_BOTTOM + 4)));
         posts.put(PostRole.CRAWLER, List.of(new Cell(151, 62), new Cell(146, 53), new Cell(140, 55)));
         posts.put(PostRole.CANTINA, interiorCells(map, s.cantina, 4));
         return new Layout(map, APRON, COMPANY_START, HAULER, COUPLING_CRATE, ledgerRoom(), ledgerTarget(), burnBarrel(),

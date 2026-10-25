@@ -110,9 +110,8 @@ class MissionDebriefConversationTest {
             assertTrue(lines.get(0).speaker().startsWith("MARA"));
             var next = lines.get(lines.size() - 1);
             assertTrue(next.speaker().startsWith("CASTLE"));
-            assertTrue(next.text().contains("Asharu") && next.text().contains("plot a course"));
-            assertTrue(lines.subList(0, lines.size() - 1).stream().allMatch(WaylineNarration.Line::voiced));
-            assertFalse(next.voiced(), "the Asharu handoff waits on its lead before it is recorded");
+            assertTrue(next.text().contains("Asharu"));
+            assertTrue(lines.stream().allMatch(WaylineNarration.Line::voiced));
         }
     }
 

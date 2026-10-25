@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-25 — squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -1471,6 +1471,16 @@ traded against changed: then a shot through a friend, now no shot. On Broad
 Front it raises rounds fired for militia and marines alike (+5 to +11% and +5 to
 +25% over two seeds to tick 5,860); Conquest has not been re-measured under it.
 
+**Target choice prefers what is killing the squad.** Nearest-first scoring adds
+a cost to a target in a pack, which is right for a target that must be walked
+to and wrong for a Spitter lobbing acid at the shooter from inside one. So a
+Spitter with the shooter inside its lob range plus a few cells is preferred by
+ten cells and does not pay the pack cost (`TacticalScoring.splashPriority`). An
+emplacement that cannot hurt the ground is shot only when nothing armed is in
+view. A special round is held while a friendly stands in its lane or within its
+blast plus a cell, checked when it is committed and again when it is released,
+wall breaches included (`TacticalScoring.dangerClose`).
+
 **It ships on, and which column is the outcome is the reason.** Compounds held
 at the end is what a Conquest is won or lost on; captures is throughput, and a
 run that takes 12 and keeps 11 has done better than one that takes 14 and keeps
@@ -1681,6 +1691,14 @@ search; those are independent routing problems and must not be credited to it.
 The `squad-traffic` behaviour scene is its showcase and acceptance: open-ground
 spreading, compression through a five-cell neck and recovery after it, and two
 flows crossing, with nobody lost, no blocked ground and bounded waiting.
+
+Within a squad, the same layer walks members in **march files**: three files a
+cell and a half apart, the middle one on the lane, closing to single file where
+the ground narrows (`SquadTrafficSystem.marchFile`). Every member otherwise
+follows its own route down the one shared field, so a squad marched single file
+and stopped that way, 0.6 cells apart, where its march met the contact. A squad
+in contact keeps its files and takes no part in other squads' traffic; a member
+with no file to keep follows its route as before.
 
 A chosen **execution firing position** likewise persists while it remains
 usable. Ordinary periodic squad replanning, movement toward the position, or a

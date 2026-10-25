@@ -111,10 +111,11 @@ class WorldPickerTest {
             Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 12, 12);
             int x = fixture.screenX(marine.entityId), y = fixture.screenY(marine.entityId);
             InputEventAPI down = event(Kind.LEFT_DOWN, x, y);
-            InputEventAPI up = event(Kind.LEFT_UP, x + 2, y + 1);
+            // Past the world's drag threshold, short of the chrome's.
+            InputEventAPI up = event(Kind.LEFT_UP, x + 5, y + 3);
 
             List<InputEventAPI> chrome = fixture.picker.handleInputBeforeChrome(
-                    List.of(down, event(Kind.MOVE, x + 2, y + 1), up), (px, py) -> true);
+                    List.of(down, event(Kind.MOVE, x + 5, y + 3), up), (px, py) -> true);
 
             assertTrue(down.isConsumed());
             assertEquals(4, chrome.size());
@@ -149,6 +150,44 @@ class WorldPickerTest {
     }
 
     @Test
+    void emptyBoxFromChromeKeepsTheSelection() {
+        try (Fixture fixture = fixture()) {
+            Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 5, 5);
+            fixture.selection.selectUnit(marine.squadId, marine.entityId);
+            int startX = Math.round(fixture.camera.cellToScreenX(30));
+            int startY = Math.round(fixture.camera.cellToScreenY(30));
+            int endX = Math.round(fixture.camera.cellToScreenX(36));
+            int endY = Math.round(fixture.camera.cellToScreenY(36));
+
+            fixture.picker.handleInputBeforeChrome(List.of(event(Kind.LEFT_DOWN, startX, startY),
+                    event(Kind.MOVE, endX, endY), event(Kind.LEFT_UP, endX, endY)), (px, py) -> true);
+
+            assertEquals(marine.squadId, fixture.selection.getSelectedSquadId());
+        }
+    }
+
+    @Test
+    void rightPressCancelsTheBoxAndSwallowsBothReleases() {
+        try (Fixture fixture = fixture()) {
+            fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 12, 12);
+            int startX = Math.round(fixture.camera.cellToScreenX(10));
+            int startY = Math.round(fixture.camera.cellToScreenY(10));
+            int endX = Math.round(fixture.camera.cellToScreenX(15));
+            int endY = Math.round(fixture.camera.cellToScreenY(15));
+            fixture.picker.handleInput(List.of(event(Kind.LEFT_DOWN, startX, startY),
+                    event(Kind.MOVE, endX, endY)));
+            InputEventAPI right = event(Kind.RIGHT_DOWN, endX, endY);
+            InputEventAPI rightUp = event(Kind.RIGHT_UP, endX, endY);
+            InputEventAPI up = event(Kind.LEFT_UP, endX, endY);
+
+            fixture.picker.handleInputBeforeChrome(List.of(right, rightUp, up), (px, py) -> false);
+
+            assertTrue(right.isConsumed() && rightUp.isConsumed() && up.isConsumed());
+            assertEquals(Selection.NONE, fixture.selection.getSelectedSquadId());
+        }
+    }
+
+    @Test
     void worldDragReleasedOverChromeStillSelects() {
         try (Fixture fixture = fixture()) {
             Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 12, 12);
@@ -179,6 +218,8 @@ class WorldPickerTest {
                 (proxy, method, args) -> switch (method.getName()) {
                     case "isLMBDownEvent" -> kind == Kind.LEFT_DOWN;
                     case "isLMBUpEvent" -> kind == Kind.LEFT_UP;
+                    case "isRMBDownEvent" -> kind == Kind.RIGHT_DOWN;
+                    case "isRMBUpEvent" -> kind == Kind.RIGHT_UP;
                     case "isMouseMoveEvent" -> kind == Kind.MOVE;
                     case "isShiftDown" -> shift;
                     case "getX" -> x;
@@ -209,6 +250,8 @@ class WorldPickerTest {
     private enum Kind {
         LEFT_DOWN,
         LEFT_UP,
+        RIGHT_DOWN,
+        RIGHT_UP,
         MOVE
     }
 

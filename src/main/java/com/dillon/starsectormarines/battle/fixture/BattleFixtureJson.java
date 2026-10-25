@@ -161,6 +161,11 @@ public final class BattleFixtureJson {
             root.put("base", toJson(cold.base()));
             return root;
         }
+        if (fixture instanceof DustLedgerBattleFixture ledger) {
+            encodeCommon(root, ledger.kind(), ledger.seed(), ledger.manifest(), false,
+                    ledger.risk(), ledger.targetProfile());
+            return root;
+        }
         if (fixture instanceof AssaultBattleFixture assault) {
             encodeCommon(root, assault.kind(), assault.seed(),
                     assault.manifest(), assault.enemyHasHeavyArmor(),
@@ -282,6 +287,10 @@ public final class BattleFixtureJson {
                     root.has("posture") ? enumValue(CordonPosture.class, root.getString("posture"), "posture")
                             : CordonPosture.DEFAULT);
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
+            case DustLedgerBattleFixture.KIND -> new DustLedgerBattleFixture(root.getLong("seed"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")),
+                    enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                    targetProfileFromJson(root.getJSONObject("targetProfile")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);

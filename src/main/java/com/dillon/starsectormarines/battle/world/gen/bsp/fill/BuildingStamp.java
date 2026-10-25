@@ -152,26 +152,24 @@ public enum BuildingStamp {
             "#####+++#####"),
     /**
      * Saltwell Cross's old terraforming pump house (`dust-ledger-crossing.md`): the pump hall on the west, and
-     * off a through corridor the broker's office and the radio room to the north, the counting room and the ledger
+     * off a one-cell corridor the broker's office and the radio room to the north, the counting room and the ledger
      * room to the south. The ledger room opens on the corridor and through the counting room. Story map only.
      */
-    PUMP_HOUSE("Pump house", BuildingKind.CIVIC, BuildingStyle.CIVIC,
-            "###nnn#nnn#####nnn#####nnn###",
-            "#k.........k#d.....k#c.....c#",
-            "#...........#.......#.......#",
-            "w...........#d......#c......e",
-            "#...........#.......#.......#",
-            "#...........#.......#.......#",
-            "#...........####+#######+####",
-            "#...........+...............+",
-            "#...........+...............+",
-            "#...........####+#######+####",
-            "#...........#.......#.......#",
-            "w...........#.......#.......e",
-            "#...........#.......+.......#",
-            "#...........#.......#.......#",
-            "#k.........k#d.d.d..#kk...kk#",
-            "##s##++##s#####sss#####sss###");
+    PUMP_HOUSE("Pump house", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
+            "##nn#nn###nnn#####nnn##",
+            "#k.....k#d....k#c....c#",
+            "w.......#......#......e",
+            "#.......#d.....#......#",
+            "#.......#......#......#",
+            "#.......###+#######+###",
+            "#.......+.............+",
+            "#.......###+#######+###",
+            "#.......#......#......#",
+            "w.......#......#......e",
+            "#.......#......+......#",
+            "#.......#......#......#",
+            "#k.....k#d.d.d.#k.....#",
+            "##s++s#####ss#####ss###");
 
     /**
      * The plans a city lot may draw. The farm buildings stand only where the
