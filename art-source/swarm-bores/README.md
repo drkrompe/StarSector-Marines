@@ -109,12 +109,12 @@ and `python art-source/swarm-bores/review_sheet.py` for the side-by-side sheets.
 **Brood spire** (`make_guide.spire_body`). The one tall growth, so it is modelled as round, tapering, leaning
 columns (`stalk`: the highest point of a chain of spheres over each pixel), and its height is told by its lean and
 the long shadow the ray-march throws down-sun; the canvas is large (`CANVAS_CELLS` 7) so the shadow fits. Three
-body plans were drawn for the owner's pick (`SPIRE_STYLES`: `roost`, `chimney`, `clutch`; `SPIRE_STYLE` is built
-on). Each option's guide is `templates/swarm-brood-spire-<style>-1-guide.png`, its brief
+body plans were drawn for the owner's pick (`SPIRE_STYLES`: `roost`, `chimney`, `clutch`); `SPIRE_STYLE` is the
+pick, `roost`, whose option painting is variant 1. Each option's guide is `templates/swarm-brood-spire-<style>-1-guide.png`, its brief
 `prompts/brood-spire-<style>.prompt.txt` and its painting `raw/options/brood-spire-<style>-1.raw.png`;
 `export.py --spire-option <style>` exports one as `brood-spire-1` for the look review
-(`createSnapshots -Psnapshot=brood-spire-look`). The picked plan then gets its three variants and damage states
-through the ordinary steps.
+(`createSnapshots -Psnapshot=brood-spire-look`). The remains snap the column and lay its top on the ground
+(`snapped`).
 
 **Mother bore** (`make_guide.mother_body`). The heart's root, so it must read as far more than a bore: a wider rim
 and a throat more than twice as deep, ribbed all the way down with sinew cords down its walls and a faint amber glow

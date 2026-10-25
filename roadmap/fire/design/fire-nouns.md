@@ -169,7 +169,11 @@ burnt ground behind a front someone lit on purpose.
   source keeps its claim on the ground it held, so the creep comes back over
   a burn from the edges it still holds once the refusal ends. A living source
   behind the line cannot re-take what the line has passed until then, and
-  ground a source still reaches beside the break is still the creep's.
+  ground a source still reaches beside the break is still the creep's. A
+  nest's skitterers cut the wait short: one working a burnt cell its bore
+  still claims ends the refusal there and round it after a few seconds
+  (`colony-breach-nouns.md`, Skitterer), so a burn by a living nest is crept
+  back over from the nest outward unless its workers are killed.
 - **Burning creep recedes.** A burning cell of creep is lost to the creep as
   it burns: its coverage goes to nothing and it does not regrow while it is
   refused: the creep under a fire crisps and is gone in about three seconds

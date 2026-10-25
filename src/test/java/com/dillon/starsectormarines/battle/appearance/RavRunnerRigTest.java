@@ -87,6 +87,25 @@ class RavRunnerRigTest {
     }
 
     @Test
+    void aSkittererPutsItsHeadDownOnlyWhileItStandsAtWork() {
+        RavRunnerRig rig = RavRunnerRig.worker(9L);
+        rig.setWork(RavRunnerRig.WORK_HEAD_DOWN);
+        float x = 10f;
+        for (int tick = 0; tick < 30; tick++) {
+            rig.advance(x, 10f, -90f, 1f, false, DT);
+            x += 2.5f * DT;
+        }
+        assertTrue(rig.headDip() < 0.05f, "a skitterer on the move carries its head");
+        for (int tick = 0; tick < 30; tick++) rig.advance(x, 10f, -90f, 1f, false, DT);
+        assertTrue(rig.headDip() > 0.5f, "standing at the work, its head goes down");
+        rig.setWork(RavRunnerRig.WORK_PULP);
+        assertTrue(rig.held() == RavRunnerRig.WORK_PULP);
+        rig.setWork(RavRunnerRig.WORK_NONE);
+        for (int tick = 0; tick < 30; tick++) rig.advance(x, 10f, -90f, 1f, false, DT);
+        assertTrue(rig.headDip() < 0.05f && rig.held() == RavRunnerRig.WORK_NONE, "done, it lifts its head");
+    }
+
+    @Test
     void aCarrierFacesItsLoadAndLatchesOn() {
         RavRunnerRig rig = new RavRunnerRig(5L);
         float x = 10f, y = 10f;

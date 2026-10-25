@@ -40,13 +40,13 @@ FISSURE_ELONGATION = 2.0
 FPS = ooze.FPS
 GRID = 128
 MAX_WOUNDS = {"bore": 5, "mother-bore": 6, "spore-colony-fissure": 3, "spore-colony-bore": 4,
-              "spore-colony-maw": 4, "ground-colony": 4}
+              "spore-colony-maw": 4, "ground-colony": 4, "brood-spire": 5}
 # The ooze's frame edge on the map, in cells: the pool in it is a little over a quarter of that across.
 OOZE_CELLS = {"bore": 1.0, "mother-bore": 1.1, "spore-colony-fissure": 0.7, "spore-colony-bore": 0.8,
-              "spore-colony-maw": 0.85, "ground-colony": 0.8}
+              "spore-colony-maw": 0.85, "ground-colony": 0.8, "brood-spire": 1.0}
 # The spray's frame edge on the map, in cells: the gash is a fifth of it long, the spray lands up to four tenths out.
 SPRAY_CELLS = {"bore": 2.4, "mother-bore": 2.6, "spore-colony-fissure": 1.4, "spore-colony-bore": 1.6,
-               "spore-colony-maw": 1.7, "ground-colony": 1.6}
+               "spore-colony-maw": 1.7, "ground-colony": 1.6, "brood-spire": 2.4}
 MIN_APART = 0.09
 MIN_AREA = 3
 # Grid cells the heightfield is blurred over before its slope picks a run's direction.

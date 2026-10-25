@@ -285,6 +285,11 @@ public final class SwarmAudio {
             if (stride % 2 != 0) return null;
             return stride % 6 == 0 ? Sound.RUNNER_CLATTER : Sound.RUNNER_GALLOP;
         }
+        // a skitterer's patter is the Runner's clatter, thinner still, played up at its size
+        if (strain == UnitType.SWARM_WORKER) {
+            if (carrying) return Sound.BODY_DRAG;
+            return stride % 3 == 0 ? Sound.RUNNER_CLATTER : null;
+        }
         return null;
     }
 
@@ -335,22 +340,25 @@ public final class SwarmAudio {
     }
 
     static Sound pain(UnitType strain) {
-        if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_PAIN;
+        if (strain == UnitType.SWARM_RUNNER || strain == UnitType.SWARM_WORKER) return Sound.RUNNER_PAIN;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_PAIN;
         if (heavy(strain)) return Sound.BRUTE_PAIN;
         return null;
     }
 
     static Sound death(UnitType strain) {
-        if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_DEATH;
+        if (strain == UnitType.SWARM_RUNNER || strain == UnitType.SWARM_WORKER) return Sound.RUNNER_DEATH;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_DEATH;
         if (heavy(strain)) return Sound.BRUTE_DEATH;
         return null;
     }
 
-    /** A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up. */
+    /**
+     * A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up; a skitterer,
+     * smaller than any whelp, higher still.
+     */
     static float pitch(UnitType strain, SwarmStage stage) {
-        return 1f / SwarmStage.of(stage).scale(strain);
+        return 1f / (SwarmStage.of(stage).scale(strain) * (strain == UnitType.SWARM_WORKER ? strain.renderScale : 1f));
     }
 
     /** A body's loudness by its stage, against the adult's. */

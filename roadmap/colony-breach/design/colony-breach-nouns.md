@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-25 — a creep-killed tree is undergrowth a heavy tank pushes over.
+Updated: 2026-10-25 — the skitterer, the nests' worker strain; a creep-killed tree is undergrowth a heavy tank pushes over.
 
 Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
 
@@ -637,7 +637,8 @@ Laws:
 - Carriers are readable and interceptable: a stream of bodies being dragged to
   a bore is the player's signal that a bore is about to grow, and a carrier is
   an ordinary Runner to shoot.
-- Only a Runner carries, and only what it killed itself or finds loose. A
+- Only a Runner or a skitterer carries, and only what it killed itself or
+  finds loose (a skitterer kills nothing, so it carries only the loose). A
   Brute's or a Spitter's kill, or a body shot down by the company, stays where
   it fell.
 - **The swarm recycles its own dead.** A dead Runner lies loose, to be taken
@@ -860,15 +861,18 @@ through, made into a thing on the map the company can find and kill.
 - **Only an old bloom has one.** Spires grow when a battle's creep is matured
   at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
-  in opening order, on open ground inside the bore's creep between six and
-  fourteen cells from its mouth and clear of its colonies, and never within
-  sixty-four cells of another spire, so a map carries a few, not one per bore.
+  in opening order, on open ground inside the bore's creep between sixteen and
+  twenty-eight cells from its mouth and five clear of its colonies, and never
+  within sixty-four cells of another spire, so a map carries a few, not one per
+  bore. It stands out on the creep apart from its bore's knot of colonies (owner,
+  2026-10-25: the first cut packed them into one clump).
   The mother bores have none: their air is the Matriarch's brood.
 - **When it launches.** With its bore's surge (surges, not trickles): each surge
   launches a pack of seven off it, provided a marine or an ally stands within a
   Harrier's sense of it, no pack of its own is still in the air, at least
-  forty-five seconds have passed since its last, and the flier law holds. A
-  sleeping bore's spire is quiet with it.
+  forty-five seconds have passed since its last, and the flier law holds. The
+  pack rises off its crown, low and clustered, and is seen climbing out to its
+  loiter ring. A sleeping bore's spire is quiet with it.
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
@@ -878,8 +882,11 @@ through, made into a thing on the map the company can find and kill.
   geometry-first painting of the Runner's chitin, lit by the game's sun, its
   height told by its lean and a long shadow thrown down-sun, drawn half again
   its modelled size so it stands out as a landmark on a mass of creep. Brood
-  pods glow amber where the fliers hatch. The body plan is the owner's open
-  pick (`brood-spire-look`: roost, chimney or clutch); roost is built on.
+  pods glow amber where the fliers hatch. Its body plan is the **roost** (the
+  owner's pick of roost, chimney and clutch, 2026-10-25): one great curved horn
+  of stacked chitin collars leaning out of a plated footing, hooked bone perches
+  up its flanks with brood pods hanging under them. Three paintings; wounded, its
+  pods burst and its skirt torn; dead, the horn snapped and lying on the ground.
 - `-Dbattle.swarm.broodSpires=false` is the control: no spires and no broods.
   Scene: `brood-spire`.
 
@@ -895,7 +902,8 @@ closed for good, the population target is the sum of the living bores'
 capacities by tier, and bodies enter only as surges from living bores. Between
 the tremor and the first eruption nothing spawns; once every bore has
 collapsed, nothing spawns again. Every swarm strain counts toward the
-population. The snapshot carries each bore that has opened: its tier, whether
+population but the skitterer, which a bore broods under its own cap (Swarm
+strain: Skitterer). The snapshot carries each bore that has opened: its tier, whether
 it lives, integrity, growth, biomass fed, surges, bodies released, next surge,
 its living spore colonies and the ticks it opened and collapsed.
 
@@ -1219,6 +1227,98 @@ not read in a soft shadow at play zoom.
     ordinary corpse of the unit that died, moved to where the fall landed and
     kept undrawn until then, so it pools, melts into the creep and counts
     against the body pile by the same laws.
+- **Skitterer** — the nest's worker (`SwarmWorkers`, `SwarmWorkerBehavior`; the
+  owner's idea, 2026-10-25: "not combat focused and more a slightly passive
+  worker around the nest"). It gives a nest life between surges, and every job
+  it does is one the company can see and stop by killing it. It never fights.
+  - **What it is.** A small Runner-family body, about two thirds a Runner's
+    length, drawn on the Runner's skeleton with its own bones: no spike arms,
+    a pair of short pincer mandibles in their place, a broad back for loads.
+    Unplated, 10 health (one rifle hit), a little slower than a Runner. It has
+    no growth stage: every skitterer is an adult. Colonists call them ticks.
+  - **Where it comes from.** A living bore **broods** skitterers out of its
+    mouth on a clock of its own, never in a surge: one every twelve seconds
+    while it has fewer than its **brood**, which is one at fissure, two at
+    bore and three at maw, two more for a mother. The clock starts with the
+    bore's first surge, so a fresh bore's first act is to fight. A sleeping
+    bore broods too (a nest asleep is still busy). An old bloom's nests are
+    full at setup: when the creep is matured each living bore stands with its
+    whole brood round its mouth. A skitterer belongs to its bore; when that
+    bore collapses it keeps working for the nearest living one, and with none
+    left it only flees and mills.
+  - **What it costs the swarm.** Nothing out of the fight. Skitterers are
+    outside the director's population target and its live weight, and outside
+    every surge's budget, so no combat body is held back for one; the brood cap
+    is their whole price, and at most a handful stand round each bore.
+  - **What it does**, decided serially for each skitterer about once a second,
+    the first that applies:
+    1. **Flee.** A marine or an ally on the ground within seven cells, or a
+       hurt of its own in the last three seconds: it drops what it hauls and
+       scatters, running directly away from the nearest threat for a few
+       seconds, then back toward its bore once nothing is near. Nothing else it
+       does is worth a shot; a nest under fire empties of workers and fills
+       again when the fire stops.
+    2. **Haul.** A loose body (*Harvest*: one of the swarm's dead or a load a
+       carrier dropped) within its bore's creep reach, or sixteen cells of its
+       bore where the bore has none: it goes to the body, takes it up as a
+       carrier does and drags it to the nearest living bore at seven tenths of
+       its own pace. Delivered, it feeds the bore through the feed seam as any
+       carrier's load does and counts the same (a Runner is recycled, a
+       colonist delivered). So Runners stay in the fight and the dead in front
+       of a nest still go home; killing haulers starves the bore. A skitterer
+       never seizes a kill (it makes none) and is never a scavenger.
+    3. **Repair.** A structure of its nest below nine tenths of its structure:
+       its bore, a spore colony or outpost of the bore, a ground colony the bore
+       grew, or the bore's brood spire. It crawls onto the body and restores
+       eight structure a second while it stays there, two skitterers at most
+       on one body, the worst-hurt first. A half-killed structure therefore
+       heals back over a minute or two unless its workers are cleared; it is
+       drawn wounded again only while it stands under half. A collapsed bore
+       and a dead growth are never mended.
+    4. **Tend the spire.** Its bore's brood spire is waiting out its gap
+       between packs: it carries a feed from the mouth to the spire. Each
+       skitterer that reaches the spire takes eight seconds off the spire's
+       wait, down to a floor of twenty seconds between packs, then walks back
+       to the mouth for the next feed. A tended spire launches on more of its
+       bore's surges.
+    5. **Grow.** Ground its bore's creep still claims but fire has burnt
+       (`fire-nouns.md`, Firebreak): it goes to the nearest such cell to its
+       bore and works it for four seconds, which ends the refusal there and on
+       the cells beside it, so the creep fills them again and they are fuel
+       again. A burn left alone is crept back over from the nest outward, a
+       few cells a worker, and holds only while it is burnt again or its
+       workers are killed. A worker never works beside a cell still burning.
+       Failing that, it **strips a tree** (owner, 2026-10-25: "harvest trees
+       and other organics"): the nearest living tree in reach whose crown the
+       creep has reached, two workers at most on one, each taking three
+       points a second off what the creep still has to climb before the tree
+       dies (*Trees die under it*), so a worked tree dies in about half the
+       time; a worker there when its tree dies carries the pulp home, a
+       quarter of a colonist's biomass through the feed seam. Failing that, a
+       pending outpost of its bore (*Creep carries the umbrella outward*): it
+       stands on the cell, and every second it does counts the outpost's hold
+       twice over. Failing that, it mills round the mouth, feeding the bore's
+       creep a second of growth for every ten it spends there, so a busy nest
+       visibly spreads.
+  - **Sound and look of the work.** A hauling skitterer draws as a Runner
+    carrier does (backing toward the bore, the load latched in its mandibles);
+    standing at a mend, a burn, a tree or an outpost it crouches with its
+    head down and pecks at it, each body to its own rhythm; one going to the
+    spire carries a glob of amber feed in its mandibles, and one coming home
+    from a tree a wad of pulp (`load-feed`, `load-pulp`). It has no
+    cry and no strike; its feet are the Runner's clatter, thinner, and its
+    hurt and death the Runner's, all pitched up by its size. Dead, it bursts as
+    a Runner does and the creep digests it.
+  - **How the company treats it.** An ordinary body on the swarm's side, shot
+    as any other; clearing a nest of its workers is the player's call.
+  - **Its look** (`art-source/rav-redesign/worker`): the hauler, a squat back
+    with a cradle of ivory ribs where loads ride, one amber node and short
+    hooked mandibles, painted geometry-first over the Runner's own body layer
+    and cut to its bones (the owner's pick over a tender with an amber gut sac
+    and a mite with a round pale shield; `swarm-worker-look`).
+  - Control: `-Dbattle.swarm.workers=false` broods none. Scene: `swarm-workers`
+    (a verdict per job, the speed-ups each against a control). Look:
+    `swarm-worker-look`.
 
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never
@@ -1395,7 +1495,7 @@ against its own control in `renderEvidence`.
   firebreak.
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
-  climbing is dead, and stays dead if the creep later withers. A dead tree has
+  climbing (less what skitterers have stripped off it) is dead, and stays dead if the creep later withers. A dead tree has
   dropped its leaves, so its crown no longer hides or shelters anyone (sight
   passes and it gives no edge cover) while its trunk still does both and its
   tangle of bare limbs still stops a body walking through (owner, 2026-10-22,

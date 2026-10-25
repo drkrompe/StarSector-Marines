@@ -122,6 +122,7 @@ Harrier): a pack flies only where the company or an ally has anti-air.
 - B3 digs a flak position among the guns. When the barrage's second line opens, a pack rises on the flank toward the battery, on the side of the nearest living bore, and `battery_threatened` is published.
 - F3 digs one at the ammunition dump. While a target satellite's colonies stand, one raises a pack whenever the company or an ally comes within a Harrier's sense of it: at most three packs, two minutes apart.
 - With no anti-air standing, no pack rises.
+- The base's own flak (`heart-nouns.md`, Logistics base) already stands at the dump and the battery, so these beats find it rather than dig a second, and the satellites' brood spires fly over every heart battle whether or not a beat rolls.
 
 Two beats are read as objectives the moment does not say outright. B1's
 ranging smoke is presentation, so its objective asks what the walk asks of

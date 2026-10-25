@@ -60,6 +60,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             case SWARM_BRUTE: SwarmBruteBehavior.update(runner, sim); return;
             case SWARM_SPITTER: SwarmSpitterBehavior.update(runner, sim); return;
             case SWARM_MATRIARCH: SwarmMatriarchBehavior.update(runner, sim); return;
+            case SWARM_WORKER: SwarmWorkerBehavior.update(runner, sim); return;
             default: break;
         }
         tickCooldown(runner, sim);
@@ -162,7 +163,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
      * the bore field to the nearest living bore, or its own path there while
      * the field is not built. It does not strike while it carries.
      */
-    private static void carryHome(long runner, BattleSimulation sim) {
+    static void carryHome(long runner, BattleSimulation sim) {
         sim.combat().setTargetId(runner, 0L);
         if (SwarmMovement.moveToward(runner, SwarmGoal.BORE, sim)) return;
         SwarmBore bore = sim.swarmBores().nearestLiving(sim.world().x(runner), sim.world().y(runner));

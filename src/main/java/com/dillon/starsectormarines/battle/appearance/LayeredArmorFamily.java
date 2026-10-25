@@ -116,6 +116,8 @@ public enum LayeredArmorFamily {
             case TECHNICIAN: return ENGINEER;
             case SCIENTIST: return SCIENTIST;
             case ALIEN:
+            // The skitterer is drawn on the Runner's skeleton; the Runner's family stands in for its facing.
+            case SWARM_WORKER:
             case SWARM_RUNNER: return XENO;
             case SWARM_BRUTE:
             // The Matriarch is drawn on its own skeleton; the Brute's family stands in for its facing.

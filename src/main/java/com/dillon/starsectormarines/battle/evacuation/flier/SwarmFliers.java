@@ -59,6 +59,9 @@ public final class SwarmFliers {
     private int released;
 
     public List<HarrierPack> packs() { return Collections.unmodifiableList(packs); }
+
+    /** How many Harriers the battle has released, in every pack. */
+    public int released() { return released; }
     public List<HarrierFall> falls() { return Collections.unmodifiableList(falls); }
     public List<HarrierLift> lifts() { return Collections.unmodifiableList(lifts); }
 
@@ -170,6 +173,26 @@ public final class SwarmFliers {
         }
         packs.add(pack);
         return pack;
+    }
+
+    /**
+     * Sets a pack just released off a roost (a brood spire's crown at {@code (x, y)}) to rise from it: every member
+     * clustered within {@link HarrierRules#ROOST_SPREAD} of the crown, low, facing outward, so the pack is seen
+     * climbing out and spreading to its loiter ring rather than appearing on it.
+     */
+    public void risingFrom(BattleSimulation sim, HarrierPack pack, float x, float y) {
+        int n = pack.members.size();
+        NavigationGrid grid = sim.getGrid();
+        for (int i = 0; i < n; i++) {
+            HarrierFlight m = pack.members.get(i);
+            double a = 2 * Math.PI * i / n;
+            float px = clamp(x + (float) Math.cos(a) * HarrierRules.ROOST_SPREAD, grid.getWidth());
+            float py = clamp(y + (float) Math.sin(a) * HarrierRules.ROOST_SPREAD, grid.getHeight());
+            m.body.teleport(px, py, (float) Math.toDegrees(a));
+            m.altitude = m.shownAltitude = HarrierRules.ROOST_ALTITUDE;
+            m.shownRate = 0f;
+            sim.world().setPos(m.id, px, py);
+        }
     }
 
     /** One tick: every pack's prey, flight and strikes, then any splits. */
