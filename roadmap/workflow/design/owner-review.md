@@ -94,7 +94,9 @@ creates one with its first question and adds a row to `tools/picks/pages.md`
 - **A question is an `options.json`**: `[{id, question, options:[{key, label,
   file, note}]}]`, one 1920x1080 image per option rendered on the real scene
   (real ground, real buildings, play zoom), a short `note` on what each option
-  does in play, and `(recommended)` in the label you would pick. Yes/no and
+  does in play, and `(recommended)` in the label you would pick. A question about
+  sound or motion gives each option a `video` (an `.mp4` under 15 MB) the card plays
+  in place with its sound, the image as its poster. Yes/no and
   "how big" questions get pictures too.
 - **Sub-sessions raise it to their parent.** A session started by another
   session never posts or asks the owner itself: it sends its parent the
