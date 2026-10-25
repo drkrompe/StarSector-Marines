@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.staffed;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.ambient.StaffedCrew;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.LoadingBay;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayDeque;
@@ -78,6 +80,7 @@ public final class Loading {
     private final float[][] exitRoute;
     private final String tailgateGroup;
     private final int target;
+    private boolean atBay;
     private final Set<Long> atTailgate = new HashSet<>();
     private Phase phase = Phase.LOADING;
     private int delivered;
@@ -99,6 +102,16 @@ public final class Loading {
      * @param target crates aboard before the truck leaves
      */
     public static Loading install(BattleSimulation sim, StaffedBuildings.Staffed building, int target) {
+        return install(sim, building, target, List.of());
+    }
+
+    /**
+     * {@link #install(BattleSimulation, StaffedBuildings.Staffed, int)} at the building's own loading bay
+     * where a set piece laid one ({@code set-piece-blocks.md}): the truck stands where the yard means it to
+     * and nothing is searched. A building with no bay is parked as before.
+     */
+    public static Loading install(BattleSimulation sim, StaffedBuildings.Staffed building, int target,
+                                  List<LoadingBay> bays) {
         if (building == null || building.crew().isEmpty() || target <= 0) return null;
         NavigationGrid grid = sim.getGrid();
         VehicleClearance clearance = VehicleClearance.erode(grid,
@@ -111,25 +124,44 @@ public final class Loading {
         // no turning circle gets it out of.
         int[] door = null, park = null;
         float[][] exit = null;
+        float standX = 0f, standY = 0f, facing = 0f;
+        boolean bayed = false;
+        LoadingBay bay = bayOf(building.building(), bays);
+        if (bay != null) {
+            int[] cell = {(int) Math.floor(bay.standX()), (int) Math.floor(bay.standY())};
+            if (clearance.isPassable(cell[0], cell[1])) exit = exit(grid, clearance, components, cost, cell);
+            if (exit != null) {
+                bayed = true;
+                door = new int[]{bay.doorX(), bay.doorY()};
+                park = cell;
+                standX = bay.standX();
+                standY = bay.standY();
+                facing = bay.headingDegrees();
+            }
+        }
         for (int[][] stand : parkings(grid, clearance, building.building(),
                 (x, y) -> leaving.contains(components.labelAt(x, y))
                         && TurnAwareCorridor.canSetOutFrom(x + .5f, y + .5f, VehicleType.CARGO_CARRIER, grid) ? 1 : 0)) {
+            if (exit != null) break;
             exit = exit(grid, clearance, components, cost, stand[1]);
             if (exit != null) {
                 door = stand[0];
                 park = stand[1];
-                break;
+                standX = park[0] + .5f;
+                standY = park[1] + .5f;
+                // Backed up to the door, so the tailgate faces it; the stand lets it set out whichever way
+                // the road leaves.
+                facing = (float) Math.toDegrees(Math.atan2(park[1] - door[1], park[0] - door[0]));
             }
         }
         if (exit == null) return null;
 
-        // Backed up to the door, so the tailgate faces it; the stand lets it set out whichever way the road
-        // leaves.
-        float facing = (float) Math.toDegrees(Math.atan2(park[1] - door[1], park[0] - door[0]));
-        VehicleMission mission = VehicleMission.deployed(park[0] + .5f, park[1] + .5f);
+        VehicleMission mission = VehicleMission.deployed(standX, standY);
         long truck = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, mission);
         GroundBody body = sim.convoy().body(truck);
-        if (body != null) body.facingDegrees = facing;
+        // The facing worked in here is a maths angle; a hull's is sprite-north based.
+        if (body != null) body.facingDegrees = AirBody.facingToward((float) Math.cos(Math.toRadians(facing)),
+                (float) Math.sin(Math.toRadians(facing)));
 
         List<float[]> tailgate = tailgate(grid, park, door, facing);
         if (tailgate.isEmpty()) {
@@ -143,6 +175,7 @@ public final class Loading {
                     park[0] + .5f, park[1] + .5f));
         }
         Loading loading = new Loading(building, truck, exit, group, target);
+        loading.atBay = bayed;
         for (int member = 0; member < building.crew().size(); member++) {
             long actor = building.crew().get(member);
             if (!sim.getRoster().isLive(actor)) continue;
@@ -220,6 +253,9 @@ public final class Loading {
     }
 
     public Phase phase() { return phase; }
+
+    /** Whether the truck stands at a set piece's loading bay rather than a stand found by search. */
+    public boolean atBay() { return atBay; }
 
     /** Crates aboard so far. */
     public int delivered() { return delivered; }
@@ -360,6 +396,15 @@ public final class Loading {
                 }
             }
             if (best != null) return best;
+        }
+        return null;
+    }
+
+    /** The bay whose loading door opens off {@code building}, or null. */
+    public static LoadingBay bayOf(PointOfInterest building, List<LoadingBay> bays) {
+        for (LoadingBay bay : bays) {
+            if (bay.doorX() >= building.left - 2 && bay.doorX() <= building.right + 2
+                    && bay.doorY() >= building.top - 2 && bay.doorY() <= building.bottom + 2) return bay;
         }
         return null;
     }

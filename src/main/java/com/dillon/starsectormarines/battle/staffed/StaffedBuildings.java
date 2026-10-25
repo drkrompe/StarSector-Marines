@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Puts a civilian crew to work in some of a populated map's ordinary buildings
@@ -76,12 +77,19 @@ public final class StaffedBuildings {
      */
     public static List<Staffed> install(BattleSimulation sim, MapResult map, long seed,
                                         Set<BuildingWork.Kind> kinds, int most) {
+        return install(sim, map, seed, kinds, most, building -> false);
+    }
+
+    /** {@link #install(BattleSimulation, MapResult, long, Set, int)}, staffing the buildings {@code first} names before the rest. */
+    public static List<Staffed> install(BattleSimulation sim, MapResult map, long seed,
+                                        Set<BuildingWork.Kind> kinds, int most, Predicate<PointOfInterest> first) {
         List<Staffed> staffed = new ArrayList<>();
         if (most <= 0 || kinds.isEmpty()) return staffed;
         List<Candidate> candidates = candidates(sim, map, kinds);
         // The seed breaks ties; the biggest buildings go first, since a crew reads best where there is floor to carry across.
         Collections.shuffle(candidates, new Random(seed ^ SALT));
-        candidates.sort(Comparator.comparingInt((Candidate c) -> c.work.size()).reversed());
+        candidates.sort(Comparator.comparing((Candidate c) -> !first.test(c.building))
+                .thenComparing(Comparator.comparingInt((Candidate c) -> c.work.size()).reversed()));
         for (Candidate candidate : candidates) {
             if (staffed.size() >= most) break;
             BuildingSite site = site(candidate);
