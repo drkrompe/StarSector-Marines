@@ -62,6 +62,8 @@ public final class BroodSpires {
     static final float CLEARANCE = 5f;
     /** Directions tried on each ring. */
     static final int DIRECTIONS = 24;
+    /** Hooks a spire's brood clings to while it waits; drawn only (`colony-breach-nouns.md`, Brood spire). */
+    public static final int PERCHES = 5;
     /** Damage that withers a spire outright when its bore collapses. */
     private static final float WITHER_DAMAGE = 1_000_000f;
 
@@ -102,6 +104,26 @@ public final class BroodSpires {
     public List<Spire> spires() { return Collections.unmodifiableList(spires); }
 
     public List<Launch> launches() { return Collections.unmodifiableList(launches); }
+
+    /**
+     * How many of a spire's next brood cling to its hooks: none while its own pack is in the air, then filling back
+     * one by one over its gap of {@code gapTicks} after a launch (shorter when tended), so a full roost is a spire
+     * ready to launch again.
+     */
+    public static int perched(boolean packAloft, int ticksSinceLast, int gapTicks) {
+        if (packAloft) return 0;
+        return (int) Math.min(PERCHES, (long) Math.max(0, ticksSinceLast) * PERCHES / Math.max(1, gapTicks));
+    }
+
+    /** How many Harriers cling to {@code s}'s hooks now ({@link #perched(boolean, int, int)}); none on a dead spire. */
+    public int perched(BattleSimulation sim, Spire s) {
+        if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return 0;
+        return perched(aloft(sim, s), sim.getSimTickIndex() - s.lastReleaseTick, gapTicks(s.tendedTicks));
+    }
+
+    private static boolean aloft(BattleSimulation sim, Spire s) {
+        return s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
+    }
 
     /** The spire whose body is {@code entityId}, or {@code null}. */
     public Spire byEntity(long entityId) {
@@ -231,9 +253,8 @@ public final class BroodSpires {
 
     private void surged(BattleSimulation sim, Spire s, int tick) {
         if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return;
-        boolean aloft = s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
         float x = s.x + 0.5f, y = s.y + 0.5f;
-        if (!releases(SwarmFliers.hasAirCover(sim), aloft, tick - s.lastReleaseTick, s.tendedTicks,
+        if (!releases(SwarmFliers.hasAirCover(sim), aloft(sim, s), tick - s.lastReleaseTick, s.tendedTicks,
                 preyNear(sim, x, y))) return;
         s.pack = sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
         sim.swarmFliers().risingFrom(sim, s.pack, x, y);
