@@ -115,6 +115,7 @@ class HeartEvidenceTest {
                     if (landfallTick < 0 && marinesAshore(sim)) landfallTick = sim.getSimTickIndex();
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+                if (run == 0) AirWingProbe.print(fixtureId, sim);
                 // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
                 ObjectiveBoard board = sim.getOptionalObjectives();
                 if (board != null) board.end(sim.getSimTickIndex());

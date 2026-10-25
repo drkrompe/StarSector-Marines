@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-24 — the gap law is closed with gap nests (street mouths in built country) and is acceptance
+Updated: 2026-10-25 — a forward observer in each redoubt calls the allied air wing
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -160,6 +160,18 @@ ground and fight from the slits: an order that draws them to the middle of the
 yard leaves the wall empty and the gates open. The garrison is kitted as the
 colony's best (troops dug in for weeks). A garrison is what makes a redoubt
 stand; the company never commands it.
+
+**Forward observer.** The world's military is organized, and its redoubts
+call air: each redoubt's garrison carries one radio, in its front wall team
+(the first team behind the slits facing the front), on a soldier other than its
+leader (`air-nouns.md`, Forward observer). Through it the military's **air
+wing** (two bombers and two fighters, flying in over the rear) strikes a swarm
+mass that observer has in sight, never within ten cells of an allied or company
+soldier, and never a Harrier pack overhead. Its officer reads the anti-air from
+the colonies the side has seen, so a mass in front of a bore whose colonies
+nobody has seen costs aircraft. A redoubt whose observer is killed calls no more
+air; the columns, the street teams, the town's militia, the refugees and the
+company carry no radio onto the wing's net. Both variants, every density.
 
 **Redoubt states.** A redoubt is **holding** while its garrison stands and no
 swarm body is inside its wall. It is **calling** (for relief) once a swarm

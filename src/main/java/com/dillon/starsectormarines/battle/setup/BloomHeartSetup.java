@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
+import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -354,6 +356,12 @@ public final class BloomHeartSetup {
         } else if (park != null) {
             heartGuns.calledFrom(new AlliedToolShed(park)
                     .stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS), true);
+        }
+        if (lanes != null) {
+            // The military's air wing over Broad Front, called through the observer it attaches to each lane (`heart-nouns.md`).
+            Precinct home = built.plan().landingPlace();
+            AlliedAirWing.install(sim, home.seedX(), home.seedY(), lanes.grounds().stream()
+                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
         }
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());

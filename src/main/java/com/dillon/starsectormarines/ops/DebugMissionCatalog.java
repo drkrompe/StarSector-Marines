@@ -230,9 +230,12 @@ public final class DebugMissionCatalog {
     public static List<Mission> missions(PlanetAPI planet) {
         List<Mission> result = new ArrayList<>();
         for (Scenario scenario : Scenario.values()) if (scenario.offered()) result.add(scenario.mission());
-        for (Mission m : MissionGenerator.generateDebugGrid(planet, client())) if (m.type == MissionType.CONQUEST) result.add(m);
+        for (Mission m : MissionGenerator.generateDebugGrid(planet, client()))
+            if (m.type == MissionType.CONQUEST || colonyBreach(m)) result.add(m);
         return List.copyOf(result);
     }
+    /** The production-shaped Colony Breach the picker lists with the Rav Bloom missions; the force-scaled stress rescues stay out. */
+    public static boolean colonyBreach(Mission m) { return m != null && m.source == MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE; }
     public static Client client() { return new Client(MarineOpsContext.DEBUG_CLIENT_FACTION_ID, "DEBUG Missions", null, RepLevel.NEUTRAL, false, null); }
     public static MarineRoster starterCompany(int squads) {
         MarineRoster roster = new MarineRoster();

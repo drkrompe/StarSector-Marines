@@ -99,7 +99,14 @@ public class NavigationGrid {
          * wade ({@link #SHALLOW_WATER_SPEED}). Sight, cover and passability stay
          * with the underlying ground.
          */
-        SHALLOW_WATER;
+        SHALLOW_WATER,
+        /**
+         * A natural obstruction a heavy-lift hull flattens by driving into it:
+         * undergrowth (a young or a dead tree) or a lone boulder. Closed to
+         * walking like any natural solid; only {@code HeavyTracks} reads it as
+         * open, and crushing it clears it.
+         */
+        CRUSHABLE;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -394,6 +401,24 @@ public class NavigationGrid {
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);
         return copy;
+    }
+
+    /**
+     * Brings cell {@code idx} of this routing copy back in line with {@code source}: its flags, with
+     * {@code extraFlags} set on top, and its cell-local edges. A change is logged as any topology change is, so a
+     * derivation of the copy catches up cell by cell as it does on the live grid. Routing copies only: cover and
+     * sight caches are not touched.
+     */
+    public void syncRoutingCell(NavigationGrid source, int idx, long extraFlags) {
+        if (source.width != width || source.height != height) {
+            throw new IllegalArgumentException("Routing copy and source dimensions differ");
+        }
+        long flags = source.cellFlags[idx] | extraFlags;
+        byte edges = source.edgePassability[idx];
+        if (cellFlags[idx] == flags && edgePassability[idx] == edges) return;
+        cellFlags[idx] = flags;
+        edgePassability[idx] = edges;
+        markTopologyChanged(idx);
     }
 
     /** Compatibility name for vehicle footprint/turn routing snapshots. */
