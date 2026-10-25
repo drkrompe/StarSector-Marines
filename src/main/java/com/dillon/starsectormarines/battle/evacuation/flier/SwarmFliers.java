@@ -44,7 +44,7 @@ public final class SwarmFliers {
 
     /** Something a pack did, kept for evidence. */
     public record Event(int tick, Kind kind, int pack, long harrier, long target) {
-        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST }
+        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST, LANDED }
     }
 
     private final List<HarrierPack> packs = new ArrayList<>();
@@ -169,6 +169,19 @@ public final class SwarmFliers {
         pack.nextHatchTick = sim.getSimTickIndex();
         packs.add(pack);
         hatchDue(sim, pack, sim.getSimTickIndex());
+        return pack;
+    }
+
+    /**
+     * Puts a patrol of {@code count} up off a brood spire ({@code spire}, its crown at ({@code x}, {@code y})) to fly
+     * {@code route} ({@link HarrierPatrol#route}) and land back on it, hatching from the crown as any spire's pack
+     * does, under the same law ({@link #hatchUnderCover}).
+     */
+    public HarrierPack patrolUnderCover(BattleSimulation sim, HarrierLook look, long spire, float x, float y,
+                                        float[] route, int count) {
+        HarrierPack pack = hatchUnderCover(sim, look, spire, x, y, x, y, count, 0L);
+        if (!sim.swarmEmergence().enabled()) risingFrom(sim, pack, x, y);
+        pack.patrol = new HarrierPatrol(route, x, y, Math.max(1, Math.min(HarrierRules.MAX_PACK, count)));
         return pack;
     }
 
@@ -306,12 +319,18 @@ public final class SwarmFliers {
                     buildCandidates(sim);
                     candidatesBuilt = true;
                 }
-                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L);
+                // A patrol on its route only spots what comes near; once it hunts it senses as any pack.
+                float range = pack.patrol != null && !alive ? HarrierPatrol.SPOT_RANGE : HarrierRules.SENSE_RANGE;
+                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L, range);
                 alive = prey != 0L;
             }
             if (alive) pack.prey(prey, world.x(prey), world.y(prey), sim.physicalRadius(prey));
             else pack.prey(0L, 0f, 0f, 0f);
             if (pack.phase == HarrierPack.Phase.DIVE) followPrey(sim, pack);
+            if (pack.patrol != null && !alive && pack.phase == HarrierPack.Phase.LOITER && pack.unhatched <= 0) {
+                pack.patrol.step(BattleSimulation.TICK_DT);
+                pack.anchorAt(pack.patrol.x(), pack.patrol.y());
+            }
             HarrierPack.Phase before = pack.phase;
             pack.advance(BattleSimulation.TICK_DT, (h, t) -> {
                 sim.applyDamage(t, h, HarrierRules.BITE_DAMAGE, HarrierRules.BITE_PENETRATION,
@@ -329,6 +348,12 @@ public final class SwarmFliers {
             } else if (before == HarrierPack.Phase.PULL_UP && pack.phase == HarrierPack.Phase.LOITER) {
                 events.add(new Event(tick, Event.Kind.PULL_UP_DONE, pack.id, 0L, pack.target));
             }
+            for (HarrierFlight m : pack.landedNow) {
+                // Back on its hooks: off the field, no body, and the spire's roost holds it again.
+                sim.takeOffTheField(m.id);
+                events.add(new Event(tick, Event.Kind.LANDED, pack.id, m.id, 0L));
+            }
+            pack.landedNow.clear();
             NavigationGrid grid = sim.getGrid();
             for (HarrierFlight m : pack.members) {
                 m.body.x = clamp(m.body.x, grid.getWidth());

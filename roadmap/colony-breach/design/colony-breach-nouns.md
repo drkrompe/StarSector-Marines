@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — the brood spire's patrols: three off a quiet, full roost fly a loop over the nest and land.
+
 Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
 
 Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
@@ -956,6 +958,20 @@ through, made into a thing on the map the company can find and kill.
   flies, then filling back one by one over the gap after a launch, so a full
   roost is a spire ready to launch again. Drawn only: they are not units until
   they rise (`SpirePerchRenderSystem`).
+- **Its patrols.** A quiet spire (its roost full, nothing to hunt within a
+  Harrier's sense of it, no pack of its own up, the flier law met) puts three of
+  its roost up every thirty to sixty seconds, counted from the last patrol's
+  return (`HarrierPatrol`; the owner's roving squads, 2026-10-25). They hatch
+  off the hooks as a launch does, then wheel round a seeded loop over the bore,
+  eighteen to thirty-two cells out and turning through just over half to most of
+  a lap, and come home and land on the crown one by one, back on its hooks and
+  off the field. On the loop a patrol only sees twenty-two cells, a scout's eye;
+  what it spots it hunts as any pack does, and with its prey gone it picks the
+  loop up where it left it. A patrol home short leaves the roost short, filling
+  back as after a launch, which holds off the spire's next launch too. So a line
+  that keeps clear of a spire is still found if it stands on the nest's beat,
+  and flak that thins a patrol buys time against the next pack. Scene:
+  `harrier-patrol`; look: `harrier-patrol-look`.
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
