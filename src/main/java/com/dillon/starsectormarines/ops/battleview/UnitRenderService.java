@@ -1301,9 +1301,10 @@ public final class UnitRenderService implements RenderSystem {
                             && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
                     float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
-                    float poolAlpha = alphaMult * pileFadeAlpha(faded);
+                    float sunk = ctx.sim.swarmHarvest().sunk(t.entityAt(r), now);
+                    float poolAlpha = alphaMult * pileFadeAlpha(faded) * sinkAlpha(sunk);
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
-                            * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
+                            * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT) * sinkScale(sunk);
                     // The pool is lit and charred with its body.
                     effects.stampLight(out, rx[r], ry[r]);
                     effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
@@ -1337,9 +1338,11 @@ public final class UnitRenderService implements RenderSystem {
                 float digested = type.isSwarm() ? ctx.sim.creepDigestion().digested(t.entityAt(r)) : 0f;
                 // A body the pile cap is retiring settles and fades the same way, on any ground.
                 float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
-                float pileAlpha = pileFadeAlpha(faded);
+                // A body fed to a bore drops into its mouth: smaller as it goes down, then gone.
+                float sunk = ctx.sim.swarmHarvest().sunk(t.entityAt(r), ctx.sim.getSimTickIndex());
+                float pileAlpha = pileFadeAlpha(faded) * sinkAlpha(sunk);
                 float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
-                float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
+                float shrink = (1f - MELT_SHRINK * Math.max(digested, faded)) * sinkScale(sunk);
                 effects.stampLight(out, rx[r], ry[r]);
                 effects.stampDeadWear(out, ctx.sim, rx[r], ry[r]);
                 if (type == UnitType.SWARM_HARRIER) {
@@ -1462,6 +1465,21 @@ public final class UnitRenderService implements RenderSystem {
 
     /** How much a digesting body shrinks by the time the creep has it all. */
     private static final float MELT_SHRINK = 0.2f;
+    /** The drawn size, as a share of whole, of a fed body at the bottom of its sink. */
+    static final float SINK_SCALE = 0.3f;
+
+    /** A fed body shrinks as it goes down the mouth, quickly at first as it drops. */
+    static float sinkScale(float sunk) {
+        if (sunk <= 0f) return 1f;
+        float t = Math.min(1f, sunk);
+        return 1f - (1f - SINK_SCALE) * (1f - (1f - t) * (1f - t));
+    }
+
+    /** A fed body stays solid for the first part of its sink, then fades into the dark of the hole. */
+    static float sinkAlpha(float sunk) {
+        float t = Math.max(0f, Math.min(1f, (sunk - 0.4f) / 0.6f));
+        return 1f - t * t * (3f - 2f * t);
+    }
 
     /** A body the pile cap retires fades out smoothly over the whole of its fade. */
     static float pileFadeAlpha(float faded) {
