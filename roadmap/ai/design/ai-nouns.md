@@ -717,6 +717,12 @@ crew keeps at it through a firefight going on around them, breaks off when a
 round actually finds one of them, and goes back to it once nothing has for a few
 seconds. In between they are an ordinary unit and behave like one.
 
+A civilian **at work** is the third answer. Yielding to anybody armed empties a
+garrisoned town's workplaces the first time its own patrol walks past, so a
+staffed building's crew (`staffed-buildings.md`) yields to a **fight** instead:
+an armed actor in reach who has somebody to shoot at, or a round finding one of
+them. The patrol is part of the town; a firefight is not.
+
 Being hit is read as **structure lost since the last time the actor was asked**,
 which is a tick's worth. A near miss leaves nothing on the target to read, so
 they work through the rounds that miss and stop at the one that does not — a
