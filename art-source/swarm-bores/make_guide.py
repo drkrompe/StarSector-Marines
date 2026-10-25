@@ -69,6 +69,7 @@ CANVAS_CELLS = {
     "spore-colony-bore": 2.0,
     "spore-colony-maw": 2.4,
     "ground-colony": 2.0,
+    "brood-spire": 7.0,
 }
 # How much larger than the modelled body a part is drawn: its layer's `cells` is CANVAS_CELLS times this. The
 # heightfield is modelled at the body's physical size (one cell, one metre) so the sun's shadow length is right
@@ -81,6 +82,7 @@ DISPLAY_SCALE = {
     "spore-colony-bore": 1.4,
     "spore-colony-maw": 1.4,
     "ground-colony": 1.4,
+    "brood-spire": 1.45,
 }
 
 
@@ -96,6 +98,7 @@ VARIANTS = {
     "spore-colony-bore": 3,
     "spore-colony-maw": 3,
     "ground-colony": 3,
+    "brood-spire": 3,
 }
 PARTS = tuple(CANVAS_CELLS)
 # Damage states. ``wounded`` is drawn once a structure has lost half its durability: plates torn out of their
@@ -106,10 +109,14 @@ PARTS = tuple(CANVAS_CELLS)
 # through all three.
 STATES = ("intact", "wounded", "remains")
 SEEDS = {"bore": 1100, "mother-bore": 2300, "spore-colony-fissure": 3100, "spore-colony-bore": 3700,
-         "spore-colony-maw": 4100, "ground-colony": 5300}
+         "spore-colony-maw": 4100, "ground-colony": 5300,
+         "brood-spire": 6100}
 # The ground colony's body plan (``ground_colony_body``).
 GROUND_COLONY_STYLES = ("ridge", "star", "urchin")
 GROUND_COLONY_STYLE = "star"  # the owner's pick, 2026-10-22
+# The brood spire's body plan (``spire_body``); ``roost`` is built on until the owner picks.
+SPIRE_STYLES = ("roost", "chimney", "clutch")
+SPIRE_STYLE = "roost"
 
 
 def to_sun_screen():
@@ -836,10 +843,188 @@ def ground_colony_body(f: Field, style: str):
         f.scars(5 if hurt else 8, (cx, cy), 0.7)
 
 
+def stalk(f: Field, samples, rings: float = 0.0):
+    """A round, tapering, leaning column through 3D ``samples`` of ``(x, y, z, r, material)``, seen from above.
+
+    The top surface over a pixel is the highest point of any sample's sphere over it, so a column that leans
+    shows its length across the ground and its lit flank, and one that stands straight shows only its crown and
+    its shadow. ``rings`` lips the column with that many growth collars along its length, each a little proud
+    of the segment above it, the way a horn or a shell grows.
+    """
+    height = np.full((N, N), -1e9, np.float32)
+    material = np.zeros((N, N), np.uint8)
+    n = len(samples)
+    for k, (sx, sy, sz, r, mat) in enumerate(samples):
+        if rings:
+            t = k / max(1, n - 1)
+            phase = (t * rings) % 1.0
+            r = r * (1 + 0.11 * math.exp(-((phase - 0.88) / 0.07) ** 2))
+        j0, i0 = (int(max(0, v)) for v in f.px(sx - r, sy - r))
+        j1, i1 = (int(min(N, v + 2)) for v in f.px(sx + r, sy + r))
+        if j1 <= j0 or i1 <= i0:
+            continue
+        xs, ys = f.x[i0:i1, j0:j1], f.y[i0:i1, j0:j1]
+        d2 = (xs - sx) ** 2 + (ys - sy) ** 2
+        top = np.where(d2 < r * r, sz + np.sqrt(np.clip(r * r - d2, 0, None)), -1e9)
+        sub, msub = height[i0:i1, j0:j1], material[i0:i1, j0:j1]
+        higher = top > sub
+        sub[higher] = top[higher]
+        msub[higher] = mat
+    mask = height > -1e8
+    take = mask & (height >= f.h)
+    f.h[take] = height[take]
+    f.m[take] = material[take]
+    f.over |= take
+
+
+def spire_spine(base, angle, lean, height, r0, r_tip, curl=0.0, steps=90, material=CHITIN, bone_from=1.1,
+                droop=0.0):
+    """Samples up a column from ``base`` (x, y, z): it rises ``height`` while leaning ``lean`` of it out along
+    ``angle``, bending more towards the tip, turning by ``curl``; bone from ``bone_from`` of the way up. ``droop``
+    bends the tip back down, a hook rather than a horn."""
+    bx, by, bz = base
+    out = []
+    for k in range(steps + 1):
+        t = k / steps
+        a = angle + curl * t
+        reach = lean * height * t ** 1.5
+        z = bz + height * t - droop * height * t ** 3
+        r = r_tip + (r0 - r_tip) * (1 - t) ** 0.85
+        out.append((bx + math.cos(a) * reach, by + math.sin(a) * reach, z, r, BONE if t >= bone_from else material))
+    return out
+
+
+def spire_body(f: Field, style: str):
+    """A brood spire: the tall growth on old creep that Harrier packs rise from (`colony-breach-nouns.md`).
+
+    It must read at a glance as tall, where every other grown structure is low: its length shows as a lean across
+    the ground, its height as a long shadow thrown down-sun, and it carries the brood (membrane pods, amber-lit
+    from inside) the packs hatch from. Three body plans for the owner's pick (``SPIRE_STYLES``):
+
+    - ``roost``: one great curved horn of stacked chitin collars leaning out of a plated footing, hooked bone
+      perches up its flanks with brood pods hanging under them, an amber vent at its crown.
+    - ``chimney``: a thick, flared, ribbed stack standing nearly upright, open at the top on a lit throat, a ring
+      of torn membrane flaps peeled back off its rim where the packs burst out.
+    - ``clutch``: three or four slender horns splayed out from one knotted root like a claw opening, bone-tipped,
+      brood pods cradled in the crotch between them.
+    """
+    rng = f.rng
+    sx, sy = to_sun_screen()
+    # Off-centre towards the sun so the long shadow down-sun stays on the canvas.
+    cx, cy = sx * 1.1 + rng.uniform(-0.15, 0.15), sy * 1.1 + rng.uniform(-0.15, 0.15)
+    # Footing: heaved creep and a skirt of plates the column has pushed up through.
+    f.blob(cx, cy, rng.uniform(1.0, 1.2), 0.1, EARTH, lumps=rng.randint(4, 6), squash=rng.uniform(0.75, 0.95),
+           angle=rng.uniform(0, math.pi))
+    for _ in range(rng.randint(5, 7)):
+        a = rng.uniform(0, 2 * math.pi)
+        side = f.cells / 2 * 0.85 - max(abs(cx), abs(cy))
+        length = min(side, rng.uniform(0.8, 1.5))
+        start = (cx + math.cos(a) * 0.5, cy + math.sin(a) * 0.5)
+        f.tube(f.wander(start[0], start[1], a, length, steps=7, jitter=0.4), rng.uniform(0.06, 0.09),
+               rng.uniform(0.05, 0.08), UNDER)
+    skirt = rng.randint(6, 8)
+    a0 = rng.uniform(0, 2 * math.pi)
+    for k in range(skirt):
+        a = a0 + 2 * math.pi * k / skirt + rng.uniform(-0.25, 0.25)
+        f.plate(cx + math.cos(a) * 0.25, cy + math.sin(a) * 0.25, a + rng.uniform(-0.2, 0.2),
+                rng.uniform(0.6, 0.85), rng.uniform(0.45, 0.6), rng.uniform(0.32, 0.45), 0.05, bulge=0.04,
+                jagged=rng.uniform(0, 0.25), round_=0.02)
+    # A lean away from the sun would hide the column in its own shadow; across or into the light shows it.
+    toward = math.atan2(sy, sx)
+
+    def pod(x, y, z, r, glow=1.0):
+        f.stalk_pod(x, y, z, r, glow)
+
+    if style == "roost":
+        lean_a = toward + rng.uniform(1.2, 1.9) * rng.choice((-1, 1))
+        H = rng.uniform(3.1, 3.4)
+        spine = spire_spine((cx, cy, 0.0), lean_a, rng.uniform(0.4, 0.46), H, 0.62, 0.07,
+                            curl=rng.uniform(-0.5, 0.5), bone_from=0.9)
+        stalk(f, spine, rings=9)
+        # Perches: hooked bone spurs off alternate flanks, a brood pod hanging under each.
+        for k, t in enumerate((0.28, 0.42, 0.55, 0.68, 0.8)):
+            x, y, z, r, _ = spine[int(t * (len(spine) - 1))]
+            side = lean_a + (math.pi / 2 if k % 2 else -math.pi / 2) + rng.uniform(-0.5, 0.5)
+            px_, py_ = x + math.cos(side) * r * 0.8, y + math.sin(side) * r * 0.8
+            hook = spire_spine((px_, py_, z), side, 2.2, 0.28, 0.09, 0.025, curl=rng.uniform(-0.6, 0.6),
+                               steps=24, material=BONE, droop=0.9)
+            stalk(f, hook)
+            hx, hy, hz, _, _ = hook[-1]
+            pod(x + math.cos(side) * (r + 0.2), y + math.sin(side) * (r + 0.2), z - 0.25, rng.uniform(0.16, 0.22))
+        tip = spine[-1]
+        f.node(tip[0], tip[1], 0.12, 0.9)
+    elif style == "chimney":
+        lean_a = toward + rng.uniform(1.0, 2.0) * rng.choice((-1, 1))
+        H = rng.uniform(2.4, 2.7)
+        steps = 90
+        lean = rng.uniform(0.1, 0.14)
+        spine = []
+        for k in range(steps + 1):
+            t = k / steps
+            r = 0.52 + 0.45 * (1 - t) ** 3 - 0.04 * t
+            reach = lean * H * t
+            spine.append((cx + math.cos(lean_a) * reach, cy + math.sin(lean_a) * reach, H * t, r, CHITIN))
+        stalk(f, spine, rings=6)
+        # Sinew cords run up its flanks, the ribs of the stack.
+        for k in range(7):
+            a = 2 * math.pi * k / 7 + rng.uniform(-0.2, 0.2)
+            cord = []
+            for x, y, z, r, _ in spine[::3]:
+                cord.append((x + math.cos(a) * r * 0.9, y + math.sin(a) * r * 0.9, z, 0.09, UNDER))
+            stalk(f, cord)
+        top = spine[-1]
+        # The throat: open down into the stack, flesh-lined and lit from below.
+        d = np.hypot(f.x - top[0], f.y - top[1])
+        throat = d < 0.36
+        f.h[throat] = top[2] - 1.1 * np.clip(1 - d[throat] / 0.36, 0, 1) ** 0.6 + 0.15
+        f.m[throat] = FLESH
+        f.node(top[0], top[1], 0.18, 0.95)
+        # The flaps: membrane peeled back off the rim, splayed and ragged.
+        for k in range(rng.randint(6, 7)):
+            a = 2 * math.pi * k / 6.5 + rng.uniform(-0.25, 0.25)
+            f.plate(top[0] + math.cos(a) * 0.36, top[1] + math.sin(a) * 0.36, a + rng.uniform(-0.25, 0.25),
+                    rng.uniform(0.45, 0.65), rng.uniform(0.35, 0.5), top[2] + 0.55, top[2] - 0.15, bulge=0.03,
+                    jagged=rng.uniform(0.2, 0.45), material=SAC, round_=0.02)
+    else:  # clutch
+        horns = rng.randint(3, 4)
+        a0 = rng.uniform(0, 2 * math.pi)
+        tops = []
+        for k in range(horns):
+            a = a0 + 2 * math.pi * k / horns + rng.uniform(-0.35, 0.35)
+            H = rng.uniform(2.0, 2.9)
+            spine = spire_spine((cx + math.cos(a) * 0.15, cy + math.sin(a) * 0.15, 0.0), a, rng.uniform(0.38, 0.55),
+                                H, rng.uniform(0.3, 0.36), 0.04, curl=rng.uniform(-0.6, 0.6), bone_from=0.82)
+            stalk(f, spine, rings=rng.randint(6, 8))
+            tops.append(spine)
+        # The knot the horns grow from.
+        stalk(f, [(cx, cy, z, 0.5 - 0.25 * z, UNDER) for z in np.linspace(0.0, 0.7, 12)])
+        # Brood pods cradled in the crotch, and a few clinging up the horns.
+        for k in range(horns):
+            a = a0 + 2 * math.pi * (k + 0.5) / horns
+            pod(cx + math.cos(a) * 0.3, cy + math.sin(a) * 0.3, 0.55, rng.uniform(0.2, 0.26))
+        for spine in tops[:2]:
+            x, y, z, r, _ = spine[int(0.45 * (len(spine) - 1))]
+            pod(x, y, z + r * 0.4, 0.15, 0.8)
+    for _ in range(6):
+        a = rng.uniform(0, 2 * math.pi)
+        f.crack(cx + math.cos(a) * 1.1, cy + math.sin(a) * 1.1, a, rng.uniform(0.3, 0.6), 0.01)
+
+
+def _stalk_pod(self: Field, x, y, z, r, glow=1.0):
+    """A brood pod: a swollen membrane clinging at height (x, y, z), amber-lit from inside."""
+    stalk(self, [(x, y, z, r, SAC), (x + r * 0.15, y + r * 0.1, z - r * 0.3, r * 0.85, SAC)])
+    self.node(x - r * 0.15, y - r * 0.15, r * 0.55, 0.75 * glow)
+
+
+Field.stalk_pod = _stalk_pod
+
+
 def build(part: str, variant: int, state: str = "intact", style: str | None = None) -> Field:
     f = Field(CANVAS_CELLS[part], SEEDS[part] + 17 * variant)
     f.state = state
-    if part == "ground-colony":
+    if part == "brood-spire":
+        spire_body(f, style or SPIRE_STYLE)
+    elif part == "ground-colony":
         ground_colony_body(f, style or GROUND_COLONY_STYLE)
     elif part == "bore":
         bore_body(f, mother=False)

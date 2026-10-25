@@ -311,3 +311,4 @@ com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
 com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.OriginPropsLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOriginLookSuite
+com.dillon.starsectormarines.battle.evacuation.BroodSpireLookSuite
