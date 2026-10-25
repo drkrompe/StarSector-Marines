@@ -37,6 +37,16 @@ public final class District {
         PLAZA,
         /** The public building closing the other end of a spine: a civic hall (main street). */
         LANDMARK,
+        /** The facility's offices, which the mission's command sits in (cordoned facility). */
+        ADMIN,
+        /** A laboratory or a workshop, by the facility's character (cordoned facility). */
+        LAB,
+        /** A vehicle shed with its forecourt (cordoned facility). */
+        DEPOT,
+        /** Open hardstanding of parked vehicles and stores (cordoned facility). */
+        YARD,
+        /** The open paved square the facility's buildings stand round (cordoned facility). */
+        COURTYARD,
         /** A walled freight yard gated onto the street, publishing its loading bays (industrial zone). */
         FREIGHT_YARD,
         /** Workshops along a private service lane gated onto the streets (industrial zone). */

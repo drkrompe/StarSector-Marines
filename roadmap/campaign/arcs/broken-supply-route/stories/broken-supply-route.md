@@ -39,16 +39,18 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 - Junction victory opens Thunder Run immediately, with its convoy illustration,
   terms and HQ guidance. Route Security after success uses Relay Nine's territorial
   battlefield. No separate relay story fee is awarded.
-- Check the recovery beat and Corvus introduction against successful, partial
-  and exhausted freight ledgers; no Rill rescue or forgone-operation consequence
-  should be claimed.
+- Check the recovery beat, the Jangala closing conversation and the Corvus
+  introduction after full and partial deliveries; no Rill rescue or
+  forgone-operation consequence should be claimed. The conversation appears only
+  on the won run, and the HQ Corvus lead's course to Asharu matches Castle's
+  closing order.
 - Audition the revised Thunder Run briefing in the live mix; it should introduce
   the open junction and match the displayed convoy terms.
 - Thunder Run: clear the three road sites, observe the two staging stops and final
   road ambush, and escort surviving carriers through the exit. Withdraw after a
-  delivery, save/reload, then verify only unresolved cargo retries. Cargo lost on
-  a defeated attempt never returns. Confirm the cumulative delivery award once,
-  Route Security after success, and no unlock after total loss.
+  delivery, save/reload, then verify the retry fields all three loads and the
+  failed attempt left nothing on the ledger. Confirm the delivery award once and
+  Route Security after success; a total loss is a retry, not an unlock.
 - During Thunder Run's last-objective push, verify small side-road attacks reach
   both rear militia posts and their guns engage. Check that the crossroad picket's
   gun is up during the Dispatch window, that side-arm waves fight the militia
@@ -66,7 +68,7 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 ## Evidence boundaries
 
 The focused ledger/adapter tests exercise direct progression, replay refusal, mismatched
-site/source/payment, partial freight receipts, exhausted failure and campaign saves. `commanderEvidence -Pmission=supply-route` checks
+site/source/payment, partial freight receipts, traceless defeats and campaign saves. `commanderEvidence -Pmission=supply-route` checks
 the shared campaign construction/roster-overlay seam for both story missions and recurring Route Security
 with eight and twenty-four named marines, fitted boats, physical arrival and
 untouched employer craft. It observes arrivals for up to 300 seconds, not whole campaign

@@ -19,10 +19,12 @@ import java.util.List;
  * The Colony Breach story: the breach clock, the eruption schedule and the
  * beats the noun doc's table names.
  *
- * <p>{@link #tick} is the simulation half. It notices the cohort's release,
- * starts the tremor a few seconds later, ends the perimeter seepage there, and
- * opens each {@link ColonyEruptionPlan} site at its scheduled tick, handing it
- * to the installed {@link EruptionHandler}. {@link #observe} is the
+ * <p>{@link #tick} is the simulation half. The bloom is already eating the
+ * colony when the company comes down (owner, 2026-10-25), so the breach clock
+ * starts with the battle: the tremor is its first tick, the perimeter seepage
+ * ends there, and each {@link ColonyEruptionPlan} site opens at its scheduled
+ * tick (the first wave at once, the mother later), handed to the installed
+ * {@link EruptionHandler}. The cohort's release is still noticed and published. {@link #observe} is the
  * presentation half and only ever writes beats: they are evidence and radio
  * cues, never inputs.
  *
@@ -36,8 +38,6 @@ public final class ColonyBreachSequence {
 
     /** Every beat this sequence writes carries this prefix. */
     public static final String BEAT_PREFIX = "colony_breach.";
-    /** Seconds from the cohort's release to the tremor. */
-    public static final float TREMOR_DELAY_SECONDS = 4f;
     /** How far a Marine sees a militia post from, for {@code militia_contact}. */
     public static final float MILITIA_CONTACT_CELLS = 20f;
     /** Ticks between militia-contact scans; a sighting is not a frame-exact fact. */
@@ -147,10 +147,9 @@ public final class ColonyBreachSequence {
         ObjectiveBoard objectives = sim.getOptionalObjectives();
         if (objectives != null) objectives.advance(tick);
         if (landfallTick < 0 && marineOnTheGround(sim)) landfallTick = tick;
-        if (shelterReachedTick < 0 && !sim.isCivilianShelterProtected()) {
-            shelterReachedTick = tick;
-            tremorTick = tick + Math.round(TREMOR_DELAY_SECONDS / BattleSimulation.TICK_DT);
-        }
+        if (shelterReachedTick < 0 && !sim.isCivilianShelterProtected()) shelterReachedTick = tick;
+        // The breach is under way before the company is down: its clock starts with the battle.
+        if (tremorTick < 0) tremorTick = tick;
         if (tremorTick >= 0 && tick >= tremorTick) {
             sim.endSwarmSeepage();
             sim.beginSwarmBoreSourcing();

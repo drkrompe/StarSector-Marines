@@ -321,6 +321,7 @@ com.dillon.starsectormarines.battle.evacuation.NestGrowthLookSuite
 com.dillon.starsectormarines.battle.evacuation.FedSpireLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierSnatchLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierSurvivorRaidLookSuite
+com.dillon.starsectormarines.battle.evacuation.BloomOutskirtsLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierPatrolLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierRaidLookSuite
@@ -343,3 +344,4 @@ com.dillon.starsectormarines.battle.staffed.LoadingPressureLookSuite
 com.dillon.starsectormarines.battle.setup.FactoryRowLookSuite
 com.dillon.starsectormarines.battle.setup.IndustrialZoneLookSuite
 com.dillon.starsectormarines.battle.setup.MainStreetLookSuite
+com.dillon.starsectormarines.battle.setup.CordonedFacilityLookSuite

@@ -186,38 +186,43 @@ public final class VehicleTransportService {
         List<Long> aboard = manifest(vehicle);
         GroundBody body = convoy.body(vehicle);
         for (long unit : aboard) {
+            float speed = entityWorld.getFloat(unit, components.RIDING, BattleComponents.RIDING_MOVE_SPEED);
             entityWorld.transmute(unit,
                     new ComponentType[]{components.POSITION, components.MOVEMENT},
                     new ComponentType[]{components.RIDING});
             roster.world().setPos(unit, body.x, body.y);
-            settleFreshMovement(unit);
+            settleFreshMovement(unit, speed);
         }
         return aboard;
     }
 
     private void mount(long vehicle, long unit) {
+        float speed = entityWorld.getFloat(unit, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED);
         entityWorld.addComponent(unit, components.RIDING);
         entityWorld.setLong(unit, components.RIDING, BattleComponents.RIDING_CARRIER_ID, vehicle);
+        entityWorld.setFloat(unit, components.RIDING, BattleComponents.RIDING_MOVE_SPEED, speed);
         entityWorld.transmute(unit, null,
                 new ComponentType[]{components.POSITION, components.MOVEMENT});
     }
 
     private void dismount(long unit, float x, float y) {
+        float speed = entityWorld.getFloat(unit, components.RIDING, BattleComponents.RIDING_MOVE_SPEED);
         entityWorld.transmute(unit,
                 new ComponentType[]{components.POSITION, components.MOVEMENT},
                 new ComponentType[]{components.RIDING});
         roster.world().setPos(unit, x, y);
-        settleFreshMovement(unit);
+        settleFreshMovement(unit, speed);
     }
 
     /**
      * A re-added component arrives zeroed, and a null path is not the same
      * thing as no path — the movers read its length. Give a dismounted unit
-     * the empty path a unit that never moved would have.
+     * the empty path a unit that never moved would have, and the move speed it rode with.
      */
-    private void settleFreshMovement(long unit) {
+    private void settleFreshMovement(long unit, float speed) {
         roster.movement().setPathRef(unit, GridPathfinder.EMPTY_PATH);
         roster.movement().setPathIdx(unit, 0);
+        roster.movement().setBaseMoveSpeed(unit, speed);
     }
 
     /**

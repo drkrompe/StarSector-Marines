@@ -75,10 +75,9 @@ class ColonyBreachEvidenceTest {
     private static final String PREFIX = "colony.breach.command.evidence.";
 
     /** The flow's order. A beat that fires never precedes one listed before it. */
+    /** The breach is under way before the company is down: the first wave opens on the first tick. */
     private static final List<String> FLOW = List.of(
-            "landfall", "shelter_reached", "tremor",
-            "bore_erupted_1", "bore_erupted_2", "bore_erupted_3", "bore_erupted_4",
-            "mother_bore_erupted");
+            "tremor", "bore_erupted_1", "bore_erupted_2", "bore_erupted_3", "bore_erupted_4", "landfall");
 
     @Test
     void writesTheBreachScheduleBeatsAndRescueTraces() throws Exception {
@@ -236,11 +235,7 @@ class ColonyBreachEvidenceTest {
             last = at;
         }
         assertTrue(fired.contains("landfall"), "no Marine ever reached the ground: " + fired);
-        if (fired.contains("shelter_reached")) {
-            assertTrue(fired.contains("tremor") || summary.getInt("ticks")
-                            < summary.getInt("shelterReachedTick") + 4 * 30,
-                    "the cohort released and the colony never trembled: " + fired);
-        }
+        assertTrue(fired.contains("tremor"), "the colony never trembled: " + fired);
         assertHiveLaws(summary.getJSONObject("hive"), fired);
 
         Files.writeString(output.resolve("colony-breach.jsonl"), firstTrace, StandardCharsets.UTF_8);

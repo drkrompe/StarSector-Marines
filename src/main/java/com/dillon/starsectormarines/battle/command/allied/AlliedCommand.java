@@ -124,6 +124,8 @@ public final class AlliedCommand {
         Delivery delivery;
         int boardingSince;
         int riders;
+        /** The riders are the squad itself, aboard as they are ({@link #lift}), not a count. */
+        boolean keep;
     }
 
     /** A mech's post, and the standable point it was sent to. */
@@ -225,18 +227,36 @@ public final class AlliedCommand {
      * through {@code delivery}, and the hull then stations at the drop.
      */
     public void carry(BattleSimulation sim, long hull, int squad, int x, int y, Delivery delivery) {
+        start(sim, hull, squad, x, y, delivery, false, CommandAuthority.GARRISON, issuer);
+    }
+
+    /**
+     * Gives a squad that is not this command's a ride to a place, the squad itself aboard
+     * ({@code VehicleTransportService}): who gets out is who got in, with its wounds and kit. A Marine's lift
+     * ({@code cordon-allied-command.md}, rule 10). The squad is told to board under its own commander's authority
+     * and name, so whoever outranks that (the player) can still take it off the ride; a squad that never boards
+     * leaves the hull free once the boarding patience is spent. {@code delivery} hears how many got out at the drop.
+     */
+    public void lift(BattleSimulation sim, long hull, int squad, int x, int y, CommandAuthority authority,
+                     String squadIssuer, Delivery delivery) {
+        start(sim, hull, squad, x, y, delivery, true, authority, squadIssuer);
+    }
+
+    private void start(BattleSimulation sim, long hull, int squad, int x, int y, Delivery delivery, boolean keep,
+                       CommandAuthority authority, String squadIssuer) {
         Task task = new Task();
         task.phase = Phase.BOARDING;
         task.postX = task.goalX = x;
         task.postY = task.goalY = y;
         task.squad = squad;
         task.delivery = delivery;
+        task.keep = keep;
         task.boardingSince = sim.getSimTickIndex();
         tasks.put(hull, task);
         GroundBody body = sim.convoy().body(hull);
         sim.getVehicleMoveOrderService().forget(hull);
         sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, (int) body.x, (int) body.y),
-                CommandAuthority.GARRISON, issuer, "board the carrier");
+                authority, squadIssuer, "board the carrier");
     }
 
     /**
@@ -328,6 +348,25 @@ public final class AlliedCommand {
         return new ArrayList<>(tasks.keySet());
     }
 
+    /**
+     * Ends a lift short ({@link #lift}): a hull still waiting for its squad stops waiting, and one under way sets the
+     * squad down where it stands and tells the delivery. The hull then stations where it is.
+     */
+    public void setDown(BattleSimulation sim, long hull) {
+        Task task = tasks.get(hull);
+        if (task == null || !task.keep || task.phase == Phase.STATION) return;
+        GroundBody body = sim.convoy().body(hull);
+        if (task.phase == Phase.DRIVING) {
+            task.riders = sim.transport().dismountAll(hull);
+            if (task.delivery != null && task.riders > 0) task.delivery.delivered(sim, task.riders, (int) body.x, (int) body.y);
+        }
+        task.riders = 0;
+        task.phase = Phase.STATION;
+        task.postX = task.goalX = (int) body.x;
+        task.postY = task.goalY = (int) body.y;
+        sim.getVehicleMoveOrderService().forget(hull);
+    }
+
     /** Whether a hull is carrying or about to: a mission does not re-task it. */
     public boolean carrying(long hull) {
         Task task = tasks.get(hull);
@@ -366,6 +405,7 @@ public final class AlliedCommand {
                 case DRIVING -> {
                     if (within(convoy.body(hull), task.postX, task.postY, DROP_REACH) || stopped(sim, hull)) {
                         task.phase = Phase.STATION;
+                        if (task.keep) task.riders = sim.transport().dismountAll(hull);
                         if (task.delivery != null && task.riders > 0) {
                             GroundBody body = convoy.body(hull);
                             task.delivery.delivered(sim, task.riders, (int) body.x, (int) body.y);
@@ -397,6 +437,11 @@ public final class AlliedCommand {
      * leave the field and ride as a count. A squad strung out on the road waits for its stragglers.
      */
     private static boolean board(BattleSimulation sim, long hull, Task task) {
+        if (task.keep) {
+            // The transport's own all-or-nothing boarding, the squad aboard as it is.
+            task.riders = sim.transport().mountSquad(hull, task.squad);
+            return task.riders > 0;
+        }
         GroundBody body = sim.convoy().body(hull);
         VehicleType type = sim.convoy().vehicleType(hull);
         List<Long> near = new ArrayList<>();
