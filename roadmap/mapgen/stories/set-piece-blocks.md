@@ -107,6 +107,13 @@ Workshops side by side along a private **service lane**:
   middle, leaving **pockets** of cover off the lane and the lane itself clear
   gate to gate. The pockets mirror end to end.
 
+Where the full row will not stand, the **shallow row** does: the workshops and
+the lane with the far wall straight behind it (11 deep, no pockets), a
+generator in from each end wall and a pipe bundle every third cell set into
+the wall in place of the pockets, mirrored end to end. The lane is the same, so
+the row's fight is the same; it loses the cover off the lane and the parked
+vehicles. Every pose of the full row is tried before any shallow one.
+
 The row publishes its lane as a map mark (`ServiceLane`: the two gate cells, the
 centre line between them and the lane's width) for an objective to send
 pressure down or hold.
@@ -115,9 +122,9 @@ pressure down or hold.
 compound with the freight yard, which keeps that compound where it fits. The
 label pass promotes one lot per map to `FACTORY_ROW`: the largest industrial lot
 left of at least 11 by 11, or the largest commercial lot where no industrial lot
-qualifies. Its claim takes one neighbour. The row is 13 deep and 14, 16, 18 or
-20 long (three workshops from 18), so an 11-cell lot and its street frame hold
-the shortest. Gates on the reserved road win over a longer row. Both gates need
+qualifies. Its claim takes one neighbour. The row is 13 deep (11 shallow) and
+14, 16, 18 or 20 long (three workshops from 18), so an 11-cell lot and its
+street frame hold the shortest. Gates on the reserved road win over a longer row. Both gates need
 four open cells outside them, the first a street cell. A compound that cannot
 hold the row fills as ordinary industrial lots. Across 24 maps of each, the row
 stood on 13 medium cities (18 had a host lot) and 16 colonies (all 24 had one).

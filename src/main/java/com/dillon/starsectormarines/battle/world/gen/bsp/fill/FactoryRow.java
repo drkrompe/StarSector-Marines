@@ -22,6 +22,10 @@ import java.util.function.BiPredicate;
  * lane, machinery, pipe runs and a parked utility vehicle at each end stand against the far wall,
  * leaving pockets of cover between them and the lane itself clear from gate to gate.
  *
+ * <p>It comes in two depths, tried full depth first: the full row ({@link #DEPTH}) with its pockets, and the
+ * {@link #SHALLOW} row, the workshops and the lane with the far wall straight behind it, machinery set into
+ * the wall in place of the pockets, for the shallower lots a city's industrial belt is cut into.
+ *
  * <p>One authored layout in its own local frame, turned whole to one of four poses: the lane runs along
  * local x with its gates at {@code x = 0} and {@code x = length - 1}, the workshops' backs are the local
  * bottom ({@code y = 0}) and the far wall the local top. The row comes in a few authored lengths; among the
@@ -41,6 +45,10 @@ public final class FactoryRow {
     public static final int LANE = 4;
     /** First row of the pockets across the lane; the far wall stands on the row after the second. */
     public static final int POCKET = HALL + LANE;
+    /** Local depth of the shallow row: the workshops, the lane and the far wall, no pockets. */
+    public static final int SHALLOW = POCKET + 1;
+    /** The depths, deepest first. */
+    static final int[] DEPTHS = {DEPTH, SHALLOW};
     /** Local row of the gate cells and the lane's centre line: the second of the lane's two middle rows. */
     public static final int CENTRE = HALL + LANE / 2;
     /** Rows of a row's length the parked vehicle at each end stands on, counted in from the end wall. */
@@ -54,17 +62,22 @@ public final class FactoryRow {
             GroundKind.INDOOR, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.INDUSTRIAL);
 
-    /** Where a row stands: its world corner (minimum x and y), its quarter turns and its length. */
-    public record Pose(int left, int bottom, int turn, int length) {
-        public int width() { return (turn & 1) == 0 ? length : DEPTH; }
-        public int height() { return (turn & 1) == 0 ? DEPTH : length; }
+    /** Where a row stands: its world corner (minimum x and y), its quarter turns, its length and its depth. */
+    public record Pose(int left, int bottom, int turn, int length, int depth) {
+        /** A full-depth row. */
+        public Pose(int left, int bottom, int turn, int length) {
+            this(left, bottom, turn, length, DEPTH);
+        }
+
+        public int width() { return (turn & 1) == 0 ? length : depth; }
+        public int height() { return (turn & 1) == 0 ? depth : length; }
 
         /** World cell of local {@code (x, y)}. */
         public int[] cell(int x, int y) {
             return switch (turn & 3) {
                 case 0 -> new int[]{left + x, bottom + y};
-                case 1 -> new int[]{left + DEPTH - 1 - y, bottom + x};
-                case 2 -> new int[]{left + length - 1 - x, bottom + DEPTH - 1 - y};
+                case 1 -> new int[]{left + depth - 1 - y, bottom + x};
+                case 2 -> new int[]{left + length - 1 - x, bottom + depth - 1 - y};
                 default -> new int[]{left + y, bottom + length - 1 - x};
             };
         }
@@ -100,10 +113,10 @@ public final class FactoryRow {
         return spans;
     }
 
-    /** Whether a {@code w} by {@code h} rectangle holds the shortest row in some pose. */
+    /** Whether a {@code w} by {@code h} rectangle holds the shortest, shallow row in some pose. */
     public static boolean fits(int w, int h) {
         int shortest = LENGTHS[LENGTHS.length - 1];
-        return (w >= shortest && h >= DEPTH) || (w >= DEPTH && h >= shortest);
+        return (w >= shortest && h >= SHALLOW) || (w >= SHALLOW && h >= shortest);
     }
 
     /** Whether local {@code (x, y)} is in a gate: the lane's rows in either end wall. */
@@ -111,9 +124,26 @@ public final class FactoryRow {
         return (x == 0 || x == length - 1) && y >= HALL && y < POCKET;
     }
 
-    /** Whether local {@code (x, y)} is the far wall or an end wall beside the pockets. */
+    /** Whether local {@code (x, y)} is the far wall or an end wall beside the pockets, on the full row. */
     static boolean wall(int length, int x, int y) {
-        return y >= POCKET && (y == DEPTH - 1 || x == 0 || x == length - 1);
+        return wall(length, DEPTH, x, y);
+    }
+
+    /** Whether local {@code (x, y)} is the far wall or an end wall beside the pockets, on a row {@code depth} deep. */
+    static boolean wall(int length, int depth, int x, int y) {
+        return y >= POCKET && (y == depth - 1 || x == 0 || x == length - 1) && machinery(length, depth, x, y) == null;
+    }
+
+    /**
+     * The machinery set into the shallow row's far wall in place of the pockets, or null: a generator in from
+     * each end wall and a pipe bundle every third cell between, mirrored end to end. Each stands where the wall
+     * would, so the lane stays closed behind and clear in front.
+     */
+    static String machinery(int length, int depth, int x, int y) {
+        if (depth != SHALLOW || y != depth - 1 || x <= 0 || x >= length - 1) return null;
+        int in = Math.min(x, length - 1 - x);
+        if (in == 1) return "doodad.industrial-generator";
+        return in % 3 == 0 ? "doodad.industrial-pipe-bundle" : null;
     }
 
     /** Whether local {@code (x, y)} lies under the parked vehicle at either end of the pockets. */
@@ -181,24 +211,27 @@ public final class FactoryRow {
                               BiPredicate<Integer, Integer> owned, Approach approach,
                               boolean[][] road, boolean[][] reserved) {
         if (road == null) return null;
-        Pose best = null;
-        int bestScore = 0;
-        for (int length : LENGTHS) {
-            for (int turn = 0; turn < 4; turn++) {
-                int w = (turn & 1) == 0 ? length : DEPTH, h = (turn & 1) == 0 ? DEPTH : length;
-                for (int y = top - 1; y + h - 1 <= bottom + 1; y++) {
-                    for (int x = left - 1; x + w - 1 <= right + 1; x++) {
-                        Pose pose = new Pose(x, y, turn, length);
-                        int score = score(c, pose, owned, reserved, road, approach) * 100 + length;
-                        if (score > 100 && score > bestScore) {
-                            bestScore = score;
-                            best = pose;
+        for (int depth : DEPTHS) {
+            Pose best = null;
+            int bestScore = 0;
+            for (int length : LENGTHS) {
+                for (int turn = 0; turn < 4; turn++) {
+                    int w = (turn & 1) == 0 ? length : depth, h = (turn & 1) == 0 ? depth : length;
+                    for (int y = top - 1; y + h - 1 <= bottom + 1; y++) {
+                        for (int x = left - 1; x + w - 1 <= right + 1; x++) {
+                            Pose pose = new Pose(x, y, turn, length, depth);
+                            int score = score(c, pose, owned, reserved, road, approach) * 100 + length;
+                            if (score > 100 && score > bestScore) {
+                                bestScore = score;
+                                best = pose;
+                            }
                         }
                     }
                 }
             }
+            if (best != null) return best;
         }
-        return best;
+        return null;
     }
 
     /** How well the gates and backs meet the street, or 0 where the row may not stand there. Read-only. */
@@ -248,7 +281,7 @@ public final class FactoryRow {
         int right = pose.left + pose.width() - 1, top = pose.bottom + pose.height() - 1;
         c.doodads.removeIf(d -> d.cellX <= right && d.cellX + d.footprintCellsX - 1 >= pose.left
                 && d.cellY <= top && d.cellY + d.footprintCellsY - 1 >= pose.bottom);
-        for (int y = 0; y < DEPTH; y++) {
+        for (int y = 0; y < pose.depth(); y++) {
             for (int x = 0; x < length; x++) {
                 int[] cell = pose.cell(x, y);
                 c.grid.setWalkableFloor(cell[0], cell[1]);
@@ -257,7 +290,7 @@ public final class FactoryRow {
                 c.topology.setGroundKind(cell[0], cell[1], y < HALL ? GroundKind.INDOOR
                         : gate(length, x, y) ? GroundKind.STRIPED : GroundKind.COURTYARD);
                 c.markMadeGround(cell[0], cell[1]);
-                if (!wall(length, x, y)) continue;
+                if (!wall(length, pose.depth(), x, y)) continue;
                 c.grid.setWalkable(cell[0], cell[1], false);
                 c.grid.setWallHp(cell[0], cell[1], WALL_HP);
                 c.topology.setGroundKind(cell[0], cell[1], GroundKind.INDOOR);
@@ -287,6 +320,14 @@ public final class FactoryRow {
         int[] back = pose.step(0, -1);
         StreetDressing.doorCanopies(c.grid, c.doodads, 1, length - 2, x -> pose.cell(x, HALL - 1), back[0], back[1]);
 
+        if (pose.depth() == SHALLOW) {
+            // The shallow row: its machinery stands in the far wall, and there are no pockets to park in.
+            for (int x = 1; x < length - 1; x++) {
+                String id = machinery(length, SHALLOW, x, SHALLOW - 1);
+                if (id != null) solid(c, pose.cell(x, SHALLOW - 1), registry.doodad(id));
+            }
+            return lane(c, pose);
+        }
         // Across the lane: machinery and pipe runs against the far wall, a parked vehicle at each end.
         for (int y = POCKET; y <= POCKET + 1; y++) {
             for (int x = 1; x < length - 1; x++) {
@@ -300,6 +341,12 @@ public final class FactoryRow {
             parkVehicle(c, pose, length - VEHICLE_FROM - VEHICLE_LENGTH, truck);
         }
 
+        return lane(c, pose);
+    }
+
+    /** Publishes the row's service lane, gate to gate. */
+    private static ServiceLane lane(GenContext c, Pose pose) {
+        int length = pose.length();
         int[] gateA = pose.cell(0, CENTRE), gateB = pose.cell(length - 1, CENTRE);
         int[] a0 = pose.cell(0, CENTRE - 1), b0 = pose.cell(length - 1, CENTRE - 1);
         ServiceLane lane = new ServiceLane(gateA[0], gateA[1], gateB[0], gateB[1],

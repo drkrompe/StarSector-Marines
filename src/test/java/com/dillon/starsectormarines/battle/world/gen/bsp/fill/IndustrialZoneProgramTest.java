@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -85,9 +86,9 @@ class IndustrialZoneProgramTest {
     void takesWorkingGroundHomesAndTheSetPiecesButNeverACompoundSeed() {
         assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.WASTELAND_RUBBLE)));
         assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_RESIDENTIAL)));
-        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 10, 12, BlockKind.FACTORY_ROW)),
-                "a row seed as deep as the row may join, alone or with a neighbour");
-        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 10, 10, BlockKind.FACTORY_ROW)),
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 10, 10, BlockKind.FACTORY_ROW)),
+                "a row seed as deep as the shallow row may join, alone or with a neighbour");
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.FACTORY_ROW)),
                 "a smaller one claims its neighbour instead");
         assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.MILITARY_BASE)));
         assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_CIVIC)));
@@ -123,6 +124,27 @@ class IndustrialZoneProgramTest {
         new IndustrialZoneProgram().committed(spine, plan, List.of(seed, next, outsideRow, elsewhere));
         assertEquals(BlockKind.BUILDING_INDUSTRIAL, outsideRow.kind, "a row planned elsewhere stands down");
         assertEquals(BlockKind.FREIGHT_YARD, elsewhere.kind, "a yard the zone does not host stays");
+    }
+
+    @Test
+    void theRowTakesTheLargestGroundFirstWhereOnlyThatHostsBoth() {
+        // The large lot holds either; the row will not stand on the smaller, so yard first would host one.
+        BlockLeaf large = leaf(1, 0, 20, 19, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf small = leaf(25, 2, 38, 19, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf across = leaf(1, 24, 38, 30, BlockKind.BUILDING_INDUSTRIAL);
+        List<BlockLeaf> lots = List.of(large, small, across);
+        boolean[][] road = new boolean[40][32];
+        for (boolean[] col : road) Arrays.fill(col, true);
+        for (BlockLeaf leaf : lots) {
+            for (int x = leaf.left; x <= leaf.right; x++) for (int y = leaf.top; y <= leaf.bottom; y++) road[x][y] = false;
+        }
+        SpineClaim.Spine spine = SpineClaim.find(lots, road, leaf -> true, leaf -> 1, IndustrialZoneProgram.SPEC);
+        assertNotNull(spine);
+        Map<BlockLeaf, District.Role> roles = IndustrialZoneProgram.roles(spine, false,
+                (ground, yard) -> yard || !ground.contains(small));
+        assertNotNull(roles);
+        assertEquals(District.Role.FACTORY_ROW, roles.get(large));
+        assertEquals(District.Role.FREIGHT_YARD, roles.get(small));
     }
 
     @Test

@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — districts: the industrial zone hosts the map's freight yard and factory row, on a member or a joined pair, and stands down the ones planned elsewhere.
+Updated: 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
+
+Earlier 2026-10-25 — districts: the industrial zone hosts the map's freight yard and factory row, on a member or a joined pair, and stands down the ones planned elsewhere.
 
 Earlier 2026-10-25 — districts: a member can take a set-piece role; main street's plaza end is the market square where two end members hold it.
 
@@ -354,7 +356,10 @@ private **service lane** that runs the row's length, with a vehicle gate at each
 end onto the street. Their loading doors open onto the lane and every other wall
 is blank, so their backs face the street. Across the lane, a parked utility
 vehicle near each end, generators and pipe runs against the far wall leave
-pockets of cover and the lane clear gate to gate. The row stands on the same
+pockets of cover and the lane clear gate to gate. Where that will not stand, the
+**shallow row** does: the same workshops and lane with the far wall straight
+behind it, its generators and pipe bundles set into the wall in place of the
+pockets. The row stands on the same
 owned ground as the freight yard and prefers gates on the reserved road over a
 longer row. A compound that cannot hold it fills as ordinary industrial lots. It
 publishes its **service lane** (`ServiceLane` on `MapResult`): the two gate
