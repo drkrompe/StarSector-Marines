@@ -18,10 +18,13 @@ class VictoryCardGrantsTest {
     @Test void eachMilestonePaysItsCardAtItsRung() {
         MarineArmory armory = new MarineArmory();
         armory.recordVictory(false);
-        assertTrue(armory.paidVictoryMilestoneIds().isEmpty());
         armory.recordVictory(false);
-        assertTrue(armory.knowsWeaponCard(SquadEquipmentDoctrines.CHECKPOINT_WEAPONS));
-        for (int win = 0; win < 3; win++) armory.recordVictory(false);
+        assertTrue(armory.paidVictoryMilestoneIds().isEmpty());
+        assertFalse(armory.knowsWeaponCard(SquadEquipmentDoctrines.CHECKPOINT_WEAPONS),
+                "Checkpoint Issue is bought at the Relief market, never won");
+        armory.recordVictory(false);
+        assertTrue(armory.knowsArmorPlan(SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR));
+        for (int win = 0; win < 2; win++) armory.recordVictory(false);
         assertFalse(armory.knowsWeaponCard(SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS),
                 "the chase rung also wants a high-risk victory");
         armory.recordVictory(true);
@@ -31,8 +34,7 @@ class VictoryCardGrantsTest {
 
     @Test void aPaidMilestoneStaysPaidAcrossALoad() throws Exception {
         MarineArmory armory = new MarineArmory();
-        armory.recordVictory(false);
-        armory.recordVictory(false);
+        for (int win = 0; win < 3; win++) armory.recordVictory(false);
         MarineArmory loaded = roundTrip(armory);
         assertEquals(armory.paidVictoryMilestoneIds(), loaded.paidVictoryMilestoneIds());
         assertEquals(armory.knownLoadoutCardIds(), loaded.knownLoadoutCardIds());
