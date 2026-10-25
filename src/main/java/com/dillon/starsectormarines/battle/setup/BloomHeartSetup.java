@@ -30,8 +30,10 @@ import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRoll;
 import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -298,6 +300,18 @@ public final class BloomHeartSetup {
      */
     public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
                                            List<ShuttleAssignment> manifest, List<String> objectives) {
+        return mission(form, biome, density, seed, manifest, objectives, MechDropDeclaration.NONE);
+    }
+
+    /**
+     * As {@link #mission(Form, SurfacePalette, Density, long, List, List)}, with the lances {@code mechDrops} declares.
+     * The campaign's heart declares none (the player's own machines come down through Mech Support); a declared
+     * Marine lance with a {@code debugCallTick} lands at the company's pads claimed by its command, which is how debug
+     * launches and evidence field a well-found company's machines.
+     */
+    public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
+                                           List<ShuttleAssignment> manifest, List<String> objectives,
+                                           MechDropDeclaration mechDrops) {
         if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
         Built built = country(form, biome, density, seed);
         BattleSimulation sim = built.sim();
@@ -307,8 +321,14 @@ public final class BloomHeartSetup {
         sim.addObjective(new HeartObjective());
         List<LandingPad> pads = LandingPadSelector.select(built.map(), manifest.size(), BattleSetup.LZ_MIN_SEPARATION);
         BattleSetup.recordLzPads(sim, pads);
-        BattleSetup.landCompany(sim, pads, manifest, new Random(built.battleSeed()),
-                SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"));
+        // A heart is fought late in the campaign: the company it stands up is a well-found one.
+        SquadCommandClaim companyClaim = SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart");
+        BattleSetup.landCompany(sim, pads, manifest, new Random(built.battleSeed()), companyClaim,
+                InfantryLoadoutRolls::lateCampaignSquad);
+        sim.setMechDrops(new MechDropService(mechDrops));
+        sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company's mech lance"),
+                () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
         sim.configureSwarmFromBores(built.battleSeed());
         WalkingBarrage barrage = null;
         // The guns' rounds and their trucks (owner, 2026-10-23): trucks come from the vehicle park where it was laid.
