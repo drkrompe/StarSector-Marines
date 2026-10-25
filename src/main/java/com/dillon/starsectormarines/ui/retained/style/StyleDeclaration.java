@@ -81,7 +81,7 @@ public final class StyleDeclaration {
             case POSITION -> value instanceof UiPosition;
             case POINTER_EVENTS -> value instanceof PointerEvents;
             case LEFT, TOP,
-                 WIDTH, HEIGHT, ROW_GAP, COLUMN_GAP,
+                 WIDTH, HEIGHT, MIN_WIDTH, MIN_HEIGHT, ROW_GAP, COLUMN_GAP,
                  PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT,
                  BORDER_WIDTH -> value instanceof Length;
             case FLEX_GROW, OPACITY -> value instanceof Float;

@@ -18,6 +18,8 @@ public enum StyleProperty {
     POINTER_EVENTS("pointer-events", true, false, false, false),
     WIDTH("width", false, true, false, true),
     HEIGHT("height", false, true, false, true),
+    MIN_WIDTH("min-width", false, true, false, true),
+    MIN_HEIGHT("min-height", false, true, false, true),
     FLEX_GROW("flex-grow", false, true, false, true),
     ROW_GAP("row-gap", false, true, false, true),
     COLUMN_GAP("column-gap", false, true, false, true),

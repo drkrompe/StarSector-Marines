@@ -96,7 +96,7 @@
   .loadout-card-tier { flex-direction: column; align-items: center; width: 40px; height: 26px; pointer-events: none; }
   .loadout-card-tier-icon { width: 36px; height: 24px; pointer-events: none; }
   .loadout-card-lines { flex-direction: column; gap: 0px; }
-  .loadout-card-line { height: 18px; white-space: normal; }
+  .loadout-card-line { min-height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
   /* The card the squad wears is a ticked box, one ticked a kind; every other card's box is empty,
      and ticking it puts the squad in that card. No word: the box is the whole control. */
@@ -107,9 +107,9 @@
   .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
   .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
   .doctrine-issue-button-hidden { display: none; }
-  .doctrine-issue-reason { height: 20px; padding: 8px 4px 2px 4px; white-space: normal; overflow: hidden; }
+  .doctrine-issue-reason { min-height: 20px; padding: 8px 4px 2px 4px; white-space: normal; overflow: hidden; }
   .doctrine-issue-reason-empty { display: none; }
-  .doctrine-distribution { height: 18px; padding-top: 6px; color: #d8bd67; white-space: normal; }
+  .doctrine-distribution { min-height: 18px; padding-top: 6px; color: #d8bd67; white-space: normal; }
   .doctrine-carries { height: 18px; padding-top: 6px; color: #8fd6a6; }
   .doctrine-span-row { flex-direction: row; gap: 6px; padding-top: 6px; overflow: hidden; }
   .doctrine-distribution-row { height: 96px; }
@@ -119,7 +119,7 @@
   .doctrine-span { height: 17px; padding: 1px 2px; }
   .doctrine-issue-span { flex-direction: row; width: 230px; height: 44px; gap: 7px; align-items: center; color: #d8bd67; background-color: #111719; }
   .doctrine-equipment-icon { width: 50px; height: 42px; }
-  .doctrine-equipment-name { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
+  .doctrine-equipment-name { width: 0px; flex-grow: 1; min-height: 36px; white-space: normal; }
   .doctrine-carries-span { color: #8fd6a6; }
   .doctrine-line-hidden { display: none; }
 </style>

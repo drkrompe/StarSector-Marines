@@ -29,6 +29,8 @@ public final class ComputedStyle {
         values.put(StyleProperty.POINTER_EVENTS, PointerEvents.AUTO);
         values.put(StyleProperty.WIDTH, Length.AUTO);
         values.put(StyleProperty.HEIGHT, Length.AUTO);
+        values.put(StyleProperty.MIN_WIDTH, Length.AUTO);
+        values.put(StyleProperty.MIN_HEIGHT, Length.AUTO);
         values.put(StyleProperty.FLEX_GROW, 0f);
         values.put(StyleProperty.ROW_GAP, Length.ZERO);
         values.put(StyleProperty.COLUMN_GAP, Length.ZERO);
@@ -108,6 +110,15 @@ public final class ComputedStyle {
 
     public float height(float basis) {
         return ((Length) value(StyleProperty.HEIGHT)).resolve(basis);
+    }
+
+    /** The content-box floor a measured or declared width cannot go under, or NaN for none. */
+    public float minWidth(float basis) {
+        return ((Length) value(StyleProperty.MIN_WIDTH)).resolve(basis);
+    }
+
+    public float minHeight(float basis) {
+        return ((Length) value(StyleProperty.MIN_HEIGHT)).resolve(basis);
     }
 
     public float grow() {

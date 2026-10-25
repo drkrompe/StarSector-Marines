@@ -37,7 +37,7 @@ final class StyleValues {
             case POSITION -> parsePosition(value);
             case LEFT, TOP -> parseLength(value, true);
             case POINTER_EVENTS -> parsePointerEvents(value);
-            case WIDTH, HEIGHT -> parseLength(value, true);
+            case WIDTH, HEIGHT, MIN_WIDTH, MIN_HEIGHT -> parseLength(value, true);
             case FLEX_GROW -> nonNegativeNumber(property, value);
             case ROW_GAP, COLUMN_GAP,
                  PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT -> parseLength(value, false);

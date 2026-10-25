@@ -356,6 +356,13 @@ element contributes its glyph advance plus padding and border before free space 
 distributed; in a column, its measured block height contributes on the main axis. A
 declared size still wins. Changing retained text marks geometry dirty so the next
 document update buys one layout pass rather than leaving a stale box.
+`min-height` and `min-width` are floors under that declared or measured size: wrapped
+text authored as `min-height: Npx` holds N for one line and grows for a second
+instead of falling out of a fixed box. A column measures a child's height at the width
+the child is given, so a narrow wrapped label counts its real lines. A row that declares
+`min-height` is as tall as its tallest child at the width the row gives it; a row without
+one keeps its own text height, because without `flex-shrink` a growing row based on its
+children's height could only overflow its column.
 
 Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs

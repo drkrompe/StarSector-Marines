@@ -98,7 +98,7 @@
   .polity-axis-detail { height: 0px; flex-grow: 1; white-space: normal; }
   .polity-axis-value { width: 66px; padding: 44px 0px; text-align: center; }
   .polity-axis button { width: 54px; padding: 52px 15px; border-width: 1px; font-family: title; text-align: center; }
-  .polity-caption { height: 56px; white-space: normal; }
+  .polity-caption { min-height: 56px; white-space: normal; }
   .polity-field-rows { flex-direction: column; height: 538px; gap: 7px; overflow: hidden; }
   /* Five rows and four gaps come to exactly the 538px above: a row that grows
      does not push the column, it is clipped off the bottom of it. */

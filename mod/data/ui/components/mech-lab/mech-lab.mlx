@@ -186,7 +186,7 @@
   .castle-lesson-text { width: 0px; flex-grow: 1; height: 176px; white-space: normal; overflow: scroll; }
   .castle-controls { flex-direction: row; align-items: center; height: 30px; gap: 10px; }
   .lesson-action { width: 148px; height: 28px; font-family: heading; text-align: center; }
-  .lesson-key-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; }
+  .lesson-key-hint { width: 0px; flex-grow: 1; min-height: 30px; white-space: normal; }
   .room-bar { flex-direction: row; align-items: center; height: 54px; padding: 4px 8px; gap: 10px; }
   #mech-lab-room-name { width: 300px; height: 16px; }
   .bay-navigator { flex-direction: row; align-items: center; width: 205px; height: 24px; gap: 3px; }
@@ -215,7 +215,7 @@
   .mech-squad-row.selected, .mech-row.selected { background-color: #2a3632; border-color: #dfc588; }
   .row-name { height: 18px; }
   .row-small { height: 16px; }
-  .mech-card-name { height: 22px; white-space: normal; font-family: title; }
+  .mech-card-name { min-height: 22px; white-space: normal; font-family: title; }
   .mech-card-line { height: 20px; }
   .mech-card-action { height: 20px; padding-top: 0px; text-align: right; }
 
@@ -227,7 +227,7 @@
   .fitting-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
   .catalog-panel { flex-direction: column; width: 410px; padding: 7px; gap: 5px; border-width: 1px; overflow: hidden; }
   .catalog-heading { height: 25px; font-family: title; }
-  .catalog-copy { height: 32px; white-space: normal; }
+  .catalog-copy { min-height: 32px; white-space: normal; }
   .catalog-rule { height: 16px; padding: 7px 5px; }
   .category-filters { flex-direction: row; align-items: center; width: 100%; height: 34px; gap: 3px; }
   .catalog-kicker-row { flex-direction: row; align-items: center; width: 100%; height: 20px; gap: 6px; }
@@ -297,7 +297,7 @@
   .mech-repair-status { height: 16px; }
   .mech-repair-detail { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 4px; }
   .mech-repair-title { height: 16px; }
-  .mech-repair-sections { height: 32px; white-space: normal; }
+  .mech-repair-sections { min-height: 32px; white-space: normal; }
   .mech-repair-condition { height: 16px; }
   .overview-browse { width: 142px; height: 30px; padding: 4px 7px; border-width: 3px; text-align: center; font-family: heading; }
 

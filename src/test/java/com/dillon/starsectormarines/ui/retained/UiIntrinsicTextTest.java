@@ -69,6 +69,51 @@ class UiIntrinsicTextTest {
     }
 
     @Test
+    void minHeightHoldsItsFloorAndGrowsForWrappedLines() {
+        UiElement label = new UiElement("label").text("ONE")
+                .style("width: 50px; min-height: 30px; white-space: normal");
+        UiElement next = new UiElement("next").style("height: 10px");
+        UiDocument document = document(new UiElement("root").style("align-items: start")
+                .child(label).child(next));
+        document.layout(100f, 200f);
+        assertEquals(30f, label.box().borderBox().height(), EPSILON);
+        assertEquals(30f, next.box().borderBox().y(), EPSILON);
+        label.text("ONE TWO");
+        document.advance(0f);
+        assertEquals(40f, label.box().borderBox().height(), EPSILON);
+        assertEquals(40f, next.box().borderBox().y(), EPSILON);
+    }
+
+    @Test
+    void minHeightRowGrowsToItsTallestWrappedChild() {
+        UiElement label = new UiElement("label").text("ONE TWO")
+                .style("width: 50px; white-space: normal");
+        UiElement value = new UiElement("value").text("X").grow(1f).style("width: 0px");
+        UiElement row = new UiElement("row").style("flex-direction: row; min-height: 30px; padding: 2px")
+                .child(label).child(value);
+        UiElement next = new UiElement("next").style("height: 10px");
+        UiDocument document = document(new UiElement("root").child(row).child(next));
+        document.layout(200f, 200f);
+        assertEquals(44f, row.box().borderBox().height(), EPSILON);
+        assertEquals(40f, label.box().borderBox().height(), EPSILON);
+        assertEquals(44f, next.box().borderBox().y(), EPSILON);
+        label.text("ONE");
+        document.advance(0f);
+        assertEquals(34f, row.box().borderBox().height(), EPSILON);
+    }
+
+    @Test
+    void minWidthRaisesADeclaredWidthInARow() {
+        UiElement chip = new UiElement("chip").style("width: 20px; min-width: 40px; padding: 0px 5px");
+        UiElement next = new UiElement("next").style("width: 10px");
+        UiDocument document = document(new UiElement("root").style("flex-direction: row")
+                .child(chip).child(next));
+        document.layout(200f, 20f);
+        assertEquals(50f, chip.box().borderBox().width(), EPSILON);
+        assertEquals(50f, next.box().borderBox().x(), EPSILON);
+    }
+
+    @Test
     void rowMeasuresWrappedCrossHeightAtTheAllocatedChildWidth() {
         UiElement wrapped = new UiElement("wrapped").text("ONE TWO")
                 .style("width: 35px; white-space: normal");
