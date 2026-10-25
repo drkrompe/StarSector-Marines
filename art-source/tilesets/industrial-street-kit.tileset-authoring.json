@@ -1,0 +1,146 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.pipe-rack-beam",
+      "included": true,
+      "note": "Overhead pipe rack cell over its support: three east-west pipes on a north-south I-beam. Overhead; no cover.",
+      "rect": [
+        40,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.pipe-rack-straight",
+      "included": true,
+      "note": "Overhead pipe rack cell, three east-west pipes, flange collars on both edges. Overhead; no cover.",
+      "rect": [
+        340,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.pipe-rack-straight-b",
+      "included": true,
+      "note": "Second straight pipe rack cell, varied surface wear. Overhead; no cover.",
+      "rect": [
+        640,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.gantry-column",
+      "included": true,
+      "note": "Pipe gantry column foot: concrete footing, base plate, H-column. Stands under a pipe-rack-beam cell.",
+      "rect": [
+        1020,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.jersey-barrier",
+      "included": true,
+      "note": "Concrete jersey crash barrier, yellow hazard bands at both ends.",
+      "rect": [
+        40,
+        380,
+        600,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.security-bollard",
+      "included": true,
+      "note": "Steel security bollard in a yellow ring.",
+      "rect": [
+        720,
+        380,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.boom-gate-post",
+      "included": true,
+      "note": "Checkpoint boom-gate housing, pivot hub on its east side.",
+      "rect": [
+        1100,
+        380,
+        300,
+        300
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.boom-gate-arm",
+      "included": true,
+      "note": "Red and white boom-gate arm, root west against the post, tip east. Overlay; no cover, walkable.",
+      "rect": [
+        40,
+        720,
+        900,
+        300
+      ]
+    }
+  ],
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "doodad.street-kit",
+  "note": "Industrial-zone pipe gantry and checkpoint barriers (set-piece-districts.md): a 3x1 overhead pipe rack cut per cell, the gantry column, a jersey barrier, a bollard, and a boom gate's post and arm. Measured 1536x1024 RGBA; interiors are alpha 253, not 255. Geometry-first reskin of templates/industrial-street-kit-guide.png (street-dressing-guide.py), 300 px per world cell; every rect is the guide frame and the raw came back at the guide's own size. The pipe strip is one alpha piece: it is cut at the guide's cell boundaries, which run through the flange collars, so a straight cell repeats with the joint on its edge. Pipes run east-west; the beam cell's I-beam runs north-south. Pipe cells carry no cover and draw in the roof pass through street-dressing-motions.tileset.json; the column stands under a beam cell. The boom arm is an overlay a figure walks under (no cover), its root at the west edge against the post's pivot on the post's east side. Exact prompt in industrial-street-kit.prompt.txt.",
+  "outputSheet": "graphics/doodads/industrial-street-kit.png",
+  "sheet": "art-source/tilesets/industrial-street-kit.raw.png",
+  "sheetName": "industrial-street-kit"
+}
