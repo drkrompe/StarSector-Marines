@@ -159,8 +159,8 @@ or mixed pockets, so the residential quarter weighs as much as the mixed town an
 among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 `createSnapshots -Psnapshot=main-street-look`.
 
-The kerb's rhythm is lamp, planter, lamp, stall, every third clear cell, each lamp's arm over the
-carriageway, and each shop door with a cell of frontage either side has an awning over the pavement in front
+The kerb's rhythm is lamp, planter, lamp, stall, every third clear cell, each lamp drawn as its head seen
+straight down (`street-lamps`: no pole lies across the ground, the post is under the head), and each shop door with a cell of frontage either side has an awning over the pavement in front
 of it, one colourway to a shopfront (striped, green canvas or steel, read off its door's place, no random drawn). The art
 is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`). One shop on each main street keeps a
 licensed lobster kitchen in its back room (the range against a blank back wall, its pressure tank beside it),
@@ -176,7 +176,7 @@ cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figur
 canopy (`doorCanopies`, the steel awning, owner's pick): over each warehouse loading door above its apron, each
 factory-row workshop's lane door, and a freight yard's warehouse door. Main street keeps its shop colourways. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
 main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the owner's style choice for
-main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
+main street's lamps (lantern heads on the kerb against lanterns on brackets off the shopfronts, `StreetDressing.wallLamp`).
 
 The standalone market lot still plans its own square, keeping clear of a main street's, so a map may carry
 both: a market square stands on 18 of 24 city maps and 20 of 24 colonies

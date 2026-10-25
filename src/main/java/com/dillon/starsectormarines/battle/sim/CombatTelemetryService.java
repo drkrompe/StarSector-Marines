@@ -6,6 +6,11 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.LongFunction;
+
 /**
  * Data owner for the {@code TELEMETRY} component — what each combatant
  * actually did this battle. Typed by-id access in the archetype
@@ -77,6 +82,29 @@ public final class CombatTelemetryService {
     private final HitLog hitLog = new HitLog();
 
     public HitLog hitLog() { return hitLog; }
+
+    /**
+     * Evidence's damage ledger: damage dealt to the defender side and kills, by what the attacker was, classified at the
+     * moment of the hit so a hull (which has no telemetry row) and a unit that has since died are still counted. Off
+     * unless an evidence run installs a classifier; a class of {@code null} is not counted.
+     */
+    private LongFunction<String> ledgerClass;
+    private final Map<String, float[]> ledger = new TreeMap<>();
+
+    public void keepLedger(LongFunction<String> classify) { ledgerClass = classify; }
+
+    /** The ledger by class: damage to bodies, to structures, bodies killed, structures destroyed. */
+    public Map<String, float[]> ledger() { return Collections.unmodifiableMap(ledger); }
+
+    /** Counts {@code applied} damage an attacker dealt to the defender side. Serial damage path only. */
+    public void recordToLedger(long attackerId, float applied, boolean died, boolean structure) {
+        if (ledgerClass == null || attackerId == NO_ATTACKER) return;
+        String who = ledgerClass.apply(attackerId);
+        if (who == null) return;
+        float[] row = ledger.computeIfAbsent(who, k -> new float[4]);
+        row[structure ? 1 : 0] += applied;
+        if (died) row[structure ? 3 : 2]++;
+    }
 
     /** Presence check — true iff {@code id}'s fighting is being recorded (spawned as a combatant). Gate the readers on this. */
     public boolean isRecorded(long id) {

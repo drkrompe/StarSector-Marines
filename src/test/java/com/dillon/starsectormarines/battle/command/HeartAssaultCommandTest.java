@@ -52,6 +52,15 @@ class HeartAssaultCommandTest {
     }
 
     @Test
+    void theCompanyGoesInOnAMotherOnlyWithTheLanesRoundHerAndThenStaysIn() {
+        KnownBore mother = new KnownBore("mother-2", true, 362, 287, true);
+        assertFalse(HeartAssaultCommand.goesIn(mother, HeartAssaultCommand.ALLIES_TO_PUSH - 1, null), "alone, it waits");
+        assertTrue(HeartAssaultCommand.goesIn(mother, HeartAssaultCommand.ALLIES_TO_PUSH, null));
+        assertTrue(HeartAssaultCommand.goesIn(mother, 0, "mother-2"), "gone in, a thinning there does not call it back");
+        assertFalse(HeartAssaultCommand.goesIn(mother, 0, "mother-1"), "a new mother is gone in on afresh");
+    }
+
+    @Test
     void aSquadFarFromWhereTheCompanyHoldsWithdrawsAndOneThereHolds() {
         assertTrue(HeartAssaultCommand.stillFallingBack(273f, 194f, 265, 30), "170 cells forward, it breaks off");
         assertFalse(HeartAssaultCommand.stillFallingBack(270f, 36f, 265, 30));

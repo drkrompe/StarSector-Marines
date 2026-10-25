@@ -163,4 +163,5 @@ com.dillon.starsectormarines.battle.evacuation.BloomOutskirtsScene
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryScene
 com.dillon.starsectormarines.battle.evacuation.HarrierRaidScene
 com.dillon.starsectormarines.battle.evacuation.SwarmWorkerScene
+com.dillon.starsectormarines.battle.evacuation.BombardHazeScene
 com.dillon.starsectormarines.battle.drone.SensorSearchScene

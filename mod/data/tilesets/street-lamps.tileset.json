@@ -1,0 +1,60 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Colonial cast-iron lantern from above: fluted hexagonal roof and finial over a warm glass rim. Kerb lamp.",
+      "name": "doodad.street-lamp-cap-colonial",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Cobra-head luminaire from above, its arm stub south; the light leaves north. Kerb lamp.",
+      "name": "doodad.street-lamp-cap-industrial",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Colonial lantern on a scroll bracket off a wall along its north edge. Overhead; no cover.",
+      "name": "doodad.street-lamp-bracket-colonial",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Flood lamp on a steel bracket off a wall along its north edge. Overhead; no cover.",
+      "name": "doodad.street-lamp-bracket-industrial",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 0,
+      "cover": "light",
+      "id": "doodad.street-lamp-cap-colonial",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 1,
+      "cover": "light",
+      "id": "doodad.street-lamp-cap-industrial",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "doodad.street-lamp-bracket-colonial",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "doodad.street-lamp-bracket-industrial",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/street-lamps.png"
+}

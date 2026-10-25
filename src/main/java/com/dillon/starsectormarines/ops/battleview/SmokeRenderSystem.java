@@ -7,11 +7,18 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
-/** Visual mirror of simulation-owned grenade arcs and smoke-field footprints. */
+/**
+ * Visual mirror of simulation-owned grenade arcs and smoke-field footprints, and of Bombards' spore hazes
+ * ({@code bombard.md}): the same flipbook puffs tinted amber and thinner, since a haze hides nothing.
+ */
 public final class SmokeRenderSystem implements RenderSystem {
 
     private static final int PUFF_COUNT = 9;
     private static final float FOGGED_ALPHA_MULTIPLIER = 1.75f;
+    /** A spore haze's tint: the amber of the Bombard's bile. */
+    private static final float HAZE_RED = 0.93f, HAZE_GREEN = 0.60f, HAZE_BLUE = 0.24f;
+    /** A haze is drawn thinner than smoke: it is see-through, and must read so. */
+    private static final float HAZE_ALPHA = 0.62f;
     private final BattleSprites sprites;
     private final SpecialEquipmentDef equipment;
 
@@ -54,10 +61,26 @@ public final class SmokeRenderSystem implements RenderSystem {
         // inside a twenty-pixel field are one grey blob however they are drawn.
         int puffs = ZoomDetail.smokeScatterVisible(camera) ? PUFF_COUNT : 1;
         for (SmokeFieldService.SmokeFieldView field : ctx.sim.smokeFields().activeFields()) {
+            drawField(ctx, out, fieldSheet, recipe, framePxW, framePxH, puffs, field,
+                    recipe.tintRed(), recipe.tintGreen(), recipe.tintBlue(), 1f);
+        }
+        for (SmokeFieldService.SmokeFieldView haze : ctx.sim.smokeFields().activeHazes()) {
+            drawField(ctx, out, fieldSheet, recipe, framePxW, framePxH, puffs, haze,
+                    HAZE_RED, HAZE_GREEN, HAZE_BLUE, HAZE_ALPHA);
+        }
+    }
+
+    private static void drawField(RenderContext ctx, DrawList out, SpriteAPI fieldSheet,
+                                  SpecialEquipmentPresentationDef.Field recipe, int framePxW, int framePxH, int puffs,
+                                  SmokeFieldService.SmokeFieldView field, float red, float green, float blue,
+                                  float alphaScale) {
+        BattleCamera camera = ctx.camera;
+        float cellPx = camera.cellPxSize();
+        {
             float elapsed = field.totalDuration() - field.remaining();
             float fadeIn = Math.min(1f, elapsed / 0.7f);
             float fadeOut = Math.min(1f, field.remaining() / 1.5f);
-            float alpha = fadeIn * fadeOut * ctx.alphaMult;
+            float alpha = fadeIn * fadeOut * ctx.alphaMult * alphaScale;
             for (int i = 0; i < puffs; i++) {
                 float unit = hash01(field.id(), i);
                 float angle = unit * (float) (Math.PI * 2.0) + i * 2.3999632f;
@@ -84,7 +107,7 @@ public final class SmokeRenderSystem implements RenderSystem {
                         camera.cellToScreenX(x), camera.cellToScreenY(y),
                         diameter, diameter,
                         hash01(field.id() + 47, i) * 360f,
-                        recipe.tintRed(), recipe.tintGreen(), recipe.tintBlue(),
+                        red, green, blue,
                         puffAlpha);
             }
         }

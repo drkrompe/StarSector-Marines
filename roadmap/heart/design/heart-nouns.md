@@ -410,8 +410,10 @@ collapses a bore by fiat.
    lane 3's satellite beside the mothers for its own, went for it as the heart
    woke, and was wiped there on every biome. It falls back to its landing and holds there while
    any satellite still stands, breaking off from whatever it is fighting (a squad
-told only to defend a cell far behind it fought where it stood). When the last one falls it goes for the mothers
-   with the converging lanes. Its satellite sits nearest the heart, so the
+told only to defend a cell far behind it fought where it stood). When the last one falls it goes in on a mother
+   only with the converging lanes round her (`HeartAssaultCommand.goesIn`, owner's pick
+   heart-mother-push, 2026-10-25: wait), and stays in once it has; going in
+   ahead of them, it was wiped short of her. Its satellite sits nearest the heart, so the
    heart's waking surge and the first Matriarchs come for it first. Holding
    the taken ground kept more of the company alive but still lost it there on
    one seed; falling back won every seed. The company is the spearhead onto
