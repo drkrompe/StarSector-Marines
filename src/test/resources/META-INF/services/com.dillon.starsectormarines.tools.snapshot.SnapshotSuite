@@ -320,6 +320,7 @@ com.dillon.starsectormarines.battle.evacuation.NestLookSuite
 com.dillon.starsectormarines.battle.evacuation.NestGrowthLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierPatrolLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryLookSuite
+com.dillon.starsectormarines.battle.evacuation.HarrierRaidLookSuite
 com.dillon.starsectormarines.battle.airsupport.BurnObserversLookSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmWorkerLookSuite
 com.dillon.starsectormarines.battle.evacuation.SpireSoundLookSuite
@@ -334,3 +335,5 @@ com.dillon.starsectormarines.tools.forestauthoring.UndergrowthLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.BloomReliefLookSnapshotSuite
 com.dillon.starsectormarines.battle.setup.FreightYardLookSuite
 com.dillon.starsectormarines.battle.setup.MarketSquareLookSuite
+com.dillon.starsectormarines.battle.staffed.LoadingPressureLookSuite
+com.dillon.starsectormarines.battle.setup.FactoryRowLookSuite

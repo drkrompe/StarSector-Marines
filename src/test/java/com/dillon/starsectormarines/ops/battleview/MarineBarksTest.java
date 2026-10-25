@@ -19,10 +19,11 @@ class MarineBarksTest {
     @Test void aSquadNeverTalksOverItself() {
         MarineBarks.Channels channels = new MarineBarks.Channels();
         channels.start(Bark.CONTACT, 1L, 7L, 10f);
-        assertFalse(channels.admits(Bark.GRABBED, 2L, 7L, 10.5f), "a squadmate waits for the line to end");
+        assertFalse(channels.admits(Bark.KILL, 2L, 7L, 10.5f), "a squadmate waits for the line to end");
         float free = 10f + Bark.CONTACT.lineSeconds + MarineBarks.SQUAD_PAUSE_SECONDS;
-        assertTrue(channels.admits(Bark.GRABBED, 2L, 7L, free), "and speaks after the squad's breath");
-        assertTrue(channels.admits(Bark.GRABBED, 3L, 8L, 10.5f), "another squad has its own channel");
+        assertTrue(channels.admits(Bark.KILL, 2L, 7L, free), "and speaks after the squad's breath");
+        assertTrue(channels.admits(Bark.KILL, 3L, 8L, 10.5f), "another squad has its own channel");
+        assertTrue(channels.admits(Bark.GRABBED, 1L, 7L, 10.5f), "but one seized cries out at once, even mid-line");
     }
 
     @Test void aMarineAndASquadKeepTheirGaps() {
@@ -37,7 +38,7 @@ class MarineBarksTest {
     @Test void theBattleHasAVoiceBudgetButEffortSoundsAreNotVoices() {
         MarineBarks.Channels channels = new MarineBarks.Channels();
         for (int i = 0; i < MarineBarks.VOICES; i++) channels.start(Bark.CONTACT, i, i, 0f);
-        assertFalse(channels.admits(Bark.GRABBED, 99L, 99L, 0.1f), "every voice is sounding");
+        assertFalse(channels.admits(Bark.GRABBED, 99L, 99L, 0.1f), "every voice is sounding, cries included");
         assertTrue(channels.admits(Bark.SCUFFLE, 99L, 99L, 0.1f), "a scuffle is not a voice");
         assertTrue(channels.admits(Bark.GRABBED, 99L, 99L, Bark.CONTACT.lineSeconds), "a voice has finished");
     }

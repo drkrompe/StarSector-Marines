@@ -6,6 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
 
+Earlier 2026-10-25 — set pieces: the factory row, its own compound kind, publishes a service lane.
+
 Earlier 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
 
 Earlier 2026-10-25 — forest undergrowth: closed, crushable floor growth between the trees; the forest-floor plants are redrawn overhead.
@@ -320,6 +322,19 @@ way. A compound that cannot hold it keeps the ordinary three-parcel works. The
 yard publishes a **loading bay** (`LoadingBay` on `MapResult`): the stand, its
 heading, the door and the gate. A mission that wants a vehicle loaded reads the
 bay rather than searching the finished map.
+
+The second set piece is the **factory row**, a compound kind of its own
+(`FACTORY_ROW`, promoted from the largest industrial lot left, or a commercial
+lot where none qualifies). Two or three workshops share party walls along a
+private **service lane** that runs the row's length, with a vehicle gate at each
+end onto the street. Their loading doors open onto the lane and every other wall
+is blank, so their backs face the street. Across the lane, a parked utility
+vehicle near each end, generators and pipe runs against the far wall leave
+pockets of cover and the lane clear gate to gate. The row stands on the same
+owned ground as the freight yard and prefers gates on the reserved road over a
+longer row. A compound that cannot hold it fills as ordinary industrial lots. It
+publishes its **service lane** (`ServiceLane` on `MapResult`): the two gate
+cells, the centre line between them and the lane's width.
 
 The **market square** is a commercial set piece: an open paved square framed
 by shopfronts whose doors face it, crossed by two rows of stalls composed from

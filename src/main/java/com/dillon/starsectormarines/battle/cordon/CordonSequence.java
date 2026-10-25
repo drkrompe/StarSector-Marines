@@ -89,6 +89,7 @@ public final class CordonSequence implements Objective {
     private CordonRefugees refugees;
     private AlliedColumns columns;
     private CordonArmour armour;
+    private CordonOuterPicket outerPicket;
     private CordonLogistics logistics;
     private CordonConvoys convoys;
     private CordonLineCommand line;
@@ -137,6 +138,14 @@ public final class CordonSequence implements Objective {
     /** Gives the line its allied armour; at setup, before the first tick. */
     public void attachArmour(CordonArmour armour) {
         this.armour = armour;
+    }
+
+    /** The outer picket out in front of the line, or {@code null}. */
+    public CordonOuterPicket outerPicket() { return outerPicket; }
+
+    /** Puts the outer picket out in front of the line; at setup, before the first tick. */
+    public void attachOuterPicket(CordonOuterPicket outerPicket) {
+        this.outerPicket = outerPicket;
     }
 
     /** The allied line command's draw on its base (requests, ammunition, the radio's allied items), or {@code null}. */
@@ -263,6 +272,7 @@ public final class CordonSequence implements Objective {
         }
         if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
         if (armour != null) armour.advance(sim, redoubts);
+        if (outerPicket != null) outerPicket.advance(sim, tick, beat -> emit(tick, beat));
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
         if (line != null) line.advance(sim);
         if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));

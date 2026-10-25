@@ -105,6 +105,7 @@ final class CordonBuilders {
         f.wall(w, MASONRY, -3, R - 1, -2, R - 1);
         f.wall(w, MASONRY, -R, 2, -R, 4);
         gateNests(w, f, entries, built, 'R', 'E');
+        sealDoors(w, f, entries);
         frontNests(w, f, built);
         tracks(w, f, entries);
         // Farm stores and the farm's own truck in the yard.
@@ -137,6 +138,7 @@ final class CordonBuilders {
         f.wall(w, CERAMIC, -R, -R, R, -R, gaps(entries, 'R'));
         f.wall(w, CERAMIC, R, -R + 1, R, R - 2, gaps(entries, 'E'));
         gateNests(w, f, entries, built, 'R', 'E');
+        sealDoors(w, f, entries);
         // The playground's firing step: sandbags inside the front wall's open stretches, facing the front.
         for (int u = 8; u <= R - 1; u++) if (f.sandbag(w, u, R - 2, 0, 1)) built.posts().add(f.cell(u, R - 2));
         for (int u = -R + 1; u <= -8; u++) if (f.sandbag(w, u, R - 2, 0, 1)) built.posts().add(f.cell(u, R - 2));
@@ -598,6 +600,87 @@ final class CordonBuilders {
         List<int[]> out = new ArrayList<>();
         for (Entry e : entries) if (e.side() == side) out.add(new int[]{e.lo(), e.hi()});
         return out.toArray(new int[0][]);
+    }
+
+    /** The widest opening in a face that is a door rather than open ground. */
+    static final int DOOR_WIDEST = 3;
+
+    /**
+     * The doors in a built redoubt's front and flanks bricked up: on the front face's row ({@code v = R - 1}, where the
+     * front buildings' outer walls stand in line with the yard wall) and down each flank's outer column, every opening
+     * no wider than {@link #DOOR_WIDEST} with wall at both its ends is walled in its building's own surface, except
+     * where a road comes in ({@code entries}). A school's courtyard block faced the front with two archways and its hall
+     * the flank with two doors, and the swarm walked in at them and killed its wall teams inside (town Line arid 10,
+     * redoubt 1 fell at 1.9 minutes); troops making do close the doors facing the enemy. The rear is left as it
+     * stands: its gap is the rear gate carriers and trucks come to. Front nests stand further in.
+     */
+    static void sealDoors(CordonWorks w, Frame f, List<Entry> entries) {
+        CellTest open = (x, y) -> w.grid.inBounds(x, y) && w.grid.isWalkable(x, y);
+        CellTest wall = (x, y) -> w.grid.inBounds(x, y) && w.topology.isWall(x, y);
+        List<List<int[]>> lines = new ArrayList<>();
+        lines.add(line(f, entries, 'F', R - 1));
+        lines.add(line(f, entries, 'W', -R));
+        lines.add(line(f, entries, 'E', R));
+        for (List<int[]> line : lines) {
+            for (int[] c : doors(open, wall, line)) {
+                String surface = neighbourWall(w, c[0], c[1]);
+                w.wall(c[0], c[1], surface != null ? surface : MASONRY);
+            }
+        }
+    }
+
+    /**
+     * One face's cells in order: the front's row {@code at}, or a flank's column {@code at}, from {@code -R} to
+     * {@code R}; a cell where a road comes in on that side is {@code null}, so a run beside it is never walled.
+     */
+    static List<int[]> line(Frame f, List<Entry> entries, char side, int at) {
+        List<int[]> out = new ArrayList<>();
+        for (int t = -R; t <= R; t++) {
+            boolean road = false;
+            for (Entry e : entries) road |= e.side() == side && t >= e.lo() && t <= e.hi();
+            out.add(road ? null : side == 'F' ? f.cell(t, at) : f.cell(at, t));
+        }
+        return out;
+    }
+
+    /** A test on a cell. */
+    interface CellTest {
+        boolean test(int x, int y);
+    }
+
+    /**
+     * The door cells along a face, its cells in order ({@code null} for none of its own): each run of open cells no
+     * wider than {@link #DOOR_WIDEST} with wall at both its ends.
+     */
+    static List<int[]> doors(CellTest open, CellTest wall, List<int[]> line) {
+        List<int[]> out = new ArrayList<>();
+        int i = 0;
+        while (i < line.size()) {
+            int[] c = line.get(i);
+            if (c == null || !open.test(c[0], c[1])) {
+                i++;
+                continue;
+            }
+            int end = i;
+            while (end + 1 < line.size() && line.get(end + 1) != null
+                    && open.test(line.get(end + 1)[0], line.get(end + 1)[1])) end++;
+            int[] before = i > 0 ? line.get(i - 1) : null, after = end + 1 < line.size() ? line.get(end + 1) : null;
+            boolean walled = before != null && after != null && wall.test(before[0], before[1])
+                    && wall.test(after[0], after[1]);
+            if (walled && end - i + 1 <= DOOR_WIDEST) out.addAll(line.subList(i, end + 1));
+            i = end + 1;
+        }
+        return out;
+    }
+
+    /** The surface of a wall cell beside {@code (x, y)} along either axis, or {@code null}. */
+    private static String neighbourWall(CordonWorks w, int x, int y) {
+        int[][] around = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int[] d : around) {
+            int nx = x + d[0], ny = y + d[1];
+            if (w.grid.inBounds(nx, ny) && w.topology.isWall(nx, ny)) return w.topology.getSurfaceId(nx, ny);
+        }
+        return null;
     }
 
     // ---------------------------------------------------------------- local frame

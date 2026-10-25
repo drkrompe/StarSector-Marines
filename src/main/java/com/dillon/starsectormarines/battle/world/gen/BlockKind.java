@@ -165,6 +165,14 @@ public enum BlockKind {
     MEDICAL_CAMPUS,
 
     /**
+     * The factory row set piece ({@code set-piece-blocks.md}): workshops side by side along a private
+     * service lane gated onto the street at both ends, their loading doors on the lane and their blank
+     * backs to the street. Never rolled by a theme: the label pass promotes one qualifying industrial or commercial lot.
+     * A compound that cannot hold the row fills as ordinary {@link #BUILDING_INDUSTRIAL} lots.
+     */
+    FACTORY_ROW,
+
+    /**
      * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
      * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
      * {@link com.dillon.starsectormarines.battle.world.gen.BlockFiller}

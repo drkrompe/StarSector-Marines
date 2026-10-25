@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FortifiedPostFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FactoryRowFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseQuarterFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MarketSquareFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
@@ -176,6 +177,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new GatedHousingFiller());
         registerCompound(new DenseQuarterFiller());
         registerCompound(new IndustrialCompoundFiller());
+        registerCompound(new FactoryRowFiller());
         registerCompound(new MedicalCampusFiller());
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
@@ -847,7 +849,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)))
                 .withLayout(ctx.get(BspKeys.MISSION_LAYOUT_LAID))
                 .withLoadingBays(ctx.loadingBays)
-                .withOpenSquares(ctx.openSquares);
+                .withOpenSquares(ctx.openSquares)
+                .withServiceLanes(ctx.serviceLanes);
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

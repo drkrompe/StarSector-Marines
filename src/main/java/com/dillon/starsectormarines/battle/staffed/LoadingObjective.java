@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.objective.optional.Reward;
 
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -25,10 +26,13 @@ public final class LoadingObjective implements ObjectiveRuntime {
     public static final String DEPARTED_BEAT = "objective_" + KEY + "_departed";
 
     private final Loading loading;
+    private final LoadingPressure pressure;
     private boolean departedSaid;
+    private boolean ended;
 
-    LoadingObjective(Loading loading) {
+    LoadingObjective(Loading loading, LoadingPressure pressure) {
         this.loading = loading;
+        this.pressure = pressure;
     }
 
     /**
@@ -37,10 +41,17 @@ public final class LoadingObjective implements ObjectiveRuntime {
      */
     public static OptionalObjective entry(String title, String briefing, int weight, Reward reward, Cost cost,
                                           Supplier<Loading> loading) {
+        return entry(title, briefing, weight, reward, cost, loading, l -> LoadingPressure.NONE);
+    }
+
+    /** {@link #entry}, with what the loading brings against itself, asked for once the loading is installed. */
+    public static OptionalObjective entry(String title, String briefing, int weight, Reward reward, Cost cost,
+                                          Supplier<Loading> loading, Function<Loading, LoadingPressure> pressure) {
         return new OptionalObjective(KEY, title, briefing, Set.of(), Set.of(), weight, reward, cost,
                 ctx -> {
                     Loading installed = loading.get();
-                    return installed == null ? (c, tick) -> Status.LAPSED : new LoadingObjective(installed);
+                    return installed == null ? (c, tick) -> Status.LAPSED
+                            : new LoadingObjective(installed, pressure.apply(installed));
                 });
     }
 
@@ -51,11 +62,31 @@ public final class LoadingObjective implements ObjectiveRuntime {
             departedSaid = true;
             ctx.publish(tick, DEPARTED_BEAT);
         }
-        return switch (phase) {
+        pressure.advance(ctx.sim(), loading, tick);
+        Status status = switch (phase) {
             case AWAY -> Status.SUCCEEDED;
             case LOST -> Status.FAILED;
             case LOADING, DEPARTING -> Status.ACTIVE;
         };
+        if (status.isFinal()) endPressure(ctx);
+        return status;
+    }
+
+    @Override
+    public Status end(ObjectiveContext ctx) {
+        endPressure(ctx);
+        return Status.LAPSED;
+    }
+
+    private void endPressure(ObjectiveContext ctx) {
+        if (ended) return;
+        ended = true;
+        pressure.end(ctx.sim());
+    }
+
+    /** What the loading brought against itself. */
+    public LoadingPressure pressure() {
+        return pressure;
     }
 
     /** The loading this objective watches. */

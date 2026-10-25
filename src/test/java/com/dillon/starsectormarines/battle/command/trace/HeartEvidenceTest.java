@@ -222,7 +222,8 @@ class HeartEvidenceTest {
                 .put("harriers", HarrierReading.line(sim))
                 .put("skitterers", sim.swarmWorkers().summary(sim))
                 .put("bores", bores).put("beats", beats).put("objectives", objectives(sim))
-                .put("vehicleOrders", vehicleOrders);
+                .put("vehicleOrders", vehicleOrders)
+                .put("boreAssault", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().assaultLine());
     }
 
     /** How each optional objective came out, by key. */
@@ -258,7 +259,8 @@ class HeartEvidenceTest {
         JSONObject orders = s.getJSONObject("vehicleOrders");
         md.append("\nVehicle orders: ").append(orders.getInt("accepted")).append(" accepted, ")
                 .append(orders.getInt("arrived")).append(" arrived, ").append(orders.getInt("noRoute"))
-                .append(" refused for no route, ").append(orders.getInt("gaveUp")).append(" given up.\n");
+                .append(" refused for no route, ").append(orders.getInt("gaveUp")).append(" given up.\n")
+                .append("\nBore assaults: ").append(s.optString("boreAssault", "—")).append(".\n");
         JSONObject objectives = s.getJSONObject("objectives");
         if (objectives.length() > 0) {
             md.append("\n## Objectives\n\n");

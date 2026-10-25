@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
@@ -30,6 +32,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -46,7 +49,6 @@ public final class UndergrowthLookSuite implements SnapshotSuite {
     private static final int LANE_Y0 = SHOT_H / 2 - 3, LANE_Y1 = SHOT_H / 2 + 3;
     private static final String[] PLANTS = {"nature.shrub-1", "nature.shrub-2", "nature.shrub-3",
             "nature.tuft-1", "nature.tuft-2", "nature.tuft-3"};
-    private static final String[] ROCKS = RockDamage.IDS.stream().sorted().toArray(String[]::new);
 
     public String id() { return "undergrowth-look"; }
     public String label() { return "Forest undergrowth and floor plants"; }
@@ -60,6 +62,8 @@ public final class UndergrowthLookSuite implements SnapshotSuite {
         frames.add(catalog(context));
         frames.addAll(LookReview.record(context.modRoot(), wood()));
         frames.addAll(LookReview.record(context.modRoot(), floor()));
+        for (SurfacePalette palette : SurfacePalette.values())
+            frames.addAll(LookReview.record(context.modRoot(), stones(palette)));
         return frames;
     }
 
@@ -130,17 +134,7 @@ public final class UndergrowthLookSuite implements SnapshotSuite {
                             || map.topology.getNatureOverlayIndex(x, y) >= 0) continue;
                     map.topology.setNatureOverlayIndex(x, y, tiles.tile(PLANTS[random.nextInt(PLANTS.length)]).index);
                 }
-            // Field stones among them, a third already cracked or shattered.
-            RockDamage rocks = new RockDamage(map.grid, map.doodads);
-            for (int y = placement.site().y0() + 2; y < placement.site().y0() + SHOT_H - 2; y++)
-                for (int x = placement.site().x0() + 2; x < placement.site().x0() + SHOT_W - 2; x++) {
-                    if (random.nextInt(28) != 0 || !map.grid.isWalkable(x, y) || map.topology.isFixture(x, y)
-                            || map.topology.getGroundKind(x, y) != CellTopology.GroundKind.GRASS
-                            || map.topology.getNatureOverlayIndex(x, y) >= 0) continue;
-                    map.topology.setNatureOverlayIndex(x, y, tiles.tile(ROCKS[random.nextInt(ROCKS.length)]).index);
-                    int hit = random.nextInt(6);
-                    if (hit < 2) rocks.damage(x, y, hit == 0 ? 10 : 1000, map.topology, tiles);
-                }
+            scatterStones(placement, random);
             var builder = placement.holdouts(placement.builder());
             for (int i = 0; i < 4; i++) {
                 float[] at = placement.openNear(SHOT_W / 2f - 3 + i * 2, SHOT_H / 2f + (i % 2));
@@ -151,6 +145,43 @@ public final class UndergrowthLookSuite implements SnapshotSuite {
         }, placement -> List.of(LookReview.View.play(placement.site().x(SHOT_W / 2f), placement.site().y(SHOT_H / 2f)),
                 LookReview.View.close("close", placement.site().x(SHOT_W / 2f), placement.site().y(SHOT_H / 2f), 24f)),
                 12).withStills(1);
+    }
+
+    /** A biome's own generated ground with its field-stone set, a fire team for scale. */
+    private static LookReview.Shot stones(SurfacePalette palette) {
+        return LookReview.Shot.of("stones-" + palette.name().toLowerCase(Locale.ROOT), SHOT_W, SHOT_H, placement -> {
+            scatterStones(placement, new Random(11L));
+            var builder = placement.holdouts(placement.builder());
+            for (int i = 0; i < 4; i++) {
+                float[] at = placement.openNear(SHOT_W / 2f - 3 + i * 2, SHOT_H / 2f + (i % 2));
+                builder.unit("marine-" + i, Faction.MARINE, UnitType.MARINE,
+                        (int) at[0] - placement.site().x0(), (int) at[1] - placement.site().y0(), spec -> spec.moveSpeed(0f));
+            }
+            return builder.build().sim();
+        }, placement -> List.of(LookReview.View.play(placement.site().x(SHOT_W / 2f), placement.site().y(SHOT_H / 2f)),
+                LookReview.View.close("close", placement.site().x(SHOT_W / 2f), placement.site().y(SHOT_H / 2f), 24f)),
+                12).withStills(1).on(LookGround.of(palette, palette == SurfacePalette.FROZEN ? 3L : 7L));
+    }
+
+    /**
+     * Field stones of the ground's own set on its open wild ground, a third already cracked or shattered, so every
+     * state shows in the frame.
+     */
+    private static void scatterStones(LookReview.Placement placement, Random random) {
+        MapResult map = placement.map();
+        TileRegistry tiles = TileRegistry.installed();
+        SurfacePalette palette = placement.ground().surface();
+        RockDamage rocks = new RockDamage(map.grid, map.doodads);
+        for (int y = placement.site().y0() + 2; y < placement.site().y0() + SHOT_H - 2; y++)
+            for (int x = placement.site().x0() + 2; x < placement.site().x0() + SHOT_W - 2; x++) {
+                if (random.nextInt(28) != 0 || !map.grid.isWalkable(x, y) || map.topology.isFixture(x, y)
+                        || map.topology.getGroundKind(x, y) != palette.inlandGround()
+                        || map.topology.getNatureOverlayIndex(x, y) >= 0) continue;
+                String group = RockDamage.GROUPS.get(random.nextInt(RockDamage.GROUPS.size()));
+                map.topology.setNatureOverlayIndex(x, y, tiles.tile(palette.stones().stone(group)).index);
+                int hit = random.nextInt(6);
+                if (hit < 2) rocks.damage(x, y, hit == 0 ? 10 : 1000, map.topology, tiles);
+            }
     }
 
     /**
