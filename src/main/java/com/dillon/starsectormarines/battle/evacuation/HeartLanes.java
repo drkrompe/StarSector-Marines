@@ -427,6 +427,7 @@ public final class HeartLanes {
             logSections(sim, tick);
             for (Lane lane : lanes) moveSectionUp(sim, lane);
             countTubes(sim);
+            for (Lane lane : lanes) tallyTeams(sim, lane);
         }
         for (Lane lane : lanes) {
             boolean formed = lane.squads != null && !lane.squads.isEmpty() && formation(sim, lane, tick);
@@ -569,6 +570,49 @@ public final class HeartLanes {
     private int mortarRounds, mortarMissionRounds;
     private final Map<Long, int[]> tubeRounds = new HashMap<>();
 
+    /**
+     * Each second a lane's mortar team stands at its bore (the assault past moving up), what it has: the mission on its
+     * order, a tube standing, the tube in its band of the bore, and the tube's mission target on the bore; and, with no
+     * tube, what keeps the gunner from setting one down.
+     */
+    private final int[] teamAtBore = new int[5];
+    private final Map<String, Integer> teamOrders = new TreeMap<>();
+
+    private void tallyTeams(BattleSimulation sim, Lane lane) {
+        if (lane.assault == null || lane.assault.phase == BoreAssault.Phase.MOVING_UP || lane.squads == null) return;
+        // A formation on its way to the next bore has the lane, whatever assault it last made.
+        if (lane.advance != null && lane.advance.active()) return;
+        SwarmBore bore = bore(sim, lane.assault.boreKey);
+        if (bore == null) return;
+        for (int team : lane.squads) {
+            if (!lane.mortarTeams.contains(team) || sim.squadMemberCount(team) == 0) continue;
+            teamAtBore[0]++;
+            if (sim.fieldMortars().missionOf(team) != null) teamAtBore[1]++;
+            var held = sim.getSquad(team).assignedObjective;
+            teamOrders.merge(held == null ? "none" : held.kind() + (held.firesMission() ? "+mission" : ""), 1, Integer::sum);
+            boolean up = false;
+            for (FieldMortarService.Tube tube : sim.fieldMortars().tubes()) if (tube.squadId == team) up = true;
+            long gunner = sim.getSquad(team).leaderId;
+            if (!up && gunner != 0L && sim.resolveUnit(gunner) != 0L && sim.world().isAlive(gunner)) {
+                float d = (float) Math.hypot(sim.world().x(gunner) - bore.x(), sim.world().y(gunner) - bore.y());
+                teamOrders.merge("no tube", 1, Integer::sum);
+                if (!sim.movement().settled(gunner)) teamOrders.merge("no tube: moving", 1, Integer::sum);
+                if (sim.getSquad(team).timeSinceUnderFire < 3f) teamOrders.merge("no tube: under fire", 1, Integer::sum);
+                if (d < 17f || d > 50f) teamOrders.merge("no tube: bore out of band", 1, Integer::sum);
+                teamOrders.merge("no tube: gunner " + (d < 17f ? "<17" : d <= 50f ? "17-50" : d <= 100f ? "50-100" : ">100")
+                        + " cells from the bore", 1, Integer::sum);
+            }
+            for (FieldMortarService.Tube tube : sim.fieldMortars().tubes()) {
+                if (tube.squadId != team) continue;
+                teamAtBore[2]++;
+                float d = (float) Math.hypot(tube.cellX() - bore.x(), tube.cellY() - bore.y());
+                var weapon = tube.structure.mount.weapon;
+                if (d >= weapon.minRange && d <= weapon.range) teamAtBore[3]++;
+                if (tube.missionTarget() == bore.entityId()) teamAtBore[4]++;
+            }
+        }
+    }
+
     private void countTubes(BattleSimulation sim) {
         for (FieldMortarService.Tube tube : sim.fieldMortars().tubes()) {
             int[] was = tubeRounds.computeIfAbsent(tube.entityId(), id -> new int[2]);
@@ -639,6 +683,10 @@ public final class HeartLanes {
             support = walkableNear(sim, support[0], support[1]);
             begun.supportX = support[0];
             begun.supportY = support[1];
+            int[] mortar = BoreAssault.mortarCell(begun.boreX, begun.boreY, begun.nearX, begun.nearY);
+            mortar = walkableNear(sim, mortar[0], mortar[1]);
+            begun.mortarX = mortar[0];
+            begun.mortarY = mortar[1];
             if (!begun.armourFirst) begun.enter(BoreAssault.Phase.BASE_OF_FIRE, tick);
             lane.assault = begun;
             lane.afterFall = false;
@@ -710,9 +758,9 @@ public final class HeartLanes {
             if (!lane.assaultOrdered.add(squad)) continue;
             ObjectiveAssignment order;
             String why;
-            // A mortar team never goes in: it holds the support line and works its tube on the mouth in every phase.
+            // A mortar team never goes in: it holds its post behind the support line and works its tube on the mouth.
             if (lane.mortarTeams.contains(squad) && a.phase != BoreAssault.Phase.MOVING_UP) {
-                order = ObjectiveAssignment.defendArea(squad, a.supportX, a.supportY)
+                order = ObjectiveAssignment.defendArea(squad, a.mortarX, a.mortarY)
                         .withFireMission(new ObjectiveAssignment.FireMission(a.boreX, a.boreY, BoreAssault.MOUTH_CELLS));
                 sim.assignSquadCommand(order, CommandAuthority.GARRISON, ISSUER,
                         "lane " + lane.number + "'s mortar team works the mouth of " + a.boreKey);
@@ -940,7 +988,9 @@ public final class HeartLanes {
                 + ", carriers on a bore " + sectionSecondsOnBore + " of " + sectionSeconds
                 + " carrier-seconds, moving up with a formation " + sectionSecondsMoving + " carrier-seconds, "
                 + sectionSecondsMovingFiring + " of them firing; mortar teams " + mortarTeamCount() + ", allied tube rounds "
-                + mortarRounds + " (" + mortarMissionRounds + " on a mission); machines in a living mouth "
+                + mortarRounds + " (" + mortarMissionRounds + " on a mission); mortar-team-seconds at a bore "
+                + teamAtBore[0] + ", with the mission " + teamAtBore[1] + ", tube up " + teamAtBore[2] + ", in band "
+                + teamAtBore[3] + ", aimed at the bore " + teamAtBore[4] + ", holding " + teamOrders + "; machines in a living mouth "
                 + machineSecondsInMouth + " of " + machineSeconds + " machine-seconds";
     }
 
@@ -994,7 +1044,11 @@ public final class HeartLanes {
             }
             return false;
         }
-        for (int squad : lane.squads) if (lane.formedSquads.add(squad)) advance.joinInfantry(squad, lane.armourLeads);
+        for (int squad : lane.squads) {
+            if (!lane.formedSquads.add(squad)) continue;
+            if (lane.mortarTeams.contains(squad)) advance.joinSupport(0, squad);
+            else advance.joinInfantry(squad, lane.armourLeads);
+        }
         for (long hull : lane.hulls) if (lane.formedMachines.add(hull)) advance.joinMachine(hull, false, lane.armourLeads);
         for (long mech : lane.mechs) if (lane.formedMachines.add(mech)) advance.joinMachine(mech, true, lane.armourLeads);
         return true;
@@ -1018,7 +1072,10 @@ public final class HeartLanes {
         lane.formedSquads.addAll(lane.squads);
         lane.formedMachines.addAll(hulls);
         lane.formedMachines.addAll(mechs);
-        ScreenedAdvance.Element infantry = new ScreenedAdvance.Element().squads(lane.squads);
+        // A mortar team moves up with the support, behind the line, as the fire section does: it is not a rifle team.
+        List<Integer> riflemen = new ArrayList<>(), mortars = new ArrayList<>();
+        for (int squad : lane.squads) (lane.mortarTeams.contains(squad) ? mortars : riflemen).add(squad);
+        ScreenedAdvance.Element infantry = new ScreenedAdvance.Element().squads(riflemen);
         ScreenedAdvance.Element armour = new ScreenedAdvance.Element().hulls(hulls).mechs(mechs);
         List<Long> section = new ArrayList<>();
         for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) section.add(hull);
@@ -1026,7 +1083,7 @@ public final class HeartLanes {
                         AdvanceRoute.straight(from[0], from[1], rally[0], rally[1]))
                 .screen(lane.armourLeads ? armour : infantry)
                 .main(lane.armourLeads ? infantry : armour)
-                .support(new ScreenedAdvance.Element().hulls(section), SECTION_BEHIND)
+                .support(new ScreenedAdvance.Element().hulls(section).squads(mortars), SECTION_BEHIND)
                 .side(Faction.ALLY)
                 .frontage(2f * lane.ground.halfWidth())
                 .startWhen(ScreenedAdvance.Trigger.now())
