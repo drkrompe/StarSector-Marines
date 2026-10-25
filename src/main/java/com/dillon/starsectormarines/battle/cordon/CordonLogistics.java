@@ -201,12 +201,13 @@ public final class CordonLogistics implements AlliedDepot {
      * one of {@code places}: ground its footprint's clearance holds, joined to the apron's, within
      * {@link #APRON_REACH} cells of each and on its level ({@link #at}), stepping as the route planner steps. A base whose fence and lanes are too narrow for a carrier
      * kept every one it built standing on its apron, refused a route to the line, and the shed's
-     * lane jammed behind them. Off a map without a machine door it is {@code true}: such a base
-     * builds nothing.
+     * lane jammed behind them. With no machine door it is {@code false} for a {@code shed}: the
+     * base read its muster for the door and built one machine all battle (town Line frozen 14). An
+     * open-air depot's gantries have no door to find, and it is {@code true} there.
      */
-    public static boolean apronReaches(NavigationGrid grid, List<Gantry> berths, List<int[]> places) {
+    public static boolean apronReaches(NavigationGrid grid, List<Gantry> berths, List<int[]> places, boolean shed) {
         int[] door = machineDoor(grid, berths);
-        if (door == null) return true;
+        if (door == null) return !shed;
         VehicleClearance mask = VehicleClearance.erode(grid,
                 VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
         int w = mask.getWidth(), h = mask.getHeight();

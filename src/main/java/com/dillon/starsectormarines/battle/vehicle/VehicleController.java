@@ -274,6 +274,11 @@ public final class VehicleController {
      */
     static final int MAX_RECOVERY_ATTEMPTS = 5;
     /**
+     * Seconds a hull holds with no plan from its own pose, its reroute tried, before it backs off and replans. After
+     * the reroute's rung, before a wheeled hull's last-resort pivot ({@code NeutralPivot}).
+     */
+    static final float PLANLESS_REVERSE_SECONDS = 2f;
+    /**
      * Corridor remaining-length (cells) the vehicle must shave below its best-so-far
      * to count as real progress and reset {@link VehicleControlComponent#recoveryAttempts}. Above the
      * per-cycle drift of an oscillating box-in (which nets ~0) but below genuine

@@ -683,7 +683,12 @@ brake and reroute, never "drive the rejected coarse corner anyway."
 Recovery is progressive rather than permission to clip geometry. Ordinary
 feasible drift receives a fresh local trajectory. A wall-blocked or
 geometrically impossible forward turn commits to a bounded reverse that creates
-room for a new forward plan. Loss of corridor progress invokes a cost-field
+room for a new forward plan, and so does a hull with no plan at all from where
+it stands: once its reroute has been tried and it has held two seconds planless
+(not held there by its driver), it backs off as far as is clear behind and
+plans again from there, before a wheeled hull's last-resort pivot (a truck
+nosed into a house in a town's loading yard otherwise stood all battle, its
+convoy waiting behind it). Loss of corridor progress invokes a cost-field
 reroute around the failing area, with failed areas excluded for that travel leg
 so later attempts cannot ping-pong through an earlier bad bend. If no such route
 exists, reroute attempts are rate-limited while ordinary tracking continues;

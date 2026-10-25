@@ -306,7 +306,8 @@ public final class CordonSetup {
         }
         List<int[]> lineMiddles = new ArrayList<>();
         for (Precinct r : redoubts) lineMiddles.add(new int[]{r.seedX(), r.seedY()});
-        if (!CordonLogistics.apronReaches(map.grid, map.gantries, lineMiddles)) {
+        if (!CordonLogistics.apronReaches(map.grid, map.gantries, lineMiddles,
+                CordonConstructions.base(map.layout) == CordonConstruction.SHED)) {
             return "the logistics base's apron has no way to the line for a carrier";
         }
         List<String> layout = MissionLayoutCheck.problems(map.grid, map.layout);

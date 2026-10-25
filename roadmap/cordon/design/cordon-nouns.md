@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-25 — the outer picket; a forward observer in each redoubt calls the allied air wing
+Updated: 2026-10-25 — the outer picket; a forward observer in each redoubt calls the allied air wing; a shed with no machine door re-rolls
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -530,7 +530,9 @@ short arms, and their gates are where roads cross their walls, so a road may
 run through a redoubt rather than beside it: the redoubt then guards that
 road's way through the line. A map on which a redoubt has no wall, or the
 landing's field of fire is not clear, re-rolls; so does one whose logistics
-base packed no shed, or whose apron a carrier cannot drive from to every
+base packed no shed, whose shed has no machine door (its door read as the
+muster, and the base built one machine all battle; an open-air depot's
+gantries have none to find), or whose apron a carrier cannot drive from to every
 redoubt, onto its level (a redoubt on the crest is reached on its top, not
 under its cliff) (a base fenced too narrowly for a carrier kept every one it built
 standing on its apron, refused a route, with the shed's lane jammed behind).
