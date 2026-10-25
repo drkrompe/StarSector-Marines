@@ -58,6 +58,8 @@ public final class LabelLeavesStage implements GenStage {
     public static final int MEDICAL_CAMPUS_MIN_LONG_DIM = 15;
     /** Minimum short footprint for the clinic seed in a medical campus. */
     public static final int MEDICAL_CAMPUS_MIN_SHORT_DIM = 12;
+    /** Minimum lot dimension, both axes, that with its street frame can hold the factory row. */
+    public static final int FACTORY_ROW_MIN_DIM = 11;
 
     @Override
     public void run(GenContext ctx) {
@@ -78,6 +80,29 @@ public final class LabelLeavesStage implements GenStage {
         ensureIndustrialCompoundSeed(partition);
         ensureMedicalCampusSeed(partition);
         ensureCivicHeadquartersSeed(partition);
+        ensureFactoryRowSeed(partition);
+    }
+
+    /**
+     * The factory row ({@code set-piece-blocks.md}) is never rolled: once the other compounds have their
+     * seeds, promote the largest industrial lot left that can hold the row, or where none can, the largest
+     * commercial lot (a row of workshops among the shops). The compound filler falls back to ordinary
+     * industrial lots where the row does not fit after all.
+     */
+    private static void ensureFactoryRowSeed(Bsp.Partition partition) {
+        BlockLeaf best = largestFactoryRowLot(partition, BlockKind.BUILDING_INDUSTRIAL, BlockKind.INDUSTRIAL_YARD);
+        if (best == null) best = largestFactoryRowLot(partition, BlockKind.BUILDING_COMMERCIAL, null);
+        if (best != null) best.kind = BlockKind.FACTORY_ROW;
+    }
+
+    private static BlockLeaf largestFactoryRowLot(Bsp.Partition partition, BlockKind kind, BlockKind or) {
+        BlockLeaf best = null;
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind != kind && leaf.kind != or) continue;
+            if (Math.min(leaf.width(), leaf.height()) < FACTORY_ROW_MIN_DIM) continue;
+            if (best == null || leaf.area() > best.area()) best = leaf;
+        }
+        return best;
     }
 
     /**

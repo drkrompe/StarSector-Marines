@@ -137,12 +137,20 @@ public final class CordonLogistics implements AlliedDepot {
         List<int[]> slots = new ArrayList<>();
         if (door != null) {
             int outX = door[2], outY = door[3];
+            // Ground a carrier's footprint fits on, not merely ground a man can stand on; clear of the threshold every
+            // hull drives out to, and of the other slots.
+            boolean[] ground = armour.mainGround(sim, VehicleType.HEAVY_APC);
+            int width = grid.getWidth();
+            List<int[]> keepOff = new ArrayList<>();
+            keepOff.add(new int[]{door[0] + outX * THRESHOLD, door[1] + outY * THRESHOLD});
             for (int i = 0; i < SLOTS; i++) {
                 int offset = (i - (SLOTS - 1) / 2) * SLOT_PITCH;
-                // Ground a carrier's footprint fits on, not merely ground a man can stand on.
-                int[] cell = armour.drivable(sim, VehicleType.HEAVY_APC,
-                        door[0] + outX * APRON_DEPTH + outY * offset, door[1] + outY * APRON_DEPTH + outX * offset);
-                if (cell != null) slots.add(cell);
+                int[] cell = slotCell((x, y) -> grid.inBounds(x, y) && ground[y * width + x],
+                        door[0] + outX * APRON_DEPTH + outY * offset, door[1] + outY * APRON_DEPTH + outX * offset,
+                        CordonArmour.SET_DOWN_REACH, keepOff, SLOT_APART);
+                if (cell == null) continue;
+                slots.add(cell);
+                keepOff.add(cell);
             }
         }
         if (slots.isEmpty()) {
@@ -152,6 +160,37 @@ public final class CordonLogistics implements AlliedDepot {
             door = new int[]{cell[0], cell[1], 0, 0};
         }
         return new CordonLogistics(armour, table, door, slots, armourHomes, risk, rng);
+    }
+
+    /** Cells a staging slot keeps from the threshold and from every other slot. */
+    static final int SLOT_APART = 4;
+
+    /** A test on a cell. */
+    interface CellTest {
+        boolean test(int x, int y);
+    }
+
+    /**
+     * The staging slot nearest {@code (x, y)} on {@code ground}, out to {@code reach}, at least {@code apart} cells
+     * (the larger of the two axes) from every cell in {@code keepOff}, or {@code null}. Two slots wanted on ground no
+     * carrier fits once snapped to the one cell near both that it did (rural Line verdant 22): the second carrier
+     * waited on the threshold for its slot all battle, and every hull built after it was turned aside at the door into
+     * a turn it could not make and stood there.
+     */
+    static int[] slotCell(CellTest ground, int x, int y, int reach, List<int[]> keepOff, int apart) {
+        for (int r = 0; r <= reach; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int cx = x + dx, cy = y + dy;
+                    if (!ground.test(cx, cy)) continue;
+                    boolean clear = true;
+                    for (int[] k : keepOff) clear &= Math.max(Math.abs(cx - k[0]), Math.abs(cy - k[1])) >= apart;
+                    if (clear) return new int[]{cx, cy};
+                }
+            }
+        }
+        return null;
     }
 
     /** Cells from a redoubt's middle the apron's carriers must be able to drive to. */
@@ -359,14 +398,8 @@ public final class CordonLogistics implements AlliedDepot {
         landed.clear();
         carriers.retainAll(command.hulls());
         outbound.keySet().retainAll(command.hulls());
-        for (Map.Entry<Long, int[]> leg : new ArrayList<>(outbound.entrySet())) {
-            if (!near(sim.convoy().body(leg.getKey()), new int[]{thresholdX, thresholdY}, AT_THRESHOLD)) continue;
-            outbound.remove(leg.getKey());
-            if (carrierSlot.containsKey(leg.getKey())) {
-                command.station(sim, leg.getKey(), leg.getValue()[0], leg.getValue()[1]);
-            } else {
-                armour.adopt(sim, leg.getKey(), leg.getValue()[0], leg.getValue()[1]);
-            }
+        for (long hull : new ArrayList<>(outbound.keySet())) {
+            if (near(sim.convoy().body(hull), new int[]{thresholdX, thresholdY}, AT_THRESHOLD)) onward(sim, hull);
         }
         letOut(sim);
         if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
@@ -448,6 +481,14 @@ public final class CordonLogistics implements AlliedDepot {
         return table.drop() == CordonAlliedTable.CarrierDrop.REAR_GATE ? armour.rearGate(sim, r) : armour.behind(r);
     }
 
+    /** Sends a hull through the threshold on to where it was going: a carrier to its slot, any other to its home. */
+    private void onward(BattleSimulation sim, long hull) {
+        int[] to = outbound.remove(hull);
+        if (to == null) return;
+        if (carrierSlot.containsKey(hull)) armour.command().station(sim, hull, to[0], to[1]);
+        else armour.adopt(sim, hull, to[0], to[1]);
+    }
+
     /** One hull through the door at a time: the next goes once the last is clear of it, or gone. */
     private void letOut(BattleSimulation sim) {
         if (exiting != 0L) {
@@ -463,7 +504,17 @@ public final class CordonLogistics implements AlliedDepot {
                     return;
                 }
                 exiting = 0L;
-            } else if (gone || sim.getSimTickIndex() - exitingSince > EXIT_PATIENCE_TICKS) {
+            } else if (!gone && sim.getSimTickIndex() - exitingSince > EXIT_PATIENCE_TICKS) {
+                // Out of the door but still standing in front of it: the next one let out stood on top of it, and
+                // they piled up there (rural Line verdant 22: six hulls on one cell). The tug pulls it clear onto the
+                // apron, and it goes on from there; the next waits until it has.
+                if (!towOut(sim, exiting)) {
+                    exitingSince = sim.getSimTickIndex() - EXIT_PATIENCE_TICKS + TOW_RETRY_TICKS;
+                    return;
+                }
+                onward(sim, exiting);
+                exiting = 0L;
+            } else if (gone) {
                 exiting = 0L;
             } else {
                 return;
