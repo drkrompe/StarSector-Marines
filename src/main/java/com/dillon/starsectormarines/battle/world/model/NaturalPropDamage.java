@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.creep.CreepVegetation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -108,6 +109,39 @@ public final class NaturalPropDamage {
             standing = true;
         }
         return standing;
+    }
+
+    /**
+     * Whether the cell is the outer crown of what stands on it: some natural object stands here, and the cell is the
+     * trunk of none of them and not permanent ground. The trunk is the rule {@code CreepVegetation} keeps blocking a
+     * dead tree by: the crown cells within {@link CreepVegetation#TRUNK_RADIUS} of the footprint's centre, and at
+     * least the nearest one. A hull may brush an outer crown ({@code SoftBrush}); never a trunk.
+     */
+    public boolean outerCrownAt(int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        int cell = grid.index(x, y);
+        List<Entry> at = owners.get(cell);
+        if (at == null || permanent.test(cell)) return false;
+        boolean standing = false;
+        for (Entry entry : at) {
+            if (entry.hp <= 0) continue;
+            standing = true;
+            if (trunk(entry, cell)) return false;
+        }
+        return standing;
+    }
+
+    private boolean trunk(Entry entry, int cell) {
+        Doodad d = entry.original;
+        float cx = d.cellX + d.footprintCellsX * 0.5f, cy = d.cellY + d.footprintCellsY * 0.5f;
+        float nearest = Float.MAX_VALUE, here = Float.MAX_VALUE;
+        for (int owned : entry.cells) {
+            float dx = owned % grid.getWidth() + 0.5f - cx, dy = owned / grid.getWidth() + 0.5f - cy;
+            float dist = (float) Math.sqrt(dx * dx + dy * dy);
+            nearest = Math.min(nearest, dist);
+            if (owned == cell) here = dist;
+        }
+        return here <= Math.max(CreepVegetation.TRUNK_RADIUS, nearest);
     }
 
     /** The definition id of a standing natural object owning this cell, or null. */

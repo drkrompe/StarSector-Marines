@@ -116,6 +116,20 @@ public final class VehicleRoutePlanner {
     }
 
     /**
+     * The last rung of an order's route proof ({@link SoftBrush}): the cheapest route over the clearance mask, refined
+     * once with its footprint judged brushing, {@code soft} being {@code grid} with the hull's soft ground open. Null
+     * where even that touches hard ground or makes a bend the chassis cannot. The mask is the strict one: no route is
+     * found through soft ground, only one whose footprint grazes it.
+     */
+    public static float[][] routeBrushing(Pose departure, int startX, int startY, int goalX, int goalY,
+                                          NavigationGrid grid, NavigationGrid soft, TerrainCostField costField,
+                                          VehicleClearance clearance, VehicleType type) {
+        float[][] macro = routeMasked(startX, startY, goalX, goalY, grid, costField, clearance.passableArray(),
+                clearance.getWidth(), clearance.getHeight());
+        return macro == null ? null : TurnAwareCorridor.refine(macro, type, grid, departure, soft).points();
+    }
+
+    /**
      * Re-route variant for the recovery ladder's "lap around" rung: like
      * {@link #route} but treats a disc of radius {@code avoidRadius} cells around
      * {@code (avoidX, avoidY)} as impassable, so the search detours around the

@@ -19,6 +19,11 @@ import java.util.List;
  * premultiplied colour over the ground. Every step of the look is a blend
  * toward a colour or a darkening, and both keep that form. Sun shadows are
  * left out: the ground composite casts them from the same heights.
+ *
+ * <p>Graded ground ({@link ElevationLayout#gradedCorner}, an engineered berm) is
+ * drawn as a built bank instead: a turfed slope worn in patches, with no strata,
+ * ledges or scree, its edges barely wandering, a clean trodden line along the
+ * crest and a drainage ditch along the toe.
  */
 final class CliffShading {
 
@@ -29,6 +34,8 @@ final class CliffShading {
     private static final float[] ROCK_LIGHT = {156, 144, 127}, ROCK_MID = {116, 104, 90};
     private static final float[] SOIL = {104, 80, 56}, SOIL_DARK = {66, 50, 36}, TALUS = {136, 127, 114};
     private static final float[] TURF_DARK = {52, 70, 30};
+    // A graded bank: turf over packed earth.
+    private static final float[] BANK_TURF = {88, 100, 56}, DITCH = {58, 52, 38};
 
     private final int width, height, faceWidth, southFace;
     private final double[][] fields;
@@ -38,6 +45,8 @@ final class CliffShading {
     private final float lx, ly;
     /** Texels per cell the look is evaluated at, which sets how soft a stone's edge is. */
     private final int texelsPerCell;
+    /** 1 at each cell corner whose raised ground is graded, 0 elsewhere; null when none is. */
+    private final double[] graded;
 
     CliffShading(ElevationLayout layout, SunLight sun, int texelsPerCell) {
         this.width = layout.width();
@@ -48,6 +57,16 @@ final class CliffShading {
         this.fields = new double[layout.highestTier()][];
         for (int k = 1; k <= layout.highestTier(); k++) fields[k - 1] = layout.plateauCorners(k);
         this.ramps = layout.ramps();
+        double[] grade = new double[(width + 1) * (height + 1)];
+        boolean any = false;
+        for (int y = 0; y <= height; y++) {
+            for (int x = 0; x <= width; x++) {
+                if (!layout.gradedCorner(x, y)) continue;
+                grade[y * (width + 1) + x] = 1;
+                any = true;
+            }
+        }
+        this.graded = any ? grade : null;
         double az = Math.toRadians(sun.azimuthDegrees()), el = Math.toRadians(sun.elevationDegrees());
         this.lx = (float) (Math.cos(az) * Math.cos(el));
         this.ly = (float) (Math.sin(az) * Math.cos(el));
@@ -70,6 +89,23 @@ final class CliffShading {
      * and coverage, each 0 to 1. Zero coverage leaves the ground as it is.
      */
     void shade(float wx, float wy, float[] out) {
+        float g = gradedAt(wx, wy);
+        if (g <= 0f) {
+            escarpment(wx, wy, out);
+            return;
+        }
+        if (g >= 1f) {
+            bank(wx, wy, out);
+            return;
+        }
+        float[] built = new float[4];
+        escarpment(wx, wy, out);
+        bank(wx, wy, built);
+        for (int i = 0; i < 4; i++) out[i] = lerp(out[i], built[i], g);
+    }
+
+    /** The natural look: the layered escarpment. */
+    private void escarpment(float wx, float wy, float[] out) {
         // ground * m + (cr, cg, cb), in 0..255 colour units until the end.
         float m = 1f, cr = 0f, cg = 0f, cb = 0f;
         float hgt = warped(wx, wy);
@@ -157,6 +193,65 @@ final class CliffShading {
             }
         }
 
+        finish(wx, wy, m, cr, cg, cb, out);
+    }
+
+    /**
+     * The built look: a graded bank. The same height surface and lighting as the escarpment, but turf over packed
+     * earth worn in broad patches where the escarpment shows strata, a clean crest, and a ditch along the toe in
+     * place of the talus apron.
+     */
+    private void bank(float wx, float wy, float[] out) {
+        float m = 1f, cr = 0f, cg = 0f, cb = 0f;
+        float hgt = warped(wx, wy);
+        float gx = (warped(wx + E, wy) - warped(wx - E, wy)) / (2 * E);
+        float gy = (warped(wx, wy + E) - warped(wx, wy - E)) / (2 * E);
+        float slope = (float) Math.hypot(gx, gy);
+        float face = smooth(.1, .38, slope);
+        float around = warpedRing(wx, wy, 1.05f);
+        float foot = clamp((around - hgt) * 1.8f) * (1f - face);
+        float rim = clamp((hgt - around) * 2.4f);
+        float dx = slope > 1e-4f ? -gx / slope : 0f, dy = slope > 1e-4f ? -gy / slope : 0f;
+        float toSun = (dx * lx + dy * ly) / (float) Math.hypot(lx, ly);
+        float below = (float) (Math.ceil(hgt - .02) - hgt);
+        float n1 = noise(wx * 1.3f, wy * 1.3f), n2 = noise(wx * 5.3f, wy * 5.3f), n3 = noise(wx * 17f, wy * 17f);
+
+        // The toe: a ditch cut along the foot of the bank, wet soil in a straight dark line, the grass trodden by it.
+        if (foot > 0f) {
+            float ditch = smooth(.3, .5, foot) * smooth(.95, .7, foot) * .55f;
+            m *= 1 - ditch;
+            cr = cr * (1 - ditch) + DITCH[0] * ditch;
+            cg = cg * (1 - ditch) + DITCH[1] * ditch;
+            cb = cb * (1 - ditch) + DITCH[2] * ditch;
+            float ao = 1f - clamp(foot * 1.2f) * .12f;
+            m *= ao; cr *= ao; cg *= ao; cb *= ao;
+        }
+
+        // The bank: graded earth turfed over, worn to soil in broad patches, lit by its bearing; no ledges.
+        if (face > 0f) {
+            float worn = smooth(.25, .75, n1 * .5f + .5f) * .4f + Math.max(0f, n2) * .12f;
+            float[] c = mix(BANK_TURF, SOIL, worn);
+            float light = (.68f + .5f * Math.max(-.3f, toSun)) * lerp(1.05f, .88f, smooth(0, 1, below));
+            float s = light * (1f + n3 * .05f);
+            m *= 1 - face;
+            cr = cr * (1 - face) + c[0] * s * face;
+            cg = cg * (1 - face) + c[1] * s * face;
+            cb = cb * (1 - face) + c[2] * s * face;
+        }
+
+        // The crest: a clean graded edge, a thin trodden line of earth along the top.
+        if (rim > 0f && face < .6f) {
+            float line = smooth(.12, .35, rim) * smooth(.9, .55, rim) * (.3f + .08f * n2);
+            m *= 1 - line;
+            cr = cr * (1 - line) + SOIL[0] * line;
+            cg = cg * (1 - line) + SOIL[1] * line;
+            cb = cb * (1 - line) + SOIL[2] * line;
+        }
+        finish(wx, wy, m, cr, cg, cb, out);
+    }
+
+    /** Lays the ramps' steps over a look and writes it out as premultiplied colour and coverage. */
+    private void finish(float wx, float wy, float m, float cr, float cg, float cb, float[] out) {
         float[] step = steps(wx, wy);
         if (step != null) {
             // Floor over the ground, wall over that, then the lip's line as a scale.
@@ -174,6 +269,11 @@ final class CliffShading {
         out[1] = Math.min(a, Math.max(0f, cg / 255f));
         out[2] = Math.min(a, Math.max(0f, cb / 255f));
         out[3] = a;
+    }
+
+    /** How graded the raised ground nearest a world point is, 0 natural to 1 built, eased across a cell. */
+    private float gradedAt(float wx, float wy) {
+        return graded == null ? 0f : (float) bilinear(graded, wx, wy);
     }
 
     /**
@@ -252,10 +352,18 @@ final class CliffShading {
         return sum;
     }
 
-    /** The height surface sampled through a noise warp, so every edge wanders below cell scale. */
+    /**
+     * The height surface sampled through a noise warp, so every edge wanders below cell scale; a graded bank's
+     * edges barely wander, as a built one's would not.
+     */
     private float warped(float wx, float wy) {
         float ox = noise(wx * 1.15f + 17.3f, wy * 1.15f) * .3f + noise(wx * 4.1f, wy * 4.1f + 5.1f) * .1f;
         float oy = noise(wx * 1.15f, wy * 1.15f + 41.7f) * .3f + noise(wx * 4.1f + 9.4f, wy * 4.1f) * .1f;
+        if (graded != null) {
+            float calm = 1f - .85f * gradedAt(wx, wy);
+            ox *= calm;
+            oy *= calm;
+        }
         return tiers(wx + ox, wy + oy);
     }
 

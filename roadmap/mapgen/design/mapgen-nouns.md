@@ -901,7 +901,11 @@ under undergrowth counts as open for this, since the tank flattens it
 replanted on the same spot as undergrowth where its smaller canopy fits the
 painted ground. So a wood keeps its density and its lanes are thickets armour
 breaks through, not gaps only infantry fit. A hand painted forest plan is not
-held to it. Existing disconnected ground is not
+held to it. After the crowns, the same pass grows **undergrowth** (brambles,
+thickets, bracken, saplings) in the gaps between them and along the wood's
+edge, up to two cells past its painted ground and never out in open country.
+Undergrowth is crushable, so it needs no tank-lane proof; each patch keeps the
+infantry's local way round, as a crown does. Existing disconnected ground is not
 repaired by this pass.
 
 A precinct plan may state its country through a **landscape** (`Landscape`):

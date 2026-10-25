@@ -172,6 +172,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.HullSightings;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
+import com.dillon.starsectormarines.battle.vehicle.SoftBrush;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
@@ -1720,6 +1721,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             HeavyTracks tracks = new HeavyTracks(navigation, mapEditor);
             groundSystem.setTracks(tracks);
             blade.setTracks(tracks);
+        }
+        // A move order's last rung brushes soft ground (SoftBrush); its switch is the control, under which the order is
+        // given up as before.
+        if (SoftBrush.enabled()) {
+            groundSystem.setBrush(new SoftBrush(new SoftBrush.Props() {
+                @Override public boolean fence(int x, int y) {
+                    String id = doodadService.damageablePropIdAt(x, y, topology);
+                    return id != null && id.startsWith("doodad.industrial-fence-");
+                }
+                @Override public boolean outerCrown(int x, int y) { return doodadService.outerCrownAt(x, y); }
+            }));
         }
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setScreening(target -> SalvoChain.screened(this, target));
