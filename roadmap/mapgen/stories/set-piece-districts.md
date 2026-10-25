@@ -152,8 +152,8 @@ front door, and the market square's `OpenSquare` where it stands, whose open ext
 bounds. Should the finished streets no longer hold the square, the end member is a plain plaza and the other
 a shop.
 
-Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 15 of 24 medium city maps and
-14 of 24 colonies, the market square at the plaza end of 4 and 6 of them (the freight yard and the market square plan their parcels first). Cities zone few civic
+Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 14 of 24 medium city maps under
+the town plan's zoning and 14 of 24 colonies, the market square at the plaza end of 4 and 6 of them (the freight yard and the market square plan their parcels first). Cities zone few civic
 or mixed pockets, so the residential quarter weighs as much as the mixed town and a high street can stand
 among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 `createSnapshots -Psnapshot=main-street-look`.
@@ -172,8 +172,8 @@ main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the
 main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
 
 The standalone market lot still plans its own square, keeping clear of a main street's, so a map may carry
-both: a market square stands on 21 of 24 city maps and 20 of 24 colonies
-(`MarketSquarePlacementEvidence`; 19 and 20 with the standalone lot alone). The square at the plaza end moved one pooled
+both: a market square stands on 18 of 24 city maps and 20 of 24 colonies
+(`MarketSquarePlacementEvidence`; 17 and 20 with the standalone lot alone). The square at the plaza end moved one pooled
 map: cordon-line ROCK seed 5 lost its carrier way from the base to the line and was swapped for seed 18.
 
 Open on main street: the market square misses most plaza ends whose members are under nine cells deep, the
