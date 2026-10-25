@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 /**
  * Black Sluice, the outer Silt Basin's fuel and dispatch apron on airless Agreus.
@@ -279,7 +280,7 @@ public final class BlackSluice {
         for (TerrainPlan.Stroke stroke : station) strokes.add(shifted(stroke, APPROACH));
         TerrainBrush.stamp(new TerrainPlan(WIDTH, HEIGHT, finish, 3, .9, c.seed ^ 0x534c55494345L, strokes), c.grid, c.topology);
         new SummitDressing(c).scatter(surface);
-        dressBasin(c);
+        dressBasin(c, surface);
     }
 
     /**
@@ -364,7 +365,7 @@ public final class BlackSluice {
      * ground, and scree fanning out from every toe, thick against the rock and thinning onto the flats. Paint only;
      * footing is unchanged.
      */
-    private static void dressBasin(GenContext c) {
+    private static void dressBasin(GenContext c, SurfacePalette surface) {
         var terrain = c.topology.terrainSurface();
         boolean[] open = new boolean[WIDTH * HEIGHT];
         int[] distance = new int[WIDTH * HEIGHT];
@@ -398,7 +399,7 @@ public final class BlackSluice {
             }
         }
         var tiles = TileRegistry.installed();
-        String[] stones = {"nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1"};
+        String[] stones = Stream.of("small-1", "small-2", "medium-1").map(surface.stones()::stone).toArray(String[]::new);
         var fans = new PatchField(c.seed ^ 0x5343524545L, 9);
         var random = new Random(c.seed ^ 0x54414c5553L);
         for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {

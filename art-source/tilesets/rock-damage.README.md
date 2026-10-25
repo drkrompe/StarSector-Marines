@@ -26,13 +26,29 @@ from geometry guides, in order:
    Both the strip and this export stretch a cut to one cell, so equal boxes keep
    the three states in register.
 
-The shipped set is chosen by `STONE_SET` and `STONE_GRADE` at the top of the
-refit script. The pale stones in `field-stones/` read too bright on woodland
-ground. The set that ships is `field-stones/mossed/`: the same groups reskinned
-with moss and lichen, using the pale stones darkened as the identity reference,
-and taken down a step by the `quiet` grade. Its three states each have their own
-prompt and provenance beside them. The pale set stays as the identity source for
-the damage guides.
+Field stones follow the world's ground. `STONE_SETS` at the top of the refit
+script lists one set per biome, and `RockDamage.Biome` names the same four:
+
+| Set | Ids | Ground (`SurfacePalette`) | Folder and grade |
+|---|---|---|---|
+| Mossed | `nature.rock-<group>` | VERDANT | `field-stones/mossed/`, `quiet` |
+| Sandstone | `nature.rock-sandstone-<group>` | ARID | `field-stones/sandstone/`, `dusty` |
+| Basalt | `nature.rock-basalt-<group>` | ROCK | `field-stones/basalt/`, `weathered` |
+| Frost | `nature.rock-frost-<group>` | FROZEN | `field-stones/frost/`, `none` |
+
+Each set's three states have their own prompts and provenance in its folder.
+The intact sheets reskin `field-stones-guide.png`, with the pale stones in
+`field-stones/` as the form reference. The pale stones read too bright on
+woodland ground and no longer ship; they remain the identity source for the
+damage guides.
+
+- The mapping's `surfaceFillers` rock pools name each palette's set.
+- `SurfacePalette.stones()` gives the set to code that scatters stones itself
+  (`SummitDressing`, `BlackSluice`).
+- New strip entries and damage entries are appended after the existing ones,
+  so no shipped frame moves.
+- `rock-damage.raw.png` stacks each set's damaged sheet over its destroyed
+  sheet, in set order.
 
 Then export both sheets and re-derive the relief maps:
 

@@ -17,7 +17,7 @@ as the damaged sheet over the destroyed sheet, and the fourteen rects of rock-da
 
 The left PLATE_SIZE of nature-tiles.raw.png is the plate the sheet was accepted with and is never altered; the
 script reads it back from there, so it can be re-run.
-usage: python art-source/tilesets/nature-tiles-refit.py [stone set] [grade]   (defaults: STONE_SET, STONE_GRADE)
+usage: python art-source/tilesets/nature-tiles-refit.py [verdant set] [grade]   (default: STONE_SETS)
        (rewrites nature-tiles.raw.png, the plant entries' notes and rects and the rock entries' rects in its
        authoring document, rock-damage.raw.png and the rects in rock-damage.tileset-authoring.json)
 """
@@ -41,13 +41,17 @@ PLANTS = [
 ]
 ROCKS = ["small-1", "small-2", "medium-1", "medium-2", "large-1", "large-2", "large-3"]
 STONES = HERE / "field-stones"
-# Which stone set ships (a subfolder of field-stones/, "" for the folder itself) and the grade every state of it
-# takes: (value, contrast, saturation, tint) about the opaque pixels' mean luminance.
-STONE_SET, STONE_GRADE = "mossed", "quiet"
+# The stone sets, one per biome: each as (id infix after "nature.rock-", subfolder of field-stones/, grade). The
+# unprefixed ids are the verdant set; RockDamage.Biome names the same four. A grade is (value, contrast, saturation,
+# tint) about the opaque pixels' mean luminance. The first set can be overridden from the command line to compare.
+STONE_SETS = [("", "mossed", "quiet"), ("sandstone-", "sandstone", "dusty"), ("basalt-", "basalt", "weathered"),
+              ("frost-", "frost", "none")]
 GRADES = {
     "none": (1, 1, 1, (1, 1, 1)),
     "muted": (.68, .75, .35, (1.04, 1, .9)),  # darker, flatter grey-brown
     "quiet": (.86, .85, .8, (1, 1, .96)),     # a mossed set taken down a step, keeping its greens
+    "dusty": (.92, .8, .55, (1, 1, 1.04)),    # sandstone with its orange knocked back under a film of dust
+    "weathered": (1.3, .75, .7, (1, 1, 1)),   # basalt lifted toward the stony ground, so it is not black on tan
 }
 PITCH, SOURCE_CELL = 512, 480
 ALPHA_MIN = 40
@@ -158,7 +162,21 @@ def rocks(stone_set, grade_name):
     return frames, intact.width / 2048 * SOURCE_CELL, sheet, cuts
 
 
-def main(stone_set=STONE_SET, grade_name=STONE_GRADE):
+def append_entry(text, base_id, new_id, suffix):
+    """Adds a copy of base_id's strip entry, renamed, as the last entry: order on the strip is the address."""
+    if f'"id": "{new_id}"' in text:
+        return text
+    block = re.search(r'\{[^{}]*"id": "' + re.escape(base_id) + r'"[^{}]*\}', text).group(0)
+    block = block.replace(f'"id": "{base_id}"', f'"id": "{new_id}"')
+    block = re.sub(r'"name": "([^"]*)"', lambda m: f'"name": "{m.group(1)}-{suffix}"', block)
+    end = text.index("\n  ]", text.index('"entries"'))
+    return text[:end] + ",\n    " + block + text[end:]
+
+
+def main(verdant_set=None, verdant_grade=None):
+    sets = list(STONE_SETS)
+    if verdant_set is not None:
+        sets[0] = ("", verdant_set, verdant_grade or "none")
     doc_path = HERE / "nature-tiles.tileset-authoring.json"
     text = doc_path.read_text(encoding="utf-8")
     doc = json.loads(text)
@@ -169,9 +187,17 @@ def main(stone_set=STONE_SET, grade_name=STONE_GRADE):
     for i in range(6):
         frame = plants.crop((i % 3 * PITCH, i // 3 * PITCH, i % 3 * PITCH + PITCH, i // 3 * PITCH + PITCH))
         pieces.append(resample(frame, scale))
-    rock_frames, rock_cell, damage_sheet, cuts = rocks(stone_set, grade_name)
-    pieces += [resample(f, doc["cellPx"] * doc["strip"]["scale"] / rock_cell) for f in rock_frames]
-    ids = [(pid, note) for pid, note in PLANTS] + [("nature.rock-" + r, None) for r in ROCKS]
+    ids = [(pid, note) for pid, note in PLANTS]
+    sheets, all_cuts = [], []
+    for k, (infix, folder, grade_name) in enumerate(sets):
+        rock_frames, rock_cell, damage_sheet, cuts = rocks(folder, grade_name)
+        pieces += [resample(f, doc["cellPx"] * doc["strip"]["scale"] / rock_cell) for f in rock_frames]
+        for r in ROCKS:
+            if infix:
+                text = append_entry(text, "nature.rock-" + r, "nature.rock-" + infix + r, infix.rstrip("-"))
+            ids.append(("nature.rock-" + infix + r, None))
+        sheets.append(damage_sheet)
+        all_cuts += [(infix, row, slot, [x, y + k * damage_sheet.height, w, h]) for row, slot, (x, y, w, h) in cuts]
     width = plate.width + GUTTER + sum(p.width + GUTTER for p in pieces)
     out = Image.new("RGBA", (width, max([plate.height] + [p.height for p in pieces])), (0, 0, 0, 0))
     out.paste(plate, (0, 0))
@@ -186,12 +212,21 @@ def main(stone_set=STONE_SET, grade_name=STONE_GRADE):
     out.save(HERE / "nature-tiles.raw.png")
     doc_path.write_text(text, encoding="utf-8", newline="")
 
+    # rock-damage: each set's damaged sheet over its destroyed sheet, the sets stacked in order.
     damage_path = HERE / "rock-damage.tileset-authoring.json"
     damage = json.loads(damage_path.read_text(encoding="utf-8"))
-    for row, slot, rect in cuts:
-        pid = "nature.rock-" + ROCKS[slot] + ("-damaged", "-destroyed")[row]
-        next(e for e in damage["entries"] if e["id"] == pid)["rect"] = rect
-    damage_sheet.save(HERE / "rock-damage.raw.png")
+    entries = {e["id"]: e for e in damage["entries"]}
+    for infix, row, slot, rect in all_cuts:
+        state = ("-damaged", "-destroyed")[row]
+        pid = "nature.rock-" + infix + ROCKS[slot] + state
+        if pid not in entries:
+            entries[pid] = dict(entries["nature.rock-" + ROCKS[slot] + state], id=pid)
+            damage["entries"].append(entries[pid])
+        entries[pid]["rect"] = rect
+    stacked = Image.new("RGBA", (sheets[0].width, sum(s.height for s in sheets)), (0, 0, 0, 0))
+    for k, s in enumerate(sheets):
+        stacked.paste(s, (0, k * sheets[0].height))
+    stacked.save(HERE / "rock-damage.raw.png")
     damage_path.write_text(json.dumps(damage, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="")
 
 

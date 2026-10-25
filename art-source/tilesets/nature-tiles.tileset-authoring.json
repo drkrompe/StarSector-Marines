@@ -704,12 +704,513 @@
         "!nature.water-1",
         "!nature.water-2"
       ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-sandstone-small-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-sandstone",
+      "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "rect": [
+        3989,
+        13,
+        74,
+        93
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-sandstone-small-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-2-sandstone",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-1",
+      "rect": [
+        4140,
+        14,
+        81,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-sandstone-medium-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-sandstone",
+      "note": "a boulder with two stones at its foot — light cover, still walkable",
+      "rect": [
+        4270,
+        15,
+        94,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-sandstone-medium-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-2-sandstone",
+      "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
+      "rect": [
+        4410,
+        17,
+        89,
+        88
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-sandstone-large-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-sandstone",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
+      "passable": false,
+      "rect": [
+        4539,
+        11,
+        101,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-sandstone-large-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-2-sandstone",
+      "note": "a leaning slab over a low stone — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        4680,
+        15,
+        95,
+        83
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-sandstone-large-3",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-3-sandstone",
+      "note": "the tallest stack on the sheet — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        4818,
+        18,
+        97,
+        84
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-basalt-small-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-basalt",
+      "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "rect": [
+        4953,
+        13,
+        74,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-basalt-small-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-2-basalt",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-1",
+      "rect": [
+        5104,
+        14,
+        81,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-basalt-medium-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-basalt",
+      "note": "a boulder with two stones at its foot — light cover, still walkable",
+      "rect": [
+        5234,
+        15,
+        94,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-basalt-medium-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-2-basalt",
+      "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
+      "rect": [
+        5374,
+        17,
+        89,
+        87
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-basalt-large-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-basalt",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
+      "passable": false,
+      "rect": [
+        5503,
+        11,
+        101,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-basalt-large-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-2-basalt",
+      "note": "a leaning slab over a low stone — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        5644,
+        15,
+        95,
+        83
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-basalt-large-3",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-3-basalt",
+      "note": "the tallest stack on the sheet — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        5782,
+        18,
+        96,
+        84
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-frost-small-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-frost",
+      "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "rect": [
+        5917,
+        15,
+        74,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-frost-small-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-2-frost",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-1",
+      "rect": [
+        6069,
+        15,
+        80,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-frost-medium-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-frost",
+      "note": "a boulder with two stones at its foot — light cover, still walkable",
+      "rect": [
+        6198,
+        16,
+        94,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-frost-medium-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-2-frost",
+      "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
+      "rect": [
+        6338,
+        18,
+        89,
+        87
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-frost-large-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-frost",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
+      "passable": false,
+      "rect": [
+        6468,
+        13,
+        100,
+        90
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-frost-large-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-2-frost",
+      "note": "a leaning slab over a low stone — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        6609,
+        17,
+        93,
+        81
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-frost-large-3",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-3-frost",
+      "note": "the tallest stack on the sheet — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        6747,
+        18,
+        96,
+        84
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
     }
   ],
   "gridCols": 1,
   "gridRows": 1,
   "idPrefix": "nature",
-  "note": "Thirty-two frames in a row: twenty-one repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip \u2014 the game finds the frames by alpha at load and a tile pins the frame index it resolves to \u2014 so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nSeventeen frames do not take their picture from this plate: the eight grass, the eight dirt and sand each name a tileable material under atlas-material-source/, and each is exported at the material's own size plus the renderer's ground inset wrapped round it, so the inset crops back to exactly the material. The ImageGen fields underneath them are still on the plate and are deliberately not what ships: they are slabs with a lit rim and a shadowed skirt, and they repeat visibly. The other two fields, water-1 and water-2, are plate art and keep their authored spriteBorderPx.\n\nGrass and dirt were a pair each until 2026-09-01, and both pairs were a fiction: the two frames of each named ONE material file between them and packed byte-identical, so the hash in TileManifest chose between two copies of one picture. Every grass cell in the game was the same image, and grass is the primary outdoor surface. Each pool now runs eight frames. Slot 1 of each keeps the material that shipped, so an eighth of the cells are pixel-for-pixel what they always were, and slots 2 through 8 are siblings generated against it and shifted onto its exact mean colour \u2014 the pools got more varied without the ground changing colour.\n\nOnly three of these entries have a rect of their own: the added frames reuse the rect of the frame they vary, because a material-backed frame is sized from its material and the plate underneath it is never read. That is also why widening a pool needs no new raw art. Do not re-slice this sheet expecting to find thirty-two pieces on the plate; there are twenty, and a re-slice would orphan the twelve that are pure material.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the sixteen field variants. Nothing addresses this sheet by frame number, which is what made the renumbering safe. The six plants and seven rock groups were redrawn overhead on 2026-10-25: they are cut from the strip right of the accepted plate, which art-source/tilesets/nature-tiles-refit.py builds from forest-floor-plants/forest-floor-plants.png and field-stones/field-stones.png; the old plants and rocks stay on the plate, unreferenced. The rocks' cracked and rubble states in rock-damage are cut at the same boxes, so re-run that script rather than re-cutting a rock here by hand. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
+  "note": "Thirty-two frames in a row: twenty-one repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip \u2014 the game finds the frames by alpha at load and a tile pins the frame index it resolves to \u2014 so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nSeventeen frames do not take their picture from this plate: the eight grass, the eight dirt and sand each name a tileable material under atlas-material-source/, and each is exported at the material's own size plus the renderer's ground inset wrapped round it, so the inset crops back to exactly the material. The ImageGen fields underneath them are still on the plate and are deliberately not what ships: they are slabs with a lit rim and a shadowed skirt, and they repeat visibly. The other two fields, water-1 and water-2, are plate art and keep their authored spriteBorderPx.\n\nGrass and dirt were a pair each until 2026-09-01, and both pairs were a fiction: the two frames of each named ONE material file between them and packed byte-identical, so the hash in TileManifest chose between two copies of one picture. Every grass cell in the game was the same image, and grass is the primary outdoor surface. Each pool now runs eight frames. Slot 1 of each keeps the material that shipped, so an eighth of the cells are pixel-for-pixel what they always were, and slots 2 through 8 are siblings generated against it and shifted onto its exact mean colour \u2014 the pools got more varied without the ground changing colour.\n\nOnly three of these entries have a rect of their own: the added frames reuse the rect of the frame they vary, because a material-backed frame is sized from its material and the plate underneath it is never read. That is also why widening a pool needs no new raw art. Do not re-slice this sheet expecting to find thirty-two pieces on the plate; there are twenty, and a re-slice would orphan the twelve that are pure material.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the sixteen field variants. Nothing addresses this sheet by frame number, which is what made the renumbering safe. The six plants and seven rock groups were redrawn overhead on 2026-10-25, and the seven rock groups gained three more biome sets after them (sandstone, basalt and frost ids, 21 frames appended at the end, so frames 0-31 keep their addresses): they are cut from the strip right of the accepted plate, which art-source/tilesets/nature-tiles-refit.py builds from forest-floor-plants/forest-floor-plants.png and field-stones/field-stones.png; the old plants and rocks stay on the plate, unreferenced. The rocks' cracked and rubble states in rock-damage are cut at the same boxes, so re-run that script rather than re-cutting a rock here by hand. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
   "outputSheet": "graphics/tilesets/nature-tiles.png",
   "sheet": "art-source/tilesets/nature-tiles.raw.png",
   "sheetName": "nature-tiles",
