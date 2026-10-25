@@ -2099,7 +2099,15 @@ by these rules, and a line that a later beat makes stale is superseded by it.
 Bores and bodies sound through presentation cues the simulation writes and
 never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
-surging and collapsing, and breathes a tier ambience while it lives. A swarm
+surging and collapsing, and breathes a tier ambience while it lives. Each clutch
+it lets go is heard clawing up out of the hole (*Emergence*; `BoreAudio`): chitin
+scraping on rock and wet earth tearing, one short take per clutch at the mouth,
+read off the emergence rather than posted, pitched by the clutch's heaviest body
+(the Matriarch deep and slow, a skitterer light) and a little louder for three
+bodies than one. A surge's clutches overlap and layer by the crowd rule under a
+budget of four, so emptying a maw is a churn under the surge cue, not a wall. Its
+one take of its own is mixed from shipped ones (bore growth's tear, a Runner's
+clatter lowered, the body drag's grit). A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
 and lives, and dies. A Runner taking up a body is heard latching onto it, and
@@ -2183,7 +2191,8 @@ LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. The skitterer's squeak sits near -30 and its
-death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
+death -28, its drag -35, each work loop -36 and its patter -39. A Runner clutch's claw-up sits near
+-34 and the Matriarch's -31. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
