@@ -209,7 +209,7 @@ class SceneFx:
 
     # ------------------------------------------------------------------ guns
     def tracer(self, a, b, aim_local=None, muzzles=(None,), most=4, trained=False, cease=None, walk=1.0,
-               bursts=None, sure=None):
+               bursts=None, sure=None, flash_gap=None):
         """a's guns on b: every bearing gun with a clear line (muzzles, the blockout's pick first), up
         to `most` turrets. True when the kit drew it (a has a kit copy). A planned gun (planned()):
         trained, it is already on b when its plan opens (she was fighting before the cut); cease, the
@@ -217,7 +217,10 @@ class SceneFx:
         bursts walk and misjudge by (below 1: the burst that kills her lands on her); bursts, [(first, last)]
         scene frames the trigger is held, in place of the weapon's seeded rhythm (a story broadside); sure,
         the scene frame a round of hers must land on (the kill): a round arriving within SURE_F frames
-        of it is laid dead on, without the walk or the lead error."""
+        of it is laid dead on, without the walk or the lead error. flash_gap, scene frames: an HE strike
+        within that many frames and FLASH_GAP_M of one already drawn draws no flash of its own (the
+        round still lands): two flashes a frame apart on one spot read as one white blob held past a
+        flash (S9b final, 2026-10-25: the Falcon's two turrets on the Lasher's bow, held 3 frames)."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -287,7 +290,18 @@ class SceneFx:
             he = self.hit_kind(a, fired)
             placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
                            if h[0] >= self.span[0] - round(1.5 * self.fps)]
-            self.strikes_at(b, placed_hits[::2], he)
+            drawn = placed_hits[::2]
+            if flash_gap and he != 'kinetic':
+                kept = []
+                for h in drawn:
+                    if not any(h[0] - k[0] < flash_gap and (Vector(h[1]) - Vector(k[1])).length < self.FLASH_GAP_M
+                               for k in kept):
+                        kept.append(h)
+                if len(kept) < len(drawn):
+                    self.rows.append(f'tracer {a} -> {b}: {len(drawn) - len(kept)} of {len(drawn)} HE flashes '
+                                     f'merged into one already burning on the spot (flash_gap {flash_gap})')
+                drawn = kept
+            self.strikes_at(b, drawn, he)
         landed = sorted(set(landed))
         if hit_l is not None:
             self.impacts += [(b, int(f_), int(f_), tuple(hit_l), f'{a} round') for f_ in landed]
@@ -323,6 +337,7 @@ class SceneFx:
     ON_TARGET_DEG = 5.0
     MAX_FLIGHT_S = 3.0      # long enough for the story rakes at 1.1-1.3 km (fire-control plan, 2026-10-23)
     MAX_RANGE_M = 3500.0
+    FLASH_GAP_M = 8.0       # tracer(flash_gap): how near two HE strikes are to share one flash
     BURST_S, GAP_S = (.8, 2.0), (1.0, 2.6)
     # Burst rhythm by weapon (owner, 2026-10-23: Vulcans fire long bursts of the streak; cannons
     # and the Hellbore fire heavy, deliberate shots): (burst seconds, gap seconds). Inside a burst
