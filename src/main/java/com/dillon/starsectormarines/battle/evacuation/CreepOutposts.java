@@ -248,7 +248,8 @@ public final class CreepOutposts {
             // A colony on its way counts as standing, so a held cell is never lost to it rising.
             for (SwarmBore.Growing g : bore.growing()) anchors.add(new float[]{g.x() + 0.5f, g.y() + 0.5f});
         }
-        // So is a spire on its way off a fed bore.
+        // So is a bore on its way, and a spire on its way off a fed bore.
+        for (SwarmBores.Bud b : bores.buds()) anchors.add(new float[]{b.x() + 0.5f, b.y() + 0.5f});
         for (BroodSpires.Rising r : sim.broodSpires().rising()) anchors.add(new float[]{r.x() + 0.5f, r.y() + 0.5f});
         return anchors;
     }

@@ -159,6 +159,7 @@ com.dillon.starsectormarines.battle.evacuation.BroodSpireScene
 com.dillon.starsectormarines.battle.evacuation.HarrierPatrolScene
 com.dillon.starsectormarines.battle.evacuation.FedSpireScene
 com.dillon.starsectormarines.battle.evacuation.HarrierSnatchScene
+com.dillon.starsectormarines.battle.evacuation.BloomOutskirtsScene
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryScene
 com.dillon.starsectormarines.battle.evacuation.HarrierRaidScene
 com.dillon.starsectormarines.battle.evacuation.SwarmWorkerScene

@@ -78,6 +78,8 @@ public final class SwarmReinforcementSystem {
         int nextTick;
         /** A scavenger pack: its Runners fetch the swarm's dead before they fight. */
         boolean scavengers;
+        /** A forager pack: its Runners go into the town after the colony's people. */
+        boolean foragers;
         /** The pack this surge's bodies are joining now; 0 while packs are off. */
         int pack;
         /** The muster that pack forms up at ({@link SwarmEmergence}); 0 while emergence is off. */
@@ -325,6 +327,9 @@ public final class SwarmReinforcementSystem {
             // every second surge goes out to fetch the swarm's dead, while there are dead to fetch
             release.scavengers = bore.surges() % 2 == 1
                     && sim.swarmHarvest().recyclableCount(sim) >= SwarmHarvest.SCAVENGER_PACK_MIN_DEAD;
+            // A fissure is hungry: what it puts out hunts into the town for the colony's people while any are left.
+            release.foragers = !release.scavengers && bore.tier() == BoreTier.FISSURE
+                    && !sim.swarmHarvest().forage().isEmpty();
             releases.add(release);
             float jitter = 2f * SwarmBores.unit(SwarmBores.mix(
                     seed ^ (bore.number() * 0x9E3779B97F4A7C15L) ^ (bore.surges() * 0xC2B2AE3D27D4EB4FL))) - 1f;
@@ -491,6 +496,7 @@ public final class SwarmReinforcementSystem {
         release.released++;
         release.bore.released(planned.stage());
         if (release.scavengers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markScavenger(body);
+        if (release.foragers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markForager(body);
         if (planned.matriarch()) bores.matriarchEmerged(bore, tick, body);
         SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
         approachByRunner.put(body, approach);
