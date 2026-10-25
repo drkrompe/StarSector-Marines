@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173dc-45bc-7770-bf8e-80041afeee7c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173dc-45bc-7770-bf8e-80041afeee7c\\exec-c79ebc9a-dda7-4c70-a0e6-b096281507f7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\sandstone\\field-stones.png",
+    "sha256": "1d483981230ed6d729027997a24f551a534a7642612b25d723221462ef04a8fc",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\sandstone\\field-stones.prompt.txt",
+  "promptSha256": "8451e63e69fae3a5fa63af85dd7a221d78c5bfcfd018d0c7f4856a429c78be42",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every stone's place, size and outline\nImage 2: Form only: the stones' shapes and light; not their colour\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into seven separate overhead field-stone sprites for a top-down tactical game. Image 2 is the FORM reference: these exact stones, their rounded weathered shapes and soft upper-left light; their pale grey colour is NOT the colour to use. The world is an arid desert of pale dust and sand.\nPreserve image 1 exactly: 2:1 canvas, 4 columns x 2 rows, the eighth frame (bottom right) EMPTY. Keep every stone where the guide puts it, at its size and outline. Do not add, merge, move or enlarge stones.\nCamera STRAIGHT DOWN, orthographic plan view; tops lit softly from the upper left, lower-right sides in gentle shade.\nSun-bleached sandstone boulders: warm muted ochre and rust-red sandstone, faint horizontal bedding bands, wind-rounded and pitted, a fine film of pale dust settled on the tops. Dusty, low saturation, slightly darker than the sand they lie on.\nSmooth rounded forms, NOT faceted, NOT low-poly. Must read at about 50 pixels across: clear masses, gentle value contrast, no fine noise. Muted: the stones sit in their ground rather than pop out of it; no bright highlights.\nNo ground, soil, sand, snow drift or cast shadow outside the stones, no labels, no text, no border. True transparent background around and between every stone. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-guide.png",
+      "sha256": "0d51964348542e2a94422d7b523731e3473cb77cd2b4fc7d03ae5ce4bafee7d5",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every stone's place, size and outline"
+    },
+    {
+      "path": "art-source\\tilesets\\field-stones\\field-stones.png",
+      "sha256": "926d51953713b30977d8e463350acbc1a67ad8e57da7e6e275f896f10bd07a23",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Form only: the stones' shapes and light; not their colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sandstone reskin, preserving Image 1’s layout and outlines with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 46170,
+    "cached_input_tokens": 37632,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 489,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.3
+}

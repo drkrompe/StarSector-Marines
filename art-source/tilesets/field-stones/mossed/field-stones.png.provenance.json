@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173d4-e377-78d2-97bc-4becb376b9eb",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173d4-e377-78d2-97bc-4becb376b9eb\\exec-f6f1ab41-9976-493a-b9c9-2165e0041c9a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\mossed\\field-stones.png",
+    "sha256": "7ebc2d166789c0a5ea3973a61451571999f2466a686c919442b10ba0d38bf632",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\mossed\\field-stones.prompt.txt",
+  "promptSha256": "71801892b623091f00855e8b3d44ec44587878ff784ce01f9ec77f03fff542a5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every stone's place, size and outline\nImage 2: Identity: these stones, their muted colour, light and forms\nImage 3: Style only: rendering quality and greens; not layout\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into seven separate overhead field-stone sprites for a top-down tactical game set in a temperate woodland. Image 2 is the IDENTITY reference: these exact stones in their muted, dark grey-brown weathered colour, the same soft upper-left light and rounded forms. Image 3 is the STYLE reference: the game's painted tree canopies, for rendering quality and greens.\nPreserve image 1 exactly: 2:1 canvas, 4 columns x 2 rows, the eighth frame (bottom right) EMPTY. Keep every stone where the guide puts it, at its size and outline. Do not add, merge, move or enlarge stones.\nCamera STRAIGHT DOWN, orthographic plan view.\nOld mossy field stones: soft patches of dark green moss on the tops and in the shaded lower-right sides, pale grey-green lichen rosettes here and there, moss thickest where stones touch each other. About a third to half of each stone's surface is mossed; the rest is the muted dark grey-brown stone of image 2. Muted and low contrast, darker and quieter than the grass they lie on, so they sit in the woodland rather than pop out of it. No bright highlights, no pale grey tops.\nSmooth rounded forms, NOT faceted. Must read at about 50 pixels across: clear masses, soft moss shapes, no fine noise.\nNo grass, soil, ground patch or cast shadow outside the stones, no labels, no text, no border. True transparent background around and between every stone. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-guide.png",
+      "sha256": "0d51964348542e2a94422d7b523731e3473cb77cd2b4fc7d03ae5ce4bafee7d5",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every stone's place, size and outline"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\402f5708-3a42-4f54-b151-802bc17f833a\\scratchpad\\stones\\muted.png",
+      "sha256": "302f320578d1aec8ca398550ee099b2825d7d3f208383fa3f40e91f20a03ea5b",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity: these stones, their muted colour, light and forms"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-canopies.raw.png",
+      "sha256": "91b218ae84c7e1f3fb1a21047fa343572738e8f24ec5a616cde4d6afdc959afb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style only: rendering quality and greens; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image-generation skill to render the stones with the guide’s layout, muted colors, moss, and transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 92068,
+    "cached_input_tokens": 72960,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 730,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 69.8
+}
