@@ -864,10 +864,17 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
 - **Roots** (`NestTrails`). A rope of sinew raised out of the creep runs from
   the bore's rim to each of its living colonies, outposts and its spire, bowed
   and meandering by a seeded amount and tapering out to the growth, ringed in
-  segments, with the creep's pulse running out along it. A root is drawn only:
-  nothing walks, stops or fights by it, and it goes with its growth or its bore.
-  The roots' look is open (rope, furrow or veins, `-Dbattle.render.nestRoots`);
+  segments, with the creep's pulse running out along it (the owner's pick of
+  rope, over a worn furrow and a lit vein path). A root is drawn only: nothing
+  walks, stops or fights by it, and it goes with its growth or its bore.
   `-Dbattle.render.nestTrails=false` is the control.
+- **Roots grow** (owner: thinner veins "dig out and construct" from the bores
+  over time). From the moment its growth sprouts, a root digs out from the
+  bore as a vein, a band of the creep's veins thickened and lit, at 1.2 cells a
+  second, and once it reaches the growth it thickens into rope over fifteen
+  seconds. Creep matured at setup is weeks old, so the growths it starts with
+  have their ropes; an outpost that roots in the battle, or a satellite opened
+  late, grows its roots in sight.
 - **Its spire's roost**: the Brood spire's waiting brood (below).
 - **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
 - Next: clutter (egg clutches, pods, husks) along the roots and round the mouth.
