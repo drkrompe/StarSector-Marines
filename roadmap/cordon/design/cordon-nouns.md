@@ -492,6 +492,15 @@ through the gap beside redoubt 2 to the compound's rear gate (beat R5),
 carved where the country is open; the corridor is still the cheapest way,
 whichever that is.
 
+**A well-found company.** The Cordon is fought late in the campaign, so the
+company it stands up itself is the same strong one as the heart's (owner pick,
+2026-10-25): veterans and elites in heavy suits with Milspec or Masterwork
+issue (`InfantryLoadoutRolls.lateCampaignSquad`, `heart-nouns.md`). A campaign
+launch lands the player's own company over those seats, and its machines
+through Mech Support; a fixture's `declaredMechDrops` brings down a Marine lance
+for debug launches and evidence, called just after landfall and claimed by the
+company's commander. The Line and Road evidence fixtures declare one.
+
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),
 frozen at launch: **Hold** (the company only relieves and escorts),
