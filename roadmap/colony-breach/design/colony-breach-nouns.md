@@ -4,9 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of the water cells' squares.
-
-Updated: 2026-10-24 — a bloom's calls are the only missions the campaign seeds by planet.
+Updated: 2026-10-25 — a creep-killed tree is undergrowth a heavy tank pushes over.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -848,6 +846,36 @@ another elsewhere. Outposts wither with their bore like the mouth's colonies.
 So an air sortie that waits watches the defended sky spread with the creep,
 and a bore's creep is worth burning back before its outposts stand.
 
+**Brood spire.** The tall growth an old bloom raises on its creep, which
+Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
+kind of spire like spawner"). It is the swarm's answer to a line it cannot walk
+through, made into a thing on the map the company can find and kill.
+- **Only an old bloom has one.** Spires grow when a battle's creep is matured
+  at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
+- **Where it stands.** One off each living satellite (non-mother) bore at maw,
+  in opening order, on open ground inside the bore's creep between six and
+  fourteen cells from its mouth and clear of its colonies, and never within
+  sixty-four cells of another spire, so a map carries a few, not one per bore.
+  The mother bores have none: their air is the Matriarch's brood.
+- **When it launches.** With its bore's surge (surges, not trickles): each surge
+  launches a pack of seven off it, provided a marine or an ally stands within a
+  Harrier's sense of it, no pack of its own is still in the air, at least
+  forty-five seconds have passed since its last, and the flier law holds. A
+  sleeping bore's spire is quiet with it.
+- **What it is to fight.** A structure on the swarm's side, fought as a bore's
+  body is: shot, satchelled and destroyed through the ordinary paths (650
+  structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
+  heavy weapons and machines take it). It never fights. It withers with its
+  bore, as colonies do, so collapsing the bore grounds its spire too.
+- **Its look** follows the bores and colonies (`art-source/swarm-bores`): a
+  geometry-first painting of the Runner's chitin, lit by the game's sun, its
+  height told by its lean and a long shadow thrown down-sun, drawn half again
+  its modelled size so it stands out as a landmark on a mass of creep. Brood
+  pods glow amber where the fliers hatch. The body plan is the owner's open
+  pick (`brood-spire-look`: roost, chimney or clutch); roost is built on.
+- `-Dbattle.swarm.broodSpires=false` is the control: no spires and no broods.
+  Scene: `brood-spire`.
+
 **Swarm director.** The non-human pressure owner (today
 `SwarmReinforcementSystem`). It decides how many, from which bore, and of which
 strain, against a population target that scales with the number and tier of
@@ -1020,7 +1048,9 @@ not read in a soft shadow at play zoom.
   through the aimed-damage path; a craft at cruise altitude is out of reach.
   It stops advancing as soon as something is in range, so the Runners it came
   with close past it and it ends up behind them. No damage over time: the
-  damage model has none for ground bodies.
+  damage model has none for ground bodies. Its snout glows faint acid green
+  through the brace before each lob, so a player reads the lob coming off the
+  creature itself (owner, 2026-10-25).
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
   The mother owes it the first time it releases at maw tier, and that body is
@@ -1051,8 +1081,7 @@ not read in a soft shadow at play zoom.
   (owner's pick over mounting them further out or turning them with the head).
   It dies with its back broken, in one of four poses of that death.
 - **Harrier** — the swarm's flier, a winged strain that hunts in **packs** of
-  six to twenty (`SwarmFliers`, `HarrierPack`). Prototype: no mission releases
-  it yet. It is the swarm's answer to a line it cannot walk through: the ground
+  six to twenty (`SwarmFliers`, `HarrierPack`). It is the swarm's answer to a line it cannot walk through: the ground
   swarm is channelled by ridges, passes, wire and redoubts, and a flier is not.
   - **What it is to a gun.** A roster body in the low air, as a drone is (it is
     shot, takes damage and dies by the ordinary laws), with two differences
@@ -1103,9 +1132,11 @@ not read in a soft shadow at play zoom.
     capped rate, move along the nose. Serial, in pack and slot order, with no
     random draw, so a replay flies the same; a pack of twenty costs four
     hundred distance checks a tick.
-  - **Where it comes from** (design, not built). A Matriarch's brood: a pack
-    rises from her as she emerges and flies as her escort. Wiring it into a
-    mission is open work (`stories.md`).
+  - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
+    the flier law: off a satellite's **brood spire** with its bore's surge, and
+    as a Matriarch's **brood**, a pack of six that rises over her as she
+    emerges and flies as her escort. So the satellites and the front bores
+    send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
     the Runner's lilac carapace with bat wings grown from its spike arms.
     It animates frame by frame (`HarrierPose`): an eight-frame wingbeat whose
@@ -1317,7 +1348,10 @@ against its own control in `renderEvidence`.
   tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
   over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
   only when both are dead, and never if it is either one's trunk. Felling still
-  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  works on a dead tree, and a dead tree is undergrowth: a heavy tank pushes it
+  over, trunk and all, where no living tree's crown holds its cells, so the
+  infection turns a wood a tank could not enter into one it drives through
+  (owner; `convoy-nouns.md`, heavy tracks). Creep therefore strips a wood of concealment the way it
   strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
   mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
 - **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
@@ -1761,6 +1795,17 @@ flier's voice set low for the same reason, and each sound's level is set from
 its borrowed takes' measured loudness, since those differ by some 25 dB. Timing
 and jitter run on simulation time and a seed, so a replay
 sounds the same and a review can mix its soundtrack from the same rules.
+
+**The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
+creature sound's level is set from its take's measured loudness against the
+fire around it, never left at the take's own level: the generated takes run hot
+and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
+LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
+Brute's a few dB heavier, its charge tell over the guns so a charge is heard
+coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
+since many bodies make them. A new sound or take is levelled the same way
+before it ships. The `swarm-sound` look suite logs what the battle screen would
+start (`BattleSoundLog`) so a review hears the levels against the fire.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

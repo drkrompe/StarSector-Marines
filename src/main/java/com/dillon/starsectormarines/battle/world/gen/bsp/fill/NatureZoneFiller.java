@@ -384,6 +384,8 @@ public final class NatureZoneFiller implements BlockFiller {
                         grid.setWalkable(x, y, false);
                         grid.setSeeThrough(x, y, true);
                         topology.setFixture(x, y, true);
+                        // A lone boulder stops a man; a heavy tank grinds it down (HeavyTracks).
+                        if (rockDef.crushable) grid.setTag(x, y, NavigationGrid.CellTag.CRUSHABLE, true);
                     }
                 }
             }

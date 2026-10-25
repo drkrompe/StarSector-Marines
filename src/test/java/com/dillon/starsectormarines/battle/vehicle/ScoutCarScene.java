@@ -31,11 +31,12 @@ import java.util.Set;
  * marine squad behind the long wall cannot, and what it sees reaches the commander and the player's fog without
  * reaching any squad's beliefs or any hit roll.
  *
- * <p>Three loops on one world. {@code scouted} parks the car with open line of sight to the position inside its 48
+ * <p>Four loops on one world. {@code scouted} parks the car with open line of sight to the position inside its 48
  * cells of sight. {@code walled-in} parks it on the same cell with a wall across its view, because its sight is
  * ordinary grid line of sight and that is its give-up. {@code control} has no car at all. Nothing in the scene can
  * shoot anything: the squad is walled off and far out of reach, the car carries no gun and stands outside the
- * defenders' rifles. The scene is about information, not combat.
+ * defenders' rifles. The scene is about information, not combat. {@code crew} parks an unarmed hull with no mast on the
+ * same vantage: every hull looks, out to a marine's sight, so it sees the nearest of the file and not the farthest.
  *
  * <p>The commander snapshot is read through {@link BattleSimulation#getCommanderInfluence}, the production read,
  * which also requests its refresh on the ordinary 15-tick cadence.
@@ -45,6 +46,7 @@ public final class ScoutCarScene implements BehaviorScene {
     public static final String SCOUTED = "scouted";
     public static final String WALLED_IN = "walled-in";
     public static final String CONTROL = "control";
+    public static final String CREW = "crew";
 
     static final int WIDTH = 96;
     static final int HEIGHT = 56;
@@ -95,17 +97,19 @@ public final class ScoutCarScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
-        Trace scouted = run(SCOUTED, true, false, frames);
-        Trace walled = run(WALLED_IN, true, true, frames);
-        Trace control = run(CONTROL, false, false, frames);
+        Trace scouted = run(SCOUTED, VehicleType.SCOUT_CAR, false, frames);
+        Trace walled = run(WALLED_IN, VehicleType.SCOUT_CAR, true, frames);
+        Trace control = run(CONTROL, null, false, frames);
+        Trace crew = run(CREW, VehicleType.CARGO_CARRIER, false, frames);
         List<SceneReport> reports = new ArrayList<>();
         reports.add(reportScouted(scouted));
         reports.add(reportWalled(walled));
         reports.add(reportControl(control));
+        reports.add(reportCrew(crew));
         return reports;
     }
 
-    private Trace run(String loop, boolean scout, boolean blind, FrameSink frames) {
+    private Trace run(String loop, VehicleType hull, boolean blind, FrameSink frames) {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT)
                 .missionCompletion(false)
                 // The long wall between the squad and everything east of it.
@@ -121,8 +125,8 @@ public final class ScoutCarScene implements BehaviorScene {
         BattleSimulation sim = world.sim();
 
         long car = 0L;
-        if (scout) {
-            car = sim.convoy().spawn(VehicleType.SCOUT_CAR, Faction.MARINE, VehicleMission.deployed(SCOUT_X, SCOUT_Y));
+        if (hull != null) {
+            car = sim.convoy().spawn(hull, Faction.MARINE, VehicleMission.deployed(SCOUT_X, SCOUT_Y));
             sim.convoy().body(car).teleport(SCOUT_X, SCOUT_Y, 0f);
         }
 
@@ -167,6 +171,24 @@ public final class ScoutCarScene implements BehaviorScene {
         verdicts.add(infantryBlind(t));
         verdicts.add(notACombatBuff(t));
         return new SceneReport(id(), WALLED_IN, TICKS, verdicts, readings(t));
+    }
+
+    private SceneReport reportCrew(Trace t) {
+        List<Verdict> verdicts = new ArrayList<>();
+        int sighted = t.everSighted.size();
+        verdicts.add(Verdict.of("crew-sees-within-a-marines-sight", sighted > 0 && sighted < t.hidden.length,
+                "the unarmed hull sighted " + sighted + " of " + t.hidden.length + " hidden defenders: those inside "
+                        + VehicleType.CREW_SIGHT_CELLS + " cells, not the file's far end"));
+        verdicts.add(Verdict.of("commander-knows-what-crew-saw", t.commanderKnew.equals(t.everSighted)
+                        && t.commanderContactWithSquad == 0,
+                t.commanderKnew.size() + " hidden defenders in the commander's contacts with reporter -1, against "
+                        + sighted + " sighted"));
+        verdicts.add(Verdict.of("fog-revealed-near", t.everRevealedDefender.size() >= sighted
+                        && t.everRevealedDefender.size() < t.hidden.length,
+                t.everRevealedDefender.size() + " of " + t.hidden.length + " hidden defenders' cells revealed to the "
+                        + "player; the hull's own footprint is a contributor's"));
+        verdicts.add(infantryBlind(t));
+        return new SceneReport(id(), CREW, TICKS, verdicts, readings(t));
     }
 
     private SceneReport reportControl(Trace t) {
@@ -275,7 +297,7 @@ public final class ScoutCarScene implements BehaviorScene {
 
             int sightedNow = 0;
             for (long id : hidden) {
-                if (sim.scoutSight().sighted(Faction.MARINE, id)) {
+                if (sim.hullSightings().sighted(Faction.MARINE, id)) {
                     sightedNow++;
                     everSighted.add(id);
                 }

@@ -46,6 +46,7 @@ NAMES = {
     "spore-colony-bore": "spore-colony-bore",
     "spore-colony-maw": "spore-colony-maw",
     "ground-colony": "ground-colony",
+    "brood-spire": "brood-spire",
 }
 
 # Rav Bloom CHITIN proposal (rav-palettes): luminance in -> colour out, for creature materials.
@@ -309,6 +310,8 @@ def main() -> None:
     parser.add_argument("--palette", choices=("raw", *PALETTES), default=SHIPPED)
     parser.add_argument("--part", action="append", help="limit to these parts")
     parser.add_argument("--state", action="append", choices=make_guide.STATES, help="limit to these damage states")
+    parser.add_argument("--spire-option", choices=make_guide.SPIRE_STYLES,
+                        help="export one look option's painting (raw/options/) as brood-spire-1, for the owner's pick")
     args = parser.parse_args()
     here = Path(__file__).resolve().parent
     repository = here.parent.parent
@@ -327,21 +330,28 @@ def main() -> None:
         if args.part and part not in args.part:
             continue
         edge = edge_px(part)
-        for v in range(1, make_guide.VARIANTS[part] + 1):
-            for state in states:
+        option = args.spire_option if part == "brood-spire" else None
+        if args.spire_option and not option:
+            continue
+        for v in range(1, (1 if option else make_guide.VARIANTS[part]) + 1):
+            for state in (["intact"] if option else states):
                 suffix = "" if state == "intact" else f"-{state}"
                 raw_path = here / "raw" / f"{part}-{v}{suffix}.raw.png"
+                guide_path = make_guide.guide_path(templates, part, v, state)
+                if option:
+                    raw_path = here / "raw" / "options" / f"{part}-{option}-{v}.raw.png"
+                    guide_path = templates / f"swarm-{part}-{option}-{v}-guide.png"
                 if not raw_path.exists():
                     print(f"{part}-{v}{suffix}: no raw yet, skipped")
                     continue
                 raw = Image.open(raw_path).convert("RGBA").resize((CANVAS, CANVAS), Image.Resampling.LANCZOS)
-                guide = Image.open(make_guide.guide_path(templates, part, v, state)).convert("RGBA")
+                guide = Image.open(guide_path).convert("RGBA")
                 small = (256, 256)
                 before = iou(mask(raw.resize(small)), mask(guide.resize(small)))
                 raw = fitted(raw, guide)
                 score = iou(mask(raw.resize(small)), mask(guide.resize(small)))
                 raw.putalpha(raw.getchannel("A").point(lambda value: 0 if value < ALPHA_FLOOR else value))
-                field = make_guide.build(part, v, state)
+                field = make_guide.build(part, v, state, option)
                 if args.palette != "raw":
                     raw = recolour(raw, field.m, args.palette)
                     if state == "remains":

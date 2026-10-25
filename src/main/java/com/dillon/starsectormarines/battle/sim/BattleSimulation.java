@@ -130,6 +130,7 @@ import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
@@ -163,12 +164,13 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
+import com.dillon.starsectormarines.battle.vehicle.HeavyTracks;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.Crossfire;
 import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
-import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
+import com.dillon.starsectormarines.battle.vehicle.HullSightings;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -573,7 +575,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new com.dillon.starsectormarines.battle.logistics.ResupplyService();
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     private final SupplyTruckSystem supplyTrucks;
-    private final ScoutSight scoutSight = new ScoutSight();
+    private final HullSightings hullSightings = new HullSightings();
     private final DroneBaySystem droneBays = new DroneBaySystem();
     private final VehicleDustEmitter vehicleDust = new VehicleDustEmitter();
     private final VehicleDamageFxSystem vehicleDamageFx = new VehicleDamageFxSystem();
@@ -877,6 +879,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
     private final SwarmFliers swarmFliers = new SwarmFliers();
+    private final BroodSpires broodSpires = new BroodSpires();
+
+    /** The old bloom's brood spires and the Matriarchs' broods: where Harrier packs come from. */
+    public BroodSpires broodSpires() { return broodSpires; }
     /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
     public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
@@ -896,6 +902,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
+        // A bloom weeks old has grown its spires.
+        broodSpires.grow(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
@@ -1458,7 +1466,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 for (long nest : fort.nestIds()) sink.accept(nest);
             }
         });
-        this.commanderInfluence.setSightingWatch(scoutSight::forEachSighting);
+        this.commanderInfluence.setSightingWatch(hullSightings::forEachSighting);
         this.resupplySystem = new com.dillon.starsectormarines.battle.logistics.ResupplySystem(
                 resupply, rosterService);
         this.supplyTrucks = new SupplyTruckSystem(resupply);
@@ -1644,6 +1652,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
+        // A hull looks out like any other contributor, whichever side's sight the player is shown.
+        rosterService.convoy().setSpawnSink(hull -> {
+            if (fogOfWar.getVisionState().isContributor(rosterService.convoy().faction(hull))) {
+                fogOfWar.addHullContributor(hull, rosterService);
+            }
+        });
         // A gun on a turning hull shakes the way a moving shooter's does, and so does a crew caught in crossfire;
         // the gun is never shakier than a moving shooter's.
         HullPivot pivot = new HullPivot(rosterService.convoy());
@@ -1677,12 +1691,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         blade = new DozerBlade(navigation, mapEditor, doodadService);
         groundSystem.setBlade(blade);
+        // Heavy-lift hulls flatten the undergrowth and lone boulders they drive into (HeavyTracks); its switch is the
+        // control, under which every hull stops at them.
+        if (!"false".equalsIgnoreCase(System.getProperty(HeavyTracks.PROPERTY))) {
+            HeavyTracks tracks = new HeavyTracks(navigation, mapEditor);
+            groundSystem.setTracks(tracks);
+            blade.setTracks(tracks);
+        }
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
-        groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
+        groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, hullSightings,
                 (side, x, y) -> commsSees(side, x, y)));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
@@ -2411,7 +2432,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
 
     /** What this battle's scout cars saw on the last tick. */
-    public ScoutSight scoutSight() { return scoutSight; }
+    public HullSightings hullSightings() { return hullSightings; }
 
     /** Whether one of {@code side}'s comms operators has the point in sight: a spotter for the missile carriers. */
     private boolean commsSees(Faction side, float x, float y) {
@@ -3451,7 +3472,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         publishZoneOccupancy();
         // A scout car's mast reports against the index just rebuilt: to the fog's next vision pass and to the
         // commander's next capture.
-        scoutSight.tick(convoy(), rosterService, unitIndex, grid, fogOfWar,
+        hullSightings.tick(convoy(), rosterService, unitIndex, grid,
                 sink -> droneBays.forEachSensor(this, sink::observe));
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
@@ -3895,6 +3916,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        // After the director's surges and before the fliers fly, so a pack a surge launches flies this tick.
+        broodSpires.tick(this);
         swarmFliers.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);

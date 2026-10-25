@@ -652,18 +652,17 @@ change the physical crash corridor.
     extension, because that is the Mac's floor; a texture array would need more.
     The page rides in the position's z rather than a generic attribute, because
     the fixed-function arrays are what an async-renderer bridge is known to
-    carry, and per-quad effects ride in z's fraction for the same reason (a
+    carry, and per-quad effects ride in the spare components for the same reason (a
     secondary-colour or normal array wants entry points the Mac's headless
     binding does not keep): positions and texture coordinates go at four
     components, and the spare ones carry the effects, zero for an ordinary
     quad, which then draws exactly as before. A body is stamped with them as
     it is emitted, every one a pure function of simulation state and the
-    lights the screen already keeps: the **hit flash**, mixed toward white for
-    a moment from the tick a hit lands (`HitFlash`, read off
-    `CombatService.ticksSinceDamaged`, before cover and armour have their
-    say); the **light** on it from the event lights, brightest on the
-    silhouette edge facing them (`BodyEffects`); and its **wear**: embers
-    while the ground under it burns, char once it has burnt. A body the cap
+    lights the screen already keeps: the **light** on it from the event
+    lights, brightest on the silhouette edge facing them (`BodyEffects`); and
+    its **wear**: embers while the ground under it burns, char once it has
+    burnt. There is no hit flash: a body briefly mixed toward white when hit
+    read as arcade and was removed (owner, 2026-10-25). A body the cap
     retires fades out by alpha; a dissolve in blotches was tried and declined
     (owner, 2026-10-24). There is no selection outline: it was tried and the
     owner kept the ground rings (2026-10-24). There is no faction recolour: it needs an authored mask the art does not

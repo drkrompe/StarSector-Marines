@@ -5,8 +5,10 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -132,12 +134,6 @@ public final class FogOfWarService {
      * accumulated") holds for each of them independently.
      */
     private final TemporarySources carried = new TemporarySources();
-
-    /**
-     * Sources the simulation replaces each tick for a hull whose job is to look: a scout car's mast. Its own channel
-     * for the reason {@link #carried} has one — a different owner clears it at a different point in the tick.
-     */
-    private final TemporarySources vehicleSight = new TemporarySources();
 
     public Buildings getBuildings() { return buildings; }
     public PlayerVisionState getVisionState() { return visionState; }
@@ -296,6 +292,34 @@ public final class FogOfWarService {
     }
 
     /**
+     * Registers a convoy hull as a contributor, on the terms of any other: a cohort refreshes its footprint, a
+     * stationary hull keeps the one it has, and its sight is a marine's unless its type carries a mast
+     * ({@code VehicleType.observeCells}). A hull still off the map joins sightless and casts when it lands; the
+     * first footprint is cast here when it is already on the field.
+     */
+    public void addHullContributor(long id, UnitRosterService roster) {
+        if (!initialized) return;
+        FogCohort smallest = cohorts[0];
+        for (int i = 1; i < COHORT_COUNT; i++) {
+            if (cohorts[i].contributors.size() < smallest.contributors.size()) smallest = cohorts[i];
+        }
+        ContributorEntry entry = new ContributorEntry();
+        entry.unitId = id;
+        entry.hull = true;
+        stowAboard(entry);
+        smallest.contributors.add(entry);
+        ConvoyService convoy = roster.convoy();
+        if (!convoy.isPresent(id)) return;
+        GroundBody body = convoy.body(id);
+        recast(entry, (int) Math.floor(body.x), (int) Math.floor(body.y), hullRange(convoy, id), 0f);
+        changes.seal();
+    }
+
+    private static int hullRange(ConvoyService convoy, long id) {
+        return Math.min(MAX_VISION_RANGE, Math.round(convoy.vehicleType(id).observeCells()));
+    }
+
+    /**
      * Remove a contributor and decrement its vision footprint. Called when a
      * contributor unit dies or is otherwise removed from the battle.
      */
@@ -433,19 +457,6 @@ public final class FogOfWarService {
         add(carried, cellX, cellY, range, wallReadRadius);
     }
 
-    /** Clears the vehicle sight sources; called by the system that republishes them, once per tick. */
-    public void clearVehicleSightSources() {
-        vehicleSight.clear();
-    }
-
-    /**
-     * Registers a sight-carrying hull as a temporary observer for this tick: ordinary ground-level shadowcast from
-     * its cell, walls block. The same seam every temporary observer uses, never a second reveal path.
-     */
-    public void addVehicleSightSource(int cellX, int cellY, int range) {
-        add(vehicleSight, cellX, cellY, range, 0f);
-    }
-
     private void add(TemporarySources sources, int cellX, int cellY,
                      int range, float airLosRadius) {
         if (!initialized) return;
@@ -467,7 +478,6 @@ public final class FogOfWarService {
         int total = castInto(projected, 0, false);
         // A sweep is carried by somebody on the ground: it reads walls, not cliffs, beyond its radius.
         total = castInto(carried, total, true);
-        total = castInto(vehicleSight, total, false);
         total = revealExposed(total);
         ephemeralPrevCount = total;
 
@@ -522,6 +532,10 @@ public final class FogOfWarService {
                 cohort.contributors.remove(i);
                 continue;
             }
+            if (e.hull) {
+                tickHull(cohort, i, e, roster.convoy(), forceRecast);
+                continue;
+            }
             // Somebody inside a vehicle sees nothing out of it and has no cell
             // to see from. Its footprint comes down and it stops contributing
             // until it is set down again. It stays registered: nothing adds a
@@ -541,25 +555,50 @@ public final class FogOfWarService {
             if (!forceRecast && cx == e.lastCellX && cy == e.lastCellY) continue;
 
             decrementFootprint(e);
+            recast(e, cx, cy, Math.min(MAX_VISION_RANGE, (int) vision.visionRange(e.unitId)),
+                    vision.airLosRadius(e.unitId));
+        }
+    }
 
-            int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(e.unitId));
-            float airLosRadius = vision.airLosRadius(e.unitId);
-            int count = Shadowcast.castFrom(grid, cx, cy,
-                    range, airLosRadius, shadowScratch, 0);
-
-            if (count > e.previousCells.length) {
-                e.previousCells = new int[count];
+    /**
+     * One hull's turn in its cohort. A hull that was despawned is dropped. One that is not on the map (still
+     * inbound, wrecked or leaving) keeps its place but reveals nothing until it is, as a passenger does.
+     */
+    private void tickHull(FogCohort cohort, int index, ContributorEntry e, ConvoyService convoy, boolean forceRecast) {
+        if (!convoy.isVehicle(e.unitId)) {
+            decrementFootprint(e);
+            cohort.contributors.remove(index);
+            return;
+        }
+        if (!convoy.isPresent(e.unitId)) {
+            if (e.lastRange > 0 || e.previousCellCount > 0) {
+                decrementFootprint(e);
+                stowAboard(e);
             }
-            System.arraycopy(shadowScratch, 0, e.previousCells, 0, count);
-            e.previousCellCount = count;
-            e.lastCellX = cx;
-            e.lastCellY = cy;
-            e.lastRange = range;
-            e.lastAirLosRadius = airLosRadius;
+            return;
+        }
+        GroundBody body = convoy.body(e.unitId);
+        int cx = (int) Math.floor(body.x);
+        int cy = (int) Math.floor(body.y);
+        if (!forceRecast && cx == e.lastCellX && cy == e.lastCellY) return;
+        decrementFootprint(e);
+        recast(e, cx, cy, hullRange(convoy, e.unitId), 0f);
+    }
 
-            for (int j = 0; j < count; j++) {
-                reveal(e.previousCells[j]);
-            }
+    /** Casts {@code e}'s footprint from the cell and takes a reference on every cell it reaches. */
+    private void recast(ContributorEntry e, int cx, int cy, int range, float airLosRadius) {
+        int count = Shadowcast.castFrom(grid, cx, cy, range, airLosRadius, shadowScratch, 0);
+        if (count > e.previousCells.length) {
+            e.previousCells = new int[count];
+        }
+        System.arraycopy(shadowScratch, 0, e.previousCells, 0, count);
+        e.previousCellCount = count;
+        e.lastCellX = cx;
+        e.lastCellY = cy;
+        e.lastRange = range;
+        e.lastAirLosRadius = airLosRadius;
+        for (int j = 0; j < count; j++) {
+            reveal(e.previousCells[j]);
         }
     }
 
@@ -665,7 +704,6 @@ public final class FogOfWarService {
         }
         addClearAirFootprints(projected);
         addClearAirFootprints(carried);
-        addClearAirFootprints(vehicleSight);
         adoptClearAir();
     }
 
@@ -797,6 +835,8 @@ public final class FogOfWarService {
 
     private static final class ContributorEntry {
         long unitId;
+        /** A convoy hull rather than a roster unit: its cell and sight come from the convoy, not the roster. */
+        boolean hull;
         int lastCellX;
         int lastCellY;
         int lastRange;

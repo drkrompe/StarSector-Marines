@@ -636,6 +636,7 @@
         1,
         1
       ],
+      "crushable": true,
       "id": "nature.rock-large-1",
       "included": true,
       "layer": "rock",
@@ -660,6 +661,7 @@
         1,
         1
       ],
+      "crushable": true,
       "id": "nature.rock-large-2",
       "included": true,
       "layer": "rock",
@@ -684,6 +686,7 @@
         1,
         1
       ],
+      "crushable": true,
       "id": "nature.rock-large-3",
       "included": true,
       "layer": "rock",

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a stopped hull carries heavy occupancy over its footprint, so routes go round a parked vehicle.
+Updated: 2026-10-25 — heavy tracks flatten undergrowth and lone boulders; a hull running into what stops it is heard as a bump.
 
 ## Purpose and boundary
 
@@ -300,15 +300,15 @@ That walk is over *bodies*, not over convoys. It was a convoy loop with an
 aircraft loop bolted on beside it, which is how a blast sized itself against a
 chassis correctly and against every aircraft in the game identically.
 
-An ordinary vehicle is seen but never sees. It carries no perception components at all, so
+An ordinary vehicle is seen and looks, but is never a perceiver. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
 as separate roles: the seeing side of a line-of-sight pair reads the fail-loud
 sight accessor, and the seen side reads the tolerant one that answers with plain
 grid line-of-sight for an entity that has no vision. The same rule covers a
-remembered contact that has since become a corpse. The spotter pickup is the one hull
-that looks, and it does so without becoming a perceiver: its mast is a squadless
-observer beside the body (the light roles, below), so the perception components
-stay off every chassis.
+remembered contact that has since become a corpse. Every hull looks, and does so
+without becoming a perceiver: it is a squadless observer beside the body
+(`HullSightings`; the light roles, below), out to a marine's sight, or to its mast's
+where it has one, so the perception components stay off every chassis.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
 the shared durability law: low-penetration rifles chip armor slowly, while
@@ -1075,6 +1075,41 @@ delivery proof is unchanged; the blade reaches player-ordered and directly
 driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
 troop APC drives through, against a control where the APC alone is refused.
 
+A Heavy-lift hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
+*crushable* while it is closed and tagged so: a young tree (the pine and the
+small oak), any tree the creep has killed, or a lone large boulder. A cell under
+two crowns is crushable only while every standing tree on it is undergrowth, so
+a dead tree leaning into a living oak holds where they meet, and a summit cell
+never is. Infantry and every lighter hull are stopped by it as by any natural
+solid. Every Heavy-lift hull (the gun tanks and the dozer) drives into it:
+whatever crushable cells its footprint covers after a move are crushed through
+the map editor's destruction path, so a tree falls whole to its felled art, a
+boulder to its rubble, and the ground is open for everyone afterwards. A tick
+that crushes anything leaves the hull at half its top speed, so a wood is
+driven through in lurches. Undergrowth gives at once, so unlike the blade's
+breach view the tracks' **crush view** is read by planning and motion alike, as
+a hover hull's skirt view is. It keeps its identity and catches up with the
+live grid's change log cell by cell, so the clearance mask over it catches up
+too rather than being rebuilt each time the map moves, and a move order still
+snaps to the nearest cell the hull can reach. Crushable ground is priced as
+rubble, so a tank goes round a thicket where going round is cheap and through it
+where it is not. Living mature trees, mineral formations, hills and every wall
+stay solid; the dozer's breach view is laid over its crush view. Small and
+medium rocks, shrubs and grass tufts were open ground for every hull already.
+Which living trees count as young is the owner's open pick
+(`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
+is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
+across young or creep-killed wood drives through it, felling what it touches,
+while a living mature wood and a troop APC in young wood are held.
+
+A hull that runs into something that stops it is heard: a stopped move at half
+a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the
+machinery audio plays a heavy impact for it (`MachineAudio`, vanilla's
+ship-on-rock collision), louder the faster it hit and deeper the heavier the
+hull. A hull held against a wall creeps up from a standstill each tick, so it
+bumps once as it hits, not again while it pushes. There is no automatic back-off
+for a wedged, manually driven hull (owner, 2026-10-25).
+
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
 escorts have their own durability profile rather than changing every ordinary
@@ -1119,12 +1154,13 @@ ends service.
 The **spotter pickup** (`SCOUT_CAR`) is the pickup cut short on a shorter
 wheelbase, the fastest hull in the bay and the thinnest, with a salvaged sensor
 mast where the gun stood. Its job
-is information. The mast is a **squadless observer** (`ScoutSight`): each tick it
-is a temporary ground-level fog source for its side when that side's sight is
-shown to the player — the same seam a sensor sweep or a recon ping uses — and it
-records every hostile combatant it has ordinary line of sight to within its
-range, which reaches the side's commander as direct contacts reported by no squad,
-as a fort gun's target does. No squad's beliefs are written: the scout tells
+is information, and its mast sees past a crew's eyes. Every hull is a
+**squadless observer** out to `observeCells()`, a marine's sight
+unless a mast reaches farther. To the player it is a fog contributor like a soldier
+or a mech (`fog-of-war-nouns.md`), cached and refreshed by cohort. To command each
+tick (`HullSightings`) it records every hostile combatant it has ordinary line of
+sight to within its range, which reaches the side's commander as direct contacts
+reported by no squad, as a fort gun's target does. No squad's beliefs are written: the scout tells
 command and the player, and a squad learns of what it saw by being sent toward
 it. Its sight is plain line of sight from the ground, so it has to be driven
 somewhere it can look. Acceptance is the `scout-car` scene: a position no marine
@@ -1150,8 +1186,8 @@ tail hinge to fire
 armor, where the fire-support APC's mortar is its short arm against men. Its rounds
 arc, and it fires **on a spotter's call** at a machine it cannot see itself:
 somebody else on its side must be looking at the target right now
-(`SideObservers`) — a sight hull with the target in its own sight range and line of
-sight (the spotter pickup, the hover scout), a soldier or mech within 34 cells with
+(`SideObservers`) — a hull with the target in its own sight range and line of
+sight (any vehicle, the scouts farthest), a soldier or mech within 34 cells with
 line of sight (a mortar's spotter reach), or a comms operator with it in sight.
 Nothing is a belief or a memory, so a carrier holds fire on a tank that ducked out
 of everyone's view rather than shelling where it was. A spotted round is an
@@ -1316,8 +1352,8 @@ crash. Bay drones carry a sturdier airframe than a hub's disposable screen, beca
 are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Tachyon
 drone (`DroneLook`; `art-source/drones/tt-drones/`).
 
-The **hover scout** (`HOVER_SCOUT`, Light lift) is a sight hull on the spotter pickup's
-terms (`ScoutSight`). It also carries a light twin pulse emitter of the drone-pulse family,
+The **hover scout** (`HOVER_SCOUT`, Light lift) carries a sensor mast on the spotter pickup's
+terms (`HullSightings`). It also carries a light twin pulse emitter of the drone-pulse family,
 so it can screen, and a sensor pair. The stripped pickup stays the fastest hull in the
 bay.
 
