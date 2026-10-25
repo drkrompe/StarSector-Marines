@@ -28,7 +28,7 @@ public final class HallProcession implements PressuredObjective.Task {
     /** People in each party sent out together. */
     static final int PARTY = 2;
     /** Seconds before the first party comes out, and between parties. */
-    static final float FIRST_SECONDS = 20f, EVERY_SECONDS = 30f;
+    static final float FIRST_SECONDS = 15f, EVERY_SECONDS = 12f;
     /** A person this near their place in the plaza has reached it. */
     static final float ARRIVED = 2.5f;
 

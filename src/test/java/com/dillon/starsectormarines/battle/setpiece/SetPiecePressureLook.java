@@ -157,17 +157,22 @@ abstract class SetPiecePressureLook<T extends PressuredObjective.Task> implement
 
     private void log(BattleSimulation sim, long seed, float t, ObjectiveBoard board, T task, BorePressure pressure,
                      float[] focus) {
-        int bodies = 0, near = 0;
+        int bodies = 0, near = 0, field = 0;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long body = sim.liveUnitAt(i);
-            if (!pressure.fighter(sim, body)) continue;
+            boolean close = Math.hypot(sim.world().x(body) - focus[0], sim.world().y(body) - focus[1]) <= 2 * NEAR;
+            if (!pressure.fighter(sim, body)) {
+                // The breach's own swarm, foraging into town on its own clock.
+                if (close && sim.role().role(body) == UnitRole.SWARM_PRESSURE) field++;
+                continue;
+            }
             bodies++;
             if (Math.hypot(sim.world().x(body) - focus[0], sim.world().y(body) - focus[1]) <= NEAR) near++;
         }
-        System.out.printf(Locale.ROOT, "[%s] seed %d t=%3.0f %s %s, bore %s, %d bore bodies (%d steered, %d near), %d guards%n",
+        System.out.printf(Locale.ROOT, "[%s] seed %d t=%3.0f %s %s, bore %s, %d bore bodies (%d steered, %d near), %d of the field's within %.0f, %d guards%n",
                 id(), seed, t, status(board), progress(sim, task),
                 pressure.opened() ? "open" + borePlace(sim, pressure.number()) : "shut", bodies, pressure.steering(),
-                near, guardsLeft(sim));
+                near, field, 2 * NEAR, guardsLeft(sim));
     }
 
     private static int guardsLeft(BattleSimulation sim) {

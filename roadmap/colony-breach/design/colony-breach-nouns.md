@@ -2056,7 +2056,7 @@ one is rolled per battle (`battle.colonyBreach.objectives` forces one):
   the company holds the lane, which the swarm comes down from both gates. Done
   at the count; lost when no hand is left. Needs a factory row.
 - **Hold the muster**: the colony's people have gathered in the market square,
-  and the company holds it for two and a half minutes against what comes in by
+  and the company holds it for a hundred seconds against what comes in by
   its mouths. Lost the moment fewer than half the muster are alive. Needs a
   market square.
 - **Empty the hall**: the people sheltering in the main street's civic hall

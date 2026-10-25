@@ -21,9 +21,9 @@ public final class SquareMuster implements PressuredObjective.Task {
     /** People in the muster. */
     static final int PEOPLE = 8;
     /** Seconds the square is held. */
-    static final float HOLD_SECONDS = 150f;
+    static final float HOLD_SECONDS = 100f;
     /** Seconds before the end the pressure's final rush comes. */
-    static final float FINAL_SECONDS = 40f;
+    static final float FINAL_SECONDS = 30f;
 
     private final OpenSquare square;
     private final Gathering muster;

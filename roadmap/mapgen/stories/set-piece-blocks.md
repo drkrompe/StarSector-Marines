@@ -201,9 +201,9 @@ its pressure, ended together.
 | Objective | Set piece, mark | Site | Lanes | Beats |
 |---|---|---|---|---|
 | Secure the loading | freight yard, `LoadingBay` | 28 to 45 steps from the gate | the gate and the side gap, to the door | probe every 40 s (weight 3), wave at half the crates (7), rush when the truck sets off (12), sent to a point on its road out |
-| Strip the workshop | factory row, `ServiceLane` | 24 to 40 steps from out past gate A | both gates, to the stack | 24 loads; probe every 30 s (5), wave at half (10), rush at three quarters (16), sent to the stack |
-| Hold the muster | market square, `OpenSquare` | 14 to 26 steps from out past a mouth | every mouth, to the centre | 150 s; probe every 25 s (8), wave at half (18), rush for the last 40 s (28), sent to the centre |
-| Empty the hall | main street, `MainStreet` | 14 to 26 steps from the spine's middle | every side street or gap (`StreetMouths`), to the spine | a party of two every 30 s; probe every 30 s (6), wave at half out (14), rush when the last party is out (22), sent to the spine's middle |
+| Strip the workshop | factory row, `ServiceLane` | 24 to 40 steps from out past gate A | both gates, to the stack | 18 loads; probe every 30 s (5), wave at half (10), rush at three quarters (16), sent to the stack |
+| Hold the muster | market square, `OpenSquare` | 14 to 26 steps from out past a mouth | every mouth, to the centre | 100 s; probe every 25 s (6), wave at half (14), rush for the last 30 s (22), sent to the centre |
+| Empty the hall | main street, `MainStreet` | 14 to 26 steps from the spine's middle | every side street or gap (`StreetMouths`), to the spine | a party of two every 12 s from 15 s; the loading's pacing, rush when the last party is out, sent to the spine's middle |
 
 The square and the street stand in the open, whose straight streets give a
 guard a long field of fire: a bore opened as far out as the loading's had its
@@ -215,15 +215,22 @@ one way in, at its middle.
 
 **Paced against a static six-marine guard** (`loading-pressure-look`,
 `workshop-strip-look`, `square-muster-look`, `hall-procession-look`, three
-colonies each). The loading: all three trucks got away, the guard fighting for
-it on two; a first, heavier pacing lost two yards of three. The strip: all three
-stacked, one with a single hand and no guard left standing. The muster: one
-lost of three, and one held with a single guard left. The hall: one lost of
-three, and one done with four of seven alive. At the loading's own pacing and
-distance none of the three new objectives let a brood within twelve cells of
-its people. On one loading map the colony's own militia collapsed the fissure
-before the rush; a fissure is fragile, and whether pressure bores should be
-tougher is open, as is tuning against real play rather than a static guard.
+colonies each). At the loading's own pacing and distance none of the three new
+objectives let a brood within twelve cells of its people.
+
+Since the breach blooms in from the outskirts (`colony-breach-nouns.md`), the
+breach's own fissures forage into town from landfall, and thirty to fifty of
+the field's bodies reach a set piece in town within two minutes or so: a muster
+held for two and a half minutes was lost on all three colonies to the field, not
+to its bore. So the new objectives are short, done before the field comes in
+force. Played on the bloom: the strip stacked on two of three (one with no
+guard left standing) and was lost on one; the muster held on all three, one
+with five of eight alive and a single guard; the hall was emptied on two of
+three and lost on one. The loading, tuned before the bloom, now loses two of
+three (one truck to the field at forty seconds); its pacing is the breach's
+question to settle with the bloom. A fissure is fragile, and whether pressure
+bores should be tougher is open, as is tuning against real play rather than a
+static guard.
 
 Where they host, over twelve colonies: the hall on nine, the muster on ten,
 the strip on six (seven rows; on one no street in reach had room for its bore).

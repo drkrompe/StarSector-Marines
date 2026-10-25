@@ -61,7 +61,7 @@ public final class ColonyBreachObjectives {
     /** Crates aboard before the truck leaves: a few minutes' carrying for a full crew left alone. */
     public static final int LOADING_CRATES = 16;
     /** Loads stacked before the workshop is stripped. */
-    public static final int STRIP_LOADS = 24;
+    public static final int STRIP_LOADS = 18;
     /** Pool keys. */
     public static final String STRIP = "strip_workshop", MUSTER = "hold_muster", HALL = "empty_hall";
     /** Bore numbers of each objective's pressure, above the loading's. */
@@ -78,8 +78,8 @@ public final class ColonyBreachObjectives {
     static final int MOUTH_DEPTH = 8;
     /** The set pieces' pacing: heavier and quicker than the loading's, whose yard has walls to fight from. */
     static final BorePressure.Pacing STRIP_PACING = new BorePressure.Pacing(5f, 10f, 16f, 30f, .5f);
-    static final BorePressure.Pacing MUSTER_PACING = new BorePressure.Pacing(8f, 18f, 28f, 25f, .5f);
-    static final BorePressure.Pacing HALL_PACING = new BorePressure.Pacing(6f, 14f, 22f, 30f, .5f);
+    static final BorePressure.Pacing MUSTER_PACING = new BorePressure.Pacing(6f, 14f, 22f, 25f, .5f);
+    static final BorePressure.Pacing HALL_PACING = BorePressure.Pacing.LOADING;
     private static final long SALT = 0x4C4F4144494E4700L;
 
     private ColonyBreachObjectives() { }
