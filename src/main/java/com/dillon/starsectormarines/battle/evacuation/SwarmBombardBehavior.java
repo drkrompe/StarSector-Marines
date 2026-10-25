@@ -330,7 +330,7 @@ final class SwarmBombardBehavior {
         sim.postShot(new ShotEvent(body, fromX, fromY, ex, ey, true, faction, flight, null, null, null, weapon,
                 sim.identity().type(body).moraleImpact));
         int arrival = sim.getSimTickIndex() + Math.max(1, Math.round(flight / BattleSimulation.TICK_DT));
-        sim.swarmBombards().postGlob(body, ex, ey, scale, arrival);
+        sim.swarmBombards().postGlob(body, sim.world().cellX(body), sim.world().cellY(body), ex, ey, scale, arrival);
         sim.combat().setCooldownTimer(body, SwarmPressureBehavior.strikeCooldown(body, sim));
         sim.combat().setTargetId(body, 0L);
     }

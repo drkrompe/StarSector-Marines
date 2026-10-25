@@ -111,6 +111,10 @@ public final class BombardScene implements BehaviorScene {
                                 && t.firstGlobTick > t.firstWindupTick,
                         "planted at tick " + t.firstPlantedTick + ", wound up at " + t.firstWindupTick
                                 + ", first glob landed at " + t.firstGlobTick));
+                int revealFloor = Math.round(SwarmBombards.LAUNCH_REVEAL_SECONDS / BattleSimulation.TICK_DT);
+                verdicts.add(Verdict.of("each-launch-gave-it-away", t.revealedTicks >= globs * revealFloor,
+                        t.revealedTicks + " ticks with its own cell observed for " + globs + " launches (wanted at least "
+                                + revealFloor + " a launch)"));
                 verdicts.add(Verdict.of("the-haze-landed-on-the-line", t.hazesOnTheLine > 0,
                         t.hazesOnTheLine + " of " + t.hazeCentres.size() + " hazes centred within "
                                 + SwarmBombardBehavior.FAR_SCATTER + " cells of a marine (wanted some)"));
@@ -147,6 +151,7 @@ public final class BombardScene implements BehaviorScene {
         metrics.put("firstGlobTick", t.firstGlobTick);
         metrics.put("lineHpLost", Math.round(t.lineHpLost));
         metrics.put("lineInHazeSamples", t.lineInHazeSamples);
+        metrics.put("revealedTicks", t.revealedTicks);
         metrics.put("deathTick", t.deathTick);
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
@@ -167,6 +172,7 @@ public final class BombardScene implements BehaviorScene {
         boolean hazeAtCorpse;
         float lineHpLost;
         int lineInHazeSamples;
+        int revealedTicks;
         private int lastGlobs;
         private int lastGlobTick = -1;
         private float corpseX, corpseY;
@@ -191,6 +197,9 @@ public final class BombardScene implements BehaviorScene {
             SwarmBombards bombards = sim.swarmBombards();
             boolean alive = w.isAlive(bombard);
             if (alive) {
+                for (SwarmBombards.Reveal reveal : bombards.launchReveals()) {
+                    if (reveal.cellX() == w.cellX(bombard) && reveal.cellY() == w.cellY(bombard)) revealedTicks++;
+                }
                 corpseX = w.x(bombard);
                 corpseY = w.y(bombard);
                 if (bombards.planted(bombard) && firstPlantedTick < 0) firstPlantedTick = tick;

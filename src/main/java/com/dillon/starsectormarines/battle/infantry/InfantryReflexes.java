@@ -106,6 +106,21 @@ public final class InfantryReflexes {
     };
 
     /**
+     * Get out of a Bombard's spore haze, unless a Rav is in melee reach. Below
+     * the fire, which burns where the haze only stings, and above everything
+     * else: a marine who stays in it to shoot shoots badly and is stung for it.
+     *
+     * @see HazeStepOut for where he goes
+     */
+    public static final Reflex IN_HAZE = new Reflex() {
+        @Override public String name() { return "IN_HAZE"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return HazeStepOut.stepOut(unit, sim);
+        }
+    };
+
+    /**
      * A marine who landed after his squad stepped off closes on it, and does
      * not start a fight of his own on the way.
      *
@@ -282,6 +297,7 @@ public final class InfantryReflexes {
             FRIENDLY_CHARGE,
             KNOWN_GRENADE,
             IN_FIRE,
+            IN_HAZE,
             REJOIN,
             MORTAR_SECTION,
             TREATMENT,
