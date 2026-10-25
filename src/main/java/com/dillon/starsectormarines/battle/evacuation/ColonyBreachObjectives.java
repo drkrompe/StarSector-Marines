@@ -133,7 +133,8 @@ public final class ColonyBreachObjectives {
         if (!map.openSquares.isEmpty()) {
             OpenSquare square = map.openSquares.get(0);
             pool.add(PressuredObjective.entry(MUSTER, "Hold the muster",
-                    "The colony's people have gathered in the market square: hold it until the swarm's push has passed.",
+                    "The colony's people have gathered in the market square, where the stalls had cheap lobster on ice"
+                            + " this morning: hold it until the swarm's push has passed.",
                     1, new Reward(3_000, Map.of(), Map.of()), new Cost("bloom.colony.muster_lost", 1),
                     () -> SquareMuster.install(sim, square), m -> musterPressure(sim, square)));
         }
