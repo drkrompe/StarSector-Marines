@@ -36,7 +36,17 @@ public final class District {
         /** The open square at one end of a spine (main street). */
         PLAZA,
         /** The public building closing the other end of a spine: a civic hall (main street). */
-        LANDMARK
+        LANDMARK,
+        /** The facility's offices, which the mission's command sits in (cordoned facility). */
+        ADMIN,
+        /** A laboratory or a workshop, by the facility's character (cordoned facility). */
+        LAB,
+        /** A vehicle shed with its forecourt (cordoned facility). */
+        DEPOT,
+        /** Open hardstanding of parked vehicles and stores (cordoned facility). */
+        YARD,
+        /** The open paved square the facility's buildings stand round (cordoned facility). */
+        COURTYARD
     }
 
     /** The program that planned it, e.g. {@code "main-street"}; also how a mission names it. */

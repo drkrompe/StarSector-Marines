@@ -112,7 +112,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             GroundKind.STRIPED, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.ARMORY, BuildingKind.FORTIFIED,
             new RoomPurpose[]{RoomPurpose.ARMORY}, new BinaryPartitionStrategy(0f));
-    private static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
+    static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.VEHICLE_BAY, BuildingKind.FORTIFIED,
             new RoomPurpose[]{RoomPurpose.VEHICLE_BAY}, new BinaryPartitionStrategy(0f));

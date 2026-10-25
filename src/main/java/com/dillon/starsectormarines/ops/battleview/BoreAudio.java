@@ -37,10 +37,11 @@ public final class BoreAudio {
     static final String CLAW_UP = "marines_breach_bore_clawup";
     static final float PITCH_JITTER = 0.06f;
     /**
-     * One body's claw-up alone. The take is levelled to -20 LUFS, so a Runner's lands near -32 and a clutch of three
-     * near -29, under the gunfire's -24 to -28 and far under the surge cue.
+     * One body's claw-up alone. The take is levelled to -20 LUFS, so a Runner's lands near -28 and a clutch of three
+     * near -26, the Matriarch's -26: in the fight, under the gunfire's -24 to -28 at its loudest, and level with the
+     * surge it rides under, so the clutches read through it.
      */
-    static final float CLAW_UP_VOLUME = 0.3f;
+    static final float CLAW_UP_VOLUME = 0.47f;
     /** Ticks of missed emergence a frame looks back over, when the screen draws slower than the battle runs. */
     static final int CATCH_UP_TICKS = 30;
     private static final float AMBIENCE_VOLUME = 0.45f;
@@ -149,11 +150,15 @@ public final class BoreAudio {
         };
     }
 
+    /**
+     * A cue's level. The surge's takes run near -8 LUFS, so it plays at a fifth, near -22: a one-off a little over the
+     * gunfire's -24 to -28, not 15 dB over it (owner, 2026-10-25: the claw-ups were lost under it).
+     */
     static float volume(BoreCues.Kind kind) {
         return switch (kind) {
             case ERUPTED -> 1f;
             case COLLAPSED -> 0.95f;
-            case SURGE -> 0.7f;
+            case SURGE -> 0.2f;
             case GREW -> 0.9f;
         };
     }

@@ -6,8 +6,7 @@ sector's armour, the company only where none is free). Both commanders are
 built: the company's (`CordonRadio`, `CordonCompanyRules`, behind
 `CordonCommand`) and the allied line command's (`CordonAlliedRules`, behind
 `CordonArmour`, `CordonLogistics` and `CordonLineCommand`, which draws on the
-base as a producer). The lift is built (rule 10), but no allied carrier seats a
-whole Marine squad yet, so it runs only for a squad worn down to the seats.
+base as a producer), and the company's lift (rule 10).
 
 Written: 2026-10-23
 Updated: 2026-10-24 — a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
@@ -280,8 +279,8 @@ duty stands, rather than being re-chosen each frame.
     carrier must seat the whole squad (a squad rides together or walks), and an
     allied squad waiting at the base always comes first. The squad boards under
     the company's own authority, so the player's order still takes it off the
-    ride. A lift whose duty ends or moves before the drop sets the squad down
-    where it is; a lift that leaves the squad no nearer its drop (the carrier
+    ride. A lift whose duty ends, or moves half a lift's worth (an escorted
+    convoy moves all the while), before the drop sets the squad down where it is; a lift that leaves the squad no nearer its drop (the carrier
     could not get there) bars that squad from asking for a minute, and one called
     off bars it for twenty seconds. Read as `company lifts N asked, N granted, N
     set down` in the line command's readings.
