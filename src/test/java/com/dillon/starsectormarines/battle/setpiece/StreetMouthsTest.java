@@ -23,7 +23,7 @@ class StreetMouthsTest {
         return grid;
     }
 
-    private static final MainStreet STREET = new MainStreet(5.5f, 15.5f, 34.5f, 15.5f, 3, 0, 0, 0, 0, -1, -1);
+    private static final MainStreet STREET = new MainStreet(5.5f, 15.5f, 34.5f, 15.5f, 3, 0, 0, 0, 0, -1, -1, null);
 
     @Test
     void aCrossStreetIsOneWayInAtItsMiddle() {
