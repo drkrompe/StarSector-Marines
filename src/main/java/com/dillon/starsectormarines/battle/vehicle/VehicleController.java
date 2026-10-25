@@ -273,6 +273,13 @@ public final class VehicleController {
      * abort, hold, or deload-in-place — remains open in slice 3.
      */
     static final int MAX_RECOVERY_ATTEMPTS = 5;
+    /** Cells clear of where a run of planless back-offs began that start the count again. */
+    static final float PLANLESS_CLEAR = 6f;
+    /**
+     * Planless back-offs in a row that got the hull nowhere after which its move order is given up
+     * ({@code VehicleMoveOrderSystem}): each restarts the failure clock that otherwise does it.
+     */
+    public static final int PLANLESS_GIVE_UP = 2;
     /**
      * Seconds a hull holds with no plan from its own pose, its reroute tried, before it backs off and replans. After
      * the reroute's rung, before a wheeled hull's last-resort pivot ({@code NeutralPivot}).
