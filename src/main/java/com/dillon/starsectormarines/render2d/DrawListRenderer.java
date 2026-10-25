@@ -121,7 +121,7 @@ public final class DrawListRenderer {
                     } else if (c.poly != null) {
                         c.poly.appendTo(solidBatch);
                     }
-                    solidBatch.moveQueuedTo(paged, PagedQuadRun.lane(page, false, c.flash), c.light, c.lightAngle, c.wear,
+                    solidBatch.moveQueuedTo(paged, PagedQuadRun.lane(page, false), c.light, c.lightAngle, c.wear,
                             0.5f, 0.5f);
                     pagedPending = true;
                     continue;
@@ -158,7 +158,7 @@ public final class DrawListRenderer {
                     appendSheetQuad(batch, c);
                 }
                 batch.moveQueuedTo(paged,
-                        PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive, c.flash),
+                        PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive),
                         c.light, c.lightAngle, c.wear);
                 pagedPending = true;
                 continue;
@@ -350,7 +350,7 @@ public final class DrawListRenderer {
             flushPaged(run, census);
             page = run.pageOf(sprite);
         }
-        run.appendSprite(sprite, PagedQuadRun.lane(page, additive, effects.flash), effects.light, effects.lightAngle,
+        run.appendSprite(sprite, PagedQuadRun.lane(page, additive), effects.light, effects.lightAngle,
                 effects.wear, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 

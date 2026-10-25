@@ -1,0 +1,70 @@
+package com.dillon.starsectormarines.battle.evacuation;
+
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class BroodSpiresTest {
+
+    private static final int GAP = Math.round(BroodSpires.MIN_GAP_SECONDS / BattleSimulation.TICK_DT);
+
+    /** Creep and open ground everywhere inside a 200-cell square. */
+    private static final CreepOutposts.Ground ALL = new CreepOutposts.Ground() {
+        @Override public boolean creeped(int x, int y) { return x >= 0 && y >= 0 && x < 200 && y < 200; }
+        @Override public boolean open(int x, int y) { return creeped(x, y); }
+    };
+
+    @Test
+    void releasesOnlyUnderCoverWithPreyAndNoPackAloftAfterTheGap() {
+        assertTrue(BroodSpires.releases(true, false, GAP, true));
+        assertFalse(BroodSpires.releases(false, false, GAP, true), "the flier law");
+        assertFalse(BroodSpires.releases(true, true, GAP, true), "a pack of its own still flies");
+        assertFalse(BroodSpires.releases(true, false, GAP - 1, true), "inside the gap");
+        assertFalse(BroodSpires.releases(true, false, GAP, false), "nothing in reach");
+    }
+
+    @Test
+    void growsOnCreepAtItsStandoffFromTheBore() {
+        int[] cell = BroodSpires.choose(ALL, 100, 100, 0f, List.of(), List.of());
+        assertNotNull(cell);
+        double d = Math.hypot(cell[0] + 0.5 - 100.5, cell[1] + 0.5 - 100.5);
+        assertTrue(d >= BroodSpires.STANDOFF_MIN - 1 && d <= BroodSpires.STANDOFF_MAX + 1, "standoff " + d);
+    }
+
+    @Test
+    void keepsClearOfTheBoreAndItsColonies() {
+        float[] colony = {100.5f + BroodSpires.STANDOFF_MIN, 100.5f};
+        int[] cell = BroodSpires.choose(ALL, 100, 100, 0f, List.of(), List.of(colony));
+        assertNotNull(cell);
+        assertTrue(Math.hypot(cell[0] + 0.5 - colony[0], cell[1] + 0.5 - colony[1]) >= BroodSpires.CLEARANCE);
+    }
+
+    @Test
+    void neverGrowsNearAnotherSpire() {
+        assertNull(BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{120.5f, 100.5f}), List.of()));
+        assertNotNull(BroodSpires.choose(ALL, 100, 100, 0f, List.of(new float[]{100.5f - BroodSpires.SPACING
+                - BroodSpires.STANDOFF_MAX, 100.5f}), List.of()));
+    }
+
+    @Test
+    void neverGrowsOffTheCreep() {
+        CreepOutposts.Ground bare = new CreepOutposts.Ground() {
+            @Override public boolean creeped(int x, int y) { return false; }
+            @Override public boolean open(int x, int y) { return true; }
+        };
+        assertNull(BroodSpires.choose(bare, 100, 100, 0f, List.of(), List.of()));
+    }
+
+    @Test
+    void theSameBoreGrowsItsSpireOnTheSameCell() {
+        assertArrayEquals(BroodSpires.choose(ALL, 50, 60, 0.37f, List.of(), List.of()),
+                BroodSpires.choose(ALL, 50, 60, 0.37f, List.of(), List.of()));
+    }
+}

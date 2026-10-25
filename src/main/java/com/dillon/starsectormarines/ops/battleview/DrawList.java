@@ -74,13 +74,11 @@ public final class DrawList {
             buf[c] = cmd;
         }
         counts[li] = c + 1;
-        cmd.setEffects(flash, light, lightAngle, wear);
+        cmd.setEffects(light, lightAngle, wear);
         return cmd;
     }
 
-    /** The hit flash stamped on every command added until it is set again; see {@link #setFlash}. */
-    private float flash;
-    /** The packed light, its direction and the packed wear stamped likewise; see {@link #setLight}, {@link #setWear}. */
+    /** The packed light, its direction and the packed wear stamped on every command added; see {@link #setLight}, {@link #setWear}. */
     private float light, lightAngle, wear;
 
 
@@ -101,21 +99,11 @@ public final class DrawList {
         wear = PagedQuadRun.packWear(charred, embers);
     }
 
-    /** Clears every per-quad effect: flash, light and wear. */
+    /** Clears every per-quad effect: light and wear. */
     public void clearEffects() {
-        flash = 0f;
         light = 0f;
         lightAngle = 0f;
         wear = 0f;
-    }
-
-    /**
-     * Stamps every command added from now on with a hit flash of {@code amount}, the share of white in its colour
-     * (law 27), until set again: a unit's collector sets it before emitting the unit and zero after. Paged runs draw
-     * it; the per-sheet path and the Java2D drain do not.
-     */
-    public void setFlash(float amount) {
-        flash = amount;
     }
 
     public void addSheetQuad(RenderLayer layer, SpriteAPI sheet,
