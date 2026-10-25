@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -914,6 +916,12 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
     }
 
+    /**
+     * The widest ground hull's clearance radius: a crown may close a gap infantry still pass, never one a tank could
+     * drive and no longer can ({@code mapgen-nouns.md}, Authored forests).
+     */
+    static final int TANK_CLEARANCE = VehicleClearance.radiusForWidth(VehicleType.LASER_TANK.visualWidthCells);
+
     private static void trees(GenContext c, boolean[] reserved, float woodland) {
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
         PatchField groves = new PatchField(c.seed ^ 0x47524f5645L, 19);
@@ -935,8 +943,10 @@ public final class OutdoorLandscapeStage implements GenStage {
             for (int y = tree.y(); y < tree.y() + tree.height(); y++)
                 for (int x = tree.x(); x < tree.x() + tree.width(); x++)
                     if (tree.blocks(x, y) && c.grid.isWalkable(x, y) && !closed[y * c.width + x]) closes = true;
-            if (closes && !LandscapeAccess.canClose(c.grid, closed, tree.x(), tree.y(),
-                    tree.x() + tree.width() - 1, tree.y() + tree.height() - 1, tree::blocks)) continue;
+            int right = tree.x() + tree.width() - 1, top = tree.y() + tree.height() - 1;
+            if (closes && (!LandscapeAccess.canClose(c.grid, closed, tree.x(), tree.y(), right, top, tree::blocks)
+                    || !LandscapeAccess.keepsClearance(c.grid, closed, tree.x(), tree.y(), right, top, tree::blocks,
+                            TANK_CLEARANCE))) continue;
             accepted.add(tree);
             for (int y = tree.y(); y < tree.y() + tree.height(); y++)
                 for (int x = tree.x(); x < tree.x() + tree.width(); x++)
