@@ -496,7 +496,8 @@ public final class GroundVehicleTurretSystem {
      * mechs, as a mech's anti-armor rack does, and holds fire at everything else. An indirect-fire launcher also takes
      * a target it cannot see when somebody else on its side is looking at it ({@link SideSpotting}): the round arcs
      * over whatever is between, at the weapon's observed accuracy. A target nobody is looking at is not fired on.
-     * Its own sight is preferred, then the nearest.
+     * Its own sight is preferred, then the nearest; a {@linkplain GroundTurret#missionTargetId fire mission} comes
+     * before both whenever it may be engaged.
      */
     private void tickLauncher(long id, GroundTurret turret, GroundBody body, StructureDef structure,
                               float mountX, float mountY, float dt) {
@@ -506,7 +507,10 @@ public final class GroundVehicleTurretSystem {
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
         turret.relookTimer -= dt;
         long target = turret.targetId;
-        if (target != 0L && launcherSight(side, target, mountX, mountY, mount) == NO_SIGHT) target = 0L;
+        long mission = turret.missionTargetId;
+        if (mission != 0L && !world.isAlive(mission)) mission = turret.missionTargetId = 0L;
+        target = choose(mission, mission == 0L ? NO_SIGHT : launcherSight(side, mission, mountX, mountY, mount),
+                target, target == 0L || target == mission ? NO_SIGHT : launcherSight(side, target, mountX, mountY, mount));
         if (target == 0L && turret.relookTimer <= 0f) {
             turret.relookTimer = LAUNCHER_RELOOK_SECONDS;
             target = pickLauncherTarget(id, side, mountX, mountY, mount);
@@ -544,6 +548,15 @@ public final class GroundVehicleTurretSystem {
             turret.burstTimer = weapon.burstSpacing;
             turret.burstTargetId = target;
         }
+    }
+
+    /**
+     * What a launcher shells this tick: its fire mission while it may engage it, else the target it holds while it
+     * still may, else none (and it looks again).
+     */
+    static long choose(long mission, int missionSight, long held, int heldSight) {
+        if (mission != 0L && missionSight != NO_SIGHT) return mission;
+        return heldSight != NO_SIGHT ? held : 0L;
     }
 
     static final int NO_SIGHT = 0;

@@ -131,8 +131,10 @@ street at least 24 cells long and no wider than a primary trunk, members of shop
 plazas or parks. Its pocket weighs the zoning's civic core 2 and mixed town 1, plus 1 for a lot the
 labeller already made a shop, an office or a square. The larger end leaf is the plaza, the leaf at the
 other end the civic hall; its rewrite narrows each cross street between shops to three cells.
-`MainStreetLayout` stands each shop behind a pavement of one to three rows (`BuildingPlacement.frontOnly`
-onto the street), dresses the kerb with planters and counter stalls every third cell and a parked van per
+`MainStreetLayout` stands each member's shops behind a pavement of one to three rows as a frontage row
+(`town-plan.md`): shopfronts five to seven cells wide sharing party walls, doors and windows on the street and
+on the service yard behind; a member too short for two stays one shop, and the hall is one building with its
+doors on the street alone (`BuildingPlacement.frontOnly`). It dresses the kerb with planters and counter stalls every third cell and a parked van per
 shop frontage, all kept out of doorways and corners, paves the plaza with a bandstand where it is ten
 cells a side, and paves the spine and its cross-street stubs as city street, so the street finish lays
 asphalt where a colony would have left a lane. It publishes `MainStreet` on `MapResult.mainStreets`: the
@@ -147,7 +149,7 @@ among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 
 The kerb's rhythm is lamp, planter, lamp, stall, every third clear cell, each lamp's arm over the
 carriageway, and each shop door with a cell of frontage either side has an awning over the pavement in front
-of it, one colourway to a shop (striped, green canvas or steel, read off its place, no random drawn). The art
+of it, one colourway to a shopfront (striped, green canvas or steel, read off its door's place, no random drawn). The art
 is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`).
 
 **Street dressing kit for the next two programs** (`StreetDressing`, art `industrial-street-kit`): the

@@ -347,9 +347,14 @@ public final class BloomHeartSetup {
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
             shed.stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS);
+            // Indirect fire for a lane whose ring cannot hurt its bore (`heart-allied-tools-next.md`): one section ready,
+            // at most two, restocked at the mech lances' pace.
+            shed.stock(AlliedTool.FIRE_SECTION, lanes.sectionMaker(), 1, FIRE_SECTIONS,
+                    Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             // Fresh hulls and ammunition come up the supply road: while its satellite cuts it, none reaches the park (F6).
             HeartSupplyRoad road = lanes.road();
-            for (AlliedTool upTheRoad : new AlliedTool[]{AlliedTool.ARMOUR_PAIR, AlliedTool.MECH_LANCE, AlliedTool.AMMO_TRUCK}) {
+            for (AlliedTool upTheRoad : new AlliedTool[]{AlliedTool.ARMOUR_PAIR, AlliedTool.MECH_LANCE, AlliedTool.AMMO_TRUCK,
+                    AlliedTool.FIRE_SECTION}) {
                 shed.suppliedWhile(upTheRoad, s -> road.open());
             }
             heartGuns.calledFrom(shed, !lanes.callsByNeed());
@@ -548,6 +553,8 @@ public final class BloomHeartSetup {
      * Allied guns hold fire while a friend is in their line, so armour behind its own militia waits on it
      * ({@code -Dbattle.heart.burnArmourBehind}, {@code -Dbattle.heart.broadArmourBehind}).
      */
+    /** Most fire sections Broad Front's base fields at once (an owner decision, `heart-allied-tools-next.md`). */
+    static final int FIRE_SECTIONS = 2;
     static final int BURN_ARMOUR_BEHIND = Integer.getInteger("battle.heart.burnArmourBehind", -4);
     static final int BROAD_ARMOUR_BEHIND = Integer.getInteger("battle.heart.broadArmourBehind", 4);
     /**

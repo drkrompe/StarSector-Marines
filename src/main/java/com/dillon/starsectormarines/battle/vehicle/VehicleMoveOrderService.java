@@ -111,6 +111,8 @@ public final class VehicleMoveOrderService {
     /** Running tallies for evidence: orders accepted, arrived, and refused or abandoned by reason. */
     private int acceptedCount, arrivedCount;
     private final int[] refusalCounts = new int[Refusal.values().length];
+    /** Orders refused for no route, by the hull that was refused, so the evidence can say whose they were. */
+    private final Map<Long, Integer> noRouteByVehicle = new ConcurrentHashMap<>();
     /**
      * Allied hulls a mission's allied command has enlisted ({@code allied-command.md}). An enlisted
      * {@code ALLY} hull takes orders through this mailbox as the player's own hulls do, and between
@@ -276,6 +278,9 @@ public final class VehicleMoveOrderService {
     /** Orders refused or abandoned for {@code reason}, over the battle so far. */
     public int refusalCount(Refusal reason) { return refusalCounts[reason.ordinal()]; }
 
+    /** Orders refused for no route, by hull, over the battle so far; kept for hulls that have since gone. */
+    public Map<Long, Integer> noRouteByVehicle() { return Collections.unmodifiableMap(noRouteByVehicle); }
+
     /** How many orders wait for the planner. */
     public int pendingCount() { return pending.size(); }
 
@@ -294,6 +299,7 @@ public final class VehicleMoveOrderService {
     /** Gave up or was never viable. The reason survives so the interface can show it. */
     void refuse(long vehicleId, int requestedX, int requestedY, Refusal reason) {
         refusalCounts[reason.ordinal()]++;
+        if (reason == Refusal.NO_ROUTE) noRouteByVehicle.merge(vehicleId, 1, Integer::sum);
         active.remove(vehicleId);
         refused.put(vehicleId, new RefusedOrder(requestedX, requestedY, reason));
     }

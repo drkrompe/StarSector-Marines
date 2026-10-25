@@ -483,4 +483,15 @@ class GroundVehicleTurretSystemTest {
         for (int i = 0; i < 5; i++) GroundVehicleTurretSystem.raise(t, f.weapon, tenth);
         assertEquals(1f, t.elevation, 1e-4f, "it stays up just after a salvo");
     }
+
+    @Test
+    void aFireMissionComesFirstWhileSeenAndTheLauncherPicksItsOwnOnlyWhileNobodySeesIt() {
+        long bore = 7L, runner = 9L;
+        int spotted = GroundVehicleTurretSystem.SPOTTED, own = GroundVehicleTurretSystem.OWN_SIGHT;
+        int none = GroundVehicleTurretSystem.NO_SIGHT;
+        assertEquals(bore, GroundVehicleTurretSystem.choose(bore, spotted, runner, own));
+        assertEquals(runner, GroundVehicleTurretSystem.choose(bore, none, runner, own));
+        assertEquals(0L, GroundVehicleTurretSystem.choose(bore, none, runner, none));
+        assertEquals(runner, GroundVehicleTurretSystem.choose(0L, none, runner, spotted));
+    }
 }
