@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.RavBurst;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
  * Draws a Spitter from its parts, seen from above: the tail's slices chained from the body's centre (coiled round the
  * body standing, trailing behind on the move), the back over them, and the head on top, turned about its
- * neck, closed or spitting as the rig fires. A dead Spitter is drawn burst, as a Brute is ({@link #emitDead}).
+ * neck, closed or spitting as the rig fires, its snout glowing with acid as it braces ({@link #emitGlow}). A dead
+ * Spitter is drawn burst, as a Brute is ({@link #emitDead}).
  */
 final class RavSpitterComposer {
 
@@ -99,6 +101,44 @@ final class RavSpitterComposer {
             headSprite(out, art.headOpen, HEAD_ROW, neck, head, k, HOOD_FROM + (1f - HOOD_FROM) * hood, ppc,
                     spritePx, alpha);
         }
+    }
+
+    /** The snout's acid glow at full brace: its halo's and core's widths, cells per cell of body, and alphas. */
+    private static final float GLOW_HALO = 1.7f, GLOW_CORE = 0.65f, GLOW_HALO_ALPHA = 0.85f, GLOW_CORE_ALPHA = 0.95f;
+    /** The glow's acid green, halo then core. */
+    private static final float[] GLOW_HALO_TINT = {0.55f, 1f, 0.15f}, GLOW_CORE_TINT = {0.85f, 1f, 0.55f};
+    /** How far ahead of the head sprite's centre the snout's tip lies, as a share of the head's length. */
+    private static final float SNOUT_AHEAD = 0.40f;
+
+    /**
+     * The acid at the snout while the Spitter braces to lob (owner, 2026-10-25): a soft green light that swells with
+     * the brace and goes out as it lobs, so the lob is read off the creature itself. Additive, over the head; nothing
+     * when it is not bracing.
+     */
+    static void emitGlow(DrawList out, SpriteAPI glow, RavSpitterAssets art, RavSpitterRig rig, float cx, float cy,
+                         float ppc, float alpha) {
+        float brace = rig.brace();
+        if (glow == null || brace <= 0f) return;
+        float[] tip = snout(art, rig, cx, cy, ppc);
+        out.addAdditiveSprite(RenderLayer.UNITS, glow, tip[0], tip[1], ppc * GLOW_HALO, ppc * GLOW_HALO, 0f,
+                GLOW_HALO_TINT[0], GLOW_HALO_TINT[1], GLOW_HALO_TINT[2], GLOW_HALO_ALPHA * brace * alpha);
+        out.addAdditiveSprite(RenderLayer.UNITS, glow, tip[0], tip[1], ppc * GLOW_CORE, ppc * GLOW_CORE, 0f,
+                GLOW_CORE_TINT[0], GLOW_CORE_TINT[1], GLOW_CORE_TINT[2], GLOW_CORE_ALPHA * brace * alpha);
+    }
+
+    /** The snout's tip on screen: the head turned about its neck as {@link #emit} draws it, then its length ahead. */
+    static float[] snout(RavSpitterAssets art, RavSpitterRig rig, float cx, float cy, float ppc) {
+        float facing = rig.facingDegrees();
+        float chest = facing + rig.bodyAngle();
+        float[] p = new float[2];
+        rotate(rig.shiftX(), rig.shiftY(), facing, p);
+        float ax = cx + p[0] * ppc, ay = cy + p[1] * ppc;
+        float[] neck = new float[2];
+        point(CENTRE, RavSpitterRig.NECK_ROW, chest, ax, ay, ppc, neck);
+        float k = rig.headScale();
+        float ahead = ((RavSpitterRig.NECK_ROW - HEAD_ROW) / U + art.headOpen.pxHeight * SCALE / U * SNOUT_AHEAD) * k;
+        rotate(0f, ahead, chest + rig.headYaw(), p);
+        return new float[]{neck[0] + p[0] * ppc, neck[1] + p[1] * ppc};
     }
 
     private static void headSprite(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache s, float centreRow,

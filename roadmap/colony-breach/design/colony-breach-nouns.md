@@ -1048,7 +1048,9 @@ not read in a soft shadow at play zoom.
   through the aimed-damage path; a craft at cruise altitude is out of reach.
   It stops advancing as soon as something is in range, so the Runners it came
   with close past it and it ends up behind them. No damage over time: the
-  damage model has none for ground bodies.
+  damage model has none for ground bodies. Its snout glows faint acid green
+  through the brace before each lob, so a player reads the lob coming off the
+  creature itself (owner, 2026-10-25).
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
   The mother owes it the first time it releases at maw tier, and that body is
