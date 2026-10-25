@@ -1739,6 +1739,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                 event.consume();
             }
         }
+        // The chrome is see-through, so a press on it may still be a box select: the picker holds it
+        // until it is a drag or a click, and a box under way keeps its release over any chrome.
+        if (!directControlInput.active() && worldPicker != null) {
+            events = worldPicker.handleInputBeforeChrome(events, this::chromeMayStartBox);
+        }
         boolean controlledAtInputStart = directControlInput.active();
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
@@ -2121,6 +2126,15 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {
         return retainedChromeBlocksWorldPointer(screenX, screenY)
                 || !directControlInput.active() && hud != null && hud.blocksWorldPointer(screenX, screenY);
+    }
+
+    /** Retained chrome a box select may start on, unless an armed targeter or a confirmation wants the click. */
+    private boolean chromeMayStartBox(float screenX, float screenY) {
+        if (commandPowerTargeting != null && commandPowerTargeting.isVisible()
+                || squadOrderTargeting != null && squadOrderTargeting.isVisible()
+                || shipOrderTargeting != null && shipOrderTargeting.active()
+                || retainedRetreatOverlay != null && retainedRetreatOverlay.confirmingRetreat()) return false;
+        return retainedChromeBlocksWorldPointer(screenX, screenY);
     }
 
     private boolean retainedChromeBlocksWorldPointer(float screenX, float screenY) {

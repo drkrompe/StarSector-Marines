@@ -15,9 +15,11 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -45,6 +47,12 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * nearest the box center becomes the primary, with entity id breaking ties.
  * Shift extends the current player selection.
  *
+ * <p>The battle chrome is see-through, so a box can start on it too.
+ * {@link #handleInputBeforeChrome} runs ahead of every panel: it holds a press
+ * that lands on chrome until the pointer says what it was, a drag (a box
+ * select) or a click (handed back to the chrome), and keeps a gesture under way
+ * whatever chrome the pointer crosses or is released over.
+ *
  * <p>The world is the battle's squad browser. It writes the shared
  * {@link Selection}, and the selected-squad detail and GOAP diagnostic react
  * to that one view-only state while the default HUD remains a force-level
@@ -52,8 +60,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * garrison behavior.
  *
  * <p>Registered before the visible panels in {@code BattleHud}; reverse input
- * order lets those panels claim their controls first, so this picker receives
- * only leftover clicks in the world.
+ * order lets those panels claim their controls first, so a press on the world
+ * reaches this picker only when no panel or armed targeter wanted it.
  */
 public final class WorldPicker implements HudPanel {
 
@@ -78,6 +86,8 @@ public final class WorldPicker implements HudPanel {
     private float dragStartY;
     private float dragCurrentX;
     private float dragCurrentY;
+    /** A press on chrome not yet known to be a click or a drag, or null. */
+    private HeldPress heldPress;
 
     public WorldPicker(BattleUiContext ctx) {
         this.ctx = ctx;
@@ -89,6 +99,7 @@ public final class WorldPicker implements HudPanel {
     /** Entering another world input mode abandons any unfinished selection gesture. */
     public void cancel() {
         primaryGestureActive = false;
+        heldPress = null;
         ctx.getSelection().hoverSquad(Selection.NONE);
     }
 
@@ -140,35 +151,91 @@ public final class WorldPicker implements HudPanel {
         }
 
         for (InputEventAPI e : events) {
-            if (e.isConsumed()) {
-                // A consumed event's data is inaccessible (getX throws); if it ended our
-                // gesture, abandon it rather than leave the drag stuck.
-                if (primaryGestureActive && e.isLMBUpEvent()) primaryGestureActive = false;
-                continue;
-            }
-            if (primaryGestureActive && e.isLMBUpEvent()) {
-                updateDragPointer(camera, e.getX(), e.getY());
-                completePrimaryGesture(sim, camera);
-                primaryGestureActive = false;
-                e.consume();
-                continue;
-            }
-            if (primaryGestureActive && e.isMouseMoveEvent()) {
-                updateDragPointer(camera, e.getX(), e.getY());
-                e.consume();
-                continue;
-            }
+            if (continueGesture(e, sim, camera)) continue;
             if (!e.isLMBDownEvent()) continue;
             if (!camera.containsScreen(e.getX(), e.getY())) continue;
 
-            primaryGestureActive = true;
-            additiveGesture = e.isShiftDown();
-            dragStartX = e.getX();
-            dragStartY = e.getY();
-            dragCurrentX = dragStartX;
-            dragCurrentY = dragStartY;
+            beginGesture(e.getX(), e.getY(), e.isShiftDown());
             e.consume();
         }
+    }
+
+    /**
+     * Runs before any battle chrome sees the events. A gesture under way keeps
+     * its moves and release wherever the pointer is. A primary press where
+     * {@code chrome} answers true is consumed and held: moving past the drag
+     * threshold starts a box from it, and releasing short of it hands the chrome
+     * a copy of the press just ahead of the release, so the click lands as if
+     * nothing had stood in between.
+     *
+     * @return {@code events}, or a copy with a held press put back in
+     */
+    public List<InputEventAPI> handleInputBeforeChrome(List<InputEventAPI> events,
+                                                       BiPredicate<Float, Float> chrome) {
+        if (events == null) return null;
+        BattleSimulation sim = ctx.getSim();
+        BattleCamera camera = ctx.getCamera();
+        if (sim == null || camera == null || sim.directControl().active()) {
+            cancel();
+            return events;
+        }
+        List<InputEventAPI> replayed = null;
+        for (int i = 0; i < events.size(); i++) {
+            InputEventAPI e = events.get(i);
+            if (heldPress != null && !e.isConsumed()
+                    && (e.isMouseMoveEvent() || e.isLMBUpEvent())) {
+                if (pastDragThreshold(heldPress.getX(), heldPress.getY(), e.getX(), e.getY())) {
+                    beginGesture(heldPress.getX(), heldPress.getY(), heldPress.isShiftDown());
+                    heldPress = null;
+                } else if (e.isLMBUpEvent()) {
+                    if (replayed == null) replayed = new ArrayList<>(events.subList(0, i));
+                    replayed.add(heldPress);
+                    heldPress = null;
+                }
+            } else if (heldPress != null && e.isConsumed() && e.isLMBUpEvent()) {
+                heldPress = null;
+            } else if (heldPress == null && !primaryGestureActive && !e.isConsumed()
+                    && e.isLMBDownEvent() && camera.containsScreen(e.getX(), e.getY())
+                    && chrome.test((float) e.getX(), (float) e.getY())) {
+                heldPress = HeldPress.of(e);
+                e.consume();
+            }
+            continueGesture(e, sim, camera);
+            if (replayed != null) replayed.add(e);
+        }
+        return replayed != null ? replayed : events;
+    }
+
+    /** Moves or ends the gesture under way; true when {@code e} belonged to it or is spent. */
+    private boolean continueGesture(InputEventAPI e, BattleSimulation sim, BattleCamera camera) {
+        if (e.isConsumed()) {
+            // A consumed event's data is inaccessible (getX throws); if it ended our
+            // gesture, abandon it rather than leave the drag stuck.
+            if (primaryGestureActive && e.isLMBUpEvent()) primaryGestureActive = false;
+            return true;
+        }
+        if (primaryGestureActive && e.isLMBUpEvent()) {
+            updateDragPointer(camera, e.getX(), e.getY());
+            completePrimaryGesture(sim, camera);
+            primaryGestureActive = false;
+            e.consume();
+            return true;
+        }
+        if (primaryGestureActive && e.isMouseMoveEvent()) {
+            updateDragPointer(camera, e.getX(), e.getY());
+            e.consume();
+            return true;
+        }
+        return false;
+    }
+
+    private void beginGesture(float x, float y, boolean additive) {
+        primaryGestureActive = true;
+        additiveGesture = additive;
+        dragStartX = x;
+        dragStartY = y;
+        dragCurrentX = x;
+        dragCurrentY = y;
     }
 
     private void completePrimaryGesture(BattleSimulation sim, BattleCamera camera) {
@@ -230,9 +297,13 @@ public final class WorldPicker implements HudPanel {
     }
 
     private boolean isDragGesture() {
-        if (!primaryGestureActive) return false;
-        float dx = dragCurrentX - dragStartX;
-        float dy = dragCurrentY - dragStartY;
+        return primaryGestureActive
+                && pastDragThreshold(dragStartX, dragStartY, dragCurrentX, dragCurrentY);
+    }
+
+    private static boolean pastDragThreshold(float startX, float startY, float x, float y) {
+        float dx = x - startX;
+        float dy = y - startY;
         return dx * dx + dy * dy > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
     }
 
