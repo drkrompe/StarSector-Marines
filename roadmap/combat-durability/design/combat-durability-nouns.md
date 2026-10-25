@@ -178,7 +178,8 @@ that fixture. Original ground and permanent terrain remain.
 Trees use the same weapon-authored structural damage channel, with one pool
 per tree across all its canopy cells. A blast spends damage once per tree,
 including where crowns overlap. Surviving damage exposes broken limbs but
-retains the full obstruction. Felling leaves low broken trunks and branches;
+retains the full obstruction. Felling leaves a low broken stump and the short butts of its limbs,
+flat enough to read as ground a vehicle drives over;
 only cells free of surviving crowns and underlying hills reopen. Original
 ground and permanent terrain remain, and neither actor durability nor
 building collapse owns these changes.
