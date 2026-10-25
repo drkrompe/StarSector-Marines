@@ -3696,6 +3696,23 @@
       "voiceId": "YHcCpa6SBWnKDaCPZJQR"
     },
     {
+      "id": "marines_castle_jangala_debrief_next",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "debrief.jangala.next",
+      "textKey": "debriefJangalaNext",
+      "text": "That closes our account on Jangala. Our schedules ended up with a broker on Asharu who trades in sailing times. Wayline runs freight there anyway. When the company's in order, we go in with the next drop.",
+      "durationSeconds": 11.68,
+      "priority": 10,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": true,
+      "terminal": false,
+      "synthesisText": "[measured, decided] That closes our account on Jangala. Our schedules ended up with a broker on Asharu who trades in sailing times. Wayline runs freight there anyway. When the company's in order, we go in with the next drop.",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
       "id": "wayline_junction_gunship_inbound",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_inbound",

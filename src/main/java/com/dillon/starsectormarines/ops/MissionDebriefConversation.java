@@ -296,14 +296,11 @@ final class MissionDebriefConversation {
 
     /**
      * Ends Wayline's brush with bankruptcy: the star-port road is back and its owed contracts ship,
-     * though nobody yet knows why it happened. The recorded turns come from the catalog; Castle's closing
-     * line stays written until the Asharu lead it hands the company to is settled.
+     * though nobody yet knows who leaked Wayline's schedules. Castle hands the company on to Asharu,
+     * where those schedules ended up.
      */
     static List<WaylineNarration.Line> jangalaLines(WaylineNarration catalog) {
-        var lines = new ArrayList<>(authored(catalog, JANGALA_MISSION, "debrief.jangala.", "road", "manifests", "why"));
-        lines.add(writtenLine("jangala-closing-next", JANGALA_MISSION, "debrief.jangala.next", CASTLE,
-                Strings.get("debriefJangalaNext")));
-        return List.copyOf(lines);
+        return authored(catalog, JANGALA_MISSION, "debrief.jangala.", "road", "manifests", "why", "next");
     }
     private static final String JANGALA_MISSION = "story_supply_route_thunder_run";
 

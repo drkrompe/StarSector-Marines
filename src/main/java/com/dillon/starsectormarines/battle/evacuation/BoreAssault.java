@@ -139,6 +139,20 @@ final class BoreAssault {
      * militia was overrun within a minute of each surge; its spotters stand on the support line, not beside it.
      */
     static int sectionRing(float reach) {
+        return sectionRing(reach, 0.0, 0f);
+    }
+
+    /**
+     * {@link #sectionRing(float)}, and never nearer the bore than {@code behind} cells further out than the lane's
+     * militia stand ({@code militiaFromBore}): a section coming up to a new bore trails its lane's infantry there rather
+     * than driving ahead of it onto ground nobody has cleared.
+     */
+    static int sectionRing(float reach, double militiaFromBore, float behind) {
+        int trail = (int) Math.round(militiaFromBore + behind);
+        return Math.max(trail, sectionRingAtReach(reach));
+    }
+
+    private static int sectionRingAtReach(float reach) {
         return Math.max(MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SECTION_BACK_CELLS,
                 Math.round(reach) - RING_MARGIN_CELLS);
     }

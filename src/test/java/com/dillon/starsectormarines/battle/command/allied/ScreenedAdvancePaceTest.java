@@ -23,6 +23,20 @@ class ScreenedAdvancePaceTest {
     }
 
     @Test
+    void theSupportTrailsTheMainAlongTheRouteAndBackFromAThreat() {
+        AdvanceRoute route = AdvanceRoute.straight(0, 0, 0, 100);
+        float[] advancing = ScreenedAdvance.supportPoint(route, 50f, null, 12f);
+        float[] main = route.pointAt(50f);
+        assertTrue(Math.abs(route.along(advancing[0], advancing[1]) - (route.along(main[0], main[1]) - 12f)) < 1e-3f,
+                "twelve cells behind the main along the route");
+        float[] atStart = ScreenedAdvance.supportPoint(route, 5f, null, 12f);
+        assertTrue(route.along(atStart[0], atStart[1]) >= -1e-3f, "never behind the route's start");
+        float[] engaged = ScreenedAdvance.supportPoint(route, 50f, new float[]{1f, 0f}, 12f);
+        assertTrue(Math.abs(engaged[0] - (main[0] - 12f)) < 1e-3f && Math.abs(engaged[1] - main[1]) < 1e-3f,
+                "straight back from the main, away from a threat on its flank");
+    }
+
+    @Test
     void aMemberOnItsSlotKeepsUpStandingStill() {
         ScreenedAdvance.Pace mech = new ScreenedAdvance.Pace(true, 0);
         for (int tick = 0; tick <= 3 * LATER; tick += 15) mech.observe(tick, 203f, 143f, true);
