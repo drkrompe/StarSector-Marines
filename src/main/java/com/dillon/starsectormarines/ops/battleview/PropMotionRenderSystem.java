@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.ambient.FixtureUse;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -13,6 +15,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -28,12 +31,25 @@ import java.util.WeakHashMap;
  * damaged prop is its own {@code -damaged} doodad, and runs only at its motion's damaged rate; a destroyed one does
  * not run), and for a worked machine somebody actually at work on it ({@link FixtureUse}). Presentation only: nothing
  * here touches a footprint, cover or line of sight.
+ *
+ * <p>A fixed overhead part (a shop awning, a pipe rack) fades to {@link #SEEN_UNDER_ALPHA} while a figure the player
+ * can see stands under its prop, so nobody can hide under one from the player's view; it eases back once the ground
+ * under it is clear. Moving parts (a crane's bridge) keep their full alpha.
  */
 final class PropMotionRenderSystem implements RenderSystem {
+
+    /** How much of a fixed overhead part still draws while a seen figure stands under it. */
+    static final float SEEN_UNDER_ALPHA = 0.4f;
+    /** Seconds a fade takes, in either direction. */
+    static final float FADE_SECONDS = 0.25f;
 
     private final BattleSprites sprites;
     private final PropMotion.Layer layer;
     private final Phases phases;
+    /** Each overhead prop's current fade; weakly keyed, as {@link Phases} is. */
+    private final Map<Doodad, float[]> fades = new WeakHashMap<>();
+    /** Cells where a figure the player can see stands this frame, row-major. */
+    private boolean[] seenFigures = new boolean[0];
 
     PropMotionRenderSystem(BattleSprites sprites, PropMotion.Layer layer, Phases phases) {
         this.sprites = sprites;
@@ -57,6 +73,8 @@ final class PropMotionRenderSystem implements RenderSystem {
         float now = phases.clock(ctx);
         FogOfWarService fog = layer == PropMotion.Layer.OVERHEAD ? sim.getFogOfWar() : null;
         boolean fogged = fog != null && fog.isInitialized();
+        int width = sim.getGrid().getWidth();
+        if (layer == PropMotion.Layer.OVERHEAD) markSeenFigures(sim, fog, width, sim.getGrid().getHeight());
         for (Doodad d : sim.getDoodads()) {
             PropMotion motion = registry.motion(d.definitionId());
             boolean damaged = false;
@@ -71,13 +89,60 @@ final class PropMotionRenderSystem implements RenderSystem {
             float centreY = d.cellY + d.footprintCellsY * 0.5f;
             if (fogged && !fog.isCellRevealed((int) centreX, (int) centreY)) continue;
             float phase = phases.advance(ctx, d, motion, damaged, now, centreX, centreY);
+            float fade = layer == PropMotion.Layer.OVERHEAD
+                    ? fade(d, seenUnder(seenFigures, width, d), ctx.realDt) : 1f;
             for (PropMotion.Part part : motion.parts()) {
                 if (part.layer() != layer) continue;
                 DoodadDef def = registry.doodad(part.doodadId());
                 SpriteAPI sheet = def == null ? null : sprites.extraTerrainSheet(def.sheetPath);
-                if (sheet != null) emitPart(out, cam, sheet, def, d, part, phase, ctx.alphaMult);
+                float alpha = part.kind() == PropMotion.Kind.FIXED ? ctx.alphaMult * fade : ctx.alphaMult;
+                if (sheet != null) emitPart(out, cam, sheet, def, d, part, phase, alpha);
             }
         }
+    }
+
+    /** Marks every cell a live figure stands on where the player can see it. */
+    private void markSeenFigures(BattleSimulation sim, FogOfWarService fog, int width, int height) {
+        if (seenFigures.length != width * height) seenFigures = new boolean[width * height];
+        else Arrays.fill(seenFigures, false);
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long u = roster.get(i);
+            int x = world.cellX(u), y = world.cellY(u);
+            if (x < 0 || y < 0 || x >= width || y >= height) continue;
+            if (fog == null || fog.isCellRevealed(x, y)) seenFigures[y * width + x] = true;
+        }
+    }
+
+    /** Whether a seen figure stands anywhere on the prop's footprint. */
+    static boolean seenUnder(boolean[] seen, int width, Doodad d) {
+        if (width <= 0) return false;
+        int height = seen.length / width;
+        for (int y = Math.max(0, d.cellY); y < Math.min(height, d.cellY + d.footprintCellsY); y++) {
+            for (int x = Math.max(0, d.cellX); x < Math.min(width, d.cellX + d.footprintCellsX); x++) {
+                if (seen[y * width + x]) return true;
+            }
+        }
+        return false;
+    }
+
+    /** The prop's fade this frame, eased toward its target; a prop seen for the first time starts there. */
+    private float fade(Doodad d, boolean under, float dt) {
+        float target = under ? SEEN_UNDER_ALPHA : 1f;
+        float[] state = fades.get(d);
+        if (state == null) {
+            fades.put(d, new float[]{target});
+            return target;
+        }
+        state[0] = ease(state[0], target, dt);
+        return state[0];
+    }
+
+    /** One step of a fade from {@code from} toward {@code to}, covering the full range in {@link #FADE_SECONDS}. */
+    static float ease(float from, float to, float dt) {
+        float step = (1f - SEEN_UNDER_ALPHA) * Math.max(0f, dt) / FADE_SECONDS;
+        return from < to ? Math.min(to, from + step) : Math.max(to, from - step);
     }
 
     private void emitPart(DrawList out, BattleCamera cam, SpriteAPI sheet, DoodadDef def, Doodad base,

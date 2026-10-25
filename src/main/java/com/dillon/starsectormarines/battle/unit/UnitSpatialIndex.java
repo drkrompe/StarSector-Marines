@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.fort.FortRestraint;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -254,6 +255,10 @@ public final class UnitSpatialIndex {
     private UnitRosterService roster;
     /** Fort cores no squad shoots at in passing; see {@link FortRestraint}. Empty unless a fort is built. */
     private FortRestraint restraint = new FortRestraint();
+    /** Bodies a mission's quiet phase leaves out of hostile scans; see {@link ScanCover}. */
+    private ScanCover cover = ScanCover.NONE;
+    /** Ids {@link #cover} covered at the last rebuild or add. Empty while the cover is {@link ScanCover#NONE}. */
+    private final LongOpenHashSet covered = new LongOpenHashSet();
 
     public UnitSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + BUCKET - 1) / BUCKET);
@@ -292,6 +297,7 @@ public final class UnitSpatialIndex {
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         ensureScratchCapacity(liveCount);
+        covered.clear();
         Arrays.fill(scratchIds, 0, liveCount, 0L);
 
         EntityWorld world = roster.entityWorld();
@@ -319,7 +325,8 @@ public final class UnitSpatialIndex {
                 scratchFactionOrdinals[denseIndex] =
                         (byte) ((Faction) factions[row]).ordinal();
                 scratchCombatants[denseIndex] =
-                        (byte) (((UnitType) types[row]).combatant && !restraint.restrains(id) ? 1 : 0);
+                        (byte) (((UnitType) types[row]).combatant && !restraint.restrains(id)
+                                && !covers(id, (Faction) factions[row], posX[row], posY[row]) ? 1 : 0);
             }
         }
 
@@ -420,9 +427,9 @@ public final class UnitSpatialIndex {
         float y = world.y(id);
         Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
         if (bucket != null) {
-            bucket.add(id, x, y,
-                    (byte) roster.identity().faction(id).ordinal(),
-                    roster.identity().type(id).combatant && !restraint.restrains(id));
+            Faction faction = roster.identity().faction(id);
+            bucket.add(id, x, y, (byte) faction.ordinal(),
+                    roster.identity().type(id).combatant && !restraint.restrains(id) && !covers(id, faction, x, y));
         }
     }
 
@@ -445,6 +452,26 @@ public final class UnitSpatialIndex {
     /** Replaces the restraint, once, as the battle is assembled. */
     public void restraint(FortRestraint restraint) {
         this.restraint = restraint;
+    }
+
+    /** Replaces the quiet-phase cover; it takes effect at the next rebuild. {@code null} means {@link ScanCover#NONE}. */
+    public void cover(ScanCover cover) {
+        this.cover = cover != null ? cover : ScanCover.NONE;
+    }
+
+    /**
+     * Whether a hostile-combatant search must pass over {@code id}: a restrained fort core, or a body the quiet-phase
+     * cover hid at the last rebuild. Callers that find targets by a whole-neighbourhood gather ask this rather than
+     * the restraint alone.
+     */
+    public boolean withheld(long id) {
+        return restraint.restrains(id) || !covered.isEmpty() && covered.contains(id);
+    }
+
+    private boolean covers(long id, Faction faction, float x, float y) {
+        if (cover == ScanCover.NONE || !cover.covers(faction, x, y)) return false;
+        covered.add(id);
+        return true;
     }
 
     /**
