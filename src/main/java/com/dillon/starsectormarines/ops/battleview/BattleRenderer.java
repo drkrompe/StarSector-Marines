@@ -389,6 +389,7 @@ public class BattleRenderer {
                 // Overhead machinery such as a bay's travelling crane passes over whoever stands beneath it.
                 new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases),
                 new DroneRenderSystem(sprites),
+                new SpirePerchRenderSystem(sprites),
                 new HarrierRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),
