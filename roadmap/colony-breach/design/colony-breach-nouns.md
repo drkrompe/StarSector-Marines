@@ -2053,6 +2053,26 @@ before it ships. The `swarm-sound` and `spire-sound` look suites, run with
 (`BattleSoundLog`) and mix it into their MP4s, so a review hears the levels
 against the fire.
 
+**Marines bark in the fight** (owner, 2026-10-25). When the Rav reach them the
+marines are heard in the mix (`MarineBarks`): background shouts, cries and grunts,
+never hero lines, so nothing is shown, subtitled or waited on. They are read off
+what the battle already reports, as the swarm's sounds are: a squad that was clear
+calls contact as a pack closes, a marine starting a reload with Rav near calls it,
+a marine a Runner seizes or impales cries out, one thrown yells as it lands, the
+marine nearest a Brute's charge tell or the Matriarch's run tell warns the rest,
+a Rav dying near the line draws relief (more for a Brute or the Matriarch), a
+marine dying with Rav near draws a squadmate's curse, and a marine hurt with a Rav
+at arm's length grunts with a scuffle of boots and gear. Each marine keeps one of
+six voices for the battle, the operation radio's cast heard dry rather than over
+comms, a little pitched apart; the lines of a kind take turns so one is never heard
+twice running. A squad has one voice at a time, a marine and a squad keep their
+gaps, the most urgent bark goes first, and the battle has at most three sounding
+at once, so a big fight is a few overlapping shouts rather than a wall. They are
+heard only on seen ground. Takes are generated from a tracked catalog
+(`tools/generate_marine_barks.py`) and every take is levelled by its measured
+loudness to its kind's level, a little under the gunfire: calls near -26 LUFS a
+voice, cries and warnings -25, kills and reloads -28, grunts -29, the scuffle -31.
+
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling
 strain played at another pitch and speed before it is a new file, and a new
