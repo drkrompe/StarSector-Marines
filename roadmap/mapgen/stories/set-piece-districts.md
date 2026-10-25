@@ -160,7 +160,8 @@ among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 
 The standalone market lot still plans its own square, keeping clear of a main street's, so a map may carry
 both: a market square stands on 21 of 24 city maps and 20 of 24 colonies
-(`MarketSquarePlacementEvidence`; 19 and 20 with the standalone lot alone).
+(`MarketSquarePlacementEvidence`; 19 and 20 with the standalone lot alone). The square at the plaza end moved one pooled
+map: cordon-line ROCK seed 5 lost its carrier way from the base to the line and was swapped for seed 18.
 
 Open on main street: street lamps and awnings have no art (planters, benches, stalls and parked vans
 stand in); the market square misses most plaza ends whose members are under nine cells deep, the depth its
