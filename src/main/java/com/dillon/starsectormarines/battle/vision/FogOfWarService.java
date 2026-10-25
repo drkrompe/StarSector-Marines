@@ -135,6 +135,13 @@ public final class FogOfWarService {
      */
     private final TemporarySources carried = new TemporarySources();
 
+    /**
+     * Sources a mission keeps open while one of its standing conditions holds: the Dust Ledger's rooftop spotters
+     * over the compound yard. A third channel for the same reason {@link #carried} is a second one: its owner
+     * replaces it on its own cadence, and nobody else's clear may wipe it.
+     */
+    private final TemporarySources standing = new TemporarySources();
+
     public Buildings getBuildings() { return buildings; }
     public PlayerVisionState getVisionState() { return visionState; }
 
@@ -457,6 +464,16 @@ public final class FogOfWarService {
         add(carried, cellX, cellY, range, wallReadRadius);
     }
 
+    /** Clears the mission-held source list; its owner re-pushes the set it still holds. */
+    public void clearStandingSources() {
+        standing.clear();
+    }
+
+    /** Registers a mission-held observer at a cell, as {@link #addCarriedSweepSource} does for a sweep. */
+    public void addStandingSource(int cellX, int cellY, int range, float wallReadRadius) {
+        add(standing, cellX, cellY, range, wallReadRadius);
+    }
+
     private void add(TemporarySources sources, int cellX, int cellY,
                      int range, float airLosRadius) {
         if (!initialized) return;
@@ -478,6 +495,7 @@ public final class FogOfWarService {
         int total = castInto(projected, 0, false);
         // A sweep is carried by somebody on the ground: it reads walls, not cliffs, beyond its radius.
         total = castInto(carried, total, true);
+        total = castInto(standing, total, true);
         total = revealExposed(total);
         ephemeralPrevCount = total;
 
@@ -704,6 +722,7 @@ public final class FogOfWarService {
         }
         addClearAirFootprints(projected);
         addClearAirFootprints(carried);
+        addClearAirFootprints(standing);
         adoptClearAir();
     }
 

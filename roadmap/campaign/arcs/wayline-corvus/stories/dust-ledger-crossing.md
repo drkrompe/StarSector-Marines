@@ -1,6 +1,7 @@
 # The Dust Ledger — Saltwell Cross
 
-Status: PLANNED — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25).
+Status: IN PROGRESS — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25); piece B
+(mission behaviour) is built, A, C and D are under way.
 Written: 2026-10-25
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus)
@@ -173,12 +174,12 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 - [ ] Authored map renders from the look preset; no capture point exists except
   the mission's own objectives.
 - [ ] Every site is reachable from the apron; all three approaches stay open.
-- [ ] Quiet phase holds until a listed trigger; each trigger raises the alarm in
+- [x] Quiet phase holds until a listed trigger; each trigger raises the alarm in
   a unit test.
 - [ ] Ledger burn stops at seizure and reports its grade; a burned ledger still
   completes the chapter.
-- [ ] Broker surrender, escort, escape and clock departure each resolve.
-- [ ] Each side objective pays off only if complete before the alarm.
+- [x] Broker surrender, escort, escape and clock departure each resolve.
+- [x] Each side objective pays off only if complete before the alarm.
 - [ ] Every victory debrief names Prell's authority and the Warion lead.
 - [ ] Headless playback with two squads wins with acceptable losses, with and
   without side objectives.

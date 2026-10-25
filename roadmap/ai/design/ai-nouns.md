@@ -2688,7 +2688,9 @@ No hostile identity or unseen structure is disclosed, and the extension is inert
 (`forts.md`). A company sees a fort by its works (wall, gates, bastions), which stand out from outside, and not only the platform inside them. A sighting of a fort is remembered by the side that made it. A squad the ambient work service holds (a works crew at its bench, or stood down and due back) is not on strength: the dispatcher does not run it, so a commander offers it no structure work. A commander knows whether its own squads can
 wreck a building (their issued kit), never an enemy's; the wreck order is the ordinary attack move carrying a permission to
 fire on the aspect at its destination, with no hostile identity, and squads otherwise leave a fort's aspect cores alone
-(`forts.md`, *Built: fort restraint*).
+(`forts.md`, *Built: fort restraint*). A mission's quiet phase may likewise **cover** bodies from hostile scans
+(`ScanCover`): covered bodies are still seen and hit, only never offered to a search for something to shoot. The Dust
+Ledger covers Sable Wake, and the company outside the exclusion ring, until its alarm (`dust-ledger-crossing.md`).
 
 Target-faction doctrine is likewise a bounded mission-command extension, not a
 new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`
