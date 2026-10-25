@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.smoke;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+
 /**
  * Turns how much smoke a round crosses into what that smoke costs the shot.
  *
@@ -31,6 +33,13 @@ public final class SmokeObscuration {
     /** Floor on the compounded multiplier, so smoke degrades a shot without ever forbidding it. */
     public static final float MIN_ACCURACY_MULT = 0.05f;
 
+    /**
+     * Accuracy retained per hazed cell crossed: a Bombard's spore haze ({@code bombard.md}), the see-through
+     * obscurant. Milder than smoke because it never blocks sight: a squad in it still sees and picks its targets
+     * and only shoots worse. A starting value, to be felt out in play.
+     */
+    public static final float HAZE_ACCURACY_MULT_PER_CELL = 0.85f;
+
     private SmokeObscuration() {}
 
     /**
@@ -42,12 +51,28 @@ public final class SmokeObscuration {
      *                   treated as none
      */
     public static float accuracyMultiplier(int smokeCells) {
-        if (smokeCells <= 0) return 1f;
+        return accuracyMultiplier(smokeCells, 0);
+    }
+
+    /**
+     * Accuracy multiplier for a round crossing {@code smokeCells} smoke-filled and {@code hazeCells} hazed cells:
+     * each kind compounds its own price per cell, under the one floor.
+     */
+    public static float accuracyMultiplier(int smokeCells, int hazeCells) {
         float mult = 1f;
         for (int i = 0; i < smokeCells; i++) {
             mult *= ACCURACY_MULT_PER_CELL;
             if (mult <= MIN_ACCURACY_MULT) return MIN_ACCURACY_MULT;
         }
+        for (int i = 0; i < hazeCells; i++) {
+            mult *= HAZE_ACCURACY_MULT_PER_CELL;
+            if (mult <= MIN_ACCURACY_MULT) return MIN_ACCURACY_MULT;
+        }
         return mult;
+    }
+
+    /** What the obscurants on the exact segment from {@code (x0,y0)} to {@code (x1,y1)} cost a round. */
+    public static float onLine(NavigationGrid grid, float x0, float y0, float x1, float y1) {
+        return accuracyMultiplier(grid.smokeDepthOnLine(x0, y0, x1, y1), grid.hazeDepthOnLine(x0, y0, x1, y1));
     }
 }

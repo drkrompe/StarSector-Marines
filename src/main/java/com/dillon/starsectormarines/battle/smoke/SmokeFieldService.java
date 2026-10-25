@@ -18,6 +18,11 @@ import java.util.List;
  * The standing cloud reports both what it is now ({@link SmokeFieldView#radius()}) and what it was thrown as
  * ({@link SmokeFieldView#fullRadius()}, held for {@link SmokeFieldView#coverSeconds()} more seconds), so a plan counts on the
  * whole screen only for the stretch it is whole.
+ *
+ * <p>It also stands <b>haze</b> ({@link #deployHaze}): a Bombard's see-through spore haze ({@code bombard.md}), which
+ * thins the same way but holds the grid's haze layer instead of its opacity, so it costs a round accuracy and never
+ * blocks sight. Hazes are published apart ({@link #activeHazes}); {@link #activeFields} and {@link #hasSmokeNear} are
+ * smoke only, since a haze conceals nothing.
  */
 public final class SmokeFieldService {
 
@@ -29,6 +34,7 @@ public final class SmokeFieldService {
     private final ArrayList<SmokeField> fields = new ArrayList<>();
     private volatile List<SmokeThrowView> throwSnapshot = List.of();
     private volatile List<SmokeFieldView> fieldSnapshot = List.of();
+    private volatile List<SmokeFieldView> hazeSnapshot = List.of();
     private long nextId = 1L;
 
     public SmokeFieldService(NavigationGrid grid) {
@@ -66,6 +72,22 @@ public final class SmokeFieldService {
 
     public List<SmokeThrowView> throwsInFlight() { return throwSnapshot; }
     public List<SmokeFieldView> activeFields() { return fieldSnapshot; }
+    /** Standing hazes, published apart from smoke. */
+    public List<SmokeFieldView> activeHazes() { return hazeSnapshot; }
+
+    /**
+     * Stands a see-through haze at {@code (x, y)} at once: no flight, since whatever carried it there is the
+     * carrier's own projectile. It thins as a smoke cloud does and holds the grid's haze layer, not its opacity.
+     *
+     * @return the haze's id
+     */
+    public synchronized long deployHaze(Faction faction, float x, float y, float radius, float duration,
+                                        float thinSeconds) {
+        long id = nextId++;
+        stand(id, faction, x, y, radius, duration, thinSeconds, true);
+        publishSnapshots();
+        return id;
+    }
 
     public boolean hasSmokeNear(float x, float y, float radius) {
         for (SmokeFieldView field : fieldSnapshot) {
@@ -85,24 +107,29 @@ public final class SmokeFieldService {
     }
 
     private void deploy(SmokeThrow grenade) {
-        int minX = Math.max(0, (int) Math.floor(grenade.toX - grenade.cloudRadius));
-        int maxX = Math.min(grid.getWidth() - 1,
-                (int) Math.floor(grenade.toX + grenade.cloudRadius));
-        int minY = Math.max(0, (int) Math.floor(grenade.toY - grenade.cloudRadius));
-        int maxY = Math.min(grid.getHeight() - 1,
-                (int) Math.floor(grenade.toY + grenade.cloudRadius));
-        float radiusSq = grenade.cloudRadius * grenade.cloudRadius;
+        stand(grenade.id, grenade.faction, grenade.toX, grenade.toY, grenade.cloudRadius, grenade.cloudDuration,
+                grenade.thinSeconds, false);
+    }
+
+    private void stand(long id, Faction faction, float cx, float cy, float cloudRadius, float cloudDuration,
+                       float thinSeconds, boolean haze) {
+        int minX = Math.max(0, (int) Math.floor(cx - cloudRadius));
+        int maxX = Math.min(grid.getWidth() - 1, (int) Math.floor(cx + cloudRadius));
+        int minY = Math.max(0, (int) Math.floor(cy - cloudRadius));
+        int maxY = Math.min(grid.getHeight() - 1, (int) Math.floor(cy + cloudRadius));
+        float radiusSq = cloudRadius * cloudRadius;
         int capacity = (maxX - minX + 1) * (maxY - minY + 1);
         long[] keyed = new long[capacity];
         int count = 0;
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
-                float dx = x + 0.5f - grenade.toX;
-                float dy = y + 0.5f - grenade.toY;
+                float dx = x + 0.5f - cx;
+                float dy = y + 0.5f - cy;
                 float distSq = dx * dx + dy * dy;
                 if (distSq > radiusSq) continue;
                 int idx = grid.index(x, y);
-                grid.addTransientOpacityAt(idx);
+                if (haze) grid.addHazeAt(idx);
+                else grid.addTransientOpacityAt(idx);
                 // Outermost first, so a thinning cloud gives back its rim before its core; ties by index for repeatability.
                 // A non-negative float's bits order as the float does, so the complement sorts the far cells first.
                 long outward = ~(long) Float.floatToIntBits(distSq) & 0x7FFFFFFFL;
@@ -117,13 +144,12 @@ public final class SmokeFieldService {
         for (int i = 0; i < count; i++) {
             int idx = (int) (sorted[i] & 0xFFFFFFFFL);
             occupied[i] = idx;
-            float dx = (idx % width) + 0.5f - grenade.toX;
-            float dy = (idx / width) + 0.5f - grenade.toY;
+            float dx = (idx % width) + 0.5f - cx;
+            float dy = (idx / width) + 0.5f - cy;
             distanceSq[i] = dx * dx + dy * dy;
         }
-        fields.add(new SmokeField(grenade.id, grenade.faction, grenade.toX, grenade.toY,
-                grenade.cloudRadius, grenade.cloudDuration, grenade.cloudDuration, grenade.thinSeconds,
-                occupied, distanceSq));
+        fields.add(new SmokeField(id, faction, cx, cy, cloudRadius, cloudDuration, cloudDuration, thinSeconds,
+                occupied, distanceSq, haze));
     }
 
     private void publishSnapshots() {
@@ -137,13 +163,15 @@ public final class SmokeFieldService {
                     grenade.faction, x, y, z, progress));
         }
         ArrayList<SmokeFieldView> visibleFields = new ArrayList<>(fields.size());
+        ArrayList<SmokeFieldView> visibleHazes = new ArrayList<>();
         for (SmokeField field : fields) {
-            visibleFields.add(new SmokeFieldView(field.id, field.faction, field.x, field.y,
-                    field.currentRadius(), field.remaining, field.totalDuration,
+            (field.haze ? visibleHazes : visibleFields).add(new SmokeFieldView(field.id, field.faction, field.x,
+                    field.y, field.currentRadius(), field.remaining, field.totalDuration,
                     field.radius, Math.max(0f, field.remaining - field.thinSeconds)));
         }
         throwSnapshot = List.copyOf(visibleThrows);
         fieldSnapshot = List.copyOf(visibleFields);
+        hazeSnapshot = List.copyOf(visibleHazes);
     }
 
     public record SmokeThrowView(long id, long carrierId, Faction sourceFaction,
@@ -207,12 +235,16 @@ public final class SmokeFieldService {
         /** Occupied cells, outermost first, with each one's squared distance from the centre in the same order. */
         final int[] occupiedCells;
         final float[] distanceSq;
+        /** A see-through haze, holding the grid's haze layer rather than its opacity. */
+        final boolean haze;
         /** Cells before this index have been given back. */
         int firstHeld;
         float remaining;
 
         SmokeField(long id, Faction faction, float x, float y, float radius,
-                   float remaining, float totalDuration, float thinSeconds, int[] occupiedCells, float[] distanceSq) {
+                   float remaining, float totalDuration, float thinSeconds, int[] occupiedCells, float[] distanceSq,
+                   boolean haze) {
+            this.haze = haze;
             this.id = id;
             this.faction = faction;
             this.x = x;
@@ -241,7 +273,9 @@ public final class SmokeFieldService {
         void clearTo(float limit, NavigationGrid grid) {
             float limitSq = limit < 0f ? -1f : limit * limit;
             while (firstHeld < occupiedCells.length && distanceSq[firstHeld] > limitSq) {
-                grid.removeTransientOpacityAt(occupiedCells[firstHeld++]);
+                int idx = occupiedCells[firstHeld++];
+                if (haze) grid.removeHazeAt(idx);
+                else grid.removeTransientOpacityAt(idx);
             }
         }
     }
