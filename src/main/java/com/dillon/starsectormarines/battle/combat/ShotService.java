@@ -171,14 +171,22 @@ public final class ShotService {
         public float remainingTime;
         public final float damage;
         public final float penetration;
+        /** A beam or energy round, which chars what burns whatever its penetration. */
+        public final boolean burns;
 
         public PendingStrike(StruckFeature feature, long shooterId, float remainingTime,
                              float damage, float penetration) {
+            this(feature, shooterId, remainingTime, damage, penetration, false);
+        }
+
+        public PendingStrike(StruckFeature feature, long shooterId, float remainingTime,
+                             float damage, float penetration, boolean burns) {
             this.feature = feature;
             this.shooterId = shooterId;
             this.remainingTime = remainingTime;
             this.damage = damage;
             this.penetration = penetration;
+            this.burns = burns;
         }
     }
 
@@ -189,7 +197,7 @@ public final class ShotService {
      */
     @FunctionalInterface
     public interface StrikeFilter {
-        boolean wears(StruckFeature feature, float damage, float penetration);
+        boolean wears(StruckFeature feature, float damage, float penetration, boolean burns);
     }
 
     private volatile StrikeFilter strikeFilter;
@@ -363,12 +371,18 @@ public final class ShotService {
      */
     public void queueStrike(BallisticResolver.Resolution resolution, long shooterId,
                             float damage, float penetration) {
+        queueStrike(resolution, shooterId, damage, penetration, false);
+    }
+
+    /** As above, for a round that {@code burns} what burns ({@link PendingStrike#burns}). */
+    public void queueStrike(BallisticResolver.Resolution resolution, long shooterId,
+                            float damage, float penetration, boolean burns) {
         StruckFeature feature = resolution.struck();
         if (feature == null || !(damage > 0f) || !(penetration > 0f)) return;
         // A rifle round into masonry is the common case and wears nothing: no record for it.
-        if (strikeFilter != null && !strikeFilter.wears(feature, damage, penetration)) return;
+        if (strikeFilter != null && !strikeFilter.wears(feature, damage, penetration, burns)) return;
         PendingStrike strike = new PendingStrike(feature, shooterId, resolution.flightTime(),
-                damage, penetration);
+                damage, penetration, burns);
         synchronized (activeStrikes) {
             activeStrikes.add(strike);
         }
