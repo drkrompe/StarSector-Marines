@@ -86,7 +86,7 @@ final class MissionDebriefConversation {
                         ? "debriefReliefCostLosses" : "debriefReliefCostClean")),
                 firstContractLine("next", MARA, Strings.get("debriefReliefNext")));
         var route = SupplyRouteCampaign.current();
-        if (jangalaClosing(outcome, route)) return jangalaLines(outcome, route);
+        if (jangalaClosing(outcome, route)) return jangalaLines(outcome);
         if (blindWatch(outcome)) return List.of("initiative", "ready")
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
@@ -285,33 +285,25 @@ final class MissionDebriefConversation {
     }
 
     /**
-     * The Thunder Run attempt that closed the freight account, won or exhausted. Only that attempt
-     * says goodbye to Jangala; a retry that left cargo waiting and later Route Security keep their reports.
+     * The won Thunder Run, which closed the freight account. Only that attempt says goodbye to Jangala;
+     * an exhausted account is a failure and keeps its factual report, as do retries and Route Security.
      */
     static boolean jangalaClosing(MissionOutcome outcome, BrokenSupplyRouteProgress route) {
-        return outcome != null && outcome.missionSource == MissionSource.STORY && outcome.freightOutcome != null
-                && route != null && route.readable() && route.closed()
+        return outcome != null && outcome.victory && outcome.missionSource == MissionSource.STORY
+                && outcome.freightOutcome != null && route != null && route.readable() && route.successful()
                 && route.lastMissionId().equals(outcome.missionId);
     }
 
-    /**
-     * Closes the Jangala chapter from the persistent ledger, across every attempt, and hands the
-     * company its off-world lead: the broker on Asharu who opens The Corvus Account.
-     */
-    static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome, BrokenSupplyRouteProgress route) {
-        int delivered = route.freight().deliveredCount(), lost = route.freight().lostCount();
-        boolean held = route.successful();
-        String field = Strings.get(held ? "debriefJangalaFieldHeld" : "debriefJangalaFieldShort");
+    /** Closes the Jangala chapter and hands the company its off-world lead: the broker on Asharu. */
+    static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome) {
         var lines = new ArrayList<WaylineNarration.Line>();
-        lines.add(jangalaLine("road", MARA, delivered == 0 ? Strings.get("debriefJangalaRoadLost")
-                : lost == 0 ? Strings.get("debriefJangalaRoadClean")
-                : Strings.format("debriefJangalaRoadPartial", delivered, lost)));
-        lines.add(jangalaLine("field", SABINE, outcome.marinesLost > 0
-                ? Strings.join("waylineSentenceJoin", field, Strings.get("debriefJangalaFieldCost")) : field));
+        lines.add(jangalaLine("road", MARA, Strings.get("debriefJangalaRoad")));
+        lines.add(jangalaLine("field", SABINE, Strings.get("debriefJangalaField")));
+        if (outcome.marinesLost > 0) lines.add(jangalaLine("cost", SABINE, Strings.get("debriefJangalaCost")));
         lines.add(jangalaLine("manifests", CASTLE, Strings.get("debriefJangalaManifests")));
         lines.add(jangalaLine("lead", MARA, Strings.get("debriefJangalaLead")));
-        if (delivered > 0) lines.add(jangalaLine("flying", MARA, Strings.get("debriefJangalaFlying")));
-        lines.add(jangalaLine("next", CASTLE, Strings.get(held ? "debriefJangalaNextHeld" : "debriefJangalaNextShort")));
+        lines.add(jangalaLine("flying", MARA, Strings.get("debriefJangalaFlying")));
+        lines.add(jangalaLine("next", CASTLE, Strings.get("debriefJangalaNext")));
         return List.copyOf(lines);
     }
 
