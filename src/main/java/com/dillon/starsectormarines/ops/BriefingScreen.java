@@ -766,8 +766,20 @@ public class BriefingScreen implements Screen {
         DebugBaySlot[] bay = debugBaySlots(mission);
         props.put("debugBaySlots", DevConfig.DEBUG_MECH_SUPPORT_PICKER
                 ? DebugKitPicker.baySlots(bay, slot -> openKitPicker(DebugKitPicker.Kind.BAY, slot)) : List.of());
-        props.put("kitPicker", kitPicker.modal(roster, bay, this::pickKitCard,
-                slot -> pickKitSlot(mission, slot), this::closeKitPicker));
+        Map<String, Object> modal = kitPicker.modal(roster, bay, this::pickKitCard,
+                slot -> pickKitSlot(mission, slot), this::closeKitPicker);
+        DebugCommander commander = ctx.debugCommander();
+        DebugKitPicker.putCommander(modal, commander, () -> {
+            commander.setFielded(!commander.fielded());
+            rebuild();
+        }, (specialty, rank) -> {
+            commander.press(specialty, rank);
+            commander.setFielded(true);
+            rebuild();
+        });
+        props.put("kitPicker", modal);
+        props.put("debugCommander", DebugKitPicker.commanderRow(commander,
+                () -> openKitPicker(DebugKitPicker.Kind.COMMANDER, 0)));
     }
 
     private List<BriefingViewModel.DebugControl> retainedDebugControls(Mission mission) {

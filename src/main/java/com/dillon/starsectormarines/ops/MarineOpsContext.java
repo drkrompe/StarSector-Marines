@@ -106,8 +106,12 @@ public class MarineOpsContext {
     private Mission debugPresetMission;
     private long debugLoadoutSeed;
     private int debugPresetRevision;
+    /** The debug briefing's commander for this preset; never a campaign officer. */
+    private DebugCommander debugCommander = new DebugCommander();
 
     public int debugPresetRevision() { return debugPresetRevision; }
+
+    DebugCommander debugCommander() { return debugCommander; }
 
     public void resetDebugPreset(Mission mission) {
         var preset = DebugMissionCatalog.preset(mission);
@@ -117,6 +121,7 @@ public class MarineOpsContext {
         debugPresetMission = mission;
         debugLoadoutSeed = mission.id.hashCode();
         debugCompanyRoster = null;
+        debugCommander = new DebugCommander();
         debugPresetRevision++;
     }
     /**

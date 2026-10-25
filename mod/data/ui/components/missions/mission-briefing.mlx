@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -248,6 +248,11 @@
             <div id="mission-debug-controls" class="mission-debug-controls">
               <!-- Each squad's two cards and each bay slot, drawn as the game draws them; pressing
                    one opens the kit picker (DebugKitPicker) on every choice there is. -->
+              <div id="mission-debug-commander-heading" class="label heading tone-edge section-heading">COMMANDER  ·  THIS BATTLE ONLY</div>
+              <button id="mission-debug-commander" class="{debugCommander.classes}" onclick="{debugCommander.open}">
+                <img id="mission-debug-commander-portrait" class="debug-kit-commander-portrait" src="{debugCommander.portrait}" />
+                <div id="mission-debug-commander-summary" class="label debug-kit-commander-summary">{debugCommander.summary}</div>
+              </button>
               <div id="mission-debug-kit-heading" class="label heading tone-edge section-heading">SQUAD KIT  ·  EVERY CARD UNLOCKED</div>
               <div id="mission-debug-kit" class="debug-kit-list">
                 <div each="row in debugKitRows" key="{row.id}" id="{row.id}" class="debug-kit-row console-readout">
@@ -343,6 +348,30 @@
         <div id="kit-picker-armor" class="kit-picker-grid">
           <armory-loadout-card each="tile in kitPicker.armorTiles" key="{tile.id}" tile="{tile}" />
         </div>
+        <div id="kit-picker-commander" class="kit-picker-commander">
+          <div id="kit-commander-bar" class="kit-commander-bar console-readout">
+            <img id="kit-commander-portrait" class="kit-commander-portrait" src="{kitPicker.commanderPortrait}" />
+            <div id="kit-commander-copy" class="kit-commander-copy">
+              <div id="kit-commander-status" class="label heading tone-edge">{kitPicker.commanderStatus}</div>
+              <div id="kit-commander-points" class="label heading tone-accent">{kitPicker.pointsLabel}</div>
+            </div>
+            <button id="kit-commander-toggle" class="kit-commander-toggle" onclick="{kitPicker.toggleCommander}">{kitPicker.toggleLabel}</button>
+          </div>
+          <div id="kit-commander-specialties" class="kit-commander-specialties">
+            <div each="spec in kitPicker.specialtyTiles" key="{spec.id}" id="{spec.id}" class="{spec.classes}">
+              <img id="{spec.iconId}" class="kit-specialty-icon" src="{spec.icon}" />
+              <div id="{spec.titleId}" class="label heading kit-specialty-title">{spec.title}</div>
+              <button id="{spec.rank1Id}" class="kit-specialty-node" disabled="{spec.rank1Disabled}" onclick="{spec.rank1}">
+                <img id="{spec.rank1ImageId}" class="kit-specialty-node-image" src="{spec.rank1Icon}" />
+                <div id="{spec.rank1TextId}" class="label kit-specialty-effect">{spec.rank1Effect}</div>
+              </button>
+              <button id="{spec.rank2Id}" class="kit-specialty-node" disabled="{spec.rank2Disabled}" onclick="{spec.rank2}">
+                <img id="{spec.rank2ImageId}" class="kit-specialty-node-image" src="{spec.rank2Icon}" />
+                <div id="{spec.rank2TextId}" class="label kit-specialty-effect">{spec.rank2Effect}</div>
+              </button>
+            </div>
+          </div>
+        </div>
         <div id="kit-picker-bay" class="kit-picker-bay-grid">
           <button each="tile in kitPicker.bayTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
             <canvas id="{tile.pictureId}" class="kit-bay-picture" width="234" height="150" />
@@ -418,6 +447,25 @@
   .debug-kit-option.selected { background-color: #16242f; border-color: #f2cf68; }
   .kit-bay-picture { width: 234px; height: 150px; background-color: #0d202c; pointer-events: none; }
   .kit-bay-name { height: 18px; color: #eaf3ff; pointer-events: none; }
+  .debug-kit-commander { flex-direction: row; align-items: center; height: 52px; padding: 3px; gap: 8px; border-width: 1px; }
+  .debug-kit-commander:hover { border-color: #f2cf68; }
+  .debug-kit-commander.fielded { border-color: #78d494; }
+  .debug-kit-commander-portrait { width: 44px; height: 44px; pointer-events: none; }
+  .debug-kit-commander-summary { width: 0px; flex-grow: 1; height: auto; white-space: normal; pointer-events: none; }
+  .kit-picker-commander { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; padding: 16px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; }
+  .kit-commander-bar { flex-direction: row; align-items: center; height: 92px; padding: 8px; gap: 14px; border-width: 1px; }
+  .kit-commander-portrait { width: 72px; height: 72px; pointer-events: none; }
+  .kit-commander-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
+  .kit-commander-toggle { width: 220px; height: 40px; border-width: 2px; font-family: heading; text-align: center; }
+  .kit-commander-specialties { flex-direction: row; height: 0px; flex-grow: 1; gap: 16px; }
+  .kit-specialty { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 2px; border-color: #2a5566; background-color: #09131d; }
+  .kit-specialty.trained { border-color: #78d494; }
+  .kit-specialty-icon { width: 96px; height: 96px; pointer-events: none; }
+  .kit-specialty-title { width: 100%; height: 22px; text-align: center; pointer-events: none; }
+  .kit-specialty-node { flex-direction: row; align-items: center; width: 100%; height: 150px; padding: 8px; gap: 10px; border-width: 1px; }
+  .kit-specialty-node:hover { border-color: #f2cf68; }
+  .kit-specialty-node-image { width: 64px; height: 64px; pointer-events: none; }
+  .kit-specialty-effect { width: 0px; flex-grow: 1; height: auto; white-space: normal; pointer-events: none; }
   .kit-bay-detail { height: 28px; font-family: compact; white-space: normal; pointer-events: none; }
   .debug-control-row { flex-direction: row; align-items: center; min-height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
   .debug-control-bank { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 28px; gap: 2px; }

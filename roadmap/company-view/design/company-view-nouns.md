@@ -1735,6 +1735,14 @@ what stands in it; choosing one opens a modal of every option drawn the way the
 game draws it: the Armory's own loadout cards, or the Mech Lab's chassis and hull
 previews. The choice can be issued to one squad or to every squad at once.
 
+The briefing can also field an operation commander for one battle. That
+commander is a top-rank officer with every training point the game grants, and
+the developer assigns its specialties on the same tree Barracks draws. An
+untrained one leads as a junior officer would. It is a setting, not a person: a
+fresh officer is built at launch, joins the detached company only while the
+deployment freezes its training into each squad's command profile, and is gone
+again. It is off by default, so squads fight under their acting NCOs as before.
+
 ## Invariants for future work
 
 - `MarineRoster` remains authoritative for enduring personnel and organization.

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 
@@ -543,8 +544,21 @@ public final class MissionLaunch {
             // squad tags, NCO leaders and multi-lift joins the campaign gets.
             if (m.source.isDebug()) {
                 MarineRoster company = ctx.getDebugCompanyRoster();
-                deployment = CampaignMarineDeployment.freezeSelection(company,
-                        new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats);
+                MarineCaptain commander = ctx.debugCommander().captain();
+                if (commander == null) {
+                    deployment = CampaignMarineDeployment.freezeSelection(company,
+                            new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats);
+                } else {
+                    // The commander joins the detached company only for the freeze, which captures
+                    // its training into each squad's command profile; it leaves again at once.
+                    company.add(commander);
+                    try {
+                        deployment = CampaignMarineDeployment.freezeSelection(company,
+                                new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats, commander);
+                    } finally {
+                        company.removeById(commander.id());
+                    }
+                }
             } else if (personnel != null) {
                 deployment = CampaignMarineDeployment.freezeSelection(personnel.roster(),
                         ctx.getSelectedMarineSquadIds(), playerSeats, ctx.getSelectedCaptain(),

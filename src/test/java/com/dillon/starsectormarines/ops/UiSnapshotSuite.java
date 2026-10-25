@@ -611,6 +611,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-debug-kit-armor-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 DebugKitPicker.previewProps(DebugKitPicker.Kind.ARMOR), 1f, false)),
+                new SnapshotArtifact("mission-briefing-debug-kit-commander-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                DebugKitPicker.previewProps(DebugKitPicker.Kind.COMMANDER), 1f, false)),
                 new SnapshotArtifact("mission-briefing-debug-kit-bay-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 DebugKitPicker.previewProps(DebugKitPicker.Kind.BAY), 1f, false)));

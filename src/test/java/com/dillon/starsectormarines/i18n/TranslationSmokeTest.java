@@ -128,7 +128,7 @@ class TranslationSmokeTest {
     private static final Set<String> DEBUG_MARKUP = Set.of("ui-workbench.mlx", "debug-missions.mlx");
     /** The briefing's debug drawer headings, shown only on debug-source missions. */
     private static final Set<String> DEBUG_LITERALS = Set.of("/ SCALE &amp; FIXTURE", "AIR SUPPORT",
-            "SQUAD KIT  ·  EVERY CARD UNLOCKED", "MECH BAY", "FIXTURE");
+            "SQUAD KIT  ·  EVERY CARD UNLOCKED", "MECH BAY", "FIXTURE", "COMMANDER  ·  THIS BATTLE ONLY");
 
     @Test
     void playerFacingMarkupHasNoLiteralCopy() throws Exception {

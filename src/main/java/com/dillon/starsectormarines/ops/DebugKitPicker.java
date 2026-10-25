@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.OfficerCareer;
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
@@ -23,7 +25,9 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -38,7 +42,7 @@ import java.util.function.Supplier;
  */
 final class DebugKitPicker {
 
-    enum Kind { WEAPONS, ARMOR, BAY }
+    enum Kind { WEAPONS, ARMOR, BAY, COMMANDER }
 
     /** The squad target that issues to every line squad at once. */
     static final int ALL_SQUADS = -1;
@@ -134,10 +138,17 @@ final class DebugKitPicker {
                                      Runnable close) {
         Map<String, Object> modal = new LinkedHashMap<>();
         modal.put("open", kind != null);
+        modal.put("kind", kind);
         modal.put("close", close);
         modal.put("weaponTiles", List.of());
         modal.put("armorTiles", List.of());
         modal.put("bayTiles", List.of());
+        modal.put("specialtyTiles", List.of());
+        modal.put("commanderPortrait", DebugCommander.PORTRAIT);
+        modal.put("commanderStatus", "");
+        modal.put("pointsLabel", "");
+        modal.put("toggleLabel", "");
+        modal.put("toggleCommander", close);
         modal.put("title", "");
         modal.put("subtitle", "");
         if (kind == null) return modal;
@@ -170,6 +181,11 @@ final class DebugKitPicker {
                 modal.put("subtitle", tiles.size() + " sheets, every one unlocked for debug · best first · "
                         + "click a card to issue it");
             }
+            case COMMANDER -> {
+                modal.put("title", "OPERATION COMMANDER  ·  THIS BATTLE ONLY");
+                modal.put("subtitle", "A " + DebugCommander.RANK.displayName() + " with every training point the game grants;"
+                        + " untrained, it leads exactly as a junior officer would · nothing reaches the campaign");
+            }
             case BAY -> {
                 List<BayTile> tiles = new ArrayList<>();
                 List<DebugBaySlot> options = DebugBaySlot.options();
@@ -196,8 +212,63 @@ final class DebugKitPicker {
                 DebugBaySlot.of(VehicleType.HEAVY_APC), DebugBaySlot.EMPTY };
         props.put("debugKitRows", squadRows(roster, 4, kind -> { }, (kind, target) -> { }));
         props.put("debugBaySlots", baySlots(bay, slot -> { }));
-        props.put("kitPicker", modal(open, open == Kind.BAY ? 1 : 0, roster, bay, card -> { }, slot -> { }, () -> { }));
+        Map<String, Object> modal = modal(open, open == Kind.BAY ? 1 : 0, roster, bay, card -> { }, slot -> { }, () -> { });
+        DebugCommander commander = new DebugCommander();
+        commander.setFielded(true);
+        commander.press(OfficerSpecialty.TACTICAL_COVER, 2);
+        commander.press(OfficerSpecialty.FIELD_MEDICINE, 2);
+        putCommander(modal, commander, () -> { }, (specialty, rank) -> { });
+        props.put("kitPicker", modal);
+        props.put("debugCommander", commanderRow(commander, () -> { }));
         return props;
+    }
+
+    /** The drawer's commander row: who leads, and the button that opens their training. */
+    static Map<String, Object> commanderRow(DebugCommander commander, Runnable open) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("summary", commander.summary());
+        row.put("portrait", DebugCommander.PORTRAIT);
+        row.put("classes", "debug-kit-commander" + (commander.fielded() ? " fielded" : ""));
+        row.put("open", open);
+        return row;
+    }
+
+    /** Fills an open commander modal: the field toggle and one column per specialty, as Barracks draws them. */
+    static void putCommander(Map<String, Object> modal, DebugCommander commander, Runnable toggle,
+                             BiConsumer<OfficerSpecialty, Integer> press) {
+        modal.put("commanderPortrait", DebugCommander.PORTRAIT);
+        modal.put("commanderStatus", commander.summary());
+        modal.put("toggleLabel", commander.fielded() ? "STAND DOWN" : "FIELD COMMANDER");
+        modal.put("toggleCommander", toggle);
+        int left = DebugCommander.points() - commander.spent();
+        modal.put("pointsLabel", left + (left == 1 ? " POINT LEFT" : " POINTS LEFT"));
+        if (!Kind.COMMANDER.equals(modal.get("kind"))) return;
+        List<Map<String, Object>> tiles = new ArrayList<>();
+        for (OfficerSpecialty specialty : OfficerSpecialty.values()) {
+            String id = "debug-kit-specialty-" + specialty.name();
+            int level = commander.level(specialty);
+            Map<String, Object> tile = new LinkedHashMap<>();
+            tile.put("id", id);
+            tile.put("classes", "kit-specialty" + (level > 0 && commander.fielded() ? " trained" : ""));
+            tile.put("iconId", id + ":icon");
+            tile.put("icon", "graphics/ui/officers/" + specialty.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg");
+            tile.put("titleId", id + ":title");
+            tile.put("title", specialty.label());
+            for (int rank = 1; rank <= OfficerCareer.MAX_LEVEL; rank++) {
+                int r = rank;
+                String state = level >= rank ? "trained" : commander.allows(specialty, rank) ? "available" : "locked";
+                String node = id + ":rank-" + rank;
+                tile.put("rank" + rank + "Id", node);
+                tile.put("rank" + rank + "ImageId", node + ":image");
+                tile.put("rank" + rank + "TextId", node + ":text");
+                tile.put("rank" + rank + "Icon", "graphics/ui/officers/specialty-node-" + rank + "-" + state + ".svg");
+                tile.put("rank" + rank + "Effect", (rank == 1 ? "I  " : "II  ") + specialty.effect(rank));
+                tile.put("rank" + rank + "Disabled", state.equals("locked"));
+                tile.put("rank" + rank, (Runnable) () -> press.accept(specialty, r));
+            }
+            tiles.add(tile);
+        }
+        modal.put("specialtyTiles", tiles);
     }
 
     static String name(DebugBaySlot slot) {

@@ -71,6 +71,7 @@ final class BriefingViewModel {
         props.put("debugKitRows", List.of());
         props.put("debugBaySlots", List.of());
         props.put("kitPicker", DebugKitPicker.modal(null, 0, null, new DebugBaySlot[0], card -> { }, slot -> { }, () -> { }));
+        props.put("debugCommander", DebugKitPicker.commanderRow(new DebugCommander(), () -> { }));
         return withEmptyStyles(props);
     }
 
@@ -276,9 +277,11 @@ final class BriefingViewModel {
             modal.parent().remove(modal);
             return;
         }
-        for (String grid : List.of("weapon", "armor", "bay")) {
-            if (!((List<?>) picker.get(grid + "Tiles")).isEmpty()) continue;
-            UiElement unused = markup.requireElement("kit-picker-" + (grid.equals("weapon") ? "weapons" : grid));
+        Map<String, String> grids = Map.of("weaponTiles", "kit-picker-weapons", "armorTiles", "kit-picker-armor",
+                "bayTiles", "kit-picker-bay", "specialtyTiles", "kit-picker-commander");
+        for (Map.Entry<String, String> grid : grids.entrySet()) {
+            if (!((List<?>) picker.get(grid.getKey())).isEmpty()) continue;
+            UiElement unused = markup.requireElement(grid.getValue());
             unused.parent().remove(unused);
         }
     }
