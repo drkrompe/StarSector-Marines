@@ -272,7 +272,10 @@ public final class CombatService {
                 BattleComponents.COMBAT_INCOMING_FROM_Y) : 0;
     }
 
-    public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
+    /** Who the unit is shooting at; zero for one that is not, or has no combat record (a civilian, a corpse). */
+    public long targetId(long id) {
+        return has(id) ? entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID) : 0L;
+    }
 
     /**
      * Who a trained shooter's queued shot actually goes to, given the one a
