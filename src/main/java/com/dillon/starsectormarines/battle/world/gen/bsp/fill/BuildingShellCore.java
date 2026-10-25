@@ -239,7 +239,7 @@ final class BuildingShellCore {
         // armories, parts cages, pharmacies, and server rooms deliberately
         // retain opaque walls.
         stampExteriorWindows(grid, topology, bl, bt, br, bb,
-                config.layoutRecipe, config.buildingKind);
+                config.layoutRecipe, config.buildingKind, placement);
 
         // Doodad/fixture layout — TINY buildings get fitted compact work groups,
         // LARGE buildings apply the per-type recipe. Purpose-aware commercial
@@ -259,15 +259,12 @@ final class BuildingShellCore {
     private static void stampExteriorWindows(NavigationGrid grid, CellTopology topology,
                                              int bl, int bt, int br, int bb,
                                              BuildingLayouts.LayoutRecipe recipe,
-                                             BuildingKind buildingKind) {
-        stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.TOP, recipe, buildingKind);
-        stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.BOTTOM, recipe, buildingKind);
-        stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.LEFT, recipe, buildingKind);
-        stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.RIGHT, recipe, buildingKind);
+                                             BuildingKind buildingKind,
+                                             BuildingPlacement placement) {
+        for (BuildingPlacement.Side side : BuildingPlacement.Side.values()) {
+            if (placement.frontOnly && side != placement.frontage) continue;
+            stampWindowRuns(grid, topology, bl, bt, br, bb, side, recipe, buildingKind);
+        }
     }
 
     /** Fits glazed bays within each room facade, retaining corner piers and door jambs. */
@@ -489,7 +486,7 @@ final class BuildingShellCore {
                                                Random rng, GroundKind interiorGround) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
-        boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
+        boolean twoDoors = !placement.frontOnly && w >= SECOND_DOORWAY_MIN_DIM
                 && h >= SECOND_DOORWAY_MIN_DIM
                 && (layout.forceOpposedPerimeterDoorways
                     || placement.forceOpposedDoorways

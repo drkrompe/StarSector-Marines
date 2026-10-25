@@ -54,7 +54,7 @@ public final class AirbasePadSeedStage implements GenStage {
     private static boolean ordinaryCityBlock(BlockKind kind) {
         return switch (kind) {
             case MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER, INDUSTRIAL_COMPOUND,
-                 MEDICAL_CAMPUS, COMPOUND_MEMBER, WATERFRONT, PARK,
+                 FACTORY_ROW, MEDICAL_CAMPUS, COMPOUND_MEMBER, WATERFRONT, PARK,
                  NATURE_GRASSLAND, NATURE_WETLAND, NATURE_BEACH,
                  AIRBASE_PAD -> false;
             default -> true;
