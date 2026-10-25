@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Usage: art-source/swarm-bores/generate.sh <part> <variant> [state] [extra-flags...]
-#   part: bore | mother-bore | spore-colony-fissure | spore-colony-bore | spore-colony-maw
+#   part: bore | mother-bore | spore-colony-fissure | spore-colony-bore | spore-colony-maw | ground-colony
+#         | brood-spire | nest-clutch | nest-pods | nest-husk (nest clutter: intact only)
 #   variant: 1..N (make_guide.VARIANTS)
 #   state: intact (default) | wounded | remains (make_guide.STATES)
 # One paid ImageGen call through tools/codex_imagegen.py: the guide written by make_guide.py
