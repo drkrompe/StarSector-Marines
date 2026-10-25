@@ -1,7 +1,7 @@
 """One final shot's frames -> its MP4 (the render queue's follow-up job after a shot's chunks).
 
     python assemble_shot.py <frames dir> <kf> <first frame> <count> <out.mp4> [--wait-minutes 30] [--ffmpeg <path>] [--fps 24]
-        [--label "S6c The column is cut | 68.5-70.5 s | df837c8dc"] [--guns <chunks>]
+        [--label "S6c The column is cut | 68.5-70.5 s | df837c8dc"] [--guns <chunks>] [--blobs]
 
 The frames are battle_blockout's final composites, '<kf>_f<frame>.png' at --fps (24; the lit
 animatic is 12), copied to Drive by
@@ -13,9 +13,15 @@ missing, naming them.
 waits for all N and exits 1 without encoding if any two differ: a chunk that fired other turrets
 than the one before it makes the rounds in flight jump at the seam (coordinator, 2026-10-25, S6b).
 
+--blobs: every frame's white regions ('<kf>_blobs_f<frame>.json', battle_blockout) are waited for and
+chained over the whole shot in frame order (blob_lint.chain); a region held past a flash, a chunk seam
+included, exits 1 without encoding. A chunk's own lint restarts at its first frame, so a hold that runs
+across a seam is caught only here (Fix 2, 2026-10-25).
+
 --label burns a caption into every frame (owner, 2026-10-23: "no labels on these clips"): the text
 given (shot id and name, span, commit) and the frame's own sequence frame number, top left.
 """
+import json
 import os
 import subprocess
 import tempfile
@@ -55,9 +61,10 @@ def main(argv):
     label = argv[argv.index('--label') + 1] if '--label' in argv else None
     guns = int(argv[argv.index('--guns') + 1]) if '--guns' in argv else 0
     names = [frames / f'{kf}_f{first + i:05d}.png' for i in range(count)]
+    blobs = [frames / f'{kf}_blobs_f{first + i:05d}.json' for i in range(count)] if '--blobs' in argv else []
     deadline = time.time() + wait * 60
     while True:
-        missing = [p.name for p in names if not p.exists() or p.stat().st_size == 0]
+        missing = [p.name for p in names + blobs if not p.exists() or p.stat().st_size == 0]
         picks = sorted(frames.glob(f'{kf}_guns_f*.json'))
         if len(picks) < guns:
             missing.append(f'{guns - len(picks)} of {guns} chunk gun picks ({kf}_guns_f*.json)')
@@ -77,6 +84,15 @@ def main(argv):
                 print(f'  {name}: {text}', flush=True)
             return 1
         print(f'ASSEMBLE {kf}: {len(seen)} chunks picked the same guns', flush=True)
+    if blobs:
+        import blob_lint
+        held = blob_lint.chain([json.loads(p.read_text(encoding='utf-8')) for p in blobs])
+        if held:
+            print(f'ASSEMBLE {kf}: {len(held)} frames hold a white region past a flash; not encoding:', flush=True)
+            for frame, row in held[:12]:
+                print(f'  f{frame}: {row}', flush=True)
+            return 1
+        print(f'ASSEMBLE {kf}: blob lint over all {count} frames, seams included: none held', flush=True)
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix('.partial.mp4')
     vf, label_file = [], None
