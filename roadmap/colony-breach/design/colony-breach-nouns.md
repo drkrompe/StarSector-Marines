@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-25 — the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-25 — a maw may draw a Bombard, one living per bore. Earlier: the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -2316,7 +2316,8 @@ argument.
   the mouth as a stream and cross the ground as packs; the quiet between pulses
   is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
-  the director's budget, deterministic under the battle seed.
+  the director's budget, deterministic under the battle seed. A maw may draw a
+  Bombard (`bombard.md`), at a small weight and at most one living per bore.
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
   the map: a seated gun that answers fliers (an anti-air position, or any gun

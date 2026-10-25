@@ -66,6 +66,8 @@ public final class SwarmBore {
     private final int[] stagesReleased = new int[SwarmStage.values().length];
     private boolean matriarchReleased;
     private long matriarch;
+    /** Its living Bombard, or 0: at most one at a time. */
+    private long bombard;
     private int collapsedTick = -1;
     private final List<Long> colonies = new ArrayList<>();
     private final List<Long> colonyView = Collections.unmodifiableList(colonies);
@@ -136,6 +138,9 @@ public final class SwarmBore {
     public boolean matriarchReleased() { return matriarchReleased; }
     /** The Matriarch this mother released, or 0. */
     public long matriarch() { return matriarch; }
+
+    /** Its living Bombard, or 0 for none: a bore may draw one only while this is 0. */
+    public long bombard() { return bombard; }
     public boolean collapsed() { return collapsedTick >= 0; }
     /** Every spore colony the bore has sprouted, living or not, in sprouting order. */
     public List<Long> colonies() { return colonyView; }
@@ -211,6 +216,16 @@ public final class SwarmBore {
     void released(SwarmStage stage) {
         bodiesSpawned++;
         stagesReleased[stage.ordinal()]++;
+    }
+
+    /** Records that the body just released is this bore's Bombard. */
+    void releasedBombard(long body) {
+        bombard = body;
+    }
+
+    /** Records that this bore's Bombard has died, so it may draw another. */
+    void lostBombard(long body) {
+        if (bombard == body) bombard = 0L;
     }
 
     /** Records that the body just released was this mother's Matriarch. */
