@@ -65,10 +65,15 @@ public final class HarrierTargeting {
      * prey is kept unless another beats it by {@link #HYSTERESIS}.
      */
     public static long pick(List<Candidate> candidates, float packX, float packY, long current) {
+        return pick(candidates, packX, packY, current, HarrierRules.SENSE_RANGE);
+    }
+
+    /** As {@link #pick(List, float, float, long)}, seeing only as far as {@code range}: a patrol's eye. */
+    public static long pick(List<Candidate> candidates, float packX, float packY, long current, float range) {
         long best = 0L;
         float bestScore = Float.NEGATIVE_INFINITY;
         float currentScore = Float.NEGATIVE_INFINITY;
-        float range2 = HarrierRules.SENSE_RANGE * HarrierRules.SENSE_RANGE;
+        float range2 = range * range;
         for (int i = 0, n = candidates.size(); i < n; i++) {
             Candidate c = candidates.get(i);
             float dx = c.x() - packX, dy = c.y() - packY;

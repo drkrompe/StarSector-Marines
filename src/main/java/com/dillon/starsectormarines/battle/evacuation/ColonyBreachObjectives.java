@@ -41,10 +41,12 @@ public final class ColonyBreachObjectives {
      * could stand at its door and leave, and then no objective is offered.
      */
     public static ObjectiveBoard install(BattleSimulation sim, MapResult map, long battleSeed) {
+        // A freight yard's warehouse first: its bay is where a truck is meant to stand (set-piece-blocks.md).
         List<StaffedBuildings.Staffed> staffed = StaffedBuildings.install(sim, map, battleSeed ^ SALT,
-                EnumSet.of(BuildingWork.Kind.WAREHOUSE), 1);
+                EnumSet.of(BuildingWork.Kind.WAREHOUSE), 1,
+                building -> Loading.bayOf(building, map.loadingBays) != null);
         if (staffed.isEmpty()) return null;
-        Loading loading = Loading.install(sim, staffed.get(0), LOADING_CRATES);
+        Loading loading = Loading.install(sim, staffed.get(0), LOADING_CRATES, map.loadingBays);
         if (loading == null) return null;
         List<OptionalObjective> rolled = ObjectiveRoll.pick(pool(loading), map.layout, battleSeed ^ SALT, 1, 1);
         ObjectiveBoard board = new ObjectiveBoard(rolled, ObjectiveContext.forBattle(sim, map.layout, battleSeed,

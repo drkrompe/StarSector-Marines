@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -44,7 +46,7 @@ public final class SwarmFliers {
 
     /** Something a pack did, kept for evidence. */
     public record Event(int tick, Kind kind, int pack, long harrier, long target) {
-        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST }
+        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST, LANDED, SNATCHED, FED }
     }
 
     private final List<HarrierPack> packs = new ArrayList<>();
@@ -169,6 +171,19 @@ public final class SwarmFliers {
         pack.nextHatchTick = sim.getSimTickIndex();
         packs.add(pack);
         hatchDue(sim, pack, sim.getSimTickIndex());
+        return pack;
+    }
+
+    /**
+     * Puts a patrol of {@code count} up off a brood spire ({@code spire}, its crown at ({@code x}, {@code y})) to fly
+     * {@code route} ({@link HarrierPatrol#route}) and land back on it, hatching from the crown as any spire's pack
+     * does, under the same law ({@link #hatchUnderCover}).
+     */
+    public HarrierPack patrolUnderCover(BattleSimulation sim, HarrierLook look, long spire, float x, float y,
+                                        float[] route, int count) {
+        HarrierPack pack = hatchUnderCover(sim, look, spire, x, y, x, y, count, 0L);
+        if (!sim.swarmEmergence().enabled()) risingFrom(sim, pack, x, y);
+        pack.patrol = new HarrierPatrol(route, x, y, Math.max(1, Math.min(HarrierRules.MAX_PACK, count)));
         return pack;
     }
 
@@ -306,14 +321,23 @@ public final class SwarmFliers {
                     buildCandidates(sim);
                     candidatesBuilt = true;
                 }
-                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L);
+                // A patrol on its route only spots what comes near; once it hunts it senses as any pack.
+                float range = pack.patrol != null && !alive ? HarrierPatrol.SPOT_RANGE : HarrierRules.SENSE_RANGE;
+                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L, range);
                 alive = prey != 0L;
             }
             if (alive) pack.prey(prey, world.x(prey), world.y(prey), sim.physicalRadius(prey));
             else pack.prey(0L, 0f, 0f, 0f);
             if (pack.phase == HarrierPack.Phase.DIVE) followPrey(sim, pack);
+            if (pack.patrol == null || !pack.patrol.homing()) scavenge(sim, pack, alive);
+            fetch(sim, pack, tick);
+            if (pack.patrol != null && !alive && pack.phase == HarrierPack.Phase.LOITER && pack.unhatched <= 0) {
+                pack.patrol.step(BattleSimulation.TICK_DT);
+                pack.anchorAt(pack.patrol.x(), pack.patrol.y());
+            }
             HarrierPack.Phase before = pack.phase;
             pack.advance(BattleSimulation.TICK_DT, (h, t) -> {
+                sim.swarmHarvest().airStruck(t);
                 sim.applyDamage(t, h, HarrierRules.BITE_DAMAGE, HarrierRules.BITE_PENETRATION,
                         HarrierRules.STRIKE_MORALE);
                 events.add(new Event(tick, Event.Kind.STRIKE, pack.id, h, t));
@@ -329,6 +353,12 @@ public final class SwarmFliers {
             } else if (before == HarrierPack.Phase.PULL_UP && pack.phase == HarrierPack.Phase.LOITER) {
                 events.add(new Event(tick, Event.Kind.PULL_UP_DONE, pack.id, 0L, pack.target));
             }
+            for (HarrierFlight m : pack.landedNow) {
+                // Back on its hooks: off the field, no body, and the spire's roost holds it again.
+                sim.takeOffTheField(m.id);
+                events.add(new Event(tick, Event.Kind.LANDED, pack.id, m.id, 0L));
+            }
+            pack.landedNow.clear();
             NavigationGrid grid = sim.getGrid();
             for (HarrierFlight m : pack.members) {
                 m.body.x = clamp(m.body.x, grid.getWidth());
@@ -346,6 +376,78 @@ public final class SwarmFliers {
                 List<HarrierFlight> half = pack.takeSplit();
                 adopt(half, pack.escortId);
                 events.add(new Event(tick, Event.Kind.SPLIT, pack.id, 0L, 0L));
+            }
+        }
+    }
+
+    /**
+     * Sends the member nearest the nearest loose body within {@link HarrierCarry#SENSE} off to fetch it, when the pack
+     * has nothing to hunt and room for another carrier ({@link HarrierCarry#sends}). A body another carrier is after
+     * is passed over.
+     */
+    private void scavenge(BattleSimulation sim, HarrierPack pack, boolean prey) {
+        if (!HarrierCarry.sends(pack.phase, prey, pack.unhatched, pack.members.size(), pack.carriersOut())) return;
+        long body = sim.swarmHarvest().nearestLoose(sim, pack.centreX(), pack.centreY(), HarrierCarry.SENSE,
+                this::claimed);
+        if (body == 0L) return;
+        float bx = sim.world().x(body), by = sim.world().y(body);
+        HarrierFlight best = null;
+        float nearest = Float.MAX_VALUE;
+        for (HarrierFlight m : pack.members) {
+            if (m.carry != null) continue;
+            float d = m.body.distanceTo(bx, by);
+            if (d < nearest || d == nearest && m.id < best.id) {
+                best = m;
+                nearest = d;
+            }
+        }
+        if (best != null) best.carry = new HarrierCarry(body);
+    }
+
+    /** Whether a carrier is already after {@code body}. */
+    private boolean claimed(long body) {
+        for (HarrierPack p : packs) for (HarrierFlight m : p.members) if (m.carry != null && m.carry.body == body) return true;
+        return false;
+    }
+
+    /**
+     * Flies each of a pack's carriers through its job: swoops on its body and takes it up, hauls it to the nearest
+     * living bore's mouth (where the harvest feeds it in), and flies back to rejoin the pack. A body gone before the
+     * swoop lands, or lost on the way, sends it straight back.
+     */
+    private void fetch(BattleSimulation sim, HarrierPack pack, int tick) {
+        SwarmHarvest harvest = sim.swarmHarvest();
+        World world = sim.world();
+        float dt = BattleSimulation.TICK_DT;
+        float ring = HarrierRules.ringRadius(pack.members.size());
+        for (HarrierFlight m : pack.members) {
+            HarrierCarry c = m.carry;
+            if (c == null) continue;
+            switch (c.phase) {
+                case SNATCH -> {
+                    if (!harvest.isLoose(c.body) || !world.hasPosition(c.body)) {
+                        c.giveUp();
+                    } else if (c.swoop(m, world.x(c.body), world.y(c.body), dt)
+                            && harvest.takeUpByFlier(sim, m.id, c.body)) {
+                        c.took();
+                        events.add(new Event(tick, Event.Kind.SNATCHED, pack.id, m.id, c.body));
+                    }
+                }
+                case HAUL -> {
+                    if (!harvest.isCarrier(m.id)) {
+                        for (SwarmHarvest.Feed f : harvest.feeding()) {
+                            if (f.body() == c.body) events.add(new Event(tick, Event.Kind.FED, pack.id, m.id, c.body));
+                        }
+                        c.giveUp();
+                        break;
+                    }
+                    SwarmBore bore = sim.swarmBores().nearestLiving(m.body.x, m.body.y);
+                    if (bore == null) c.giveUp();
+                    else c.haul(m, bore.x() + 0.5f, bore.y() + 0.5f, dt);
+                }
+                case RETURN -> {
+                    if (c.rejoin(m, pack.loiterX(), pack.loiterY(), ring, dt)) m.carry = null;
+                }
             }
         }
     }

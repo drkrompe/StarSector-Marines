@@ -4,6 +4,10 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — Harriers carry feed: a pack with nothing to hunt flies the dead home into its bore's mouth.
+
+Updated: 2026-10-25 — the brood spire's patrols: three off a quiet, full roost fly a loop over the nest and land.
+
 Updated: 2026-10-25 — a fed body slides into the mouth, sinks and is swallowed with a gulp.
 
 Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
@@ -963,6 +967,20 @@ through, made into a thing on the map the company can find and kill.
   flies, then filling back one by one over the gap after a launch, so a full
   roost is a spire ready to launch again. Drawn only: they are not units until
   they rise (`SpirePerchRenderSystem`).
+- **Its patrols.** A quiet spire (its roost full, nothing to hunt within a
+  Harrier's sense of it, no pack of its own up, the flier law met) puts three of
+  its roost up every thirty to sixty seconds, counted from the last patrol's
+  return (`HarrierPatrol`; the owner's roving squads, 2026-10-25). They hatch
+  off the hooks as a launch does, then wheel round a seeded loop over the bore,
+  eighteen to thirty-two cells out and turning through just over half to most of
+  a lap, and come home and land on the crown one by one, back on its hooks and
+  off the field. On the loop a patrol only sees twenty-two cells, a scout's eye;
+  what it spots it hunts as any pack does, and with its prey gone it picks the
+  loop up where it left it. A patrol home short leaves the roost short, filling
+  back as after a launch, which holds off the spire's next launch too. So a line
+  that keeps clear of a spire is still found if it stands on the nest's beat,
+  and flak that thins a patrol buys time against the next pack. Scene:
+  `harrier-patrol`; look: `harrier-patrol-look`.
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
@@ -1278,6 +1296,21 @@ not read in a soft shadow at play zoom.
     **splits** in two, and the halves come on separately and bleed the line
     slowly. A pack escorting a Matriarch loiters over her with no prey in
     reach, and scatters into fliers of one when she dies.
+  - **Carrying feed** (`HarrierCarry`; the owner's "some carry for feed",
+    2026-10-25). A body a Harrier's bite kills lies loose, as a dropped load
+    does (*Harvest*), for anything of the nest's to fetch. A pack with nothing
+    to hunt, every member hatched, sends its member nearest the nearest loose
+    body within twenty-two cells (a marine it killed, a colonist, or one of the
+    swarm's own dead) to fetch it: never more than one in three of its number
+    at once, and never a patrol already on its way home. The carrier swoops
+    low, takes the body up, and hauls it low and slow (three cells a second, at
+    about a third of its height, within reach of rifles) to the nearest living
+    bore, where the harvest feeds it in down the mouth as any load; then it
+    flies back up to its pack. A carrier never bites and is no part of its
+    pack's dives, but it is still one of the pack: shot, drawn and heard, and a
+    carrier shot down drops its load where it falls. So a line that kills the
+    carriers keeps the nest from feeding on its dead. Scene: `harrier-carry`;
+    look: `harrier-carry-look`.
   - **How it flies.** Its own steering, never the ground flow field, which is a
     map of walls a flier is not in: seek a goal, push off packmates, turn at a
     capped rate, move along the nose. Serial, in pack and slot order, with no
@@ -2116,6 +2149,15 @@ heard only on seen ground. Takes are generated from a tracked catalog
 (`tools/generate_marine_barks.py`) and every take is levelled by its measured
 loudness to its kind's level, a little under the gunfire: calls near -26 LUFS a
 voice, cries and warnings -25, kills and reloads -28, grunts -29, the scuffle -31.
+**The colony is heard too** (owner, 2026-10-25). Three casts bark, each in its
+own voices and words from the lore guide's names: the marines (allied company
+infantry with them), the colony militia, four voices of its own, who say ravs and
+bugs, grabbers and breakers, and have no name for the Matriarch, only "the big
+one"; and the colonists, four more, who make no soldier's calls: they scream as
+the things close, cry out when seized, thrown or hurt, and grieve when someone
+near them dies. Colonists outside any squad share one voice channel with the
+colonists on their patch of ground, so a fleeing crowd is a few screams, not one
+each. The enemy's soldiers do not bark.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

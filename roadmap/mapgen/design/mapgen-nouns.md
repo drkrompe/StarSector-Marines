@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — forest undergrowth: closed, crushable floor growth between the trees; the forest-floor plants are redrawn overhead.
+Updated: 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
+
+Earlier 2026-10-25 — forest undergrowth: closed, crushable floor growth between the trees; the forest-floor plants are redrawn overhead.
 
 Earlier 2026-10-25 — a mineral formation is never crushable by a heavy tank.
 
@@ -301,6 +303,21 @@ margin retain cross-yard circulation. Smaller parcels keep their compact yard
 grammar rather than shrinking vehicles or clipping a template. A template
 publishes scenery and topology only; objectives, ownership, force budgets and
 story beats remain the mission's decisions.
+
+A **set piece** is a block whose relationships are authored
+(`set-piece-blocks.md`): which building faces which yard, where its gate meets
+the street, where a vehicle stands, which way its cover faces. The first is the
+**freight yard**, an industrial compound layout. A walled compound holds a
+warehouse whose loading door faces into a yard, a vehicle gate opposite it onto
+a street, a striped bay where a hauler stands nose to the gate, freight stacked
+two-deep along the yard walls as cover facing the gate, and a narrow side gap
+for people. It stands only on the compound's own ground (member leaves, and the
+street frames between members that belong to nobody), never on the road
+reservation. Its gate must open onto street where a hauler can turn either
+way. A compound that cannot hold it keeps the ordinary three-parcel works. The
+yard publishes a **loading bay** (`LoadingBay` on `MapResult`): the stand, its
+heading, the door and the gate. A mission that wants a vehicle loaded reads the
+bay rather than searching the finished map.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
