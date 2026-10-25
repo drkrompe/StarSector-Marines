@@ -26,6 +26,14 @@ from geometry guides, in order:
    Both the strip and this export stretch a cut to one cell, so equal boxes keep
    the three states in register.
 
+The shipped set is chosen by `STONE_SET` and `STONE_GRADE` at the top of the
+refit script. The pale stones in `field-stones/` read too bright on woodland
+ground. The set that ships is `field-stones/mossed/`: the same groups reskinned
+with moss and lichen, using the pale stones darkened as the identity reference,
+and taken down a step by the `quiet` grade. Its three states each have their own
+prompt and provenance beside them. The pale set stays as the identity source for
+the damage guides.
+
 Then export both sheets and re-derive the relief maps:
 
 ```powershell

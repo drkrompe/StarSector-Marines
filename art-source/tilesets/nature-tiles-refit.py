@@ -17,11 +17,12 @@ as the damaged sheet over the destroyed sheet, and the fourteen rects of rock-da
 
 The left PLATE_SIZE of nature-tiles.raw.png is the plate the sheet was accepted with and is never altered; the
 script reads it back from there, so it can be re-run.
-usage: python art-source/tilesets/nature-tiles-refit.py
+usage: python art-source/tilesets/nature-tiles-refit.py [stone set] [grade]   (defaults: STONE_SET, STONE_GRADE)
        (rewrites nature-tiles.raw.png, the plant entries' notes and rects and the rock entries' rects in its
        authoring document, rock-damage.raw.png and the rects in rock-damage.tileset-authoring.json)
 """
 import json
+import sys
 import re
 from pathlib import Path
 
@@ -40,6 +41,14 @@ PLANTS = [
 ]
 ROCKS = ["small-1", "small-2", "medium-1", "medium-2", "large-1", "large-2", "large-3"]
 STONES = HERE / "field-stones"
+# Which stone set ships (a subfolder of field-stones/, "" for the folder itself) and the grade every state of it
+# takes: (value, contrast, saturation, tint) about the opaque pixels' mean luminance.
+STONE_SET, STONE_GRADE = "mossed", "quiet"
+GRADES = {
+    "none": (1, 1, 1, (1, 1, 1)),
+    "muted": (.68, .75, .35, (1.04, 1, .9)),  # darker, flatter grey-brown
+    "quiet": (.86, .85, .8, (1, 1, .96)),     # a mossed set taken down a step, keeping its greens
+}
 PITCH, SOURCE_CELL = 512, 480
 ALPHA_MIN = 40
 GUTTER = 24
@@ -116,12 +125,25 @@ def close_gaps(intact, states):
     return out
 
 
-def rocks():
+def grade(img, name):
+    value, contrast, sat, tint = GRADES[name]
+    a = np.asarray(img, dtype=np.float32).copy()
+    rgb = a[..., :3] / 255
+    lum = rgb @ np.array([.299, .587, .114])
+    mean = lum[a[..., 3] >= ALPHA_MIN].mean()
+    rgb = lum[..., None] + (rgb - lum[..., None]) * sat
+    rgb = (mean + (rgb - mean) * contrast) * value * np.array(tint)
+    a[..., :3] = np.clip(rgb * 255, 0, 255)
+    return Image.fromarray(np.round(a).astype(np.uint8), "RGBA")
+
+
+def rocks(stone_set, grade_name):
     """The seven groups' intact frames for the strip, and rock-damage's sheet and rects cut at the same boxes."""
-    intact = Image.open(STONES / "field-stones.png").convert("RGBA")
+    folder = STONES / stone_set
+    intact = grade(Image.open(folder / "field-stones.png").convert("RGBA"), grade_name)
     pitch = intact.width / 4
-    states = [Image.open(STONES / f"field-stones-{s}.png").convert("RGBA").resize(intact.size, Image.LANCZOS)
-              for s in ("damaged", "destroyed")]
+    states = [grade(Image.open(folder / f"field-stones-{s}.png").convert("RGBA"), grade_name)
+              .resize(intact.size, Image.LANCZOS) for s in ("damaged", "destroyed")]
     sheet = Image.new("RGBA", (intact.width, intact.height * 2), (0, 0, 0, 0))
     frames, cuts = [], []
     for slot in range(7):
@@ -136,7 +158,7 @@ def rocks():
     return frames, intact.width / 2048 * SOURCE_CELL, sheet, cuts
 
 
-def main():
+def main(stone_set=STONE_SET, grade_name=STONE_GRADE):
     doc_path = HERE / "nature-tiles.tileset-authoring.json"
     text = doc_path.read_text(encoding="utf-8")
     doc = json.loads(text)
@@ -147,7 +169,7 @@ def main():
     for i in range(6):
         frame = plants.crop((i % 3 * PITCH, i // 3 * PITCH, i % 3 * PITCH + PITCH, i // 3 * PITCH + PITCH))
         pieces.append(resample(frame, scale))
-    rock_frames, rock_cell, damage_sheet, cuts = rocks()
+    rock_frames, rock_cell, damage_sheet, cuts = rocks(stone_set, grade_name)
     pieces += [resample(f, doc["cellPx"] * doc["strip"]["scale"] / rock_cell) for f in rock_frames]
     ids = [(pid, note) for pid, note in PLANTS] + [("nature.rock-" + r, None) for r in ROCKS]
     width = plate.width + GUTTER + sum(p.width + GUTTER for p in pieces)
@@ -174,4 +196,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:3])

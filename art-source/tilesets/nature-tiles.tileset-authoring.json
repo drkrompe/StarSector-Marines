@@ -574,9 +574,9 @@
       "note": "three small stones, one larger — a tighter scatter than rock-small-1",
       "rect": [
         3177,
-        14,
-        80,
-        91
+        13,
+        83,
+        92
       ],
       "validOn": [
         "layer:ground",
@@ -622,7 +622,7 @@
         3446,
         17,
         89,
-        87
+        88
       ],
       "validOn": [
         "layer:ground",
@@ -644,10 +644,10 @@
       "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
       "passable": false,
       "rect": [
-        3576,
+        3575,
         11,
-        100,
-        92
+        101,
+        91
       ],
       "validOn": [
         "layer:ground",
