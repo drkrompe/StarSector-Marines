@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
@@ -489,6 +491,16 @@ public final class CordonSetup {
     /** The Cordon battle on a map already generated, the company's commander playing {@code posture}. */
     public static BattleSimulation create(CordonMap cordon, CordonVariant variant, List<ShuttleAssignment> manifest,
                                           CordonSequence.Timetable timetable, CordonPosture posture) {
+        return create(cordon, variant, manifest, timetable, posture, MechDropDeclaration.NONE);
+    }
+
+    /**
+     * As above, with the mech lances {@code mechDrops} lets the company call; a DEBUG-stated call lands under the
+     * company's commander, at the middle of its landing pads.
+     */
+    public static BattleSimulation create(CordonMap cordon, CordonVariant variant, List<ShuttleAssignment> manifest,
+                                          CordonSequence.Timetable timetable, CordonPosture posture,
+                                          MechDropDeclaration mechDrops) {
         MapResult map = cordon.map();
         Random rng = new Random(cordon.battleSeed());
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
@@ -498,8 +510,10 @@ public final class CordonSetup {
                 Collections.emptyList(), cordon.battleSeed()).sim();
         sim.setSurface(BattleSetup.surfaceOf(country(cordon.biome())));
         BattleSetup.recordLzPads(sim, pads);
+        // The Cordon is fought late in the campaign: the company it stands up is a well-found one.
         BattleSetup.landCompany(sim, pads, manifest, rng,
-                SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
+                SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"),
+                InfantryLoadoutRolls::lateCampaignSquad);
         List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, map, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
         List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
@@ -556,6 +570,10 @@ public final class CordonSetup {
         sim.setAutonomousCommander(Faction.MARINE,
                 new CordonCommand(WIDTH / 2, reserveY, cordon.density(), logistics, strikes),
                 CordonCommand.disclosure(sequence));
+        sim.setMechDrops(new MechDropService(mechDrops));
+        sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company mech lance"),
+                () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
         CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,
                 cordon.corridor(), cordon.battleSeed());
         return sim;
