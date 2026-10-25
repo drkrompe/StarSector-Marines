@@ -1,7 +1,7 @@
 # Town plan
 
-Status: IN PROGRESS — frontage rows and town blocks are built; the planned zoning (a centre, a high-street
-ring, an industrial edge) remains.
+Status: IN PROGRESS — frontage rows, town blocks and the planned zoning (a civic core, a high-street ring, an
+industrial edge) are built; the owner's look review of the planned zoning remains.
 
 Written: 2026-10-25
 
@@ -100,23 +100,41 @@ members a side. Joining after the claims keeps them all where they were.
 Look: `createSnapshots -Psnapshot=town-plan-look` (cities 12, 13, 19; colonies 1, 4, 8; play zoom, and close
 with roofs off, centred on main street).
 
-## Next: the planned zoning
+## Built: the planned zoning
 
-The stock city's theme grid is noise with one civic nudge: its civic and mixed blocks are a few scattered
-cells, and its industrial lots fall wherever the roll put them. For a map with no precincts the zoning is
-planned rather than rolled, the way a precinct's character already plans its own place:
+The stock city's theme grid was noise with one civic nudge: its civic and mixed blocks a few scattered cells,
+its industrial lots wherever the roll put them. For a map that is one settlement (no precincts) the zoning is
+now planned over the roll (`TownZoning`), the way a precinct's character already plans its own place:
 
-- **Centre**: the blocks touching the trunk crossing are the civic core (up to two by two).
-- **High street ring**: blocks beside the core are mixed town, where main street and the market square stand.
-- **Industrial edge**: one map edge, the one the main trunk leaves by, is the industrial belt (the coast keeps
-  its waterfront).
-- **Residential rings**: the rest rolls as today, leaning residential inward and outskirts at the edge.
+- **Civic core**: the block holding the trunk crossing and its neighbours toward the crossing's nearer block
+  corner, two by two.
+- **High street ring**: every block beside the core is mixed town, where main street and the market square
+  find their pocket.
+- **Industrial edge**: the map edge farthest from the core is the industrial belt, two blocks deep so the
+  industrial zone's service street can be lined from both sides. The coast keeps its waterfront everywhere.
+- **Elsewhere** the roll stands, but a town has one centre and one industrial edge: a civic block away from
+  the core becomes homes, and an industrial block becomes homes unless it touches the belt, which it then
+  extends.
 
-It is a law of the plan that the pockets it makes are big enough for a district: the core and ring together
-hold a spine of two members a side, and the industrial edge a service street with its yards. Measured as the
-largest civic or mixed group, the industrial pocket's size, and main street's and the industrial zone's
-coverage on 24 stock cities. It moves every stock and grown city's labels, so the district sessions reading
-pockets are told before it lands and `storyMapPools` is run.
+The plan draws no random number, so the roll and every stage after it see the same stream. Measured on 24
+stock medium cities (precinct maps, colonies among them, are unchanged):
+
+| measure | rolled | planned |
+|---|---|---|
+| civic or mixed blocks per map | 6.3 | 12.5 |
+| largest connected civic or mixed group | 3.9 | 12.3 |
+| industrial blocks per map | 5.0 | 6.9 |
+| largest connected industrial group | 3.1 | 6.8 |
+| main street stands | 15 of 24 | 14 of 24 |
+| cordoned facility stands | 11 of 24 | 14 of 24 |
+| industrial zone stands (hosting a freight yard) | 4 (3) of 24 | 3 (2) of 24 |
+
+Industry is one place rather than three or four scattered blocks. **Tried and dropped: a one-block belt**
+(two deep only in an industrial economy): the civic centre was the same, main street stood on 16 and the
+facility on 13, but the industrial zone fell to 1 of 24 with no freight yard, because an edge one block deep
+seldom lines a service street from both sides. The plan moves every stock and grown city's labels and
+pockets (the `Request.pocket()` contract is unchanged); every story map pool
+still passes. Look: the same suite adds a whole-town still for each city.
 
 ## Acceptance
 
@@ -125,4 +143,6 @@ pockets are told before it lands and `storyMapPools` is run.
   each under a second: `FrontageRowTest`, `TownBlockStageTest`.
 - Before and after look stills on the same seeds at 1920x1080 from the look preset.
 - `storyMapPools` passes, swapped seeds named.
-- Measured: the table above for rows and blocks; main street coverage for the planned zoning.
+- Measured: the tables above for rows, blocks and the planned zoning.
+- Unit tests for the zoning plan (core, ring, belt; deep belt; one centre and industry only on the belt over
+  rolled maps): `TownZoningTest`.

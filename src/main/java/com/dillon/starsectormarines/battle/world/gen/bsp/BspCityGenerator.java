@@ -42,6 +42,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.PlazaFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialZoneFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialZoneProgram;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportDistrictFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WaterfrontFiller;
@@ -141,7 +143,7 @@ public final class BspCityGenerator implements MapGenerator {
      * before them left; each has its compound filler registered under its kind.
      */
     private static final List<DistrictProgram> DISTRICT_PROGRAMS = List.of(new MainStreetProgram(),
-            new CordonedFacilityProgram());
+            new CordonedFacilityProgram(), new IndustrialZoneProgram());
 
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CompoundFiller> compoundFillers = new EnumMap<>(BlockKind.class);
@@ -196,6 +198,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new FactoryRowFiller());
         registerCompound(new MainStreetFiller());
         registerCompound(new CordonedFacilityFiller());
+        registerCompound(new IndustrialZoneFiller());
         registerCompound(new MedicalCampusFiller());
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
@@ -874,7 +877,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withOpenSquares(ctx.openSquares)
                 .withServiceLanes(ctx.serviceLanes)
                 .withMainStreets(ctx.mainStreets)
-                .withCordonedFacilities(ctx.cordonedFacilities);
+                .withCordonedFacilities(ctx.cordonedFacilities)
+                .withIndustrialZones(ctx.industrialZones);
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

@@ -26,13 +26,14 @@ import java.util.List;
  * One wall runs round the quarter's outer rim, the precinct wall's stuff ({@link InstallationWalls#PERIMETER},
  * {@link CompoundWallApertures} slits, turreted corners as on a military base), at the strength the
  * facility's character asks ({@link Fortification#GARRISON}, or a colony's civil wall for a civil-defence
- * centre). Each gatehouse is a solid block either side of the lane its program kept, with a sandbag course
- * inside it facing out. The inner streets are the facility's own: paved city street, kept clear for vehicles
- * on the road reservation, with barriers at their kerbs. Every building faces the main cross street with its
+ * centre). Each gatehouse is a solid block either side of the lane its program kept, a boom gate across the lane
+ * just inside it beside a sandbag course facing out, and bollards before its jambs where the street outside
+ * allows ({@link StreetDressing}). The inner streets are the facility's own: paved city street, kept clear for
+ * vehicles on the road reservation, with hedgehogs and street lamps by turns at their kerbs. Every building faces the main cross street with its
  * doors and windows there and blank walls elsewhere, standing back from the wall behind an apron: the admin
  * block, the labs or workshops, and a vehicle shed with a forecourt of parked vehicles. The yard is
- * hardstanding of vehicles and stores, the courtyard an open paved square. Street lamps and boom gates have no
- * art yet. Draws only from the map's random stream, inside the shell carves.
+ * hardstanding of vehicles and stores, the courtyard an open paved square. Draws only from the map's random
+ * stream, inside the shell carves.
  */
 final class CordonedFacilityLayout {
 
@@ -84,7 +85,10 @@ final class CordonedFacilityLayout {
         int hp = character == CordonedFacility.Character.CIVIL_DEFENCE
                 ? CivilDefenceCompound.WALL_HP : Fortification.GARRISON.wallHp();
         List<CordonedFacility.Gatehouse> gatehouses = wall(c, q, gates, road, hp);
-        for (CordonedFacilityProgram.Gate g : gates) sandbags(c, g, road, reservation, registry);
+        for (CordonedFacilityProgram.Gate g : gates) {
+            checkpoint(c, g, road, reservation);
+            sandbags(c, g, road, reservation, registry);
+        }
         barriers(c, q, road, reservation, gates, registry);
 
         CordonedFacility facility = new CordonedFacility(character, b[0], b[1], b[2], b[3], gatehouses,
@@ -349,8 +353,35 @@ final class CordonedFacilityLayout {
     }
 
     /**
+     * A gatehouse's checkpoint: a boom gate on the first row inside, its post on open ground beside the lane (street
+     * or pavement) on the first side off the road reservation and its arm across the lane, and a bollard before each
+     * jamb on the street outside wherever that is off the reservation.
+     */
+    private static void checkpoint(GenContext c, CordonedFacilityProgram.Gate g, boolean[][] road,
+                                   boolean[][] reservation) {
+        int in = g.wall() + g.inward() * CordonedFacilityProgram.GATEHOUSE_DEPTH, out = g.wall() - g.inward();
+        for (int side : new int[]{-1, 1}) {
+            int post = side < 0 ? g.laneLo() - 1 : g.laneHi() + 1;
+            if (!freeGround(c, reservation, g.x(in, post), g.y(in, post))) continue;
+            int dx = g.x(in, post - side) - g.x(in, post), dy = g.y(in, post - side) - g.y(in, post);
+            StreetDressing.boomGate(c.grid, c.topology, c.doodads, g.x(in, post), g.y(in, post), dx, dy);
+            break;
+        }
+        for (int cc : new int[]{g.laneLo() - 1, g.laneHi() + 1}) {
+            int x = g.x(out, cc), y = g.y(out, cc);
+            if (road[x][y] && freeGround(c, reservation, x, y)) StreetDressing.bollard(c.grid, c.topology, c.doodads, x, y);
+        }
+    }
+
+    /** Whether a cell is open ground on the map, off the road reservation, with nothing standing on it. */
+    private static boolean freeGround(GenContext c, boolean[][] reservation, int x, int y) {
+        if (x < 0 || y < 0 || x >= c.width || y >= c.height) return false;
+        return (reservation == null || !reservation[x][y]) && c.grid.isWalkable(x, y) && !c.topology.isFixture(x, y);
+    }
+
+    /**
      * A sandbag course behind a gatehouse, facing out: across the street's width beside the lane, the first
-     * row inside the gatehouse, wherever the street there is off the road reservation.
+     * row inside the gatehouse, wherever the street there is off the road reservation and no boom gate stands.
      */
     private static void sandbags(GenContext c, CordonedFacilityProgram.Gate g, boolean[][] road,
                                  boolean[][] reservation, TileRegistry registry) {
@@ -360,14 +391,15 @@ final class CordonedFacilityLayout {
         for (int cc = g.lo(); cc <= g.hi(); cc++) {
             if (cc >= g.laneLo() && cc <= g.laneHi()) continue;
             int x = g.x(a, cc), y = g.y(a, cc);
-            if (!road[x][y] || (reservation != null && reservation[x][y])) continue;
+            if (!road[x][y] || (reservation != null && reservation[x][y]) || c.topology.isFixture(x, y)) continue;
             solid(c, x, y, bag);
         }
     }
 
     /**
-     * Barriers at the inner streets' kerbs: a hedgehog every {@link #BARRIER_RHYTHM} cells along each kerb row
-     * the reservation leaves, clear of the gatehouses and the crossings.
+     * Barriers at the inner streets' kerbs: a hedgehog and a street lamp by turns every {@link #BARRIER_RHYTHM}
+     * cells along each kerb row the reservation leaves, clear of the gatehouses and the crossings, each lamp's arm
+     * over the street.
      */
     private static void barriers(GenContext c, QuarterClaim.Quarter q, boolean[][] road, boolean[][] reservation,
                                  List<CordonedFacilityProgram.Gate> gates, TileRegistry registry) {
@@ -382,10 +414,16 @@ final class CordonedFacilityLayout {
             if (hi - lo + 1 <= CordonedFacilityProgram.LANE) continue;
             int clear = CordonedFacilityProgram.GATEHOUSE_DEPTH + 2;
             for (int kerb : new int[]{lo, hi}) {
+                int out = kerb == lo ? 1 : -1, beat = 0;
                 for (int a = first + clear; a <= last - clear; a += BARRIER_RHYTHM) {
                     int x = alongX ? a : kerb, y = alongX ? kerb : a;
                     if (!road[x][y] || (reservation != null && reservation[x][y]) || crossing(q, x, y, s)) continue;
-                    solid(c, x, y, hedgehog);
+                    if (beat++ % 2 == 0) {
+                        solid(c, x, y, hedgehog);
+                    } else {
+                        StreetDressing.lamp(c.grid, c.topology, c.doodads, StreetDressing.LAMP_INDUSTRIAL, x, y,
+                                alongX ? 0 : out, alongX ? out : 0);
+                    }
                 }
             }
         }

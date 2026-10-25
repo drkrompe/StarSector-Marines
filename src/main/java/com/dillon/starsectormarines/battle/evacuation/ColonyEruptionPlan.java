@@ -65,8 +65,12 @@ public final class ColonyEruptionPlan {
     public static final int FIRST_WAVE_SITES = 4;
     /** Seconds after the tremor, at landfall, that the mother bore opens. */
     public static final float MOTHER_ERUPTION_SECONDS = 300f;
-    /** A flank site stands at least this far off the field's inward line, as a share of its distance from the field. */
-    static final float FLANK_SHARE = 0.4f;
+    /**
+     * A flank site stands at least this many site spacings off the line from the field in to the shelter, so the
+     * company's walk in is a street, not a gauntlet between two bores (owner, 2026-10-25: "bores need to be placed
+     * further out").
+     */
+    static final int CORRIDOR_SPACINGS = 2;
     /** Cells of open ground searched around a building's door for a site. */
     private static final int DOORSTEP_RADIUS = 3;
 
@@ -206,6 +210,11 @@ public final class ColonyEruptionPlan {
         return Math.max(10, Math.min(width, height) / 8);
     }
 
+    /** How far off the line from the field in to the shelter a flank site stands: {@link #CORRIDOR_SPACINGS} spacings. */
+    static int corridor(int width, int height) {
+        return CORRIDOR_SPACINGS * siteSpacing(width, height);
+    }
+
     /** How far a site keeps from the shelter. */
     static int shelterClearance(int width, int height) {
         return Math.max(CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS + 3,
@@ -227,7 +236,7 @@ public final class ColonyEruptionPlan {
      *
      * <p>Order of seating: half the wave on each flank of the landing field
      * (a place off the line from the field in to the shelter by at least
-     * {@link #FLANK_SHARE} of its distance), nearest the field first, the seed
+     * {@link #corridor} cells), nearest the field first, the seed
      * shuffling places within a site's spacing; then whatever flank place is
      * left, then the outskirts straight ahead of the field. The mother last:
      * the place spaced from the rest standing furthest out along a flank, the
@@ -282,14 +291,14 @@ public final class ColonyEruptionPlan {
             ux /= ul;
             uy /= ul;
         }
+        int corridor = corridor(g.width(), g.height());
         List<int[]> left = new ArrayList<>();
         List<int[]> right = new ArrayList<>();
         List<int[]> ahead = new ArrayList<>();
         for (int[] c : eligible) {
             float px = c[0] - fx, py = c[1] - fy;
             float across = ux * py - uy * px;
-            float distance = (float) Math.sqrt(px * px + py * py);
-            if (Math.abs(across) < distance * FLANK_SHARE) ahead.add(c);
+            if (Math.abs(across) < corridor) ahead.add(c);
             else if (across >= 0f) left.add(c);
             else right.add(c);
         }
