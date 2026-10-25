@@ -47,6 +47,9 @@ exchange among named characters; it does not make procedural reports omniscient.
    No axis may smuggle facts owned by another one.
 6. Narrative presentation is observation and correspondence only: it does not
    change contracts, reputation, economy, Chronicle history, or moral state.
+7. Characters never say a game mission or chapter title (owner). Speech names
+   what the company did, in a phrase: "the convoy", "the depot", "the junction".
+   Titles belong to interface labels, not to anyone in the world.
 
 ## Flow and boundaries
 

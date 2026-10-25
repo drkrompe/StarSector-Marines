@@ -49,7 +49,7 @@ public final class DistrictPlanStage implements GenStage {
         for (DistrictProgram program : programs) {
             DistrictProgram.Request request = program.request(ctx);
             if (request == null) continue;
-            DistrictClaim claim = find(request, partition);
+            DistrictClaim claim = find(request, partition, trunks);
             if (claim == null) continue;
             DistrictProgram.Plan plan = program.plan(claim, partition.roadCells, ctx);
             if (plan == null) continue;
@@ -62,14 +62,26 @@ public final class DistrictPlanStage implements GenStage {
         }
     }
 
-    private static DistrictClaim find(DistrictProgram.Request request, Bsp.Partition partition) {
+    private static DistrictClaim find(DistrictProgram.Request request, Bsp.Partition partition,
+                                      TrunkPlan.Plan trunks) {
         if (request instanceof DistrictProgram.SpineRequest spine) {
             return SpineClaim.find(partition.leaves, partition.roadCells, spine.eligible(), spine.pocket(),
                     spine.spec());
         }
         DistrictProgram.QuarterRequest quarter = (DistrictProgram.QuarterRequest) request;
-        return QuarterClaim.find(partition.leaves, partition.roadCells, quarter.eligible(), quarter.pocket(),
-                quarter.spec());
+        return QuarterClaim.find(partition.leaves, partition.roadCells, trunkCells(trunks, partition),
+                quarter.eligible(), quarter.pocket(), quarter.spec());
+    }
+
+    /** The cells inside a trunk's band: a quarter never takes one as its own street. */
+    private static boolean[][] trunkCells(TrunkPlan.Plan trunks, Bsp.Partition partition) {
+        boolean[][] cells = new boolean[partition.width][partition.height];
+        for (TrunkPlan.TrunkSegment t : trunks.trunks) {
+            for (int x = Math.max(0, t.left); x <= Math.min(partition.width - 1, t.right); x++) {
+                for (int y = Math.max(0, t.top); y <= Math.min(partition.height - 1, t.bottom); y++) cells[x][y] = true;
+            }
+        }
+        return cells;
     }
 
     /** Whether the plan changes a street cell inside a trunk's band. */

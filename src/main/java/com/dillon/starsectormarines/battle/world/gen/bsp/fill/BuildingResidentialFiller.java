@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 
 /**
@@ -17,7 +19,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
  * large: the apartment plan with its common hall belongs to
  * {@link GatedHousingFiller}'s compounds alone.
  *
- * <p>Fitting lots also draw from {@link BuildingStamp}'s rotated authored plans.
+ * <p>In a terraced or mixed town an ordinary lot is a {@link FrontageRow} of homes along its street instead.
+ * Fitting lots also draw from {@link BuildingStamp}'s rotated authored plans.
  * The procedural alternatives are carved by {@link BuildingShellCore}.
  */
 public final class BuildingResidentialFiller implements BlockFiller {
@@ -35,6 +38,8 @@ public final class BuildingResidentialFiller implements BlockFiller {
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
         BuildingPlacement.Side front=streetFrontage(leaf,ctx);
+        if (leaf.kind == BlockKind.BUILDING_RESIDENTIAL && FrontageRow.place(leaf, ctx, front,
+                FrontageRow.forHomes(theme(leaf, ctx)), HOME_CONFIG, streetBehind(leaf, ctx, front))) return;
         if (LotYardTemplate.tryPlace(leaf,ctx,HOME_CONFIG,front)) return;
         if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.RESIDENTIAL)) return;
         BuildingPlacement placement = new BuildingPlacement(front, true);
@@ -59,6 +64,26 @@ public final class BuildingResidentialFiller implements BlockFiller {
             }
         }
         return best;
+    }
+
+    /**
+     * The zoning theme an ordinary lot stands in, or null where the map is zoned by biome bands (Conquest),
+     * whose lots keep the buildings they had.
+     */
+    static MapDistrictTheme theme(BlockLeaf leaf, GenContext ctx) {
+        DistrictMap districts = ctx.get(BspKeys.DISTRICT_MAP);
+        if (districts == null || ctx.get(BspKeys.BIOME_MAP) != null) return null;
+        return districts.themeAt(leaf.centerX(), leaf.centerY());
+    }
+
+    /** Whether at least half of the lot's back edge, opposite {@code front}, is street a rear row can face. */
+    static boolean streetBehind(BlockLeaf leaf, GenContext ctx, BuildingPlacement.Side front) {
+        boolean[][] roads = ctx.get(BspKeys.ROAD_CELLS);
+        if (roads == null) return false;
+        BuildingPlacement.Side back = front.opposite();
+        int length = back == BuildingPlacement.Side.TOP || back == BuildingPlacement.Side.BOTTOM
+                ? leaf.width() - 2 : leaf.height() - 2;
+        return 2 * roadExposure(leaf, back, roads) >= length;
     }
 
     private static int roadExposure(BlockLeaf leaf, BuildingPlacement.Side side,

@@ -934,8 +934,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public ColonyBreachSequence getColonyBreach() { return colonyBreach; }
     /**
      * Installs the Colony Breach story over an installed rescue: the breach
-     * clock, the eruption schedule and its beats. The swarm director starts in
-     * perimeter seepage and leaves it at the tremor.
+     * clock, the eruption schedule and its beats. The breach starts with the
+     * battle, so the director leaves its perimeter seepage on the first tick and
+     * spawns only from the bores.
      */
     public void installColonyBreach(ColonyEruptionPlan plan, List<Long> colonists) {
         if (simTickIndex != 0 || colonyBreach != null || lastLiftAttempt != null || openingStory != null
@@ -946,6 +947,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         colonyBreach = new ColonyBreachSequence(plan, colonists, storyBeats);
         colonyBreach.setEruptionHandler((sim, site, tick) ->
                 sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
+        // Fed, the bores bud further in, toward the shelter at the town's heart.
+        swarmBores.budInward(plan.places(), plan.heartX(), plan.heartY(), plan.spacing(), plan.firstWaveCount() + 1);
         swarmReinforcements.beginSeepage();
     }
     private ColonyLivingField colonyLivingField;
@@ -1745,7 +1748,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, hullSightings,
-                (side, x, y) -> commsSees(side, x, y)));
+                (side, x, y) -> commsSees(side, x, y), swarmHarvest::holdsStill));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             if (applyingInitialDamage) return;

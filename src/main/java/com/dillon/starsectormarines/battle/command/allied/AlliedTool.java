@@ -7,5 +7,7 @@ public enum AlliedTool {
     COLUMN,
     MECH_LANCE,
     AMMO_TRUCK,
-    GUNSHIP
+    GUNSHIP,
+    /** An LRM carrier and a mortar carrier: indirect fire for a lane, on its spotters' calls (`heart-allied-tools-next.md`). */
+    FIRE_SECTION
 }

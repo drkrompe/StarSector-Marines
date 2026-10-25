@@ -223,7 +223,9 @@ class HeartEvidenceTest {
                 .put("skitterers", sim.swarmWorkers().summary(sim))
                 .put("bores", bores).put("beats", beats).put("objectives", objectives(sim))
                 .put("vehicleOrders", vehicleOrders)
-                .put("boreAssault", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().assaultLine());
+                .put("boreAssault", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().assaultLine())
+                .put("noRouteBy", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().noRouteLine(sim))
+                .put("sectionLog", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().sectionLogLine(sim));
     }
 
     /** How each optional objective came out, by key. */
@@ -260,7 +262,9 @@ class HeartEvidenceTest {
         md.append("\nVehicle orders: ").append(orders.getInt("accepted")).append(" accepted, ")
                 .append(orders.getInt("arrived")).append(" arrived, ").append(orders.getInt("noRoute"))
                 .append(" refused for no route, ").append(orders.getInt("gaveUp")).append(" given up.\n")
-                .append("\nBore assaults: ").append(s.optString("boreAssault", "—")).append(".\n");
+                .append("\nRefused for no route, by hull: ").append(s.optString("noRouteBy", "—")).append(".\n")
+                .append("\nBore assaults: ").append(s.optString("boreAssault", "—")).append(".\n")
+                .append("\nFire-section carriers: ").append(s.optString("sectionLog", "—")).append(".\n");
         JSONObject objectives = s.getJSONObject("objectives");
         if (objectives.length() > 0) {
             md.append("\n## Objectives\n\n");

@@ -167,6 +167,10 @@ public final class SwarmHarvest {
     private final List<Long> airFallen = new ArrayList<>();
     /** Runners of a scavenger pack: they fetch the swarm's dead before they fight. */
     private final Set<Long> scavengers = new HashSet<>();
+    /** Runners of a forager pack: a young bore's hunters, sent into the town after the colony's people. */
+    private final Set<Long> foragers = new HashSet<>();
+    /** The colony's people a forager may hunt, gathered once a tick ({@link #forage}). */
+    private final List<Long> forage = new ArrayList<>();
     /** Carrier to load, in the order they were seized. */
     private final LinkedHashMap<Long, Long> loads = new LinkedHashMap<>();
     /** Carrier to the share of its own pace it drags at, by its stage. */
@@ -336,6 +340,31 @@ public final class SwarmHarvest {
         int count = 0;
         for (long body : loose) if (sim.world().hasPosition(body) && isRavBody(sim, body)) count++;
         return count;
+    }
+
+    /** Marks a Runner as one of a forager pack. Called serially, as a surge releases it. */
+    public void markForager(long runner) { foragers.add(runner); }
+
+    /** Whether this Runner came out of its bore in a forager pack. */
+    public boolean isForager(long runner) { return foragers.contains(runner); }
+
+    /**
+     * The colony's people a forager may hunt this tick: every living civilian harvest takes ({@link #harvestable}, so
+     * never an evacuee under escort) and nothing holds. Gathered serially once a tick while harvest is open; read
+     * from the parallel update.
+     */
+    public List<Long> forage() { return Collections.unmodifiableList(forage); }
+
+    private void gatherForage(BattleSimulation sim) {
+        forage.clear();
+        if (!open) return;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.CIVILIAN || carriers.containsKey(u) || !sim.world().isAlive(u)) {
+                continue;
+            }
+            if (harvestable(sim, u)) forage.add(u);
+        }
     }
 
     /** Marks a Runner as one of a scavenger pack. Called serially, as a surge releases it. */
@@ -520,6 +549,7 @@ public final class SwarmHarvest {
         airStrikes.clear();
         airFallen.clear();
         open = enabled && boreLives;
+        gatherForage(sim);
     }
 
     /** The carrier slow-down, as a stat modifier on the carrier. */

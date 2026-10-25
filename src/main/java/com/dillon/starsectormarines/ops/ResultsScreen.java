@@ -228,7 +228,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             String report = outcome.victory
                     ? Strings.format("resultsScreenSupplyConfirmed", outcome.payoutEarned)
                     : Strings.get("resultsScreenSupplyWithdrawn");
-            if (outcome.freightOutcome != null) {
+            if (outcome.freightOutcome != null && !outcome.victory) {
+                report += " " + Strings.get("resultsScreenFreightRetry");
+            } else if (outcome.freightOutcome != null) {
                 var freight = outcome.freightOutcome;
                 int waiting = freight.attempt().cargo().size() - freight.delivered().size() - freight.lost().size();
                 report += " " + Strings.format(waiting > 0

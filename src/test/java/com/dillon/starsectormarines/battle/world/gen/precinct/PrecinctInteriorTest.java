@@ -61,7 +61,8 @@ class PrecinctInteriorTest {
         for (PointOfInterest poi : map.pointsOfInterest) {
             int nearer = Math.abs(poi.centerX() - WEST_X) <= Math.abs(poi.centerX() - EAST_X)
                     ? 0 : 1;
-            mixes[nearer].merge(poi.kind, 1, Integer::sum);
+            // Weighed by ground, not counted: a terrace is one lot cut into several homes.
+            mixes[nearer].merge(poi.kind, (poi.right - poi.left + 1) * (poi.bottom - poi.top + 1), Integer::sum);
         }
         return mixes;
     }
