@@ -42,7 +42,8 @@ otherwise; read-only investigation does not need one.
    session's branch or worktree.
 4. Before integrating: `git fetch origin`, `git merge main`,
    `git merge origin/main` in the worktree, resolve conflicts there, and re-run
-   the relevant verification.
+   the relevant verification: the tests your change touches, never the full
+   suite (see Tests).
 5. Integrate with `powershell -File tools/integrate.ps1 <branch>`
    (`tools/integrate.sh` on the Mac). It checks the main workspace, fast-forwards
    `main`, pushes `origin` and then `hub`, and stops at the first failure. If it
@@ -101,7 +102,9 @@ The full procedure (Drive layout, pruning, previews, the picks page and its
 - The toolchain is JDK 25; bytecode targets **Java 17** (`--release 17`). The
   game runs Zulu 17 with `--enable-preview`: no language features newer than 17,
   no preview features at compile time.
-- `gradlew.bat build` writes `mod/jars/StarsectorMarines.jar` directly.
+- `gradlew.bat shadowJar` writes `mod/jars/StarsectorMarines.jar` directly.
+  `build` and `check` also run the whole test suite and are expensive, so
+  sessions do not use them (see Tests).
 - `gradlew.bat deployMod` syncs `mod/` into the game (needs `ffmpeg` for sounds);
   `gradlew.bat runStarsector` deploys and launches it, recording the exit status
   and JVM output under `build/starsector-run/`; `gradlew.bat packageRelease`
@@ -138,7 +141,8 @@ its doc for flags and outputs.
 - **`createSnapshots` is the only visual-evidence task.** A new kind of picture
   is a `SnapshotSuite` registered through `META-INF/services`, never a new Gradle
   task. Snapshot and tool code never enters the shipped jar;
-  `verifyModJarBoundary` (part of `check`) enforces it.
+  `verifyModJarBoundary` (part of `check`; run it directly when a change
+  touches snapshot or tool code) enforces it.
 - **Control runs, not old commits.** `-Dbattle.*` switches are forwarded into
   every Test fork and `createSnapshots`, so a control is the same command with
   one switch off. A commit-to-commit comparison measures every other change too.
@@ -167,6 +171,11 @@ or a renderer is not a unit test and does not belong in `test`.
 - **Minimize end-to-end tests** (owner). Prove a rule where it is decided, and
   structure code so it can be; measure a change whose failure mode is a logged
   fallback rather than gating it on a played battle.
+- **Run only the tests your change touches** (owner): `gradlew.bat test --tests
+  <Class>` for the classes covering the code you edited. Never run `check`,
+  `build` or the whole `test` task, not even before integrating; the full suite
+  is expensive and is not a session's job. Say in the commit or report which
+  classes you ran.
 - Not tests, so not in `test`: mission and battle runs (they belong in an
   evidence task), and rendering or pixel comparison (a `SnapshotSuite`, or
   `shaderEvidence` / `renderEvidence`). Existing slow tests are not a pattern

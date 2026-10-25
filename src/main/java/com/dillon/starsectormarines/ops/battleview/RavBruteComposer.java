@@ -47,12 +47,23 @@ final class RavBruteComposer {
      * @param ppc screen px per cell
      */
     static void emit(DrawList out, RavBruteAssets art, RavBruteRig rig, float cx, float cy, float ppc, float alpha) {
-        emit(units(out), art, rig, cx, cy, ppc, alpha);
+        emit(units(out), art, rig, cx, cy, ppc, alpha, null);
+    }
+
+    /** As above, with its worn chitin laid on each half and its head as each is drawn ({@code marks} null for none). */
+    static void emit(DrawList out, RavBruteAssets art, RavBruteRig rig, float cx, float cy, float ppc, float alpha,
+                     RavWear.Marks marks) {
+        emit(units(out), art, rig, cx, cy, ppc, alpha, marks);
     }
 
     /** The same composition into any emitter, so an art review draws exactly what the battle draws. */
     static void emit(LayeredUnitComposer.SpriteEmitter out, RavBruteAssets art, RavBruteRig rig, float cx, float cy,
                      float ppc, float alpha) {
+        emit(out, art, rig, cx, cy, ppc, alpha, null);
+    }
+
+    static void emit(LayeredUnitComposer.SpriteEmitter out, RavBruteAssets art, RavBruteRig rig, float cx, float cy,
+                     float ppc, float alpha, RavWear.Marks marks) {
         float facing = rig.facingDegrees();
         double rad = Math.toRadians(facing);
         float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
@@ -97,6 +108,9 @@ final class RavBruteComposer {
         out.add(art.bodyRear, a[0], a[1], art.bodyRear.pxWidth * k,
                 art.bodyRear.pxHeight * spritePx * (float) Math.hypot(rX, rY) * U,
                 facing + (float) Math.toDegrees(Math.atan2(-rX, rY)), 1f, 1f, 1f, alpha);
+        if (marks != null) marks.part(art.bodyRear, RavWear.BRUTE_HALF, 0, a[0], a[1], art.bodyRear.pxWidth * k,
+                art.bodyRear.pxHeight * spritePx * (float) Math.hypot(rX, rY) * U,
+                facing + (float) Math.toDegrees(Math.atan2(-rX, rY)), alpha);
         float shX = rig.x(RavBruteRig.SHOULDER), shY = rig.y(RavBruteRig.SHOULDER);
         float frontSpan = SEAM_ROW - RavBruteRig.SHOULDER_ROW;
         float axX = (shX - rig.x(RavBruteRig.SEAM_FRONT)) / frontSpan;   // cells per layer row, toward the head
@@ -106,6 +120,8 @@ final class RavBruteComposer {
         out.add(art.bodyFront, a[0], a[1], art.bodyFront.pxWidth * k,
                 art.bodyFront.pxHeight * spritePx * (float) Math.hypot(axX, axY) * U,
                 bodyAngle, 1f, 1f, 1f, alpha);
+        if (marks != null) marks.part(art.bodyFront, RavWear.BRUTE_HALF, 1, a[0], a[1], art.bodyFront.pxWidth * k,
+                art.bodyFront.pxHeight * spritePx * (float) Math.hypot(axX, axY) * U, bodyAngle, alpha);
 
         // the head: slides along the axis by its dy, scales about the neck, and turns about it
         float hk = rig.headK();
@@ -119,6 +135,9 @@ final class RavBruteComposer {
         out.add(art.head, b[0] + ox * cos - oy * sin, b[1] + ox * sin + oy * cos,
                 art.head.pxWidth * k * hk, art.head.pxHeight * k * hk, bodyAngle + rig.headYaw(),
                 1f, 1f, 1f, alpha);
+        if (marks != null) marks.part(art.head, RavWear.BRUTE_HEAD, 2, b[0] + ox * cos - oy * sin,
+                b[1] + ox * sin + oy * cos, art.head.pxWidth * k * hk, art.head.pxHeight * k * hk,
+                bodyAngle + rig.headYaw(), alpha);
     }
 
     /**

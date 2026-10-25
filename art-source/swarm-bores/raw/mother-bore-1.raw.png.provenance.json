@@ -3,26 +3,26 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a15fd1-9f96-7b73-b4a5-f7ac938c26c5",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fd1-9f96-7b73-b4a5-f7ac938c26c5\\exec-4bf526ec-e489-46f2-9a23-c40e997f7760.png",
+  "thread": "01a17358-3b86-7e62-adb9-64323e32d3ea",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17358-3b86-7e62-adb9-64323e32d3ea\\exec-f7bb5c3c-bb52-42b6-86d2-ba10b6ca6adf.png",
   "otherImagesInThread": [],
   "output": {
-    "path": "art-source\\swarm-bores\\raw\\mother-bore-1.raw.png",
-    "sha256": "e0cc2d87861f33402c7105b506573042109c36c323add0eddc7020b18ab0d5db",
+    "path": "art-source\\swarm-bores\\raw\\options\\mother-bore-jaw-1.raw.png",
+    "sha256": "621fa3b883e0c0dd58cc4c6629e61c7c43219360cd56e83dbb3f6b8d8cbd44c0",
     "dimensions": [
       1254,
       1254
     ],
     "mode": "RGBA"
   },
-  "promptFile": "art-source\\swarm-bores\\prompts\\mother-bore.prompt.txt",
-  "promptSha256": "939089ee37361f4fb8cec3aff58dbec4837a0d7c3170c428fb041c65deb1f13f",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: the MOTHER BORE of the alien swarm for a top-down tactical game: the great hole the swarm first tore up through a human colony, at a slant, deeper and older than the others, through which its bodies pour out. Nothing about it is regular. One side has heaved up in two terraces: heavy chitin jaw-plates reared up at the lip with an inner rank of plates below them, many bone tusks of different lengths leaning over the hole, some snapped; paving slabs and soil thrown up and cracked. The opposite rim has collapsed: torn slumped plates, a broken berm, plates and slabs slid into the funnel. The pit is a very deep slanted shaft: the far wall, lower right, catches the sun as glistening ribbed flesh; the near wall falls into shadow; the throat's fleshy rings recede into darkness, and far down a pale limb is climbing and amber embers glow. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks, spines); dark grey-green tubes = sinew roots; brown = churned, thrown-up soil; pale grey-tan blocks = broken slabs of human colony paving, real concrete pavers with chipped edges; dusky mauve = wet dark flesh; orange-amber spots = glowing amber nodes, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown only about 60 to 160 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "promptFile": "art-source\\swarm-bores\\prompts\\mother-bore-jaw.prompt.txt",
+  "promptSha256": "65fe685298803b028b4b32b4a7c89dc942f42a58753fa6aa138105915e618d4b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: the MOTHER BORE of the alien swarm for a top-down tactical game: the root of the whole infestation, months old, where its reservoir deep under an old colony's workings breaks the surface. It must look far older, deeper and more menacing than an ordinary bore: an abyss, not a pit. The throat is a wide, very deep gullet of wet ribbed flesh: ring after ring of glistening fleshy ribs, with sinew cords running down its walls, descending into total darkness; the far wall (lower right) catches the sun, the near wall falls into shadow; far, far down a faint amber glow and a few embers show where the reservoir is, and a pale limb is climbing. Round it the colony's concrete paving has been heaved up in broken tilted slabs riding up the mound of thrown earth, and thick sinew roots run far out from it in every direction, branching as they go. Its body plan is a JAW: a ring of great curved bone tusks set round most of the rim, each its own length and hook, curving in over the hole like fangs of a jaw that has not closed, the dark showing between them; behind them heavy chitin jaw-plates reared up on the side where the ground rose. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Keep the throat as dark as the guide makes it: do not light up the abyss, do not fill it with detail it does not show. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks), smooth polished horn with growth rings, never striped or ribbed like a drill; dark grey-green tubes = sinew roots and cords; brown = churned, thrown-up soil; pale grey-tan tiles = broken slabs of human colony paving, real concrete pavers with chipped edges and cracks; dusky mauve = wet dark ribbed flesh; orange-amber spots and haze = glowing amber nodes and the reservoir's glow, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown about 150 to 350 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
   "adopted": false,
   "references": [
     {
-      "path": "art-source\\templates\\swarm-mother-bore-1-guide.png",
-      "sha256": "12fdbb43114f76857be136bc96a04154f47e7ac86c06b60180b098eabe07ede7",
+      "path": "art-source\\templates\\swarm-mother-bore-jaw-1-guide.png",
+      "sha256": "ff8c4ed1dd0559a6990e187c606c7c3961cd57db06fe21d572aeb2ab1fd02e23",
       "dimensions": [
         1024,
         1024
@@ -42,14 +42,14 @@
     }
   ],
   "agentMessages": [
-    "I’ll use the imagegen skill to reskin the guide, preserving its geometry and lighting while matching the swarm’s materials."
+    "I’ll use the image-generation tool to reskin the guide, preserving its geometry and lighting while matching the swarm’s materials."
   ],
   "usage": {
-    "input_tokens": 110089,
-    "cached_input_tokens": 90880,
+    "input_tokens": 44949,
+    "cached_input_tokens": 34944,
     "cache_write_input_tokens": 0,
-    "output_tokens": 938,
-    "reasoning_output_tokens": 29
+    "output_tokens": 700,
+    "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 101.3
+  "elapsedSeconds": 85.3
 }

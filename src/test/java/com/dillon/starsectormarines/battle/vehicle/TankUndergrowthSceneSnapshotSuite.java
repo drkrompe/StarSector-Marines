@@ -119,7 +119,8 @@ public final class TankUndergrowthSceneSnapshotSuite extends BehaviorSceneSnapsh
             BattleSimulation sim = world.sim();
             if (dead) {
                 float[] heart = placement.openNear((WOOD_X0 + WOOD_X1) / 2f, SHOT_H / 2f);
-                sim.creepField().putSource(CREEP_SOURCE, (int) heart[0], (int) heart[1], new CreepGrowth(.45f, 22f));
+                // Reaching past the wood, so no living tree is left to steer round and the tank fells dead wood.
+                sim.creepField().putSource(CREEP_SOURCE, (int) heart[0], (int) heart[1], new CreepGrowth(.45f, 40f));
                 sim.creepField().mature();
                 sim.creepVegetation().look(sim, 0);
             }

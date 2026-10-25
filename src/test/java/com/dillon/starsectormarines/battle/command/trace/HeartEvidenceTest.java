@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.evacuation.HarrierReading;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
@@ -14,6 +15,8 @@ import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.Refusal;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
@@ -114,6 +117,7 @@ class HeartEvidenceTest {
                     if (landfallTick < 0 && marinesAshore(sim)) landfallTick = sim.getSimTickIndex();
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+                if (run == 0) AirWingProbe.print(fixtureId, sim);
                 // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
                 ObjectiveBoard board = sim.getOptionalObjectives();
                 if (board != null) board.end(sim.getSimTickIndex());
@@ -198,6 +202,11 @@ class HeartEvidenceTest {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) == Faction.MARINE && !sim.identity().type(unit).isTurret()) marines++;
         }
+        VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
+        JSONObject vehicleOrders = new JSONObject()
+                .put("accepted", orders.acceptedCount()).put("arrived", orders.arrivedCount())
+                .put("noRoute", orders.refusalCount(Refusal.NO_ROUTE))
+                .put("gaveUp", orders.refusalCount(Refusal.GAVE_UP));
         return new JSONObject()
                 .put("form", form.name())
                 .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
@@ -210,8 +219,10 @@ class HeartEvidenceTest {
                 .put("marinesAlive", marines)
                 .put("directorReason", director == null ? "" : director.pressureReason())
                 .put("liveSwarm", director == null ? 0 : director.liveRunners())
+                .put("harriers", HarrierReading.line(sim))
                 .put("skitterers", sim.swarmWorkers().summary(sim))
-                .put("bores", bores).put("beats", beats).put("objectives", objectives(sim));
+                .put("bores", bores).put("beats", beats).put("objectives", objectives(sim))
+                .put("vehicleOrders", vehicleOrders);
     }
 
     /** How each optional objective came out, by key. */
@@ -233,6 +244,7 @@ class HeartEvidenceTest {
                 .append(s.getInt("marinesAlive")).append(" marines and ").append(s.getInt("liveSwarm"))
                 .append(" swarm left. Landfall at ").append(s.getInt("landfallTick")).append(".\n\n")
                 .append("Nests: ").append(s.optString("skitterers", "—")).append("\n\n")
+                .append("Harriers: ").append(s.optString("harriers")).append(".\n\n")
                 .append("| bore | cell | tier | integrity | surges | bodies | matriarch | collapsed |\n|---|---|---|---|---|---|---|---|\n");
         JSONArray bores = s.getJSONArray("bores");
         for (int i = 0; i < bores.length(); i++) {
@@ -243,6 +255,10 @@ class HeartEvidenceTest {
                     .append(" | ").append(b.getInt("surges")).append(" | ").append(b.getInt("bodiesSpawned"))
                     .append(" | ").append(b.getBoolean("matriarchReleased")).append(" | ").append(b.getInt("collapsedTick")).append(" |\n");
         }
+        JSONObject orders = s.getJSONObject("vehicleOrders");
+        md.append("\nVehicle orders: ").append(orders.getInt("accepted")).append(" accepted, ")
+                .append(orders.getInt("arrived")).append(" arrived, ").append(orders.getInt("noRoute"))
+                .append(" refused for no route, ").append(orders.getInt("gaveUp")).append(" given up.\n");
         JSONObject objectives = s.getJSONObject("objectives");
         if (objectives.length() > 0) {
             md.append("\n## Objectives\n\n");
