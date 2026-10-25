@@ -19,7 +19,9 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
  * lashes it forward and inward across the front past the crown, holds and recovers; the shoulders lunge
  * with it and wind against the blade, and the head turns toward it with its jaws open. A crown blow rocks
  * the body back onto its haunches with the crown up, then drives it forward and down. On emergence it
- * roars: the head rises, the jaws gape and the head shakes. Walking, it looks slowly left and right.
+ * roars: the head rises, the jaws gape and the head shakes. Walking, it looks slowly left and right. Faster, the
+ * walk lengthens into a run, on longer strides with less of each on the ground; before a run the crown dips and the
+ * jaws part.
  *
  * <p>Ported from the approved motion study 4, {@code art-source/rav-redesign/exploration/matriarch_skeleton.py}.
  */
@@ -36,7 +38,7 @@ public final class RavMatriarchRig {
             (255f - 512f) / U_LAYER, (775f - 512f) / U_LAYER};
 
     /** Actions, in the order of {@code MatriarchActions.Kind}. */
-    public static final int NONE = 0, ROAR = 1, REAP_RIGHT = 2, REAP_LEFT = 3, CROWN = 4;
+    public static final int NONE = 0, ROAR = 1, REAP_RIGHT = 2, REAP_LEFT = 3, CROWN = 4, RUN_TELL = 5;
     /** Scythe indices. */
     public static final int LEFT = 0, RIGHT = 1;
 
@@ -48,6 +50,12 @@ public final class RavMatriarchRig {
     /** A planted foot this far from under its root steps back under it, over STEP_SECONDS. */
     private static final float RESTEP_DISTANCE = 0.3f, STEP_SECONDS = 0.35f, STEP_LIFT = 0.1f;
     private static final float RUN = 0.6f;
+    // the run, blended in by speed: a longer stride on less of the ground, the feet lifted higher
+    private static final float RUN_STRIDE = 1.5f, RUN_DUTY = 0.5f, RUN_LIFT = 0.22f, RUN_SWAY = 1f;
+    /** Speeds (adult cells a second) the gait is all walk below and all run above, and how fast it changes. */
+    private static final float WALK_SPEED = 0.9f, RUN_SPEED = 3f, GAIT_SECONDS = 0.3f;
+    // the tell before a run: the crown lowers and the jaws part
+    static final float TELL_SECONDS = 0.6f;
 
     // a reap: wind, lash, hold, recover (seconds)
     static final float S_WIND = 0.30f, S_LASH = 0.13f, S_HOLD = 0.15f, S_BACK = 0.45f;
@@ -61,6 +69,8 @@ public final class RavMatriarchRig {
 
     private float bodyX, bodyY, facingDeg;
     private boolean started, walking, feetValid;
+    /** 0 a walk, 1 a run. */
+    private float gait;
     private float phi;
     private final float[] feet = new float[12];
     private final float[] stance = new float[4];
@@ -104,7 +114,8 @@ public final class RavMatriarchRig {
      * Advances the rig one tick.
      *
      * @param facing body facing in sprite degrees (0 north, counter-clockwise)
-     * @param action {@link #NONE}, {@link #ROAR}, {@link #REAP_RIGHT}, {@link #REAP_LEFT} or {@link #CROWN}
+     * @param action {@link #NONE}, {@link #ROAR}, {@link #REAP_RIGHT}, {@link #REAP_LEFT}, {@link #CROWN} or
+     *               {@link #RUN_TELL}
      * @param age    seconds since the action began
      */
     public void advance(float posX, float posY, float facing, int action, float age, float dt) {
@@ -132,7 +143,10 @@ public final class RavMatriarchRig {
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);
         float along = dx * fwdX + dy * fwdY;
         boolean walk = action == NONE && moved / dt >= STAND_BELOW;
-        if (walk) phi += along / STRIDE;
+        float gaitTarget = walk
+                ? Math.max(0f, Math.min(1f, (moved / dt - WALK_SPEED) / (RUN_SPEED - WALK_SPEED))) : 0f;
+        gait += (gaitTarget - gait) * (1f - (float) Math.exp(-dt / GAIT_SECONDS));
+        if (walk) phi += along / stride();
         if (walk && !walking && feetValid) {      // leave the plant by blending the feet onto the gait
             System.arraycopy(feet, 0, blendFrom, 0, 12);
             blendAge = 0f;
@@ -144,7 +158,7 @@ public final class RavMatriarchRig {
 
         float rate = 1f - (float) Math.exp(-dt / LOAD_SECONDS);
         for (int i = 0; i < 4; i++) load[i] += ((feet[i * 3 + 2] < 0.01f ? 1f : 0f) - load[i]) * rate;
-        float run = walk ? RUN : 0f;
+        float run = walk ? RUN + (RUN_SWAY - RUN) * gait : 0f;
         float pushL = push(2), pushR = push(3);
         float swayF = 0.07f * (load[1] - load[0]) * run;
         float swayH = 0.09f * (load[3] - load[2]) * run + 0.04f * run * (pushL - pushR);
@@ -167,6 +181,11 @@ public final class RavMatriarchRig {
             actionYaw = (side == RIGHT ? 1f : -1f) * 16f * RavRunnerRig.smooth(turn);
         } else if (action == CROWN) {
             lunge = shove(age);
+        } else if (action == RUN_TELL) {
+            float g = RavRunnerRig.smooth(Math.min(1f, age / (TELL_SECONDS * 0.5f)));
+            headDy = 16f * g;
+            lunge = -0.08f * g;
+            gape = g >= 0.5f;
         } else if (action == ROAR) {
             float g = (float) Math.sin(Math.PI * Math.min(1f, age / ROAR_SECONDS));
             headDy = -30f * g;
@@ -255,6 +274,11 @@ public final class RavMatriarchRig {
         return 0f;
     }
 
+    /** One cycle's stride, cells: the walk's, lengthening into the run's. */
+    private float stride() {
+        return STRIDE + (RUN_STRIDE - STRIDE) * gait;
+    }
+
     private float push(int leg) {
         return stance[leg] < 0f ? 0f : RavRunnerRig.smooth((stance[leg] - 0.6f) / 0.4f);
     }
@@ -263,16 +287,17 @@ public final class RavMatriarchRig {
         if (walking) {
             for (int i = 0; i < 4; i++) {
                 float u = frac(phi + OFFSET[i]);
-                float half = DUTY * STRIDE / 2;
+                float duty = DUTY + (RUN_DUTY - DUTY) * gait;
+                float half = duty * stride() / 2;
                 float fy, fz;
-                if (u < DUTY) {
-                    fy = half - (u / DUTY) * 2 * half;
+                if (u < duty) {
+                    fy = half - (u / duty) * 2 * half;
                     fz = 0f;
-                    stance[i] = u / DUTY;
+                    stance[i] = u / duty;
                 } else {
-                    float k = (u - DUTY) / (1 - DUTY);
+                    float k = (u - duty) / (1 - duty);
                     fy = -half + 2 * half * RavRunnerRig.smooth(k);
-                    fz = LIFT * (float) Math.sin(Math.PI * k);
+                    fz = (LIFT + (RUN_LIFT - LIFT) * gait) * (float) Math.sin(Math.PI * k);
                     stance[i] = -1f;
                 }
                 feet[i * 3] = FOOT_X[i];

@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -23,9 +22,8 @@ import java.util.function.LongConsumer;
  * squad's beliefs are written: the hull informs command, and a squad learns of what it saw by being ordered toward
  * it. It is not a combat buff — nothing it sees changes a hit roll.
  *
- * <p>What the player sees through a hull is not here. A hull is a fog contributor like a soldier or a mech
- * ({@code FogOfWarService#addHullContributor}), cached and refreshed by cohort. Only a sensor drone, which is no
- * contributor, is published to the fog from this tick.
+ * <p>What the player sees through a hull or a sensor drone is not here. Both are fog contributors like a soldier or
+ * a mech ({@code FogOfWarService}), cached and refreshed by cohort.
  *
  * <p>Runs after the spatial index is rebuilt, so its sightings are read by the next commander capture, well inside
  * its cadence.
@@ -35,6 +33,12 @@ public final class HullSightings {
     private final LongBucket scratch = new LongBucket();
     private final Map<Faction, long[]> sightings = new EnumMap<>(Faction.class);
     private final Map<Faction, Integer> counts = new EnumMap<>(Faction.class);
+    /** The extra observers (sensor drones) of the last tick, kept so a vehicle target can be asked of them too. */
+    private Faction[] extraSide = new Faction[8];
+    private float[] extraX = new float[8];
+    private float[] extraY = new float[8];
+    private float[] extraRange = new float[8];
+    private int extraCount;
 
     /** Whether an observer at ({@code sx},{@code sy}) with {@code range} cells of sight sees ({@code tx},{@code ty}). */
     public static boolean sees(NavigationGrid grid, float sx, float sy, float tx, float ty, float range) {
@@ -45,7 +49,7 @@ public final class HullSightings {
                 (int) Math.floor(tx), (int) Math.floor(ty));
     }
 
-    /** A sight source that is not a hull: a side's sensor drone at a point, with its range in cells. */
+    /** An observer that is not a hull: a side's sensor drone at a point, with its range in cells. */
     @FunctionalInterface
     public interface Observer {
         void observe(Faction side, float x, float y, float rangeCells);
@@ -57,16 +61,15 @@ public final class HullSightings {
         void forEach(Observer sink);
     }
 
-    public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
-                     NavigationGrid grid, FogOfWarService fog) {
-        tick(convoy, roster, index, grid, fog, sink -> { });
+    public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index, NavigationGrid grid) {
+        tick(convoy, roster, index, grid, sink -> { });
     }
 
-    /** As {@link #tick(ConvoyService, UnitRosterService, UnitSpatialIndex, NavigationGrid, FogOfWarService)}, adding {@code extra} observers on the same terms as a hull. */
+    /** As {@link #tick(ConvoyService, UnitRosterService, UnitSpatialIndex, NavigationGrid)}, adding {@code extra} observers on the same terms as a hull. */
     public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
-                     NavigationGrid grid, FogOfWarService fog, Observers extra) {
-        fog.clearDroneSightSources();
+                     NavigationGrid grid, Observers extra) {
         counts.clear();
+        extraCount = 0;
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long id = convoy.vehicleAt(i);
             VehicleType type = convoy.vehicleType(id);
@@ -75,9 +78,18 @@ public final class HullSightings {
             observe(convoy.faction(id), body.x, body.y, type.observeCells(), roster, index, grid);
         }
         extra.forEach((side, x, y, range) -> {
-            if (side != null && fog.isInitialized() && fog.getVisionState().isContributor(side)) {
-                fog.addDroneSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
+            if (extraCount == extraSide.length) {
+                int cap = extraCount * 2;
+                extraSide = Arrays.copyOf(extraSide, cap);
+                extraX = Arrays.copyOf(extraX, cap);
+                extraY = Arrays.copyOf(extraY, cap);
+                extraRange = Arrays.copyOf(extraRange, cap);
             }
+            extraSide[extraCount] = side;
+            extraX[extraCount] = x;
+            extraY[extraCount] = y;
+            extraRange[extraCount] = range;
+            extraCount++;
             observe(side, x, y, range, roster, index, grid);
         });
         // Sorted and de-duplicated, so two scouts seeing one body report it once and the order never depends on
@@ -106,6 +118,17 @@ public final class HullSightings {
                 record(side, target);
             }
         }
+    }
+
+    /**
+     * Whether one of {@code side}'s extra observers, a sensor drone, sees ({@code tx},{@code ty}) now. The sightings
+     * above carry roster bodies only; a vehicle is asked of the observers by place.
+     */
+    public boolean extraSees(NavigationGrid grid, Faction side, float tx, float ty) {
+        for (int i = 0; i < extraCount; i++) {
+            if (extraSide[i] == side && sees(grid, extraX[i], extraY[i], tx, ty, extraRange[i])) return true;
+        }
+        return false;
     }
 
     /** Every hostile body {@code side}'s hulls saw on the last tick, once each, in id order. */

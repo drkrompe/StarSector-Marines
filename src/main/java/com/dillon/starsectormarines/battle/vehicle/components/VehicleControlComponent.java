@@ -77,6 +77,14 @@ public final class VehicleControlComponent {
      */
     public int turnaroundsUsed;
 
+    /**
+     * True while the hull follows its corridor by pivoting at the bends, because the rolling planner found no
+     * forward trajectory ({@code NeutralPivot}). The planner is still asked again, at the ordinary replan cadence.
+     */
+    public boolean pivotTracking;
+    /** The way the current pivot turns, {@code +1} counterclockwise or {@code -1} clockwise; {@code 0} when not pivoting. */
+    public int pivotDirection;
+
     /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse recovery. */
     public float wallStuckTime;
     /** Blade push not yet spent as whole structure points; only a bladed hull accrues it. */

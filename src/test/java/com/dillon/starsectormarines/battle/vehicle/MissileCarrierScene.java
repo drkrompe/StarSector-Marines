@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.drone.DroneWing;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -29,7 +30,9 @@ import java.util.Set;
  * Both racks are {@code hardenedTargetsOnly}, so each loop also stands Defender infantry in the launcher's own sight
  * and reach, and the launcher must never spend a warhead on them.
  *
- * <p>Three loops. {@code lrm-spotted}: the carrier behind a solid wall, the tank about 38 cells beyond it, a scout car
+ * <p>Four loops. {@code lrm-sensor-kit} is the no-spotter world again with a {@link VehicleKit#SENSOR_PAIR} on the
+ * carrier's rack: nobody else on the side looks at the tank, and the carrier's own sensor drones, flown past the wall,
+ * are the eyes. {@code lrm-spotted}: the carrier behind a solid wall, the tank about 38 cells beyond it, a scout car
  * off the wall's south end with the tank in its sight and outside the tank's 36-cell reach. {@code lrm-no-spotter}:
  * the same world without the scout. {@code srm-ambush}: the technical tucked into a building's west face, the tank
  * ordered west along a road that passes about ten cells from it.
@@ -44,6 +47,7 @@ public final class MissileCarrierScene implements BehaviorScene {
 
     public static final String LRM_SPOTTED = "lrm-spotted";
     public static final String LRM_NO_SPOTTER = "lrm-no-spotter";
+    public static final String LRM_SENSOR_KIT = "lrm-sensor-kit";
     public static final String SRM_AMBUSH = "srm-ambush";
 
     // ---- LRM world ----
@@ -110,12 +114,14 @@ public final class MissileCarrierScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
-        Trace spotted = runLrm(LRM_SPOTTED, true, frames);
-        Trace blind = runLrm(LRM_NO_SPOTTER, false, frames);
+        Trace spotted = runLrm(LRM_SPOTTED, true, List.of(), frames);
+        Trace blind = runLrm(LRM_NO_SPOTTER, false, List.of(), frames);
+        Trace droned = runLrm(LRM_SENSOR_KIT, false, List.of(VehicleKit.SENSOR_PAIR), frames);
         Trace ambush = runSrm(frames);
         List<SceneReport> reports = new ArrayList<>();
         reports.add(reportSpotted(spotted));
         reports.add(reportNoSpotter(blind));
+        reports.add(reportSensorKit(droned));
         reports.add(reportAmbush(ambush));
         return reports;
     }
@@ -131,7 +137,7 @@ public final class MissileCarrierScene implements BehaviorScene {
                 .unit("marine-holdout", Faction.MARINE, UnitType.MARINE, width - 6, 5);
     }
 
-    private Trace runLrm(String loop, boolean scout, FrameSink frames) {
+    private Trace runLrm(String loop, boolean scout, List<VehicleKit> kits, FrameSink frames) {
         SceneBuilder builder = SceneBuilder.openGround(LRM_WIDTH, LRM_HEIGHT)
                 .missionCompletion(false)
                 .wall(LRM_WALL_X, LRM_WALL_Y0, LRM_WALL_X, LRM_WALL_Y1)
@@ -141,9 +147,10 @@ public final class MissileCarrierScene implements BehaviorScene {
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
 
-        long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, Faction.MARINE,
+        long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, kits, Faction.MARINE,
                 VehicleMission.deployed(CARRIER_X, CARRIER_Y));
-        sim.convoy().body(carrier).teleport(CARRIER_X, CARRIER_Y, 0f);
+        // The sensor pair holds station beyond the bow, so a carrier with one faces the wall (east, -90 degrees).
+        sim.convoy().body(carrier).teleport(CARRIER_X, CARRIER_Y, kits.isEmpty() ? 0f : -90f);
         long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER,
                 VehicleMission.deployed(LRM_TANK_X, LRM_TANK_Y));
         sim.convoy().body(tank).teleport(LRM_TANK_X, LRM_TANK_Y, 180f);
@@ -230,6 +237,25 @@ public final class MissileCarrierScene implements BehaviorScene {
                         + " integrity; carrier had line of sight to it on " + t.launcherSawTankTicks + " ticks"));
         verdicts.add(heldAtMen(t, "carrier"));
         return new SceneReport(id(), LRM_NO_SPOTTER, LRM_TICKS, verdicts, readings(t));
+    }
+
+    private SceneReport reportSensorKit(Trace t) {
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("sensor-pair-out", t.sensorsOut == 2,
+                t.sensorsOut + " sensor drones flew from the carrier's bay; they were the only eyes on the side's "
+                        + "picture of the tank (no scout, and the one other Marine is sealed in a far box)"));
+        verdicts.add(Verdict.of("fired-unseen", t.roundsAtTankUnseen > 0,
+                t.roundsAtTankUnseen + " of " + t.rounds + " carrier rounds flew at the tank on ticks the carrier had "
+                        + "no grid line of sight to it (" + t.roundsAtTankSeen + " on ticks it had); first shot at tick "
+                        + t.firstShotTick + ", the carrier " + round(t.launcherMoved) + " cells from where it stood "
+                        + "at the end, the tank having fired " + t.tankShots + " rounds"));
+        boolean fired = t.roundsAtTank > 0;
+        verdicts.add(Verdict.of("warheads-landed", fired && t.tankLost > 0f,
+                fired ? "tank lost " + round(t.tankLost) + " integrity after " + t.roundsAtTank
+                        + " rounds at it; nothing else on the Marine side is armed"
+                        : "the carrier never fired at the tank, so nothing could land"));
+        verdicts.add(heldAtMen(t, "carrier"));
+        return new SceneReport(id(), LRM_SENSOR_KIT, LRM_TICKS, verdicts, readings(t));
     }
 
     private SceneReport reportAmbush(Trace t) {
@@ -328,6 +354,7 @@ public final class MissileCarrierScene implements BehaviorScene {
         int menExposedTicks;
         int scoutSawTankTicks;
         int launcherSawTankTicks;
+        int sensorsOut;
         boolean scoutAlive = true;
         private float lastLx;
         private float lastLy;
@@ -393,6 +420,8 @@ public final class MissileCarrierScene implements BehaviorScene {
             boolean sight = grid.hasLineOfSight((int) Math.floor(lx), (int) Math.floor(ly),
                     (int) Math.floor(tx), (int) Math.floor(ty));
             if (tankUp && sight && distance <= range) launcherSawTankTicks++;
+            DroneWing wing = sim.droneBays().wing(launcher);
+            if (wing != null) sensorsOut = Math.max(sensorsOut, wing.drones().size());
             if (tankUp) closestTank = Math.min(closestTank, distance);
             if (scout != 0L) {
                 scoutAlive = present(sim, scout);

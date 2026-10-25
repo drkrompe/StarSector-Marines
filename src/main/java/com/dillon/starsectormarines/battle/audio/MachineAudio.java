@@ -22,7 +22,8 @@ import java.util.Set;
 /**
  * The machinery a battle sounds like, shared by the two audio hosts as {@link MechFootstepAudio} is: each ground
  * vehicle's engine as a loop whose pitch and volume follow its speed, and the flux vent of a mech or a flux-fed turret
- * (a laser tank's) as the vanilla vent cue when it starts and the vanilla flux hiss while it lasts. Presentation only;
+ * (a laser tank's) as the vanilla vent cue when it starts and the vanilla flux hiss while it lasts, and a hull running
+ * into something that stops it as a heavy impact, louder the faster it hit and deeper the heavier the hull. Presentation only;
  * it reads simulation state and never writes it. A host plays each {@link Loop} with {@code playLoop} every frame
  * (its {@code key} is the per-voice identity) and each {@link Cue} once, converting cells to its own world units.
  *
@@ -41,6 +42,9 @@ public final class MachineAudio {
     /** Vanilla's flux flush loop a venting ship holds, under our own id: vanilla {@code flux_loop} also lists the
      *  Dweller's lightning loop. */
     static final String VENT_LOOP = "marines_vent_loop";
+
+    /** A hull running into something that stops it: vanilla's ship-on-rock collision, under our own id. */
+    public static final String HULL_BUMP = "marines_hull_bump";
 
     public static final String ENGINE_TRACKED = "marines_engine_tracked";
     public static final String ENGINE_TURBINE = "marines_engine_turbine";
@@ -70,8 +74,13 @@ public final class MachineAudio {
 
     /** Which vents were open last frame; a vent first seen open opens silently rather than replaying. */
     private final Map<Object, Boolean> venting = new IdentityHashMap<>();
+    /** Each hull's bump count as last heard; a hull first seen does not replay the bumps it already had. */
+    private final Map<Object, Integer> bumped = new IdentityHashMap<>();
 
-    public void reset() { venting.clear(); }
+    public void reset() {
+        venting.clear();
+        bumped.clear();
+    }
 
     /** The voice a hull's engine speaks with: a gas turbine for the high-tech laser hull, a diesel for the other tank and
      *  APC lines, a fan for hover, wheels otherwise. */
@@ -99,6 +108,7 @@ public final class MachineAudio {
         Set<Object> live = Collections.newSetFromMap(new IdentityHashMap<>());
         boolean over = sim.isComplete();
         engines(sim, listenerX, listenerY, over, loops);
+        bumps(sim, listenerX, listenerY, over, cues);
         turretVents(sim, listenerX, listenerY, over, loops, cues, live);
         mechVents(sim, listenerX, listenerY, over, loops, cues, live);
         venting.keySet().retainAll(live);
@@ -126,6 +136,38 @@ public final class MachineAudio {
         }
         heard.sort(Comparator.comparingDouble(loop -> distanceSquared(loop.cellX, loop.cellY, lx, ly)));
         out.addAll(heard.subList(0, Math.min(MAX_ENGINES, heard.size())));
+    }
+
+    private void bumps(BattleSimulation sim, float lx, float ly, boolean over, List<Cue> out) {
+        ConvoyService convoy = sim.convoy();
+        FogOfWarService fog = sim.getFogOfWar();
+        Set<Object> live = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (long id : convoy.entityIds()) {
+            GroundBody body = convoy.body(id);
+            if (body == null || !convoy.isPresent(id)) continue;
+            live.add(body);
+            VehicleType type = convoy.vehicleType(id);
+            boolean heard = !over && audible(convoy.faction(id), body.x, body.y, fog, lx, ly);
+            bump(body, body.bumps, heard, type, body.lastBumpSpeed, body.x, body.y, out);
+        }
+        bumped.keySet().retainAll(live);
+    }
+
+    /**
+     * One hull's bumps: a cue when its count has risen since last frame, at a volume that follows how fast it hit
+     * against its top speed and a pitch that falls with its weight. A hull first seen cues nothing.
+     */
+    void bump(Object key, int count, boolean heard, VehicleType type, float impactSpeed, float x, float y,
+              List<Cue> cues) {
+        Integer was = bumped.put(key, count);
+        if (was == null || count <= was || !heard) return;
+        float hit = throttle(impactSpeed, type.maxSpeed);
+        float pitch = switch (type.weight()) {
+            case HEAVY -> .8f;
+            case MEDIUM -> .95f;
+            case LIGHT -> 1.15f;
+        };
+        cues.add(new Cue(HULL_BUMP, pitch, .3f + .6f * hit, x, y));
     }
 
     private void turretVents(BattleSimulation sim, float lx, float ly, boolean over,

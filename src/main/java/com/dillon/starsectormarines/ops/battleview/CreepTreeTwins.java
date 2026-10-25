@@ -19,7 +19,9 @@ import java.util.WeakHashMap;
  * first claim, the crust rolling in from {@link #CRUST_AGE}, the withering
  * crown from {@link #WITHER_AGE}, and the dead tree once the simulation has
  * killed it ({@link CreepVegetation}), over {@link #DEATH_FADE_TICKS}. A
- * felled tree is left to the ground's creep. Presentation only: what the tree
+ * felled tree the creep had killed lies as dead wood, bone-pale and bare
+ * ({@code forest-blight-felled}), shown at once since the felling is the change;
+ * one felled alive keeps its green felled art. Presentation only: what the tree
  * blocks is the simulation's.
  */
 final class CreepTreeTwins implements DoodadRenderSystem.Twins {
@@ -28,6 +30,8 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
     static final float VEIN_AGE = 0.10f, CRUST_AGE = 0.40f, WITHER_AGE = 0.72f;
     /** Ticks a dead tree takes to turn from withering to dead. */
     static final int DEATH_FADE_TICKS = 90;
+    /** The suffix on a destroyed tree's id naming its felled dead wood. */
+    static final String FELLED = "-blight";
 
     private final CreepField field;
     private final CreepVegetation vegetation;
@@ -61,7 +65,8 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
         return new CreepTreeTwins(sim, field, sim.creepVegetationIfPresent(), tiles, cache);
     }
 
-    /** One placement's crown cells and its stage doodads, 1..4 (null where the sheet has none). */
+    /** One placement's crown cells and its stage doodads, 1..4 (null where the sheet has none); a felled tree's
+     *  only stage is its dead wood, at 4. */
     static final class Entry {
         final int[] crown;
         final Doodad[] stages = new Doodad[5];
@@ -111,10 +116,11 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
 
     private float computeStage(Doodad placed) {
         TreeCanopy canopy = CreepVegetation.canopy(placed.definitionId());
-        if (canopy == null || placed.definitionId().endsWith("-destroyed")) return 0f;
+        if (canopy == null) return 0f;
+        int died = vegetation == null ? -1 : vegetation.diedAt(placed.cellX, placed.cellY);
+        if (felled(placed)) return died >= 0 && at(placed, 4) != null ? 4f : 0f;
         float age = crownAge(field, entry(placed, canopy).crown);
         float s = stageForAge(age);
-        int died = vegetation == null ? -1 : vegetation.diedAt(placed.cellX, placed.cellY);
         if (died >= 0) s = Math.max(s, 3f + Math.min(1f, Math.max(0f, (tick - died) / (float) DEATH_FADE_TICKS)));
         else s = Math.min(s, 3f);
         if (at(placed, 1) == null) return 0f;
@@ -138,6 +144,10 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
         return sum / (255f * cells.length);
     }
 
+    private static boolean felled(Doodad placed) {
+        return placed.definitionId().endsWith("-destroyed");
+    }
+
     private Doodad at(Doodad placed, int stage) {
         TreeCanopy canopy = CreepVegetation.canopy(placed.definitionId());
         return canopy == null ? null : entry(placed, canopy).stages[stage];
@@ -146,9 +156,10 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
     private Entry entry(Doodad placed, TreeCanopy canopy) {
         Entry entry = entries.get(placed);
         if (entry == null) {
-            entry = new Entry(CreepVegetation.crownCells(placed, canopy, width, height));
-            for (int k = 1; k <= 4; k++) {
-                DoodadDef def = tiles.doodad(placed.definitionId() + "-blight-" + k);
+            boolean felled = felled(placed);
+            entry = new Entry(felled ? new int[0] : CreepVegetation.crownCells(placed, canopy, width, height));
+            for (int k = felled ? 4 : 1; k <= 4; k++) {
+                DoodadDef def = tiles.doodad(placed.definitionId() + (felled ? FELLED : "-blight-" + k));
                 if (def != null) {
                     entry.stages[k] = new Doodad(placed.cellX, placed.cellY, def, placed.quarterTurns, placed.mirrored);
                 }

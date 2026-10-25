@@ -133,6 +133,11 @@ public final class AirPoolService {
 
     // ---- reads ----
 
+    /** Every pool the mission declared. */
+    public AirPoolDeclaration declaration() {
+        return declaration;
+    }
+
     /** What the mission declared for {@code side}. */
     public AirPoolAllowance allowance(Faction side) {
         return declaration.forSide(side);
@@ -278,6 +283,34 @@ public final class AirPoolService {
         return null;
     }
 
+    private final List<ForwardObservers> observers = new ArrayList<>();
+    private final Map<Faction, float[]> homes = new EnumMap<>(Faction.class);
+
+    /**
+     * Names {@code side}'s home ground, the edge its sorties come in over, for a side with neither a landing zone nor a
+     * keep: an allied wing's airfield lies behind its own line, never over the enemy.
+     */
+    public AirPoolService homeAt(Faction side, float x, float y) {
+        homes.put(side, new float[]{x, y});
+        return this;
+    }
+
+    /**
+     * Posts {@code posted}'s observers with the pool: their radios are issued as their formations come on the map, before
+     * the side's officer looks for ground to strike each tick.
+     */
+    public AirPoolService observedFrom(ForwardObservers posted) {
+        observers.add(posted);
+        return this;
+    }
+
+    /** The observer posts the mission gave {@code side}, for readouts and evidence. */
+    public List<ForwardObservers> observers(Faction side) {
+        List<ForwardObservers> out = new ArrayList<>();
+        for (ForwardObservers posted : observers) if (posted.side() == side) out.add(posted);
+        return out;
+    }
+
     /** This side's fire-support officer, created on first ask; its sightings are the side's anti-air knowledge. */
     public AirStrikeDirector director(Faction side) {
         return directors.computeIfAbsent(side, AirStrikeDirector::new);
@@ -397,6 +430,7 @@ public final class AirPoolService {
         for (Sortie sortie : sorties) {
             if (sortie.job == AirMission.COVER) CoverTasking.task(sim, this, sortie.craft, sortie.mission, sortie.side);
         }
+        for (ForwardObservers posted : observers) posted.tick(sim);
         for (Map.Entry<Faction, AirPoolAllowance> side : declaration.allowances().entrySet()) {
             if (!side.getValue().aiDirected()) continue;
             director(side.getKey()).tick(sim, this);
@@ -444,7 +478,8 @@ public final class AirPoolService {
 
     private boolean launch(BattleSimulation sim, PendingCall call, Ledger ledger) {
         World world = sim.world();
-        float[] home = homeGround(sim, call.side);
+        float[] home = homes.get(call.side);
+        if (home == null) home = homeGround(sim, call.side);
         if (home == null) home = friendlyCentroid(sim, call.side);
         if (home == null) home = new float[]{world.x(call.operator), world.y(call.operator)};
         AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
@@ -496,6 +531,7 @@ public final class AirPoolService {
                 sorties.remove(i);
                 events.add(new Event(sim.getSimTickIndex(), sortie.side, sortie.kind, EventType.LOST,
                         sortie.x, sortie.y));
+                director(sortie.side).noteLoss(sortie.x, sortie.y, sim.getSimTickIndex());
                 continue;
             }
             boolean listed = false;

@@ -397,7 +397,7 @@ public final class HoverLineScene implements BehaviorScene {
         long lurker = world.unit("lurker");
         GroundBody body = sim.convoy().body(hull);
         float halfLength = VehicleType.HOVER_SCOUT.visualLengthCells * .5f;
-        int ticks = 600, hiddenSightings = 0, firstHiddenSighting = -1, aheadSamples = 0, stationed = 0;
+        int ticks = 600, hiddenSightings = 0, firstHiddenSighting = -1, aheadSamples = 0, stationed = 0, hiddenReveals = 0;
         Set<Long> sensors = new HashSet<>();
         for (int tick = 0; tick < ticks; tick++) {
             sim.advance(BattleSimulation.TICK_DT);
@@ -408,6 +408,9 @@ public final class HoverLineScene implements BehaviorScene {
             boolean hullSees = lurking && HullSightings.sees(sim.getGrid(), body.x, body.y, sim.world().x(lurker),
                     sim.world().y(lurker), VehicleType.HOVER_SCOUT.sightCells());
             boolean sighted = lurking && sim.hullSightings().sighted(Faction.MARINE, lurker);
+            boolean revealed = lurking && sim.getFogOfWar().isCellRevealed(
+                    (int) Math.floor(sim.world().x(lurker)), (int) Math.floor(sim.world().y(lurker)));
+            if (revealed && !hullSees) hiddenReveals++;
             if (sighted && !hullSees) {
                 hiddenSightings++;
                 if (firstHiddenSighting < 0) firstHiddenSighting = tick;
@@ -435,7 +438,10 @@ public final class HoverLineScene implements BehaviorScene {
         verdicts.add(Verdict.of("sensors-see-past-the-wall", hiddenSightings > 0,
                 "the side's picture held the lurker the hull could not see on " + hiddenSightings
                         + " ticks, the first at tick " + firstHiddenSighting));
+        verdicts.add(Verdict.of("sensors-reveal-past-the-wall", hiddenReveals > 0,
+                "the player's fog held the lurker's cell, which the hull could not see, on " + hiddenReveals + " ticks"));
         Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("hiddenRevealTicks", hiddenReveals);
         metrics.put("hiddenSightingTicks", hiddenSightings);
         metrics.put("firstHiddenSighting", firstHiddenSighting);
         metrics.put("lurkerAlive", sim.world().isAlive(lurker) ? 1 : 0);

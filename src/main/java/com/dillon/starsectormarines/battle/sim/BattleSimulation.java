@@ -1541,6 +1541,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the corpse transmute: harvest takes up the body the transmute just made.
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
+        rosterService.modifiers().register(matriarchActions.runModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -3472,7 +3473,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         publishZoneOccupancy();
         // A scout car's mast reports against the index just rebuilt: to the fog's next vision pass and to the
         // commander's next capture.
-        hullSightings.tick(convoy(), rosterService, unitIndex, grid, fogOfWar,
+        hullSightings.tick(convoy(), rosterService, unitIndex, grid,
                 sink -> droneBays.forEachSensor(this, sink::observe));
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
+import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -506,6 +508,9 @@ public final class CordonSetup {
             armour.deploy(sim, opening.get(i), WIDTH * (i + 1) / (opening.size() + 1), reserveY);
         }
         standMouths(sim, armour, redoubts, table, new Random(cordon.battleSeed() ^ MOUTH_SALT));
+        // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`).
+        AlliedAirWing.install(sim, WIDTH / 2f, rearRow,
+                redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList());
         sequence.attachArmour(armour);
         CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts, table);
         if (logistics != null) sequence.attachLogistics(logistics);

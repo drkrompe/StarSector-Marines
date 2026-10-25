@@ -35,6 +35,9 @@ import java.util.Map;
  *       never a scythe.</li>
  *   <li>{@code fort-wall}: marines in a building whose walls stand at a fort building's strength, more
  *       than a Brute could break, with a door on the far side. It breaks in through the near wall.</li>
+ *   <li>{@code walk-off}: a marine who let it come within its run's band walks straight away at a Marine's
+ *       pace once it has roared. It stands crown-down for its tell, runs, and catches the marine.</li>
+ *   <li>{@code far-off}: the same walk from well out of the band. It never runs, and the marine gets away.</li>
  *   <li>{@code corpses}: four Matriarchs killed where they stand, each laid in one of the four corpse poses.</li>
  * </ul>
  */
@@ -47,13 +50,15 @@ public final class MatriarchScene implements BehaviorScene {
     @Override public String id() { return "matriarch"; }
 
     @Override public String label() {
-        return "Matriarch: the roar, the reap on infantry, the crown on mechs and walls";
+        return "Matriarch: the roar, the reap on infantry, the crown on mechs and walls, the run";
     }
 
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("reap", "mech-lance", "fort-wall")) reports.add(playOne(loop, frames));
+        for (String loop : List.of("reap", "mech-lance", "fort-wall", "walk-off", "far-off")) {
+            reports.add(playOne(loop, frames));
+        }
         reports.add(corpses(frames));
         return reports;
     }
@@ -103,19 +108,27 @@ public final class MatriarchScene implements BehaviorScene {
         }
     }
 
+    /** Where the walkers start, cells ahead of the Matriarch's: inside her run's band, and well out of it. */
+    private static final int WALK_OFF_X = 13, FAR_OFF_X = 30;
+    /** The walkers stop here, short of the edge of the ground. */
+    private static final float WALK_END_X = 86f;
+
     private SceneReport playOne(String loop, FrameSink frames) throws Exception {
         boolean building = loop.equals("fort-wall");
+        boolean walking = loop.equals("walk-off") || loop.equals("far-off");
+        int width = walking ? 90 : 44;
         SwarmStrainGround ground = building
                 ? new SwarmStrainGround(44, 28, 26, 10, 33, 17, FORT_BUILDING_WALL).door(34, 14) : null;
-        NavigationGrid grid = building ? ground.grid : new NavigationGrid(44, 24);
-        CellTopology topology = building ? ground.topology : new CellTopology(44, 24);
+        NavigationGrid grid = building ? ground.grid : new NavigationGrid(width, 24);
+        CellTopology topology = building ? ground.topology : new CellTopology(width, 24);
         if (!building) {
-            for (int y = 0; y < 24; y++) for (int x = 0; x < 44; x++) grid.setWalkableFloor(x, y);
+            for (int y = 0; y < 24; y++) for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
         int lane = building ? 13 : 12;
         int ticks = switch (loop) {
             case "reap" -> 600;
             case "mech-lance" -> 1800;
+            case "walk-off", "far-off" -> 900;
             default -> 1200;
         };
         SceneBuilder builder = SceneBuilder.over(grid, topology).seed(20261021L).missionCompletion(false);
@@ -124,6 +137,9 @@ public final class MatriarchScene implements BehaviorScene {
                     .stationary().health(DEEP).done();
             case "mech-lance" -> builder.squad("lance").faction(Faction.MARINE).size(3).at(26, lane)
                     .mech(MechVariant.BULWARK, MechRole.ASSAULT).done();
+            case "walk-off", "far-off" -> builder.squad("walker").faction(Faction.MARINE).size(1)
+                    .at(loop.equals("walk-off") ? WALK_OFF_X : FAR_OFF_X, lane).stationary().unarmed()
+                    .health(DEEP).done();
             default -> builder
                     .unit("m1", Faction.MARINE, UnitType.MARINE, 29, 12, spec -> spec.health(DEEP))
                     .unit("m2", Faction.MARINE, UnitType.MARINE, 29, 15, spec -> spec.health(DEEP));
@@ -136,14 +152,31 @@ public final class MatriarchScene implements BehaviorScene {
             long[] watched = switch (loop) {
                 case "reap" -> world.members("knot");
                 case "mech-lance" -> world.members("lance");
+                case "walk-off", "far-off" -> world.members("walker");
                 default -> new long[]{world.unit("m1"), world.unit("m2")};
             };
             Trace trace = new Trace(matriarch, watched, ground, sim);
-            SceneRun.of(world).observe(trace)
+            SceneRun run = SceneRun.of(world);
+            if (walking) run.observe(walkAway(watched[0], matriarch));
+            run.observe(trace)
                     .frames(frames, loop, 3, tick -> loop + " / matriarch / tick " + tick)
                     .run(ticks);
             return report(loop, ticks, trace, sim);
         }
+    }
+
+    /**
+     * Walks {@code walker} straight away from the Matriarch at a Marine's pace once she has roared, as a player
+     * pulling a man back would; thrown, it gets up and walks on.
+     */
+    private static TickObserver walkAway(long walker, long matriarch) {
+        float step = UnitType.MARINE.moveSpeed * BattleSimulation.TICK_DT;
+        return (sim, tick) -> {
+            if (!sim.getRoster().isAliveById(walker) || sim.stagger().isStaggered(walker)) return;
+            if (sim.matriarchActions().kind(matriarch, sim.getSimTickIndex()) == Kind.ROAR) return;
+            float x = sim.world().x(walker);
+            if (x < WALK_END_X) sim.world().setPos(walker, Math.min(WALK_END_X, x + step), sim.world().y(walker));
+        };
     }
 
     private SceneReport report(String loop, int ticks, Trace trace, BattleSimulation sim) {
@@ -177,6 +210,20 @@ public final class MatriarchScene implements BehaviorScene {
                         trace.crowns == 0 ? "no crown blow (never reached a mech)"
                                 : trace.crownHits + " of " + trace.crowns + " crown blows hurt a mech"));
             }
+            case "walk-off" -> {
+                verdicts.add(Verdict.of("tells-before-it-runs", trace.tells > 0 && !trace.ranUntold,
+                        trace.tells + " tells, ran without one " + trace.ranUntold));
+                verdicts.add(Verdict.of("outruns-a-walking-marine", trace.topSpeed > UnitType.MARINE.moveSpeed,
+                        "top speed " + trace.topSpeed + " cells/s against a Marine's " + UnitType.MARINE.moveSpeed));
+                verdicts.add(Verdict.of("catches-the-walker", trace.reaps > 0 && trace.damageDealt > 0f,
+                        trace.reaps + " reaps, " + trace.damageDealt + " damage to the walker, first at tick "
+                                + trace.firstHitTick));
+            }
+            case "far-off" -> {
+                verdicts.add(Verdict.of("never-runs-at-it", trace.tells == 0, trace.tells + " tells"));
+                verdicts.add(Verdict.of("the-walker-escapes", trace.damageDealt == 0f,
+                        trace.damageDealt + " damage to the walker"));
+            }
             default -> {
                 // A crown blow at a wall lands on it: a wall too heavy for a Brute gives way to it.
                 verdicts.add(Verdict.of("crowns-the-wall", trace.crowns > 0, trace.crowns + " crown blows"));
@@ -197,6 +244,10 @@ public final class MatriarchScene implements BehaviorScene {
         metrics.put("matriarchDiedTick", trace.diedTick);
         metrics.put("watchedDead", trace.watchedDead(sim));
         metrics.put("damageToWatched", trace.damageDealt);
+        metrics.put("runTells", trace.tells);
+        metrics.put("runTicks", trace.runTicks);
+        metrics.put("topSpeed", trace.topSpeed);
+        metrics.put("firstHitTick", trace.firstHitTick);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
@@ -221,6 +272,9 @@ public final class MatriarchScene implements BehaviorScene {
         private boolean lastLanded;
         private int landings, earlyLandings, reaps, crowns, crownHits, bodiesCut, mostCut;
         private int multiArcReaps, multiCutReaps;
+        private int tells, runTicks, firstHitTick = -1;
+        private boolean ranUntold, wasRunning;
+        private float topSpeed;
         private boolean alternates = true, usedDoor;
         private float movedInAction, damageDealt;
         private float lastX = Float.NaN, lastY;
@@ -264,6 +318,15 @@ public final class MatriarchScene implements BehaviorScene {
             if (acting && action.startTick != now && !Float.isNaN(lastX)) {
                 movedInAction = Math.max(movedInAction, (float) Math.hypot(x - lastX, y - lastY));
             }
+            if (!Float.isNaN(lastX)) {
+                topSpeed = Math.max(topSpeed, (float) Math.hypot(x - lastX, y - lastY) / BattleSimulation.TICK_DT);
+            }
+            if (action.running) {
+                runTicks++;
+                // a run begins only out of its tell
+                if (!wasRunning && (kinds.isEmpty() || kinds.get(kinds.size() - 1) != Kind.RUN_TELL)) ranUntold = true;
+            }
+            wasRunning = action.running;
             lastX = x;
             lastY = y;
             if (ground != null && sim.world().cellX(matriarch) == 34 && sim.world().cellY(matriarch) == 14) {
@@ -280,6 +343,8 @@ public final class MatriarchScene implements BehaviorScene {
                     reaps++;
                 } else if (action.kind == Kind.CROWN) {
                     crowns++;
+                } else if (action.kind == Kind.RUN_TELL) {
+                    tells++;
                 }
             }
             for (int i = 0; i < watched.length; i++) {
@@ -293,6 +358,7 @@ public final class MatriarchScene implements BehaviorScene {
                 now0[i] = pool(watched[i], sim);
                 if (now0[i] < pool[i] - 1e-3f) {
                     cut++;
+                    if (firstHitTick < 0) firstHitTick = tick;
                     damageDealt += pool[i] - now0[i];
                 }
             }
