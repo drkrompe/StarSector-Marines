@@ -1,0 +1,64 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Steel pressure tank, a live lobster behind the porthole. A fish stall's or licensed kitchen's.",
+      "name": "doodad.lobster-tank",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "The pressure tank burst open at the lid, empty, sea water spilled round it.",
+      "name": "doodad.lobster-tank-burst",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Pressurised refrigerated shipping crate with a lobster pictogram. Freight.",
+      "name": "doodad.lobster-crate",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Licensed kitchen range with a clamped pressure cooker and a brass licence plaque; backsplash north, against the wall.",
+      "name": "doodad.lobster-cooker",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.lobster-tank",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 1,
+      "cover": "med",
+      "id": "doodad.lobster-tank-burst",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.lobster-crate",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 3,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.lobster-cooker",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/lobster-trade.png"
+}

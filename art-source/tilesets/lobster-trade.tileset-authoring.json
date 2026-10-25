@@ -1,0 +1,82 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.lobster-tank",
+      "included": true,
+      "note": "Steel pressure tank, a live lobster behind the porthole. A fish stall's or licensed kitchen's.",
+      "rect": [
+        1,
+        3,
+        488,
+        488
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.lobster-tank-burst",
+      "included": true,
+      "note": "The pressure tank burst open at the lid, empty, sea water spilled round it.",
+      "rect": [
+        489,
+        0,
+        497,
+        497
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.lobster-crate",
+      "included": true,
+      "note": "Pressurised refrigerated shipping crate with a lobster pictogram. Freight.",
+      "rect": [
+        1000,
+        27,
+        464,
+        464
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.lobster-cooker",
+      "included": true,
+      "note": "Licensed kitchen range with a clamped pressure cooker and a brass licence plaque; backsplash north, against the wall.",
+      "rect": [
+        45,
+        499,
+        965,
+        482
+      ]
+    }
+  ],
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "doodad.lobster",
+  "note": "The Volturnian lobster trade's props (swarm-lore-guide.md, the lobster thread: set dressing, winks only): a pressure tank, the same tank burst open and empty, a pressurised shipping crate and a licensed kitchen range with its pressure cooker. Measured 1536x1024 RGBA, four alpha pieces. Geometry-first reskin of templates/lobster-trade-guide.png (lobster-trade-guide.py, 300 px a cell), but ImageGen drew the whole layout about 1.6x the guide's scale (1.52-1.71 per axis by piece). Each rect here is its guide frame carried through its own piece's measured transform (mean of the two axis scales, about the piece's centre), so a piece fills its cell as the guide meant; do not cut at the guide's pixel frames. The range's backsplash is the north edge (against a wall). Exact prompt in lobster-trade.prompt.txt.",
+  "outputSheet": "graphics/doodads/lobster-trade.png",
+  "sheet": "art-source/tilesets/lobster-trade.raw.png",
+  "sheetName": "lobster-trade"
+}
