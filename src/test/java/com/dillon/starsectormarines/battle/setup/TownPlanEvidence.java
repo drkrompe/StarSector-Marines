@@ -22,6 +22,7 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +33,7 @@ import java.util.Set;
  * How planned the stock city and the colony read ({@code town-plan.md}), over 24 seeds of each: for shop, home
  * and main-street lots (every member of the district, its plaza included), how much of their street edge is built up (a building within three cells of the edge),
  * how many buildings stand per twenty cells of street edge and per lot, and for the zoning, how many blocks
- * are civic or mixed town and how big the largest connected group of them is. Writes
+ * are civic or mixed town or industry and how big the largest connected group of each is. Writes
  * {@code build/reports/town-plan/town-plan.md}. Asserts nothing: it measures.
  */
 @Tag("generated-space-evidence")
@@ -58,11 +59,11 @@ class TownPlanEvidence {
         sides.append("\n|---|---|");
         for (int i = 3; i < 20; i++) sides.append("---|");
         sides.append('\n');
-        StringBuilder zoning = new StringBuilder("\n| family | civic or mixed blocks / map | largest connected civic or mixed group | blocks / map |\n|---|---|---|---|\n");
+        StringBuilder zoning = new StringBuilder("\n| family | civic or mixed blocks / map | largest connected civic or mixed group | industrial blocks / map | largest connected industrial group | blocks / map |\n|---|---|---|---|---|---|\n");
         for (boolean colony : new boolean[]{false, true}) {
             Map<BlockKind, long[]> totals = new EnumMap<>(BlockKind.class);
             int[] shortSides = new int[20], longSides = new int[20];
-            long townBlocks = 0, largest = 0, blocks = 0;
+            long townBlocks = 0, largest = 0, industryBlocks = 0, largestIndustry = 0, blocks = 0;
             for (long seed = 1; seed <= SEEDS; seed++) {
                 MapScale scale = colony ? MapScale.COLONY : MapScale.MEDIUM;
                 BspCityGenerator gen = new BspCityGenerator();
@@ -96,9 +97,12 @@ class TownPlanEvidence {
                     }
                 }
                 DistrictMap districts = gen.getLastDistrictMap();
-                int[] z = townBlocks(districts);
+                int[] z = blocksOf(districts, EnumSet.of(MapDistrictTheme.CIVIC, MapDistrictTheme.MIXED));
                 townBlocks += z[0];
                 largest += z[1];
+                int[] i = blocksOf(districts, EnumSet.of(MapDistrictTheme.INDUSTRIAL));
+                industryBlocks += i[0];
+                largestIndustry += i[1];
                 blocks += (long) districts.districtsX() * districts.districtsY();
             }
             String family = colony ? "colony" : "city";
@@ -113,8 +117,9 @@ class TownPlanEvidence {
             sides.append(String.format(Locale.ROOT, "%n| %s | long |", family));
             for (int i = 3; i < 20; i++) sides.append(' ').append(longSides[i]).append(" |");
             sides.append('\n');
-            zoning.append(String.format(Locale.ROOT, "| %s | %.1f | %.1f | %.1f |%n", family,
-                    (double) townBlocks / SEEDS, (double) largest / SEEDS, (double) blocks / SEEDS));
+            zoning.append(String.format(Locale.ROOT, "| %s | %.1f | %.1f | %.1f | %.1f | %.1f |%n", family,
+                    (double) townBlocks / SEEDS, (double) largest / SEEDS, (double) industryBlocks / SEEDS,
+                    (double) largestIndustry / SEEDS, (double) blocks / SEEDS));
         }
         out.append(sides).append(zoning);
         Path dir = root.resolve("build/reports/town-plan");
@@ -155,8 +160,8 @@ class TownPlanEvidence {
         return n;
     }
 
-    /** {civic or mixed blocks, the largest 4-connected group of them}. */
-    private static int[] townBlocks(DistrictMap districts) {
+    /** {blocks of the given themes, the largest 4-connected group of them}. */
+    private static int[] blocksOf(DistrictMap districts, Set<MapDistrictTheme> themes) {
         int nx = districts.districtsX(), ny = districts.districtsY();
         boolean[][] town = new boolean[nx][ny];
         int count = 0;
@@ -164,7 +169,7 @@ class TownPlanEvidence {
             for (int dy = 0; dy < ny; dy++) {
                 MapDistrictTheme theme = districts.themeAt(dx * districts.districtCellWidth() + districts.districtCellWidth() / 2,
                         dy * districts.districtCellHeight() + districts.districtCellHeight() / 2);
-                town[dx][dy] = theme == MapDistrictTheme.CIVIC || theme == MapDistrictTheme.MIXED;
+                town[dx][dy] = themes.contains(theme);
                 if (town[dx][dy]) count++;
             }
         }
