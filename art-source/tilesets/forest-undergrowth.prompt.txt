@@ -1,0 +1,13 @@
+Use case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production overhead undergrowth sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted tree canopies. Match its painterly realistic woodland rendering, palette and soft diffuse overhead light; do not copy its trees.
+Preserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every silhouette's center, size, aspect and outline. Each plant fills its guide silhouette right out to the edge (small leaf serrations may refine the edge inward) and nothing grows beyond it. Do not move, enlarge, tilt or rearrange anything.
+Camera looks STRAIGHT DOWN from directly above: orthographic plan view of low forest-floor growth, roughly waist to head high. No side view, no perspective, no visible upright stems in profile.
+Top row left to right:
+1. Bramble patch (wide): a low tangle of arching thorny dark red-brown canes with clusters of dull olive bramble leaves and a few dark blackberries. It is SPARSE: keep the guide's gaps between canes as genuine transparent holes, about a third of the silhouette, so the ground shows through.
+2. Small bramble (narrow strip): the same bramble, a single short run of canes, sparse with transparent gaps.
+3. Thicket (large, round): a dense mass of hazel and elder shrubs, many small rounded leaf clusters, dark internal recesses, completely opaque.
+Bottom row left to right:
+4. Small thicket: the same dense shrubs, a compact clump, completely opaque.
+5. Bracken bed (long strip): tall bracken ferns seen from above, overlapping broad triangular fronds with fine pinnae radiating from several crowns, fresh mid green with some yellowing, opaque.
+6. Saplings: three young broadleaf saplings, each a small separate leafy crown at its guide circle with a hint of a thin stem at its centre; transparent ground between the crowns.
+Hand-painted realistic tactical-game environment art, coherent medium detail readable at 1-4 world cells per plant. No baked ground shadow outside the silhouettes, no soil disc, no grass carpet, no rocks, no flowers except the berries, no labels, no text, no border.
+True transparent background, including the gaps inside the brambles and between the saplings. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.

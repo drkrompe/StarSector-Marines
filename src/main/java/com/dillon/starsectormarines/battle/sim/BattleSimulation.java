@@ -195,6 +195,7 @@ import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHitFeedback;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -226,6 +227,7 @@ import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRigSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
@@ -299,7 +301,9 @@ import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
+import com.dillon.starsectormarines.battle.evacuation.SwarmEmergence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
+import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -570,6 +574,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * {@link #rng} is available.
      */
     private final EffectsService effects;
+    /** Rounds shown landing on a plated Rav so far: tells apart several landing on one body in one tick. */
+    private int swarmHitsShown;
     /** Persistent physical supply caches and their finite transfer state. */
     private final com.dillon.starsectormarines.battle.logistics.ResupplyService resupply =
             new com.dillon.starsectormarines.battle.logistics.ResupplyService();
@@ -878,11 +884,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmEmergence swarmEmergence = new SwarmEmergence();
+    /** How bodies come up out of the bores and form up (`colony-breach-nouns.md`, Emergence). */
+    public SwarmEmergence swarmEmergence() { return swarmEmergence; }
     private final SwarmFliers swarmFliers = new SwarmFliers();
     private final BroodSpires broodSpires = new BroodSpires();
 
     /** The old bloom's brood spires and the Matriarchs' broods: where Harrier packs come from. */
     public BroodSpires broodSpires() { return broodSpires; }
+    private final SwarmWorkers swarmWorkers = new SwarmWorkers();
+    /** The nests' skitterers (`colony-breach-nouns.md`, Skitterer). */
+    public SwarmWorkers swarmWorkers() { return swarmWorkers; }
+    /** The outposts the bores' creep carries out (`colony-breach-nouns.md`, Spore colony). */
+    public CreepOutposts creepOutposts() { return creepOutposts; }
     /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
     public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
@@ -902,8 +916,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
-        // A bloom weeks old has grown its spires.
+        // A bloom weeks old has grown its spires, and its nests are full of workers.
         broodSpires.grow(this);
+        swarmWorkers.populate(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
@@ -1541,6 +1556,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the corpse transmute: harvest takes up the body the transmute just made.
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
+        rosterService.modifiers().register(matriarchActions.runModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -1558,6 +1574,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.ravRunnerRigSystem.bruteState(id -> bruteCharges.phase(id).ordinal(),
                 id -> rosterService.stagger().isStaggered(id));
         ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
+        ravRunnerRigSystem.setWork(id -> switch (swarmWorkers.show(id)) {
+            case WORKING -> RavRunnerRig.WORK_HEAD_DOWN;
+            case FEED -> RavRunnerRig.WORK_FEED;
+            case PULP -> RavRunnerRig.WORK_PULP;
+            case NONE -> RavRunnerRig.WORK_NONE;
+        });
         ravRunnerRigSystem.matriarchState(id -> matriarchActions.kind(id, simTickIndex).ordinal(),
                 id -> matriarchActions.ageSeconds(id, simTickIndex));
         this.mechTurretSystem = new MechTurretSystem(
@@ -2306,6 +2328,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
     /** Claw strikes queued this tick; see {@code EffectsService.emitClawStrike}. Drained by the host into {@code ImpactFx.spawnClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
+    /** Rounds landed on plated Rav this tick; see {@code EffectsService.emitSwarmHit}. Drained into {@code ImpactFx.spawnSwarmHit}. */
+    public List<float[]> getSwarmHitsThisFrame() { return effects.getSwarmHitsThisFrame(); }
+    /** Queues one puff of ground dust; see {@code EffectsService.emitGroundDust}. Presentation only. */
+    public void emitGroundDust(float x, float y, float vx, float vy, float radius, int kind) {
+        effects.emitGroundDust(x, y, vx, vy, radius, kind);
+    }
     /** Queues the look of a claw strike on a body; see {@code EffectsService.emitClawStrike}. */
     public void emitClawStrike(float x, float y, float dirX, float dirY, float blood) {
         effects.emitClawStrike(x, y, dirX, dirY, blood);
@@ -3913,9 +3941,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
+        swarmEmergence.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        // After the harvest and the packs: a skitterer hauls what the harvest left loose, and tends what grew.
+        swarmWorkers.tick(this);
         // After the director's surges and before the fliers fly, so a pack a surge launches flies this tick.
         broodSpires.tick(this);
         swarmFliers.tick(this);
@@ -4052,8 +4083,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
         }
         rosterService.telemetry().recordRoundHit(impact.shooterId);
+        UnitType victimType = rosterService.identity().type(impact.victimId);
+        boolean shows = SwarmHitFeedback.shows(victimType);
+        boolean plated = shows && world().hasArmor(impact.victimId);
+        float armorBefore = plated ? world().armor(impact.victimId) : 0f;
         damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
                 impact.penetration, impact.moraleImpact, impact.part);
+        if (shows) showSwarmHit(impact, victimType, plated, armorBefore);
         if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
             friendlyFireSquadsThisFrame.add(friendlyFireSquad);
         }
@@ -4061,6 +4097,31 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             hitResponse.rollFallbackOnHit(impact.victimId);
             hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
         }
+    }
+
+    /**
+     * A round that just landed on a plated Rav shows as a puff or a glance ({@link SwarmHitFeedback}): read off the hit
+     * the damage path resolved, from where its shooter stands (or from ahead of the body, when the shooter is gone).
+     */
+    private void showSwarmHit(ShotService.PendingImpact impact, UnitType type, boolean plated, float armorBefore) {
+        long victim = impact.victimId;
+        float x = world().x(victim), y = world().y(victim);
+        float facing = entityWorld.has(victim, battleComponents.LAYERED_ANIMATION)
+                ? entityWorld.getFloat(victim, battleComponents.LAYERED_ANIMATION,
+                        BattleComponents.LAYERED_FACING_DEGREES) : 0f;
+        float fromX, fromY;
+        if (impact.shooterId != 0L && resolveUnit(impact.shooterId) != 0L) {
+            fromX = world().x(impact.shooterId);
+            fromY = world().y(impact.shooterId);
+        } else {
+            double rad = Math.toRadians(facing);
+            fromX = x - (float) Math.sin(rad) * 10f;
+            fromY = y + (float) Math.cos(rad) * 10f;
+        }
+        SwarmHitFeedback.emit(effects, victim, type, rosterService.identity().swarmStage(victim), x, y, facing,
+                fromX, fromY, impact.hitX, impact.hitY, simTickIndex, swarmHitsShown++, impact.damage,
+                impact.penetration, armorBefore, plated && rosterService.isAliveById(victim) ? world().armor(victim) : 0f,
+                plated ? world().armorRating(victim) : 0f);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(long)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */

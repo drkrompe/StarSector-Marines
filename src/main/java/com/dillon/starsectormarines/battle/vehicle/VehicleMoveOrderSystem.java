@@ -74,6 +74,14 @@ public final class VehicleMoveOrderSystem {
      */
     static final float GIVE_UP_SECONDS = 8f;
 
+    /**
+     * Whether an order's route is proved from where the hull stands, its ends judged as an order's
+     * ({@link VehicleRoutePlanner#routeDrivableFrom}). {@code -Dbattle.vehicle.orderEnds=false} is the control, both
+     * ends held to the sampling margin as dispatch's are: remove it with the losing path once The Burn's
+     * vehicle-order evidence has been read against it.
+     */
+    static final boolean ORDER_ENDS = Boolean.parseBoolean(System.getProperty("battle.vehicle.orderEnds", "true"));
+
     /** How far the resolver may look for drivable ground near the clicked cell. */
     private static final int SNAP_RADIUS = 6;
     /** Cells around an ordered cell searched for the nearest one the hull can reach ({@link #goal}). */
@@ -326,8 +334,11 @@ public final class VehicleMoveOrderSystem {
                     ? new float[][]{new float[0], new float[0]} : null;
         }
 
-        return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
-                grid, cost, clearance, type);
+        if (!ORDER_ENDS) {
+            return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], grid, cost, clearance, type);
+        }
+        return VehicleRoutePlanner.routeDrivableFrom(new Pose(body.x, body.y, body.facingDegrees),
+                from[0], from[1], to[0], to[1], grid, cost, clearance, type);
     }
 
     /**

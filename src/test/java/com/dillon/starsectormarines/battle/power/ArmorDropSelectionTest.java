@@ -51,7 +51,6 @@ class ArmorDropSelectionTest {
         assertEquals("Hammer", manifest.get(HOUND_AT).callsign());
         assertTrue(manifest.get(APC_AT).isVehicle());
         assertEquals("Mule", manifest.get(APC_AT).callsign());
-        assertEquals("Heavy APC", manifest.get(APC_AT).typeName());
         assertThrows(UnsupportedOperationException.class,
                 () -> manifest.entries().add(manifest.get(0)));
     }

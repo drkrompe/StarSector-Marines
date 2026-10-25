@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
+import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -311,6 +313,7 @@ public final class BloomHeartSetup {
         WalkingBarrage barrage = null;
         // The guns' rounds and their trucks (owner, 2026-10-23): trucks come from the vehicle park where it was laid.
         HeartGuns heartGuns = new HeartGuns();
+        int[] battery = null;
         if (form == Form.THE_BURN) {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
@@ -319,7 +322,7 @@ public final class BloomHeartSetup {
             barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT)
                     .battery(BURN_BATTERY_STRUCTURE, guns);
             sim.addObjective(new BatteryObjective(guns));
-            int[] battery = centreOf(sim, guns);
+            battery = centreOf(sim, guns);
             if (battery != null) {
                 heartGuns.place(HeartGuns.BATTERY, HeartGuns.BATTERY_SHELLS, battery);
                 for (long gun : guns) heartGuns.add(HeartGuns.BATTERY, gun);
@@ -354,10 +357,18 @@ public final class BloomHeartSetup {
             heartGuns.calledFrom(new AlliedToolShed(park)
                     .stock(AlliedTool.AMMO_TRUCK, heartGuns.truckMaker(), AMMO_TRUCKS, AMMO_TRUCKS, AMMO_TRUCK_RESTOCK_TICKS), true);
         }
+        if (lanes != null) {
+            // The military's air wing over Broad Front, called through the observer it attaches to each lane (`heart-nouns.md`).
+            Precinct home = built.plan().landingPlace();
+            AlliedAirWing.install(sim, home.seedX(), home.seedY(), lanes.grounds().stream()
+                    .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
+        }
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);
         sim.getHeart().guns(heartGuns);
+        // Flak at the base, so the flier law can be met: the old bloom's spires and broods fly only under it.
+        HeartObjectives.airDefence(sim, built.map().layout, heartGuns, battery);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
         int[] count = HeartObjectives.count(density);
         List<OptionalObjective> pool = new ArrayList<>(HeartObjectives.pool(form));

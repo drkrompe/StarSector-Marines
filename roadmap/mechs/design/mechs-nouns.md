@@ -148,7 +148,7 @@ increasing an encounter's total armored threat.
   rig too: the pickup carrying a mech SRM-5 anti-armor pod.
   A vehicle line climbs by **variants**, each its own pattern card and bill, never
   by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
-  Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
+  Medium lift) and fire-support APC (a 120 mm mortar where the troop bay was, no seats, spotted indirect fire,
   Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
   `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
@@ -193,12 +193,16 @@ increasing an encounter's total armored threat.
   extend, tracks to skirt). Kits are inventory parts exactly as internals are:
   learned as patterns, built from the bill into stores, dragged onto the rack and
   off it again, lost with the hull and spared by a scrap. A kit changes the
-  vehicle's numbers when it is frozen for a drop and nothing else, so it adds no
-  behaviour and no balance surface beyond its own effect:
+  vehicle's numbers when it is frozen for a drop, or gives a hull with no drone
+  bay one the battle already flies, so it adds no behaviour of its own and no
+  balance surface beyond its own effect:
   - **Appliqué plate** (Common): a quarter more armor capacity on every plate.
   - **Spall liner** (Common): a fifth more structure.
   - **Ready rack** (Common, armed hulls): half again the turret's magazine.
   - **Spaced skirts** (Advanced, tracked hulls): +2 armor rating.
+  - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
+    drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
+    over cover with no spotter (`convoy-nouns.md`, the missile carriers).
   A new kit joins by taking a slot and a spawn-time effect; anything that needs a
   behaviour or a system of its own (active protection, a blade, a mortar) stays a
   **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).

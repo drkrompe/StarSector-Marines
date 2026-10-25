@@ -60,6 +60,18 @@ asking every tick; a stationed hull that stopped short of its post is sent to it
 afresh after a pause (`AlliedCommand.STALL_RETRY_TICKS`), because the ground
 changes under it (a machine that stood in its way moves off, a wall comes down).
 
+**What a hull was refused it is not asked again from the same place.** A
+stalled hull that has not moved walks the same pull-backs to the same
+refusals, and on The Burn a handful of hulls stuck where they stood made most
+of the battle's vehicle refusals that way. So the commander keeps each hull's
+refused goals (`RefusedGoals`) and pulls a goal it already knows is refused
+straight past, without an order; out of pull-backs, the hull is not sent at all
+and waits for its retry. The memory is a statement about one place: the hull
+moving a cell and a half forgets it, and a minute forgets the goals (fire
+burns the undergrowth off, a wreck is towed away) so they are asked once more.
+Each retry that finds the hull where it stalled doubles the pause, up to eight
+times, and a move resets it.
+
 A mission sets its hulls down where they can drive out: facing the way they
 will go (the chassis heading, 0 at +Y), on ground whose footprint clears
 whichever way the first leg leaves (`TurnAwareCorridor.canSetOutFrom`). A hull

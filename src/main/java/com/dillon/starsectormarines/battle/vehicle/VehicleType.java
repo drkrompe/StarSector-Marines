@@ -66,19 +66,24 @@ public enum VehicleType {
         @Override public float[] hullTint() { return UP_ARMORED_TINT; }
     },
     /**
-     * The heavy APC's hull with the troop bay given over to a heavy mortar: no seats, and
-     * the roof gun is the mortar mount's own catalog art rather than the sheet's MG turret.
-     * It shells what it can see; it cannot carry a squad and it is no tougher than the
-     * carrier it replaces.
+     * The mortar carrier: the heavy APC's hull with the troop bay given over to a 120 mm mortar on a roof turntable.
+     * It is the LRM carrier's steadier, weaker sibling. Like the carrier it fights from beyond its target's reach
+     * ({@link Stance#STANDOFF}) and drops its rounds over cover onto anything somebody else on its side is looking at
+     * ({@link SideObservers}); unlike the carrier it fires on men as readily as on machines. One bomb every few seconds
+     * from a deep rack hits far softer than the LRM's ten-missile salvo, but it keeps falling after the launcher has
+     * emptied its magazine, so the mortar wins a long fight the LRM wins a short one. It cannot carry a squad and is no
+     * tougher than the carrier it replaces. Its sheet is the APC's hulls with an ImageGen turret at the hull's scale:
+     * an open turntable, its tube raised with the bore toward the eye, ready bombs racked round the rear
+     * (art-source/vehicles/mortar-carrier).
      */
-    FIRE_SUPPORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
+    FIRE_SUPPORT_APC("graphics/battle/vehicles/mortar-carrier.png", 0, 4, -90f,
             0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
-            -1, 0f, .15208333f, 0f, 0f, 0f, 0f,
-            TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID, 220f, 160f, 18f, 1.25f, .75f) {
+            1, 0f, .15208333f, 0f, 0f, 2.4f, -90f,
+            TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID, 220f, 160f, 18f, 1.25f, .75f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
         }
-        @Override public boolean turretArtFromMount() { return true; }
+        @Override public Stance engagementStance() { return Stance.STANDOFF; }
     },
     /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
     ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
@@ -89,7 +94,7 @@ public enum VehicleType {
             return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
         }
     },
-    /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
+    /** Heavy convoy spearhead. Turns on conservative rolling arcs, and on the spot where no arc fits ({@link NeutralPivot}). */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
@@ -269,8 +274,8 @@ public enum VehicleType {
     },
     /**
      * The heavy APC's hull with the troop bay given over to a launcher: one mech LRM-15 pod on a turntable where the
-     * twin MG stood, which stands up on it to fire. It is the long arm against armor, where the
-     * fire-support APC's mortar is the short arm against men: its rounds arc over cover onto a machine somebody
+     * twin MG stood, which stands up on it to fire. It is the long arm against armor, where the mortar carrier
+     * ({@link #FIRE_SUPPORT_APC}) is the steady one against anything: its rounds arc over cover onto a machine somebody
      * else on its side is looking at ({@link SideObservers}), it holds fire at anything soft, and it fights from
      * beyond its target's reach ({@link Stance#STANDOFF}). It pays with no seats and thinner plate than the carrier it replaces. Its sheet is
      * the APC's hulls with the mech LRM pod drawn at the hull's scale (art-source/vehicles/missile-carriers).
@@ -566,12 +571,6 @@ public enum VehicleType {
     public float[] hullTint() { return NO_TINT; }
 
     /**
-     * Whether the turret is drawn from its catalog mount's own sprite (the way an aircraft's
-     * hull turrets are) rather than from a frame of this hull's sheet.
-     */
-    public boolean turretArtFromMount() { return false; }
-
-    /**
      * Whether this variant's hull and turret art exist. A variant still waiting on art keeps
      * its stats and pattern but is never offered as a card, as a loadout card whose
      * presentation is pending is not.
@@ -672,7 +671,7 @@ public enum VehicleType {
     public final float hitHalfHeight;
 
     public boolean hasTurretWeapon() {
-        return turretStructureId != null && (turretFrame >= 0 || turretArtFromMount());
+        return turretStructureId != null && turretFrame >= 0;
     }
 
     public StructureDef turretStructure() {

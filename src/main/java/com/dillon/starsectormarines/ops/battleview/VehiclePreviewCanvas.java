@@ -57,7 +57,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                 : new Color(clamp(tint[0]), clamp(tint[1]), clamp(tint[2]), alpha);
         context.sprite(type.spritePath, null, centerX, centerY, hullWidth, hullHeight, angle, hullColor,
                 CanvasSpriteRegion.frame(type.frameCount, 1, type.spriteFrame), CanvasBlend.NORMAL);
-        if (type.turretFrame >= 0 && !type.turretArtFromMount()) {
+        if (type.turretFrame >= 0) {
             float turretWidth = type.turretVisualCells * cellPx;
             // The chassis' forward (+Y) runs along the nose: left on the sheet, up when turned.
             float turretX = noseUp ? centerX + type.turretMountX * cellPx : centerX - type.turretMountY * cellPx;

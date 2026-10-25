@@ -57,6 +57,8 @@ public final class TurretCatalogRegistry {
     public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
     /** The LRM carrier's twin rail launcher: the mech anti-armor LRM rack on a vehicle turntable. */
     public static final String VEHICLE_LRM_STRUCTURE_ID = "structure.vehicle-lrm";
+    /** The mortar carrier's roof mortar: an indirect-fire tube on a vehicle turntable, a steady bomb every few seconds. */
+    public static final String VEHICLE_MORTAR_STRUCTURE_ID = "structure.vehicle-mortar";
     /** The SRM technical's pintle pod: the mech anti-armor SRM rack on a pickup's ring. */
     public static final String VEHICLE_SRM_STRUCTURE_ID = "structure.vehicle-srm";
 

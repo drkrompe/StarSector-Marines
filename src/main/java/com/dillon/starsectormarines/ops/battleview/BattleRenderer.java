@@ -389,6 +389,7 @@ public class BattleRenderer {
                 // Overhead machinery such as a bay's travelling crane passes over whoever stands beneath it.
                 new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases),
                 new DroneRenderSystem(sprites),
+                new SpirePerchRenderSystem(sprites),
                 new HarrierRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),
@@ -525,6 +526,13 @@ public class BattleRenderer {
         if (scuffs != null) registerHullBatches(List.of(scuffs));
         // And where on each mech part a mark may sit, read off its pixels now rather than on its first damaged frame.
         MechScuffSink.prepare(sprites, sprites.layeredMechSprites());
+        // A Rav's worn chitin (RavWear) is cells of its own sheet, laid on the Matriarch's and the Brute's body parts.
+        ShuttleSpriteCache ravWear = sprites.spriteByPath(RavWear.SHEET);
+        if (ravWear != null) registerHullBatches(List.of(ravWear));
+        RavMatriarchAssets matriarch = sprites.ravMatriarchSprites();
+        if (matriarch != null) RavWear.Painter.prepare(sprites, matriarch.body, matriarch.head, matriarch.gape);
+        RavBruteAssets brute = sprites.ravBruteSprites();
+        if (brute != null) RavWear.Painter.prepare(sprites, brute.bodyFront, brute.bodyRear, brute.head);
         for (LayeredMechAssets livery : sprites.layeredMechLiveries().values()) MechScuffSink.prepare(sprites, livery);
 
         // Corpse sheets for the UNITS layer (UnitRenderService's corpse sweep) so
@@ -620,6 +628,8 @@ public class BattleRenderer {
         registerSpriteSheetBatches(sprites.convoySprites().values());
         ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
         if (scuffs != null) registerHullBatches(List.of(scuffs));
+        ShuttleSpriteCache ravWear = sprites.spriteByPath(RavWear.SHEET);
+        if (ravWear != null) registerHullBatches(List.of(ravWear));
     }
 
     /**

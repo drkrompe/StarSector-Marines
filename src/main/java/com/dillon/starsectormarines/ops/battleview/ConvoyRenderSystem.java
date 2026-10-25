@@ -111,9 +111,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                             gun.mount().mountY(), body, wrecked, cam, cellPx, alphaMult, out);
                 }
             }
-            if (type.turretArtFromMount()) {
-                collectMountTurret(type, convoy.turret(id), body, wrecked, cam, cellPx, alphaMult, out);
-            } else if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
+            if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
                 // Gated on turretFrame (broader than hasTurretWeapon), so a decorative
                 // turret variant may have no GROUND_TURRET state — draw it facing 0.
                 GroundTurret turret = convoy.turret(id);
@@ -320,16 +318,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     convoy.structure(id), convoy.maxStructure(id),
                     convoy.armor(id), convoy.maxArmor(id), alphaMult);
         }
-    }
-
-    /**
-     * A roof turret drawn from its catalog mount's own sprite, the way an aircraft's hull
-     * turrets are: at the mount's intrinsic size, base over barrel, darkened on a wreck.
-     */
-    private void collectMountTurret(VehicleType type, GroundTurret turret, GroundBody body, boolean wrecked,
-                                    BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
-        collectMountTurret(type.turretStructure(), turret != null ? turret.facingDeg : body.facingDegrees,
-                type.turretMountX, type.turretMountY, body, wrecked, cam, cellPx, alphaMult, out);
     }
 
     /** A catalog mount's sprite standing {@code localX, localY} cells from the hull's centre, facing {@code facing}. */

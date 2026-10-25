@@ -3,6 +3,8 @@ import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
+import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -236,6 +238,15 @@ public final class TacticalScoring {
      * by default and BreachToEngage's relevance flips on.
      */
     public static final float TARGET_ZONE_MISMATCH_COST = 8f;
+
+    /**
+     * Cells added to a target that cannot hurt anyone on the ground ({@link #harmlessToGround}): an emplacement
+     * that shoots only at the air or at rounds in flight, such as a spore colony. More than any sight range, so
+     * anything armed in view is shot first; the emplacement is still the pick when nothing else is. Broad Front,
+     * 2026-10-25: six Marines put 68 rounds into a spore outpost four cells off while three Spitters sixteen cells
+     * away killed them.
+     */
+    public static final float TARGET_HARMLESS_COST = 60f;
 
     /**
      * Multiplier on the weapon-target affinity term in {@link #findBestTarget}.
@@ -612,7 +623,8 @@ public final class TacticalScoring {
                 + scoreThreatDensity(candidate, world.x(candidate), world.y(candidate),
                         selfFaction)
                 + scoreWeaponAffinity(excludeFromCrowding, candidate)
-                + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY);
+                + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY)
+                + harmlessCost(candidate);
         score -= scoreCarrierPriority(candidate, selfSquadId);
         return visible ? score : score + TARGET_NO_LOS_COST;
     }
@@ -1499,6 +1511,11 @@ public final class TacticalScoring {
                 selfX, selfY, sx, sy, selfAir, visible, currentDist)) {
             return PursuitDecision.RETARGET;
         }
+        // A harmless target yields to anything armed in view, however far.
+        if (harmlessToGround(currentTarget) && hasVisibleArmedEnemy(self, currentTarget, selfFaction,
+                selfX, selfY, sx, sy, selfAir)) {
+            return PursuitDecision.RETARGET;
+        }
 
         return PursuitDecision.KEEP;
     }
@@ -1555,7 +1572,8 @@ public final class TacticalScoring {
                     + scoreCrowding(selfFaction, selfSquadId, candidate, self)
                     + density * TARGET_THREAT_DENSITY_COST
                     + scoreWeaponAffinity(self, candidate)
-                    + scoreZoneMismatch(sx, sy, cx, cy);
+                    + scoreZoneMismatch(sx, sy, cx, cy)
+                    + harmlessCost(candidate);
             if (score < bestScore) {
                 bestScore = score;
                 best = candidate;
@@ -1644,6 +1662,41 @@ public final class TacticalScoring {
         return false;
     }
 
+    /** Whether {@code self} sees a hostile combatant, other than {@code exclude}, that can hurt it ({@link #harmlessToGround}). */
+    private boolean hasVisibleArmedEnemy(long self, long exclude, Faction selfFaction,
+                                         float selfX, float selfY, int selfCellX, int selfCellY, float selfAir) {
+        World world = roster.world();
+        VisionService vision = roster.vision();
+        LongBucket candidates = RETARGET_CANDIDATES.get();
+        unitIndex.gatherHostileCombatants(selfX, selfY, MAX_PLAUSIBLE_ATTACK_RANGE, selfFaction, candidates);
+        for (int i = 0, n = candidates.size; i < n; i++) {
+            long u = candidates.ids[i];
+            if (u == exclude || u == self || !roster.isAliveById(u)) continue;
+            if (!selfFaction.hostileTo(roster.identity().faction(u))
+                    || !roster.identity().type(u).combatant
+                    || unitIndex.restraint().restrains(u)
+                    || harmlessToGround(u)) continue;
+            if (canSeePair(grid, selfCellX, selfCellY, world.cellX(u), world.cellY(u),
+                    selfAir, vision.targetAirLosRadius(u))) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether {@code target} cannot hurt anyone on the ground: an emplacement that shoots only at the air or at
+     * rounds in flight ({@link TurretRole}). A structure that is the work itself, such as a bore, a console or a
+     * generator, is not harmless however little it fires: rounds on a bore are what bring it down.
+     * {@link #TARGET_HARMLESS_COST}.
+     */
+    public boolean harmlessToGround(long target) {
+        TurretStateService turrets = roster.turretState();
+        return turrets.isTurret(target) && turrets.structure(target).targetRole != TurretRole.A2G;
+    }
+
+    private float harmlessCost(long target) {
+        return harmlessToGround(target) ? TARGET_HARMLESS_COST : 0f;
+    }
+
     /**
      * Nearest enemy combatant that {@code self} can shoot <em>right now</em> —
      * within its attack range and in line of sight. Drives opportunistic
@@ -1713,8 +1766,10 @@ public final class TacticalScoring {
             if (!roster.isAliveById(other)) continue;
             float otherX = world.x(other);
             float otherY = world.y(other);
-            float d = cellDistance(selfX, selfY, otherX, otherY);
-            if (d > range) continue;
+            float reach = cellDistance(selfX, selfY, otherX, otherY);
+            if (reach > range) continue;
+            // Ranked by distance, a harmless structure behind anything armed in range.
+            float d = reach + harmlessCost(other);
             // Only the nearest visible candidate, and the preferred one, can change
             // the answer, so a candidate that cannot beat the best so far needs no ray.
             if (d >= bestDist && other != preferred) continue;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.nature;
 
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.forest.Undergrowth;
 
 /** Code-owned silhouette shared by art, placement, observation and whole-object destruction. */
 public interface NaturalPropShape {
@@ -16,6 +17,7 @@ public interface NaturalPropShape {
 
     static NaturalPropShape find(String id) {
         for (var tree : TreeCanopy.values()) if (tree.id.equals(id)) return tree;
+        for (var growth : Undergrowth.values()) if (growth.id.equals(id)) return growth;
         for (var mineral : MineralFormation.values()) if (mineral.id().equals(id)) return mineral;
         return null;
     }

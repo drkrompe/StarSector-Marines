@@ -17,12 +17,22 @@ turned and foreshortened, a little wider for its nose coming up toward the eye, 
 the raise never moves the pod off its ring. Firing toward the bottom of the screen it stands only as tall as still
 points at the target. The wreck pod lies flat.
 
+## Wrecked pods
+
+A wrecked pod is a real damage edit, not the live pod darkened: `wreck_guide.py` sets each live pod nose-left on a
+1024 px canvas, ImageGen breaks it in place (`lrm-wreck.prompt.txt`, `srm-wreck.prompt.txt`; the raws and their
+provenance sit beside them), and `pack.py` lays each raw back over its edit target with `wreck_fit.fit_to`
+(`art-source/vehicles/`), scales it like the live pod and throws it a few degrees askew. The image tool's violence
+filter refused the SRM edit twice; the shipped prompt describes it as a broken equipment box and passes the LRM wreck
+as the condition reference.
+
 The mount's nine muzzles (`mount.vehicle-lrm`) are the pod's tube tips at a representative raise
 (`VehicleType.turretRaiseFold`, 0.78 of their flat reach about the pod's centre): lateral 0 and +/-0.144, forward
 0.222, 0.161 and 0.110 cells, in a Latin-square order so a salvo walks across the pod. Change the pod's size or the
 fold and they move with it.
 
 ```
+python art-source/vehicles/missile-carriers/wreck_guide.py
 python art-source/vehicles/missile-carriers/pack.py
 python art-source/dolls/build_dolls.py
 ```

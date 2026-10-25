@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.LongPredicate;
 
 /**
  * The swarm's harvest (`colony-breach-nouns.md`, Harvest): a Runner that brings
@@ -109,6 +110,8 @@ public final class SwarmHarvest {
     public static final float SCAVENGE_RADIUS = 8f;
     /** A bore sends a scavenger pack only while at least this many of the swarm's dead lie loose. */
     public static final int SCAVENGER_PACK_MIN_DEAD = 3;
+    /** A skitterer's pace hauling, as a share of its own: it is built for loads (`colony-breach-nouns.md`, Skitterer). */
+    public static final float WORKER_DRAG_PACE = 0.7f;
 
     /** Whether harvest runs. {@code -Dbattle.colonyBreach.harvest=false} is the control. */
     public static boolean enabledByDefault() {
@@ -169,6 +172,7 @@ public final class SwarmHarvest {
     private int freed;
     private int taken;
     private int firstHarvestTick = -1;
+    private int hauledByWorkers;
 
     public SwarmHarvest(boolean enabled) {
         this(enabled, impaleByDefault(), areaHitsHeldByDefault());
@@ -277,6 +281,32 @@ public final class SwarmHarvest {
         return best;
     }
 
+    /**
+     * The nearest loose body of any kind (one of the swarm's dead or a load a carrier dropped) within
+     * {@code radius} of (x, y), lowest id on a tie, or 0: what a skitterer hauls. Serial.
+     */
+    public long nearestLoose(BattleSimulation sim, float x, float y, float radius) {
+        return nearestLoose(sim, x, y, radius, body -> false);
+    }
+
+    /** As {@link #nearestLoose(BattleSimulation, float, float, float)}, passing over every body {@code skip} names. */
+    public long nearestLoose(BattleSimulation sim, float x, float y, float radius, LongPredicate skip) {
+        if (!open || loose.isEmpty()) return 0L;
+        long best = 0L;
+        float bestDistance = radius * radius;
+        for (int i = 0, n = loose.size(); i < n; i++) {
+            long body = loose.get(i);
+            if (!sim.world().hasPosition(body) || skip.test(body)) continue;
+            float dx = sim.world().x(body) - x, dy = sim.world().y(body) - y;
+            float distance = dx * dx + dy * dy;
+            if (distance < bestDistance || distance == bestDistance && body < best) {
+                best = body;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
     /** How many of the swarm's dead lie loose for recycling now. */
     public int recyclableCount(BattleSimulation sim) {
         int count = 0;
@@ -292,6 +322,9 @@ public final class SwarmHarvest {
 
     /** The swarm's own dead dragged back into a bore. */
     public int recycled() { return recycled; }
+
+    /** Bodies, recycled or delivered, that a skitterer rather than a Runner brought into a bore. */
+    public int hauledByWorkers() { return hauledByWorkers; }
 
     /**
      * A Runner landed a blow on {@code target}. Called from the parallel unit
@@ -421,10 +454,12 @@ public final class SwarmHarvest {
         return false;
     }
 
+    /** A living Runner, or a skitterer free to haul, with nothing already on its back. */
     private boolean mayCarry(BattleSimulation sim, long runner) {
-        return sim.resolveUnit(runner) != 0L && sim.world().isAlive(runner)
-                && sim.identity().type(runner) == UnitType.SWARM_RUNNER
-                && !loads.containsKey(runner);
+        if (sim.resolveUnit(runner) == 0L || !sim.world().isAlive(runner) || loads.containsKey(runner)) return false;
+        UnitType type = sim.identity().type(runner);
+        return type == UnitType.SWARM_RUNNER
+                || type == UnitType.SWARM_WORKER && sim.swarmWorkers().mayHaul(runner);
     }
 
     /** A dead Runner: the one body the swarm takes back from its own. */
@@ -434,7 +469,8 @@ public final class SwarmHarvest {
 
     private void seize(BattleSimulation sim, long runner, long body) {
         loads.put(runner, body);
-        carrierPace.put(runner, SwarmStageStats.dragPace(sim.identity().swarmStage(runner)));
+        carrierPace.put(runner, sim.identity().type(runner) == UnitType.SWARM_WORKER ? WORKER_DRAG_PACE
+                : SwarmStageStats.dragPace(sim.identity().swarmStage(runner)));
         carriers.put(body, runner);
         loose.remove(body);
         sim.clearPath(runner);
@@ -510,6 +546,7 @@ public final class SwarmHarvest {
                 consume(sim, body, bore);
                 if (rav) recycled++;
                 else delivered++;
+                if (sim.identity().type(carrier) == UnitType.SWARM_WORKER) hauledByWorkers++;
             }
         }
     }

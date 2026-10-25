@@ -694,6 +694,11 @@ tasks.register('commanderEvidence', Test) {
         if (!densities.isBlank()) {
             systemProperty "${prefix}.densities", densities
         }
+        // -Pforms=front plays only Broad Front's pools (the heart; burn for The Burn); both forms by default.
+        def forms = providers.gradleProperty('forms').getOrElse('').trim()
+        if (!forms.isBlank()) {
+            systemProperty "${prefix}.forms", forms
+        }
         def repeat =providers.gradleProperty('repeat')
                 .orElse(providers.systemProperty('commander.evidence.repeat'))
                 .getOrElse('').trim()
@@ -986,6 +991,8 @@ tasks.register('createSnapshots', JavaExec) {
     } else {
         classpath = sourceSets.test.runtimeClasspath
     }
+    // A look soundtrack (`-Dsnapshot.lookSound=true`, `LookReview`) is mixed from the Oggs in the gitignored mod/sounds.
+    if (System.getProperty('snapshot.lookSound') == 'true') dependsOn ':asset-pipeline:processAudio'
     mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath

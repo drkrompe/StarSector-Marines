@@ -206,6 +206,36 @@
       "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
+      "id": "weapon.vehicle-mortar", "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "modelName": "@gearCatalogWeaponTurretHeavyMortarModelName", "designation": "HMR", "designationTiered": false },
+      "sim": {
+        "range": 38.0, "minRange": 8.0, "damage": 64.0, "accuracy": 0.6, "cooldown": 2.6, "penetration": 18.0,
+        "hitSpread": 2.5, "roundVelocity": 26.0, "flightSec": 1.5, "arcHeight": 6.0,
+        "aoeRadius": 1.4, "wallDamage": 32, "wallDamageRadius": 1.4,
+        "interceptableProjectile": true, "pointDefenseTarget": true,
+        "indirectFire": true, "noLosAccuracyMult": 0.55, "noiseMagnitude": 1.6
+      },
+      "render": { "projectileSprite": "graphics/missiles/mortar_round.png", "projectileVisualCells": 0.5 },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.82, "lifetime": 0.11, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.42, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": [0.30, 0.42], "lifetime": [0.65, 0.95], "count": 2, "jitter": 0.25 }
+        ],
+        "trail": [ { "kind": "smoke", "radius": [0.12, 0.18], "lifetime": [0.35, 0.50], "jitter": 0.06 } ],
+        "impact": [
+          { "kind": "glow", "radius": 1.0, "lifetime": 0.17, "color": "FFE080" },
+          { "kind": "explosion", "radius": 0.66, "lifetime": 0.40 },
+          { "kind": "ring", "radius": 0.46, "lifetime": 0.32 },
+          { "kind": "fire", "radius": 0.72, "lifetime": 0.58 },
+          { "kind": "smoke", "radius": [0.60, 0.95], "lifetime": [1.20, 1.70], "count": [3, 5], "jitter": 0.70 },
+          { "kind": "dust", "radius": 0.85, "lifetime": 0.44 }
+        ],
+        "aftermath": [ { "kind": "smoke", "radius": [0.40, 0.80], "lifetime": [0.95, 1.60], "jitter": 0.55, "delay": [0.10, 0.25], "emissionDuration": 1.60, "emissionInterval": [0.30, 0.44] } ]
+      },
+      "audio": { "fireSound": "heavy_mortar_fire", "impactSound": "marines_explosion" }
+    },
+    {
       "id": "weapon.vehicle-srm", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponVehicleSrmDisplayName", "modelName": "@gearCatalogWeaponVehicleSrmModelName", "designation": "SRM", "designationTiered": false },
       "sim": {
@@ -541,7 +571,7 @@
           { "kind": "smoke", "radius": [0.30, 0.45], "lifetime": [1.6, 2.2], "jitter": 0.90, "delay": [0.25, 0.40], "emissionDuration": 0.90, "emissionInterval": [0.22, 0.32], "color": "6A6560" }
         ]
       },
-      "audio": { "fireSound": "flak_fire" }
+      "audio": { "fireSound": "marines_flak_fire", "impactSound": "marines_flak_burst" }
     },
     {
       "id": "weapon.turret-hephaestus",

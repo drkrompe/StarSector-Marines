@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1735e-0d83-7641-87c0-68f00f1e9e4a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1735e-0d83-7641-87c0-68f00f1e9e4a\\exec-ea607ea8-678d-4b39-b3ee-8e337b9ab155.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\worker\\raw\\options\\tender-body-v1.png",
+    "sha256": "5b4a5c3358606a43d5db522115d21c08e5fc39b30744e38c3ac84a4165610066",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\worker\\prompts\\tender-body.prompt.txt",
+  "promptSha256": "8228161357b05f628b33c8b1cfb7eb59491a10919dee6aa3323768221efa5152",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: silhouette, part placement, scale, centre line and colour layout; paint over it, never move it\nImage 2: Material and palette reference only (the Runner's body); not layout\n\nTop-down game sprite layer for a 2D creature rig: the body of the SKITTERER, a small non-combat nest worker of an engineered alien swarm (the Rav Bloom). It is the same organism as the swarm's Runner (reference 2), its body plan and chitin specialised for work: it hauls the swarm's dead home, repairs nest structures and tends brood. It never fights, so it has NO spike arms, NO blades and NO claws on its back or shoulders.\n\nReference 1 is the GEOMETRY AUTHORITY. Paint over it exactly: keep its silhouette, outline, proportions, the position and scale of every part on the canvas, the centre line, and its colour layout (which areas are lilac plate, crimson sinew, ivory bone, amber). Do not move, add or remove any part; do not add legs or arms. Only replace the flat cartoon shading with finished painted chitin.\n\nReference 2 is MATERIAL AND PALETTE ONLY, not layout: paint with exactly its finish and colours - pale lilac to dusky-violet glossy carapace plates with soft pearly highlights, deep crimson ropey sinew between the plates, ivory bone edges, small glowing amber nodes. Same lighting (soft light from the upper left), same rendering style and level of detail.\n\nOption TENDER - a feeder and grower. A narrow plated front body (three diamond spine plates flanked by small lilac shoulder plates) and, over the hindquarters, a big swollen TRANSLUCENT GUT SAC: a taut glossy membrane, amber-orange glowing from inside and lilac at its rim, with a few darker seed masses floating inside it and crimson veins running over it, strapped to the frame by two ivory bone straps and closed by a small plate at the rear. A short sinewy neck and a small narrow lilac head with two amber eyes, and two slender FEELER-LIKE ivory palps for mandibles, reaching forward with small rounded tips. Reads as soft, laden and gentle.\n\nThe creature will be drawn very small in game (about 20 pixels long), so keep big clear shapes and strong value contrast between plates and sinew; no fine noise, no tiny scales, no texture grain.\n\nStrict overhead orthographic view, nose pointing UP, same framing as reference 1 so the layer registers over it. Plain flat light grey background (#b4b4b4) everywhere outside the creature, no shadow, no ground, no text, no border, no legs.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\worker\\guides\\tender-guide.png",
+      "sha256": "bfb698cf863dc6889fe45d1df7e13b880ca54a887d29bd0cb896cbcbb0de55dd",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry authority: silhouette, part placement, scale, centre line and colour layout; paint over it, never move it"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-6\\layers\\body-slim-b.png",
+      "sha256": "220201a5c596d1b66225edebdbea059d5362f1eaad6f691085fe43be6de12002",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Material and palette reference only (the Runner's body); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one painted version using Image 1’s exact geometry and Image 2’s materials and palette."
+  ],
+  "usage": {
+    "input_tokens": 44602,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 693,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.9
+}

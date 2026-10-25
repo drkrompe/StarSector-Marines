@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
+import com.dillon.starsectormarines.battle.evacuation.HarrierReading;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
@@ -121,6 +122,7 @@ class CordonCommandEvidenceTest {
                     .put("beats", first.beats())
                     .put("objectives", first.objectives())
                     .put("lineCommand", first.line())
+                    .put("skitterers", first.workers())
                     .put("timeline", first.timeline());
             Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
             Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
@@ -223,6 +225,7 @@ class CordonCommandEvidenceTest {
                 }
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            AirWingProbe.print(runId, sim);
             // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
             StringBuilder objectives = new StringBuilder();
             ObjectiveBoard board = sim.getOptionalObjectives();
@@ -244,9 +247,10 @@ class CordonCommandEvidenceTest {
             String report = report(runId, sim, cordon, winner, table.toString(), objectives.toString());
             String allies = allies(sim, cordon);
             String line = cordon.line() == null ? "—" : cordon.line().readings();
+            String workers = sim.swarmWorkers().summary(sim);
             return new RunResult(sim.getCommandTraceJsonLines(), sim.getSimTickIndex(), sim.isComplete(), winner,
-                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue, report,
-                    objectives.toString(), allies, line);
+                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue,
+                    report + "\nNests: " + workers + "\n", objectives.toString(), allies, line, workers);
         }
     }
 
@@ -257,7 +261,8 @@ class CordonCommandEvidenceTest {
             Faction faction = sim.identity().faction(unit);
             if (faction == Faction.MARINE && sim.identity().type(unit).combatant) marines++;
             else if (faction == Faction.ALLY) allies++;
-            else if (faction == Faction.DEFENDER && sim.identity().type(unit).isSwarm()) swarm++;
+            else if (faction == Faction.DEFENDER && sim.identity().type(unit).isSwarm()
+                    && !sim.identity().type(unit).isSwarmWorker()) swarm++;
         }
         JSONArray redoubts = new JSONArray();
         for (CordonRedoubt r : cordon.redoubts()) {
@@ -326,7 +331,8 @@ class CordonCommandEvidenceTest {
                 .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n")
                 .append("- Optional objectives: ").append(objectives.isEmpty() ? "none" : objectives).append('\n')
                 .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
-                .append('\n');
+                .append('\n')
+                .append("- Harriers: ").append(HarrierReading.line(sim)).append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")
@@ -434,7 +440,7 @@ class CordonCommandEvidenceTest {
 
     private record RunResult(String trace, int ticks, boolean complete, String winner, String outcome, int fallen,
                              JSONArray beats, List<String> beatIds, JSONArray timeline, int tidesDue, String report,
-                             String objectives, String allies, String line) { }
+                             String objectives, String allies, String line, String workers) { }
 
     /**
      * What the allies had at the end, for the matrix ({@code cordon-allied-forces.md}): machines the base built,

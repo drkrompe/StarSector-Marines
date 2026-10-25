@@ -689,11 +689,13 @@ public final class UnitRosterService {
         // that replaced the old instanceof-subclass checks.
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
-        // The Runner, the Brute, the Spitter and the Matriarch are drawn on their own skeletons; their layered
+        // The Runner, the Brute, the Spitter and the Matriarch are drawn on their own skeletons (the skitterer on the
+        // Runner's); their layered
         // appearance stays, for facing and the corpse.
         boolean ravRigged = layerDrawn
                 && (spec.type == UnitType.SWARM_RUNNER || spec.type == UnitType.SWARM_BRUTE
-                    || spec.type == UnitType.SWARM_SPITTER || spec.type == UnitType.SWARM_MATRIARCH);
+                    || spec.type == UnitType.SWARM_SPITTER || spec.type == UnitType.SWARM_MATRIARCH
+                    || spec.type == UnitType.SWARM_WORKER);
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBelt ? 1 : 0) + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
@@ -806,7 +808,8 @@ public final class UnitRosterService {
             entityWorld.setObject(id, components.RAV_RIG, BattleComponents.RAV_RIG_STATE,
                     spec.type == UnitType.SWARM_BRUTE ? new RavBruteRig(id)
                             : spec.type == UnitType.SWARM_MATRIARCH ? new RavMatriarchRig(id)
-                            : spec.type == UnitType.SWARM_SPITTER ? new RavSpitterRig(id) : new RavRunnerRig(id));
+                            : spec.type == UnitType.SWARM_SPITTER ? new RavSpitterRig(id)
+                            : spec.type == UnitType.SWARM_WORKER ? RavRunnerRig.worker(id) : new RavRunnerRig(id));
         }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);
