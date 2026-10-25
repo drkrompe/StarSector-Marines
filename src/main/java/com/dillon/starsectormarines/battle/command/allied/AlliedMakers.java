@@ -41,7 +41,7 @@ public final class AlliedMakers {
     /** {@code count} hulls of {@code type}, stationed side by side at the request's cell. */
     public static Maker armour(AlliedCommand command, VehicleType type, int count) {
         return (sim, from, request) -> {
-            VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
+            VehicleClearance mask = sim.convoy().clearances().of(sim.getGrid(), type);
             List<Long> hulls = new ArrayList<>();
             for (int i = 0; i < count; i++) {
                 int[] at = VehicleRoutePlanner.snapToMask(mask, from[0] + across(i, count), from[1], STAND_REACH);

@@ -331,6 +331,10 @@ public final class TickInnerProfile {
         CONVOY_ROUTE_PROOF_STEP,
         // Ground-system stages are nested wall times, not additive to the phase.
         GROUND_PENDING_ORDERS,
+        /** Count-only: move orders whose route was planned this tick, within the per-tick allowance. */
+        VEHICLE_ORDER_PLANNED,
+        /** Count-only: move orders still queued after this tick's planning; a request-tick sum, so use the maximum. */
+        VEHICLE_ORDER_WAITING,
         GROUND_ORDER_EXECUTION,
         GROUND_DELIVERY_MOTION,
         GROUND_DEBOARD,

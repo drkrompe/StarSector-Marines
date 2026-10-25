@@ -25,7 +25,8 @@ A scripted hull (a story column on an authored route, a convoy) moves only when
 its script says, and the vehicle combat AI leaves it alone. An enlisted hull
 belongs to an allied command: it takes orders through the same order mailbox
 the player's hulls do (`VehicleMoveOrderService.enlist`), so it plans a
-drivable route the same way, and between orders it fights as an autonomous
+drivable route the same way, from the same queue, behind the player's own
+orders (`convoy-nouns.md`, orders are planned from a queue), and between orders it fights as an autonomous
 hull does (`VehicleEngagement`). The player never orders one: selection picks
 only the player's own hulls. Hostility in the combat AI is relative to the
 hull's own side, so an enlisted hull needs nothing else to fight the right

@@ -127,7 +127,21 @@ public final class VehicleMoveOrderService {
      * heading the drive arrives with when it is {@code NaN}.
      */
     public void requestMove(long vehicleId, int cellX, int cellY, float facingDegrees) {
-        pending.add(new PendingOrder(vehicleId, cellX, cellY, facingDegrees));
+        enqueue(new PendingOrder(vehicleId, cellX, cellY, facingDegrees));
+    }
+
+    /**
+     * Queues an order. A hull already waiting keeps its place in the queue and takes the newer destination, so asking
+     * again while the planner is busy neither costs a second plan nor sends it to the back.
+     */
+    private void enqueue(PendingOrder order) {
+        for (int i = 0; i < pending.size(); i++) {
+            if (pending.get(i).vehicleId == order.vehicleId) {
+                pending.set(i, order);
+                return;
+            }
+        }
+        pending.add(order);
     }
 
     /** Puts an allied hull under allied command: it takes orders here and fights between them. */
@@ -217,7 +231,7 @@ public final class VehicleMoveOrderService {
         if (!suspended.remove(vehicleId)) return;
         retainLatestPending(vehicleId);
         RequestedOrder order = retained.remove(vehicleId);
-        if (order != null) pending.add(new PendingOrder(vehicleId,
+        if (order != null) enqueue(new PendingOrder(vehicleId,
                 order.requestedX(), order.requestedY(), true, order.facingDegrees()));
     }
 
@@ -236,6 +250,22 @@ public final class VehicleMoveOrderService {
         pending.clear();
         return drained;
     }
+
+    /**
+     * Puts orders the planner had no room for this tick back at the head of the queue, in the order given, ahead of
+     * anything asked for since. A hull asked again in the meantime keeps the deferred order's place with the newer
+     * destination.
+     */
+    void defer(List<PendingOrder> unplanned) {
+        if (unplanned.isEmpty()) return;
+        List<PendingOrder> since = new ArrayList<>(pending);
+        pending.clear();
+        pending.addAll(unplanned);
+        for (PendingOrder order : since) enqueue(order);
+    }
+
+    /** How many orders wait for the planner. */
+    public int pendingCount() { return pending.size(); }
 
     void activate(long vehicleId, ActiveOrder order) {
         active.put(vehicleId, order);

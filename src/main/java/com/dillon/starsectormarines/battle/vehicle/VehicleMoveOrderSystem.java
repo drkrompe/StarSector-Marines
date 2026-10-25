@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.assault.MachineGuard;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.ActiveOrder;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.Refus
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -75,6 +77,13 @@ public final class VehicleMoveOrderSystem {
     /** How far the resolver may look for drivable ground near the clicked cell. */
     private static final int SNAP_RADIUS = 6;
 
+    /**
+     * Route proofs {@link #tickPending} makes in one tick; zero plans every queued order at once, the control for an
+     * A/B against the budget. A tuning lever ({@code switches.md}): fold it into this constant once the convoy and
+     * story-mission evidence has been read against it.
+     */
+    static final int PLANS_PER_TICK = Integer.getInteger("battle.vehicle.orderPlansPerTick", 2);
+
     private final VehicleMoveOrderService service;
     private final ConvoyService convoy;
     private final NavigationService navigation;
@@ -113,7 +122,16 @@ public final class VehicleMoveOrderSystem {
         service.resume(id);
     }
 
-    /** Resolves every queued request. Call once per tick, before driving. */
+    /**
+     * Resolves queued requests, planning at most {@link #PLANS_PER_TICK} routes. Call once per tick, before driving.
+     *
+     * <p>A route proof is the expensive part of an order, and orders come in blocks: a restocked lane hands every
+     * fresh hull its post on one tick, and their refusals and pull-backs then follow in step. Planning them all at
+     * once was a frame hitch every time. The queue is planned in a fixed order instead, the player's own hulls first
+     * and then oldest first, and what does not fit waits at the head of the queue for the next tick; a hull already
+     * under orders keeps driving them meanwhile. The allowance counts plans rather than time, so a replay plans the
+     * same orders on the same ticks.
+     */
     public void tickPending() {
         for (long id : new ArrayList<>(service.suspendedIds())) {
             if (!manuallyCommandable(id)) service.forget(id);
@@ -121,7 +139,12 @@ public final class VehicleMoveOrderSystem {
         for (Map.Entry<Long, ActiveOrder> entry : new ArrayList<>(service.activeEntries())) {
             if (!commandable(entry.getKey())) service.forget(entry.getKey());
         }
-        for (PendingOrder request : service.drainPending()) {
+        List<PendingOrder> queue = new ArrayList<>(service.drainPending());
+        // Stable, so each group keeps its queue order: a player's click never waits behind allied traffic.
+        queue.sort(Comparator.comparing(order -> service.isEnlisted(order.vehicleId)));
+        int planned = 0;
+        for (int i = 0; i < queue.size(); i++) {
+            PendingOrder request = queue.get(i);
             if (service.isSuspended(request.vehicleId)) {
                 service.retain(request.vehicleId, request.cellX, request.cellY, request.facingDegrees);
                 continue;
@@ -142,6 +165,11 @@ public final class VehicleMoveOrderSystem {
                         Refusal.NOT_COMMANDABLE);
                 continue;
             }
+            if (PLANS_PER_TICK > 0 && planned >= PLANS_PER_TICK) {
+                service.defer(queue.subList(i, queue.size()));
+                break;
+            }
+            planned++;
             // Any new order supersedes a standing assault or guard, including another of either.
             service.endAssault(request.vehicleId);
             service.endGuard(request.vehicleId);
@@ -174,6 +202,11 @@ public final class VehicleMoveOrderSystem {
             }
             service.activate(request.vehicleId, new ActiveOrder(request.cellX, request.cellY,
                     route[0], route[1], request.facingDegrees));
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.VEHICLE_ORDER_PLANNED, planned);
+            profile.recordCount(TickInnerProfile.Bucket.VEHICLE_ORDER_WAITING, service.pendingCount());
         }
     }
 

@@ -902,6 +902,16 @@ retains the same existing cross-domain behavior as an autonomous hull.
   entity id, so the order system is where that is decided rather than the
   picker; an enemy vehicle is a target, not a unit, and asking it to move is
   refused the same way any other impossible order is.
+- **Orders are planned from a queue, a few a tick.** Proving a drivable route is
+  the expensive part of an order, and orders arrive in blocks: a restocked lane
+  hands every fresh hull its post at once, and their refusals and pull-backs
+  follow in step. A tick plans at most its allowance of routes
+  (`-Dbattle.vehicle.orderPlansPerTick`, default 2; 0 plans everything at once),
+  the player's own hulls before enlisted allied ones and otherwise oldest first,
+  and what does not fit waits at the head of the queue, its hull still driving
+  any order it already holds. Asking again for a hull that is waiting changes
+  its destination and keeps its place. The allowance counts plans, not time, so
+  a replay plans the same orders on the same ticks.
 - **The vehicle is the target, and what a click means follows from what is in
   it.** Pointing a squad at a friendly transport with room is an order to get
   in — it walks over and boards, and the destination follows the vehicle rather
