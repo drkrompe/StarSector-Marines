@@ -24,8 +24,8 @@ free replacement troops or chassis.
 
 ## Acceptance
 
-- [x] The closed freight account, including exhausted failure, unlocks
-  the arc without rewriting its historical outcome or recurring work.
+- [x] The won freight account unlocks the arc without rewriting its
+  historical outcome or recurring work; a failed run never does.
 - [x] Fixed planet identities, ordered chapters, retries and a persistent
   accepted-attempt receipt gate payment and casualty writeback.
 - [x] HQ course guidance and the local broker expose the current destination;

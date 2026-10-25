@@ -32,11 +32,12 @@ Thunder Run directly, with no support-choice menu or intermediate Relay chapter.
 | Chapter | Tactical objective | Accepted victory reward | Delivery state |
 |---|---|---|---|
 | Open the Junction | Secure the territorial junction and hand gains to militia | 12,000 credits; Thunder Run opens | Implemented; live acceptance remains |
-| Thunder Run | Clear road posts and escort identified cargo physically through the exit | 6,000 plus 4,000 per cumulative delivery, at most 18,000; Route Security | Implemented; live acceptance remains |
+| Thunder Run | Clear road posts and escort identified cargo physically through the exit | 6,000 plus 4,000 per delivery, at most 18,000; Route Security | Implemented; live acceptance remains |
 
-Confirmed deliveries and losses persist across attempts; retries contain only
-unresolved loads. An exhausted failed ledger closes its actual result without
-a fabricated victory, finale payment or recurring entitlement.
+A defeated Thunder Run leaves no trace on the freight: the story is told as if
+the company won the first time. The retry fields all three loads again, and only
+the won attempt's deliveries and losses are recorded. Failure never closes the
+account, pays the finale or opens later work.
 
 Both chapters recommend two full squads and accept two selected squads with
 four ready people each. Actual named personnel and fitted boats cross the
@@ -45,19 +46,19 @@ ordinary deployment boundary; supplied militia remain distinct.
 ## Resolution and next lead
 
 Successful Thunder Run opens separate Route Security jobs on the Relay Nine
-battlefield. Existing Wayline jobs continue independently. The closed freight
-account, including exhausted failure, opens The Corvus Account; its introduction
-preserves actual deliveries and losses.
+battlefield. Existing Wayline jobs continue independently. The won freight
+run opens The Corvus Account; its introduction preserves actual deliveries and
+losses.
 
-The attempt that closes the account, won or exhausted, ends with a written Jangala
-conversation on Results. Mara reads the whole ledger: every load through, some
-lost, or none. Sabine says what the militia now hold and, if it applies, that
-the company lost people. Castle names the pattern in the ambushes. Mara passes on
-Iona's trace: the departure times go to a broker on Asharu buying for Sable Wake.
-Delivered freight also pays for Wayline's first chartered off-world consignment.
-Castle closes the account and tells the company to plot a course for Asharu,
-mentioning Route Security only after success. A retry that leaves cargo waiting
-gets no goodbye. The written debrief carries the same lead.
+The won Thunder Run ends with a written Jangala conversation on Results. Mara
+closes the run with one common line: Varro's toll is gone and the freight moves
+on Wayline's own manifests. Sabine says the militia hold the road and, as a
+separate line, that the company lost people when it did. Castle names the pattern
+in the ambushes. Mara passes on Iona's trace: the departure times go to a broker
+on Asharu buying for Sable Wake. The run also pays for Wayline's first chartered
+off-world consignment. Castle closes the account, notes that Route Security stays
+on Mara's board and tells the company to plot a course for Asharu. The written
+debrief carries the same lead.
 
 ## Reserved mission concept
 

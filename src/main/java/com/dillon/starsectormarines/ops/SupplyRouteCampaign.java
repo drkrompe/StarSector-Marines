@@ -119,12 +119,9 @@ public final class SupplyRouteCampaign {
                         .filter(soldier -> soldier.status() == MarineSoldierStatus.ACTIVE).count() >= 4).count() >= 2;
     }
     /** The quiet beat after a story victory; recurring work and defeated attempts keep their factual reports. */
-    static String recoveryDebrief(MissionOutcome outcome) { return recoveryDebrief(outcome, current()); }
-    /** An exhausted freight account still closes Jangala and points the company at Asharu. */
-    static String recoveryDebrief(MissionOutcome outcome, BrokenSupplyRouteProgress route) {
-        if (outcome == null || outcome.missionSource != MissionSource.STORY || !owns(outcome.missionId)) return "";
-        if (!outcome.victory) return MissionDebriefConversation.jangalaClosing(outcome, route)
-                ? Strings.get("waylineSentenceJoin") + Strings.get("supplyRouteRecoveryExhausted") : "";
+    static String recoveryDebrief(MissionOutcome outcome) {
+        if (outcome == null || !outcome.victory || outcome.missionSource != MissionSource.STORY
+                || !owns(outcome.missionId)) return "";
         if (outcome.freightOutcome != null)
             return Strings.get("waylineSentenceJoin") + Strings.get("supplyRouteRecoveryFreight");
         if (outcome.missionId.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.JUNCTION + "_"))
