@@ -1033,12 +1033,7 @@ KEYFRAMES = {
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         # the port pod shot out by the Wolf (P)'s Harpoons (95.5 s), and burning from them
         fx=[('blast_on', 'colossus', 12, (-64, 36, -7), 95.5), ('fire_on', 'colossus', (-60, 36, -2), (-1, .4, .3), 95 - 95.55),
-            # the Mk.III's rake on the burning pod (97.67 s, ledger) is laid dead on, in a burst held across it:
-            # her seeded bursts fall on other frames at 24 fps than at the 4 fps audit, and none spanned it
-            # (S8-S9 final c01, 2026-10-25: nearest 2.1 s off). Four bursts, as her seeded rhythm gave
-            ('tracer', 'colossus3', 'colossus', (-60, 30, 6),
-             dict(sure_t=97.67, bursts_t=[(90.6, 91.2), (93.3, 93.9), (95.9, 96.5), (97.2, 97.8)])),
-            ('tracer', 'colossus', 'wolf-p-a'),
+            ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             # the Colossus's fire on the Mk.III walks wide: about a quarter to a third lands, the rest
             # flies on past her (coordinator, 2026-10-24)
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0)),
@@ -3093,7 +3088,13 @@ def blender_main(cfg):
             if spec.get('platform'):
                 platform(spec['platform'], spec.get('platform_t', K1B_T))
                 extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
-            muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
+            # under --kit-once the guns are picked where the ships are as the shot opens, as the kit is
+            # built: a chunk that picked them at its own first frame fired other turrets than the chunk
+            # before it, and the rounds in flight jumped at the boundary (2026-10-25: S6b's merchant Wolf
+            # t3 then t2; S9b's lead Lasher t1 then t2/t3, failing the link its first chunk drew)
+            shot_ships = ({k: at_time(sp, build_at) if hasattr(sp, 'at') else sp
+                           for k, sp in KEYFRAMES[spec['span_of']]['ships'].items()} if build_at is not None else None)
+            muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf, shot_ships)}
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
             seat_check(kf, spec)
@@ -4074,10 +4075,11 @@ def mounts(key, state=None):
     return out
 
 
-def bearing(kf):
-    """For every shot in a key frame, whether the shooter has a gun that can bear on its target."""
+def bearing(kf, ships=None):
+    """For every shot in a key frame, whether the shooter has a gun that can bear on its target, with
+    the ships posed as `ships` (default the key frame's own)."""
     spec = SHOTS[kf]
-    ships = spec['ships']
+    ships = ships or spec['ships']
     states = spec.get('states', {})
     rows = []
     for fx in spec.get('fx', []):
