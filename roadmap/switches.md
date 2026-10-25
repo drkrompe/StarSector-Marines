@@ -85,6 +85,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.frontage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.laneFormation` | experiment | 2026-10-23 | Broad Front lanes as screened advances, screen by country (`heart-allied-commander.md`). Remove with the losing arm once the owner answers `heart-lane-formation`; `false` is the control, straight to the bore. |
+| `battle.infantry.dangerClose` | experiment | 2026-10-25 | A special weapon is held while a friendly stands in its lane or blast (`TacticalScoring.shouldCommitSpecial`). Remove the losing arm once the heart pool readings settle it. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
 | `battle.infantry.laneSidestep` | control | 2026-09-01 | Standing control: FiringLineScene runs the off arm as its control loop (behavior-scenes.md). Retire it with that loop. |
 | `battle.infantry.rejoin` | control | 2026-09-01 | Standing control: the control and contested-control loops of LateArrivalScene run the off arm. Retire it with those loops. |

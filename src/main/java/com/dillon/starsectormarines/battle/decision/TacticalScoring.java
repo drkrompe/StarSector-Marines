@@ -157,6 +157,10 @@ public final class TacticalScoring {
      * 2026-10-25: marines stopped single file where the march left them and died to acid three to a lob).
      */
     public static final String UNSTACK_PROPERTY = "battle.infantry.unstack";
+    /** Cells nearer or further from its target that an unstacking member may end up: it spreads along its line. */
+    static final float UNSTACK_DEPTH = 1f;
+    /** Cells round a member within which an enemy with a splash weapon makes a crowd worth breaking up. */
+    static final float SPLASH_WATCH_CELLS = 16f;
     private static final boolean UNSTACK = !"false".equalsIgnoreCase(System.getProperty(UNSTACK_PROPERTY));
     /** Minimum cell-distance from target when picking a firing position. Avoids picking the target's own cell. */
     public static final float FIRING_MIN_DISTANCE = 0.7f;
@@ -1112,7 +1116,7 @@ public final class TacticalScoring {
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (!world.specialEquipment(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
-        if (friendlyInTheWay(shooter, target, world.specialEquipment(shooter).aoeRadius() + DANGER_CLOSE_MARGIN)) return false;
+        if (DANGER_CLOSE && friendlyInTheWay(shooter, target, world.specialEquipment(shooter).aoeRadius() + DANGER_CLOSE_MARGIN)) return false;
         return projectedSpecialDamageOnTarget(shooter, target)
                 < remainingDurability(target, world.x(shooter), world.y(shooter));
     }
@@ -1139,11 +1143,43 @@ public final class TacticalScoring {
     }
 
     /**
+     * Whether a living hostile whose weapon bursts over an area (a Spitter, or any primary weapon with a splash)
+     * stands within {@link #SPLASH_WATCH_CELLS} of {@code self}: only then is a squad's crowding a thing that kills
+     * it several to a round.
+     */
+    boolean splashThreatNear(long self) {
+        World world = roster.world();
+        Faction faction = roster.identity().faction(self);
+        LongBucket scratch = SPREAD_CANDIDATES.get();
+        float x = world.x(self), y = world.y(self);
+        unitIndex.gather(x, y, SPLASH_WATCH_CELLS, scratch);
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long u = scratch.ids[i];
+            if (!roster.isAliveById(u) || !faction.hostileTo(roster.identity().faction(u))) continue;
+            float dx = world.x(u) - x, dy = world.y(u) - y;
+            if (dx * dx + dy * dy > SPLASH_WATCH_CELLS * SPLASH_WATCH_CELLS) continue;
+            // A Spitter's acid is its behaviour's, not its primary weapon (SwarmSpitterBehavior).
+            if (roster.identity().type(u) == UnitType.SWARM_SPITTER) return true;
+            if (!roster.combat().has(u)) continue;
+            WeaponDef weapon = roster.combat().primaryWeaponDef(u);
+            if (weapon != null && weapon.aoeRadius > 0f) return true;
+        }
+        return false;
+    }
+
+    /**
      * Cells past a special weapon's blast that a friendly must stand for its shooter to commit: the round can land a
      * little off. Broad Front, 2026-10-25: a rocket at a bore thirty cells off burst on four Marines bunched in its
      * lane, killing all four.
      */
     public static final float DANGER_CLOSE_MARGIN = 1f;
+
+    /**
+     * {@code -Dbattle.infantry.dangerClose=false} is the control: a special weapon fires whoever stands in its lane
+     * or blast, as before. Temporary: remove with the losing arm once the heart pool readings settle it.
+     */
+    public static final String DANGER_CLOSE_PROPERTY = "battle.infantry.dangerClose";
+    private static final boolean DANGER_CLOSE = !"false".equalsIgnoreCase(System.getProperty(DANGER_CLOSE_PROPERTY));
 
     private static final ThreadLocal<FiringLane.Friendlies> DANGER_CLOSE_FRIENDLIES =
             ThreadLocal.withInitial(FiringLane.Friendlies::new);
@@ -3257,6 +3293,8 @@ public final class TacticalScoring {
         int selfCover = grid.getCoverAt(sx, sy, selfFdx, selfFdy)
                       + doodads.getDoodadCoverAt(sx, sy, selfFdx, selfFdy);
         int selfCrowd = UNSTACK ? alliesNearForSpread(self, sx, sy) : 0;
+        if (selfCrowd > 0 && !splashThreatNear(self)) selfCrowd = 0;
+        float selfFromTarget = (float) Math.sqrt(selfFdx * selfFdx + selfFdy * selfFdy);
 
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
@@ -3285,8 +3323,10 @@ public final class TacticalScoring {
                 // best." The cooldown gate inside RepositionToCover catches
                 // the timing side; this filter catches the "no upgrade
                 // available" side. Together they keep MGs cozy.
-                // Equal cover is a move only for a crowded member, to a cell with fewer allies round it.
+                // Equal cover is a move only for a crowded member, to a cell with fewer allies round it, and only
+                // along the line it stands in: a step forward or back puts it in a squadmate's lane.
                 if (combined < selfCover || combined == selfCover && selfCrowd == 0) continue;
+                if (combined == selfCover && Math.abs(distFromTarget - selfFromTarget) > UNSTACK_DEPTH) continue;
                 int alliesNear = alliesNearForSpread(self, cx, cy);
                 if (combined == selfCover && alliesNear >= selfCrowd) continue;
 

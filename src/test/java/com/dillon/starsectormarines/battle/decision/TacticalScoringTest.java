@@ -596,9 +596,23 @@ public class TacticalScoringTest {
 
         unit(sim, Faction.MARINE, 10, 11);
         unit(sim, Faction.MARINE, 11, 10);
+        assertTrue(scoring.splashThreatNear(marine), "a Spitter lobs acid over an area");
         int[] pick = scoring.findFiringPositionCoverPreferred(marine, enemy, -1, -1);
         assertNotNull(pick, "stacked in the open, it moves");
         assertTrue(scoring.alliesNearForSpread(marine, pick[0], pick[1]) < scoring.alliesNearForSpread(marine, 10, 10));
+    }
+
+    @Test
+    public void aCrowdFacingNoSplashHoldsItsCells() {
+        BattleSimulation sim = openArena(40, 20);
+        long marine = unit(sim, Faction.MARINE, 10, 10);
+        sim.world().setAttackRange(marine, 12f);
+        long enemy = unit(sim, Faction.DEFENDER, 20, 10);
+        unit(sim, Faction.MARINE, 10, 11);
+        unit(sim, Faction.MARINE, 11, 10);
+        assertFalse(sim.getTacticalScoring().splashThreatNear(marine));
+        assertNull(sim.getTacticalScoring().findFiringPositionCoverPreferred(marine, enemy, -1, -1),
+                "against rifles a firing line keeps its cells");
     }
 
     @Test
