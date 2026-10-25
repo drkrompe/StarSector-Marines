@@ -510,6 +510,7 @@ public final class BroodSpires {
             }
             for (SwarmBore.Growing g : bore.growing()) out.add(new float[]{g.x() + 0.5f, g.y() + 0.5f});
         }
+        for (SwarmBores.Bud b : sim.swarmBores().buds()) out.add(new float[]{b.x() + 0.5f, b.y() + 0.5f});
         return out;
     }
 

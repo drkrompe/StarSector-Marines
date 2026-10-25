@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The battle's bores (`colony-breach-nouns.md`, Bore): opening them on clear
@@ -84,10 +86,39 @@ public final class SwarmBores {
 
     private record Pending(int number, boolean mother, int x, int y) { }
 
+    /** Colonists' worth of biomass a bore eats between one bud and its next (`colony-breach-nouns.md`, Budding). */
+    public static final float BUD_BIOMASS = 3f;
+    /** Nearest and furthest a bud opens from the bore that put it out, in cells: a block or two further in. */
+    public static final float BUD_REACH_MIN = 16f, BUD_REACH_MAX = 48f;
+    /** A bud opens at least this many cells nearer the town's heart than the bore that put it out. */
+    public static final float BUD_INWARD = 8f;
+    /** Seconds a bud's root takes to dig out to its place and thicken before the new bore opens at its end. */
+    public static final float BUD_LEAD_SECONDS = 12f;
+    /** No bore buds while this many bores live or are on their way: the nest's ceiling. */
+    public static final int MAX_BORES = 10;
+
+    /** A bore on its way: its parent's root began digging to ({@code x}, {@code y}) at {@code startTick}. */
+    public record Bud(SwarmBore parent, int number, int x, int y, int startTick, int leadTicks) {
+        /** How far through its lead it is at {@code tick}, 0..1. */
+        public float progress(int tick) {
+            return Math.max(0f, Math.min(1f, (tick - startTick) / (float) Math.max(1, leadTicks)));
+        }
+
+        /** Whether its root has come and the bore may open. */
+        public boolean arrived(int tick) {
+            return tick - startTick >= leadTicks;
+        }
+    }
+
     private final long seed;
     private final List<SwarmBore> bores = new ArrayList<>();
     private final List<SwarmBore> view = Collections.unmodifiableList(bores);
     private final List<Pending> pending = new ArrayList<>();
+    private final List<int[]> budPlaces = new ArrayList<>();
+    private final List<Bud> buds = new ArrayList<>();
+    private final Map<SwarmBore, Float> budMarks = new HashMap<>();
+    private int budHeartX, budHeartY, budSpacing, nextBudNumber;
+    private boolean budding;
     private final List<Event> events = new ArrayList<>();
     private final List<Event> eventView = Collections.unmodifiableList(events);
     private final BoreCues cues = new BoreCues();
@@ -158,6 +189,108 @@ public final class SwarmBores {
      *
      * @param number the bore's number in eruption order, {@code 0} for the mother
      */
+    /**
+     * Lets the bores bud inward (`colony-breach-nouns.md`, Budding): each time one has eaten {@link #BUD_BIOMASS}
+     * since its last, its root digs out to one of {@code places} ({@code {x, y, ...}} each, in the order they are
+     * tried) a block or two nearer the town's heart at ({@code heartX}, {@code heartY}), and a new bore opens at its
+     * end, numbered from {@code firstNumber} and at least {@code spacing} from every other. Setup only; without it no
+     * bore buds.
+     */
+    public void budInward(List<int[]> places, int heartX, int heartY, int spacing, int firstNumber) {
+        budPlaces.clear();
+        budPlaces.addAll(places);
+        budHeartX = heartX;
+        budHeartY = heartY;
+        budSpacing = spacing;
+        nextBudNumber = firstNumber;
+        budding = true;
+    }
+
+    /** The bores on their way, their roots digging out from the bores that put them out. */
+    public List<Bud> buds() { return Collections.unmodifiableList(buds); }
+
+    /**
+     * Where a bore at ({@code px}, {@code py}) buds: of {@code places} between {@link #BUD_REACH_MIN} and
+     * {@link #BUD_REACH_MAX} from it, at least {@link #BUD_INWARD} nearer the heart at ({@code hx}, {@code hy}) than
+     * it is, and {@code spacing} from everything in {@code standing} ({@code {x, y}} cell centres), the one nearest
+     * the heart, the earlier in {@code places} on a tie; {@code null} for none.
+     */
+    public static int[] budSite(List<int[]> places, float px, float py, float hx, float hy, List<float[]> standing,
+                                int spacing) {
+        float home = (float) Math.hypot(px - hx, py - hy);
+        int[] best = null;
+        float bestHeart = Float.MAX_VALUE;
+        for (int[] c : places) {
+            float cx = c[0] + 0.5f, cy = c[1] + 0.5f;
+            float d = (float) Math.hypot(cx - px, cy - py);
+            if (d < BUD_REACH_MIN || d > BUD_REACH_MAX) continue;
+            float heart = (float) Math.hypot(cx - hx, cy - hy);
+            if (heart > home - BUD_INWARD || heart >= bestHeart) continue;
+            boolean apart = true;
+            for (float[] s : standing) {
+                float sx = s[0] - cx, sy = s[1] - cy;
+                if (sx * sx + sy * sy < (float) spacing * spacing) {
+                    apart = false;
+                    break;
+                }
+            }
+            if (apart) {
+                best = c;
+                bestHeart = heart;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Opens the buds whose roots have come (a root dies with the bore that put it out), and puts a new one out from
+     * each bore that has eaten {@link #BUD_BIOMASS} since its last, while fewer than {@link #MAX_BORES} live or are on
+     * their way. A bore with nowhere to bud tries again when it has eaten as much again.
+     */
+    private void bud(BattleSimulation sim, int tick) {
+        for (Bud b : new ArrayList<>(buds)) {
+            if (b.parent().collapsed()) {
+                buds.remove(b);
+                continue;
+            }
+            if (!b.arrived(tick)) continue;
+            buds.remove(b);
+            open(sim, b.number(), false, b.x(), b.y());
+            for (int i = 0; i < 8; i++) {
+                double a = Math.PI * 2 * i / 8;
+                sim.emitGroundDust(b.x() + 0.5f, b.y() + 0.5f, (float) Math.cos(a) * 1.2f, (float) Math.sin(a) * 1.2f,
+                        0.6f, EffectsService.DUST_WHEEL);
+            }
+        }
+        if (!budding || budPlaces.isEmpty()) return;
+        int count = buds.size() + pending.size();
+        for (SwarmBore bore : bores) if (!bore.collapsed()) count++;
+        for (SwarmBore bore : bores) {
+            if (count >= MAX_BORES) return;
+            // A held bore is another's to pace (a loading's own bore): it does not bud.
+            if (bore.collapsed() || bore.dormant()
+                    || bore.biomassFed() - budMarks.getOrDefault(bore, 0f) < BUD_BIOMASS) continue;
+            budMarks.put(bore, bore.biomassFed());
+            int[] site = budSite(budPlaces, bore.x() + 0.5f, bore.y() + 0.5f, budHeartX + 0.5f, budHeartY + 0.5f,
+                    standing(sim), budSpacing);
+            if (site == null) continue;
+            budPlaces.remove(site);
+            buds.add(new Bud(bore, nextBudNumber++, site[0], site[1], tick,
+                    Math.round(BUD_LEAD_SECONDS / BattleSimulation.TICK_DT)));
+            count++;
+        }
+    }
+
+    /** Every living bore, bore on its way and brood spire, as cell centres: what a bud keeps its spacing from. */
+    private List<float[]> standing(BattleSimulation sim) {
+        List<float[]> out = new ArrayList<>();
+        for (SwarmBore bore : bores) if (!bore.collapsed()) out.add(new float[]{bore.x() + 0.5f, bore.y() + 0.5f});
+        for (Pending p : pending) out.add(new float[]{p.x + 0.5f, p.y + 0.5f});
+        for (Bud b : buds) out.add(new float[]{b.x() + 0.5f, b.y() + 0.5f});
+        for (BroodSpires.Spire s : sim.broodSpires().spires()) out.add(new float[]{s.x + 0.5f, s.y + 0.5f});
+        return out;
+    }
+
     public SwarmBore open(BattleSimulation sim, int number, boolean mother, int siteX, int siteY) {
         SwarmBore bore = tryOpen(sim, number, mother, siteX, siteY);
         if (bore == null) pending.add(new Pending(number, mother, siteX, siteY));
@@ -221,6 +354,7 @@ public final class SwarmBores {
         cues.beginFrame();
         int tick = sim.getSimTickIndex();
         rise(sim, tick);
+        bud(sim, tick);
         for (int i = 0; i < pending.size(); ) {
             Pending p = pending.get(i);
             if (tryOpen(sim, p.number, p.mother, p.x, p.y) != null) pending.remove(i);

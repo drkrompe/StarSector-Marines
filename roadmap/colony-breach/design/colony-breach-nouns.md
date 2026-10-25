@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
 Updated: 2026-10-25 — the flier law counts any gun that tracks fliers, so the colony's heavy guns meet it; a tender builds flak first with fliers about.
@@ -44,8 +46,10 @@ inherits `rescue-pressure-acceptance.md`.
 A colony is being eaten from underneath. The company lands in the fields at its
 edge, fights to the shelter where the survivors are sealed in, and has to hold a lift zone
 open long enough for shuttles to take them off. The swarm does not walk in from
-the horizon: it erupts out of bores inside the colony, and every bore left open
-gets worse. The player can spend force to collapse bores and buy quiet, or
+the horizon: it came up out of bores on the colony's outskirts, either side of
+the fields, and is hunting into the town when the company comes down. Every
+colonist it drags home feeds it, and a fed bore buds another further in, so
+every bore left open gets worse. The player can spend force to collapse bores and buy quiet, or
 harden the lift with a called-down flying tender so that the rest of the company is free
 to go hunting. Air power can harass but cannot clear the map, because the bores
 defend the sky over themselves.
@@ -564,31 +568,51 @@ redoubt still waiting as unmet need (see *Readiness gate*).
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
 the one story sequence the battle runs.
 
-**Breach clock.** The breach sequence's own time. It starts at the cohort's
-release: the **tremor** follows four seconds later, the first wave of
-eruptions opens over the minute after that (the first six seconds in, then
-every fifteen), and the mother bore three minutes after the tremor. The clock
-is relative to the release and nothing else, so the same colony breaks open on
-the same schedule however long the company took to reach the shelter.
+**Breach clock.** The breach sequence's own time. The bloom is already eating
+the colony when the company comes down (owner, 2026-10-25), so the clock starts
+with the battle: the **tremor** is its first tick, the first wave is open from
+it, and the mother bore comes up five minutes in. Reaching the shelter releases
+the cohort and is published, but no longer starts anything.
 
-**Eruption site.** Where a bore will come up, chosen once at setup and fixed
+**Eruption site.** Where a bore comes up, chosen once at setup and fixed
 for the battle (`ColonyEruptionPlan`). A site is the open ground outside a
-colony building's door — a place, not a cell picked off the map — and is never
+colony building's door (a place, not a cell picked off the map) and is never
 inside the shelter's clearance, the lift's safe ring or a marine landing pad's
 clearance, never closer to another site than an eighth of the map's short side,
-and always on ground the swarm can walk from to the shelter. The first wave is
-four sites: up to half on the corridor between shelter and lift, one on each
-flank of it, the rest from whatever is left; the mother site is the eligible
-place furthest from the lift. The first wave is numbered in eruption order from
-1, corridor sites first; the mother is named rather than numbered. Sites and
-their scheduled ticks are published in the breach snapshot from the start, and
-each eruption as its beat, whether or not anything yet stands up on the site.
-Eruption is the seam: the sequence opens a site at its tick and hands it to the
-installed eruption handler, which is where a bore is built.
+and always on ground the swarm can walk from to the shelter. The bloom came in
+from the outskirts (owner, 2026-10-25: bores flank the landing zone and grow
+inward): the **first wave** is four sites, two on each flank of the landing
+field (a place off the line from the field in to the shelter by at least four
+tenths of its distance from the field), nearest the field first, the seed
+shuffling places within a site's spacing; a flank short of places is made up
+from the other, then from the outskirts straight ahead. They are open when the
+company comes down. The **mother site** is the place spaced from the rest
+furthest out along a flank, the flank away from the lift when the lift stands
+off to one side: the deep outskirts, never at the cohort's boats. The first wave is numbered from
+1, nearest the field first; the mother is named rather than numbered. Every
+place no site took is kept for the bores the fed ones bud (*Budding*). Sites
+and their ticks are published in the breach snapshot from the start, and each
+eruption as its beat. Eruption is the seam: the sequence opens a site at its
+tick and hands it to the installed eruption handler, which is where a bore is
+built.
+
+**Budding** (owner, 2026-10-25: the ramp is the hive feeding). Each time a bore
+has eaten three colonists' worth since its last bud, it puts out another a
+block or two further in (`SwarmBores.budInward`): of the kept places sixteen to
+forty-eight cells from it and at least eight nearer the shelter than it is,
+spaced from every bore, bore on its way and spire, the one nearest the shelter.
+Its root digs out to the place and thickens over twelve seconds (*Roots grow*),
+and a new fissure opens at its end, numbered after the first wave. A root dies
+with the bore that put it out, and nothing buds while ten bores live or are on
+their way. With fed maws raising spires (*Brood spire*), this is the battle's
+ramp: a colony left to be eaten grows bores street by street toward the shelter
+and puts Harriers in its sky, and a colony whose people are kept from it stays
+a few fissures on its edge.
 
 **Seepage.** The thin perimeter pressure before the tremor. The swarm director
 restores only a fraction of its population floor while the colony is seeping,
-and its full floor from the tremor on.
+and its full floor from the tremor on. Since the tremor is the battle's first
+tick, Colony Breach no longer seeps; the director spawns only from its bores.
 
 **Bore.** A physical hole in the ground that the swarm comes out of. A bore is a
 destroyable structure on a cell footprint with durability, a death cascade and
@@ -672,6 +696,14 @@ Laws:
   biomass, and it is counted apart (recycled), never as a seizure or a
   delivery, so it raises no harvest beat. A Brute or a Spitter is too heavy and
   is left to the creep.
+- **Forager packs** (owner, 2026-10-25: the first pulses hunt into the city).
+  A fissure is hungry: while any of the colony's people are left to find, what
+  it puts out (other than a scavenger pack) is a forager pack, whose Runners
+  each go after the nearest colonist anywhere in the town, fighting only a
+  fighter already within their reach. With nobody left to find, a forager
+  fights like any Runner. So a young bloom's pulses run past a landed company
+  into the town, and only a bore that has grown sends its packs at the company.
+  Scene: `bloom-outskirts`.
 - **Attack packs and scavenger packs** (owner, 2026-10-21). The dead lie where
   the fighting is, where every Runner has something to fight, so a bore sends
   its surges out by turns as an attack pack and a scavenger pack, the latter
@@ -815,7 +847,8 @@ and its surge tick are the director's as before, and so is the flier law.
 
 **Mother bore.** The one bore whose collapse ends spawning from its precinct
 cluster and is the target of the optional hive objective. It erupts later than
-the others, starts at bore tier and is the only bore that can produce a
+the others, five minutes in, out on the deep outskirts at the far reach of a
+flank (*Eruption site*), starts at bore tier and is the only bore that can produce a
 matriarch.
 
 **Spore colony.** The swarm's static air defence, after StarCraft's spore
@@ -2028,14 +2061,16 @@ gamble on. When the objective ends its survivors wander as the rest of the swarm
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge
-   (*Landing field*) and walks in across open ground. A thin perimeter seepage
-   of runners is the only pressure. Militia hold their buildings.
-2. **Shelter.** A Marine reaches the shelter; the main cohort releases. This is
-   the breach sequence's first trigger: **tremor**, then the first bores erupt
-   over the following minute at precincts between the shelter and the lift and
-   on the flanks. Seepage stops. The holdouts are relieved one at a time, before
-   or after the shelter as the commander chooses, and any of them may fall
-   while it waits.
+   (*Landing field*) and walks in across open ground. The first wave of bores
+   is already open on the outskirts either side of the fields, still fissures,
+   and their pulses forage into the town after the colony's people (*Harvest*),
+   so the company meets only the few that cross its path. Militia hold their
+   buildings.
+2. **Shelter.** A Marine reaches the shelter; the main cohort releases. The
+   holdouts are relieved one at a time, before or after the shelter as the
+   commander chooses, and any of them may fall while it waits. Meanwhile every
+   colonist dragged home feeds a bore: fed ones grow, bud new bores further in
+   (*Budding*) and, at maw, raise spires.
 3. **Dig in.** The lift countdown runs. A called-down flying tender can be
    on station and building. Bores grow. The director's target climbs with every living bore
    and tier.
@@ -2067,7 +2102,7 @@ the evidence; change them here first.
 | `redoubt_reached_N` | PLAYER | A Marine reaches redoubt N (1 is the shelter); several redoubts only |
 | `redoubt_line_broke_N` | PLAYER | Holdout N's line is pushed off its works into the building |
 | `redoubt_fell_N` | PLAYER | Holdout N falls |
-| `tremor` | PLAYER | Breach begins (before the first eruption) |
+| `tremor` | PLAYER | Breach begins: the battle's first tick, as the first wave opens |
 | `bore_erupted_N` | PLAYER | Bore N opens |
 | `bore_grew_N_bore` / `bore_grew_N_maw` | PLAYER | Bore N reaches that tier |
 | `mother_bore_grew_maw` | PLAYER | The mother bore reaches maw (it opens at bore tier) |
