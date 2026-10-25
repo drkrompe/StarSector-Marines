@@ -88,21 +88,12 @@ public final class UiDocument {
 
     private boolean acceptsInput(UiElement element) {
         UiElement scope = inputRoot();
-        if (!attached(element) || !(element == scope || isAncestor(scope, element)) || !inRegion(element)
-                || !shown(element)) return false;
+        if (!attached(element) || !(element == scope || isAncestor(scope, element)) || !inRegion(element)) return false;
         if (activeRegions() == null) return true;
         Rect visible = UiSpotlight.visibleBounds(this, element);
         return activeRegions().stream().anyMatch(region -> attached(region)
                 && (element == region || isAncestor(region, element))
                 && overlaps(visible, UiSpotlight.visibleBounds(this, region)));
-    }
-
-    /** Whether no {@code display: none} hides the element or any ancestor. */
-    private static boolean shown(UiElement element) {
-        for (UiElement candidate = element; candidate != null; candidate = candidate.parent()) {
-            if (!candidate.displayed()) return false;
-        }
-        return true;
     }
 
     private static boolean overlaps(Rect first, Rect second) {
