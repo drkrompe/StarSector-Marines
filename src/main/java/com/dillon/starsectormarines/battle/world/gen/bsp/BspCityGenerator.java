@@ -27,6 +27,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FortifiedPostFille
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FactoryRowFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MainStreetFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MainStreetProgram;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseQuarterFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.LandingZoneFiller;
@@ -44,6 +46,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.AirbasePadSeedSta
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BiomeGroundOverrideStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BspPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundClaimStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DistrictPlanStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundSeedStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConquestLandingAreaStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConcentricLayoutStage;
@@ -126,6 +129,12 @@ import java.util.Random;
  */
 public final class BspCityGenerator implements MapGenerator {
 
+    /**
+     * The district programs ({@code set-piece-districts.md}), planned in this order over the leaves the ones
+     * before them left; each has its compound filler registered under its kind.
+     */
+    private static final List<DistrictProgram> DISTRICT_PROGRAMS = List.of(new MainStreetProgram());
+
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CompoundFiller> compoundFillers = new EnumMap<>(BlockKind.class);
 
@@ -175,6 +184,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new DenseQuarterFiller());
         registerCompound(new IndustrialCompoundFiller());
         registerCompound(new FactoryRowFiller());
+        registerCompound(new MainStreetFiller());
         registerCompound(new MedicalCampusFiller());
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
@@ -210,6 +220,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new CompoundSeedStage(),                    // Step 2a   conquest-only
                 new AirbasePadSeedStage(),                  // Step 2a'  city landmark
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
+                new DistrictPlanStage(DISTRICT_PROGRAMS),   // Step 2a''' districts over whole blocks and their streets
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new VehicleCorridorStage(),                 // Step 2c'  conquest-only
@@ -285,6 +296,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new IndustrialTemplateParcelStage(),        // Reserve fitting industrial lots before claim and road publication
                 new SpaceportDistrictPlanStage(),           // Step 2a   campaign civilian spaceport
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
+                new DistrictPlanStage(DISTRICT_PROGRAMS),   // Step 2a''' districts over whole blocks and their streets
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
@@ -844,7 +856,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)))
                 .withLayout(ctx.get(BspKeys.MISSION_LAYOUT_LAID))
                 .withLoadingBays(ctx.loadingBays)
-                .withServiceLanes(ctx.serviceLanes);
+                .withServiceLanes(ctx.serviceLanes)
+                .withMainStreets(ctx.mainStreets);
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

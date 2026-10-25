@@ -97,6 +97,8 @@ public final class GenContext {
     public final List<LoadingBay> loadingBays = new ArrayList<>();
     /** Service lanes factory rows laid, in the order they were laid ({@code set-piece-blocks.md}). */
     public final List<ServiceLane> serviceLanes = new ArrayList<>();
+    /** Main streets districts laid, in the order they were laid ({@code set-piece-districts.md}). */
+    public final List<MainStreet> mainStreets = new ArrayList<>();
 
     /**
      * Cells a facility has engineered, which terrain passes must not repaint.
