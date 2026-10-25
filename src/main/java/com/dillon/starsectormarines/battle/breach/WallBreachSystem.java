@@ -201,7 +201,8 @@ public final class WallBreachSystem {
                 WeaponDef weapon = kit.weaponDef();
                 if (weapon.wallDamage <= 0 || world.secondaryAmmo(member) <= 0 || distance > weapon.range
                         || distance < weapon.minRange
-                        || !lineReaches(grid, fromX, fromY, targetX, targetY, cellX, cellY)) return;
+                        || !lineReaches(grid, fromX, fromY, targetX, targetY, cellX, cellY)
+                        || sim.getTacticalScoring().dangerClose(member, targetX, targetY)) return;
                 if (sim.fireSecondaryAtPoint(member, targetX, targetY)) {
                     world.setSecondaryCooldownTimer(member, kit.cooldown());
                     roundsAtWalls++;

@@ -16,7 +16,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.Arrays;
 
 /**
- * Quiet-infantry traffic hints, always installed. One serial snapshot owns negotiation;
+ * Quiet-infantry traffic hints, always installed, and the files every infantry squad marches in, which a squad in
+ * contact keeps while it takes no other part. One serial snapshot owns negotiation;
  * workers only consume it at the ordinary objective-travel seam. No path search,
  * occupancy reservation, position write, or cross-squad lock occurs in prepare.
  * The existing movement owner validates and applies each requested displacement.
@@ -24,12 +25,18 @@ import java.util.Arrays;
 public final class SquadTrafficSystem {
     private static final int MAX_SQUADS = 4096;
     private static final int LOOKAHEAD_CELLS = 8;
+    /**
+     * Cells between the files a squad marches in ({@link #marchFile}), in contact or not. Without them every member
+     * follows its own route down the same shared field, and a squad that meets contact stops single file, 0.6 cells
+     * apart, where one acid splash takes three (Broad Front, 2026-10-25).
+     */
+    static final float FILE_SPACING = 1.5f;
     private final NavigationGrid grid;
     private final UnitRosterService roster;
     private final SquadTrafficSolver solver = new SquadTrafficSolver();
     private final Int2ObjectOpenHashMap<State> retained = new Int2ObjectOpenHashMap<>();
     private final Int2IntOpenHashMap slots = new Int2IntOpenHashMap();
-    private final State[] states = new State[MAX_SQUADS];
+    private final State[] states = new State[MAX_SQUADS], pending = new State[MAX_SQUADS];
     private final int[] ids = new int[MAX_SQUADS];
     private final int[] factions = new int[MAX_SQUADS];
     private final float[] x = new float[MAX_SQUADS], y = new float[MAX_SQUADS];
@@ -43,7 +50,7 @@ public final class SquadTrafficSystem {
     private int[][] anchorPaths = new int[0][];
     private float[] anchorX = new float[0], anchorY = new float[0];
     private float[] anchorNormalX = new float[0], anchorNormalY = new float[0];
-    private float[] routeBias = new float[0], memberOffsets = new float[0];
+    private float[] routeBias = new float[0], memberOffsets = new float[0], memberFiles = new float[0];
     private long tick;
     private long controlled;
     private int count;
@@ -54,6 +61,8 @@ public final class SquadTrafficSystem {
         long epoch, lastTick, representative, laneVersion;
         int goalX, goalY, members;
         float x, y, hx, hy, previousHx, previousHy, offset, age, previousOpen;
+        /** In contact: it keeps its files and takes no part in other squads' traffic. */
+        boolean contact;
     }
 
     public SquadTrafficSystem(NavigationGrid grid, UnitRosterService roster) {
@@ -77,7 +86,9 @@ public final class SquadTrafficSystem {
                 retained.remove(squad.id);
                 continue;
             }
-            if (!quiet(squad)) continue;
+            boolean contact = !quiet(squad);
+            // A squad in contact keeps its files and nothing else: traffic between squads is for the quiet march.
+            if (contact && (squad.isMechSquad() || squad.isDroneSquad())) continue;
             SquadPlan plan = squad.currentPlan;
             SquadPlan.Step step = plan == null ? null : plan.currentStep();
             if (step == null || !(step.action instanceof EnterZone || step.action instanceof AttackMove)) continue;
@@ -94,6 +105,7 @@ public final class SquadTrafficSystem {
                 state.laneVersion++;
             }
             state.squad = squad;
+            state.contact = contact;
             state.step = step;
             state.epoch = squad.routingEpoch;
             state.goalX = goal.x();
@@ -119,6 +131,7 @@ public final class SquadTrafficSystem {
             anchorNormalY = Arrays.copyOf(anchorNormalY, capacity);
             routeBias = Arrays.copyOf(routeBias, capacity);
             memberOffsets = Arrays.copyOf(memberOffsets, capacity);
+            memberFiles = Arrays.copyOf(memberFiles, capacity);
         }
         Arrays.fill(preparedPaths, null);
         long[] dense = roster.denseArray();
@@ -145,53 +158,73 @@ public final class SquadTrafficSystem {
             state.y += world.y(member);
             state.hx += dx / length;
             state.hy += dy / length;
+            memberFiles[i] = marchFile(state.members);
             state.members++;
             if (state.representative == 0) state.representative = member;
             preparedPaths[i] = path;
         }
         int candidates = count;
+        System.arraycopy(states, 0, pending, 0, candidates);
         count = 0;
         slots.clear();
-        for (int i = 0; i < candidates; i++) {
-            State state = states[i];
-            float coherence = (float) Math.hypot(state.hx, state.hy);
-            if (state.members == 0 || coherence < state.members * 0.7f) {
-                state.offset = state.age = 0f;
-                continue;
-            }
-            state.x /= state.members;
-            state.y /= state.members;
-            state.hx /= coherence;
-            state.hy /= coherence;
-            if (state.hx * state.previousHx + state.hy * state.previousHy < 0.8f) {
-                state.offset = 0f;
-                state.laneVersion++;
-            }
-            state.previousHx = state.hx;
-            state.previousHy = state.hy;
-            states[count] = state;
-            ids[count] = state.squad.id;
-            // Friendly grouping follows the faction relation, not an assumed two-sided battle.
-            factions[count] = state.squad.faction.friendlyTo(Faction.MARINE)
-                    ? Faction.MARINE.ordinal() : state.squad.faction.ordinal();
-            x[count] = state.x;
-            y[count] = state.y;
-            hx[count] = state.hx;
-            hy[count] = state.hy;
-            radius[count] = Math.min(3f, 1f + (float) Math.sqrt(state.members) * 0.55f);
-            openness[count] = openness(state);
-            if (state.previousOpen < 0.9f && openness[count] >= 0.9f) state.laneVersion++;
-            state.previousOpen = openness[count];
-            offsets[count] = state.offset;
-            ages[count] = state.age;
-            slots.put(state.squad.id, count++);
-        }
-        solver.solve(count, ids, factions, x, y, hx, hy, radius, openness, offsets, ages, speeds, dt,
+        for (int i = 0; i < candidates; i++) if (!pending[i].contact) admit(pending[i]);
+        int quietCount = count;
+        solver.solve(quietCount, ids, factions, x, y, hx, hy, radius, openness, offsets, ages, speeds, dt,
                 this::visiblePair);
+        for (int i = 0; i < candidates; i++) if (pending[i].contact) admit(pending[i]);
+        for (int i = quietCount; i < count; i++) {
+            offsets[i] = ages[i] = 0f;
+            speeds[i] = 1f;
+        }
+        Arrays.fill(pending, 0, candidates, null);
         for (int i = 0; i < count; i++) {
             states[i].offset = offsets[i];
             states[i].age = ages[i];
         }
+        prepareMemberOffsets(live, dense);
+        TickInnerProfile profile = TickInnerProfile.current();
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_TRAFFIC_SQUAD, count);
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_TRAFFIC_CANDIDATE, solver.candidateVisits());
+        }
+    }
+
+    /** Takes a squad whose members' headings agree into the next free place in the solve arrays. */
+    private void admit(State state) {
+        float coherence = (float) Math.hypot(state.hx, state.hy);
+        if (state.members == 0 || coherence < state.members * 0.7f) {
+            state.offset = state.age = 0f;
+            return;
+        }
+        state.x /= state.members;
+        state.y /= state.members;
+        state.hx /= coherence;
+        state.hy /= coherence;
+        if (state.hx * state.previousHx + state.hy * state.previousHy < 0.8f) {
+            state.offset = 0f;
+            state.laneVersion++;
+        }
+        state.previousHx = state.hx;
+        state.previousHy = state.hy;
+        states[count] = state;
+        ids[count] = state.squad.id;
+        // Friendly grouping follows the faction relation, not an assumed two-sided battle.
+        factions[count] = state.squad.faction.friendlyTo(Faction.MARINE)
+                ? Faction.MARINE.ordinal() : state.squad.faction.ordinal();
+        x[count] = state.x;
+        y[count] = state.y;
+        hx[count] = state.hx;
+        hy[count] = state.hy;
+        radius[count] = Math.min(3f, 1f + (float) Math.sqrt(state.members) * 0.55f);
+        openness[count] = openness(state);
+        if (state.previousOpen < 0.9f && openness[count] >= 0.9f) state.laneVersion++;
+        state.previousOpen = openness[count];
+        offsets[count] = state.offset;
+        ages[count] = state.age;
+        slots.put(state.squad.id, count++);
+    }
+
+    private void prepareMemberOffsets(int live, long[] dense) {
         for (int i = 0; i < live; i++) {
             int[] path = preparedPaths[i];
             if (path == null) continue;
@@ -221,14 +254,22 @@ public final class SquadTrafficSystem {
             anchorPaths[i] = path;
             // Replanning starts at the displaced body. Keep the old lane as
             // reference, rather than adding another three cells on each repath.
-            float translated = offsets[slot] + routeBias[i];
+            // A squad's own files ride on its lane, and close to single file where the ground narrows.
+            float translated = offsets[slot] + memberFiles[i] * openness[slot] + routeBias[i];
             memberOffsets[i] = Math.max(-3f, Math.min(3f, translated));
         }
-        TickInnerProfile profile = TickInnerProfile.current();
-        if (profile != null) {
-            profile.recordCount(TickInnerProfile.Bucket.SQUAD_TRAFFIC_SQUAD, count);
-            profile.recordCount(TickInnerProfile.Bucket.SQUAD_TRAFFIC_CANDIDATE, solver.candidateVisits());
-        }
+    }
+
+    /**
+     * Sideways offset of the member a squad counted {@code rank}-th, in cells: three files, the middle one on the
+     * lane, so members next to one another in the count walk {@link #FILE_SPACING} apart.
+     */
+    static float marchFile(int rank) {
+        return switch (rank % 3) {
+            case 1 -> -FILE_SPACING;
+            case 2 -> FILE_SPACING;
+            default -> 0f;
+        };
     }
 
     private boolean visiblePair(int a, int b) {
@@ -281,16 +322,20 @@ public final class SquadTrafficSystem {
 
     /** Member-owned movement only, and only while snapshot intent still matches. */
     public boolean advance(long member, Squad squad, int goalX, int goalY, float dt) {
-        if (member == controlled || !quiet(squad)) return false;
+        if (member == controlled) return false;
         int slot = slots.get(squad.id);
         if (slot < 0) return false;
         State state = states[slot];
+        // Contact gained or lost since preparation voids the snapshot.
+        if (state.contact == quiet(squad)) return false;
         SquadPlan plan = squad.currentPlan;
         int index = roster.indexOf(member);
         if (index < 0 || index >= preparedPaths.length || plan == null || plan.currentStep() != state.step
                 || squad.routingEpoch != state.epoch || goalX != state.goalX || goalY != state.goalY
                 || preparedPaths[index] == null || roster.movement().path(member) != preparedPaths[index]) return false;
         float offset = memberOffsets[index];
+        // In contact only a member with a file to keep is walked here; the rest follow their route as before.
+        if (state.contact && offset == 0f) return false;
         float speed = speeds[slot];
         // Zero preference still needs a legal join from a previously shifted
         // body. Never hand that return to the unswept legacy follower.

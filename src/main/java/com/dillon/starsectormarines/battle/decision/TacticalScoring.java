@@ -249,6 +249,21 @@ public final class TacticalScoring {
     public static final float TARGET_HARMLESS_COST = 60f;
 
     /**
+     * Cells a Spitter is preferred by while the shooter stands inside its lob range ({@link #splashPriority}), which
+     * also lifts the threat-density cost of the pack it lobs from. Acid
+     * splashes, so the Spitter that has a squad in reach kills it several at a time from behind the Runners closing
+     * in front; ranked by distance alone, the Runners were always nearer. Broad Front, 2026-10-25: Spitters did most
+     * of the killing (rock 5) while Marines put three rounds into Runners for every one into a Spitter.
+     */
+    public static final float SPLASH_THREAT_BONUS = 10f;
+    /**
+     * Cells past a Spitter's lob range at which it still counts as lobbing at the shooter: its acid is aimed at the
+     * shooter's squad, and a squadmate a few cells nearer is in reach when the shooter is not (heart, city verdant 3:
+     * a Spitter lobbing from 16.3 cells, range 16).
+     */
+    public static final float SPLASH_REACH_MARGIN = 3f;
+
+    /**
      * Multiplier on the weapon-target affinity term in {@link #findBestTarget}.
      * A marine's score for a hardened target gets a weapon-penetration affinity
      * added — well-suited weapons (rockets, mult 3.5) earn a ~20-point bonus
@@ -262,26 +277,28 @@ public final class TacticalScoring {
     public static final float MAX_WEAPON_AFFINITY_RELATIVE = 3.5f;
 
     /**
-     * Largest amount a target's score can sit below its distance. Crowding,
-     * threat density, zone mismatch and the no-LoS cost only add; weapon
-     * affinity subtracts, bottoming out at
-     * {@code WEAPON_AFFINITY_WEIGHT * (1 - MAX_WEAPON_AFFINITY_RELATIVE)}, and
-     * only on a hardened target. The carrier priority subtracts
-     * {@link #CARRIER_PRIORITY_BONUS}, smaller than that, and only on a target
-     * that is not hardened, so the two never stack.
-     * So {@code distance - MAX_TARGET_SCORE_BONUS} is an exact lower bound on
-     * any candidate's score, which lets the picker stop raycasting once the
-     * remaining candidates are too far to beat the incumbent.
-     */
-    private static final float MAX_TARGET_SCORE_BONUS =
-            WEAPON_AFFINITY_WEIGHT * (MAX_WEAPON_AFFINITY_RELATIVE - 1f);
-
-    /**
      * Cells of distance a swarm carrier is preferred by, while it holds one of
      * the scoring squad's own Marines (`colony-breach-nouns.md`, Impale). A
      * priority bump and nothing more: no squad chases a carrier on its own.
      */
     public static final float CARRIER_PRIORITY_BONUS = 12f;
+
+    /**
+     * Largest amount a target's score can sit below its distance. Crowding,
+     * threat density, zone mismatch and the no-LoS cost only add; weapon
+     * affinity subtracts, bottoming out at
+     * {@code WEAPON_AFFINITY_WEIGHT * (1 - MAX_WEAPON_AFFINITY_RELATIVE)}, and
+     * only on a hardened target. The carrier priority subtracts
+     * {@link #CARRIER_PRIORITY_BONUS} and the splash priority
+     * {@link #SPLASH_THREAT_BONUS}, only on a target that is not hardened, so
+     * neither stacks with affinity.
+     * So {@code distance - MAX_TARGET_SCORE_BONUS} is an exact lower bound on
+     * any candidate's score, which lets the picker stop raycasting once the
+     * remaining candidates are too far to beat the incumbent.
+     */
+    private static final float MAX_TARGET_SCORE_BONUS = Math.max(
+            WEAPON_AFFINITY_WEIGHT * (MAX_WEAPON_AFFINITY_RELATIVE - 1f),
+            CARRIER_PRIORITY_BONUS + SPLASH_THREAT_BONUS);
 
     /** The body a swarm carrier holds, or 0; see {@link #carriedBy}. */
     private LongUnaryOperator carriedLoad = id -> 0L;
@@ -608,7 +625,7 @@ public final class TacticalScoring {
     /**
      * Score of one target candidate: its distance, plus the crowding, threat
      * density, zone-mismatch and no-clear-shot costs, minus the weapon
-     * affinity bonus. Only affinity can subtract, and never by more than
+     * affinity, carrier and splash bonuses, which together never subtract more than
      * {@link #MAX_TARGET_SCORE_BONUS} — the bound
      * {@link #findBestTargetImpl} prunes with.
      */
@@ -618,14 +635,18 @@ public final class TacticalScoring {
                                int selfCellX, int selfCellY,
                                int candidateCellX, int candidateCellY) {
         World world = roster.world();
+        float splash = splashPriority(candidate, distance);
+        // The pack round a Spitter is a reason not to walk into it, and none not to shoot a Spitter already lobbing
+        // at the shooter from inside it.
+        float density = splash > 0f ? 0f
+                : scoreThreatDensity(candidate, world.x(candidate), world.y(candidate), selfFaction);
         float score = distance
                 + scoreCrowding(selfFaction, selfSquadId, candidate, excludeFromCrowding)
-                + scoreThreatDensity(candidate, world.x(candidate), world.y(candidate),
-                        selfFaction)
+                + density
                 + scoreWeaponAffinity(excludeFromCrowding, candidate)
                 + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY)
                 + harmlessCost(candidate);
-        score -= scoreCarrierPriority(candidate, selfSquadId);
+        score -= scoreCarrierPriority(candidate, selfSquadId) + splash;
         return visible ? score : score + TARGET_NO_LOS_COST;
     }
 
@@ -1105,7 +1126,7 @@ public final class TacticalScoring {
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (!world.specialEquipment(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
-        if (friendlyInTheWay(shooter, target, world.specialEquipment(shooter).aoeRadius() + DANGER_CLOSE_MARGIN)) return false;
+        if (dangerClose(shooter, world.x(target), world.y(target))) return false;
         return projectedSpecialDamageOnTarget(shooter, target)
                 < remainingDurability(target, world.x(shooter), world.y(shooter));
     }
@@ -1142,12 +1163,22 @@ public final class TacticalScoring {
             ThreadLocal.withInitial(FiringLane.Friendlies::new);
 
     /**
-     * Whether a living friendly of {@code shooter} stands in its lane to {@code target} ({@link FiringLane#blocked}),
-     * where an area round would burst on them, or within {@code blast} cells of the target.
+     * Whether {@code shooter}'s special round, aimed at {@code (tx, ty)}, would land on a friendly: one in its lane
+     * or within its blast plus {@link #DANGER_CLOSE_MARGIN}. Asked when a special is committed and again when it is
+     * released, since a squadmate can step into the lane during the aim.
      */
-    boolean friendlyInTheWay(long shooter, long target, float blast) {
+    public boolean dangerClose(long shooter, float tx, float ty) {
+        return friendlyInTheWay(shooter, tx, ty,
+                roster.world().specialEquipment(shooter).aoeRadius() + DANGER_CLOSE_MARGIN);
+    }
+
+    /**
+     * Whether a living friendly of {@code shooter} stands in its lane to {@code (tx, ty)} ({@link FiringLane#blocked}),
+     * where an area round would burst on them, or within {@code blast} cells of that point.
+     */
+    boolean friendlyInTheWay(long shooter, float tx, float ty, float blast) {
         World world = roster.world();
-        float sx = world.x(shooter), sy = world.y(shooter), tx = world.x(target), ty = world.y(target);
+        float sx = world.x(shooter), sy = world.y(shooter);
         FiringLane.Friendlies allies = DANGER_CLOSE_FRIENDLIES.get();
         gatherFriendlies(shooter, (float) Math.hypot(tx - sx, ty - sy) + blast, SPREAD_CANDIDATES.get(), allies);
         for (int i = 0; i < allies.size(); i++) {
@@ -1600,7 +1631,8 @@ public final class TacticalScoring {
                     + density * TARGET_THREAT_DENSITY_COST
                     + scoreWeaponAffinity(self, candidate)
                     + scoreZoneMismatch(sx, sy, cx, cy)
-                    + harmlessCost(candidate);
+                    + harmlessCost(candidate)
+                    - splashPriority(candidate, cellDistance(selfX, selfY, world.x(candidate), world.y(candidate)));
             if (score < bestScore) {
                 bestScore = score;
                 best = candidate;
@@ -1725,6 +1757,15 @@ public final class TacticalScoring {
     }
 
     /**
+     * {@link #SPLASH_THREAT_BONUS} when {@code target} is a Spitter and the shooter, {@code distance} cells off,
+     * stands inside its lob range plus {@link #SPLASH_REACH_MARGIN}; 0 otherwise.
+     */
+    float splashPriority(long target, float distance) {
+        if (!roster.identity().has(target) || roster.identity().type(target) != UnitType.SWARM_SPITTER) return 0f;
+        return distance <= roster.threatRange(target) + SPLASH_REACH_MARGIN ? SPLASH_THREAT_BONUS : 0f;
+    }
+
+    /**
      * Nearest enemy combatant that {@code self} can shoot <em>right now</em> —
      * within its attack range and in line of sight. Drives opportunistic
      * return fire while a unit advances toward a different, out-of-range
@@ -1796,7 +1837,7 @@ public final class TacticalScoring {
             float reach = cellDistance(selfX, selfY, otherX, otherY);
             if (reach > range) continue;
             // Ranked by distance, a harmless structure behind anything armed in range.
-            float d = reach + harmlessCost(other);
+            float d = reach + harmlessCost(other) - splashPriority(other, reach);
             // Only the nearest visible candidate, and the preferred one, can change
             // the answer, so a candidate that cannot beat the best so far needs no ray.
             if (d >= bestDist && other != preferred) continue;
