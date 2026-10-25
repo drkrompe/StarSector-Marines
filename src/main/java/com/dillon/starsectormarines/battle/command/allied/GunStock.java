@@ -87,6 +87,12 @@ public final class GunStock {
         return full == 0 ? 1f : left / (float) full;
     }
 
+    /** Rounds one gun has left, or {@code -1} for a gun not stocked here. */
+    public int rounds(long gun) {
+        int[] r = rounds.get(gun);
+        return r == null ? -1 : r[0];
+    }
+
     /** Guns with no rounds left. */
     public int dry() {
         int n = 0;

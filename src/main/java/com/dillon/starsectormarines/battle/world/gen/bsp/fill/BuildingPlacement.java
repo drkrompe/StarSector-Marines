@@ -31,21 +31,21 @@ final class BuildingPlacement {
 
     final Side frontage;
     final boolean forceOpposedDoorways;
-    /** One doorway, on the frontage: the building's other sides back onto a wall it shares. */
-    final boolean frontageOnly;
+    /** Only the frontage carries doors and windows; every other wall is blank. Needs a frontage. */
+    final boolean frontOnly;
 
     BuildingPlacement(Side frontage, boolean forceOpposedDoorways) {
         this(frontage, forceOpposedDoorways, false);
     }
 
-    private BuildingPlacement(Side frontage, boolean forceOpposedDoorways, boolean frontageOnly) {
+    private BuildingPlacement(Side frontage, boolean forceOpposedDoorways, boolean frontOnly) {
         this.frontage = frontage;
         this.forceOpposedDoorways = forceOpposedDoorways;
-        this.frontageOnly = frontageOnly;
+        this.frontOnly = frontOnly;
     }
 
-    /** A building whose only doorway is on {@code frontage}, the rest of it backing onto a compound wall. */
-    static BuildingPlacement frontageOnly(Side frontage) {
+    /** Doors and windows on {@code frontage} alone, the other walls blank. */
+    static BuildingPlacement frontOnly(Side frontage) {
         return new BuildingPlacement(frontage, false, true);
     }
 }

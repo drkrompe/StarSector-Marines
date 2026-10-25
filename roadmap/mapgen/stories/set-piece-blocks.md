@@ -62,6 +62,37 @@ those colonies had an industrial compound at all. Requiring the street outside
 the gate to hold a hauler's turn costs a few more. A larger yard needs a claim
 built for it (`cross-leaf-footprint-planning.md`), not a bigger template.
 
+## The factory row
+
+Workshops side by side along a private **service lane**:
+
+- two or three **workshops** sharing party walls, their **loading doors** onto
+  the lane and every other wall blank, so their **backs face the street** and
+  shape the street lanes outside;
+- the **lane** runs the length of the row, four cells clear, with a **vehicle
+  gate at each end** onto the street, so a fight down it can come from either
+  way;
+- across the lane, against the far wall, a **parked utility vehicle** near each
+  end, a generator by each gate and **pipe runs** with drum clusters to the
+  middle, leaving **pockets** of cover off the lane and the lane itself clear
+  gate to gate. The pockets mirror end to end.
+
+The row publishes its lane as a map mark (`ServiceLane`: the two gate cells, the
+centre line between them and the lane's width) for an objective to send
+pressure down or hold.
+
+**The row has its own compound kind** rather than sharing the industrial
+compound with the freight yard, which keeps that compound where it fits. The
+label pass promotes one lot per map to `FACTORY_ROW`: the largest industrial lot
+left of at least 11 by 11, or the largest commercial lot where no industrial lot
+qualifies. Its claim takes one neighbour. The row is 13 deep and 14, 16, 18 or
+20 long (three workshops from 18), so an 11-cell lot and its street frame hold
+the shortest. Gates on the reserved road win over a longer row. Both gates need
+four open cells outside them, the first a street cell. A compound that cannot
+hold the row fills as ordinary industrial lots. Across 24 maps of each, the row
+stood on 13 medium cities (18 had a host lot) and 16 colonies (all 24 had one).
+Most misses are the road reservation crossing every pose.
+
 ## Lanes and pressure
 
 A set piece shapes the lanes near it with its walls, gates and gaps. Which lanes
@@ -101,11 +132,12 @@ fissure before the rush; a fissure is fragile, and whether the pressure bore
 should be tougher is open, as is tuning it against real play.
 
 The yard's warehouse has one doorway, onto the yard
-(`BuildingPlacement.frontageOnly`): its other walls back onto the compound wall.
+(`BuildingPlacement.frontOnly`): its other walls back onto the compound wall.
 
 ## Plan
 
-Done: steps 1, 2 and 4 (`freight-yard-look`, `loading-pressure-look`).
+Done: steps 1, 2 and 4 (`freight-yard-look`, `loading-pressure-look`); the
+factory row of step 5 (`factory-row-look`).
 
 1. The freight yard as an industrial compound layout, with its `LoadingBay`
    mark and a look suite.
@@ -122,4 +154,7 @@ Done: steps 1, 2 and 4 (`freight-yard-look`, `loading-pressure-look`).
   and a hauler standing in it can set out and leave the map by the gate.
 - A unit test on the layout's rule: in every pose the bay lies on a straight,
   clear drive to the gate.
+- The factory row in any pose and length: both gates open outward, the lane is
+  clear gate to gate, the cover stands off it, and the workshops fill the
+  length sharing their party walls (`FactoryRowTest`).
 - Owner look stills at 1920x1080 from the look preset.

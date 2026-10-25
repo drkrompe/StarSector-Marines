@@ -213,7 +213,7 @@ public final class FreightYard {
         BlockLeaf hall = new BlockLeaf(Math.min(a[0], b[0]), Math.min(a[1], b[1]),
                 Math.max(a[0], b[0]), Math.max(a[1], b[1]), false);
         PointOfInterest poi = BuildingShellCore.carve(hall, c.grid, c.topology, c.doodads, c.rng, HALL,
-                BuildingPlacement.frontageOnly(frontage));
+                BuildingPlacement.frontOnly(frontage));
         if (poi != null) c.pois.add(poi);
 
         // The hauler stands on the bay's centre line, between its two middle cells.
