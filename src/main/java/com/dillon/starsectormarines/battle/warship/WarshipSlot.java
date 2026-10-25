@@ -28,10 +28,14 @@ public record WarshipSlot(
 
     /** Reads every slot a hull spec lists, converting its pixel offsets to cells at the hull's own size ({@link WarshipScale#hullCells}). */
     public static List<WarshipSlot> parse(JSONObject hull) throws JSONException {
+        return parse(hull, WarshipScale.hullCells(1f));
+    }
+
+    /** As above, at {@code k} cells per hull pixel: a hull fitted at its own presence ({@link Warship#hullCells}). */
+    public static List<WarshipSlot> parse(JSONObject hull, float k) throws JSONException {
         List<WarshipSlot> out = new ArrayList<>();
         JSONArray slots = hull.optJSONArray("weaponSlots");
         if (slots == null) return out;
-        float k = WarshipScale.hullCells(1f);
         for (int i = 0; i < slots.length(); i++) {
             JSONObject slot = slots.getJSONObject(i);
             JSONArray loc = slot.optJSONArray("locations");

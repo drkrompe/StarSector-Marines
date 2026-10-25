@@ -57,7 +57,7 @@ public final class WarshipWreck {
         this.burstX = ship.x;
         this.burstY = ship.y;
         this.burstBody = ship.bodyScale();
-        this.groundBody = LandedScale.berthFactor();
+        this.groundBody = LandedScale.berthFactor(ship.presence());
         this.vx = ship.velocityX;
         this.vy = ship.velocityY;
         long seed = WarshipAirRules.roundSeed(ship.hullId, ship.serial(), key, ship.faction.ordinal());

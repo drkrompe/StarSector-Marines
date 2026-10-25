@@ -255,6 +255,8 @@ public final class WarshipRenderSystem implements RenderSystem {
         ShuttleSpriteCache soft = sprites.spriteByPath(GLOW);
         WarshipThrust.Demand demand = WarshipThrust.of(ship);
         float body = ship.bodyScale();
+        // The nozzles are read once per hull at the standard presence; a hull fitted at its own carries them with it.
+        float nozzle = body * ship.presenceShare();
         double rad = Math.toRadians(ship.facingDegrees);
         float c = (float) Math.cos(rad);
         float s = (float) Math.sin(rad);
@@ -264,15 +266,15 @@ public final class WarshipRenderSystem implements RenderSystem {
             WarshipEngine e = engines.get(i);
             float heading = ship.facingDegrees + e.angleDegrees();
             float level = demand.level() * WarshipThrust.slotShare(demand.pushX(), demand.pushY(), heading)
-                    * WarshipThrust.turnShare(demand.turn(), e.localX() / halfBeam);
+                    * WarshipThrust.turnShare(demand.turn(), e.localX() * ship.presenceShare() / halfBeam);
             level = Math.max(0f, Math.min(1f, level * flicker(i)));
             float[] col = engineColour(e.style());
             float r = col[0];
             float g = col[1];
             float b = col[2];
 
-            float wx = ship.x + body * (e.localX() * c - e.localY() * s);
-            float wy = ship.y + body * (e.localX() * s + e.localY() * c);
+            float wx = ship.x + nozzle * (e.localX() * c - e.localY() * s);
+            float wy = ship.y + nozzle * (e.localX() * s + e.localY() * c);
             float sx = cam.cellToScreenX(wx);
             float sy = cam.cellToScreenY(wy);
             double hr = Math.toRadians(heading);
@@ -280,7 +282,7 @@ public final class WarshipRenderSystem implements RenderSystem {
             float dirY = (float) Math.cos(hr);
 
             float lenPx = body * Math.min(maxLen, engineFlameCells(e.lengthCells(), level)) * cellPx;
-            float widthPx = body * e.widthCells() * cellPx * (ENGINE_WIDTH_FLOOR + ENGINE_WIDTH_RANGE * level);
+            float widthPx = nozzle * e.widthCells() * cellPx * (ENGINE_WIDTH_FLOOR + ENGINE_WIDTH_RANGE * level);
             float lit = alpha * (ENGINE_ALPHA_FLOOR + (ENGINE_ALPHA_CEILING - ENGINE_ALPHA_FLOOR) * level);
             float glowPx = Math.max(widthPx * ENGINE_GLOW_WIDTH_MULT, cellPx * 0.4f);
 
@@ -416,8 +418,8 @@ public final class WarshipRenderSystem implements RenderSystem {
     private void drawMount(DrawList out, BattleCamera cam, float cellPx, float alpha,
                            Warship ship, Warship.Mount m) {
         boolean hp = m.slot.hardpoint();
-        // A mount is part of the hull's body, so it is drawn at the hull's size, berthed or flying.
-        float body = ship.bodyScale();
+        // A mount is part of the hull's body, so it is drawn at the hull's size, berthed or flying, and at its presence.
+        float body = ship.bodyScale() * ship.presenceShare();
         RenderLayer layer = ship.berthed() ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES;
         float heading = heading(ship, m);
         float px = bodyX(ship, ship.mountX(m));
@@ -495,7 +497,7 @@ public final class WarshipRenderSystem implements RenderSystem {
         ShuttleSpriteCache art = sprites.spriteByPath(look.missileSprite());
         if (art == null) return;
         boolean hp = m.slot.hardpoint();
-        float body = ship.bodyScale();
+        float body = ship.bodyScale() * ship.presenceShare();
         boolean cycling = m.secondsSinceFired < Math.max(0.3f, m.weapon.cooldownSeconds());
         boolean[] empty = cycling ? look.firedBarrels(hp, m.shotsFired, m.weapon.burstSize()) : null;
         float wPx = look.missileWidthPx() > 0f ? look.missileWidthPx() : art.pxW;
@@ -645,7 +647,7 @@ public final class WarshipRenderSystem implements RenderSystem {
         VanillaMountLook look = VanillaWeaponLooks.mount(m.weapon.id());
         if (look == null) {
             double rad = Math.toRadians(heading);
-            float barrel = 1.2f * WarshipScale.HULL_PRESENCE;
+            float barrel = 1.2f * ship.presence();
             out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
                     cam.cellToScreenX(px - (float) Math.sin(rad) * barrel),
                     cam.cellToScreenY(py + (float) Math.cos(rad) * barrel), size, size, 0f,
@@ -657,7 +659,7 @@ public final class WarshipRenderSystem implements RenderSystem {
         boolean[] fired = look.firedBarrels(hp, m.shotsFired, 1);
         for (int i = 0; i < barrels.size(); i++) {
             if (!fired[i]) continue;
-            float[] at = barrelPoint(px, py, heading, barrels.get(i), ship.bodyScale());
+            float[] at = barrelPoint(px, py, heading, barrels.get(i), ship.bodyScale() * ship.presenceShare());
             out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
                     cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]), size, size, 0f,
                     r, g, b, 0.9f * fade * alpha);
