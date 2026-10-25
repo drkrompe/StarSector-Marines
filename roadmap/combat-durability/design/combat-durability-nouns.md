@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a damaged live hull smokes where it is hurt, and a mech's flux shows on its vents; worn plate draws located damage on live hulls and mechs; earlier: a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
+Updated: 2026-10-25 — the plated Rav wear their chitin by the worn-plate law. Earlier: a damaged live hull smokes where it is hurt, and a mech's flux shows on its vents; worn plate draws located damage on live hulls and mechs; earlier: a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
 
 ## Purpose
 
@@ -407,6 +407,10 @@ opaque point whose distance to the nearest transparent pixel covers the mark's
 reach. So a narrow part, such as a Hound's torso, carries few and small marks.
 That is the honest consequence of the law, not a defect. A wreck carries none,
 because its registered wreck art already shows what happened to it.
+
+The plated Rav wear by the same law, made organic (`RavWear`, `colony-breach-nouns.md`,
+Matriarch): their own sheet of scored chitin, bruises and weeping wounds, a shell
+channel reading the plate and a flesh channel reading health on one part's mask.
 
 The marks are the mod's own scuff sheet, sized for vehicle sprites at play zoom
 (`art-source/vehicles/scuffs/`). The base game's ship damage decals were tried

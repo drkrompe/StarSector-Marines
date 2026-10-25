@@ -341,7 +341,7 @@ public class InfantryWeapons {
                         : damage;
                 shots.queueImpact(new ShotService.PendingImpact(res.victimId(), shooter,
                         res.flightTime(), appliedDamage, penetration, moraleImpact,
-                        res.friendlyHit(), res.victimPart()));
+                        res.friendlyHit(), res.victimPart()).at(res));
             }
             // A round that stopped in cover or a wall wears it; drill rounds harm nothing but their target.
             if (!drill) shots.queueStrike(res, shooter, damage, penetration);
@@ -457,7 +457,7 @@ public class InfantryWeapons {
                 shots.queueImpact(new ShotService.PendingImpact(
                         res.victimId(), shooter, res.flightTime(), damage,
                         sec.penetration(), roster.identity().type(shooter).moraleImpact,
-                        res.friendlyHit(), sec, res.victimPart()));
+                        res.friendlyHit(), sec, res.victimPart()).at(res));
             }
             shots.queueStrike(res, shooter, sec.damage(), sec.penetration());
             shots.postShot(ShotEvent.special(fromX, fromY, 0f,

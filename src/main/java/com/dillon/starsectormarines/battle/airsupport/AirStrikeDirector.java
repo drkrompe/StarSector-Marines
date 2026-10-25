@@ -10,7 +10,10 @@ import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.ArrayList;
@@ -31,7 +34,8 @@ import java.util.function.LongPredicate;
  *
  * <p><b>Less useful against strong defences.</b> A target whose believed anti-air would cost more than
  * {@link #RISK_CEILING} of an airframe is skipped; a nest or a dug-in gun is struck while it stands alone or in a
- * thin defence, and a fort's massed guns are left to the ground force. A commander that wants a particular nest killed
+ * thin defence, and a fort's massed guns are left to the ground force, as is every anti-air mount: the director never
+ * designates a gun that shoots aircraft. A commander that wants a particular nest killed
  * calls {@link #strike} for it; the same risk judgement applies unless the caller overrides it.
  *
  * <p>UNTUNED: cadence, ceilings and values are first-pass figures.
@@ -69,6 +73,10 @@ public final class AirStrikeDirector {
     static final int COVER_MIN_FRIENDS = 4;
     /** Cells about a friendly unit within which its friends count toward the ground to cover. */
     static final float COVER_CLUSTER_RADIUS = 8f;
+    /** Cells from where an airframe of the side was lost within which the ground is believed defended. UNTUNED. */
+    static final float LOSS_CELLS = 20f;
+    /** Ticks a loss is remembered: three minutes. UNTUNED. */
+    static final int LOSS_TICKS = 5400;
     /** Most units sampled per look when updating sightings. */
     private static final int SIGHT_SAMPLE = 48;
 
@@ -270,10 +278,39 @@ public final class AirStrikeDirector {
         if (hostileAirInSight(sim) != null) hostileAirSeenTick = sim.getSimTickIndex();
     }
 
-    /** The share of an airframe a pass over the point is believed to cost, from the guns this side has sighted. */
+    /**
+     * The share of an airframe a pass over the point is believed to cost, from the guns this side has sighted and the
+     * airframes it has lost there lately.
+     */
     public float risk(BattleSimulation sim, float x, float y) {
         fortLookup = sim.forts();
-        return AaRisk.at(sim, side, x, y, this::knows).expectedLossShare();
+        return AaRisk.at(sim, side, x, y, this::knows).expectedLossShare() + lossesNear(x, y, sim.getSimTickIndex());
+    }
+
+    private record Loss(float x, float y, int tick) {}
+
+    private final List<Loss> losses = new ArrayList<>();
+
+    /**
+     * Notes an airframe of this side shot down on its way to {@code (x, y)}. The side saw it fall: whatever it did not
+     * know stood there, it now knows the ground is defended.
+     */
+    void noteLoss(float x, float y, int tick) {
+        losses.add(new Loss(x, y, tick));
+    }
+
+    /**
+     * What the side's own losses add to its estimate over the point: a whole airframe for each one lost within
+     * {@link #LOSS_CELLS} in the last {@link #LOSS_TICKS}, so a second sortie is not sent where the first just fell
+     * unless what is believed there is otherwise nothing.
+     */
+    float lossesNear(float x, float y, int tick) {
+        float share = 0f;
+        for (Loss loss : losses) {
+            if (tick - loss.tick > LOSS_TICKS) continue;
+            if (Math.hypot(loss.x - x, loss.y - y) <= LOSS_CELLS) share += 1f;
+        }
+        return share;
     }
 
     /** As above for an airframe of {@code kind}: a fighter's low run takes more of the same fire ({@link AirPoolKind#aaExposure}). */
@@ -288,6 +325,8 @@ public final class AirStrikeDirector {
         struck.removeIf(s -> tick - s.tick > REPEAT_TICKS);
         for (long gun : seenGuns) {
             if (!world.isAlive(gun) || !side.hostileTo(sim.identity().faction(gun))) continue;
+            // What shoots aircraft is the ground force's: an airframe sent straight over it is the trade it exists to win.
+            if (shootsAir(sim, gun)) continue;
             float x = world.x(gun);
             float y = world.y(gun);
             if (recentlyStruck(x, y)) continue;
@@ -304,13 +343,14 @@ public final class AirStrikeDirector {
         // Only a concentration some operator has in sight is a candidate: the densest group anywhere on the map is a
         // thing no radio and no fort has seen.
         List<Operator> eyes = CommsOperators.available(sim, side);
-        long densest = EnemyConcentration.densest(sim, side,
+        // Counted on the ground: a bomb is a ground blast and no ground blast reaches a flier, so a pack overhead is no target.
+        long densest = EnemyConcentration.densestOnGround(sim, side,
                 unit -> sighted(sim, eyes, world.x(unit), world.y(unit)));
         if (densest != 0L) {
             float x = world.x(densest);
             float y = world.y(densest);
             if (!recentlyStruck(x, y) && !dangerClose(sim, x, y)) {
-                int near = sim.getUnitIndex().countHostileCombatants(x, y, EnemyConcentration.CLUSTER_RADIUS, side, 0L);
+                int near = groundedHostiles(sim, x, y);
                 AirTasking.Target target = AirTasking.classify(sim, side, x, y);
                 AirPoolKind kind = AirTasking.choose(target, service.available(side, AirPoolKind.BOMBER),
                         service.available(side, AirPoolKind.FIGHTER));
@@ -326,6 +366,13 @@ public final class AirStrikeDirector {
         return out;
     }
 
+    /** Whether {@code gun} is a dedicated anti-air mount: a flak or missile emplacement, a spore colony. */
+    static boolean shootsAir(BattleSimulation sim, long gun) {
+        if (!sim.turretState().isTurret(gun)) return false;
+        StructureDef structure = sim.turretState().structure(gun);
+        return structure != null && structure.targetRole == TurretRole.AA;
+    }
+
     /** Whether any of the operators has an unobstructed line to the point, inside its own sight. */
     private static boolean sighted(BattleSimulation sim, List<Operator> eyes, float x, float y) {
         for (Operator eye : eyes) {
@@ -334,17 +381,34 @@ public final class AirStrikeDirector {
         return false;
     }
 
-    /** Whether a live combatant of this side stands within {@link #DANGER_CLOSE_CELLS} of the point. */
+    /** Hostile combatants on the ground within {@link EnemyConcentration#CLUSTER_RADIUS} of the point. */
+    private int groundedHostiles(BattleSimulation sim, float x, float y) {
+        LongBucket near = new LongBucket();
+        sim.getUnitIndex().gatherHostileCombatants(x, y, EnemyConcentration.CLUSTER_RADIUS, side, near);
+        int grounded = 0;
+        for (int i = 0; i < near.size; i++) {
+            if (!sim.identity().type(near.ids[i]).isFlier()) grounded++;
+        }
+        return grounded;
+    }
+
+    /**
+     * Whether a live combatant friendly to this side stands within {@link #DANGER_CLOSE_CELLS} of the point: its own,
+     * and every side it fights beside, so an allied officer does not put a stick on the company it is fighting with.
+     */
     boolean dangerClose(BattleSimulation sim, float x, float y) {
         UnitRosterService roster = sim.getRoster();
-        long[] ours = roster.factionDenseArray(side);
         World world = sim.world();
         float limit = DANGER_CLOSE_CELLS * DANGER_CLOSE_CELLS;
-        for (int i = 0, n = roster.factionLiveCount(side); i < n; i++) {
-            long unit = ours[i];
-            if (!sim.identity().type(unit).combatant) continue;
-            float dx = world.x(unit) - x, dy = world.y(unit) - y;
-            if (dx * dx + dy * dy <= limit) return true;
+        for (Faction friend : Faction.values()) {
+            if (!side.friendlyTo(friend)) continue;
+            long[] ours = roster.factionDenseArray(friend);
+            for (int i = 0, n = roster.factionLiveCount(friend); i < n; i++) {
+                long unit = ours[i];
+                if (!sim.identity().type(unit).combatant) continue;
+                float dx = world.x(unit) - x, dy = world.y(unit) - y;
+                if (dx * dx + dy * dy <= limit) return true;
+            }
         }
         return false;
     }
