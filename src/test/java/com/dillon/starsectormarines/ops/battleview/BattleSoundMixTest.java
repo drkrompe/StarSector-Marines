@@ -22,4 +22,19 @@ class BattleSoundMixTest {
         assertArrayEquals(new float[] {0f, 1f, 2f, 0f}, slow);
         assertFalse(BattleSoundMix.add(clip, 1f, 6, 1f, 1f, left, right));
     }
+
+    @Test
+    void aHeldLoopWrapsRoundUnderItsRunAtEachTicksLevelAndStopsWithIt() {
+        float[] left = new float[8];
+        float[] right = new float[8];
+        // Three ticks of two samples from sample 1: the two-sample clip wraps, not restarts, at each tick's gain.
+        BattleSoundMix.hold(new float[] {1f, 2f}, 1f, 1, 2, new float[] {1f, 0.5f, 1f},
+                new float[] {0f, 0f, 2f}, 0, left, right);
+        assertArrayEquals(new float[] {0f, 1f, 2f, 0.5f, 1f, 1f, 2f, 0f}, left);
+        assertArrayEquals(new float[] {0f, 0f, 0f, 0f, 0f, 2f, 4f, 0f}, right);
+        // Faded, it rises from silence and dies back to it at the run's ends.
+        float[] faded = new float[6];
+        BattleSoundMix.hold(new float[] {1f}, 1f, 0, 2, new float[] {1f, 1f, 1f}, new float[3], 2, faded, new float[6]);
+        assertArrayEquals(new float[] {0f, 0.5f, 1f, 1f, 0.5f, 0f}, faded);
+    }
 }

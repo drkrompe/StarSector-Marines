@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
+
 Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
 
 Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
@@ -1381,8 +1383,9 @@ not read in a soft shadow at play zoom.
     head down and pecks at it, each body to its own rhythm; one going to the
     spire carries a glob of amber feed in its mandibles, and one coming home
     from a tree a wad of pulp (`load-feed`, `load-pulp`). It has no
-    cry and no strike; its feet are the Runner's clatter, thinner, and its
-    hurt and death the Runner's, all pitched up by its size. Dead, it bursts as
+    cry and no strike; it is heard small and busy (Sound, below): a quick
+    chitin patter, a thin squeak when hurt or scattering, and a soft wet
+    working bed while it is head-down at its work. Dead, it bursts as
     a Runner does and the creep digests it.
   - **How the company treats it.** An ordinary body on the swarm's side, shot
     as any other; clearing a nest of its workers is the player's call.
@@ -2035,6 +2038,17 @@ Runner's cry, higher) and three wingbeats as it takes up, a few ticks apart; a
 Matriarch's brood rises with the same cue, quieter. A spire dying, shot down or
 withered with its bore, creaks (the wingbeat, slowed), cracks (the Brute's
 head-ram, deeper) and falls (the Brute's wall break, deeper).
+The skitterer, the nests' worker, never cries or strikes and is heard small and
+busy beside a Runner pack, all of it borrowed takes pitched up by its size: a
+light chitin patter on every stride (the Harrier's wingbeat, played higher; a
+Runner's feet fall on every other stride), the body drag while it hauls, a thin
+squeak when it is hurt and when it scatters from the company (the Runner's yelp,
+higher still; one hit that sends it running squeaks once), so a nest emptying
+under fire is heard, and the Runner's death. Head-down at a mend, a burn, a tree
+or an outpost it makes a soft wet working sound (the fissure's scratching
+ambience, raised): a loop placed on the seen workers at work nearest the
+camera, two at most, the second quieter by the crowd rule, so a busy nest
+murmurs and never drones. Everything it makes sits a few dB under a Runner.
 
 **The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
 creature sound's level is set from its take's measured loudness against the
@@ -2043,7 +2057,8 @@ and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
 LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
-since many bodies make them. A spire's launch sums near -23, by a Harrier
+since many bodies make them. The skitterer's squeak sits near -30 and its
+death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion

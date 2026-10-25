@@ -66,22 +66,7 @@ public final class SwarmWorkerLookSuite implements SnapshotSuite {
                 placement -> {
                     int x0 = placement.site().x0(), y0 = placement.site().y0();
                     BattleSimulation sim = placement.builder().build().sim();
-                    int bx = x0 + 26, by = y0 + H / 2;
-                    SwarmBore bore = maw(sim, bx, by);
-                    sim.creepField();
-                    sim.matureCreep();
-                    if (!bore.colonies().isEmpty()) {
-                        long colony = bore.colonies().get(0);
-                        sim.world().setHp(colony, sim.world().maxHp(colony) * 0.45f);
-                    }
-                    for (BroodSpires.Spire s : sim.broodSpires().spires()) s.lastReleaseTick = 0;
-                    for (int[] at : new int[][]{{bx + 9, by + 4}, {bx - 7, by - 6}}) {
-                        long dead = SwarmStrains.spawn(sim, "Fallen Runner", UnitType.SWARM_RUNNER, at[0], at[1]);
-                        sim.applyDamage(dead, 1e6f, 1e6f);
-                    }
-                    placement.subject("nest", bore.entityId());
-                    System.out.printf("    [swarm-workers] %d skitterers, %d spires%n",
-                            sim.swarmWorkers().workers().size(), sim.broodSpires().spires().size());
+                    nest(placement, sim, x0 + 26, y0 + H / 2, false);
                     progress(placement, "swarm-workers");
                     return sim;
                 },
@@ -97,7 +82,7 @@ public final class SwarmWorkerLookSuite implements SnapshotSuite {
                     int bx = x0 + 30, by = y0 + H / 2;
                     BattleSimulation sim = placement.builder().doodads(grove(placement.map(), bx + GROVE_DX,
                             by + GROVE_DY)).build().sim();
-                    SwarmBore bore = maw(sim, bx, by);
+                    SwarmBore bore = maw(sim, bx, by, false);
                     CreepField creep = sim.creepField();
                     sim.swarmWorkers().populate(sim);
                     // A grass fire goes out by itself, where a creep fire runs through the whole nest: it is lit
@@ -134,9 +119,9 @@ public final class SwarmWorkerLookSuite implements SnapshotSuite {
                 GROVE_RECORD_TICKS, EVERY_TICKS, 3, null);
     }
 
-    /** A satellite bore at maw, asleep, so it neither surges nor collapses while it is filmed. */
-    private static SwarmBore maw(BattleSimulation sim, int bx, int by) {
-        SwarmBore bore = sim.swarmBores().open(sim, 1, false, bx, by);
+    /** A satellite bore (or a mother) at maw, asleep, so it neither surges nor collapses while it is filmed. */
+    private static SwarmBore maw(BattleSimulation sim, int bx, int by, boolean mother) {
+        SwarmBore bore = sim.swarmBores().open(sim, 1, mother, bx, by);
         if (bore == null) throw new IllegalStateException("the look's ground refused a bore");
         for (int guard = 0; bore.tier() != BoreTier.MAW && guard < 64; guard++) {
             sim.swarmBores().feed(sim, bore, 1f);
@@ -182,5 +167,29 @@ public final class SwarmWorkerLookSuite implements SnapshotSuite {
         List<Doodad> trees = new ArrayList<>();
         ForestBrush.stampTrees(field.trees(), map.grid, map.topology, trees, null, false);
         return trees;
+    }
+
+    /**
+     * The nest at work at {@code (bx, by)}: a satellite bore (or a mother, whose brood is bigger) held at maw on
+     * matured creep, its spire just launched, a spore colony shot half down and two Runners dead out on the creep. The
+     * bore is the placement's {@code nest}.
+     */
+    static SwarmBore nest(LookReview.Placement placement, BattleSimulation sim, int bx, int by, boolean mother) {
+        SwarmBore bore = maw(sim, bx, by, mother);
+        sim.creepField();
+        sim.matureCreep();
+        if (!bore.colonies().isEmpty()) {
+            long colony = bore.colonies().get(0);
+            sim.world().setHp(colony, sim.world().maxHp(colony) * 0.45f);
+        }
+        for (BroodSpires.Spire s : sim.broodSpires().spires()) s.lastReleaseTick = 0;
+        for (int[] at : new int[][]{{bx + 9, by + 4}, {bx - 7, by - 6}}) {
+            long dead = SwarmStrains.spawn(sim, "Fallen Runner", UnitType.SWARM_RUNNER, at[0], at[1]);
+            sim.applyDamage(dead, 1e6f, 1e6f);
+        }
+        placement.subject("nest", bore.entityId());
+        System.out.printf("    [swarm-workers] %d skitterers, %d spires%n",
+                sim.swarmWorkers().workers().size(), sim.broodSpires().spires().size());
+        return bore;
     }
 }
