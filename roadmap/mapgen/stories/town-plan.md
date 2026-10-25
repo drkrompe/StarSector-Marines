@@ -16,7 +16,9 @@ behind wide pavement, because every lot became one building. Three faults, in th
 
 1. **Sparse frontage.** A lot is one building, so a street is a building, a side street, a building.
 2. **Small, scattered pockets.** The zoning is a 20-cell grid of rolled themes, smoothed once. Main street
-   stands on 5 of 24 stock cities because few cities zone a civic or mixed pocket big enough.
+   stood on 5 of 24 stock cities because few cities zone a civic or mixed pocket big enough; the owner has
+   since let it stand in the residential quarter too, which lifts cities to 15 of 24 without planning a
+   pocket.
 3. **No town plan.** The stock city has no centre, no high street, no industrial edge, no residential rings;
    a precinct has a character and a centre, the stock city a single civic nudge at the trunk crossing.
 
@@ -87,7 +89,8 @@ and all. After (same seeds and measure):
 
 The street edge is a little less built because a row leaves back yards and front gardens where one building
 filled the lot; what changes is the grain, close to twice the buildings along every street. Main street stands
-on the same maps as before (5 of 24 cities, 14 of 24 colonies). Every story map pool still passes.
+on the same maps as without rows (15 of 24 cities with the residential quarter weighed, 14 of 24 colonies).
+Every story map pool still passes.
 
 **Tried and dropped: joining before the labels.** Joining town lots straight after zoning, before they were
 labelled, made blocks of everything and reshaped what the compound, district and set-piece planners read:
@@ -99,9 +102,9 @@ with roofs off, centred on main street).
 
 ## Next: the planned zoning
 
-Main street's coverage on stock cities is a zoning question: the theme grid is noise with one civic nudge.
-For a map with no precincts the zoning is planned rather than rolled, the way a precinct's character already
-plans its own place:
+The stock city's theme grid is noise with one civic nudge: its civic and mixed blocks are a few scattered
+cells, and its industrial lots fall wherever the roll put them. For a map with no precincts the zoning is
+planned rather than rolled, the way a precinct's character already plans its own place:
 
 - **Centre**: the blocks touching the trunk crossing are the civic core (up to two by two).
 - **High street ring**: blocks beside the core are mixed town, where main street and the market square stand.
@@ -110,9 +113,10 @@ plans its own place:
 - **Residential rings**: the rest rolls as today, leaning residential inward and outskirts at the edge.
 
 It is a law of the plan that the pockets it makes are big enough for a district: the core and ring together
-hold a spine of two members a side. Measured as main street's coverage on 24 stock cities (target: half of
-them) and the civic or mixed group size. It moves every stock and grown city's labels, so the district
-sessions reading pockets are told before it lands and `storyMapPools` is run.
+hold a spine of two members a side, and the industrial edge a service street with its yards. Measured as the
+largest civic or mixed group, the industrial pocket's size, and main street's and the industrial zone's
+coverage on 24 stock cities. It moves every stock and grown city's labels, so the district sessions reading
+pockets are told before it lands and `storyMapPools` is run.
 
 ## Acceptance
 
