@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "forest.bramble-destroyed",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "forest.bramble-small-destroyed",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "forest.thicket-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "forest.thicket-small-destroyed",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "forest.bracken-destroyed",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "forest.saplings-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "forest.bramble-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "forest.bramble-small-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.thicket-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.thicket-small-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "forest.bracken-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.saplings-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/forest-undergrowth-destroyed.png"
+}

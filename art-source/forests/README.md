@@ -73,6 +73,38 @@ tree's obstruction, preserving overlapping live crowns, underlying hills and
 the original ground. No doorway or masonry rubble is created. Trees on
 walkable display-only placements do not acquire collision or combat durability.
 
+### Undergrowth and forest-floor plants
+
+`Undergrowth` owns six floor-growth silhouettes (bramble 3x2, small bramble 2x1,
+thicket 3x3, small thicket 2x2, bracken 4x2, saplings 2x2) as lobes, like
+`TreeCanopy`. `UndergrowthReskinTemplate` draws three 1536x1024 guides at 512 px
+pitch (`art-source/templates/undergrowth-{standing,damaged,trampled}.png`); each
+cut is the species' exact footprint box, 480 px on its longest side, so the art
+maps one to one onto the closed cells. Built-in ImageGen reskinned the standing
+guide with the canopy atlas as material reference, then the damaged and
+trampled guides with the standing raw as identity reference. Raws, prompts,
+provenance and authoring documents are `art-source/tilesets/forest-undergrowth*`.
+The trampled state is deliberately quiet (owner pick, 2026-10-25): sparse, muted
+leaf litter over about a fifth of the patch with no grain, so a flattened lane
+recedes into the ground and a quarter-turned patch never looks stretched. Pale
+snapped wood, a solid pressed mat and a streaked muted mat were tried and turned
+down: the streaks read as stretched art when rotated, and full coverage made the
+lane look like a carpet.
+Export each with `tools/authoring.cmd tileset_export -` and
+`{"name":"forest-undergrowth"}` (or `-damaged`, `-destroyed`).
+
+The six one-cell floor plants (`nature.shrub-1..3`, `nature.tuft-1..3`) were
+redrawn overhead from `art-source/templates/forest-floor-plants-guide.py` into
+`art-source/tilesets/forest-floor-plants/forest-floor-plants.png`.
+`art-source/tilesets/nature-plants-refit.py` resamples them to the nature
+plate's scale, joins them to the right of the accepted plate without touching
+it, and points the six entries at them; then export `nature-tiles` and re-run
+`gradlew.bat :asset-pipeline:deriveTileMaps`.
+
+`createSnapshots -Psnapshot=undergrowth-look` shows the guides, every species in
+its three states and four turns, and look shots: a wood whose tank lane is grown
+over, crossed by a breakthrough tank, and open ground with the floor plants.
+
 ## Outdoor map adoption
 
 Outdoor city recipes (including precinct maps) and Relief, Counterattack,

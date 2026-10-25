@@ -126,7 +126,8 @@ public final class BroodSpires {
     }
 
     private static boolean aloft(BattleSimulation sim, Spire s) {
-        return s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
+        return s.pack != null && (!s.pack.members.isEmpty() || s.pack.unhatched() > 0)
+                && sim.swarmFliers().packs().contains(s.pack);
     }
 
     /** The spire whose body is {@code entityId}, or {@code null}. */
