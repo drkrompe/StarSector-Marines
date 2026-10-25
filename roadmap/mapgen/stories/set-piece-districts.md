@@ -127,8 +127,10 @@ street at least 24 cells long and no wider than a primary trunk, members of shop
 plazas or parks. Its pocket weighs the zoning's civic core 2 and mixed town 1, plus 1 for a lot the
 labeller already made a shop, an office or a square. The larger end leaf is the plaza, the leaf at the
 other end the civic hall; its rewrite narrows each cross street between shops to three cells.
-`MainStreetLayout` stands each shop behind a pavement of one to three rows (`BuildingPlacement.frontOnly`
-onto the street), dresses the kerb with planters and counter stalls every third cell and a parked van per
+`MainStreetLayout` stands each member's shops behind a pavement of one to three rows as a frontage row
+(`town-plan.md`): shopfronts five to seven cells wide sharing party walls, doors and windows on the street and
+on the service yard behind; a member too short for two stays one shop, and the hall is one building with its
+doors on the street alone (`BuildingPlacement.frontOnly`). It dresses the kerb with planters and counter stalls every third cell and a parked van per
 shop frontage, all kept out of doorways and corners, paves the plaza with a bandstand where it is ten
 cells a side, and paves the spine and its cross-street stubs as city street, so the street finish lays
 asphalt where a colony would have left a lane. It publishes `MainStreet` on `MapResult.mainStreets`: the

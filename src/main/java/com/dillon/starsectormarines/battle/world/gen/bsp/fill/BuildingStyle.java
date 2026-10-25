@@ -34,6 +34,16 @@ enum BuildingStyle {
         }
     }
 
+    /** The two styles a kind of building is built in, or null for a kind with one or none. */
+    static BuildingStyle[] pair(BuildingKind kind) {
+        switch (kind) {
+            case RESIDENTIAL: return new BuildingStyle[]{SANDSTONE, TENEMENT};
+            case COMMERCIAL: return new BuildingStyle[]{ARCADE, SANDSTONE};
+            case INDUSTRIAL: return new BuildingStyle[]{WORKSHOP, DEPOT};
+            default: return null;
+        }
+    }
+
     void paintShell(NavigationGrid grid, CellTopology topology,
                     int left, int bottom, int right, int top) {
         int walls = topology.surfaceIndex(wall);
