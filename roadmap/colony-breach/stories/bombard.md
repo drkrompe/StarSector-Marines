@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: IN PROGRESS — step 1 (the spore haze) is built and scene-tested.
+Status: IN PROGRESS — steps 1 to 3 (the spore haze, the body and the lob, the counters) are built and scene-tested.
 
 Written: 2026-10-25
 
@@ -46,8 +46,9 @@ line. It spoils its aim, so the Runners get across.
 - **What it aims at.** Ground targets only: infantry, guns, emplacements; never
   a craft. It picks the sensed enemy group with the most bodies inside a
   haze's radius, preferring a group **standing still and firing**, and one
-  that Rav bodies are closing on. It never lobs where swarm bodies are already
-  in melee. Inside a pack leader's leash it shares the pack's quarry. The
+  that Rav bodies are closing on. It never lobs a haze that would cover a
+  melee: a swarm body already on anyone the haze would catch. Inside a pack
+  leader's leash it shares the pack's quarry (not built yet). The
   landing field and lift ring are a later rung, only if play shows the lift
   needs it.
 - **The spore haze.** The glob bursts into an amber haze about three cells in
@@ -63,8 +64,8 @@ line. It spoils its aim, so the Runners get across.
   so a hazed flak mount is the opening a Harrier pack dives into. A Bombard
   never lobs at a craft.
 - **Sting and pulses.** The burst stings: a small splash on the ordinary
-  detonation path (no penetration, spares the swarm, stopped by an intact roof,
-  as the Spitter's acid is). After that, every two seconds a body standing in
+  detonation path (the acid's penetration, so armour blunts it without turning
+  it; spares the swarm; stopped by an intact roof, as the Spitter's acid is). After that, every two seconds a body standing in
   the haze takes a small pulse of the same kind, as repeated small hits rather
   than a status. Standing in one haze for its whole life costs about a rifle
   hit. It is a reason to step out, not a killer.
@@ -122,9 +123,18 @@ prompts and provenance.
    reload; the glob as an indirect projectile that lands a haze; the death
    burst. Scene `bombard`, with loops: it lobs on a standing line and the haze
    lands there; it never lobs into melee; off creep it does not fire; a squad
-   inside its minimum range is never lobbed on.
+   inside its minimum range is never lobbed on. **Built**
+   (`SwarmBombardBehavior`, `SwarmBombards`, `BoreStrainTable.Slot#BOMBARD`,
+   `weapon.swarm-bombard`); it draws as a stand-in on the Spitter's family until
+   step 4, and its glob uses the acid glob's sprite.
 3. **Counters.** The step-out reaction, the launch reveal, the officer's
-   designation.
+   designation. **Built**: `InfantryReflexes.IN_HAZE` (`HazeStepOut`) and the
+   haze edge wait (`HazeEdge`), scene-tested in `bombard-haze`; the launch
+   reveal (`SwarmBombards#launchReveals`, projected into fog by the battle
+   screen), checked in `bombard`; planted Bombards as `AirStrikeDirector`
+   candidates, which no scene covers yet (the probe will). The garrison's step
+   back from a hazed window is the same reflex, since the haze lies indoors too.
+   The melee exception has no loop: marines back off a melee anyway.
 4. **Look.** Cut the G1 master into a rig (body, sac, tail segments, sling,
    legs, claws) with the wind-up and release; the glob and its falling shadow;
    the amber haze; sac wear. Look suite `bombard-look` at 1920x1080.

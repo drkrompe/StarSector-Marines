@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
@@ -690,6 +691,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (com.dillon.starsectormarines.battle.power.CommandPowerService.ActivePing p
                 : sim.getCommandPowerService().getActivePings()) {
             vis.addEphemeralSource(p.cellX, p.cellY, p.radius, 0f);
+        }
+        // A Bombard's launch gives it away as a muzzle flash does, for a few seconds.
+        for (SwarmBombards.Reveal reveal : sim.swarmBombards().launchReveals()) {
+            vis.addEphemeralSource(reveal.cellX(), reveal.cellY(), SwarmBombards.LAUNCH_REVEAL_RANGE, 0f);
         }
         // Anyone dragged off alive by a Runner (a marine, an ally, a colonist) keeps a small bubble of
         // sight around them, so the player watches them hauled to the bore rather than vanishing into

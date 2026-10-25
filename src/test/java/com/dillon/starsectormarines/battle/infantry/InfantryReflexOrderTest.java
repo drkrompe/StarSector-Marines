@@ -35,6 +35,7 @@ public class InfantryReflexOrderTest {
                         "FRIENDLY_CHARGE",
                         "KNOWN_GRENADE",
                         "IN_FIRE",
+                        "IN_HAZE",
                         "REJOIN",
                         "MORTAR_SECTION",
                         "TREATMENT",

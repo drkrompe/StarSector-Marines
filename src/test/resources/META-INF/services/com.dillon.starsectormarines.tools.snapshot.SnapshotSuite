@@ -250,6 +250,7 @@ com.dillon.starsectormarines.battle.evacuation.SwarmDamageStateSceneSnapshotSuit
 com.dillon.starsectormarines.battle.evacuation.GroundColonySceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyThreatSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterSceneSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.BombardSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.RavWearLookSuite

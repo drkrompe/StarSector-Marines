@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.smoke.HazeEdge;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
@@ -197,6 +198,7 @@ import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHitFeedback;
@@ -799,6 +801,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
+    private final SwarmBombards swarmBombards = new SwarmBombards();
     private final BruteChargeSystem bruteCharges = new BruteChargeSystem();
     private final MatriarchActions matriarchActions = new MatriarchActions();
     private final SwarmCues swarmCues = new SwarmCues();
@@ -3764,6 +3767,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         wallBreach.tick(this);
         // Brute blows on walls and Spitter acid on low fliers, posted from the parallel update.
         swarmStrikes.tick(this);
+        // Bombard globs that have landed burst into spore haze; a dead Bombard's sac bursts where it fell.
+        swarmBombards.tick(this);
         // Brute charges: the tell, the run and what it hits, requested from the parallel update.
         bruteCharges.tick(this);
         // Armed contact charges follow their target and resolve through the
@@ -4323,7 +4328,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     world, u, TICK_DT, grid, physicalRadius(u));
             if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
         } else {
-            if (waitsAtFireEdge(u)) return;
+            if (waitsAtFireEdge(u) || waitsAtHazeEdge(u)) return;
             movement().advanceAlongPath(world, u, TICK_DT);
             // A route the mover has been walking for seconds without getting anywhere is dropped,
             // so its order plans a fresh one from where it stands; see MovementService.stalledOnRoute.
@@ -4341,6 +4346,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (next >= Paths.cellCount(path)) return false;
         return FireEscape.waitsAtEdge(fire.field(), world.cellX(u), world.cellY(u),
                 Paths.cellX(path, next), Paths.cellY(path, next));
+    }
+
+    /**
+     * A person out of a spore haze does not walk back in to stand in it: a route whose next cell is hazed and
+     * whose end is hazed waits at the edge. Crossing a haze to clear ground beyond is not stopped; see
+     * {@code HazeStepOut}.
+     */
+    private boolean waitsAtHazeEdge(long u) {
+        if (!grid.anyHaze()) return false;
+        UnitType type = identity().type(u);
+        if (type.isSwarm() || type.isGroundVehicle() || type.isMachineFrame() || type.isDrone()) return false;
+        int[] path = world.path(u);
+        int next = world.pathIdx(u);
+        if (next >= Paths.cellCount(path)) return false;
+        return HazeEdge.waits(grid, world.cellX(u), world.cellY(u), Paths.cellX(path, next), Paths.cellY(path, next),
+                Paths.destX(path), Paths.destY(path));
     }
 
     @Override
@@ -4449,6 +4470,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Where swarm strains post the blows and acid that land in the serial pass. */
     public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
+
+    public SwarmBombards swarmBombards() { return swarmBombards; }
     /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
     public SwarmCues swarmCues() { return swarmCues; }
 

@@ -241,10 +241,16 @@ public final class CompoundClaim {
         return candidates.get(rng.nextInt(candidates.size()));
     }
 
+    /** The seed kinds the district plan gives its districts' seeds. */
+    private static final Set<BlockKind> DISTRICT_SEEDS = EnumSet.of(BlockKind.MAIN_STREET,
+            BlockKind.CORDONED_FACILITY, BlockKind.INDUSTRIAL_ZONE);
+
     private static boolean isEligible(BlockLeaf leaf, ClaimSpec spec) {
         if (leaf.kind == BlockKind.COMPOUND_MEMBER) return false;
-        // Ground planned for a set piece is already somebody's (set-piece-blocks.md).
+        // Ground planned for a set piece or a district is already somebody's (set-piece-blocks.md,
+        // set-piece-districts.md): a district's seed carries its compound, and taken as a member it is never filled.
         if (leaf.kind == BlockKind.FREIGHT_YARD)    return false;
+        if (DISTRICT_SEEDS.contains(leaf.kind))     return false;
         if (leaf.kind == spec.seedKind)             return false;
         for (ClaimSpec other : DEFAULT_SPECS) {
             if (other.seedKind != spec.seedKind && leaf.kind == other.seedKind) return false;

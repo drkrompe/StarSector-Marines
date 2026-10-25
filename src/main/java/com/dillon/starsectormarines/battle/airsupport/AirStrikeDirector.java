@@ -42,6 +42,8 @@ import java.util.function.LongPredicate;
  */
 public final class AirStrikeDirector {
 
+    /** A sighted, planted Bombard's worth against a lone nest's 3: above it, so the long arm is struck first. UNTUNED. */
+    static final float BOMBARD_SCORE = 5f;
     /** Ticks between looks at the field. */
     static final int PERIOD_TICKS = 30;
     /** Range within which a unit of the side sights a hostile emplacement, in cells. UNTUNED. */
@@ -343,6 +345,20 @@ public final class AirStrikeDirector {
         // Only a concentration some operator has in sight is a candidate: the densest group anywhere on the map is a
         // thing no radio and no fort has seen.
         List<Operator> eyes = CommsOperators.available(sim, side);
+        // A planted Bombard an operator has in sight is a designation of its own (`bombard.md`, Counters): soft,
+        // rooted and hazing the line, it is the ground target an airframe is for. A fighter's cannon is enough.
+        for (long bombard : sim.swarmBombards().plantedBodies()) {
+            if (!world.isAlive(bombard) || !side.hostileTo(sim.identity().faction(bombard))) continue;
+            float x = world.x(bombard);
+            float y = world.y(bombard);
+            if (recentlyStruck(x, y) || dangerClose(sim, x, y) || !sighted(sim, eyes, x, y)) continue;
+            AirPoolKind kind = service.available(side, AirPoolKind.FIGHTER) > 0 ? AirPoolKind.FIGHTER
+                    : service.available(side, AirPoolKind.BOMBER) > 0 ? AirPoolKind.BOMBER : null;
+            if (kind == null) continue;
+            float risk = risk(sim, x, y, kind);
+            if (!ignoreRisk && risk > RISK_CEILING) continue;
+            out.add(new Candidate(x, y, true, BOMBARD_SCORE - 2f * risk, kind, 0L));
+        }
         // Counted on the ground: a bomb is a ground blast and no ground blast reaches a flier, so a pack overhead is no target.
         long densest = EnemyConcentration.densestOnGround(sim, side,
                 unit -> sighted(sim, eyes, world.x(unit), world.y(unit)));
