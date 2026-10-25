@@ -433,10 +433,11 @@ public final class HeartLanes {
     }
 
     /**
-     * Whether The Burn's lanes attack each bore in phases (`heart-bore-assault.md`): machines on a stand-off ring,
-     * militia on a support line going in on a spent surge. Removal condition: the owner has seen it on The Burn and
-     * its evidence has been read; {@code false} is the control, armour posted ahead of the lane's aim and militia
-     * attack-moving onto the bore.
+     * Whether the lanes attack each bore in phases (`heart-bore-assault.md`): machines on a stand-off ring, militia on
+     * a support line going in on a spent surge. On The Burn it takes a lane once the guns allow; on Broad Front where
+     * the lane's formation rallies, on the bore's support line. Removal condition: the owner has seen it on both forms
+     * and their evidence has been read; {@code false} is the control, armour posted by the lane's aim (ahead of it on
+     * The Burn, behind it on Broad Front), formations rallying on the bore and militia attack-moving onto it.
      */
     static final boolean BORE_ASSAULT = Boolean.parseBoolean(System.getProperty("battle.heart.boreAssault", "true"));
 
@@ -449,7 +450,7 @@ public final class HeartLanes {
      * its decisions once a second, as the lanes' other orders do.
      */
     private boolean assault(BattleSimulation sim, Lane lane, int tick) {
-        if (!BORE_ASSAULT || screen == null) return false;
+        if (!BORE_ASSAULT) return false;
         if (tick % RETARGET_TICKS != 0) return lane.assault != null;
         SwarmBore bore = lane.assault == null ? null : bore(sim, lane.assault.boreKey);
         if (lane.assault != null && (bore == null || bore.collapsed())) {
@@ -459,9 +460,11 @@ public final class HeartLanes {
         }
         if (lane.assault == null) {
             int[] from = lanePosition(sim, lane);
-            KnownBore next = lane.ground.target(known(sim), from[0], from[1]);
+            // The bore the lane was sent for (Broad Front's formation brought it there), else the nearest of its own.
+            KnownBore next = sentFor(sim, lane);
+            if (next == null) next = lane.ground.target(known(sim), from[0], from[1]);
             // The guns are still on it: the lane follows the barrage as before.
-            if (next == null || screen.beyond(screen.along(next.x(), next.y()), tick)) return false;
+            if (next == null || screen != null && screen.beyond(screen.along(next.x(), next.y()), tick)) return false;
             bore = bore(sim, next.key());
             if (bore == null) return false;
             BoreAssault begun = new BoreAssault(next.key(), next.x(), next.y(), from[0] - next.x(), from[1] - next.y(),
@@ -655,6 +658,15 @@ public final class HeartLanes {
         }
     }
 
+    /** The living bore at the lane's target, or {@code null} when its target is no bore (a barrage hold) or has fallen. */
+    private static KnownBore sentFor(BattleSimulation sim, Lane lane) {
+        if (lane.targetX < 0) return null;
+        for (KnownBore bore : known(sim)) {
+            if (bore.living() && bore.x() == lane.targetX && bore.y() == lane.targetY) return bore;
+        }
+        return null;
+    }
+
     private static SwarmBore bore(BattleSimulation sim, String key) {
         for (SwarmBore bore : sim.swarmBores().bores()) if (bore.beatKey().equals(key)) return bore;
         return null;
@@ -696,7 +708,7 @@ public final class HeartLanes {
                     lane.targetX = aim[0];
                     lane.targetY = aim[1];
                     lane.advance = form(sim, lane, aim);
-                    if (lane.advance == null) {
+                    if (lane.advance == null && !BORE_ASSAULT) {
                         for (int squad : lane.squads) {
                             sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, aim[0], aim[1]),
                                     CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " goes on to " + next.key());
@@ -708,8 +720,10 @@ public final class HeartLanes {
         ScreenedAdvance advance = lane.advance;
         if (advance == null) return false;
         if (!advance.active()) {
-            // Rallied on the bore (or halted): the lane attacks it from where the formation brought it.
+            // Rallied on the bore (or halted): the lane attacks it from where the formation brought it, by assault
+            // where the bore assault is on (the lane's next tick hands it over), else straight in.
             lane.advance = null;
+            if (BORE_ASSAULT) return false;
             for (int squad : lane.squads) {
                 sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, lane.targetX, lane.targetY),
                         CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " attacks its bore");
@@ -731,6 +745,10 @@ public final class HeartLanes {
         int[] from = laneBody(sim, lane, hulls);
         if (from == null) return null;
         lane.armourLeads = openShare(sim, from, aim) >= ARMOUR_LEADS_OPEN;
+        // The formation rallies on the bore's support line, not on the bore: its mouth is the swarm's ground, and the
+        // assault goes on from there. A lane already that close has no advance to make.
+        int[] rally = BORE_ASSAULT ? rallyShort(sim, from, aim) : aim;
+        if (rally == null) return null;
         lane.formedSquads.clear();
         lane.formedMachines.clear();
         lane.formedSquads.addAll(lane.squads);
@@ -739,7 +757,7 @@ public final class HeartLanes {
         ScreenedAdvance.Element infantry = new ScreenedAdvance.Element().squads(lane.squads);
         ScreenedAdvance.Element armour = new ScreenedAdvance.Element().hulls(hulls).mechs(mechs);
         return ScreenedAdvance.builder("lane-" + lane.number, ISSUER, allied,
-                        AdvanceRoute.straight(from[0], from[1], aim[0], aim[1]))
+                        AdvanceRoute.straight(from[0], from[1], rally[0], rally[1]))
                 .screen(lane.armourLeads ? armour : infantry)
                 .main(lane.armourLeads ? infantry : armour)
                 .side(Faction.ALLY)
@@ -750,6 +768,12 @@ public final class HeartLanes {
                 .contactTimes(ScreenedAdvance.CONTACT_CLEAR_SECONDS, LANE_CONTACT_HOLD_SECONDS)
                 .beats(key -> lane.pushesRunning = pushesAfter(lane.pushesRunning, key))
                 .build();
+    }
+
+    /** {@link BoreAssault#rallyCell} on walkable ground. */
+    private static int[] rallyShort(BattleSimulation sim, int[] from, int[] bore) {
+        int[] cell = BoreAssault.rallyCell(from[0], from[1], bore[0], bore[1]);
+        return cell == null ? null : walkableNear(sim, cell[0], cell[1]);
     }
 
     /** The middle of the lane's squad leaders and hulls: where its formation forms up. */

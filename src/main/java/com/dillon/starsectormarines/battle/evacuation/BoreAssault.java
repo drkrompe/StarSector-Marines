@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import java.util.List;
 
 /**
- * One lane's assault on one bore (`heart-bore-assault.md`): the lanes' commander's tactical layer on The Burn. The
+ * One lane's assault on one bore (`heart-bore-assault.md`): the lanes' commander's tactical layer. The
  * mission picks the bore; this decides where the lane's machines and militia stand and when the militia go in.
  *
  * <p><b>Phases.</b> {@link Phase#MOVING_UP}: the machines drive to their posts on the stand-off ring; after a bore
@@ -126,6 +126,17 @@ final class BoreAssault {
     static int[] supportCell(int boreX, int boreY, float nearX, float nearY) {
         int back = MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS;
         return new int[]{Math.round(boreX + nearX * back), Math.round(boreY + nearY * back)};
+    }
+
+    /**
+     * Where a formation coming from ({@code fromX}, {@code fromY}) onto the bore rallies for its assault: the bore's
+     * support line on the way it comes. {@code null} when the lane stands that close already, with no advance to make.
+     */
+    static int[] rallyCell(int fromX, int fromY, int boreX, int boreY) {
+        float dx = fromX - boreX, dy = fromY - boreY;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance <= MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SET_CELLS) return null;
+        return supportCell(boreX, boreY, dx / distance, dy / distance);
     }
 
     /**
