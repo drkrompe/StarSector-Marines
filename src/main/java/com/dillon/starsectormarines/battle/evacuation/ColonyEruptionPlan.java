@@ -25,19 +25,20 @@ import java.util.List;
  * ring or a marine landing pad's, and never where the swarm could not walk
  * from it to the shelter.
  *
- * <p><b>The first wave is spread, the mother is far.</b> The opening sites go
- * between the shelter and the lift (the corridor the cohort has to walk) and
- * on either flank of it; the mother bore takes the eligible place furthest
- * from the lift. Every choice is a deterministic function of the seed and the
- * geometry, so the same battle breaks open in the same places every replay.
+ * <p><b>The bloom came in from the outskirts.</b> The first wave stands on the
+ * town's near edge either side of the landing field (owner, 2026-10-25: bores
+ * flank the company's landing zone and grow inward), already open when the
+ * company comes down; the mother bore comes up later at the far end of one
+ * flank, out on the deep outskirts. The rest of the eligible places are kept
+ * ({@link #places}) for the bores the fed ones bud further in. Every choice is
+ * a deterministic function of the seed and the geometry, so the same battle
+ * breaks open in the same places every replay.
  */
 public final class ColonyEruptionPlan {
 
     /** Which part of the colony a site threatens. */
     public enum Role {
-        /** Between the shelter and the lift: on the cohort's walk. */
-        CORRIDOR,
-        /** Off to one side of that walk. */
+        /** On the outskirts to one side of the landing field: the first wave, open at landfall. */
         FLANK,
         /** The one site whose bore is the mother bore. */
         MOTHER
@@ -62,22 +63,41 @@ public final class ColonyEruptionPlan {
 
     /** First-wave sites a full colony plan carries. */
     public static final int FIRST_WAVE_SITES = 4;
-    /** Seconds after the tremor that the first bore opens. */
-    public static final float FIRST_ERUPTION_SECONDS = 6f;
-    /** Seconds between first-wave eruptions; four of them fill the minute after the tremor. */
-    public static final float ERUPTION_STAGGER_SECONDS = 15f;
-    /** Seconds after the tremor that the mother bore opens. */
-    public static final float MOTHER_ERUPTION_SECONDS = 180f;
+    /** Seconds after the tremor, at landfall, that the mother bore opens. */
+    public static final float MOTHER_ERUPTION_SECONDS = 300f;
+    /** A flank site stands at least this far off the field's inward line, as a share of its distance from the field. */
+    static final float FLANK_SHARE = 0.4f;
     /** Cells of open ground searched around a building's door for a site. */
     private static final int DOORSTEP_RADIUS = 3;
 
     private final List<Site> sites;
     private final int requestedFirstWave;
+    private final List<int[]> places;
+    private final int heartX, heartY, spacing;
 
-    private ColonyEruptionPlan(List<Site> sites, int requestedFirstWave) {
+    private ColonyEruptionPlan(List<Site> sites, int requestedFirstWave, List<int[]> places, int heartX, int heartY,
+                               int spacing) {
         this.sites = List.copyOf(sites);
         this.requestedFirstWave = requestedFirstWave;
+        this.places = List.copyOf(places);
+        this.heartX = heartX;
+        this.heartY = heartY;
+        this.spacing = spacing;
     }
+
+    /** The town's heart the bores bud toward: the shelter. */
+    public int heartX() { return heartX; }
+
+    public int heartY() { return heartY; }
+
+    /** How close two sites, or two bores, may stand ({@link #siteSpacing}). */
+    public int spacing() { return spacing; }
+
+    /**
+     * Every eligible place no site took, {@code {x, y, kindOrdinal}} each, in a seeded order: where a fed bore may
+     * bud a new one further in ({@link SwarmBores}, Budding).
+     */
+    public List<int[]> places() { return places; }
 
     /** Sites in eruption order: the first wave by number, then the mother. */
     public List<Site> sites() { return sites; }
@@ -205,11 +225,15 @@ public final class ColonyEruptionPlan {
     /**
      * Selects up to {@code firstWave} first-wave sites and one mother site.
      *
-     * <p>Order of seating: corridor sites first (up to half the wave), then one
-     * flank on each side of the shelter-to-lift line, then whatever eligible
-     * place is left; the mother last, as far from the lift as anything spaced
-     * from the rest. A map that cannot seat them all returns a short plan rather
-     * than failing; {@link #isComplete} says which.
+     * <p>Order of seating: half the wave on each flank of the landing field
+     * (a place off the line from the field in to the shelter by at least
+     * {@link #FLANK_SHARE} of its distance), nearest the field first, the seed
+     * shuffling places within a site's spacing; then whatever flank place is
+     * left, then the outskirts straight ahead of the field. The mother last:
+     * the place spaced from the rest standing furthest out along a flank, the
+     * flank away from the lift when the lift stands off to one side. A map
+     * that cannot seat them all returns a short plan rather than failing;
+     * {@link #isComplete} says which.
      */
     public static ColonyEruptionPlan select(Geometry g, int firstWave, long seed) {
         int spacing = siteSpacing(g.width(), g.height());
@@ -236,89 +260,100 @@ public final class ColonyEruptionPlan {
                 .comparingLong((int[] c) -> priority(seed, c[1] * g.width() + c[0]))
                 .thenComparingInt(c -> c[1] * g.width() + c[0]));
 
-        List<int[]> corridor = new ArrayList<>();
+        // The landing field the company comes down on: its pads' centre, or the lift on it.
+        float fx = g.liftX(), fy = g.liftY();
+        if (!g.landings().isEmpty()) {
+            fx = 0f;
+            fy = 0f;
+            for (int[] pad : g.landings()) {
+                fx += pad[0];
+                fy += pad[1];
+            }
+            fx /= g.landings().size();
+            fy /= g.landings().size();
+        }
+        // Inward, from the field toward the shelter at the town's heart.
+        float ux = g.shelterX() - fx, uy = g.shelterY() - fy;
+        float ul = (float) Math.sqrt(ux * ux + uy * uy);
+        if (ul < 1e-3f) {
+            ux = 0f;
+            uy = 1f;
+        } else {
+            ux /= ul;
+            uy /= ul;
+        }
         List<int[]> left = new ArrayList<>();
         List<int[]> right = new ArrayList<>();
-        float ax = g.shelterX(), ay = g.shelterY();
-        float bx = g.liftX() - ax, by = g.liftY() - ay;
-        float length = (float) Math.sqrt(bx * bx + by * by);
-        float corridorHalfWidth = Math.max(spacing, length * 0.3f);
+        List<int[]> ahead = new ArrayList<>();
         for (int[] c : eligible) {
-            float px = c[0] - ax, py = c[1] - ay;
-            float along = length < 1e-3f ? 0f : (px * bx + py * by) / (length * length);
-            float across = length < 1e-3f ? 0f : (bx * py - by * px) / length;
-            if (along >= 0.15f && along <= 0.85f && Math.abs(across) <= corridorHalfWidth) {
-                corridor.add(c);
-            } else if (across >= 0f) {
-                left.add(c);
-            } else {
-                right.add(c);
-            }
+            float px = c[0] - fx, py = c[1] - fy;
+            float across = ux * py - uy * px;
+            float distance = (float) Math.sqrt(px * px + py * py);
+            if (Math.abs(across) < distance * FLANK_SHARE) ahead.add(c);
+            else if (across >= 0f) left.add(c);
+            else right.add(c);
         }
+        // Outskirts first: nearest the field, the seed shuffling places within a site's spacing of each other.
+        final float ffx = fx, ffy = fy;
+        Comparator<int[]> outskirts = Comparator.comparingDouble((int[] c) ->
+                Math.hypot(c[0] - ffx, c[1] - ffy) + spacing * unitOf(priority(seed, c[1] * g.width() + c[0])))
+                .thenComparingInt(c -> c[1] * g.width() + c[0]);
+        left.sort(outskirts);
+        right.sort(outskirts);
+        ahead.sort(outskirts);
 
         List<int[]> chosen = new ArrayList<>();
-        List<Role> roles = new ArrayList<>();
-        int corridorQuota = Math.max(1, firstWave / 2);
-        takeSpaced(corridor, corridorQuota, chosen, roles, Role.CORRIDOR, spacing);
-        takeSpaced(left, 1, chosen, roles, Role.FLANK, spacing);
-        takeSpaced(right, 1, chosen, roles, Role.FLANK, spacing);
-        // Whatever is still owed, from anywhere eligible.
-        if (chosen.size() < firstWave) {
-            takeSpaced(corridor, firstWave - chosen.size(), chosen, roles, Role.CORRIDOR, spacing);
-        }
+        int perFlank = Math.max(1, firstWave / 2);
+        takeSpaced(left, perFlank, chosen, spacing);
+        takeSpaced(right, perFlank, chosen, spacing);
+        // Whatever is still owed: the flanks' next, then the outskirts straight ahead of the field.
         if (chosen.size() < firstWave) {
             List<int[]> flanks = new ArrayList<>(left);
             flanks.addAll(right);
-            flanks.sort(Comparator
-                    .comparingLong((int[] c) -> priority(seed, c[1] * g.width() + c[0]))
-                    .thenComparingInt(c -> c[1] * g.width() + c[0]));
-            takeSpaced(flanks, firstWave - chosen.size(), chosen, roles, Role.FLANK, spacing);
+            flanks.sort(outskirts);
+            takeSpaced(flanks, firstWave - chosen.size(), chosen, spacing);
         }
-        while (chosen.size() > firstWave) {
-            chosen.remove(chosen.size() - 1);
-            roles.remove(roles.size() - 1);
-        }
+        if (chosen.size() < firstWave) takeSpaced(ahead, firstWave - chosen.size(), chosen, spacing);
+        while (chosen.size() > firstWave) chosen.remove(chosen.size() - 1);
 
-        // The mother: furthest from the lift among places spaced from the wave.
+        // The mother: the deep outskirts, as far out along a flank as a place spaced from the wave stands, on the
+        // flank away from the lift, so the hive objective is never at the cohort's boats.
+        float liftAcross = ux * (g.liftY() - fy) - uy * (g.liftX() - fx);
         int[] mother = null;
-        long motherDistance = -1;
+        double motherReach = Double.NEGATIVE_INFINITY;
         for (int[] c : eligible) {
             if (!spacedFrom(c, chosen, spacing)) continue;
-            long dx = c[0] - g.liftX(), dy = c[1] - g.liftY();
-            long distance = dx * dx + dy * dy;
-            if (distance > motherDistance) {
-                motherDistance = distance;
+            float px = c[0] - fx, py = c[1] - fy;
+            float across = ux * py - uy * px;
+            boolean liftSide = Math.abs(liftAcross) >= spacing && Math.signum(across) == Math.signum(liftAcross);
+            double reach = Math.abs(across) - 0.5 * (ux * px + uy * py) - (liftSide ? 100_000 : 0);
+            if (reach > motherReach) {
+                motherReach = reach;
                 mother = c;
             }
         }
 
-        // Eruption order: the corridor first — it is the walk the cohort takes —
-        // then the flanks, each group in selection order.
+        // Numbered nearest the field first; all open at once, when the company lands.
+        chosen.sort(Comparator.comparingDouble((int[] c) -> Math.hypot(c[0] - ffx, c[1] - ffy))
+                .thenComparingInt(c -> c[1] * g.width() + c[0]));
         List<Site> sites = new ArrayList<>();
         int number = 1;
-        for (Role role : new Role[]{Role.CORRIDOR, Role.FLANK}) {
-            for (int i = 0; i < chosen.size(); i++) {
-                if (roles.get(i) != role) continue;
-                int[] c = chosen.get(i);
-                int delay = seconds(FIRST_ERUPTION_SECONDS + (number - 1) * ERUPTION_STAGGER_SECONDS);
-                sites.add(new Site(number++, c[0], c[1], role, delay, kind(c[2])));
-            }
-        }
+        for (int[] c : chosen) sites.add(new Site(number++, c[0], c[1], Role.FLANK, 0, kind(c[2])));
         if (mother != null) {
             sites.add(new Site(0, mother[0], mother[1], Role.MOTHER,
                     seconds(MOTHER_ERUPTION_SECONDS), kind(mother[2])));
         }
-        return new ColonyEruptionPlan(sites, firstWave);
+        List<int[]> rest = new ArrayList<>();
+        for (int[] c : eligible) if (!chosen.contains(c) && c != mother) rest.add(c);
+        return new ColonyEruptionPlan(sites, firstWave, rest, g.shelterX(), g.shelterY(), spacing);
     }
 
-    private static void takeSpaced(List<int[]> from, int wanted, List<int[]> chosen,
-                                   List<Role> roles, Role role, int spacing) {
+    private static void takeSpaced(List<int[]> from, int wanted, List<int[]> chosen, int spacing) {
         int taken = 0;
         for (int[] c : from) {
             if (taken >= wanted) return;
             if (chosen.contains(c) || !spacedFrom(c, chosen, spacing)) continue;
             chosen.add(c);
-            roles.add(role);
             taken++;
         }
     }
@@ -338,6 +373,11 @@ public final class ColonyEruptionPlan {
 
     private static int seconds(float seconds) {
         return Math.round(seconds / BattleSimulation.TICK_DT);
+    }
+
+    /** A seeded priority as a share in {@code [0, 1)}. */
+    private static double unitOf(long priority) {
+        return (priority >>> 11) * 0x1.0p-53;
     }
 
     private static long priority(long seed, int cell) {
