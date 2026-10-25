@@ -895,9 +895,13 @@ detour proof refuses optional scenery rather than cutting a route through it
 later, and preserves connectivity even for places a mission chooses after the
 map is generated. A procedural canopy proves the same for the widest ground
 hull: any two cells a tank could stand on and drive between in that
-neighbourhood stay joined at tank width (the hull's vehicle clearance), so a
-wood thins to lanes armour can use instead of gaps only infantry fit. A hand
-painted forest plan is not held to it. Existing disconnected ground is not
+neighbourhood stay joined at tank width (the hull's vehicle clearance). Ground
+under undergrowth counts as open for this, since the tank flattens it
+(`convoy-nouns.md`, tracks), and a mature crown that would shut a lane is
+replanted on the same spot as undergrowth where its smaller canopy fits the
+painted ground. So a wood keeps its density and its lanes are thickets armour
+breaks through, not gaps only infantry fit. A hand painted forest plan is not
+held to it. Existing disconnected ground is not
 repaired by this pass.
 
 A precinct plan may state its country through a **landscape** (`Landscape`):

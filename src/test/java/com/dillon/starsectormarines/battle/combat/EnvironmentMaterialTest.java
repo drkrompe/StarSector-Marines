@@ -34,6 +34,13 @@ class EnvironmentMaterialTest {
     }
 
     @Test
+    void aBurningRoundCharsTimberWhateverItsPenetrationButNotStone() {
+        assertEquals(0, EnvironmentMaterial.TIMBER.structuralDamage(16f, 3f), "a low-penetration round bounces off a trunk");
+        assertEquals(16, EnvironmentMaterial.TIMBER.structuralDamage(16f, 3f, true));
+        assertEquals(0, EnvironmentMaterial.STONE.structuralDamage(16f, 3f, true));
+    }
+
+    @Test
     void everyDamageablePropFamilyHasItsMaterial() {
         assertEquals(EnvironmentMaterial.WOOD, EnvironmentMaterial.forProp("doodad.crate"));
         assertEquals(EnvironmentMaterial.WOOD, EnvironmentMaterial.forProp("doodad.box-dam"));

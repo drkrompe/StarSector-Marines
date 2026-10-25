@@ -337,6 +337,14 @@ public final class WeaponDef {
         return projectileSpritePath == null && !BeamStyle.DEFAULT.equals(beamStyle);
     }
 
+    /**
+     * Whether this weapon's rounds char what burns (wood and standing trees) with their whole payload, whatever their
+     * penetration ({@code EnvironmentMaterial.structuralDamage}): a beam, or an authored energy weapon.
+     */
+    public boolean burns() {
+        return energy || hitscanBeam();
+    }
+
     /** Modeled direct-fire speed; nearer impacts arrive sooner. */
     public float directRoundVelocity() {
         return flightSec > 0f ? range / flightSec : 60f;

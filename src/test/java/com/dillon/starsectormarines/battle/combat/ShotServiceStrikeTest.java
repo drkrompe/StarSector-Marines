@@ -18,7 +18,7 @@ class ShotServiceStrikeTest {
     @Test
     void aRoundThatNamesNothingOrCannotWearQueuesNothing() {
         ShotService shots = new ShotService();
-        shots.setStrikeFilter((feature, damage, penetration) -> feature.cellX() != 9);
+        shots.setStrikeFilter((feature, damage, penetration, burns) -> feature.cellX() != 9);
         shots.queueStrike(stop(null, 0.1f), 1L, 14f, 7f);
         shots.queueStrike(stop(StruckFeature.cell(9, 1), 0.1f), 1L, 14f, 7f);
         shots.queueStrike(stop(StruckFeature.cell(2, 1), 0.1f), 1L, 0f, 7f);
