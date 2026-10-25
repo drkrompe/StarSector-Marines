@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Central lookup for Starsector Marines display strings. All user-facing
@@ -118,13 +120,35 @@ public final class Strings {
         return spaced.isEmpty() ? spaced : Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
     }
 
+    /**
+     * The copy's text for {@code key}, or the key itself when the copy has none.
+     *
+     * <p>On a miss the game logs an error and answers with its own {@code Missing string: [key]} placeholder rather
+     * than the key, so that answer is read as a miss here, which keeps every caller's fallback working instead of
+     * drawing the placeholder. A key the game has reported missing is not asked for again: the copy is loaded once,
+     * and a HUD that draws a missing key every frame would otherwise log it every frame.
+     */
     public static String get(String key) {
+        if (MISSING.contains(key)) return key;
         try {
             String v = Global.getSettings().getString(NS, key);
-            return v != null ? v : key;
+            if (v == null) return key;
+            if (v.equals(missingPlaceholder(key))) {
+                MISSING.add(key);
+                return key;
+            }
+            return v;
         } catch (Exception e) {
             LOG.warn("Strings: missing key '" + NS + "/" + key + "', falling back to key");
             return key;
         }
     }
+
+    /** What the game's lookup answers for a key its copy does not hold. */
+    static String missingPlaceholder(String key) {
+        return "Missing string: [" + key + "]";
+    }
+
+    /** Keys the game reported its copy does not hold, this session. */
+    private static final Set<String> MISSING = ConcurrentHashMap.newKeySet();
 }
