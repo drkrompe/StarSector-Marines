@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: PLANNED
+Status: IN PROGRESS — step 1 (the spore haze) is built and scene-tested.
 
 Written: 2026-10-25
 
@@ -114,7 +114,8 @@ prompts and provenance.
    shot reads and sight does not, plus the burst sting and the two-second
    pulse. Unit tests on the depth and pulse rules. Scene `bombard-haze`: a
    squad firing from inside a haze hits less than its control, and still
-   acquires.
+   acquires. **Built** (`SporeHazes`, `SmokeFieldService#deployHaze`); the
+   haze's tint in the battle view is a placeholder until step 4.
 2. **The body and the lob.** The unit type, stats and kit through
    `SwarmStrains`; the maw-only slot with the one-per-bore cap; rooting to
    creep, planting, the target pick, the minimum range, the scatter, the
