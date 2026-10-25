@@ -44,6 +44,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechFieldRepair;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.CampaignBoat;
@@ -71,7 +72,10 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechSection;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
@@ -145,6 +149,7 @@ import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -415,6 +420,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
                                 null, "chassis-Bulwark")),
+                // The starter Bulwark half a day into a free repair: the damage card, and it still drops.
+                new SnapshotArtifact("mech-lab-repairing-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
+                                null, "repairing")),
                 new SnapshotArtifact("mech-lab-warden-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
@@ -2595,6 +2605,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
             bay.beginLabLesson();
         }
+        if ("repairing".equals(materialHint)) {
+            int sections = MechSection.values().length;
+            boolean[] fitted = new boolean[sections];
+            float[] structure = new float[sections];
+            float[] armor = new float[sections];
+            Arrays.fill(fitted, true);
+            Arrays.fill(structure, 1f);
+            Arrays.fill(armor, 1f);
+            structure[MechSection.LEGS.ordinal()] = 0f;
+            armor[MechSection.LEGS.ordinal()] = 0f;
+            structure[MechSection.HEAD.ordinal()] = 0.5f;
+            armor[MechSection.TORSO.ordinal()] = 0.4f;
+            bay.settleBattleDamage(List.of(new CompanyMechLedger.Damage(MechBay.STARTER_MECH_ID,
+                    new MechSections.Report("snapshot", fitted, structure, armor, new boolean[sections],
+                            new MechWeaponComponent[MechMountSlot.values().length]), false)),
+                    -0.5f, MechFieldRepair.NEUTRAL);
+        }
         MechLabViewModel viewModel = new MechLabViewModel(
                 reactor, bay, snapshotMechResources("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 2_000));
         if (materialHint != null && materialHint.startsWith("lesson-")) {
@@ -2632,7 +2659,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 ) {
             viewModel.gantryRows().get().get(0).select().run();
         }
-        if (weldingEvidence) viewModel.gantryRows().get().get(0).select().run();
+        if (weldingEvidence || "repairing".equals(materialHint)) viewModel.gantryRows().get().get(0).select().run();
         if ("hover-installed".equals(materialHint)) viewModel.gantryRows().get().get(0).select().run();
         // Internals: the engine socket with an uprated engine hovered, then frame plating
         // with heavy plate hovered, so the budget line and meter ghosts show the trade.

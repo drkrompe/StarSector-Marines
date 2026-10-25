@@ -147,14 +147,10 @@
               </div>
               <div id="mech-repair-card" class="{repair.classes}" style="{repair.style}">
                 <div id="mech-repair-status" class="{repair.statusClasses}">{repair.status}</div>
-                <div id="mech-repair-order" class="{repair.orderClasses}">
+                <div id="mech-repair-detail" class="{repair.detailClasses}">
                   <div id="mech-repair-title" class="label heading tone-edge mech-repair-title">{i18n.mechLabRepairTitle}</div>
                   <div id="mech-repair-sections" class="label tone-muted mech-repair-sections">{repair.sections}</div>
-                  <div id="mech-repair-days" class="label tone-edge mech-repair-days">{repair.order}</div>
-                  <div id="mech-repair-costs" class="mech-repair-costs">
-                    <company-resource-cost each="material in repair.materials" key="{material.id}" row="{material}" />
-                  </div>
-                  <button id="mech-repair-action" class="mech-repair-action console-action" onclick="{repair.action}">{i18n.mechLabRepairAction}</button>
+                  <div id="mech-repair-condition" class="label tone-edge mech-repair-condition">{repair.condition}</div>
                 </div>
               </div>
               <div id="mech-slot-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabFittingLocations}</div>
@@ -299,12 +295,10 @@
 
   .mech-repair-card { flex-direction: column; width: 100%; padding: 5px 6px; gap: 4px; border-width: 1px; border-color: #8f3f44; overflow: hidden; }
   .mech-repair-status { height: 16px; }
-  .mech-repair-order { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 4px; }
+  .mech-repair-detail { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 4px; }
   .mech-repair-title { height: 16px; }
   .mech-repair-sections { height: 32px; white-space: normal; }
-  .mech-repair-days { height: 16px; }
-  .mech-repair-costs { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 2px; }
-  .mech-repair-action { width: 100%; height: 26px; padding: 3px 8px; border-width: 3px; text-align: center; font-family: heading; }
+  .mech-repair-condition { height: 16px; }
   .overview-browse { width: 142px; height: 30px; padding: 4px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
   .mech-drag-ghost { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }

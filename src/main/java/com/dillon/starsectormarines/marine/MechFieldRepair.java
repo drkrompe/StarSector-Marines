@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 /**
  * What the company ship's Mech Lab field-repair refit is worth between missions: how much of a
- * repair's clock the mech spends in its gantry, and what a replacement weapon assembly costs to
+ * free repair's clock it takes off, and what a replacement weapon assembly costs to
  * fabricate (the spares rack, which is what refitting a mount lost in battle comes to). Read when
  * an order is quoted, never frozen; {@link #NEUTRAL} off the founding hull.
  */

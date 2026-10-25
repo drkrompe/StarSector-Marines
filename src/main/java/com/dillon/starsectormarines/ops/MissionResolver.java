@@ -574,7 +574,8 @@ public final class MissionResolver {
         MarineRoster roster = applyPersonnelOutcome(outcome);
         if (roster != null) {
             roster.mechBay().loseVehicles(outcome.vehiclesLost);
-            roster.mechBay().settleBattleDamage(outcome.mechDamage);
+            roster.mechBay().settleBattleDamage(outcome.mechDamage,
+                    Global.getSector() != null ? CampaignClock.dayFloat() : 0f, ShipRefits.aboard().mechFieldRepair());
         }
         if (outcome.contractId != -1L) {
             applyContractBridge(outcome, roster);

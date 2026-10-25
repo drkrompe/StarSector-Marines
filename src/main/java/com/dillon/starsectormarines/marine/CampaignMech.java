@@ -42,10 +42,16 @@ public final class CampaignMech implements Serializable {
     private List<String> auxiliaryIds;
     // Absent in saves from before section damage: null damage and a zero clock read as a whole,
     // ready mech, so an existing save needs no rewrite.
-    /** What the last battle left needing repair; null when whole or once a repair is ordered. */
+    /**
+     * What the last battle left needing repair, as it stood when the clock started; null when whole.
+     * The clock wears it away ({@link #damageOn}). A save from before free repairs may hold damage
+     * with no clock yet, which {@link MechBay#startPendingRepairs} starts.
+     */
     private MechDamage damage;
-    /** Campaign day an ordered repair finishes; the mech is in its gantry until then. */
+    /** Campaign day the repair clock finishes; the damage is gone then. */
     private float repairUntilDay;
+    /** Campaign day the repair clock started; zero in saves from before free repairs. */
+    private float repairStartDay;
 
     public CampaignMech(String id, String displayName, MechVariant variant,
                         MechRole role, String missileReplenisherId) {
@@ -245,47 +251,68 @@ public final class CampaignMech implements Serializable {
                 displayName, fit().frame(), id);
     }
 
-    /** Battle damage awaiting a repair order, or null. */
-    public MechDamage damage() {
-        return damage;
+    /** The deployment on {@code day}, carrying whatever wear its repair has not yet taken off. */
+    public MechDeploymentSpec freezeForDeployment(float day) {
+        MechDamage left = damageOn(day);
+        MechDeploymentSpec spec = freezeForDeployment();
+        return left == null ? spec : spec.withWear(left.toCarriedWear());
+    }
+
+    /**
+     * The battle damage still on the mech on {@code day}: the damage the clock started with, less
+     * the share of the clock that has run. Null once it is repaired or when it was never hit.
+     */
+    public MechDamage damageOn(float day) {
+        if (damage == null) return null;
+        float span = repairUntilDay - repairStartDay;
+        if (!(span > 0f)) return damage;
+        return damage.scaled((repairUntilDay - day) / span);
+    }
+
+    /** Whether the mech carries damage whose repair clock has not been started. */
+    boolean repairPending() {
+        return damage != null && !(repairUntilDay - repairStartDay > 0f);
     }
 
     public float repairUntilDay() {
         return repairUntilDay;
     }
 
+    /** Days until the mech is whole; zero once it is, or when it was never hit. */
     public float repairDaysRemaining(float day) {
+        if (damageOn(day) == null) return 0f;
         return Math.max(0f, repairUntilDay - day);
     }
 
     /**
-     * Whether the mech can go into an armor drop on {@code day}: damaged and awaiting repair, in
-     * its gantry under repair, or missing an engine or capacitor bank, it cannot.
+     * Whether the mech can go into an armor drop on {@code day}, and in what state: missing an
+     * engine or capacitor bank it cannot; under repair it drops carrying the wear still left.
      */
     public Readiness readiness(float day) {
-        if (damage != null) return Readiness.DAMAGED;
-        if (repairDaysRemaining(day) > 0f) return Readiness.UNDER_REPAIR;
-        return missingInternals().isEmpty() ? Readiness.READY : Readiness.INCOMPLETE;
+        if (!missingInternals().isEmpty()) return Readiness.INCOMPLETE;
+        return damageOn(day) != null ? Readiness.UNDER_REPAIR : Readiness.READY;
     }
 
-    /** Records battle damage; a mech hit twice before repair keeps the worse of each section. */
-    void recordDamage(MechDamage taken) {
-        if (taken == null || taken.isEmpty()) return;
-        damage = MechDamage.worst(damage, taken);
+    /**
+     * Restarts the repair clock on {@code repairing}, the damage now on the mech, from
+     * {@code day} to {@code untilDay}. The gantry crew works between missions for nothing but time.
+     */
+    void startRepair(MechDamage repairing, float day, float untilDay) {
+        if (repairing == null || repairing.isEmpty() || !Float.isFinite(day) || !(untilDay > day)) {
+            damage = null;
+            repairStartDay = 0f;
+            repairUntilDay = 0f;
+            return;
+        }
+        damage = repairing;
+        repairStartDay = day;
+        repairUntilDay = untilDay;
     }
 
-    /** A paid repair order: the damage is in hand and the mech is back on {@code untilDay}. */
-    void beginRepair(float untilDay) {
-        damage = null;
-        repairUntilDay = Float.isFinite(untilDay) ? untilDay : 0f;
-    }
-
-    /** Whether a mech can deploy, and if not, why. */
+    /** Whether a mech can deploy, and in what state. */
     public enum Readiness {
         READY,
-        /** Battle damage recorded and no repair ordered yet. */
-        DAMAGED,
-        /** A paid repair is still running on the campaign clock. */
+        /** Repairing on the campaign clock; it can drop, carrying the wear left. */
         UNDER_REPAIR,
         /** An engine or capacitor bank was stripped and nothing fitted in its place. */
         INCOMPLETE

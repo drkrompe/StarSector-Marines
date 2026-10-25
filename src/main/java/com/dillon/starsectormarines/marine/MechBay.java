@@ -260,13 +260,17 @@ public final class MechBay implements Serializable {
      * Battle damage writeback for the company's own mechs ({@code mechs-nouns.md},
      * After the battle). A destroyed torso loses the chassis: it leaves its gantry and every
      * part fitted to it leaves stores with it. Otherwise a destroyed mount loses its weapon
-     * assembly from stores and the mount comes back empty, the pattern kept; every damaged
-     * section is recorded for repair, and the mech stays out of drops until it is repaired.
+     * assembly from stores and the mount comes back empty, the pattern kept. Every damaged
+     * section goes into the gantry for a free repair that costs only time: the clock restarts on
+     * {@code day} over the worse of what the mech carried in and what it brought back, at the
+     * length {@code fieldRepair} quotes.
      *
      * <p>Idempotent: a replayed result finds the chassis gone, the mount already empty and the
-     * same damage recorded, so nothing is struck twice. Unknown ids are ignored.
+     * same damage on the same clock, so nothing is struck twice. Unknown ids are ignored.
      */
-    public Settlement settleBattleDamage(Collection<CompanyMechLedger.Damage> damage) {
+    public Settlement settleBattleDamage(Collection<CompanyMechLedger.Damage> damage, float day,
+                                         MechFieldRepair fieldRepair) {
+        startPendingRepairs(day, fieldRepair);
         if (damage == null || damage.isEmpty()) return Settlement.NONE;
         int chassisLost = 0;
         int assembliesLost = 0;
@@ -290,11 +294,33 @@ public final class MechBay implements Serializable {
             }
             MechDamage taken = MechDamage.of(report);
             if (taken != null) {
-                mech.recordDamage(taken);
+                startRepair(mech, MechDamage.worst(mech.damageOn(day), taken), day, fieldRepair);
                 damaged++;
             }
         }
         return new Settlement(chassisLost, assembliesLost, damaged);
+    }
+
+    /**
+     * Starts the clock on any damage that has none: a save from before repairs were free kept its
+     * damage waiting for a paid order that no longer exists.
+     */
+    public void startPendingRepairs(float day, MechFieldRepair fieldRepair) {
+        for (CampaignMechSquad squad : squads) {
+            for (CampaignMech mech : squad.mechs()) {
+                if (mech.repairPending()) startRepair(mech, mech.damageOn(day), day, fieldRepair);
+            }
+        }
+    }
+
+    private static void startRepair(CampaignMech mech, MechDamage damage, float day, MechFieldRepair fieldRepair) {
+        MechRepairs.Estimate estimate = MechRepairs.estimate(mech.variant(), damage);
+        if (estimate == null) {
+            mech.startRepair(null, day, day);
+            return;
+        }
+        MechFieldRepair refit = fieldRepair != null ? fieldRepair : MechFieldRepair.NEUTRAL;
+        mech.startRepair(damage, day, day + refit.repairDays(estimate.days()));
     }
 
     /**
@@ -656,8 +682,8 @@ public final class MechBay implements Serializable {
 
     /**
      * Frozen values for the active squad's mechs that can deploy now; campaign objects stay in
-     * the roster. A damaged mech, one under repair, or one missing a required internal stays in
-     * its gantry ({@link #heldBack}).
+     * the roster. A mech under repair drops carrying the wear left on it; one missing a required
+     * internal stays in its gantry ({@link #heldBack}).
      */
     public List<MechDeploymentSpec> activeDeployment() {
         return activeDeployment(CampaignClock.dayFloat());
@@ -668,8 +694,8 @@ public final class MechBay implements Serializable {
         if (squad == null) return List.of();
         List<MechDeploymentSpec> deployment = new ArrayList<>();
         for (CampaignMech mech : squad.mechs()) {
-            if (mech.readiness(day) == CampaignMech.Readiness.READY) {
-                deployment.add(mech.freezeForDeployment());
+            if (mech.readiness(day) != CampaignMech.Readiness.INCOMPLETE) {
+                deployment.add(mech.freezeForDeployment(day));
             }
         }
         return Collections.unmodifiableList(deployment);
@@ -682,15 +708,13 @@ public final class MechBay implements Serializable {
         List<HeldBack> held = new ArrayList<>();
         for (CampaignMech mech : squad.mechs()) {
             CampaignMech.Readiness readiness = mech.readiness(day);
-            if (readiness != CampaignMech.Readiness.READY) {
-                held.add(new HeldBack(mech, readiness, mech.repairDaysRemaining(day)));
-            }
+            if (readiness == CampaignMech.Readiness.INCOMPLETE) held.add(new HeldBack(mech, readiness));
         }
         return Collections.unmodifiableList(held);
     }
 
-    /** A mech the drop manifest leaves out: awaiting a repair order, or under one. */
-    public record HeldBack(CampaignMech mech, CampaignMech.Readiness reason, float daysRemaining) {
+    /** A mech the drop manifest leaves out: one missing a required internal. */
+    public record HeldBack(CampaignMech mech, CampaignMech.Readiness reason) {
     }
 
     /** Frozen vehicles on the active squad's gantries, in gantry order. */

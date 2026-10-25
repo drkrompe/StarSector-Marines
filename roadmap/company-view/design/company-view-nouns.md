@@ -1654,7 +1654,7 @@ deployment at launch, beside its fit's own frame values, so a battle never
 reads the ship; a mech the company does not own deploys neutral. Field repair
 stays in the campaign: a repair's clock is shorter, and with the spares rack a
 replacement weapon assembly (what refitting a mount lost in battle comes to)
-costs less to fabricate, both read whenever the Mech Lab quotes an order. The
+costs less to fabricate; the clock is read when settlement starts a repair. The
 selected mech's sheet in the Mech Lab shows the deployed figures and names the
 refits in its header, and the briefing line carries the same text. The vehicle
 bay is a track with no orders until company vehicles can deploy.

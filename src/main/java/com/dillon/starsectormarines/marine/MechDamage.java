@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechBodyPlan;
+import com.dillon.starsectormarines.battle.mech.MechCarriedWear;
 import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 
@@ -10,8 +11,8 @@ import java.util.Map;
 
 /**
  * What a battle left a surviving mech needing: the fraction of each section's structure and
- * armor that is gone. Persisted on {@link CampaignMech} until a repair is ordered; a mech with
- * none is whole. Keyed by section name, so a save survives the section list being reordered.
+ * armor that is gone. Persisted on {@link CampaignMech} beside its repair clock, which wears it
+ * away ({@link #scaled}); a mech with none is whole. Keyed by section name, so a save survives the section list being reordered.
  *
  * <p>A destroyed mount's weapon is not here: that assembly is lost from stores at settlement
  * ({@link MechBay#settleBattleDamage}). The section itself is rebuilt like any other.
@@ -57,6 +58,35 @@ public final class MechDamage implements Serializable {
             if (armor > 0f) out.armorLost.put(section, armor);
         }
         return out;
+    }
+
+    /**
+     * This damage with {@code share} of it still to go, section by section: what a repair clock
+     * that has run part way leaves. Null when nothing is left.
+     */
+    MechDamage scaled(float share) {
+        if (!(share > 0f)) return null;
+        if (share >= 1f) return this;
+        MechDamage out = new MechDamage();
+        for (MechSection section : MechSection.values()) {
+            float structure = structureLost(section) * share;
+            float armor = armorLost(section) * share;
+            if (structure > 0f) out.structureLost.put(section, structure);
+            if (armor > 0f) out.armorLost.put(section, armor);
+        }
+        return out.isEmpty() ? null : out;
+    }
+
+    /** The frozen battle value of this damage, for a mech dropping before its repair is done. */
+    public MechCarriedWear toCarriedWear() {
+        int n = MechSection.values().length;
+        float[] structure = new float[n];
+        float[] armor = new float[n];
+        for (MechSection section : MechSection.values()) {
+            structure[section.ordinal()] = structureLost(section);
+            armor[section.ordinal()] = armorLost(section);
+        }
+        return new MechCarriedWear(structure, armor);
     }
 
     public boolean isEmpty() {

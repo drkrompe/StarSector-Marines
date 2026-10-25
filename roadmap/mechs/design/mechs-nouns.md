@@ -419,18 +419,24 @@ increasing an encounter's total armored threat.
   other damaged section, a destroyed mount's own section included, comes back
   as **mech damage**: the fraction of each section's structure and armor gone.
   Settlement is idempotent: a replayed result strikes nothing twice.
-- A **repair** is ordered in the Mech Lab and is atomic: the whole bill or
-  nothing. Its size is the chassis's **wear**, each section's loss (structure
-  weighted over armor) weighted by its pool share. At full wear the bill is half
-  the chassis's own fabrication bill, the boat precedent, and the clock is a
-  few campaign days by weight class; both scale down with wear. A paid order
-  clears the damage and starts the clock. The ship's field-repair refit shortens the clock when
-  the order is quoted, and its spares rack cheapens a replacement weapon
-  assembly, which is what refitting a destroyed mount costs.
-- A mech's **readiness** is ready, damaged (no order yet) or under repair
-  (clock running). Only a ready mech enters the armor-drop manifest; the Mech
-  Lab shows a held-back mech's reason and days left. A damaged mech never fights
-  on worn pools.
+- A **repair** is free and costs only time: settlement starts it on every
+  damaged mech, with no order and no bill. Its clock is a few campaign days by
+  weight class at full **wear** (each section's loss, structure weighted over
+  armor, weighted by its pool share), scaled down with wear; the ship's
+  field-repair refit shortens it. The damage wears away along the clock, every
+  section by the same share, and is gone when it runs out. A mech hit again
+  mid-repair restarts the clock on the worse, section by section, of what it
+  carried in and what it brought back. A destroyed mount's weapon assembly is
+  still lost: refitting the mount means fabricating one, which the spares rack
+  cheapens.
+- A mech's **readiness** is ready, under repair (clock running) or incomplete.
+  A mech under repair still drops: it carries the wear its clock has not yet
+  taken off (**carried wear**, frozen into its deployment) and lands with those
+  sections already worn, so its health bar, damage doll and writeback all start
+  from the worn body. No section lands destroyed; a section the last battle took
+  off comes back patched to a tenth of its structure. Only an incomplete frame
+  stays off the armor-drop manifest. The Mech Lab shows a repairing mech's days
+  left, its section wear and the condition it would drop at.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
   parks its assets across four fabrication gantries, frames one selected asset as
   a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is

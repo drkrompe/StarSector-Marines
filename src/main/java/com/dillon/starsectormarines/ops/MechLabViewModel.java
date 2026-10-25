@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.MechDamage;
 import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
@@ -188,6 +189,7 @@ public final class MechLabViewModel {
         CampaignMechSquad initialSquad = bay.activeSquad();
         revision = reactor.signal(0);
         day = reactor.signal(currentDay());
+        workshop.startPendingRepairs(day.get());
         dismissedLesson = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(null);
@@ -1045,6 +1047,7 @@ public final class MechLabViewModel {
         fittingFocused.set(false);
         assetPickerOpen.set(false);
         day.set(currentDay());
+        workshop.startPendingRepairs(day.get());
         revision.update(value -> value + 1);
     }
 
@@ -1145,7 +1148,7 @@ public final class MechLabViewModel {
             String base = "overview-gantry:" + index;
             int gantry = index;
             rows.add(new GantryRow(base, base + ":station", base + ":name",
-                    base + ":detail", mech != null && heldBack(mech)
+                    base + ":detail", mech != null && mech.readiness(day.get()) == CampaignMech.Readiness.INCOMPLETE
                             ? "overview-gantry occupied held-back"
                             : occupied ? "overview-gantry occupied" : "overview-gantry vacant",
                     String.format(Strings.locale(), Strings.get("openingMechLabGantryD"), padLetter(index)),
@@ -1834,36 +1837,32 @@ public final class MechLabViewModel {
 
     public Signal<List<Row>> materialStock() { return materialStock; }
 
-    /** The selected mech's battle damage, its repair clock and the order, or a hidden card. */
+    /** The selected mech's battle damage and its free repair clock, or a hidden card. */
     private Repair buildRepair() {
         revision.get();
         float now = day.get();
         CampaignMech mech = selectedMech();
         CampaignMech.Readiness readiness = mech != null ? mech.readiness(now) : CampaignMech.Readiness.READY;
         if (readiness == CampaignMech.Readiness.READY) {
-            return new Repair("mech-repair-card surface-dark hidden", "", "", "", "",
-                    "mech-repair-order hidden", "", List.of(), () -> { });
+            return new Repair("mech-repair-card surface-dark hidden", "", "", "", "", "mech-repair-detail hidden", "");
         }
         String status = readinessText(mech);
         String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
-        if (readiness == CampaignMech.Readiness.UNDER_REPAIR || readiness == CampaignMech.Readiness.INCOMPLETE) {
+        if (readiness == CampaignMech.Readiness.INCOMPLETE) {
             return new Repair("mech-repair-card surface-dark", "height: 30px;", status, statusClasses,
-                    "", "mech-repair-order hidden", "", List.of(), () -> { });
+                    "", "mech-repair-detail hidden", "");
         }
-        MechWorkshop.RepairQuote quote = workshop.repairQuote(mech.id());
-        List<Row> materials = quote != null ? materialRows("mech-repair", quote.bill()) : List.of();
-        return new Repair("mech-repair-card surface-dark",
-                "height: " + (144 + materials.size() * 36) + "px;", status, statusClasses,
-                sectionWear(mech), "mech-repair-order",
-                quote != null ? Strings.format("mechLabRepairOrder", quote.days()) : "",
-                materials, this::repairSelected);
+        MechDamage damage = mech.damageOn(now);
+        int condition = Math.round((1f - damage.wear(mech.variant().bodyPlan())) * 100f);
+        return new Repair("mech-repair-card surface-dark", "height: 110px;", status, statusClasses,
+                sectionWear(damage), "mech-repair-detail",
+                Strings.format("mechLabRepairCondition", String.valueOf(condition)));
     }
 
     /** Compact per-section wear: each damaged section and how much of it is gone. */
-    private static String sectionWear(CampaignMech mech) {
-        if (mech.damage() == null) return "";
+    private static String sectionWear(MechDamage damage) {
         StringBuilder text = new StringBuilder();
-        for (Map.Entry<MechSection, Float> entry : mech.damage().wearBySection().entrySet()) {
+        for (Map.Entry<MechSection, Float> entry : damage.wearBySection().entrySet()) {
             if (text.length() > 0) text.append(Strings.get("separatorDot"));
             text.append(Strings.format("mechLabRepairSection",
                     Strings.get("mechLabSection" + entry.getKey().name()),
@@ -1880,7 +1879,6 @@ public final class MechLabViewModel {
     private String readinessText(CampaignMech mech) {
         float now = day.get();
         return switch (mech.readiness(now)) {
-            case DAMAGED -> Strings.get("mechLabReadinessDamaged");
             case UNDER_REPAIR -> Strings.format("mechLabReadinessUnderRepair", tenths(mech.repairDaysRemaining(now)));
             case INCOMPLETE -> Strings.format("mechLabReadinessIncomplete", missingNames(mech));
             case READY -> Strings.get("openingUiMechLabOpenGantry");
@@ -1889,7 +1887,6 @@ public final class MechLabViewModel {
 
     private String readinessClasses(CampaignMech mech, String base) {
         return switch (mech.readiness(day.get())) {
-            case DAMAGED -> base + " tone-danger";
             case UNDER_REPAIR -> base + " tone-accent";
             case INCOMPLETE -> base + " tone-danger";
             case READY -> base;
@@ -1908,22 +1905,6 @@ public final class MechLabViewModel {
     /** Days rounded up to the tenth, so a clock never reads 0.0 while it still holds a mech. */
     private static double tenths(float days) {
         return Math.ceil(days * 10d) / 10d;
-    }
-
-    /** Orders the selected mech's repair: the whole bill is spent, or nothing changes. */
-    public void repairSelected() {
-        CampaignMech mech = selectedMech();
-        if (mech == null) return;
-        float now = day.get();
-        MechWorkshop.Result result = workshop.repair(mech.id(), now);
-        feedbackText.set(switch (result.status()) {
-            case REPAIR_STARTED -> Strings.format("mechLabRepairStarted", mech.displayName(),
-                    tenths(mech.repairDaysRemaining(now)));
-            case INSUFFICIENT_MATERIALS -> Strings.get("mechLabRepairShort");
-            case NOT_DAMAGED -> Strings.format("mechLabRepairNotDamaged", mech.displayName());
-            default -> Strings.get("mechLabRepairBlocked");
-        });
-        finishWeaponCommand(result);
     }
 
     private List<Row> buildMaterialStock() {
@@ -2764,15 +2745,13 @@ public final class MechLabViewModel {
             default -> throw unknown("mech-gantry", p); }; }
     }
 
-    /** The selected mech's damage card: readiness, section wear and the repair order. */
+    /** The selected mech's damage card: readiness, section wear and the condition it drops at. */
     public record Repair(String classes, String style, String status, String statusClasses,
-                         String sections, String orderClasses, String order, List<Row> materials,
-                         Runnable action) implements MarkupPropertySource {
+                         String sections, String detailClasses, String condition) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "classes" -> classes; case "style" -> style; case "status" -> status;
             case "statusClasses" -> statusClasses; case "sections" -> sections;
-            case "orderClasses" -> orderClasses; case "order" -> order;
-            case "materials" -> materials; case "action" -> action;
+            case "detailClasses" -> detailClasses; case "condition" -> condition;
             default -> throw unknown("mech-repair", p); }; }
     }
 
