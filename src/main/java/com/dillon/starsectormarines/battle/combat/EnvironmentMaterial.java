@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.forest.Undergrowth;
 import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
@@ -113,6 +114,7 @@ public enum EnvironmentMaterial {
         if (RockDamage.IDS.contains(definitionId)) return STONE;
         NaturalPropShape shape = NaturalPropShape.find(definitionId);
         if (shape instanceof TreeCanopy) return TIMBER;
+        if (shape instanceof Undergrowth) return WOOD;
         if (shape instanceof MineralFormation) return STONE;
         return null;
     }

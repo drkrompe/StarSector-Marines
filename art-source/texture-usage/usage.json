@@ -33317,6 +33317,42 @@
     }
    }
   },
+  "graphics/doodads/forest-undergrowth-damaged.png": {
+   "sliced": false,
+   "sources": {
+    "snapshot:undergrowth-look": {
+     "displayWidth": 4388.6,
+     "displayHeight": 822.9,
+     "domain": "world",
+     "mapWidth": 52,
+     "mapHeight": 62
+    }
+   }
+  },
+  "graphics/doodads/forest-undergrowth-destroyed.png": {
+   "sliced": false,
+   "sources": {
+    "snapshot:undergrowth-look": {
+     "displayWidth": 4388.6,
+     "displayHeight": 822.9,
+     "domain": "world",
+     "mapWidth": 52,
+     "mapHeight": 62
+    }
+   }
+  },
+  "graphics/doodads/forest-undergrowth.png": {
+   "sliced": false,
+   "sources": {
+    "snapshot:undergrowth-look": {
+     "displayWidth": 4388.6,
+     "displayHeight": 822.9,
+     "domain": "world",
+     "mapWidth": 52,
+     "mapHeight": 62
+    }
+   }
+  },
   "graphics/doodads/fort-earthworks.png": {
    "sliced": false,
    "sources": {

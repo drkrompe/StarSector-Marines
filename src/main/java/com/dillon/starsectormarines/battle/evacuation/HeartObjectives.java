@@ -257,7 +257,7 @@ public final class HeartObjectives {
                     if (bore != null) {
                         float dx = bore.x() - middle[0], dy = bore.y() - middle[1];
                         float d = (float) Math.max(1.0, Math.sqrt(dx * dx + dy * dy)), r = Math.min(d, PACK_STANDOFF);
-                        c.publish(tick, raisePack(c.sim(), middle[0] + dx / d * r, middle[1] + dy / d * r)
+                        c.publish(tick, raisePack(c.sim(), bore, middle[0] + dx / d * r, middle[1] + dy / d * r)
                                 ? "battery_threatened" : "harriers_grounded");
                     }
                 }
@@ -587,6 +587,14 @@ public final class HeartObjectives {
     static boolean raisePack(BattleSimulation sim, float x, float y) {
         if (!SwarmFliers.hasAirCover(sim)) return false;
         sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
+        return true;
+    }
+
+    /** As {@link #raisePack(BattleSimulation, float, float)}, the pack hatching out of {@code bore}'s mouth and flying out to {@code (x, y)}. */
+    static boolean raisePack(BattleSimulation sim, SwarmBore bore, float x, float y) {
+        if (!SwarmFliers.hasAirCover(sim)) return false;
+        sim.swarmFliers().hatchUnderCover(sim, HarrierLook.DEFAULT, bore.entityId(), bore.x() + 0.5f, bore.y() + 0.5f,
+                x, y, PACK, 0L);
         return true;
     }
 

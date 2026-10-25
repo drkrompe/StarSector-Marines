@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.evacuation.NestTrails;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -13,6 +15,7 @@ import org.lwjgl.BufferUtils;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_ALPHA8;
@@ -113,6 +116,14 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
 
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
+    /**
+     * Control-run switch for the nest's roots ({@link NestTrails}); on by default. renderEvidence control lever:
+     * remove it with its off arm once its renderEvidence reading has been accepted.
+     */
+    static final String TRAILS_PROPERTY = "battle.render.nestTrails";
+
+    private static final boolean TRAILS = Boolean.parseBoolean(System.getProperty(TRAILS_PROPERTY, "true"));
+
     /** Whether creep is drawn at all; for evidence that reports which run it was. */
     static boolean enabled() { return ENABLED; }
 
@@ -138,8 +149,14 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     private CreepField bound;
     private int gridW, gridH, tilesX, tilesY;
     private byte[] mirror;
-    /** Per cell: blight, vegetated, and two unused bytes, uploaded beside the field. */
+    /**
+     * Per cell: blight, vegetated, and the nest's roots ({@link NestTrails#rasterize}: distance to a root's edge, and
+     * its half-width there), uploaded beside the field.
+     */
     private byte[] ground;
+    /** The roots last laid into {@link #ground}, and the array they were laid into. */
+    private long trailSignature;
+    private byte[] trailGround;
     /** Tiles holding any vegetation; a tile without any has no blight to compute. */
     private boolean[] vegetatedTile;
     /** Vegetated tiles whose blight is stale, and where the round-robin over them resumes. */
@@ -185,6 +202,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         CreepField field = ctx.sim.creepFieldIfPresent();
         if (field == null) return;
         catchUp(field, ctx.sim.getGrid(), ctx.sim.getTopology());
+        layTrails(ctx.sim);
         if (extentMaxX < extentMinX) return;
         BattleCamera camera = ctx.camera;
         VisibleCellRect view = camera.visibleCells(1, gridW, gridH);
@@ -215,6 +233,18 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     }
 
     // ---- mirror ----------------------------------------------------------
+
+    /** Re-lays the nest's roots into the ground picture when the nest has changed since they were last laid. */
+    void layTrails(BattleSimulation sim) {
+        if (!TRAILS || ground == null) return;
+        List<NestTrails.Trail> trails = NestTrails.of(sim);
+        long signature = NestTrails.signature(trails);
+        if (signature == trailSignature && ground == trailGround) return;
+        trailSignature = signature;
+        trailGround = ground;
+        NestTrails.rasterize(trails, gridW, gridH, ground, 2, 3);
+        wholeDirty = true;
+    }
 
     /** Brings the mirror up to the field; GL-free. */
     void catchUp(CreepField field, NavigationGrid grid) {
@@ -511,13 +541,13 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         int x0 = (int) Math.floor(u), y0 = (int) Math.floor(v);
         float fx = u - x0, fy = v - y0;
         int cx0 = clamp(x0, gridW), cx1 = clamp(x0 + 1, gridW), cy0 = clamp(y0, gridH), cy1 = clamp(y0 + 1, gridH);
-        for (int c = 0; c < 2; c++) {
+        for (int c = 0; c < 4; c++) {
             float a = groundAt(cx0, cy0, c), b = groundAt(cx1, cy0, c), d = groundAt(cx0, cy1, c), e = groundAt(cx1, cy1, c);
             out[c] = ((a + (b - a) * fx) * (1 - fy) + (d + (e - d) * fx) * fy) / 255f;
         }
     }
 
-    /** The ground picture at a cell, channel 0 (blight) or 1 (vegetated), as 0..255; 0 off the map. */
+    /** The ground picture at a cell, channel 0 (blight), 1 (vegetated), 2 (root distance) or 3 (root width), as 0..255; 0 off the map. */
     int groundAt(int x, int y, int channel) {
         if (ground == null || x < 0 || y < 0 || x >= gridW || y >= gridH) return 0;
         return ground[(y * gridW + x) * 4 + channel] & 0xFF;

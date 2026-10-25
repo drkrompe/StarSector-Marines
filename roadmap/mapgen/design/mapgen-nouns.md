@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — a mineral formation is never crushable by a heavy tank.
+Updated: 2026-10-25 — forest undergrowth: closed, crushable floor growth between the trees; the forest-floor plants are redrawn overhead.
+
+Earlier 2026-10-25 — a mineral formation is never crushable by a heavy tank.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -848,6 +850,24 @@ Underlying hills remain inaccessible after their trees fall, and the ordinary
 navigation and sight refresh follows actual released cells.
 The original ground remains beneath the trees. ImageGen reskins the code-owned
 canopy geometry; the texture cannot silently change the tactical footprint.
+
+**Undergrowth** (`Undergrowth`) is the growth of the forest floor between the
+crowns: brambles, thickets, bracken beds and saplings, one to four cells a side,
+with the same code-owned lobe silhouettes and four quarter turns as a tree.
+Every cell its silhouette touches is closed to bodies. A dense patch (thicket,
+bracken) also stops sight and direct fire; a sparse one (bramble, saplings) is a
+tangle a rifleman sees and shoots across but cannot walk through, and gives no
+edge cover. Overlapping patches stop sight where any dense one stands.
+Undergrowth is always undergrowth to a heavy-lift hull's tracks
+(`convoy-nouns.md`, heavy tracks): one crush flattens the whole patch to its
+trampled art. Like a tree it has one damage pool across the patch, a
+third of a tree's, and burns as woodland. Choosing where it grows belongs to the
+landscape that plants it; `UndergrowthBrush` closes exactly the silhouette's
+cells on open natural ground, all or nothing.
+
+The **forest-floor plants** (`nature.shrub-*`, `nature.tuft-*`) are different:
+one-cell overhead ferns, shrubs and grass tufts drawn over open ground. They are
+open to everyone and give no cover.
 
 An erased path excludes whole canopy cells from placement, so tree centers
 outside the path cannot leave foliage over it. Editing rebuilds the plan from
