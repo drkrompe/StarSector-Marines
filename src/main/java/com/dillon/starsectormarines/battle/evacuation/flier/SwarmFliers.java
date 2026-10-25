@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.airsupport.CommsKit;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -187,6 +188,36 @@ public final class SwarmFliers {
         return pack;
     }
 
+    /**
+     * A deep raid's way from a spire's crown at ({@code x}, {@code y}) ({@link HarrierRaid}): its target's id and
+     * the turning points out to it round every air gun, target last; {@code null} when no soft target is in raid
+     * range or no way to one keeps clear of the guns.
+     */
+    public RaidPlan raidPlan(BattleSimulation sim, float x, float y) {
+        buildCandidates(sim);
+        long target = HarrierRaid.choose(candidates, x, y);
+        if (target == 0L) return null;
+        World world = sim.world();
+        float[] way = HarrierRaid.route(x, y, world.x(target), world.y(target), airGuns, sim.getGrid().getWidth(),
+                sim.getGrid().getHeight());
+        return way == null ? null : new RaidPlan(target, way);
+    }
+
+    /** A raid's target and its way out ({@link #raidPlan}). */
+    public record RaidPlan(long target, float[] way) {}
+
+    /**
+     * Puts a raid of {@code count} up off a brood spire ({@code spire}, its crown at ({@code x}, {@code y})) to fly
+     * {@code plan}'s way out, strike, fly it back and land, hatching as any spire's pack does and under the same law.
+     */
+    public HarrierPack raidUnderCover(BattleSimulation sim, HarrierLook look, long spire, float x, float y,
+                                      RaidPlan plan, int count) {
+        HarrierPack pack = hatchUnderCover(sim, look, spire, x, y, x, y, count, 0L);
+        if (!sim.swarmEmergence().enabled()) risingFrom(sim, pack, x, y);
+        pack.patrol = HarrierRaid.sortie(plan.way(), x, y, Math.max(1, Math.min(HarrierRules.MAX_PACK, count)));
+        return pack;
+    }
+
     /** Lets the next Harrier of a hatching pack out when its turn has come. */
     private void hatchDue(BattleSimulation sim, HarrierPack pack, int tick) {
         if (pack.unhatched <= 0) return;
@@ -316,20 +347,27 @@ public final class SwarmFliers {
             }
             long prey = pack.target;
             boolean alive = prey != 0L && preyStands(sim, prey);
-            if (pack.phase == HarrierPack.Phase.LOITER && (!alive || tick % REPICK_TICKS == pack.id % REPICK_TICKS)) {
+            // A raid flying its way out or home hunts nothing: only over its target does it look about.
+            boolean transit = pack.patrol != null && pack.patrol.raid() && !pack.patrol.striking();
+            if (transit && pack.phase == HarrierPack.Phase.LOITER) alive = false;
+            if (!transit && pack.phase == HarrierPack.Phase.LOITER
+                    && (!alive || tick % REPICK_TICKS == pack.id % REPICK_TICKS)) {
                 if (!candidatesBuilt) {
                     buildCandidates(sim);
                     candidatesBuilt = true;
                 }
                 // A patrol on its route only spots what comes near; once it hunts it senses as any pack.
-                float range = pack.patrol != null && !alive ? HarrierPatrol.SPOT_RANGE : HarrierRules.SENSE_RANGE;
-                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L, range);
+                float range = pack.patrol != null && !pack.patrol.raid() && !alive ? HarrierPatrol.SPOT_RANGE
+                        : HarrierRules.SENSE_RANGE;
+                prey = pack.patrol != null && pack.patrol.raid()
+                        ? HarrierRaid.pickAt(candidates, pack.patrol.strikeX(), pack.patrol.strikeY(), alive ? prey : 0L)
+                        : HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L, range);
                 alive = prey != 0L;
             }
             if (alive) pack.prey(prey, world.x(prey), world.y(prey), sim.physicalRadius(prey));
             else pack.prey(0L, 0f, 0f, 0f);
             if (pack.phase == HarrierPack.Phase.DIVE) followPrey(sim, pack);
-            if (pack.patrol == null || !pack.patrol.homing()) scavenge(sim, pack, alive);
+            if (pack.patrol == null || !pack.patrol.raid() && !pack.patrol.homing()) scavenge(sim, pack, alive);
             fetch(sim, pack, tick);
             if (pack.patrol != null && !alive && pack.phase == HarrierPack.Phase.LOITER && pack.unhatched <= 0) {
                 pack.patrol.step(BattleSimulation.TICK_DT);
@@ -343,6 +381,10 @@ public final class SwarmFliers {
                 events.add(new Event(tick, Event.Kind.STRIKE, pack.id, h, t));
                 strikeLooks(sim, pack, h, t, tick);
             });
+            if (pack.patrol != null) {
+                pack.patrol.strikeTick(BattleSimulation.TICK_DT, pack.dives(), pack.phase == HarrierPack.Phase.LOITER,
+                        alive);
+            }
             if (before == HarrierPack.Phase.LOITER && pack.phase == HarrierPack.Phase.DIVE) {
                 if (!candidatesBuilt) {
                     buildCandidates(sim);
@@ -648,6 +690,7 @@ public final class SwarmFliers {
             if (sim.turretState().isTurret(u)) prey = HarrierTargeting.Prey.GUN;
             else if (type.isStatic()) continue;
             else if (type.isMech() || type.isMachineFrame()) prey = HarrierTargeting.Prey.ARMOUR;
+            else if (CommsKit.carried(world, u)) prey = HarrierTargeting.Prey.RADIO;
             else if (isMedic(sim, u)) prey = HarrierTargeting.Prey.MEDIC;
             else prey = alone(sim, u, f) ? HarrierTargeting.Prey.ISOLATED : HarrierTargeting.Prey.INFANTRY;
             candidates.add(new HarrierTargeting.Candidate(u, world.x(u), world.y(u), prey, cover(world.x(u), world.y(u))));
