@@ -57,11 +57,17 @@ effects collection, in that collection's space: `Flight.space` is the ship's wor
 `SWFX missile ...` and belongs to the ship that fired it.
 """
 import math
+import os
 import random
 
 from mathutils import Matrix, Quaternion, Vector
 
 PREFIX = 'SWFX missile'
+# How a motor lights: 'burst' (swfx_burst's lobed flash) or 'flare' (the glare streak flaring on, then
+# settling). A temporary A/B (S5, 2026-10-25: the burst's white-hot heart read as a lobed peach-white
+# blob at each Harpoon's ignition): the owner picks from the S5 1143-1151 before/after, and the session
+# that added it then removes this switch and the losing path.
+IGNITION = os.environ.get('SWFX_IGNITION', 'burst')
 
 
 def srgb(c):
@@ -750,10 +756,19 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
     # No orbs (owner, 2026-10-23: the Harpoons' heads read as "white orbs"): the glare is a streak
     # drawn out behind the motor along the flight, thin across it, never a round ball.
     glare.location = (-2.6 - gr * 1.4, 0, 0)
-    _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .5, gr * 1.8])
-    _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .12, gr * .3])
-    _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .12, gr * .3])
-    gf, gv, gh = [fi, burn_end], [1.0, 1.0], [0.0, 0.0]
+    flare = IGNITION == 'flare' and burn_end - fi > 8
+    if flare:
+        # Lit: the streak flares long and hot for a few frames, then settles to its running size,
+        # in the motor's own colour and drawn out along the flight like the glare it becomes
+        _bake(glare, 'scale', 0, [fi, fi + 1, fi + 3, fi + 7], [gr * 1.2, gr * 2.8, gr * 2.4, gr * 1.8])
+        _bake(glare, 'scale', 1, [fi, fi + 1, fi + 3, fi + 7], [gr * .2, gr * .4, gr * .36, gr * .3])
+        _bake(glare, 'scale', 2, [fi, fi + 1, fi + 3, fi + 7], [gr * .2, gr * .4, gr * .36, gr * .3])
+        gf, gv, gh = [fi, fi + 1, fi + 4, fi + 8, burn_end], [1.6, 2.0, 1.4, 1.0, 1.0], [0.0] * 5
+    else:
+        _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .5, gr * 1.8])
+        _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .12, gr * .3])
+        _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .12, gr * .3])
+        gf, gv, gh = [fi, burn_end], [1.0, 1.0], [0.0, 0.0]
     if fl.hot:                                  # in a PD laser's beam: heating toward white
         h0, h1 = fl.hot
         gf, gv, gh = [fi, h0, h1], [1.0, 1.3, 2.2], [0.0, .2, 1.0]
@@ -778,7 +793,16 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
 
     # Ignition: the cold-ejected missile lights clear of the tube, flaring back along its axis.
     tag = f'{fl.label} f{fl.frame:04d}'
-    if jag:
+    if flare:
+        # the glare's flare above is the flash; the light it throws on the hull, unseen itself (a
+        # light with a radius is a sphere the camera sees)
+        lt = swfx_core.point_light(f'{PREFIX} ignition {tag} light', coll, prof['engine'], 0.0, radius=prof['glare_m'] * .3 / mpu)
+        lt.visible_camera = False
+        lt.location = inv @ fl.at(fi)
+        for f, e in ((fi - 1, 0.0), (fi, 8000.0), (fi + 1, 3600.0), (fi + 2, 800.0), (fi + 3, 0.0)):
+            lt.data.energy = e
+            lt.data.keyframe_insert('energy', frame=f)
+    elif jag:
         burst(ctx, coll, prof, 'ignition', tag, inv @ fl.at(fi), fi, mpu, rot @ -fl.heading(fi + 1), rnd_for('ignition'))
     else:
         _flash(ctx, coll, f'{PREFIX} ignition {fl.label} f{fl.frame:04d}', inv @ fl.at(fi), fi, prof['engine'],
