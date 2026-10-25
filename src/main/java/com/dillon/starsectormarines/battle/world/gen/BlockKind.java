@@ -197,6 +197,13 @@ public enum BlockKind {
     CORDONED_FACILITY,
 
     /**
+     * The industrial zone district ({@code set-piece-districts.md}): yards, warehouses and a factory row walled
+     * along one working service street, each gated onto it. Never rolled by a theme: the district plan stage
+     * gives it to the zone's seed leaf, and the street's other members become {@link #COMPOUND_MEMBER}s.
+     */
+    INDUSTRIAL_ZONE,
+
+    /**
      * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
      * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
      * {@link com.dillon.starsectormarines.battle.world.gen.BlockFiller}

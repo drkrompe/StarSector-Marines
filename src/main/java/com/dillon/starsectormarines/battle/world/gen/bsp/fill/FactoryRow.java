@@ -100,6 +100,12 @@ public final class FactoryRow {
         return spans;
     }
 
+    /** Whether a {@code w} by {@code h} rectangle holds the shortest row in some pose. */
+    public static boolean fits(int w, int h) {
+        int shortest = LENGTHS[LENGTHS.length - 1];
+        return (w >= shortest && h >= DEPTH) || (w >= DEPTH && h >= shortest);
+    }
+
     /** Whether local {@code (x, y)} is in a gate: the lane's rows in either end wall. */
     static boolean gate(int length, int x, int y) {
         return (x == 0 || x == length - 1) && y >= HALL && y < POCKET;
@@ -140,6 +146,15 @@ public final class FactoryRow {
      * street behind the workshops' backs, then the longest row, then the first found.
      */
     public static Pose choose(GenContext c, Compound compound, BiPredicate<Integer, Integer> owned) {
+        return choose(c, compound.left, compound.top, compound.right, compound.bottom, owned);
+    }
+
+    /**
+     * The best pose over the ground {@code left..right, top..bottom} and the street frame one cell round it, or
+     * null, under the rules of {@link #choose(GenContext, Compound, BiPredicate)}.
+     */
+    public static Pose choose(GenContext c, int left, int top, int right, int bottom,
+                              BiPredicate<Integer, Integer> owned) {
         boolean[][] reserved = c.get(BspKeys.ROAD_RESERVATION);
         boolean[][] road = c.get(BspKeys.ROAD_CELLS);
         if (road == null) return null;
@@ -148,9 +163,9 @@ public final class FactoryRow {
         for (int length : LENGTHS) {
             for (int turn = 0; turn < 4; turn++) {
                 int w = (turn & 1) == 0 ? length : DEPTH, h = (turn & 1) == 0 ? DEPTH : length;
-                for (int bottom = compound.top - 1; bottom + h - 1 <= compound.bottom + 1; bottom++) {
-                    for (int left = compound.left - 1; left + w - 1 <= compound.right + 1; left++) {
-                        Pose pose = new Pose(left, bottom, turn, length);
+                for (int y = top - 1; y + h - 1 <= bottom + 1; y++) {
+                    for (int x = left - 1; x + w - 1 <= right + 1; x++) {
+                        Pose pose = new Pose(x, y, turn, length);
                         int score = score(c, pose, owned, reserved, road) * 100 + length;
                         if (score > 100 && score > bestScore) {
                             bestScore = score;
