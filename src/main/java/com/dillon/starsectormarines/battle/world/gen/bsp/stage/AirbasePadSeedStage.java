@@ -56,7 +56,7 @@ public final class AirbasePadSeedStage implements GenStage {
             case MILITARY_BASE, GATED_HOUSING, DENSE_QUARTER, INDUSTRIAL_COMPOUND,
                  MEDICAL_CAMPUS, COMPOUND_MEMBER, WATERFRONT, PARK,
                  NATURE_GRASSLAND, NATURE_WETLAND, NATURE_BEACH,
-                 AIRBASE_PAD -> false;
+                 AIRBASE_PAD, FREIGHT_YARD -> false;
             default -> true;
         };
     }

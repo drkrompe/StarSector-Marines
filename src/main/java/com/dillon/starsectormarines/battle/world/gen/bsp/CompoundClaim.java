@@ -232,6 +232,8 @@ public final class CompoundClaim {
 
     private static boolean isEligible(BlockLeaf leaf, ClaimSpec spec) {
         if (leaf.kind == BlockKind.COMPOUND_MEMBER) return false;
+        // Ground planned for a set piece is already somebody's (set-piece-blocks.md).
+        if (leaf.kind == BlockKind.FREIGHT_YARD)    return false;
         if (leaf.kind == spec.seedKind)             return false;
         for (ClaimSpec other : DEFAULT_SPECS) {
             if (other.seedKind != spec.seedKind && leaf.kind == other.seedKind) return false;

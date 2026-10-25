@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
+Updated: 2026-10-25 — set pieces: the freight yard has a planned parcel of its own, in two sizes, and each bay publishes its turn.
+
+Earlier 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
 
 Earlier 2026-10-25 — forest undergrowth: closed, crushable floor growth between the trees; the forest-floor plants are redrawn overhead.
 
@@ -307,17 +309,35 @@ story beats remain the mission's decisions.
 A **set piece** is a block whose relationships are authored
 (`set-piece-blocks.md`): which building faces which yard, where its gate meets
 the street, where a vehicle stands, which way its cover faces. The first is the
-**freight yard**, an industrial compound layout. A walled compound holds a
-warehouse whose loading door faces into a yard, a vehicle gate opposite it onto
-a street, a striped bay where a hauler stands nose to the gate, freight stacked
-two-deep along the yard walls as cover facing the gate, and a narrow side gap
-for people. It stands only on the compound's own ground (member leaves, and the
-street frames between members that belong to nobody), never on the road
-reservation. Its gate must open onto street where a hauler can turn either
-way. A compound that cannot hold it keeps the ordinary three-parcel works. The
-yard publishes a **loading bay** (`LoadingBay` on `MapResult`): the stand, its
-heading, the door and the gate. A mission that wants a vehicle loaded reads the
-bay rather than searching the finished map.
+**freight yard**. A walled compound holds a warehouse whose loading door faces
+into a yard, a vehicle gate opposite it onto a street, a striped bay where a
+hauler stands nose to the gate, freight stacked two-deep along the yard walls
+as cover facing the gate, and a narrow side gap for people. It comes in two
+sizes tried largest first, a **two-bay yard** (two gates and drives either side
+of an island of freight, before a bigger hall) and the **standard yard**, so
+short ground is a smaller yard rather than a hole.
+
+Its ground is a **freight-yard parcel** (`BlockKind.FREIGHT_YARD`), planned
+before compounds claim and before the streets become a graph, like the
+industrial template parcels: one per map, joined to a neighbour across their
+minor street where that is what holds the two-bay yard, with the outer street
+ring whole and no trunk crossed. Working parcels are taken before spare ones
+(shops, dense blocks, ruins, plazas), homes and civic blocks never, and of what
+fits, the parcel nearest the map's edge: a freight yard stands where the road
+leaves town. Compound claims, the spaceport district and the landmark seeds
+leave the parcel alone; Conquest's pinned recipe plans none. An industrial
+compound also lays a standard yard on its
+own ground (member leaves and the street frames between them, never the road
+reservation) where that ground holds one.
+
+Every gate must open onto street where a hauler can turn either way. The yard
+publishes a **loading bay** per gate (`LoadingBay` on `MapResult`): the stand,
+its heading, the door, the gate and the **turn**, the point outside the gate
+where the yard proved the turn. A hauler drives straight out to the turn before
+routing off the map, since the cheapest path bends at the gate's mouth, which
+no hauler can follow. A mission that wants a vehicle loaded reads the bay rather
+than searching the finished map, and sends a loading only to a bay a truck can
+be proved to leave.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,

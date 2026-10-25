@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.LoadingBay;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayDeque;
@@ -129,7 +130,7 @@ public final class Loading {
         LoadingBay bay = bayOf(building.building(), bays);
         if (bay != null) {
             int[] cell = {(int) Math.floor(bay.standX()), (int) Math.floor(bay.standY())};
-            if (clearance.isPassable(cell[0], cell[1])) exit = exit(grid, clearance, components, cost, cell);
+            if (clearance.isPassable(cell[0], cell[1])) exit = bayExit(grid, clearance, components, cost, cell, bay);
             if (exit != null) {
                 bayed = true;
                 door = new int[]{bay.doorX(), bay.doorY()};
@@ -340,6 +341,70 @@ public final class Loading {
             }
         }
         return out;
+    }
+
+    /**
+     * The bays a hauler standing in can drive off the map from, in order. A yard whose street leads nowhere a truck can
+     * follow is still a yard, but no loading should be sent to it.
+     */
+    public static List<LoadingBay> drivable(NavigationGrid grid, CellTopology topology, List<LoadingBay> bays) {
+        if (bays.isEmpty()) return bays;
+        VehicleClearance clearance = VehicleClearance.erode(grid,
+                VehicleClearance.radiusForWidth(VehicleType.CARGO_CARRIER.visualWidthCells));
+        TerrainCostField cost = TerrainCostField.from(topology);
+        ClearanceComponents components = ClearanceComponents.of(grid, clearance);
+        List<LoadingBay> out = new ArrayList<>();
+        for (LoadingBay bay : bays) {
+            int[] stand = {(int) Math.floor(bay.standX()), (int) Math.floor(bay.standY())};
+            if (clearance.isPassable(stand[0], stand[1])
+                    && bayExit(grid, clearance, components, cost, stand, bay) != null) out.add(bay);
+        }
+        return out;
+    }
+
+    /**
+     * A drivable way from a bay's stand off the map: straight out through the gate to where the set piece proved a
+     * hauler can turn, then the road from there, or null where neither is proved.
+     */
+    static float[][] bayExit(NavigationGrid grid, VehicleClearance clearance, ClearanceComponents components,
+                             TerrainCostField cost, int[] stand, LoadingBay bay) {
+        int[] turn = {bay.turnX(), bay.turnY()};
+        if (!clearance.isPassable(turn[0], turn[1])) return null;
+        float[][] out = VehicleRoutePlanner.routeDrivable(stand[0], stand[1], turn[0], turn[1],
+                grid, cost, clearance, VehicleType.CARGO_CARRIER);
+        if (out == null || out[0].length == 0) return null;
+        float[][] road = offTheEdge(grid, clearance, turn, bay.headingDegrees());
+        if (road == null) road = exit(grid, clearance, components, cost, turn);
+        if (road == null) return null;
+        // The road starts where the drive out ends; that point is not driven twice.
+        int n = out[0].length, skip = road[0][0] == out[0][n - 1] && road[1][0] == out[1][n - 1] ? 1 : 0;
+        int m = road[0].length - skip;
+        float[] xs = new float[n + m], ys = new float[n + m];
+        System.arraycopy(out[0], 0, xs, 0, n);
+        System.arraycopy(out[1], 0, ys, 0, n);
+        System.arraycopy(road[0], skip, xs, n, m);
+        System.arraycopy(road[1], skip, ys, n, m);
+        return new float[][]{xs, ys};
+    }
+
+    /**
+     * Straight on from {@code turn} along {@code heading} to the band where a truck has left the map, where that is
+     * within {@link #EXIT_SNAP} cells on ground a truck can use; else null. A gate facing the map's edge needs no road.
+     */
+    static float[][] offTheEdge(NavigationGrid grid, VehicleClearance clearance, int[] turn, float heading) {
+        int dx = Math.round((float) Math.cos(Math.toRadians(heading)));
+        int dy = Math.round((float) Math.sin(Math.toRadians(heading)));
+        int x = turn[0], y = turn[1];
+        for (int step = 0; step <= EXIT_SNAP; step++) {
+            if (!clearance.isPassable(x, y)) return null;
+            if (x < AWAY_MARGIN || y < AWAY_MARGIN
+                    || x >= grid.getWidth() - AWAY_MARGIN || y >= grid.getHeight() - AWAY_MARGIN) {
+                return new float[][]{{x + .5f}, {y + .5f}};
+            }
+            x += dx;
+            y += dy;
+        }
+        return null;
     }
 
     /** A drivable way from the parking to the nearest edge a truck can reach, or null where none is proved. */
