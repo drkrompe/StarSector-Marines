@@ -104,6 +104,7 @@ python -m unittest discover `
 | `urban-tileset-2.png` | `urban-tileset-2.raw.png` (the adopted atlas) | Exported from `urban-tileset-2.tileset-authoring.json`; the retired striped apron in columns 6-8 is no longer cut |
 | `marked-apron.png` | `marked-apron.raw.png` (1254x1254 RGB) | Reskin of `templates/marked-apron-guide.png`; exported from `marked-apron.tileset-authoring.json` |
 | `doodads/street-dressing.png` | `street-dressing.raw.png` (1536x1024 RGBA, keyed) | Reskin of `templates/street-dressing-guide.png`; exported from `street-dressing.tileset-authoring.json` |
+| `doodads/lobster-trade.png` | `lobster-trade.raw.png` (1536x1024 RGBA, keyed) | Reskin of `templates/lobster-trade-guide.png`, drawn about 1.6x the guide's scale: cut at each piece's measured frame, not the guide's |
 | `doodads/industrial-street-kit.png` | `industrial-street-kit.raw.png` (1536x1024 RGBA, keyed) | Reskin of `templates/industrial-street-kit-guide.png`; exported from `industrial-street-kit.tileset-authoring.json` |
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGBA, keyed) | Exported from `urban-tileset-3.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py` |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |

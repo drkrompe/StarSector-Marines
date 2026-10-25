@@ -416,6 +416,7 @@ public final class MarketSquare {
         DoodadDef crate = registry.doodad("doodad.crate");
         DoodadDef box = registry.doodad("doodad.box");
         DoodadDef fish = registry.doodad("origin-freight.seafood-crates-clean");
+        DoodadDef lobster = registry.doodad("doodad.lobster-tank");
         DoodadDef planter = registry.doodad("crew-lounge.planter");
         DoodadDef bandstand = registry.doodad("origin-park.bandstand-clean");
         int[] rows = stallRows(placement.mouths());
@@ -429,9 +430,10 @@ public final class MarketSquare {
                     prop(c, placement, road, x0, y0 + 1, 1, crate, true);
                     prop(c, placement, road, x0 + 2, y0 + 1, 1, box, true);
                 } else {
-                    // A fish stall: iced crates, and a counter at its end.
+                    // A fish stall: iced crates, a counter at its end, and the lobster's pressure tank behind it.
                     prop(c, placement, road, x0, y0, 2, fish, true);
                     prop(c, placement, road, x0 + 2, y0, 1, counter, true);
+                    prop(c, placement, road, x0 + 2, y0 + 1, 1, lobster, true);
                 }
             }
         }

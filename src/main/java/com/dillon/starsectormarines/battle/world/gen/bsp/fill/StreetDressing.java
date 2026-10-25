@@ -57,10 +57,22 @@ public final class StreetDressing {
     /** A street lamp standing on {@code (x, y)}, its arm reaching {@code (dx, dy)} over the carriageway. */
     public static void lamp(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
                             String id, int x, int y, int dx, int dy) {
+        standing(grid, topology, doodads, id, x, y, dx, dy);
+    }
+
+    /**
+     * A standing piece with its corner at {@code (minX, minY)}, its north turned to {@code (dx, dy)}; every cell of
+     * its turned footprint becomes a fixture.
+     */
+    public static void standing(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
+                                String id, int minX, int minY, int dx, int dy) {
         DoodadDef def = TileRegistry.installed().doodad(id);
         if (def == null) return;
-        fixture(grid, topology, x, y);
-        doodads.add(new Doodad(x, y, def, turnsFacing(dx, dy)));
+        Doodad piece = new Doodad(minX, minY, def, turnsFacing(dx, dy));
+        for (int y = minY; y < minY + piece.footprintCellsY; y++) {
+            for (int x = minX; x < minX + piece.footprintCellsX; x++) fixture(grid, topology, x, y);
+        }
+        doodads.add(piece);
     }
 
     /**

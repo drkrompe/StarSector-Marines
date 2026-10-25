@@ -288,7 +288,10 @@ Rules for the thread:
 - **Set dressing.** Freight-yard lobster crates, tanks in a research annex, a
   market's tanks under the creep (`heart-origins.md`), a burst pressure tank in
   a back kitchen. Most factions have not connected the dots; a research site
-  that had is one of the heart's origins.
+  that had is one of the heart's origins. The props are `lobster-trade` (a
+  pressure tank, the tank burst, a pressurised crate, a licensed range); a main
+  street's back kitchen, a market's fish stall and a freight yard's first stack
+  carry them.
 - **Art is not changed for it.** A faint crustacean resemblance is welcome in
   new swarm art but never required, and accepted strain art (the Runner, the
   Brute, the Matriarch and the rest) is not reworked to show it (owner).

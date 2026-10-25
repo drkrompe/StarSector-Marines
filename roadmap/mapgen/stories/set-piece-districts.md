@@ -161,7 +161,11 @@ among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 The kerb's rhythm is lamp, planter, lamp, stall, every third clear cell, each lamp's arm over the
 carriageway, and each shop door with a cell of frontage either side has an awning over the pavement in front
 of it, one colourway to a shopfront (striped, green canvas or steel, read off its door's place, no random drawn). The art
-is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`).
+is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`). One shop on each main street keeps a
+licensed lobster kitchen in its back room (the range against a blank back wall, its pressure tank beside it),
+the tank burst open on one street in three, read off the shop's place; a market's fish stall keeps a lobster
+tank behind its counter, and a freight yard's first stack is pressurised lobster crates (`lobster-trade`, the
+lobster thread in `swarm-lore-guide.md`: winks only).
 
 **Street dressing kit for the next two programs** (`StreetDressing`, art `industrial-street-kit`): the
 industrial zone lays its pipe gantries with `pipeRun` (a column and beam at each end and every `bay` cells,
