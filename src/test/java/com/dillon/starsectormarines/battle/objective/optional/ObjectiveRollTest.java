@@ -50,6 +50,14 @@ class ObjectiveRollTest {
     }
 
     @Test
+    void aNeedWithAlternativesFitsOnWhicheverStands() {
+        LaidLayout laid = new LaidLayout(List.of(piece("tenement", Laid.Status.LAID),
+                piece("farmstead", Laid.Status.REFUSED)));
+        assertTrue(ObjectiveRoll.fits(objective("a", Set.of("farmstead|tenement"), Set.of()), laid));
+        assertFalse(ObjectiveRoll.fits(objective("b", Set.of("farmstead|granary"), Set.of()), laid));
+    }
+
+    @Test
     void neverDrawsWhatDoesNotFit() {
         LaidLayout laid = new LaidLayout(List.of(piece("wreck", Laid.Status.LAID),
                 piece("bridge", Laid.Status.REFUSED)));

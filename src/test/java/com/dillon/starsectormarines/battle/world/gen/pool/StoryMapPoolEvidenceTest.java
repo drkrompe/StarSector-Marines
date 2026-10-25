@@ -117,6 +117,8 @@ class StoryMapPoolEvidenceTest {
         StringBuilder works = new StringBuilder();
         for (Laid laid : cordon.map().layout.pieces()) {
             works.append(works.length() == 0 ? "" : ", ").append(laid.name()).append(' ').append(laid.status().name().toLowerCase(Locale.ROOT));
+            boolean said = laid.status() == Laid.Status.REFUSED || laid.kind() == Laid.Kind.ROAD;
+            if (said && !laid.reason().isEmpty()) works.append(" (").append(laid.reason()).append(')');
         }
         detail += "; layout " + works;
         StringBuilder gaps = new StringBuilder();

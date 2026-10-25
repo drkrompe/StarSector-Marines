@@ -7,7 +7,10 @@ package com.dillon.starsectormarines.battle.world.gen.layout;
  * ordinary stages. A road with a {@code via} passes through that point on its
  * way, each leg a dog-leg. It is laid only on open country: across another place's
  * ground or the surveyed country the road is that ground's own streets, and
- * the weld joins the pieces.
+ * the weld joins the pieces. A road a {@link Deferred} resolves with the works
+ * is not carved: it is the way along the streets already standing between its
+ * ends, the widest first, cleared of the props in its carriageway
+ * ({@code LayoutStreets}; its {@code via} and {@code width} are not read).
  */
 public record Road(String name, Endpoint from, Endpoint via, Endpoint to, int width, boolean required) implements Piece {
 

@@ -5,7 +5,7 @@ built.
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — props set down by hand; a Ridge may carry terraces, places stood on its crest.
+Updated: 2026-10-25 — a road resolved with the works follows the standing streets.
 
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
@@ -48,7 +48,15 @@ optional (reported, and the map stands).
   ground. A road that reaches the ground of the walled square place it leads
   to is joined there, since that place's wall opens onto it or its arms reach
   out to it: in a town no other road need run near (a town's Cordon supply
-  roads touched nothing at either end and were all thrown away).
+  roads touched nothing at either end and were all thrown away). A road a
+  deferred piece returns in the works phase is not carved: it is the way along
+  the **streets already standing** between its ends, for ground with no open
+  country to carve across (a city). The way keeps to the widest street it can
+  (each step dearer the narrower the street, dearest off the road), never
+  enters a building or a site, and is **cleared**: every prop with cover
+  standing wholly on the road beside it is taken off, except on its end places'
+  own ground. The works laid after it keep off its cells, so no barricade
+  closes it.
 - **Structure.** Something raised at a place the mission chose, by kind: a
   farmstead (a farmhouse and a barn on a yard), a granary (a long store on a
   yard), an ammo dump (a sandbag ring round stacked crates), an observation

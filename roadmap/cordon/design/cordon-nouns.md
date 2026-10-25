@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-25 — the outer picket; a forward observer in each redoubt calls the allied air wing
+Updated: 2026-10-25 — a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -130,9 +130,12 @@ course's own. The law is acceptance: a map whose line still breaks it,
 nests and all, is not a Cordon map. Behind the middle of the line, the
 redoubt with the most room has an unmanned **switch line**, a shorter trench
 a garrison falls back to (beat L3). The beats' other set pieces stand where the layout found
-room for them (`cordon-map-intent.md`): a farmstead in the near front, an
-ammo dump in the base, a square in the far rear hamlet, a granary on the
-colony's near side, an observation post forward of each flank redoubt and,
+room for them (`cordon-map-intent.md`): a farmstead in the near front (in a
+city, a tenement standing there), an ammo dump in the base, a square in the far
+rear hamlet, a granary on the colony's near side, an observation post forward
+of each flank redoubt (in a city, the biggest building there, its front
+windows sandbagged), open ground behind the line a bore may erupt on (in a
+city, a cleared lot inside its blocks) and,
 on the Road, sandbag positions either side of the corridor where it crosses
 the line. A
 picket line is broken by gaps the roads pass through, so the line is a set of
@@ -321,11 +324,14 @@ again a little later (`cordon-allied-command.md`, The producer). Outside a city 
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it, laid wherever it
 reaches the redoubt's ground even with no other road near it; across a town's or a
-city's ground its own streets are the supply road: a truck's way to a redoubt
-whose road was not laid, or was cut off short of it, is the route a truck
-drives through the streets from the base to the rear gate, and it sets out on
-the first street outside the base. A redoubt no truck can drive to is sent
-none.
+city's ground its own streets are the supply road. A city's are laid as such:
+each the way along its streets from the base's gate to the rear gate, the widest
+first (the boulevard before a back street), cleared of the props in its
+carriageway, and no barricade the works lay closes it (`mission-layout.md`,
+Road). A truck's way to a redoubt whose road was not laid, or was cut off short
+of it, is the route a truck drives through the streets from the base to the
+rear gate, and it sets out on the first street outside the base. A redoubt no
+truck can drive to is sent none.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -779,10 +785,10 @@ with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
 
 | Code | Key | Needs | Runs | Succeeds | Fails |
 | --- | --- | --- | --- | --- | --- |
-| L1 | `stragglers` | farmstead | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
+| L1 | `stragglers` | farmstead or a city's tenement | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
 | L2 | `guns_dry` | ammo dump | At 5:00 one redoubt's gun towers (seeded, never the switch line's) run out of rounds and fire at a quarter rate; the allied line command asks the base for a truck, which drives its supply road (in a city, its streets); a redoubt no truck can reach is never chosen, and with none the beat lapses | A truck reaches the redoubt: its guns and tubes are full again | A truck bound there dies or the redoubt is lost first |
 | L3 | `switch_line` | switch line | At the second tide the switch line's middle redoubt is given up and its garrison ordered back | Most of those who set out are in the switch line | Too few are left alive for most |
-| L4 | `bore_behind` | eruption site | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
+| L4 | `bore_behind` | eruption site (a city's cleared lot) | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
 | L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
 | L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
 | R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the base's dozer, moved up behind the gap, drives onto the wreck and works each shut road cell until a truck's lane is open, then pulls aside | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |
