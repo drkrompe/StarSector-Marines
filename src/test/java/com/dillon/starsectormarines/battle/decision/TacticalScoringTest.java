@@ -585,6 +585,23 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void aCrowdedMemberInTheOpenTakesAnEqualCellWithFewerAllies() {
+        BattleSimulation sim = openArena(40, 20);
+        long marine = unit(sim, Faction.MARINE, 10, 10);
+        sim.world().setAttackRange(marine, 12f);
+        long enemy = unit(sim, Faction.DEFENDER, UnitType.SWARM_SPITTER, 20, 10);
+        TacticalScoring scoring = sim.getTacticalScoring();
+        assertNull(scoring.findFiringPositionCoverPreferred(marine, enemy, -1, -1),
+                "alone in the open, no cell beats its own");
+
+        unit(sim, Faction.MARINE, 10, 11);
+        unit(sim, Faction.MARINE, 11, 10);
+        int[] pick = scoring.findFiringPositionCoverPreferred(marine, enemy, -1, -1);
+        assertNotNull(pick, "stacked in the open, it moves");
+        assertTrue(scoring.alliesNearForSpread(marine, pick[0], pick[1]) < scoring.alliesNearForSpread(marine, 10, 10));
+    }
+
+    @Test
     public void harmlessStructureIsStillShotWhenNothingArmedIsInSight() {
         BattleSimulation sim = openArena(40, 12);
         long marine = unit(sim, Faction.MARINE, 5, 5);
@@ -929,6 +946,27 @@ public class TacticalScoringTest {
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
                 "first marine on a healthy turret with no inflight must commit");
+    }
+
+    @Test
+    public void aRocketIsHeldWhileAFriendlyStandsInItsLaneOrBlast() {
+        BattleSimulation sim = openArena(20, 20);
+        long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
+        unit(sim, Faction.MARINE, 10, 6);
+        assertFalse(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret), "a Marine beside the target");
+
+        BattleSimulation lane = openArena(20, 20);
+        long shooter = rocketeer(lane, Faction.MARINE, 2, 5);
+        long bore = turret(lane, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 16, 5);
+        unit(lane, Faction.MARINE, 8, 5);
+        assertFalse(lane.getTacticalScoring().shouldCommitRocket(shooter, bore), "a Marine in the lane");
+
+        BattleSimulation clear = openArena(20, 20);
+        long other = rocketeer(clear, Faction.MARINE, 5, 5);
+        long far = turret(clear, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
+        unit(clear, Faction.MARINE, 15, 15);
+        assertTrue(clear.getTacticalScoring().shouldCommitRocket(other, far), "with the Marine clear of the blast, it fires");
     }
 
     @Test

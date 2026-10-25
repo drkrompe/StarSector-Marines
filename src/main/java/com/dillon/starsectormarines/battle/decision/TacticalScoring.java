@@ -151,6 +151,13 @@ public final class TacticalScoring {
      * kills the cluster.
      */
     public static final int FIRING_AOE_SPREAD_RADIUS = 2;
+    /**
+     * {@code -Dbattle.infantry.unstack=false} is the control: a crowded member in the open keeps its cell after a
+     * shot, as before. Temporary: remove with the losing arm once the heart pool readings settle it (Broad Front,
+     * 2026-10-25: marines stopped single file where the march left them and died to acid three to a lob).
+     */
+    public static final String UNSTACK_PROPERTY = "battle.infantry.unstack";
+    private static final boolean UNSTACK = !"false".equalsIgnoreCase(System.getProperty(UNSTACK_PROPERTY));
     /** Minimum cell-distance from target when picking a firing position. Avoids picking the target's own cell. */
     public static final float FIRING_MIN_DISTANCE = 0.7f;
     /** Per-cover-level bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges. */
@@ -1105,6 +1112,7 @@ public final class TacticalScoring {
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (!world.specialEquipment(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
+        if (friendlyInTheWay(shooter, target, world.specialEquipment(shooter).aoeRadius() + DANGER_CLOSE_MARGIN)) return false;
         return projectedSpecialDamageOnTarget(shooter, target)
                 < remainingDurability(target, world.x(shooter), world.y(shooter));
     }
@@ -1128,6 +1136,32 @@ public final class TacticalScoring {
             return locations.hullStructure(world.hp(target)) + locations.armor(plate);
         }
         return world.hp(target) + (world.hasArmor(target) ? world.armor(target) : 0f);
+    }
+
+    /**
+     * Cells past a special weapon's blast that a friendly must stand for its shooter to commit: the round can land a
+     * little off. Broad Front, 2026-10-25: a rocket at a bore thirty cells off burst on four Marines bunched in its
+     * lane, killing all four.
+     */
+    public static final float DANGER_CLOSE_MARGIN = 1f;
+
+    private static final ThreadLocal<FiringLane.Friendlies> DANGER_CLOSE_FRIENDLIES =
+            ThreadLocal.withInitial(FiringLane.Friendlies::new);
+
+    /**
+     * Whether a living friendly of {@code shooter} stands in its lane to {@code target} ({@link FiringLane#blocked}),
+     * where an area round would burst on them, or within {@code blast} cells of the target.
+     */
+    boolean friendlyInTheWay(long shooter, long target, float blast) {
+        World world = roster.world();
+        float sx = world.x(shooter), sy = world.y(shooter), tx = world.x(target), ty = world.y(target);
+        FiringLane.Friendlies allies = DANGER_CLOSE_FRIENDLIES.get();
+        gatherFriendlies(shooter, (float) Math.hypot(tx - sx, ty - sy) + blast, SPREAD_CANDIDATES.get(), allies);
+        for (int i = 0; i < allies.size(); i++) {
+            float dx = allies.x(i) - tx, dy = allies.y(i) - ty;
+            if (dx * dx + dy * dy <= blast * blast) return true;
+        }
+        return FiringLane.blocked(allies, sx, sy, tx, ty);
     }
 
     /** Compatibility name retained for focused rocket tests and older callers. */
@@ -3186,6 +3220,10 @@ public final class TacticalScoring {
      * downgrade — a marine in heavy cover only moves to a cell with at least
      * equal cover. That's the "MG-in-heavy-cover stays cozy" half of Story G,
      * paired with the cooldown gate inside RepositionToCover.
+     *
+     * <p>A member with allies inside a splash's reach ({@link #FIRING_AOE_SPREAD_RADIUS}) also takes a cell of equal
+     * cover that has fewer of them: in the open, where no cell beats another for cover, that is the only move that
+     * unstacks a squad stopped where its march left it.
      */
     public int[] findFiringPositionCoverPreferred(long self, long target,
                                                   int rejectX, int rejectY) {
@@ -3218,6 +3256,7 @@ public final class TacticalScoring {
         int selfFdy = ty - sy;
         int selfCover = grid.getCoverAt(sx, sy, selfFdx, selfFdy)
                       + doodads.getDoodadCoverAt(sx, sy, selfFdx, selfFdy);
+        int selfCrowd = UNSTACK ? alliesNearForSpread(self, sx, sy) : 0;
 
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
@@ -3246,10 +3285,12 @@ public final class TacticalScoring {
                 // best." The cooldown gate inside RepositionToCover catches
                 // the timing side; this filter catches the "no upgrade
                 // available" side. Together they keep MGs cozy.
-                if (combined <= selfCover) continue;
+                // Equal cover is a move only for a crowded member, to a cell with fewer allies round it.
+                if (combined < selfCover || combined == selfCover && selfCrowd == 0) continue;
+                int alliesNear = alliesNearForSpread(self, cx, cy);
+                if (combined == selfCover && alliesNear >= selfCrowd) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
-                int alliesNear = alliesNearForSpread(self, cx, cy);
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
