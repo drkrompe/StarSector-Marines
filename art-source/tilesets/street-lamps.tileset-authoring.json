@@ -1,0 +1,82 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.72,
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.street-lamp-cap-colonial",
+      "included": true,
+      "note": "Colonial cast-iron lantern from above: fluted hexagonal roof and finial over a warm glass rim. Kerb lamp.",
+      "rect": [
+        40,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.street-lamp-cap-industrial",
+      "included": true,
+      "note": "Cobra-head luminaire from above, its arm stub south; the light leaves north. Kerb lamp.",
+      "rect": [
+        380,
+        40,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.street-lamp-bracket-colonial",
+      "included": true,
+      "note": "Colonial lantern on a scroll bracket off a wall along its north edge. Overhead; no cover.",
+      "rect": [
+        40,
+        380,
+        300,
+        300
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.street-lamp-bracket-industrial",
+      "included": true,
+      "note": "Flood lamp on a steel bracket off a wall along its north edge. Overhead; no cover.",
+      "rect": [
+        380,
+        380,
+        300,
+        300
+      ]
+    }
+  ],
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "doodad.street-lamp",
+  "note": "Street lamps seen straight down: from the zenith a lamp is its head, the post hidden under it, so no pole lies drawn across the ground (owner, replacing the rod-and-head lamps in street-dressing). Measured 1536x1024 RGBA, four alpha pieces. Geometry-first reskin of templates/street-lamps-guide.png (street-lamps-guide.py, 300 px a cell); ImageGen kept the guide's scale and registration, so each rect is its guide frame. The caps are standing kerb lamps (fixtures, light cover); the brackets hang off a wall along the frame's north edge and draw overhead through street-dressing-motions, blocking nothing. Exact prompt in street-lamps.prompt.txt.",
+  "outputSheet": "graphics/doodads/street-lamps.png",
+  "sheet": "art-source/tilesets/street-lamps.raw.png",
+  "sheetName": "street-lamps"
+}

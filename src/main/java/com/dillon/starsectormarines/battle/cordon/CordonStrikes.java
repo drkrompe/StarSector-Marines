@@ -133,6 +133,9 @@ public final class CordonStrikes {
     /** The bore struck now, or {@code null}. */
     KnownBore target() { return target; }
 
+    /** How many detachments have been recalled so far. */
+    int recalled() { return recalled; }
+
     /**
      * One pulse.
      *
