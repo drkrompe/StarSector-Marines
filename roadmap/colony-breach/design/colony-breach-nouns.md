@@ -6,6 +6,8 @@ Written: 2026-10-21
 
 Updated: 2026-10-25 — a creep-killed tree is undergrowth a heavy tank pushes over.
 
+Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
+
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
 fixture lineage and Marine rescue commander, with a colony worth fighting
@@ -773,7 +775,12 @@ no hardstanding pad. The earth a bore heaved up is creep, in the creep's own
 colours, so the rim reads as where the creep pours out of the ground. Nothing about them is regular: they erupted, so
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
-collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
+collapsed into the funnel. The mother bore must read at a glance as far more than
+a bore, the root of the whole bloom: a ring of great bone fangs hooked in over a
+wide gullet of ribbed crimson flesh that falls away to black, a faint amber glow
+far down where the reservoir is, the colony's paving heaved up round the rim and
+sinew roots running far out into the creep, drawn much larger than a satellite
+(a jaw, picked over plates vaulted closed over the hole and a lopsided cave-in).
 A colony is an uneven cluster round one dominant, leaning sac. A ground colony
 must never read as one: it is low and pressed flat into the creep, with no sac
 and no pore aimed at the sky, a plated core with an amber eye whose crimson
@@ -1105,6 +1112,27 @@ not read in a soft shadow at play zoom.
   pair about the head, and are long enough that a reap reads past the crown
   (owner's pick over mounting them further out or turning them with the head).
   It dies with its back broken, in one of four poses of that death.
+
+  Her **damage reads in her body**, never as a flash (owner: a flash reads as
+  arcade). **Worn chitin** (`RavWear`) is worn plate made organic
+  (`combat-durability-nouns.md`, Worn plate): as her plate is stripped her shell
+  is scored and chipped bone-white, then bruised a sickly yellow and violet and
+  cracked; as her health goes it is torn open in wet, weeping wounds over the
+  sinew. The marks are painted in colours her healthy body never has, so they
+  read on charcoal and wine-red at play zoom. It observes and never
+  records: her marks are a pure function of her plate's and her health's
+  fractions, laid on her body and her head in their own frames, so they build up
+  in place, turn with her and grow with her through a moult (which keeps both
+  fractions). Every **round that lands** sends up a puff off the rim facing the
+  gun, sized by its weapon (`SwarmHitFeedback`): shell dust and a chip or two
+  while plate is left after it, ichor once it reaches the flesh. A round her plate
+  turns **glances**: a pinpoint spark and a chip of chitin skip off along its path
+  mirrored about the rim. A glance is the armour law read, not a rule of its own:
+  the share of a weapon's rounds drawn glancing is the share of her rating its
+  penetration does not reach (a rifle's half, a squad automatic's two thirds, an
+  anti-materiel rifle's or a heavy cannon's none), and a stripped body turns
+  nothing. The Brute wears and shows its hits by the same law, on each half of
+  its body and its head. The `rav-wear` look suite shows both.
 - **Harrier** — the swarm's flier, a winged strain that hunts in **packs** of
   six to twenty (`SwarmFliers`, `HarrierPack`). It is the swarm's answer to a line it cannot walk through: the ground
   swarm is channelled by ridges, passes, wire and redoubts, and a flier is not.
@@ -1833,7 +1861,10 @@ and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
 LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
-since many bodies make them. A new sound or take is levelled the same way
+since many bodies make them. The anti-air flak that meets them is a little
+heavier than the line, its own deeper report and air-burst near -22 a voice
+(owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
+and rifle takes. A new sound or take is levelled the same way
 before it ships. The `swarm-sound` look suite logs what the battle screen would
 start (`BattleSoundLog`) so a review hears the levels against the fire.
 

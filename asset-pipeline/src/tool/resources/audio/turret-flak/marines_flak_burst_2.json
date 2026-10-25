@@ -1,0 +1,42 @@
+{
+  "builtFrom": [
+    {
+      "source": "explosions/explosion03.wav",
+      "sourceAudioSha256": "35e69df698b30ba60f901fed07085c19833525e040c3c0d8fade321009f4a8de",
+      "startAfterOnset": 0.0,
+      "onset": 0.006,
+      "length": 1.0,
+      "pitch": 0.62,
+      "gainDb": 0.0,
+      "filters": "lowpass=f=1400"
+    },
+    {
+      "source": "explosions/explosion06.wav",
+      "sourceAudioSha256": "733f36ae96536bd11e962b131b40516d7bb6b7c2ebe767762f52239ca10cea60",
+      "startAfterOnset": 0.0,
+      "onset": 0.005,
+      "length": 0.9,
+      "pitch": 0.43,
+      "gainDb": -3.0,
+      "filters": "lowpass=f=200"
+    },
+    {
+      "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav",
+      "sourceAudioSha256": "c4c1d67581e65b178e6f9b35e52fad1bf5e33fd37401dc6a31b71930ab8dae57",
+      "startAfterOnset": 0.0,
+      "onset": 0.025,
+      "length": 0.05,
+      "pitch": 0.58,
+      "gainDb": -8.0,
+      "filters": "highpass=f=300,afade=t=out:st=0.02:d=0.05"
+    }
+  ],
+  "pitch": "asetrate+aresample: lower and slower together",
+  "filterComplex": "[0:a]aformat=channel_layouts=mono,aresample=44100,atrim=0.006:1.006,asetpts=PTS-STARTPTS,asetrate=27342,aresample=44100,lowpass=f=1400,volume=0.0dB,apad[l0];[1:a]aformat=channel_layouts=mono,aresample=44100,atrim=0.005:0.905,asetpts=PTS-STARTPTS,asetrate=18963,aresample=44100,lowpass=f=200,volume=-3.0dB,apad[l1];[2:a]aformat=channel_layouts=mono,aresample=44100,atrim=0.025:0.075,asetpts=PTS-STARTPTS,asetrate=25578,aresample=44100,highpass=f=300,afade=t=out:st=0.02:d=0.05,volume=-8.0dB,apad[l2];[l0][l1][l2]amix=inputs=3:normalize=0,highpass=f=42,highpass=f=42,equalizer=f=65:t=o:w=1:g=5,atrim=0:1.000,afade=t=in:d=0.004,afade=t=out:st=0.300:d=0.700[raw]",
+  "level": "volume=-0.60dB,alimiter=limit=0.89:level=false",
+  "note": "The flak round's air-burst: a sharp explosion's attack pitched down, a deep body under it, and a pitched rifle crack for the shell coming apart, with 50-90 Hz lifted, cut to one second so a stream of bursts stays separate; built from the mod's own takes, not generated (owner, 2026-10-25). Levelled to -17 LUFS so at the impact cue's 0.55 one voice sits at -22.",
+  "integratedLufs": -17.1,
+  "audioSha256": "3e90f6a2958726dc32285cbb61fc02eebccac60463869692a5d30d2b9a5bf7f9",
+  "durationSeconds": 1.0,
+  "outputFormat": "pcm_s16le_44100_mono"
+}
