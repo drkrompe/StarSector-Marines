@@ -155,8 +155,31 @@ public final class FactoryRow {
      */
     public static Pose choose(GenContext c, int left, int top, int right, int bottom,
                               BiPredicate<Integer, Integer> owned) {
-        boolean[][] reserved = c.get(BspKeys.ROAD_RESERVATION);
-        boolean[][] road = c.get(BspKeys.ROAD_CELLS);
+        return choose(c, left, top, right, bottom, owned, null);
+    }
+
+    /**
+     * Whether a gate's mouth at {@code (x, y)}, which is not street, still reaches it: open ground a hauler
+     * drives straight across, outward by {@code (dx, dy)}, onto the street.
+     */
+    public interface Approach {
+        boolean reaches(int x, int y, int dx, int dy);
+    }
+
+    /**
+     * {@link #choose(GenContext, int, int, int, int, BiPredicate)}, where a gate may also open onto ground that
+     * {@code approach} says reaches the street, or null for street alone.
+     */
+    public static Pose choose(GenContext c, int left, int top, int right, int bottom,
+                              BiPredicate<Integer, Integer> owned, Approach approach) {
+        return choose(c, left, top, right, bottom, owned, approach, c.get(BspKeys.ROAD_CELLS),
+                c.get(BspKeys.ROAD_RESERVATION));
+    }
+
+    /** The same, over a given street mask and road reservation, so a plan can ask before the streets are published. */
+    public static Pose choose(GenContext c, int left, int top, int right, int bottom,
+                              BiPredicate<Integer, Integer> owned, Approach approach,
+                              boolean[][] road, boolean[][] reserved) {
         if (road == null) return null;
         Pose best = null;
         int bestScore = 0;
@@ -166,7 +189,7 @@ public final class FactoryRow {
                 for (int y = top - 1; y + h - 1 <= bottom + 1; y++) {
                     for (int x = left - 1; x + w - 1 <= right + 1; x++) {
                         Pose pose = new Pose(x, y, turn, length);
-                        int score = score(c, pose, owned, reserved, road) * 100 + length;
+                        int score = score(c, pose, owned, reserved, road, approach) * 100 + length;
                         if (score > 100 && score > bestScore) {
                             bestScore = score;
                             best = pose;
@@ -180,7 +203,7 @@ public final class FactoryRow {
 
     /** How well the gates and backs meet the street, or 0 where the row may not stand there. Read-only. */
     static int score(GenContext c, Pose pose, BiPredicate<Integer, Integer> owned,
-                     boolean[][] reserved, boolean[][] road) {
+                     boolean[][] reserved, boolean[][] road, Approach approach) {
         int right = pose.left + pose.width() - 1, top = pose.bottom + pose.height() - 1;
         if (pose.left < 1 || pose.bottom < 1 || right >= c.width - 1 || top >= c.height - 1) return 0;
         for (int y = pose.bottom; y <= top; y++) {
@@ -203,7 +226,11 @@ public final class FactoryRow {
                     if (!c.grid.inBounds(cell[0], cell[1]) || !c.grid.isWalkable(cell[0], cell[1])) return 0;
                 }
                 int[] mouth = pose.cell(x, y);
-                if (!road[mouth[0]][mouth[1]]) return 0;
+                if (!road[mouth[0]][mouth[1]]) {
+                    int[] out = pose.step(dx, 0);
+                    if (approach == null || !approach.reaches(mouth[0], mouth[1], out[0], out[1])) return 0;
+                    continue;
+                }
                 score += reserved != null && reserved[mouth[0]][mouth[1]] ? 4 : 1;
             }
         }

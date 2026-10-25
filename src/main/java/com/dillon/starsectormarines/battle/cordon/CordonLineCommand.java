@@ -44,7 +44,7 @@ public final class CordonLineCommand {
     /** Machines in one request's armour pair or Hound lance. */
     static final int PAIR = 2;
     /** Ticks before a refused request for one place is asked again. */
-    static final int RETRY_TICKS = 60 * 10;
+    static final int RETRY_TICKS = Math.round(10f / BattleSimulation.TICK_DT);
 
     private final CordonSequence sequence;
     private final CordonArmour armour;
