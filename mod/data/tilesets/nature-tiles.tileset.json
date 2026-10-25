@@ -140,7 +140,7 @@
       "name": "water-alt"
     },
     {
-      "description": "broad low rosette \u2014 the widest plant on the sheet",
+      "description": "broad low fern rosette seen from above \u2014 the widest plant on the sheet",
       "frame": 19,
       "id": "nature.shrub-1",
       "layer": "plant",
@@ -157,7 +157,7 @@
       ]
     },
     {
-      "description": "small spiky shrub \u2014 the smallest plant, reads as scrub at cell size",
+      "description": "small scrubby leafy bush \u2014 the smallest shrub, reads as scrub at cell size",
       "frame": 20,
       "id": "nature.shrub-2",
       "layer": "plant",
@@ -174,7 +174,7 @@
       ]
     },
     {
-      "description": "upright grass tuft",
+      "description": "small upright grass tuft seen from above",
       "frame": 21,
       "id": "nature.tuft-1",
       "layer": "plant",
@@ -191,7 +191,7 @@
       ]
     },
     {
-      "description": "wider grass tuft, second variant",
+      "description": "wider, looser grass tuft",
       "frame": 22,
       "id": "nature.tuft-2",
       "layer": "plant",
@@ -208,7 +208,7 @@
       ]
     },
     {
-      "description": "young palm \u2014 the one plant with a visible trunk",
+      "description": "low leafy bush with a scatter of small cream flowers",
       "frame": 23,
       "id": "nature.shrub-3",
       "layer": "plant",
@@ -225,7 +225,7 @@
       ]
     },
     {
-      "description": "tall wild grass tuft \u2014 the sheet\u2019s sixth plant. It sat in the rock range and was scattered as a rock until 2026-08-29; the prompt asked for five plants and eight rock groups and the art came back with six and seven.",
+      "description": "tall wild grass with pale seed heads",
       "frame": 24,
       "id": "nature.tuft-3",
       "layer": "plant",

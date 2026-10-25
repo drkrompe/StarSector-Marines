@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,23 @@ public final class AlliedCommand {
      * in its way moves off, a wall comes down — and without a retry it stood where it stalled all battle.
      */
     public static final int STALL_RETRY_TICKS = Math.round(20f / BattleSimulation.TICK_DT);
+    /**
+     * Ticks a hull's refused goals are remembered while it stands where it was refused. Within that, asking again
+     * is asking the same proof the same question: the goal is pulled back past without an order. After it, the
+     * ground may have changed (a fire through the undergrowth, a wreck towed off) and the goals are asked afresh.
+     */
+    public static final int REFUSAL_MEMORY_TICKS = Math.round(60f / BattleSimulation.TICK_DT);
+    /** Cells a hull must move from where it was refused before what it was refused stops applying. */
+    public static final float REFUSAL_MOVED_CELLS = 1.5f;
+    /** Doublings of {@link #STALL_RETRY_TICKS} a hull that keeps stalling where it stands waits through, at most. */
+    public static final int STALL_BACKOFF_LIMIT = 3;
+    /**
+     * Whether the commander remembers its hulls' refused goals and backs off its stall retries ({@link RefusedGoals}).
+     * {@code -Dbattle.allied.refusalMemory=false} is the control, every pull-back and retry asked again: remove it
+     * with the losing path once The Burn's vehicle-order evidence has been read against it.
+     */
+    static final boolean REFUSAL_MEMORY =
+            Boolean.parseBoolean(System.getProperty("battle.allied.refusalMemory", "true"));
 
     private enum Phase { STATION, BOARDING, DRIVING }
 
@@ -105,6 +123,7 @@ public final class AlliedCommand {
     private final String issuer;
     private final Map<Long, Task> tasks = new LinkedHashMap<>();
     private final Map<Long, MechPost> mechs = new LinkedHashMap<>();
+    private final Map<Long, RefusedGoals> refusals = new HashMap<>();
 
     /** @param issuer who gives the orders, as the command log names it */
     public AlliedCommand(String issuer) {
@@ -270,6 +289,7 @@ public final class AlliedCommand {
             long hull = entry.getKey();
             if (!alive(convoy, hull)) {
                 tasks.remove(hull);
+                refusals.remove(hull);
                 continue;
             }
             Task task = entry.getValue();
@@ -297,7 +317,9 @@ public final class AlliedCommand {
                 }
                 case STATION -> {
                     if (!stopped(sim, hull)) break;
-                    if (stalled(task, sim.getSimTickIndex())) {
+                    if (stalled(task, sim.getSimTickIndex(), refusals(sim, hull))) {
+                        RefusedGoals held = refusals(sim, hull);
+                        if (held != null) held.stallRetried();
                         task.pullbacks = 0;
                         task.vias = 0;
                         task.goalX = task.postX;
@@ -333,17 +355,51 @@ public final class AlliedCommand {
         return true;
     }
 
+    /**
+     * Sends the hull to its goal, pulling the goal back first past anything it has already been refused where it
+     * stands ({@link #REFUSAL_MEMORY_TICKS}). Out of steps, it is not sent at all and waits for its stall retry.
+     */
     private void drive(BattleSimulation sim, long hull, Task task) {
         task.sentAt = sim.getSimTickIndex();
+        RefusedGoals held = refusals(sim, hull);
+        while (held != null && held.refused(task.goalX, task.goalY)) {
+            if (!stepBack(sim, hull, task)) return;
+        }
         sim.getVehicleMoveOrderService().requestMove(hull, task.goalX, task.goalY);
+    }
+
+    /** What the hull has been refused where it stands now, or {@code null}; a move or {@link #REFUSAL_MEMORY_TICKS} forgets it. */
+    private RefusedGoals refusals(BattleSimulation sim, long hull) {
+        RefusedGoals held = refusals.get(hull);
+        if (held == null) return null;
+        GroundBody body = sim.convoy().body(hull);
+        if (held.movedAway(body.x, body.y)) {
+            refusals.remove(hull);
+            return null;
+        }
+        held.age(sim.getSimTickIndex());
+        return held;
+    }
+
+    private void rememberRefused(BattleSimulation sim, long hull, int x, int y) {
+        if (!REFUSAL_MEMORY) return;
+        RefusedGoals held = refusals(sim, hull);
+        if (held == null) {
+            GroundBody body = sim.convoy().body(hull);
+            held = new RefusedGoals(body.x, body.y, sim.getSimTickIndex(), REFUSAL_MOVED_CELLS, REFUSAL_MEMORY_TICKS);
+            refusals.put(hull, held);
+        }
+        held.remember(x, y);
     }
 
     /**
      * Whether a stopped, stationed hull has stalled short of its post: it stands at a goal pulled back from the
-     * post, and has been sent nowhere for {@link #STALL_RETRY_TICKS}. A hull at its post itself is home.
+     * post, and has been sent nowhere for {@link #STALL_RETRY_TICKS}, doubled for each retry in a row that found it
+     * where it was refused, up to {@link #STALL_BACKOFF_LIMIT} doublings. A hull at its post itself is home.
      */
-    private static boolean stalled(Task task, int tick) {
-        return (task.goalX != task.postX || task.goalY != task.postY) && tick - task.sentAt >= STALL_RETRY_TICKS;
+    private static boolean stalled(Task task, int tick, RefusedGoals held) {
+        int wait = held == null ? STALL_RETRY_TICKS : held.stallWait(STALL_RETRY_TICKS, STALL_BACKOFF_LIMIT);
+        return (task.goalX != task.postX || task.goalY != task.postY) && tick - task.sentAt >= wait;
     }
 
     /**
@@ -363,8 +419,23 @@ public final class AlliedCommand {
         VehicleMoveOrderService.RefusedOrder refused = orders.refusal(hull);
         if (refused == null || refused.requestedX() != task.goalX || refused.requestedY() != task.goalY
                 || !stopped(sim, hull)) return false;
+        rememberRefused(sim, hull, task.goalX, task.goalY);
         // Out of steps: a station stays put until it is retried; a carrier sets its riders down where it stands.
-        if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION && !stalled(task, sim.getSimTickIndex());
+        if (task.pullbacks >= PULLBACK_LIMIT) {
+            return task.phase == Phase.STATION && !stalled(task, sim.getSimTickIndex(), refusals(sim, hull));
+        }
+        if (!stepBack(sim, hull, task)) return task.phase == Phase.STATION;
+        drive(sim, hull, task);
+        return true;
+    }
+
+    /**
+     * Moves the goal one pull-back nearer the hull, as {@link #pullBack} describes.
+     *
+     * @return {@code false} when the pull-backs are spent or the goal is already beside the hull
+     */
+    private boolean stepBack(BattleSimulation sim, long hull, Task task) {
+        if (task.pullbacks >= PULLBACK_LIMIT) return false;
         GroundBody body = sim.convoy().body(hull);
         int[] corner = wayCorner(sim, hull, task.goalX, task.goalY);
         if (corner != null) {
@@ -375,13 +446,12 @@ public final class AlliedCommand {
             float length = (float) Math.sqrt(dx * dx + dy * dy);
             if (length <= PULLBACK_STEP) {
                 task.pullbacks = PULLBACK_LIMIT;
-                return task.phase == Phase.STATION;
+                return false;
             }
             task.goalX = Math.round(task.goalX + dx / length * PULLBACK_STEP);
             task.goalY = Math.round(task.goalY + dy / length * PULLBACK_STEP);
         }
         task.pullbacks++;
-        drive(sim, hull, task);
         return true;
     }
 

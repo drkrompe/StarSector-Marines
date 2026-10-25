@@ -50,6 +50,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
     @Override
     public void update(long runner, BattleSimulation sim) {
+        // Still climbing out of its bore: on the field and shot as any body, but it does nothing yet.
+        if (sim.swarmEmergence().emerging(runner, sim.getSimTickIndex())) return;
         if (sim.swarmPacks().bolting(runner)) {
             bolt(runner, sim);
             return;
@@ -80,6 +82,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 SwarmMovement.pathDirect(runner, sim.world().cellX(dead), sim.world().cellY(dead), false, sim);
                 return;
             }
+            // Out of the hole with nothing to fight: it stands at its pack's muster until the pack is out.
+            if (SwarmEmergence.muster(runner, sim)) return;
             updateRoaming(runner, previousTarget, sim);
             return;
         }
