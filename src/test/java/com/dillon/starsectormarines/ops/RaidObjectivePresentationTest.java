@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -59,10 +61,11 @@ class RaidObjectivePresentationTest {
     }
 
     @Test
-    void archiveNameSurvivesFixtureRoundTripAndOldRaidStillLoads() throws Exception {
+    void targetNameSurvivesFixtureRoundTripAndOldRaidStillLoads() throws Exception {
         var chapter = CorvusChapter.DUST_LEDGER;
-        RaidBattleFixture fixture = (RaidBattleFixture) chapter.fixture(12, List.of(), chapter.profile(chapter.surface));
-        assertEquals("Dispatch archive", fixture.targetName());
+        RaidBattleFixture fixture = RaidBattleFixture.fromFactoryInputs(12, List.of(), false, OperationTier.ESTABLISHED,
+                        RiskLevel.LOW, chapter.profile(chapter.surface), FlybyRoster.EMPTY, FlybyRoster.EMPTY, null)
+                .withTarget("Dispatch archive", PointOfInterest.Kind.ADMINISTRATIVE);
         var json = BattleFixtureJson.toJson(fixture);
         assertEquals(fixture, BattleFixtureJson.fromJson(json));
         json.remove("targetName");

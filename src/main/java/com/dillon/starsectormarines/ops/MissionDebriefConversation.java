@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
+import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,10 @@ final class MissionDebriefConversation {
                     == DebugMissionCatalog.Scenario.COLD_ACCOUNT);
     }
 
+    static boolean dustLedger(MissionOutcome outcome) {
+        return outcome != null && outcome.victory && outcome.dustLedger != null && outcome.dustLedger.grade() != null;
+    }
+
     static boolean blindWatch(MissionOutcome outcome) {
         return outcome != null && outcome.victory && outcome.missionSource == MissionSource.STORY
                 && CorvusWaylineProgress.forMission(outcome.missionId) == CorvusChapter.BLIND_WATCH;
@@ -42,7 +47,7 @@ final class MissionDebriefConversation {
         if (outcome != null && outcome.salvageRights != null) return Strings.get("shepherdInspectionTranscriptTitle");
         if (firstContract(outcome)) return Strings.get("debriefTitleFirstContract");
         if (jangalaClosing(outcome, SupplyRouteCampaign.current())) return Strings.get("debriefTitleJangala");
-        return Strings.get(coldAccount(outcome) || blindWatch(outcome)
+        return Strings.get(coldAccount(outcome) || blindWatch(outcome) || dustLedger(outcome)
                 ? "debriefTitleAfterAction" : "debriefTitleRecovery");
     }
 
@@ -87,6 +92,7 @@ final class MissionDebriefConversation {
                 firstContractLine("next", MARA, Strings.get("debriefReliefNext")));
         var route = SupplyRouteCampaign.current();
         if (jangalaClosing(outcome, route)) return jangalaLines(catalog);
+        if (dustLedger(outcome)) return dustLedgerLines(outcome.dustLedger);
         if (blindWatch(outcome)) return List.of("initiative", "ready")
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
@@ -309,6 +315,22 @@ final class MissionDebriefConversation {
 
     /** Written correspondence has no recording; keep it readable without offering silent playback. */
     private static final int CASTLE = 0, MARA = 1, SABINE = 2;
+    /**
+     * Castle's opening on the ledger's grade, Mara's finding over grade and broker, Castle's close on the broker
+     * ({@code dust-ledger-dialogue.md}). Every finding names Prell's authority and the Warion post.
+     */
+    static List<WaylineNarration.Line> dustLedgerLines(DustLedgerSequence.Report report) {
+        String grade = switch (report.grade()) { case WHOLE -> "Full"; case PARTIAL -> "Partial"; case ASHES -> "Strongbox"; };
+        String broker = report.brokerCaught() ? "Caught" : "Escaped";
+        return List.of(
+                dustLedgerLine("opening", CASTLE, Strings.get("corvusDustLedgerDebriefOpen" + grade)),
+                dustLedgerLine("finding", MARA, Strings.get("corvusDustLedgerDebriefFind" + grade + broker)),
+                dustLedgerLine("close", CASTLE, Strings.get("corvusDustLedgerDebriefClose" + broker)));
+    }
+    private static WaylineNarration.Line dustLedgerLine(String beat, int speaker, String text) {
+        return writtenLine("dust-ledger-" + beat, "story_corvus_dust_ledger", "debrief.dust_ledger." + beat, speaker, text);
+    }
+
     private static WaylineNarration.Line firstContractLine(String beat, int speaker, String text) {
         return writtenLine("first-contract-" + beat, OpeningOperationKind.RELIEF.missionId, "debrief.relief." + beat,
                 speaker, text);

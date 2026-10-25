@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
+import com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossing;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
@@ -215,6 +216,8 @@ import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -232,6 +235,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.SplittableRandom;
+import java.util.TreeSet;
 
 /**
  * Builds a battle scenario for the auto-battler. v3: marines arrive via
@@ -444,7 +448,7 @@ public final class BattleSetup {
     }
 
     /** Default manifest used by no-arg factories — three single-cycle Aeroshuttles, matching pre-cycling behavior. */
-    private static List<ShuttleAssignment> defaultManifest() {
+    public static List<ShuttleAssignment> defaultManifest() {
         List<ShuttleAssignment> out = new ArrayList<>(SHUTTLE_COUNT);
         for (int i = 0; i < SHUTTLE_COUNT; i++) {
             out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
@@ -1601,6 +1605,96 @@ public final class BattleSetup {
         return sim;
     }
 
+
+    /**
+     * The Dust Ledger on Saltwell Cross ({@code dust-ledger-crossing.md}): the company lands openly as Wayline's
+     * freight drop, Sable Wake's finite crew holds the pump house, and the Raid on the ledger room runs under the
+     * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
+     * for the alarm.
+     */
+    public static BattleSimulation createDustLedger(long seed, List<ShuttleAssignment> manifest, RiskLevel risk,
+                                                    TargetProfile profile) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("The Dust Ledger requires one to four company boats");
+        DustLedgerCrossing.Layout layout = DustLedgerCrossing.generate(seed, profile);
+        MapResult map = layout.map();
+        GroundRosterProfile roster = GroundRosterRegistry.resolve("pirates");
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.setGroundRoster(roster);
+        sim.getBattleResources().disableCompoundProduction();
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        recordLzPads(sim, pads);
+        DustLedgerCrossing.Cell target = layout.ledgerTarget(), egress = layout.companyStart();
+        RaidObjective raid = new RaidObjective("dust-ledger", Strings.get("corvusDustLedgerTarget"), target.x(), target.y(),
+                sim.getZoneGraph().zoneIdAt(target.x(), target.y()), egress.x(), egress.y());
+        sim.addObjective(raid);
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+            equipDefaultTurrets(sim, air);
+        }
+        // A Low-quality crew of plain militia: elite clerks in the pump house's rooms cost a two-squad company all 24
+        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm; the
+        // cantina's drinkers spawn then, if at all.
+        Set<Integer> mobile = new TreeSet<>();
+        for (var post : layout.posts().entrySet()) {
+            DustLedgerCrossing.PostRole role = post.getKey();
+            if (role == DustLedgerCrossing.PostRole.CANTINA) continue;
+            boolean crawler = role == DustLedgerCrossing.PostRole.CRAWLER;
+            UnitType type = UnitType.MILITIA;
+            int squadId = sim.mintSquad(Faction.DEFENDER, type);
+            Squad squad = sim.getSquad(squadId);
+            List<DustLedgerCrossing.Cell> cells = post.getValue();
+            if (crawler) mobile.add(squadId);
+            else {
+                DustLedgerCrossing.Cell anchor = cells.get(0);
+                squad.assignedNode = openingDefenseNode(anchor.x(), anchor.y(), Faction.DEFENDER, map.grid);
+                squad.patrolRadius = 3;
+                sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, squad.assignedNode),
+                        CommandAuthority.GARRISON, "dust-ledger-post", "Sable Wake " + role.name().toLowerCase() + " post");
+            }
+            for (int i = 0; i < cells.size(); i++) {
+                DustLedgerCrossing.Cell cell = cells.get(i);
+                EntitySpec unit = makeDefender("sable-wake-" + role.name().toLowerCase() + "-" + i, type, cell.x(), cell.y(),
+                        risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null).role(crawler ? UnitRole.PATROL : UnitRole.GARRISON).squad(squadId);
+                if (!crawler) unit.home(cell.x(), cell.y());
+                sim.spawn(unit);
+            }
+            squad.originalSize = cells.size();
+        }
+        claimMissionMobileSquads(sim, mobile, "raid-defender", "Sable Wake crawler crew");
+        List<EntitySpec> drinkers = new ArrayList<>();
+        for (DustLedgerCrossing.Cell cell : layout.posts().get(DustLedgerCrossing.PostRole.CANTINA))
+            drinkers.add(makeDefender("sable-wake-drinker-" + drinkers.size(), UnitType.MILITIA, cell.x(), cell.y(),
+                    risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null).role(UnitRole.PATROL));
+        List<EntitySpec> salvageTeam = new ArrayList<>();
+        for (DustLedgerCrossing.Cell cell : layout.salvageTeam())
+            salvageTeam.add(makeOpeningMilitia("harrow-salvager-" + salvageTeam.size(), Faction.ALLY, cell.x(), cell.y(), rng)
+                    .role(UnitRole.PATROL));
+        // Townsfolk live in the market, never in the compound's bunkhouse or the south ruins.
+        spawnAmbientCivilians(sim, map.grid, layout.homes(), rng);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), layout.warehouses().size(),
+                layout.warehouses()::contains);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
+                layout.shops()::contains);
+        sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
+        sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
+                RaidDefenderCommandDisclosure.INSTANCE);
+        return sim;
+    }
 
     /** Agreus repair mobilization. Construction is supplied only by a committed fleet tender called in battle. */
     public static BattleSimulation createWaterUnderSeal(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
@@ -5033,6 +5127,12 @@ public final class BattleSetup {
         for (PointOfInterest poi : map.pointsOfInterest) {
             if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) residential.add(poi);
         }
+        spawnAmbientCivilians(sim, map.grid, residential, rng);
+    }
+
+    /** {@link #spawnAmbientCivilians(BattleSimulation, MapResult, Random)} round the homes an authored map names. */
+    private static void spawnAmbientCivilians(BattleSimulation sim, NavigationGrid grid,
+                                              List<PointOfInterest> residential, Random rng) {
         if (residential.isEmpty()) return;
         UnitType[] roles = { UnitType.CIVILIAN, UnitType.ENGINEER, UnitType.SCIENTIST };
         Set<Long> claimed = new HashSet<>();
@@ -5041,7 +5141,7 @@ public final class BattleSetup {
         while (spawned < AMBIENT_CIVILIAN_COUNT && attempts < AMBIENT_CIVILIAN_COUNT * 8) {
             attempts++;
             PointOfInterest poi = residential.get(rng.nextInt(residential.size()));
-            int[] cell = findCivilianCell(map.grid, poi.anchorCellX, poi.anchorCellY, claimed, rng);
+            int[] cell = findCivilianCell(grid, poi.anchorCellX, poi.anchorCellY, claimed, rng);
             if (cell == null) continue;
             UnitType type = roles[rng.nextInt(roles.length)];
             sim.spawn(new EntitySpec("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]).role(UnitRole.FLEE));

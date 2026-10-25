@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
@@ -34,7 +35,7 @@ public final class RaidObjectiveSnapshotSuite implements SnapshotSuite {
         var mission = chapter.mission("preview", chapter.planetName, "");
         var artifacts = new ArrayList<SnapshotArtifact>();
         var renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
-        try (var sim = chapter.fixture(mission.battleSeed, List.of(), chapter.profile(chapter.surface)).build()) {
+        try (var sim = chapter.fixture(mission.battleSeed, BattleSetup.defaultManifest(), chapter.profile(chapter.surface)).build()) {
             RaidObjective raid = sim.getObjectives().stream().filter(RaidObjective.class::isInstance)
                     .map(RaidObjective.class::cast).findFirst().orElseThrow();
             assertEquals("Dispatch archive", raid.targetName());
