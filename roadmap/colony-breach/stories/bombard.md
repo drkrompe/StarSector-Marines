@@ -149,6 +149,16 @@ prompts and provenance.
 5. **Sound.** Wind-up creak, whip and hinge crack, burst, haze hiss.
 6. **Probe.** One or two probe fixtures (`cordon-line`, then
    `colony-breach-v1`), judged by behaviour.
+   **First reading** (`BombardProbe`, printed as `[bombard]` by the
+   `cordon-line` and `colony-breach` evidence): over Cordon's 36 pooled seeds a
+   maw bore keeps its one Bombard all battle, about seven planted per battle
+   from the first minute, and few die (16 of 275). They throw rarely, 100 globs
+   in all, none in 17 battles, since the line seldom stands 20 to 55 cells off
+   creep. The globs hazed 81 troops, who stepped out in about two seconds on
+   average; each throw gave a launch reveal; 10 of 409 allied air calls went at
+   planted Bombards, and 8 Bombards died under one. Ground fire almost never
+   reaches them. Colony Breach v1: 7 fielded, 2 globs, 3 troops hazed. Open: the
+   one-per-bore cap, not the slot's weight, sets how many there are.
 
 ## Acceptance
 

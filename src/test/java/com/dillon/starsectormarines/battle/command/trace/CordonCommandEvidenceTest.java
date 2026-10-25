@@ -215,9 +215,11 @@ class CordonCommandEvidenceTest {
             CordonSequence cordon = sim.getCordon();
             JSONArray timeline = new JSONArray();
             StringBuilder table = new StringBuilder();
+            BombardProbe bombards = new BombardProbe();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
+                bombards.afterAdvance(sim);
                 if (sim.getSimTickIndex() % TIMELINE_EVERY_TICKS == 0) {
                     JSONObject row = sample(sim, cordon);
                     timeline.put(row);
@@ -226,6 +228,7 @@ class CordonCommandEvidenceTest {
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             AirWingProbe.print(runId, sim);
+            bombards.print(runId, sim);
             // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
             StringBuilder objectives = new StringBuilder();
             ObjectiveBoard board = sim.getOptionalObjectives();
