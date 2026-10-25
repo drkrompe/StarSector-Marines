@@ -110,24 +110,38 @@ public final class SwarmFliers {
     }
 
     /**
-     * Whether the side the swarm fights has anti-air on the map: an anti-air emplacement, or a hull with a mount
-     * that engages air, on the marines' side or an ally's. A pack may only be released over a map that has it
+     * Whether the side the swarm fights has anti-air on the map: a seated gun that answers fliers ({@link #airGun}: an
+     * anti-air position, or any gun that tracks them, such as a colony's heavy machine guns), or a hull whose turret
+     * does ({@link #airMount}), on the marines' side or an ally's. A pack may only be released over a map that has it
      * ({@link #releaseUnderCover}), so the flier is never a threat the player has nothing to answer with.
      */
     public static boolean hasAirCover(BattleSimulation sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!preySide(sim.identity().faction(u)) || !sim.turretState().isTurret(u)) continue;
-            if (sim.turretState().structure(u).targetRole == TurretRole.AA) return true;
+            if (airGun(sim.turretState().structure(u))) return true;
         }
         ConvoyService convoy = sim.getRoster().convoy();
         for (int i = 0, n = sim.bodies().bodyCount(); i < n; i++) {
             long b = sim.bodies().bodyAt(i);
             if (!convoy.isVehicle(b) || !preySide(convoy.faction(b))) continue;
-            StructureDef mount = convoy.vehicleType(b).turretStructure();
-            if (mount != null && mount.mount.engagesAir) return true;
+            if (airMount(convoy.vehicleType(b).turretStructure())) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether a seated gun answers fliers: an anti-air position, or any gun whose weapon tracks them (the colony's
+     * heavy machine guns, a flak emplacement). The flier law and a pack's sense of the guns read the same rule.
+     */
+    static boolean airGun(StructureDef s) {
+        WeaponDef w = s.mount.weapon;
+        return s.targetRole == TurretRole.AA || w != null && w.tracksFliers();
+    }
+
+    /** Whether a hull's turret answers fliers: a mount that engages air, or a weapon that tracks them. */
+    static boolean airMount(StructureDef mount) {
+        return mount != null && (mount.mount.engagesAir || mount.mount.weapon != null && mount.mount.weapon.tracksFliers());
     }
 
     /**
@@ -693,16 +707,14 @@ public final class SwarmFliers {
             if (!preySide(sim.identity().faction(u)) || !sim.turretState().isTurret(u)) continue;
             StructureDef s = sim.turretState().structure(u);
             WeaponDef w = s.mount.weapon;
-            if (s.targetRole == TurretRole.AA || w != null && w.tracksFliers()) {
-                airGuns.add(new float[]{world.x(u), world.y(u), w != null ? w.range : 0f});
-            }
+            if (airGun(s)) airGuns.add(new float[]{world.x(u), world.y(u), w != null ? w.range : 0f});
         }
         for (int i = 0, n = sim.bodies().bodyCount(); i < n; i++) {
             long b = sim.bodies().bodyAt(i);
             if (!convoy.isVehicle(b) || !preySide(convoy.faction(b)) || !sim.bodies().isTargetable(b)) continue;
             StructureDef mount = convoy.vehicleType(b).turretStructure();
-            if (mount != null && (mount.mount.engagesAir || mount.mount.weapon.tracksFliers())) {
-                airGuns.add(new float[]{world.x(b), world.y(b), mount.mount.weapon.range});
+            if (airMount(mount)) {
+                airGuns.add(new float[]{world.x(b), world.y(b), mount.mount.weapon != null ? mount.mount.weapon.range : 0f});
             }
         }
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {

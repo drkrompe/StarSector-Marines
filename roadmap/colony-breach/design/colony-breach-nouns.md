@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — the flier law counts any gun that tracks fliers, so the colony's heavy guns meet it; a tender builds flak first with fliers about.
+
 Updated: 2026-10-25 — Harriers snatch colonists in the open alive and fly them into the bore.
 
 Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
@@ -517,7 +519,8 @@ militia make the rest of it when the battle is set up:
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
   other flank, so it always has two. Those guns are its whole armament: no
-  layers, no bunkers, no anti-air;
+  layers, no bunkers, no flak. Its heavy machine guns track fliers, so they
+  answer Harriers and meet the flier law (*Laws*);
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
@@ -2244,8 +2247,12 @@ argument.
   the director's budget, deterministic under the battle seed.
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
-  the map (an anti-air emplacement, or a hull with a mount that engages air;
-  `SwarmFliers.releaseUnderCover` refuses otherwise). A scene's control may
+  the map: a seated gun that answers fliers (an anti-air position, or any gun
+  whose weapon tracks them, as a colony's heavy machine guns and a flak
+  emplacement do), or a hull whose turret does (`SwarmFliers.hasAirCover`,
+  the same rule by which a pack senses the guns; `releaseUnderCover` refuses
+  otherwise). So a Colony Breach meets it with the compound's gun towers and
+  the militia's guns, and a tender meets it with flak. A scene's control may
   break this; a mission may not.
 - **Air cannot clear the map.** Every living bore has spore colonies round it
   until they are killed; they die with the bore.

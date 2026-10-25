@@ -21,6 +21,8 @@ import java.util.Map;
  *       one, it raises a spire: the root digs out to the spot and thickens over {@link BroodSpires#RISE_SECONDS},
  *       then the spire stands at its end, and with the line's flak on the map it puts its first patrol up.</li>
  *   <li>{@code starved}: the same bore left unfed over the same time stays short of maw and raises nothing.</li>
+ *   <li>{@code colony-guns}: as {@code fed}, with a colony's heavy machine gun where the flak was: a gun that tracks
+ *       fliers meets the flier law, so the spire flies over a colony with no flak of its own.</li>
  * </ul>
  */
 public final class FedSpireScene implements BehaviorScene {
@@ -41,15 +43,17 @@ public final class FedSpireScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
-        return List.of(run("fed", true, frames), run("starved", false, FrameSink.NONE));
+        return List.of(run("fed", true, BroodSpireScene.FLAK, frames),
+                run("starved", false, BroodSpireScene.FLAK, FrameSink.NONE),
+                run("colony-guns", true, ColonyMilitia.EMPLACEMENT_STRUCTURE, FrameSink.NONE));
     }
 
-    private SceneReport run(String loop, boolean fed, FrameSink frames) {
+    private SceneReport run(String loop, boolean fed, String gun, FrameSink frames) {
         try (BattleSimulation sim = HarrierPatrolScene.builder(LINE_X, LINE_Y).build().sim()) {
             SwarmBore bore = sim.swarmBores().open(sim, 1, false, BORE_X, BORE_Y);
             if (bore == null) throw new IllegalStateException("open ground refused a bore");
             sim.creepField();
-            sim.spawn(MapTurret.create("flak", Faction.MARINE, BroodSpireScene.FLAK, LINE_X + 3, LINE_Y));
+            sim.spawn(MapTurret.create("gun", Faction.MARINE, gun, LINE_X + 3, LINE_Y));
             BroodSpires spires = sim.broodSpires();
             int feedTicks = Math.round(FEED_SECONDS / BattleSimulation.TICK_DT), feeds = 0;
             int mawTick = -1, riseTick = -1, standTick = -1, flyTick = -1, ticks = TICKS;
@@ -89,7 +93,8 @@ public final class FedSpireScene implements BehaviorScene {
                                 && standTick - riseTick >= lead,
                         "root began at tick " + riseTick + ", spire stood " + (standTick - riseTick) + " ticks on (lead "
                                 + lead + ")"));
-                verdicts.add(Verdict.of("then-it-flies", flyTick > standTick, "first sortie at tick " + flyTick));
+                verdicts.add(Verdict.of("then-it-flies", flyTick > standTick, "first sortie at tick " + flyTick
+                        + " under the line's " + gun));
             } else {
                 verdicts.add(Verdict.of("a-starved-bore-raises-none", spires.spires().isEmpty()
                                 && spires.rising().isEmpty() && bore.tier() != BoreTier.MAW,
