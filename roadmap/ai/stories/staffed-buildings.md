@@ -54,7 +54,7 @@ workers never stand on one place and nobody walks back to the shelf they left.
 **Where.** Any populated map may staff some of its buildings; the caller says
 how many. The first consumer is the procedural operation map (the precinct
 towns of Conquest, Assault, Raid and Extraction), which staffs up to two of
-its civilian warehouses: a building with a garrison's compound over it is the
+its civilian warehouses, its largest factory and two of its shops: a building with a garrison's compound over it is the
 garrison's, never a civilian workplace. Cordon towns, story maps and the colony
 are natural next consumers and belong to their own sessions.
 
@@ -62,12 +62,16 @@ are natural next consumers and belong to their own sessions.
 
 `ai-nouns.md` has a civilian yield to anybody armed. On a garrisoned town that
 empties every workplace the first time the town's own patrol walks past, so a
-staffed building's crew yields to a **fight**: an armed actor near them who has
-somebody to shoot at, or a round that finds one of them. A garrison going
-about its rounds is part of the town; a firefight is not. A worker who yields
+staffed building's crew yields to a **fight**: an armed actor near them shooting
+at somebody also near them, or a round that finds one of them. A garrison going
+about its rounds is part of the town, and the company guarding a loading,
+firing at what comes up the street, lets the crew keep carrying; a firefight
+at the door is neither. A worker who yields
 drops the work and flees as any colonist does (`UnitRole.FLEE`: away from the
 fight toward the far edge), and goes back to the building once nothing near
-them has been fighting for a few seconds. A worker killed is gone: nobody holds
+them, and nothing near the work they would go back to, has been fighting for a
+few seconds. Without the second half a worker who has outrun the fight turns
+straight back into it and flees again. A worker killed is gone: nobody holds
 a civilian warehouse, so nobody sends a replacement (`ai-nouns.md`, A posting
 outlives the people filling it — a worked room with no compound over it is
 nobody's).
@@ -76,19 +80,39 @@ Sheltering inside the building, rather than running, is the better picture for
 a crew whose building is not itself being fought through, and waits on a
 shelter behaviour that does not yet exist.
 
-## The objective hook (designed, not built)
+## The objective hook: secure the loading
 
 **Secure the loading.** A mission may name one staffed warehouse as a
-**loading**: a truck (an ordinary civilian `CARGO_CARRIER`) or a shuttle stands
-at its yard, and the crew's loop changes from rack-to-pallet to
-rack-to-vehicle, each crate carried out counted aboard. The company guards the
-yard; the crew keep loading while the fight is outside the guard line and
-yield, as above, when it reaches them. When the count is met the vehicle leaves
-by road or lifts off the map edge, and the cargo is the reward or the
-objective; a vehicle destroyed or a crew run off before the count fails it.
-Everything it needs already exists — the vehicle, the carry, the claim points,
-the convoy's road exit and the civilian lift — so it is an objective over this
-piece, not a new system. It is left unbuilt until a mission asks for it.
+**loading** (`Loading`, `battle.staffed`): the settlement's own truck (an allied
+`CARGO_CARRIER`) stands in the yard, and the crew's loop changes from
+rack-to-pallet to rack-to-tailgate, each crate set down behind the truck counted
+aboard. The company guards the yard; the crew keep loading while the fight is
+outside their reach and yield, as above, when it reaches them. When the count is
+met the crew go back to the building's ordinary work and the truck drives a
+road it was proved before it parked off the map. The truck lost, or the whole
+crew dead, before then fails it; a battle that ends mid-loading lapses it.
+
+Where the colony has a freight yard (`set-piece-blocks.md`), its warehouse is the
+one staffed and the truck stands in the yard's bay, nose to the gate. Elsewhere,
+where the truck stands is decided by whether it can leave. A stand counts only
+on truck-sized ground connected to the map's edge band, where the hull can set
+out facing any way (`TurnAwareCorridor.canSetOutFrom`). Of the stands nearest the
+warehouse door, the first with a drivable road out to an edge wins. The nearest
+truck-sized cell is often tucked against the building's corner, and no turning
+circle gets a truck out of there. A warehouse with no such stand has no loading,
+and the mission offers no objective.
+
+`LoadingObjective` makes it an optional objective (`optional-objectives.md`);
+the mission brings the loading and what it is worth. Its first host is Colony
+Breach (`ColonyBreachObjectives`): the colony's largest warehouse, a side
+objective beside the rescue, never instead of it. Whether it should instead be
+an alternative main objective for the first alien mission is the owner's call.
+Played unguarded on eight HIGH-risk colony seeds, three finished the loading and
+drove out, three lost the truck to the swarm once the crew had run, and two
+colonies had no stand a truck could leave from.
+
+A shuttle that lifts off instead of a truck is the same loading with a
+different vehicle and is not built.
 
 ## Constraints
 
@@ -101,8 +125,9 @@ piece, not a new system. It is left unbuilt until a mission asks for it.
 
 ## Acceptance
 
-- A look scene (`staffed-warehouse-look`, a `SnapshotSuite`) of a generated
-  warehouse at work: 1920x1080 stills at play zoom and close, crates moving.
+- A look scene per kind (`staffed-warehouse-look`, `staffed-factory-look`,
+  `staffed-grocery-look`, one `SnapshotSuite` each) of a generated building at
+  work: 1920x1080 stills at play zoom and close, and a run of close frames.
 - One unit test on the recovery rule: a stock fixture yields one point beside
   it on free floor, never on a doorway or another point.
 - Procedural operation maps carry staffed warehouses without changing their
@@ -110,10 +135,11 @@ piece, not a new system. It is left unbuilt until a mission asks for it.
 
 ## Plan
 
-Done: steps 1 to 3. `BuildingWork` recovers a building's work and kind,
+Done: steps 1 to 5. `BuildingWork` recovers a building's work and kind,
 `StaffedCrew` gives each hand a loop round it, `AmbientThreatPolicy.FIGHT_NEARBY`
-is the yield, and `StaffedBuildings` staffs the two largest civilian warehouses
-of every procedural operation map (`staffed-warehouse-look`). Measured on one
+is the yield, and `StaffedBuildings` staffs the two largest civilian warehouses, the
+largest factory and the two largest shops of every procedural operation map
+(`staffed-warehouse-look`, `staffed-factory-look`, `staffed-grocery-look`). Measured on one
 Assault map: armed patrols passed within two cells of the crew and nobody
 stopped work; with the nearby units engaged, the hands in reach stood down and
 were back at work within seconds of it ending. Town warehouses are modest (the
@@ -124,7 +150,7 @@ freight origin builds today.
 1. Recover stores work from a building's stock (`BuildingWork`).
 2. The crew and its loop; the fight-near-them yield.
 3. Staff procedural operation maps; the look scene.
-4. Factory and grocery from the same recovery: the kinds are already read, and
-   each wants only its own look before a map staffs it.
-5. Later: shelter instead of flight; the loading objective; the larger
-   freight warehouse as a placeable piece for Cordon towns and the colony.
+4. Factory and grocery from the same recovery.
+5. The loading objective, hosted in Colony Breach (`colony-loading-look`).
+6. Later: shelter instead of flight; a shuttle loading; the larger freight
+   warehouse as a placeable piece for Cordon towns and the colony.

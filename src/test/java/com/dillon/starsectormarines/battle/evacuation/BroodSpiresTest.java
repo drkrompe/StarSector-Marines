@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -60,6 +61,38 @@ class BroodSpiresTest {
             @Override public boolean open(int x, int y) { return true; }
         };
         assertNull(BroodSpires.choose(bare, 100, 100, 0f, List.of(), List.of()));
+    }
+
+    @Test
+    void itsBroodFillsBackOntoTheHooksOverItsGap() {
+        assertEquals(0, BroodSpires.perched(true, GAP * 10, GAP), "none while its pack flies");
+        assertEquals(0, BroodSpires.perched(false, 0, GAP), "none the moment it launched");
+        assertEquals(BroodSpires.PERCHES / 2, BroodSpires.perched(false, GAP / 2, GAP), "half way through the gap");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, GAP, GAP), "a full roost is ready to launch");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, GAP / 2, GAP / 2), "a tended spire fills sooner");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, Integer.MAX_VALUE / 2, GAP), "never more than its hooks");
+    }
+
+    @Test
+    void aQuietFullRoostPatrolsAfterItsGap() {
+        assertTrue(BroodSpires.patrols(true, false, false, true, false, 100, 100));
+        assertFalse(BroodSpires.patrols(false, false, false, true, false, 100, 100), "the flier law");
+        assertFalse(BroodSpires.patrols(true, true, false, true, false, 100, 100), "its pack is up");
+        assertFalse(BroodSpires.patrols(true, false, true, true, false, 100, 100), "a patrol is up");
+        assertFalse(BroodSpires.patrols(true, false, false, false, false, 100, 100), "its roost is filling");
+        assertFalse(BroodSpires.patrols(true, false, false, true, true, 100, 100), "prey near is a launch's work");
+        assertFalse(BroodSpires.patrols(true, false, false, true, false, 99, 100), "too soon");
+    }
+
+    @Test
+    void aPatrolHomeShortLeavesTheRoostShort() {
+        int tick = 10_000;
+        int last = BroodSpires.roostAfterPatrol(Integer.MIN_VALUE / 2, tick, 0, GAP);
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, tick - last, GAP), "home whole: still full");
+        last = BroodSpires.roostAfterPatrol(Integer.MIN_VALUE / 2, tick, 2, GAP);
+        assertEquals(BroodSpires.PERCHES - 2, BroodSpires.perched(false, tick - last, GAP), "two lost: two hooks bare");
+        assertEquals(BroodSpires.PERCHES, BroodSpires.perched(false, tick + GAP - last, GAP), "and it fills back");
+        assertFalse(BroodSpires.releases(true, false, tick - last, true), "and holds off its launch meanwhile");
     }
 
     @Test

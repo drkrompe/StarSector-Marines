@@ -10,7 +10,7 @@ these stories.
 | Story | State and dependency |
 | --- | --- |
 | `bloom-installation-flavour.md` | **PLANNED.** The bloomed market's industry picks the colony's outlying installation (mine head, pumping yard, farm). Battle-side; campaign blooms have landed. |
-| Harrier in missions (no story doc yet) | **IN PROGRESS.** Packs come from brood spires and Matriarch broods (`colony-breach-nouns.md`, Brood spire), built and scene-tested. Next: anti-air staged in the Cordon and the heart so the flier law can be met there, the company commander treating a known spire on its way, and the spire's final art on the owner's pick (`brood-spire-look`). |
+| Harrier in missions (no story doc yet) | **IN PROGRESS.** Packs come from brood spires and Matriarch broods (`colony-breach-nouns.md`, Brood spire), built and scene-tested; the heart's base and every Cordon redoubt stage flak, so the flier law is met and the spires fly in both. The nest's layout (mouth, roots, roost, clutter) is built, and spires put patrols up over their nests, and packs with nothing to hunt carry the dead home as feed. Next: deep raids behind the line; the company commander treating a known spire on its way only if play shows it walks past one. |
 
 Live pressure and balance acceptance continues in `rescue-pressure-acceptance.md`
 once the spine, bores and strains have landed.

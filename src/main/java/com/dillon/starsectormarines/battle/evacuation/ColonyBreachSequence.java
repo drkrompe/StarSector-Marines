@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.command.StrikeDetachment;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog.Audience;
@@ -142,6 +143,9 @@ public final class ColonyBreachSequence {
     public void tick(BattleSimulation sim) {
         if (terminal) return;
         int tick = sim.getSimTickIndex();
+        // The side objectives run on the breach's clock (ColonyBreachObjectives).
+        ObjectiveBoard objectives = sim.getOptionalObjectives();
+        if (objectives != null) objectives.advance(tick);
         if (landfallTick < 0 && marineOnTheGround(sim)) landfallTick = tick;
         if (shelterReachedTick < 0 && !sim.isCivilianShelterProtected()) {
             shelterReachedTick = tick;

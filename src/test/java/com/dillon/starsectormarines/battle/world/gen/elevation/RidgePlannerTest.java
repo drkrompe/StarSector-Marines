@@ -38,6 +38,49 @@ class RidgePlannerTest {
         for (int y = 0; y < H; y++) for (int x = 58; x <= 61; x++) assertTrue(!layout.touched(x, y), "the pass stays open");
     }
 
+    /** A berm is graded, its full width to square ends a few cells short of the pass, its faces straight. */
+    @Test
+    void aBermIsItsFullWidthToSquareEndsAndStraightAlong() {
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5).berm();
+        ElevationPlan plan = RidgePlanner.plan(W, H, 1L, List.of(band), RidgePlannerTest::free, layout -> true);
+        assertNotNull(plan);
+        assertEquals(2, plan.plateaus().size());
+        for (ElevationPlan.Plateau plateau : plan.plateaus()) assertTrue(plateau.graded(), "a berm is graded");
+        ElevationLayout layout = ElevationLayout.resolve(plan);
+        assertTrue(layout.gradedCorner(30, 25), "the art draws it as a built bank");
+        int end = 57;
+        while (!layout.touched(end, 25)) end--;
+        assertTrue(end >= 58 - 1 - RidgePlanner.END_GAP - RidgePlanner.BERM_END - 2, "runs to near the pass: " + end);
+        int top = -1, bottom = -1;
+        for (int y = 0; y < H; y++) {
+            if (!layout.touched(30, y)) continue;
+            if (top < 0) top = y;
+            bottom = y;
+        }
+        for (int x = 12; x < end; x++) {
+            assertTrue(layout.touched(x, top) && layout.touched(x, bottom), "full width to its square end at " + x);
+            assertTrue(!layout.touched(x, top - 1) && !layout.touched(x, bottom + 1), "a straight face at " + x);
+        }
+    }
+
+    /** Natural ground swells and narrows along its run, past the band's thickness and inside it. */
+    @Test
+    void naturalGroundVariesItsWidthAlongTheRun() {
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5);
+        ElevationPlan plan = RidgePlanner.plan(W, H, 7L, List.of(band), i -> true, layout -> true);
+        assertNotNull(plan);
+        ElevationLayout layout = ElevationLayout.resolve(plan);
+        int widest = 0, narrowest = H;
+        for (int x = 30; x <= W - 30; x++) {
+            int across = 0;
+            for (int y = 0; y < H; y++) if (layout.touched(x, y)) across++;
+            widest = Math.max(widest, across);
+            narrowest = Math.min(narrowest, across);
+        }
+        assertTrue(widest > band.thickness() + 2 && narrowest < band.thickness(),
+                "widest " + widest + ", narrowest " + narrowest);
+    }
+
     @Test
     void aBandRunsOnThroughAStandingTerraceRatherThanBreakingIntoAPass() {
         // A place across the band, its road coming up to it from the south.
@@ -46,7 +89,8 @@ class RidgePlannerTest {
         TerracePlanner.Planned terrace = TerracePlanner.plan(W, H, 1L, place, road, i -> true, i -> !road.test(i),
                 i -> true);
         assertTrue(terrace.stands(), terrace.refusal());
-        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5);
+        // A berm, as the Cordon's line is: natural ground would wander off the row the crest is read along.
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5).berm();
         ElevationPlan plan = RidgePlanner.plan(W, H, 1L, List.of(band), i -> !road.test(i), layout -> true,
                 List.of(terrace));
         assertNotNull(plan);
@@ -87,6 +131,7 @@ class RidgePlannerTest {
         boolean[][] held = RidgePlanner.heldGround(List.of(west, east), W, H, 7);
         for (int x = 42; x <= 54; x++) assertTrue(!side[x][24], "the pass is open at " + x);
         assertTrue(held[48][24], "held ground's round ends would close the pass");
-        assertTrue(side[20][38] && !side[20][44], "the side reaches the band, its apron and the margin");
+        int reach = 44 + west.spread();
+        assertTrue(side[20][reach - 6] && !side[20][reach], "the side reaches the band, its swell, its apron and the margin");
     }
 }

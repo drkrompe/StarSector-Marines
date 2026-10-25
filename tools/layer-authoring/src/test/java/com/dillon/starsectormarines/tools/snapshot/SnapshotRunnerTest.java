@@ -37,6 +37,19 @@ class SnapshotRunnerTest {
     }
 
     @Test
+    void movesAnEncodedVideoIntoPlace(@TempDir Path temporary) throws Exception {
+        Path encoded = Files.write(temporary.resolve("encoded.tmp"), new byte[] {1, 2, 3});
+        SnapshotSuite suite = suite("video", List.of(SnapshotArtifact.video("look/shot.mp4", encoded, List.of())));
+
+        new SnapshotRunner().create(new SnapshotContext(temporary, temporary), List.of(suite),
+                temporary.resolve("snapshots"), true);
+        assertEquals(3, Files.size(temporary.resolve("snapshots/video/look/shot.mp4")));
+        assertFalse(Files.exists(encoded));
+        assertThrows(IllegalArgumentException.class,
+                () -> SnapshotArtifact.video("look/shot.gif", encoded, List.of()));
+    }
+
+    @Test
     void validatesEveryArtifactBeforeWritingAnyOutput(@TempDir Path temporary) {
         BufferedImage image = image(Color.WHITE);
         SnapshotSuite duplicate = suite("duplicate", List.of(

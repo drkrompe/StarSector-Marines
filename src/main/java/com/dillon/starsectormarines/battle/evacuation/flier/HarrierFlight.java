@@ -45,6 +45,8 @@ public final class HarrierFlight {
     public final HarrierBodyRig rig = new HarrierBodyRig();
     /** Whether it went low on the dive in hand: the dive half of dive-and-pull-up. */
     public boolean wentLow;
+    /** The body it is off fetching for the nest ({@link HarrierCarry}), or {@code null} while it flies with its pack. */
+    public HarrierCarry carry;
 
     public HarrierFlight(long id, AirBody body, HarrierLook look) {
         this.id = id;

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
+import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -15,8 +17,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.WeakHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 
 /**
  * The swarm bodies' sound (`colony-breach-nouns.md`, Sound), keyed to what each
@@ -46,11 +50,23 @@ import java.util.concurrent.ThreadLocalRandom;
  * listener. A pack reads as a pack, thicker and somewhat louder than one body, not as forty copies of one clip.
  * A thrown body's landing is one thud whatever threw it. Presentation only; nothing here reaches the simulation.
  *
+ * <p>The skitterer, the nests' worker, has its own small sounds out of borrowed takes: a quick chitin patter on
+ * every stride (the Harrier's wingbeat, which is the Runner's clatter cut short, played higher), a thin squeak when it
+ * is hurt or scatters (the Runner's yelp, higher still), the Runner's death and the body drag, all a few dB under a
+ * Runner, and while it stands at a mend, a burn, a tree or an outpost a soft wet working bed (the fissure's scratching
+ * ambience, raised): a placed loop on the nearest workers at it, at most {@link #WORK_LOOPS} at once, so a busy nest
+ * murmurs and does not drone. It never cries or strikes.
+ *
+ * <p>A body fed to a bore ({@link SwarmHarvest#feeding}) is swallowed as it reaches the mouth: a wet gulp (the
+ * Spitter's lob, slowed) and, a beat later, the thud of it landing down inside (the body thud, deeper), pitched by the
+ * fed body's size like everything else.
+ *
  * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
  * death are the Brute's takes played deeper and slower through the pitch
  * argument, not baked copies. The Harrier, which flies with its pack rather than walking, is
- * {@link HarrierAudio}'s, played from here.
+ * {@link HarrierAudio}'s, and the brood spire it rises from {@link SpireAudio}'s, both played from here, as are the
+ * marines' barks in the fight ({@link MarineBarks}).
  */
 public final class SwarmAudio {
 
@@ -62,6 +78,13 @@ public final class SwarmAudio {
     private static final int FOOTFALLS_PER_FRAME = 8;
     /** Health lost below this is a graze and draws no pain sound. */
     private static final float PAIN_THRESHOLD = 1f;
+    /** Ticks after a fed body is let go that it reaches the mouth and is swallowed. */
+    static final int GULP_TICKS = Math.round(SwarmHarvest.FEED_SLIDE_SECONDS / BattleSimulation.TICK_DT);
+    /** Ticks after the gulp that the body lands down inside. */
+    static final int GULP_THUD_TICKS = Math.round(0.3f / BattleSimulation.TICK_DT);
+    /** Skitterers heard at their work at once: each is one placed loop, nearest the listener first. */
+    static final int WORK_LOOPS = 2;
+    private static final Object[] WORK_LOOP_OWNERS = {new Object(), new Object()};
 
     // Presentation-only: per battle, the last tick played, gait and health last seen, and the voices.
     private static final Map<BattleSimulation, Mix> MIXES = new WeakHashMap<>();
@@ -112,7 +135,19 @@ public final class SwarmAudio {
         MATRIARCH_FOOTFALL("brute_footfall", 0.78f, 4, 1f, 0f, 0.65f),
         MATRIARCH_CROWN("brute_impact", 0.35f, 2, 2f, 0f, 0.75f),
         MATRIARCH_WALL_BREAK("brute_wall_break", 0.35f, 2, 3f, 0f, 0.8f),
-        MATRIARCH_PAIN("brute_pain", 0.2f, 1, 1.3f, 1.2f, 0.72f);
+        MATRIARCH_PAIN("brute_pain", 0.2f, 1, 1.3f, 1.2f, 0.72f),
+        // The skitterer, on top of its size's pitch (1/0.68), a few dB under a Runner: patter near -39 LUFS a voice,
+        // squeak near -30, death -28, drag -35, and each work loop -36. The squeak is its hurt and its scatter both,
+        // so one body's gap keeps a hit that sends it running to one squeak.
+        WORKER_PATTER("harrier_wingbeat", 0.3f, 4, 0.18f, 0f, 1.15f),
+        WORKER_SQUEAK("runner_pain", 0.08f, 4, 0.45f, 1.2f, 1.3f),
+        WORKER_DEATH("runner_death", 0.07f, 4, 0.9f, 0f),
+        WORKER_DRAG("body_drag", 0.33f, 2, 1.5f, 1.5f),
+        // A body going down a bore's mouth: a gulp near -29 LUFS and its landing inside near -33, under a Runner.
+        BORE_GULP("spitter_lob", 0.13f, 3, 1.6f, 0f, 0.6f),
+        BORE_GULP_THUD("body_thud", 0.16f, 3, 1.1f, 0f, 0.7f),
+        /** A placed loop, refreshed every frame while a skitterer is at its work ({@link #workLoops}); never layered. */
+        WORKER_WORK("bore_ambience_fissure", 0.35f, WORK_LOOPS, 0f, 0f);
 
         final String id;
         final float volume;
@@ -135,21 +170,47 @@ public final class SwarmAudio {
     /** Where a held voice starts, and whose voice it is. */
     record Spot(float x, float y, UnitType strain, SwarmStage stage) { }
 
-    /** A sound to start, where, and at what pitch and level (stage, layering and jitter included). */
-    public record Play(Sound sound, float x, float y, float pitch, float volume) {
+    /**
+     * A sound to start, where, and at what pitch and level (stage, layering and jitter included); {@code loop} is the
+     * slot of a placed loop held this tick ({@code -1} for a sound played once).
+     */
+    public record Play(Sound sound, float x, float y, float pitch, float volume, int loop) {
         public String soundId() { return sound.id; }
     }
 
     /** Per battle: the last tick heard, gait and health last seen, and the voices. */
     public static final class Mix {
         private int tick = -1;
+        /** The pitch jitter's source: the thread's own in a battle; seeded where a review needs the same mix twice. */
+        private RandomGenerator jitter;
         final VoicePool<Sound, Spot> voices = new VoicePool<>(Sound.class, sound -> sound.layering);
         // Readings by body, as float bits (fastutil-core has no float maps); absent reads NaN.
         private final Long2IntOpenHashMap gait = readings();
         private final Long2IntOpenHashMap health = readings();
         private final Long2IntOpenHashMap seenGait = readings();
         private final Long2IntOpenHashMap seenHealth = readings();
+        // A skitterer's job by body, as its ordinal; absent reads -1.
+        private final Long2IntOpenHashMap job = jobs();
+        private final Long2IntOpenHashMap seenJob = jobs();
+        private List<Play> loops = List.of();
         private int strides;
+
+        private static Long2IntOpenHashMap jobs() {
+            Long2IntOpenHashMap map = new Long2IntOpenHashMap();
+            map.defaultReturnValue(-1);
+            return map;
+        }
+
+        /** This mix with its pitch jitter drawn from {@code seed}, so the same battle starts the same sounds. */
+        public Mix seeded(long seed) {
+            jitter = new SplittableRandom(seed);
+            return this;
+        }
+
+        float jitter() {
+            RandomGenerator source = jitter != null ? jitter : ThreadLocalRandom.current();
+            return source.nextFloat(-PITCH_JITTER, PITCH_JITTER);
+        }
 
         private static Long2IntOpenHashMap readings() {
             Long2IntOpenHashMap map = new Long2IntOpenHashMap();
@@ -159,12 +220,15 @@ public final class SwarmAudio {
 
         /**
          * What the swarm bodies make this tick, once per tick (empty on a tick already heard), on ground the player
-         * has seen; {@link SwarmAudio#play} plays it, and a review mixes its soundtrack from it.
+         * has seen; {@link SwarmAudio#play} plays it, and a review mixes its soundtrack from it. The placed loops held
+         * this tick are in it too, and stay in {@link #loops} until the next.
          */
         public List<Play> hear(BattleSimulation sim, float listenerX, float listenerY) {
             List<Play> out = new ArrayList<>();
+            int prior = tick;
             if (!frame(sim.getSimTickIndex())) return out;
             int now = sim.getSimTickIndex();
+            if (prior >= now) prior = now - 1;
             for (VoicePool.Held<Sound, Spot> h : voices.due(now)) {
                 Spot at = h.payload();
                 emit(out, sim, this, h.sound(), 0L, at.x(), at.y(), now, at.strain(), at.stage(), h.heldFor());
@@ -172,6 +236,12 @@ public final class SwarmAudio {
             for (SwarmCues.Cue cue : sim.swarmCues().cuesThisFrame())
                 emit(out, sim, this, sound(cue.kind(), cue.strain()), cue.body(), cue.x(), cue.y(), now, cue.strain(),
                         cue.stage(), 0);
+            for (SwarmHarvest.Feed feed : sim.swarmHarvest().feeding()) {
+                Sound gulp = gulp(feed.tick(), prior, now);
+                if (gulp == null) continue;
+                emit(out, sim, this, gulp, feed.body(), feed.mouthX(), feed.mouthY(), now,
+                        sim.identity().type(feed.body()), sim.identity().swarmStage(feed.body()), 0);
+            }
             LongList deaths = sim.getDeathsThisFrame();
             for (int i = 0; i < deaths.size(); i++) {
                 long body = deaths.getLong(i);
@@ -181,8 +251,13 @@ public final class SwarmAudio {
                         type, sim.identity().swarmStage(body), 0);
             }
             bodies(out, sim, this, listenerX, listenerY, now);
+            loops = workLoops(sim, listenerX, listenerY);
+            out.addAll(loops);
             return out;
         }
+
+        /** The placed loops of the last tick heard, to refresh every rendered frame. */
+        public List<Play> loops() { return loops; }
 
         boolean frame(int current) {
             if (current == tick) return false;
@@ -190,6 +265,7 @@ public final class SwarmAudio {
                 voices.clear();
                 gait.clear();
                 health.clear();
+                job.clear();
             }
             tick = current;
             return true;
@@ -203,6 +279,9 @@ public final class SwarmAudio {
             health.clear();
             health.putAll(seenHealth);
             seenHealth.clear();
+            job.clear();
+            job.putAll(seenJob);
+            seenJob.clear();
         }
     }
 
@@ -218,11 +297,22 @@ public final class SwarmAudio {
      */
     public static void play(BattleSimulation sim, float listenerX, float listenerY) {
         HarrierAudio.play(sim, listenerX, listenerY);
-        for (Play p : MIXES.computeIfAbsent(sim, ignored -> new Mix()).hear(sim, listenerX, listenerY)) {
-            Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(),
-                    new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL),
+        SpireAudio.play(sim, listenerX, listenerY);
+        MarineBarks.play(sim);
+        Mix mix = MIXES.computeIfAbsent(sim, ignored -> new Mix());
+        for (Play p : mix.hear(sim, listenerX, listenerY)) {
+            if (p.loop() >= 0) continue;
+            Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(), at(p), new Vector2f(0f, 0f));
+        }
+        // a loop must be refreshed each frame or it stops
+        for (Play p : mix.loops()) {
+            Global.getSoundPlayer().playLoop(p.soundId(), WORK_LOOP_OWNERS[p.loop()], p.pitch(), p.volume(), at(p),
                     new Vector2f(0f, 0f));
         }
+    }
+
+    private static Vector2f at(Play p) {
+        return new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL);
     }
 
     /** Footfalls and pain off every living swarm body's gait and health. */
@@ -243,6 +333,14 @@ public final class SwarmAudio {
             mix.seenHealth.put(body, Float.floatToRawIntBits(hp));
             if (hp > 0f && priorHp - hp >= PAIN_THRESHOLD) emit(out, sim, mix, pain(type), body, x, y, now, type, stage,
                     0);
+            if (type == UnitType.SWARM_WORKER) {
+                SwarmWorkers.Worker worker = sim.swarmWorkers().of(body);
+                if (worker != null) {
+                    mix.seenJob.put(body, worker.job().ordinal());
+                    if (scattered(mix.job.get(body), worker.job()))
+                        emit(out, sim, mix, Sound.WORKER_SQUEAK, body, x, y, now, type, stage, 0);
+                }
+            }
             if (!world.has(body, components.MOVEMENT)) continue;
             float phase = world.getFloat(body, components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE);
             float priorPhase = Float.intBitsToFloat(mix.gait.get(body));
@@ -284,6 +382,8 @@ public final class SwarmAudio {
             if (stride % 2 != 0) return null;
             return stride % 6 == 0 ? Sound.RUNNER_CLATTER : Sound.RUNNER_GALLOP;
         }
+        // a skitterer's patter is on every stride, small and quick; a Runner's falls on every other
+        if (strain == UnitType.SWARM_WORKER) return carrying ? Sound.WORKER_DRAG : Sound.WORKER_PATTER;
         return null;
     }
 
@@ -333,7 +433,63 @@ public final class SwarmAudio {
         return strain == UnitType.SWARM_BRUTE || strain == UnitType.SWARM_MATRIARCH;
     }
 
+    /**
+     * What a body let go into a mouth at {@code fedTick} makes in the ticks after {@code prior} up to {@code now}: the
+     * gulp as it reaches the mouth, then its landing inside, or nothing.
+     */
+    static Sound gulp(int fedTick, int prior, int now) {
+        int at = fedTick + GULP_TICKS;
+        if (at > prior && at <= now) return Sound.BORE_GULP;
+        at += GULP_THUD_TICKS;
+        if (at > prior && at <= now) return Sound.BORE_GULP_THUD;
+        return null;
+    }
+
+    /**
+     * Whether a skitterer has just scattered: it is fleeing and was last heard doing something else. One first heard
+     * already fleeing ({@code priorJob} {@code -1}) is not a new scatter.
+     */
+    static boolean scattered(int priorJob, SwarmWorkers.Job job) {
+        return job == SwarmWorkers.Job.FLEE && priorJob >= 0 && priorJob != SwarmWorkers.Job.FLEE.ordinal();
+    }
+
+    /** The work loops this tick: the seen skitterers head-down at their work nearest the listener, in range. */
+    private static List<Play> workLoops(BattleSimulation sim, float listenerX, float listenerY) {
+        List<float[]> at = new ArrayList<>();
+        for (SwarmWorkers.Worker w : sim.swarmWorkers().workers()) {
+            if (sim.swarmWorkers().show(w.id) != SwarmWorkers.Show.WORKING) continue;
+            float x = sim.world().renderX(w.id);
+            float y = sim.world().renderY(w.id);
+            if (sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) at.add(new float[]{x, y});
+        }
+        return workLoops(at, listenerX, listenerY);
+    }
+
+    /**
+     * Where the work loops sit among the skitterers at work ({@code {x, y}} each): on the nearest
+     * {@link #WORK_LOOPS} within footfall range, each later loop quieter by the layering rule, so more workers are a
+     * thicker murmur than one and never a drone.
+     */
+    static List<Play> workLoops(List<float[]> working, float listenerX, float listenerY) {
+        List<float[]> near = new ArrayList<>();
+        for (float[] p : working) {
+            float dx = p[0] - listenerX, dy = p[1] - listenerY;
+            if (dx * dx + dy * dy <= FOOTFALL_RANGE_CELLS * FOOTFALL_RANGE_CELLS) near.add(p);
+        }
+        near.sort(Comparator.comparingDouble(p -> (p[0] - listenerX) * (p[0] - listenerX)
+                + (p[1] - listenerY) * (p[1] - listenerY)));
+        Sound work = Sound.WORKER_WORK;
+        List<Play> out = new ArrayList<>();
+        for (int i = 0; i < Math.min(WORK_LOOPS, near.size()); i++) {
+            float[] p = near.get(i);
+            out.add(new Play(work, p[0], p[1], work.pitch * pitch(UnitType.SWARM_WORKER, SwarmStage.ADULT),
+                    work.volume * VoicePool.layerGain(i + 1), i));
+        }
+        return out;
+    }
+
     static Sound pain(UnitType strain) {
+        if (strain == UnitType.SWARM_WORKER) return Sound.WORKER_SQUEAK;
         if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_PAIN;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_PAIN;
         if (heavy(strain)) return Sound.BRUTE_PAIN;
@@ -341,15 +497,19 @@ public final class SwarmAudio {
     }
 
     static Sound death(UnitType strain) {
+        if (strain == UnitType.SWARM_WORKER) return Sound.WORKER_DEATH;
         if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_DEATH;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_DEATH;
         if (heavy(strain)) return Sound.BRUTE_DEATH;
         return null;
     }
 
-    /** A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up. */
+    /**
+     * A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up; a skitterer,
+     * smaller than any whelp, higher still.
+     */
     static float pitch(UnitType strain, SwarmStage stage) {
-        return 1f / SwarmStage.of(stage).scale(strain);
+        return 1f / (SwarmStage.of(stage).scale(strain) * (strain == UnitType.SWARM_WORKER ? strain.renderScale : 1f));
     }
 
     /** A body's loudness by its stage, against the adult's. */
@@ -366,7 +526,7 @@ public final class SwarmAudio {
                              int tick, UnitType strain, SwarmStage stage, int heldFor) {
         if (sound == null || !sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) return;
         if (mix.voices.offer(sound, body, tick, new Spot(x, y, strain, stage), heldFor) != VoicePool.Admit.START) return;
-        float pitch = sound.pitch * pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
-        out.add(new Play(sound, x, y, pitch, sound.volume * volume(stage) * mix.voices.gain(sound)));
+        float pitch = sound.pitch * pitch(strain, stage) * (1f + mix.jitter());
+        out.add(new Play(sound, x, y, pitch, sound.volume * volume(stage) * mix.voices.gain(sound), -1));
     }
 }

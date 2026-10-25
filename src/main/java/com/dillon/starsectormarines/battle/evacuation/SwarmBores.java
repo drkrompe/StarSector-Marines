@@ -92,6 +92,11 @@ public final class SwarmBores {
     /** Every bore that has opened, in the order they opened, living and collapsed. */
     public List<SwarmBore> bores() { return view; }
 
+    /** The creep was matured at setup: every growth the bores hold so far is weeks old, its root grown. */
+    public void aged() {
+        for (SwarmBore bore : bores) bore.aged();
+    }
+
     /** Facts in the order they happened; readers keep their own cursor. */
     public List<Event> events() { return eventView; }
 
@@ -341,7 +346,7 @@ public final class SwarmBores {
             String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
                     + " Spore Colony " + (bore.colonies().size() + 1);
             long colony = sim.spawn(bodySpec(name, grade.sporeColonyStructure(), site[0], site[1]));
-            bore.sprouted(colony);
+            bore.sprouted(colony, sim.getSimTickIndex());
             count--;
         }
     }

@@ -936,6 +936,7 @@ public final class CordonConvoys {
             if (!sim.world().hasPosition(unit) || sim.isRiding(unit)) continue;
             Faction faction = sim.identity().faction(unit);
             boolean wanted = swarm ? faction == Faction.DEFENDER && sim.identity().type(unit).isSwarm()
+                    && !sim.identity().type(unit).isSwarmWorker()
                     : faction == Faction.MARINE;
             if (wanted) out.add(new float[]{sim.world().x(unit), sim.world().y(unit)});
         }

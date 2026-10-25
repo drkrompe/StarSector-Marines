@@ -375,6 +375,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 if (uv == FogOfWarService.VIS_HIDDEN) continue;
                 float alpha = ctx.alphaMult;
                 if (uv == FogOfWarService.VIS_FADING) alpha *= vis.getFadeAlpha(denseIdx);
+                // A Rav still in its bore's hole casts nothing on the ground yet; its shadow comes in as it climbs out.
+                alpha *= ctx.sim.swarmEmergence().progress(entityId, ctx.sim.getSimTickIndex());
+                if (alpha <= 0f) continue;
 
                 float radiusCells = roster.radius(entityId);
                 float heightCells = 2f * roster.hitHalfHeight(entityId);
@@ -427,8 +430,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                               UnitType type, float x, float y, float facingDegrees, float heightCells,
                               float alpha) {
         SwarmStage stage = ctx.sim.getRoster().identity().swarmStage(entityId);
-        float lengthCells = SwarmFootprint.length(type, stage) * LONG_BODY_SPREAD;
-        float widthCells = SwarmFootprint.width(type, stage) * LONG_BODY_SPREAD;
+        float rise = EmergenceLook.scale(ctx.sim.swarmEmergence().progress(entityId, ctx.sim.getSimTickIndex()));
+        float lengthCells = SwarmFootprint.length(type, stage) * LONG_BODY_SPREAD * rise;
+        float widthCells = SwarmFootprint.width(type, stage) * LONG_BODY_SPREAD * rise;
         float forward = SwarmFootprint.forwardOffset(type, stage);
         double rad = Math.toRadians(facingDegrees);
         float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);

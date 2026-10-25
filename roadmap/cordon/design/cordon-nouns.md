@@ -57,8 +57,12 @@ gates are where they cross its wall (a road that only runs past a square
 place's side opens it only where a street leaves, and a square place no road
 grew into is given arms off the road past it); the garrison makes the rest of it at
 setup: a gun tower beside each gate, firing slits and wall posts along its
-runs, floodlights at its corners. Its wall is field grade: a Brute, a charge or
-a ground colony's spines open it. Each redoubt is numbered across the line from
+runs, floodlights at its corners, and a flak position in its yard
+(`CordonGarrisons`; on the redoubt's ammunition with its guns). The flak is what
+meets the flier law over the line: the front's brood spires launch Harrier packs
+with their bores' surges only while some of it stands (`colony-breach-nouns.md`,
+Brood spire), and the packs hunt what it does not cover. Its wall is field
+grade: a Brute, a charge or a ground colony's spines open it. Each redoubt is numbered across the line from
 west to east, from 1.
 
 **Construction.** What a redoubt is built from (`CordonConstruction`; owner,
@@ -184,6 +188,13 @@ the colonies the side has seen, so a mass in front of a bore whose colonies
 nobody has seen costs aircraft. A redoubt whose observer is killed calls no more
 air; the columns, the street teams, the town's militia, the refugees and the
 company carry no radio onto the wing's net. Both variants, every density.
+
+**Roving observer team** (`air-nouns.md`, Roving observer). Now and then the
+military sends a two-man observer team up from the rear. Its vantages are the
+gaps beside the manned redoubts, watched from six cells past a side wall and
+six back toward home: the redoubts calling for relief first, then the one with
+the least garrison standing. A team watches one, moves on after a while or
+when the swarm is on it, and is gone when its observer dies.
 
 **Redoubt states.** A redoubt is **holding** while its garrison stands and no
 swarm body is inside its wall. It is **calling** (for relief) once a swarm

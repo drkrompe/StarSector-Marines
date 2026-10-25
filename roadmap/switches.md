@@ -141,6 +141,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | control | 2026-10-22 | Standing control: fire render cost control for renderEvidence, as for battle.fire. |
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.nestTrails` | control | 2026-10-25 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
@@ -152,6 +153,8 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.broodSpires` | control | 2026-10-25 | Kept: the control for Harriers in the Rav Bloom missions; `commanderEvidence` reads a mission with and without its spires and broods (colony-breach-nouns.md, Brood spire). |
+| `battle.swarm.workers` | control | 2026-10-25 | Kept: the control for the nests' skitterers; `commanderEvidence` reads the heart and the Cordon with and without them (colony-breach-nouns.md, Skitterer). |
+| `battle.swarm.emergence` | control | 2026-10-25 | Kept: the before of the `swarm-emergence` look suite, and the control for any evidence that wants bodies out whole and at once (colony-breach-nouns.md, Emergence). |
 | `battle.swarm.creepOutposts` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.creepRoofCollapse` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.creepTrees` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
@@ -168,12 +171,12 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.turret.crewFriendlyHold` | experiment | 2026-10-22 | Lane-discipline work: remove once lane discipline is accepted (ballistics-nouns.md). |
 | `battle.unitUpdate.minimumParallelUnits` | config | 2026-08-24 | Permanent: determinism. Evidence tasks force the serial unit update with it. |
 | `battle.unitUpdate.parallelism` | config | 2026-09-26 | Permanent: an explicit unit-worker count for profiling runs. |
+| `battle.allied.refusalMemory` | control | 2026-10-25 | The allied commander's refused-goal memory and stall backoff (`RefusedGoals`, allied-command.md); remove it and the ask-again path once The Burn's vehicle-order evidence has been read against it. |
 | `battle.vehicle.activeProtection` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.armorArcs` | control | 2026-10-19 | Standing control: the armorMatchup facing-dependent armour question (`evidence-tasks.md`). Retire once facing is accepted in the vehicle balance pass. |
 | `battle.vehicle.backingTurnDegrees` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.crossfire` | experiment | 2026-10-23 | Crossfire (convoy-nouns.md): keep the rule and drop the switch if, against it as the control, two Hounds in a pincer beat the single approach against the laser, breakthrough and screened tanks (32 seeds) while the default ladder's one-on-one rows hold within noise; remove the class otherwise. |
 | `battle.vehicle.crushUndergrowth` | control | 2026-10-25 | Standing control for forest drives: off, every hull stops at undergrowth and lone boulders as before (convoy-nouns.md, heavy tracks). Retire once forest-mission evidence no longer runs it. |
-| `battle.vehicle.crushYoungTrees` | experiment | 2026-10-25 | Awaiting the owner's pick of whether a heavy tank pushes over living young trees or only dead ones (convoy-nouns.md, heavy tracks); remove with the losing arm once picked. |
 | `battle.vehicle.disarmedWithdraw` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.duelRange` | experiment | 2026-10-18 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.edgeClearance` | control | 2026-10-23 | Control for edge-aware vehicle clearance; remove once the edge rule has shipped and a later Cordon/Heart evidence pass ran without reaching for it. |
@@ -182,6 +185,8 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.vehicle.faceWorstThreat` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.pivotAccuracy` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.neutralPivot` | control | 2026-10-25 | Control for turning on the spot (`NeutralPivot`, convoy-nouns.md): remove it and the turning-circle-only path once The Burn's vehicle-order evidence and a convoy evidence pass have been read against it. |
+| `battle.vehicle.orderEnds` | control | 2026-10-25 | Order route ends judged as an order's (`VehicleMoveOrderSystem`, convoy-nouns.md); remove it and the margin-only ends once The Burn's vehicle-order evidence has been read against it. |
+| `battle.vehicle.softBrush` | control | 2026-10-25 | A move order's last rung brushing soft ground (`SoftBrush`, convoy-nouns.md); remove it and the give-up-without-brushing path once The Burn's vehicle-order evidence has been read against it and the owner has seen a brushed turn in the game. |
 | `battle.vehicle.orderPlansPerTick` | tuning | 2026-10-24 | Move-order route proofs per tick (`VehicleMoveOrderSystem`); 0 plans every queued order at once, the control. Fold into the constant once the convoy and story-mission evidence has been read against it. |
 | `battle.vehicle.progressiveRecovery` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.recoveryExpansionsPerTick` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |

@@ -19,7 +19,10 @@ import java.util.List;
  * PNG still.
  *
  * <p>Those loops are verdict evidence. The owner is shown {@code look/apc-shelling-*}: the mortar carrier shelling a
- * militia picket on real generated ground through the look preset.
+ * militia picket on real generated ground through the look preset, at play zoom, on the picket and close on the
+ * carrier's turret; {@code look/carrier-idle-*}: the carrier parked, its head turned and quiet, so the shape is judged
+ * with nothing drawn over it; and {@code look/carrier-wrecks-*}: the mortar carrier, the LRM carrier and the SRM technical
+ * knocked out side by side, so their wreck turrets can be read against each other.
  */
 public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -42,17 +45,22 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
     @Override protected float closeViewScale() { return 1f; }
 
     /**
-     * The mortar carrier deployed at the west of a 64x36 window and a six-strong militia picket standing 30 cells
-     * east of it (inside the heavy mortar's 36, beyond the picket's guns): the exchange at play zoom, and the picket
+     * The mortar carrier deployed at the west of a 64x36 window and an eight-strong militia picket strung out 30 cells
+     * east of it (inside the mortar's 38, beyond the picket's guns): the exchange at play zoom, and the picket
      * close as the shells land.
      */
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(LookReview.Shot.of("apc-shelling", 64, 36, placement -> {
+        return List.of(idle(), shelling(), armor(), wrecks());
+    }
+
+    private static LookReview.Shot shelling() {
+        return LookReview.Shot.of("apc-shelling", 64, 36, placement -> {
             float[] picket = placement.openNear(42f, 18f);
             int px = (int) picket[0] - placement.site().x0();
             int py = (int) picket[1] - placement.site().y0();
             SceneBuilder builder = placement.holdouts(placement.builder());
-            builder.squad("picket").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(6).at(px, py)
+            // Strung out three cells apart down the window, so one bomb takes one man and the shelling lasts.
+            builder.squad("picket").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(8).inFile(px, py - 10, 0, 3)
                     .primary("weapon.smg").stationary().done();
             SceneWorld world = builder.build();
             BattleSimulation sim = world.sim();
@@ -64,7 +72,73 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             placement.subject("picket", world.members("picket")[0]);
             return sim;
         }, placement -> List.of(LookReview.View.followAtPlay(placement, "apc", "picket"),
-                LookReview.View.follow("picket", placement, 24f, "picket")), 1500));
+                LookReview.View.follow("picket", placement, 24f, "picket"),
+                LookReview.View.follow("turret", placement, 9f, "apc")), 1500);
+    }
+
+    /**
+     * The mortar carrier parked with nothing to shoot at, its turret turned off the hull's axis: the head's shape with
+     * no flash or smoke over it, close and at play zoom.
+     */
+    private static LookReview.Shot idle() {
+        return LookReview.Shot.of("carrier-idle", 24, 14, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            float[] at = placement.openNear(12f, 7f);
+            long apc = sim.convoy().spawn(VehicleType.FIRE_SUPPORT_APC, Faction.MARINE,
+                    VehicleMission.deployed(at[0], at[1]));
+            sim.convoy().body(apc).teleport(at[0], at[1], 0f);
+            sim.convoy().turret(apc).facingDeg = 35f;
+            placement.subject("apc", apc);
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 6f, "apc"),
+                LookReview.View.followAtPlay(placement, "apc")), 60).withStills(2);
+    }
+
+    /** The mortar carrier shelling a parked enemy APC 30 cells east: what its bombs do to a machine. */
+    private static LookReview.Shot armor() {
+        return LookReview.Shot.of("apc-shelling-armor", 64, 36, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            float[] at = placement.openNear(12.5f, 18.5f);
+            long apc = sim.convoy().spawn(VehicleType.FIRE_SUPPORT_APC, Faction.MARINE,
+                    VehicleMission.deployed(at[0], at[1]));
+            sim.convoy().body(apc).teleport(at[0], at[1], 0f);
+            float[] there = placement.openNear(42.5f, 18.5f);
+            long target = sim.convoy().spawn(VehicleType.HEAVY_APC, Faction.DEFENDER,
+                    VehicleMission.deployed(there[0], there[1]));
+            sim.convoy().body(target).teleport(there[0], there[1], 180f);
+            placement.subject("apc", apc);
+            placement.subject("target", target);
+            return sim;
+        }, placement -> List.of(LookReview.View.followAtPlay(placement, "apc", "target"),
+                LookReview.View.follow("target", placement, 14f, "target")), 1500);
+    }
+
+    /** Three hulls with roof launchers or tubes, destroyed on the first tick and left to smoke. */
+    private static LookReview.Shot wrecks() {
+        return LookReview.Shot.of("carrier-wrecks", 24, 14, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            VehicleType[] types = {VehicleType.FIRE_SUPPORT_APC, VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL};
+            long[] hulls = new long[types.length];
+            for (int i = 0; i < types.length; i++) {
+                float[] at = placement.openNear(8f + 3.5f * i, 7f);
+                hulls[i] = sim.convoy().spawn(types[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hulls[i]).teleport(at[0], at[1], 0f);
+                sim.convoy().turret(hulls[i]).facingDeg = 20f - 25f * i;
+                placement.subject("hull" + i, hulls[i]);
+            }
+            boolean[] done = {false};
+            placement.beforeTick(s -> {
+                if (done[0]) return;
+                done[0] = true;
+                for (long hull : hulls) s.convoy().destroy(hull);
+            });
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 10f, "hull0", "hull1", "hull2")), 1500)
+                // Late, once the roof fires have burned out and the smoke has thinned off the turrets.
+                .withStills(150, 200, 240, 249);
     }
 
     @Override protected ReviewAnnotations annotations(BattleSimulation simulation) {

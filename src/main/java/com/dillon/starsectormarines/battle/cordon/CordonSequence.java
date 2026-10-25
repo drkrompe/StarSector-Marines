@@ -229,7 +229,7 @@ public final class CordonSequence implements Objective {
             Faction faction = sim.identity().faction(unit);
             UnitType type = sim.identity().type(unit);
             int x = sim.world().cellX(unit), y = sim.world().cellY(unit);
-            boolean swarm = faction == Faction.DEFENDER && type.isSwarm();
+            boolean swarm = faction == Faction.DEFENDER && type.isSwarm() && !type.isSwarmWorker();
             boolean company = faction == Faction.MARINE && isCompany(type);
             if (company && !landed) {
                 landed = true;

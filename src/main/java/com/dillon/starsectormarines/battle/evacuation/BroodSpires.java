@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPatrol;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -26,9 +27,14 @@ import java.util.List;
  *   ({@link #choose}). It is a structure on the swarm's side, fought as a bore's body is, and withers when its
  *   bore collapses.</li>
  *   <li><b>A spire launches with its bore's surge</b>: surges, not trickles. On each of its bore's surges it
- *   releases a pack of {@link #PACK} when {@link #releases} allows it.</li>
+ *   releases a pack of {@link #PACK} when {@link #releases} allows it, hatching out of its crown one by one
+ *   ({@link SwarmFliers#hatch}).</li>
+ *   <li><b>A quiet spire patrols.</b> A spire with its roost full and no prey within {@link #WAKE_RANGE} puts
+ *   {@link #PATROL} of its roost up every {@link #PATROL_GAP_MIN_SECONDS} to {@link #PATROL_GAP_MAX_SECONDS}
+ *   ({@link #patrols}) to fly a loop over its bore ({@link HarrierPatrol}) and land back on its hooks. A patrol that
+ *   comes home short leaves the roost short, to fill back as after a launch ({@link #roostAfterPatrol}).</li>
  *   <li><b>A Matriarch comes with her brood.</b> When a mother puts her Matriarch out, a pack of
- *   {@link #BROOD_PACK} rises over her and flies as her escort.</li>
+ *   {@link #BROOD_PACK} hatches off her back one by one as she climbs out, and flies as her escort.</li>
  *   <li><b>The flier law holds.</b> No pack rises while the marines and their allies have no anti-air on the map
  *   ({@link SwarmFliers#hasAirCover}).</li>
  * </ul>
@@ -49,16 +55,24 @@ public final class BroodSpires {
     public static final int BROOD_PACK = 6;
     /** A spire launches only while a marine or an ally stands within this of it: what its brood would sense. */
     public static final float WAKE_RANGE = HarrierRules.SENSE_RANGE;
-    /** Least seconds between one spire's packs, however often its bore surges. */
+    /** Least seconds between one spire's packs, however often its bore surges, before skitterers tend it. */
     public static final float MIN_GAP_SECONDS = 45f;
+    /** A tended spire's gap never falls under this, however many skitterers feed it (`colony-breach-nouns.md`, Skitterer). */
+    public static final float TENDED_GAP_FLOOR_SECONDS = 20f;
     /** Nearest and furthest a spire stands from its bore's mouth, in cells. */
-    public static final float STANDOFF_MIN = 6f, STANDOFF_MAX = 14f;
+    public static final float STANDOFF_MIN = 16f, STANDOFF_MAX = 28f;
     /** Two spires never stand nearer each other than this, in cells. */
     public static final float SPACING = 64f;
     /** A spire stands at least this far from any bore or spore colony, in cells. */
-    static final float CLEARANCE = 3f;
+    static final float CLEARANCE = 5f;
     /** Directions tried on each ring. */
     static final int DIRECTIONS = 24;
+    /** Hooks a spire's brood clings to while it waits; drawn only (`colony-breach-nouns.md`, Brood spire). */
+    public static final int PERCHES = 5;
+    /** Harriers in a patrol off a spire's roost. */
+    public static final int PATROL = 3;
+    /** Least and most seconds between one spire's patrols, counted from the last one's return. */
+    public static final float PATROL_GAP_MIN_SECONDS = 30f, PATROL_GAP_MAX_SECONDS = 60f;
     /** Damage that withers a spire outright when its bore collapses. */
     private static final float WITHER_DAMAGE = 1_000_000f;
 
@@ -68,8 +82,14 @@ public final class BroodSpires {
         public final SwarmBore bore;
         public final int x, y;
         int lastReleaseTick = Integer.MIN_VALUE / 2;
+        /** Ticks the skitterers have fed off the current wait. */
+        int tendedTicks;
         HarrierPack pack;
         int packs;
+        /** Its patrol in the air, or {@code null}; and when the last came home. */
+        HarrierPack patrol;
+        int lastPatrolTick;
+        int patrols;
 
         Spire(long entityId, SwarmBore bore, int x, int y) {
             this.entityId = entityId;
@@ -80,6 +100,15 @@ public final class BroodSpires {
 
         /** How many packs it has launched. */
         public int packs() { return packs; }
+
+        /** How many patrols it has put up. */
+        public int patrols() { return patrols; }
+
+        /** Its patrol in the air, or {@code null}. */
+        public HarrierPack patrol() { return patrol; }
+
+        /** Ticks the skitterers have fed off the wait since its last pack. */
+        public int tendedTicks() { return tendedTicks; }
     }
 
     /** A pack rose, for beats and evidence: off a spire ({@code spire} its body) or as a brood ({@code spire} 0). */
@@ -94,6 +123,65 @@ public final class BroodSpires {
     public List<Spire> spires() { return Collections.unmodifiableList(spires); }
 
     public List<Launch> launches() { return Collections.unmodifiableList(launches); }
+
+    /**
+     * How many of a spire's next brood cling to its hooks: none while its own pack is in the air, then filling back
+     * one by one over its gap of {@code gapTicks} after a launch (shorter when tended), so a full roost is a spire
+     * ready to launch again.
+     */
+    public static int perched(boolean packAloft, int ticksSinceLast, int gapTicks) {
+        if (packAloft) return 0;
+        return (int) Math.min(PERCHES, (long) Math.max(0, ticksSinceLast) * PERCHES / Math.max(1, gapTicks));
+    }
+
+    /** How many Harriers cling to {@code s}'s hooks now ({@link #perched(boolean, int, int)}); none on a dead spire. */
+    public int perched(BattleSimulation sim, Spire s) {
+        if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return 0;
+        // A pack still hatching leaves its roost one by one: the hooks hold those still to come out.
+        if (s.pack != null && s.pack.unhatched() > 0 && sim.swarmFliers().packs().contains(s.pack)) {
+            return Math.min(PERCHES, s.pack.unhatched());
+        }
+        int roost = perched(aloft(sim, s), sim.getSimTickIndex() - s.lastReleaseTick, gapTicks(s.tendedTicks));
+        // A patrol's birds are off the hooks while they fly; those still to hatch cling on.
+        if (patrolling(sim, s)) roost = Math.max(0, roost - s.patrol.members.size());
+        return roost;
+    }
+
+    private static boolean patrolling(BattleSimulation sim, Spire s) {
+        return s.patrol != null && sim.swarmFliers().packs().contains(s.patrol);
+    }
+
+    /**
+     * Whether a spire puts a patrol up: only under anti-air ({@code airCover}), with no pack nor patrol of its own in
+     * the air, its roost full, nothing to hunt within {@link #WAKE_RANGE} (that is a launch's work), and its
+     * {@code gapTicks} since the last patrol came home.
+     */
+    public static boolean patrols(boolean airCover, boolean packAloft, boolean patrolAloft, boolean roostFull,
+                                  boolean preyNear, int ticksSincePatrol, int gapTicks) {
+        return airCover && !packAloft && !patrolAloft && roostFull && !preyNear && ticksSincePatrol >= gapTicks;
+    }
+
+    /** Ticks between a spire's {@code n}th patrol and its next: seeded off the spire, in the patrol gap. */
+    public static int patrolGapTicks(long spire, int n) {
+        float u = SwarmBores.unit(SwarmBores.mix(spire * 0x2545F4914F6CDD1DL + n));
+        return Math.round((PATROL_GAP_MIN_SECONDS + (PATROL_GAP_MAX_SECONDS - PATROL_GAP_MIN_SECONDS) * u)
+                / BattleSimulation.TICK_DT);
+    }
+
+    /**
+     * The spire's last-launch tick once a patrol came home at {@code tick} with {@code lost} of its birds lost: its
+     * roost ({@link #perched(boolean, int, int)}) holds {@link #PERCHES} less the lost and fills back from there over
+     * the gap, which also holds off its next launch. A patrol home whole leaves the roost as it was.
+     */
+    public static int roostAfterPatrol(int lastReleaseTick, int tick, int lost, int gapTicks) {
+        int held = Math.max(0, PERCHES - Math.max(0, lost));
+        return Math.max(lastReleaseTick, tick - (int) ((long) held * gapTicks / PERCHES));
+    }
+
+    private static boolean aloft(BattleSimulation sim, Spire s) {
+        return s.pack != null && (!s.pack.members.isEmpty() || s.pack.unhatched() > 0)
+                && sim.swarmFliers().packs().contains(s.pack);
+    }
 
     /** The spire whose body is {@code entityId}, or {@code null}. */
     public Spire byEntity(long entityId) {
@@ -172,8 +260,33 @@ public final class BroodSpires {
      * last, and only with prey within {@link #WAKE_RANGE}.
      */
     public static boolean releases(boolean airCover, boolean packAloft, int ticksSinceLast, boolean preyNear) {
-        return airCover && !packAloft && preyNear
-                && ticksSinceLast >= Math.round(MIN_GAP_SECONDS / BattleSimulation.TICK_DT);
+        return releases(airCover, packAloft, ticksSinceLast, 0, preyNear);
+    }
+
+    /** As {@link #releases(boolean, boolean, int, boolean)}, with {@code tendedTicks} fed off the wait. */
+    public static boolean releases(boolean airCover, boolean packAloft, int ticksSinceLast, int tendedTicks,
+                                   boolean preyNear) {
+        return airCover && !packAloft && preyNear && ticksSinceLast >= gapTicks(tendedTicks);
+    }
+
+    /**
+     * Ticks a spire waits after a pack with {@code tendedTicks} fed off by skitterers: {@link #MIN_GAP_SECONDS} less
+     * what they fed, never under {@link #TENDED_GAP_FLOOR_SECONDS}.
+     */
+    public static int gapTicks(int tendedTicks) {
+        int full = Math.round(MIN_GAP_SECONDS / BattleSimulation.TICK_DT);
+        int floor = Math.round(TENDED_GAP_FLOOR_SECONDS / BattleSimulation.TICK_DT);
+        return Math.max(floor, full - Math.max(0, tendedTicks));
+    }
+
+    /** Whether {@code s} stands and is still waiting out its gap at {@code tick}: worth a skitterer's feed. */
+    public static boolean waiting(Spire s, int tick) {
+        return tick - s.lastReleaseTick < gapTicks(s.tendedTicks);
+    }
+
+    /** A skitterer fed {@code s}: {@code seconds} off its current wait, never past {@link #TENDED_GAP_FLOOR_SECONDS}. */
+    public void tend(Spire s, float seconds) {
+        s.tendedTicks += Math.round(seconds / BattleSimulation.TICK_DT);
     }
 
     /** Once a tick, after the director and before the fliers: wither, launch on surges, raise broods. */
@@ -185,6 +298,7 @@ public final class BroodSpires {
                 sim.applyDamage(s.entityId, WITHER_DAMAGE, WITHER_DAMAGE);
             }
         }
+        for (Spire s : spires) patrol(sim, s, tick);
         List<SwarmBores.Event> events = sim.swarmBores().events();
         while (cursor < events.size()) {
             SwarmBores.Event e = events.get(cursor++);
@@ -198,13 +312,36 @@ public final class BroodSpires {
 
     private void surged(BattleSimulation sim, Spire s, int tick) {
         if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return;
-        boolean aloft = s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
         float x = s.x + 0.5f, y = s.y + 0.5f;
-        if (!releases(SwarmFliers.hasAirCover(sim), aloft, tick - s.lastReleaseTick, preyNear(sim, x, y))) return;
-        s.pack = sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
+        if (!releases(SwarmFliers.hasAirCover(sim), aloft(sim, s), tick - s.lastReleaseTick, s.tendedTicks,
+                preyNear(sim, x, y))) return;
+        // The pack hatches out of the crown one by one; with emergence off it rises off it whole.
+        s.pack = sim.swarmFliers().hatchUnderCover(sim, HarrierLook.DEFAULT, s.entityId, x, y, x, y, PACK, 0L);
+        if (!sim.swarmEmergence().enabled()) sim.swarmFliers().risingFrom(sim, s.pack, x, y);
         s.lastReleaseTick = tick;
+        s.tendedTicks = 0;
         s.packs++;
         launches.add(new Launch(tick, s.entityId, 0L, s.pack.id, PACK));
+    }
+
+    /** Brings a patrol home to the roost, or puts one up when the spire is quiet. */
+    private void patrol(BattleSimulation sim, Spire s, int tick) {
+        if (s.patrol != null && !patrolling(sim, s)) {
+            int lost = s.patrol.patrol().size() - s.patrol.patrol().landed();
+            s.lastReleaseTick = roostAfterPatrol(s.lastReleaseTick, tick, lost, gapTicks(s.tendedTicks));
+            s.patrol = null;
+            s.lastPatrolTick = tick;
+        }
+        if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return;
+        float x = s.x + 0.5f, y = s.y + 0.5f;
+        boolean full = perched(aloft(sim, s), tick - s.lastReleaseTick, gapTicks(s.tendedTicks)) >= PERCHES;
+        if (!patrols(SwarmFliers.hasAirCover(sim), aloft(sim, s), s.patrol != null, full, preyNear(sim, x, y),
+                tick - s.lastPatrolTick, patrolGapTicks(s.entityId, s.patrols))) return;
+        NavigationGrid grid = sim.getGrid();
+        float[] route = HarrierPatrol.route(s.bore.x() + 0.5f, s.bore.y() + 0.5f, x, y,
+                s.entityId * 31L + s.patrols, grid.getWidth(), grid.getHeight());
+        s.patrol = sim.swarmFliers().patrolUnderCover(sim, HarrierLook.DEFAULT, s.entityId, x, y, route, PATROL);
+        s.patrols++;
     }
 
     private void brood(BattleSimulation sim, long matriarch, int tick) {

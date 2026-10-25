@@ -840,7 +840,8 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR),
                 ctx.get(BspKeys.FRONT_DEPTH), ctx.get(BspKeys.LANES))
                 .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)))
-                .withLayout(ctx.get(BspKeys.MISSION_LAYOUT_LAID));
+                .withLayout(ctx.get(BspKeys.MISSION_LAYOUT_LAID))
+                .withLoadingBays(ctx.loadingBays);
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

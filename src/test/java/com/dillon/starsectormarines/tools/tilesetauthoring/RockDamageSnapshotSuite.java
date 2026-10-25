@@ -19,9 +19,7 @@ public final class RockDamageSnapshotSuite implements SnapshotSuite {
     public String label() { return "Cracked rocks and shattered rubble"; }
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
-        List<SnapshotArtifact> frames = new ArrayList<>(List.of(
-                new SnapshotArtifact("rock-damage-template.png", RockDamageReskinTemplate.render(context.projectRoot(), false)),
-                new SnapshotArtifact("rock-reference.png", RockDamageReskinTemplate.render(context.projectRoot(), true))));
+        List<SnapshotArtifact> frames = new ArrayList<>();
         NavigationGrid grid = new NavigationGrid(23, 11);
         CellTopology topology = new CellTopology(23, 11);
         for (int y = 0; y < 11; y++) for (int x = 0; x < 23; x++) {

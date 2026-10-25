@@ -143,8 +143,8 @@ public final class HeartLayout {
             pieces.add(new Deferred(VILLAGE_HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, VILLAGE_HOLDOUT, false, density), false));
             pieces.addAll(gunFlanks(form));
-            Landscape.Brook brook = HeartCountry.brook(form.scale.width, form.scale.height, seed);
-            pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS, ground -> companyFord(form, brook), false));
+            pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS,
+                    ground -> companyFord(form, ground.plan().landscape().brooks().get(0)), false));
         }
         return new MissionLayout(pieces);
     }

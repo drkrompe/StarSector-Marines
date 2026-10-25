@@ -22,7 +22,10 @@ a third of the way down the lane).
 
 - **Cold eject, then lit** (owner, 2026-10-20). A launch pushes the missile clear of the tube
   at `eject_mps` along the tube axis; its motor lights `ignite_s` later, with a small ignition
-  flash, and only then does it turn and accelerate.
+  flash, and only then does it turn and accelerate. The flash is swfx_burst's lobed one unless the
+  profile says `ignition='flare'`: the glare streak flaring long and hot in the motor's colour, then
+  settling (the Harpoon's; owner, 2026-10-25, S5: the burst's white-hot heart read as a lobed
+  peach-white blob at each ignition).
 - **Seeker corrections** (owner, 2026-10-20: guided missiles are chase missiles that hunt).
   A guided missile does not fly its guide smoothly: its seeker updates the aim every `seek_s`
   and each update carries a seeded error of up to `seek_deg`, which shrinks as the missile
@@ -79,7 +82,7 @@ PROFILES = {
     'harpoon': dict(guide='swing', width=.18, seek_s=.3, seek_deg=8.0, lift=.04, turn_deg_s=70.0, eject_mps=18.0, ignite_s=.35,
                     accel=650.0, vmax=950.0, engine=srgb((100, 165, 255)), trail=srgb((100, 165, 255)),
                     trail_alpha=.45, trail_glow=1.4, trail_r_m=3.0, trail_spread=2.5, trail_life_s=1.7,
-                    glare_m=5.0, blast=srgb((100, 100, 255)), blast_m=24.0),
+                    glare_m=5.0, blast=srgb((100, 100, 255)), blast_m=24.0, ignition='flare'),
     'swarmer': dict(guide='weave', width=.05, seek_s=.18, seek_deg=10.0, lift=.02, weave=.035, weave_cycles=(2.5, 4.0), turn_deg_s=240.0,
                     eject_mps=12.0, ignite_s=.2, accel=1400.0, vmax=700.0, engine=srgb((255, 145, 75)),
                     trail=srgb((100, 100, 100)), trail_alpha=150 / 255, trail_glow=0.0, trail_r_m=1.2,
@@ -750,10 +753,19 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
     # No orbs (owner, 2026-10-23: the Harpoons' heads read as "white orbs"): the glare is a streak
     # drawn out behind the motor along the flight, thin across it, never a round ball.
     glare.location = (-2.6 - gr * 1.4, 0, 0)
-    _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .5, gr * 1.8])
-    _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .12, gr * .3])
-    _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .12, gr * .3])
-    gf, gv, gh = [fi, burn_end], [1.0, 1.0], [0.0, 0.0]
+    flare = prof.get('ignition') == 'flare' and burn_end - fi > 8
+    if flare:
+        # Lit: the streak flares long and hot for a few frames, then settles to its running size,
+        # in the motor's own colour and drawn out along the flight like the glare it becomes
+        _bake(glare, 'scale', 0, [fi, fi + 1, fi + 3, fi + 7], [gr * 1.2, gr * 2.8, gr * 2.4, gr * 1.8])
+        _bake(glare, 'scale', 1, [fi, fi + 1, fi + 3, fi + 7], [gr * .2, gr * .4, gr * .36, gr * .3])
+        _bake(glare, 'scale', 2, [fi, fi + 1, fi + 3, fi + 7], [gr * .2, gr * .4, gr * .36, gr * .3])
+        gf, gv, gh = [fi, fi + 1, fi + 4, fi + 8, burn_end], [1.6, 2.0, 1.4, 1.0, 1.0], [0.0] * 5
+    else:
+        _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .5, gr * 1.8])
+        _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .12, gr * .3])
+        _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .12, gr * .3])
+        gf, gv, gh = [fi, burn_end], [1.0, 1.0], [0.0, 0.0]
     if fl.hot:                                  # in a PD laser's beam: heating toward white
         h0, h1 = fl.hot
         gf, gv, gh = [fi, h0, h1], [1.0, 1.3, 2.2], [0.0, .2, 1.0]
@@ -778,7 +790,16 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
 
     # Ignition: the cold-ejected missile lights clear of the tube, flaring back along its axis.
     tag = f'{fl.label} f{fl.frame:04d}'
-    if jag:
+    if flare:
+        # the glare's flare above is the flash; the light it throws on the hull, unseen itself (a
+        # light with a radius is a sphere the camera sees)
+        lt = swfx_core.point_light(f'{PREFIX} ignition {tag} light', coll, prof['engine'], 0.0, radius=prof['glare_m'] * .3 / mpu)
+        lt.visible_camera = False
+        lt.location = inv @ fl.at(fi)
+        for f, e in ((fi - 1, 0.0), (fi, 8000.0), (fi + 1, 3600.0), (fi + 2, 800.0), (fi + 3, 0.0)):
+            lt.data.energy = e
+            lt.data.keyframe_insert('energy', frame=f)
+    elif jag:
         burst(ctx, coll, prof, 'ignition', tag, inv @ fl.at(fi), fi, mpu, rot @ -fl.heading(fi + 1), rnd_for('ignition'))
     else:
         _flash(ctx, coll, f'{PREFIX} ignition {fl.label} f{fl.frame:04d}', inv @ fl.at(fi), fi, prof['engine'],

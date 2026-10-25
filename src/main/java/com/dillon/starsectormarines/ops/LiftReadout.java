@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.ArrayList;
@@ -93,23 +94,19 @@ public final class LiftReadout {
                         deployment.variant().liftClass());
             }
             for (VehicleDeploymentSpec deployment : mech.vehicles()) {
-                payload.putIfAbsent(vehicleName(deployment.type().name()),
+                payload.putIfAbsent(CampaignVehicle.typeName(deployment.type()),
                         deployment.type().liftClass());
             }
         } else if (power instanceof VehicleSupport vehicles) {
             if (vehicles.deployments().isEmpty()) {
-                payload.put(vehicleName(VehicleSupportPayload.FALLBACK.name()),
+                payload.put(CampaignVehicle.typeName(VehicleSupportPayload.FALLBACK),
                         VehicleSupportPayload.FALLBACK.liftClass());
             }
             for (VehicleDeploymentSpec deployment : vehicles.deployments()) {
-                payload.putIfAbsent(vehicleName(deployment.type().name()),
+                payload.putIfAbsent(CampaignVehicle.typeName(deployment.type()),
                         deployment.type().liftClass());
             }
         }
         return payload;
-    }
-
-    private static String vehicleName(String enumName) {
-        return Strings.named("vehicleType", enumName);
     }
 }

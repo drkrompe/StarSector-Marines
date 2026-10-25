@@ -101,6 +101,35 @@ public final class VehicleRoutePlanner {
     }
 
     /**
+     * {@link #routeDrivable} for an order to a hull standing at {@code departure}: the route's ends are judged as an
+     * order's ({@link TurnAwareCorridor#refine(float[][], VehicleType, NavigationGrid, Pose)}), so a hull is not
+     * refused for the margin around where it already stands, and arrives a little short of ground it cannot stand on.
+     */
+    public static float[][] routeDrivableFrom(Pose departure, int startX, int startY, int goalX, int goalY,
+                                              NavigationGrid grid, TerrainCostField costField,
+                                              VehicleClearance clearance, VehicleType type) {
+        DrivableRouteSearch search = new DrivableRouteSearch(startX, startY, goalX, goalY, grid, costField,
+                clearance.passableArray().clone(), clearance.passableArray(),
+                clearance.getWidth(), clearance.getHeight(), type).departingFrom(departure);
+        search.advance(new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS), Integer.MAX_VALUE);
+        return search.route();
+    }
+
+    /**
+     * The last rung of an order's route proof ({@link SoftBrush}): the cheapest route over the clearance mask, refined
+     * once with its footprint judged brushing, {@code soft} being {@code grid} with the hull's soft ground open. Null
+     * where even that touches hard ground or makes a bend the chassis cannot. The mask is the strict one: no route is
+     * found through soft ground, only one whose footprint grazes it.
+     */
+    public static float[][] routeBrushing(Pose departure, int startX, int startY, int goalX, int goalY,
+                                          NavigationGrid grid, NavigationGrid soft, TerrainCostField costField,
+                                          VehicleClearance clearance, VehicleType type) {
+        float[][] macro = routeMasked(startX, startY, goalX, goalY, grid, costField, clearance.passableArray(),
+                clearance.getWidth(), clearance.getHeight());
+        return macro == null ? null : TurnAwareCorridor.refine(macro, type, grid, departure, soft).points();
+    }
+
+    /**
      * Re-route variant for the recovery ladder's "lap around" rung: like
      * {@link #route} but treats a disc of radius {@code avoidRadius} cells around
      * {@code (avoidX, avoidY)} as impassable, so the search detours around the

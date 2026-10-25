@@ -66,6 +66,18 @@ public final class CreepOutposts {
         this.seed = seed;
     }
 
+    /** The cell a bore's next outpost waits to root on, {@code {x, y}}, or {@code null}: where a skitterer tends. */
+    public int[] pendingCell(long boreId) {
+        Pending held = pending.get(boreId);
+        return held == null ? null : new int[]{held.x, held.y};
+    }
+
+    /** A skitterer stood on a bore's pending outpost for {@code ticks}: its hold counts that much more. */
+    public void tend(long boreId, int ticks) {
+        Pending held = pending.get(boreId);
+        if (held != null) pending.put(boreId, new Pending(held.x, held.y, held.sinceTick - ticks));
+    }
+
     /** Living outposts a bore of {@code tier} may hold: 1 at fissure, 2 at bore, 4 at maw. */
     public static int capFor(BoreTier tier) {
         return switch (tier) {
@@ -175,7 +187,7 @@ public final class CreepOutposts {
         String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
                 + " Spore Outpost " + (bore.outposts().size() + 1);
         long colony = sim.spawn(SwarmBores.bodySpec(name, bore.tier().sporeColonyStructure(), x, y));
-        bore.outposted(colony);
+        bore.outposted(colony, sim.getSimTickIndex());
     }
 
     private static int living(BattleSimulation sim, List<Long> ids) {

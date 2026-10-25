@@ -1,0 +1,5 @@
+Repaint the first image, a top-down 2D game sprite of an olive equipment box, so that it shows the same worn-out, broken-scrap condition as the second image: torn and peeled sheet-metal edges, punched holes, a lifted and split cover plate showing dark inner framing and loose cables, two of its round openings crushed, bare dark metal where paint has flaked off, and grime marks. The second image is a condition and style reference only; do not copy its shape.
+
+Keep the first image's exact footprint, position, size, left-facing orientation and strict orthographic overhead view so it lines up exactly; same illustration style, outline weight and olive materials; soft top-left light.
+
+Output the same canvas size as the first image with a true transparent background, including through any holes; no flames, no smoke, no ground, no shadow, no border, no text.

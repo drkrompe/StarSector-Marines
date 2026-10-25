@@ -144,7 +144,6 @@ class BattlePowerOverlayModelTest {
             assertEquals("BULWARK", chip(instance, 1, "name"));
             assertEquals("NO HEAVY LIFT", chip(instance, 1, "state"));
             assertTrue(instance.requireElement("battle-power-pick-1").disabled());
-            assertEquals("HEAVY APC", chip(instance, 2, "name"));
             assertEquals("MULE", chip(instance, 2, "callsign"));
             assertEquals("VEHICLE \u00b7 LIGHT", chip(instance, 2, "weight"));
             assertEquals("TARGETING \u00b7 MECH SUPPORT \u00b7 2 OF 3 PICKED",

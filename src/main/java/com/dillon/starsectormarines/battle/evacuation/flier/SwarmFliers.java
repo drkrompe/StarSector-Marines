@@ -2,8 +2,11 @@ package com.dillon.starsectormarines.battle.evacuation.flier;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -43,7 +46,7 @@ public final class SwarmFliers {
 
     /** Something a pack did, kept for evidence. */
     public record Event(int tick, Kind kind, int pack, long harrier, long target) {
-        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST }
+        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST, LANDED, SNATCHED, FED }
     }
 
     private final List<HarrierPack> packs = new ArrayList<>();
@@ -59,6 +62,9 @@ public final class SwarmFliers {
     private int released;
 
     public List<HarrierPack> packs() { return Collections.unmodifiableList(packs); }
+
+    /** How many Harriers the battle has released, in every pack. */
+    public int released() { return released; }
     public List<HarrierFall> falls() { return Collections.unmodifiableList(falls); }
     public List<HarrierLift> lifts() { return Collections.unmodifiableList(lifts); }
 
@@ -129,10 +135,90 @@ public final class SwarmFliers {
      */
     public HarrierPack releaseUnderCover(BattleSimulation sim, HarrierLook look, float x, float y, int count,
                                          long escortId) {
+        return hatchUnderCover(sim, look, escortId, x, y, x, y, count, escortId);
+    }
+
+    /**
+     * {@link #hatch} for a mission: refuses a map with no anti-air on the side the pack hunts ({@link #hasAirCover}).
+     * With emergence off ({@code -Dbattle.swarm.emergence=false}) the pack appears whole on its ring instead.
+     */
+    public HarrierPack hatchUnderCover(BattleSimulation sim, HarrierLook look, long source, float fromX, float fromY,
+                                       float anchorX, float anchorY, int count, long escortId) {
         if (!hasAirCover(sim)) {
             throw new IllegalStateException("A Harrier pack needs anti-air on the map to answer it");
         }
-        return release(sim, look, x, y, count, escortId);
+        if (!sim.swarmEmergence().enabled()) return release(sim, look, anchorX, anchorY, count, escortId);
+        return hatch(sim, look, source, fromX, fromY, anchorX, anchorY, count, escortId);
+    }
+
+    /**
+     * Hatches a pack of {@code count} (at most {@link HarrierRules#MAX_PACK}) out of {@code source} (a brood spire's
+     * crown, a Matriarch's back, a bore; 0 for a place) at ({@code fromX}, {@code fromY}), to loiter at
+     * ({@code anchorX}, {@code anchorY}): one Harrier climbs out now and the rest one by one, each
+     * {@link HarrierRules#HATCH_MIN_SECONDS} to {@link HarrierRules#HATCH_MAX_SECONDS} after the last, low and
+     * clustered, and gather on the ring (`colony-breach-nouns.md`, Emergence). The pack commits only once the last is
+     * out. A source that dies stops the hatch; a source that moves (the Matriarch) carries the hatch with it.
+     */
+    public HarrierPack hatch(BattleSimulation sim, HarrierLook look, long source, float fromX, float fromY,
+                             float anchorX, float anchorY, int count, long escortId) {
+        HarrierPack pack = new HarrierPack(nextPackId++, anchorX, anchorY);
+        pack.escortId = escortId;
+        pack.unhatched = Math.max(1, Math.min(HarrierRules.MAX_PACK, count));
+        pack.hatchSource = source;
+        pack.hatchX = fromX;
+        pack.hatchY = fromY;
+        pack.hatchLook = look;
+        pack.nextHatchTick = sim.getSimTickIndex();
+        packs.add(pack);
+        hatchDue(sim, pack, sim.getSimTickIndex());
+        return pack;
+    }
+
+    /**
+     * Puts a patrol of {@code count} up off a brood spire ({@code spire}, its crown at ({@code x}, {@code y})) to fly
+     * {@code route} ({@link HarrierPatrol#route}) and land back on it, hatching from the crown as any spire's pack
+     * does, under the same law ({@link #hatchUnderCover}).
+     */
+    public HarrierPack patrolUnderCover(BattleSimulation sim, HarrierLook look, long spire, float x, float y,
+                                        float[] route, int count) {
+        HarrierPack pack = hatchUnderCover(sim, look, spire, x, y, x, y, count, 0L);
+        if (!sim.swarmEmergence().enabled()) risingFrom(sim, pack, x, y);
+        pack.patrol = new HarrierPatrol(route, x, y, Math.max(1, Math.min(HarrierRules.MAX_PACK, count)));
+        return pack;
+    }
+
+    /** Lets the next Harrier of a hatching pack out when its turn has come. */
+    private void hatchDue(BattleSimulation sim, HarrierPack pack, int tick) {
+        if (pack.unhatched <= 0) return;
+        World world = sim.world();
+        if (pack.hatchSource != 0L) {
+            if (sim.resolveUnit(pack.hatchSource) == 0L || !world.isAlive(pack.hatchSource)) {
+                pack.unhatched = 0;
+                return;
+            }
+            pack.hatchX = world.x(pack.hatchSource);
+            pack.hatchY = world.y(pack.hatchSource);
+        }
+        if (tick < pack.nextHatchTick) return;
+        int index = pack.hatched++;
+        long h = (pack.id * 0x9E3779B97F4A7C15L + index) * 0xBF58476D1CE4E5B9L;
+        double a = 2 * Math.PI * ((h >>> 40) % 1000) / 1000.0;
+        float spread = HarrierRules.ROOST_SPREAD * ((h >>> 20) % 1000) / 1000f;
+        NavigationGrid grid = sim.getGrid();
+        float px = clamp(pack.hatchX + (float) Math.cos(a) * spread, grid.getWidth());
+        float py = clamp(pack.hatchY + (float) Math.sin(a) * spread, grid.getHeight());
+        HarrierFlight m = spawnMember(sim, pack.hatchLook, px, py, (float) Math.toDegrees(a));
+        m.altitude = m.shownAltitude = HarrierRules.ROOST_ALTITUDE;
+        m.shownRate = 0f;
+        pack.members.add(m);
+        pack.reslot();
+        pack.unhatched--;
+        float gap = HarrierRules.HATCH_MIN_SECONDS
+                + (HarrierRules.HATCH_MAX_SECONDS - HarrierRules.HATCH_MIN_SECONDS) * ((h >>> 4) % 1000) / 1000f;
+        pack.nextHatchTick = tick + Math.max(1, Math.round(gap / BattleSimulation.TICK_DT));
+        // The pod splits as it climbs out: a little dust off it, drifting out with the flier.
+        float ux = (float) Math.cos(a), uy = (float) Math.sin(a);
+        sim.emitGroundDust(px, py, ux * 0.8f, uy * 0.8f, 0.3f, EffectsService.DUST_WHEEL);
     }
 
     /**
@@ -148,28 +234,54 @@ public final class SwarmFliers {
             double a = 2 * Math.PI * i / n;
             float px = clamp(x + (float) Math.cos(a) * HarrierRules.LOITER_RADIUS, grid.getWidth());
             float py = clamp(y + (float) Math.sin(a) * HarrierRules.LOITER_RADIUS, grid.getHeight());
-            AirBody body = new AirBody();
-            body.teleport(px, py, (float) Math.toDegrees(a));
-            EntitySpec spec = new EntitySpec("harrier-" + (++released), Faction.DEFENDER, UnitType.SWARM_HARRIER,
-                    (int) px, (int) py)
-                    .atPosition(px, py)
-                    .role(UnitRole.SWARM_FLIER)
-                    .health(HarrierRules.HP)
-                    .attackDamage(HarrierRules.BITE_DAMAGE)
-                    .attackRange(HarrierRules.STRIKE_REACH)
-                    .moveSpeed(0f)
-                    .visionRange(HarrierRules.SENSE_RANGE)
-                    .airLosRadius(HarrierRules.AIR_LOS_RADIUS)
-                    .body(body);
-            long id = sim.spawn(spec);
-            HarrierFlight flight = new HarrierFlight(id, body, look);
+            HarrierFlight flight = spawnMember(sim, look, px, py, (float) Math.toDegrees(a));
             flight.slot = i;
-            // Seeded off the id, so a replay flaps the same and a pack never flaps in step.
-            flight.wingClock = (float) ((id * 0x9E3779B97F4A7C15L >>> 40) % 1000) / 1000f;
             pack.members.add(flight);
         }
         packs.add(pack);
         return pack;
+    }
+
+    /** One Harrier at ({@code px}, {@code py}) facing {@code facing}, on the roster, at loiter height. */
+    private HarrierFlight spawnMember(BattleSimulation sim, HarrierLook look, float px, float py, float facing) {
+        AirBody body = new AirBody();
+        body.teleport(px, py, facing);
+        EntitySpec spec = new EntitySpec("harrier-" + (++released), Faction.DEFENDER, UnitType.SWARM_HARRIER,
+                (int) px, (int) py)
+                .atPosition(px, py)
+                .role(UnitRole.SWARM_FLIER)
+                .health(HarrierRules.HP)
+                .attackDamage(HarrierRules.BITE_DAMAGE)
+                .attackRange(HarrierRules.STRIKE_REACH)
+                .moveSpeed(0f)
+                .visionRange(HarrierRules.SENSE_RANGE)
+                .airLosRadius(HarrierRules.AIR_LOS_RADIUS)
+                .body(body);
+        long id = sim.spawn(spec);
+        HarrierFlight flight = new HarrierFlight(id, body, look);
+        // Seeded off the id, so a replay flaps the same and a pack never flaps in step.
+        flight.wingClock = (float) ((id * 0x9E3779B97F4A7C15L >>> 40) % 1000) / 1000f;
+        return flight;
+    }
+
+    /**
+     * Sets a pack just released off a roost (a brood spire's crown at {@code (x, y)}) to rise from it: every member
+     * clustered within {@link HarrierRules#ROOST_SPREAD} of the crown, low, facing outward, so the pack is seen
+     * climbing out and spreading to its loiter ring rather than appearing on it.
+     */
+    public void risingFrom(BattleSimulation sim, HarrierPack pack, float x, float y) {
+        int n = pack.members.size();
+        NavigationGrid grid = sim.getGrid();
+        for (int i = 0; i < n; i++) {
+            HarrierFlight m = pack.members.get(i);
+            double a = 2 * Math.PI * i / n;
+            float px = clamp(x + (float) Math.cos(a) * HarrierRules.ROOST_SPREAD, grid.getWidth());
+            float py = clamp(y + (float) Math.sin(a) * HarrierRules.ROOST_SPREAD, grid.getHeight());
+            m.body.teleport(px, py, (float) Math.toDegrees(a));
+            m.altitude = m.shownAltitude = HarrierRules.ROOST_ALTITUDE;
+            m.shownRate = 0f;
+            sim.world().setPos(m.id, px, py);
+        }
     }
 
     /** One tick: every pack's prey, flight and strikes, then any splits. */
@@ -185,9 +297,11 @@ public final class SwarmFliers {
         List<HarrierPack> splitting = null;
         for (int p = 0; p < packs.size(); p++) {
             HarrierPack pack = packs.get(p);
+            hatchDue(sim, pack, tick);
             dropDead(sim, pack);
             if (pack.members.isEmpty()) {
-                packs.remove(p--);
+                // Every Harrier out so far may have been shot off its roost while the next is still to come.
+                if (pack.unhatched <= 0) packs.remove(p--);
                 continue;
             }
             if (pack.escortId != 0L) {
@@ -207,14 +321,23 @@ public final class SwarmFliers {
                     buildCandidates(sim);
                     candidatesBuilt = true;
                 }
-                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L);
+                // A patrol on its route only spots what comes near; once it hunts it senses as any pack.
+                float range = pack.patrol != null && !alive ? HarrierPatrol.SPOT_RANGE : HarrierRules.SENSE_RANGE;
+                prey = HarrierTargeting.pick(candidates, pack.centreX(), pack.centreY(), alive ? prey : 0L, range);
                 alive = prey != 0L;
             }
             if (alive) pack.prey(prey, world.x(prey), world.y(prey), sim.physicalRadius(prey));
             else pack.prey(0L, 0f, 0f, 0f);
             if (pack.phase == HarrierPack.Phase.DIVE) followPrey(sim, pack);
+            if (pack.patrol == null || !pack.patrol.homing()) scavenge(sim, pack, alive);
+            fetch(sim, pack, tick);
+            if (pack.patrol != null && !alive && pack.phase == HarrierPack.Phase.LOITER && pack.unhatched <= 0) {
+                pack.patrol.step(BattleSimulation.TICK_DT);
+                pack.anchorAt(pack.patrol.x(), pack.patrol.y());
+            }
             HarrierPack.Phase before = pack.phase;
             pack.advance(BattleSimulation.TICK_DT, (h, t) -> {
+                sim.swarmHarvest().airStruck(t);
                 sim.applyDamage(t, h, HarrierRules.BITE_DAMAGE, HarrierRules.BITE_PENETRATION,
                         HarrierRules.STRIKE_MORALE);
                 events.add(new Event(tick, Event.Kind.STRIKE, pack.id, h, t));
@@ -230,6 +353,12 @@ public final class SwarmFliers {
             } else if (before == HarrierPack.Phase.PULL_UP && pack.phase == HarrierPack.Phase.LOITER) {
                 events.add(new Event(tick, Event.Kind.PULL_UP_DONE, pack.id, 0L, pack.target));
             }
+            for (HarrierFlight m : pack.landedNow) {
+                // Back on its hooks: off the field, no body, and the spire's roost holds it again.
+                sim.takeOffTheField(m.id);
+                events.add(new Event(tick, Event.Kind.LANDED, pack.id, m.id, 0L));
+            }
+            pack.landedNow.clear();
             NavigationGrid grid = sim.getGrid();
             for (HarrierFlight m : pack.members) {
                 m.body.x = clamp(m.body.x, grid.getWidth());
@@ -247,6 +376,78 @@ public final class SwarmFliers {
                 List<HarrierFlight> half = pack.takeSplit();
                 adopt(half, pack.escortId);
                 events.add(new Event(tick, Event.Kind.SPLIT, pack.id, 0L, 0L));
+            }
+        }
+    }
+
+    /**
+     * Sends the member nearest the nearest loose body within {@link HarrierCarry#SENSE} off to fetch it, when the pack
+     * has nothing to hunt and room for another carrier ({@link HarrierCarry#sends}). A body another carrier is after
+     * is passed over.
+     */
+    private void scavenge(BattleSimulation sim, HarrierPack pack, boolean prey) {
+        if (!HarrierCarry.sends(pack.phase, prey, pack.unhatched, pack.members.size(), pack.carriersOut())) return;
+        long body = sim.swarmHarvest().nearestLoose(sim, pack.centreX(), pack.centreY(), HarrierCarry.SENSE,
+                this::claimed);
+        if (body == 0L) return;
+        float bx = sim.world().x(body), by = sim.world().y(body);
+        HarrierFlight best = null;
+        float nearest = Float.MAX_VALUE;
+        for (HarrierFlight m : pack.members) {
+            if (m.carry != null) continue;
+            float d = m.body.distanceTo(bx, by);
+            if (d < nearest || d == nearest && m.id < best.id) {
+                best = m;
+                nearest = d;
+            }
+        }
+        if (best != null) best.carry = new HarrierCarry(body);
+    }
+
+    /** Whether a carrier is already after {@code body}. */
+    private boolean claimed(long body) {
+        for (HarrierPack p : packs) for (HarrierFlight m : p.members) if (m.carry != null && m.carry.body == body) return true;
+        return false;
+    }
+
+    /**
+     * Flies each of a pack's carriers through its job: swoops on its body and takes it up, hauls it to the nearest
+     * living bore's mouth (where the harvest feeds it in), and flies back to rejoin the pack. A body gone before the
+     * swoop lands, or lost on the way, sends it straight back.
+     */
+    private void fetch(BattleSimulation sim, HarrierPack pack, int tick) {
+        SwarmHarvest harvest = sim.swarmHarvest();
+        World world = sim.world();
+        float dt = BattleSimulation.TICK_DT;
+        float ring = HarrierRules.ringRadius(pack.members.size());
+        for (HarrierFlight m : pack.members) {
+            HarrierCarry c = m.carry;
+            if (c == null) continue;
+            switch (c.phase) {
+                case SNATCH -> {
+                    if (!harvest.isLoose(c.body) || !world.hasPosition(c.body)) {
+                        c.giveUp();
+                    } else if (c.swoop(m, world.x(c.body), world.y(c.body), dt)
+                            && harvest.takeUpByFlier(sim, m.id, c.body)) {
+                        c.took();
+                        events.add(new Event(tick, Event.Kind.SNATCHED, pack.id, m.id, c.body));
+                    }
+                }
+                case HAUL -> {
+                    if (!harvest.isCarrier(m.id)) {
+                        for (SwarmHarvest.Feed f : harvest.feeding()) {
+                            if (f.body() == c.body) events.add(new Event(tick, Event.Kind.FED, pack.id, m.id, c.body));
+                        }
+                        c.giveUp();
+                        break;
+                    }
+                    SwarmBore bore = sim.swarmBores().nearestLiving(m.body.x, m.body.y);
+                    if (bore == null) c.giveUp();
+                    else c.haul(m, bore.x() + 0.5f, bore.y() + 0.5f, dt);
+                }
+                case RETURN -> {
+                    if (c.rejoin(m, pack.loiterX(), pack.loiterY(), ring, dt)) m.carry = null;
+                }
             }
         }
     }

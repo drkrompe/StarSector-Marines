@@ -50,6 +50,7 @@ import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
+import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -72,6 +73,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.staffed.StaffedBuildings;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -278,6 +280,10 @@ public final class BattleSetup {
     private static final int AMBIENT_CIVILIAN_COUNT = 8;
     /** Civilian warehouses a procedural operation map puts a crew to work in ({@code staffed-buildings.md}). */
     private static final int STAFFED_WAREHOUSES = 2;
+    /** Civilian factories it works. */
+    private static final int STAFFED_FACTORIES = 1;
+    /** Civilian shops it keeps open. */
+    private static final int STAFFED_GROCERIES = 2;
     /** BFS radius around each residential POI when looking for civilian spawn cells. */
     private static final int CIVILIAN_SPAWN_RADIUS = 5;
 
@@ -1287,6 +1293,8 @@ public final class BattleSetup {
                 alliedGarrisonStrengthMult, risk, seed);
         spawnAmbientCivilians(sim, map, rng);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), STAFFED_WAREHOUSES);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.FACTORY), STAFFED_FACTORIES);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), STAFFED_GROCERIES);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         if (!coldAccount) installReinforcementLayer(sim, map, type, null, groundRoster, risk,
                 null);
@@ -2683,6 +2691,9 @@ public final class BattleSetup {
                     sim.installColonyLivingField(ColonyLivingField.install(sim, map, payload.placement,
                             lzCells, risk, battleSeed ^ ERUPTION_SEED_SALT));
                 }
+                // The colony's largest warehouse, worked and loading its stores onto a truck: a
+                // side objective beside the rescue (staffed-buildings.md).
+                if (colony) ColonyBreachObjectives.install(sim, map, battleSeed);
             }
             return sim;
         }

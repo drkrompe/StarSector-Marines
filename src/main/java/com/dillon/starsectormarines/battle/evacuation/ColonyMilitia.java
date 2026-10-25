@@ -326,9 +326,13 @@ public final class ColonyMilitia {
 
     /** A colony gun on one cell: the post's heavy machine gun, sealed into its cell. */
     public static long seatEmplacement(BattleSimulation sim, int[] cell, String name) {
+        return seatEmplacement(sim, cell, name, EMPLACEMENT_STRUCTURE);
+    }
+
+    /** As {@link #seatEmplacement(BattleSimulation, int[], String)} with another structure on the post. */
+    public static long seatEmplacement(BattleSimulation sim, int[] cell, String name, String structureId) {
         int x = cell[0], y = cell[1];
-        long turret = sim.spawn(MapTurret.create(name, Faction.ALLY,
-                EMPLACEMENT_STRUCTURE, x, y));
+        long turret = sim.spawn(MapTurret.create(name, Faction.ALLY, structureId, x, y));
         NavigationGrid grid = sim.getGrid();
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);

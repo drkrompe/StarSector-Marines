@@ -390,7 +390,9 @@ public final class ColonyLivingField {
         float bestDistance = REFUGEE_SENSE * REFUGEE_SENSE;
         for (int i = 0; i < near.size; i++) {
             long u = near.ids[i];
-            if (!sim.identity().type(u).isSwarm() || !sim.world().isAlive(u)) continue;
+            // a skitterer frightens nobody: it runs from people
+            if (!sim.identity().type(u).isSwarm() || sim.identity().type(u).isSwarmWorker()
+                    || !sim.world().isAlive(u)) continue;
             float dx = sim.world().x(u) - x, dy = sim.world().y(u) - y;
             float d = dx * dx + dy * dy;
             if (d < bestDistance || (d == bestDistance && u < best)) {

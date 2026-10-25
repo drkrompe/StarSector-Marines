@@ -50,6 +50,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
     @Override
     public void update(long runner, BattleSimulation sim) {
+        // Still climbing out of its bore: on the field and shot as any body, but it does nothing yet.
+        if (sim.swarmEmergence().emerging(runner, sim.getSimTickIndex())) return;
         if (sim.swarmPacks().bolting(runner)) {
             bolt(runner, sim);
             return;
@@ -60,6 +62,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             case SWARM_BRUTE: SwarmBruteBehavior.update(runner, sim); return;
             case SWARM_SPITTER: SwarmSpitterBehavior.update(runner, sim); return;
             case SWARM_MATRIARCH: SwarmMatriarchBehavior.update(runner, sim); return;
+            case SWARM_WORKER: SwarmWorkerBehavior.update(runner, sim); return;
             default: break;
         }
         tickCooldown(runner, sim);
@@ -79,6 +82,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 SwarmMovement.pathDirect(runner, sim.world().cellX(dead), sim.world().cellY(dead), false, sim);
                 return;
             }
+            // Out of the hole with nothing to fight: it stands at its pack's muster until the pack is out.
+            if (SwarmEmergence.muster(runner, sim)) return;
             updateRoaming(runner, previousTarget, sim);
             return;
         }
@@ -162,7 +167,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
      * the bore field to the nearest living bore, or its own path there while
      * the field is not built. It does not strike while it carries.
      */
-    private static void carryHome(long runner, BattleSimulation sim) {
+    static void carryHome(long runner, BattleSimulation sim) {
         sim.combat().setTargetId(runner, 0L);
         if (SwarmMovement.moveToward(runner, SwarmGoal.BORE, sim)) return;
         SwarmBore bore = sim.swarmBores().nearestLiving(sim.world().x(runner), sim.world().y(runner));
