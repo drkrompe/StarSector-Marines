@@ -35,6 +35,11 @@ public final class District {
         SHOPFRONT,
         /** The open square at one end of a spine (main street). */
         PLAZA,
+        /**
+         * Ground under the market square set piece ({@code MarketSquare}), facing the district's street: the
+         * members holding it and the street between them are the square's lot (main street's plaza end).
+         */
+        MARKET_SQUARE,
         /** The public building closing the other end of a spine: a civic hall (main street). */
         LANDMARK,
         /** The facility's offices, which the mission's command sits in (cordoned facility). */
@@ -46,7 +51,19 @@ public final class District {
         /** Open hardstanding of parked vehicles and stores (cordoned facility). */
         YARD,
         /** The open paved square the facility's buildings stand round (cordoned facility). */
-        COURTYARD
+        COURTYARD,
+        /** A walled freight yard gated onto the street, publishing its loading bays (industrial zone). */
+        FREIGHT_YARD,
+        /** Workshops along a private service lane gated onto the streets (industrial zone). */
+        FACTORY_ROW,
+        /** A warehouse whose loading doors face the street across a dock apron (industrial zone). */
+        WAREHOUSE,
+        /** A walled farm of fluid tanks gated onto the street (industrial zone). */
+        TANK_FARM,
+        /** A walled hardstanding of parked haulers gated onto the street (industrial zone). */
+        VEHICLE_DEPOT,
+        /** A fortified post kept inside a wall gated onto the street (industrial zone). */
+        SECURITY_POST
     }
 
     /** The program that planned it, e.g. {@code "main-street"}; also how a mission names it. */

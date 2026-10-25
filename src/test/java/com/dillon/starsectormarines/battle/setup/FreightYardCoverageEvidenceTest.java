@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.evacuation.ColonyObjectiveForce;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -55,7 +56,8 @@ class FreightYardCoverageEvidenceTest {
             if (bays > 0) colonyYards++;
             if (bays > 1) large++;
             String loading;
-            try (BattleSimulation sim = BattleSetup.createCivilianRescue(seed, Collections.emptyList(), false,
+            try (ColonyObjectiveForce forced = ColonyObjectiveForce.force(LoadingObjective.KEY);
+                 BattleSimulation sim = BattleSetup.createCivilianRescue(seed, Collections.emptyList(), false,
                     RiskLevel.HIGH)) {
                 ObjectiveBoard board = sim.getOptionalObjectives();
                 Loading l = board != null && board.runtime(LoadingObjective.KEY) instanceof LoadingObjective o

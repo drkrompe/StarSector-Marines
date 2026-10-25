@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.MainStreet;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.OpenSquare;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -21,7 +22,8 @@ import java.util.Locale;
 
 /**
  * The main street district ({@code set-piece-districts.md}) on Colony Breach colonies: the whole district at
- * play zoom, and a close look along the street from the plaza end, roofed and not. Look-preset stills. Opt-in.
+ * play zoom, a close look along the street from the plaza end, roofed and not, and a close look at the market
+ * square where it stands at the plaza end. Look-preset stills. Opt-in.
  *
  * <p>The colony's map is generated once on its own to read its main street, which the battle does not keep,
  * then the battle is built from the same seed; a seed whose battle laid a different map is skipped.
@@ -71,15 +73,34 @@ public final class MainStreetLookSuite implements SnapshotSuite {
                         1920, 1080, nearX, nearY, CLOSE_CELLS).render(sim, stem)));
                 out.add(new SnapshotArtifact(stem + "-street-open.png", BattleReviewFrameRenderer.look(
                         context.modRoot(), 1920, 1080, nearX, nearY, CLOSE_CELLS).withoutRoofs().render(sim, stem)));
+                OpenSquare square = street.square();
+                if (square != null) {
+                    out.add(new SnapshotArtifact(stem + "-square.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), 1920, 1080, square.centreX(), square.centreY(), CLOSE_CELLS)
+                            .render(sim, stem)));
+                }
             }
         }
         return out;
     }
 
-    /** Whether the battle's map is the one read: the plaza's border is stone at two opposite corners. */
-    private static boolean sameStreet(CellTopology battle, MainStreet street) {
-        return street.plazaLeft() >= 0
-                && battle.getGroundKind(street.plazaLeft(), street.plazaTop()) == GroundKind.STONE
-                && battle.getGroundKind(street.plazaRight(), street.plazaBottom()) == GroundKind.STONE;
+    /**
+     * Whether the battle's map is the one read: the plaza's border is stone at two opposite corners, or, where
+     * the market square stands there, most of its open square is brick.
+     */
+    static boolean sameStreet(CellTopology battle, MainStreet street) {
+        if (street.plazaLeft() < 0) return false;
+        if (street.square() == null) {
+            return battle.getGroundKind(street.plazaLeft(), street.plazaTop()) == GroundKind.STONE
+                    && battle.getGroundKind(street.plazaRight(), street.plazaBottom()) == GroundKind.STONE;
+        }
+        int brick = 0, cells = 0;
+        for (int y = street.plazaTop(); y <= street.plazaBottom(); y++) {
+            for (int x = street.plazaLeft(); x <= street.plazaRight(); x++) {
+                cells++;
+                if (battle.getGroundKind(x, y) == GroundKind.BRICK) brick++;
+            }
+        }
+        return brick * 2 > cells;
     }
 }

@@ -1,7 +1,7 @@
 # The Dust Ledger — Saltwell Cross
 
-Status: IN PROGRESS — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25); piece A's map
-(`DustLedgerCrossing`, `dust-ledger-crossing` snapshots) is built, not yet wired.
+Status: IN PROGRESS — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25); pieces A
+(the map, `DustLedgerCrossing`) and B (mission behaviour) are built, C and D are under way.
 Written: 2026-10-25
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus)
@@ -32,10 +32,10 @@ chase pirates or collect tariffs. Wreck crews work the fall from an old
 low-orbit battle (`shepherd-recovery-dialogue.md`), and Wayline hauls their
 consumables a little under its rivals' rates.
 
-**Saltwell Cross** (placeholder name) is a dust-road trading post where the
+**Saltwell Cross** is a dust-road trading post where the
 crawler road from the salvage claims meets the road to the public freight
 apron. Wayline lands freight there on a schedule. Sable Wake's broker, **Oskar
-Vey** (placeholder), keeps a counting house in the old terraforming pump house
+Teague**, keeps a counting house in the old terraforming pump house
 at the east edge of town: tolerated, profitable to the market, not loved.
 
 **Why the company is not in trouble.** Three layers, none of them a mechanic:
@@ -44,7 +44,7 @@ at the east edge of town: tolerated, profitable to the market, not loved.
   a known, paying hauler doing what it always does.
 - The target is a pirate crew, the one thing the only authority that patrols
   Asharu exists to chase. Castle: "The Hegemony would thank us, if it noticed."
-- Mara has bought the market warden's indifference with a season's freight
+- Mara has bought the market warden's (Tobias Ankrum's) indifference with a season's freight
   credit. The warden's price: the fight stays at the pump house, and the market
   is not touched. The warden speaks for the town only, not Asharu's government
   or the Independent faction.
@@ -91,7 +91,7 @@ Each must be completed before the alarm to pay off; one started and not finished
 pays nothing. Both live entirely outside the exclusion ring, so their cost is
 clock time and squads not yet in position, never detection.
 
-**The salvagers' coupling.** The Harrow crew (placeholder), a Wayline account,
+**The salvagers' coupling.** The Harrow crew (led by Anneke Harrow), a Wayline account,
 sits stranded in their yard on the crawler road waiting for a drive coupling
 that is in this drop. A squad carries the crate from the apron to the yard
 through the market. Payoff: when the alarm sounds, a four-person armed salvage
@@ -155,7 +155,7 @@ team; cantina held and spotters), objective checklist and markers. Takes its
 own `Sites` input record so it is built and unit-tested against small
 synthetic grids, independent of piece A.
 
-**C. Story and text.** Briefing scene with Mara and Castle (warden arrangement,
+**C. Story and text (written; `dust-ledger-dialogue.md`).** Briefing scene with Mara and Castle (warden arrangement,
 broker, lift-off), side-objective field calls (Harrow, the warden), alarm and
 burn barks, and debrief variants over ledger grade x broker caught/escaped,
 with the canonical Prell and Warion facts in all of them. Catalog strings under
@@ -174,12 +174,12 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 - [ ] Authored map renders from the look preset; no capture point exists except
   the mission's own objectives.
 - [ ] Every site is reachable from the apron; all three approaches stay open.
-- [ ] Quiet phase holds until a listed trigger; each trigger raises the alarm in
+- [x] Quiet phase holds until a listed trigger; each trigger raises the alarm in
   a unit test.
 - [ ] Ledger burn stops at seizure and reports its grade; a burned ledger still
   completes the chapter.
-- [ ] Broker surrender, escort, escape and clock departure each resolve.
-- [ ] Each side objective pays off only if complete before the alarm.
+- [x] Broker surrender, escort, escape and clock departure each resolve.
+- [x] Each side objective pays off only if complete before the alarm.
 - [ ] Every victory debrief names Prell's authority and the Warion lead.
 - [ ] Headless playback with two squads wins with acceptable losses, with and
   without side objectives.
@@ -191,6 +191,5 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
   broker change only the debrief. Alternative: an optional-objective bonus
   (`optional-objectives.md`) for a full ledger and the broker, which changes the
   single-payment rule.
-- Names (Saltwell Cross, Oskar Vey, the Harrow crew, the warden) are
-  placeholders for piece C to settle.
+- Names are settled: Saltwell Cross, Oskar Teague, Anneke Harrow, Tobias Ankrum (see `dust-ledger-dialogue.md`).
 - Starting clock and burn durations are tuning values, set in play.

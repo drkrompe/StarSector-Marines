@@ -2691,8 +2691,8 @@ public final class BattleSetup {
                     sim.installColonyLivingField(ColonyLivingField.install(sim, map, payload.placement,
                             lzCells, risk, battleSeed ^ ERUPTION_SEED_SALT));
                 }
-                // The colony's largest warehouse, worked and loading its stores onto a truck: a
-                // side objective beside the rescue (staffed-buildings.md).
+                // A side objective beside the rescue, rolled from what the colony's set pieces can
+                // host, each under its own bore's pressure (set-piece-blocks.md).
                 if (colony) ColonyBreachObjectives.install(sim, map, battleSeed);
             }
             return sim;

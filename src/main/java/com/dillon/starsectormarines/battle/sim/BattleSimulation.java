@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.setup.SupportKitIssue;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
+import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces;
 import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
@@ -130,6 +132,7 @@ import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
@@ -724,6 +727,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         districtEscort = new DistrictEscortSequence(party, constables, carrier, reserve, routeX, routeY, storyBeats);
         addObjective(districtEscort);
     }
+    private DustLedgerSequence dustLedger;
+    /** The Dust Ledger's quiet phase, alarm, burn, broker and side objectives, or {@code null} on every other battle. */
+    public DustLedgerSequence getDustLedger() { return dustLedger; }
+    /**
+     * Installs the Dust Ledger over an installed Raid whose target is the ledger room ({@code dust-ledger-crossing.md}):
+     * stands the broker in his office and puts the quiet phase over the scans. The reserves spawn at the alarm.
+     */
+    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid,
+                                                List<EntitySpec> drinkers, List<EntitySpec> salvageTeam) {
+        if (simTickIndex != 0 || dustLedger != null) throw new IllegalStateException("Install the Dust Ledger once at setup");
+        if (!getObjectives().contains(raid)) throw new IllegalStateException("Install the ledger room's Raid first");
+        dustLedger = new DustLedgerSequence(sites, raid, drinkers, salvageTeam, storyBeats);
+        dustLedger.begin(this);
+        addObjective(dustLedger);
+        return dustLedger;
+    }
     private WaterUnderSealSequence waterUnderSeal;
     public WaterUnderSealSequence getWaterUnderSeal() { return waterUnderSeal; }
     public void installWaterUnderSeal(int technicians, long carrier, List<Integer> militia, List<EntitySpec> reserve) {
@@ -1217,7 +1236,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (yardOwners == null ? 0 : yardOwners.pendingMembers())
                 + (smallWar == null ? 0 : smallWar.pendingMembers())
                 + (termsOfProtection == null ? 0 : termsOfProtection.pendingMembers())
-                + (districtEscort == null ? 0 : districtEscort.pendingMembers());
+                + (districtEscort == null ? 0 : districtEscort.pendingMembers())
+                + (dustLedger == null ? 0 : dustLedger.pendingMembers(Faction.DEFENDER));
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2175,6 +2195,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
+    /** The campaign-resource window this battle's powers pay from. */
+    public CommandPowerResources getCommandPowerResources() {
+        return commandPowers.getResources();
+    }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
     public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) {
         commandPowers.setPowers(powers);
@@ -2440,8 +2464,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return completion.isComplete(); }
     public Faction getWinner()             { return completion.winner(); }
+    /** Whether the battle ended by Confirmed Retreat; the company's withdrawal has its own cost. */
+    public boolean isRetreated()           { return completion.retreated(); }
 
-    /** Freezes an active operation as defeat without fabricating additional casualties. */
+    /** Freezes an active operation as defeat; the withdrawal's wounds are settled by the resolver. */
     public boolean retreat() {
         boolean accepted = completion.retreat();
         if (accepted && openingStory != null) openingStory.retreat(simTickIndex);
@@ -4013,6 +4039,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (smallWar != null) smallWar.advance(this);
         if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
+        if (dustLedger != null) dustLedger.advance(this);
         if (cordon != null) cordon.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may

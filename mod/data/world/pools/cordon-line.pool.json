@@ -14,7 +14,7 @@
     ],
     "ROCK": [
       { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
-      { "seed": 5, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 18, "note": "rear north; redoubt guns 3-3-3-3; every redoubt on the crest; swapped in for seed 5 when main street's market square moved it" },
       { "seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" }
     ],
     "FROZEN": [

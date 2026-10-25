@@ -505,10 +505,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 AirPoolView.NONE)),
                 new SnapshotArtifact("battle-hud-retreat-wide.png",
                         renderBattleRetreatOverlay(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, BattleRetreatOverlayModel.Phase.ACTIVE,
+                                STORY_RETRY_FREE, false)),
                 new SnapshotArtifact("battle-hud-retreat-confirm-wide.png",
                         renderBattleRetreatOverlay(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)));
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, BattleRetreatOverlayModel.Phase.ACTIVE,
+                                STORY_RETRY_FREE, true)),
+                new SnapshotArtifact("battle-hud-retreat-confirm-contract-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, BattleRetreatOverlayModel.Phase.ACTIVE,
+                                BattleRetreatOverlayModel.RetryOffer.NONE, true)),
+                new SnapshotArtifact("battle-end-victory-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, BattleRetreatOverlayModel.Phase.VICTORY,
+                                BattleRetreatOverlayModel.RetryOffer.NONE, false)),
+                new SnapshotArtifact("battle-end-defeat-retry-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, BattleRetreatOverlayModel.Phase.DEFEAT,
+                                STORY_RETRY_POINT, false)),
+                new SnapshotArtifact("battle-end-defeat-no-points-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, BattleRetreatOverlayModel.Phase.DEFEAT,
+                                STORY_RETRY_BROKE, false)));
     }
 
     /** Mission presentation is reviewed at the shipping baseline: 1920 x 1080, 100%. */
@@ -1115,16 +1133,35 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 id, name, cp, supplies, cooldown, charges);
     }
 
-    /** Full-screen evidence for the compact exit and its deliberate confirmation state. */
+    private static final BattleRetreatOverlayModel.RetryOffer STORY_RETRY_FREE =
+            new BattleRetreatOverlayModel.RetryOffer(true, true, "Free restart", "Free retry");
+    private static final BattleRetreatOverlayModel.RetryOffer STORY_RETRY_POINT =
+            new BattleRetreatOverlayModel.RetryOffer(true, true, "Restart for 1 story point", "Retry for 1 story point");
+    private static final BattleRetreatOverlayModel.RetryOffer STORY_RETRY_BROKE =
+            new BattleRetreatOverlayModel.RetryOffer(true, false, "Restart needs a story point", "Retry needs a story point");
+
+    /**
+     * Full-screen evidence for the battle exit: the corner Retreat control and its
+     * confirmation while the battle runs, then the end panel under the banner.
+     */
     private static BufferedImage renderBattleRetreatOverlay(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean confirming) throws Exception {
+            SnapshotContext context, HeadlessUiRenderer renderer, int width, int height,
+            BattleRetreatOverlayModel.Phase phase, BattleRetreatOverlayModel.RetryOffer offer,
+            boolean confirming) throws Exception {
         BufferedImage image = renderBattleHudPowerOverlay(
                 context, renderer, width, height);
         Reactor reactor = new Reactor();
-        BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(
-                reactor, () -> { }, () -> { }, "Retreat", "Continue",
-                "Abandon operation?", "Cancel", "Retreat");
+        BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(reactor,
+                new BattleRetreatOverlayModel.Actions() {
+                    @Override public void withdraw() { }
+                    @Override public void proceed() { }
+                    @Override public void retry() { }
+                },
+                new BattleRetreatOverlayModel.Labels(Strings.get("battleRetreat"), Strings.get("battleContinue"),
+                        Strings.get("battleAcceptDefeat"), Strings.get("battleRetreatConfirm"),
+                        Strings.get("battleRetreatConfirmDetail"), Strings.get("battleRetreatCancel"),
+                        Strings.get("battleRetreatConfirmAction")));
+        model.update(phase, offer);
         Map<String, Object> props = model.props();
         if (confirming) ((Runnable) props.get("action")).run();
 
@@ -1141,8 +1178,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     Math.round(presentation.documentWidth()),
                     Math.round(presentation.documentHeight()));
             Graphics2D graphics = image.createGraphics();
-            graphics.drawImage(overlay, 12,
-                    height - 12 - overlay.getHeight(), null);
+            if (presentation.centred()) {
+                // Stand-in for BattleScreen's raw-GL banner, which the headless renderer cannot draw.
+                boolean victory = phase == BattleRetreatOverlayModel.Phase.VICTORY;
+                String banner = Strings.get(victory ? "battleVictory" : "battleDefeat");
+                graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+                var metrics = graphics.getFontMetrics();
+                int boxW = metrics.stringWidth(banner) + 48, boxH = metrics.getHeight() + 24;
+                int boxX = (width - boxW) / 2, boxY = height / 2 - boxH / 2;
+                graphics.setColor(new Color(0x0c, 0x12, 0x10, 235));
+                graphics.fillRect(boxX, boxY, boxW, boxH);
+                Color tone = victory ? new Color(0x80, 0xE0, 0x80) : new Color(0xE0, 0x60, 0x60);
+                graphics.setColor(tone);
+                graphics.drawRect(boxX, boxY, boxW, boxH);
+                graphics.drawString(banner, boxX + 24, boxY + 12 + metrics.getAscent());
+                graphics.drawImage(overlay, (width - overlay.getWidth()) / 2, height / 2 + 40, null);
+            } else {
+                graphics.drawImage(overlay, 12,
+                        height - 12 - overlay.getHeight(), null);
+            }
             graphics.dispose();
             return image;
         }

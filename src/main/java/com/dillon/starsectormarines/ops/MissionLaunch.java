@@ -627,6 +627,22 @@ public final class MissionLaunch {
     }
 
     /**
+     * Withdraws the launch-time claim {@link #finishSimulation} made on a story arc, for an
+     * attempt a retry erased before anything settled it. The arc's attempt is not counted, so
+     * the same operation can launch again.
+     */
+    static void abandonAttempt(Mission m) {
+        if (SupplyRouteCampaign.isBattle(m) && SupplyRouteCampaign.current() != null)
+            SupplyRouteCampaign.current().abandon(m.id);
+        if (CorvusWaylineCampaign.isBattle(m) && CorvusWaylineCampaign.current() != null)
+            CorvusWaylineCampaign.current().abandon(m.id);
+        if (ShepherdRecoveryCampaign.isBattle(m) && ShepherdRecoveryCampaign.current() != null)
+            ShepherdRecoveryCampaign.current().abandon(m.id);
+        if (AgreusArcCampaign.isBattle(m) && AgreusArcCampaign.current() != null)
+            AgreusArcCampaign.current().abandon(m.id);
+    }
+
+    /**
      * The briefing's WARSHIP DEBUG pick as a stock source for the Ship on Station power: the
      * same mechanism a committed fleet member uses, with the stock variant and no cost. A
      * hostile pick is not a call the company can make; it is the defender's source ({@link #installHostileShip}).

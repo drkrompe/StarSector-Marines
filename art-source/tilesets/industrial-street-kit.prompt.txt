@@ -1,0 +1,15 @@
+Use case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites); do not copy its objects or layout.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground under the objects.
+
+Paint the pieces of an industrial street and a security checkpoint, in reading order:
+1. Top left, a straight overhead pipe rack seen from above: three parallel process pipes running left to right (a grey steel pipe, a larger rust-brown insulated or painted pipe, a smaller blue-grey pipe), dark bolted flange collars exactly where the guide puts them, and under the left end a weathered steel I-beam crossing the pipes from top to bottom of the cell. The pipes must keep exactly the same width, colour and brightness along their whole length so the strip can be cut and repeated; vary only small surface detail.
+2. Top right, the gantry column foot from above: a concrete footing, a steel base plate with four anchor bolts and the top of a painted steel H-column.
+3. Middle left, a concrete jersey crash barrier from above: worn cast concrete, a narrower top ridge, chipped edges, faded yellow hazard bands at both ends.
+4. Middle centre, a steel security bollard from above: a dark steel cap in a yellow-painted ring.
+5. Middle right, a checkpoint boom-gate housing from above: a cream steel cabinet with a red top band and the dark pivot hub on its right side.
+6. Bottom left, the boom gate arm from above: a long slim pole with red and white bands exactly as the guide spaces them, a dark rubber tip at the right end.
+
+Grounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, chipped paint, rust, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style.
+
+True alpha transparency around every object and in every gap of the guide; no floor, no background, no shadow slab, no border, no labels, no text, no watermark. Paint only these objects and nothing outside their silhouettes.

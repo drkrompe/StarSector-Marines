@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MainStreet;
+import com.dillon.starsectormarines.battle.world.gen.OpenSquare;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.District;
 import com.dillon.starsectormarines.battle.world.gen.bsp.SpineClaim;
@@ -12,14 +14,22 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiPredicate;
+
 /**
  * The main street layout ({@code set-piece-districts.md}) over a planned {@link SpineClaim.Spine}. Each member
  * is a {@link FrontageRow} of narrow shopfronts behind a pavement, party walls between them, their doors and
  * windows on the street and on the service yard behind; a member too short for a row is one shop. The kerb is
- * cover: planters and stalls at a steady rhythm, and a parked van on each member's kerb where the pavement is
- * two rows deep (three keep a clear walk behind it), all kept out of the doorways and the cross-street corners.
- * Street lamps and awnings have no art yet. The plaza end is an open paved square with a bandstand where it is large enough, and the hall at the other end
- * faces the street like the shops. The cross streets' narrowed edges become pavement. Draws only from the
+ * cover: street lamps, planters and stalls at a steady rhythm, and a parked van on each member's kerb where the
+ * pavement is two rows deep (three keep a clear walk behind it), all kept out of the doorways and the
+ * cross-street corners. Each shop door has an awning over the pavement in front of it ({@link StreetDressing}),
+ * one colourway to a shopfront. The plaza end is the {@link MarketSquare} set piece facing the street where its
+ * lot holds it, framed by its own shops with the cross street between its two members running through it, and
+ * otherwise an open paved square with a bandstand where it is large enough; the hall at the other end faces the
+ * street like the shops. The cross streets' narrowed edges become
+ * pavement. Draws only from the
  * map's random stream, inside the shell carve.
  */
 final class MainStreetLayout {
@@ -54,8 +64,13 @@ final class MainStreetLayout {
         boolean[][] road = c.get(BspKeys.ROAD_CELLS);
         BlockLeaf plaza = null, hall = null;
         int doorX = -1, doorY = -1;
+        List<BlockLeaf> squareGround = new ArrayList<>();
         for (BlockLeaf leaf : s.members()) {
             District.Role role = district.roles.get(leaf);
+            if (role == District.Role.MARKET_SQUARE) {
+                squareGround.add(leaf);
+                continue;
+            }
             if (role == District.Role.PLAZA) {
                 plaza = leaf;
                 plaza(c, s, leaf, registry);
@@ -70,14 +85,26 @@ final class MainStreetLayout {
         }
         pavedCrossStreets(c, s, road, registry);
         carriageway(c, s, road);
+        OpenSquare square = null;
+        if (!squareGround.isEmpty()) {
+            plaza = streetEnd(s, squareGround, hall);
+            square = marketSquare(c, s, squareGround);
+            if (square == null) {
+                // The finished streets would not hold the square: a plain plaza at the end, shops behind it.
+                plaza(c, s, plaza, registry);
+                for (BlockLeaf leaf : squareGround) if (leaf != plaza) frontage(c, s, leaf, false, registry);
+            }
+        }
 
         int mid = (s.lo + s.hi + 1) / 2;
         boolean plazaLow = plaza != null && hall != null && s.alongLo(plaza) < s.alongLo(hall);
         int startA = plazaLow ? s.from : s.to + 1, endA = plazaLow ? s.to + 1 : s.from;
         MainStreet street = new MainStreet(s.x(startA, mid), s.y(startA, mid), s.x(endA, mid), s.y(endA, mid),
                 s.streetWidth(),
-                plaza == null ? -1 : plaza.left, plaza == null ? -1 : plaza.top,
-                plaza == null ? -1 : plaza.right, plaza == null ? -1 : plaza.bottom, doorX, doorY);
+                square != null ? square.left() : plaza == null ? -1 : plaza.left,
+                square != null ? square.bottom() : plaza == null ? -1 : plaza.top,
+                square != null ? square.right() : plaza == null ? -1 : plaza.right,
+                square != null ? square.top() : plaza == null ? -1 : plaza.bottom, doorX, doorY, square);
         c.mainStreets.add(street);
         return street;
     }
@@ -148,10 +175,35 @@ final class MainStreetLayout {
         for (int a = aLo; a <= aHi; a++) {
             if (clear[a - aLo]) continue;
             if (beat++ % RHYTHM != 0) continue;
-            String id = (beat / RHYTHM) % 2 == 0 ? (s.horizontal ? PLANTER_H : PLANTER_V) : STALL;
+            // Every other piece is a lamp, its arm over the carriageway; planters and stalls take turns between.
+            int piece = (beat - 1) / RHYTHM;
+            if (piece % 2 == 0) {
+                StreetDressing.lamp(c.grid, c.topology, c.doodads, StreetDressing.LAMP, s.x(a, kerb), s.y(a, kerb),
+                        s.horizontal ? 0 : -step, s.horizontal ? -step : 0);
+                continue;
+            }
+            String id = piece % 4 == 1 ? (s.horizontal ? PLANTER_H : PLANTER_V) : STALL;
             solid(c, s.x(a, kerb), s.y(a, kerb), registry.doodad(id));
         }
+        if (!hall) awnings(c, s, aLo, aHi, wall, step);
         return door < 0 ? new int[]{-1, -1} : new int[]{s.x(door, wall), s.y(door, wall)};
+    }
+
+    /**
+     * An awning over the pavement in front of each of a shop's front doors that has a cell of frontage to either
+     * side, none overlapping the last. The colourway is the shopfront's, read off its door's place so it draws no
+     * random.
+     */
+    private static void awnings(GenContext c, SpineClaim.Spine s, int aLo, int aHi, int wall, int step) {
+        int half = StreetDressing.AWNING_SPAN / 2, row = wall - step;
+        int clearFrom = aLo + half;
+        for (int a = aLo + half; a <= aHi - half; a++) {
+            if (a < clearFrom || !c.grid.isDoorway(s.x(a, wall), s.y(a, wall))) continue;
+            String id = StreetDressing.AWNINGS.get(Math.floorMod(a * 31 + wall, StreetDressing.AWNINGS.size()));
+            StreetDressing.awning(c.doodads, id, s.x(a, row), s.y(a, row),
+                    s.horizontal ? 0 : step, s.horizontal ? step : 0);
+            clearFrom = a + StreetDressing.AWNING_SPAN;
+        }
     }
 
     /** The first run of a van's length clear of doors and corners, nearest the middle of the frontage. */
@@ -169,8 +221,8 @@ final class MainStreetLayout {
 
     /**
      * The plaza: the whole leaf paved, a stone border, a planter at each corner on the street and the
-     * bandstand in the middle where the square is large enough. The market square set piece is meant to take
-     * this role once its lot can be a district member.
+     * bandstand in the middle where the square is large enough: the plaza end where the market square does not
+     * stand.
      */
     private static void plaza(GenContext c, SpineClaim.Spine s, BlockLeaf leaf, TileRegistry registry) {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
@@ -194,6 +246,73 @@ final class MainStreetLayout {
             for (int x = x0; x < x0 + prop.footprintCellsX; x++) fixture(c, x, y);
         }
         c.doodads.add(prop);
+    }
+
+
+    /** The member of the square's lot at the street's end, away from the hall. */
+    private static BlockLeaf streetEnd(SpineClaim.Spine s, List<BlockLeaf> ground, BlockLeaf hall) {
+        BlockLeaf first = ground.get(0), last = ground.get(0);
+        for (BlockLeaf leaf : ground) {
+            if (s.alongLo(leaf) < s.alongLo(first)) first = leaf;
+            if (s.alongHi(leaf) > s.alongHi(last)) last = leaf;
+        }
+        return hall != null && s.alongLo(hall) < s.alongLo(first) ? last : first;
+    }
+
+    /**
+     * The market square over its lot, facing the main street, or null where the finished streets do not hold
+     * it. What the square leaves of the lot is more paving, as round a standalone square.
+     */
+    private static OpenSquare marketSquare(GenContext c, SpineClaim.Spine s, List<BlockLeaf> ground) {
+        boolean[][] road = c.get(BspKeys.ROAD_CELLS);
+        MarketSquare.Placement market = chooseSquare(s, ground, road, c.get(BspKeys.ROAD_RESERVATION),
+                c.width, c.height, c.landingPads);
+        if (market == null) return null;
+        boolean[][] footprint = MarketSquare.footprint(market, c.width, c.height);
+        for (BlockLeaf leaf : ground) {
+            for (int y = leaf.top; y <= leaf.bottom; y++) {
+                for (int x = leaf.left; x <= leaf.right; x++) {
+                    if (footprint[x][y]) continue;
+                    c.grid.setWalkableFloor(x, y);
+                    c.topology.setGroundKind(x, y, GroundKind.BRICK);
+                }
+            }
+        }
+        return MarketSquare.place(c, market);
+    }
+
+    /**
+     * Where the market square stands on its lot ({@code ground}, the members holding
+     * {@link District.Role#MARKET_SQUARE}), or null: its front on the main street's carriageway or the street it
+     * runs on into past the spine's end, its footprint on the lot and on street round it but never on that
+     * street or another leaf, and the street between the lot's members running through its open middle, between
+     * the side rows. {@code reserved} may be
+     * null before the road reservation is drawn. Reads nothing else, so the program asks it while planning.
+     */
+    static MarketSquare.Placement chooseSquare(SpineClaim.Spine s, List<BlockLeaf> ground, boolean[][] road,
+                                               boolean[][] reserved, int width, int height, List<LandingPad> pads) {
+        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+        for (BlockLeaf leaf : ground) {
+            left = Math.min(left, leaf.left);
+            top = Math.min(top, leaf.top);
+            right = Math.max(right, leaf.right);
+            bottom = Math.max(bottom, leaf.bottom);
+        }
+        BiPredicate<Integer, Integer> carriageway = (x, y) -> {
+            int across = s.across(x, y);
+            return across >= s.lo && across <= s.hi && x >= 0 && y >= 0 && x < width && y < height && road[x][y];
+        };
+        BiPredicate<Integer, Integer> lot = (x, y) -> {
+            for (BlockLeaf leaf : ground) if (leaf.contains(x, y)) return true;
+            return false;
+        };
+        // Between the members: inside the lot's box, on neither member and off the main street.
+        int boxLeft = left, boxTop = top, boxRight = right, boxBottom = bottom;
+        BiPredicate<Integer, Integer> through = (x, y) -> x >= boxLeft && x <= boxRight && y >= boxTop
+                && y <= boxBottom && !lot.test(x, y) && !carriageway.test(x, y);
+        return MarketSquare.choose(width, height, pads, road, reserved, left, top, right, bottom,
+                (x, y) -> lot.test(x, y) || (road[x][y] && !carriageway.test(x, y)), lot, carriageway, through,
+                MarketSquare.preference(left + top));
     }
 
     /** The cells the rewrite took from the cross streets: pavement, with a planter on the main street's kerb. */

@@ -259,6 +259,12 @@ public final class AgreusArcProgress implements Serializable {
         activeAgreement = termsOfProtection(id) ? signedAgreement : null;
         return true;
     }
+    /** Closes an unsettled launch as if it never happened: the same attempt can launch again. */
+    public boolean abandon(String id) {
+        if (id == null || !id.equals(activeId)) return false;
+        activeId = null; activePlanetId = null; activePlanetName = null; activeSite = null; activeAgreement = null;
+        return true;
+    }
     public boolean acceptsTarget(String name) { return activePlanetName != null && activePlanetName.equals(name); }
 
     /** Accepts only the active named mobilization and its frozen physical result. */

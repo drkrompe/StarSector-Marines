@@ -86,7 +86,7 @@ final class MissionDebriefConversation {
                         ? "debriefReliefCostLosses" : "debriefReliefCostClean")),
                 firstContractLine("next", MARA, Strings.get("debriefReliefNext")));
         var route = SupplyRouteCampaign.current();
-        if (jangalaClosing(outcome, route)) return jangalaLines(outcome, catalog);
+        if (jangalaClosing(outcome, route)) return jangalaLines(catalog);
         if (blindWatch(outcome)) return List.of("initiative", "ready")
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
@@ -299,10 +299,8 @@ final class MissionDebriefConversation {
      * though nobody yet knows why it happened. The recorded turns come from the catalog; Castle's closing
      * line stays written until the Asharu lead it hands the company to is settled.
      */
-    static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome, WaylineNarration catalog) {
-        var beats = outcome.marinesLost > 0 ? List.of("road", "field", "cost", "manifests", "why")
-                : List.of("road", "field", "manifests", "why");
-        var lines = new ArrayList<>(authored(catalog, JANGALA_MISSION, "debrief.jangala.", beats.toArray(String[]::new)));
+    static List<WaylineNarration.Line> jangalaLines(WaylineNarration catalog) {
+        var lines = new ArrayList<>(authored(catalog, JANGALA_MISSION, "debrief.jangala.", "road", "manifests", "why"));
         lines.add(writtenLine("jangala-closing-next", JANGALA_MISSION, "debrief.jangala.next", CASTLE,
                 Strings.get("debriefJangalaNext")));
         return List.copyOf(lines);

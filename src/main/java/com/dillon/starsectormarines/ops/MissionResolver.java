@@ -101,6 +101,8 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
  *   <li>Defeat total wipe: 60% KIA, 40% INJURED for 45
  *       days (long recovery, "missing in action — extracted later"). Deterministic
  *       per (captain, mission). Captured branch deferred until CAPTURED status lands.</li>
+ *   <li>Withdrawal (Confirmed Retreat): surviving marines away from every landing
+ *       pad come home wounded; those at a pad extract unhurt.</li>
  *   <li>XP crossing a rank threshold auto-promotes (cascades if a single mission
  *       skips a tier).</li>
  * </ul>
@@ -210,6 +212,10 @@ public final class MissionResolver {
         // people, so nothing here may reach the roster or reputation.
         int alliesAlive = 0;
         Set<String> survivingSoldierIds = new HashSet<>();
+        // A withdrawal costs the troops still out in the field: whoever is not
+        // at a landing pad when the company pulls out comes home wounded.
+        Set<String> withdrawalWoundedSoldierIds = new HashSet<>();
+        boolean withdrew = sim.isRetreated();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
             if (roster.isCapturedStructure(unit)) continue; // held ground is not a person
@@ -219,6 +225,10 @@ public final class MissionResolver {
                 String id = (String) sim.getEntityWorld().getObject(unit, c.IDENTITY,
                         BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
                 if (id != null) survivingSoldierIds.add(id);
+                if (id != null && withdrew && !WithdrawalExtraction.extracts(sim.getMarineLandingPads(),
+                        sim.world().x(unit), sim.world().y(unit))) {
+                    withdrawalWoundedSoldierIds.add(id);
+                }
             } else if (faction == Faction.ALLY) {
                 alliesAlive++;
             }
@@ -250,6 +260,7 @@ public final class MissionResolver {
                     BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
             if (id == null) continue;
             takenSoldierIds.add(id);
+            withdrawalWoundedSoldierIds.remove(id);
             if (survivingSoldierIds.remove(id)) {
                 fallenSoldierIds.add(id);
                 marinesAlive--;
@@ -437,6 +448,7 @@ public final class MissionResolver {
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .takenSoldierIds(takenSoldierIds)
+                .withdrawalWoundedSoldierIds(withdrawalWoundedSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
                 .soldierTelemetry(soldierTelemetry)
                 .build();
@@ -762,8 +774,10 @@ public final class MissionResolver {
     static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome, float saved) {
         Map<String, MarineSoldierStatus> result = new HashMap<>();
         if (outcome == null) return result;
+        Set<String> withdrawalWounded = outcome.withdrawalWoundedSoldierIds != null
+                ? outcome.withdrawalWoundedSoldierIds : Set.of();
         for (String id : outcome.survivingSoldierIds) {
-            result.put(id, MarineSoldierStatus.ACTIVE);
+            result.put(id, withdrawalWounded.contains(id) ? MarineSoldierStatus.WIA : MarineSoldierStatus.ACTIVE);
         }
         Set<String> taken = outcome.takenSoldierIds != null ? outcome.takenSoldierIds : Set.of();
         for (String id : outcome.fallenSoldierIds) {

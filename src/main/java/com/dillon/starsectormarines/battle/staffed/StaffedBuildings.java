@@ -100,6 +100,13 @@ public final class StaffedBuildings {
         return staffed;
     }
 
+    /** Whether any civilian building {@code only} accepts could be staffed as one of {@code kinds}. Staffs nothing. */
+    public static boolean offers(BattleSimulation sim, MapResult map, Set<BuildingWork.Kind> kinds,
+                                 Predicate<PointOfInterest> only) {
+        for (Candidate candidate : candidates(sim, map, kinds)) if (only.test(candidate.building)) return true;
+        return false;
+    }
+
     /** A building that could be staffed; its index in the map's list is what scopes its claim groups. */
     private record Candidate(BuildingWork.Kind kind, PointOfInterest building, int index, List<FixtureTask> work) { }
 
