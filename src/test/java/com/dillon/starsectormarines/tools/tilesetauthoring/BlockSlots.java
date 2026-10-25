@@ -52,7 +52,7 @@ public final class BlockSlots {
     /** Every slot of a layout, in the order a split plate's pieces arrive. */
     public static List<String> of(GridLayout layout) {
         if (layout == GridLayout.CARDINAL_2X2) return CARDINAL;
-        if (layout == GridLayout.WALL_FACES_4X4) return FACES;
+        if (layout.isFaces()) return FACES;
         return layout.span() == 1 ? List.of(ONLY) : NINE;
     }
 
@@ -118,7 +118,7 @@ public final class BlockSlots {
     public static boolean fits(GridLayout layout, String slot) {
         if (layout == GridLayout.CARDINAL_2X2) return CARDINAL.contains(slot);
         if (CARDINAL.contains(slot)) return false;
-        if (layout == GridLayout.WALL_FACES_4X4) return FACES.contains(slot);
+        if (layout.isFaces()) return FACES.contains(slot);
         if (FACES.contains(slot)) return false;
         if (isVariant(slot)) return false;   // a pool has no layout to fit
         try {

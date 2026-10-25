@@ -683,6 +683,22 @@ public final class GroundRenderSystem implements RenderSystem {
             }
             resolveFloor(x,y,kind,topology.getSurface(x,y),sink);
         }
+        /**
+         * {@link #groundBlock} for a floor cell. A block that marks where its ground ends is
+         * resolved from that boundary instead of from the neighbouring walls.
+         */
+        private void floorBlock(GridBlockDef b, SpriteAPI sheet, Color fillIfNull,
+                                boolean n, boolean s, boolean e, boolean w, int x, int y,
+                                GroundMesh.CellSink sink) {
+            if (b != null && b.layout != null && b.layout.marksGroundEdges()) {
+                n = GroundTileSelector.endsGround(topology, genMapping, b.id, x, y + 1);
+                s = GroundTileSelector.endsGround(topology, genMapping, b.id, x, y - 1);
+                e = GroundTileSelector.endsGround(topology, genMapping, b.id, x + 1, y);
+                w = GroundTileSelector.endsGround(topology, genMapping, b.id, x - 1, y);
+            }
+            groundBlock(b, sheet, fillIfNull, n, s, e, w, x, y, sink);
+        }
+
         private void resolveFloor(int x,int y,CellTopology.GroundKind kind,int surface,GroundMesh.CellSink sink) {
             boolean nWall = GroundTileSelector.isInBoundsWall(topology, x, y + 1);
             boolean sWall = GroundTileSelector.isInBoundsWall(topology, x, y - 1);
@@ -702,7 +718,7 @@ public final class GroundRenderSystem implements RenderSystem {
                     ? tileReg.block(remnant.groundSurfaceId())
                     : surface<=0 || tileReg==null ? null : tileReg.block(topology.surfaceId(surface));
             if (floorBlock != null) {
-                groundBlock(floorBlock, sheetFor(floorBlock.sheetPath),
+                floorBlock(floorBlock, sheetFor(floorBlock.sheetPath),
                         floorBlock.fillRgb == null ? null : new Color(floorBlock.fillRgb),
                         nWall, sWall, eWall, wWall, x, y, sink);
                 return;
@@ -751,7 +767,7 @@ public final class GroundRenderSystem implements RenderSystem {
                     if (nature != null && tileReg != null) {
                         natureTile(tileReg.tile(GroundTileSelector.natureTileId(kind, x, y)), sink);
                     } else {
-                        groundBlock(kindBlock[ord], kindSheet(ord), kindFill[ord],
+                        floorBlock(kindBlock[ord], kindSheet(ord), kindFill[ord],
                                 nWall, sWall, eWall, wWall, x, y, sink);
                     }
                     break;
@@ -760,7 +776,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 default:
                     // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/STONE/SAND/SNOW/WATER/BRICK:
                     // generic resolve+draw from the kind's mapped block.
-                    groundBlock(kindBlock[ord], kindSheet(ord), kindFill[ord],
+                    floorBlock(kindBlock[ord], kindSheet(ord), kindFill[ord],
                             nWall, sWall, eWall, wWall, x, y, sink);
                     break;
             }

@@ -11,7 +11,8 @@ three lane-seeding defects it uncovered are fixed and folded into
 
 | Story | Status | Outcome |
 |---|---|---|
-| `set-piece-blocks.md` | IN PROGRESS | Authored blocks for their own sake: the freight yard and its loading bay are built; objective pressure and further set pieces remain. |
+| `set-piece-blocks.md` | IN PROGRESS | Authored blocks for their own sake: the freight yard (its planned parcel, two sizes, loading bays), the loading's pressure, the factory row and the market square (its planned lot and open square) are built; further set pieces remain. |
+| `set-piece-districts.md` | PLANNED | Districts: one authored layout over a whole multi-leaf claim, inner streets included (main street, industrial zone, cordoned facility). |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Distinct toxic, irradiated, volcanic and ash material families remain; palette-specific terrain and obstacles must preserve access. |

@@ -13,11 +13,6 @@
     },
     {
       "damageBlock": "terrain.blast-metal",
-      "id": "road.striped",
-      "layout": "striped-3x3"
-    },
-    {
-      "damageBlock": "terrain.blast-metal",
       "id": "road.tile",
       "layout": "single"
     },
@@ -143,60 +138,6 @@
       "note": "turret-wall-ne",
       "rect": [
         160,
-        0,
-        32,
-        32
-      ],
-      "slot": "ne"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c6r0",
-      "included": true,
-      "note": "fl-striped-nw",
-      "rect": [
-        192,
-        0,
-        32,
-        32
-      ],
-      "slot": "nw"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c7r0",
-      "included": true,
-      "note": "fl-striped-n",
-      "rect": [
-        224,
-        0,
-        32,
-        32
-      ],
-      "slot": "n"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c8r0",
-      "included": true,
-      "note": "fl-striped-ne",
-      "rect": [
-        256,
         0,
         32,
         32
@@ -444,59 +385,6 @@
       "slot": "e"
     },
     {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c6r1",
-      "included": true,
-      "note": "fl-striped-w",
-      "rect": [
-        192,
-        32,
-        32,
-        32
-      ],
-      "slot": "w"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c7r1",
-      "included": false,
-      "rect": [
-        224,
-        32,
-        32,
-        32
-      ],
-      "slot": "center"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c8r1",
-      "included": true,
-      "note": "fl-striped-e",
-      "rect": [
-        256,
-        32,
-        32,
-        32
-      ],
-      "slot": "e"
-    },
-    {
       "cover": "none",
       "footprintCells": [
         1,
@@ -732,60 +620,6 @@
       "note": "turret-wall-se",
       "rect": [
         160,
-        64,
-        32,
-        32
-      ],
-      "slot": "se"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c6r2",
-      "included": true,
-      "note": "fl-striped-sw",
-      "rect": [
-        192,
-        64,
-        32,
-        32
-      ],
-      "slot": "sw"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c7r2",
-      "included": true,
-      "note": "fl-striped-s",
-      "rect": [
-        224,
-        64,
-        32,
-        32
-      ],
-      "slot": "s"
-    },
-    {
-      "block": "road.striped",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c8r2",
-      "included": true,
-      "note": "fl-striped-se",
-      "rect": [
-        256,
         64,
         32,
         32
@@ -1077,7 +911,7 @@
   "gridCols": 17,
   "gridRows": 3,
   "idPrefix": "doodad.road",
-  "note": "THE RAW ART HERE IS THE SHIPPED ATLAS, COPIED. This sheet had no master: normalize_spaceport_apron.py composited nine downsampled panels into columns 6 through 8 and never touched the other 42 cells, whose only copy was the file in mod/graphics. Adopting that file as the source is what makes the sheet exportable at all - there was nothing else to export from.\n\nSo the cut is 1:1: 17x3 cells of 32px at origin 0 with a pitch of 32, which is the grid the atlas was already on. Nothing is resampled and nothing is re-keyed; every included cell carries the pixels and the alpha it shipped with. That is the whole point - the adoption must not change the art, only where it is authored from.\n\nroad.embankment and road.vent are declared here for the first time. Their art always shipped on this sheet, but no tileset named it: DefensePostStamper reached the turret embankment and the vent grate through raw (col, row) constants in TileManifest, so packing only the six declared blocks silently dropped ten cells the game draws. road.courtyard's nine cells were reached the same way, as the 'bow out' embankment, and are now resolved through the block they already were.\n\nTwo cells are deliberately left out: the centres of road.courtyard and road.striped are transparent on the sheet, and an unfilled slot in a hollow layout is exactly what its fill colour is for.\n\nThe apron patch is baked in. art-source/tilesets/urban-tileset-2-spaceport-apron.raw.png is kept as the generated source of columns 6-8, but nothing composites it any more.",
+  "note": "THE RAW ART HERE IS THE SHIPPED ATLAS, COPIED. This sheet had no master: normalize_spaceport_apron.py composited nine downsampled panels into columns 6 through 8 and never touched the other 42 cells, whose only copy was the file in mod/graphics. Adopting that file as the source is what makes the sheet exportable at all - there was nothing else to export from.\n\nSo the cut is 1:1: 17x3 cells of 32px at origin 0 with a pitch of 32, which is the grid the atlas was already on. Nothing is resampled and nothing is re-keyed; every included cell carries the pixels and the alpha it shipped with. That is the whole point - the adoption must not change the art, only where it is authored from.\n\nroad.embankment and road.vent are declared here for the first time. Their art always shipped on this sheet, but no tileset named it: DefensePostStamper reached the turret embankment and the vent grate through raw (col, row) constants in TileManifest, so packing only the six declared blocks silently dropped ten cells the game draws. road.courtyard's nine cells were reached the same way, as the 'bow out' embankment, and are now resolved through the block they already were.\n\nOne cell is deliberately left out: the centre of road.courtyard is transparent on the sheet, and an unfilled slot in a hollow layout is exactly what its fill colour is for.\n\nColumns 6-8 of the raw are the retired road.striped spaceport apron. The owner rejected it on sight as STRIPED ground (2026-10-25) and it is no longer cut: STRIPED draws apron.marked from the marked-apron sheet. The pixels stay on the raw only because the raw is the adopted atlas.",
   "sheet": "art-source/tilesets/urban-tileset-2.raw.png",
   "sheetName": "urban-tileset-2"
 }

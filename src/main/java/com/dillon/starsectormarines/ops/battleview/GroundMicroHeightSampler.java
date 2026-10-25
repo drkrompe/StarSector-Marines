@@ -127,6 +127,15 @@ final class GroundMicroHeightSampler {
         if (blockId == null) return null;
         GridBlockDef block = tileReg.block(blockId);
         if (block == null) return null;
+        if (block.layout != null && block.layout.marksGroundEdges()) {
+            GenMappingRegistry mapping = GenMappingRegistry.installed();
+            return resolvedBlock(block,
+                    GroundTileSelector.endsGround(topology, mapping, blockId, gridX, gridY + 1),
+                    GroundTileSelector.endsGround(topology, mapping, blockId, gridX, gridY - 1),
+                    GroundTileSelector.endsGround(topology, mapping, blockId, gridX + 1, gridY),
+                    GroundTileSelector.endsGround(topology, mapping, blockId, gridX - 1, gridY),
+                    gridX, gridY);
+        }
         return resolvedBlock(block,
                 isWallAt(topology, gridX, gridY + 1),
                 isWallAt(topology, gridX, gridY - 1),

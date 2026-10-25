@@ -60,7 +60,7 @@ final class HardwareArt {
     }
 
     /** {@code kit.applique-plate} draws from {@code kit-applique-plate.svg}. */
-    private static String stem(VehicleKit kit) {
+    static String stem(VehicleKit kit) {
         return kit.id.replace('.', '-');
     }
 

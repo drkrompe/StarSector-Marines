@@ -203,9 +203,9 @@ public final class CordonOuterPicket {
         for (Post p : posts) {
             if (out.length() > 0) out.append("; ");
             out.append(String.format(Locale.ROOT, "%d (r%d, %d,%d)", p.number, p.redoubt.number(), p.x, p.y));
-            out.append(p.contactTick < 0 ? " no contact" : String.format(Locale.ROOT, " contact %.1f", p.contactTick / 3600f));
-            if (p.backTick >= 0) out.append(String.format(Locale.ROOT, ", back %.1f with %d of %d", p.backTick / 3600f, p.joined, p.team));
-            else if (p.lostTick >= 0) out.append(String.format(Locale.ROOT, ", lost %.1f", p.lostTick / 3600f));
+            out.append(p.contactTick < 0 ? " no contact" : String.format(Locale.ROOT, " contact %.1f", p.contactTick * BattleSimulation.TICK_DT / 60f));
+            if (p.backTick >= 0) out.append(String.format(Locale.ROOT, ", back %.1f with %d of %d", p.backTick * BattleSimulation.TICK_DT / 60f, p.joined, p.team));
+            else if (p.lostTick >= 0) out.append(String.format(Locale.ROOT, ", lost %.1f", p.lostTick * BattleSimulation.TICK_DT / 60f));
             else if (p.fallingBack) out.append(", falling back");
             else out.append(", holding");
         }

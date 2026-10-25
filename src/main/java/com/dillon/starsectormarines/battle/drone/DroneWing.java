@@ -192,6 +192,15 @@ public final class DroneWing implements DroneAnchor {
      * other drone's station at {@code seconds} on the simulation clock, and the threat the hull faces.
      */
     public void publish(long[] droneIds, float[] droneXy, long nearestThreat, float seconds) {
+        publish(droneIds, droneXy, nearestThreat, seconds, Map.of());
+    }
+
+    /**
+     * As {@link #publish(long[], float[], long, float)}, with the stations {@code sensorStations} gives the sensor
+     * drones (a {@link SensorSearch} plan); a sensor with none holds the fixed station off the bow.
+     */
+    public void publish(long[] droneIds, float[] droneXy, long nearestThreat, float seconds,
+                        Map<Long, float[]> sensorStations) {
         ArrayList<Long> escorts = new ArrayList<>();
         ArrayList<Float> escortXy = new ArrayList<>();
         int sensors = 0, halos = 0;
@@ -210,7 +219,12 @@ public final class DroneWing implements DroneAnchor {
                     escortXy.add(droneXy[2 * i]);
                     escortXy.add(droneXy[2 * i + 1]);
                 }
-                case SENSOR -> next.put(droneIds[i], sensorStation(x, y, heading, halfLength, sensor++, sensors));
+                case SENSOR -> {
+                    float[] planned = sensorStations.get(droneIds[i]);
+                    next.put(droneIds[i], planned != null ? planned
+                            : sensorStation(x, y, heading, halfLength, sensor, sensors));
+                    sensor++;
+                }
                 case HALO -> next.put(droneIds[i], haloStation(x, y, halfLength, halo++, halos, seconds));
                 case STRIKE -> next.put(droneIds[i], strikeTarget != 0L
                         ? new float[]{strikeX, strikeY} : sensorStation(x, y, heading + 180f, halfLength, 0, 1));
