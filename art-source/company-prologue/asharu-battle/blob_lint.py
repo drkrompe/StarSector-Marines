@@ -81,7 +81,10 @@ class Lint:
             if chained:
                 held += max((p[1] for p in self.prev if _overlap(p[0][1], r[1], pad)), default=0)
             now.append((r, held))
-            frames_24 = (held - 1) * dt * 24.0 + 1     # first sighting to last, in 24 fps frames
+            # first sighting to last, in 24 fps frames; rounded, since dt comes from span times in seconds
+            # and (f + 1) / 24 - f / 24 is a hair over 1/24: a two-frame hold read as 2.0000000000001 (S9b
+            # final c00, 2026-10-25)
+            frames_24 = round((held - 1) * dt * 24.0 + 1, 6)
             row = (f'white region {r[0]} px at x{int(r[3])} y{int(r[2])} (box {r[1]}), '
                    f'held {held} frame{"s" if held > 1 else ""} ({frames_24:.0f} at 24 fps)')
             rows.append(row)
