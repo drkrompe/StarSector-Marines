@@ -152,6 +152,7 @@ public final class VehicleControlSystem {
     public void clearRoute(long id) {
         VehicleControlComponent s = convoy.control(id);
         resetTracking(s, true);
+        if (convoy.body(id) instanceof BicycleBody bicycle) bicycle.endPivot();
         s.corridor = null;
         s.routeXs = null;
         s.routeYs = null;
@@ -227,6 +228,8 @@ public final class VehicleControlSystem {
         s.recoveryBestRemaining = Float.MAX_VALUE;
         s.wallStuckTime = 0f;
         s.timeSinceProgress = 0f;
+        s.pivotTracking = false;
+        s.pivotDirection = 0;
         if (clearRescueFirstSteps) {
             s.rescueFirstStepTriedMask = 0;
             s.rerouteAvoidCount = 0;
@@ -324,6 +327,7 @@ public final class VehicleControlSystem {
                     return;
                 }
             }
+            if (orderedFacing && pivotToFacing(body, type, s, goalFacingDeg, dt)) return;
             cancelPending(s);
             s.arrived = true;
             return;
@@ -370,6 +374,20 @@ public final class VehicleControlSystem {
                 advanceDocking(mission, body, type, s, dt);
                 return;
             }
+            // A hull that turns on the spot has a deeper answer than braking: follow the corridor itself, which
+            // route proof drove at the chassis's turning circle wherever one fits and pivots it at the bends where
+            // none does, stopping to pivot whenever the corridor turns further than it can steer. Tracks and skirts
+            // do so at once; wheels only once braking and the reroute have both failed.
+            boolean pivotDue = NeutralPivot.onRoutes(type) || s.pivotTracking
+                    || s.localPlanFailureRerouteAttempted
+                    && s.localPlanFailureTime >= NeutralPivot.LAST_RESORT_SECONDS;
+            if (pivotDue && pivotTrack(mission, body, type, s, xs, ys, dt)) {
+                s.pivotTracking = true;
+                s.localPlanFailureTime = 0f;
+                s.localPlanFailureRerouteAttempted = false;
+                return;
+            }
+            s.pivotTracking = false;
             s.localPlanFailureTime += dt;
             body.speed = 0f;
             if (!recoveryWorked && s.pendingRecovery == null && !s.localPlanFailureRerouteAttempted
@@ -383,6 +401,7 @@ public final class VehicleControlSystem {
         if (s.trajectory != null) {
             s.localPlanFailureTime = 0f;
             s.localPlanFailureRerouteAttempted = false;
+            if (s.pivotTracking || s.pivotDirection != 0) endPivotTracking(body, s);
         }
 
         // --- Track (trajectory if we have one, else the coarse corridor) ---
@@ -474,12 +493,116 @@ public final class VehicleControlSystem {
      * advisory corridor.
      */
     private boolean needsReplan(GroundBody body, VehicleControlComponent s) {
-        if (s.trajectory == null) return true;
+        // Following the corridor by pivot is a plan of its own; asking the forward planner every tick would only
+        // repeat its refusal.
+        if (s.trajectory == null) return !s.pivotTracking || s.sinceReplan >= VehicleController.REPLAN_INTERVAL_SEC;
         if (s.sinceReplan >= VehicleController.REPLAN_INTERVAL_SEC) return true;
         if (s.trajCarrotAtEnd) return true;
         if (s.trajProgress >= s.trajectory.lengthCells() * VehicleController.REPLAN_CONSUMED_FRACTION) return true;
         if (s.corridor.offCorridorDistance(body.x, body.y) > VehicleController.REPLAN_DRIFT_CELLS) return true;
         return false;
+    }
+
+    /**
+     * One tick of following the corridor without a forward plan, by a hull that turns on the spot
+     * ({@link NeutralPivot}). The carrot sits a short way down the corridor: while the hull points within
+     * {@link NeutralPivot#ENGAGE_DEG} of it the hull drives at it, and past that it stops and pivots until it points
+     * within {@link NeutralPivot#ALIGNED_DEG}, the way that keeps its footprint clear. Every move is swept like any
+     * other, so the corridor's proof is a guide and the live ground the authority.
+     *
+     * @return whether the hull moved or turned this tick; {@code false} leaves it to the ordinary brake and reroute
+     */
+    private boolean pivotTrack(VehicleMission mission, GroundBody body, VehicleType type,
+                               VehicleControlComponent s, float[] xs, float[] ys, float dt) {
+        float rate = NeutralPivot.rateDegPerSec(type);
+        if (rate <= 0f || !(body instanceof BicycleBody bicycle) || mission.speedCap <= 0f) return false;
+        PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, xs, ys, s.corridor.cursor(),
+                NeutralPivot.LOOKAHEAD_CELLS);
+        float dx = carrot.x - body.x, dy = carrot.y - body.y;
+        if (dx * dx + dy * dy < 1e-6f) return false;
+        float bearing = AirBody.facingToward(dx, dy);
+        float error = NeutralPivot.signedDegrees(bearing - body.facingDegrees);
+        float threshold = s.pivotDirection != 0 ? NeutralPivot.ALIGNED_DEG : NeutralPivot.ENGAGE_DEG;
+        float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+        if (Math.abs(error) > threshold) {
+            if (Math.abs(body.speed) > NeutralPivot.STANDSTILL_SPEED) {
+                // Stop first: tracks counter-rotate from a standstill.
+                body.tick(carrot.x, carrot.y, 0f, dt);
+                return !applySweep(body, type, prevX, prevY, prevFacing, false);
+            }
+            if (!pivotStep(bicycle, type, s, bearing, rate, dt)) return false;
+            // Turning toward the corridor is progress, even though no ground is covered.
+            s.timeSinceProgress = 0f;
+            return true;
+        }
+        if (s.pivotDirection != 0) {
+            s.pivotDirection = 0;
+            bicycle.endPivot();
+        }
+        float remaining = s.corridor.remainingLength(body.x, body.y);
+        float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
+        float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
+        float targetSpeed = Math.min(Math.min(type.maxSpeed * NeutralPivot.TRACK_SPEED_FRACTION, terrainSpeed),
+                Math.min(taper, mission.speedCap));
+        body.tick(carrot.x, carrot.y, targetSpeed, dt);
+        if (!applySweep(body, type, prevX, prevY, prevFacing, false)) return true;
+        // Driving at a carrot a few degrees off can still clip a bend's corner: square up exactly before driving on.
+        s.pivotDirection = NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, bearing,
+                type.visualLengthCells, type.visualWidthCells, motionGrid(type));
+        return false;
+    }
+
+    /**
+     * Turn the hull on the spot toward {@code targetDeg} by up to one tick of {@code rate}, the way
+     * {@link VehicleControlComponent#pivotDirection} holds or, at the start of a pivot, whichever way its footprint
+     * clears the whole turn. Sweeps the turn like any other move.
+     *
+     * @return whether it turned; {@code false} when no way round is clear, which ends the pivot
+     */
+    private boolean pivotStep(BicycleBody body, VehicleType type, VehicleControlComponent s,
+                              float targetDeg, float rate, float dt) {
+        // A target that has slid past the nose would read as nearly a whole turn the old way: choose afresh.
+        if (s.pivotDirection == 0
+                || NeutralPivot.positiveDegrees(s.pivotDirection * (targetDeg - body.facingDegrees)) > 180f) {
+            s.pivotDirection = NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, targetDeg,
+                    type.visualLengthCells, type.visualWidthCells, motionGrid(type));
+            if (s.pivotDirection == 0) return false;
+        }
+        float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+        float owed = NeutralPivot.positiveDegrees(s.pivotDirection * (targetDeg - body.facingDegrees));
+        body.pivot(s.pivotDirection * Math.min(rate * dt, owed), dt);
+        if (applySweep(body, type, prevX, prevY, prevFacing, false)) {
+            endPivotTracking(body, s);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * At the destination of an order that names a heading, with no docking maneuver to land on it: a hull that turns
+     * on the spot as a matter of course turns there, one tick at a time. A wheeled hull arrives on the heading it
+     * drove in on; a heading is never worth its last resort.
+     *
+     * @return whether it is still turning, so arrival waits
+     */
+    private boolean pivotToFacing(GroundBody body, VehicleType type, VehicleControlComponent s,
+                                  float goalFacingDeg, float dt) {
+        float rate = NeutralPivot.rateDegPerSec(type);
+        if (!NeutralPivot.onRoutes(type) || !(body instanceof BicycleBody bicycle)) return false;
+        if (Math.abs(NeutralPivot.signedDegrees(goalFacingDeg - body.facingDegrees)) <= NeutralPivot.ALIGNED_DEG
+                || !pivotStep(bicycle, type, s, goalFacingDeg, rate, dt)) {
+            endPivotTracking(body, s);
+            return false;
+        }
+        s.timeSinceProgress = 0f;
+        return true;
+    }
+
+    /** Hand the hull back from following its corridor by pivot to the rolling forward plan. */
+    private static void endPivotTracking(GroundBody body, VehicleControlComponent s) {
+        s.pivotTracking = false;
+        s.pivotDirection = 0;
+        if (body instanceof BicycleBody bicycle) bicycle.endPivot();
     }
 
     /**

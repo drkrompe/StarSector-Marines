@@ -89,7 +89,7 @@ public enum VehicleType {
             return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
         }
     },
-    /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
+    /** Heavy convoy spearhead. Turns on conservative rolling arcs, and on the spot where no arc fits ({@link NeutralPivot}). */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
