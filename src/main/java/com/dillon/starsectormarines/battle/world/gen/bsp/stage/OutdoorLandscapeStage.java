@@ -110,9 +110,11 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     private static List<RidgePlanner.Band> landscapeBands(GenContext c, Landscape landscape) {
-        List<RidgePlanner.Band> bands = new ArrayList<>(landscape.ridges());
-        bands.addAll(landscape.allHeld());
+        // The held and sealed bands and the valleys first: proved a segment at a time in order, so the ground the
+        // mission holds open is taken before anything else can come within a gap of it.
+        List<RidgePlanner.Band> bands = new ArrayList<>(landscape.allHeld());
         bands.addAll(valleySides(c, landscape));
+        bands.addAll(landscape.ridges());
         return bands;
     }
 
