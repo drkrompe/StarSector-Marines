@@ -196,6 +196,7 @@ public final class SwarmHarvest {
     private int firstHarvestTick = -1;
     private int hauledByWorkers;
     private int hauledByFliers;
+    private int snatchedByFliers;
 
     public SwarmHarvest(boolean enabled) {
         this(enabled, impaleByDefault(), areaHitsHeldByDefault());
@@ -377,6 +378,39 @@ public final class SwarmHarvest {
         }
         return true;
     }
+
+    /**
+     * Whether a Harrier may snatch {@code body} alive off the ground: a living colonist (not a soldier) harvest
+     * takes ({@link #harvestable}, so never an evacuee under escort), out in the open with no roof over it, not
+     * held and not still on the ground from being dropped, while a bore lives to take it to.
+     */
+    public boolean snatchable(BattleSimulation sim, long body) {
+        if (!open || carriers.containsKey(body) || recovering.containsKey(body)) return false;
+        if (sim.resolveUnit(body) == 0L || !sim.world().isAlive(body) || sim.isRiding(body)) return false;
+        if (sim.identity().faction(body) != Faction.CIVILIAN || !harvestable(sim, body)) return false;
+        return !sim.isRoofShielded(body);
+    }
+
+    /**
+     * Serial: a Harrier ({@code flier}) snatches the living colonist {@code body} off the ground to fly it, alive, to a
+     * bore, where it is taken as an impaled body is. Refused (false) unless it is {@link #snatchable} and the flier is
+     * alive and carries nothing. Shot down on the way, the flier drops it alive, its legs hurt ({@link #free}).
+     */
+    public boolean snatchByFlier(BattleSimulation sim, long flier, long body) {
+        if (!snatchable(sim, body) || loads.containsKey(flier)) return false;
+        if (sim.resolveUnit(flier) == 0L || !sim.world().isAlive(flier)) return false;
+        if (sim.movement().has(body)) sim.clearPath(body);
+        loads.put(flier, body);
+        carrierPace.put(flier, 1f);
+        carriers.put(body, flier);
+        seized++;
+        snatchedByFliers++;
+        if (firstHarvestTick < 0) firstHarvestTick = sim.getSimTickIndex();
+        return true;
+    }
+
+    /** How many living colonists Harriers have snatched off the ground. */
+    public int snatchedByFliers() { return snatchedByFliers; }
 
     /** The bodies going down a mouth now, in the order they were let go. Presentation reads it. */
     public Collection<Feed> feeding() { return Collections.unmodifiableCollection(feeding.values()); }

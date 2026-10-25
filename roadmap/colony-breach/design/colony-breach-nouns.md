@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — Harriers snatch colonists in the open alive and fly them into the bore.
+
 Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
 
 Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
@@ -1349,6 +1351,18 @@ not read in a soft shadow at play zoom.
     carrier shot down drops its load where it falls. So a line that kills the
     carriers keeps the nest from feeding on its dead. Scene: `harrier-carry`;
     look: `harrier-carry-look`.
+  - **Snatching the living** (owner, 2026-10-25: Harrier bands picking off
+    the colony's survivors). A colonist out in the open, no roof over them, is
+    taken alive: a pack with room for another carrier sends its nearest
+    member down on the nearest within twenty-two cells, whether or not it has
+    prey of its own, ahead of any dead. The carrier snatches them off their
+    feet and hauls them home as a dead load is hauled, and at the mouth they
+    are taken as an impaled body is (`SwarmHarvest.snatchByFlier`). A
+    Harrier never bites a colonist, and never takes a soldier or militia
+    fighter alive, nor an evacuee under escort (*Harvest*). Shot down on the
+    way, the carrier drops them alive where it falls, both legs run through,
+    and they lie a moment before running again, untouchable by the air until
+    they do. Scene: `harrier-snatch`; look: `harrier-snatch-look`.
   - **How it flies.** Its own steering, never the ground flow field, which is a
     map of walls a flier is not in: seek a goal, push off packmates, turn at a
     capped rate, move along the nose. Serial, in pack and slot order, with no

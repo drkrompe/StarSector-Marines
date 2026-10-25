@@ -423,14 +423,18 @@ public final class SwarmFliers {
     }
 
     /**
-     * Sends the member nearest the nearest loose body within {@link HarrierCarry#SENSE} off to fetch it, when the pack
-     * has nothing to hunt and room for another carrier ({@link HarrierCarry#sends}). A body another carrier is after
-     * is passed over.
+     * Sends the member nearest a body within {@link HarrierCarry#SENSE} off to fetch it, when the pack has room for
+     * another carrier ({@link HarrierCarry#sends}): first the nearest living colonist out in the open, snatched whether
+     * or not the pack has prey of its own (food that runs is taken while it can be); else, with nothing to hunt, the
+     * nearest loose body. A body another carrier is after is passed over.
      */
     private void scavenge(BattleSimulation sim, HarrierPack pack, boolean prey) {
-        if (!HarrierCarry.sends(pack.phase, prey, pack.unhatched, pack.members.size(), pack.carriersOut())) return;
-        long body = sim.swarmHarvest().nearestLoose(sim, pack.centreX(), pack.centreY(), HarrierCarry.SENSE,
-                this::claimed);
+        if (!HarrierCarry.sends(pack.phase, false, pack.unhatched, pack.members.size(), pack.carriersOut())) return;
+        long body = nearestSnatchable(sim, pack.centreX(), pack.centreY(), HarrierCarry.SENSE);
+        if (body == 0L && !prey) {
+            body = sim.swarmHarvest().nearestLoose(sim, pack.centreX(), pack.centreY(), HarrierCarry.SENSE,
+                    this::claimed);
+        }
         if (body == 0L) return;
         float bx = sim.world().x(body), by = sim.world().y(body);
         HarrierFlight best = null;
@@ -444,6 +448,25 @@ public final class SwarmFliers {
             }
         }
         if (best != null) best.carry = new HarrierCarry(body);
+    }
+
+    /** The nearest living colonist a Harrier may snatch within {@code radius} of ({@code x}, {@code y}), or 0. */
+    private long nearestSnatchable(BattleSimulation sim, float x, float y, float radius) {
+        SwarmHarvest harvest = sim.swarmHarvest();
+        if (!harvest.isOpen()) return 0L;
+        World world = sim.world();
+        long best = 0L;
+        float bestDistance = radius * radius;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.CIVILIAN) continue;
+            float dx = world.x(u) - x, dy = world.y(u) - y, d = dx * dx + dy * dy;
+            if (d > bestDistance || d == bestDistance && u > best) continue;
+            if (!harvest.snatchable(sim, u) || claimed(u)) continue;
+            best = u;
+            bestDistance = d;
+        }
+        return best;
     }
 
     /** Whether a carrier is already after {@code body}. */
@@ -467,10 +490,12 @@ public final class SwarmFliers {
             if (c == null) continue;
             switch (c.phase) {
                 case SNATCH -> {
-                    if (!harvest.isLoose(c.body) || !world.hasPosition(c.body)) {
+                    // A living colonist is snatched off its feet; a dead body is taken up where it lies.
+                    boolean living = world.isAlive(c.body);
+                    if (!world.hasPosition(c.body) || (living ? !harvest.snatchable(sim, c.body) : !harvest.isLoose(c.body))) {
                         c.giveUp();
                     } else if (c.swoop(m, world.x(c.body), world.y(c.body), dt)
-                            && harvest.takeUpByFlier(sim, m.id, c.body)) {
+                            && (living ? harvest.snatchByFlier(sim, m.id, c.body) : harvest.takeUpByFlier(sim, m.id, c.body))) {
                         c.took();
                         events.add(new Event(tick, Event.Kind.SNATCHED, pack.id, m.id, c.body));
                     }
