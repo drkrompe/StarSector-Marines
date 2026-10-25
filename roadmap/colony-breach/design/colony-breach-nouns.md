@@ -775,7 +775,12 @@ no hardstanding pad. The earth a bore heaved up is creep, in the creep's own
 colours, so the rim reads as where the creep pours out of the ground. Nothing about them is regular: they erupted, so
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
-collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
+collapsed into the funnel. The mother bore must read at a glance as far more than
+a bore, the root of the whole bloom: a ring of great bone fangs hooked in over a
+wide gullet of ribbed crimson flesh that falls away to black, a faint amber glow
+far down where the reservoir is, the colony's paving heaved up round the rim and
+sinew roots running far out into the creep, drawn much larger than a satellite
+(a jaw, picked over plates vaulted closed over the hole and a lopsided cave-in).
 A colony is an uneven cluster round one dominant, leaning sac. A ground colony
 must never read as one: it is low and pressed flat into the creep, with no sac
 and no pore aimed at the sky, a plated core with an amber eye whose crimson
