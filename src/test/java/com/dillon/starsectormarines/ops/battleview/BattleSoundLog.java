@@ -14,7 +14,7 @@ import java.util.Locale;
 /**
  * A look shot's soundtrack as data, for a review to mix offline: every sound the battle screen would start, written
  * per tick as a JSON line ({@code frame, id, x, y, pitch, volume, listenerX, listenerY}). The creatures' sounds come
- * from {@link SwarmAudio.Mix#hear} and {@link HarrierAudio.Mix#hear}, the same rules and levels the game plays them
+ * from {@link SwarmAudio.Mix#hear}, {@link HarrierAudio.Mix#hear} and {@link SpireAudio.Mix#hear}, the same rules and levels the game plays them
  * at; the fire from {@link BattleShotAudio#cue}. The listener is the view's centre, as it is the screen's in a battle.
  * Impacts and held beam loops are not logged.
  */
@@ -23,6 +23,7 @@ public final class BattleSoundLog {
     private final Path file;
     private final SwarmAudio.Mix swarm = new SwarmAudio.Mix();
     private final HarrierAudio.Mix harrier = new HarrierAudio.Mix();
+    private final SpireAudio.Mix spire = new SpireAudio.Mix();
     private int frame;
 
     private BattleSoundLog(Path file) {
@@ -46,6 +47,8 @@ public final class BattleSoundLog {
         for (SwarmAudio.Play p : swarm.hear(sim, at[0], at[1]))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (HarrierAudio.Play p : harrier.hear(sim, at[0], at[1]))
+            line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        for (SpireAudio.Play p : spire.hear(sim, at[0], at[1]))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (ShotEvent shot : sim.getShotsThisFrame()) {
             BattleShotAudio.Cue cue = BattleShotAudio.cue(shot);

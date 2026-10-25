@@ -50,7 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
  * death are the Brute's takes played deeper and slower through the pitch
  * argument, not baked copies. The Harrier, which flies with its pack rather than walking, is
- * {@link HarrierAudio}'s, played from here.
+ * {@link HarrierAudio}'s, and the brood spire it rises from {@link SpireAudio}'s, both played from here.
  */
 public final class SwarmAudio {
 
@@ -216,6 +216,7 @@ public final class SwarmAudio {
      */
     public static void play(BattleSimulation sim, float listenerX, float listenerY) {
         HarrierAudio.play(sim, listenerX, listenerY);
+        SpireAudio.play(sim, listenerX, listenerY);
         for (Play p : MIXES.computeIfAbsent(sim, ignored -> new Mix()).hear(sim, listenerX, listenerY)) {
             Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(),
                     new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL),
