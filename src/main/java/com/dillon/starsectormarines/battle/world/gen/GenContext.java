@@ -93,6 +93,8 @@ public final class GenContext {
      * accumulators rather than behind a key.
      */
     public final List<DefensePost> defensePosts = new ArrayList<>();
+    /** Loading bays set pieces laid, in the order they were laid ({@code set-piece-blocks.md}). */
+    public final List<LoadingBay> loadingBays = new ArrayList<>();
 
     /**
      * Cells a facility has engineered, which terrain passes must not repaint.

@@ -92,7 +92,9 @@ met the crew go back to the building's ordinary work and the truck drives a
 road it was proved before it parked off the map. The truck lost, or the whole
 crew dead, before then fails it; a battle that ends mid-loading lapses it.
 
-Where the truck stands is decided by whether it can leave. A stand counts only
+Where the colony has a freight yard (`set-piece-blocks.md`), its warehouse is the
+one staffed and the truck stands in the yard's bay, nose to the gate. Elsewhere,
+where the truck stands is decided by whether it can leave. A stand counts only
 on truck-sized ground connected to the map's edge band, where the hull can set
 out facing any way (`TurnAwareCorridor.canSetOutFrom`). Of the stands nearest the
 warehouse door, the first with a drivable road out to an edge wins. The nearest
