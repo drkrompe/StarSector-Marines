@@ -35,8 +35,18 @@ final class BoreAssault {
     static final int SUPPORT_BACK_CELLS = 5;
     /** Seconds after a surge comes out before it can be spent: the bodies are still pouring from the mouth. */
     static final float SETTLE_SECONDS = 3f;
-    /** Most of the swarm the mouth may hold for a surge to count as spent. */
+    /** Fewest of the swarm the mouth may hold and count as quiet, however small the lane. */
     static final int QUIET_BODIES = 4;
+    /**
+     * The mouth is quiet when it holds no more of the swarm than this share of the lane's militia: a lane of forty
+     * goes in past a dozen, a lane of eight only past four.
+     */
+    static final float MOUTH_TO_LANE = 0.5f;
+    /**
+     * Longest a lane holds its support line before going in whatever the mouth holds, a surge's first seconds
+     * excepted: a mouth that never empties (a mother's) is not a reason to stand all battle.
+     */
+    static final float MAX_WAIT_SECONDS = 60f;
     /** Seconds without a surge after which a quiet mouth is gone in on anyway: the bore is not being hurt. */
     static final float QUIET_SECONDS = 40f;
     /** Longest the militia wait for the machines after a fall before moving up to the support line anyway. */
@@ -140,15 +150,29 @@ final class BoreAssault {
     }
 
     /**
-     * Whether the bore's last surge is spent: one has come out, {@link #SETTLE_SECONDS} have passed, and the mouth
-     * holds no more than {@link #QUIET_BODIES}; or none has come for {@link #QUIET_SECONDS} and the mouth is that quiet.
+     * Whether the bore's last surge is spent: one has come out, {@link #SETTLE_SECONDS} have passed, and the mouth is
+     * {@linkplain #quiet quiet}; or none has come for {@link #QUIET_SECONDS} and the mouth is quiet.
      *
      * @param sinceSurge seconds since the last surge seen, or negative for none since the assault began
      * @param sinceStart seconds since the assault began
+     * @param laneBodies the lane's living militia
      */
-    static boolean spent(float sinceSurge, float sinceStart, int mouthBodies) {
-        if (mouthBodies > QUIET_BODIES) return false;
+    static boolean spent(float sinceSurge, float sinceStart, int mouthBodies, int laneBodies) {
+        if (!quiet(mouthBodies, laneBodies)) return false;
         return sinceSurge >= 0f ? sinceSurge >= SETTLE_SECONDS : sinceStart >= QUIET_SECONDS;
+    }
+
+    /** Whether the mouth holds few enough of the swarm for the lane to go in: {@link #MOUTH_TO_LANE} of it, at least {@link #QUIET_BODIES}. */
+    static boolean quiet(int mouthBodies, int laneBodies) {
+        return mouthBodies <= Math.max(QUIET_BODIES, Math.round(laneBodies * MOUTH_TO_LANE));
+    }
+
+    /**
+     * Whether a lane that has held its support line {@code sincePhase} seconds goes in anyway: past
+     * {@link #MAX_WAIT_SECONDS}, and not in a surge's first {@link #SETTLE_SECONDS}.
+     */
+    static boolean waitedOut(float sincePhase, float sinceSurge) {
+        return sincePhase >= MAX_WAIT_SECONDS && (sinceSurge < 0f || sinceSurge >= SETTLE_SECONDS);
     }
 
     /** Reads the bore's surge count; true when a new surge has come out since last read. */

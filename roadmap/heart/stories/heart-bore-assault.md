@@ -35,8 +35,13 @@ bore a lane takes, the waves and the calls for armour stay the mission's.
    militia hold a **support line** five cells behind the ring, toward the lane.
 3. **Assault.** A hurt bore surges at most every twelve seconds. The militia go in
    on a **spent surge**: a surge has come out, three seconds have passed, and the
-   mouth holds no more than four of the swarm. A bore that has not surged for
-   forty seconds with its mouth that quiet is gone in on as well.
+   mouth is **quiet**, holding no more of the swarm than half the lane's militia
+   (at least four). A bore that has not surged for forty seconds with its mouth
+   that quiet is gone in on as well. A lane that has held its support line a
+   minute goes in whatever the mouth holds, except in a surge's first seconds:
+   on Broad Front a mother's mouth never emptied, the ring could not see the
+   mother inside its building, and the lanes stood on their support lines until
+   the battle timed out.
 4. **Falling back.** The bore's next surge sends the militia back to the support
    line, and the lane waits for that surge to be spent.
 5. **After the fall** the lane takes its next bore from where it stands, armour
@@ -55,7 +60,7 @@ the lane march to its support line, not to the bore. Behind
 - Unit tests: a ring post lies outside the mouth, on the near side, spread from the
   others; the spent-surge rule opens and closes the window.
 - One Burn run and one Broad Front run whose summaries report, per lane, the phases entered and the
-  assaults launched on a spent surge, and the time hulls spent inside a mouth.
+  assaults launched on a spent surge, on a quiet mouth and after the longest wait, the lane-seconds in each phase, and the time hulls spent inside a mouth.
 - Eyes on The Burn: armour stands off and fires, militia go in behind a surge.
 
 ## Next

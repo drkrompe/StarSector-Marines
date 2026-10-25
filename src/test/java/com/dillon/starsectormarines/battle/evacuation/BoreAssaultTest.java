@@ -58,11 +58,26 @@ class BoreAssaultTest {
 
     @Test
     void aSurgeIsSpentOnceItHasSettledAndTheMouthIsQuiet() {
-        assertFalse(BoreAssault.spent(2f, 30f, 0), "still pouring out");
-        assertTrue(BoreAssault.spent(4f, 30f, 2));
-        assertFalse(BoreAssault.spent(4f, 30f, BoreAssault.QUIET_BODIES + 1), "the mouth is full");
-        assertFalse(BoreAssault.spent(-1f, 30f, 0), "no surge yet: wait");
-        assertTrue(BoreAssault.spent(-1f, BoreAssault.QUIET_SECONDS, 0), "a bore that never surges is gone in on");
+        assertFalse(BoreAssault.spent(2f, 30f, 0, 8), "still pouring out");
+        assertTrue(BoreAssault.spent(4f, 30f, 2, 8));
+        assertFalse(BoreAssault.spent(4f, 30f, BoreAssault.QUIET_BODIES + 1, 8), "the mouth is full for a small lane");
+        assertFalse(BoreAssault.spent(-1f, 30f, 0, 8), "no surge yet: wait");
+        assertTrue(BoreAssault.spent(-1f, BoreAssault.QUIET_SECONDS, 0, 8), "a bore that never surges is gone in on");
+    }
+
+    @Test
+    void aStrongLaneGoesInPastMoreOfTheSwarm() {
+        assertFalse(BoreAssault.quiet(12, 8));
+        assertTrue(BoreAssault.quiet(12, 24), "half of twenty-four");
+        assertFalse(BoreAssault.quiet(13, 24));
+    }
+
+    @Test
+    void aLaneGoesInAfterTheLongestWaitButNotIntoAFreshSurge() {
+        assertFalse(BoreAssault.waitedOut(BoreAssault.MAX_WAIT_SECONDS - 1f, -1f));
+        assertTrue(BoreAssault.waitedOut(BoreAssault.MAX_WAIT_SECONDS, -1f));
+        assertFalse(BoreAssault.waitedOut(BoreAssault.MAX_WAIT_SECONDS, 1f), "a surge is still pouring out");
+        assertTrue(BoreAssault.waitedOut(BoreAssault.MAX_WAIT_SECONDS, BoreAssault.SETTLE_SECONDS));
     }
 
     @Test

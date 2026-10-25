@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.Map;
 import java.util.Random;
@@ -442,7 +443,9 @@ public final class HeartLanes {
     static final boolean BORE_ASSAULT = Boolean.parseBoolean(System.getProperty("battle.heart.boreAssault", "true"));
 
     /** What the lanes' assaults did, for the evidence (`heart-bore-assault.md`, Acceptance). */
-    private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, fallenBack;
+    private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, goneInOnWait, fallenBack;
+    /** Lane-seconds spent in each assault phase, by {@link BoreAssault.Phase} ordinal. */
+    private final int[] phaseSeconds = new int[BoreAssault.Phase.values().length];
     private int machineSeconds, machineSecondsInMouth;
 
     /**
@@ -487,6 +490,7 @@ public final class HeartLanes {
 
     private void stepAssault(BattleSimulation sim, Lane lane, SwarmBore bore, int tick) {
         BoreAssault a = lane.assault;
+        phaseSeconds[a.phase.ordinal()]++;
         List<int[]> posts = postMachines(sim, lane, a);
         boolean surged = a.surged(bore.surges(), tick);
         float sincePhase = (tick - a.phaseTick) * BattleSimulation.TICK_DT;
@@ -500,9 +504,13 @@ public final class HeartLanes {
             case BASE_OF_FIRE, FALLING_BACK -> {
                 float sinceSurge = a.lastSurgeTick < 0 ? -1f : (tick - a.lastSurgeTick) * BattleSimulation.TICK_DT;
                 float sinceStart = (tick - a.startTick) * BattleSimulation.TICK_DT;
-                if (squadsLeft && !surged && BoreAssault.spent(sinceSurge, sinceStart, mouthBodies(sim, bore))) {
-                    if (a.lastSurgeTick >= 0 && sinceSurge < BoreAssault.QUIET_SECONDS) goneInOnSurge++;
+                if (!squadsLeft || surged) break;
+                if (BoreAssault.spent(sinceSurge, sinceStart, mouthBodies(sim, bore), militia(sim, lane))) {
+                    if (a.lastSurgeTick >= 0) goneInOnSurge++;
                     else goneInOnQuiet++;
+                    enter(lane, BoreAssault.Phase.ASSAULT, tick);
+                } else if (BoreAssault.waitedOut(sincePhase, sinceSurge)) {
+                    goneInOnWait++;
                     enter(lane, BoreAssault.Phase.ASSAULT, tick);
                 }
             }
@@ -628,6 +636,13 @@ public final class HeartLanes {
         return walkableNear(sim, (int) sim.world().x(leader), (int) sim.world().y(leader));
     }
 
+    /** The lane's living militia. */
+    private static int militia(BattleSimulation sim, Lane lane) {
+        int n = 0;
+        if (lane.squads != null) for (int squad : lane.squads) n += sim.squadMemberCount(squad);
+        return n;
+    }
+
     /** The swarm's fighting bodies within the bore's mouth: its structures and workers not counted. */
     private static int mouthBodies(BattleSimulation sim, SwarmBore bore) {
         int n = 0;
@@ -674,9 +689,16 @@ public final class HeartLanes {
 
     /** What the lanes' assaults did, one line for the evidence summary. */
     public String assaultLine() {
+        StringBuilder phases = new StringBuilder();
+        for (BoreAssault.Phase phase : BoreAssault.Phase.values()) {
+            if (phases.length() > 0) phases.append(", ");
+            phases.append(phase.name().toLowerCase(Locale.ROOT).replace('_', ' ')).append(' ')
+                    .append(phaseSeconds[phase.ordinal()]).append(" s");
+        }
         return assaultsBegun + " begun, " + boresFallen + " bores fallen to them, " + goneInOnSurge
-                + " gone in on a spent surge, " + goneInOnQuiet + " on a quiet mouth, " + fallenBack
-                + " fallen back; machines in a living mouth " + machineSecondsInMouth + " of " + machineSeconds
+                + " gone in on a spent surge, " + goneInOnQuiet + " on a quiet mouth, " + goneInOnWait
+                + " after the longest wait, " + fallenBack + " fallen back; lane-seconds by phase: " + phases
+                + "; machines in a living mouth " + machineSecondsInMouth + " of " + machineSeconds
                 + " machine-seconds";
     }
 
