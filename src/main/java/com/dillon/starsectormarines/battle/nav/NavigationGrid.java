@@ -639,6 +639,11 @@ public class NavigationGrid {
         if (--hazeCover[idx] == 0) hazeCells--;
     }
 
+    /** Whether any cell holds haze: lets a per-tick haze rule exit on one compare on an unhazed map. */
+    public boolean anyHaze() {
+        return hazeCells > 0;
+    }
+
     public boolean hasHaze(int x, int y) {
         return inBounds(x, y) && hazeCover[index(x, y)] > 0;
     }

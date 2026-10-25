@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: IN PROGRESS — steps 1 (the spore haze) and 2 (the body and the lob) are built and scene-tested.
+Status: IN PROGRESS — steps 1 to 3 (the spore haze, the body and the lob, the counters) are built and scene-tested.
 
 Written: 2026-10-25
 
@@ -128,7 +128,13 @@ prompts and provenance.
    `weapon.swarm-bombard`); it draws as a stand-in on the Spitter's family until
    step 4, and its glob uses the acid glob's sprite.
 3. **Counters.** The step-out reaction, the launch reveal, the officer's
-   designation.
+   designation. **Built**: `InfantryReflexes.IN_HAZE` (`HazeStepOut`) and the
+   haze edge wait (`HazeEdge`), scene-tested in `bombard-haze`; the launch
+   reveal (`SwarmBombards#launchReveals`, projected into fog by the battle
+   screen), checked in `bombard`; planted Bombards as `AirStrikeDirector`
+   candidates, which no scene covers yet (the probe will). The garrison's step
+   back from a hazed window is the same reflex, since the haze lies indoors too.
+   The melee exception has no loop: marines back off a melee anyway.
 4. **Look.** Cut the G1 master into a rig (body, sac, tail segments, sling,
    legs, claws) with the wind-up and release; the glob and its falling shadow;
    the amber haze; sac wear. Look suite `bombard-look` at 1920x1080.

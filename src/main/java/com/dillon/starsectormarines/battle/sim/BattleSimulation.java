@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.smoke.HazeEdge;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
@@ -4327,7 +4328,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     world, u, TICK_DT, grid, physicalRadius(u));
             if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
         } else {
-            if (waitsAtFireEdge(u)) return;
+            if (waitsAtFireEdge(u) || waitsAtHazeEdge(u)) return;
             movement().advanceAlongPath(world, u, TICK_DT);
             // A route the mover has been walking for seconds without getting anywhere is dropped,
             // so its order plans a fresh one from where it stands; see MovementService.stalledOnRoute.
@@ -4345,6 +4346,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (next >= Paths.cellCount(path)) return false;
         return FireEscape.waitsAtEdge(fire.field(), world.cellX(u), world.cellY(u),
                 Paths.cellX(path, next), Paths.cellY(path, next));
+    }
+
+    /**
+     * A person out of a spore haze does not walk back in to stand in it: a route whose next cell is hazed and
+     * whose end is hazed waits at the edge. Crossing a haze to clear ground beyond is not stopped; see
+     * {@code HazeStepOut}.
+     */
+    private boolean waitsAtHazeEdge(long u) {
+        if (!grid.anyHaze()) return false;
+        UnitType type = identity().type(u);
+        if (type.isSwarm() || type.isGroundVehicle() || type.isMachineFrame() || type.isDrone()) return false;
+        int[] path = world.path(u);
+        int next = world.pathIdx(u);
+        if (next >= Paths.cellCount(path)) return false;
+        return HazeEdge.waits(grid, world.cellX(u), world.cellY(u), Paths.cellX(path, next), Paths.cellY(path, next),
+                Paths.destX(path), Paths.destY(path));
     }
 
     @Override
