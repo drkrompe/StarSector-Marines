@@ -582,8 +582,9 @@ clearance, never closer to another site than an eighth of the map's short side,
 and always on ground the swarm can walk from to the shelter. The bloom came in
 from the outskirts (owner, 2026-10-25: bores flank the landing zone and grow
 inward): the **first wave** is four sites, two on each flank of the landing
-field (a place off the line from the field in to the shelter by at least four
-tenths of its distance from the field), nearest the field first, the seed
+field (a place at least two site spacings, a quarter of the map's short side,
+off the line from the field in to the shelter, so the company walks in down a
+street rather than between two bores; owner, 2026-10-25), nearest the field first, the seed
 shuffling places within a site's spacing; a flank short of places is made up
 from the other, then from the outskirts straight ahead. They are open when the
 company comes down. The **mother site** is the place spaced from the rest
