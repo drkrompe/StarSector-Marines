@@ -168,9 +168,9 @@ fade state must likewise transfer or clear with roster compaction and release.
 cache and lifecycle do not yet satisfy those laws.
 
 Every friendly ground hull reveals the fog around it, out to a marine's sight:
-the crew looks out of the hull. That reveal is fog only. A scout car or hover scout
-sees farther and also reports contacts to command (`ScoutSight`); an ordinary
-hull does neither.
+the crew looks out of the hull. A scout car or hover scout sees farther. Each hull is
+also an observer for its side's commander and for indirect fire (`ScoutSight`), so
+what the player sees through a hull the side knows too.
 
 Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
 the ground it is ordered onto and where its rounds and lance tips fall; a hostile

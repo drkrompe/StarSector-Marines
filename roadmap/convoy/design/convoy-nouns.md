@@ -300,15 +300,15 @@ That walk is over *bodies*, not over convoys. It was a convoy loop with an
 aircraft loop bolted on beside it, which is how a blast sized itself against a
 chassis correctly and against every aircraft in the game identically.
 
-An ordinary vehicle is seen but never sees. It carries no perception components at all, so
+An ordinary vehicle is seen and looks, but is never a perceiver. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
 as separate roles: the seeing side of a line-of-sight pair reads the fail-loud
 sight accessor, and the seen side reads the tolerant one that answers with plain
 grid line-of-sight for an entity that has no vision. The same rule covers a
-remembered contact that has since become a corpse. The spotter pickup is the one hull
-that looks, and it does so without becoming a perceiver: its mast is a squadless
-observer beside the body (the light roles, below), so the perception components
-stay off every chassis.
+remembered contact that has since become a corpse. Every hull looks, and does so
+without becoming a perceiver: it is a squadless observer beside the body
+(`ScoutSight`; the light roles, below), out to a marine's sight, or to its mast's
+where it has one, so the perception components stay off every chassis.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
 the shared durability law: low-penetration rifles chip armor slowly, while
@@ -1119,7 +1119,9 @@ ends service.
 The **spotter pickup** (`SCOUT_CAR`) is the pickup cut short on a shorter
 wheelbase, the fastest hull in the bay and the thinnest, with a salvaged sensor
 mast where the gun stood. Its job
-is information. The mast is a **squadless observer** (`ScoutSight`): each tick it
+is information, and its mast sees past a crew's eyes. Every hull is a
+**squadless observer** (`ScoutSight`) out to `observeCells()`, a marine's sight
+unless a mast reaches farther: each tick it
 is a temporary ground-level fog source for its side when that side's sight is
 shown to the player — the same seam a sensor sweep or a recon ping uses — and it
 records every hostile combatant it has ordinary line of sight to within its
@@ -1150,8 +1152,8 @@ tail hinge to fire
 armor, where the fire-support APC's mortar is its short arm against men. Its rounds
 arc, and it fires **on a spotter's call** at a machine it cannot see itself:
 somebody else on its side must be looking at the target right now
-(`SideObservers`) — a sight hull with the target in its own sight range and line of
-sight (the spotter pickup, the hover scout), a soldier or mech within 34 cells with
+(`SideObservers`) — a hull with the target in its own sight range and line of
+sight (any vehicle, the scouts farthest), a soldier or mech within 34 cells with
 line of sight (a mortar's spotter reach), or a comms operator with it in sight.
 Nothing is a belief or a memory, so a carrier holds fire on a tank that ducked out
 of everyone's view rather than shelling where it was. A spotted round is an
@@ -1316,7 +1318,7 @@ crash. Bay drones carry a sturdier airframe than a hub's disposable screen, beca
 are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Tachyon
 drone (`DroneLook`; `art-source/drones/tt-drones/`).
 
-The **hover scout** (`HOVER_SCOUT`, Light lift) is a sight hull on the spotter pickup's
+The **hover scout** (`HOVER_SCOUT`, Light lift) carries a sensor mast on the spotter pickup's
 terms (`ScoutSight`). It also carries a light twin pulse emitter of the drone-pulse family,
 so it can screen, and a sensor pair. The stripped pickup stays the fastest hull in the
 bay.
