@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,9 @@ import java.util.Set;
  *       take's {@code pitch}, and as in the game it moves pitch and speed together, so the take is resampled.</li>
  *   <li>Pan is equal-power, hard over at the view's edge ({@link BattleReviewFrameRenderer#PLAY_ZOOM_CELLS} across).
  *       The engine's own distance roll-off is not modelled: a level is what the battle's rules gave it.</li>
+ *   <li>A held loop (a line with {@code loop}, its slot) is logged on every tick it sounds: each unbroken run of ticks
+ *       of one id and slot is one take wrapped round under the run, faded in and out over {@link #LOOP_FADE_SECONDS},
+ *       at each tick's level and pan, rather than a start a tick.</li>
  *   <li>A mix that would clip is scaled down as a whole, so the levels keep their proportions; the console says
  *       by how much.</li>
  * </ul>
@@ -40,6 +44,8 @@ import java.util.Set;
 public final class BattleSoundMix {
 
     public static final int RATE = 48_000;
+    /** How long a held loop takes to come up and to die away at the ends of its run. */
+    static final float LOOP_FADE_SECONDS = 0.25f;
 
     private BattleSoundMix() { }
 
@@ -59,6 +65,7 @@ public final class BattleSoundMix {
         Map<String, Integer> plays = new HashMap<>();
         Set<String> unknown = new LinkedHashSet<>();
         float halfWidth = BattleReviewFrameRenderer.PLAY_ZOOM_CELLS / 2f;
+        Map<String, List<JSONObject>> held = new LinkedHashMap<>();
         int mixed = 0;
         for (String line : Files.readAllLines(log)) {
             if (line.isBlank()) continue;
@@ -75,26 +82,43 @@ public final class BattleSoundMix {
                 unknown.add(id);
                 continue;
             }
+            if (start.has("loop")) {
+                held.computeIfAbsent(id + "#" + start.optInt("loop"), ignored -> new ArrayList<>()).add(start);
+                continue;
+            }
             int n = plays.merge(id, 1, Integer::sum) - 1;
             Take take = options.get(n % options.size());
-            float[] clip = decoded.get(take.file());
-            if (clip == null) {
-                if (!Files.exists(take.file())) {
-                    throw new IOException("sound " + id + " plays " + take.file()
-                            + ", which is missing; run gradlew :asset-pipeline:processAudio");
-                }
-                clip = FfmpegVideo.decodeMono(take.file(), RATE);
-                decoded.put(take.file(), clip);
-            }
+            float[] clip = clip(id, take, decoded);
             int at = (int) Math.round(start.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
             float gain = (float) start.optDouble("volume", 1.0) * take.volume();
             float pitch = (float) start.optDouble("pitch", 1.0) * take.pitch();
-            float dx = (float) (start.optDouble("x", 0.0) - start.optDouble("listenerX", 0.0));
-            float pan = Math.max(-1f, Math.min(1f, dx / halfWidth));
-            double angle = (pan + 1.0) * Math.PI / 4.0;
-            float gainLeft = gain * (float) Math.cos(angle);
-            float gainRight = gain * (float) Math.sin(angle);
-            if (add(clip, pitch, at, gainLeft, gainRight, left, right)) mixed++;
+            float[] pans = pan(start, gain, halfWidth);
+            if (add(clip, pitch, at, pans[0], pans[1], left, right)) mixed++;
+        }
+        int samplesPerTick = (int) Math.round(BattleSimulation.TICK_DT * RATE);
+        int fade = Math.round(LOOP_FADE_SECONDS * RATE);
+        for (List<JSONObject> ticks : held.values()) {
+            for (int from = 0, to; from < ticks.size(); from = to) {
+                to = from + 1;
+                while (to < ticks.size()
+                        && ticks.get(to).optInt("frame") == ticks.get(to - 1).optInt("frame") + 1) to++;
+                JSONObject first = ticks.get(from);
+                String id = first.optString("id");
+                List<Take> options = takes.get(id);
+                Take take = options.get(first.optInt("loop") % options.size());
+                float[] gainLeft = new float[to - from];
+                float[] gainRight = new float[to - from];
+                for (int i = from; i < to; i++) {
+                    float[] pans = pan(ticks.get(i), (float) ticks.get(i).optDouble("volume", 1.0) * take.volume(),
+                            halfWidth);
+                    gainLeft[i - from] = pans[0];
+                    gainRight[i - from] = pans[1];
+                }
+                int at = (int) Math.round(first.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+                hold(clip(id, take, decoded), (float) first.optDouble("pitch", 1.0) * take.pitch(), at,
+                        samplesPerTick, gainLeft, gainRight, fade, left, right);
+                mixed++;
+            }
         }
         float peak = 0f;
         for (int i = 0; i < length; i++) peak = Math.max(peak, Math.max(Math.abs(left[i]), Math.abs(right[i])));
@@ -106,6 +130,51 @@ public final class BattleSoundMix {
                 decoded.size(), peak, scale < 1f ? String.format(", scaled by %.2f to fit", scale) : "");
         writeWav(wav, left, right, scale);
         return mixed;
+    }
+
+    private static float[] clip(String id, Take take, Map<Path, float[]> decoded) throws IOException {
+        float[] clip = decoded.get(take.file());
+        if (clip == null) {
+            if (!Files.exists(take.file())) {
+                throw new IOException("sound " + id + " plays " + take.file()
+                        + ", which is missing; run gradlew :asset-pipeline:processAudio");
+            }
+            clip = FfmpegVideo.decodeMono(take.file(), RATE);
+            decoded.put(take.file(), clip);
+        }
+        return clip;
+    }
+
+    /** A logged sound's left and right gain at {@code gain}: equal-power, hard over at the view's edge. */
+    private static float[] pan(JSONObject start, float gain, float halfWidth) {
+        float dx = (float) (start.optDouble("x", 0.0) - start.optDouble("listenerX", 0.0));
+        float pan = Math.max(-1f, Math.min(1f, dx / halfWidth));
+        double angle = (pan + 1.0) * Math.PI / 4.0;
+        return new float[] {gain * (float) Math.cos(angle), gain * (float) Math.sin(angle)};
+    }
+
+    /**
+     * Adds a held loop: {@code clip} at {@code pitch}, wrapped round, from output sample {@code at} for one tick of
+     * {@code samplesPerTick} per gain, each tick at its own gains, faded in and out over {@code fade} samples at the
+     * run's ends. Nothing sounds past the run.
+     */
+    static void hold(float[] clip, float pitch, int at, int samplesPerTick, float[] gainLeft, float[] gainRight,
+                     int fade, float[] left, float[] right) {
+        if (clip.length == 0 || pitch <= 0f) return;
+        int n = gainLeft.length * samplesPerTick;
+        for (int k = 0; k < n; k++) {
+            int i = at + k;
+            if (i < 0) continue;
+            if (i >= left.length) break;
+            double source = (k * (double) pitch) % clip.length;
+            int s = (int) source;
+            float frac = (float) (source - s);
+            float v = clip[s] + (clip[(s + 1) % clip.length] - clip[s]) * frac;
+            float env = fade <= 0 ? 1f : Math.min(1f, Math.min(k, n - 1 - k) / (float) fade);
+            int tick = k / samplesPerTick;
+            left[i] += v * gainLeft[tick] * env;
+            right[i] += v * gainRight[tick] * env;
+        }
     }
 
     /**

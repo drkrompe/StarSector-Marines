@@ -50,6 +50,7 @@ import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
+import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -72,6 +73,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.staffed.StaffedBuildings;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -2689,6 +2691,9 @@ public final class BattleSetup {
                     sim.installColonyLivingField(ColonyLivingField.install(sim, map, payload.placement,
                             lzCells, risk, battleSeed ^ ERUPTION_SEED_SALT));
                 }
+                // The colony's largest warehouse, worked and loading its stores onto a truck: a
+                // side objective beside the rescue (staffed-buildings.md).
+                if (colony) ColonyBreachObjectives.install(sim, map, battleSeed);
             }
             return sim;
         }

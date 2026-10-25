@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173ab-bc41-79b0-92f3-bd363be60c50",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173ab-bc41-79b0-92f3-bd363be60c50\\exec-a998122c-410d-4a90-be39-153ad8a0292e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\field-stones.png",
+    "sha256": "926d51953713b30977d8e463350acbc1a67ad8e57da7e6e275f896f10bd07a23",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\field-stones.prompt.txt",
+  "promptSha256": "455288a664ff4b469058d6f7c8be8bd6180c5cb3d5bbd6d521e947a0d0a38e29",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: stone placement, size, outline, lit tops\nImage 2: Material only: painted stone; not layout\nImage 3: Style only: rendering quality and light; not layout\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into seven separate overhead field-stone sprites for a top-down tactical game. Image 2 is the MATERIAL reference: the game's painted rock formations; match their painterly realistic stone, weathered grey with warm lichen-free faces and soft charcoal shading. Image 3 is the STYLE reference: the game's painted tree canopies; match their rendering quality and soft diffuse overhead light. Neither reference is layout.\nPreserve image 1 exactly: 2048x1024 canvas, 4 columns x 2 rows at 512px pitch, the eighth frame (bottom right) EMPTY. Keep every stone where the guide puts it, at its size and outline; the light upper-left faces in the guide are the stones' tops. Do not add, merge, move or enlarge stones.\nCamera STRAIGHT DOWN from directly above: orthographic plan view of stones lying in a field, seen from above, never from the side. Their tops catch soft light from the upper left; their lower-right sides fall into gentle shade.\nTop row left to right: three separate small pebbles widely spaced; three stones, one larger; a rounded boulder with two small stones at its foot; a single tilted oval boulder with one small detached pebble.\nBottom row left to right: a pair of large boulders side by side; a long flat slab leaning over a lower rounded stone; the biggest cluster, a large boulder with a smaller boulder leaning on its shoulder and a stone at its foot.\nNatural weathered field boulders with smooth rounded forms, NOT faceted, NOT low-poly, no flat planes or polygon edges. They must read clearly at about 50 pixels across: clear rounded masses, gentle value contrast, a few chips and cracks, no fine noise.\nNo grass, moss carpet, soil, ground patch or cast shadow outside the stones, no labels, no text, no border. True transparent background around and between every stone. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-guide.png",
+      "sha256": "0d51964348542e2a94422d7b523731e3473cb77cd2b4fc7d03ae5ce4bafee7d5",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: stone placement, size, outline, lit tops"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\planet-formations.png",
+      "sha256": "1b210491b6a87f2d4efdd716cd58fdaecd81547543732d17e56850ef4f29fff7",
+      "dimensions": [
+        960,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "Material only: painted stone; not layout"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\forest-canopies.png",
+      "sha256": "45d24ce5b714b99b186e98c4cfc5d0143317645d530583cbfc587a5ac1e825b0",
+      "dimensions": [
+        896,
+        704
+      ],
+      "mode": "RGBA",
+      "role": "Style only: rendering quality and light; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for geometry and the other two for material and style."
+  ],
+  "usage": {
+    "input_tokens": 45509,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 530,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.3
+}

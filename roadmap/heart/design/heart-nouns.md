@@ -198,7 +198,11 @@ onto a bore, flown when called; the wing is the observers' own, onto the masses
 in front of them, judged on the anti-air the side has seen, so both are
 sometimes shot down by colonies nobody had seen. Never within ten cells of a
 friendly soldier, never at a Harrier pack overhead. A lane whose observer dies
-calls no more air. The Burn has none: its guns are its fire support.
+calls no more air. Now and then the military also sends a roving observer
+team (`air-nouns.md`, Roving observer) to stand ten cells behind a lane's
+foremost team, on the way back to its foot, the lanes with the most squads in
+contact first, so the team follows the push. The Burn has none of either: its
+guns are its fire support.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
@@ -265,7 +269,11 @@ worse, because the front is held back behind the guns for longer.
 holds its fire while a friend stands in its lane, so armour posted behind its
 own militia mostly waits. The Burn's battlegroup armour posts four cells
 ahead of its infantry rather than four behind
-(`-Dbattle.heart.burnArmourBehind`), and a fresh tank and technical come up
+(`-Dbattle.heart.burnArmourBehind`). Each hull's slot is a post that faces the
+advance, so allied command stands it on that line and never ahead of it
+(`allied-command.md`, posts and stands); a hull whose slot it reports
+unservable is moved to a second rank one spacing deeper, until the line moves
+to a new aim. A fresh tank and technical come up
 eight times, two minutes apart (`-Dbattle.heart.burnFrontArmourWaves`). On
 Broad Front those waves are the logistics base's stock, called up by need
 (Allied commander; `-Dbattle.heart.armourByNeed=false` is the timetable).

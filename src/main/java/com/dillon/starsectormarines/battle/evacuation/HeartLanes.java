@@ -81,6 +81,12 @@ public final class HeartLanes {
         /** The lane's armour (The Burn's battlegroups): hulls and mechs both stationed by the allied command. */
         final List<Long> hulls = new ArrayList<>();
         final List<Long> mechs = new ArrayList<>();
+        /**
+         * Hulls the allied command could not serve a slot in the line for, moved back to a second rank one spacing
+         * deeper, where the ground differs; forgotten when the line moves to a new aim.
+         */
+        final Set<Long> rearRank = new HashSet<>();
+        int[] rankAim;
         /** The lane's formation onto its next bore, while it is going there; {@code null} when it fights where it is. */
         ScreenedAdvance advance;
         /** Whether the lane's armour screens its militia in the current advance (open ground), or the reverse. */
@@ -938,10 +944,23 @@ public final class HeartLanes {
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
         // The allied command drives each machine to its post and fights it from there; it re-orders only
         // when a post has moved, and pulls a goal the woods bar back toward the machine.
+        // The line has moved: what could not be served on the old one may be on the new.
+        if (lane.rankAim == null || Math.abs(lane.rankAim[0] - aim[0]) + Math.abs(lane.rankAim[1] - aim[1]) >= ARMOUR_SPACING) {
+            lane.rankAim = aim;
+            lane.rearRank.clear();
+        }
+        // The post faces the enemy: allied command keeps a hull on its line, never in front of it. One it cannot
+        // serve a slot for goes to the second rank, deeper behind the line, rather than stand where it was refused.
+        float aheadX = alongY ? 0f : toward, aheadY = alongY ? toward : 0f;
         for (long hull : lane.hulls) {
             int[] at = station(aim, alongY, toward, i++, count);
             if (sim.convoy().structure(hull) <= 0f) continue;
-            allied.station(sim, hull, at[0], at[1]);
+            if (allied.postUnservable(hull)) lane.rearRank.add(hull);
+            if (lane.rearRank.contains(hull)) {
+                at = alongY ? new int[]{at[0], at[1] - toward * ARMOUR_SPACING}
+                        : new int[]{at[0] - toward * ARMOUR_SPACING, at[1]};
+            }
+            allied.station(sim, hull, at[0], at[1], aheadX, aheadY);
         }
         for (long mech : lane.mechs) {
             int[] at = station(aim, alongY, toward, i++, count);
