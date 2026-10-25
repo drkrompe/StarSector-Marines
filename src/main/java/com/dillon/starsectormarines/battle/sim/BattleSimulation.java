@@ -197,6 +197,7 @@ import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHitFeedback;
@@ -799,6 +800,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
+    private final SwarmBombards swarmBombards = new SwarmBombards();
     private final BruteChargeSystem bruteCharges = new BruteChargeSystem();
     private final MatriarchActions matriarchActions = new MatriarchActions();
     private final SwarmCues swarmCues = new SwarmCues();
@@ -3764,6 +3766,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         wallBreach.tick(this);
         // Brute blows on walls and Spitter acid on low fliers, posted from the parallel update.
         swarmStrikes.tick(this);
+        // Bombard globs that have landed burst into spore haze; a dead Bombard's sac bursts where it fell.
+        swarmBombards.tick(this);
         // Brute charges: the tell, the run and what it hits, requested from the parallel update.
         bruteCharges.tick(this);
         // Armed contact charges follow their target and resolve through the
@@ -4449,6 +4453,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Where swarm strains post the blows and acid that land in the serial pass. */
     public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
+
+    public SwarmBombards swarmBombards() { return swarmBombards; }
     /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
     public SwarmCues swarmCues() { return swarmCues; }
 

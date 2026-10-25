@@ -922,6 +922,32 @@
       }
     },
     {
+      "id": "weapon.swarm-bombard", "mount": "turret-mount",
+      "catalog": { "displayName": "Bombard spore glob", "modelName": "Bombard", "designation": "SPG", "designationTiered": false },
+      "sim": {
+        "range": 55.0, "damage": 0.0, "accuracy": 1.0, "cooldown": 15.0, "penetration": 0.0,
+        "hitSpread": 0.0, "roundVelocity": 14.0, "flightSec": 4.0,
+        "aoeRadius": 3.0, "arcHeight": 9.0, "indirectFire": true
+      },
+      "render": {
+        "tracerColor": "E89A3C",
+        "tracerTailCells": 0.8,
+        "projectileSprite": "graphics/battle/rav-spitter/acid-glob.png",
+        "projectileVisualCells": 0.7
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.2, "color": "F0A845" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 1.2, "lifetime": 0.5, "color": "F0A845" }
+        ],
+        "aftermath": [
+          { "kind": "glow", "radius": [0.6, 0.9], "lifetime": [0.6, 0.9], "jitter": 0.6, "delay": 0.1, "emissionDuration": 0.6, "emissionInterval": 0.3, "color": "E89A3C" }
+        ]
+      }
+    },
+    {
       "id": "weapon.ground-spines", "mount": "turret-mount",
       "catalog": { "displayName": "Ground spines", "modelName": "Ground colony", "designation": "GSP", "designationTiered": false },
       "sim": { "range": 6.0, "damage": 60.0, "accuracy": 0.85, "cooldown": 2.4, "penetration": 16.0, "flightSec": 0.35, "aoeRadius": 0.7, "wallDamage": 35, "wallDamageRadius": 1.2, "indirectFire": true, "noLosAccuracyMult": 0.85 },

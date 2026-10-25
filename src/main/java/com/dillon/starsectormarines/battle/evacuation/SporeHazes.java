@@ -15,7 +15,7 @@ import java.util.List;
  * <p>The haze itself is a see-through field on the smoke service ({@link SmokeFieldService#deployHaze}): it costs a
  * round crossing it accuracy and never blocks sight, fog or acquisition. This class owns the rest: the
  * <b>sting</b> of the burst and the <b>pulse</b> every {@link #PULSE_SECONDS} while the haze stands. Both are small
- * splashes through the ordinary detonation path, as a Spitter's acid is: no penetration, the swarm spared, an intact
+ * splashes through the ordinary detonation path, as a Spitter's acid is: its penetration, the swarm spared, an intact
  * roof shielding. They are repeated small hits rather than a status, so they wound as hits do; a body that stands in
  * one haze for its whole life loses about a rifle hit. The haze is a reason to step out, not a killer.
  */
@@ -33,6 +33,8 @@ public final class SporeHazes {
     public static final float PULSE_DAMAGE = 1.5f;
     /** Seconds between pulses. */
     public static final float PULSE_SECONDS = 2f;
+    /** The sting's penetration: the Spitter's acid's, so a marine's armour blunts it without turning it. */
+    public static final float PENETRATION = 3f;
 
     private final List<Haze> hazes = new ArrayList<>();
 
@@ -94,7 +96,7 @@ public final class SporeHazes {
     }
 
     private static void sting(BattleSimulation sim, long shooter, float x, float y, float radius, float damage) {
-        sim.detonateNow(new PendingDetonation(shooter, x, y, 0f, radius, damage, /*penetration*/ 0f,
+        sim.detonateNow(new PendingDetonation(shooter, x, y, 0f, radius, damage, PENETRATION,
                 /*wallDamage*/ 0, Faction.DEFENDER, /*aerialDelivery: a roof shields*/ true,
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false,
                 /*friendlyFireImmune: it spares the swarm*/ true, /*authoredAftermath*/ true));

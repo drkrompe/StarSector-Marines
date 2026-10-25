@@ -132,7 +132,14 @@ public enum UnitType {
      * skeleton at {@link #renderScale} of its size with its own bones. Its kit is issued at spawn
      * ({@code SwarmStrains}). Append-only.
      */
-    SWARM_WORKER(true, null, true, 10f, 0f, 2.8f, 0f, 1.0f, 0f, 12f, 0.68f, 0.3f, 0.22f, 0.22f);
+    SWARM_WORKER(true, null, true, 10f, 0f, 2.8f, 0f, 1.0f, 0f, 12f, 0.68f, 0.3f, 0.22f, 0.22f),
+    /**
+     * The Rav long arm ({@code bombard.md}): a lumbering crustacean catapult that lobs a spore glob from creep.
+     * Unplated and soft for its size, slow, no melee. {@link #attackRange} is its lob's reach and
+     * {@link #attackCooldown} its reload; the glob does no damage of its own, its haze stings
+     * ({@code SporeHazes}). {@link #renderScale} is its length in cells. Append-only.
+     */
+    SWARM_BOMBARD(true, null, true, 40f, 0f, 1.1f, 1.0f, 15f, 55f, 60f, 2.2f, 1.8f, 0.7f, 0.50f);
 
     /** Whether the body carries a {@code SPRITE} component: see {@link #carriesSprite()}. */
     private final boolean carriesSprite;
@@ -292,10 +299,10 @@ public enum UnitType {
      */
     public boolean isFlier() { return this == SWARM_HARRIER; }
 
-    /** Whether this archetype is a swarm strain body on the ground: runner, brute, spitter, matriarch or skitterer. */
+    /** Whether this archetype is a swarm strain body on the ground: runner, brute, spitter, matriarch, skitterer or bombard. */
     public boolean isSwarm() {
         return this == SWARM_RUNNER || this == SWARM_BRUTE || this == SWARM_SPITTER
-                || this == SWARM_MATRIARCH || this == SWARM_WORKER;
+                || this == SWARM_MATRIARCH || this == SWARM_WORKER || this == SWARM_BOMBARD;
     }
 
     /**
