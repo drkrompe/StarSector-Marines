@@ -671,15 +671,21 @@ offers the job through Mara's Independent contact. No chapter changes vanilla
 market ownership, industry disruption, diplomatic standing or orbital assets.
 Its target profile describes the isolated crew compound, with the actual
 planet's ground palette captured at launch rather than the colony's full defences.
-The Dust Ledger requires a reachable administrative interior for its
-**Dispatch archive**; an outdoor fallback or unrelated depot cannot become the
-counting-house prize. The briefing
-survey and battlefield use the same numbered objectives: **1 / Seize**, at the
-archive, and **2 / Return**, at the landing zone. The persistent mission checklist
-explains the six-second uncontested seizure, shows its current progress, and
-promotes return only after the archive is secured. Locate centers the camera on
-the current objective without issuing squad orders. The records remain an
-abstract recovered package under the Raid objective's survivor-egress law.
+The Dust Ledger is played on **Saltwell Cross**, an authored Asharu trading post
+(`DustLedgerCrossing`), not a generated settlement. The company lands openly on
+the public freight apron as Wayline's scheduled drop. Sable Wake's finite crew
+holds the pump-house compound, with no reinforcements, vehicles or aircraft.
+Buildings publish only as held places. The only objectives are the ledger room's
+seizure, the optional broker and the return to the apron. A **quiet phase**
+holds until a shot, a sentry sighting inside the compound's exclusion ring, or
+the broker's lift-off clock. From the alarm, the ledger burns until the room is
+seized. Its grade and the broker's fate change only the debrief: every victory
+names Prell's dispatch authority and the Warion post. Two pre-alarm side
+objectives earn local support: the Harrow salvage team, and the warden's
+watch holding the cantina. The rules and their tuning live in
+`DustLedgerProgress`; open work is in `dust-ledger-crossing.md`. The records
+remain an abstract recovered package under the Raid objective's survivor-egress
+law, with the same numbered **1 / Seize** and **2 / Return** checklist.
 Blind
 Watch uses an explicitly remote installation map and a finite light garrison:
 there is no off-map replacement force or continuing vehicle/air production.
