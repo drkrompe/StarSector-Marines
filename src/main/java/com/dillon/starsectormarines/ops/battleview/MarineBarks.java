@@ -41,7 +41,8 @@ import java.util.WeakHashMap;
  * little pitched from anyone sharing it; the lines of a kind take turns, so the same line is not heard twice running.
  * People outside any squad, as most colonists are, share a channel with those of their cast on their patch of ground.
  * A squad has one voice at a time ({@link Channels}):
- * nobody in it starts while another is speaking, a marine does not bark again inside its own gap, a squad does not
+ * nobody in it starts while another is speaking (save the cry of one being seized or thrown), a marine does not bark
+ * again inside its own gap, a squad does not
  * repeat a call soon after, and the whole battle has at most {@link #VOICES} barks sounding at once, the most urgent
  * first. Each kind also layers through a {@link VoicePool}. Heard only on ground the player has seen. Levels live in
  * {@code sounds.json}, set per take from its measured loudness by {@code tools/generate_marine_barks.py}.
@@ -157,8 +158,9 @@ public final class MarineBarks {
             if (!bark.voiced) return true;
             sounding.removeIf(end -> end <= now);
             if (sounding.size() >= VOICES) return false;
-            if (now < squadFreeAt.getOrDefault(squad, Float.NEGATIVE_INFINITY)) return false;
-            if (now < marineFreeAt.getOrDefault(marine, Float.NEGATIVE_INFINITY)) return false;
+            // A cry of one's own body being seized or thrown is not held for the squad, nor for one's last word.
+            if (!cries(bark) && now < squadFreeAt.getOrDefault(squad, Float.NEGATIVE_INFINITY)) return false;
+            if (!cries(bark) && now < marineFreeAt.getOrDefault(marine, Float.NEGATIVE_INFINITY)) return false;
             return now >= squadKindAt.getOrDefault(squadKind(bark, squad), Float.NEGATIVE_INFINITY);
         }
 
@@ -535,6 +537,11 @@ public final class MarineBarks {
     /** Whether a marine just began a reload with Rav near enough to call it. */
     static boolean reloading(float priorTimer, float timer, float nearestRav) {
         return priorTimer <= 0f && timer > 0f && nearestRav <= NEAR_CELLS;
+    }
+
+    /** Whether {@code bark} is a cry torn out of a body seized or thrown, which waits on no one. */
+    static boolean cries(Bark bark) {
+        return bark == Bark.GRABBED || bark == Bark.THROWN;
     }
 
     /** The warning a charge tell draws: the Brute's charge, the Matriarch's run. */

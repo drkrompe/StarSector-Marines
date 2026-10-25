@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPatrol;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRaid;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -33,6 +34,10 @@ import java.util.List;
  *   {@link #PATROL} of its roost up every {@link #PATROL_GAP_MIN_SECONDS} to {@link #PATROL_GAP_MAX_SECONDS}
  *   ({@link #patrols}) to fly a loop over its bore ({@link HarrierPatrol}) and land back on its hooks. A patrol that
  *   comes home short leaves the roost short, to fill back as after a launch ({@link #roostAfterPatrol}).</li>
+ *   <li><b>A quiet spire raids.</b> On its own longer gap ({@link #RAID_GAP_MIN_SECONDS} to
+ *   {@link #RAID_GAP_MAX_SECONDS}) the same quiet spire sends {@link #RAID} instead, deep past the line to a soft
+ *   target no anti-air covers, by a way round every flak umbrella ({@link HarrierRaid}); with no such target or way it
+ *   patrols. One sortie of a spire's is up at a time.</li>
  *   <li><b>A Matriarch comes with her brood.</b> When a mother puts her Matriarch out, a pack of
  *   {@link #BROOD_PACK} hatches off her back one by one as she climbs out, and flies as her escort.</li>
  *   <li><b>The flier law holds.</b> No pack rises while the marines and their allies have no anti-air on the map
@@ -69,6 +74,12 @@ public final class BroodSpires {
     static final int DIRECTIONS = 24;
     /** Hooks a spire's brood clings to while it waits; drawn only (`colony-breach-nouns.md`, Brood spire). */
     public static final int PERCHES = 5;
+    /** Harriers in a raid off a spire's roost. */
+    public static final int RAID = 4;
+    /** Least and most seconds between one spire's raids, counted from the last one's return. */
+    public static final float RAID_GAP_MIN_SECONDS = 90f, RAID_GAP_MAX_SECONDS = 150f;
+    /** Seconds a due raid that found no target or way waits before it looks again. */
+    static final float RAID_RETRY_SECONDS = 5f;
     /** Harriers in a patrol off a spire's roost. */
     public static final int PATROL = 3;
     /** Least and most seconds between one spire's patrols, counted from the last one's return. */
@@ -90,6 +101,10 @@ public final class BroodSpires {
         HarrierPack patrol;
         int lastPatrolTick;
         int patrols;
+        int lastRaidTick;
+        int raids;
+        /** Before this tick a due raid that found no target or way does not look again. */
+        int raidRetryTick;
 
         Spire(long entityId, SwarmBore bore, int x, int y) {
             this.entityId = entityId;
@@ -104,7 +119,10 @@ public final class BroodSpires {
         /** How many patrols it has put up. */
         public int patrols() { return patrols; }
 
-        /** Its patrol in the air, or {@code null}. */
+        /** How many raids it has sent. */
+        public int raids() { return raids; }
+
+        /** Its patrol or raid in the air, or {@code null}. */
         public HarrierPack patrol() { return patrol; }
 
         /** Ticks the skitterers have fed off the wait since its last pack. */
@@ -159,6 +177,13 @@ public final class BroodSpires {
     public static boolean patrols(boolean airCover, boolean packAloft, boolean patrolAloft, boolean roostFull,
                                   boolean preyNear, int ticksSincePatrol, int gapTicks) {
         return airCover && !packAloft && !patrolAloft && roostFull && !preyNear && ticksSincePatrol >= gapTicks;
+    }
+
+    /** Ticks between a spire's {@code n}th raid and its next: seeded off the spire, in the raid gap. */
+    public static int raidGapTicks(long spire, int n) {
+        float u = SwarmBores.unit(SwarmBores.mix(spire * 0x5851F42D4C957F2DL + n));
+        return Math.round((RAID_GAP_MIN_SECONDS + (RAID_GAP_MAX_SECONDS - RAID_GAP_MIN_SECONDS) * u)
+                / BattleSimulation.TICK_DT);
     }
 
     /** Ticks between a spire's {@code n}th patrol and its next: seeded off the spire, in the patrol gap. */
@@ -329,14 +354,30 @@ public final class BroodSpires {
         if (s.patrol != null && !patrolling(sim, s)) {
             int lost = s.patrol.patrol().size() - s.patrol.patrol().landed();
             s.lastReleaseTick = roostAfterPatrol(s.lastReleaseTick, tick, lost, gapTicks(s.tendedTicks));
+            if (s.patrol.patrol().raid()) s.lastRaidTick = tick;
             s.patrol = null;
             s.lastPatrolTick = tick;
         }
         if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return;
         float x = s.x + 0.5f, y = s.y + 0.5f;
         boolean full = perched(aloft(sim, s), tick - s.lastReleaseTick, gapTicks(s.tendedTicks)) >= PERCHES;
-        if (!patrols(SwarmFliers.hasAirCover(sim), aloft(sim, s), s.patrol != null, full, preyNear(sim, x, y),
-                tick - s.lastPatrolTick, patrolGapTicks(s.entityId, s.patrols))) return;
+        boolean cover = SwarmFliers.hasAirCover(sim), up = aloft(sim, s), sortie = s.patrol != null;
+        if (!cover || up || sortie || !full) return;
+        boolean near = preyNear(sim, x, y);
+        // The same quiet-spire rule on the raid's own gap; a raid needs a target and a safe way to it.
+        if (tick >= s.raidRetryTick
+                && patrols(cover, up, sortie, full, near, tick - s.lastRaidTick, raidGapTicks(s.entityId, s.raids))) {
+            SwarmFliers.RaidPlan plan = sim.swarmFliers().raidPlan(sim, x, y);
+            s.raidRetryTick = tick + Math.round(RAID_RETRY_SECONDS / BattleSimulation.TICK_DT);
+            if (plan != null) {
+                s.patrol = sim.swarmFliers().raidUnderCover(sim, HarrierLook.DEFAULT, s.entityId, x, y, plan, RAID);
+                s.raids++;
+                return;
+            }
+        }
+        if (!patrols(cover, up, sortie, full, near, tick - s.lastPatrolTick, patrolGapTicks(s.entityId, s.patrols))) {
+            return;
+        }
         NavigationGrid grid = sim.getGrid();
         float[] route = HarrierPatrol.route(s.bore.x() + 0.5f, s.bore.y() + 0.5f, x, y,
                 s.entityId * 31L + s.patrols, grid.getWidth(), grid.getHeight());
