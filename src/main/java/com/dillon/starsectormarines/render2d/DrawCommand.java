@@ -95,8 +95,6 @@ public final class DrawCommand {
      */
     boolean additive;
     float r, g, b, a;
-    /** The hit flash this command draws with, the share of white in its colour; zero for most. Paged runs only. */
-    float flash;
     /**
      * The light on it ({@code PagedQuadRun.packLight}), the direction that light comes from in radians on screen,
      * and its wear ({@code PagedQuadRun.packWear}); zero for most. Paged runs only.
@@ -125,15 +123,11 @@ public final class DrawCommand {
     public boolean flippedVertically() { return flipV; }
     /** Whether this sprite adds light rather than compositing over what is beneath it. */
     public boolean additive() { return additive; }
-    public float flash() { return flash; }
-    /** Set by the list that hands this slot out, from its current flash ({@code DrawList.setFlash}). */
-    public void setFlash(float flash) { this.flash = flash; }
     public float light() { return light; }
     public float lightAngle() { return lightAngle; }
     public float wear() { return wear; }
     /** Set by the list that hands this slot out, from its current effects ({@code DrawList.setLight}, {@code setWear}). */
-    public void setEffects(float flash, float light, float lightAngle, float wear) {
-        this.flash = flash;
+    public void setEffects(float light, float lightAngle, float wear) {
         this.light = light;
         this.lightAngle = lightAngle;
         this.wear = wear;

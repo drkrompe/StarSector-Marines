@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 /**
  * What a body's per-quad effects are this frame (law 27): the light from the battle's event lights falling on it, and
  * its wear: charred and glowing with embers where the ground under it burns or has burnt. A pure function of the simulation's state and the lights the screen already keeps, so nothing here
- * can move a battle. Stamped onto a {@link DrawList} before a body is emitted and cleared after, like the hit flash.
+ * can move a battle. Stamped onto a {@link DrawList} before a body is emitted and cleared after.
  */
 final class BodyEffects {
     /** Char on a body lying in ground that has burnt out: soot that stays. */

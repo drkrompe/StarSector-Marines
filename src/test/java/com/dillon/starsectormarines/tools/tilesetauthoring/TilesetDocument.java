@@ -133,6 +133,7 @@ public final class TilesetDocument {
             if (isStrip()) {
                 o.put("layer", entry.layer);
                 if (!entry.passable) o.put("passable", false);
+                if (!entry.passable && entry.crushable) o.put("crushable", true);
                 if (!entry.validOn.isEmpty()) o.put("validOn", new JSONArray(entry.validOn));
                 if (!entry.label.isEmpty()) o.put("name", entry.label);
             }
@@ -285,6 +286,7 @@ public final class TilesetDocument {
             // document, the same reason preferredWallSide is parsed above.
             entry.layer = TileLayer.fromJson(o.optString("layer", "ground")).name().toLowerCase();
             entry.passable = o.optBoolean("passable", true);
+            entry.crushable = o.optBoolean("crushable", false);
             JSONArray validOn = o.optJSONArray("validOn");
             for (int v = 0; validOn != null && v < validOn.length(); v++) {
                 entry.validOn.add(validOn.getString(v));

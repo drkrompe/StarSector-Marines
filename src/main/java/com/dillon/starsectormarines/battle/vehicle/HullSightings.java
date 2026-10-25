@@ -14,20 +14,23 @@ import java.util.Map;
 import java.util.function.LongConsumer;
 
 /**
- * What the side's sight-carrying hulls — the scout car, the hover scout and its sensor drones — see, published to
- * the two pictures a side has.
+ * What the side's hulls — every vehicle, and the hover scout's sensor drones — see, as the contacts a squad would hold.
  *
- * <p>A hull with {@link VehicleType#sightCells()} is an observer that belongs to no squad. Each tick it publishes
- * itself to its side's fog as a temporary sight source (when that side's sight is shown to the player), and records
- * every hostile combatant it has ordinary line of sight to within that range. The commander reads those records
- * through {@code CommanderInfluenceService.SightingWatch} as direct contacts, as it reads a fort gun's target. No
- * squad's beliefs are written: the scout informs command and the player, and a squad learns of what it saw by being
- * ordered toward it. It is not a combat buff — nothing it sees changes a hit roll.
+ * <p>A hull is an observer that belongs to no squad, out to {@link VehicleType#observeCells()}: its sensor mast where
+ * it has one, its crew's eyes otherwise. Each tick it records every hostile combatant it has ordinary line of sight
+ * to within that range. The commander reads those records through
+ * {@code CommanderInfluenceService.SightingWatch} as direct contacts, as it reads a fort gun's target. No
+ * squad's beliefs are written: the hull informs command, and a squad learns of what it saw by being ordered toward
+ * it. It is not a combat buff — nothing it sees changes a hit roll.
  *
- * <p>Runs after the spatial index is rebuilt, so its fog sources are read by the next vision pass and its
- * sightings by the next commander capture; both are well inside their own cadences.
+ * <p>What the player sees through a hull is not here. A hull is a fog contributor like a soldier or a mech
+ * ({@code FogOfWarService#addHullContributor}), cached and refreshed by cohort. Only a sensor drone, which is no
+ * contributor, is published to the fog from this tick.
+ *
+ * <p>Runs after the spatial index is rebuilt, so its sightings are read by the next commander capture, well inside
+ * its cadence.
  */
-public final class ScoutSight {
+public final class HullSightings {
 
     private final LongBucket scratch = new LongBucket();
     private final Map<Faction, long[]> sightings = new EnumMap<>(Faction.class);
@@ -42,7 +45,7 @@ public final class ScoutSight {
                 (int) Math.floor(tx), (int) Math.floor(ty));
     }
 
-    /** A sight source that is not a hull: a side's observer at a point, with its range in cells. */
+    /** A sight source that is not a hull: a side's sensor drone at a point, with its range in cells. */
     @FunctionalInterface
     public interface Observer {
         void observe(Faction side, float x, float y, float rangeCells);
@@ -62,16 +65,21 @@ public final class ScoutSight {
     /** As {@link #tick(ConvoyService, UnitRosterService, UnitSpatialIndex, NavigationGrid, FogOfWarService)}, adding {@code extra} observers on the same terms as a hull. */
     public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
                      NavigationGrid grid, FogOfWarService fog, Observers extra) {
-        fog.clearVehicleSightSources();
+        fog.clearDroneSightSources();
         counts.clear();
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long id = convoy.vehicleAt(i);
             VehicleType type = convoy.vehicleType(id);
-            if (type == null || type.sightCells() <= 0f || !convoy.isPresent(id)) continue;
+            if (type == null || !convoy.isPresent(id)) continue;
             GroundBody body = convoy.body(id);
-            observe(convoy.faction(id), body.x, body.y, type.sightCells(), roster, index, grid, fog);
+            observe(convoy.faction(id), body.x, body.y, type.observeCells(), roster, index, grid);
         }
-        extra.forEach((side, x, y, range) -> observe(side, x, y, range, roster, index, grid, fog));
+        extra.forEach((side, x, y, range) -> {
+            if (side != null && fog.isInitialized() && fog.getVisionState().isContributor(side)) {
+                fog.addDroneSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
+            }
+            observe(side, x, y, range, roster, index, grid);
+        });
         // Sorted and de-duplicated, so two scouts seeing one body report it once and the order never depends on
         // the spatial index's buckets.
         for (Map.Entry<Faction, Integer> entry : counts.entrySet()) {
@@ -87,11 +95,8 @@ public final class ScoutSight {
     }
 
     private void observe(Faction side, float x, float y, float range, UnitRosterService roster,
-                         UnitSpatialIndex index, NavigationGrid grid, FogOfWarService fog) {
+                         UnitSpatialIndex index, NavigationGrid grid) {
         if (side == null) return;
-        if (fog.isInitialized() && fog.getVisionState().isContributor(side)) {
-            fog.addVehicleSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
-        }
         scratch.clear();
         index.gatherHostileCombatants(x, y, range, side, scratch);
         for (int k = 0; k < scratch.size; k++) {
@@ -103,7 +108,7 @@ public final class ScoutSight {
         }
     }
 
-    /** Every hostile body {@code side}'s scouts saw on the last tick, once each, in id order. */
+    /** Every hostile body {@code side}'s hulls saw on the last tick, once each, in id order. */
     public void forEachSighting(Faction side, LongConsumer sink) {
         Integer n = counts.get(side);
         if (n == null) return;
@@ -111,7 +116,7 @@ public final class ScoutSight {
         for (int k = 0; k < n; k++) sink.accept(ids[k]);
     }
 
-    /** Whether {@code side}'s scouts saw {@code target} on the last tick. */
+    /** Whether {@code side}'s hulls saw {@code target} on the last tick. */
     public boolean sighted(Faction side, long target) {
         Integer n = counts.get(side);
         return n != null && Arrays.binarySearch(sightings.get(side), 0, n, target) >= 0;
