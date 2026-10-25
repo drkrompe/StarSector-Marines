@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
@@ -20,8 +21,12 @@ import java.util.List;
  * an old bloom has grown, and a Matriarch's brood.
  *
  * <ul>
- *   <li><b>Only an old bloom has fliers.</b> Spires grow, and broods rise, only once the battle's creep has been
- *   matured at setup ({@link #grow}): the Cordon and the heart, never a fresh Colony Breach.</li>
+ *   <li><b>An old bloom has grown its spires; a fresh one grows them by eating.</b> Once the battle's creep has
+ *   been matured at setup the old bloom's spires stand at once ({@link #grow}) and its Matriarchs come with their
+ *   broods. In any battle, a satellite bore that has reached maw having eaten {@link #FED_BIOMASS} colonists' worth
+ *   raises one ({@link #raises}): its root digs out to the spot and thickens over {@link #RISE_SECONDS}, and then
+ *   the spire stands at its end. So in a fresh Colony Breach the air comes from the hive feeding, and every colonist
+ *   kept from it is a spire that never grows. A bore raises one spire in a battle; one destroyed never regrows.</li>
  *   <li><b>A spire stands on its bore's creep.</b> One off each living satellite (non-mother) bore at maw, on
  *   creep-held open ground between {@link #STANDOFF_MIN} and {@link #STANDOFF_MAX} cells from the mouth, and no
  *   nearer than {@link #SPACING} to another spire, so a map carries a few, not one per bore
@@ -84,6 +89,12 @@ public final class BroodSpires {
     public static final int PATROL = 3;
     /** Least and most seconds between one spire's patrols, counted from the last one's return. */
     public static final float PATROL_GAP_MIN_SECONDS = 30f, PATROL_GAP_MAX_SECONDS = 60f;
+    /** Colonists' worth of biomass a satellite bore at maw must have eaten before it raises a spire in the battle. */
+    public static final float FED_BIOMASS = 4f;
+    /** Seconds a spire raised in the battle takes to come: its root digs out and thickens, then it stands. */
+    public static final float RISE_SECONDS = 10f;
+    /** Seconds between looks for a fed bore's spire ground. */
+    static final float RISE_LOOK_SECONDS = 2f;
     /** Damage that withers a spire outright when its bore collapses. */
     private static final float WITHER_DAMAGE = 1_000_000f;
 
@@ -132,9 +143,23 @@ public final class BroodSpires {
     /** A pack rose, for beats and evidence: off a spire ({@code spire} its body) or as a brood ({@code spire} 0). */
     public record Launch(int tick, long spire, long matriarch, int pack, int size) { }
 
+    /** A spire on its way off a fed bore: its root started digging at {@code startTick} and it stands once that has come. */
+    public record Rising(SwarmBore bore, int x, int y, int startTick, int leadTicks) {
+        /** How far through its lead it is at {@code tick}, 0..1. */
+        public float progress(int tick) {
+            return Math.max(0f, Math.min(1f, (tick - startTick) / (float) Math.max(1, leadTicks)));
+        }
+
+        /** Whether its root has come and it may stand. */
+        public boolean arrived(int tick) {
+            return tick - startTick >= leadTicks;
+        }
+    }
+
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY, "true"));
     private final List<Spire> spires = new ArrayList<>();
     private final List<Launch> launches = new ArrayList<>();
+    private final List<Rising> rising = new ArrayList<>();
     private boolean matured;
     private int cursor;
 
@@ -142,6 +167,16 @@ public final class BroodSpires {
 
     public List<Launch> launches() { return Collections.unmodifiableList(launches); }
 
+    /** The spires on their way off fed bores. */
+    public List<Rising> rising() { return Collections.unmodifiableList(rising); }
+
+    /**
+     * Whether a bore raises a spire in the battle: a satellite, not a mother, at maw, having eaten at least
+     * {@link #FED_BIOMASS}, with no spire of its own yet, standing, dead or on its way.
+     */
+    public static boolean raises(boolean mother, BoreTier tier, float biomassFed, boolean hasSpire) {
+        return !mother && tier == BoreTier.MAW && biomassFed >= FED_BIOMASS && !hasSpire;
+    }
     /**
      * How many of a spire's next brood cling to its hooks: none while its own pack is in the air, then filling back
      * one by one over its gap of {@code gapTicks} after a launch (shorter when tended), so a full roost is a spire
@@ -222,10 +257,75 @@ public final class BroodSpires {
     public void grow(BattleSimulation sim) {
         if (!enabled || matured) return;
         matured = true;
+        CreepOutposts.Ground ground = ground(sim);
+        if (ground == null) return;
+        for (SwarmBore bore : sim.swarmBores().bores()) {
+            if (bore.collapsed() || bore.mother() || bore.tier() != BoreTier.MAW) continue;
+            int[] cell = choose(ground, bore.x(), bore.y(), turn(bore), placed(), structures(sim));
+            if (cell == null || SwarmBores.nearBody(sim, cell[0], cell[1], 1f)) continue;
+            stand(sim, bore, cell[0], cell[1]);
+        }
+    }
+
+    /**
+     * Raises the fed bores' spires ({@link #raises}): stands each whose root has come, unless a body stands on its
+     * cell (it waits for it to move), in a burst of creep thrown up off the ground; and every
+     * {@link #RISE_LOOK_SECONDS} looks for ground for a bore newly fed to it, by the same rule a grown one stands on.
+     */
+    private void raise(BattleSimulation sim, int tick) {
+        for (Rising r : new ArrayList<>(rising)) {
+            if (r.bore().collapsed()) {
+                rising.remove(r);
+                continue;
+            }
+            if (!r.arrived(tick) || SwarmBores.nearBody(sim, r.x(), r.y(), 1f)) continue;
+            rising.remove(r);
+            stand(sim, r.bore(), r.x(), r.y());
+            for (int i = 0; i < 8; i++) {
+                double a = Math.PI * 2 * i / 8;
+                sim.emitGroundDust(r.x() + 0.5f, r.y() + 0.5f, (float) Math.cos(a) * 1.1f, (float) Math.sin(a) * 1.1f,
+                        0.55f, EffectsService.DUST_WHEEL);
+            }
+        }
+        if (tick % Math.round(RISE_LOOK_SECONDS / BattleSimulation.TICK_DT) != 0) return;
+        CreepOutposts.Ground ground = null;
+        for (SwarmBore bore : sim.swarmBores().bores()) {
+            if (bore.collapsed() || !sim.world().isAlive(bore.entityId())
+                    || !raises(bore.mother(), bore.tier(), bore.biomassFed(), hasSpire(bore))) continue;
+            if (ground == null) ground = ground(sim);
+            if (ground == null) return;
+            int[] cell = choose(ground, bore.x(), bore.y(), turn(bore), placed(), structures(sim));
+            if (cell == null) continue;
+            rising.add(new Rising(bore, cell[0], cell[1], tick, Math.round(RISE_SECONDS / BattleSimulation.TICK_DT)));
+        }
+    }
+
+    private boolean hasSpire(SwarmBore bore) {
+        for (Spire s : spires) if (s.bore == bore) return true;
+        for (Rising r : rising) if (r.bore() == bore) return true;
+        return false;
+    }
+
+    private void stand(BattleSimulation sim, SwarmBore bore, int x, int y) {
+        String name = "Bore " + bore.beatKey() + " Brood Spire";
+        long id = sim.spawn(SwarmBores.bodySpec(name, STRUCTURE, x, y));
+        spires.add(new Spire(id, bore, x, y));
+    }
+
+    /** Every spire's cell centre, standing or on its way. */
+    private List<float[]> placed() {
+        List<float[]> out = new ArrayList<>();
+        for (Spire s : spires) out.add(new float[]{s.x + 0.5f, s.y + 0.5f});
+        for (Rising r : rising) out.add(new float[]{r.x() + 0.5f, r.y() + 0.5f});
+        return out;
+    }
+
+    /** The ground a spire may stand on: open, walkable, out of the rescue's protected zone; {@code null} with no creep. */
+    private static CreepOutposts.Ground ground(BattleSimulation sim) {
         CreepField field = sim.creepFieldIfPresent();
-        if (field == null) return;
+        if (field == null) return null;
         NavigationGrid grid = sim.getGrid();
-        CreepOutposts.Ground ground = new CreepOutposts.Ground() {
+        return new CreepOutposts.Ground() {
             @Override public boolean creeped(int x, int y) { return field.isCreeped(x, y); }
 
             @Override public boolean open(int x, int y) {
@@ -233,16 +333,6 @@ public final class BroodSpires {
                         && !sim.isInsideRescueOpeningProtectedZone(x, y);
             }
         };
-        for (SwarmBore bore : sim.swarmBores().bores()) {
-            if (bore.collapsed() || bore.mother() || bore.tier() != BoreTier.MAW) continue;
-            List<float[]> placed = new ArrayList<>();
-            for (Spire s : spires) placed.add(new float[]{s.x + 0.5f, s.y + 0.5f});
-            int[] cell = choose(ground, bore.x(), bore.y(), turn(bore), placed, structures(sim));
-            if (cell == null || SwarmBores.nearBody(sim, cell[0], cell[1], 1f)) continue;
-            String name = "Bore " + bore.beatKey() + " Brood Spire";
-            long id = sim.spawn(SwarmBores.bodySpec(name, STRUCTURE, cell[0], cell[1]));
-            spires.add(new Spire(id, bore, cell[0], cell[1]));
-        }
     }
 
     /**
@@ -314,10 +404,11 @@ public final class BroodSpires {
         s.tendedTicks += Math.round(seconds / BattleSimulation.TICK_DT);
     }
 
-    /** Once a tick, after the director and before the fliers: wither, launch on surges, raise broods. */
+    /** Once a tick, after the director and before the fliers: raise fed spires, wither, launch on surges, raise broods. */
     public void tick(BattleSimulation sim) {
-        if (!enabled || !matured) return;
+        if (!enabled) return;
         int tick = sim.getSimTickIndex();
+        raise(sim, tick);
         for (Spire s : spires) {
             if (s.bore.collapsed() && sim.resolveUnit(s.entityId) != 0L && sim.world().isAlive(s.entityId)) {
                 sim.applyDamage(s.entityId, WITHER_DAMAGE, WITHER_DAMAGE);
@@ -329,7 +420,7 @@ public final class BroodSpires {
             SwarmBores.Event e = events.get(cursor++);
             if (e.kind() == SwarmBores.EventKind.SURGE) {
                 for (Spire s : spires) if (s.bore == e.bore()) surged(sim, s, tick);
-            } else if (e.kind() == SwarmBores.EventKind.MATRIARCH) {
+            } else if (e.kind() == SwarmBores.EventKind.MATRIARCH && matured) {
                 brood(sim, e.bore().matriarch(), tick);
             }
         }
@@ -417,6 +508,7 @@ public final class BroodSpires {
             for (long id : bore.outposts()) {
                 if (sim.resolveUnit(id) != 0L) out.add(new float[]{sim.world().x(id), sim.world().y(id)});
             }
+            for (SwarmBore.Growing g : bore.growing()) out.add(new float[]{g.x() + 0.5f, g.y() + 0.5f});
         }
         return out;
     }

@@ -41,6 +41,9 @@ public final class FreightYard {
     /** Rows outside a gate where a hauler leaving must be able to turn either way. */
     public static final int TURN_OUT = 4;
     private static final int WALL_HP = 80;
+    /** Rows of hatched keep-clear apron before the warehouse door, across each drive. */
+    static final int DOCK_ROWS = 2;
+    private static final String KEEP_CLEAR = "apron.keep-clear";
     private static final BuildingShellCore.BuildingConfig HALL = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, "WAREHOUSE", PointOfInterest.Kind.DEPOT,
             BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.INDUSTRIAL);
@@ -250,6 +253,15 @@ public final class FreightYard {
                 if (!size.onGate(x)) continue;
                 int[] cell = pose.cell(x, y);
                 c.topology.setGroundKind(cell[0], cell[1], GroundKind.STRIPED);
+            }
+        }
+        // Hatched keep-clear before the warehouse door, across each drive: the dock nobody parks on.
+        int keepClear = c.topology.surfaceIndex(KEEP_CLEAR);
+        for (int y = size.yard - DOCK_ROWS; y < size.yard; y++) {
+            for (int x = 1; x < size.width - 1; x++) {
+                if (!size.onGate(x)) continue;
+                int[] cell = pose.cell(x, y);
+                c.topology.setSurface(cell[0], cell[1], keepClear);
             }
         }
         // Freight outside the drives: cover facing the gates.

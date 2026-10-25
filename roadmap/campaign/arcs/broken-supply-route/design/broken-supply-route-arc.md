@@ -49,6 +49,16 @@ battlefield. Existing Wayline jobs continue independently. The closed freight
 account, including exhausted failure, opens The Corvus Account; its introduction
 preserves actual deliveries and losses.
 
+The attempt that closes the account, won or exhausted, ends with a written Jangala
+conversation on Results. Mara reads the whole ledger: every load through, some
+lost, or none. Sabine says what the militia now hold and, if it applies, that
+the company lost people. Castle names the pattern in the ambushes. Mara passes on
+Iona's trace: the departure times go to a broker on Asharu buying for Sable Wake.
+Delivered freight also pays for Wayline's first chartered off-world consignment.
+Castle closes the account and tells the company to plot a course for Asharu,
+mentioning Route Security only after success. A retry that leaves cargo waiting
+gets no goodbye. The written debrief carries the same lead.
+
 ## Reserved mission concept
 
 Last Lift's escort-and-boarding mission is retained for later campaign reuse.

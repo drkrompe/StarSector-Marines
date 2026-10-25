@@ -183,7 +183,9 @@ public final class CordonReviewAnnotations {
         for (ObjectiveResult result : beats.board().results()) {
             OptionalObjective o = pool.get(result.key());
             if (o == null) continue;
-            for (String piece : o.needs()) out.put(piece, result);
+            for (String need : o.needs()) {
+                for (String piece : OptionalObjective.alternatives(need)) out.put(piece, result);
+            }
         }
         return out;
     }

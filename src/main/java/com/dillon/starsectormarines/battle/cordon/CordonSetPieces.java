@@ -26,6 +26,8 @@ final class CordonSetPieces {
     static final String FARMSTEAD = "farmstead", AMMO_DUMP = "ammo-dump", BELL_SQUARE = "bell-square",
             GRANARY = "granary", OP_WEST = "op-west", OP_EAST = "op-east",
             CORRIDOR_WRECK = CordonPlan.CORRIDOR_WRECK, GAP_POSITIONS = "gap-positions";
+    /** Where beat L1's stragglers wait: the farmstead, or in a city its tenement ({@code OptionalObjective} alternatives). */
+    static final String STRAGGLERS_HOME = FARMSTEAD + "|" + CordonCityPieces.TENEMENT;
     /** How far in front of the redoubts' front edges the farmstead's ground is looked for. */
     static final int FARM_NEAR = 10, FARM_FAR = 55;
     /** How far in front of a flank redoubt its observation post stands, and how far round it may move. */

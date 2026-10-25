@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
+Updated: 2026-10-25 — an unpiloted tender builds flak first while the swarm has fliers about.
+
 Updated: 2026-10-14 — builder cues and interceptor pod retained; Working Passage low hover, physical departure and owned campaign support boundaries documented.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**) first. Vocabulary for the hull, the hover model and point defence is that doc's; `warship-behaviours.md` owns what a posture is. This doc says what a tender is, why it is built the way it is, and what is left.
@@ -135,6 +137,7 @@ Every two seconds, with nothing on its line, the director looks at the battle an
 
 - **ATTACK builds forward positions on cleared ground.** It takes the objective its side has pushed closest to and the friendly leading on it, and walks the line from a few cells ahead of that lead back towards the rear, taking the first acceptable cell: the most forward ground no known hostile stands within the build's threat radius of. Idle, it hovers ten cells behind the lead, so it keeps up with the advance. It builds the **quickest** option, because the advance moves on and a position is worth having soon.
 - **DEFEND builds on the approaches.** From the held point the nearest known hostile is closest to, it builds about eight cells out along the bearing to that hostile; with no hostile known there is no approach to read, and it builds on the held point. Once the enemy is seen coming, its next site goes out on their approach. Idle, it hovers on the far side of that point. It builds the **heaviest** option it can pay for, because held ground gives the builders time.
+- **With fliers about it builds flak first** (owner, 2026-10-25). While the swarm has a Harrier pack in the air or a brood spire standing, a site no flak of its side stands within sixteen cells of gets the dual flak turret whatever the stance, if its stock can pay; otherwise the stance's choice (`colony-breach-nouns.md`, Harrier).
 - **What bounds a free tender is the ground, not a count.** A cell is refused when a known hostile stands within the threat radius (the site would stand down at once), within six cells of another of its side's turrets or of a live site, or where two of its side's turrets already stand within fourteen cells. So a defended point gains a couple of turrets on its threatened side and then the tender idles, and an attacking tender builds again only as the advance moves past what it already put up.
 - **It reads the same known hostiles as the stand-down,** so it never lays a site its builders would at once abandon, and never avoids an enemy nobody has seen. A site it lays into an unseen enemy's reach is found out the hard way, by a hit.
 

@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -69,5 +71,13 @@ class CreepOutpostsTest {
         int[] next = CreepOutposts.choose(disc, 50, 50, 18f, 25f, 0f, boreOnly());
         assertNotNull(next);
         assertTrue(next[0] != open[0] || next[1] != open[1]);
+    }
+
+    @Test
+    void whereAnOutpostFellIsAnAnchorForTheNext() {
+        Map<Long, float[]> rootedAt = Map.of(1L, new float[]{10.5f, 10.5f}, 2L, new float[]{30.5f, 10.5f});
+        List<float[]> fallen = CreepOutposts.fallen(List.of(1L, 2L, 3L), id -> id == 2L, rootedAt);
+        assertEquals(1, fallen.size(), "only the dead outpost with a known cell");
+        assertEquals(10.5f, fallen.get(0)[0]);
     }
 }

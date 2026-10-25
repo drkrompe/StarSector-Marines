@@ -151,4 +151,17 @@ class TenderDirectorTest {
         t.stock(0);
         assertNull(TenderDirector.option(MissionStance.DEFEND, t), "nothing it can pay for");
     }
+
+    @Test
+    void withFliersAboutAndNoFlakNearItBuildsFlakFirst() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        Tender t = Tender.fit(Faction.MARINE, 20f, 20f, 0f);
+        assertEquals(BuildOption.FLAK_TURRET, TenderDirector.option(MissionStance.ATTACK, t, true));
+        assertEquals(BuildOption.FLAK_TURRET, TenderDirector.option(MissionStance.DEFEND, t, true));
+        assertEquals(BuildOption.VULCAN_TURRET, TenderDirector.option(MissionStance.ATTACK, t, false));
+        t.stock(BuildOption.FLAK_TURRET.cost() - 1);
+        assertEquals(BuildOption.VULCAN_TURRET, TenderDirector.option(MissionStance.ATTACK, t, true),
+                "short of the flak's cost it builds what it can");
+    }
 }

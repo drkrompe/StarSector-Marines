@@ -1,0 +1,26 @@
+{
+  "mixedFrom": [
+    {
+      "take": "marines_breach_bore_growth_1.mp3",
+      "sourceCommit": "3e20684c9",
+      "sourceAudioSha256": "633959693ce9fc9cec371002eb1fae14723875c76ef425f608201af426fe522c"
+    },
+    {
+      "take": "marines_breach_runner_clatter_1.mp3",
+      "sourceCommit": "85c28261e",
+      "sourceAudioSha256": "0e52917fb90321c01c0ed29a9c7ed83c9e86bad3c658dfb98877bbf335725929"
+    },
+    {
+      "take": "marines_breach_body_drag_1.mp3",
+      "sourceCommit": "77e8191b3",
+      "sourceAudioSha256": "adb94c68e0f8b2572bacc9bc03727d980560984e4d94bcd22eaedc0683d4871a"
+    }
+  ],
+  "sourceRequestId": null,
+  "filterComplex": "[0:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=1.35:2.163,asetpts=PTS-STARTPTS,asetrate=55125,aresample=44100,highpass=f=90,volume=-2dB[tear];[1:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=0.05:0.603,asetpts=PTS-STARTPTS,asetrate=37485,aresample=44100,volume=8dB,adelay=60[scrape];[2:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=1.05:1.700,asetpts=PTS-STARTPTS,highpass=f=400,volume=-6dB[grit];[tear][scrape][grit]amix=inputs=3:normalize=0:duration=longest,atrim=0:0.65,afade=t=in:d=0.012,afade=t=out:st=0.37:d=0.28,volume=1.90dB,alimiter=limit=0.9:level=false",
+  "note": "A Rav clawing up out of a bore (colony-breach-nouns.md, Emergence): bore growth's wet tear a little quicker, a Runner clatter's chitin a little lower as the scrape, a slice of body drag's grit on top. Mixed and trimmed from shipped takes, not generated.",
+  "integratedLufs": -21.2,
+  "audioSha256": "7a908b54de6ea31329b8e54362dd050c21435e715571d3490fa37aaa3276f319",
+  "durationSeconds": 0.65,
+  "outputFormat": "mp3_44100_128"
+}

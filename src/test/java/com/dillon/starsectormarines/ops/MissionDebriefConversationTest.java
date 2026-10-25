@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
@@ -87,6 +89,45 @@ class MissionDebriefConversationTest {
                 .waylineHound(new WaylineHoundRecovery.Report(true, false)).build();
         assertEquals(HoundSalvageDebrief.lines(salvage, catalog), MissionDebriefConversation.lines(salvage, catalog));
         assertEquals("RECOVERY AGREEMENT / TRANSCRIPT", MissionDebriefConversation.title(salvage));
+    }
+
+    @Test void theRunThatClosesTheFreightAccountClosesJangalaAndPointsAtAsharu() {
+        record Run(boolean victory, List<Integer> delivered, List<Integer> lost, int lines) { }
+        for (var run : List.of(new Run(true, List.of(0, 1, 2), List.of(), 6),
+                new Run(true, List.of(0, 1), List.of(2), 6), new Run(false, List.of(), List.of(0, 1, 2), 5))) {
+            var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+            String junction = route.missionId(); route.begin(junction); route.settle(junction, true, null);
+            String convoy = route.missionId(); route.begin(convoy);
+            var cargo = new FreightRunProgress.Outcome(route.freight().previewAttempt(), run.delivered(), run.lost(), run.victory());
+            route.settle(convoy, run.victory(), null, cargo);
+            var outcome = MissionOutcome.builder().missionId(convoy).missionSource(MissionSource.STORY)
+                    .victory(run.victory()).freightOutcome(cargo).build();
+            assertTrue(MissionDebriefConversation.jangalaClosing(outcome, route));
+            var lines = MissionDebriefConversation.jangalaLines(outcome, route);
+            assertEquals(run.lines(), lines.size(), "only delivered freight buys the off-world charter");
+            assertTrue(lines.get(0).speaker().startsWith("MARA"));
+            assertEquals(run.lost().size() == 1, lines.get(0).text().startsWith("2 loads made it") && lines.get(0).text().contains("One burned"));
+            assertTrue(lines.stream().noneMatch(WaylineNarration.Line::voiced));
+            var next = lines.get(lines.size() - 1);
+            assertTrue(next.speaker().startsWith("CASTLE"));
+            assertTrue(next.text().contains("plot a course for Asharu"));
+            assertEquals(run.victory(), next.text().contains("Route Security"));
+            assertTrue(SupplyRouteCampaign.recoveryDebrief(outcome, route).contains("off-world, to Asharu"));
+        }
+    }
+
+    @Test void aRetryWithCargoStillWaitingIsNotTheGoodbye() {
+        var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        String junction = route.missionId(); route.begin(junction); route.settle(junction, true, null);
+        String convoy = route.missionId(); route.begin(convoy);
+        var cargo = new FreightRunProgress.Outcome(route.freight().previewAttempt(), List.of(), List.of(0), false);
+        route.settle(convoy, false, null, cargo);
+        var outcome = MissionOutcome.builder().missionId(convoy).missionSource(MissionSource.STORY)
+                .victory(false).freightOutcome(cargo).build();
+        assertFalse(route.closed());
+        assertFalse(MissionDebriefConversation.jangalaClosing(outcome, route));
+        assertEquals("", SupplyRouteCampaign.recoveryDebrief(outcome, route));
+        assertFalse(MissionDebriefConversation.jangalaClosing(outcome, null));
     }
 
     private static MissionOutcome outcome(String id, MissionSource source, boolean victory) {

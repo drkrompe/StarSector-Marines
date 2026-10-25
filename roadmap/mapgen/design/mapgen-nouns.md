@@ -375,6 +375,21 @@ cannot stand in is an ordinary plaza. The square publishes an **open square**
 cells with the step out onto the street, for an objective to hold, cross or
 send pressure through.
 
+A **district** is a set piece over several adjacent leaves and the streets between them
+(`set-piece-districts.md`). A district program asks for a claim shape, a **spine** (one straight street
+with members fronting both sides) or a **quarter** (a block of leaves round its cross streets), among
+the leaves of its zoning pocket, gives each member a role, and owns the streets inside its claim: it may
+narrow, widen or close them, but every **mouth** (a way the outside network had into the claim) keeps a
+street cell, mouths joined through the claim before stay joined, and trunks are untouched. The rewrite is
+written back into the road mask before the road graph is built, so the graph, vehicles and tactical links
+see one network. Planning is read-only until it commits, draws no random number, and runs after the
+leaves are labelled and before compound claims, which take each district's compound first; a district
+that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
+district, a cluster with no streets of its own. **Main street** is the first program: shopfronts behind
+pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
+hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
+door).
+
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
 consumable storage and packing rather than repeating a generic warehouse. The
@@ -711,9 +726,11 @@ on the street's own ground: the kerb, the flank, or a yard's paving where one
 is beside the asphalt, and otherwise the carriageway's outer cell, provided
 three cells of asphalt remain. A narrower street goes without on that side.
 **The sidewalk is ground, never a second painted layer.** It is the underlay
-of every city street cell the asphalt touches or neighbours, and of every
+of every city street cell within three cells of the asphalt, and of every
 building apron and sidewalk flank in the city whether a road runs past or not,
-so a city has one sidewalk material and asphalt is the only subcell paint. A cell the asphalt only
+so a city has one sidewalk material and asphalt is the only subcell paint. A
+road is padded out to its band's edge: a street wider than its asphalt meets a
+landing apron or a yard in sidewalk, not in a strip of bare pavers. A cell the asphalt only
 partly covers shows concrete beside the curve, and the concrete meets the
 untouched paving on whole cell edges. A sidewalk swept as a second subcell
 layer over the old kerb and paver tiles left half-cell triangles of the tile

@@ -1105,6 +1105,7 @@ public final class TacticalScoring {
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (!world.specialEquipment(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
+        if (friendlyInTheWay(shooter, target, world.specialEquipment(shooter).aoeRadius() + DANGER_CLOSE_MARGIN)) return false;
         return projectedSpecialDamageOnTarget(shooter, target)
                 < remainingDurability(target, world.x(shooter), world.y(shooter));
     }
@@ -1128,6 +1129,32 @@ public final class TacticalScoring {
             return locations.hullStructure(world.hp(target)) + locations.armor(plate);
         }
         return world.hp(target) + (world.hasArmor(target) ? world.armor(target) : 0f);
+    }
+
+    /**
+     * Cells past a special weapon's blast that a friendly must stand for its shooter to commit: the round can land a
+     * little off. Broad Front, 2026-10-25: a rocket at a bore thirty cells off burst on four Marines bunched in its
+     * lane, killing all four.
+     */
+    public static final float DANGER_CLOSE_MARGIN = 1f;
+
+    private static final ThreadLocal<FiringLane.Friendlies> DANGER_CLOSE_FRIENDLIES =
+            ThreadLocal.withInitial(FiringLane.Friendlies::new);
+
+    /**
+     * Whether a living friendly of {@code shooter} stands in its lane to {@code target} ({@link FiringLane#blocked}),
+     * where an area round would burst on them, or within {@code blast} cells of the target.
+     */
+    boolean friendlyInTheWay(long shooter, long target, float blast) {
+        World world = roster.world();
+        float sx = world.x(shooter), sy = world.y(shooter), tx = world.x(target), ty = world.y(target);
+        FiringLane.Friendlies allies = DANGER_CLOSE_FRIENDLIES.get();
+        gatherFriendlies(shooter, (float) Math.hypot(tx - sx, ty - sy) + blast, SPREAD_CANDIDATES.get(), allies);
+        for (int i = 0; i < allies.size(); i++) {
+            float dx = allies.x(i) - tx, dy = allies.y(i) - ty;
+            if (dx * dx + dy * dy <= blast * blast) return true;
+        }
+        return FiringLane.blocked(allies, sx, sy, tx, ty);
     }
 
     /** Compatibility name retained for focused rocket tests and older callers. */

@@ -4,6 +4,14 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
+
+Updated: 2026-10-25 — the flier law counts any gun that tracks fliers, so the colony's heavy guns meet it; a tender builds flak first with fliers about.
+
+Updated: 2026-10-25 — Harriers snatch colonists in the open alive and fly them into the bore.
+
+Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
+
 Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
 
 Updated: 2026-10-25 — the brood spire's deep raids: four round the flak to a soft target behind the line, and home.
@@ -513,7 +521,8 @@ militia make the rest of it when the battle is set up:
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
   other flank, so it always has two. Those guns are its whole armament: no
-  layers, no bunkers, no anti-air;
+  layers, no bunkers, no flak. Its heavy machine guns track fliers, so they
+  answer Harriers and meet the flier law (*Laws*);
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
@@ -958,8 +967,17 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
 kind of spire like spawner"). It is the swarm's answer to a line it cannot walk
 through, made into a thing on the map the company can find and kill.
-- **Only an old bloom has one.** Spires grow when a battle's creep is matured
-  at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
+- **An old bloom has grown them; a fresh one grows them by eating** (owner,
+  2026-10-25). Where a battle's creep is matured at setup as weeks old (the
+  Cordon and the heart) its spires stand at once. In any battle, a fresh Colony
+  Breach among them, a satellite bore that has reached maw having eaten four
+  colonists' worth raises one (`BroodSpires.raises`): once its creep holds ground
+  for one by the rule below, the spire's root digs out and thickens over ten
+  seconds and the spire rises at its end in a burst of creep, as a colony does
+  (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
+  every colonist kept from it is a spire that never grows. A bore raises one
+  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and
   twenty-eight cells from its mouth and five clear of its colonies, and never
@@ -997,14 +1015,18 @@ through, made into a thing on the map the company can find and kill.
   from the last raid's return, the same quiet spire sends four of its roost
   deep instead of a patrol: to the richest soft target fifty to a hundred and
   sixty cells off that no anti-air reaches (the radio a forward observer calls
-  the air in with, an unarmed truck, a medic, a soldier on his own, a gun),
-  the nearer on a tie. Its way is bent round every air gun's reach with six
+  the air in with, an unarmed truck, a medic, a colonist out in the open to
+  snatch, a soldier on his own, a gun, in that order), the nearer on a tie. Its way is bent round every air gun's reach with six
   cells to spare, straight when it can be, else by one or two turning points
   off the direct line; with no target or no such way it patrols, and looks
   again a few seconds on. Out and home it hunts nothing. Over the target it
   dives only on what is soft within sixteen cells of where it was sent, never
   the guns, two dives and it turns for home (sooner with nothing there to
-  dive on), flies the same way back and lands as a patrol does. One sortie of
+  dive on), flies the same way back and lands as a patrol does. Sent at
+  survivors, it dives on nothing there: one of the four snatches a colonist
+  (*Snatching the living*), and the carrier keeps with the raid home by its
+  way round the guns before it makes for the mouth, so a colony's people
+  behind the line are taken from under its flak, not over it. One sortie of
   a spire's is up at a time. So the line's rear is never safe from a spire it
   has left standing, and flak placed to cover the rear, not just the front,
   is what closes the ways in. Scene: `harrier-raid`; look: `harrier-raid-look`.
@@ -1338,14 +1360,26 @@ not read in a soft shadow at play zoom.
     carrier shot down drops its load where it falls. So a line that kills the
     carriers keeps the nest from feeding on its dead. Scene: `harrier-carry`;
     look: `harrier-carry-look`.
+  - **Snatching the living** (owner, 2026-10-25: Harrier bands picking off
+    the colony's survivors). A colonist out in the open, no roof over them, is
+    taken alive: a pack with room for another carrier sends its nearest
+    member down on the nearest within twenty-two cells, whether or not it has
+    prey of its own, ahead of any dead. The carrier snatches them off their
+    feet and hauls them home as a dead load is hauled, and at the mouth they
+    are taken as an impaled body is (`SwarmHarvest.snatchByFlier`). A
+    Harrier never bites a colonist, and never takes a soldier or militia
+    fighter alive, nor an evacuee under escort (*Harvest*). Shot down on the
+    way, the carrier drops them alive where it falls, both legs run through,
+    and they lie a moment before running again, untouchable by the air until
+    they do. Scene: `harrier-snatch`; look: `harrier-snatch-look`.
   - **How it flies.** Its own steering, never the ground flow field, which is a
     map of walls a flier is not in: seek a goal, push off packmates, turn at a
     capped rate, move along the nose. Serial, in pack and slot order, with no
     random draw, so a replay flies the same; a pack of twenty costs four
     hundred distance checks a tick.
-  - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
-    the flier law: off a satellite's **brood spire** with its bore's surge, and
-    as a Matriarch's **brood**, a pack of six that hatches off her back as she
+  - **Where it comes from** (`BroodSpires`). Only under the flier law: off a
+    satellite's **brood spire** with its bore's surge (an old bloom's, or one a
+    fed bore raised), and, in an old bloom, as a Matriarch's **brood**, a pack of six that hatches off her back as she
     emerges and flies as her escort (*Emergence*). So the satellites and the front bores
     send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
@@ -2071,7 +2105,15 @@ by these rules, and a line that a later beat makes stale is superseded by it.
 Bores and bodies sound through presentation cues the simulation writes and
 never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
-surging and collapsing, and breathes a tier ambience while it lives. A swarm
+surging and collapsing, and breathes a tier ambience while it lives. Each clutch
+it lets go is heard clawing up out of the hole (*Emergence*; `BoreAudio`): chitin
+scraping on rock and wet earth tearing, one short take per clutch at the mouth,
+read off the emergence rather than posted, pitched by the clutch's heaviest body
+(the Matriarch deep and slow, a skitterer light) and a little louder for three
+bodies than one. A surge's clutches overlap and layer by the crowd rule under a
+budget of four, so emptying a maw is a churn under the surge cue, not a wall. Its
+one take of its own is mixed from shipped ones (bore growth's tear, a Runner's
+clatter lowered, the body drag's grit). A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
 and lives, and dies. A Runner taking up a body is heard latching onto it, and
@@ -2155,7 +2197,8 @@ LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. The skitterer's squeak sits near -30 and its
-death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
+death -28, its drag -35, each work loop -36 and its patter -39. A Runner clutch's claw-up sits near
+-32, three bodies' -29 and the Matriarch's -30. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
@@ -2219,8 +2262,12 @@ argument.
   the director's budget, deterministic under the battle seed.
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
-  the map (an anti-air emplacement, or a hull with a mount that engages air;
-  `SwarmFliers.releaseUnderCover` refuses otherwise). A scene's control may
+  the map: a seated gun that answers fliers (an anti-air position, or any gun
+  whose weapon tracks them, as a colony's heavy machine guns and a flak
+  emplacement do), or a hull whose turret does (`SwarmFliers.hasAirCover`,
+  the same rule by which a pack senses the guns; `releaseUnderCover` refuses
+  otherwise). So a Colony Breach meets it with the compound's gun towers and
+  the militia's guns, and a tender meets it with flak. A scene's control may
   break this; a mission may not.
 - **Air cannot clear the map.** Every living bore has spore colonies round it
   until they are killed; they die with the bore.

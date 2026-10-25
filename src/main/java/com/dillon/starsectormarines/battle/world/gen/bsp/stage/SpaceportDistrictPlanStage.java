@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
+import com.dillon.starsectormarines.battle.world.gen.bsp.District;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.LeafAdjacency;
 
@@ -27,6 +28,11 @@ import java.util.Set;
  * spaceport. The ordinary label pass may scatter individual apron leaves;
  * this pass replaces that scatter with the largest connected component in
  * the authored HARBOR_PORT zoning pocket and publishes it as one compound.
+ *
+ * <p>The campus is the first {@link District} ({@code set-piece-districts.md}):
+ * a {@link District.Shape#CLUSTER} that owns no streets, published under
+ * {@link BspKeys#DISTRICTS} like every program the {@code DistrictPlanStage}
+ * plans after it.
  */
 public final class SpaceportDistrictPlanStage implements GenStage {
 
@@ -110,8 +116,11 @@ public final class SpaceportDistrictPlanStage implements GenStage {
             member.kind = BlockKind.COMPOUND_MEMBER;
             roles.put(member, supportRoles[(i - 1) % supportRoles.length]);
         }
-        ctx.put(BspKeys.SPACEPORT_DISTRICT,
-                new Compound(BlockKind.SPACEPORT_PAD, seed, members, roles, null));
+        Compound campus = new Compound(BlockKind.SPACEPORT_PAD, seed, members, roles, null);
+        List<District> districts = ctx.get(BspKeys.DISTRICTS);
+        districts = districts == null ? new ArrayList<>() : new ArrayList<>(districts);
+        districts.add(new District("spaceport", District.Shape.CLUSTER, null, campus, Map.of()));
+        ctx.put(BspKeys.DISTRICTS, districts);
     }
 
     private static List<BlockLeaf> largestComponent(

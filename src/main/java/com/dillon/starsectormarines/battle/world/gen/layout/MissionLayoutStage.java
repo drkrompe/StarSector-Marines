@@ -151,7 +151,13 @@ public final class MissionLayoutStage implements GenStage {
         }
         Set<String> names = new HashSet<>();
         for (Laid laid : out) names.add(laid.name());
+        List<int[]> streets = new ArrayList<>();
         for (Piece piece : pieces) {
+            if (!(piece instanceof Road) && !streets.isEmpty()) {
+                if (held == null) held = new boolean[ctx.width][ctx.height];
+                for (int[] c : streets) held[c[0]][c[1]] = true;
+                streets.clear();
+            }
             if (!names.add(piece.name())) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, false, "named twice"));
                 continue;
@@ -173,6 +179,15 @@ public final class MissionLayoutStage implements GenStage {
                         ? Laid.refused(ridge.name(), Laid.Kind.GROUND, ridge.required(), "no stretch of its band fits")
                         : new Laid(ridge.name(), Laid.Kind.GROUND, Laid.Status.LAID, feet.size() + " segments",
                                 ridge.required(), List.of(), feet, List.of()));
+            } else if (piece instanceof Road road) {
+                // A road resolved with the works runs along the streets standing; the works laid after it keep off
+                // it, but the other roads may share it (every supply road leaves the base by the same street).
+                Laid laid = LayoutStreets.follow(ctx, ground, road, held);
+                out.add(laid);
+                if (laid.isLaid()) {
+                    streets.addAll(laid.cells());
+                    closed = true;
+                }
             } else if (piece instanceof Line line) {
                 Laid laid = lay(ctx, ground, line, held);
                 out.add(laid);

@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundClaim;
+import com.dillon.starsectormarines.battle.world.gen.bsp.District;
 import com.dillon.starsectormarines.battle.world.gen.bsp.LeafAdjacency;
 import org.apache.log4j.Logger;
 
@@ -36,8 +37,8 @@ public final class CompoundClaimStage implements GenStage {
         Map<BlockLeaf, List<BlockLeaf>> adjacency =
                 LeafAdjacency.compute(partition.leaves, ctx.width, ctx.height);
         List<Compound> compounds = new ArrayList<>();
-        Compound spaceport = ctx.get(BspKeys.SPACEPORT_DISTRICT);
-        if (spaceport != null) compounds.add(spaceport);
+        List<District> districts = ctx.get(BspKeys.DISTRICTS);
+        if (districts != null) for (District district : districts) compounds.add(district.compound);
         compounds.addAll(CompoundClaim.claim(partition.leaves, adjacency,
                 biomeMap != null ? CompoundClaim.CONQUEST_SPECS : CompoundClaim.DEFAULT_SPECS,
                 biomeMap, ctx.rng));
