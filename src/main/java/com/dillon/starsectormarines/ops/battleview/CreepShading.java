@@ -96,15 +96,16 @@ final class CreepShading {
     static final float ROOT_RANGE = NestTrails.RANGE;
     static final float ROOT_SINEW = 0.55f, ROOT_RING = 9f;
     /**
-     * The roots' style ({@link NestTrails#STYLE_PROPERTY}, temporary while the owner picks). A furrow is a channel sunk
-     * into the body rather than a rope on it, darker ({@code ROOT_TONE}) and with no lit crest ({@code ROOT_RIM}). A
-     * vein path has no relief and barely tints the body, but thickens its veins and lights its pulse along it.
+     * A root still digging out is a vein ({@link NestTrails#VEIN_HALF_WIDTH}): no rope, but a crimson core from
+     * {@code CORE_OUT} to {@code CORE_IN} cells off its line, lit by its own pulse ({@code BAND_PULSE}), in a halo
+     * {@code HALO} strong out to {@code VEIN_BAND} cells, over which the body's veins thicken {@code BAND_VEIN} times
+     * over, glow {@code BAND_GLOW} times brighter and are tinted {@code BAND_TINT} toward the vein colour. Laid
+     * half-widths from {@code ROPE_FROM} to {@code ROPE_TO} cells turn the vein into the rope.
      */
-    static final boolean ROOT_FURROW = "furrow".equals(NestTrails.style()), ROOT_VEINS = "veins".equals(NestTrails.style());
-    static final float ROOT_TONE = ROOT_FURROW ? 0.7f : 1f, ROOT_RIM = ROOT_FURROW || ROOT_VEINS ? 0f : 0.35f;
-    static final float ROOT_HEIGHT = ROOT_FURROW ? -0.22f : ROOT_VEINS ? 0f : 0.3f, ROOT_WOBBLE = 0.35f,
-            ROOT_COLOUR = ROOT_VEINS ? 0.3f : 0.75f, ROOT_VEIN = ROOT_VEINS ? 2.2f : 0.8f,
-            ROOT_GLOW = ROOT_VEINS ? 3.5f : 1.8f, ROOT_CREASE = ROOT_VEINS ? 0f : 0.4f, ROOT_NEAR = 0.3f;
+    static final float VEIN_BAND = 0.9f, CORE_OUT = 0.7f, CORE_IN = 0.35f, HALO = 0.45f, BAND_VEIN = 2.2f,
+            BAND_GLOW = 3.5f, BAND_TINT = 0.75f, BAND_PULSE = 0.3f, ROPE_FROM = 0.08f, ROPE_TO = 0.15f;
+    static final float ROOT_HEIGHT = 0.3f, ROOT_WOBBLE = 0.35f, ROOT_COLOUR = 0.75f, ROOT_VEIN = 0.8f, ROOT_GLOW = 1.8f,
+            ROOT_CREASE = 0.4f, ROOT_NEAR = 0.3f, ROOT_RIM = 0.35f;
 
     private CreepShading() { }
 
@@ -219,11 +220,14 @@ final class CreepShading {
             if (a > 0f) {
                 // A nest's root: how much of the point it covers, where across it the point lies (0 its crest, 1 its
                 // edge), its slope, and the crease at its foot.
-                float root = 0f, ridgeT = 1f, rsx = 0f, rsy = 0f, rootCrease = 0f;
+                float root = 0f, ridgeT = 1f, rsx = 0f, rsy = 0f, rootCrease = 0f, band = 0f;
                 if (gnd[3] > 0f && gnd[2] > ROOT_NEAR) {
                     float rs = (0.5f - gnd[2]) * 2f * ROOT_RANGE + (fine[0] - 0.5f) * ROOT_WOBBLE;
                     float rhw = Math.max(gnd[3] * 2f, 0.05f);
-                    root = clamp01(-rs * cellPx + 0.5f);
+                    float rope = smoothstep(ROPE_FROM, ROPE_TO, rhw);
+                    band = (1f - rope) * Math.max(HALO * smoothstep(VEIN_BAND, 0f, rs + rhw),
+                            smoothstep(CORE_OUT, CORE_IN, rs + rhw));
+                    root = clamp01(-rs * cellPx + 0.5f) * rope;
                     ridgeT = clamp01((rs + rhw) / rhw);
                     float[] gt = tmp.gtap;
                     f.ground(x + TAP, y, gt);
@@ -238,10 +242,10 @@ final class CreepShading {
                     float dhds = -ROOT_HEIGHT * ridgeT / (rhw * (float) Math.sqrt(Math.max(1f - ridgeT * ridgeT, 0.05f)));
                     rsx = root * dhds * dsx;
                     rsy = root * dhds * dsy;
-                    rootCrease = (1f - root) * bump(rs, 0.15f, 0.2f);
+                    rootCrease = (1f - root) * bump(rs, 0.15f, 0.2f) * rope;
                 }
                 body(clamp(d, 0f, 2f), x, y, ux, uy, here[1], here[2], noise[0], patch, tpp, time, pal, sun,
-                        root, 1f - ridgeT * ridgeT, rsx, rsy, surf, col);
+                        root, 1f - ridgeT * ridgeT, rsx, rsy, band, surf, col);
                 float crease = smoothstep(0.2f, 0.5f, here[3]);
                 for (int c = 0; c < 3; c++) col[c] *= (1f - 0.55f * crease) * (1f - ROOT_CREASE * rootCrease);
             }
@@ -283,7 +287,7 @@ final class CreepShading {
         float va = 0.9f * vein;
         if (ac > 0f) {
             body(clamp(dc, 0f, 2f), x, y, ux, uy, here[1], here[2], noise[0], patch, tpp, time, pal, sun,
-                    0f, 0f, 0f, 0f, surf, col);
+                    0f, 0f, 0f, 0f, 0f, surf, col);
             float[] tap = tmp.tap;
             f.sample(x + TAP, y, tap);
             float we = tap[3];
@@ -334,11 +338,12 @@ final class CreepShading {
     /**
      * The creep's body at {@code dd} cells in from its edge: lip profile, plates, veins and pulse, lit by the sun
      * from its own slope. A nest's root covering {@code root} of the point raises a rope over it: {@code ridge} is 1 on
-     * its crest and 0 at its edge, ({@code rsx}, {@code rsy}) its slope there. RGB into {@code col}.
+     * its crest and 0 at its edge, ({@code rsx}, {@code rsy}) its slope there; a root still a vein lies {@code band}
+     * over it. RGB into {@code col}.
      */
     private static void body(float dd, float x, float y, float ux, float uy, float vit, float pulseCells,
                              float cloud, float patch, float tpp, float time, CreepPalette pal, Sun sun,
-                             float root, float ridge, float rsx, float rsy, float[] surf, float[] col) {
+                             float root, float ridge, float rsx, float rsy, float band, float[] surf, float[] col) {
         // Plates come in two sizes, the larger where the cloud is high, and only in patches: between them is bare
         // membrane studded with nodules, so the cover reads as grown rather than paved.
         float big = smoothstep(BIG_LO, BIG_HI, cloud);
@@ -372,10 +377,11 @@ final class CreepShading {
         // so the network does not repeat with the surface's tile.
         CreepSurface.sample(y * VEIN_SECOND_SCALE + 2.3f, x * VEIN_SECOND_SCALE + 4.1f, tpp * VEIN_SECOND_SCALE, surf);
         float veinPick = smoothstep(0.38f, 0.62f, cloud);
-        float vein = clamp01(mix(veinMask, surf[2], veinPick) * smoothstep(0.25f, 0.8f, dd) * (1f + ROOT_VEIN * root));
+        float vein = clamp01(mix(veinMask, surf[2], veinPick) * smoothstep(0.25f, 0.8f, dd) * (1f + ROOT_VEIN * root + BAND_VEIN * band));
         float outline = smoothstep(0.06f, 0f, dd);
         float wave = 0.5f + 0.5f * (float) Math.sin(pulseCells * PULSE_PER_CELL + time * PULSE_PER_SECOND);
-        float glow = vein * (0.25f + 0.75f * wave * wave) * vit * GLOW * (1f + ROOT_GLOW * root);
+        float glow = (vein * GLOW * (1f + ROOT_GLOW * root + BAND_GLOW * band) + BAND_PULSE * band)
+                * (0.25f + 0.75f * wave * wave) * vit;
         float ring = 0.5f + 0.5f * (float) Math.sin(pulseCells * ROOT_RING);
         for (int c = 0; c < 3; c++) {
             float membrane = pal.base()[c] * (0.8f + 0.25f * cloud) * (0.88f + 0.3f * blister);
@@ -383,8 +389,9 @@ final class CreepShading {
             float alb = mix(membrane, plateCol, plated * (1f - seam));
             alb = mix(alb, pal.base()[c] * 0.6f, seam * 0.5f);
             alb = mix(alb, pal.rim()[c], 0.5f * crest);
-            float sinew = mix(pal.flesh()[c], pal.vein()[c], ROOT_SINEW) * (0.85f + 0.3f * ring) * ROOT_TONE;
+            float sinew = mix(pal.flesh()[c], pal.vein()[c], ROOT_SINEW) * (0.85f + 0.3f * ring);
             alb = mix(alb, mix(sinew, pal.rim()[c], ROOT_RIM * ridge), ROOT_COLOUR * root);
+            alb = mix(alb, pal.vein()[c], BAND_TINT * band);
             alb = mix(alb, pal.vein()[c], 0.7f * vein);
             alb = mix(pal.dead()[c] * (0.8f + 0.3f * cloud), alb, vit);
             col[c] = (alb * diffuse + spec + pal.glow()[c] * glow) * (1f - 0.35f * outline);

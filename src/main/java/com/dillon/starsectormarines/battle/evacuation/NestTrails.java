@@ -14,6 +14,11 @@ import java.util.List;
  * <p>A root bows to one side by a seeded amount and meanders a little along its length, so no two are straight or
  * alike, and tapers from the mouth to its growth. It is pure over its endpoints: the same nest gives the same roots.
  * {@link #rasterize} lays them into a per-cell distance field the creep's shader reads.
+ *
+ * <p>A root grows (owner, 2026-10-25: thinner veins "dig out and construct" from the bore over time): from the tick
+ * its growth sprouted, a thin vein digs out from the bore at {@link #DIG_CELLS_PER_SECOND}, and once it has reached
+ * the growth it thickens into rope over {@link #THICKEN_SECONDS} ({@link #growth}). A growth from creep matured at
+ * setup is weeks old and its root fully grown.
  */
 public final class NestTrails {
 
@@ -27,24 +32,33 @@ public final class NestTrails {
     static final float BOW = 0.22f, MEANDER = 0.45f, MEANDER_WAVELENGTH = 6f;
     /** Cells from the bore's centre where a root starts, under the rim of its painting. */
     static final float MOUTH_START = 1f;
+    /** How fast a root's vein digs out from the bore, and how long it then takes to thicken into rope. */
+    public static final float DIG_CELLS_PER_SECOND = 1.2f, THICKEN_SECONDS = 15f;
+    /**
+     * Half-width laid for a root still a vein, in cells: below what the field can hold as a rope, so the creep's
+     * shader draws it as a band of thickened, lit veins instead. A thickening rope starts at {@link #ROPE_START}.
+     */
+    public static final float VEIN_HALF_WIDTH = 0.05f, ROPE_START = 0.4f;
     /** Cells per polyline step along a root. */
     static final float STEP = 0.75f;
 
     /**
-     * Temporary A/B switch for the roots' look, read while the owner picks: {@code rope} (a ringed rope raised out of
-     * the creep, the default), {@code furrow} (a channel sunk into it) or {@code veins} (no relief, the creep's veins
-     * thickened and lit along a wider path); the creep's shading reads it. Remove it with the losing styles once the
-     * owner has picked.
+     * One root: from the mouth at (x0, y0) to a growth at (x1, y1), its full half-widths at either end, its seed, how
+     * far along it its vein has dug ({@code reach}, 0..1) and how far it has thickened into rope ({@code thick}, 0..1).
      */
-    public static final String STYLE_PROPERTY = "battle.render.nestRoots";
-    /** How much wider a vein path is laid than a rope. */
-    static final float VEIN_PATH_WIDTH = 1.6f;
+    public record Trail(float x0, float y0, float x1, float y1, float halfWidthFrom, float halfWidthTo, long seed,
+                        float reach, float thick) { }
 
-    /** The roots' look ({@link #STYLE_PROPERTY}). */
-    public static String style() { return System.getProperty(STYLE_PROPERTY, "rope"); }
-
-    /** One root: from the mouth at (x0, y0) to a growth at (x1, y1). */
-    public record Trail(float x0, float y0, float x1, float y1, float halfWidthFrom, float halfWidthTo, long seed) { }
+    /**
+     * How far a root of {@code length} cells has grown {@code ageSeconds} after its growth sprouted: its reach along
+     * its length and its thickness, each 0..1, into {@code out}. It digs out at {@link #DIG_CELLS_PER_SECOND}, then
+     * thickens over {@link #THICKEN_SECONDS}.
+     */
+    public static void growth(float length, float ageSeconds, float[] out) {
+        float dig = Math.max(length, 0.01f) / DIG_CELLS_PER_SECOND;
+        out[0] = Math.max(0f, Math.min(1f, ageSeconds / dig));
+        out[1] = Math.max(0f, Math.min(1f, (ageSeconds - dig) / THICKEN_SECONDS));
+    }
 
     private NestTrails() { }
 
@@ -56,27 +70,35 @@ public final class NestTrails {
         for (SwarmBore bore : bores.bores()) {
             if (bore.collapsed() || !sim.world().isAlive(bore.entityId())) continue;
             float bx = bore.x() + 0.5f, by = bore.y() + 0.5f;
-            for (long id : bore.colonies()) add(sim, out, bore, bx, by, id, HALF_WIDTH_STUB, HALF_WIDTH_STUB * 0.75f);
-            for (long id : bore.outposts()) add(sim, out, bore, bx, by, id, HALF_WIDTH_ROOT, HALF_WIDTH_TIP);
+            for (long id : bore.colonies()) {
+                add(sim, out, bore, bx, by, id, HALF_WIDTH_STUB, HALF_WIDTH_STUB * 0.75f, bore.bornTick(id));
+            }
+            for (long id : bore.outposts()) add(sim, out, bore, bx, by, id, HALF_WIDTH_ROOT, HALF_WIDTH_TIP, bore.bornTick(id));
         }
         for (BroodSpires.Spire spire : sim.broodSpires().spires()) {
             if (spire.bore.collapsed()) continue;
+            // A spire grows only with creep matured at setup, so its root is as old as the bloom.
             add(sim, out, spire.bore, spire.bore.x() + 0.5f, spire.bore.y() + 0.5f, spire.entityId,
-                    HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f);
+                    HALF_WIDTH_ROOT * 1.15f, HALF_WIDTH_TIP * 1.4f, SwarmBore.OLD);
         }
         return out;
     }
 
     private static void add(BattleSimulation sim, List<Trail> out, SwarmBore bore, float bx, float by, long id,
-                            float from, float to) {
+                            float from, float to, int bornTick) {
         if (sim.resolveUnit(id) == 0L || !sim.world().isAlive(id)) return;
         float gx = sim.world().cellX(id) + 0.5f, gy = sim.world().cellY(id) + 0.5f;
         float dx = gx - bx, dy = gy - by, len = (float) Math.hypot(dx, dy);
         if (len < SwarmBores.MOUTH_RADIUS + 0.5f) return;
         // Leave from under the bore's own painting, so the root runs out of its rim rather than beside it.
         float sx = bx + dx / len * MOUTH_START, sy = by + dy / len * MOUTH_START;
-        float wide = "veins".equals(style()) ? VEIN_PATH_WIDTH : 1f;
-        out.add(new Trail(sx, sy, gx, gy, from * wide, to * wide, SwarmBores.mix(bore.number() * 0x9E3779B97F4A7C15L ^ id)));
+        float[] grown = new float[2];
+        float age = bornTick == SwarmBore.OLD ? Float.MAX_VALUE
+                : (sim.getSimTickIndex() - bornTick) * BattleSimulation.TICK_DT;
+        growth((float) Math.hypot(gx - sx, gy - sy), age, grown);
+        if (grown[0] <= 0f) return;
+        out.add(new Trail(sx, sy, gx, gy, from, to, SwarmBores.mix(bore.number() * 0x9E3779B97F4A7C15L ^ id),
+                grown[0], grown[1]));
     }
 
     /** A cheap fingerprint of {@code trails}, so a drawer re-lays the field only when the nest has changed. */
@@ -85,8 +107,19 @@ public final class NestTrails {
         for (Trail t : trails) {
             h = h * 31 + Float.floatToIntBits(t.x1()) * 17L + Float.floatToIntBits(t.y1());
             h = h * 31 + t.seed();
+            // Re-laid as a growing root moves on by about half a cell or a sixteenth of its thickening.
+            h = h * 31 + Math.round(t.reach() * Math.hypot(t.x1() - t.x0(), t.y1() - t.y0()) * 2f) * 17L
+                    + Math.round(t.thick() * 16f);
         }
         return h;
+    }
+
+    /** The half-width laid at {@code u} along {@code t}: a vein's until it thickens, then a rope growing to its own. */
+    static float laidHalfWidth(Trail t, float u) {
+        if (t.thick() <= 0f) return VEIN_HALF_WIDTH;
+        float full = t.halfWidthFrom() + (t.halfWidthTo() - t.halfWidthFrom()) * u;
+        float start = Math.min(ROPE_START, full);
+        return start + (full - start) * t.thick();
     }
 
     /** The root's centreline, from mouth to growth, as x, y pairs. */
@@ -123,10 +156,17 @@ public final class NestTrails {
             float[] pts = centreline(t);
             int segments = pts.length / 2 - 1;
             for (int s = 0; s < segments; s++) {
-                float ax = pts[s * 2], ay = pts[s * 2 + 1], bx = pts[s * 2 + 2], by = pts[s * 2 + 3];
                 float ua = s / (float) segments, ub = (s + 1) / (float) segments;
-                float hwA = t.halfWidthFrom() + (t.halfWidthTo() - t.halfWidthFrom()) * ua;
-                float hwB = t.halfWidthFrom() + (t.halfWidthTo() - t.halfWidthFrom()) * ub;
+                if (ua >= t.reach()) break;
+                float ax = pts[s * 2], ay = pts[s * 2 + 1], bx = pts[s * 2 + 2], by = pts[s * 2 + 3];
+                if (ub > t.reach()) {
+                    // The vein's digging front: cut the last segment where it has got to.
+                    float k = (t.reach() - ua) / (ub - ua);
+                    bx = ax + (bx - ax) * k;
+                    by = ay + (by - ay) * k;
+                    ub = t.reach();
+                }
+                float hwA = laidHalfWidth(t, ua), hwB = laidHalfWidth(t, ub);
                 float reach = Math.max(hwA, hwB) + RANGE;
                 int x0 = Math.max(0, (int) Math.floor(Math.min(ax, bx) - reach));
                 int y0 = Math.max(0, (int) Math.floor(Math.min(ay, by) - reach));

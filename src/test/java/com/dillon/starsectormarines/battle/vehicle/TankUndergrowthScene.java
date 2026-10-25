@@ -31,7 +31,8 @@ import java.util.Map;
  * open and it drives through, felling what it touches. {@code dead-wood}: a belt of mature oaks the creep has killed
  * (their deaths are declared to the map editor as {@code CreepVegetation} declares them); the tank pushes through it
  * the same way. {@code mature-wood}: the same oaks alive; the hull never crosses and nothing falls. {@code apc}: a
- * troop APC, a Light-lift hull, ordered across the young pines, held the same way. Every loop gives real player move orders through
+ * troop APC, a medium hull, ordered across the young pines, crushes through as the tank does. {@code light-hull}:
+ * a scout car, a light hull, ordered the same way, is held. Every loop gives real player move orders through
  * {@link VehicleMoveOrderService}, so route proof, rolling planner and sweep are production.
  */
 public final class TankUndergrowthScene implements BehaviorScene {
@@ -40,6 +41,7 @@ public final class TankUndergrowthScene implements BehaviorScene {
     public static final String DEAD = "dead-wood";
     public static final String MATURE = "mature-wood";
     public static final String APC = "apc";
+    public static final String LIGHT = "light-hull";
 
     static final int WIDTH = 64;
     static final int HEIGHT = 48;
@@ -62,7 +64,7 @@ public final class TankUndergrowthScene implements BehaviorScene {
 
     @Override public String label() {
         return "Heavy tracks: a tank drives through young and creep-killed wood, felling it, and is refused by a living "
-                + "mature wood; a troop APC is refused by the young wood";
+                + "mature wood; a troop APC crushes the young wood too and a scout car is refused by it";
     }
 
     @Override public int frameDelayMillis() { return 90; }
@@ -73,6 +75,7 @@ public final class TankUndergrowthScene implements BehaviorScene {
         reports.add(run(DEAD, frames));
         reports.add(run(MATURE, frames));
         reports.add(run(APC, frames));
+        reports.add(run(LIGHT, frames));
         return reports;
     }
 
@@ -117,7 +120,8 @@ public final class TankUndergrowthScene implements BehaviorScene {
             for (ForestField.Tree tree : belt(loop)) sim.mapEditor().witherTree(tree.x(), tree.y());
         }
 
-        VehicleType type = loop.equals(APC) ? VehicleType.HEAVY_APC : VehicleType.BREAKTHROUGH_TANK;
+        VehicleType type = loop.equals(APC) ? VehicleType.HEAVY_APC
+                : loop.equals(LIGHT) ? VehicleType.SCOUT_CAR : VehicleType.BREAKTHROUGH_TANK;
         VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
         long hull = sim.convoy().spawn(type, Faction.MARINE, VehicleMission.deployed(START_X, START_Y));
         sim.convoy().body(hull).teleport(START_X, START_Y, 0f);
@@ -146,9 +150,9 @@ public final class TankUndergrowthScene implements BehaviorScene {
         verdicts.add(Verdict.of("belt-closed", beltClosed, "the belt closes every column of the field"));
         verdicts.add(Verdict.of("whole-hull-clear", legal,
                 "every applied pose clears the live grid: the hull only ever stood where it had crushed its way"));
-        if (loop.equals(YOUNG) || loop.equals(DEAD)) {
-            verdicts.add(Verdict.of("route-proved", accepted, "the tank's order is accepted over ground its tracks open"));
-            verdicts.add(Verdict.of("through", throughTick >= 0, "the tank is through the belt at tick " + throughTick));
+        if (loop.equals(YOUNG) || loop.equals(DEAD) || loop.equals(APC)) {
+            verdicts.add(Verdict.of("route-proved", accepted, "the hull's order is accepted over ground its tracks open"));
+            verdicts.add(Verdict.of("through", throughTick >= 0, "the hull is through the belt at tick " + throughTick));
             verdicts.add(Verdict.of("felled", felled > 0, felled + " trees felled"));
         } else {
             // An order the hull cannot carry out is refused, or resolved to the nearest ground it can reach, short of

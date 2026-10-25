@@ -62,15 +62,25 @@ public final class EnvironmentWear {
 
     /** Whether a payload of this damage and penetration would remove any structure from the feature as it stands. Read-only. */
     public boolean wouldWear(StruckFeature feature, float damage, float penetration) {
+        return wouldWear(feature, damage, penetration, false);
+    }
+
+    /** As above, for a round that may burn ({@link EnvironmentMaterial#structuralDamage(float, float, boolean)}). */
+    public boolean wouldWear(StruckFeature feature, float damage, float penetration, boolean burn) {
         EnvironmentMaterial material = materialOf(feature);
-        return material != null && material.structuralDamage(damage, penetration) > 0;
+        return material != null && material.structuralDamage(damage, penetration, burn) > 0;
     }
 
     /** Spends one arrived round on its feature. Returns whether that round broke it. */
     public boolean apply(StruckFeature feature, float damage, float penetration) {
+        return apply(feature, damage, penetration, false);
+    }
+
+    /** As above, for a round that may burn. */
+    public boolean apply(StruckFeature feature, float damage, float penetration, boolean burn) {
         EnvironmentMaterial material = materialOf(feature);
         if (material == null) return false;
-        int amount = material.structuralDamage(damage, penetration);
+        int amount = material.structuralDamage(damage, penetration, burn);
         if (amount <= 0) return false;
         strikesWorn++;
         structureRemoved += amount;
@@ -83,7 +93,7 @@ public final class EnvironmentWear {
 
     /** The serial sink for {@link ShotService#tickStrikes}. */
     public void apply(ShotService.PendingStrike strike) {
-        apply(strike.feature, strike.damage, strike.penetration);
+        apply(strike.feature, strike.damage, strike.penetration, strike.burns);
     }
 
     /** Rounds that removed structure from the environment, this battle. */

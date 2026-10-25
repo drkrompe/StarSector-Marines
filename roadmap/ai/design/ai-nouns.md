@@ -720,8 +720,10 @@ seconds. In between they are an ordinary unit and behave like one.
 A civilian **at work** is the third answer. Yielding to anybody armed empties a
 garrisoned town's workplaces the first time its own patrol walks past, so a
 staffed building's crew (`staffed-buildings.md`) yields to a **fight** instead:
-an armed actor in reach who has somebody to shoot at, or a round finding one of
-them. The patrol is part of the town; a firefight is not.
+an armed actor in reach shooting at somebody also in reach (both ends of the
+fight near them), or a round finding one of them. The patrol is part of the
+town, and a guard beside them firing across the street is the guard at work;
+a firefight at the door is neither.
 
 Being hit is read as **structure lost since the last time the actor was asked**,
 which is a tick's worth. A near miss leaves nothing on the target to read, so

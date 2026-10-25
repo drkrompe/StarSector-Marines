@@ -856,6 +856,16 @@ retains the same existing cross-domain behavior as an autonomous hull.
   is what turns it round. Short deliberately — a nearer goal buys a tighter
   swing, and lateral room is the scarce thing. The attempt is bounded, because
   a pose no maneuver can rescue must cost a couple of tries rather than loop.
+- An order's route is proved from where the hull stands. The proof samples the
+  corridor with a margin for tracking error, and a hull already standing at the
+  start has made none, so within a hull's length of the start its footprint
+  need only clear exactly; where even that clips on the first leg's heading, the
+  route is accepted if the hull can back and fill onto it from its real pose
+  (the departure turnaround below). Within a hull's length of the end, ground
+  the margin cannot stand on shortens the route to the last pose that clears
+  it, so the hull arrives a little short rather than being refused. Dispatch
+  keeps both ends to the margin, because its ends are drop points and map
+  edges, not hulls and clicks.
 - An order that cannot be carried out is refused, out loud. A dispatched route
   is proven before dispatch commits to it, and a destination somebody picked is
   not — so a move order is where feasibility is actually decided, and the
@@ -1113,14 +1123,16 @@ delivery proof is unchanged; the blade reaches player-ordered and directly
 driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
 troop APC drives through, against a control where the APC alone is refused.
 
-A Heavy-lift hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
+A medium or heavy hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the
 small oak), any tree the creep has killed, a patch of forest undergrowth
 (`mapgen-nouns.md`, Authored forests), or a lone large boulder. A cell under
 two crowns is crushable only while every standing tree on it is undergrowth, so
 a dead tree leaning into a living oak holds where they meet, and a summit cell
-never is. Infantry and every lighter hull are stopped by it as by any natural
-solid. Every Heavy-lift hull (the gun tanks and the dozer) drives into it:
+never is. Infantry, light hulls (the pickups, the scout car and the hauler) and hover
+hulls are stopped by it as by any natural solid. Every hull of medium weight
+or more (the APC lines, the rocket technical, the dozer and the gun tanks)
+drives into it, so an APC is never trapped in a wood a tank can leave:
 whatever crushable cells its footprint covers after a move are crushed through
 the map editor's destruction path, so a tree falls whole to its felled art, a
 boulder to its rubble, and the ground is open for everyone afterwards. A tick
@@ -1139,7 +1151,7 @@ Which living trees count as young is the owner's open pick
 (`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
 is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
 across young or creep-killed wood drives through it, felling what it touches
-(dead trees fall as bleached dead wood, `colony-breach-nouns.md`), while a
+(a dead tree falls flattened, a stump and short butts, `colony-breach-nouns.md`), while a
 living mature wood and a troop APC in young wood are held.
 
 A hull that runs into something that stops it is heard: a stopped move at half
