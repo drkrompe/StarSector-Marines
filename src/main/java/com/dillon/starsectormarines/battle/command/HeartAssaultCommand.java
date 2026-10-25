@@ -163,18 +163,10 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
     /**
      * Bodies of the company's side (the lanes' militia, mechs and any Marines) that must stand within
      * {@link #PUSH_RADIUS} of a mother before the company goes in on her. Alone it was wiped seventy cells short
-     * (frozen 5, 2026-10-25, with the lanes a third of the way there). UNTUNED.
+     * (frozen 5, 2026-10-25, with the lanes a third of the way there); held for them it kept seventeen of twenty-four
+     * where going in alone as the last satellite fell left one (town arid 3). UNTUNED.
      */
     static final int ALLIES_TO_PUSH = 16;
-    /**
-     * {@code -Dbattle.heart.motherPush=false} is the control: the company holds while any satellite stands and then goes
-     * for the mothers at once. On, it goes in on a mother only with the lanes there ({@link #goesIn}). Temporary: remove
-     * with the losing arm once the owner has picked heart-mother-push and the Broad Front probes have been read against
-     * it (town arid 3, 2026-10-25: the company went for the mothers alone as the last satellite fell and ended the battle
-     * with one marine; held for the lanes, it kept seventeen).
-     */
-    public static final String MOTHER_PUSH_PROPERTY = "battle.heart.motherPush";
-    private static final boolean MOTHER_PUSH = !"false".equalsIgnoreCase(System.getProperty(MOTHER_PUSH_PROPERTY));
 
     /**
      * Whether the company goes in on {@code mother} now: once {@link #ALLIES_TO_PUSH} of its side stand round her, and
@@ -214,7 +206,7 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         int tick = frame.tick();
         boolean waiting = waitForSatellites && target != null && target.mother() && satelliteStanding(frame.bores);
         // Every satellite down, the company goes in on a mother with the lanes, not ahead of them.
-        if (MOTHER_PUSH && waitForSatellites && !waiting && target != null && target.mother()) {
+        if (waitForSatellites && !waiting && target != null && target.mother()) {
             if (goesIn(target, frame.friendsNear(target), pushingOn)) pushingOn = target.key();
             else waiting = true;
         }

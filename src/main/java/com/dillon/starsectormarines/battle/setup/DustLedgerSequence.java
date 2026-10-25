@@ -254,6 +254,13 @@ public final class DustLedgerSequence implements Objective {
         sim.getUnitIndex().cover((faction, x, y) -> progress.quiet() && covered(ring, faction, x, y));
     }
 
+    /** What the debrief reads: the ledger's grade at seizure (null if never seized) and where the broker ended up. */
+    public record Report(DustLedgerProgress.Grade grade, DustLedgerProgress.Broker broker) {
+        /** Only a broker who reached the apron alive counts as caught. */
+        public boolean brokerCaught() { return broker == DustLedgerProgress.Broker.DELIVERED; }
+    }
+    public Report report() { return new Report(progress.grade(), progress.broker()); }
+
     public Sites sites() { return sites; }
     public DustLedgerProgress progress() { return progress; }
     public long broker() { return broker; }

@@ -354,6 +354,8 @@ rating and plate are worth on a given hit depends on its arc (below).
   is the control, where it holds where it stands.
 - **An empty magazine is a different fact.** It ends fire but leaves the gun.
   The hull still threatens what it can see, and its threat reach stays its own.
+  Nothing refills a vehicle magazine in battle yet; rearming is planned
+  (`vehicle-rearm.md`).
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
   `turretPoolShare`). Today only the gun tanks (breakthrough, screened and both lasers) author one: a fifth of the
   hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank

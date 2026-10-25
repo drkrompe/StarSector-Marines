@@ -293,6 +293,9 @@ public final class DamageResolver {
         // read below is fail-loud on one. Nothing is lost by skipping it — this
         // block writes telemetry and nothing else, and an entity with no
         // TELEMETRY row has nowhere to be credited.
+        if (attackerId != targetId && roster.identity().faction(targetId) == Faction.DEFENDER) {
+            telemetry.recordToLedger(attackerId, applied, died, roster.identity().type(targetId).isTurret());
+        }
         if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
             boolean friendly = roster.identity().faction(attackerId)
                     .friendlyTo(roster.identity().faction(targetId));

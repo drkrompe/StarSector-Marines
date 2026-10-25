@@ -61,8 +61,8 @@ characters already plan their places, which is why colonies carry main street on
 - A district's **character** says how it builds its frontage: plot widths along the street, a front garden,
   the building depth, the least yard worth leaving. Shops in town are six to nine cells wide straight onto the
   street; terraced homes five to seven behind a one-cell front garden where the lot has room; a mixed town's
-  homes eight to eleven, semi-detached and villas behind a deeper garden; main street's shopfronts five to
-  seven behind the district's own pavement. The outskirts, coast and industrial belt build none: their lots
+  homes eight to eleven, semi-detached and villas behind a deeper garden; main street's shopfronts four to
+  six behind the district's own pavement, so a member seven cells along already holds two. The outskirts, coast and industrial belt build none: their lots
   stand alone as before. A character's widths must tile every frontage from two plots up (three of the
   narrowest fit where two of the widest end), or some lengths would hold no row.
 - A **town block** is two ordinary shop or home lots in the residential, civic or mixed town and the minor
@@ -99,6 +99,25 @@ members a side. Joining after the claims keeps them all where they were.
 
 Look: `createSnapshots -Psnapshot=town-plan-look` (cities 12, 13, 19; colonies 1, 4, 8; play zoom, and close
 with roofs off, centred on main street).
+
+## Built: a lined high street
+
+Main street's members are mostly five to eight cells along the street (48 of 79 shop members over 24 cities
+and 24 colonies were too short for a row of five-wide shopfronts), and the market square's lot left whatever
+of it lay along the street past the square as bare paving, so a side read as one shop, a gap and a paved lot.
+Main street's shopfronts are now four to six cells wide, and what the square leaves of its lot along the
+street, five cells or more, is lined with shopfronts facing the street like any member.
+
+| family | main street members: street edge built | buildings per 20 street-edge cells | buildings per member |
+|---|---|---|---|
+| city, before | 41% | 0.56 | 1.04 |
+| city, after | 42% | 0.75 | 1.40 |
+| colony, before | 38% | 0.57 | 0.99 |
+| colony, after | 39% | 0.78 | 1.34 |
+
+Main street still stands on 14 of 24 cities and 14 of 24 colonies; every story map pool still passes. The
+street edge is no more built because a member's shops already stood behind their pavement; what changes is
+the grain and the square's lot. Look: `createSnapshots -Psnapshot=main-street-look,town-plan-look`.
 
 ## Built: the planned zoning
 
