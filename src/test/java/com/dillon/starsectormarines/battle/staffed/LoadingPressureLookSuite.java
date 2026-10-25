@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.staffed;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.evacuation.BorePressure;
+import com.dillon.starsectormarines.battle.evacuation.ColonyObjectiveForce;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -65,6 +66,12 @@ public final class LoadingPressureLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        try (ColonyObjectiveForce forced = ColonyObjectiveForce.force(LoadingObjective.KEY)) {
+            return renderLoading(context);
+        }
+    }
+
+    private List<SnapshotArtifact> renderLoading(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         boolean frames = !"false".equals(System.getProperty("battle.pressureLookFrames"));
         List<SnapshotArtifact> out = new ArrayList<>();

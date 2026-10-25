@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-25
 
-Updated: 2026-10-25 — step 3: the freight yard has ground planned for it, and a two-bay yard where that ground holds one.
+Updated: 2026-10-25 — step 6: the factory row, market square and main street each host a side objective under its own pressure.
 
 Read `compound-programs.md` (authored relationships within a compound) and
 `mapgen-nouns.md` (working-yard templates, compound claims, the road
@@ -171,36 +171,64 @@ an attack can come down is the lever that makes a fight harder or easier: one
 gate or two, a straight run at the bay or a dog-leg past cover.
 
 An objective may bring its own **pressure** rather than make the mission's enemy
-commander aware of it. The loading's is `BorePressure`:
+commander aware of it (`ObjectivePressure`). The objective says each tick where
+it stands in its **beats**: how far through it is, whether it is in its final
+stretch, and in that stretch where everything should go. A **bore pressure**
+(`BorePressure`) is three things the set piece gives it:
 
-- **Its own bore**, opened through the ordinary bore seam (Cordon's `BoreBeat`
-  is the precedent) about ten seconds after the crew start, on open street 28
-  to 45 steps' walk from the yard gate, the reachable cell farthest from the
-  yard. The yard publishes the marks it needs: its gate, its side gap and the
-  hall door (`LoadingBay`).
-- **Held, and surged on the objective's beats.** The bore never surges on its
-  own clock and adds nothing to the mission's population target; the
-  objective calls its surges (`SwarmReinforcementSystem.surgeScripted`), sized
-  in the director's weight, before the tremor as after it. A loading sends a
-  probe every forty seconds while the crew start, a wave at half the count and
-  a rush once the truck sets off.
-- **A director for its broods.** Ravs are not squads, so it does not claim
-  them with a command authority. It drives them (`SwarmDrives`): a driven body
-  hunts as any body does, but its idle wander becomes a walk down its lane,
-  alternately the gate lane (a point out in the street, the gate, the door)
-  and the side lane (out past the gap, the gap, the door). Once the truck
-  sets off, all of them are sent to a point on its road out.
+- **A site rule.** Its own bore, opened through the ordinary bore seam (Cordon's
+  `BoreBeat` is the precedent) ten seconds after the objective starts, on open
+  street a given walk from a cell of the set piece, the reachable cell of those
+  farthest from the set piece's middle. The walk never crosses a building or a
+  compound's ground, so a square or a row is walked from out past a way in.
+- **Lanes.** Each a walk of waypoints: a point out in the street, the way in,
+  the goal inside. Its broods take the lanes in turn.
+- **Pacing.** Held, so the bore never surges on its own clock and adds nothing
+  to the mission's population target; the pressure calls its surges
+  (`SwarmReinforcementSystem.surgeScripted`), sized in the director's weight,
+  before the tremor as after it: a probe every so often until the objective is
+  half done, a wave at half, a rush at its final stretch.
 
-When the objective ends, the drives are released and the survivors wander as
-the rest of the swarm. The swarm spawn pass owns how bodies leave a bore;
-pressure only decides where its bore opens, when it surges and where its
-broods are sent.
+Ravs are not squads, so the pressure does not claim them with a command
+authority. It drives them (`SwarmDrives`): a driven body hunts as any body does,
+but its idle wander becomes a walk down its lane. When the objective ends, the
+drives are released and the survivors wander as the rest of the swarm. The
+swarm spawn pass owns how bodies leave a bore; pressure only decides where its
+bore opens, when it surges and where its broods are sent. An objective with
+pressure is a `PressuredObjective`: a task (what the objective is about) and
+its pressure, ended together.
 
-Against a static six-marine guard on three yard colonies (`loading-pressure-look`),
-all three trucks got away, the guard fighting for it on two. A first, heavier
-pacing lost two yards of three. On one map the colony's own militia collapsed the
-fissure before the rush; a fissure is fragile, and whether the pressure bore
-should be tougher is open, as is tuning it against real play.
+| Objective | Set piece, mark | Site | Lanes | Beats |
+|---|---|---|---|---|
+| Secure the loading | freight yard, `LoadingBay` | 28 to 45 steps from the gate | the gate and the side gap, to the door | probe every 40 s (weight 3), wave at half the crates (7), rush when the truck sets off (12), sent to a point on its road out |
+| Strip the workshop | factory row, `ServiceLane` | 24 to 40 steps from out past gate A | both gates, to the stack | 24 loads; probe every 30 s (5), wave at half (10), rush at three quarters (16), sent to the stack |
+| Hold the muster | market square, `OpenSquare` | 14 to 26 steps from out past a mouth | every mouth, to the centre | 150 s; probe every 25 s (8), wave at half (18), rush for the last 40 s (28), sent to the centre |
+| Empty the hall | main street, `MainStreet` | 14 to 26 steps from the spine's middle | every side street or gap (`StreetMouths`), to the spine | a party of two every 30 s; probe every 30 s (6), wave at half out (14), rush when the last party is out (22), sent to the spine's middle |
+
+The square and the street stand in the open, whose straight streets give a
+guard a long field of fire: a bore opened as far out as the loading's had its
+broods shot down before any reached the people, so theirs open nearer, round a
+corner. The main street publishes no gaps, so its ways in are read off the
+map: a step along the spine where open outdoor ground runs straight out from
+the kerb for eight cells is open on that side, and each run of open steps is
+one way in, at its middle.
+
+**Paced against a static six-marine guard** (`loading-pressure-look`,
+`workshop-strip-look`, `square-muster-look`, `hall-procession-look`, three
+colonies each). The loading: all three trucks got away, the guard fighting for
+it on two; a first, heavier pacing lost two yards of three. The strip: all three
+stacked, one with a single hand and no guard left standing. The muster: one
+lost of three, and one held with a single guard left. The hall: one lost of
+three, and one done with four of seven alive. At the loading's own pacing and
+distance none of the three new objectives let a brood within twelve cells of
+its people. On one loading map the colony's own militia collapsed the fissure
+before the rush; a fissure is fragile, and whether pressure bores should be
+tougher is open, as is tuning against real play rather than a static guard.
+
+Where they host, over twelve colonies: the hall on nine, the muster on ten,
+the strip on six (seven rows; on one no street in reach had room for its bore).
+A row's workshops are too small to be staffed buildings, so the strip brings
+its own hands; a muster or a hall's people are brought for the objective too.
 
 The yard's warehouse has one doorway, onto the yard
 (`BuildingPlacement.frontOnly`): its other walls back onto the compound wall.
@@ -210,7 +238,8 @@ The yard's warehouse has one doorway, onto the yard
 Done: steps 1 to 4 (`freight-yard-look`, `loading-pressure-look`; freight-yard
 coverage in `generatedSpaceEvidence`, `FreightYardCoverageEvidenceTest`); the
 factory row and the market square of step 5 (`factory-row-look`,
-`market-square-look`).
+`market-square-look`); step 6 (`workshop-strip-look`, `square-muster-look`,
+`hall-procession-look`).
 
 1. The freight yard as an industrial compound layout, with its `LoadingBay`
    mark and a look suite.
@@ -221,6 +250,9 @@ factory row and the market square of step 5 (`factory-row-look`,
 5. Further set pieces from the same seam: a factory row on a service lane, and
    a market square with stalls for cover (done: `MarketSquare` on a planned
    market lot, publishing its `OpenSquare`).
+6. Side objectives on the new set pieces, each under its own pressure: strip a
+   workshop on the factory row, hold a muster in the market square, empty the
+   hall down the main street.
 
 ## Acceptance
 

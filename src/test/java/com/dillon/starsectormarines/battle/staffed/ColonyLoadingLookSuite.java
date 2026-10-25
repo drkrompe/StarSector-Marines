@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.staffed;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.evacuation.ColonyObjectiveForce;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
@@ -56,6 +57,12 @@ public final class ColonyLoadingLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        try (ColonyObjectiveForce forced = ColonyObjectiveForce.force(LoadingObjective.KEY)) {
+            return renderLoading(context);
+        }
+    }
+
+    private List<SnapshotArtifact> renderLoading(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
         boolean clipped = false;

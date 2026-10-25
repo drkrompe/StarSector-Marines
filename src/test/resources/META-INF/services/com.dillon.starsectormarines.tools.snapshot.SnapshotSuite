@@ -342,3 +342,6 @@ com.dillon.starsectormarines.ops.battleview.MarkedApronLookSuite
 com.dillon.starsectormarines.battle.staffed.LoadingPressureLookSuite
 com.dillon.starsectormarines.battle.setup.FactoryRowLookSuite
 com.dillon.starsectormarines.battle.setup.MainStreetLookSuite
+com.dillon.starsectormarines.battle.setpiece.WorkshopStripLookSuite
+com.dillon.starsectormarines.battle.setpiece.SquareMusterLookSuite
+com.dillon.starsectormarines.battle.setpiece.HallProcessionLookSuite
