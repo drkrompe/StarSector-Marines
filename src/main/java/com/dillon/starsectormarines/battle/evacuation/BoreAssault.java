@@ -12,8 +12,8 @@ import java.util.List;
  * <p><b>Phases.</b> {@link Phase#MOVING_UP}: the machines drive to their posts on the stand-off ring; after a bore
  * has fallen the militia wait where they stand until the machines are set. {@link Phase#BASE_OF_FIRE}: machines on
  * the ring fight the bore, the militia hold the support line behind them. {@link Phase#ASSAULT}: on a spent surge the
- * militia go in, or after a minute on the support line. {@link Phase#FALLING_BACK}: once the mouth holds more of the
- * swarm than the lane has militia they go back to the support line, and the lane waits for that surge to be spent.
+ * militia go in. {@link Phase#FALLING_BACK}: the bore's next surge sends them back to the support line, and the lane
+ * waits for that surge to be spent.
  *
  * <p><b>The ring.</b> A post lies outside the bore's mouth by a margin, at a share of the hull's reach where that is
  * farther, on the lane's near side, spread along the ring ({@link #ringPost}). Allied command's stands then slide it
@@ -35,12 +35,9 @@ final class BoreAssault {
     static final int SUPPORT_BACK_CELLS = 5;
     /** Seconds after a surge comes out before it can be spent: the bodies are still pouring from the mouth. */
     static final float SETTLE_SECONDS = 3f;
-    /**
-     * Longest a lane holds its support line before going in whatever the mouth holds, a surge's first seconds
-     * excepted: a mouth that never empties (a mother's) is not a reason to stand all battle.
-     */
-    static final float MAX_WAIT_SECONDS = 60f;
-    /** Seconds without a surge after which the lane goes in anyway: the bore is not being hurt into surging. */
+    /** Most of the swarm the mouth may hold for a surge to count as spent. */
+    static final int QUIET_BODIES = 4;
+    /** Seconds without a surge after which a quiet mouth is gone in on anyway: the bore is not being hurt. */
     static final float QUIET_SECONDS = 40f;
     /** Longest the militia wait for the machines after a fall before moving up to the support line anyway. */
     static final float ARMOUR_FIRST_SECONDS = 60f;
@@ -138,40 +135,20 @@ final class BoreAssault {
     static int[] rallyCell(int fromX, int fromY, int boreX, int boreY) {
         float dx = fromX - boreX, dy = fromY - boreY;
         float distance = (float) Math.hypot(dx, dy);
-        if (atTheBore(distance)) return null;
+        if (distance <= MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SET_CELLS) return null;
         return supportCell(boreX, boreY, dx / distance, dy / distance);
     }
 
     /**
-     * Whether the bore's last surge is spent: one has come out and {@link #SETTLE_SECONDS} have passed; or none has
-     * come for {@link #QUIET_SECONDS}. Whether the lane is strong enough to go in is {@link #outnumbered}'s.
+     * Whether the bore's last surge is spent: one has come out, {@link #SETTLE_SECONDS} have passed, and the mouth
+     * holds no more than {@link #QUIET_BODIES}; or none has come for {@link #QUIET_SECONDS} and the mouth is that quiet.
      *
      * @param sinceSurge seconds since the last surge seen, or negative for none since the assault began
      * @param sinceStart seconds since the assault began
      */
-    static boolean spent(float sinceSurge, float sinceStart) {
+    static boolean spent(float sinceSurge, float sinceStart, int mouthBodies) {
+        if (mouthBodies > QUIET_BODIES) return false;
         return sinceSurge >= 0f ? sinceSurge >= SETTLE_SECONDS : sinceStart >= QUIET_SECONDS;
-    }
-
-    /**
-     * Whether the mouth holds more of the swarm than the lane can bring to it: its militia, and the company where it
-     * stands at the bore. An outnumbered lane does not go in, and one in falls back.
-     */
-    static boolean outnumbered(int mouthBodies, int attackers) {
-        return mouthBodies > attackers;
-    }
-
-    /** Whether a body {@code distance} cells from the bore stands at it: on its support line or closer. */
-    static boolean atTheBore(double distance) {
-        return distance <= MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SET_CELLS;
-    }
-
-    /**
-     * Whether a lane that has held its support line {@code sincePhase} seconds goes in anyway: past
-     * {@link #MAX_WAIT_SECONDS}, and not in a surge's first {@link #SETTLE_SECONDS}.
-     */
-    static boolean waitedOut(float sincePhase, float sinceSurge) {
-        return sincePhase >= MAX_WAIT_SECONDS && (sinceSurge < 0f || sinceSurge >= SETTLE_SECONDS);
     }
 
     /** Reads the bore's surge count; true when a new surge has come out since last read. */

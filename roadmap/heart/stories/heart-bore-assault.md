@@ -33,16 +33,20 @@ bore a lane takes, the waves and the calls for armour stay the mission's.
    spread along the ring, with a line of fire to the bore preferred. Allied
    command's stands slide a post along the ring or back from it, never in. The
    militia hold a **support line** five cells behind the ring, toward the lane.
-3. **Assault.** A hurt bore surges at most every twelve seconds. The lane goes in
-   on a **spent surge** (a surge has come out and three seconds have passed), when
-   no surge has come for forty seconds, or after a minute on its support line;
-   but only while what it can bring to the mouth, its militia and any of the
-   company standing at the bore, outnumbers the swarm in the mouth. A lane too
-   weak to win the mouth holds its support line and its machines keep firing.
-4. **Falling back.** The militia go back to the support line once the mouth
-   outnumbers them. On Broad Front, going in on a quiet mouth alone or falling
-   back on every surge sent broken lanes in to die and turned every assault back
-   before it finished a bore.
+3. **Assault.** A hurt bore surges at most every twelve seconds. The militia go in
+   on a **spent surge**: a surge has come out, three seconds have passed, and the
+   mouth holds no more than four of the swarm. A bore that has not surged for
+   forty seconds with its mouth that quiet is gone in on as well.
+   This rule is strict on purpose. Three looser ones were played on Broad Front:
+   going in on a mouth quiet against half the lane, or after a minute's wait;
+   falling back only when the mouth outnumbers the lane; going in only while the
+   lane and the company at the bore outnumber it. Each sent militia in more and
+   did worse: two satellites down where the strict rule took four, because the
+   lanes' militia cannot win a Broad Front mouth and the armour on the ring did
+   the wearing down. The lanes need more tools, not a looser rule
+   (`heart-allied-tools-next.md`).
+4. **Falling back.** The bore's next surge sends the militia back to the support
+   line, and the lane waits for that surge to be spent.
 5. **After the fall** the lane takes its next bore from where it stands, armour
    first.
 
@@ -59,7 +63,7 @@ the lane march to its support line, not to the bore. Behind
 - Unit tests: a ring post lies outside the mouth, on the near side, spread from the
   others; the spent-surge rule opens and closes the window.
 - One Burn run and one Broad Front run whose summaries report, per lane, the phases entered and the
-  assaults launched on a spent surge, on a quiet mouth and after the longest wait, the lane-seconds in each phase, and the time hulls spent inside a mouth.
+  assaults launched on a spent surge, the lane-seconds in each phase, and the time hulls spent inside a mouth.
 - Eyes on The Burn: armour stands off and fires, militia go in behind a surge.
 
 ## Next
