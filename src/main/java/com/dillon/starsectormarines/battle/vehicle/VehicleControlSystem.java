@@ -417,6 +417,7 @@ public final class VehicleControlSystem {
             // the hull came and plan again from there. Without it a truck nosed into a building stood all battle,
             // since the committed reverse otherwise starts only from a followed trajectory's stall or wall contact.
             if (planlessReverseDue(mission, s) && beginReverseRecovery(body, type, s)) {
+                countPlanlessReverse(body, s);
                 s.localPlanFailureTime = 0f;
                 s.localPlanFailureRerouteAttempted = false;
                 return;
@@ -752,6 +753,20 @@ public final class VehicleControlSystem {
      * {@link VehicleController#PLANLESS_REVERSE_SECONDS}. {@link #beginReverseRecovery} still declines when nothing
      * is clear behind, or after {@link VehicleController#MAX_RECOVERY_ATTEMPTS} tries without progress.
      */
+    /**
+     * Counts a planless back-off: the count starts again where a hull has got {@link VehicleController#PLANLESS_CLEAR}
+     * cells clear of where the last run of them began, so only back-offs that get it nowhere add up.
+     */
+    static void countPlanlessReverse(GroundBody body, VehicleControlComponent s) {
+        if (s.planlessReverses == 0 || Math.hypot(body.x - s.planlessAnchorX, body.y - s.planlessAnchorY)
+                > VehicleController.PLANLESS_CLEAR) {
+            s.planlessReverses = 0;
+            s.planlessAnchorX = body.x;
+            s.planlessAnchorY = body.y;
+        }
+        s.planlessReverses++;
+    }
+
     static boolean planlessReverseDue(VehicleMission mission, VehicleControlComponent s) {
         return mission.speedCap > 0f && s.localPlanFailureRerouteAttempted && s.pendingRecovery == null
                 && s.localPlanFailureTime >= VehicleController.PLANLESS_REVERSE_SECONDS;

@@ -331,6 +331,11 @@ public final class BattleComponents {
     /** {@link #HOME} field 0: the garrison idle-post cell x (INT). */
     /** {@code RIDING} field 0 — entity id of the vehicle carrying this unit. */
     public static final int RIDING_CARRIER_ID = 0;
+    /**
+     * {@code RIDING} field 1 — the rider's own move speed (FLOAT), kept while it rides: it lives in
+     * {@code MOVEMENT}, which a rider gives up and gets back zeroed, so a rider set down without it never walks again.
+     */
+    public static final int RIDING_MOVE_SPEED = 1;
     public static final int HOME_CELL_X = 0;
     /** {@link #HOME} field 1: the garrison idle-post cell y (INT). */
     public static final int HOME_CELL_Y = 1;
@@ -1262,7 +1267,7 @@ public final class BattleComponents {
         SQUAD           = world.register(19, "Squad", FieldKind.INT, FieldKind.INT);
         ROLE            = world.register(20, "Role", FieldKind.INT);
         HOME            = world.register(21, "Home", FieldKind.INT, FieldKind.INT);
-        RIDING          = world.register(40, "Riding", FieldKind.LONG);
+        RIDING          = world.register(40, "Riding", FieldKind.LONG, FieldKind.FLOAT);
         TASK            = world.register(22, "Task", FieldKind.OBJECT, FieldKind.OBJECT);
         GROUND_IDENTITY   = world.register(23, "GroundIdentity", FieldKind.OBJECT, FieldKind.OBJECT);
         GROUND_KINEMATICS = world.register(24, "GroundKinematics", FieldKind.OBJECT);

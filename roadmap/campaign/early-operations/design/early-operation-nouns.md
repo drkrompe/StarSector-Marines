@@ -556,9 +556,9 @@ growing capability tangible. Purchased craft are celebrated only after delivery.
 No chapter declares the player's finances secure or their roster intact.
 
 The supply-route finale gives a pause before the Corvus pursuit. Freight receipts
-support renewed commercial work, while the account retains confirmed losses.
-Exhausted failures remain failures. The subsequent introduction reads the
-persistent freight ledger, including deliveries on earlier attempts.
+support renewed commercial work, while the account retains the won run's losses.
+A failed run leaves no trace and is played again until it is won; the subsequent
+introduction reads the won run's ledger.
 
 Asharu turns reaction into investigation. Blind Watch is the confidence crest:
 intelligence and preparation let the company choose the target and disable the
@@ -590,12 +590,13 @@ undecided; it grants no current campaign posting or Crew Recovery unlock.
 
 Thunder Run is the freight finale. No second capture-and-hold chapter or separate
 relay fee precedes the convoy. Three identified employer cargo carriers have
-persistent delivered, lost and awaiting-transport states. A retry fields only
-unresolved carriers. A qualifying victory accounts for all active cargo with a
-surviving company presence and at least one delivery across the job. It pays
-6,000 plus 4,000 per cumulative delivery, at most 18,000, once, and establishes
-Mara's **Route Security** arrangement. Exhausted cargo on a defeated sortie closes
-the actual result without payment or an unlock. Pre-release branch-save migration
+delivered, lost and awaiting-transport states. A defeated sortie leaves no trace
+on them: the story is told as if the company won the first time, so a retry
+fields all three again. A qualifying victory accounts for all active cargo with
+a surviving company presence and at least one delivery. It pays 6,000 plus 4,000
+per delivery, at most 18,000, once, records that run's deliveries and losses, and
+establishes Mara's **Route Security** arrangement. Failure never closes the
+account, pays or unlocks. Pre-release branch-save migration
 is not supported.
 
 Recurring Route Security offers carry new job and attempt identities, use the
@@ -637,10 +638,10 @@ stability, industry or trade simulation is changed.
 
 **The Corvus Account** follows the closed Thunder Run account, including a
 freight run whose finite ledger ended in failure. Mara's correspondence preserves
-actual deliveries and losses without inventing casualties. Thunder Run's closing
-attempt carries the handoff: a written Jangala conversation read from the
-persistent ledger and that attempt's company losses, ending with the broker on
-Asharu and Castle's order to plot a course there. Nothing in it grants a reward
+actual deliveries and losses without inventing casualties. The won Thunder Run
+carries the handoff: a written Jangala conversation, with a separate line for
+that run's company losses, ending with the broker on Asharu and Castle's order
+to plot a course there. Nothing in it grants a reward
 or advances progression. Existing recurring arrangements
 remain at their original site.
 
@@ -1416,7 +1417,7 @@ do not promise that every worker survived or every load arrived.
 
 Broken Supply Route's historical job resolves each valid attempt identity to
 one stable chapter recording set. Repeat attempts reuse wording that remains
-true when only unresolved loads return. Recurring jobs cannot replay historical
+true when the whole column goes again. Recurring jobs cannot replay historical
 chapter narration. Detached evacuation recordings retain their own scenario keys.
 
 Mara's cast assignment is Mora - Gritty and Enigmatic, ElevenLabs voice
