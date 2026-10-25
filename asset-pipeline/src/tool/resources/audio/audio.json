@@ -367,8 +367,6 @@
     {"id": "marines_mara_blind_watch_debrief_initiative", "source": "wayline/marines_mara_blind_watch_debrief_initiative.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_castle_blind_watch_debrief_ready", "source": "wayline/marines_castle_blind_watch_debrief_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_jangala_debrief_road", "source": "wayline/marines_mara_jangala_debrief_road.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
-    {"id": "sabine_jangala_debrief_field", "source": "wayline/sabine_jangala_debrief_field.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
-    {"id": "sabine_jangala_debrief_cost", "source": "wayline/sabine_jangala_debrief_cost.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_castle_jangala_debrief_manifests", "source": "wayline/marines_castle_jangala_debrief_manifests.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_jangala_debrief_why", "source": "wayline/marines_mara_jangala_debrief_why.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     // Mara Venn / Wayline story narration
