@@ -33,6 +33,16 @@ its next bore, re-routed when that bore falls.
 Behind `battle.heart.laneFormation`: a lane forms only once it has armour, and
 after it rallies on its bore it attacks the bore as before.
 
+**How a lane attacks its bore (The Burn).** Once the guns allow it, a lane
+assaults its bore in phases (`BoreAssault`, `heart-bore-assault.md`):
+- **base of fire:** machines on a stand-off ring outside the bore's mouth, on
+  the lane's near side, facing it; militia on a support line behind them;
+- **assault:** the militia go in on a spent surge;
+- **falling back:** the next surge sends them back to the support line.
+
+After a fall the lane takes its next bore armour first. Waves join at the
+support line. Behind `battle.heart.boreAssault`.
+
 **When to call armour up the road.** It replaces the timer with need, read
 with the Cordon commander's signal names (`cordon-allied-command.md`). The
 commander asks the base for a pair (`AlliedProducer.request`, the lane as the

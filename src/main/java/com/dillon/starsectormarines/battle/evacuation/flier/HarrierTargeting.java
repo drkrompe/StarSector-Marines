@@ -19,6 +19,8 @@ public final class HarrierTargeting {
     public enum Prey {
         /** An emplacement or crew-served gun: what the line is built round. */
         GUN(5f),
+        /** The soldier carrying the radio the air is called in with (`air-nouns.md`, Forward observer). */
+        RADIO(4.5f),
         /** An unarmed hull: an ammunition or supply truck. */
         LOGISTICS(4f),
         /** A squad's medic. */
