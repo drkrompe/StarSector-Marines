@@ -32,6 +32,8 @@ import java.util.List;
  *   <li>{@code swarm-sound-skitterers}: a nest at work ({@link SwarmWorkerLookSuite#nest}) with a Runner pack round
  *       its mouth, and a rifle line walking up on it from the west: the workers patter, haul and mend, the pack goes
  *       for the line, and the nest's workers scatter under the fire.</li>
+ *   <li>{@code swarm-sound-feeding}: close on a nest, its workers hauling the dead lying round it home and dropping
+ *       each down the mouth, where it slides in, sinks and is swallowed ({@link SwarmHarvest#feeding}).</li>
  * </ul>
  * {@code -Dsnapshot.swarmSound.only=<shot>} records one shot alone. Opt-in: a mixing study, not part of {@code all}.
  */
@@ -40,6 +42,8 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
     static final int W = 64, H = 36;
     static final int TICKS = 900;
     static final int[] STILLS = {150, 300, 450, 600, 750};
+    static final int FEEDING_TICKS = 750;
+    static final int[] FEEDING_STILLS = {150, 300, 450, 600};
     /** The Brutes' health against their own: enough to reach the line and charge it under the fire. */
     static final float BRUTE_HEALTH = 3f;
 
@@ -55,13 +59,19 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         String only = System.getProperty("snapshot.swarmSound.only", "");
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String name : List.of("swarm-sound-assault", "swarm-sound-matriarch", "swarm-sound-matriarch-run",
-                "swarm-sound-skitterers")) {
+                "swarm-sound-skitterers", "swarm-sound-feeding")) {
             if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name)));
         }
         return out;
     }
 
     private static LookReview.Shot shot(String name) {
+        if (name.endsWith("-feeding")) {
+            return new LookReview.Shot(name, LookGround.verdant(), SwarmWorkerLookSuite.W, SwarmWorkerLookSuite.H,
+                    SwarmSoundLookSuite::feeding,
+                    placement -> List.of(LookReview.View.follow("close", placement, 18f, "nest")),
+                    FEEDING_TICKS, 1, 2, FEEDING_STILLS);
+        }
         boolean nest = name.endsWith("-skitterers");
         String[] keys = nest ? new String[]{"nest"} : new String[]{"line", "swarm"};
         return new LookReview.Shot(name, LookGround.verdant(), nest ? SwarmWorkerLookSuite.W : W,
@@ -140,6 +150,22 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         for (int i = 0; i < 6; i++) {
             float[] r = placement.openNear(bx - x0 + 3f + (i % 2) * 2f, h / 2f - 5f + i * 2f);
             sim.spawn(SwarmStrains.spec("Runner " + i, UnitType.SWARM_RUNNER, (int) r[0], (int) r[1]));
+        }
+        return sim;
+    }
+
+    /**
+     * A mother's nest at work with dead Runners lying round its mouth, seen from the start; no fight, so its workers
+     * haul each home in turn.
+     */
+    private static BattleSimulation feeding(LookReview.Placement placement) {
+        BattleSimulation sim = placement.builder().build().sim();
+        int bx = placement.site().x0() + SwarmWorkerLookSuite.W / 2, by = placement.site().y0() + SwarmWorkerLookSuite.H / 2;
+        SwarmWorkerLookSuite.nest(placement, sim, bx, by, true);
+        sim.getFogOfWar().addEphemeralSource(bx, by, 16, 16f);
+        for (int[] at : new int[][]{{bx + 5, by - 3}, {bx - 4, by + 4}, {bx + 3, by + 5}, {bx - 6, by - 2}}) {
+            long dead = SwarmStrains.spawn(sim, "Fallen Runner", UnitType.SWARM_RUNNER, at[0], at[1]);
+            sim.applyDamage(dead, 1e6f, 1e6f);
         }
         return sim;
     }

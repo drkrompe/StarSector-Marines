@@ -135,6 +135,9 @@ public class GroundSystem {
 
     public void setTracks(HeavyTracks tracks) { controlSystem.setTracks(tracks); }
 
+    /** Lets a move order's last rung brush soft ground ({@link SoftBrush}). */
+    public void setBrush(SoftBrush brush) { controlSystem.setBrush(brush); }
+
     /** Where the craft are, for a vehicle gun that reaches the air ({@link VehicleAirFire}). */
     public void setAirFire(VehicleAirFire airFire) { turrets.setAirFire(airFire); }
 

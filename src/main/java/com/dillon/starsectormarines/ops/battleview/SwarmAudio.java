@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
@@ -56,6 +57,10 @@ import java.util.random.RandomGenerator;
  * ambience, raised): a placed loop on the nearest workers at it, at most {@link #WORK_LOOPS} at once, so a busy nest
  * murmurs and does not drone. It never cries or strikes.
  *
+ * <p>A body fed to a bore ({@link SwarmHarvest#feeding}) is swallowed as it reaches the mouth: a wet gulp (the
+ * Spitter's lob, slowed) and, a beat later, the thud of it landing down inside (the body thud, deeper), pitched by the
+ * fed body's size like everything else.
+ *
  * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
  * death are the Brute's takes played deeper and slower through the pitch
@@ -73,6 +78,10 @@ public final class SwarmAudio {
     private static final int FOOTFALLS_PER_FRAME = 8;
     /** Health lost below this is a graze and draws no pain sound. */
     private static final float PAIN_THRESHOLD = 1f;
+    /** Ticks after a fed body is let go that it reaches the mouth and is swallowed. */
+    static final int GULP_TICKS = Math.round(SwarmHarvest.FEED_SLIDE_SECONDS / BattleSimulation.TICK_DT);
+    /** Ticks after the gulp that the body lands down inside. */
+    static final int GULP_THUD_TICKS = Math.round(0.3f / BattleSimulation.TICK_DT);
     /** Skitterers heard at their work at once: each is one placed loop, nearest the listener first. */
     static final int WORK_LOOPS = 2;
     private static final Object[] WORK_LOOP_OWNERS = {new Object(), new Object()};
@@ -134,6 +143,9 @@ public final class SwarmAudio {
         WORKER_SQUEAK("runner_pain", 0.08f, 4, 0.45f, 1.2f, 1.3f),
         WORKER_DEATH("runner_death", 0.07f, 4, 0.9f, 0f),
         WORKER_DRAG("body_drag", 0.33f, 2, 1.5f, 1.5f),
+        // A body going down a bore's mouth: a gulp near -29 LUFS and its landing inside near -33, under a Runner.
+        BORE_GULP("spitter_lob", 0.13f, 3, 1.6f, 0f, 0.6f),
+        BORE_GULP_THUD("body_thud", 0.16f, 3, 1.1f, 0f, 0.7f),
         /** A placed loop, refreshed every frame while a skitterer is at its work ({@link #workLoops}); never layered. */
         WORKER_WORK("bore_ambience_fissure", 0.35f, WORK_LOOPS, 0f, 0f);
 
@@ -213,8 +225,10 @@ public final class SwarmAudio {
          */
         public List<Play> hear(BattleSimulation sim, float listenerX, float listenerY) {
             List<Play> out = new ArrayList<>();
+            int prior = tick;
             if (!frame(sim.getSimTickIndex())) return out;
             int now = sim.getSimTickIndex();
+            if (prior >= now) prior = now - 1;
             for (VoicePool.Held<Sound, Spot> h : voices.due(now)) {
                 Spot at = h.payload();
                 emit(out, sim, this, h.sound(), 0L, at.x(), at.y(), now, at.strain(), at.stage(), h.heldFor());
@@ -222,6 +236,12 @@ public final class SwarmAudio {
             for (SwarmCues.Cue cue : sim.swarmCues().cuesThisFrame())
                 emit(out, sim, this, sound(cue.kind(), cue.strain()), cue.body(), cue.x(), cue.y(), now, cue.strain(),
                         cue.stage(), 0);
+            for (SwarmHarvest.Feed feed : sim.swarmHarvest().feeding()) {
+                Sound gulp = gulp(feed.tick(), prior, now);
+                if (gulp == null) continue;
+                emit(out, sim, this, gulp, feed.body(), feed.mouthX(), feed.mouthY(), now,
+                        sim.identity().type(feed.body()), sim.identity().swarmStage(feed.body()), 0);
+            }
             LongList deaths = sim.getDeathsThisFrame();
             for (int i = 0; i < deaths.size(); i++) {
                 long body = deaths.getLong(i);
@@ -411,6 +431,18 @@ public final class SwarmAudio {
     /** The Brute and the Matriarch: a hoof every half cell. */
     private static boolean heavy(UnitType strain) {
         return strain == UnitType.SWARM_BRUTE || strain == UnitType.SWARM_MATRIARCH;
+    }
+
+    /**
+     * What a body let go into a mouth at {@code fedTick} makes in the ticks after {@code prior} up to {@code now}: the
+     * gulp as it reaches the mouth, then its landing inside, or nothing.
+     */
+    static Sound gulp(int fedTick, int prior, int now) {
+        int at = fedTick + GULP_TICKS;
+        if (at > prior && at <= now) return Sound.BORE_GULP;
+        at += GULP_THUD_TICKS;
+        if (at > prior && at <= now) return Sound.BORE_GULP_THUD;
+        return null;
     }
 
     /**

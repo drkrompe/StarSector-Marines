@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — a fed body slides into the mouth, sinks and is swallowed with a gulp.
+
 Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
 
 Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
@@ -627,7 +629,12 @@ bore at four tenths of its own pace, slower than a walking Marine. The body
 trails a little behind it, lying along the drag. A carrier does not strike. At
 the bore's mouth the body goes into the hole: it is **biomass**, one
 colonist's worth through the feed seam, so the bore grows and its next surge
-comes forward and swells. A carrier killed on the way drops the body where it
+comes forward and swells. It counts the moment its carrier lets go at the
+mouth, and is seen going down (owner, 2026-10-25): it slides from where it was
+let go into the middle of the mouth in under half a second, then shrinks and
+fades as it sinks out of sight over the next, with its blood, and the bore
+swallows it with a wet gulp and the thud of it landing down inside
+(`SwarmHarvest.feeding`). A carrier killed on the way drops the body where it
 fell; the body lies **loose**, and the next Runner to come within reach takes
 it up again. A carrier whose last bore collapses drops its load the same way.
 Laws:
@@ -2023,7 +2030,10 @@ one without drowning the fire around them; two voices of one sound never start
 on one tick (the second waits a tick or two), and one body does not repeat
 itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
 the listener, so a pack reads as a pack, and the swarm is heard only on ground
-the player has seen. **A thrown body lands with one thud** whatever threw it
+the player has seen. A body fed to a bore is swallowed as it
+reaches the mouth: a wet gulp (the Spitter's lob, slowed) near -29 LUFS and, a
+beat later, its landing down inside (the body thud, deeper) near -33, pitched by
+the fed body's size. **A thrown body lands with one thud** whatever threw it
 (owner, 2026-10-24): a marine a Brute tramples, a Matriarch's reap throws or a
 Harrier drops, and a shot Harrier reaching the ground, a little lighter; it is
 the landing body's own sound, posted by that body. A body's growth

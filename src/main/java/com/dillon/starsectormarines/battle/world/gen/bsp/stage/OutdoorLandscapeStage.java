@@ -23,6 +23,8 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.forest.Undergrowth;
+import com.dillon.starsectormarines.battle.world.gen.forest.UndergrowthBrush;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
@@ -970,6 +972,61 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
         }
         ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true);
+        undergrowth(c, paint, reserved);
+    }
+
+    /** Share of the lattice points left open in a wood that grow undergrowth. */
+    static final float UNDERGROWTH_SHARE = .45f;
+    /** How far the wood's floor reaches past its painted ground: the fringe brambles and saplings grow along. */
+    static final int UNDERGROWTH_FRINGE = 2;
+
+    /**
+     * Brambles, thickets, bracken and saplings in the gaps between the crowns and along the wood's edge, up to
+     * {@link #UNDERGROWTH_FRINGE} cells out from painted wood and never out in open country. Every patch
+     * is undergrowth a crushing hull flattens, so it needs no tank-lane proof; infantry keep the same local way round
+     * as a crown leaves them.
+     */
+    private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved) {
+        boolean[] floor = fringe(paint, c.width, c.height, UNDERGROWTH_FRINGE);
+        Random random = new Random(c.seed ^ 0x554E444552L);
+        Undergrowth[] kinds = Undergrowth.values();
+        boolean[] grown = new boolean[paint.length];
+        List<UndergrowthBrush.Placement> placed = new ArrayList<>();
+        for (int y = 1; y < c.height - 1; y += 3) for (int x = 1; x < c.width - 1; x += 3) {
+            // Draw every point's dice whether or not it grows, so one refusal never reshuffles the rest.
+            float roll = random.nextFloat();
+            Undergrowth kind = kinds[random.nextInt(kinds.length)];
+            int turns = random.nextInt(4), jx = random.nextInt(2), jy = random.nextInt(2);
+            if (roll >= UNDERGROWTH_SHARE || !floor[(y + jy) * c.width + x + jx]) continue;
+            var patch = new UndergrowthBrush.Placement(x + jx - kind.width(turns) / 2, y + jy - kind.height(turns) / 2,
+                    kind, turns);
+            if (!UndergrowthBrush.fits(patch, c.grid, c.topology, reserved) || !inWood(patch, floor, c.width)) continue;
+            if (!LandscapeAccess.canClose(c.grid, grown, patch.x(), patch.y(), patch.x() + patch.width() - 1,
+                    patch.y() + patch.height() - 1, patch::blocks)) continue;
+            placed.add(patch);
+            for (int yy = patch.y(); yy < patch.y() + patch.height(); yy++)
+                for (int xx = patch.x(); xx < patch.x() + patch.width(); xx++)
+                    if (patch.blocks(xx, yy)) grown[yy * c.width + xx] = true;
+        }
+        UndergrowthBrush.stamp(placed, c.grid, c.topology, c.doodads, reserved);
+    }
+
+    /** Cells within {@code reach} (Chebyshev) of painted wood. */
+    private static boolean[] fringe(boolean[] paint, int width, int height, int reach) {
+        boolean[] out = new boolean[paint.length];
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+            if (!paint[y * width + x]) continue;
+            for (int yy = Math.max(0, y - reach); yy <= Math.min(height - 1, y + reach); yy++)
+                for (int xx = Math.max(0, x - reach); xx <= Math.min(width - 1, x + reach); xx++) out[yy * width + xx] = true;
+        }
+        return out;
+    }
+
+    private static boolean inWood(UndergrowthBrush.Placement patch, boolean[] paint, int width) {
+        for (int y = patch.y(); y < patch.y() + patch.height(); y++)
+            for (int x = patch.x(); x < patch.x() + patch.width(); x++)
+                if (patch.blocks(x, y) && !paint[y * width + x]) return false;
+        return true;
     }
 
     /** Infantry keep a way round the crown, and a tank keeps its lane unless the crown is undergrowth it flattens. */

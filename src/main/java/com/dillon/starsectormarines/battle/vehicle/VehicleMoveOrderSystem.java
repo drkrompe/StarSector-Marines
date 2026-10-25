@@ -99,6 +99,8 @@ public final class VehicleMoveOrderSystem {
     private final NavigationService navigation;
     private final VehicleControlSystem controlSystem;
     private final VehicleTransportService transport;
+    /** Whether the route {@link #planRoute} last returned was proved only by brushing soft ground. */
+    private boolean routeBrushed;
 
     public VehicleMoveOrderSystem(VehicleMoveOrderService service, ConvoyService convoy,
                                   NavigationService navigation,
@@ -192,6 +194,7 @@ public final class VehicleMoveOrderSystem {
                     : guardPlanner.plan(request.vehicleId, request.cellX, request.cellY);
             int goalX = assault != null ? assault.standoffX() : guard != null ? guard.guardX() : request.cellX;
             int goalY = assault != null ? assault.standoffY() : guard != null ? guard.guardY() : request.cellY;
+            routeBrushed = false;
             float[][] route = planRoute(request.vehicleId, goalX, goalY);
             if (route == null) {
                 service.refuse(request.vehicleId, request.cellX, request.cellY,
@@ -210,6 +213,8 @@ public final class VehicleMoveOrderSystem {
                 GroundBody body = convoy.body(request.vehicleId);
                 route = new float[][]{{body.x, body.x}, {body.y, body.y}};
             }
+            // A route proved only by brushing is brushed from the start, not after the controller's failure window.
+            convoy.control(request.vehicleId).brushRouteXs = routeBrushed ? route[0] : null;
             service.activate(request.vehicleId, new ActiveOrder(request.cellX, request.cellY,
                     route[0], route[1], request.facingDegrees));
         }
@@ -334,11 +339,18 @@ public final class VehicleMoveOrderSystem {
                     ? new float[][]{new float[0], new float[0]} : null;
         }
 
-        if (!ORDER_ENDS) {
-            return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], grid, cost, clearance, type);
-        }
-        return VehicleRoutePlanner.routeDrivableFrom(new Pose(body.x, body.y, body.facingDegrees),
-                from[0], from[1], to[0], to[1], grid, cost, clearance, type);
+        Pose departure = new Pose(body.x, body.y, body.facingDegrees);
+        float[][] route = ORDER_ENDS
+                ? VehicleRoutePlanner.routeDrivableFrom(departure, from[0], from[1], to[0], to[1],
+                        grid, cost, clearance, type)
+                : VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], grid, cost, clearance, type);
+        SoftBrush brush = controlSystem.brush();
+        if (route != null || brush == null) return route;
+        // The proof's last rung: the cheapest route once more, its footprint allowed to brush soft ground.
+        route = VehicleRoutePlanner.routeBrushing(ORDER_ENDS ? departure : null, from[0], from[1], to[0], to[1],
+                grid, brush.softView(grid, type), cost, clearance, type);
+        routeBrushed = route != null;
+        return route;
     }
 
     /**

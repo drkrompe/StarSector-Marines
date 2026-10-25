@@ -81,4 +81,14 @@ class SwarmAudioTest {
         assertTrue(loops.get(1).volume() < loops.get(0).volume(), "a second worker thickens it, quieter");
         assertTrue(SwarmAudio.workLoops(List.of(new float[]{60f, 0f}), 0f, 0f).isEmpty(), "out of earshot");
     }
+
+    @Test void aFedBodyIsSwallowedAsItReachesTheMouthThenLandsInside() {
+        int fed = 100, gulpAt = fed + SwarmAudio.GULP_TICKS, thudAt = gulpAt + SwarmAudio.GULP_THUD_TICKS;
+        assertNull(SwarmAudio.gulp(fed, fed - 1, fed), "nothing as it is let go");
+        assertEquals(SwarmAudio.Sound.BORE_GULP, SwarmAudio.gulp(fed, gulpAt - 1, gulpAt));
+        assertEquals(SwarmAudio.Sound.BORE_GULP, SwarmAudio.gulp(fed, gulpAt - 3, gulpAt + 1), "a skipped tick still hears it");
+        assertNull(SwarmAudio.gulp(fed, gulpAt, gulpAt + 1), "once");
+        assertEquals(SwarmAudio.Sound.BORE_GULP_THUD, SwarmAudio.gulp(fed, thudAt - 1, thudAt));
+        assertNull(SwarmAudio.gulp(fed, thudAt, thudAt + 30));
+    }
 }
