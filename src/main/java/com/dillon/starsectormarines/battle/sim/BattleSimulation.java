@@ -302,6 +302,7 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
+import com.dillon.starsectormarines.battle.evacuation.SporeHazes;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDrives;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
@@ -448,6 +449,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final NavigationGrid grid;
     /** Temporary faction-neutral visual opacity and grenade-flight lifecycle. */
     private final SmokeFieldService smokeFields;
+    /** Bombards' spore hazes: their stings and pulses (the hazes themselves stand on {@link #smokeFields}). */
+    private final SporeHazes sporeHazes = new SporeHazes();
     /** Contact-demolition reservations, target attachments, and fuse lifecycle. */
     private final SatchelChargeService satchelCharges;
     /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
@@ -1852,6 +1855,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return navigation.getNavigationMesh().snapshot().revision();
     }
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
+
+    public SporeHazes sporeHazes() { return sporeHazes; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     @Override public PointDefenseService pointDefense() { return pointDefense; }
     @Override public FieldMortarService fieldMortars() { return fieldMortars; }
@@ -3526,6 +3531,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Smoke lands/expires before perception so stationary observers recast
         // against the same opacity state direct-fire AI sees this tick.
         smokeFields.tick(TICK_DT);
+        sporeHazes.tick(this, TICK_DT);
         // Last tick's shots down off higher ground expose their shooters before anything reads sight.
         firingExposure.tick(TICK_DT, rosterService, grid);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at

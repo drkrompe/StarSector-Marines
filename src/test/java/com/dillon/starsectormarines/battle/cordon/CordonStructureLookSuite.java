@@ -28,7 +28,7 @@ import java.util.Locale;
  *
  * <p>Per map, {@code <density>-seed<N>-r<k>-<construction>.png} frames each redoubt at play zoom,
  * {@code <density>-seed<N>-mix.png} sets the four side by side (each quarter of one 1920x1080 frame over the
- * play-zoom frame's cells, so at half its scale; west to east, top row first), and on a city map {@code <density>-seed<N>-base-<construction>.png} frames the base
+ * play-zoom frame's cells, so at half its scale; west to east, top row first), and {@code <density>-seed<N>-base-<construction>.png} frames the base
  * a little wider than play zoom, since it is wider than one. {@code -Dsnapshot.cordonStructure.town=8,2,10} and
  * {@code .urban=6,1,10} pick the pooled seeds (the Line's verdant pool by default), {@code .ticks} how long each map
  * is played first (150). Opt-in: a look review, not part of {@code all}.
@@ -95,7 +95,7 @@ public final class CordonStructureLookSuite implements SnapshotSuite {
             g.dispose();
             out.add(new SnapshotArtifact(tag + "-mix.png", mix));
             Laid base = cordon.map().layout.find(CordonConstructions.BASE_WORKS);
-            if (density == CordonPlan.Density.URBAN && base != null && base.cells().size() == 2) {
+            if (base != null && base.cells().size() == 2) {
                 float bx = (base.cells().get(0)[0] + base.cells().get(1)[0]) / 2f + 0.5f;
                 float by = (base.cells().get(0)[1] + base.cells().get(1)[1]) / 2f + 0.5f;
                 out.add(new SnapshotArtifact(tag + "-base-" + base.reason() + ".png",

@@ -110,6 +110,9 @@ class HeartEvidenceTest {
                  CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(run == 0 ? root : null, fixtureId, sim)) {
                 assertNotNull(sim.getHeart(), "the heart must install its sequence");
                 sim.setCommandTraceEnabled(true, fixture.kind());
+                // Damage to the swarm by tool, classified as each hit lands.
+                sim.telemetry().keepLedger(id -> sim.getHeart().lanes() == null ? null
+                        : sim.getHeart().lanes().ledgerClass(sim, id));
                 int landfallTick = -1;
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
@@ -225,7 +228,20 @@ class HeartEvidenceTest {
                 .put("vehicleOrders", vehicleOrders)
                 .put("boreAssault", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().assaultLine())
                 .put("noRouteBy", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().noRouteLine(sim))
-                .put("sectionLog", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().sectionLogLine(sim));
+                .put("sectionLog", sim.getHeart().lanes() == null ? "" : sim.getHeart().lanes().sectionLogLine(sim))
+                .put("ledger", ledgerLine(sim));
+    }
+
+    /** The damage ledger, one entry per tool: damage to bodies and to structures, then kills of each. */
+    private static String ledgerLine(BattleSimulation sim) {
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<String, float[]> e : sim.telemetry().ledger().entrySet()) {
+            float[] r = e.getValue();
+            if (out.length() > 0) out.append("; ");
+            out.append(e.getKey()).append(String.format(Locale.ROOT, " %.0f to bodies (%d killed), %.0f to bores and works (%d destroyed)",
+                    r[0], (int) r[2], r[1], (int) r[3]));
+        }
+        return out.toString();
     }
 
     /** How each optional objective came out, by key. */
@@ -264,7 +280,8 @@ class HeartEvidenceTest {
                 .append(" refused for no route, ").append(orders.getInt("gaveUp")).append(" given up.\n")
                 .append("\nRefused for no route, by hull: ").append(s.optString("noRouteBy", "—")).append(".\n")
                 .append("\nBore assaults: ").append(s.optString("boreAssault", "—")).append(".\n")
-                .append("\nFire-section carriers: ").append(s.optString("sectionLog", "—")).append(".\n");
+                .append("\nFire-section carriers: ").append(s.optString("sectionLog", "—")).append(".\n")
+                .append("\nDamage to the swarm by tool: ").append(s.optString("ledger", "—")).append(".\n");
         JSONObject objectives = s.getJSONObject("objectives");
         if (objectives.length() > 0) {
             md.append("\n## Objectives\n\n");

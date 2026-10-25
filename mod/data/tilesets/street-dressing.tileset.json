@@ -18,18 +18,6 @@
       "description": "Corrugated steel canopy on a dark fascia, wall rail north. Overhead; no cover.",
       "name": "doodad.street-awning-steel",
       "row": 0
-    },
-    {
-      "col": 9,
-      "description": "Cast-iron street lamp, round lantern head; foot south, arm north over the carriageway.",
-      "name": "doodad.street-lamp-colonial",
-      "row": 0
-    },
-    {
-      "col": 10,
-      "description": "Cobra-head street lamp, rounded luminaire; foot south, arm north over the carriageway.",
-      "name": "doodad.street-lamp-industrial",
-      "row": 0
     }
   ],
   "doodads": [
@@ -61,20 +49,6 @@
         1
       ],
       "id": "doodad.street-awning-steel",
-      "row": 0
-    },
-    {
-      "ballisticHalfHeight": 0.72,
-      "col": 9,
-      "cover": "light",
-      "id": "doodad.street-lamp-colonial",
-      "row": 0
-    },
-    {
-      "ballisticHalfHeight": 0.72,
-      "col": 10,
-      "cover": "light",
-      "id": "doodad.street-lamp-industrial",
       "row": 0
     }
   ],

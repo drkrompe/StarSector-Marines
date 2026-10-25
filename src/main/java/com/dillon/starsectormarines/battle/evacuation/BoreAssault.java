@@ -67,6 +67,8 @@ final class BoreAssault {
     int lastSurgeTick = -1;
     /** The militia's support line, a walkable cell; set when the assault begins. */
     int supportX, supportY;
+    /** The mortar teams' post behind it, a walkable cell; set when the assault begins. */
+    int mortarX, mortarY;
     /** The bore's integrity when it was last seen to fall, and the tick it was. */
     float integrity = 1f;
     int integrityTick;
@@ -166,6 +168,16 @@ final class BoreAssault {
     }
 
     /** The militia's support line: {@link #SUPPORT_BACK_CELLS} behind the nearest ring, on the near way. */
+    /**
+     * A mortar team's post: on the ring behind the support line ({@link #sectionRing(float)} at no reach), on the near
+     * way. A tube's dead zone and its gunner's margin past it are seventeen cells, and the support line is twenty, so a
+     * team holding the line drifts inside it and never sets its tube down.
+     */
+    static int[] mortarCell(int boreX, int boreY, float nearX, float nearY) {
+        int back = sectionRing(0f);
+        return new int[]{Math.round(boreX + nearX * back), Math.round(boreY + nearY * back)};
+    }
+
     static int[] supportCell(int boreX, int boreY, float nearX, float nearY) {
         int back = MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS;
         return new int[]{Math.round(boreX + nearX * back), Math.round(boreY + nearY * back)};

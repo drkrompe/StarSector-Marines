@@ -6,8 +6,9 @@ import java.util.List;
  * What a field redoubt or the logistics base is built from ({@code cordon-nouns.md}, Field redoubt, Logistics base;
  * owner, 2026-10-24): the allies' own walled compound, or a work made from what the country had standing. In open
  * country every redoubt is the compound. A town's line mixes the compound with a fortified farm and a fortified school;
- * a city's mixes it with the buildings round a crossroads walled up and one fortified apartment block. A city's base
- * is the generated shed, a depot in a warehouse block or a depot in a car park.
+ * a city's mixes it with the buildings round a crossroads walled up and one fortified apartment block. A town's base
+ * is the generated shed or the town's goods yard; a city's the shed, a depot in a warehouse block or a depot in a car
+ * park.
  *
  * <p>The compound is the proper military post; the others are troops making do. Each redoubt's pick is a pure
  * function of the density, its place in the line and the map's seed ({@link #redoubt}), and the redoubt nearest the
@@ -29,7 +30,9 @@ public enum CordonConstruction {
     /** City base: a depot in a warehouse block, open-air mech gantries behind it. */
     WAREHOUSE("warehouse"),
     /** City base: a depot in a car park, the lot under asphalt, open-air mech gantries behind it. */
-    CAR_PARK("car-park");
+    CAR_PARK("car-park"),
+    /** Town base: the town's goods yard, its goods shed on the road, open-air gantries behind it. */
+    GOODS_YARD("goods-yard");
 
     /** The name a construction goes by in the map's layout and in reports. */
     public final String id;
@@ -60,7 +63,11 @@ public enum CordonConstruction {
 
     /** The base constructions a density chooses among, the shed first. */
     public static List<CordonConstruction> baseChoices(CordonPlan.Density density) {
-        return density == CordonPlan.Density.URBAN ? List.of(SHED, WAREHOUSE, CAR_PARK) : List.of(SHED);
+        return switch (density) {
+            case URBAN -> List.of(SHED, WAREHOUSE, CAR_PARK);
+            case TOWN -> List.of(SHED, GOODS_YARD);
+            case RURAL -> List.of(SHED);
+        };
     }
 
     private static final long REDOUBT_SALT = 0x5245444F55425453L;

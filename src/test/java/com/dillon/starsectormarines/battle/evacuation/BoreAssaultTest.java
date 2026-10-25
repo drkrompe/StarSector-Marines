@@ -90,6 +90,13 @@ class BoreAssaultTest {
     }
 
     @Test
+    void aMortarTeamStandsBehindTheSupportLine() {
+        int[] support = BoreAssault.supportCell(BORE, BORE, 0f, -1f);
+        int[] mortar = BoreAssault.mortarCell(BORE, BORE, 0f, -1f);
+        assertTrue(BORE - mortar[1] > BORE - support[1], "further back than the riflemen");
+    }
+
+    @Test
     void aSectionComingUpTrailsItsMilitiaUntilTheyAreOnTheLine() {
         assertEquals(100 + 13, BoreAssault.sectionRing(40f, 100.0, 13f), "the militia still a hundred cells out");
         assertEquals(BoreAssault.sectionRing(40f), BoreAssault.sectionRing(40f, 20.0, 13f), "on the support line");

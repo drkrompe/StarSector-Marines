@@ -309,6 +309,7 @@ com.dillon.starsectormarines.battle.command.allied.HeartLaneFormationLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlliesLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonStrikeLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
@@ -352,3 +353,4 @@ com.dillon.starsectormarines.battle.setup.StreetKitLookSuite
 com.dillon.starsectormarines.battle.setup.TownPlanLookSuite
 com.dillon.starsectormarines.battle.setup.CordonedFacilityLookSuite
 com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossingSnapshotSuite
+com.dillon.starsectormarines.ops.DustLedgerBattleLookSuite

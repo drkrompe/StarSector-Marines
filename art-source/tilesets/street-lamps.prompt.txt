@@ -1,0 +1,13 @@
+Use case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites from the same game); do not copy its objects or layout.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. From directly above a street lamp is only its head: the post is hidden underneath it. No perspective, no visible vertical side faces, no visible pole or post, no cast shadows, no ground under the objects.
+
+Paint four street lamps, in reading order:
+1. Top left, a colonial cast-iron lantern seen from straight above: a fluted hexagonal black iron roof with six raised ribs meeting at a small round finial in the centre, and around its edge a thin ring of warm lit cream glass where the lantern's panes show past the roof.
+2. Top right, an industrial cobra-head street lamp seen from straight above: an elongated rounded grey cast-aluminium housing with a raised crown, a thin rim of pale warm light escaping round the edge of its downward lens, and a short dark arm stub leaving the housing's south end.
+3. Bottom left, the same colonial lantern hung from a building wall: a dark iron wall plate along the top of the frame, a short scrolled iron bracket reaching down from it, and the lantern roof with its warm glass ring at the bracket's end.
+4. Bottom right, an industrial flood lamp hung from the same kind of wall plate on a short steel bracket: a rectangular grey housing with cooling fins on its back, a thin rim of pale warm light round its edge.
+
+Grounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, chipped paint, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style, no text, numbers or letters anywhere.
+
+True alpha transparency around every object and in every gap of the guide; no floor, no background, no light pool on the ground, no shadow slab, no border, no labels, no watermark. Paint only these four objects and nothing outside their silhouettes.

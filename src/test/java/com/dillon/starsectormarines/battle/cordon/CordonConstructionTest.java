@@ -21,7 +21,6 @@ class CordonConstructionTest {
                 assertEquals(CordonConstruction.COMPOUND, CordonConstruction.redoubt(CordonPlan.Density.RURAL, i, 1, seed));
             }
             assertEquals(CordonConstruction.SHED, CordonConstruction.base(CordonPlan.Density.RURAL, seed));
-            assertEquals(CordonConstruction.SHED, CordonConstruction.base(CordonPlan.Density.TOWN, seed));
         }
     }
 
@@ -34,9 +33,11 @@ class CordonConstructionTest {
             }
             assertEquals(Set.copyOf(CordonConstruction.redoubtChoices(density)), seen, density.name());
         }
-        Set<CordonConstruction> bases = EnumSet.noneOf(CordonConstruction.class);
-        for (long seed = 0; seed < 200; seed++) bases.add(CordonConstruction.base(CordonPlan.Density.URBAN, seed));
-        assertEquals(EnumSet.of(CordonConstruction.SHED, CordonConstruction.WAREHOUSE, CordonConstruction.CAR_PARK), bases);
+        for (CordonPlan.Density density : CordonPlan.Density.values()) {
+            Set<CordonConstruction> bases = EnumSet.noneOf(CordonConstruction.class);
+            for (long seed = 0; seed < 200; seed++) bases.add(CordonConstruction.base(density, seed));
+            assertEquals(Set.copyOf(CordonConstruction.baseChoices(density)), bases, density.name());
+        }
     }
 
     @Test

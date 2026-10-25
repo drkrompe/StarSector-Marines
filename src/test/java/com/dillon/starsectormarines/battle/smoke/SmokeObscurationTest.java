@@ -15,6 +15,16 @@ class SmokeObscurationTest {
     }
 
     @Test
+    void hazeCompoundsMilderThanSmokeUnderTheSameFloor() {
+        assertEquals(SmokeObscuration.HAZE_ACCURACY_MULT_PER_CELL * SmokeObscuration.HAZE_ACCURACY_MULT_PER_CELL,
+                SmokeObscuration.accuracyMultiplier(0, 2), 1e-6f);
+        assertEquals(SmokeObscuration.ACCURACY_MULT_PER_CELL * SmokeObscuration.HAZE_ACCURACY_MULT_PER_CELL,
+                SmokeObscuration.accuracyMultiplier(1, 1), 1e-6f);
+        assertTrue(SmokeObscuration.accuracyMultiplier(0, 3) > SmokeObscuration.accuracyMultiplier(3, 0));
+        assertEquals(SmokeObscuration.MIN_ACCURACY_MULT, SmokeObscuration.accuracyMultiplier(0, 400));
+    }
+
+    @Test
     void penaltyCompoundsPerCrossedCell() {
         assertEquals(SmokeObscuration.ACCURACY_MULT_PER_CELL,
                 SmokeObscuration.accuracyMultiplier(1), 1e-6f);
