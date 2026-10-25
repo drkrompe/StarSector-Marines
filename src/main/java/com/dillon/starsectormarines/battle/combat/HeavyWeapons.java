@@ -441,7 +441,7 @@ public class HeavyWeapons {
         }
 
         // An area round's structure damage is its detonation's; only a direct payload wears what it stopped in.
-        if (weapon.aoeRadius <= 0f) shots.queueStrike(res, shooter, contactDamage, contactPenetration);
+        if (weapon.aoeRadius <= 0f) shots.queueStrike(res, shooter, contactDamage, contactPenetration, weapon.burns());
 
         long[] areaExclusions = new long[contactDamage > 0f && !contactRidesRocket ? res.bodyHits().size() : 0];
         for (int i = 0; i < areaExclusions.length; i++) {

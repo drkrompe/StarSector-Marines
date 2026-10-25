@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.airsupport.AirMission;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.airsupport.CommsKit;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
+import com.dillon.starsectormarines.battle.airsupport.RovingObservers;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
@@ -36,6 +37,13 @@ final class AirWingProbe {
         }
         JSONObject json = new JSONObject().put("observersPosted", posted).put("observersAlive", alive)
                 .put("refusedTooDefended", pool.director(Faction.ALLY).refusals());
+        int sent = 0, moves = 0, roving = 0;
+        for (RovingObservers teams : pool.roving(Faction.ALLY)) {
+            sent += teams.sent();
+            moves += teams.moves();
+            roving += teams.observers().size();
+        }
+        json.put("rovingSent", sent).put("rovingMoves", moves).put("rovingAlive", roving);
         for (AirMission job : AirMission.values()) {
             AirPoolService.MissionTally t = pool.tally(Faction.ALLY, job);
             json.put(job.name().toLowerCase(Locale.ROOT), new JSONObject().put("called", t.called()).put("launched", t.launched())

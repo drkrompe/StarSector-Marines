@@ -61,7 +61,9 @@ public final class TankUndergrowthSceneSnapshotSuite extends BehaviorSceneSnapsh
                 .label(TankUndergrowthScene.GOAL_X + .5f, TankUndergrowthScene.GOAL_Y + 2.5f, "GOAL", ReviewStyle.LANDING);
         for (long id : simulation.getConvoyVehicleIds()) {
             GroundBody body = simulation.convoy().body(id);
-            marks.label(body.x, body.y - 3.2f, simulation.convoy().vehicleType(id) == VehicleType.HEAVY_APC ? "APC" : "TANK",
+            VehicleType type = simulation.convoy().vehicleType(id);
+            marks.label(body.x, body.y - 3.2f,
+                    type == VehicleType.HEAVY_APC ? "APC" : type == VehicleType.SCOUT_CAR ? "SCOUT CAR" : "TANK",
                     ReviewStyle.NOTE);
         }
         return marks.build();
