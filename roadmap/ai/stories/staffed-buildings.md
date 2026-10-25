@@ -54,7 +54,7 @@ workers never stand on one place and nobody walks back to the shelf they left.
 **Where.** Any populated map may staff some of its buildings; the caller says
 how many. The first consumer is the procedural operation map (the precinct
 towns of Conquest, Assault, Raid and Extraction), which staffs up to two of
-its civilian warehouses: a building with a garrison's compound over it is the
+its civilian warehouses, its largest factory and two of its shops: a building with a garrison's compound over it is the
 garrison's, never a civilian workplace. Cordon towns, story maps and the colony
 are natural next consumers and belong to their own sessions.
 
@@ -101,8 +101,9 @@ piece, not a new system. It is left unbuilt until a mission asks for it.
 
 ## Acceptance
 
-- A look scene (`staffed-warehouse-look`, a `SnapshotSuite`) of a generated
-  warehouse at work: 1920x1080 stills at play zoom and close, crates moving.
+- A look scene per kind (`staffed-warehouse-look`, `staffed-factory-look`,
+  `staffed-grocery-look`, one `SnapshotSuite` each) of a generated building at
+  work: 1920x1080 stills at play zoom and close, and a run of close frames.
 - One unit test on the recovery rule: a stock fixture yields one point beside
   it on free floor, never on a doorway or another point.
 - Procedural operation maps carry staffed warehouses without changing their
@@ -110,10 +111,11 @@ piece, not a new system. It is left unbuilt until a mission asks for it.
 
 ## Plan
 
-Done: steps 1 to 3. `BuildingWork` recovers a building's work and kind,
+Done: steps 1 to 4. `BuildingWork` recovers a building's work and kind,
 `StaffedCrew` gives each hand a loop round it, `AmbientThreatPolicy.FIGHT_NEARBY`
-is the yield, and `StaffedBuildings` staffs the two largest civilian warehouses
-of every procedural operation map (`staffed-warehouse-look`). Measured on one
+is the yield, and `StaffedBuildings` staffs the two largest civilian warehouses, the
+largest factory and the two largest shops of every procedural operation map
+(`staffed-warehouse-look`, `staffed-factory-look`, `staffed-grocery-look`). Measured on one
 Assault map: armed patrols passed within two cells of the crew and nobody
 stopped work; with the nearby units engaged, the hands in reach stood down and
 were back at work within seconds of it ending. Town warehouses are modest (the
@@ -124,7 +126,6 @@ freight origin builds today.
 1. Recover stores work from a building's stock (`BuildingWork`).
 2. The crew and its loop; the fight-near-them yield.
 3. Staff procedural operation maps; the look scene.
-4. Factory and grocery from the same recovery: the kinds are already read, and
-   each wants only its own look before a map staffs it.
+4. Factory and grocery from the same recovery.
 5. Later: shelter instead of flight; the loading objective; the larger
    freight warehouse as a placeable piece for Cordon towns and the colony.
