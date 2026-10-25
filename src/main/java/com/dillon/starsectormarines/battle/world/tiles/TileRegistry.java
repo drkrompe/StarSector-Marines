@@ -132,6 +132,7 @@ public final class TileRegistry {
             "data/tilesets/concrete-openings.tileset.json",
             "data/tilesets/concrete-rubble.tileset.json",
             "data/tilesets/installation-floors.tileset.json",
+            "data/tilesets/marked-apron.tileset.json",
             "data/tilesets/colony-openings.tileset.json",
             "data/tilesets/colony-rubble.tileset.json",
             "data/tilesets/colony-ground-damage.tileset.json",
