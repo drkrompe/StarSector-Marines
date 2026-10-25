@@ -30,5 +30,5 @@
   .preparation-copy { height: 0px; flex-grow: 1; white-space: normal; overflow: scroll; }
   .preparation-actions { flex-direction: row; height: 42px; gap: 10px; }
   .preparation-button { text-align: center; white-space: normal; width: 160px; height: 40px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
-  .preparation-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; gap: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .preparation-hidden { display: none; }
 </style>

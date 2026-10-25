@@ -322,7 +322,7 @@ final class BattleHudOverlayModel {
                         ? "obj-progress obj-hidden" : "obj-progress";
                 case "blockerClasses" -> item.blocker().isEmpty() ? "obj-blocker obj-hidden" : "obj-blocker";
                 case "progressStyle" -> "width: " + Math.round(Math.max(0, Math.min(1, item.progress())) * 100) + "%;";
-                case "trackStyle" -> item.progress() < 0 ? "height: 0px; opacity: 0; overflow: hidden;" : "";
+                case "trackStyle" -> item.progress() < 0 ? "display: none;" : "";
                 case "locate" -> locate;
                 case "disabled" -> item.focus() == null;
                 default -> {

@@ -32,6 +32,7 @@ final class UiPainter {
     private void paintElement(UiElement element, float alphaMult, Rect inheritedClip,
                               CanvasRegistry canvases, UiTextMeasurer text,
                               UiPaintTarget target) {
+        if (!element.displayed()) return;
         if (inheritedClip.width() <= 0f || inheritedClip.height() <= 0f) return;
         float elementAlpha = combinedAlpha(alphaMult, element);
         if (elementAlpha <= 0f) return;

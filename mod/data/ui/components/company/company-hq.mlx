@@ -245,8 +245,8 @@
 
 <style>
   .aux-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12d9; }
-  .aux-hidden { position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
-  .aux-hidden-part { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .aux-hidden { display: none; }
+  .aux-hidden-part { display: none; }
   .aux-space { height: 0px; flex-grow: 1; }
   .aux-letter { width: 980px; height: 400px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
   .aux-heading { flex-direction: row; height: 64px; gap: 14px; align-items: center; }
@@ -262,7 +262,7 @@
   .aux-action { width: 0px; flex-grow: 1; height: 26px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
   .hq-wings { height: 52px; width: 100%; flex-grow: 0; text-align: left; padding: 4px 8px; font-family: heading; white-space: normal; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
-.hq-debug-hidden { width: 0px; height: 0px; opacity: 0; pointer-events: none; }
+.hq-debug-hidden { display: none; }
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
@@ -296,7 +296,7 @@
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
   .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #8c815d; height: 286px; flex-grow: 0; }
   .opening-unavailable { height: 320px; }
-  .opening-guide-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+  .opening-guide-hidden { display: none; }
   .opening-contact { flex-direction: row; height: 64px; gap: 9px; align-items: center; }
   .opening-portrait { width: 64px; height: 64px; }
   .opening-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
@@ -307,7 +307,7 @@
   .opening-label { height: auto; white-space: normal; width: 0px; flex-grow: 1; }
   .opening-mission { font-family: title; height: auto; white-space: normal; }
   .opening-copy { height: auto; white-space: normal; }
-  .hq-gone { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .hq-gone { display: none; }
   .strip-finance { flex-direction: column; width: 200px; flex-grow: 0; gap: 2px; }
   .strip-cash { height: 18px; }
   .actions-column { width: 0px; flex-grow: 1; }

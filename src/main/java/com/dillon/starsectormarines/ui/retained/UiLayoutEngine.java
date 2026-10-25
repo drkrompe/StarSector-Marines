@@ -47,6 +47,9 @@ public final class UiLayoutEngine {
         if (allChildren.isEmpty()) return;
 
         List<UiElement> children = inFlow(allChildren);
+        for (UiElement child : allChildren) {
+            if (!child.displayed()) collapse(child, content.x(), content.y());
+        }
         arrangePositioned(allChildren, content);
         if (children.isEmpty()) return;
 
@@ -74,18 +77,35 @@ public final class UiLayoutEngine {
     /**
      * The children row, column, grid, and stack distribute between them. An
      * absolutely positioned child is out of flow, so it neither consumes main
-     * axis space nor shifts its siblings.
+     * axis space nor shifts its siblings; a {@code display: none} child is not
+     * laid out at all, so it takes no space and no gap slot either.
      */
     private static List<UiElement> inFlow(List<UiElement> children) {
         for (int index = 0; index < children.size(); index++) {
-            if (children.get(index).position() != UiPosition.ABSOLUTE) continue;
+            if (flows(children.get(index))) continue;
             List<UiElement> flow = new ArrayList<>(children.size() - 1);
             for (UiElement child : children) {
-                if (child.position() != UiPosition.ABSOLUTE) flow.add(child);
+                if (flows(child)) flow.add(child);
             }
             return flow;
         }
         return children;
+    }
+
+    private static boolean flows(UiElement child) {
+        return child.displayed() && child.position() != UiPosition.ABSOLUTE;
+    }
+
+    /**
+     * Gives a {@code display: none} subtree empty boxes at its parent's content
+     * origin, so nothing that reads a box afterwards finds a stale one.
+     */
+    private static void collapse(UiElement element, float x, float y) {
+        element.box().place(new Rect(x, y, 0f, 0f), Insets.ZERO, 0f);
+        element.box().scrollHeight(0f);
+        element.clearLayoutDirty();
+        element.clearDescendantLayoutDirty();
+        for (UiElement child : element.children()) collapse(child, x, y);
     }
 
     /**
@@ -96,7 +116,7 @@ public final class UiLayoutEngine {
      */
     private void arrangePositioned(List<UiElement> children, Rect content) {
         for (UiElement child : children) {
-            if (child.position() != UiPosition.ABSOLUTE) continue;
+            if (child.position() != UiPosition.ABSOLUTE || !child.displayed()) continue;
             float left = orZero(child.resolvedLeft(content.width()));
             float top = orZero(child.resolvedTop(content.height()));
             float width = orRemaining(

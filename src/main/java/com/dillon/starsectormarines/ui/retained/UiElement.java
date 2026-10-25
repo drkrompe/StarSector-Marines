@@ -479,6 +479,14 @@ public final class UiElement {
     }
 
     /**
+     * False under {@code display: none}: the element and its subtree leave layout, gap
+     * slots, paint, hit-testing and tab order. Authored through CSS only.
+     */
+    public boolean displayed() {
+        return computedStyle == null || computedStyle.displayed();
+    }
+
+    /**
      * Whether this element takes part in its parent's flow. Authored through
      * CSS only: a positioned element is placed by {@code left} / {@code top},
      * which are style values rather than retained fields.

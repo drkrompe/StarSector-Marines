@@ -56,6 +56,6 @@
 .prologue-skip { white-space: normal; width: 200px; height: 38px; text-align: center; border-width: 1px; }
 /* A flow with no way out but through (the yard storybook) keeps the slot and drops the control. */
 /* A single page has nowhere to go back to (the Second Wind buy-back), so it drops Back the same way. */
-.prologue-back.prologue-back-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
-.prologue-skip.prologue-skip-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+.prologue-back.prologue-back-off { display: none; }
+.prologue-skip.prologue-skip-off { display: none; }
 </style>

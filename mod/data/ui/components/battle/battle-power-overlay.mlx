@@ -63,10 +63,7 @@
   }
 
   .power-targeting-hidden {
-    height: 0px;
-    padding: 0px;
-    border-width: 0px;
-    opacity: 0;
+    display: none;
   }
 
   .power-picker {
@@ -81,10 +78,7 @@
   }
 
   .power-picker-hidden {
-    height: 0px;
-    padding: 0px;
-    border-width: 0px;
-    opacity: 0;
+    display: none;
   }
 
   .pick-chip {

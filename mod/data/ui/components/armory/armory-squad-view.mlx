@@ -87,5 +87,5 @@
   .loadout-stat-arrow { width: 10px; height: 10px; pointer-events: none; }
   .loadout-stat-arrow.loadout-stat-arrow-absent { opacity: 0; }
   .loadout-stat-after { width: 30px; text-align: right; }
-  .loadout-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
+  .loadout-hidden { display: none; }
 </style>

@@ -106,9 +106,9 @@
   .doctrine-issue-button.issued .doctrine-issue-box { border-color: #78d494; background-color: #1d5a38; }
   .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
   .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
-  .doctrine-issue-button-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-issue-button-hidden { display: none; }
   .doctrine-issue-reason { height: 20px; padding: 8px 4px 2px 4px; white-space: normal; overflow: hidden; }
-  .doctrine-issue-reason-empty { width: 0px; height: 0px; padding: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-issue-reason-empty { display: none; }
   .doctrine-distribution { height: 18px; padding-top: 6px; color: #d8bd67; white-space: normal; }
   .doctrine-carries { height: 18px; padding-top: 6px; color: #8fd6a6; }
   .doctrine-span-row { flex-direction: row; gap: 6px; padding-top: 6px; overflow: hidden; }
@@ -121,5 +121,5 @@
   .doctrine-equipment-icon { width: 50px; height: 42px; }
   .doctrine-equipment-name { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
   .doctrine-carries-span { color: #8fd6a6; }
-  .doctrine-line-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
+  .doctrine-line-hidden { display: none; }
 </style>

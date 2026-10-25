@@ -16,5 +16,5 @@
   .comms-controls { height: 32px; flex-direction: row; gap: 8px; align-items: center; }
   .comms-controls button { width: 138px; height: 28px; padding: 2px 4px; text-align: center; font-family: heading; }
   .comms-progress { width: 0px; flex-grow: 1; height: auto; text-align: right; color: #a7b2a9; }
-  .comms-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .comms-hidden { display: none; }
 </style>

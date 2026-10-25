@@ -33,6 +33,6 @@
   .loadout-hint { height: 18px; }
   /* Castle's first proper issue, resumable from the squad's own head while it is offered. */
   #armory-first-refit { width: 340px; height: 30px; padding: 7px 8px; text-align: center; }
-  .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .hidden { display: none; }
   .loadout-feedback { height: 20px; overflow: hidden; }
 </style>

@@ -192,7 +192,7 @@ public final class LayoutLint {
     private static void visit(UiDocument document, UiTextMeasurer text, UiElement element,
                               Rect clip, UiElement clipper, boolean skipPositioned, boolean spilled,
                               List<Finding> findings) {
-        if (element.opacity() <= 0f) return;
+        if (!element.displayed() || element.opacity() <= 0f) return;
         if (skipPositioned && element.position() == UiPosition.ABSOLUTE) spilled = true;
         Rect border = element.box().borderBox();
         boolean visible = border.width() > 0f && border.height() > 0f;
@@ -246,7 +246,7 @@ public final class LayoutLint {
         if (layout == UiLayout.STACK || parent.children().size() < 2) return;
         List<UiElement> flow = new ArrayList<>();
         for (UiElement child : parent.children()) {
-            if (child.position() != UiPosition.ABSOLUTE) flow.add(child);
+            if (child.displayed() && child.position() != UiPosition.ABSOLUTE) flow.add(child);
         }
         if (flow.size() < 2) return;
         float width = parent.box().contentBox().width();

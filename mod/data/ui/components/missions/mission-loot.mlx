@@ -78,7 +78,7 @@
   .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }
-  .hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .hidden { display: none; }
   .flow-header-lock { width: 32px; height: 38px; }
   .mission-flow-actions button { height: 32px; padding: 5px 10px; }
   .loot-summary { height: 78px; padding: 8px 10px; gap: 10px; }

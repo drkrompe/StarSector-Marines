@@ -111,7 +111,7 @@
 
 <style>
   .company-news { padding: 5px 10px; color: #ffd464; border-color: #aa8742; }
-  .company-news.hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .company-news.hidden { display: none; }
   .mission-select-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .mission-select-header { flex-direction: row; height: 58px; padding: 8px 10px; gap: 10px; border-width: 2px; }
@@ -138,7 +138,7 @@
   #mission-catalog-title { height: 23px; }
   #mission-catalog-summary { height: 18px; }
   .broker-dossier { flex-direction: row; height: 150px; padding: 10px; gap: 12px; border-width: 1px; }
-  .broker-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .broker-hidden { display: none; }
   .broker-portrait { width: 96px; height: 96px; }
   .broker-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
   .broker-progress { height: auto; white-space: normal; }

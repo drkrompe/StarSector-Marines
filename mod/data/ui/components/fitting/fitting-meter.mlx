@@ -26,5 +26,5 @@
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .hidden { display: none; }
 </style>

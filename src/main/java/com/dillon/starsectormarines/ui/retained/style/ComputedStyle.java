@@ -75,6 +75,11 @@ public final class ComputedStyle {
         return (UiLayout) value(StyleProperty.FLEX_DIRECTION);
     }
 
+    /** False for {@code display: none}: the element and its subtree take no layout, paint, or input. */
+    public boolean displayed() {
+        return value(StyleProperty.DISPLAY) != UiDisplay.NONE;
+    }
+
     public UiPosition position() {
         return (UiPosition) value(StyleProperty.POSITION);
     }

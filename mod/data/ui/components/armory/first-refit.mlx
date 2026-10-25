@@ -77,5 +77,5 @@
   .refit-status { height: 28px; white-space: normal; }
   .refit-actions { flex-direction: row; height: 40px; gap: 12px; }
   .refit-action { width: 260px; height: 30px; padding: 7px 12px; }
-  .refit-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .refit-hidden { display: none; }
 </style>

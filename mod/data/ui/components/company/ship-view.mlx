@@ -333,5 +333,5 @@
   .refit-state-deficit { color: #d88a6c; }
   .refit-state-restored { color: #c9c2a8; }
   .refit-state-improved { color: #8fd0b8; }
-  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .hidden { display: none; }
 </style>

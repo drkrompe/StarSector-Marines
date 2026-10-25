@@ -54,7 +54,7 @@
   .supply-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 0px; gap: 5px; border-width: 0px; overflow: hidden; }
-  .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .picker-hidden { display: none; }
   /* The catalogue is stores, as the Mech Lab keeps them: a black pit sunk into the panel, its lip
      in shadow at the top and left and lit at the bottom and right, the floor darkening under the
      top lip, and the cards standing proud of it with black showing on every side. */

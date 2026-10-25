@@ -528,6 +528,15 @@ wrapping. Each row takes its tallest child's preferred height. `column-gap` and
 vertical `scrollHeight` contract. The first production consumer is Fleet Armory's
 owned-company portrait-card gallery.
 
+## Hiding
+
+`display: none` removes an element and its whole subtree from layout, `gap` slots,
+paint, hit-testing and tab order; the subtree's boxes collapse to empty rectangles at
+the parent's content origin. It is the one way to hide: a state class toggles it
+rather than zeroing width, height, padding and opacity, which left the box in flow
+holding a `gap` slot. `opacity: 0` stays for a box that keeps its place while
+invisible, such as an unticked check in its frame.
+
 ## Overflow and clipping
 
 An element paints its own background and border under the clip inherited from its

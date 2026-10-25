@@ -111,7 +111,7 @@
 
 <style>
   .reward-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12e8; }
-  .reward-hidden { position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
+  .reward-hidden { display: none; }
   .reward-space { height: 0px; flex-grow: 1; }
   .reward-dialog { width: 900px; height: 420px; padding: 24px; gap: 14px; flex-direction: column; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
   .reward-eyebrow { height: 20px; }
@@ -163,7 +163,7 @@
   .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }
-  .hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .hidden { display: none; }
   .flow-header-lock { width: 32px; height: 38px; }
   .mission-flow-actions button { height: 32px; padding: 5px 10px; }
   .story-dispatch { flex-direction: column; height: 270px; padding: 9px; gap: 8px; border-width: 1px; }

@@ -294,7 +294,7 @@
   .card-faces { flex-direction: column; height: 72px; gap: 4px; }
   .card-faces .card-chip { width: 242px; }
   .fill-button { flex-direction: row; align-items: center; width: 56px; height: 28px; padding: 0px 6px; gap: 4px; }
-  .fill-button.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .fill-button.hidden { display: none; }
   .fill-icon { width: 18px; height: 18px; }
   .fill-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
   .card-footer-spacer { width: 0px; flex-grow: 1; height: 1px; }
@@ -322,7 +322,7 @@
   .barracks-surface { width: 100%; height: 100%; overflow: hidden; }
   .barracks-root { width: 100%; height: 100%; }
   .guide-callout { position: absolute; left: 340px; top: 200px; flex-direction: column; width: 500px; height: 232px; padding: 12px; gap: 6px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
-  .guide-callout.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .guide-callout.hidden { display: none; }
   .guide-spotlight { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .guide-target { position: absolute; width: 0px; height: 0px; border-width: 0px; pointer-events: none; background-color: transparent; }
   .guide-heading { height: 44px; white-space: normal; overflow: scroll; }
@@ -400,5 +400,5 @@
   .roster-step-off { background-color: #121719; }
   .roster-step-median { border-color: #f2d27a; border-width: 2px; }
   .roster-step-label { width: 0px; flex-grow: 1; height: 20px; padding: 0px 0px 0px 6px; font-family: body; }
-  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
+  .hidden { display: none; }
 </style>

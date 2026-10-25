@@ -60,7 +60,8 @@ final class StyleValues {
         return switch (value.toLowerCase(Locale.ROOT)) {
             case "flex" -> UiDisplay.FLEX;
             case "grid" -> UiDisplay.GRID;
-            default -> throw new UiStyleException("display supports flex or grid, not \""
+            case "none" -> UiDisplay.NONE;
+            default -> throw new UiStyleException("display supports flex, grid, or none, not \""
                     + value + "\".");
         };
     }
