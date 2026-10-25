@@ -17,8 +17,8 @@ import java.util.Locale;
  * from {@link SwarmAudio.Mix#hear}, {@link HarrierAudio.Mix#hear} and {@link SpireAudio.Mix#hear}, the same rules and
  * levels the game plays them at; the fire from {@link BattleShotAudio#cue}; impacts, a flak round's air-burst among
  * them, from {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as
- * the screen plays them. The listener is the view's centre, as it is the screen's in a battle. Held beam loops are
- * not logged.
+ * the screen plays them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
+ * is logged on every tick it is held, with its slot as {@code loop}; held beam loops are not logged.
  */
 public final class BattleSoundLog {
 
@@ -49,8 +49,10 @@ public final class BattleSoundLog {
 
     private void tick(BattleSimulation sim, float[] at) {
         StringBuilder lines = new StringBuilder();
-        for (SwarmAudio.Play p : swarm.hear(sim, at[0], at[1]))
-            line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        for (SwarmAudio.Play p : swarm.hear(sim, at[0], at[1])) {
+            if (p.loop() >= 0) loop(lines, p, at);
+            else line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        }
         for (HarrierAudio.Play p : harrier.hear(sim, at[0], at[1]))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (SpireAudio.Play p : spire.hear(sim, at[0], at[1]))
@@ -74,6 +76,14 @@ public final class BattleSoundLog {
     private void impact(StringBuilder out, ShotEvent shot, float[] at) {
         ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(shot, EXPLOSIVE_FALLBACK);
         if (cue != null) line(out, cue.soundId(), shot.toX, shot.toY, 1f, cue.volume(), at);
+    }
+
+    /** A placed loop held this tick: one line a tick while it sounds, its slot in {@code loop}. */
+    private void loop(StringBuilder out, SwarmAudio.Play p, float[] at) {
+        out.append(String.format(Locale.ROOT,
+                "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": %.4f, \"volume\": %.3f,"
+                        + " \"listenerX\": %.2f, \"listenerY\": %.2f, \"loop\": %d}%n",
+                frame, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at[0], at[1], p.loop()));
     }
 
     private void line(StringBuilder out, String id, float x, float y, float pitch, float volume, float[] at) {

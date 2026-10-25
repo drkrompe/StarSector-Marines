@@ -31,8 +31,11 @@ import java.util.List;
  *   <li>{@code swarm-sound-matriarch}: the Matriarch walking in with a few Runners.</li>
  *   <li>{@code swarm-sound-matriarch-run}: a rifle team caught out forward of the line, close to the Matriarch as
  *       she comes out, falls back to it. She tells, runs it down before it gets there and reaps it.</li>
+ *   <li>{@code swarm-sound-skitterers}: a nest at work ({@link SwarmWorkerLookSuite#nest}) with a Runner pack round
+ *       its mouth, and a rifle line walking up on it from the west: the workers patter, haul and mend, the pack goes
+ *       for the line, and the nest's workers scatter under the fire.</li>
  * </ul>
- * Opt-in: a mixing study, not part of {@code all}.
+ * {@code -Dsnapshot.swarmSound.only=<shot>} records one shot alone. Opt-in: a mixing study, not part of {@code all}.
  */
 public final class SwarmSoundLookSuite implements SnapshotSuite {
 
@@ -53,23 +56,32 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         Path logs = Path.of(System.getProperty("snapshot.swarmSound.logDir",
                 context.projectRoot().resolve("build/swarm-sound").toString()));
+        String only = System.getProperty("snapshot.swarmSound.only", "");
         List<SnapshotArtifact> out = new ArrayList<>();
-        out.addAll(LookReview.record(context.modRoot(), shot("swarm-sound-assault", logs, false)));
-        out.addAll(LookReview.record(context.modRoot(), shot("swarm-sound-matriarch", logs, true)));
-        out.addAll(LookReview.record(context.modRoot(), shot("swarm-sound-matriarch-run", logs, true)));
+        for (String name : List.of("swarm-sound-assault", "swarm-sound-matriarch", "swarm-sound-matriarch-run",
+                "swarm-sound-skitterers")) {
+            if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name, logs)));
+        }
         return out;
     }
 
-    private static LookReview.Shot shot(String name, Path logs, boolean matriarch) {
-        return new LookReview.Shot(name, LookGround.verdant(), W, H,
+    private static LookReview.Shot shot(String name, Path logs) {
+        boolean nest = name.endsWith("-skitterers");
+        String[] keys = nest ? new String[]{"nest"} : new String[]{"line", "swarm"};
+        return new LookReview.Shot(name, LookGround.verdant(), nest ? SwarmWorkerLookSuite.W : W,
+                nest ? SwarmWorkerLookSuite.H : H,
                 placement -> {
-                    BattleSimulation sim = !matriarch ? assault(placement)
-                            : name.endsWith("-run") ? caughtOut(placement) : matriarch(placement);
-                    BattleSoundLog.attach(placement, LookReview.View.followAtPlay(placement, "line", "swarm"),
+                    BattleSimulation sim = switch (name) {
+                        case "swarm-sound-assault" -> assault(placement);
+                        case "swarm-sound-matriarch-run" -> caughtOut(placement);
+                        case "swarm-sound-skitterers" -> skitterers(placement);
+                        default -> matriarch(placement);
+                    };
+                    BattleSoundLog.attach(placement, LookReview.View.followAtPlay(placement, keys),
                             logs.resolve(name + ".jsonl"));
                     return sim;
                 },
-                placement -> List.of(LookReview.View.followAtPlay(placement, "line", "swarm")),
+                placement -> List.of(LookReview.View.followAtPlay(placement, keys)),
                 TICKS, 1, 2, STILLS);
     }
 
@@ -106,6 +118,39 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
 
     private static BattleSimulation matriarch(LookReview.Placement placement) {
         return matriarch(placement, line(placement).sim());
+    }
+
+    /**
+     * The worker look's nest well east, a mother's brood at work on colonies all shot half down, a Runner pack at its
+     * mouth, and the line far in the west ordered onto the bore, so the nest is heard at work
+     * before the fire reaches it and its workers scatter when it does.
+     */
+    private static BattleSimulation skitterers(LookReview.Placement placement) {
+        int h = SwarmWorkerLookSuite.H;
+        int x0 = placement.site().x0(), y0 = placement.site().y0();
+        int bx = x0 + 52, by = y0 + h / 2;
+        SceneBuilder builder = placement.builder();
+        float[] at = placement.openNear(12f, h / 2f);
+        int x = (int) at[0] - x0, y = (int) at[1] - y0;
+        int toX = bx - 3, toY = by;
+        builder.squad("rifles").faction(Faction.MARINE).size(6).at(x, y - 2)
+                .primary("weapon.field-rifle").health(600f)
+                .assigned(id -> ObjectiveAssignment.withdraw(id, toX, toY - 2)).done();
+        builder.squad("autos").faction(Faction.MARINE).size(2).at(x - 1, y + 3)
+                .primary("weapon.squad-automatic").health(600f)
+                .assigned(id -> ObjectiveAssignment.withdraw(id, toX - 1, toY + 3)).done();
+        SceneWorld world = builder.build();
+        placement.subject("line", world.members("rifles")[0]);
+        BattleSimulation sim = world.sim();
+        SwarmBore bore = SwarmWorkerLookSuite.nest(placement, sim, bx, by, true);
+        for (long colony : bore.colonies()) sim.world().setHp(colony, sim.world().maxHp(colony) * 0.45f);
+        // The company has eyes on the nest from the start, so it is heard at work before the line sees it.
+        sim.getFogOfWar().addEphemeralSource(bx, by, 16, 16f);
+        for (int i = 0; i < 6; i++) {
+            float[] r = placement.openNear(bx - x0 + 3f + (i % 2) * 2f, h / 2f - 5f + i * 2f);
+            sim.spawn(SwarmStrains.spec("Runner " + i, UnitType.SWARM_RUNNER, (int) r[0], (int) r[1]));
+        }
+        return sim;
     }
 
     /** The line, a rifle team a few cells in front of where the Matriarch comes out, ordered back to the line. */
