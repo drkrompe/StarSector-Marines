@@ -172,6 +172,11 @@ public final class LayoutRoads {
         return false;
     }
 
+    /** Where an endpoint lies on the grown ground, as {@link #carve} resolves it; {@code null} for no such place. */
+    static int[] endpoint(PrecinctPlan plan, int[][] claim, int[][] owner, Endpoint e, int width, int height) {
+        return resolve(plan, claim, owner, bounds(claim, plan.precincts().size(), width, height), e, width, height);
+    }
+
     private static int[] resolve(PrecinctPlan plan, int[][] claim, int[][] owner, int[][] bounds, Endpoint e,
                                  int width, int height) {
         int who = index(plan, e.place());

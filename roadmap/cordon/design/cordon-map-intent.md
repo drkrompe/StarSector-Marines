@@ -1,10 +1,10 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, the ridge the line stands on with every redoubt on its crest (rural and town), and the beats as optional objectives over the set pieces.
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads (a city's along its streets), the Road's second road, a placeholder eruption site (a city's cleared lot), the city's tenement and observation posts, the ridge the line stands on with every redoubt on its crest (rural and town), and the beats as optional objectives over the set pieces.
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — the gap law is closed with picket nests and is acceptance.
+Updated: 2026-10-25 — a city's set pieces: the tenement, the posts in buildings, the cleared lot, the supply streets.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -62,7 +62,7 @@ A line drawn across country by someone who has had weeks to choose:
   redoubt (beat L2). The base stands on the main road behind the middle, as it
   does now.
 - **Observation.** A sandbagged post forward of the line on each side's high
-  point.
+  point; in a city, the biggest building in front of each flank redoubt.
 
 ## By density
 
@@ -78,7 +78,8 @@ reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
 | Redoubt | Earth-and-timber work on the crest at a crossroads | A mix: the compound, a fortified farm, a fortified school | A mix: the compound, the buildings round a crossroads walled up, a fortified tenement |
 | Picket line | Trench and wire across fields | Trench across fields, barricades across streets | Barricaded street mouths and loopholed houses; no trench |
 | Switch line | A trench behind the middle | A trench and a barricaded street | A second row of barricaded blocks |
-| Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets; armour held to the boulevard |
+| Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets, the boulevard before a back street |
+| Set pieces | Farmstead, posts in sandbag rings, eruption site in open ground | As rural | A tenement, posts in the biggest buildings, a cleared lot |
 | Base | A fenced yard on the main road | A fenced yard on the main road (*not built:* the town's goods yard) | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
 
 ## The beats' set pieces
@@ -89,10 +90,10 @@ which beats run.
 
 | Beat | Set piece | Where |
 | --- | --- | --- |
-| L1 Stragglers | A farmstead: a house, a barn and a yard | In the near front between two redoubts, with a lane back to the gap |
-| L2 The guns run dry | An ammo dump in the base, and supply roads | Base to each rear gate |
+| L1 Stragglers | A farmstead: a house, a barn and a yard; in a city a tenement | In the near front between two redoubts, with a lane back to the gap |
+| L2 The guns run dry | An ammo dump in the base, and supply roads (in a city, cleared streets) | Base to each rear gate |
 | L3 The switch line | The switch line | Behind the middle redoubt that has the most room |
-| L4 A bore behind the line | An eruption site: open ground, no structure | Between the line and the base, off the supply roads |
+| L4 A bore behind the line | An eruption site: open ground, no structure; in a city a cleared lot | Between the line and the base, off the supply roads |
 | L5 The last hamlet | A meeting point: a square with a bell | In the rear hamlet farthest from the base |
 | L6 Burn the granary | A granary: a long store building | In the colony, toward the line |
 | R1 Clear the road | A wreck across the corridor, and a dozer at the base | On the corridor in the suburb, past the gap |
@@ -105,9 +106,21 @@ which beats run.
 Built: the farmstead (L1), the ammo dump and supply roads (L2), the switch
 line (L3), the eruption site (L4), the square, its bell a placeholder marker
 (L5), the granary (L6), the second road (R5) and the gap's sandbag positions
-(R6), and an observation post forward of each flank redoubt. The farmstead
-and the posts need open country, so a city's map lacks them; the eruption
-site needs open ground behind the line, which a city does not leave. R1's
+(R6), and an observation post forward of each flank redoubt. A city leaves
+no open country to raise them on, so its pieces are what stands there
+(`CordonCityPieces`, laid with the works): L1's **tenement** is the house of
+flats nearest the middle of the near front between two redoubts (the middle
+pair first) from which a walk out of its doors reaches the line between them;
+each **post** is the biggest building whose middle lies where the rural post
+would stand (the map records no height, so the biggest block on the street
+stands for the tallest), its front windows sandbagged from inside; L4's site is
+a **cleared lot**, open ground inside the city's blocks (a yard, a square, a
+park's lawn) off the streets and off the works' own ground; and the **supply
+roads** are the city's streets, followed from the base's gate to each rear gate,
+the widest first and cleared of the props in their carriageway
+(`mission-layout.md`, Road). On every pooled city map the tenement, both posts
+and all four supply roads stand; the lot stands on all but two, which have no
+square of open ground big enough behind the line. R1's
 wreck has its ground held but is not laid: laid at generation it closed the
 road to every convoy for the whole battle (`cordon-road` evidence,
 2026-10-23: a convoy stood at it from minute five to the end; one pool map in
@@ -127,7 +140,8 @@ corridor is proved through its ground. R2 to R4 need no new structure.
    across open country; a town's or city's streets where its ground is in the
    way), the Road's second road through redoubt 2's gap, and the L4 eruption
    site as a placeholder open site. An optional road that would cost a pooled
-   map its Cordon is left out of that map and reported.
+   map its Cordon is left out of that map and reported. A city's supply roads
+   are followed along its streets with the works.
 2. The authored ground (the ridge), from the heart's side of the machinery.
    Built (`cordon-nouns.md`, The map): a layout ridge raised before the works,
    so the picket lines are dug on its crest, and every redoubt stood on the

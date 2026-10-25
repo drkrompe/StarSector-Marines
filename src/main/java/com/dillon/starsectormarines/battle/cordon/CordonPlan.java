@@ -340,7 +340,11 @@ public final class CordonPlan {
      * closes the road to trucks until a dozer clears it, which acceptance proves the corridor through.
      */
     public static final String CORRIDOR_WRECK = "corridor-wreck";
-    /** The eruption site (beat L4), resolved behind the middle of the line. */
+    /** A city's supply roads, followed along its streets with the works. */
+    public static final String SUPPLY_STREETS = "supply-streets";
+    /** A city's set pieces in standing buildings (the tenement and the observation posts). */
+    public static final String CITY_PIECES = "city-pieces";
+    /** The eruption site (beat L4), resolved behind the middle of the line; in a city, a cleared lot. */
     public static final String ERUPTION = "eruption";
     public static final String ERUPTION_SITE = "eruption-site";
     /** The supply road from the base to redoubt {@code n} (beat L2) is this plus n. */
@@ -374,11 +378,17 @@ public final class CordonPlan {
         int[] front = {0, south ? 1 : -1};
         Side toward = south ? Side.NORTH : Side.SOUTH;
         List<Piece> pieces = new ArrayList<>();
-        // Supply roads first: they are carved as the places grow, so the works resolved later see them as road.
+        List<Piece> supply = new ArrayList<>();
         for (int n = 1; n <= REDOUBTS; n++) {
-            pieces.add(new Road(SUPPLY_ROAD + n, Endpoint.gate(BASE_PLACE, toward),
+            supply.add(new Road(SUPPLY_ROAD + n, Endpoint.gate(BASE_PLACE, toward),
                     Endpoint.gate(REDOUBT_PLACE + n, toward.opposite()), ROAD_WIDTH, false));
         }
+        boolean city = density == Density.URBAN;
+        // Supply roads first: they are carved as the places grow, so the works resolved later see them as road. A
+        // city leaves no open country to carve them across: its supply roads are its streets, followed with the
+        // works, first, so the works after them keep off them.
+        if (city) pieces.add(new Deferred(SUPPLY_STREETS, Phase.WORKS, ground -> supply, false));
+        else pieces.addAll(supply);
         if (variant == CordonVariant.ROAD) {
             // From the base's own gate, so the base keeps the gates it had, through the line beside redoubt 2.
             pieces.add(new Road(SECOND_ROAD, Endpoint.gate(BASE_PLACE, toward),
@@ -393,7 +403,8 @@ public final class CordonPlan {
         // the works.
         pieces.add(new Deferred(SET_PIECES, Phase.STRUCTURES, ground -> CordonSetPieces.structures(ground, front[1]),
                 false));
-        pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false));
+        if (city) pieces.add(new Deferred(CITY_PIECES, Phase.WORKS, ground -> CordonCityPieces.pieces(ground, front[1]), false));
+        pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south, city), false));
         if (variant == CordonVariant.ROAD) {
             pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
         }
@@ -452,9 +463,12 @@ public final class CordonPlan {
     /**
      * Open ground between the line and the logistics base, behind the middle,
      * clear of roads and of every place's ground: the nearest such square to
-     * the middle of that band.
+     * the middle of that band. A city's ground is all some place's, so in a
+     * {@code city} the site is a cleared lot: open ground inside the city's
+     * blocks (a yard, a square, a park's lawn), off the streets, with no prop or
+     * building on it, on no redoubt's nor the base's ground.
      */
-    static List<Piece> eruptionSite(LayoutGround ground, boolean south) {
+    static List<Piece> eruptionSite(LayoutGround ground, boolean south, boolean city) {
         int w = ground.width();
         int[] base = ground.claimBounds(BASE_PLACE);
         if (base == null) return List.of();
@@ -473,7 +487,7 @@ public final class CordonPlan {
         for (int y = y0; y + ERUPTION_SIDE - 1 <= y1; y += 2) {
             for (int x = Math.round(w * 0.15f); x + ERUPTION_SIDE - 1 <= Math.round(w * 0.85f); x += 2) {
                 long d = (long) (x - cx) * (x - cx) + (long) (y - cy) * (y - cy);
-                if (d >= bestDistance || !open(ground, x, y)) continue;
+                if (d >= bestDistance || !(city ? lot(ground, x, y) : open(ground, x, y))) continue;
                 best = new int[]{x, y};
                 bestDistance = d;
             }
@@ -487,6 +501,22 @@ public final class CordonPlan {
         for (int y = y0; y < y0 + ERUPTION_SIDE; y++) {
             for (int x = x0; x < x0 + ERUPTION_SIDE; x++) {
                 if (ground.isRoad(x, y) || ground.isClaimed(x, y) || !ground.walkable(x, y)) return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean lot(LayoutGround ground, int x0, int y0) {
+        for (int y = y0; y < y0 + ERUPTION_SIDE; y++) {
+            for (int x = x0; x < x0 + ERUPTION_SIDE; x++) {
+                if (!ground.buildable(x, y) || ground.isHeld(x, y)) return false;
+            }
+        }
+        // On a works' ground the bore would open inside its walls.
+        for (int n = 0; n <= REDOUBTS; n++) {
+            int[] b = ground.claimBounds(n == 0 ? BASE_PLACE : REDOUBT_PLACE + n);
+            if (b != null && x0 <= b[2] && x0 + ERUPTION_SIDE - 1 >= b[0] && y0 <= b[3] && y0 + ERUPTION_SIDE - 1 >= b[1]) {
+                return false;
             }
         }
         return true;
