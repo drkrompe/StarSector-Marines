@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — districts: the industrial zone, a working street hosting the freight yard and the factory row, publishes `IndustrialZone`.
+Updated: 2026-10-25 — districts: the industrial zone hosts the map's freight yard and factory row, on a member or a joined pair, and stands down the ones planned elsewhere.
 
 Earlier 2026-10-25 — districts: a member can take a set-piece role; main street's plaza end is the market square where two end members hold it.
 
@@ -409,9 +409,11 @@ on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed
 between solid jambs with a boom gate across it just inside; a street ending against a lot is walled across. It publishes `CordonedFacility` on
 `MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door). The
 **industrial zone** stands on a spine in an industrial pocket: one working service street with every member
-walled off from its neighbours and opening onto it. It **hosts** the set pieces already planned on its
-ground rather than taking leaves from them: the freight-yard parcel stays a freight yard and a factory row
-seed that holds the row alone stays a row, so a zone gathers round them; the rest are warehouses (loading
+walled off from its neighbours and opening onto it. It is the map's **host** for the freight yard and the
+factory row: the freight-yard parcel and a row seed deep enough for the row join as members and keep their
+set piece, on their own leaf or **joined** with a neighbour across the cross street between them; where the
+street has neither, the members that hold one take it, and the zone stands down the one planned elsewhere,
+so the map keeps one of each. The rest are warehouses (loading
 doors on the street across a striped dock apron with a keep-clear hatch before each door) and walled tank
 farms, vehicle depots and guard posts, each gated onto the street. Freight gantries span the street where
 both legs land on open apron. It publishes `IndustrialZone` on `MapResult` (the service street, the yards'

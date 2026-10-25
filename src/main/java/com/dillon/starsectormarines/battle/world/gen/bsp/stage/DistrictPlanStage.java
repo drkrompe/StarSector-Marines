@@ -23,9 +23,9 @@ import java.util.Map;
 
 /**
  * Plans the districts ({@code set-piece-districts.md}) after the leaves are labelled and before compound
- * claims and the road graph. For each program the map asks for, it finds the claim the program wants among
- * the leaves no one has taken, has the program plan it, and commits the plan only if its street rewrite keeps
- * every way in ({@link DistrictStreets#keepsEntries}) and leaves the trunks alone. Committing relabels the
+ * claims and the road graph. For each program the map asks for, it finds the claims the program wants among
+ * the leaves no one has taken, best first, has the program plan each in turn, and commits the first plan whose
+ * street rewrite keeps every way in ({@link DistrictStreets#keepsEntries}) and leaves the trunks alone. Committing relabels the
  * members (the seed to the program's kind, the rest {@link BlockKind#COMPOUND_MEMBER}), writes the rewritten
  * streets back into the road mask the road graph is built from, and publishes the district under
  * {@link BspKeys#DISTRICTS}, where compound claiming takes its compound. Everything before the commit is
@@ -49,28 +49,34 @@ public final class DistrictPlanStage implements GenStage {
         for (DistrictProgram program : programs) {
             DistrictProgram.Request request = program.request(ctx);
             if (request == null) continue;
-            DistrictClaim claim = find(request, partition, trunks);
-            if (claim == null) continue;
-            DistrictProgram.Plan plan = program.plan(claim, partition.roadCells, ctx);
-            if (plan == null) continue;
-            if (!DistrictStreets.keepsEntries(claim, partition.roadCells, plan.streets())
-                    || touchesTrunk(claim, partition.roadCells, plan.streets(), trunks)) {
-                LOG.debug("DistrictPlanStage: " + program.id() + " refused its street rewrite");
-                continue;
+            for (DistrictClaim claim : candidates(request, partition, trunks)) {
+                DistrictProgram.Plan plan = program.plan(claim, partition.roadCells, ctx);
+                if (plan == null) continue;
+                if (!DistrictStreets.keepsEntries(claim, partition.roadCells, plan.streets())
+                        || touchesTrunk(claim, partition.roadCells, plan.streets(), trunks)) {
+                    LOG.debug("DistrictPlanStage: " + program.id() + " refused its street rewrite on " + claim);
+                    continue;
+                }
+                commit(ctx, program, claim, plan, partition, trunks);
+                break;
             }
-            commit(ctx, program, claim, plan, partition, trunks);
         }
     }
 
-    private static DistrictClaim find(DistrictProgram.Request request, Bsp.Partition partition,
-                                      TrunkPlan.Plan trunks) {
+    /**
+     * The claims to offer a program, best first: every spine's best stretch of street, so a program that refuses
+     * the best is offered the next; a quarter, the best alone.
+     */
+    private static List<? extends DistrictClaim> candidates(DistrictProgram.Request request, Bsp.Partition partition,
+                                                            TrunkPlan.Plan trunks) {
         if (request instanceof DistrictProgram.SpineRequest spine) {
-            return SpineClaim.find(partition.leaves, partition.roadCells, spine.eligible(), spine.pocket(),
+            return SpineClaim.candidates(partition.leaves, partition.roadCells, spine.eligible(), spine.pocket(),
                     spine.spec());
         }
         DistrictProgram.QuarterRequest quarter = (DistrictProgram.QuarterRequest) request;
-        return QuarterClaim.find(partition.leaves, partition.roadCells, trunkCells(trunks, partition),
+        DistrictClaim claim = QuarterClaim.find(partition.leaves, partition.roadCells, trunkCells(trunks, partition),
                 quarter.eligible(), quarter.pocket(), quarter.spec());
+        return claim == null ? List.of() : List.of(claim);
     }
 
     /** The cells inside a trunk's band: a quarter never takes one as its own street. */
@@ -111,6 +117,7 @@ public final class DistrictPlanStage implements GenStage {
             members.add(leaf);
         }
         plan.seed().kind = program.kind();
+        program.committed(claim, plan, partition.leaves);
         Map<BlockLeaf, Compound.Role> none = new IdentityHashMap<>();
         Compound compound = new Compound(program.kind(), plan.seed(), members, none, null);
         Map<BlockLeaf, District.Role> roles = new IdentityHashMap<>(plan.roles());

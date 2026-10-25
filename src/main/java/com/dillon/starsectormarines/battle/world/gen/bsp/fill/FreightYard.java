@@ -155,8 +155,15 @@ public final class FreightYard {
      */
     public static Pose choose(GenContext c, int left, int top, int right, int bottom,
                               BiPredicate<Integer, Integer> owned) {
-        boolean[][] reserved = c.get(BspKeys.ROAD_RESERVATION);
-        boolean[][] road = c.get(BspKeys.ROAD_CELLS);
+        return choose(c, left, top, right, bottom, owned, c.get(BspKeys.ROAD_CELLS), c.get(BspKeys.ROAD_RESERVATION));
+    }
+
+    /**
+     * {@link #choose(GenContext, int, int, int, int, BiPredicate)} over a given street mask and road
+     * reservation, so a plan can ask before the streets are published.
+     */
+    public static Pose choose(GenContext c, int left, int top, int right, int bottom,
+                              BiPredicate<Integer, Integer> owned, boolean[][] road, boolean[][] reserved) {
         for (Size size : Size.values()) {
             Pose best = null;
             int bestScore = 0;

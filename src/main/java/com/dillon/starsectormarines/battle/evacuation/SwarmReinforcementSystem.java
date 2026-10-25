@@ -394,13 +394,15 @@ public final class SwarmReinforcementSystem {
         BoreTier tier = bore.tier();
         boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), tier, bore.matriarchReleased());
         int[] mix = SwarmAgeMix.weights(tier, bore.biomassFed());
+        boolean bombardFree = bore.bombard() == 0L;
         List<Planned> bodies = new ArrayList<>();
         float weight = 0f;
         for (int i = 0; weight < budget; i++) {
             long roll = SwarmBores.mix(seed ^ (bore.number() * 0x9E3779B97F4A7C15L)
                     ^ ((long) surgeIndex << 20) ^ i);
             boolean matriarch = owed && i == 0;
-            BoreStrainTable.Slot slot = BoreStrainTable.pick(tier, roll, matriarch);
+            BoreStrainTable.Slot slot = BoreStrainTable.pick(tier, roll, matriarch, bombardFree);
+            if (slot == BoreStrainTable.Slot.BOMBARD) bombardFree = false;
             SwarmStage stage = !growthStages ? SwarmStage.ADULT
                     : matriarch ? SwarmStageStats.matriarchStage((int) bore.biomassFed())
                     : SwarmAgeMix.pick(mix, SwarmAgeMix.roll(seed, bore.number(), surgeIndex, i));
@@ -498,6 +500,7 @@ public final class SwarmReinforcementSystem {
         if (release.scavengers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markScavenger(body);
         if (release.foragers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markForager(body);
         if (planned.matriarch()) bores.matriarchEmerged(bore, tick, body);
+        if (slot == BoreStrainTable.Slot.BOMBARD) sim.swarmBombards().released(body, bore);
         SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
         approachByRunner.put(body, approach);
         surgeWave.add(new SwarmPressureSnapshot.WaveIntent(body, approach, cell[0], cell[1],

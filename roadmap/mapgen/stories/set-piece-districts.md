@@ -70,7 +70,14 @@ district's compound first. What the next programs build on:
   district never takes a compound seed, a planned freight yard or another district's leaves.
 - **Pocket**: a claim stands in its zoning pocket on balance, its members' weights adding up to at least
   their count; the best claim stands deepest in its pocket, then has the most members, then the longest
-  street.
+  street. The plan stage offers a program every street's best spine in that order and commits the first it
+  plans and whose rewrite passes, so a program that refuses the best (too few members, a set piece that
+  will not stand, a rewrite that cuts a mouth) takes the next rather than nothing. A quarter is offered
+  alone.
+- **A district's seed is nobody else's.** The seed carries the district's compound, so compound claiming
+  never takes a `MAIN_STREET`, `CORDONED_FACILITY` or `INDUSTRIAL_ZONE` leaf as a member (one that did was
+  never filled). A program that hosts a set piece planned elsewhere stands that one down in
+  `DistrictProgram.committed`, after its own members are relabelled.
 - **Entries are mouths.** An entry cell is a street cell of the claim beside a street cell outside it; the
   touching entry cells where one outside street meets the claim are one mouth. A rewrite is committed only
   if every mouth keeps a street cell, any two mouths joined through the claim's streets before still are,
@@ -229,20 +236,30 @@ look stills, its seeds' battles laying another map.
 
 **Industrial zone, as built.** `IndustrialZoneProgram` asks for a spine of one to three members a side
 and at least three in all, a street at least 20 cells long and no wider than a primary trunk, members at
-least eight deep and eight along the street. It runs after main street and the cordoned facility, over the
-leaves they left. A member may be working ground or ground a settlement can spare (works, yards, rubble,
-shops, dense blocks, squares, parks) anywhere, and homes and guard posts inside the zoning's industrial
-pocket. Its pocket weighs the industrial quarter 2 and a harbour or the outskirts 1, plus 1 for a lot already
-labelled a works or a yard and 2 for the freight-yard parcel or the factory row's seed, so a zone gathers
-round the set pieces already planned rather than fighting them for leaves: the yard's parcel is a member
-whose role is its freight yard (two-bay where it fits), and the row's seed joins only where its leaf holds
-the row alone (otherwise it is ineligible, so it claims its neighbour as it would have and the zone looks
-along another street). Where the street has neither, the largest member that holds one takes it. Each
-guard post keeps its hardpoint inside a wall with a two-cell gate. The rest are **warehouses** where at
-least nine deep, and **depots** (tank farm and vehicle depot in turn) where shallower; where every one would
-be a warehouse and there are two, the smallest is a depot. Its rewrite narrows a cross street to three
-cells only between two warehouses or depots, so a yard or a row keeps the gates and turns its parcel was
-planned for.
+least five deep and five along the street (most of the industrial belt's leaves are five to seven cells on
+their short side; at eight the zone found a street on 3 of 24 cities). It runs after main street and the
+cordoned facility, over the leaves they left. A member may be working ground, ground a settlement can spare
+(works, yards, rubble, shops, dense blocks, squares, parks), homes or guard posts, anywhere: the pocket keeps
+it in the belt. The pocket weighs the industrial quarter 2 and a harbour or the outskirts 1, plus 1 for a
+lot already labelled a works or a yard and 6 (`SET_PIECE`) for the freight-yard parcel or the factory row's
+seed, so a street that hosts one beats a longer one that hosts neither.
+
+The zone is the map's **host** for the freight yard and the factory row. The yard's parcel is a member
+whose role is its freight yard (two-bay where it fits). The row's seed joins only where some side of it is
+13 deep, as deep as the row; then it holds the row alone or **joined** with its neighbour along the street,
+the cross street between them given to the row's ground. Where it holds neither the plan is refused and the
+seed claims its neighbour as it always has (a smaller seed is ineligible for the same reason). Where the
+street has no yard or no row, the zone takes one on the largest member that holds it alone, else on the
+neighbouring pair whose joined ground does. A set piece is given its role only where the layout says it
+stands, asked over the streets as the plan would leave them and the road reservation they draw; a joined
+pair whose closed cross street would cut a mouth falls back to single members. Once committed, the zone
+stands down the yard or the row planned elsewhere on the map (the parcel becomes an industrial yard, the
+seed an industrial lot), so the map keeps one of each. Each guard post keeps its hardpoint inside a wall
+with a two-cell gate. The rest are **warehouses** where at least nine deep and eight along, and **depots**
+(tank farm and vehicle depot in turn) where smaller; where every one would be a warehouse and there are
+two, the smallest is a depot. Its rewrite narrows a cross street to three cells only between two
+warehouses or depots, so a yard or a row keeps the gates and turns its parcel was planned for, and narrows
+none where that would take the street the map's own freight-yard parcel opens onto.
 
 `IndustrialZoneLayout` paves each walled member's street row as the street's sidewalk (a wall on the
 carriageway's edge would leave a four-wide street too narrow for asphalt), then lays its role. A warehouse
@@ -253,24 +270,30 @@ taken out), and the hatched `apron.keep-clear` two rows deep before each; a memb
 deepest hall (12) and four more keeps a walled stock yard behind it, with tanks and pallets on its back wall
 and a gap onto the cross street. A hauler is parked along the apron away from the docks, pipe runs on stands
 line the rest of its kerb with a gap every run, and crates stand at its ends. A tank farm is a walled yard
-with a vehicle gate (centred on a front of 14, at one end of a narrower one), blocks of four fluid tanks on
+with a vehicle gate (centred on a front of 14, at one end of a narrower one, and the whole front between
+its end walls on one narrower than six), blocks of four fluid tanks on
 earth beside a striped drive and a tanker parked at its end; a vehicle depot is striped hardstanding with
 haulers parked either side of the drive and drums on the back wall. Freight gantries
 (`origin-freight.gantry-span-clean` and its legs) span the street every 14 cells where both legs land on
-open apron. The service street and its cross-street stubs are painted city street. It publishes
+open apron. A hosted yard or row stands on its member or joined pair, the joined cross street its own
+ground; a row's gate may cross up to six cells of that ground to the street (`FactoryRow.Approach`), since
+its lane must otherwise end exactly on a street at both gates. The service street and its cross-street
+stubs are painted city street. It publishes
 `IndustrialZone` on `MapResult.industrialZones`: the street's centre line and width, the hosted yards'
 `LoadingBay`s, the row's `ServiceLane`, and each warehouse dock's door with the street cell straight out
 from it.
 
-Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 3 of 24 medium city maps
-under the town plan's zoning and 12 of 24 colonies, hosting a freight yard on 2 city maps and 1 colony, a factory row on none. The claim
-shape is the limit, not the pocket: with every kind eligible the industrial pockets still rarely line one
-street with whole leaves on both sides, a freight-yard parcel stands at the map's edge with nothing across
-its street, and a factory row seed is nearly always the 11-by-11 lot that needs its neighbour. A shorter
-street (16) moved one city map and cost one colony. `storyMapPools` passes 144 of 144 with no seed swapped.
+Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`, which also counts the maps
+with a freight yard and a factory row anywhere): 22 of 24 medium city maps and 24 of 24 colonies, hosting a
+freight yard on 10 city maps and 5 colonies and a factory row on 2 and 4. A freight yard stands on as many
+maps as before the zone hosted it (22 cities, 19 colonies) and a factory row on one more of each (16 and
+16). The row is the limit: it is 13 deep, and a belt member or a joined pair that deep and fronting the
+street is rare in a city, so most maps keep the row their seed claims outside the zone. `storyMapPools`
+passes 144 of 144 with no seed swapped.
 Look: `createSnapshots -Psnapshot=industrial-zone-look`.
 
-Open on the industrial zone: a quarter claim as a second shape for cities; no large storage tank (the 1x1
+Open on the industrial zone: a shallower factory row (the row's pockets and far wall take the depth a city
+member lacks) would put the row in most zones; no large storage tank (the 1x1
 fluid tank stands in blocks of four), no dock shutter or leveller (the loading door is a plain doorway) and
 no moving traffic (haulers are parked); gantries rarely find both legs on open apron, since docks, haulers
 and the walled yards take the kerb first; no mission reads the mark yet.
