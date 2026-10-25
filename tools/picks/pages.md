@@ -4,7 +4,7 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 
 | Parent session | Page |
 |---|---|
-| Alien swarm attack colony mission refresh (Rav Bloom) | https://claude.ai/artifact/Q2unCoyCvyuFBFomsCxuDU |
+| Rav Bloom coordinator (Rav Bloom) | https://claude.ai/artifact/8z4WyWM6jsUf4cNNemBSLT (renders: https://claude.ai/artifact/JFmfdDCmk4cRL3oJp4Kj6C) |
 | Cinematic ship pipeline coordinator (Asharu cinematic) | https://claude.ai/artifact/F2SSYaaEth68gbqSYgYJWP |
 | Asset shakeout (texture fit, battle loading) | https://claude.ai/artifact/RrGwLg54A9WL92XqXopwRa |
 | Battle HUD (glass command, ammo strips, weapon cycling) | https://claude.ai/artifact/T6H83hxxcdCfd3a1tnu2gd |
