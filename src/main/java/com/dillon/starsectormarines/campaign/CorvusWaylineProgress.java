@@ -31,6 +31,12 @@ public final class CorvusWaylineProgress implements Serializable {
         activeId = id; activePlanetName = planetName;
         return true;
     }
+    /** Closes an unsettled launch as if it never happened: the same attempt can launch again. */
+    public boolean abandon(String id) {
+        if (id == null || !id.equals(activeId)) return false;
+        activeId = null; activePlanetName = null;
+        return true;
+    }
     /** Reject before any external write: duplicates, foreign targets, and incorrect awards. */
     public int settle(String id, String planetName, boolean victory, int payment) {
         if (!matches(id) || !id.equals(activeId) || !activePlanetName.equals(planetName)

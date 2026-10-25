@@ -132,6 +132,7 @@ import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
@@ -2194,6 +2195,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
+    /** The campaign-resource window this battle's powers pay from. */
+    public CommandPowerResources getCommandPowerResources() {
+        return commandPowers.getResources();
+    }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
     public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) {
         commandPowers.setPowers(powers);
@@ -2459,8 +2464,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return completion.isComplete(); }
     public Faction getWinner()             { return completion.winner(); }
+    /** Whether the battle ended by Confirmed Retreat; the company's withdrawal has its own cost. */
+    public boolean isRetreated()           { return completion.retreated(); }
 
-    /** Freezes an active operation as defeat without fabricating additional casualties. */
+    /** Freezes an active operation as defeat; the withdrawal's wounds are settled by the resolver. */
     public boolean retreat() {
         boolean accepted = completion.retreat();
         if (accepted && openingStory != null) openingStory.retreat(simTickIndex);

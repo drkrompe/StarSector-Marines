@@ -25,6 +25,16 @@ class BrokenSupplyRouteProgressTest {
         assertNotNull(p.missionId()); assertFalse(p.closed());
         assertFalse(p.successful()); assertEquals(0, p.job()); assertEquals(12000, p.storyPayment());
     }
+    @Test void abandonedLaunchCanLaunchTheSameAttemptAgain() {
+        var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        String id = p.missionId();
+        assertTrue(p.begin(id));
+        assertTrue(p.abandon(id)); assertFalse(p.abandon(id));
+        assertEquals(id, p.missionId());
+        assertEquals(-1, p.settle(id, false, null));
+        assertTrue(p.begin(id));
+        assertEquals(12000, p.settle(id, true, null));
+    }
     @Test void recurringJobsNeverReplayTheStoryAwardOrFreight() {
         var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         String id = p.missionId(); p.begin(id); p.settle(id, true, null);

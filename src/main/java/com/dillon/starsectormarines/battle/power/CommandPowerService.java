@@ -128,6 +128,10 @@ public final class CommandPowerService {
         this.resources = resources != null ? resources : CommandPowerResources.FREE;
     }
 
+    public CommandPowerResources getResources() {
+        return resources;
+    }
+
     public List<CommandPower> getAvailablePowers() {
         return new ArrayList<>(powers.values());
     }
