@@ -1113,13 +1113,15 @@ delivery proof is unchanged; the blade reaches player-ordered and directly
 driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
 troop APC drives through, against a control where the APC alone is refused.
 
-A Heavy-lift hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
+A medium or heavy hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the
 small oak), any tree the creep has killed, or a lone large boulder. A cell under
 two crowns is crushable only while every standing tree on it is undergrowth, so
 a dead tree leaning into a living oak holds where they meet, and a summit cell
-never is. Infantry and every lighter hull are stopped by it as by any natural
-solid. Every Heavy-lift hull (the gun tanks and the dozer) drives into it:
+never is. Infantry, light hulls (the pickups, the scout car and the hauler) and hover
+hulls are stopped by it as by any natural solid. Every hull of medium weight
+or more (the APC lines, the rocket technical, the dozer and the gun tanks)
+drives into it, so an APC is never trapped in a wood a tank can leave:
 whatever crushable cells its footprint covers after a move are crushed through
 the map editor's destruction path, so a tree falls whole to its felled art, a
 boulder to its rubble, and the ground is open for everyone afterwards. A tick

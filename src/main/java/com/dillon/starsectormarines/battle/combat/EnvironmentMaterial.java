@@ -79,8 +79,22 @@ public enum EnvironmentMaterial {
      * rounded to the nearest point: feature structure is kept in whole points.
      */
     public int structuralDamage(float damage, float penetration) {
+        return structuralDamage(damage, penetration, false);
+    }
+
+    /**
+     * As {@link #structuralDamage(float, float)}, for a round that may {@code burn}: a beam or an energy bolt chars
+     * what burns (crates, furniture and standing trees) with its whole payload, whatever its penetration, where
+     * every other material reads it as an ordinary round.
+     */
+    public int structuralDamage(float damage, float penetration, boolean burn) {
         if (!(damage > 0f)) return 0;
-        return Math.round(damage * efficiency(penetration));
+        return Math.round(damage * (burn && burns() ? 1f : efficiency(penetration)));
+    }
+
+    /** Whether a burning round takes this material whatever its penetration: wood and timber. */
+    public boolean burns() {
+        return this == WOOD || this == TIMBER;
     }
 
     /** The material of a destructible prop by its definition id, or null for one rounds cannot wear. */
