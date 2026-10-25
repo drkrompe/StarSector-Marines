@@ -333,6 +333,8 @@ class CordonCommandEvidenceTest {
                 .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
                 .append('\n')
                 .append("- Harriers: ").append(HarrierReading.line(sim)).append('\n');
+        out.append("- Company strikes: ").append(cordon.strikes() == null ? "none" : cordon.strikes().readings())
+                .append('\n');
         out.append("- Outer picket: ").append(cordon.outerPicket() == null ? "none" : cordon.outerPicket().readings())
                 .append('\n');
         if (cordon.refugees() != null) {

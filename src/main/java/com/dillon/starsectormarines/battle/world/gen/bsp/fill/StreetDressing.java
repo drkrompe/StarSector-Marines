@@ -7,27 +7,34 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.List;
+import java.util.function.IntFunction;
 
 /**
  * The street dressing districts lay along their streets ({@code set-piece-districts.md}): lamps and shop awnings on a
  * main street, pipe gantries over an industrial service street, and the barriers of a cordoned facility's gatehouse.
  *
- * <p>Two kinds of piece. A <b>standing</b> piece (a lamp, a gantry column, a barrier, a bollard, a boom-gate post) is
- * a fixture: its cells are not walkable but stay see-through, and it is cover by its tileset's value. An
- * <b>overhead</b> piece (an awning, a pipe rack cell) and the boom-gate arm block nothing and carry no cover: a figure
- * walks under them. The overhead ones draw in the roof pass, above the people under them, through their motion
- * catalog ({@code street-dressing-motions.tileset.json}).
+ * <p>Two kinds of piece. A <b>standing</b> piece (a kerb lamp, a gantry column, a barrier, a bollard, a boom-gate
+ * post) is a fixture: its cells are not walkable but stay see-through, and it is cover by its tileset's value. An
+ * <b>overhead</b> piece (an awning, a wall lamp, a pipe rack cell) and the boom-gate arm block nothing and carry no
+ * cover: a figure walks under them. The overhead ones draw in the roof pass, above the people under them, through
+ * their motion catalog ({@code street-dressing-motions.tileset.json}).
  *
  * <p>Directions are grid steps, {@code (dx, dy)} with exactly one of them non-zero. Draws nothing from any random
  * stream. A piece whose art is not installed is skipped.
  */
 public final class StreetDressing {
 
-    public static final String LAMP = "doodad.street-lamp-colonial";
-    public static final String LAMP_INDUSTRIAL = "doodad.street-lamp-industrial";
+    /** Kerb lamps, drawn as their heads seen straight down: the post is hidden under the head. */
+    public static final String LAMP = "doodad.street-lamp-cap-colonial";
+    public static final String LAMP_INDUSTRIAL = "doodad.street-lamp-cap-industrial";
+    /** The same lamps hung off a wall on a short bracket, overhead. */
+    public static final String WALL_LAMP = "doodad.street-lamp-bracket-colonial";
+    public static final String WALL_LAMP_INDUSTRIAL = "doodad.street-lamp-bracket-industrial";
     /** The shop awnings, by colourway. */
     public static final List<String> AWNINGS = List.of(
             "doodad.street-awning-striped", "doodad.street-awning-canvas", "doodad.street-awning-steel");
+    /** The grey slat canopy over an industrial loading door; a main street keeps its shop colourways. */
+    public static final String CANOPY = "doodad.street-awning-steel";
     /** Cells an awning spans along its wall. */
     public static final int AWNING_SPAN = 3;
     public static final String PIPE_BEAM = "doodad.pipe-rack-beam";
@@ -54,7 +61,7 @@ public final class StreetDressing {
         return 3;
     }
 
-    /** A street lamp standing on {@code (x, y)}, its arm reaching {@code (dx, dy)} over the carriageway. */
+    /** A street lamp standing on {@code (x, y)}, its head's front turned {@code (dx, dy)} toward the carriageway. */
     public static void lamp(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
                             String id, int x, int y, int dx, int dy) {
         standing(grid, topology, doodads, id, x, y, dx, dy);
@@ -85,6 +92,35 @@ public final class StreetDressing {
         int half = AWNING_SPAN / 2;
         int minX = wallDy != 0 ? x - half : x, minY = wallDx != 0 ? y - half : y;
         doodads.add(new Doodad(minX, minY, def, turnsFacing(wallDx, wallDy)));
+    }
+
+    /** A wall lamp on the cell in front of a wall, which lies one step {@code (wallDx, wallDy)} beyond it. */
+    public static void wallLamp(List<Doodad> doodads, String id, int x, int y, int wallDx, int wallDy) {
+        DoodadDef def = TileRegistry.installed().doodad(id);
+        if (def == null) return;
+        doodads.add(new Doodad(x, y, def, turnsFacing(wallDx, wallDy)));
+    }
+
+    /**
+     * A {@link #CANOPY} over each run of doorways along a wall, on the row in front of it: {@code wall} gives the
+     * wall cell at {@code i} for {@code lo <= i <= hi}, and the wall lies one step {@code (wallDx, wallDy)} beyond
+     * its canopy. A door within a canopy's span of the last one shares it.
+     */
+    public static void doorCanopies(NavigationGrid grid, List<Doodad> doodads, int lo, int hi,
+                                    IntFunction<int[]> wall, int wallDx, int wallDy) {
+        int run = -1, last = lo - AWNING_SPAN;
+        for (int i = lo; i <= hi + 1; i++) {
+            int[] cell = i <= hi ? wall.apply(i) : null;
+            boolean door = cell != null && grid.isDoorway(cell[0], cell[1]);
+            if (door && run < 0) run = i;
+            if (door || run < 0) continue;
+            int middle = (run + i - 1) / 2;
+            run = -1;
+            if (middle - last < AWNING_SPAN) continue;
+            int[] at = wall.apply(middle);
+            awning(doodads, CANOPY, at[0] - wallDx, at[1] - wallDy, wallDx, wallDy);
+            last = middle;
+        }
     }
 
     /**

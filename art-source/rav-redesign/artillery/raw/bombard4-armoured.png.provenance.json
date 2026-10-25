@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a174b1-50eb-7a50-a4f2-cf3e0a8798b7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a174b1-50eb-7a50-a4f2-cf3e0a8798b7\\exec-d7d449f0-311b-491b-af28-7e1fbbfbb3e6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\artillery\\raw\\bombard4-armoured.png",
+    "sha256": "95cc8ed55946bfad6afd93da1efeadf18798e8681f15ec15c00f9c09a52e5386",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\artillery\\prompts\\bombard4-armoured.prompt.txt",
+  "promptSha256": "12b447f24e2de018c9b7ff71084c1c98c2b8348b4eb7bd6193406dbf61bbc752",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Crustacean silhouette, heavy carapace and the catapult-tail wind-up and release idea; NOT its six legs\nImage 2: Palette, material and rendering style only\n\nConcept art for a top-down tactical game: the Rav Bloom artillery strain \"Bombard\", a large, lumbering living CATAPULT as big as a small tank. It must read unmistakably as a LOBSTER or CRAYFISH (the crustacean silhouette of reference image 1: a long segmented body, a broad carapace, sturdy jointed walking legs, a segmented tail), NOT an insect, tick or spider. Lobster proportions: a long cephalothorax carapace, two big front CLAWS (chelae) held forward, two long whip antennae, four pairs of short, sturdy jointed walking legs set close under the body, and a long segmented tail used as the catapult arm ending in a cupped bony sling (a hollow ivory ladle) instead of a tail fan.\n\nMOSTLY ARMOURED, like a real lobster: a full, thick, hard charcoal carapace over the head and back, heavy segmented tail plates, and THICK, sturdy, armoured walking legs (as heavy as a lobster's, not spindly). It keeps ONE clear weak point, readable from above: the back carapace is split open along its middle seam into two shell halves that do not meet, and through that long gap a soft, swollen, pale bile sac bulges up, glowing dull amber, plainly unprotected; and at the hinge where the tail joins the body, raw red sinew and muscle show between the plates, straining under the sling.\n\nDraw the SAME creature TWICE, side by side, as two animation frames, well apart, identical body and legs in both, head toward the top of the canvas in both:\nLEFT, \"wind-up\": the tail is COCKED BACK, curled up and forward over the body toward the head, the loaded sling resting above the shoulders with a glowing glob in its cup; the walking legs braced wide.\nRIGHT, \"release\": the tail has FLUNG through its arc and stretches straight out BEHIND the body, extended, the sling empty; the glob has just left and is a separate glowing amber ball flying away a short distance beyond the head, with a faint streak behind it.\n\nCOLOURING (reference image 2's palette): charcoal-black shell with faint indigo sheen, edged in dried-blood red, dark wine-red sinew and muscle, yellowed worn ivory for the sling and claw tips; soft parts pale and sickly, faintly translucent with a dull smouldering AMBER glow beneath; the glob the same amber. No other bright colours.\n\nStrict overhead orthographic view, seen from directly above, light from the upper left. Painterly game-sprite finish in the same rendering style as reference image 2, crisp silhouettes. Plain flat light grey background (#b4b4b4) everywhere; no ground, no shadow slab, no text, no labels, no border. Wide landscape canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\artillery\\raw\\bombard2-catapult.png",
+      "sha256": "4aacbd1175528cb927cf7b8fe8e0454eed953cddcd66e55fc73849791e15cfcc",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Crustacean silhouette, heavy carapace and the catapult-tail wind-up and release idea; NOT its six legs"
+    },
+    {
+      "path": "art-source\\rav-redesign\\artillery\\raw\\bombard2-charcoal-amber.png",
+      "sha256": "fc2276f389038335756d73429a881b0019facba034aadb4b69e9a49c4b86bffc",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Palette, material and rendering style only"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with the two matching lobster-like catapult poses and the charcoal, ivory, and amber palette."
+  ],
+  "usage": {
+    "input_tokens": 45912,
+    "cached_input_tokens": 35584,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 921,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.7
+}

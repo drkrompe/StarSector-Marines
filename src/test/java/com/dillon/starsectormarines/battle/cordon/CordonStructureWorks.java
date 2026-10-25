@@ -394,7 +394,7 @@ final class CordonStructureWorks {
             case FREIGHT_T -> new int[]{19, 19};
             case FARMHOUSE -> new int[]{9, 7};
             case BARN -> new int[]{13, 8};
-            case PUMP_HOUSE -> new int[]{29, 16};
+            case PUMP_HOUSE -> new int[]{23, 14};
         };
         return (turns & 1) == 0 ? s : new int[]{s[1], s[0]};
     }

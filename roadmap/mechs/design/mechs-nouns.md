@@ -1473,6 +1473,7 @@ covers, and half the load (rounded up) at other armor; a chained salvo goes only
 chain began on. A vehicle turret's missile launcher obeys the same hold and choice, except that its
 crew chains at most three salvos (owner, 2026-10-23): a vehicle magazine is its whole stock and is
 never replenished in battle, so it is not one rack's buffer to empty at the first machine it sees.
+The owner has since asked for vehicles to rearm (`vehicle-rearm.md`), which revisits this cap.
 
 **Against a machine, the mount that best defeats its armor fires first.** The
 reservoir admits one packet at a time, so whichever mount an autonomous mech tries

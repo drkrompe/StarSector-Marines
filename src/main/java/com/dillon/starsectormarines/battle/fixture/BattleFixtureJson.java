@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.cordon.CordonPosture;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
@@ -151,12 +152,18 @@ public final class BattleFixtureJson {
             root.put("variant", cordon.variant().name());
             root.put("biome", cordon.biome().name());
             if (cordon.density() != CordonPlan.Density.RURAL) root.put("density", cordon.density().name());
+            if (cordon.posture() != CordonPosture.DEFAULT) root.put("posture", cordon.posture().name());
             root.put("shuttles", shuttlesToJson(cordon.manifest()));
             return root;
         }
         if (fixture instanceof ColdAccountBattleFixture cold) {
             root.put("kind", cold.kind());
             root.put("base", toJson(cold.base()));
+            return root;
+        }
+        if (fixture instanceof DustLedgerBattleFixture ledger) {
+            encodeCommon(root, ledger.kind(), ledger.seed(), ledger.manifest(), false,
+                    ledger.risk(), ledger.targetProfile());
             return root;
         }
         if (fixture instanceof AssaultBattleFixture assault) {
@@ -276,8 +283,14 @@ public final class BattleFixtureJson {
                     enumValue(CordonVariant.class, root.getString("variant"), "variant"),
                     storyBiome(root), root.has("density")
                             ? enumValue(CordonPlan.Density.class, root.getString("density"), "density")
-                            : CordonPlan.Density.RURAL, shuttlesFromJson(root.getJSONArray("shuttles")));
+                            : CordonPlan.Density.RURAL, shuttlesFromJson(root.getJSONArray("shuttles")),
+                    root.has("posture") ? enumValue(CordonPosture.class, root.getString("posture"), "posture")
+                            : CordonPosture.DEFAULT);
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
+            case DustLedgerBattleFixture.KIND -> new DustLedgerBattleFixture(root.getLong("seed"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")),
+                    enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                    targetProfileFromJson(root.getJSONObject("targetProfile")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);

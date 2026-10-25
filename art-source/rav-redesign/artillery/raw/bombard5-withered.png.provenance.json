@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17500-75c7-79d3-a864-15386c4d1d2c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17500-75c7-79d3-a864-15386c4d1d2c\\exec-a3db32ca-1ac6-4ddc-8b28-c40ea35086b4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\artillery\\raw\\bombard5-withered.png",
+    "sha256": "629e528d0d2bd782748b9612b4de3bc346c53814c7500a46de6cafe14ac7cd71",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\artillery\\prompts\\bombard5-withered.prompt.txt",
+  "promptSha256": "b4bcff03150e12931557c5b961227093697d025e6f3a7720660b12540048ab29",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The creature and both frames to reproduce, with only the stated changes\n\nThe SAME creature as reference image 1 (the Rav Bloom artillery strain \"Bombard\", a lobster-like living catapult), with TWO changes only:\n1. The two front CLAWS are ATROPHIED: shrunken to about half their size, withered and thin, the shell on them shrivelled and cracked, held close in at the front of the body; vestigial leftovers, clearly not weapons.\n2. The ANTENNAE are much SHORTER: two short antennae reaching only about a body-width forward of the head, no long sweeping whips.\n\nKeep EVERYTHING else exactly as in reference image 1: the same two frames side by side (LEFT wind-up with the tail cocked over the back holding the glowing amber glob in its bony sling cup; RIGHT release with the tail flung out straight behind and the amber glob flying away beyond the head), the same heavy charcoal carapace edged in dried-blood red, the back shell split open down its seam over the glowing amber bile sac, the same four pairs of thick armoured walking legs, the same proportions, palette, lighting and rendering. Strict overhead orthographic view, light from the upper left. Plain flat light grey background (#b4b4b4); no ground, no shadow slab, no text, no labels, no border. Wide landscape canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\artillery\\raw\\bombard4-armoured.png",
+      "sha256": "95cc8ed55946bfad6afd93da1efeadf18798e8681f15ec15c00f9c09a52e5386",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "The creature and both frames to reproduce, with only the stated changes"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with only the claws reduced and withered and the antennae shortened, preserving both poses and the rest of the design."
+  ],
+  "usage": {
+    "input_tokens": 40934,
+    "cached_input_tokens": 32896,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 470,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 42.9
+}

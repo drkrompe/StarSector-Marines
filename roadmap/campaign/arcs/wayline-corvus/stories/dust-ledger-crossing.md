@@ -1,7 +1,7 @@
 # The Dust Ledger — Saltwell Cross
 
-Status: IN PROGRESS — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25); pieces A
-(the map, `DustLedgerCrossing`) and B (mission behaviour) are built, C and D are under way.
+Status: IN PROGRESS — wired into the campaign: the chapter now plays Saltwell Cross with the quiet phase,
+burning ledger, broker and side objectives. A second, more detailed map pass and difficulty tuning remain.
 Written: 2026-10-25
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus)
@@ -110,7 +110,7 @@ delay the burn, is deferred until the first two are played.
 ## Map
 
 Authored like Relief and Shepherd Basin: a Java recipe plus road, terrain and
-damage documents. About 192x112 cells. No compound filler and no grown garrison
+damage documents. 240x112 cells, wide enough for a compound of several yards. No compound filler and no grown garrison
 precinct; buildings publish only through `HeldPlaces`, so nothing becomes a
 capture point by accident. Surface palette follows the actual planet (ARID).
 
@@ -121,12 +121,24 @@ capture point by accident. Surface palette follows the actual planet (ARID).
 | Crawler road | The Harrow salvage yard with its stranded crawler, between market and compound. |
 | North | A rock escarpment (raised cliffs) with a standable ridge reached by ramps, overlooking the compound yard: an overwatch position to take during the quiet phase. |
 | South | The dry terraforming canal (excavated, impassable, see-through) with dead fields along it and two crossings. |
-| East | The pump house compound: walled yard, gate on the crawler road, counting room and ledger room with the burn barrel in the pump house's administrative interior, broker's office, radio room, crawler garage, bunkhouse, sentry posts. The broker's skimmer pad lies beyond the southern canal crossing. |
+| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The broker's skimmer pad lies beyond the southern canal crossing. |
 | Beyond | Open hardpan, wreck debris and scattered ruins framing the edges. |
 
 Three approaches to the compound must be real choices: through the market
 (cover, civilians, short), along the ridge (overwatch, slow), and up the crawler
 road past the salvage yard (direct, exposed).
+
+**Art needs.** The map dresses these with stand-ins until art exists; none is
+generated yet.
+
+| Needed | Stand-in now |
+|---|---|
+| Market stall (table, goods, cloth) | `mess-table-long` under a street-kit awning, with a crate |
+| The warden's well (head, windlass) | `industrial-pump-set` in the court |
+| Burn barrel (ledger fire) | `industrial-drum-cluster` |
+| Broker's skimmer, parked | a bare concrete pad |
+| Compound sentry tower | none; gate sandbags and barriers only |
+| Market cart, burnt-out terraforming pipe | parked trucks; `industrial-pipe-bundle` pieces |
 
 **Garrison.** One finite Sable Wake crew of about 18 at Low quality: gate and
 wall sentries, roof watch, clerks' guards in the pump house, crawler crew, and
@@ -171,18 +183,28 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 
 ## Acceptance
 
-- [ ] Authored map renders from the look preset; no capture point exists except
+- [x] Authored map renders from the look preset; no capture point exists except
   the mission's own objectives.
-- [ ] Every site is reachable from the apron; all three approaches stay open.
+- [x] Every site is reachable from the apron; all three approaches stay open.
+- [x] Second map pass: detail, a road hierarchy and a larger compound with inner
+  structure, on a larger map if needed (owner, 2026-10-25).
 - [x] Quiet phase holds until a listed trigger; each trigger raises the alarm in
   a unit test.
 - [ ] Ledger burn stops at seizure and reports its grade; a burned ledger still
   completes the chapter.
 - [x] Broker surrender, escort, escape and clock departure each resolve.
 - [x] Each side objective pays off only if complete before the alarm.
-- [ ] Every victory debrief names Prell's authority and the Warion lead.
+- [x] Every victory debrief names Prell's authority and the Warion lead: the
+  debrief selects Castle's opening by grade, Mara's finding by grade and broker,
+  and Castle's close by broker (`MissionDebriefConversation.dustLedgerLines`).
 - [ ] Headless playback with two squads wins with acceptable losses, with and
-  without side objectives.
+  without side objectives. Baseline on the second-pass compound
+  (`commanderEvidence -Pmission=corvus -Dbattle.corvus.chapter=DUST_LEDGER`):
+  victory in 224 s, losing 5/24 infantry against a militia-only crew. The
+  autonomous company walks into the ring, is sighted (alarm at tick 2860) and
+  takes no side objective, so this measures the worst approach only. On the
+  first compound the same run lost 12/24, and 24/24 with elite clerks. The
+  side-objective runs and live player-controlled tuning remain.
 - [ ] Live play on Asharu in a campaign, including save/reload mid-arc.
 
 ## Open questions
