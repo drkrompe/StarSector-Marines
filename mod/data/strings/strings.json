@@ -5247,6 +5247,7 @@
 		"battleRetryUnavailable": "Retry needs a story point",
 		"battleRetryLog":         "Retried the operation {0}",
 		"battleAcceptDefeat":     "Accept defeat",
+		"battleExtractionZone":   "Extraction",
 		"battleLoadingTerrain":   "Loading terrain",
 		"battleLoadingSprites":   "Loading sprites",
 		"battleLoadingEffects":   "Loading effects",
