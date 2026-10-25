@@ -1803,7 +1803,10 @@ and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
 LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
-since many bodies make them. A new sound or take is levelled the same way
+since many bodies make them. The anti-air flak that meets them is a little
+heavier than the line, its own deeper report and air-burst near -22 a voice
+(owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
+and rifle takes. A new sound or take is levelled the same way
 before it ships. The `swarm-sound` look suite logs what the battle screen would
 start (`BattleSoundLog`) so a review hears the levels against the fire.
 
