@@ -1,6 +1,6 @@
 # Set-piece districts
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-10-25
 
@@ -57,6 +57,28 @@ generalise, not a second mechanism beside it.
 
 ## The seam
 
+Built: `DistrictPlanStage`, `DistrictProgram`, `SpineClaim`, `QuarterClaim` (interface only),
+`DistrictStreets`, and `District` published under `BspKeys.DISTRICTS`. The spaceport campus is now the
+first district (a `CLUSTER` with no streets of its own) and compound claiming takes every planned
+district's compound first. What the next programs build on:
+
+- A program names a seed `BlockKind` with a `CompoundFiller` registered under it, and answers two
+  read-only questions: `request` (a `SpineRequest` or `QuarterRequest`: the spec, which leaves may be
+  members, and a **pocket** weight per leaf) and `plan` (each member's role, the seed member, and the
+  street mask with its claim's streets rewritten). Programs run in `BspCityGenerator.DISTRICT_PROGRAMS`
+  order, each over the leaves the ones before left; a member must still carry an eligible kind, so a
+  district never takes a compound seed, a planned freight yard or another district's leaves.
+- **Pocket**: a claim stands in its zoning pocket on balance, its members' weights adding up to at least
+  their count; the best claim stands deepest in its pocket, then has the most members, then the longest
+  street.
+- **Entries are mouths.** An entry cell is a street cell of the claim beside a street cell outside it; the
+  touching entry cells where one outside street meets the claim are one mouth. A rewrite is committed only
+  if every mouth keeps a street cell, any two mouths joined through the claim's streets before still are,
+  and no trunk cell changes. So a program may narrow a street at its mouth but not close it.
+- `quarter`: `QuarterClaim.find` answers null until the cordoned facility builds it. Its contract is in
+  the class comment: members tile the block's rows and columns with only road between them, and
+  `Quarter.streets` are those roads whole.
+
 1. **A district plan stage**, after the leaves are labelled and before the
    compound claim and the road graph, the same slot `IndustrialTemplateParcelStage`
    and `SpaceportDistrictPlanStage` use. For each district the map's character
@@ -99,6 +121,29 @@ generalise, not a second mechanism beside it.
   is the place a mission is about (a research station, a depot, a civil-defence
   centre), with a single defensible perimeter and inside streets to fight
   along. Marks: gatehouses, the courtyard, each building's role.
+
+**Main street, as built.** `MainStreetProgram` asks for a spine of two or three members a side, a
+street at least 24 cells long and no wider than a primary trunk, members of shops, homes, offices,
+plazas or parks. Its pocket weighs the zoning's civic core 2 and mixed town 1, plus 1 for a lot the
+labeller already made a shop, an office or a square. The larger end leaf is the plaza, the leaf at the
+other end the civic hall; its rewrite narrows each cross street between shops to three cells.
+`MainStreetLayout` stands each shop behind a pavement of one to three rows (`BuildingPlacement.frontOnly`
+onto the street), dresses the kerb with planters and counter stalls every third cell and a parked van per
+shop frontage, all kept out of doorways and corners, paves the plaza with a bandstand where it is ten
+cells a side, and paves the spine and its cross-street stubs as city street, so the street finish lays
+asphalt where a colony would have left a lane. It publishes `MainStreet` on `MapResult.mainStreets`: the
+centre line from the plaza end to the hall end, the carriageway width, the plaza's bounds and the hall's
+front door.
+
+Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 5 of 24 medium city maps and
+14 of 24 colonies (the freight yard and the market square plan their parcels first). Cities zone few civic or mixed pockets; counting the residential neighbourhood as half
+a pocket lifted cities from 5 to 15 of 24 and left colonies alone, which is a choice for the owner (a high
+street among houses) rather than the brief's commercial or civic pocket. Look:
+`createSnapshots -Psnapshot=main-street-look`.
+
+Open on main street: street lamps and awnings have no art (planters, benches, stalls and parked vans
+stand in); the market square takes the plaza role once its lot can be a district member (today it joins
+two parcels after compound claims, so a district member is never its lot).
 
 ## Order
 

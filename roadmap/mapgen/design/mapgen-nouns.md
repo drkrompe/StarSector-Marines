@@ -375,6 +375,21 @@ cannot stand in is an ordinary plaza. The square publishes an **open square**
 cells with the step out onto the street, for an objective to hold, cross or
 send pressure through.
 
+A **district** is a set piece over several adjacent leaves and the streets between them
+(`set-piece-districts.md`). A district program asks for a claim shape, a **spine** (one straight street
+with members fronting both sides) or a **quarter** (a block of leaves round its cross streets), among
+the leaves of its zoning pocket, gives each member a role, and owns the streets inside its claim: it may
+narrow, widen or close them, but every **mouth** (a way the outside network had into the claim) keeps a
+street cell, mouths joined through the claim before stay joined, and trunks are untouched. The rewrite is
+written back into the road mask before the road graph is built, so the graph, vehicles and tactical links
+see one network. Planning is read-only until it commits, draws no random number, and runs after the
+leaves are labelled and before compound claims, which take each district's compound first; a district
+that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
+district, a cluster with no streets of its own. **Main street** is the first program: shopfronts behind
+pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
+hall at the other. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
+door).
+
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
 consumable storage and packing rather than repeating a generic warehouse. The
