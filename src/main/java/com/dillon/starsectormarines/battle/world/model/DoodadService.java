@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * Owns the battle's persistent {@link Doodad} list plus the per-cell /
@@ -182,6 +183,16 @@ public final class DoodadService {
 
     public NaturalPropDamage.Result damageNaturalProp(int x, int y, int amount, long attack, NaturalPropDamage.ClearedCell cleared) {
         return naturalProps.damage(x, y, amount, attack, cleared);
+    }
+
+    /** The standing tree placed at this origin has died and is undergrowth from now on ({@link NaturalPropDamage#wither}). */
+    public boolean witherNaturalProp(int originX, int originY) {
+        return naturalProps.wither(originX, originY);
+    }
+
+    /** Names the cells whose natural obstruction is the ground's own and never crushable. */
+    public void setPermanentNatural(IntPredicate permanent) {
+        naturalProps.setPermanent(permanent);
     }
 
     public RockDamage.Result damageRock(int x, int y, int amount, CellTopology topology) {

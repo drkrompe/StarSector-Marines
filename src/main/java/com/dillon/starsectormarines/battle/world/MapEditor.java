@@ -77,7 +77,12 @@ public final class MapEditor {
     private final NaturalPropDamage.ClearedCell naturalCellCleared = this::clearNaturalPropCell;
     private final PropDamage.ClearedCell propCellCleared = this::clearPropCell;
 
-    public void setDoodads(DoodadService doodads) { this.doodads = doodads; }
+    public void setDoodads(DoodadService doodads) {
+        this.doodads = doodads;
+        // A tree on a summit shares the cell with the cliff: felling it leaves the cliff, so crushing never opens it.
+        doodads.setPermanentNatural(cell -> topology.terrainSurface() != null
+                && topology.terrainSurface().isFullSummit(cell % grid.getWidth(), cell / grid.getWidth()));
+    }
 
     public void setRoofCollapseSink(CellCallback sink) { this.roofCollapseSink = sink; }
 
@@ -122,10 +127,33 @@ public final class MapEditor {
         }
     }
 
+    /** More structure than any crushable object holds, so a crush always fells or grinds it at once. */
+    private static final int CRUSH_DAMAGE = 1_000_000;
+
+    /**
+     * A heavy-lift hull drives into a {@link NavigationGrid.CellTag#CRUSHABLE} cell (`HeavyTracks`): the undergrowth
+     * owning it is felled whole, or the boulder ground to its rubble, through the ordinary destruction path. Returns
+     * {@code false} (no-op) when the cell is not crushable.
+     */
+    public boolean crush(int x, int y) {
+        if (!grid.inBounds(x, y) || grid.isWalkable(x, y)
+                || !grid.hasTag(x, y, NavigationGrid.CellTag.CRUSHABLE)) return false;
+        return damageWall(x, y, CRUSH_DAMAGE, ++structuralAttack);
+    }
+
+    /**
+     * The creep has killed the tree placed at this origin (`CreepVegetation`): it is undergrowth from now on, so a
+     * heavy-lift hull pushes it over where no other living tree's crown holds its cells.
+     */
+    public void witherTree(int originX, int originY) {
+        if (doodads != null) doodads.witherNaturalProp(originX, originY);
+    }
+
     private boolean damageWall(int x, int y, int amount, long attack) {
         if (doodads != null) {
             RockDamage.Result rock = doodads.damageRock(x, y, amount, topology);
             if (rock == RockDamage.Result.DESTROYED) {
+                grid.setTag(x, y, NavigationGrid.CellTag.CRUSHABLE, false);
                 if (!grid.isWalkable(x, y)) {
                     grid.setWalkable(x, y, true);
                     grid.setSeeThrough(x, y, false);
