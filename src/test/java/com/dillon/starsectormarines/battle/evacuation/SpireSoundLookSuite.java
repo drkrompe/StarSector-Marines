@@ -13,16 +13,15 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The brood spire's launch and collapse against the fight, for the owner rather than for a verdict: a spire grown off
  * a matured satellite bore, a rifle line with a flak position in its reach, the bore's surge launching a pack over
- * the line, and the spire destroyed some seconds later. Play zoom, a frame every tick, with every sound the battle
- * screen would start logged beside the frames ({@link BattleSoundLog}, {@code spire-sound.jsonl} under
- * {@code -Dsnapshot.swarmSound.logDir}, default {@code build/swarm-sound}) for an offline mix. Opt-in.
+ * the line, and the spire destroyed some seconds later. Play zoom, a frame every tick; with
+ * {@code -Dsnapshot.lookSound=true} every sound the battle screen would start is logged ({@link BattleSoundLog},
+ * {@code build/look-sound/spire-sound.jsonl}) and mixed into the MP4's soundtrack ({@link LookReview}). Opt-in.
  */
 public final class SpireSoundLookSuite implements SnapshotSuite {
 
@@ -33,19 +32,17 @@ public final class SpireSoundLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "spire-sound"; }
 
-    @Override public String label() { return "Spire sound: a brood spire launching a pack over a gun line, then destroyed, with the sounds logged"; }
+    @Override public String label() { return "Spire sound: a brood spire launching a pack over a gun line, then destroyed, to hear with -Dsnapshot.lookSound=true"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
-        Path logs = Path.of(System.getProperty("snapshot.swarmSound.logDir",
-                context.projectRoot().resolve("build/swarm-sound").toString()));
-        return new ArrayList<>(LookReview.record(context.modRoot(), shot(logs.resolve("spire-sound.jsonl"))));
+        return new ArrayList<>(LookReview.record(context.modRoot(), shot()));
     }
 
-    private static LookReview.Shot shot(Path log) {
+    private static LookReview.Shot shot() {
         return new LookReview.Shot("spire-sound", LookGround.verdant(), W, H,
                 placement -> {
                     int x0 = placement.site().x0(), y0 = placement.site().y0();
@@ -66,7 +63,6 @@ public final class SpireSoundLookSuite implements SnapshotSuite {
                             s.applyDamage(spire, 1_000_000f, 1_000_000f);
                         }
                     });
-                    BattleSoundLog.attach(placement, LookReview.View.followAtPlay(placement, "line", "spire"), log);
                     System.out.printf("    [spire-sound] %d spires%n", sim.broodSpires().spires().size());
                     return sim;
                 },

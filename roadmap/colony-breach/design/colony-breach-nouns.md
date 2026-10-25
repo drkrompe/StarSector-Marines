@@ -2018,8 +2018,10 @@ screech; its collapse, a big one-off, near -19. The anti-air flak that meets the
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
 and rifle takes. A new sound or take is levelled the same way
-before it ships. The `swarm-sound` and `spire-sound` look suites log what the battle screen would
-start (`BattleSoundLog`) so a review hears the levels against the fire.
+before it ships. The `swarm-sound` and `spire-sound` look suites, run with
+`-Dsnapshot.lookSound=true`, log what the battle screen would start
+(`BattleSoundLog`) and mix it into their MP4s, so a review hears the levels
+against the fire.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling
