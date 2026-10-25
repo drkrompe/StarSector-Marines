@@ -423,8 +423,8 @@ no dead end is made and every planned claim stays where it was. Conquest's biome
 
 A map that is one settlement has a **town plan** over its rolled zoning (`TownZoning`): a two-by-two **civic
 core** at the trunk crossing, a **high street ring** of mixed town round it where main street and the market
-find their pocket, and an **industrial edge** along the map edge farthest from the core (two blocks deep in an
-industrial economy). Elsewhere the roll stands, except that a civic block off the core and an industrial block
+find their pocket, and an **industrial edge** along the map edge farthest from the core (two blocks deep, so a
+service street can be lined from both sides). Elsewhere the roll stands, except that a civic block off the core and an industrial block
 not touching the belt are homes: one centre, one industrial edge. The coast keeps its waterfront. A map of
 precincts plans each place by its character instead.
 

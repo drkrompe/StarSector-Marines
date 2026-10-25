@@ -12,8 +12,8 @@ import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
  *       corners, two by two where the map has room, are the civic core.</li>
  *   <li><b>High street ring</b>: every block beside the core is mixed town, where a main street and a market
  *       square find their pocket.</li>
- *   <li><b>Industrial edge</b>: the map edge farthest from the core is the industrial belt, two blocks deep
- *       where the world's economy is industry.</li>
+ *   <li><b>Industrial edge</b>: the map edge farthest from the core is the industrial belt, two blocks deep so a
+ *       service street can be lined from both sides.</li>
  *   <li>Elsewhere the roll stands, except that a civic block away from the core is homes (a town has one
  *       centre) and an industrial block off the belt is homes too unless it touches the belt, which it then
  *       extends.</li>
@@ -26,13 +26,16 @@ public final class TownZoning {
 
     private TownZoning() { }
 
+    /** How many blocks deep the industrial belt runs in from its edge. */
+    static final int BELT_DEPTH = 2;
+
     /** What each block of a plan is. */
     enum Part { CORE, RING, BELT, REST }
 
     /** Lays the plan over {@code map}, its centre at nav cell {@code (centreX, centreY)}. */
     public static void apply(DistrictMap map, int centreX, int centreY) {
         Part[][] plan = plan(map.districtsX(), map.districtsY(), map.districtCellWidth(), map.districtCellHeight(),
-                centreX, centreY, map.economyTheme() == MapDistrictTheme.INDUSTRIAL);
+                centreX, centreY);
         int nx = map.districtsX(), ny = map.districtsY();
         for (int dx = 0; dx < nx; dx++) {
             for (int dy = 0; dy < ny; dy++) {
@@ -60,9 +63,9 @@ public final class TownZoning {
 
     /**
      * The plan on a grid of {@code nx} by {@code ny} blocks of {@code cellW} by {@code cellH} cells, centred on
-     * nav cell {@code (centreX, centreY)}; {@code deepBelt} makes the industrial edge two blocks deep.
+     * nav cell {@code (centreX, centreY)}.
      */
-    static Part[][] plan(int nx, int ny, int cellW, int cellH, int centreX, int centreY, boolean deepBelt) {
+    static Part[][] plan(int nx, int ny, int cellW, int cellH, int centreX, int centreY) {
         Part[][] plan = new Part[nx][ny];
         for (int dx = 0; dx < nx; dx++) for (int dy = 0; dy < ny; dy++) plan[dx][dy] = Part.REST;
         int cx = clamp(centreX / cellW, nx), cy = clamp(centreY / cellH, ny);
@@ -79,7 +82,6 @@ public final class TownZoning {
         int[] room = {x0, nx - 1 - x1, y0, ny - 1 - y1};
         int side = 0;
         for (int i = 1; i < room.length; i++) if (room[i] > room[side]) side = i;
-        int depth = deepBelt ? 2 : 1;
         for (int dx = 0; dx < nx; dx++) {
             for (int dy = 0; dy < ny; dy++) {
                 int in = switch (side) {
@@ -88,7 +90,7 @@ public final class TownZoning {
                     case 2 -> dy;
                     default -> ny - 1 - dy;
                 };
-                if (in < depth && plan[dx][dy] == Part.REST) plan[dx][dy] = Part.BELT;
+                if (in < BELT_DEPTH && plan[dx][dy] == Part.REST) plan[dx][dy] = Part.BELT;
             }
         }
         return plan;

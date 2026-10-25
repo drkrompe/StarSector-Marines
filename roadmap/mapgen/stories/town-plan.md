@@ -110,8 +110,8 @@ now planned over the roll (`TownZoning`), the way a precinct's character already
   corner, two by two.
 - **High street ring**: every block beside the core is mixed town, where main street and the market square
   find their pocket.
-- **Industrial edge**: the map edge farthest from the core is the industrial belt, two blocks deep where the
-  world's economy is industry. The coast keeps its waterfront everywhere.
+- **Industrial edge**: the map edge farthest from the core is the industrial belt, two blocks deep so the
+  industrial zone's service street can be lined from both sides. The coast keeps its waterfront everywhere.
 - **Elsewhere** the roll stands, but a town has one centre and one industrial edge: a civic block away from
   the core becomes homes, and an industrial block becomes homes unless it touches the belt, which it then
   extends.
@@ -121,14 +121,19 @@ stock medium cities (precinct maps, colonies among them, are unchanged):
 
 | measure | rolled | planned |
 |---|---|---|
-| civic or mixed blocks per map | 6.3 | 13.0 |
-| largest connected civic or mixed group | 3.9 | 12.7 |
-| industrial blocks per map | 5.0 | 3.9 |
-| largest connected industrial group | 3.1 | 3.5 |
-| main street stands | 15 of 24 | 16 of 24 |
+| civic or mixed blocks per map | 6.3 | 12.5 |
+| largest connected civic or mixed group | 3.9 | 12.3 |
+| industrial blocks per map | 5.0 | 6.9 |
+| largest connected industrial group | 3.1 | 6.8 |
+| main street stands | 15 of 24 | 14 of 24 |
+| cordoned facility stands | 11 of 24 | 14 of 24 |
+| industrial zone stands (hosting a freight yard) | 4 (3) of 24 | 3 (2) of 24 |
 
-Industry is a little less of the map but one place rather than three or four scattered blocks. It moves every
-stock and grown city's labels and pockets (the `Request.pocket()` contract is unchanged); every story map pool
+Industry is one place rather than three or four scattered blocks. **Tried and dropped: a one-block belt**
+(two deep only in an industrial economy): the civic centre was the same, main street stood on 16 and the
+facility on 13, but the industrial zone fell to 1 of 24 with no freight yard, because an edge one block deep
+seldom lines a service street from both sides. The plan moves every stock and grown city's labels and
+pockets (the `Request.pocket()` contract is unchanged); every story map pool
 still passes. Look: the same suite adds a whole-town still for each city.
 
 ## Acceptance

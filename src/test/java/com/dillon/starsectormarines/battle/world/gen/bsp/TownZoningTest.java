@@ -15,7 +15,7 @@ class TownZoningTest {
     @Test
     void theCentreIsATwoByTwoCoreRingedByTheHighStreetWithIndustryOnTheFarthestEdge() {
         // A 7x4 grid of 20-cell blocks; the centre sits in the upper-left quarter of block (3, 2).
-        Part[][] plan = TownZoning.plan(7, 4, 20, 20, 64, 44, false);
+        Part[][] plan = TownZoning.plan(7, 4, 20, 20, 64, 44);
         assertEquals(Part.CORE, plan[2][1]);
         assertEquals(Part.CORE, plan[3][2]);
         assertEquals(Part.CORE, plan[2][2]);
@@ -24,18 +24,24 @@ class TownZoningTest {
         assertEquals(Part.RING, plan[4][2]);
         assertEquals(Part.RING, plan[2][0]);
         assertEquals(Part.RING, plan[3][3]);
-        // The core spans columns 2..3, so the east edge (three blocks away) is farther than the west (two).
-        for (int dy = 0; dy < 4; dy++) assertEquals(Part.BELT, plan[6][dy]);
+        // The core spans columns 2..3, so the east edge (three blocks away) is farther than the west (two);
+        // the belt is two blocks deep there.
+        for (int dy = 0; dy < 4; dy++) {
+            assertEquals(Part.BELT, plan[6][dy]);
+            assertEquals(Part.BELT, plan[5][dy]);
+        }
         assertEquals(Part.REST, plan[0][1]);
     }
 
     @Test
-    void anIndustrialEconomyDeepensTheBeltWithoutTakingTheRing() {
-        Part[][] plan = TownZoning.plan(7, 4, 20, 20, 64, 44, true);
+    void theBeltNeverTakesTheRing() {
+        // The core in the east-middle: the belt is the west edge, and the ring beside the core stays mixed.
+        Part[][] plan = TownZoning.plan(4, 4, 20, 20, 50, 30);
         for (int dy = 0; dy < 4; dy++) {
-            assertEquals(Part.BELT, plan[6][dy]);
-            assertTrue(plan[5][dy] == Part.BELT || plan[5][dy] == Part.RING);
+            assertEquals(Part.BELT, plan[0][dy]);
+            assertTrue(plan[1][dy] == Part.BELT || plan[1][dy] == Part.RING);
         }
+        assertEquals(Part.RING, plan[1][1]);
     }
 
     @Test
@@ -43,7 +49,7 @@ class TownZoningTest {
         for (long seed = 0; seed < 32; seed++) {
             DistrictMap map = new DistrictMap(144, 80, new Random(seed));
             TownZoning.apply(map, 64, 44);
-            Part[][] plan = TownZoning.plan(7, 4, 20, 20, 64, 44, false);
+            Part[][] plan = TownZoning.plan(7, 4, 20, 20, 64, 44);
             for (int dx = 0; dx < 7; dx++) {
                 for (int dy = 0; dy < 4; dy++) {
                     MapDistrictTheme theme = map.themeAtDistrict(dx, dy);
@@ -55,7 +61,7 @@ class TownZoningTest {
                         case REST -> {
                             assertNotEquals(MapDistrictTheme.CIVIC, theme, "a second centre at " + dx + "," + dy);
                             if (theme == MapDistrictTheme.INDUSTRIAL) {
-                                assertEquals(6 - 1, dx, "industry off the belt at " + dx + "," + dy);
+                                assertEquals(4, dx, "industry off the belt at " + dx + "," + dy);
                             }
                         }
                     }
