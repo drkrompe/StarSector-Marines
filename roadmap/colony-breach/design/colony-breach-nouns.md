@@ -8,6 +8,8 @@ Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of t
 
 Updated: 2026-10-24 — a bloom's calls are the only missions the campaign seeds by planet.
 
+Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
+
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
 fixture lineage and Marine rescue commander, with a colony worth fighting
@@ -1080,6 +1082,27 @@ not read in a soft shadow at play zoom.
   pair about the head, and are long enough that a reap reads past the crown
   (owner's pick over mounting them further out or turning them with the head).
   It dies with its back broken, in one of four poses of that death.
+
+  Her **damage reads in her body**, never as a flash (owner: a flash reads as
+  arcade). **Worn chitin** (`RavWear`) is worn plate made organic
+  (`combat-durability-nouns.md`, Worn plate): as her plate is stripped her shell
+  is scored and chipped bone-white, then bruised a sickly yellow and violet and
+  cracked; as her health goes it is torn open in wet, weeping wounds over the
+  sinew. The marks are painted in colours her healthy body never has, so they
+  read on charcoal and wine-red at play zoom. It observes and never
+  records: her marks are a pure function of her plate's and her health's
+  fractions, laid on her body and her head in their own frames, so they build up
+  in place, turn with her and grow with her through a moult (which keeps both
+  fractions). Every **round that lands** sends up a puff off the rim facing the
+  gun, sized by its weapon (`SwarmHitFeedback`): shell dust and a chip or two
+  while plate is left after it, ichor once it reaches the flesh. A round her plate
+  turns **glances**: a pinpoint spark and a chip of chitin skip off along its path
+  mirrored about the rim. A glance is the armour law read, not a rule of its own:
+  the share of a weapon's rounds drawn glancing is the share of her rating its
+  penetration does not reach (a rifle's half, a squad automatic's two thirds, an
+  anti-materiel rifle's or a heavy cannon's none), and a stripped body turns
+  nothing. The Brute wears and shows its hits by the same law, on each half of
+  its body and its head. The `rav-wear` look suite shows both.
 - **Harrier** — the swarm's flier, a winged strain that hunts in **packs** of
   six to twenty (`SwarmFliers`, `HarrierPack`). It is the swarm's answer to a line it cannot walk through: the ground
   swarm is channelled by ridges, passes, wire and redoubts, and a flier is not.

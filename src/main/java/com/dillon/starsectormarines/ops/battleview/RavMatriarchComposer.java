@@ -43,6 +43,12 @@ final class RavMatriarchComposer {
      */
     static void emit(DrawList out, RavMatriarchAssets art, RavMatriarchRig rig, float cx, float cy, float ppc,
                      float alpha) {
+        emit(out, art, rig, cx, cy, ppc, alpha, null);
+    }
+
+    /** As above, with her worn chitin laid on her body and head as each is drawn ({@code marks} null for none). */
+    static void emit(DrawList out, RavMatriarchAssets art, RavMatriarchRig rig, float cx, float cy, float ppc,
+                     float alpha, RavWear.Marks marks) {
         float facing = rig.facingDegrees();
         double rad = Math.toRadians(facing);
         float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
@@ -81,6 +87,8 @@ final class RavMatriarchComposer {
         layerPoint(CENTRE_COL, CANVAS_CENTRE_ROW, shX, shY, axX, axY, lc, ls, cx, cy, ppc, fx, fy, a);
         out.addSprite(RenderLayer.UNITS, art.body.sprite, a[0], a[1], art.body.pxWidth * spritePx,
                 art.body.pxHeight * spritePx, bodyAngle, 1f, 1f, 1f, alpha);
+        if (marks != null) marks.part(art.body, RavWear.MATRIARCH_BODY, 0, a[0], a[1], art.body.pxWidth * spritePx,
+                art.body.pxHeight * spritePx, bodyAngle, alpha);
 
         boolean[] over = new boolean[2];
         for (int side = 0; side < 2; side++) {
@@ -103,6 +111,9 @@ final class RavMatriarchComposer {
         out.addSprite(RenderLayer.UNITS, head.sprite, b[0] + ox * cos - oy * sin, b[1] + ox * sin + oy * cos,
                 head.pxWidth * spritePx * hk, head.pxHeight * spritePx * hk, bodyAngle + turn,
                 1f, 1f, 1f, alpha);
+        if (marks != null) marks.part(head, RavWear.MATRIARCH_HEAD, 1, b[0] + ox * cos - oy * sin,
+                b[1] + ox * sin + oy * cos, head.pxWidth * spritePx * hk, head.pxHeight * spritePx * hk,
+                bodyAngle + turn, alpha);
 
         for (int side = 0; side < 2; side++) {
             if (over[side]) scythe(out, art, rig, side, shX, shY, axX, axY, lc, ls, bodyAngle,

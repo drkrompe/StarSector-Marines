@@ -194,6 +194,7 @@ import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHitFeedback;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -569,6 +570,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * {@link #rng} is available.
      */
     private final EffectsService effects;
+    /** Rounds shown landing on a plated Rav so far: tells apart several landing on one body in one tick. */
+    private int swarmHitsShown;
     /** Persistent physical supply caches and their finite transfer state. */
     private final com.dillon.starsectormarines.battle.logistics.ResupplyService resupply =
             new com.dillon.starsectormarines.battle.logistics.ResupplyService();
@@ -2292,6 +2295,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
     /** Claw strikes queued this tick; see {@code EffectsService.emitClawStrike}. Drained by the host into {@code ImpactFx.spawnClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
+    /** Rounds landed on plated Rav this tick; see {@code EffectsService.emitSwarmHit}. Drained into {@code ImpactFx.spawnSwarmHit}. */
+    public List<float[]> getSwarmHitsThisFrame() { return effects.getSwarmHitsThisFrame(); }
     /** Queues the look of a claw strike on a body; see {@code EffectsService.emitClawStrike}. */
     public void emitClawStrike(float x, float y, float dirX, float dirY, float blood) {
         effects.emitClawStrike(x, y, dirX, dirY, blood);
@@ -4038,8 +4043,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
         }
         rosterService.telemetry().recordRoundHit(impact.shooterId);
+        UnitType victimType = rosterService.identity().type(impact.victimId);
+        boolean shows = SwarmHitFeedback.shows(victimType);
+        boolean plated = shows && world().hasArmor(impact.victimId);
+        float armorBefore = plated ? world().armor(impact.victimId) : 0f;
         damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
                 impact.penetration, impact.moraleImpact, impact.part);
+        if (shows) showSwarmHit(impact, victimType, plated, armorBefore);
         if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
             friendlyFireSquadsThisFrame.add(friendlyFireSquad);
         }
@@ -4047,6 +4057,31 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             hitResponse.rollFallbackOnHit(impact.victimId);
             hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
         }
+    }
+
+    /**
+     * A round that just landed on a plated Rav shows as a puff or a glance ({@link SwarmHitFeedback}): read off the hit
+     * the damage path resolved, from where its shooter stands (or from ahead of the body, when the shooter is gone).
+     */
+    private void showSwarmHit(ShotService.PendingImpact impact, UnitType type, boolean plated, float armorBefore) {
+        long victim = impact.victimId;
+        float x = world().x(victim), y = world().y(victim);
+        float facing = entityWorld.has(victim, battleComponents.LAYERED_ANIMATION)
+                ? entityWorld.getFloat(victim, battleComponents.LAYERED_ANIMATION,
+                        BattleComponents.LAYERED_FACING_DEGREES) : 0f;
+        float fromX, fromY;
+        if (impact.shooterId != 0L && resolveUnit(impact.shooterId) != 0L) {
+            fromX = world().x(impact.shooterId);
+            fromY = world().y(impact.shooterId);
+        } else {
+            double rad = Math.toRadians(facing);
+            fromX = x - (float) Math.sin(rad) * 10f;
+            fromY = y + (float) Math.cos(rad) * 10f;
+        }
+        SwarmHitFeedback.emit(effects, victim, type, rosterService.identity().swarmStage(victim), x, y, facing,
+                fromX, fromY, impact.hitX, impact.hitY, simTickIndex, swarmHitsShown++, impact.damage,
+                impact.penetration, armorBefore, plated && rosterService.isAliveById(victim) ? world().armor(victim) : 0f,
+                plated ? world().armorRating(victim) : 0f);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(long)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
