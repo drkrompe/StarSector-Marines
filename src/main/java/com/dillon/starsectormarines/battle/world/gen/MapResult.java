@@ -184,6 +184,11 @@ public final class MapResult {
      */
     public final List<LoadingBay> loadingBays;
     /**
+     * Open squares set pieces framed, with the mouths into them ({@code set-piece-blocks.md}); empty on a map
+     * with none, and never null.
+     */
+    public final List<OpenSquare> openSquares;
+    /**
      * The service lanes factory rows laid ({@code set-piece-blocks.md}): each lane's two gates and centre
      * line; empty on a map with none, and never null.
      */
@@ -460,46 +465,54 @@ public final class MapResult {
         this.fieldOfFire = null;
         this.layout = LaidLayout.EMPTY;
         this.loadingBays = List.of();
+        this.openSquares = List.of();
         this.serviceLanes = List.of();
         this.mainStreets = List.of();
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
     public MapResult withInitialDamage(DamagePlan damage) {
-        return new MapResult(this, damage, fieldOfFire, layout, loadingBays, serviceLanes, mainStreets);
+        return new MapResult(this, damage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes, mainStreets);
     }
 
     /** The same map, carrying the field of fire its landing promised. */
     public MapResult withFieldOfFire(FieldOfFire field) {
-        return new MapResult(this, initialDamage, field, layout, loadingBays, serviceLanes, mainStreets);
+        return new MapResult(this, initialDamage, field, layout, loadingBays, openSquares, serviceLanes, mainStreets);
     }
 
     /** The same map, carrying what its mission layout laid. */
     public MapResult withLayout(LaidLayout laid) {
         return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid, loadingBays,
-                serviceLanes, mainStreets);
+                openSquares, serviceLanes, mainStreets);
     }
 
     /** The same map, carrying the loading bays its set pieces laid. */
     public MapResult withLoadingBays(List<LoadingBay> bays) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, bays == null ? List.of() : List.copyOf(bays),
-                serviceLanes, mainStreets);
+                openSquares, serviceLanes, mainStreets);
+    }
+
+    /** The same map, carrying the open squares its set pieces framed. */
+    public MapResult withOpenSquares(List<OpenSquare> squares) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays,
+                squares == null ? List.of() : List.copyOf(squares), serviceLanes, mainStreets);
     }
 
     /** The same map, carrying the service lanes its factory rows laid. */
     public MapResult withServiceLanes(List<ServiceLane> laid) {
-        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays,
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares,
                 laid == null ? List.of() : List.copyOf(laid), mainStreets);
     }
 
     /** The same map, carrying the main streets its districts laid. */
     public MapResult withMainStreets(List<MainStreet> laid) {
-        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, serviceLanes,
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
                 laid == null ? List.of() : List.copyOf(laid));
     }
 
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
-                      List<LoadingBay> bays, List<ServiceLane> laidLanes, List<MainStreet> streets) {
+                      List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
+                      List<MainStreet> streets) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -528,6 +541,7 @@ public final class MapResult {
         fieldOfFire = field;
         layout = laid;
         loadingBays = bays;
+        openSquares = squares;
         serviceLanes = laidLanes;
         mainStreets = streets;
     }

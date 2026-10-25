@@ -71,6 +71,7 @@ public final class SpaceportDistrictPlanStage implements GenStage {
         Set<BlockLeaf> candidates = Collections.newSetFromMap(new IdentityHashMap<>());
         for (BlockLeaf leaf : partition.leaves) {
             if (leaf.width() < PAD_MIN_SIDE || leaf.height() < PAD_MIN_SIDE) continue;
+            if (leaf.kind == BlockKind.FREIGHT_YARD) continue;
             if (districtMap.themeAt(leaf.centerX(), leaf.centerY()) != MapDistrictTheme.HARBOR_PORT) {
                 continue;
             }

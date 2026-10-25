@@ -84,6 +84,15 @@ public enum BlockKind {
     /** Outdoor depot — dirt blob ground with scattered crate / box clusters. Dense outdoor cover. */
     INDUSTRIAL_YARD,
 
+    /**
+     * The freight yard set piece on ground planned for it ({@code set-piece-blocks.md}): a walled
+     * yard, its warehouse and a loading bay per gate. Never rolled; {@code FreightYardParcelStage}
+     * promotes one parcel per map, joined across its minor street where that is what holds the
+     * larger yard. Filled by {@code FreightYardFiller}, which steps down to the smaller yard and then
+     * to an ordinary industrial yard, so a short parcel is a smaller yard rather than a hole.
+     */
+    FREIGHT_YARD,
+
     /** Impassable water with a walkable sand/stone shore strip. Map-edge or shoreline only — natural flank denial. */
     WATERFRONT,
 
@@ -142,6 +151,13 @@ public enum BlockKind {
      * to grow it.
      */
     DENSE_QUARTER,
+
+    /**
+     * A lot planned for the market square set piece: two commercial or plaza parcels and the minor street
+     * between them, joined before the road graph ({@code set-piece-blocks.md}). Never rolled by a theme. A lot
+     * the square cannot stand in is filled as an ordinary plaza.
+     */
+    MARKET_SQUARE,
 
     /**
      * Multi-leaf industrial site: one large factory, a fenced service/tank
