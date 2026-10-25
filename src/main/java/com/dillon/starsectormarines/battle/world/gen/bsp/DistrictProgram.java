@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -30,6 +31,13 @@ public interface DistrictProgram {
      * the plan's streets are a copy the program may have rewritten inside the claim.
      */
     Plan plan(DistrictClaim claim, boolean[][] road, GenContext ctx);
+
+    /**
+     * Called once the plan is committed, with the members already relabelled: a program that hosts a set piece
+     * planned elsewhere on the map stands that one down here. Nothing by default.
+     */
+    default void committed(DistrictClaim claim, Plan plan, List<BlockLeaf> leaves) {
+    }
 
     /**
      * Which claim to search for: which leaves may be members, and how well each sits in the program's zoning

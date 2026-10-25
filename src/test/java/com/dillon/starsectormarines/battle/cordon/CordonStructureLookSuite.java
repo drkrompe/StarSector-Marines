@@ -28,7 +28,7 @@ import java.util.Locale;
  *
  * <p>Per map, {@code <density>-seed<N>-r<k>-<construction>.png} frames each redoubt at play zoom,
  * {@code <density>-seed<N>-mix.png} sets the four side by side (each quarter of one 1920x1080 frame over the
- * play-zoom frame's cells, so at half its scale; west to east, top row first), and on a city map {@code <density>-seed<N>-base-<construction>.png} frames the base
+ * play-zoom frame's cells, so at half its scale; west to east, top row first), and {@code <density>-seed<N>-base-<construction>.png} frames the base
  * a little wider than play zoom, since it is wider than one. {@code -Dsnapshot.cordonStructure.town=8,2,10} and
  * {@code .urban=6,1,10} pick the pooled seeds (the Line's verdant pool by default), {@code .ticks} how long each map
  * is played first (150). Opt-in: a look review, not part of {@code all}.
@@ -37,7 +37,7 @@ public final class CordonStructureLookSuite implements SnapshotSuite {
 
     static final int W = LookReview.WIDTH, H = LookReview.HEIGHT;
     static final float PLAY_CELLS = BattleReviewFrameRenderer.PLAY_ZOOM_CELLS;
-    /** Cells across a base's frame: the fence is some fifty cells wide. */
+    /** Cells across a base's frame at the least: the fence is some fifty cells wide; a deeper yard widens it to fit. */
     static final float BASE_CELLS = 72f;
 
     @Override public String id() { return "cordon-structure-look"; }
@@ -95,11 +95,13 @@ public final class CordonStructureLookSuite implements SnapshotSuite {
             g.dispose();
             out.add(new SnapshotArtifact(tag + "-mix.png", mix));
             Laid base = cordon.map().layout.find(CordonConstructions.BASE_WORKS);
-            if (density == CordonPlan.Density.URBAN && base != null && base.cells().size() == 2) {
+            if (base != null && base.cells().size() == 2) {
                 float bx = (base.cells().get(0)[0] + base.cells().get(1)[0]) / 2f + 0.5f;
                 float by = (base.cells().get(0)[1] + base.cells().get(1)[1]) / 2f + 0.5f;
+                float deep = base.cells().get(1)[1] - base.cells().get(0)[1] + 8f;
+                float across = Math.max(BASE_CELLS, deep * W / H);
                 out.add(new SnapshotArtifact(tag + "-base-" + base.reason() + ".png",
-                        BattleReviewFrameRenderer.look(context.modRoot(), W, H, bx, by, BASE_CELLS)
+                        BattleReviewFrameRenderer.look(context.modRoot(), W, H, bx, by, across)
                                 .render(sim, "", ReviewAnnotations.NONE, fx)));
             }
             int berths = 0;

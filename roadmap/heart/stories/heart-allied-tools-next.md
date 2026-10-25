@@ -1,6 +1,6 @@
 # The lanes' next tools
 
-Status: IN PROGRESS — the fire-support section, shared spotting and the section's move-up are built on Broad Front; mortar teams are built but off (their rounds miss their mission); the rest wait on the owner decisions below.
+Status: IN PROGRESS — the fire-support section, shared spotting and the section's move-up are built on Broad Front; mortar teams are built and on; the rest wait on the owner decisions below.
 
 Written: 2026-10-25
 
@@ -138,13 +138,28 @@ Support fire moves with the front, it does not wait at the bore:
   post behind the ring. Driving alone ahead of the militia, carriers were lost
   60 to 125 cells short of the bore.
 
-## Built, off: militia mortar teams
+## Built: militia mortar teams
 
-Each Broad Front wave's first team carries a field mortar (its leader), marches
-with the lane, and at a bore holds the support line with the mouth as its fire
-mission (`battle.heart.mortarTeams`, off by default). In its first run 52 teams
-fired 166 rounds and none on the mission: why their rounds miss the mouth is the
-next thing to find before it is switched on.
+Each Broad Front wave's first team carries a field mortar (its leader)
+(`battle.heart.mortarTeams`). In a lane's formation it moves with the support
+line behind the riflemen; at a bore it holds a post on the ring behind the
+support line, clear of the tube's dead zone, with the mouth as its fire
+mission. Three things kept every team off its mission and are fixed: a tube on
+a mission stood off from every hostile structure, the bore included (it now
+stands off only from works whose gun does damage); the formation's re-posting
+replaced the mission order with an attack-move; and the support line is inside
+a tube's dead zone and its gunner's margin.
+
+Measured by the damage ledger, not by mission rounds: the tubes do real work on
+the swarm (about 3,000 damage and 64 kills from 142 rounds in a run), nearly
+all on their own sightings on the march. They still seldom reach their post:
+waves that stall and join the lane 60 to 90 cells short of its bore fight where
+they stand, beyond the tube's reach of the mouth. That is the lanes' columns,
+not the mortar.
+
+The Heart evidence's damage ledger counts damage to the swarm and kills by tool
+(sections, armour, mechs, militia, mortar teams, tubes, the company), classified
+as each hit lands.
 
 ## Acceptance
 

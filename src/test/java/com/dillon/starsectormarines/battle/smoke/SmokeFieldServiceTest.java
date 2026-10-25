@@ -62,6 +62,26 @@ class SmokeFieldServiceTest {
         assertTrue(grid.hasLineOfSight(1, 3, 8, 3));
     }
 
+    @Test
+    void aHazeCostsTheShotButHidesNothingAndThinsAwayAsSmokeDoes() {
+        NavigationGrid grid = openGrid(10, 7);
+        SmokeFieldService smoke = new SmokeFieldService(grid);
+
+        smoke.deployHaze(Faction.DEFENDER, 5.5f, 3.5f, 1.8f, 2f, 1f);
+        assertTrue(grid.hasLineOfSight(1, 3, 8, 3), "a haze never blocks sight");
+        assertTrue(grid.hazeDepthOnLine(1.5f, 3.5f, 8.5f, 3.5f) > 0, "the hazed lane prices as obscured");
+        assertEquals(0, grid.smokeDepthOnLine(1.5f, 3.5f, 8.5f, 3.5f), "a haze is not smoke");
+        assertTrue(smoke.activeFields().isEmpty(), "a haze is published apart from smoke");
+        assertFalse(smoke.hasSmokeNear(5.5f, 3.5f, 1f), "a haze conceals nothing, so no screen plan counts it");
+        assertEquals(1, smoke.activeHazes().size());
+
+        smoke.tick(1.5f);
+        assertTrue(smoke.activeHazes().get(0).radius() < 1.8f, "it thins from the outside in");
+        smoke.tick(0.6f);
+        assertTrue(smoke.activeHazes().isEmpty());
+        assertEquals(0, grid.hazeDepthOnLine(1.5f, 3.5f, 8.5f, 3.5f), "gone, it gives every cell back");
+    }
+
     private static NavigationGrid openGrid(int width, int height) {
         NavigationGrid grid = new NavigationGrid(width, height);
         for (int y = 0; y < height; y++) {

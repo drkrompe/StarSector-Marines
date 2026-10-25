@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+
 /**
  * What the allies tell the company over the radio about one redoubt ({@code cordon-allied-command.md}, The radio):
  * the one place the company's knowledge of the line is decided, so fair knowledge is tested where it is made. The
@@ -16,7 +18,7 @@ public record CordonRadio(int number, int x, int y, boolean manned, boolean brea
 
     /** Seconds a breached redoubt must be quiet before its relief may go back. */
     public static final int SETTLE_SECONDS = 20;
-    static final int SETTLE_TICKS = SETTLE_SECONDS * 60;
+    static final int SETTLE_TICKS = Math.round(SETTLE_SECONDS / BattleSimulation.TICK_DT);
 
     /**
      * The report for one redoubt.

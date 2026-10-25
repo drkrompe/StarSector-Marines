@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.dillon.starsectormarines.battle.weapon.SoftLaunch;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -128,6 +129,23 @@ public final class ShotRenderService implements RenderSystem {
                     color.getBlue() / 255f, pose.fadeIn() * alphaMult);
         }
 
+        // Ground shadows under lobbed rounds whose weapon casts one, under the rounds themselves.
+        sprites.ensureShadowSprite();
+        SpriteAPI shadow = sprites.shadowBlobSprite();
+        for (ShotEvent s : shots) {
+            WeaponDef weapon = s.primaryWeaponDef != null ? s.primaryWeaponDef : s.mechWeaponDef;
+            if (shadow == null || weapon == null || !weapon.groundShadow()) continue;
+            ShotFx fx = ShotFx.of(s);
+            if (!(fx.body() instanceof ShotFx.Sprite sprite)) continue;
+            SpriteFlight flight = spriteFlight(s, fx);
+            float height = arcHeight(s, fx) > 0f ? 4f * flight.progress() * (1f - flight.progress()) : 0f;
+            float gx = s.fromX + (s.toX - s.fromX) * flight.progress();
+            float gy = s.fromY + (s.toY - s.fromY) * flight.progress();
+            float size = sprite.visualCells() * cellPx * (SHADOW_LANDED - (SHADOW_LANDED - SHADOW_ALOFT) * height);
+            out.addSprite(RenderLayer.SHOTS, shadow, cam.cellToScreenX(gx), cam.cellToScreenY(gy), size, size, 0f,
+                    0f, 0f, 0f, (SHADOW_ALPHA_LANDED - (SHADOW_ALPHA_LANDED - SHADOW_ALPHA_ALOFT) * height) * alphaMult);
+        }
+
         // Sprite sweep: shots whose body is a traveling projectile sprite.
         for (ShotEvent s : shots) {
             ShotFx fx = ShotFx.of(s);
@@ -143,6 +161,11 @@ public final class ShotRenderService implements RenderSystem {
                     pxW, pxH, flight.bearing(), 1f, 1f, 1f, alphaMult);
         }
     }
+
+    /** A ground shadow's width against the round's size: at the top of its arc, and as it lands. */
+    private static final float SHADOW_ALOFT = 0.9f, SHADOW_LANDED = 2.2f;
+    /** A ground shadow's darkness at the top of its arc and as it lands: it gathers as the round comes down. */
+    private static final float SHADOW_ALPHA_ALOFT = 0.12f, SHADOW_ALPHA_LANDED = 0.55f;
 
     /** Where a sprite-bodied shot is in the air right now, in projected cell space, and which way it points. */
     public record SpriteFlight(float x, float y, float bearing, float progress) {}

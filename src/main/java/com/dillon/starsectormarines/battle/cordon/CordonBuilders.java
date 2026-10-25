@@ -80,6 +80,7 @@ final class CordonBuilders {
             case TENEMENT -> CordonBuilders::tenement;
             case WAREHOUSE -> CordonBuilders::warehouse;
             case CAR_PARK -> CordonBuilders::carPark;
+            case GOODS_YARD -> CordonBuilders::goodsYard;
             case COMPOUND, SHED -> null;
         };
     }
@@ -293,6 +294,87 @@ final class CordonBuilders {
             f.prop(w, u, road[0] - 21, "main-stores.cartons", 0, true);
         }
         stockade(w, f, hu, hv, road);
+        return built;
+    }
+
+    /** Rows either side of the middle a goods yard's own drive takes, where no road crosses the yard. */
+    static final int YARD_DRIVE = 1;
+    /** Rows a goods yard needs either side of its road: the goods shed and its apron in front, the gantries behind. */
+    static final int YARD_SIDE = 20;
+
+    /**
+     * Town base: the town's goods yard. The goods shed on the front side of the road, its loading doors on an apron
+     * where flatbeds and cargo trucks stand beside a cargo loader, the freight waiting to go out stacked in rows along
+     * it; behind the road the two open-air gantries, the yard's workshop and its stores, and past them the yard's vans
+     * and tankers in marked bays, a fuel corner and the freight that came in; worn asphalt under all of it and an
+     * industrial fence round it. Where the main road only reaches the gate, the yard's own drive takes its place
+     * across the middle.
+     */
+    static Built goodsYard(CordonWorks w, Frame f, Site site) {
+        int[] main = roadRows(w, f, site);
+        int hu = (site.x1() - site.x0()) / 2, hv = (site.y1() - site.y0()) / 2;
+        // A town's main road may reach the gate, or run along the fence, without crossing the yard with room either
+        // side for the shed and the gantries: then the yard's own drive crosses its middle.
+        boolean through = main[0] + hv >= YARD_SIDE && hv - main[1] >= YARD_SIDE;
+        int[] road = through ? main : new int[]{-YARD_DRIVE, YARD_DRIVE};
+        CordonWorks.Ground yard = new CordonWorks.Ground(GroundKind.COURTYARD,
+                w.topology.surfaceIndex("pavement.asphalt.worn"), -1);
+        f.clear(w, -hu - 1, -hv - 1, hu + 1, hv + 1, yard, (x, y) -> street(w, x, y) && inBand(f.v(x, y), road[0], road[1]));
+        Built built = Built.at(0f, road[0] - 3f);
+        // The goods shed, its doors on the apron by the road, and the freight waiting beside it: the shed on the west
+        // half where it stands, else the east, else either turned narrower (the ammo dump a beat laid keeps its
+        // ground), the freight on the other half.
+        int apron = road[1] + 1;
+        int side = -1, shed0 = -hu + 2;
+        shed:
+        for (int turns : new int[]{0, 1}) {
+            int width = CordonWorks.size(BuildingStamp.FREIGHT_L, turns)[0];
+            for (int s : new int[]{-1, 1}) {
+                int u0 = s < 0 ? -hu + 2 : hu - 1 - width;
+                if (f.stamp(w, BuildingStamp.FREIGHT_L, u0, apron + 4, turns)) {
+                    side = s;
+                    shed0 = u0;
+                    break shed;
+                }
+            }
+        }
+        String[] trucks = {"doodad.parked-flatbed-truck", "doodad.parked-cargo-truck", "doodad.parked-flatbed-truck"};
+        for (int k = 0; k < trucks.length; k++) f.prop(w, shed0 + 2 + 5 * k, apron, trucks[k], 0, true);
+        int loader = side < 0 ? 6 : -9;
+        f.prop(w, loader, apron + 1, "doodad.stores-cargo-loader", 0, true);
+        int f0 = side < 0 ? 6 : -hu + 4, f1 = side < 0 ? hu - 4 : -6;
+        for (int row = 0; row < 3; row++) {
+            int v = apron + 5 + row * 4;
+            for (int u = f0; u <= f1; u += 3) {
+                f.obstacle(w, u, v, Math.floorMod(u + row, 2) == 0 ? "doodad.industrial-pallet-stack" : CRATES);
+            }
+        }
+        f.prop(w, side < 0 ? hu - 4 : -hu + 3, apron + 1, "doodad.industrial-drum-cluster", 0, true);
+        // Behind the road: the gantries, the yard's workshop and its stores.
+        int v0 = road[0] - 12;
+        gantries(w, f, v0, built);
+        f.stamp(w, BuildingStamp.T_WORKSHOP, hu - 12, road[0] - 15, 2);
+        f.prop(w, -hu + 3, v0 + 2, "main-stores.cases", 0, true);
+        f.prop(w, -hu + 3, v0 + 5, "main-stores.drums", 0, true);
+        f.prop(w, -hu + 6, v0 + 2, "main-stores.pallet", 0, true);
+        // The rear, past the gantries: the yard's own vans and tankers in marked bays along the fence, a fuel corner
+        // behind the workshop, and the freight that came in, stacked in a block between them.
+        String[] parked = {"doodad.parked-box-van", "doodad.parked-tanker-truck", "doodad.parked-utility-truck"};
+        int bays = -hv + 2;
+        for (int k = 0, u = -hu + 3; u + 1 <= -2; u += 3, k++) {
+            f.prop(w, u, bays + 3, "doodad.fl-striped-yellow", 0, false);
+            f.prop(w, u + 1, bays + 3, "doodad.fl-striped-yellow", 0, false);
+            if (k % 4 != 2) f.prop(w, u, bays, parked[k % parked.length], 1, true);
+        }
+        for (int u = hu - 4; u >= hu - 14; u -= 5) f.prop(w, u, -hv + 3, "doodad.industrial-fluid-tank", 0, true);
+        f.prop(w, hu - 4, -hv + 8, "doodad.industrial-drum-cluster", 0, true);
+        f.prop(w, hu - 9, -hv + 8, "doodad.industrial-drum-cluster", 0, true);
+        for (int v = bays + 6; v <= road[0] - 18; v += 4) {
+            for (int u = 2; u <= hu - 18; u += 3) {
+                f.obstacle(w, u, v, Math.floorMod(u + v, 2) == 0 ? CRATES : "doodad.industrial-pallet-stack");
+            }
+        }
+        fenceRing(w, f, hu, hv, road);
         return built;
     }
 

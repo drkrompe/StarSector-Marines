@@ -16,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class InfantryLoadoutRollsTest {
 
@@ -42,6 +44,20 @@ public class InfantryLoadoutRollsTest {
                 InfantryLoadoutRolls.playerEquipmentGrade(new FixedRandom(20)));
         assertEquals(EquipmentGrade.SERVICE,
                 InfantryLoadoutRolls.playerEquipmentGrade(new FixedRandom(80)));
+    }
+
+    @Test
+    public void aLateCampaignSquadIsVeteranMilspecOrBetterAndItsLastSeatAlwaysCarriesTheLauncher() {
+        for (int size : new int[]{4, 6, 8}) {
+            MarineLoadout[] squad = InfantryLoadoutRolls.lateCampaignSquad(size, new Random(size));
+            assertEquals(size, squad.length);
+            for (MarineLoadout marine : squad) {
+                assertTrue(marine.equipmentGrade == EquipmentGrade.MILSPEC || marine.equipmentGrade == EquipmentGrade.MASTERWORK);
+                assertTrue(marine.soldierProfile.experienceXp() >= ExperienceTier.VETERAN.minimumXp);
+                assertNotNull(marine.specialEquipmentId);
+            }
+            assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, squad[size - 1].specialEquipmentId);
+        }
     }
 
     @Test

@@ -24,7 +24,7 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
 
     /** The battle: the city fixture whose company was killed three to a lob before its files. */
     static final String FIXTURE = "{\"schemaVersion\":2,\"kind\":\"BLOOM_HEART\",\"seed\":3,\"form\":\"BROAD_FRONT\","
-            + "\"biome\":\"VERDANT\",\"density\":\"CITY\",\"shuttles\":["
+            + "\"biome\":\"VERDANT\",\"density\":\"CITY\",\"declaredMechDrops\":{\"MARINE\":{\"lances\":1,\"lance\":[\"BULWARK\",\"HOUND\",\"HOUND\",\"WARDEN\"],\"debugCallTick\":300}},\"shuttles\":["
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"

@@ -205,6 +205,14 @@ public class NavigationGrid {
     private final short[] transientOpacity;
     /** Live count of cells holding transient opacity — lets {@link #smokeDepthOnLine} exit in O(1) on the overwhelmingly common smokeless map. */
     private int transientOpacityCells;
+    /**
+     * Reference-counted see-through obscurant (a Bombard's spore haze, `bombard.md`). Like smoke it costs a round
+     * crossing it accuracy ({@link #hazeDepthOnLine}); unlike smoke it never blocks sight, fog or target
+     * acquisition, so nothing that reads opacity reads it and changing it sweeps no sight cache.
+     */
+    private final short[] hazeCover;
+    /** Live count of hazed cells, so {@link #hazeDepthOnLine} exits in O(1) on an unhazed map. */
+    private int hazeCells;
     private long opacityRevision;
 
     /**
@@ -249,6 +257,7 @@ public class NavigationGrid {
         this.northEdgeBarriers = new SharedEdgeBarrier[routingOnly ? 0 : size];
         this.wallHp = new int[routingOnly ? 0 : size];
         this.transientOpacity = new short[routingOnly ? 0 : size];
+        this.hazeCover = new short[routingOnly ? 0 : size];
     }
 
     // ----- Tag access (generic) -----
@@ -617,6 +626,26 @@ public class NavigationGrid {
         if (--transientOpacity[idx] == 0) transientOpacityCells--;
         opacityRevision++;
         losCaches.clearAll();
+    }
+
+    /** Adds a hold of see-through haze to a cell; sight is untouched, so no cache is swept. */
+    public void addHazeAt(int idx) {
+        if (hazeCover[idx] == Short.MAX_VALUE) return;
+        if (hazeCover[idx]++ == 0) hazeCells++;
+    }
+
+    public void removeHazeAt(int idx) {
+        if (hazeCover[idx] <= 0) return;
+        if (--hazeCover[idx] == 0) hazeCells--;
+    }
+
+    /** Whether any cell holds haze: lets a per-tick haze rule exit on one compare on an unhazed map. */
+    public boolean anyHaze() {
+        return hazeCells > 0;
+    }
+
+    public boolean hasHaze(int x, int y) {
+        return inBounds(x, y) && hazeCover[index(x, y)] > 0;
     }
 
     /**
@@ -1244,6 +1273,8 @@ public class NavigationGrid {
         Arrays.fill(wallHp, 0);
         Arrays.fill(transientOpacity, (short) 0);
         transientOpacityCells = 0;
+        Arrays.fill(hazeCover, (short) 0);
+        hazeCells = 0;
         opacityRevision++;
         losCaches.clearAll();
     }
@@ -1361,6 +1392,20 @@ public class NavigationGrid {
      */
     public int smokeDepthOnLine(float x0, float y0, float x1, float y1) {
         if (transientOpacityCells == 0) return 0;
+        return coverDepthOnLine(x0, y0, x1, y1, transientOpacity);
+    }
+
+    /**
+     * How many hazed cells the exact segment crosses, counting both endpoint cells, by the same walk as
+     * {@link #smokeDepthOnLine}: the input to a round's haze obscuration. An unhazed map answers on one compare.
+     */
+    public int hazeDepthOnLine(float x0, float y0, float x1, float y1) {
+        if (hazeCells == 0) return 0;
+        return coverDepthOnLine(x0, y0, x1, y1, hazeCover);
+    }
+
+    /** Cells of {@code layer} the exact segment crosses, both endpoint cells counted. */
+    private int coverDepthOnLine(float x0, float y0, float x1, float y1, short[] layer) {
         if (!Float.isFinite(x0) || !Float.isFinite(y0)
                 || !Float.isFinite(x1) || !Float.isFinite(y1)) {
             throw new IllegalArgumentException("Ray endpoints must be finite");
@@ -1369,7 +1414,7 @@ public class NavigationGrid {
         int y = (int) Math.floor(y0);
         int endX = (int) Math.floor(x1);
         int endY = (int) Math.floor(y1);
-        int depth = hasTransientOpacity(x, y) ? 1 : 0;
+        int depth = coverAt(layer, x, y) ? 1 : 0;
         if (x == endX && y == endY) return depth;
 
         // Same Amanatides-Woo traversal firstBlockOnLine walks, counting
@@ -1410,9 +1455,13 @@ public class NavigationGrid {
                 tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
                 tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
             }
-            if (hasTransientOpacity(x, y)) depth++;
+            if (coverAt(layer, x, y)) depth++;
         }
         return depth;
+    }
+
+    private boolean coverAt(short[] layer, int x, int y) {
+        return inBounds(x, y) && layer[index(x, y)] > 0;
     }
 
     /** First authored edge feature physically crossed by an exact segment. */

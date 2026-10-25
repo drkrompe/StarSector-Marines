@@ -231,6 +231,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -650,6 +651,12 @@ public final class BattleSetup {
      */
     static void landCompany(BattleSimulation sim, List<LandingPad> pads, List<ShuttleAssignment> manifest,
                             Random rng, SquadCommandClaim claim) {
+        landCompany(sim, pads, manifest, rng, claim, InfantryLoadoutRolls::playerSquad);
+    }
+
+    /** As {@link #landCompany(BattleSimulation, List, List, Random, SquadCommandClaim)}, each sortie's seats rolled by {@code squad}. */
+    static void landCompany(BattleSimulation sim, List<LandingPad> pads, List<ShuttleAssignment> manifest,
+                            Random rng, SquadCommandClaim claim, BiFunction<Integer, Random, MarineLoadout[]> squad) {
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         int width = sim.getGrid().getWidth(), height = sim.getGrid().getHeight();
         for (int i = 0; i < pads.size(); i++) {
@@ -664,7 +671,7 @@ public final class BattleSetup {
             mission.commandClaim = claim;
             MarineLoadout[][] cycles = new MarineLoadout[assignment.cycles][];
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
-                cycles[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+                cycles[cycle] = squad.apply(assignment.seatsForCycle(cycle), rng);
             }
             mission.cycleLoadouts = cycles;
             mission.marineLoadout = cycles[0];

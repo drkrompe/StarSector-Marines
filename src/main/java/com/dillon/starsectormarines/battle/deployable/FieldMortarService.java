@@ -611,9 +611,19 @@ public final class FieldMortarService {
         for (int i = 0, n = bucket.size; i < n; i++) {
             long id = bucket.ids[i];
             if (!sim.world().isAlive(id) || !faction.hostileTo(sim.identity().faction(id))) continue;
-            if (sim.identity().type(id).isTurret()) return true;
+            if (sim.identity().type(id).isTurret() && gunned(sim.turretState().structure(id))) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether a structure carries a gun that hurts: a bore, a shield core or a fire-control console stands on a
+     * placeholder mount that does no damage, so a tube may set down inside its "reach" (a lane's mortar team on its
+     * bore's support line, twenty cells from the mouth).
+     */
+    static boolean gunned(StructureDef structure) {
+        return structure != null && structure.mount != null && structure.mount.weapon != null
+                && structure.mount.weapon.damage > 0f;
     }
 
     /** Every body any squad of {@code faction} holds a belief in: the side's picture, not one squad's. */

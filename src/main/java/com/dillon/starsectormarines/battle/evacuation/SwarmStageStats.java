@@ -41,6 +41,13 @@ public final class SwarmStageStats {
             new Stats(20f, 0f, 0f, 10f, 16f, 2.4f),
     };
 
+    /** Unplated and soft for its size at every stage; an elder reaches a little further. It deals no blow of its own. */
+    private static final Stats[] BOMBARD = {
+            new Stats(26f, 0f, 0f, 0f, 50f, 1.2f),
+            new Stats(40f, 0f, 0f, 0f, 55f, 1.1f),
+            new Stats(60f, 0f, 0f, 0f, 58f, 1.0f),
+    };
+
     /** The skitterer has no stage: every one is this, unplated, one rifle hit, a little slower than a Runner. */
     private static final Stats WORKER = new Stats(10f, 0f, 0f, 0f, 0f, 2.8f);
 
@@ -77,6 +84,7 @@ public final class SwarmStageStats {
             case SWARM_RUNNER -> RUNNER;
             case SWARM_BRUTE -> BRUTE;
             case SWARM_SPITTER -> SPITTER;
+            case SWARM_BOMBARD -> BOMBARD;
             default -> throw new IllegalArgumentException(type + " is not a swarm strain");
         };
         return table[i];

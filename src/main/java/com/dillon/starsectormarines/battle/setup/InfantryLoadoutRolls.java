@@ -68,6 +68,44 @@ public final class InfantryLoadoutRolls {
     }
 
     /**
+     * A well-found company late in the campaign, as a mission that stands one up itself lands it: every marine a
+     * veteran or elite in a heavy suit with Milspec or Masterwork issue, and a squad's six slots carrying its kit
+     * ({@link #LATE_CAMPAIGN_KIT}), the last always the launcher (owner, 2026-10-25: "We should assume they have fairly
+     * powerful equipment and weapon cards"). A launch overlay replaces these seats with the player's own company, so
+     * this is what debug launches and evidence fight with. A suit missing from the installed armour catalog is left
+     * off, the marine landing in the default protection.
+     */
+    public static MarineLoadout[] lateCampaignSquad(int capacity, Random rng) {
+        MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        for (int i = 0; i < roster.length; i++) {
+            String[] kit = LATE_CAMPAIGN_KIT[i == roster.length - 1 && roster.length > 1
+                    ? LATE_CAMPAIGN_KIT.length - 1 : i % (LATE_CAMPAIGN_KIT.length - 1)];
+            EquipmentGrade grade = rng.nextInt(100) < 25 ? EquipmentGrade.MASTERWORK : EquipmentGrade.MILSPEC;
+            SoldierProfile profile = profileAtTier(aptitude(rng, 0, 60, 32),
+                    rng.nextInt(100) < 60 ? ExperienceTier.VETERAN : ExperienceTier.ELITE, rng);
+            SpecialEquipmentDef special = SpecialEquipmentRegistry.require(kit[1]);
+            MarineArmorCatalogDef armor = catalog != null ? catalog.get(kit[2]) : null;
+            roster[i] = armor == null
+                    ? new MarineLoadout(UnitRole.COMBATANT, null, kit[0], grade, profile, special.id(), special.startingAmmo())
+                    : MarineLoadout.fromCatalog(UnitRole.COMBATANT, null, WeaponRegistry.require(kit[0]), grade, profile,
+                            special, null, armor.appearanceFamily(), armor.armorCapacity(), armor.armorRating(),
+                            armor.moveSpeedMult(), armor.incomingAccuracyMult(), null, armor.integralSystem())
+                            .withArmorClass(armor.armorClass());
+        }
+        return roster;
+    }
+
+    /** A late-campaign squad's slots: primary, special, suit. The last is the launcher's, whatever the squad's size. */
+    static final String[][] LATE_CAMPAIGN_KIT = {
+            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.FRAG_GRENADE_ID, "armor.bulwark-heavy"},
+            {WeaponRegistry.SQUAD_AUTOMATIC_ID, SpecialEquipmentRegistry.FRAG_GRENADE_ID, "armor.bulwark-heavy"},
+            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.FLAMER_ID, "armor.reliquary-heavy"},
+            {WeaponRegistry.DMR_ID, SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, "armor.specter-heavy"},
+            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.INCENDIARY_GRENADE_ID, "armor.lions-mantle"},
+            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, "armor.reliquary-heavy"}};
+
+    /**
      * Builds a local/defender fireteam; elite high-risk regulars field one AMR carrier, and their smoke carrier has a
      * frag on the belt.
      */

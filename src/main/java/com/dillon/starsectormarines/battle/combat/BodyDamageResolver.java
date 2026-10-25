@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.Random;
 
@@ -141,6 +142,9 @@ public final class BodyDamageResolver {
                     attackerId, HitLog.label(roster, attackerId), damage, postCover, penetration, hitRating,
                     arcs == ArmorArcs.Profile.FLAT ? null : hullArc.name(), hitPart, 0f, armorDamage,
                     hpBefore - hpAfter, hpAfter, world.armor(targetId), hpAfter <= 0f));
+        }
+        if (attackerId != targetId && carrier.faction(targetId) == Faction.DEFENDER) {
+            telemetry.recordToLedger(attackerId, applied, hpAfter <= 0f, false);
         }
         if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
             boolean friendly = roster.identity().faction(attackerId)

@@ -410,8 +410,10 @@ collapses a bore by fiat.
    lane 3's satellite beside the mothers for its own, went for it as the heart
    woke, and was wiped there on every biome. It falls back to its landing and holds there while
    any satellite still stands, breaking off from whatever it is fighting (a squad
-told only to defend a cell far behind it fought where it stood). When the last one falls it goes for the mothers
-   with the converging lanes. Its satellite sits nearest the heart, so the
+told only to defend a cell far behind it fought where it stood). When the last one falls it goes in on a mother
+   only with the converging lanes round her (`HeartAssaultCommand.goesIn`, owner's pick
+   heart-mother-push, 2026-10-25: wait), and stays in once it has; going in
+   ahead of them, it was wiped short of her. Its satellite sits nearest the heart, so the
    heart's waking surge and the first Matriarchs come for it first. Holding
    the taken ground kept more of the company alive but still lost it there on
    one seed; falling back won every seed. The company is the spearhead onto
@@ -530,6 +532,17 @@ instead in The Burn when the lost battle's guns are all dead).
 - **Deterministic.** Same seed, same heart: country, sites, growth, timetable.
 
 ## The company's command
+
+**A well-found company.** The heart is fought late in the campaign, so the
+company it stands up itself is a strong one (owner, 2026-10-25: "We should
+assume they have fairly powerful equipment and weapon cards + vehicle's /
+mechs"): veterans and elites in heavy suits with Milspec or Masterwork issue,
+each squad carrying a squad automatic, a flamer, an anti-materiel rifle and a
+launcher (`InfantryLoadoutRolls.lateCampaignSquad`). A campaign launch lands the
+player's own company over those seats, and its machines through Mech Support;
+a fixture's `declaredMechDrops` is how debug launches and evidence bring down a
+Marine lance, called early and claimed by the company's command, which moves it
+with the squads. The heart evidence fixtures declare one.
 
 The company plays the heart as Purge under its own commander
 (`HeartAssaultCommand`): it goes in together on one bore at a time, first the

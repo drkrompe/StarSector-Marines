@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictStreets;
 import com.dillon.starsectormarines.battle.world.gen.bsp.SpineClaim;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,20 +82,54 @@ class IndustrialZoneProgramTest {
     }
 
     @Test
-    void takesWorkingGroundAnywhereAndHousingOnlyInsideTheIndustrialPocket() {
-        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.WASTELAND_RUBBLE), MapDistrictTheme.CIVIC));
-        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_RESIDENTIAL),
-                MapDistrictTheme.RESIDENTIAL));
-        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_RESIDENTIAL),
-                MapDistrictTheme.INDUSTRIAL));
-        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.MILITARY_BASE),
-                MapDistrictTheme.INDUSTRIAL), "a compound seed is never a member");
-        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 11, 10, BlockKind.FACTORY_ROW),
-                MapDistrictTheme.INDUSTRIAL), "a row seed too small to hold the row alone claims its neighbour instead");
-        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 13, 12, BlockKind.FACTORY_ROW),
-                MapDistrictTheme.INDUSTRIAL));
-        assertEquals(4, IndustrialZoneProgram.pocket(BlockKind.FREIGHT_YARD, MapDistrictTheme.INDUSTRIAL));
-        assertEquals(0, IndustrialZoneProgram.pocket(BlockKind.BUILDING_COMMERCIAL, MapDistrictTheme.CIVIC));
+    void takesWorkingGroundHomesAndTheSetPiecesButNeverACompoundSeed() {
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.WASTELAND_RUBBLE)));
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_RESIDENTIAL)));
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 10, 12, BlockKind.FACTORY_ROW)),
+                "a row seed as deep as the row may join, alone or with a neighbour");
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 10, 10, BlockKind.FACTORY_ROW)),
+                "a smaller one claims its neighbour instead");
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.MILITARY_BASE)));
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_CIVIC)));
+        assertEquals(2 + IndustrialZoneProgram.SET_PIECE,
+                IndustrialZoneProgram.pocket(BlockKind.FREIGHT_YARD, MapDistrictTheme.INDUSTRIAL));
+        assertEquals(0, IndustrialZoneProgram.pocket(BlockKind.BUILDING_RESIDENTIAL, MapDistrictTheme.RESIDENTIAL));
+    }
+
+    @Test
+    void aRowSeedTooSmallAloneJoinsItsNeighbourAcrossTheCrossStreet() {
+        BlockLeaf seed = leaf(1, 0, 8, 13, BlockKind.FACTORY_ROW);
+        BlockLeaf next = leaf(12, 0, 19, 13, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf last = leaf(23, 0, 30, 13, BlockKind.INDUSTRIAL_YARD);
+        BlockLeaf across = leaf(1, 18, 30, 26, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf elsewhere = leaf(33, 18, 38, 26, BlockKind.FREIGHT_YARD);
+        List<BlockLeaf> plan4 = List.of(seed, next, last, across);
+        boolean[][] road = new boolean[40][30];
+        for (boolean[] col : road) Arrays.fill(col, true);
+        for (BlockLeaf leaf : List.of(seed, next, last, across, elsewhere)) {
+            for (int x = leaf.left; x <= leaf.right; x++) for (int y = leaf.top; y <= leaf.bottom; y++) road[x][y] = false;
+        }
+        SpineClaim.Spine spine = SpineClaim.find(plan4, road, leaf -> true, leaf -> 1, IndustrialZoneProgram.SPEC);
+        assertNotNull(spine);
+        DistrictProgram.Plan plan = new IndustrialZoneProgram().plan(spine, road, null);
+        assertNotNull(plan);
+        assertEquals(District.Role.FACTORY_ROW, plan.roles().get(seed));
+        assertEquals(District.Role.FACTORY_ROW, plan.roles().get(next), "the neighbour widens the row's ground");
+        for (int y = 0; y <= 13; y++) {
+            for (int x = 9; x <= 11; x++) assertFalse(plan.streets()[x][y], "the cross street between them is the row's");
+        }
+        assertTrue(DistrictStreets.keepsEntries(spine, road, plan.streets()));
+        BlockLeaf outsideRow = leaf(33, 0, 38, 13, BlockKind.FACTORY_ROW);
+        new IndustrialZoneProgram().committed(spine, plan, List.of(seed, next, outsideRow, elsewhere));
+        assertEquals(BlockKind.BUILDING_INDUSTRIAL, outsideRow.kind, "a row planned elsewhere stands down");
+        assertEquals(BlockKind.FREIGHT_YARD, elsewhere.kind, "a yard the zone does not host stays");
+    }
+
+    @Test
+    void aRowSeedThatHoldsNoRowEvenWithANeighbourKeepsItsOwnClaim() {
+        a1.kind = BlockKind.FACTORY_ROW;
+        boolean[][] road = road();
+        assertEquals(null, new IndustrialZoneProgram().plan(spine(road), road, null));
     }
 
     @Test

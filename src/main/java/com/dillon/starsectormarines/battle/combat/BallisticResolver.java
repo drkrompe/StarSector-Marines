@@ -501,8 +501,7 @@ public final class BallisticResolver {
         // shooter: it is measured on the same source-to-target segment the
         // structural trace uses, and it degrades the sight picture instead of
         // stopping anything. The round itself crosses the cloud untouched.
-        float obscuredAccuracy = finalAccuracy * SmokeObscuration.accuracyMultiplier(
-                grid.smokeDepthOnLine(fromX, fromY, targetX, targetY));
+        float obscuredAccuracy = finalAccuracy * SmokeObscuration.onLine(grid, fromX, fromY, targetX, targetY);
         TargetPlaneAim.Sample aim = TargetPlaneAim.sample(
                 obscuredAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
                 targetRadius(target), targetHitHalfHeight(target), rng);
@@ -627,10 +626,8 @@ public final class BallisticResolver {
         // lane. Manual aim is calibrated at weapon range, including its sight
         // picture, rather than at an arbitrary cursor distance.
         float sightDistance = maximumTargetingRange;
-        float obscuredAccuracy = finalAccuracy * SmokeObscuration.accuracyMultiplier(
-                grid.smokeDepthOnLine(source.x(), source.y(),
-                        source.x() + baseDirX * sightDistance,
-                        source.y() + baseDirY * sightDistance));
+        float obscuredAccuracy = finalAccuracy * SmokeObscuration.onLine(grid, source.x(), source.y(),
+                source.x() + baseDirX * sightDistance, source.y() + baseDirY * sightDistance);
         PointAim.Sample aim = PointAim.sample(obscuredAccuracy, effectiveSpread,
                 maximumTargetingRange, dispersion, rng);
         float dirX = baseDirX - baseDirY * aim.lateralSlope();
@@ -678,10 +675,8 @@ public final class BallisticResolver {
         float baseDirX = dx / aimDistance;
         float baseDirY = dy / aimDistance;
         float throwDistance = Math.min(aimDistance, weaponRange * MAX_GROUND_BURST_RANGE_MULTIPLIER);
-        float obscuredAccuracy = finalAccuracy * SmokeObscuration.accuracyMultiplier(
-                grid.smokeDepthOnLine(source.x(), source.y(),
-                        source.x() + baseDirX * throwDistance,
-                        source.y() + baseDirY * throwDistance));
+        float obscuredAccuracy = finalAccuracy * SmokeObscuration.onLine(grid, source.x(), source.y(),
+                source.x() + baseDirX * throwDistance, source.y() + baseDirY * throwDistance);
         GroundBurstAim.Offset scatter = GroundBurstAim.sample(obscuredAccuracy, effectiveSpread,
                 weaponRange, throwDistance, rng);
         float burstDx = baseDirX * throwDistance + scatter.dx();

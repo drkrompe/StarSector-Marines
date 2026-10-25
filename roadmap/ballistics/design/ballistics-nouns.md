@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a gun on a plinth fires from its height. Earlier: a committed outcome names the environment feature that stopped the round, and arrival wears it.
+Updated: 2026-10-25 — a second obscurant, haze, costs accuracy and hides nothing. Earlier: a gun on a plinth fires from its height; a committed outcome names the environment feature that stopped the round, and arrival wears it.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -39,8 +39,9 @@ projectile.
   part, from a shooter at full distance. There is one per kind of cover —
   edge, a trench's occupant, and a prop crossed in the lane — and per level.
 - **Obscuration** is matter on the path that degrades the sight picture
-  without being a contact. Smoke is the only obscurant today. It is measured
-  as a depth in cells and never appears among contacts.
+  without being a contact. There are two obscurants: smoke, and haze (a
+  Bombard's spores, `bombard.md`). Each is measured as a depth in cells and
+  never appears among contacts.
 - A **struck feature** is the piece of the environment a round stopped in: the
   crossed prop's cell for a crossed-cover stop, the cell or shared edge that
   lent edge cover for a cover catch at the body, the blocking cell for a wall
@@ -196,6 +197,12 @@ symmetric with perception: sight, fog, and target *acquisition* still stop at
 a cloud, so smoke breaks a squad's ability to find new targets while leaving
 it able to keep working one it already holds. A screen buys concealment and
 degraded incoming fire, never immunity.
+
+**Haze** is the see-through obscurant. It is priced the same way, as its own
+depth on the segment compounding its own milder multiplier under the same
+floor, but it touches no perception at all: sight, fog and acquisition pass
+through it. A squad in haze sees everything and shoots worse; it conceals
+nobody, so leaving it, not hiding in it, is the answer.
 
 ## Cover and safety
 
