@@ -214,6 +214,37 @@ Jobs run at low CPU priority (Windows below-normal, Mac nice 10).
   Active, queued and held jobs are never touched. Don't name a session worktree
   `rq-*`: the sweep treats that prefix as the queue's own.
 
+## Splitting a shot into parts
+
+A long render goes in as small parts that either machine takes, not as one half
+pinned to each machine. A free machine takes the next part, so the faster or
+less loaded one does more and nobody rebalances by hand. A failure costs one part,
+and any span can be redone later, down to a single frame:
+
+```bash
+python tools/render_queue.py split template.json --frames 2112:2448 --part 48 \
+    --assemble assemble.json --commit HEAD [--dry-run]
+```
+
+- The template is an ordinary job whose strings use `{part_first}`,
+  `{part_last}`, `{part_count}` (frame numbers) and `{part_start_s}`,
+  `{part_end_s}` (seconds at `--fps`, default 24; the end is exclusive), for
+  example `"--span", "k4:{part_start_s}:{part_end_s}:24"`. `split` fills them
+  in for each part, sets `frames.count` to the part's length, and defaults
+  `machine` to `any`.
+- `--frames FIRST:END` takes frame numbers, END exclusive. A part's id is the
+  template id plus `-f<first frame>-<length>`, so the same cut always gets the
+  same name.
+- `--assemble` is submitted last, with `after` listing every part. Assemblies
+  stay pinned to Windows (Mac Drive stalls on downloads).
+- Every part must render the same picture whatever order the parts run in.
+  That is the scene's job, not the queue's: anything a frame depends on is
+  computed from the shot, never from the part's first frame or from frames
+  rendered earlier in the same process.
+- About a minute of each part goes on checkout, inputs and building the
+  scene, so 48 frames (2 s at 24 fps) costs a few percent. Go smaller to redo a
+  short span.
+
 ## Checking and collecting
 
 `status` prints a block for each machine:
