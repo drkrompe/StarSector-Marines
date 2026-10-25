@@ -263,6 +263,7 @@ final class BuildingShellCore {
                                              BuildingPlacement placement) {
         for (BuildingPlacement.Side side : BuildingPlacement.Side.values()) {
             if (placement.frontOnly && side != placement.frontage) continue;
+            if (placement.terraced && side != placement.frontage && side != placement.frontage.opposite()) continue;
             stampWindowRuns(grid, topology, bl, bt, br, bb, side, recipe, buildingKind);
         }
     }

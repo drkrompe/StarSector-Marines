@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
+Updated: 2026-10-25 — districts: the industrial zone, a working street hosting the freight yard and the factory row, publishes `IndustrialZone`.
+
+Earlier 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
 
 Earlier 2026-10-25 — set pieces: the freight yard has a planned parcel of its own, in two sizes, and each bay publishes its turn.
 
@@ -385,14 +387,46 @@ written back into the road mask before the road graph is built, so the graph, ve
 see one network. Planning is read-only until it commits, draws no random number, and runs after the
 leaves are labelled and before compound claims, which take each district's compound first; a district
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
-district, a cluster with no streets of its own. **Main street** is the first program: shopfronts behind
-pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
-hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
-door). The **cordoned facility** stands on a quarter: an admin block, labs or
+district, a cluster with no streets of its own. **Main street** is the first program: rows of shopfronts behind
+pavements on both sides of one straight street, the kerb dressed as cover (street lamps, planters, stalls,
+parked vans) and an awning over each shop door, a plaza at one end and a civic hall at the other, in a
+civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on
+`MapResult` (the centre line, the plaza and the hall's door). **Street dressing** (`StreetDressing`) is the
+kit districts lay along their streets: standing pieces (lamps, gantry columns, jersey barriers, bollards,
+boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, pipe rack cells) and the
+boom-gate arm block nothing and carry no cover. The **cordoned facility** stands on a quarter: an admin block, labs or
 workshops, a depot with its forecourt, a yard and a courtyard on the quarter's own streets inside one wall
 on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed to a three-cell lane
-between solid jambs; a street ending against a lot is walled across. It publishes `CordonedFacility` on
-`MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door).
+between solid jambs with a boom gate across it just inside; a street ending against a lot is walled across. It publishes `CordonedFacility` on
+`MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door). The
+**industrial zone** stands on a spine in an industrial pocket: one working service street with every member
+walled off from its neighbours and opening onto it. It **hosts** the set pieces already planned on its
+ground rather than taking leaves from them: the freight-yard parcel stays a freight yard and a factory row
+seed that holds the row alone stays a row, so a zone gathers round them; the rest are warehouses (loading
+doors on the street across a striped dock apron with a keep-clear hatch before each door) and walled tank
+farms, vehicle depots and guard posts, each gated onto the street. Freight gantries span the street where
+both legs land on open apron. It publishes `IndustrialZone` on `MapResult` (the service street, the yards'
+loading bays, the row's service lane and each warehouse's dock).
+
+A town's lots are built along their streets (`town-plan.md`). A **frontage row** cuts an ordinary shop or
+home lot along its street into narrow buildings side by side, neighbours sharing one **party wall**, doors and
+windows on the street front and the back and never on the flanks, corner to corner; behind it are its back
+yards, or on a lot deep enough with a street behind as well, a second row back to back across an alley. How
+wide the plots are, whether a front garden comes first and how deep the buildings go is the zoning's
+**character**: shops straight onto the street in town, terraces in the residential town, broader pairs in the
+mixed town, main street's own narrow shopfronts; the outskirts, coast and industrial belt keep one building a
+lot. A lot too short for two plots keeps the building it had. A **town block** is two such lots in the
+residential, civic or mixed town and the one minor street between them, joined after compounds, districts and
+the market lot have claimed and before the road graph: only across a street that runs the whole of their
+shared side from one cross street to the next, with the ring round the block complete and no trunk crossed, so
+no dead end is made and every planned claim stays where it was. Conquest's biome-banded lots build neither.
+
+A map that is one settlement has a **town plan** over its rolled zoning (`TownZoning`): a two-by-two **civic
+core** at the trunk crossing, a **high street ring** of mixed town round it where main street and the market
+find their pocket, and an **industrial edge** along the map edge farthest from the core (two blocks deep, so a
+service street can be lined from both sides). Elsewhere the roll stands, except that a civic block off the core and an industrial block
+not touching the belt are homes: one centre, one industrial edge. The coast keeps its waterfront. A map of
+precincts plans each place by its character instead.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,

@@ -639,8 +639,7 @@ stability, industry or trade simulation is changed.
 **The Corvus Account** follows the closed Thunder Run account, including a
 freight run whose finite ledger ended in failure. Mara's correspondence preserves
 actual deliveries and losses without inventing casualties. The won Thunder Run
-carries the handoff: a written Jangala conversation, with a separate line for
-that run's company losses. It closes Wayline's brush with bankruptcy, leaves the
+carries the handoff: a Jangala conversation between Mara and Castle. It closes Wayline's brush with bankruptcy, leaves the
 cause unexplained and ends with Castle's order to plot a course for Asharu. Nothing in it grants a reward
 or advances progression. Existing recurring arrangements
 remain at their original site.

@@ -203,6 +203,11 @@ public final class MapResult {
      * courtyard and buildings; empty on a map with none, and never null.
      */
     public final List<CordonedFacility> cordonedFacilities;
+    /**
+     * The industrial zones districts laid ({@code set-piece-districts.md}): each zone's service street, its
+     * yards' bays and its row's lane; empty on a map with none, and never null.
+     */
+    public final List<IndustrialZone> industrialZones;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -474,59 +479,68 @@ public final class MapResult {
         this.serviceLanes = List.of();
         this.mainStreets = List.of();
         this.cordonedFacilities = List.of();
+        this.industrialZones = List.of();
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
     public MapResult withInitialDamage(DamagePlan damage) {
         return new MapResult(this, damage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes, mainStreets,
-                cordonedFacilities);
+                cordonedFacilities, industrialZones);
     }
 
     /** The same map, carrying the field of fire its landing promised. */
     public MapResult withFieldOfFire(FieldOfFire field) {
         return new MapResult(this, initialDamage, field, layout, loadingBays, openSquares, serviceLanes, mainStreets,
-                cordonedFacilities);
+                cordonedFacilities, industrialZones);
     }
 
     /** The same map, carrying what its mission layout laid. */
     public MapResult withLayout(LaidLayout laid) {
         return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid, loadingBays,
-                openSquares, serviceLanes, mainStreets, cordonedFacilities);
+                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones);
     }
 
     /** The same map, carrying the loading bays its set pieces laid. */
     public MapResult withLoadingBays(List<LoadingBay> bays) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, bays == null ? List.of() : List.copyOf(bays),
-                openSquares, serviceLanes, mainStreets, cordonedFacilities);
+                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones);
     }
 
     /** The same map, carrying the open squares its set pieces framed. */
     public MapResult withOpenSquares(List<OpenSquare> squares) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays,
-                squares == null ? List.of() : List.copyOf(squares), serviceLanes, mainStreets, cordonedFacilities);
+                squares == null ? List.of() : List.copyOf(squares), serviceLanes, mainStreets, cordonedFacilities,
+                industrialZones);
     }
 
     /** The same map, carrying the service lanes its factory rows laid. */
     public MapResult withServiceLanes(List<ServiceLane> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares,
-                laid == null ? List.of() : List.copyOf(laid), mainStreets, cordonedFacilities);
+                laid == null ? List.of() : List.copyOf(laid), mainStreets, cordonedFacilities, industrialZones);
     }
 
     /** The same map, carrying the main streets its districts laid. */
     public MapResult withMainStreets(List<MainStreet> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                laid == null ? List.of() : List.copyOf(laid), cordonedFacilities);
+                laid == null ? List.of() : List.copyOf(laid), cordonedFacilities, industrialZones);
     }
 
     /** The same map, carrying the cordoned facilities its districts laid. */
     public MapResult withCordonedFacilities(List<CordonedFacility> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, laid == null ? List.of() : List.copyOf(laid));
+                mainStreets, laid == null ? List.of() : List.copyOf(laid), industrialZones);
+    }
+
+    /** The same map, carrying the industrial zones its districts laid. */
+    public MapResult withIndustrialZones(List<IndustrialZone> laid) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
+                mainStreets, cordonedFacilities, laid == null ? List.of() : List.copyOf(laid));
     }
 
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
                       List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
-                      List<MainStreet> streets, List<CordonedFacility> facilities) {
+                      List<MainStreet> streets, List<CordonedFacility> facilities,
+                      List<IndustrialZone> zones) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -559,5 +573,6 @@ public final class MapResult {
         serviceLanes = laidLanes;
         mainStreets = streets;
         cordonedFacilities = facilities;
+        industrialZones = zones;
     }
 }

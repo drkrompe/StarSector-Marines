@@ -76,6 +76,20 @@ class BoreAssaultTest {
     }
 
     @Test
+    void aLaneCallsAFireSectionWhenItsRingCannotHurtTheBore() {
+        assertTrue(BoreAssault.needsSection(false, 0f), "no line of fire from the ring");
+        assertFalse(BoreAssault.needsSection(true, BoreAssault.UNHURT_SECONDS - 1f));
+        assertTrue(BoreAssault.needsSection(true, BoreAssault.UNHURT_SECONDS), "the bore is no weaker");
+    }
+
+    @Test
+    void theSectionStandsAtItsReachAndNeverBesideTheSupportLine() {
+        int[] support = BoreAssault.supportCell(BORE, BORE, 0f, -1f);
+        assertTrue(BoreAssault.sectionRing(0f) > BORE - support[1]);
+        assertEquals(40 - BoreAssault.RING_MARGIN_CELLS, BoreAssault.sectionRing(40f));
+    }
+
+    @Test
     void aNewSurgeIsSeenOnce() {
         BoreAssault assault = new BoreAssault("1", BORE, BORE, 0f, -1f, false, 3, 0);
         assertFalse(assault.surged(3, 10));

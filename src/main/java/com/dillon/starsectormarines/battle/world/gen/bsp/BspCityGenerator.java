@@ -42,6 +42,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.PlazaFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialZoneFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialZoneProgram;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportDistrictFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WaterfrontFiller;
@@ -93,6 +95,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationSpawnStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TownBlockStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.GrownTrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.VehicleCorridorStage;
@@ -140,7 +143,7 @@ public final class BspCityGenerator implements MapGenerator {
      * before them left; each has its compound filler registered under its kind.
      */
     private static final List<DistrictProgram> DISTRICT_PROGRAMS = List.of(new MainStreetProgram(),
-            new CordonedFacilityProgram());
+            new CordonedFacilityProgram(), new IndustrialZoneProgram());
 
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CompoundFiller> compoundFillers = new EnumMap<>(BlockKind.class);
@@ -195,6 +198,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new FactoryRowFiller());
         registerCompound(new MainStreetFiller());
         registerCompound(new CordonedFacilityFiller());
+        registerCompound(new IndustrialZoneFiller());
         registerCompound(new MedicalCampusFiller());
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
@@ -311,6 +315,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new DistrictPlanStage(DISTRICT_PROGRAMS),   // Step 2a''' districts over whole blocks and their streets
                 new CompoundClaimStage(),                   // Step 2b
                 new MarketParcelStage(),                    // A market square's lot, from parcels no compound took
+                new TownBlockStage(),                       // Town lots nothing claimed join into blocks
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
@@ -872,7 +877,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withOpenSquares(ctx.openSquares)
                 .withServiceLanes(ctx.serviceLanes)
                 .withMainStreets(ctx.mainStreets)
-                .withCordonedFacilities(ctx.cordonedFacilities);
+                .withCordonedFacilities(ctx.cordonedFacilities)
+                .withIndustrialZones(ctx.industrialZones);
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);
@@ -881,8 +887,13 @@ public final class BspCityGenerator implements MapGenerator {
         this.lastRoadGraph = roadGraph != null ? roadGraph : RoadGraph.EMPTY;
         this.lastTacticalRegions = ctx.get(BspKeys.TACTICAL_REGIONS);
         this.lastStationGraph = ctx.get(BspKeys.STATION_GRAPH);
+        this.lastPartition = ctx.get(BspKeys.PARTITION);
         return result;
     }
+
+    /** Last BSP partition produced by {@link #generate}, its leaves carrying their final kinds — exposed for the town-plan evidence. Null for recipes with no partition. */
+    private Bsp.Partition lastPartition;
+    public Bsp.Partition getLastPartition() { return lastPartition; }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */
     private DistrictMap lastDistrictMap;

@@ -1,6 +1,6 @@
 # Map generation story board
 
-Status: ACTIVE — fourteen bounded precinct, station, city, economic, or
+Status: ACTIVE — fifteen bounded precinct, station, city, economic, or
 cross-feature stories remain open.
 
 Written: 2026-08-23
@@ -12,6 +12,7 @@ three lane-seeding defects it uncovered are fixed and folded into
 | Story | Status | Outcome |
 |---|---|---|
 | `set-piece-blocks.md` | IN PROGRESS | Authored blocks for their own sake: the freight yard (its planned parcel, two sizes, loading bays), the loading's pressure, the factory row and the market square (its planned lot and open square) are built; further set pieces remain. |
+| `town-plan.md` | IN PROGRESS | Lots and zoning that read as a planned town: frontage rows (narrow buildings with party walls along every town street) and town blocks and the planned zoning (a civic core, a high-street ring, an industrial edge) are built; the owner's look review remains. |
 | `set-piece-districts.md` | IN PROGRESS | Districts: one authored layout over a whole multi-leaf claim, inner streets included. The seam and main street are built; the industrial zone and the cordoned facility remain. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
