@@ -198,7 +198,11 @@ onto a bore, flown when called; the wing is the observers' own, onto the masses
 in front of them, judged on the anti-air the side has seen, so both are
 sometimes shot down by colonies nobody had seen. Never within ten cells of a
 friendly soldier, never at a Harrier pack overhead. A lane whose observer dies
-calls no more air. The Burn has none: its guns are its fire support.
+calls no more air. Now and then the military also sends a roving observer
+team (`air-nouns.md`, Roving observer) to stand ten cells behind a lane's
+foremost team, on the way back to its foot, the lanes with the most squads in
+contact first, so the team follows the push. The Burn has none of either: its
+guns are its fire support.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at

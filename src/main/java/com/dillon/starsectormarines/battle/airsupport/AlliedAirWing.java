@@ -23,12 +23,16 @@ public final class AlliedAirWing {
      * The wing: two bombers back every minute, two fighters every forty-five seconds. UNTUNED first-pass
      * mission-design choice, smaller and slower than a Conquest company's own pool, since the wing serves a whole front.
      */
+    /** Salts the roving teams' kit rolls, seeded from the wing's home so one map rolls the same teams. */
+    private static final long ROVING_SALT = 0x524F56494E47L;
+
     static final AirPoolAllowance WING = AirPoolAllowance.of(
             new AirPoolStock(2, 2, 60f), new AirPoolStock(2, 2, 45f), true);
 
     /**
-     * Gives the battle's allies the wing, flying in over {@code home} (ground behind their own line), and posts one
-     * observer with each of {@code posts}; returns the posts. Called once at setup, before the battle's first tick; any
+     * Gives the battle's allies the wing, flying in over {@code home} (ground behind their own line), posts one
+     * observer with each of {@code posts}, and sends roving observer teams up from home now and then
+     * ({@link RovingObservers}, watching from {@link BloomVantages}); returns the posts. Called once at setup, before the battle's first tick; any
      * pool the battle already declared for another side is kept.
      */
     public static ForwardObservers install(BattleSimulation sim, float homeX, float homeY,
@@ -37,7 +41,9 @@ public final class AlliedAirWing {
         AirPoolService previous = sim.airPool();
         AirPoolDeclaration declared = previous == null ? AirPoolDeclaration.NONE : previous.declaration();
         AirPoolService service = new AirPoolService(declared.with(Faction.ALLY, WING));
-        sim.setAirPool(service.observedFrom(observers).homeAt(Faction.ALLY, homeX, homeY));
+        RovingObservers teams = new RovingObservers(Faction.ALLY, homeX, homeY, BloomVantages.of(homeX, homeY),
+                (Float.floatToIntBits(homeX) * 31L + Float.floatToIntBits(homeY)) ^ ROVING_SALT);
+        sim.setAirPool(service.observedFrom(observers).rovingFrom(teams).homeAt(Faction.ALLY, homeX, homeY));
         return observers;
     }
 }
