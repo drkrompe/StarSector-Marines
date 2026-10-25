@@ -140,4 +140,14 @@ class SwarmBoreTest {
         assertTrue(bore.surgeDue(due + 1001), "woken, it surges at once");
         assertFalse(bore.dormant());
     }
+
+    @Test
+    void aGrowingColonysRootComesOverItsLeadAndOnlyThenMayItRise() {
+        SwarmBore.Growing g = new SwarmBore.Growing(BoreTier.BORE, 4, 5, 100, 150);
+        assertEquals(0f, g.progress(100), 1e-6f);
+        assertEquals(0.5f, g.progress(175), 1e-6f);
+        assertFalse(g.arrived(249), "its root has not come");
+        assertTrue(g.arrived(250));
+        assertEquals(1f, g.progress(400), 1e-6f);
+    }
 }

@@ -22,7 +22,8 @@ import java.util.PriorityQueue;
  *
  * <p>Found on the finished map, not carved: the cheapest way a truck can
  * drive, every cell of it open with room either side, road five times cheaper
- * than open ground. So it keeps to the country road and the streets wherever
+ * than open ground, and a turn made where a truck has no room to turn dearer
+ * still. So it keeps to the country road and the streets wherever
  * they go its way and crosses country only where the generator left no road
  * (it prunes links between places that carry nobody to a map edge). A map
  * with no drivable way at all is no Road and re-rolls.
@@ -33,6 +34,15 @@ public final class CordonCorridor {
     static final int AT_COMPOUND = 24;
     /** What a cell of open ground costs a truck against a cell of road. */
     static final int OFF_ROAD_COST = 5;
+    /**
+     * What turning on a cell with no {@link #TURNING_ROOM} costs on top. A truck (turn radius near three cells) drives a
+     * lane three wide straight but cannot turn into one: on town Road seed 8 the corridor turned off a street through
+     * a gap into an alley three wide, and every convoy's lead truck wedged at its mouth for the battle, with open
+     * streets two cells on. Dearer, not forbidden, so a map whose only way turns there still has its corridor.
+     */
+    static final int TIGHT_TURN_COST = 40;
+    /** Cells open either side of a cell, all round, for a truck to turn on it. */
+    static final int TURNING_ROOM = 2;
 
     private CordonCorridor() {}
 
@@ -51,49 +61,90 @@ public final class CordonCorridor {
         if (compound == null) return null;
         int width = grid.getWidth(), height = grid.getHeight();
         int rearRow = CordonFront.rearRow(plan, height);
-        int[] cost = new int[width * height];
-        int[] parent = new int[width * height];
+        // The country road where it leaves the map; any drivable rear cell if the map has none.
+        boolean anyRoad = false;
+        for (int x = 1; x < width - 1; x++) anyRoad |= drivable(grid, x, rearRow) && road(topology, x, rearRow);
+        List<int[]> starts = new ArrayList<>();
+        for (int x = 1; x < width - 1; x++) {
+            if (drivable(grid, x, rearRow) && (!anyRoad || road(topology, x, rearRow))) starts.add(new int[]{x, rearRow});
+        }
+        return search(grid, (x, y) -> road(topology, x, y), starts,
+                (x, y) -> Math.abs(x - compound.seedX()) <= AT_COMPOUND && Math.abs(y - compound.seedY()) <= AT_COMPOUND
+                        && road(topology, x, y));
+    }
+
+    /** A test on a cell. */
+    interface CellTest {
+        boolean test(int x, int y);
+    }
+
+    /**
+     * The cheapest drivable way from any start to the first cell {@code goal} accepts, in driving order, or
+     * {@code null}: a step onto road costs 1, onto open ground {@link #OFF_ROAD_COST}, and a turn on a cell with no
+     * room to turn {@link #TIGHT_TURN_COST} more. Searched over cell and heading, so a turn is seen where it is made.
+     */
+    static List<int[]> search(NavigationGrid grid, CellTest road, List<int[]> starts, CellTest goal) {
+        int width = grid.getWidth(), height = grid.getHeight();
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        // A state is a cell and the heading the truck came onto it with; a start has every heading.
+        int[] cost = new int[width * height * 4];
+        int[] parent = new int[width * height * 4];
         Arrays.fill(cost, Integer.MAX_VALUE);
         Arrays.fill(parent, -1);
         PriorityQueue<long[]> open = new PriorityQueue<>(
                 (a, b) -> a[0] != b[0] ? Long.compare(a[0], b[0]) : Long.compare(a[1], b[1]));
-        // The country road where it leaves the map; any drivable rear cell if the map has none.
-        boolean anyRoad = false;
-        for (int x = 1; x < width - 1; x++) anyRoad |= drivable(grid, x, rearRow) && road(topology, x, rearRow);
-        for (int x = 1; x < width - 1; x++) {
-            if (!drivable(grid, x, rearRow) || (anyRoad && !road(topology, x, rearRow))) continue;
-            int idx = rearRow * width + x;
-            cost[idx] = 0;
-            open.add(new long[]{0, idx});
+        for (int[] s : starts) {
+            for (int h = 0; h < 4; h++) {
+                int state = (s[1] * width + s[0]) * 4 + h;
+                cost[state] = 0;
+                open.add(new long[]{0, state});
+            }
         }
-        int goal = -1;
-        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        int found = -1;
         while (!open.isEmpty()) {
             long[] top = open.poll();
-            int idx = (int) top[1];
-            if (top[0] > cost[idx]) continue;
+            int state = (int) top[1];
+            if (top[0] > cost[state]) continue;
+            int idx = state / 4, heading = state % 4;
             int x = idx % width, y = idx / width;
-            if (Math.abs(x - compound.seedX()) <= AT_COMPOUND && Math.abs(y - compound.seedY()) <= AT_COMPOUND
-                    && road(topology, x, y)) {
-                goal = idx;
+            if (goal.test(x, y)) {
+                found = state;
                 break;
             }
-            for (int[] d : steps) {
-                int nx = x + d[0], ny = y + d[1];
+            boolean roomy = false, roomyRead = false;
+            for (int h = 0; h < 4; h++) {
+                int nx = x + steps[h][0], ny = y + steps[h][1];
                 if (!drivable(grid, nx, ny)) continue;
-                int n = ny * width + nx;
-                int c = cost[idx] + (road(topology, nx, ny) ? 1 : OFF_ROAD_COST);
+                int c = cost[state] + (road.test(nx, ny) ? 1 : OFF_ROAD_COST);
+                if (h != heading) {
+                    if (!roomyRead) {
+                        roomy = roomy(grid, x, y);
+                        roomyRead = true;
+                    }
+                    if (!roomy) c += TIGHT_TURN_COST;
+                }
+                int n = (ny * width + nx) * 4 + h;
                 if (c >= cost[n]) continue;
                 cost[n] = c;
-                parent[n] = idx;
+                parent[n] = state;
                 open.add(new long[]{c, n});
             }
         }
-        if (goal < 0) return null;
+        if (found < 0) return null;
         List<int[]> path = new ArrayList<>();
-        for (int at = goal; at >= 0; at = parent[at]) path.add(new int[]{at % width, at / width});
+        for (int at = found; at >= 0; at = parent[at]) path.add(new int[]{(at / 4) % width, (at / 4) / width});
         Collections.reverse(path);
         return path;
+    }
+
+    /** A cell with {@link #TURNING_ROOM} open all round it: room for a truck to turn on it, not only to pass. */
+    static boolean roomy(NavigationGrid grid, int x, int y) {
+        for (int dy = -TURNING_ROOM; dy <= TURNING_ROOM; dy++) {
+            for (int dx = -TURNING_ROOM; dx <= TURNING_ROOM; dx++) {
+                if (!grid.inBounds(x + dx, y + dy) || !grid.isWalkable(x + dx, y + dy)) return false;
+            }
+        }
+        return true;
     }
 
     /** The share of a corridor that runs on road. */
