@@ -260,7 +260,7 @@
   .handover-letter { width: 1120px; height: 500px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
   .handover-tab-current { border-color: #e6d28c; background-color: #34402f; }
   .aux-action { width: 0px; flex-grow: 1; height: 26px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
-  .hq-wings { height: 52px; width: 100%; flex-grow: 0; text-align: left; padding: 4px 8px; font-family: heading; white-space: normal; }
+  .hq-wings { min-height: 52px; width: 100%; flex-grow: 0; text-align: left; padding: 4px 8px; font-family: heading; white-space: normal; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
 .hq-debug-hidden { display: none; }
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
@@ -288,7 +288,7 @@
   .info-list { flex-direction: column; flex-grow: 1; overflow: scroll; display: grid; gap: 8px; }
   .info-row { flex-direction: column; height: 42px; padding: 6px; border-width: 0px; border-color: #263b51; width: 174px; gap: 5px; }
   .info-label { flex-grow: 0; height: 18px; }
-  .info-value { width: 100%; text-align: left; height: 22px; white-space: normal; }
+  .info-value { width: 100%; text-align: left; min-height: 22px; white-space: normal; }
   .warrant-score { width: 70px; }
   .company-hq-board { flex-direction: column; flex-grow: 1; padding: 9px; gap: 9px; border-width: 2px; overflow: hidden; }
   .board-heading { flex-direction: row; align-items: center; height: 58px; flex-grow: 0; padding: 6px 10px; gap: 18px; border-width: 2px; }
@@ -345,8 +345,8 @@
   .post-card { flex-direction: column; align-items: stretch; height: 132px; padding: 8px; gap: 7px; border-width: 2px; background-color: #20282d; border-color: #526065; }
   .post-body { flex-direction: column; height: 84px; flex-grow: 0; gap: 7px; overflow: hidden; }
   .post-kicker { height: 16px; }
-  .post-headline { height: 26px; white-space: normal; }
-  .post-detail { height: 34px; white-space: normal; }
+  .post-headline { min-height: 26px; white-space: normal; }
+  .post-detail { min-height: 34px; white-space: normal; }
   .post-action { width: 110px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; height: 20px; }
   .warning-surface { background-color: #332b1c; border-color: #ffd464; }
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
@@ -358,18 +358,18 @@
   .source-teasers { flex-direction: column; height: 40px; overflow: hidden; }
   .wire-report { flex-direction: column; height: 63px; padding: 5px 7px; gap: 4px; border-width: 1px; text-align: left; }
   .teaser-kicker { height: 15px; }
-  .teaser-headline { height: 36px; white-space: normal; }
-  .source-empty { height: 30px; white-space: normal; }
+  .teaser-headline { min-height: 36px; white-space: normal; }
+  .source-empty { min-height: 30px; white-space: normal; }
   .editorial-desk { flex-direction: column; height: 0px; flex-grow: 1; gap: 10px; overflow: hidden; }
   .lead-story { flex-direction: column; width: auto; flex-grow: 0; padding: 8px 10px; gap: 5px; border-width: 2px; overflow: hidden; height: 166px; }
   .focus-header { flex-direction: row; height: 20px; gap: 8px; align-items: center; }
   .focus-lock { width: 20px; height: 24px; }
-  #company-hq-focus-slug { width: 0px; flex-grow: 1; height: 18px; white-space: normal; }
+  #company-hq-focus-slug { width: 0px; flex-grow: 1; min-height: 18px; white-space: normal; }
   .focus-kicker { height: 14px; }
-  .focus-headline { height: 25px; white-space: normal; }
-  .focus-source { height: 26px; padding: 5px; border-width: 1px; border-color: #697c7b; white-space: normal; width: 220px; font-family: compact; }
-  .focus-detail { height: 40px; white-space: normal; width: 0px; flex-grow: 1; padding: 0px; }
-  .focus-caution { height: 16px; white-space: normal; }
+  .focus-headline { min-height: 25px; white-space: normal; }
+  .focus-source { min-height: 26px; padding: 5px; border-width: 1px; border-color: #697c7b; white-space: normal; width: 220px; font-family: compact; }
+  .focus-detail { min-height: 40px; white-space: normal; width: 0px; flex-grow: 1; padding: 0px; }
+  .focus-caution { min-height: 16px; white-space: normal; }
   .rumor-story { border-color: #b09a64; }
   .news-rundown { flex-direction: column; width: auto; padding: 6px; gap: 5px; border-width: 0px; overflow: hidden; height: 0px; flex-grow: 1; background-color: #1a2426; }
   #company-hq-rundown-heading { height: 18px; width: 0px; flex-grow: 1; }

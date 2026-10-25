@@ -79,7 +79,7 @@
   .loadout-part-next { flex-direction: row; height: 28px; gap: 3px; align-items: start; }
   .loadout-part-next .loadout-part-arrow { padding: 2px 0px; height: 14px; }
   .loadout-part-arrow { width: 10px; height: 10px; pointer-events: none; }
-  .loadout-part-next-name { width: 0px; flex-grow: 1; height: 28px; white-space: normal; overflow: hidden; }
+  .loadout-part-next-name { width: 0px; flex-grow: 1; min-height: 28px; white-space: normal; overflow: hidden; }
   .loadout-member-stats { flex-direction: column; width: 0px; flex-grow: 1; height: 75px; }
   .loadout-member-stat { flex-direction: row; height: 15px; gap: 2px; align-items: center; }
   .loadout-stat-label { width: 40px; }

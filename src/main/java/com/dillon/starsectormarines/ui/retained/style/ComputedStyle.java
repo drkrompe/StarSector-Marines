@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
+import com.dillon.starsectormarines.ui.retained.UiJustify;
 import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
@@ -23,12 +24,15 @@ public final class ComputedStyle {
     public ComputedStyle() {
         values.put(StyleProperty.DISPLAY, UiDisplay.FLEX);
         values.put(StyleProperty.FLEX_DIRECTION, UiLayout.COLUMN);
+        values.put(StyleProperty.JUSTIFY_CONTENT, UiJustify.START);
         values.put(StyleProperty.POSITION, UiPosition.STATIC);
         values.put(StyleProperty.LEFT, Length.AUTO);
         values.put(StyleProperty.TOP, Length.AUTO);
         values.put(StyleProperty.POINTER_EVENTS, PointerEvents.AUTO);
         values.put(StyleProperty.WIDTH, Length.AUTO);
         values.put(StyleProperty.HEIGHT, Length.AUTO);
+        values.put(StyleProperty.MIN_WIDTH, Length.AUTO);
+        values.put(StyleProperty.MIN_HEIGHT, Length.AUTO);
         values.put(StyleProperty.FLEX_GROW, 0f);
         values.put(StyleProperty.ROW_GAP, Length.ZERO);
         values.put(StyleProperty.COLUMN_GAP, Length.ZERO);
@@ -89,6 +93,10 @@ public final class ComputedStyle {
         return (UiAlign) value(StyleProperty.ALIGN_ITEMS);
     }
 
+    public UiJustify justifyContent() {
+        return (UiJustify) value(StyleProperty.JUSTIFY_CONTENT);
+    }
+
     public PointerEvents pointerEvents() {
         return (PointerEvents) value(StyleProperty.POINTER_EVENTS);
     }
@@ -108,6 +116,15 @@ public final class ComputedStyle {
 
     public float height(float basis) {
         return ((Length) value(StyleProperty.HEIGHT)).resolve(basis);
+    }
+
+    /** The content-box floor a measured or declared width cannot go under, or NaN for none. */
+    public float minWidth(float basis) {
+        return ((Length) value(StyleProperty.MIN_WIDTH)).resolve(basis);
+    }
+
+    public float minHeight(float basis) {
+        return ((Length) value(StyleProperty.MIN_HEIGHT)).resolve(basis);
     }
 
     public float grow() {

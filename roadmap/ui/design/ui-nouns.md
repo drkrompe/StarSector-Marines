@@ -356,6 +356,13 @@ element contributes its glyph advance plus padding and border before free space 
 distributed; in a column, its measured block height contributes on the main axis. A
 declared size still wins. Changing retained text marks geometry dirty so the next
 document update buys one layout pass rather than leaving a stale box.
+`min-height` and `min-width` are floors under that declared or measured size: wrapped
+text authored as `min-height: Npx` holds N for one line and grows for a second
+instead of falling out of a fixed box. A column measures a child's height at the width
+the child is given, so a narrow wrapped label counts its real lines. A row that declares
+`min-height` is as tall as its tallest child at the width the row gives it; a row without
+one keeps its own text height, because without `flex-shrink` a growing row based on its
+children's height could only overflow its column.
 
 Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs
@@ -364,6 +371,10 @@ to authored copy: all caps is a heading treatment, not a global font policy. Hor
 For composed controls, `align-items` places row or column children on the cross
 axis with `start`, `center`, `end`, or `stretch`. Centered legends use their
 intrinsic line height, so padding does not become a second alignment authority.
+`justify-content` places them on the main axis with `start`, `center`, `end`, or
+`space-between` when no child grows (a growing child takes the free space instead).
+It replaces growing spacer elements and padding nudges as the way to centre or push
+content along a row or column.
 `text-shadow` takes one colour and stamps a one-pixel halo of it behind every line,
 inherited like `color`. It exists for text with nothing behind it: the takeover HUD
 floats over the battle, and a halo keeps a pale label readable over pale ground from

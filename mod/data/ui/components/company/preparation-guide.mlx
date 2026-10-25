@@ -24,11 +24,11 @@
   .preparation-heading { flex-direction: row; height: 106px; gap: 12px; }
   .preparation-portrait { width: 84px; height: 84px; border-width: 2px; border-color: #8a967f; }
   .preparation-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
-  .preparation-speaker { white-space: normal; height: 36px; font-family: heading; color: #dfc588; }
-  .preparation-title { height: 38px; white-space: normal; font-family: heading; }
+  .preparation-speaker { white-space: normal; min-height: 36px; font-family: heading; color: #dfc588; }
+  .preparation-title { min-height: 38px; white-space: normal; font-family: heading; }
   .preparation-progress { width: 180px; height: 20px; }
   .preparation-copy { height: 0px; flex-grow: 1; white-space: normal; overflow: scroll; }
   .preparation-actions { flex-direction: row; height: 42px; gap: 10px; }
-  .preparation-button { text-align: center; white-space: normal; width: 160px; height: 40px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
+  .preparation-button { text-align: center; white-space: normal; width: 160px; min-height: 40px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
   .preparation-hidden { display: none; }
 </style>

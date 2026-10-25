@@ -11,19 +11,15 @@
         <div id="{tile.metadataId}" class="spec-sheet-subtitle">{tile.metadata}</div>
       </div>
       <!-- Centred by layout, not by padding sums: the row centres the chip and the box on the
-           heading, and a growing spacer above and below each symbol centres it in its frame,
-           whatever the sizes, resolution or UI scale. -->
+           heading, and each frame centres its symbol (justify-content), whatever the sizes,
+           resolution or UI scale. -->
       <div id="{tile.controlsId}" class="loadout-card-controls">
         <div id="{tile.tierId}" class="loadout-card-tier" style="{tile.tierStyle}">
-          <div id="{tile.tierTopId}" class="centre-spacer" />
           <img id="{tile.tierIconId}" class="loadout-card-tier-icon" src="{tile.tierIcon}" />
-          <div id="{tile.tierBottomId}" class="centre-spacer" />
         </div>
         <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">
           <div id="{tile.issueBoxId}" class="doctrine-issue-box">
-            <div id="{tile.issueCheckTopId}" class="centre-spacer" />
             <img id="{tile.issueCheckId}" class="{tile.issueCheckClasses}" src="graphics/ui/equipment/issue-check.svg" />
-            <div id="{tile.issueCheckBottomId}" class="centre-spacer" />
           </div>
         </button>
       </div>
@@ -92,24 +88,23 @@
   /* The card's tier as the filter strip draws it: its chevrons on the tier's tone. */
   /* The same chip as the tier filter's pill (fitting-filter-pill's .tier-pill), so the two match. */
   .loadout-card-controls { flex-direction: row; align-items: center; width: 72px; gap: 8px; }
-  .centre-spacer { height: 0px; flex-grow: 1; pointer-events: none; }
-  .loadout-card-tier { flex-direction: column; align-items: center; width: 40px; height: 26px; pointer-events: none; }
+  .loadout-card-tier { flex-direction: column; align-items: center; justify-content: center; width: 40px; height: 26px; pointer-events: none; }
   .loadout-card-tier-icon { width: 36px; height: 24px; pointer-events: none; }
   .loadout-card-lines { flex-direction: column; gap: 0px; }
-  .loadout-card-line { height: 18px; white-space: normal; }
+  .loadout-card-line { min-height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
   /* The card the squad wears is a ticked box, one ticked a kind; every other card's box is empty,
      and ticking it puts the squad in that card. No word: the box is the whole control. */
   .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 0px; border-width: 0px; }
   .doctrine-issue-button:hover .doctrine-issue-box { border-color: #dfc588; }
-  .doctrine-issue-box { flex-direction: column; align-items: center; width: 20px; height: 20px; padding: 0px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
+  .doctrine-issue-box { flex-direction: column; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
   .doctrine-issue-button.issued .doctrine-issue-box { border-color: #78d494; background-color: #1d5a38; }
   .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
   .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
   .doctrine-issue-button-hidden { display: none; }
-  .doctrine-issue-reason { height: 20px; padding: 8px 4px 2px 4px; white-space: normal; overflow: hidden; }
+  .doctrine-issue-reason { min-height: 20px; padding: 8px 4px 2px 4px; white-space: normal; overflow: hidden; }
   .doctrine-issue-reason-empty { display: none; }
-  .doctrine-distribution { height: 18px; padding-top: 6px; color: #d8bd67; white-space: normal; }
+  .doctrine-distribution { min-height: 18px; padding-top: 6px; color: #d8bd67; white-space: normal; }
   .doctrine-carries { height: 18px; padding-top: 6px; color: #8fd6a6; }
   .doctrine-span-row { flex-direction: row; gap: 6px; padding-top: 6px; overflow: hidden; }
   .doctrine-distribution-row { height: 96px; }
@@ -119,7 +114,7 @@
   .doctrine-span { height: 17px; padding: 1px 2px; }
   .doctrine-issue-span { flex-direction: row; width: 230px; height: 44px; gap: 7px; align-items: center; color: #d8bd67; background-color: #111719; }
   .doctrine-equipment-icon { width: 50px; height: 42px; }
-  .doctrine-equipment-name { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
+  .doctrine-equipment-name { width: 0px; flex-grow: 1; min-height: 36px; white-space: normal; }
   .doctrine-carries-span { color: #8fd6a6; }
   .doctrine-line-hidden { display: none; }
 </style>

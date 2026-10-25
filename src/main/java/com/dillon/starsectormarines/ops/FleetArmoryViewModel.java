@@ -1653,10 +1653,6 @@ public final class FleetArmoryViewModel {
                 // The tier as the filter strip draws it: one chevron a tier on the tier's tone.
                 case "controlsId" -> id + ":controls";
                 case "tierId" -> id + ":tier";
-                case "tierTopId" -> id + ":tier-top";
-                case "tierBottomId" -> id + ":tier-bottom";
-                case "issueCheckTopId" -> id + ":issue-check-top";
-                case "issueCheckBottomId" -> id + ":issue-check-bottom";
                 case "tierIconId" -> id + ":tier-icon";
                 case "tierIcon" -> LoadoutFilter.of(tier).icon();
                 case "tierStyle" -> "background-color: " + LoadoutFilter.of(tier).tone() + ";";

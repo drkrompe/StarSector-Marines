@@ -31,5 +31,5 @@
 .ship-status { width: 100%; height: 10px; font-family: compact; text-align: center; color: #a0ada8; overflow: hidden; white-space: nowrap; }
 .ship-track { width: 100%; height: 2px; background-color: #0000008c; }
 .ship-fill { height: 100%; background-color: #a7ccc4; }
-.ship-hint { width: 100%; height: 24px; color: #bcae82; font-family: compact; overflow: hidden; white-space: normal; }
+.ship-hint { width: 100%; min-height: 24px; color: #bcae82; font-family: compact; overflow: hidden; white-space: normal; }
 </style>

@@ -434,6 +434,24 @@ public final class UiElement {
                 + computedStyle.borderWidth() * 2f;
     }
 
+    /** The border-box {@code min-width}, or NaN when none is declared. */
+    float resolvedMinWidth(float basis) {
+        if (computedStyle == null) return Float.NaN;
+        float contentWidth = computedStyle.minWidth(basis);
+        if (Float.isNaN(contentWidth)) return Float.NaN;
+        return contentWidth + computedStyle.padding(basis).horizontal()
+                + computedStyle.borderWidth() * 2f;
+    }
+
+    /** The border-box {@code min-height}, or NaN when none is declared. */
+    float resolvedMinHeight(float heightBasis, float widthBasis) {
+        if (computedStyle == null) return Float.NaN;
+        float contentHeight = computedStyle.minHeight(heightBasis);
+        if (Float.isNaN(contentHeight)) return Float.NaN;
+        return contentHeight + computedStyle.padding(widthBasis).vertical()
+                + computedStyle.borderWidth() * 2f;
+    }
+
     public UiElement grow(float grow) {
         this.grow = Math.max(0f, grow);
         authoredStyle.put(StyleProperty.FLEX_GROW, this.grow);
@@ -464,6 +482,11 @@ public final class UiElement {
     /** CSS cross-axis alignment for this element's row or column children. */
     public UiAlign alignItems() {
         return computedStyle == null ? null : computedStyle.alignItems();
+    }
+
+    /** CSS main-axis placement for this element's row or column children. */
+    public UiJustify justifyContent() {
+        return computedStyle == null ? UiJustify.START : computedStyle.justifyContent();
     }
 
     public UiElement overflow(Overflow overflow) {

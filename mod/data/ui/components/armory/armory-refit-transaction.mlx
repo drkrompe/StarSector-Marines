@@ -28,7 +28,7 @@
   .loadout-squad-cards { flex-direction: row; width: 604px; height: 54px; gap: 8px; }
   .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-heading { height: 18px; padding: 1px 0px; }
-  .loadout-range-hint { height: 36px; white-space: normal; }
+  .loadout-range-hint { min-height: 36px; white-space: normal; }
   .loadout-range-action { width: 132px; height: 30px; padding: 7px 8px; }
   .loadout-hint { height: 18px; }
   /* Castle's first proper issue, resumable from the squad's own head while it is offered. */

@@ -118,7 +118,7 @@
   .summary-block { flex-direction: column; height: 72px; padding: 10px; gap: 7px; border-width: 1px; }
   .summary-value { height: 38px; }
   #squad-deployment-readiness { height: 29px; }
-  .deployment-note { height: 54px; padding: 10px; border-width: 1px; border-color: #263b51; white-space: normal; }
+  .deployment-note { min-height: 54px; padding: 10px; border-width: 1px; border-color: #263b51; white-space: normal; }
   .marine-inspector { flex-direction: column; height: 218px; padding: 10px; gap: 5px; border-width: 1px; border-color: #4f6d8e; background-color: #0d1722; }
   .marine-inspector.empty { border-color: #263b51; opacity: 0.72; }
   .inspector-heading { height: 15px; }
@@ -179,7 +179,7 @@
   .deployment-summary { width: 360px; padding: 9px; gap: 7px; }
   .deployment-mission { height: 46px; padding: 7px; }
   .summary-block { height: 60px; padding: 7px 9px; gap: 5px; }
-  .summary-value { height: 28px; white-space: normal; }
+  .summary-value { min-height: 28px; white-space: normal; }
   .deployment-note { height: 52px; padding: 7px; }
   .roster-heading { height: 54px; padding: 7px 9px; }
   .deployment-squad-card { width: 450px; height: 266px; background-color: #252b30; border-color: #64717b; }

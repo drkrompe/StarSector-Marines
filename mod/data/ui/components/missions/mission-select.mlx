@@ -128,8 +128,8 @@
   .client-card.locked { opacity: 0.45; }
   .client-crest { width: 38px; height: 38px; }
   .client-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
-  .client-name { height: 32px; white-space: normal; }
-  .client-reputation { height: 30px; white-space: normal; }
+  .client-name { min-height: 32px; white-space: normal; }
+  .client-reputation { min-height: 30px; white-space: normal; }
   .mission-client-footer { flex-direction: row; height: 32px; padding: 3px; gap: 4px; border-width: 2px; }
   .mission-client-footer button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 4px; gap: 4px; border-width: 3px; text-align: center; font-family: heading; }
   .mission-catalog-panel { flex-direction: column; width: 37%; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
@@ -153,8 +153,8 @@
 
   .mission-glyph { width: 31px; height: 31px; padding: 4px; text-align: center; }
   .mission-card-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
-  .mission-card-title { height: 30px; white-space: normal; }
-  .mission-card-meta { height: 30px; white-space: normal; }
+  .mission-card-title { min-height: 30px; white-space: normal; }
+  .mission-card-meta { min-height: 30px; white-space: normal; }
   .mission-card-payout { width: 118px; height: 20px; padding: 3px; text-align: right; }
   .type-assault .mission-glyph { color: #e98b83; }
   .type-sabotage .mission-glyph { color: #ffd464; }
@@ -175,7 +175,7 @@
   .mission-detail-rows { flex-direction: column; gap: 4px; }
   .detail-row { flex-direction: column; height: 52px; padding: 8px; gap: 5px; border-width: 1px; }
   .detail-label { height: 16px; }
-  .detail-value { height: 30px; white-space: normal; }
+  .detail-value { min-height: 30px; white-space: normal; }
   .mission-detail-actions { flex-direction: row; height: 32px; padding: 3px; gap: 5px; border-width: 2px; }
   .mission-detail-actions button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
   .mission-detail-actions .mission-brief { flex-grow: 3; }

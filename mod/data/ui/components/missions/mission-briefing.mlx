@@ -325,14 +325,14 @@
   .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
   .debug-drawer-toggle { flex-direction: row; align-items: center; width: 112px; height: 24px; padding: 3px 5px; gap: 6px; border-width: 3px; font-family: heading; text-align: center; }
   .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 2px; overflow: hidden; }
-  .tier-summary { height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
+  .tier-summary { min-height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
   .mission-tier-track { flex-direction: row; height: 54px; gap: 3px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 2px; text-align: center; }
   .tier-step.locked { opacity: 0.28; }
   .tier-numeral { height: 17px; text-align: center; }
-  .tier-label { height: 24px; font-family: compact; text-align: center; white-space: normal; }
+  .tier-label { min-height: 24px; font-family: compact; text-align: center; white-space: normal; }
   .mission-debug-controls { flex-direction: column; height: 0px; flex-grow: 1; gap: 3px; padding: 1px; overflow: scroll; }
-  .debug-control-row { flex-direction: row; align-items: center; height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
+  .debug-control-row { flex-direction: row; align-items: center; min-height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
   .debug-control-bank { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 28px; gap: 2px; }
   .debug-control-label { width: 112px; height: auto; white-space: normal; }
   .debug-control-row button { width: 22px; padding: 2px 1px; border-width: 2px; text-align: center; font-family: heading; }
@@ -351,7 +351,7 @@
   .force-card-role { height: 12px; }
   .group-command-copy { width: 100%; flex-direction: column; gap: 4px; }
   .group-command-summary { width: 100%; height: auto; white-space: normal; }
-  .captain-role-summary { height: 48px; white-space: normal; }
+  .captain-role-summary { min-height: 48px; white-space: normal; }
   .force-card-title { height: auto; white-space: nowrap; }
   .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
@@ -368,7 +368,7 @@
   .mission-briefing-actions .briefing-assign-hidden { width: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; }
   .debug-rack-header { flex-direction: row; height: 38px; padding: 6px; gap: 8px; border-width: 1px; }
   .debug-service-plate { width: 64px; height: 32px; pointer-events: none; }
-  #mission-debug-heading { width: 0px; flex-grow: 1; height: 34px; white-space: normal; }
+  #mission-debug-heading { width: 0px; flex-grow: 1; min-height: 34px; white-space: normal; }
   .console-rocker { width: 16px; height: 26px; pointer-events: none; }
   .debug-air-row .console-rocker { width: 12px; height: 20px; }
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
@@ -381,7 +381,7 @@
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
   .mission-threat { flex-direction: row; align-items: center; width: 398px; height: 48px; gap: 8px; }
-  .threat-symbols { flex-direction: row; align-items: center; height: 26px; gap: 4px; }
+  .threat-symbols { flex-direction: row; align-items: center; min-height: 26px; gap: 4px; }
   #mission-scale-symbols { width: 126px; }
   #mission-scale-name { width: 86px; height: auto; white-space: normal; }
   #mission-risk-symbols { width: 170px; }
@@ -421,7 +421,7 @@
   .command-power-list .console-rocker { width: 18px; height: 12px; }
   .power-icon { width: 42px; height: 42px; }
   .command-power-list .choice-copy { width: 128px; height: 45px; flex-grow: 0; gap: 4px; }
-  .command-power-list .choice-title { height: 25px; white-space: normal; text-align: center; }
+  .command-power-list .choice-title { min-height: 25px; white-space: normal; text-align: center; }
   .command-power-list .choice-detail { height: 14px; text-align: center; }
   .mission-logistics { flex-direction: column; height: auto; overflow: hidden; }
   /* Fleet support, landing craft and fighter cover share one row so the column never scrolls. */
@@ -434,7 +434,7 @@
   .mission-briefing-actions button { flex-direction: row; align-items: center; width: 158px; flex-grow: 0; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; height: 30px; }
   #mission-briefing-back { width: 114px; }
   #mission-action-spacer { width: 0px; flex-grow: 1; }
-  #mission-deployment-status { width: 360px; height: 32px; text-align: right; white-space: normal; }
+  #mission-deployment-status { width: 360px; min-height: 32px; text-align: right; white-space: normal; }
   .force-heading-row { flex-direction: row; align-items: center; height: 30px; width: 100%; gap: 20px; }
   #mission-force-heading { width: 0px; flex-grow: 1; }
   #mission-assign { flex-direction: row; align-items: center; width: 192px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
@@ -455,17 +455,17 @@
   .mission-reward { flex-direction: column; width: 280px; height: 54px; padding: 4px 8px; gap: 2px; border-width: 2px; }
   #mission-reward-header { height: 18px; }
   #mission-reward-value { height: 26px; }
-  #mission-reward-terms { height: 34px; white-space: normal; }
+  #mission-reward-terms { min-height: 34px; white-space: normal; }
   .mission-survey-slot { flex-direction: column; width: 594px; }
   .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 2px; }
   #mission-survey-heading { height: 24px; }
-  #mission-survey-status { height: 30px; white-space: normal; }
+  #mission-survey-status { min-height: 30px; white-space: normal; }
   #mission-survey-canvas { height: 410px; }
-  #mission-survey-legend { height: 32px; white-space: normal; }
+  #mission-survey-legend { min-height: 32px; white-space: normal; }
   #mission-survey-details { height: 24px; }
   .survey-objectives { flex-direction: column; height: 190px; gap: 4px; overflow: scroll; }
-  .survey-objective { height: 24px; white-space: normal; }
-  #mission-survey-footer { height: 34px; white-space: normal; }
+  .survey-objective { min-height: 24px; white-space: normal; }
+  #mission-survey-footer { min-height: 34px; white-space: normal; }
   #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
   #mission-source-list { height: 0px; flex-grow: 1; }
   .source-list .choice-row { height: 40px; width: 100%; }
