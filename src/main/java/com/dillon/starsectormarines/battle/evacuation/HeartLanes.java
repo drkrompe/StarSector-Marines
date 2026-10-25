@@ -472,10 +472,11 @@ public final class HeartLanes {
     static final boolean BORE_ASSAULT = Boolean.parseBoolean(System.getProperty("battle.heart.boreAssault", "true"));
 
     /**
-     * Whether each lane's waves bring a mortar team (`heart-allied-tools-next.md`). Removal condition: the owner has
-     * seen its Broad Front evidence; {@code false} is the control, every wave riflemen only.
+     * Whether each lane's waves bring a mortar team (`heart-allied-tools-next.md`). Off by default: in its first
+     * Broad Front run 52 teams fired 166 rounds and none of them on the mouth they were sent to work. Removal condition:
+     * its rounds land on its mission and the owner has seen that run; {@code false} is the control, riflemen only.
      */
-    static final boolean MORTAR_TEAMS = Boolean.parseBoolean(System.getProperty("battle.heart.mortarTeams", "true"));
+    static final boolean MORTAR_TEAMS = Boolean.parseBoolean(System.getProperty("battle.heart.mortarTeams", "false"));
 
     /** What the lanes' assaults did, for the evidence (`heart-bore-assault.md`, Acceptance). */
     private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, fallenBack;
@@ -776,9 +777,10 @@ public final class HeartLanes {
         int count = 0;
         for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) count++;
         // The section trails the lane's militia up to the bore, and takes its reach post once they are on the line.
+        // A lane with no militia left has nobody to trail: the section takes its reach post behind the ring.
         int[] militia = lane.squads == null ? null : laneBody(sim, lane, List.of());
-        if (militia == null) militia = lanePosition(sim, lane);
-        double militiaFromBore = Math.hypot(militia[0] - a.boreX, militia[1] - a.boreY);
+        double militiaFromBore = militia == null ? 0.0 : Math.hypot(militia[0] - a.boreX, militia[1] - a.boreY);
+        if (militia == null) militia = new int[]{a.supportX, a.supportY};
         int i = 0;
         for (long hull : lane.section) {
             if (sim.convoy().structure(hull) <= 0f) continue;
