@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 
 import java.util.List;
@@ -88,7 +89,7 @@ public enum VehicleType {
             return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
         }
     },
-    /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
+    /** Heavy convoy spearhead. Turns on conservative rolling arcs, and on the spot where no arc fits ({@link NeutralPivot}). */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
@@ -219,7 +220,7 @@ public enum VehicleType {
      * The spotter pickup, a field rig: the pickup cut short on a shorter wheelbase, painted dust grey, with a
      * salvaged sensor mast where the gun stood. Its job
      * is information: it sees farther than a marine and reports what it sees to its side's fog and its commander
-     * ({@link ScoutSight}). The fastest hull in the bay, and the thinnest: no gun, no seats, almost no plate, and its
+     * ({@link HullSightings}). The fastest hull in the bay, and the thinnest: no gun, no seats, almost no plate, and its
      * sight is ordinary line of sight, so it has to be driven somewhere it can look.
      */
     SCOUT_CAR("graphics/battle/vehicles/scout-car.png", 0, 4, -90f,
@@ -233,7 +234,7 @@ public enum VehicleType {
     /**
      * Tri-Tachyon's hover scout, a purpose-built corporate hull and not a field rig: a lift-fan skirt under a
      * sleek composite shell, a sensor cluster that reports to its side as the spotter pickup's mast does
-     * ({@link ScoutSight}), and a light twin pulse emitter of the Wisp family for screening. Hover is a real
+     * ({@link HullSightings}), and a light twin pulse emitter of the Wisp family for screening. Hover is a real
      * trade ({@link HoverSkirt}): it crosses water and rubble no wheel can, and it cannot shove a body aside.
      * It pays in plate — thinner than the technical — and it is slower than the stripped pickup. Its sheet draws the
      * emitter at the hull's own scale, so the turret frame spans the hull frame (art-source/vehicles/tt-hover).
@@ -323,8 +324,17 @@ public enum VehicleType {
     /** Drones this hull launches and tethers to itself, or 0 for every hull that carries none. */
     public int droneComplement() { return droneBay().size(); }
 
-    /** How far this hull reports what it sees to its side, in cells; 0 for a hull that is not a sight source. */
+    /** How far a hull's crew sees out of it, in cells: a marine's own sight. */
+    public static final float CREW_SIGHT_CELLS = UnitType.MARINE.visionRange;
+
+    /** How far a sensor mast sees past the crew, in cells; 0 for a hull with no mast. */
     public float sightCells() { return 0f; }
+
+    /**
+     * How far this hull looks and reports what it sees to its side, in cells: its mast where it has one, the crew's
+     * sight otherwise. Every hull is an observer ({@link HullSightings}, {@link SideObservers}).
+     */
+    public final float observeCells() { return Math.max(sightCells(), CREW_SIGHT_CELLS); }
 
     /**
      * How a deployed hull fights armor on its own ({@link VehicleEngagement}). A dueller takes the duel band its gun
@@ -499,6 +509,12 @@ public enum VehicleType {
      * breacher does; its route proof and its rolling planner read the blade's breach view instead of the live grid.
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
+
+    /**
+     * Whether this hull's tracks flatten undergrowth and lone boulders it drives into ({@link HeavyTracks}): every
+     * Heavy-lift hull, which is the tank line and the dozer. Its planning and its motion read the tracks' crush view.
+     */
+    public boolean crushesUndergrowth() { return liftClass() == LiftClass.HEAVY && !isHover(); }
 
     /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }

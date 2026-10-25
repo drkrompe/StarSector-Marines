@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
+import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -71,6 +72,12 @@ public final class ConvoyService implements BodyCarrier {
 
     /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
     private LongConsumer destructionSink;
+
+    /** The drones a hull's kits add to its bay, by entity id; only hulls that carry such a kit are here. */
+    private final Map<Long, List<DroneRole>> kitBays = new LinkedHashMap<>();
+
+    /** Setup-time hook run once for every hull set down, so the battle can enrol it as a fog contributor. */
+    private LongConsumer spawnSink;
 
     /** Entity id to the mech-bay vehicle it realizes; only company vehicles are here. */
     private final Map<Long, String> companyVehicles = new LinkedHashMap<>();
@@ -153,10 +160,14 @@ public final class ConvoyService implements BodyCarrier {
         }
         world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
         entityIds.add(id);
+        List<DroneRole> kitBay = new ArrayList<>();
+        for (VehicleKit kit : kits) kitBay.addAll(kit.droneBay());
+        if (!kitBay.isEmpty()) kitBays.put(id, List.copyOf(kitBay));
         roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
         // looking at this tick; one still off-map joins at the next rebuild.
         if (isTargetable(id)) roster.indexVehicle(id);
+        if (spawnSink != null) spawnSink.accept(id);
         return id;
     }
 
@@ -188,6 +199,18 @@ public final class ConvoyService implements BodyCarrier {
         roster.unindexVehicle(id);
         roster.entityWorld().destroy(id);
         entityIds.remove(id);
+        kitBays.remove(id);
+    }
+
+    /** The drones this hull launches, in launch order: its type's bay, then what its kits add. */
+    public List<DroneRole> droneBay(long id) {
+        VehicleType type = vehicleType(id);
+        List<DroneRole> added = kitBays.get(id);
+        if (type == null) return added == null ? List.of() : added;
+        if (added == null) return type.droneBay();
+        List<DroneRole> bay = new ArrayList<>(type.droneBay());
+        bay.addAll(added);
+        return bay;
     }
 
     /**
@@ -229,6 +252,11 @@ public final class ConvoyService implements BodyCarrier {
     /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
     public void setDestructionSink(LongConsumer sink) {
         this.destructionSink = sink;
+    }
+
+    /** Installs the hook {@link #spawn} runs on each new hull once its columns are seeded. */
+    public void setSpawnSink(LongConsumer sink) {
+        this.spawnSink = sink;
     }
 
     /** A hull out of structure stops and becomes scenery; {@code GroundSystem} owns the transition. */

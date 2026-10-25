@@ -46,6 +46,7 @@ NAMES = {
     "spore-colony-bore": "spore-colony-bore",
     "spore-colony-maw": "spore-colony-maw",
     "ground-colony": "ground-colony",
+    "brood-spire": "brood-spire",
 }
 
 # Rav Bloom CHITIN proposal (rav-palettes): luminance in -> colour out, for creature materials.
@@ -238,7 +239,72 @@ def fitted(raw: Image.Image, guide: Image.Image) -> Image.Image:
     gcx, gcy = (gb[0] + gb[2]) / 2, (gb[1] + gb[3]) / 2
     out = Image.new("RGBA", raw.size, (0, 0, 0, 0))
     out.paste(scaled, (round(gcx - rcx), round(gcy - rcy)), scaled)
+    return refined(out, guide)
+
+
+def refined(raw: Image.Image, guide: Image.Image, small: int = 256) -> Image.Image:
+    """Nudges the bbox fit by the small scale and shift that best overlays the raw's silhouette on the guide's.
+
+    The bounding boxes agree only as far as the painting's outermost reach does: a root painted a little longer than
+    the guide's shifts the whole fit, and thin roots then miss their material by a few pixels.
+    """
+    g = np.asarray(guide.getchannel("A").resize((small, small), Image.Resampling.BILINEAR)) >= 128
+    best = (iou_np(np.asarray(raw.getchannel("A").resize((small, small), Image.Resampling.BILINEAR)) >= 128, g), 1.0, 0, 0)
+    for scale in np.arange(0.95, 1.051, 0.01):
+        size = round(small * scale)
+        a = np.asarray(raw.getchannel("A").resize((size, size), Image.Resampling.BILINEAR)) >= 128
+        canvas = np.zeros((small, small), bool)
+        o = (small - size) // 2
+        lo, hi = max(0, o), min(small, o + size)
+        canvas[lo:hi, lo:hi] = a[lo - o:hi - o, lo - o:hi - o]
+        for dy in range(-10, 11):
+            rolled_y = np.roll(canvas, dy, 0)
+            for dx in range(-10, 11):
+                score = iou_np(np.roll(rolled_y, dx, 1), g)
+                if score > best[0]:
+                    best = (score, scale, dx, dy)
+    _, scale, dx, dy = best
+    if scale == 1.0 and dx == 0 and dy == 0:
+        return raw
+    k = raw.width / small
+    size = round(raw.width * scale)
+    scaled = raw.resize((size, size), Image.Resampling.LANCZOS)
+    out = Image.new("RGBA", raw.size, (0, 0, 0, 0))
+    o = (raw.width - size) // 2
+    out.paste(scaled, (o + round(dx * k), o + round(dy * k)), scaled)
     return out
+
+
+def iou_np(a: np.ndarray, b: np.ndarray) -> float:
+    union = np.count_nonzero(a | b)
+    return np.count_nonzero(a & b) / union if union else 0.0
+
+
+def reach(materials: np.ndarray, body: Image.Image, steps: int = 16) -> np.ndarray:
+    """The material map grown out over whatever the painting covers past the guide's edge, nearest material first,
+    so a root painted a few pixels off its guide is still recoloured as root."""
+    m = materials.copy()
+    painted = np.asarray(body.getchannel("A")) >= ALPHA_FLOOR
+    for _ in range(steps):
+        empty = (m == make_guide.NONE) & painted
+        if not empty.any():
+            break
+        for axis, shift in ((0, 1), (0, -1), (1, 1), (1, -1)):
+            near = np.roll(m, shift, axis)
+            take = empty & (near != make_guide.NONE)
+            m[take] = near[take]
+            empty &= ~take
+    return m
+
+
+def ember_weight(rgba: np.ndarray) -> np.ndarray:
+    """0..1 per pixel: how much of a dim warm glow it is (the light far down a throat, too dark for a node)."""
+    rgb = rgba[..., :3].astype(np.float32) / 255
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    warm = (r >= g) & (g > b) & ((g - b) > 0.35 * (r - b))
+    return np.where(warm, np.clip((s - 0.55) / 0.25, 0, 1) * np.clip(mx / 0.08, 0, 1), 0)
 
 
 def amber_weight(rgba: np.ndarray) -> np.ndarray:
@@ -298,6 +364,8 @@ def recolour(body: Image.Image, materials: np.ndarray, palette: str) -> Image.Im
     if bone_ramp is not None:
         bone = soft_mask(materials, (make_guide.BONE,))
         target = target * (1 - bone) + gradient(lum, bone_ramp) * bone
+    ember = ember_weight(arr.astype(np.uint8))[..., None]
+    target = target * (1 - ember) + arr[..., :3] * ember
     target = target * (1 - amber) + glowing * amber
     creature = soft_mask(materials, make_guide.CREATURE)
     rgb = arr[..., :3] * (1 - creature) + target * creature
@@ -309,6 +377,10 @@ def main() -> None:
     parser.add_argument("--palette", choices=("raw", *PALETTES), default=SHIPPED)
     parser.add_argument("--part", action="append", help="limit to these parts")
     parser.add_argument("--state", action="append", choices=make_guide.STATES, help="limit to these damage states")
+    parser.add_argument("--spire-option", choices=make_guide.SPIRE_STYLES,
+                        help="export one look option's painting (raw/options/) as brood-spire-1, for the owner's pick")
+    parser.add_argument("--mother-option", choices=make_guide.MOTHER_STYLES,
+                        help="export one look option's painting (raw/options/) as mother-bore-1, for the owner's pick")
     args = parser.parse_args()
     here = Path(__file__).resolve().parent
     repository = here.parent.parent
@@ -327,26 +399,35 @@ def main() -> None:
         if args.part and part not in args.part:
             continue
         edge = edge_px(part)
-        for v in range(1, make_guide.VARIANTS[part] + 1):
-            for state in states:
+        options = {"brood-spire": args.spire_option, "mother-bore": args.mother_option}
+        option = options.get(part)
+        if any(options.values()) and not option:
+            continue
+        for v in range(1, (1 if option else make_guide.VARIANTS[part]) + 1):
+            for state in (["intact"] if option else states):
                 suffix = "" if state == "intact" else f"-{state}"
                 raw_path = here / "raw" / f"{part}-{v}{suffix}.raw.png"
+                guide_path = make_guide.guide_path(templates, part, v, state)
+                if option:
+                    raw_path = here / "raw" / "options" / f"{part}-{option}-{v}.raw.png"
+                    guide_path = templates / f"swarm-{part}-{option}-{v}-guide.png"
                 if not raw_path.exists():
                     print(f"{part}-{v}{suffix}: no raw yet, skipped")
                     continue
                 raw = Image.open(raw_path).convert("RGBA").resize((CANVAS, CANVAS), Image.Resampling.LANCZOS)
-                guide = Image.open(make_guide.guide_path(templates, part, v, state)).convert("RGBA")
+                guide = Image.open(guide_path).convert("RGBA")
                 small = (256, 256)
                 before = iou(mask(raw.resize(small)), mask(guide.resize(small)))
                 raw = fitted(raw, guide)
                 score = iou(mask(raw.resize(small)), mask(guide.resize(small)))
                 raw.putalpha(raw.getchannel("A").point(lambda value: 0 if value < ALPHA_FLOOR else value))
-                field = make_guide.build(part, v, state)
+                field = make_guide.build(part, v, state, option)
+                materials = reach(field.m, raw)
                 if args.palette != "raw":
-                    raw = recolour(raw, field.m, args.palette)
+                    raw = recolour(raw, materials, args.palette)
                     if state == "remains":
-                        raw = husk(raw, field.m)
-                    raw = overgrow(raw, field.m, withered if state == "remains" else berm)
+                        raw = husk(raw, materials)
+                    raw = overgrow(raw, materials, withered if state == "remains" else berm)
                 sprite = make_guide.ground_layer(field)
                 sprite.alpha_composite(raw)
                 sprite = sprite.resize((edge, edge), Image.Resampling.LANCZOS)

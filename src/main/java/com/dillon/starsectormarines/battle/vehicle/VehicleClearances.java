@@ -24,8 +24,8 @@ import java.util.List;
  */
 public final class VehicleClearances {
 
-    /** Slots kept per radius: the live grid, a blade view and a hover view, with one spare. */
-    private static final int SLOTS_PER_RADIUS = 4;
+    /** Slots kept per radius: the live grid, the tracks' crush view, a blade view and a hover view, with one spare. */
+    private static final int SLOTS_PER_RADIUS = 5;
 
     private final List<Slot> slots = new ArrayList<>();
     private long useClock;

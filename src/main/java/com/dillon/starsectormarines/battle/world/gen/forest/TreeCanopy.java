@@ -6,12 +6,21 @@ import java.util.List;
 
 /** The authoring silhouette and its conservative whole-cell obstruction share these lobes. */
 public enum TreeCanopy implements NaturalPropShape {
-    OAK("oak", 5, 5, 8, 0x526B39),
-    OAK_SMALL("oak-small", 4, 4, 7, 0x64783D),
-    BIRCH("birch", 5, 4, 9, 0x7A8748),
-    PINE("pine", 3, 3, 9, 0x365E46),
-    PINE_LARGE("pine-large", 4, 4, 11, 0x3F6750),
-    CEDAR("cedar", 4, 6, 10, 0x536C45);
+    OAK("oak", 5, 5, 8, 0x526B39, false),
+    OAK_SMALL("oak-small", 4, 4, 7, 0x64783D, true),
+    BIRCH("birch", 5, 4, 9, 0x7A8748, false),
+    PINE("pine", 3, 3, 9, 0x365E46, true),
+    PINE_LARGE("pine-large", 4, 4, 11, 0x3F6750, false),
+    CEDAR("cedar", 4, 6, 10, 0x536C45, false);
+
+    /**
+     * Whether the young canopies are undergrowth a heavy tank pushes over (`convoy-nouns.md`, heavy tracks).
+     * Experiment awaiting the owner's pick between young trees and dead trees only: remove it with the losing arm
+     * once the pick is made.
+     */
+    public static final String YOUNG_TREES_CRUSH_PROPERTY = "battle.vehicle.crushYoungTrees";
+    private static final boolean YOUNG_TREES_CRUSH =
+            !"false".equalsIgnoreCase(System.getProperty(YOUNG_TREES_CRUSH_PROPERTY));
 
     public record Lobe(double x, double y, double rx, double ry) {
         public boolean intersectsCell(int x, int y) {
@@ -22,10 +31,12 @@ public enum TreeCanopy implements NaturalPropShape {
     }
     public final String id;
     public final int width, height, color;
+    /** A young tree: the smallest canopies, which a heavy-lift hull flattens while they live. */
+    public final boolean young;
     private final List<Lobe> lobes;
 
-    TreeCanopy(String name, int width, int height, int count, int color) {
-        this.id = "forest." + name; this.width = width; this.height = height; this.color = color;
+    TreeCanopy(String name, int width, int height, int count, int color, boolean young) {
+        this.id = "forest." + name; this.width = width; this.height = height; this.color = color; this.young = young;
         double rx = width * .41, ry = height * .41;
         List<Lobe> shapes = new ArrayList<>();
         shapes.add(new Lobe(width * .5, height * .5, rx * .84, ry * .84));
@@ -43,6 +54,7 @@ public enum TreeCanopy implements NaturalPropShape {
     public int width() { return width; }
     public int height() { return height; }
     public int hitPoints() { return 200; }
+    @Override public boolean undergrowth() { return young && YOUNG_TREES_CRUSH; }
     public int width(int turns) { return (turns & 1) == 0 ? width : height; }
     public int height(int turns) { return (turns & 1) == 0 ? height : width; }
 

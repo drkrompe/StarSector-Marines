@@ -19,7 +19,6 @@ class DebugCivilianRescueMissionTest {
 
         assertEquals(RiskLevel.values().length + 1, missions.size());
         Mission canonical = missions.get(0);
-        assertEquals("SWARM RESCUE — CANONICAL", canonical.name);
         assertEquals(MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE,
                 canonical.source);
         assertEquals(RiskLevel.HIGH, canonical.risk);

@@ -118,6 +118,7 @@ public final class TileRegistry {
             "data/tilesets/compound-furniture-damage.tileset.json",
             "data/tilesets/forest-destroyed.tileset.json",
             "data/tilesets/forest-blight.tileset.json",
+            "data/tilesets/forest-blight-felled.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/ground-feather.tileset.json",
             "data/tilesets/water-shore.tileset.json",
@@ -421,6 +422,7 @@ public final class TileRegistry {
             TileLayer layer = TileLayer.fromJson(o.optString("layer", "ground"));
             TileCover cover = TileCover.fromJson(o.optString("cover", "none"));
             boolean passable = o.optBoolean("passable", true);
+            boolean crushable = o.optBoolean("crushable", false);
             List<String> validOn = new ArrayList<>();
             JSONArray vo = o.optJSONArray("validOn");
             if (vo != null) {
@@ -429,7 +431,7 @@ public final class TileRegistry {
             String name = o.optString("name", "");
             String description = o.optString("description", "");
             TileDef def = new TileDef(id, sheet, byIndex.size(), frame, layer, cover, passable,
-                    validOn, name, description);
+                    crushable, validOn, name, description);
             byId.put(id, def);
             byIndex.add(def);
             sourceById.put(id, source);

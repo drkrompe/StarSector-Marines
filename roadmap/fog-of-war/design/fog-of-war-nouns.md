@@ -22,9 +22,10 @@ position, and shots remain visible through fog.
 
 ## Vocabulary and ownership
 
-- A **vision contributor** is a live unit from a player-visible faction. Its
-  sight range and close-wall air line-of-sight radius are live unit attributes
-  owned by `VisionService`; `PlayerVisionState` owns which factions contribute.
+- A **vision contributor** is a live unit or convoy hull from a player-visible
+  faction. A unit's sight range and close-wall air line-of-sight radius are live
+  attributes owned by `VisionService`; a hull's is a marine's, or its mast's where
+  its type carries one. `PlayerVisionState` owns which factions contribute.
 - An **observation footprint** is the set of cells one contributor can presently
   see. `Shadowcast` derives it from map line-of-sight, range, and any air
   clearance; it is not a tactical target-selection result.
@@ -166,6 +167,14 @@ compatible, not merely while its cell is unchanged. Dense-slot visibility and
 fade state must likewise transfer or clear with roster compaction and release.
 `stories.md` owns the two bounded compatibility corrections where the existing
 cache and lifecycle do not yet satisfy those laws.
+
+Every friendly ground hull is a contributor: the crew looks out of it as a
+marine does, and a scout car or hover scout sees farther. It takes the same
+cohort refresh and cached footprint as a soldier or a mech, so a parked hull
+costs nothing per pass. It is also an observer for its side's commander and for
+indirect fire (`HullSightings`), so what the player sees through a hull the side
+knows too. A sensor drone is a contributor as well, with a wider sight than a
+marine's, so nothing hull-borne arrives as a temporary source.
 
 Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
 the ground it is ordered onto and where its rounds and lance tips fall; a hostile

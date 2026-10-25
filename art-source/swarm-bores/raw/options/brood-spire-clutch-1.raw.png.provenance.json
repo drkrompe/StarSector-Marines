@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17324-d6df-7383-8492-6a677d044e89",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17324-d6df-7383-8492-6a677d044e89\\exec-252ddcc8-af1a-4bce-acf0-e56c0f3edfdf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\options\\brood-spire-clutch-1.raw.png",
+    "sha256": "5e51538a135a239a1c290937416ef26d701123c95251187940291c746b95cddd",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\brood-spire-clutch.prompt.txt",
+  "promptSha256": "f16ff32f842ee787bc6e13838fda6b083f6fab1b3dd5ea79411e0f6d7e8e68e0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a BROOD SPIRE of the alien swarm for a top-down tactical game: the one TALL growth the swarm raises on old creep, a nesting column that its winged fliers hatch from and launch off in packs. It is grown, not built, and lopsided. Body plan: a CLUTCH of three or four slender curved horns of stacked chitin collars splayed out from one knotted sinew root like a claw opening, each tipped in pale bone, with swollen brood pods of veined membrane glowing amber from inside cradled in the crotch between them and a couple clinging up the horns, all on a skirt of plates and roots over a heaved mound. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry; on a column it is stacked growth collars, each lip a little proud of the segment above, like a horn or a cone shell; pale ivory = bone (spurs, horn tips); dark grey-green tubes = sinew roots and cords; brown = churned, thrown-up soil; dusky mauve = wet dark flesh; pale warm grey-pink domes and flaps = brood membrane: thin, taut, translucent skin laced with dark veins, with the amber of what grows inside showing through; orange-amber spots = glowing amber, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective: the column's height is shown only by its lean and the guide's shading. Genuine transparent background outside the silhouette, including the gaps between roots and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a tree, never a machine, never a building, never a different animal. It will be shown only about 100 to 260 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, collar seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-brood-spire-clutch-1-guide.png",
+      "sha256": "1668e3069024587347f6fdd83282db2c3652a72d28dba8a47159a67d9e28926d",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed geometry and lighting guide, and Image 2 only for the painted materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 42838,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 638,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.9
+}

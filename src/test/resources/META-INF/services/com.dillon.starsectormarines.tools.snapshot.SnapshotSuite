@@ -222,6 +222,7 @@ com.dillon.starsectormarines.battle.vehicle.SupplyTruckSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.ScoutCarSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.MissileCarrierSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.DozerBreachSceneSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.TankUndergrowthSceneSnapshotSuite
 com.dillon.starsectormarines.ops.TankVariantsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.HoverLineSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DamageDollSnapshotSuite
@@ -250,6 +251,8 @@ com.dillon.starsectormarines.battle.evacuation.GroundColonySceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyThreatSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirSceneSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.SwarmSoundLookSuite
+com.dillon.starsectormarines.battle.evacuation.RavWearLookSuite
 com.dillon.starsectormarines.battle.creep.HiveCreepSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BruteChargeSceneSnapshotSuite
@@ -311,3 +314,7 @@ com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
 com.dillon.starsectormarines.ops.battleview.BodyEffectsLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.OriginPropsLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOriginLookSuite
+com.dillon.starsectormarines.battle.airsupport.ForwardObserverLookSuite
+com.dillon.starsectormarines.battle.evacuation.BroodSpireLookSuite
+com.dillon.starsectormarines.battle.evacuation.MotherBoreLookSuite
+com.dillon.starsectormarines.battle.ambient.StaffedWarehouseLookSuite

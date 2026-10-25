@@ -11,8 +11,8 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
  * Whether a side has eyes on a body right now, from somebody other than the shooter: the question an indirect-fire
  * hull asks before it fires at what it cannot see itself ({@code convoy-nouns.md}, the missile carriers).
  *
- * <p>Eyes are a sight hull (the spotter pickup, the hover scout) with the body in its own sight range and line of
- * sight; a body the side's scouts recorded on the last tick ({@link ScoutSight}); any friendly soldier or mech within
+ * <p>Eyes are a hull (any vehicle, the scouts farthest) or a sensor drone with the body in its own sight range and line
+ * of sight; a body the side's scouts recorded on the last tick ({@link HullSightings}); any friendly soldier or mech within
  * {@link #OBSERVER_REACH_CELLS} with line of sight, as a mortar's spotter is; and a comms operator with it in sight.
  * Nothing here is a belief or a memory: a body that ducked behind a wall a second ago is not spotted, so a carrier
  * holds fire on it rather than shelling where it used to be.
@@ -33,12 +33,12 @@ public final class SideObservers implements SideSpotting {
     private final UnitRosterService roster;
     private final UnitSpatialIndex index;
     private final NavigationGrid grid;
-    private final ScoutSight scouts;
+    private final HullSightings scouts;
     private final CommsSight comms;
     private final LongBucket scratch = new LongBucket();
 
     public SideObservers(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
-                         NavigationGrid grid, ScoutSight scouts, CommsSight comms) {
+                         NavigationGrid grid, HullSightings scouts, CommsSight comms) {
         this.convoy = convoy;
         this.roster = roster;
         this.index = index;
@@ -54,14 +54,15 @@ public final class SideObservers implements SideSpotting {
         float tx = roster.world().x(target);
         float ty = roster.world().y(target);
         if (!Float.isFinite(tx) || !Float.isFinite(ty)) return false;
-        // A sight hull sees vehicles too, which its scout record (dense-roster bodies only) does not carry.
+        // A hull sees vehicles too, which its scout record (dense-roster bodies only) does not carry.
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long hull = convoy.vehicleAt(i);
             VehicleType type = convoy.vehicleType(hull);
-            if (type == null || type.sightCells() <= 0f || !convoy.isPresent(hull) || convoy.faction(hull) != side) continue;
+            if (type == null || !convoy.isPresent(hull) || convoy.faction(hull) != side) continue;
             GroundBody body = convoy.body(hull);
-            if (ScoutSight.sees(grid, body.x, body.y, tx, ty, type.sightCells())) return true;
+            if (HullSightings.sees(grid, body.x, body.y, tx, ty, type.observeCells())) return true;
         }
+        if (scouts != null && scouts.extraSees(grid, side, tx, ty)) return true;
         Faction targetSide = convoy.isVehicle(target) ? convoy.faction(target) : roster.identity().faction(target);
         if (targetSide != null && index != null) {
             synchronized (scratch) {

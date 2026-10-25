@@ -541,7 +541,7 @@
           { "kind": "smoke", "radius": [0.30, 0.45], "lifetime": [1.6, 2.2], "jitter": 0.90, "delay": [0.25, 0.40], "emissionDuration": 0.90, "emissionInterval": [0.22, 0.32], "color": "6A6560" }
         ]
       },
-      "audio": { "fireSound": "flak_fire" }
+      "audio": { "fireSound": "marines_flak_fire", "impactSound": "marines_flak_burst" }
     },
     {
       "id": "weapon.turret-hephaestus",

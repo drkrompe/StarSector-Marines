@@ -133,6 +133,8 @@ public class GroundSystem {
     /** Gives bladed hulls the blade that opens ground ahead of them. */
     public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
 
+    public void setTracks(HeavyTracks tracks) { controlSystem.setTracks(tracks); }
+
     /** Where the craft are, for a vehicle gun that reaches the air ({@link VehicleAirFire}). */
     public void setAirFire(VehicleAirFire airFire) { turrets.setAirFire(airFire); }
 
