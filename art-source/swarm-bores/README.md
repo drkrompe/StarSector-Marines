@@ -115,3 +115,18 @@ on). Each option's guide is `templates/swarm-brood-spire-<style>-1-guide.png`, i
 `export.py --spire-option <style>` exports one as `brood-spire-1` for the look review
 (`createSnapshots -Psnapshot=brood-spire-look`). The picked plan then gets its three variants and damage states
 through the ordinary steps.
+
+**Mother bore** (`make_guide.mother_body`). The heart's root, so it must read as far more than a bore: a wider rim
+and a throat more than twice as deep, ribbed all the way down with sinew cords down its walls and a faint amber glow
+far down (the export keeps that dim amber through the recolour rather than mapping it to sinew), the colony's paving
+laid on a grid and heaved up the berm in levered, broken pavers, and long branching roots out to the canvas edge;
+the canvas is 6 cells so they fit. Three body plans were drawn for the owner's pick (`MOTHER_STYLES`: `jaw`, `vault`,
+`collapse`; `MOTHER_STYLE` is built on): `python make_guide.py options` writes
+`templates/swarm-mother-bore-<style>-1-guide.png`, the briefs are `prompts/mother-bore-<style>.prompt.txt` and the
+paintings `raw/options/mother-bore-<style>-1.raw.png`; `export.py --mother-option <style>` exports one as
+`mother-bore-1` for the look review (`createSnapshots -Psnapshot=mother-bore-look`). `prompts/mother-bore.prompt.txt`
+is the built-on plan's brief, which `generate.sh` uses for the shipped variants and their damage states.
+
+**Registration.** `export.py` nudges the bounding-box fit by the small scale and shift that best overlays the
+painting's silhouette on the guide's, and grows the guide's material map over whatever the painting covers past the
+guide's edge, so a root painted a few pixels off its guide is still recoloured as root.
