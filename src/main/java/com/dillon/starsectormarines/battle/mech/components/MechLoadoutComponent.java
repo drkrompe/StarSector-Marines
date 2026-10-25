@@ -194,6 +194,18 @@ public final class MechLoadoutComponent {
     public int frontlineThreatX = -1;
     public int frontlineThreatY = -1;
 
+    // ---- Assault advance vantage ----
+    //
+    // AdvancePositioning picks the cell an advancing mech walks to near doctrine's point, and holds
+    // it while that point stays put so its sight rays are not cast every tick.
+
+    /** Doctrine's point the held vantage answered. */
+    public int advanceAimX, advanceAimY;
+    /** The held vantage. */
+    public int advancePickX, advancePickY;
+    /** Tick the vantage was picked. {@link Integer#MIN_VALUE} = none held. */
+    public int advancePickedTick = Integer.MIN_VALUE;
+
     /** Per-member latch allowing local doctrine movement only after servicing an exact command cell. */
     public AssignmentKind assignmentBoundaryKind;
     public int assignmentBoundaryCellX = Integer.MIN_VALUE;

@@ -11,10 +11,14 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.ReachableRegion;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
+import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Assault mech point action. The assault member advances into an assigned
@@ -67,7 +71,8 @@ public final class BreachAndAssault implements Action {
         sim.world().setTargetId(member, target);
         fireWhileAdvancing(member, loadout, target, sim);
 
-        int[] destination = destination(member, squad, target, sim);
+        Aim aim = destination(member, squad, target, sim);
+        int[] destination = aim != null ? aim.cell() : null;
         destination = MechAssignmentBoundary.constrain(
                 member, squad, destination, sim);
         long support = 0L;
@@ -89,6 +94,10 @@ public final class BreachAndAssault implements Action {
             int[] cohesiveDestination = clampToSupport(destination[0], destination[1],
                     support, sim);
             if (cohesiveDestination != null) advanceDestination = cohesiveDestination;
+        }
+        if (aim != null) {
+            advanceDestination = AdvancePositioning.forMember(member, sim).choose(new AdvancePositioning.Advance(
+                    member, squad, advanceDestination, aim.keyCells(), support, target), sim);
         }
         advanceDestination = preferReached(member, advanceDestination, target, sim);
         advanceDestination = MechAssignmentBoundary.constrain(
@@ -286,8 +295,13 @@ public final class BreachAndAssault implements Action {
                 member, loadout, target, distance, sim, visible);
     }
 
-    private static int[] destination(long member, Squad squad, long target,
-                                     BattleView sim) {
+    /** Doctrine's point, and the grid indices of the ground an advance on it is about ({@link AdvancePositioning}). */
+    private record Aim(int[] cell, int[] keyCells) {
+        static Aim of(int[] cell, int[] keyCells) { return cell != null ? new Aim(cell, keyCells) : null; }
+    }
+
+    private static Aim destination(long member, Squad squad, long target,
+                                   BattleView sim) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null && assignment.targetZoneId() >= 0) {
             int assignedZone = assignment.targetZoneId();
@@ -295,30 +309,52 @@ public final class BreachAndAssault implements Action {
             if (zone != null) {
                 int memberZone = sim.getZoneGraph().zoneIdAt(
                         sim.world().cellX(member), sim.world().cellY(member));
-                if (memberZone != assignedZone) {
-                    return representativeCell(zone, sim.getGrid());
-                }
+                if (memberZone != assignedZone) return zoneAim(zone, sim);
                 if (target != 0L && sim.resolveUnit(target) != 0L
                         && sim.getZoneGraph().zoneIdAt(
                         sim.world().cellX(target), sim.world().cellY(target)) == assignedZone) {
-                    return approachCell(member, sim.world().cellX(target),
-                            sim.world().cellY(target), sim);
+                    return contactAim(member, squad, sim.world().cellX(target), sim.world().cellY(target), sim);
                 }
                 // Do not let a contact outside the ordered zone pull the point
                 // mech back through the portal it just breached.
-                return representativeCell(zone, sim.getGrid());
+                return zoneAim(zone, sim);
             }
         }
 
         if (target != 0L && sim.resolveUnit(target) != 0L) {
-            return approachCell(member, sim.world().cellX(target),
-                    sim.world().cellY(target), sim);
+            return contactAim(member, squad, sim.world().cellX(target), sim.world().cellY(target), sim);
         }
         if (squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
-            return approachCell(member, squad.lastSeenEnemyX,
-                    squad.lastSeenEnemyY, sim);
+            return contactAim(member, squad, squad.lastSeenEnemyX, squad.lastSeenEnemyY, sim);
         }
         return null;
+    }
+
+    /** A zone's middle, and its doorways and middle as the ground to see. */
+    private static Aim zoneAim(NavigationZone zone, BattleView sim) {
+        NavigationGrid grid = sim.getGrid();
+        int[] middle = representativeCell(zone, grid);
+        if (middle == null) return null;
+        List<Integer> portals = zone.getPortalIds();
+        int[] keys = new int[portals.size() + 1];
+        int n = 0;
+        keys[n++] = grid.index(middle[0], middle[1]);
+        for (int id : portals) {
+            Portal portal = sim.getZoneGraph().portalById(id);
+            if (portal != null) keys[n++] = portal.getDoorwayCellIdx();
+        }
+        return new Aim(middle, Arrays.copyOf(keys, n));
+    }
+
+    /** A stand-off from a contact, and the contact and where the squad last saw the enemy as the ground to see. */
+    private static Aim contactAim(long member, Squad squad, int contactX, int contactY, BattleView sim) {
+        NavigationGrid grid = sim.getGrid();
+        int contact = grid.index(contactX, contactY);
+        boolean lastSeen = squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0
+                && (squad.lastSeenEnemyX != contactX || squad.lastSeenEnemyY != contactY);
+        int[] keys = lastSeen ? new int[]{contact, grid.index(squad.lastSeenEnemyX, squad.lastSeenEnemyY)}
+                : new int[]{contact};
+        return Aim.of(approachCell(member, contactX, contactY, sim), keys);
     }
 
     private static int[] representativeCell(NavigationZone zone, NavigationGrid grid) {

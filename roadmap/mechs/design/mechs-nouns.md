@@ -887,9 +887,19 @@ Assault advance reads it before the mission boundary: a destination off this
 mech's reached ground becomes the nearest reached cell to it, the closest the
 chassis can actually come, so a geometric pick in an alley it cannot turn into
 is not paid for again a cell along while the mech stands still. Ground it knows
-nothing about leaves the pick as it was. Where on reached ground an advance
-should stand (sight over the ground that matters to the advance; cover only once
-threatened) is doctrine's, not this memory's.
+nothing about leaves the pick as it was.
+
+Where near that point an advancing mech actually stands is its **advance
+positioning** (`AdvancePositioning`), a strategy chosen once per mech, so a way
+of fighting (a pilot's experience, an ability that wants a vantage, a chassis
+that fights from particular ground) is a strategy and not a branch in each
+doctrine. Doctrine names the point and the **key ground** the advance is about:
+a contact and where the squad last saw the enemy, or a zone's doorways and
+middle. *Direct* walks to the point. *Overlook*, every assault mech's today,
+takes the standable cell near the point with a line of fire to the most key
+ground within weapon range, less its distance from the point; the point wins a
+tie, and nothing seen from anywhere near leaves it. Cover is not weighed while
+advancing; it is a concern for a mech under fire.
 
 Tactical selection ranks candidates using the existing perceived contact and
 mission boundary, checks local room for the chassis, then requests a route for
