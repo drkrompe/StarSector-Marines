@@ -294,15 +294,17 @@ final class MissionDebriefConversation {
                 && route.lastMissionId().equals(outcome.missionId);
     }
 
-    /** Closes the Jangala chapter and hands the company its off-world lead: the broker on Asharu. */
+    /**
+     * Ends Wayline's brush with bankruptcy: the star-port road is back and its owed contracts ship,
+     * though nobody yet knows why it happened. Castle's closing line hands the company on to Asharu.
+     */
     static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome) {
         var lines = new ArrayList<WaylineNarration.Line>();
         lines.add(jangalaLine("road", MARA, Strings.get("debriefJangalaRoad")));
         lines.add(jangalaLine("field", SABINE, Strings.get("debriefJangalaField")));
         if (outcome.marinesLost > 0) lines.add(jangalaLine("cost", SABINE, Strings.get("debriefJangalaCost")));
         lines.add(jangalaLine("manifests", CASTLE, Strings.get("debriefJangalaManifests")));
-        lines.add(jangalaLine("lead", MARA, Strings.get("debriefJangalaLead")));
-        lines.add(jangalaLine("flying", MARA, Strings.get("debriefJangalaFlying")));
+        lines.add(jangalaLine("why", MARA, Strings.get("debriefJangalaWhy")));
         lines.add(jangalaLine("next", CASTLE, Strings.get("debriefJangalaNext")));
         return List.copyOf(lines);
     }

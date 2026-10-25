@@ -72,7 +72,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
         long previousTarget = sim.combat().targetId(runner);
         if (scavenge(runner, previousTarget, sim)) return;
-        long target = selectTarget(runner, sim);
+        long target = forage(runner, previousTarget, sim);
+        if (target == 0L) target = selectTarget(runner, sim);
         sim.combat().setTargetId(runner, target);
         if (target == 0L) {
             // nothing to fight: fetch the nearest of the swarm's dead home, if one lies near
@@ -119,6 +120,35 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
         if (SwarmPackMovement.press(runner, target, sim)) return;
         pressToward(runner, target, target != previousTarget, sim);
+    }
+
+    /**
+     * A Runner of a forager pack goes after the nearest of the colony's people anywhere in the town
+     * ({@link SwarmHarvest#forage}), unless a fighter it was already fighting is within its reach: the
+     * young bore's pulses hunt into the town rather than at the company. Returns its quarry, or 0 to
+     * pick a target as any Runner does (with nobody left to find it fights like any Runner).
+     */
+    private static long forage(long runner, long previousTarget, BattleSimulation sim) {
+        SwarmHarvest harvest = sim.swarmHarvest();
+        if (!harvest.isForager(runner)) return 0L;
+        float x = sim.world().x(runner), y = sim.world().y(runner);
+        if (previousTarget != 0L && sim.resolveUnit(previousTarget) != 0L && sim.world().isAlive(previousTarget)
+                && sim.identity().faction(previousTarget) != Faction.CIVILIAN) {
+            float dx = sim.world().x(previousTarget) - x, dy = sim.world().y(previousTarget) - y;
+            float reach = sim.combat().attackRange(runner);
+            if (dx * dx + dy * dy <= reach * reach) return 0L;
+        }
+        long best = 0L;
+        float nearest = Float.MAX_VALUE;
+        for (long u : harvest.forage()) {
+            if (sim.resolveUnit(u) == 0L || !sim.world().isAlive(u) || harvest.isCarried(u)) continue;
+            float dx = sim.world().x(u) - x, dy = sim.world().y(u) - y, d = dx * dx + dy * dy;
+            if (d < nearest || d == nearest && u < best) {
+                best = u;
+                nearest = d;
+            }
+        }
+        return best;
     }
 
     /**

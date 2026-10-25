@@ -50,15 +50,16 @@ battlefield. Existing Wayline jobs continue independently. The won freight
 run opens The Corvus Account; its introduction preserves actual deliveries and
 losses.
 
-The won Thunder Run ends with a written Jangala conversation on Results. Mara
-closes the run with one common line: Varro's toll is gone and the freight moves
-on Wayline's own manifests. Sabine says the militia hold the road and, as a
-separate line, that the company lost people when it did. Castle names the pattern
-in the ambushes. Mara passes on Iona's trace: the departure times go to a broker
-on Asharu buying for Sable Wake. The run also pays for Wayline's first chartered
-off-world consignment. Castle closes the account, notes that Route Security stays
-on Mara's board and tells the company to plot a course for Asharu. The written
-debrief carries the same lead.
+The won Thunder Run ends with a written Jangala conversation on Results that
+closes Wayline's brush with bankruptcy. Mara says the road to the star port is
+Wayline's again and the contracts it was on the hook for ship this month; she no
+longer has to plan the sale. Sabine reports the drivers celebrating and the
+militia holding the road, with a separate line when the company lost people.
+Castle names the pattern in the ambushes, and Mara admits she still cannot say
+who knew Wayline's business, or why it was them. Castle closes the account,
+notes Mara's steady escort work and points the company to Asharu. What brings it
+there belongs to The Dust Ledger, so that closing line is the seam to rewrite
+with it.
 
 ## Reserved mission concept
 
