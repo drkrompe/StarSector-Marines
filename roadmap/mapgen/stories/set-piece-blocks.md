@@ -223,10 +223,11 @@ breach's own fissures forage into town from landfall, and thirty to fifty of
 the field's bodies reach a set piece in town within two minutes or so: a muster
 held for two and a half minutes was lost on all three colonies to the field, not
 to its bore. So the new objectives are short, done before the field comes in
-force. Played on the bloom: the strip stacked on two of three (one with no
-guard left standing) and was lost on one; the muster held on all three, one
-with five of eight alive and a single guard; the hall was emptied on two of
-three and lost on one. The loading, tuned before the bloom, now loses two of
+force. Played on the bloom, each won two of three and lost one: the strip lost
+its hands on one colony; the muster held twice, once with the whole guard down;
+the hall was emptied twice, once with a single guard left. Which colony is
+lost moves with every change to the town or the bloom, so the band is the
+reading, not the seeds. The loading, tuned before the bloom, now loses two of
 three (one truck to the field at forty seconds); its pacing is the breach's
 question to settle with the bloom. A fissure is fragile, and whether pressure
 bores should be tougher is open, as is tuning against real play rather than a
