@@ -3097,6 +3097,13 @@ def blender_main(cfg):
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf, shot_ships)}
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
+            if build_at is not None:
+                # the guns this chunk fires, for assemble_shot --guns: every chunk of a shot must have
+                # picked the same, or the rounds in flight jump at a chunk seam (coordinator, 2026-10-25)
+                guns_ = {' '.join(k): [str(m) for m in (CLEAR_GUNS.get(k) or [muzzles.get(k)])] for k in sorted(muzzles)}
+                (raw / f"{spec['span_of']}_guns_f{int(kf.rsplit('_f', 1)[1]):05d}.json").write_text(
+                    json.dumps(guns_, indent=1, sort_keys=True))
+                print(f'ASHARU guns {kf}: {guns_}', flush=True)
             seat_check(kf, spec)
             if not step:
                 kit_drew = set()
