@@ -11,9 +11,11 @@ import com.dillon.starsectormarines.battle.command.CommandSquadState;
 import com.dillon.starsectormarines.battle.command.CommandStabilityBreak;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
 import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Duty;
 import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Kind;
 import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Squad;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The company commander ({@code cordon-allied-command.md}, The company commander's rules): stands in for the player
@@ -57,10 +60,12 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<CordonLogistics.Carrier> carriers;
         /** Where the carrier lifting each squad stands, by squad. */
         final Map<Integer, float[]> lifting;
+        /** The bores, living and collapsed: an eruption is announced, so every bore is known from the moment it opens. */
+        final List<KnownBore> bores;
 
         Frame(CommandFrame base, List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> escorts,
               List<int[]> beats, int[] baseOverrun, boolean tide, List<CordonLogistics.Carrier> carriers,
-              Map<Integer, float[]> lifting) {
+              Map<Integer, float[]> lifting, List<KnownBore> bores) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.radio = radio;
             this.roadBlocks = roadBlocks;
@@ -70,6 +75,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             this.tide = tide;
             this.carriers = carriers;
             this.lifting = lifting;
+            this.bores = bores;
         }
     }
 
@@ -95,8 +101,14 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
                     : new int[]{logistics.musterX(), logistics.musterY()};
             List<CordonLogistics.Carrier> carriers = logistics == null || sim == null ? List.of() : logistics.liftable(sim);
             Map<Integer, float[]> lifting = logistics == null || sim == null ? Map.of() : logistics.lifting(sim);
+            List<KnownBore> bores = new ArrayList<>();
+            if (sim != null) {
+                for (SwarmBore bore : sim.getSwarmBores()) {
+                    bores.add(new KnownBore(bore.beatKey(), bore.mother(), bore.x(), bore.y(), !bore.collapsed()));
+                }
+            }
             return new Frame(base, List.copyOf(radio), blocks, escorts, beats, overrun, sequence.inTide(), carriers,
-                    lifting);
+                    lifting, bores);
         };
     }
 
@@ -108,12 +120,16 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     private final CordonLogistics depot;
     /** The tick each squad's lift was last called off, by squad. */
     private final Map<Integer, Integer> calledOff = new HashMap<>();
+    /** The posture's raids at the bores, or {@code null} for a commander that never raids. */
+    private final CordonStrikes strikes;
 
-    public CordonCommand(int reserveX, int reserveY, CordonPlan.Density density, CordonLogistics depot) {
+    public CordonCommand(int reserveX, int reserveY, CordonPlan.Density density, CordonLogistics depot,
+                         CordonStrikes strikes) {
         this.reserveX = reserveX;
         this.reserveY = reserveY;
         this.density = density;
         this.depot = depot;
+        this.strikes = strikes;
     }
 
     @Override public Faction faction() { return Faction.MARINE; }
@@ -134,26 +150,55 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         int[] base = density == CordonPlan.Density.URBAN ? null : frame.baseOverrun;
         List<Duty> duties = CordonCompanyRules.duties(frame.radio, frame.roadBlocks, frame.escorts, frame.beats, base);
         List<Squad> squads = new ArrayList<>();
+        Set<Integer> striking = strikes == null ? Set.of() : strikes.members();
+        // A squad on strike is never drawn for a duty: the gate already counted what it leaves behind.
         for (CommandSquadState s : owned) {
+            if (striking.contains(s.squadId())) continue;
             squads.add(new Squad(s.squadId(), s.centroidX(), s.centroidY(), onDuty.get(s.squadId())));
         }
         Map<Integer, Duty> assigned = CordonCompanyRules.assign(duties, squads,
                 CordonCompanyRules.reserveFloor(owned.size(), frame.tide));
         onDuty.clear();
         for (Map.Entry<Integer, Duty> e : assigned.entrySet()) onDuty.put(e.getKey(), e.getValue().key());
+        if (strikes != null) {
+            List<CommandSquadState> free = new ArrayList<>();
+            for (CommandSquadState s : owned) {
+                if (!assigned.containsKey(s.squadId()) && !striking.contains(s.squadId())) free.add(s);
+            }
+            int need = 0;
+            for (Duty d : duties) need += d.squads();
+            boolean quiet = frame.roadBlocks.isEmpty();
+            for (CordonRadio r : frame.radio) quiet &= !(r.manned() && r.unsettled());
+            strikes.update(frame.tick(), frame.bores, frame.radio, free, owned, need, quiet, frame.tide);
+        }
+        Set<Integer> onStrike = strikes == null ? Set.of() : strikes.members();
+        KnownBore struck = strikes == null ? null : strikes.target();
 
         List<int[]> line = new ArrayList<>();
         for (CordonRadio r : frame.radio) line.add(new int[]{r.x(), r.y()});
         List<CommandSquadState> waiting = new ArrayList<>();
-        for (CommandSquadState s : owned) if (!assigned.containsKey(s.squadId())) waiting.add(s);
+        for (CommandSquadState s : owned) {
+            if (!assigned.containsKey(s.squadId()) && !onStrike.contains(s.squadId())) waiting.add(s);
+        }
         List<int[]> posts = CordonCompanyRules.reservePosts(density, line, reserveX, reserveY, waiting.size(), frame.tide);
 
-        String phase = phase(assigned);
+        String phase = struck != null && phase(assigned).equals("RESERVE") ? "STRIKING" : phase(assigned);
         List<CordonLogistics.Carrier> free = new ArrayList<>(frame.carriers);
         for (CommandSquadState squad : owned) {
             Duty duty = assigned.get(squad.squadId());
             ObjectiveAssignment next;
             String reason;
+            if (struck != null && onStrike.contains(squad.squadId())) {
+                // Ordered at the bore as the player would: an attack move naming its cell as the thing to open.
+                ObjectiveAssignment strike = ObjectiveAssignment.attackMove(squad.squadId(), struck.x(), struck.y());
+                ObjectiveAssignment held = squad.directive() == null ? null : squad.directive().assignment();
+                boolean kept = held != null && held.kind() == strike.kind() && held.targetCellX() == strike.targetCellX()
+                        && held.targetCellY() == strike.targetCellY();
+                proposals.add(CommandProposal.assign(kept ? held : strike, CommandAuthority.MISSION_COMMAND,
+                        "CORDON_STRIKE_" + struck.key(),
+                        kept ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
+                continue;
+            }
             float[] ride = frame.lifting.get(squad.squadId());
             if (ride != null && depot != null && (duty == null
                     || Math.hypot(duty.x() - ride[2], duty.y() - ride[3]) > CordonCompanyRules.LIFT_WORTH / 2)) {

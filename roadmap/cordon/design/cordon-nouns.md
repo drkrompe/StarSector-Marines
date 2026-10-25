@@ -493,7 +493,21 @@ pressing hardest when the readiness gate is open), **Push** (bores in front of
 the line are objectives). The readiness gate keeps its three conditions with
 the Cordon's inputs: (a) the line or the road has held for a sustained window,
 (b) the strength left behind covers every calling redoubt and every group of
-people on the move, (c) a capable detachment exists.
+people on the move, (c) a capable detachment exists. A battle no briefing chose
+plays Hold. The gate is read at every command pulse (`CordonStrikes`): held means
+no redoubt unsettled and no road blocked for twenty seconds; the strength is the
+company's squads less the detachment against the squads every duty wants
+(relief of a calling redoubt, escort of a group on the move, the road's
+clearing: the company's duties in `cordon-allied-command.md`); a capable squad
+carries a satchel, is a machine or fires on structures. Opportunistic needs all
+three, raids only between tides and sends one squad; Push waives the held
+window, raids in a tide too and sends two. The bore pressing hardest is the
+living bore whose nearest manned redoubt is worst off (unsettled, then bled,
+then uncovered), the bore nearer the detachment breaking a tie. The detachment
+stays the same squads until its bore collapses, it is lost, or the gate closes
+and it is recalled; nobody is sent again for fifteen seconds after a recall.
+Posture governs only what the commander does unprompted: the player can order
+any squad at a bore.
 
 ## The map
 
@@ -702,8 +716,8 @@ behind the middle of the line in open country, the hinge between the middle
 redoubts in a town (up in its gap in a tide), two hammers behind the redoubt
 pairs in a city. It knows where every redoubt stands and sees the swarm only
 through its own squads. The rules, and the allied line command's for its own
-machines: `cordon-allied-command.md`; posture and strikes:
-`cordon-company-command.md`.
+machines: `cordon-allied-command.md`; posture and strikes: Line posture
+above.
 
 ### Evidence
 
@@ -740,6 +754,8 @@ with the same keys.
 | `picket_back_N` | both | PLAYER | Outer picket N's survivors are inside their redoubt and join its garrison |
 | `picket_lost_N` | both | PLAYER | Outer picket N's last man dies |
 | `tide_N` | both | PLAYER | The Nth tide: every living bore surges at once |
+| `strike_committed_N` | both | OBSERVER_ONLY | The commander sends a strike detachment at bore N; at every commit |
+| `strike_recalled_N` | both | OBSERVER_ONLY | The readiness gate closed and the detachment at bore N is recalled |
 | `eruption_N` | both | PLAYER | The Nth eruption: a new bore opens in front of the line |
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |

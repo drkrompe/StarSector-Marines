@@ -90,6 +90,7 @@ public final class CordonSequence implements Objective {
     private AlliedColumns columns;
     private CordonArmour armour;
     private CordonOuterPicket outerPicket;
+    private CordonStrikes strikes;
     private CordonLogistics logistics;
     private CordonConvoys convoys;
     private CordonLineCommand line;
@@ -142,6 +143,14 @@ public final class CordonSequence implements Objective {
 
     /** The outer picket out in front of the line, or {@code null}. */
     public CordonOuterPicket outerPicket() { return outerPicket; }
+
+    /** The company's raids at the bores, or {@code null} where nothing raids. */
+    public CordonStrikes strikes() { return strikes; }
+
+    /** The company's raids, whose commits and recalls this sequence tells as beats. */
+    public void attachStrikes(CordonStrikes strikes) {
+        this.strikes = strikes;
+    }
 
     /** Puts the outer picket out in front of the line; at setup, before the first tick. */
     public void attachOuterPicket(CordonOuterPicket outerPicket) {
@@ -273,6 +282,7 @@ public final class CordonSequence implements Objective {
         if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
         if (armour != null) armour.advance(sim, redoubts);
         if (outerPicket != null) outerPicket.advance(sim, tick, beat -> emit(tick, beat));
+        if (strikes != null) for (String beat : strikes.drainBeats()) emit(tick, beat);
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
         if (line != null) line.advance(sim);
         if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));

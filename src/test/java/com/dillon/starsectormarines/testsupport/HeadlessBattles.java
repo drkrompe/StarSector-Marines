@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.testsupport;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.cordon.CordonPosture;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
@@ -105,7 +106,8 @@ public final class HeadlessBattles {
         CordonPlan.Density density = CordonPlan.Density.valueOf(options.optString("density", "rural").toUpperCase(Locale.ROOT));
         SurfacePalette biome = SurfacePalette.valueOf(options.optString("biome", "VERDANT").toUpperCase(Locale.ROOT));
         long seed = options.optLong("seed", template.seed());
-        return new CordonBattleFixture(seed, variant, biome, density, template.manifest()).build();
+        CordonPosture posture = CordonPosture.valueOf(options.optString("posture", "hold").toUpperCase(Locale.ROOT));
+        return new CordonBattleFixture(seed, variant, biome, density, template.manifest(), posture).build();
     }
 
     /** The Relief ground start: twelve named starter recruits ashore at tick zero, the employer's shuttle flying. */

@@ -31,7 +31,7 @@ What the battle still needs, both variants:
   they halt while the swarm blocks the road.
 - **The company screens the convoy (Road).** The commander answers calls;
   screening the convoy comes with the convoys. Posture and strikes are
-  `cordon-company-command.md`.
+  `cordon-nouns.md` (Line posture).
 - **The town's garrison (Road).** The compound in the cut-off town dressed
   and manned as the redoubts are.
 
