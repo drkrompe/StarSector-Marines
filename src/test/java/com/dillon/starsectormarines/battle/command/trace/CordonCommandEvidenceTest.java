@@ -121,6 +121,7 @@ class CordonCommandEvidenceTest {
                     .put("beats", first.beats())
                     .put("objectives", first.objectives())
                     .put("lineCommand", first.line())
+                    .put("skitterers", first.workers())
                     .put("timeline", first.timeline());
             Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
             Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
@@ -244,9 +245,10 @@ class CordonCommandEvidenceTest {
             String report = report(runId, sim, cordon, winner, table.toString(), objectives.toString());
             String allies = allies(sim, cordon);
             String line = cordon.line() == null ? "—" : cordon.line().readings();
+            String workers = sim.swarmWorkers().summary(sim);
             return new RunResult(sim.getCommandTraceJsonLines(), sim.getSimTickIndex(), sim.isComplete(), winner,
-                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue, report,
-                    objectives.toString(), allies, line);
+                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue,
+                    report + "\nNests: " + workers + "\n", objectives.toString(), allies, line, workers);
         }
     }
 
@@ -257,7 +259,8 @@ class CordonCommandEvidenceTest {
             Faction faction = sim.identity().faction(unit);
             if (faction == Faction.MARINE && sim.identity().type(unit).combatant) marines++;
             else if (faction == Faction.ALLY) allies++;
-            else if (faction == Faction.DEFENDER && sim.identity().type(unit).isSwarm()) swarm++;
+            else if (faction == Faction.DEFENDER && sim.identity().type(unit).isSwarm()
+                    && !sim.identity().type(unit).isSwarmWorker()) swarm++;
         }
         JSONArray redoubts = new JSONArray();
         for (CordonRedoubt r : cordon.redoubts()) {
@@ -434,7 +437,7 @@ class CordonCommandEvidenceTest {
 
     private record RunResult(String trace, int ticks, boolean complete, String winner, String outcome, int fallen,
                              JSONArray beats, List<String> beatIds, JSONArray timeline, int tidesDue, String report,
-                             String objectives, String allies, String line) { }
+                             String objectives, String allies, String line, String workers) { }
 
     /**
      * What the allies had at the end, for the matrix ({@code cordon-allied-forces.md}): machines the base built,

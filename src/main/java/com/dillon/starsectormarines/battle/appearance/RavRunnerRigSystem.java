@@ -16,7 +16,7 @@ import java.util.function.LongUnaryOperator;
  * Advances every live Runner's, Brute's, Spitter's and Matriarch's skeleton from the tick's settled state: where the body stands,
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
- * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
+ * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, a skitterer at work ({@link #setWork}) heads down over it, and a dead
  * Runner keeps its rig and bursts into pieces and ichor around its corpse. A Brute's rig also
  * reads its charge phase and whether it is stunned, through providers the simulation sets, so this
  * package does not reach into the charge's. Each rig is told its body's growth-stage scale every
@@ -30,6 +30,7 @@ public final class RavRunnerRigSystem {
     private final Query runners;
     private final Query dead;
     private LongUnaryOperator loadOf = runner -> 0L;
+    private LongToIntFunction workOf = id -> RavRunnerRig.WORK_NONE;
     private LongToIntFunction chargePhase = id -> RavBruteRig.IDLE;
     private LongPredicate stunned = id -> false;
     private LongToIntFunction matriarchAction = id -> RavMatriarchRig.NONE;
@@ -47,6 +48,11 @@ public final class RavRunnerRigSystem {
     /** Who each Runner is dragging ({@code 0} for none), so its rig hauls the body. */
     public void setLoads(LongUnaryOperator loadOf) {
         this.loadOf = loadOf;
+    }
+
+    /** What each skitterer is doing with its head ({@link RavRunnerRig#WORK_NONE} ...), so its rig shows the work. */
+    public void setWork(LongToIntFunction workOf) {
+        this.workOf = workOf;
     }
 
     /** Where a Brute's charge phase ({@link RavBruteRig#IDLE} ...) and its stun come from. */
@@ -94,6 +100,7 @@ public final class RavRunnerRigSystem {
                 }
                 if (!(state instanceof RavRunnerRig rig)) continue;
                 rig.setStage(stage(table.entityAt(row)));
+                if (rig.worker()) rig.setWork(workOf.applyAsInt(table.entityAt(row)));
                 long load = loadOf.applyAsLong(table.entityAt(row));
                 boolean carrying = load != 0L && world.has(load, components.POSITION);
                 float loadX = carrying ? world.getFloat(load, components.POSITION, BattleComponents.POSITION_X) : 0f;

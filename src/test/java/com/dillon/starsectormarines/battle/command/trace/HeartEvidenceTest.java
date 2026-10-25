@@ -210,6 +210,7 @@ class HeartEvidenceTest {
                 .put("marinesAlive", marines)
                 .put("directorReason", director == null ? "" : director.pressureReason())
                 .put("liveSwarm", director == null ? 0 : director.liveRunners())
+                .put("skitterers", sim.swarmWorkers().summary(sim))
                 .put("bores", bores).put("beats", beats).put("objectives", objectives(sim));
     }
 
@@ -231,6 +232,7 @@ class HeartEvidenceTest {
                 .append(s.getInt("ticks")).append(", winner ").append(s.getString("winner")).append(", ")
                 .append(s.getInt("marinesAlive")).append(" marines and ").append(s.getInt("liveSwarm"))
                 .append(" swarm left. Landfall at ").append(s.getInt("landfallTick")).append(".\n\n")
+                .append("Nests: ").append(s.optString("skitterers", "—")).append("\n\n")
                 .append("| bore | cell | tier | integrity | surges | bodies | matriarch | collapsed |\n|---|---|---|---|---|---|---|---|\n");
         JSONArray bores = s.getJSONArray("bores");
         for (int i = 0; i < bores.length(); i++) {

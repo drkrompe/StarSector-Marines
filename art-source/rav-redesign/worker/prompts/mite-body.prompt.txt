@@ -1,0 +1,11 @@
+Top-down game sprite layer for a 2D creature rig: the body of the SKITTERER, a small non-combat nest worker of an engineered alien swarm (the Rav Bloom). It is the same organism as the swarm's Runner (reference 2), its body plan and chitin specialised for work: it hauls the swarm's dead home, repairs nest structures and tends brood. It never fights, so it has NO spike arms, NO blades and NO claws on its back or shoulders.
+
+Reference 1 is the GEOMETRY AUTHORITY. Paint over it exactly: keep its silhouette, outline, proportions, the position and scale of every part on the canvas, the centre line, and its colour layout (which areas are lilac plate, crimson sinew, ivory bone, amber). Do not move, add or remove any part; do not add legs or arms. Only replace the flat cartoon shading with finished painted chitin.
+
+Reference 2 is MATERIAL AND PALETTE ONLY, not layout: paint with exactly its finish and colours - pale lilac to dusky-violet glossy carapace plates with soft pearly highlights, deep crimson ropey sinew between the plates, ivory bone edges, small glowing amber nodes. Same lighting (soft light from the upper left), same rendering style and level of detail.
+
+Option MITE - a tick-like worker. One ROUND domed carapace like a tick's, made of PALE whelp-lilac plates (paler and softer than the Runner's) parted by deep crimson sinew seams, with a row of diamond keel plates down the spine and a tiny tail nub at the rear. At the front an ivory SHIELD-PLATE LIP overhangs the head, and the small head is tucked in under it with only its front, two amber eyes and a pair of short hooked ivory pincer mandibles showing. Reads as a small, round, busy tick.
+
+The creature will be drawn very small in game (about 20 pixels long), so keep big clear shapes and strong value contrast between plates and sinew; no fine noise, no tiny scales, no texture grain.
+
+Strict overhead orthographic view, nose pointing UP, same framing as reference 1 so the layer registers over it. Plain flat light grey background (#b4b4b4) everywhere outside the creature, no shadow, no ground, no text, no border, no legs.

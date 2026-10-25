@@ -1379,9 +1379,9 @@ public final class UnitRenderService implements RenderSystem {
                         ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
-                    RavRunnerAssets runnerArt = ravArt.forStage(ravRig.stage());
+                    RavRunnerAssets runnerArt = ravArt.forRig(ravRig);
                     float bx = cam.cellToScreenX(ravRig.bodyX()), by = cam.cellToScreenY(ravRig.bodyY());
-                    float ppc = cam.cellPxSize() * type.renderScale * ravRig.scale() * shrink;
+                    float ppc = cam.cellPxSize() * ravRig.scale() * shrink;
                     QuadMesh settled = settledBodies.runner(ravRig, runnerArt);
                     if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
                     else RavRunnerComposer.emit(out, runnerArt, ravRig, bx, by, ppc, 1f, alpha);
@@ -1401,9 +1401,9 @@ public final class UnitRenderService implements RenderSystem {
                     continue;
                 }
                 if (ravArt != null && fresh instanceof RavRunnerRig standingRunner) {
-                    RavRunnerComposer.emit(out, ravArt.forStage(standingRunner.stage()), standingRunner,
+                    RavRunnerComposer.emit(out, ravArt.forRig(standingRunner), standingRunner,
                             cam.cellToScreenX(standingRunner.bodyX()), cam.cellToScreenY(standingRunner.bodyY()),
-                            cam.cellPxSize() * type.renderScale * standingRunner.scale() * shrink, 1f, alpha);
+                            cam.cellPxSize() * standingRunner.scale() * shrink, 1f, alpha);
                     continue;
                 }
                 // A body that wore layered art lies as itself: its outfit's own pose,
@@ -1698,9 +1698,9 @@ public final class UnitRenderService implements RenderSystem {
                 if (ravRig != null && ravRig.posed()) {
                     // The Runner is drawn on its own skeleton, solved at the position it was posed at,
                     // at its growth stage's size and in its stage's colours.
-                    RavRunnerComposer.emit(out, ravArt.forStage(ravRig.stage()), ravRig,
+                    RavRunnerComposer.emit(out, ravArt.forRig(ravRig), ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale * ravRig.scale(), 1f, unitAlpha);
+                            cam.cellPxSize() * ravRig.scale(), 1f, unitAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered

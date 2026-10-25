@@ -728,6 +728,17 @@ public final class FireField {
     /** Whether creep here is held at nothing: the cell is burning, or burnt and still refusing. */
     public boolean holdsCreepBack(int idx) { return state[idx] == BURNING || refusesCreep(idx); }
 
+    /**
+     * Ends a burnt cell's refusal of the creep now, as if it had burnt out {@link #CREEP_REFUSAL_TICKS} ago: a
+     * skitterer re-seeding the burn (`colony-breach-nouns.md`, Skitterer). The creep that claims it fills it
+     * again, and it is fuel again. Returns whether the cell was refusing.
+     */
+    public boolean regrow(int idx) {
+        if (!refusesCreep(idx)) return false;
+        burntTick[idx] = now - CREEP_REFUSAL_TICKS;
+        return true;
+    }
+
     /** Whether creep may not claim this cell: it burnt out less than {@link #CREEP_REFUSAL_TICKS} ago. */
     public boolean refusesCreep(int idx) { return state[idx] == BURNT && !refusalOver(idx); }
 

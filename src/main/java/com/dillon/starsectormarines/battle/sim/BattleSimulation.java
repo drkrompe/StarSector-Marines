@@ -226,6 +226,7 @@ import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRigSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
@@ -300,6 +301,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
+import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -883,6 +885,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The old bloom's brood spires and the Matriarchs' broods: where Harrier packs come from. */
     public BroodSpires broodSpires() { return broodSpires; }
+    private final SwarmWorkers swarmWorkers = new SwarmWorkers();
+    /** The nests' skitterers (`colony-breach-nouns.md`, Skitterer). */
+    public SwarmWorkers swarmWorkers() { return swarmWorkers; }
+    /** The outposts the bores' creep carries out (`colony-breach-nouns.md`, Spore colony). */
+    public CreepOutposts creepOutposts() { return creepOutposts; }
     /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
     public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
@@ -902,8 +909,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
-        // A bloom weeks old has grown its spires.
+        // A bloom weeks old has grown its spires, and its nests are full of workers.
         broodSpires.grow(this);
+        swarmWorkers.populate(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
@@ -1558,6 +1566,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.ravRunnerRigSystem.bruteState(id -> bruteCharges.phase(id).ordinal(),
                 id -> rosterService.stagger().isStaggered(id));
         ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
+        ravRunnerRigSystem.setWork(id -> switch (swarmWorkers.show(id)) {
+            case WORKING -> RavRunnerRig.WORK_HEAD_DOWN;
+            case FEED -> RavRunnerRig.WORK_FEED;
+            case PULP -> RavRunnerRig.WORK_PULP;
+            case NONE -> RavRunnerRig.WORK_NONE;
+        });
         ravRunnerRigSystem.matriarchState(id -> matriarchActions.kind(id, simTickIndex).ordinal(),
                 id -> matriarchActions.ageSeconds(id, simTickIndex));
         this.mechTurretSystem = new MechTurretSystem(
@@ -3916,6 +3930,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        // After the harvest and the packs: a skitterer hauls what the harvest left loose, and tends what grew.
+        swarmWorkers.tick(this);
         // After the director's surges and before the fliers fly, so a pack a surge launches flies this tick.
         broodSpires.tick(this);
         swarmFliers.tick(this);

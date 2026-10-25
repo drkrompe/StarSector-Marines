@@ -49,8 +49,10 @@ public final class BroodSpires {
     public static final int BROOD_PACK = 6;
     /** A spire launches only while a marine or an ally stands within this of it: what its brood would sense. */
     public static final float WAKE_RANGE = HarrierRules.SENSE_RANGE;
-    /** Least seconds between one spire's packs, however often its bore surges. */
+    /** Least seconds between one spire's packs, however often its bore surges, before skitterers tend it. */
     public static final float MIN_GAP_SECONDS = 45f;
+    /** A tended spire's gap never falls under this, however many skitterers feed it (`colony-breach-nouns.md`, Skitterer). */
+    public static final float TENDED_GAP_FLOOR_SECONDS = 20f;
     /** Nearest and furthest a spire stands from its bore's mouth, in cells. */
     public static final float STANDOFF_MIN = 6f, STANDOFF_MAX = 14f;
     /** Two spires never stand nearer each other than this, in cells. */
@@ -68,6 +70,8 @@ public final class BroodSpires {
         public final SwarmBore bore;
         public final int x, y;
         int lastReleaseTick = Integer.MIN_VALUE / 2;
+        /** Ticks the skitterers have fed off the current wait. */
+        int tendedTicks;
         HarrierPack pack;
         int packs;
 
@@ -80,6 +84,9 @@ public final class BroodSpires {
 
         /** How many packs it has launched. */
         public int packs() { return packs; }
+
+        /** Ticks the skitterers have fed off the wait since its last pack. */
+        public int tendedTicks() { return tendedTicks; }
     }
 
     /** A pack rose, for beats and evidence: off a spire ({@code spire} its body) or as a brood ({@code spire} 0). */
@@ -172,8 +179,33 @@ public final class BroodSpires {
      * last, and only with prey within {@link #WAKE_RANGE}.
      */
     public static boolean releases(boolean airCover, boolean packAloft, int ticksSinceLast, boolean preyNear) {
-        return airCover && !packAloft && preyNear
-                && ticksSinceLast >= Math.round(MIN_GAP_SECONDS / BattleSimulation.TICK_DT);
+        return releases(airCover, packAloft, ticksSinceLast, 0, preyNear);
+    }
+
+    /** As {@link #releases(boolean, boolean, int, boolean)}, with {@code tendedTicks} fed off the wait. */
+    public static boolean releases(boolean airCover, boolean packAloft, int ticksSinceLast, int tendedTicks,
+                                   boolean preyNear) {
+        return airCover && !packAloft && preyNear && ticksSinceLast >= gapTicks(tendedTicks);
+    }
+
+    /**
+     * Ticks a spire waits after a pack with {@code tendedTicks} fed off by skitterers: {@link #MIN_GAP_SECONDS} less
+     * what they fed, never under {@link #TENDED_GAP_FLOOR_SECONDS}.
+     */
+    public static int gapTicks(int tendedTicks) {
+        int full = Math.round(MIN_GAP_SECONDS / BattleSimulation.TICK_DT);
+        int floor = Math.round(TENDED_GAP_FLOOR_SECONDS / BattleSimulation.TICK_DT);
+        return Math.max(floor, full - Math.max(0, tendedTicks));
+    }
+
+    /** Whether {@code s} stands and is still waiting out its gap at {@code tick}: worth a skitterer's feed. */
+    public static boolean waiting(Spire s, int tick) {
+        return tick - s.lastReleaseTick < gapTicks(s.tendedTicks);
+    }
+
+    /** A skitterer fed {@code s}: {@code seconds} off its current wait, never past {@link #TENDED_GAP_FLOOR_SECONDS}. */
+    public void tend(Spire s, float seconds) {
+        s.tendedTicks += Math.round(seconds / BattleSimulation.TICK_DT);
     }
 
     /** Once a tick, after the director and before the fliers: wither, launch on surges, raise broods. */
@@ -200,9 +232,11 @@ public final class BroodSpires {
         if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return;
         boolean aloft = s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
         float x = s.x + 0.5f, y = s.y + 0.5f;
-        if (!releases(SwarmFliers.hasAirCover(sim), aloft, tick - s.lastReleaseTick, preyNear(sim, x, y))) return;
+        if (!releases(SwarmFliers.hasAirCover(sim), aloft, tick - s.lastReleaseTick, s.tendedTicks,
+                preyNear(sim, x, y))) return;
         s.pack = sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
         s.lastReleaseTick = tick;
+        s.tendedTicks = 0;
         s.packs++;
         launches.add(new Launch(tick, s.entityId, 0L, s.pack.id, PACK));
     }
