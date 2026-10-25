@@ -1151,7 +1151,7 @@ Which living trees count as young is the owner's open pick
 (`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
 is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
 across young or creep-killed wood drives through it, felling what it touches
-(dead trees fall as bleached dead wood, `colony-breach-nouns.md`), while a
+(a dead tree falls flattened, a stump and short butts, `colony-breach-nouns.md`), while a
 living mature wood and a troop APC in young wood are held.
 
 A hull that runs into something that stops it is heard: a stopped move at half

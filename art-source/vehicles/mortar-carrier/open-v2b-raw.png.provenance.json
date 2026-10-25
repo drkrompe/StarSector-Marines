@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173a6-5b1a-78f2-a26a-1dac040f6e20",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173a6-5b1a-78f2-a26a-1dac040f6e20\\exec-0834f884-b394-4a26-9e18-5e785d8a3824.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\mortar-carrier\\open-v2b-raw.png",
+    "sha256": "cd7c4e6b9f5b7efb7c0762c1bc57795b8f3750dde778fedcc29add62cf533b48",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\mortar-carrier\\open-v2.prompt.txt",
+  "promptSha256": "fec5caa7501e61950c11710f822c0c8e189947b22f457f155182b7848f40e099",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and 3D-shape authority: silhouette, placement, scale, canvas, and the shading that shows which parts are raised; repaint only\nImage 2: Material/style only (the APC hull and its roof MG turret); not layout\n\nRepaint the supplied grey geometry guide as a finished top-down game sprite: the open roof mount of a six-wheeled armoured personnel carrier converted to a 120 mm mortar carrier (like an M1064), seen from directly above in strict orthographic overhead view.\n\nRead the guide as a 3D object and keep that 3D shape exactly. Its shading is deliberate and says what is raised:\n- The mortar tube is a round steel cylinder standing up at 45 degrees, its foot seated in a socket on the turntable near the centre and its muzzle raised toward the LEFT. It is darker at the foot and lighter toward the raised muzzle, shaded round its length, and it throws a dark shadow onto the turntable below and to the right of it. Keep it a solid tube with curved sides.\n- The muzzle is seen at an angle, so its opening is an OVAL, narrower left-to-right than top-to-bottom, exactly as drawn: a thick steel lip around a dark bore, with the smooth inner wall of the tube visible inside the opening on its right side, fading into black. It must NOT become a flat perfect circle or a black disc; it is the open end of an angled tube.\n- The two thin recoil cylinders run alongside the tube, parallel to it and also raised, held by a clamp band across the tube.\n- Around the rear half of the round turntable, a curved rack of upright mortar bombs seen from straight above (round fuze tops). Two small splinter-shield plates at the front edge of the ring. The ring has a raised rim.\n\nThe guide is the exact authority for silhouette, placement, scale and canvas: do not move, rotate or resize anything. Do not add a muzzle flash, smoke, fire or effects.\n\nMaterials: match the second reference exactly (worn olive-drab and dusty cream military paint, fine dark outlines, rivets, weld seams, scuffed edges, the same soft top-left light). The tube is dark gunmetal; bomb fuzes are brass and olive. It must look like it belongs on that APC hull.\n\nOutput: the same canvas size, a true transparent background including all space around the mount; no ground, no border, no text, no hull, nothing else in the image. (The tube's shadow on the turntable is part of the mount; no shadow outside the ring.)\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\mortar-carrier\\open-v2-guide.png",
+      "sha256": "7370191dceb2ae3007631a09afb609fc996badde5a03d13df1ab75088f0a4694",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and 3D-shape authority: silhouette, placement, scale, canvas, and the shading that shows which parts are raised; repaint only"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\army-apc.png",
+      "sha256": "f7295a9f5b0271394b7275a5a99a79e248ee0d596e1d585e5d0d7f3073f5e065",
+      "dimensions": [
+        3072,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (the APC hull and its roof MG turret); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint the guide, preserving its geometry and matching the APC’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 110547,
+    "cached_input_tokens": 75648,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 805,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 83.0
+}
