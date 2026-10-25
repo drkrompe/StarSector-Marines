@@ -67,6 +67,13 @@ tools as one `AlliedToolShed`:
 - one ammunition truck, restocking every ninety seconds. On The Burn, which
   has no lanes, the park is a shed of trucks alone.
 
+## The military's air
+
+Besides the base's tools, the world's military attaches a forward observer to
+each Broad Front lane, and its air wing strikes the masses those observers see
+(`heart-nouns.md`, Forward observer). The Burn has none: its battery is its fire
+support.
+
 ## Open
 
 - What it costs to lose the base.
