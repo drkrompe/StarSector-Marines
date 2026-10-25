@@ -116,15 +116,30 @@ public final class SpineClaim {
      */
     public static Spine find(List<BlockLeaf> leaves, boolean[][] road, Predicate<BlockLeaf> eligible,
                              ToIntFunction<BlockLeaf> pocket, Spec spec) {
-        Spine best = null;
+        List<Spine> all = candidates(leaves, road, eligible, pocket, spec);
+        return all.isEmpty() ? null : all.get(0);
+    }
+
+    /**
+     * The best spine on every carriageway, best first by the order of {@link #find}: where a program refuses the
+     * best, the plan stage tries the next.
+     */
+    public static List<Spine> candidates(List<BlockLeaf> leaves, boolean[][] road, Predicate<BlockLeaf> eligible,
+                                         ToIntFunction<BlockLeaf> pocket, Spec spec) {
+        List<Spine> found = new ArrayList<>();
         for (boolean horizontal : new boolean[]{true, false}) {
             Frame f = new Frame(horizontal, road);
             for (int[] band : bands(leaves, f, spec.maxStreetWidth)) {
                 Spine spine = bestOnBand(leaves, f, band[0], band[1], eligible, pocket, spec);
-                if (spine != null && better(spine, best, pocket)) best = spine;
+                if (spine == null) continue;
+                // Stable insertion: a later spine goes before an earlier one only where it is strictly better.
+                int at = found.size();
+                while (at > 0 && better(spine, found.get(at - 1), pocket)
+                        && !better(found.get(at - 1), spine, pocket)) at--;
+                found.add(at, spine);
             }
         }
-        return best;
+        return found;
     }
 
     private static boolean better(Spine a, Spine b, ToIntFunction<BlockLeaf> pocket) {

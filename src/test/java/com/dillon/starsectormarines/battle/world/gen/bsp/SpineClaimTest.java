@@ -67,6 +67,18 @@ class SpineClaimTest {
     }
 
     @Test
+    void offersEveryStreetsBestStretchBestFirst() {
+        SpineClaim.Spec onePerSide = new SpineClaim.Spec(1, 3, 8, 7, 6, 5);
+        List<SpineClaim.Spine> all = SpineClaim.candidates(leaves, road(leaves), leaf -> true, leaf -> 1, onePerSide);
+        assertTrue(all.size() > 1, "the cross streets carry stretches of their own");
+        assertEquals(all.get(0).toString(),
+                SpineClaim.find(leaves, road(leaves), leaf -> true, leaf -> 1, onePerSide).toString());
+        for (int i = 1; i < all.size(); i++) {
+            assertTrue(all.get(i - 1).members().size() >= all.get(i).members().size(), "best first");
+        }
+    }
+
+    @Test
     void aLeafThatMayNotJoinBreaksTheStretchItFronts() {
         assertNull(SpineClaim.find(leaves, road(leaves), leaf -> leaf != a2, leaf -> 1, SPEC));
     }

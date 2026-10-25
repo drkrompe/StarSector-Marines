@@ -57,10 +57,10 @@ final class IndustrialZoneLayout {
     static final int STOCK_MIN = 4;
     /** The least member depth and frontage that takes a warehouse rather than a depot. */
     static final int WAREHOUSE_MIN_DEPTH = PAVEMENT + APRON_SHALLOW + HALL_MIN, WAREHOUSE_MIN_FRONT = 8;
-    /** The least depth of any member: a walled yard behind its pavement. */
-    static final int MEMBER_MIN_DEPTH = 8;
-    /** The least frontage of a walled yard: its gate and the wall either side. */
-    static final int YARD_MIN_FRONT = FreightYard.GATE + 4;
+    /** The least depth of any member: a walled yard behind its pavement, two rows inside its walls. */
+    static final int MEMBER_MIN_DEPTH = 5;
+    /** The least frontage of any member: a walled yard whose front between its end walls is all gate. */
+    static final int MEMBER_MIN_FRONT = 5;
     /** Rows of keep-clear before a loading door, across its width and a cell either side. */
     static final int DOCK_ROWS = 2;
     /** Width of a loading door, and the hall length from which it has two. */
@@ -75,6 +75,8 @@ final class IndustrialZoneLayout {
     static final int GANTRY_EVERY = 14, GANTRY_END = 4;
     /** The gantry's span across the street, and its depth along it. */
     static final int SPAN = 7, SPAN_DEPTH = 3;
+    /** The most cells of its own open ground a factory row's gate may cross to reach the street. */
+    static final int APPROACH = 6;
     /** Width of a guard post's gate: people, not haulers. */
     static final int GATE_POST = 2;
     private static final int WALL_HP = 80;
@@ -110,34 +112,31 @@ final class IndustrialZoneLayout {
         List<IndustrialZone.Dock> docks = new ArrayList<>();
         int hauler = 0;
         int depot = 0;
+        List<BlockLeaf> done = new ArrayList<>();
         for (BlockLeaf leaf : s.members()) {
+            if (done.contains(leaf)) continue;
             District.Role role = district.roles.get(leaf);
-            if (role == District.Role.FREIGHT_YARD) {
-                FreightYard.Pose pose = FreightYard.choose(c, leaf.left, leaf.top, leaf.right, leaf.bottom,
-                        leaf::contains);
-                if (pose != null) {
-                    IndustrialYardFiller.paintOpenDirt(leaf, c.grid, c.topology);
-                    bays.addAll(FreightYard.place(c, pose));
-                    continue;
-                }
-            } else if (role == District.Role.FACTORY_ROW) {
-                FactoryRow.Pose pose = FactoryRow.choose(c, leaf.left, leaf.top, leaf.right, leaf.bottom,
-                        frame(c, leaf, road));
-                if (pose != null) {
-                    IndustrialYardFiller.paintOpenDirt(leaf, c.grid, c.topology);
-                    lanes.add(FactoryRow.place(c, pose));
+            if (role == District.Role.FREIGHT_YARD || role == District.Role.FACTORY_ROW) {
+                List<BlockLeaf> ground = new ArrayList<>();
+                for (BlockLeaf m : s.members()) if (district.roles.get(m) == role) ground.add(m);
+                if (setPiece(c, s, ground, role == District.Role.FREIGHT_YARD, road, bays, lanes)) {
+                    done.addAll(ground);
                     continue;
                 }
             } else if (role == District.Role.TANK_FARM || role == District.Role.VEHICLE_DEPOT) {
-                if (s.alongHi(leaf) - s.alongLo(leaf) + 1 >= YARD_MIN_FRONT) {
-                    walledYard(c, s, leaf, role == District.Role.TANK_FARM, registry, depot++);
-                    continue;
-                }
+                walledYard(c, s, leaf, role == District.Role.TANK_FARM, registry, depot++);
+                continue;
             } else if (role == District.Role.SECURITY_POST) {
                 securityPost(c, s, leaf);
                 continue;
             }
-            warehouse(c, s, leaf, registry, docks, hauler++);
+            // A warehouse, or a set piece's member whose ground held no pose: a warehouse where one stands.
+            if (s.acrossHi(leaf) - s.acrossLo(leaf) + 1 >= WAREHOUSE_MIN_DEPTH
+                    && s.alongHi(leaf) - s.alongLo(leaf) + 1 >= WAREHOUSE_MIN_FRONT) {
+                warehouse(c, s, leaf, registry, docks, hauler++);
+            } else {
+                walledYard(c, s, leaf, depot % 2 == 0, registry, depot++);
+            }
         }
         pavedCrossStreets(c, s, road);
         carriageway(c, s, road);
@@ -150,12 +149,100 @@ final class IndustrialZoneLayout {
         return zone;
     }
 
-    /** The ground a factory row may stand on: the member, and the street frame round it nobody owns. */
-    private static BiPredicate<Integer, Integer> frame(GenContext c, BlockLeaf leaf,
+    /**
+     * Lays the freight yard or the factory row on its ground: one member, or a neighbouring pair and the cross
+     * street the plan joined between them. False where the ground holds no pose, changing nothing.
+     */
+    private static boolean setPiece(GenContext c, SpineClaim.Spine s, List<BlockLeaf> ground, boolean yard,
+                                    boolean[][] road, List<LoadingBay> bays, List<ServiceLane> lanes) {
+        boolean[][] reserved = c.get(BspKeys.ROAD_RESERVATION);
+        BlockLeaf box = box(ground);
+        BiPredicate<Integer, Integer> owned = owned(s, ground, box, road);
+        if (yard) {
+            FreightYard.Pose pose = yardPose(c, box, owned, road, reserved);
+            if (pose == null) return false;
+            openGround(c, box, owned);
+            bays.addAll(FreightYard.place(c, pose));
+        } else {
+            FactoryRow.Pose pose = rowPose(c, box, owned, road, reserved);
+            if (pose == null) return false;
+            openGround(c, box, owned);
+            lanes.add(FactoryRow.place(c, pose));
+        }
+        return true;
+    }
+
+    /**
+     * Whether the freight yard ({@code yard}) or the factory row stands on {@code ground} over the street mask
+     * {@code road} and its reservation: asked by the plan before it gives the role, and answered again by the
+     * layout over the finished streets.
+     */
+    static boolean stands(GenContext c, SpineClaim.Spine s, List<BlockLeaf> ground, boolean yard,
+                          boolean[][] road, boolean[][] reserved) {
+        BlockLeaf box = box(ground);
+        BiPredicate<Integer, Integer> owned = owned(s, ground, box, road);
+        return yard ? yardPose(c, box, owned, road, reserved) != null
+                : rowPose(c, box, owned, road, reserved) != null;
+    }
+
+    private static FreightYard.Pose yardPose(GenContext c, BlockLeaf box,
+                                             BiPredicate<Integer, Integer> owned, boolean[][] road,
+                                             boolean[][] reserved) {
+        return FreightYard.choose(c, box.left, box.top, box.right, box.bottom, owned, road, reserved);
+    }
+
+    private static FactoryRow.Pose rowPose(GenContext c, BlockLeaf box,
+                                           BiPredicate<Integer, Integer> owned, boolean[][] road,
+                                           boolean[][] reserved) {
+        FactoryRow.Approach approach = (x, y, dx, dy) -> {
+            for (int i = 0; i <= APPROACH; i++) {
+                int ax = x + dx * i, ay = y + dy * i;
+                if (!c.grid.inBounds(ax, ay)) return false;
+                if (road[ax][ay]) return i > 0;
+                if (!owned.test(ax, ay)) return false;
+            }
+            return false;
+        };
+        return FactoryRow.choose(c, box.left, box.top, box.right, box.bottom, frame(c, owned, road), approach,
+                road, reserved);
+    }
+
+    private static BlockLeaf box(List<BlockLeaf> ground) {
+        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+        for (BlockLeaf m : ground) {
+            left = Math.min(left, m.left);
+            top = Math.min(top, m.top);
+            right = Math.max(right, m.right);
+            bottom = Math.max(bottom, m.bottom);
+        }
+        return new BlockLeaf(left, top, right, bottom, false);
+    }
+
+    /** The members, and the joined cross street: ground of the claim inside their box that is no longer street. */
+    private static BiPredicate<Integer, Integer> owned(SpineClaim.Spine s, List<BlockLeaf> ground, BlockLeaf box,
+                                                       boolean[][] road) {
+        return (x, y) -> {
+            for (BlockLeaf m : ground) if (m.contains(x, y)) return true;
+            return box.contains(x, y) && s.owns(x, y) && road != null && !road[x][y];
+        };
+    }
+
+    private static void openGround(GenContext c, BlockLeaf box, BiPredicate<Integer, Integer> owned) {
+        for (int y = box.top; y <= box.bottom; y++) {
+            for (int x = box.left; x <= box.right; x++) {
+                if (!owned.test(x, y)) continue;
+                c.grid.setWalkableFloor(x, y);
+                c.topology.setGroundKind(x, y, GroundKind.DIRT);
+            }
+        }
+    }
+
+    /** The ground a factory row may stand on: its own, and the street frame round it nobody owns. */
+    private static BiPredicate<Integer, Integer> frame(GenContext c, BiPredicate<Integer, Integer> own,
                                                       boolean[][] road) {
         Bsp.Partition partition = c.get(BspKeys.PARTITION);
         return (x, y) -> {
-            if (leaf.contains(x, y)) return true;
+            if (own.test(x, y)) return true;
             if (road == null || road[x][y] || partition == null) return false;
             for (BlockLeaf other : partition.leaves) if (other.contains(x, y)) return false;
             return true;
@@ -362,8 +449,8 @@ final class IndustrialZoneLayout {
         int aLo = f.aLo, aHi = f.aHi, kerb = f.kerb, step = f.step, depth = f.depth;
         int front = aHi - aLo + 1;
         int gateLo = front >= CENTRED_GATE ? (aLo + aHi + 1) / 2 - FreightYard.GATE / 2
-                : (turn % 2 == 0 ? aLo + 1 : aHi - FreightYard.GATE);
-        int gateHi = gateLo + FreightYard.GATE - 1;
+                : front < FreightYard.GATE + 2 ? aLo + 1 : (turn % 2 == 0 ? aLo + 1 : aHi - FreightYard.GATE);
+        int gateHi = Math.min(aHi - 1, gateLo + FreightYard.GATE - 1);
         for (int k = 0; k < depth; k++) {
             for (int a = aLo; a <= aHi; a++) {
                 int x = s.x(a, kerb + step * k), y = s.y(a, kerb + step * k);
