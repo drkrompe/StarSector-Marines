@@ -855,15 +855,18 @@ through, made into a thing on the map the company can find and kill.
 - **Only an old bloom has one.** Spires grow when a battle's creep is matured
   at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
-  in opening order, on open ground inside the bore's creep between six and
-  fourteen cells from its mouth and clear of its colonies, and never within
-  sixty-four cells of another spire, so a map carries a few, not one per bore.
+  in opening order, on open ground inside the bore's creep between sixteen and
+  twenty-eight cells from its mouth and five clear of its colonies, and never
+  within sixty-four cells of another spire, so a map carries a few, not one per
+  bore. It stands out on the creep apart from its bore's knot of colonies (owner,
+  2026-10-25: the first cut packed them into one clump).
   The mother bores have none: their air is the Matriarch's brood.
 - **When it launches.** With its bore's surge (surges, not trickles): each surge
   launches a pack of seven off it, provided a marine or an ally stands within a
   Harrier's sense of it, no pack of its own is still in the air, at least
-  forty-five seconds have passed since its last, and the flier law holds. A
-  sleeping bore's spire is quiet with it.
+  forty-five seconds have passed since its last, and the flier law holds. The
+  pack rises off its crown, low and clustered, and is seen climbing out to its
+  loiter ring. A sleeping bore's spire is quiet with it.
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,

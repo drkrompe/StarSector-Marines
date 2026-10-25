@@ -26,7 +26,8 @@ import java.util.List;
  *   ({@link #choose}). It is a structure on the swarm's side, fought as a bore's body is, and withers when its
  *   bore collapses.</li>
  *   <li><b>A spire launches with its bore's surge</b>: surges, not trickles. On each of its bore's surges it
- *   releases a pack of {@link #PACK} when {@link #releases} allows it.</li>
+ *   releases a pack of {@link #PACK} when {@link #releases} allows it, rising off its crown
+ *   ({@link SwarmFliers#risingFrom}).</li>
  *   <li><b>A Matriarch comes with her brood.</b> When a mother puts her Matriarch out, a pack of
  *   {@link #BROOD_PACK} rises over her and flies as her escort.</li>
  *   <li><b>The flier law holds.</b> No pack rises while the marines and their allies have no anti-air on the map
@@ -52,11 +53,11 @@ public final class BroodSpires {
     /** Least seconds between one spire's packs, however often its bore surges. */
     public static final float MIN_GAP_SECONDS = 45f;
     /** Nearest and furthest a spire stands from its bore's mouth, in cells. */
-    public static final float STANDOFF_MIN = 6f, STANDOFF_MAX = 14f;
+    public static final float STANDOFF_MIN = 16f, STANDOFF_MAX = 28f;
     /** Two spires never stand nearer each other than this, in cells. */
     public static final float SPACING = 64f;
     /** A spire stands at least this far from any bore or spore colony, in cells. */
-    static final float CLEARANCE = 3f;
+    static final float CLEARANCE = 5f;
     /** Directions tried on each ring. */
     static final int DIRECTIONS = 24;
     /** Damage that withers a spire outright when its bore collapses. */
@@ -202,6 +203,7 @@ public final class BroodSpires {
         float x = s.x + 0.5f, y = s.y + 0.5f;
         if (!releases(SwarmFliers.hasAirCover(sim), aloft, tick - s.lastReleaseTick, preyNear(sim, x, y))) return;
         s.pack = sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
+        sim.swarmFliers().risingFrom(sim, s.pack, x, y);
         s.lastReleaseTick = tick;
         s.packs++;
         launches.add(new Launch(tick, s.entityId, 0L, s.pack.id, PACK));
