@@ -40,6 +40,8 @@ public final class AlliedColumns {
          * by default.
          */
         default boolean holdsFront(BattleSimulation sim, List<Integer> squads, int destX, int destY) { return false; }
+        /** The column has stepped onto the map: its squads are seated, before it is routed. */
+        default void seated(BattleSimulation sim, int number, List<Integer> squads) { }
         /** The column has arrived: its squads are the mission's now. */
         void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY);
     }
@@ -165,7 +167,7 @@ public final class AlliedColumns {
                 if (tick < CordonSequence.ticks(column.departure.seconds())) continue;
                 int[] dest = orders.destination(sim);
                 if (dest == null) continue;
-                enter(sim, column, dest);
+                enter(sim, column, dest, orders);
                 beat.emit("column_entered_" + column.number, true);
                 continue;
             }
@@ -194,7 +196,7 @@ public final class AlliedColumns {
         void emit(String beat, boolean observerOnly);
     }
 
-    private void enter(BattleSimulation sim, Column column, int[] dest) {
+    private void enter(BattleSimulation sim, Column column, int[] dest, Orders orders) {
         column.entered = true;
         List<int[]> cells = CordonGround.cluster(sim.getGrid(), sim.getOccupancyMap(),
                 column.departure.entryX(), column.departure.entryY(), teams * ColonyMilitia.POST_SIZE);
@@ -203,6 +205,7 @@ public final class AlliedColumns {
             column.squads.add(ColonyMilitia.seatTeam(sim, cells.subList(t, t + ColonyMilitia.POST_SIZE),
                     "Column " + column.number + " team " + (t / ColonyMilitia.POST_SIZE + 1), risk, rng));
         }
+        orders.seated(sim, column.number, List.copyOf(column.squads));
         route(sim, column, dest);
     }
 

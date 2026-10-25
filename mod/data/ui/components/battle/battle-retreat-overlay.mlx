@@ -1,10 +1,17 @@
-<template props="actionClasses,actionLabel,action,confirmClasses,confirmPrompt,cancelLabel,cancelAction,confirmLabel,confirmAction">
+<template props="exitRowClasses,actionClasses,actionLabel,action,retryClasses,retryLabel,retryDisabled,retryAction,confirmClasses,confirmPrompt,confirmDetail,restartClasses,restartLabel,restartDisabled,restartAction,cancelLabel,cancelAction,confirmLabel,confirmAction">
   <div id="battle-retreat-overlay" class="battle-retreat-overlay hud-glass">
-    <button id="battle-exit-action" class="{actionClasses}" onclick="{action}">{actionLabel}</button>
+    <div id="battle-exit-row" class="{exitRowClasses}">
+      <button id="battle-retry-action" class="{retryClasses}" disabled="{retryDisabled}" onclick="{retryAction}">{retryLabel}</button>
+      <button id="battle-exit-action" class="{actionClasses}" onclick="{action}">{actionLabel}</button>
+    </div>
     <div id="battle-retreat-confirm" class="{confirmClasses}">
       <div id="battle-retreat-confirm-label" class="label heading retreat-prompt">{confirmPrompt}</div>
-      <button id="battle-retreat-cancel" class="retreat-cancel console-action" onclick="{cancelAction}">{cancelLabel}</button>
-      <button id="battle-retreat-confirm-action" class="retreat-confirm-action console-action danger-surface" onclick="{confirmAction}">{confirmLabel}</button>
+      <div id="battle-retreat-confirm-detail" class="label retreat-detail">{confirmDetail}</div>
+      <div id="battle-retreat-buttons" class="retreat-buttons">
+        <button id="battle-retreat-restart" class="{restartClasses}" disabled="{restartDisabled}" onclick="{restartAction}">{restartLabel}</button>
+        <button id="battle-retreat-confirm-action" class="retreat-confirm-action console-action danger-surface" onclick="{confirmAction}">{confirmLabel}</button>
+        <button id="battle-retreat-cancel" class="retreat-cancel console-action" onclick="{cancelAction}">{cancelLabel}</button>
+      </div>
     </div>
   </div>
 </template>
@@ -19,6 +26,17 @@
 
   .label { overflow: hidden; white-space: nowrap; }
   .heading { font-family: heading; }
+
+  .battle-exit-row {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .battle-exit-row-hidden {
+    display: none;
+  }
 
   .battle-exit-action {
     width: 126px;
@@ -44,14 +62,26 @@
     display: none;
   }
 
+  .battle-retry-action {
+    width: 216px;
+    border-color: #a7ccc4;
+    color: #e4e7df;
+  }
+
+  .battle-retry-action:disabled {
+    border-color: #4a524e;
+    background-color: #141e19ee;
+    color: #6f7872;
+  }
+
   .battle-retreat-confirm {
-    width: 366px;
-    height: 42px;
-    flex-direction: row;
+    width: 440px;
+    height: 92px;
+    flex-direction: column;
     padding: 5px;
-    gap: 5px;
+    gap: 3px;
     border-width: 1px; border-color: transparent;
-    background-color: transparent;
+    background-color: #141e19ee;
     background-image: linear-gradient(to right, #e98b8300 0%, #e98b8314 40%, #e98b8333 100%);
   }
 
@@ -60,13 +90,27 @@
   }
 
   .retreat-prompt {
-    width: 154px;
-    height: 30px;
-    padding: 8px 6px;
+    width: 428px;
+    height: 16px;
+    padding: 2px 6px;
     color: #e7b5b5;
   }
 
-  .retreat-cancel, .retreat-confirm-action {
+  .retreat-detail {
+    width: 428px;
+    height: 16px;
+    padding: 2px 6px;
+    color: #c1cbc3;
+  }
+
+  .retreat-buttons {
+    width: 100%;
+    height: 46px;
+    flex-direction: row;
+    gap: 5px;
+  }
+
+  .retreat-restart, .retreat-cancel, .retreat-confirm-action {
     height: 30px;
     padding: 7px 5px;
     border-width: 1px;
@@ -81,11 +125,27 @@
     color: #c1cbc3;
   }
 
+  .retreat-restart {
+    width: 226px;
+    border-color: #a7ccc4;
+    background-color: #303a32;
+    color: #e4e7df;
+  }
+
+  .retreat-restart-hidden {
+    display: none;
+  }
+
   .retreat-confirm-action {
-    width: 86px;
+    width: 96px;
     border-color: #b45e5e;
     background-color: #3b1b20;
     color: #f0a1a1;
+  }
+
+  .retreat-restart:hover {
+    border-color: #d6efe9;
+    background-color: #46524a;
   }
 
   .retreat-cancel:hover {
@@ -99,6 +159,12 @@
     color: #ffd0d0;
   }
 
-  .retreat-cancel:active { background-color: #222b24; }
+  .retreat-restart:active, .retreat-cancel:active { background-color: #222b24; }
   .retreat-confirm-action:active { background-color: #762e38; }
+
+  .retreat-restart:disabled {
+    border-color: #4a524e;
+    background-color: #222b24;
+    color: #6f7872;
+  }
 </style>

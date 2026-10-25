@@ -677,14 +677,10 @@
       "rect": [
         770,
         11,
-        126,
-        122
+        119,
+        124
       ],
-      "slot": "v1",
-      "spriteBorderPx": [
-        7,
-        7
-      ]
+      "slot": "v1"
     },
     {
       "cover": "none",
@@ -1042,16 +1038,12 @@
       "included": true,
       "note": "fl-tile-2",
       "rect": [
-        761,
-        99,
-        47,
-        49
+        770,
+        52,
+        119,
+        124
       ],
-      "slot": "v2",
-      "spriteBorderPx": [
-        7,
-        7
-      ]
+      "slot": "v2"
     },
     {
       "block": "floors.brick",
@@ -1064,16 +1056,12 @@
       "included": true,
       "note": "fl-tile-3",
       "rect": [
-        808,
-        99,
-        48,
-        49
+        770,
+        93,
+        119,
+        124
       ],
-      "slot": "v3",
-      "spriteBorderPx": [
-        7,
-        7
-      ]
+      "slot": "v3"
     },
     {
       "block": "floors.brick",
@@ -1086,16 +1074,12 @@
       "included": true,
       "note": "fl-tile-4",
       "rect": [
-        856,
-        99,
-        47,
-        49
+        730,
+        52,
+        119,
+        124
       ],
-      "slot": "v4",
-      "spriteBorderPx": [
-        7,
-        7
-      ]
+      "slot": "v4"
     },
     {
       "cover": "none",
@@ -1453,16 +1437,12 @@
       "included": true,
       "note": "fl-tile-5",
       "rect": [
-        808,
-        148,
-        48,
-        49
+        810,
+        52,
+        119,
+        124
       ],
-      "slot": "v5",
-      "spriteBorderPx": [
-        7,
-        7
-      ]
+      "slot": "v5"
     },
     {
       "cover": "none",
@@ -4425,6 +4405,7 @@
       ]
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4432,18 +4413,18 @@
       ],
       "id": "doodad.floors.c11r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-4.png",
+      "note": "dust-4",
       "rect": [
         523,
         543,
         48,
         49
       ],
-      "block": "floors.dirt",
-      "slot": "v4",
-      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-4.png",
-      "note": "dust-4"
+      "slot": "v4"
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4451,18 +4432,18 @@
       ],
       "id": "doodad.floors.c12r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-5.png",
+      "note": "dust-5",
       "rect": [
         571,
         543,
         47,
         49
       ],
-      "block": "floors.dirt",
-      "slot": "v5",
-      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-5.png",
-      "note": "dust-5"
+      "slot": "v5"
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4470,18 +4451,18 @@
       ],
       "id": "doodad.floors.c13r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-6.png",
+      "note": "dust-6",
       "rect": [
         618,
         543,
         48,
         49
       ],
-      "block": "floors.dirt",
-      "slot": "v6",
-      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-6.png",
-      "note": "dust-6"
+      "slot": "v6"
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4489,18 +4470,18 @@
       ],
       "id": "doodad.floors.c14r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-7.png",
+      "note": "dust-7",
       "rect": [
         666,
         543,
         47,
         49
       ],
-      "block": "floors.dirt",
-      "slot": "v7",
-      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-7.png",
-      "note": "dust-7"
+      "slot": "v7"
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4508,16 +4489,15 @@
       ],
       "id": "doodad.floors.c15r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-8.png",
+      "note": "dust-8",
       "rect": [
         713,
         543,
         48,
         49
       ],
-      "block": "floors.dirt",
-      "slot": "v8",
-      "material": "art-source/tilesets/atlas-material-source/dust-variants/dust-8.png",
-      "note": "dust-8"
+      "slot": "v8"
     },
     {
       "cover": "none",
@@ -4753,14 +4733,14 @@
       ],
       "id": "doodad.floors.c6r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-1.png",
+      "note": "snowvar-1",
       "rect": [
         285,
         592,
         48,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-1.png",
-      "note": "snowvar-1",
       "slot": "v1"
     },
     {
@@ -4772,14 +4752,14 @@
       ],
       "id": "doodad.floors.c7r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-2.png",
+      "note": "snowvar-2",
       "rect": [
         333,
         592,
         47,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-2.png",
-      "note": "snowvar-2",
       "slot": "v2"
     },
     {
@@ -4791,14 +4771,14 @@
       ],
       "id": "doodad.floors.c8r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-3.png",
+      "note": "snowvar-3",
       "rect": [
         380,
         592,
         48,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-3.png",
-      "note": "snowvar-3",
       "slot": "v3"
     },
     {
@@ -4810,14 +4790,14 @@
       ],
       "id": "doodad.floors.c9r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-4.png",
+      "note": "snowvar-4",
       "rect": [
         428,
         592,
         48,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-4.png",
-      "note": "snowvar-4",
       "slot": "v4"
     },
     {
@@ -4829,14 +4809,14 @@
       ],
       "id": "doodad.floors.c10r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-5.png",
+      "note": "snowvar-5",
       "rect": [
         476,
         592,
         47,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-5.png",
-      "note": "snowvar-5",
       "slot": "v5"
     },
     {
@@ -4848,14 +4828,14 @@
       ],
       "id": "doodad.floors.c11r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-6.png",
+      "note": "snowvar-6",
       "rect": [
         523,
         592,
         48,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-6.png",
-      "note": "snowvar-6",
       "slot": "v6"
     },
     {
@@ -4867,14 +4847,14 @@
       ],
       "id": "doodad.floors.c12r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-7.png",
+      "note": "snowvar-7",
       "rect": [
         571,
         592,
         47,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-7.png",
-      "note": "snowvar-7",
       "slot": "v7"
     },
     {
@@ -4886,14 +4866,14 @@
       ],
       "id": "doodad.floors.c13r12",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-8.png",
+      "note": "snowvar-8",
       "rect": [
         618,
         592,
         48,
         50
       ],
-      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-8.png",
-      "note": "snowvar-8",
       "slot": "v8"
     },
     {
@@ -9972,7 +9952,7 @@
   "gridCols": 25,
   "gridRows": 26,
   "idPrefix": "doodad.floors",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for forty of its 650 cells: six variant pools and nothing else. Those forty are included and the rest are not, so the atlas holds forty tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nFour of the six pools take their picture from a tileable material rather than from the plate, and none of them shares a material file. floors.stone and floors.sand each had the same defect -- one tileable tile pasted into all three cells, so the hash pick a variant pool exists for was a no-op. floors.snow had nothing at all. floors.dirt had the opposite problem from the first two: three genuinely different plate cells, which is real variation and far too little of it, so an ordinary field of it read as a three-tile checker rather than as ground. Each of the four now has eight cells naming eight materials.\n\nThe added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture. Every family was generated to match its original material's palette and grain and to tile seamlessly.\n\nReference the material file when generating more, never a cell of the exported atlas. Re-exporting moves every block, and an arid batch aimed at atlas coordinates once came back matching dirt because the sheet was repacked while it ran. That batch is what floors.dirt is made of now, which is why its files are called dust: it is dirt by accident rather than by request, and it fits because the accident was to match this pool's colour exactly.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe eight plate cells that remain -- floors.grass and floors.brick -- carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior. A material-backed cell needs none: the material is already periodic.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for forty of its 650 cells: six variant pools and nothing else. Those forty are included and the rest are not, so the atlas holds forty tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nFour of the six pools take their picture from a tileable material rather than from the plate, and none of them shares a material file. floors.stone and floors.sand each had the same defect -- one tileable tile pasted into all three cells, so the hash pick a variant pool exists for was a no-op. floors.snow had nothing at all. floors.dirt had the opposite problem from the first two: three genuinely different plate cells, which is real variation and far too little of it, so an ordinary field of it read as a three-tile checker rather than as ground. Each of the four now has eight cells naming eight materials.\n\nThe added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture. Every family was generated to match its original material's palette and grain and to tile seamlessly.\n\nReference the material file when generating more, never a cell of the exported atlas. Re-exporting moves every block, and an arid batch aimed at atlas coordinates once came back matching dirt because the sheet was repacked while it ran. That batch is what floors.dirt is made of now, which is why its files are called dust: it is dirt by accident rather than by request, and it fits because the accident was to match this pool's colour exactly.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe three floors.grass plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior. A material-backed cell needs none: the material is already periodic.\n\nfloors.brick is cut from the plate's continuous brick field (the cross at about x 707-946, y 0-240), not from its cells, and carries no border: there is no rim to mirror, and mirroring one doubled the mortar at every cell edge. Each of its five cells is 119x124, three bricks by six courses, so a cell tiles with itself, and their corners sit on the bond's lattice (brick pitch about 39.5 px, two courses about 41 px) from (770,11), so any two neighbours carry the courses on. Its cells once mixed a 126x122 cut with four 47x49 cuts, all stretched to one cell, so most of a brick field was drawn at two and a half times the scale of the rest and no course ran on.",
   "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
   "sheetName": "Floors_Tiles"
 }

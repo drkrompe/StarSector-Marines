@@ -35,7 +35,7 @@ public enum VehicleType {
     HEAVY_APC(
             "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 4,
             /*spriteFacingOffsetDeg*/ -90f,
-            /*capacity*/ 4, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
+            /*capacity*/ 6, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
             /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
             /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
             /*turretFrame*/ 1, /*turretMountX*/ 0f, /*turretMountY*/ 0.15208333f,

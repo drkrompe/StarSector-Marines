@@ -10,6 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BoreAssaultTest {
@@ -62,6 +63,36 @@ class BoreAssaultTest {
         assertFalse(BoreAssault.spent(4f, 30f, BoreAssault.QUIET_BODIES + 1), "the mouth is full");
         assertFalse(BoreAssault.spent(-1f, 30f, 0), "no surge yet: wait");
         assertTrue(BoreAssault.spent(-1f, BoreAssault.QUIET_SECONDS, 0), "a bore that never surges is gone in on");
+    }
+
+    @Test
+    void aFormationRalliesOnTheSupportLineNotOnTheBore() {
+        int back = BoreAssault.MOUTH_CELLS + BoreAssault.RING_MARGIN_CELLS + BoreAssault.SUPPORT_BACK_CELLS;
+        int[] rally = BoreAssault.rallyCell(BORE, BORE - 60, BORE, BORE);
+        assertNotNull(rally);
+        assertEquals(BORE, rally[0]);
+        assertEquals(BORE - back, rally[1], "on the support line, on the way the lane comes");
+        assertNull(BoreAssault.rallyCell(BORE, BORE - back, BORE, BORE), "already there: no advance to make");
+    }
+
+    @Test
+    void aLaneCallsAFireSectionWhenItsRingCannotHurtTheBore() {
+        assertTrue(BoreAssault.needsSection(false, 0f), "no line of fire from the ring");
+        assertFalse(BoreAssault.needsSection(true, BoreAssault.UNHURT_SECONDS - 1f));
+        assertTrue(BoreAssault.needsSection(true, BoreAssault.UNHURT_SECONDS), "the bore is no weaker");
+    }
+
+    @Test
+    void theSectionStandsAtItsReachAndNeverBesideTheSupportLine() {
+        int[] support = BoreAssault.supportCell(BORE, BORE, 0f, -1f);
+        assertTrue(BoreAssault.sectionRing(0f) > BORE - support[1]);
+        assertEquals(40 - BoreAssault.RING_MARGIN_CELLS, BoreAssault.sectionRing(40f));
+    }
+
+    @Test
+    void aSectionComingUpTrailsItsMilitiaUntilTheyAreOnTheLine() {
+        assertEquals(100 + 13, BoreAssault.sectionRing(40f, 100.0, 13f), "the militia still a hundred cells out");
+        assertEquals(BoreAssault.sectionRing(40f), BoreAssault.sectionRing(40f, 20.0, 13f), "on the support line");
     }
 
     @Test

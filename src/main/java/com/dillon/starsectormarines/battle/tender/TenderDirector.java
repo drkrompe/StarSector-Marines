@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.tender;
 
+import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -57,6 +59,8 @@ public final class TenderDirector {
     static final float IDLE_BACK_CELLS = 10f;
     /** An idle station is moved only when the wanted one is this far from the current. */
     static final float RESTATION_CELLS = 4f;
+    /** A flak gun this near a site already answers the fliers over it, in cells. */
+    static final float FLAK_COVER_CELLS = 16f;
     /** No new site closer than this to a turret of its side or another live site. */
     static final float SPACING_CELLS = 6f;
     /** Ground with this many of its side's turrets within {@link #COVERED_RADIUS_CELLS} is covered. */
@@ -239,6 +243,30 @@ public final class TenderDirector {
         return (float) Math.hypot(ax - bx, ay - by);
     }
 
+    /** Whether the swarm has fliers to answer: a Harrier pack in the air, or a brood spire standing to launch one. */
+    static boolean fliersAbout(BattleSimulation sim) {
+        if (!sim.swarmFliers().packs().isEmpty()) return true;
+        for (BroodSpires.Spire s : sim.broodSpires().spires()) {
+            if (sim.resolveUnit(s.entityId) != 0L && sim.world().isAlive(s.entityId)) return true;
+        }
+        return false;
+    }
+
+    /** Whether a flak gun of the marines or their allies already stands within {@link #FLAK_COVER_CELLS} of a site. */
+    static boolean flakNear(BattleSimulation sim, float x, float y) {
+        World world = sim.world();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long u = sim.liveUnitAt(i);
+            Faction f = sim.identity().faction(u);
+            if (f != Faction.MARINE && f != Faction.ALLY || !sim.turretState().isTurret(u)) continue;
+            String id = sim.turretState().structure(u).id;
+            if (!TurretCatalogRegistry.DUAL_FLAK_STRUCTURE_ID.equals(id)
+                    && !TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID.equals(id)) continue;
+            if (dist(world.x(u), world.y(u), x, y) <= FLAK_COVER_CELLS) return true;
+        }
+        return false;
+    }
+
     private static float[] unit(float dx, float dy) {
         float len = (float) Math.hypot(dx, dy);
         return len < 0.01f ? new float[]{1f, 0f} : new float[]{dx / len, dy / len};
@@ -268,6 +296,17 @@ public final class TenderDirector {
      * Null when a metered stock can pay for nothing.
      */
     static BuildOption option(MissionStance stance, Tender t) {
+        return option(stance, t, false);
+    }
+
+    /**
+     * As {@link #option(MissionStance, Tender)}, but with {@code answerAir} (the swarm has fliers about and no flak of
+     * its side covers the site) the dual flak turret first, whatever the stance, when its stock can pay for it
+     * (`colony-breach-nouns.md`, Harrier: flak at the lift).
+     */
+    static BuildOption option(MissionStance stance, Tender t, boolean answerAir) {
+        BuildOption flak = BuildOption.FLAK_TURRET;
+        if (answerAir && (!t.metered() || flak.cost() <= t.stock())) return flak;
         BuildOption best = null;
         for (BuildOption o : BuildOption.ALL) {
             if (!o.turretKind() || (t.metered() && o.cost() > t.stock())) continue;
@@ -293,7 +332,8 @@ public final class TenderDirector {
         t.directorClock = 0f;
         if (t.current() != null) return Plan.NONE;
         Plan plan = plan(Picture.read(sim, t), sim.getGrid());
-        BuildOption option = option(t.ship().stance(), t);
+        boolean answerAir = plan.hasSite() && fliersAbout(sim) && !flakNear(sim, plan.siteX(), plan.siteY());
+        BuildOption option = option(t.ship().stance(), t, answerAir);
         if (plan.hasSite() && option != null && t.lay(option, plan.siteX(), plan.siteY(), sim.getGrid()) != null) {
             return plan;
         }

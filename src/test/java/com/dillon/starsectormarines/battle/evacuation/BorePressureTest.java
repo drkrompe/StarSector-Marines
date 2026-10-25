@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -35,6 +37,14 @@ class BorePressureTest {
         CellTopology topology = new CellTopology(40, 5);
         topology.setGroundKind(14, 2, CellTopology.GroundKind.INDOOR);
         assertArrayEquals(new int[]{0, 2}, BorePressure.site(street(), topology, 10, 2, 5, 20, 10, 2));
+    }
+
+    @Test
+    void aLaneStartsOutInTheStreetBeyondItsWayIn() {
+        List<int[]> lane = BorePressure.lane(street(), 10, 2, 1f, 0f, 3, 2);
+        assertArrayEquals(new int[]{16, 2}, lane.get(0));
+        assertArrayEquals(new int[]{10, 2}, lane.get(1));
+        assertArrayEquals(new int[]{3, 2}, lane.get(2));
     }
 
     @Test

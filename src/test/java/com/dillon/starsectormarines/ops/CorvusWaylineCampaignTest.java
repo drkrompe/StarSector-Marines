@@ -34,30 +34,22 @@ class CorvusWaylineCampaignTest {
     @BeforeEach void shippedCopy() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
     @AfterEach void restoreSettings() { strings.close(); }
 
-    @Test void freightSuccessAndExhaustedFailureContinueWithoutRewritingHistory() {
+    @Test void theWonFreightRunContinuesWithoutRewritingHistory() {
         assertFalse(CorvusWaylineCampaign.unlocked(null));
-        for (boolean success : List.of(false, true)) {
-            var route = closedRoute(success);
-            assertTrue(CorvusWaylineCampaign.unlocked(route));
-            String prior = route.status();
-            Mission offer = CorvusWaylineCampaign.offer(new CorvusWaylineProgress(), "Asharu", route);
-            assertTrue(offer.flavor.contains(prior)); assertEquals(prior, route.status());
-            assertEquals(success, route.successful());
-            assertEquals(success, offer.flavor.contains("delivered loads"));
-            assertEquals(!success, offer.flavor.contains("No freight made it through"));
-            assertFalse(offer.flavor.contains("Rill"));
-        }
+        var route = closedRoute(true);
+        assertTrue(CorvusWaylineCampaign.unlocked(route));
+        String prior = route.status();
+        Mission offer = CorvusWaylineCampaign.offer(new CorvusWaylineProgress(), "Asharu", route);
+        assertTrue(offer.flavor.contains(prior)); assertEquals(prior, route.status());
+        assertTrue(offer.flavor.contains("delivered loads"));
+        assertFalse(offer.flavor.contains("Rill"));
     }
-    @Test void earlierDeliveriesRemainMeaningfulWhenTheFinalAttemptFails() {
+    @Test void aFailedFreightRunNeverOpensCorvus() {
         var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         String id = p.missionId(); p.begin(id); p.settle(id, true, null);
         id = p.missionId(); p.begin(id);
-        p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(0), List.of(), false));
-        id = p.missionId(); p.begin(id);
-        p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(), p.freight().waiting(), false));
-        assertTrue(p.closed()); assertFalse(p.successful());
-        String intro = CorvusWaylineCampaign.introduction(p);
-        assertTrue(intro.contains("delivered loads: 1")); assertFalse(intro.contains("No freight made it through"));
+        p.settle(id, false, null, new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(), List.of(0, 1, 2), false));
+        assertFalse(p.closed()); assertFalse(CorvusWaylineCampaign.unlocked(p));
     }
 
     @Test void onlyAcceptedResultsAdvanceAndDuplicateForeignOrStaleResultsCannotSettle() throws Exception {

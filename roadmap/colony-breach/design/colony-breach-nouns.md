@@ -4,6 +4,16 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+
+Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
+
+Updated: 2026-10-25 — the flier law counts any gun that tracks fliers, so the colony's heavy guns meet it; a tender builds flak first with fliers about.
+
+Updated: 2026-10-25 — Harriers snatch colonists in the open alive and fly them into the bore.
+
+Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
+
 Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
 
 Updated: 2026-10-25 — the brood spire's deep raids: four round the flak to a soft target behind the line, and home.
@@ -36,8 +46,10 @@ inherits `rescue-pressure-acceptance.md`.
 A colony is being eaten from underneath. The company lands in the fields at its
 edge, fights to the shelter where the survivors are sealed in, and has to hold a lift zone
 open long enough for shuttles to take them off. The swarm does not walk in from
-the horizon: it erupts out of bores inside the colony, and every bore left open
-gets worse. The player can spend force to collapse bores and buy quiet, or
+the horizon: it came up out of bores on the colony's outskirts, either side of
+the fields, and is hunting into the town when the company comes down. Every
+colonist it drags home feeds it, and a fed bore buds another further in, so
+every bore left open gets worse. The player can spend force to collapse bores and buy quiet, or
 harden the lift with a called-down flying tender so that the rest of the company is free
 to go hunting. Air power can harass but cannot clear the map, because the bores
 defend the sky over themselves.
@@ -513,7 +525,8 @@ militia make the rest of it when the battle is set up:
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
   other flank, so it always has two. Those guns are its whole armament: no
-  layers, no bunkers, no anti-air;
+  layers, no bunkers, no flak. Its heavy machine guns track fliers, so they
+  answer Harriers and meet the flier law (*Laws*);
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
@@ -555,31 +568,52 @@ redoubt still waiting as unmet need (see *Readiness gate*).
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
 the one story sequence the battle runs.
 
-**Breach clock.** The breach sequence's own time. It starts at the cohort's
-release: the **tremor** follows four seconds later, the first wave of
-eruptions opens over the minute after that (the first six seconds in, then
-every fifteen), and the mother bore three minutes after the tremor. The clock
-is relative to the release and nothing else, so the same colony breaks open on
-the same schedule however long the company took to reach the shelter.
+**Breach clock.** The breach sequence's own time. The bloom is already eating
+the colony when the company comes down (owner, 2026-10-25), so the clock starts
+with the battle: the **tremor** is its first tick, the first wave is open from
+it, and the mother bore comes up five minutes in. Reaching the shelter releases
+the cohort and is published, but no longer starts anything.
 
-**Eruption site.** Where a bore will come up, chosen once at setup and fixed
+**Eruption site.** Where a bore comes up, chosen once at setup and fixed
 for the battle (`ColonyEruptionPlan`). A site is the open ground outside a
-colony building's door — a place, not a cell picked off the map — and is never
+colony building's door (a place, not a cell picked off the map) and is never
 inside the shelter's clearance, the lift's safe ring or a marine landing pad's
 clearance, never closer to another site than an eighth of the map's short side,
-and always on ground the swarm can walk from to the shelter. The first wave is
-four sites: up to half on the corridor between shelter and lift, one on each
-flank of it, the rest from whatever is left; the mother site is the eligible
-place furthest from the lift. The first wave is numbered in eruption order from
-1, corridor sites first; the mother is named rather than numbered. Sites and
-their scheduled ticks are published in the breach snapshot from the start, and
-each eruption as its beat, whether or not anything yet stands up on the site.
-Eruption is the seam: the sequence opens a site at its tick and hands it to the
-installed eruption handler, which is where a bore is built.
+and always on ground the swarm can walk from to the shelter. The bloom came in
+from the outskirts (owner, 2026-10-25: bores flank the landing zone and grow
+inward): the **first wave** is four sites, two on each flank of the landing
+field (a place at least two site spacings, a quarter of the map's short side,
+off the line from the field in to the shelter, so the company walks in down a
+street rather than between two bores; owner, 2026-10-25), nearest the field first, the seed
+shuffling places within a site's spacing; a flank short of places is made up
+from the other, then from the outskirts straight ahead. They are open when the
+company comes down. The **mother site** is the place spaced from the rest
+furthest out along a flank, the flank away from the lift when the lift stands
+off to one side: the deep outskirts, never at the cohort's boats. The first wave is numbered from
+1, nearest the field first; the mother is named rather than numbered. Every
+place no site took is kept for the bores the fed ones bud (*Budding*). Sites
+and their ticks are published in the breach snapshot from the start, and each
+eruption as its beat. Eruption is the seam: the sequence opens a site at its
+tick and hands it to the installed eruption handler, which is where a bore is
+built.
+
+**Budding** (owner, 2026-10-25: the ramp is the hive feeding). Each time a bore
+has eaten three colonists' worth since its last bud, it puts out another a
+block or two further in (`SwarmBores.budInward`): of the kept places sixteen to
+forty-eight cells from it and at least eight nearer the shelter than it is,
+spaced from every bore, bore on its way and spire, the one nearest the shelter.
+Its root digs out to the place and thickens over twelve seconds (*Roots grow*),
+and a new fissure opens at its end, numbered after the first wave. A root dies
+with the bore that put it out, and nothing buds while ten bores live or are on
+their way. With fed maws raising spires (*Brood spire*), this is the battle's
+ramp: a colony left to be eaten grows bores street by street toward the shelter
+and puts Harriers in its sky, and a colony whose people are kept from it stays
+a few fissures on its edge.
 
 **Seepage.** The thin perimeter pressure before the tremor. The swarm director
 restores only a fraction of its population floor while the colony is seeping,
-and its full floor from the tremor on.
+and its full floor from the tremor on. Since the tremor is the battle's first
+tick, Colony Breach no longer seeps; the director spawns only from its bores.
 
 **Bore.** A physical hole in the ground that the swarm comes out of. A bore is a
 destroyable structure on a cell footprint with durability, a death cascade and
@@ -663,6 +697,14 @@ Laws:
   biomass, and it is counted apart (recycled), never as a seizure or a
   delivery, so it raises no harvest beat. A Brute or a Spitter is too heavy and
   is left to the creep.
+- **Forager packs** (owner, 2026-10-25: the first pulses hunt into the city).
+  A fissure is hungry: while any of the colony's people are left to find, what
+  it puts out (other than a scavenger pack) is a forager pack, whose Runners
+  each go after the nearest colonist anywhere in the town, fighting only a
+  fighter already within their reach. With nobody left to find, a forager
+  fights like any Runner. So a young bloom's pulses run past a landed company
+  into the town, and only a bore that has grown sends its packs at the company.
+  Scene: `bloom-outskirts`.
 - **Attack packs and scavenger packs** (owner, 2026-10-21). The dead lie where
   the fighting is, where every Runner has something to fight, so a bore sends
   its surges out by turns as an attack pack and a scavenger pack, the latter
@@ -806,7 +848,8 @@ and its surge tick are the director's as before, and so is the flier law.
 
 **Mother bore.** The one bore whose collapse ends spawning from its precinct
 cluster and is the target of the optional hive objective. It erupts later than
-the others, starts at bore tier and is the only bore that can produce a
+the others, five minutes in, out on the deep outskirts at the far reach of a
+flank (*Eruption site*), starts at bore tier and is the only bore that can produce a
 matriarch.
 
 **Spore colony.** The swarm's static air defence, after StarCraft's spore
@@ -958,8 +1001,17 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
 kind of spire like spawner"). It is the swarm's answer to a line it cannot walk
 through, made into a thing on the map the company can find and kill.
-- **Only an old bloom has one.** Spires grow when a battle's creep is matured
-  at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
+- **An old bloom has grown them; a fresh one grows them by eating** (owner,
+  2026-10-25). Where a battle's creep is matured at setup as weeks old (the
+  Cordon and the heart) its spires stand at once. In any battle, a fresh Colony
+  Breach among them, a satellite bore that has reached maw having eaten four
+  colonists' worth raises one (`BroodSpires.raises`): once its creep holds ground
+  for one by the rule below, the spire's root digs out and thickens over ten
+  seconds and the spire rises at its end in a burst of creep, as a colony does
+  (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
+  every colonist kept from it is a spire that never grows. A bore raises one
+  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and
   twenty-eight cells from its mouth and five clear of its colonies, and never
@@ -997,14 +1049,18 @@ through, made into a thing on the map the company can find and kill.
   from the last raid's return, the same quiet spire sends four of its roost
   deep instead of a patrol: to the richest soft target fifty to a hundred and
   sixty cells off that no anti-air reaches (the radio a forward observer calls
-  the air in with, an unarmed truck, a medic, a soldier on his own, a gun),
-  the nearer on a tie. Its way is bent round every air gun's reach with six
+  the air in with, an unarmed truck, a medic, a colonist out in the open to
+  snatch, a soldier on his own, a gun, in that order), the nearer on a tie. Its way is bent round every air gun's reach with six
   cells to spare, straight when it can be, else by one or two turning points
   off the direct line; with no target or no such way it patrols, and looks
   again a few seconds on. Out and home it hunts nothing. Over the target it
   dives only on what is soft within sixteen cells of where it was sent, never
   the guns, two dives and it turns for home (sooner with nothing there to
-  dive on), flies the same way back and lands as a patrol does. One sortie of
+  dive on), flies the same way back and lands as a patrol does. Sent at
+  survivors, it dives on nothing there: one of the four snatches a colonist
+  (*Snatching the living*), and the carrier keeps with the raid home by its
+  way round the guns before it makes for the mouth, so a colony's people
+  behind the line are taken from under its flak, not over it. One sortie of
   a spire's is up at a time. So the line's rear is never safe from a spire it
   has left standing, and flak placed to cover the rear, not just the front,
   is what closes the ways in. Scene: `harrier-raid`; look: `harrier-raid-look`.
@@ -1338,14 +1394,26 @@ not read in a soft shadow at play zoom.
     carrier shot down drops its load where it falls. So a line that kills the
     carriers keeps the nest from feeding on its dead. Scene: `harrier-carry`;
     look: `harrier-carry-look`.
+  - **Snatching the living** (owner, 2026-10-25: Harrier bands picking off
+    the colony's survivors). A colonist out in the open, no roof over them, is
+    taken alive: a pack with room for another carrier sends its nearest
+    member down on the nearest within twenty-two cells, whether or not it has
+    prey of its own, ahead of any dead. The carrier snatches them off their
+    feet and hauls them home as a dead load is hauled, and at the mouth they
+    are taken as an impaled body is (`SwarmHarvest.snatchByFlier`). A
+    Harrier never bites a colonist, and never takes a soldier or militia
+    fighter alive, nor an evacuee under escort (*Harvest*). Shot down on the
+    way, the carrier drops them alive where it falls, both legs run through,
+    and they lie a moment before running again, untouchable by the air until
+    they do. Scene: `harrier-snatch`; look: `harrier-snatch-look`.
   - **How it flies.** Its own steering, never the ground flow field, which is a
     map of walls a flier is not in: seek a goal, push off packmates, turn at a
     capped rate, move along the nose. Serial, in pack and slot order, with no
     random draw, so a replay flies the same; a pack of twenty costs four
     hundred distance checks a tick.
-  - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
-    the flier law: off a satellite's **brood spire** with its bore's surge, and
-    as a Matriarch's **brood**, a pack of six that hatches off her back as she
+  - **Where it comes from** (`BroodSpires`). Only under the flier law: off a
+    satellite's **brood spire** with its bore's surge (an old bloom's, or one a
+    fed bore raised), and, in an old bloom, as a Matriarch's **brood**, a pack of six that hatches off her back as she
     emerges and flies as her escort (*Emergence*). So the satellites and the front bores
     send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
@@ -1976,32 +2044,53 @@ that and the Hegemony's regard is the owner's call and not yet settled.
 
 **Side objectives.** Optional objectives (`optional-objectives.md`) the breach
 offers beside the rescue, rolled at setup and advanced on the breach's own
-clock; they succeed or fail only themselves, never the cohort or the lift. Today
-there is one, **Secure the loading** (`staffed-buildings.md`): the colony's largest
-warehouse, worked by its own people, is loading the colony's stores onto a truck
-in its yard, and the company that holds the yard until the truck is away is paid
-out of what it carries. A colony whose warehouse has no stand a truck can leave
-from offers none.
+clock; they succeed or fail only themselves, never the cohort or the lift. The
+pool holds what the colony's set pieces can host (`set-piece-blocks.md`), and
+one is rolled per battle (`battle.colonyBreach.objectives` forces one):
 
-A side objective may bring its own **pressure** rather than make the breach's
-swarm aware of it (`set-piece-blocks.md`, Lanes and pressure). A loading in a
-freight yard has one: a held bore of its own (numbered 90, clear of the
-eruptions) opened down the street, whose surges the objective calls on its own
-beats, before the tremor as after it, and whose broods it sends in by the yard's
-gate and side gap. Collapsing that bore ends the pressure, which a guard may
-gamble on. When the objective ends its survivors wander as the rest of the swarm.
+- **Secure the loading** (`staffed-buildings.md`): the colony's largest
+  warehouse, worked by its own people, is loading the colony's stores onto a
+  truck in its yard, and the company that holds the yard until the truck is away
+  is paid out of what it carries. Needs a warehouse.
+- **Strip the workshop**: three of the factory row's hands carry its largest
+  workshop's gear across the service lane to a stack against the far side, and
+  the company holds the lane, which the swarm comes down from both gates. Done
+  at the count; lost when no hand is left. Needs a factory row.
+- **Hold the muster**: the colony's people have gathered in the market square,
+  and the company holds it for a hundred seconds against what comes in by
+  its mouths. Lost the moment fewer than half the muster are alive. Needs a
+  market square.
+- **Empty the hall**: the people sheltering in the main street's civic hall
+  come out two at a time and walk the street to the plaza, and the company keeps
+  the street open against what comes in from its side streets and gaps. Done
+  when everyone left has reached the plaza; lost when fewer than half are
+  alive. Needs a main street with its hall.
+
+The colony's people in the last two are brought for the objective, stand
+together, run from the swarm when it comes within a few cells and come back
+when it has gone; like a staffed crew they never count toward the rescue.
+
+A side objective brings its own **pressure** rather than make the breach's
+swarm aware of it (`set-piece-blocks.md`, Lanes and pressure): a held bore of
+its own (numbered from 90, clear of the eruptions) opened on the street near
+the set piece, whose surges the objective calls on its own beats, before the
+tremor as after it, and whose broods it sends in down the set piece's lanes.
+Collapsing that bore ends the pressure, which a guard may gamble on. When the
+objective ends its survivors wander as the rest of the swarm.
 
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge
-   (*Landing field*) and walks in across open ground. A thin perimeter seepage
-   of runners is the only pressure. Militia hold their buildings.
-2. **Shelter.** A Marine reaches the shelter; the main cohort releases. This is
-   the breach sequence's first trigger: **tremor**, then the first bores erupt
-   over the following minute at precincts between the shelter and the lift and
-   on the flanks. Seepage stops. The holdouts are relieved one at a time, before
-   or after the shelter as the commander chooses, and any of them may fall
-   while it waits.
+   (*Landing field*) and walks in across open ground. The first wave of bores
+   is already open on the outskirts either side of the fields, still fissures,
+   and their pulses forage into the town after the colony's people (*Harvest*),
+   so the company meets only the few that cross its path. Militia hold their
+   buildings.
+2. **Shelter.** A Marine reaches the shelter; the main cohort releases. The
+   holdouts are relieved one at a time, before or after the shelter as the
+   commander chooses, and any of them may fall while it waits. Meanwhile every
+   colonist dragged home feeds a bore: fed ones grow, bud new bores further in
+   (*Budding*) and, at maw, raise spires.
 3. **Dig in.** The lift countdown runs. A called-down flying tender can be
    on station and building. Bores grow. The director's target climbs with every living bore
    and tier.
@@ -2033,7 +2122,7 @@ the evidence; change them here first.
 | `redoubt_reached_N` | PLAYER | A Marine reaches redoubt N (1 is the shelter); several redoubts only |
 | `redoubt_line_broke_N` | PLAYER | Holdout N's line is pushed off its works into the building |
 | `redoubt_fell_N` | PLAYER | Holdout N falls |
-| `tremor` | PLAYER | Breach begins (before the first eruption) |
+| `tremor` | PLAYER | Breach begins: the battle's first tick, as the first wave opens |
 | `bore_erupted_N` | PLAYER | Bore N opens |
 | `bore_grew_N_bore` / `bore_grew_N_maw` | PLAYER | Bore N reaches that tier |
 | `mother_bore_grew_maw` | PLAYER | The mother bore reaches maw (it opens at bore tier) |
@@ -2071,7 +2160,15 @@ by these rules, and a line that a later beat makes stale is superseded by it.
 Bores and bodies sound through presentation cues the simulation writes and
 never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
-surging and collapsing, and breathes a tier ambience while it lives. A swarm
+surging and collapsing, and breathes a tier ambience while it lives. Each clutch
+it lets go is heard clawing up out of the hole (*Emergence*; `BoreAudio`): chitin
+scraping on rock and wet earth tearing, one short take per clutch at the mouth,
+read off the emergence rather than posted, pitched by the clutch's heaviest body
+(the Matriarch deep and slow, a skitterer light) and a little louder for three
+bodies than one. A surge's clutches overlap and layer by the crowd rule under a
+budget of four, so emptying a maw is a churn under the surge cue, not a wall. Its
+one take of its own is mixed from shipped ones (bore growth's tear, a Runner's
+clatter lowered, the body drag's grit). A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
 and lives, and dies. A Runner taking up a body is heard latching onto it, and
@@ -2155,7 +2252,9 @@ LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. The skitterer's squeak sits near -30 and its
-death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
+death -28, its drag -35, each work loop -36 and its patter -39. A Runner clutch's claw-up sits near
+-28, three bodies' and the Matriarch's -26, and the surge they come up under
+-22, a one-off a little over the guns. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
@@ -2219,8 +2318,12 @@ argument.
   the director's budget, deterministic under the battle seed.
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
-  the map (an anti-air emplacement, or a hull with a mount that engages air;
-  `SwarmFliers.releaseUnderCover` refuses otherwise). A scene's control may
+  the map: a seated gun that answers fliers (an anti-air position, or any gun
+  whose weapon tracks them, as a colony's heavy machine guns and a flak
+  emplacement do), or a hull whose turret does (`SwarmFliers.hasAirCover`,
+  the same rule by which a pack senses the guns; `releaseUnderCover` refuses
+  otherwise). So a Colony Breach meets it with the compound's gun towers and
+  the militia's guns, and a tender meets it with flak. A scene's control may
   break this; a mission may not.
 - **Air cannot clear the map.** Every living bore has spore colonies round it
   until they are killed; they die with the bore.

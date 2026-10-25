@@ -31,10 +31,11 @@ its next bore, re-routed when that bore falls.
 - **A broken screen** hands the lead to the main.
 
 Behind `battle.heart.laneFormation`: a lane forms only once it has armour, and
-after it rallies on its bore it attacks the bore as before.
+the bore assault takes it once it has rallied.
 
-**How a lane attacks its bore (The Burn).** Once the guns allow it, a lane
-assaults its bore in phases (`BoreAssault`, `heart-bore-assault.md`):
+**How a lane attacks its bore.** On The Burn once the guns allow it, and on
+Broad Front where its formation rallies (on the bore's support line, not the
+bore), a lane assaults its bore in phases (`BoreAssault`, `heart-bore-assault.md`):
 - **base of fire:** machines on a stand-off ring outside the bore's mouth, on
   the lane's near side, facing it; militia on a support line behind them;
 - **assault:** the militia go in on a spent surge;

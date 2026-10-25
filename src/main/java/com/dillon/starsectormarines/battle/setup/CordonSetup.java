@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonConstruction;
 import com.dillon.starsectormarines.battle.cordon.CordonConstructions;
 import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
+import com.dillon.starsectormarines.battle.cordon.CordonHouseFronts;
 import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
@@ -520,6 +521,10 @@ public final class CordonSetup {
             armour.deploy(sim, opening.get(i), WIDTH * (i + 1) / (opening.size() + 1), reserveY);
         }
         standMouths(sim, armour, redoubts, table, new Random(cordon.battleSeed() ^ MOUTH_SALT));
+        if (table.houseFronts()) {
+            CordonHouseFronts.stand(sim, redoubts, CordonFront.frontward(cordon.plan()), GARRISON_RISK,
+                    new Random(cordon.battleSeed() ^ HOUSE_SALT));
+        }
         if (CordonOuterPicket.enabled()) {
             sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts,
                     CordonFront.frontward(cordon.plan()), GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT)));
@@ -538,7 +543,7 @@ public final class CordonSetup {
         }
         sequence.attachLine(new CordonLineCommand(sim, sequence, armour, logistics, cordon.density(), table, pickets,
                 map.layout));
-        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density()),
+        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density(), logistics),
                 CordonCommand.disclosure(sequence));
         CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,
                 cordon.corridor(), cordon.battleSeed());
@@ -591,6 +596,7 @@ public final class CordonSetup {
     private static final int MOUTH_TEAM_HOLD = 4;
     private static final long MOUTH_SALT = 0x4D4F555448534C54L;
     private static final long PICKET_SALT = 0x5049434B4554534CL;
+    private static final long HOUSE_SALT = 0x484F555345534C54L;
 
     /**
      * Each refugee group's way out, in departure order: from the rear hamlets

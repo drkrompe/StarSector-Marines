@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import java.util.List;
 
 /**
- * One lane's assault on one bore (`heart-bore-assault.md`): the lanes' commander's tactical layer on The Burn. The
+ * One lane's assault on one bore (`heart-bore-assault.md`): the lanes' commander's tactical layer. The
  * mission picks the bore; this decides where the lane's machines and militia stand and when the militia go in.
  *
  * <p><b>Phases.</b> {@link Phase#MOVING_UP}: the machines drive to their posts on the stand-off ring; after a bore
@@ -33,6 +33,13 @@ final class BoreAssault {
     static final float POST_SPREAD_DEG = 15f;
     /** Cells behind the nearest ring the militia hold, toward the lane. */
     static final int SUPPORT_BACK_CELLS = 5;
+    /**
+     * Cells behind the support line a fire section stands: its rounds arc over the militia, out of the mouth's reach
+     * and inside its launchers' reach.
+     */
+    static final int SECTION_BACK_CELLS = 6;
+    /** Seconds of base of fire with the bore no weaker after which the lane calls a fire section. */
+    static final float UNHURT_SECONDS = 30f;
     /** Seconds after a surge comes out before it can be spent: the bodies are still pouring from the mouth. */
     static final float SETTLE_SECONDS = 3f;
     /** Most of the swarm the mouth may hold for a surge to count as spent. */
@@ -60,6 +67,9 @@ final class BoreAssault {
     int lastSurgeTick = -1;
     /** The militia's support line, a walkable cell; set when the assault begins. */
     int supportX, supportY;
+    /** The bore's integrity when it was last seen to fall, and the tick it was. */
+    float integrity = 1f;
+    int integrityTick;
 
     BoreAssault(String boreKey, int boreX, int boreY, float nearX, float nearY, boolean armourFirst,
                 int surges, int tick) {
@@ -72,6 +82,7 @@ final class BoreAssault {
         this.armourFirst = armourFirst;
         this.startTick = tick;
         this.phaseTick = tick;
+        this.integrityTick = tick;
         this.surgesSeen = surges;
     }
 
@@ -122,10 +133,53 @@ final class BoreAssault {
         return best;
     }
 
+    /**
+     * A fire-section carrier's ring: as far out as its launcher reaches, less {@link #RING_MARGIN_CELLS}, and never
+     * nearer than {@link #SECTION_BACK_CELLS} behind the support line. A carrier is soft, and one stood just behind the
+     * militia was overrun within a minute of each surge; its spotters stand on the support line, not beside it.
+     */
+    static int sectionRing(float reach) {
+        return sectionRing(reach, 0.0, 0f);
+    }
+
+    /**
+     * {@link #sectionRing(float)}, and never nearer the bore than {@code behind} cells further out than the lane's
+     * militia stand ({@code militiaFromBore}): a section coming up to a new bore trails its lane's infantry there rather
+     * than driving ahead of it onto ground nobody has cleared.
+     */
+    static int sectionRing(float reach, double militiaFromBore, float behind) {
+        int trail = (int) Math.round(militiaFromBore + behind);
+        return Math.max(trail, sectionRingAtReach(reach));
+    }
+
+    private static int sectionRingAtReach(float reach) {
+        return Math.max(MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SECTION_BACK_CELLS,
+                Math.round(reach) - RING_MARGIN_CELLS);
+    }
+
+    /**
+     * Whether a lane on its bore needs a fire section: none of its machines on the ring has a line of fire to the
+     * bore, or the bore has lost nothing for {@link #UNHURT_SECONDS} of base of fire.
+     */
+    static boolean needsSection(boolean ringSeesBore, float unhurtSeconds) {
+        return !ringSeesBore || unhurtSeconds >= UNHURT_SECONDS;
+    }
+
     /** The militia's support line: {@link #SUPPORT_BACK_CELLS} behind the nearest ring, on the near way. */
     static int[] supportCell(int boreX, int boreY, float nearX, float nearY) {
         int back = MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS;
         return new int[]{Math.round(boreX + nearX * back), Math.round(boreY + nearY * back)};
+    }
+
+    /**
+     * Where a formation coming from ({@code fromX}, {@code fromY}) onto the bore rallies for its assault: the bore's
+     * support line on the way it comes. {@code null} when the lane stands that close already, with no advance to make.
+     */
+    static int[] rallyCell(int fromX, int fromY, int boreX, int boreY) {
+        float dx = fromX - boreX, dy = fromY - boreY;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance <= MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SET_CELLS) return null;
+        return supportCell(boreX, boreY, dx / distance, dy / distance);
     }
 
     /**

@@ -29,18 +29,63 @@ class ColonyEruptionPlanTest {
     }
 
     @Test
-    void aFullColonySeatsTheWaveAndAMotherFarFromTheLift() {
+    void theWaveOpensAtOnceOnTheOutskirtsEitherSideOfTheFieldAndTheMotherLater() {
+        // The field is the lift's, in the east; inward is west, toward the shelter.
         ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of()),
                 ColonyEruptionPlan.FIRST_WAVE_SITES, 11L);
         assertTrue(plan.isComplete());
-        assertEquals(ColonyEruptionPlan.FIRST_WAVE_SITES, plan.firstWaveCount());
+        int north = 0, south = 0;
+        for (ColonyEruptionPlan.Site site : plan.sites()) {
+            if (site.mother()) continue;
+            assertEquals(0, site.delayTicks(), "the first wave is open when the company lands");
+            assertTrue(site.x() > W / 2, "a first-wave bore deep in town at x=" + site.x());
+            if (site.y() < 120) north++;
+            else if (site.y() > 120) south++;
+        }
+        assertEquals(2, north, "two on one flank of the field");
+        assertEquals(2, south, "two on the other");
         ColonyEruptionPlan.Site mother = plan.mother();
         assertNotNull(mother);
-        assertTrue(mother.x() < W / 4, "the mother bore came up near the lift at x=" + mother.x());
-        assertEquals(ColonyEruptionPlan.Role.CORRIDOR, plan.sites().get(0).role(),
-                "the cohort's walk breaks open first");
-        long flanks = plan.sites().stream().filter(s -> s.role() == ColonyEruptionPlan.Role.FLANK).count();
-        assertTrue(flanks >= 2, "both flanks should open, got " + flanks);
+        assertTrue(mother.delayTicks() > 0, "the mother comes later");
+        assertTrue(Math.abs(mother.y() - 120) > 80, "the mother out on a flank's far reach, at y=" + mother.y());
+    }
+
+    @Test
+    void theWalkInFromTheFieldIsLeftOpen() {
+        // The field in the south; inward is north-west, to the shelter.
+        float fx = 200, fy = 225, ux = 80 - fx, uy = 120 - fy, ul = (float) Math.hypot(ux, uy);
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of(new int[]{200, 225})), 4, 3L);
+        int corridor = ColonyEruptionPlan.corridor(W, H);
+        for (ColonyEruptionPlan.Site site : plan.sites()) {
+            if (site.mother()) continue;
+            float across = Math.abs(ux * (site.y() - fy) - uy * (site.x() - fx)) / ul;
+            assertTrue(across >= corridor, "a bore " + across + " cells off the walk in at " + site.x() + ","
+                    + site.y());
+        }
+    }
+
+    @Test
+    void theMotherComesUpOnTheFlankAwayFromTheLift() {
+        // The field in the south, the lift off to its east end; inward is north-west, to the shelter.
+        float fx = 200, fy = 225, ux = 80 - fx, uy = 120 - fy;
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of(new int[]{200, 225})), 4, 7L);
+        ColonyEruptionPlan.Site mother = plan.mother();
+        assertNotNull(mother);
+        float liftAcross = ux * (120 - fy) - uy * (380 - fx);
+        float motherAcross = ux * (mother.y() - fy) - uy * (mother.x() - fx);
+        assertTrue(liftAcross * motherAcross < 0, "the mother came up on the lift's flank at " + mother.x() + ","
+                + mother.y());
+    }
+
+    @Test
+    void thePlacesNoSiteTookAreKeptForBudding() {
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of()), 4, 5L);
+        assertFalse(plan.places().isEmpty());
+        for (int[] place : plan.places()) {
+            for (ColonyEruptionPlan.Site site : plan.sites()) {
+                assertFalse(place[0] == site.x() && place[1] == site.y(), "a site's place offered again");
+            }
+        }
     }
 
     @Test
@@ -49,12 +94,9 @@ class ColonyEruptionPlanTest {
         ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(landings),
                 ColonyEruptionPlan.FIRST_WAVE_SITES, 3L);
         int spacing = ColonyEruptionPlan.siteSpacing(W, H);
-        int lastDelay = -1;
         int number = 1;
         for (ColonyEruptionPlan.Site site : plan.sites()) {
             if (!site.mother()) assertEquals(number++, site.number());
-            assertTrue(site.delayTicks() > lastDelay, "eruptions are staggered in order");
-            lastDelay = site.delayTicks();
             assertTrue(Math.abs(site.x() - 80) + Math.abs(site.y() - 120)
                     >= ColonyEruptionPlan.shelterClearance(W, H), "a site inside the shelter clearance");
             assertTrue(Math.max(Math.abs(site.x() - 380), Math.abs(site.y() - 120))

@@ -345,7 +345,9 @@ public class BriefingScreen implements Screen {
         // player switches missions so they don't carry over hidden state.
         if (m != null && (!m.id.equals(lastSelectedMissionId) || m.source.isDebug() && lastDebugPresetRevision != ctx.debugPresetRevision())) {
             survey.close();
-            surveySeed = m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
+            Long retained = ctx.takeRetainedSurveySeed();
+            surveySeed = retained != null ? retained
+                    : m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
             lastSelectedMissionId = m.id;
             debugDrawerExpanded = false;
             deselectedCarriers.clear();
@@ -2625,6 +2627,7 @@ public class BriefingScreen implements Screen {
         }
         ctx.setBattle(prepared.simulation(), prepared.fixture(),
                 prepared.detachment());
+        ctx.recordLaunchedSurveySeed(surveySeed);
         lastSelectedMissionId = null; // A later ordinary deployment gets a fresh survey seed.
         ctx.goTo(ScreenId.BATTLE);
     }

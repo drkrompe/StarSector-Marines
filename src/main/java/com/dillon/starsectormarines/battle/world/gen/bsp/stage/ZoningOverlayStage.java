@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.LeafAdjacency;
+import com.dillon.starsectormarines.battle.world.gen.bsp.TownZoning;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctZoning;
@@ -30,13 +31,13 @@ import java.util.Set;
  * Step 1c — lay down the zoning overlay. In conquest mode
  * ({@link BspKeys#AXIS} bound) a {@link BiomeMap} takes precedence — biome
  * bands run along the traversal axis and fully drive theme picks. In legacy
- * mode a {@link DistrictMap} scatters themes uniformly with a CIVIC nudge at
- * the trunk crossing — unless the map has precincts, in which case each zoned
+ * mode a {@link DistrictMap} scatters themes and {@link TownZoning} plans a town
+ * over them round the trunk crossing — unless the map has precincts, in which case each zoned
  * precinct lays its own character over its own claim through
  * {@link PrecinctZoning} and the nudge is each place's own centre.
  *
  * <p>Reads {@link BspKeys#AXIS} (presence selects mode), {@link BspKeys#TRUNK_PLAN}
- * (intersection center for the CIVIC nudge), {@link BspKeys#PRECINCTS} /
+ * (intersection center for the town plan), {@link BspKeys#PRECINCTS} /
  * {@link BspKeys#PRECINCT_CLAIM} (presence selects per-precinct zoning) and
  * {@link BspKeys#PARTITION} (for the log line). Binds exactly one of
  * {@link BspKeys#BIOME_MAP} / {@link BspKeys#DISTRICT_MAP}.
@@ -166,9 +167,11 @@ public final class ZoningOverlayStage implements GenStage {
                 // its centre at its own seed.
                 PrecinctZoning.apply(districtMap, precincts, claim, ctx.rng);
             } else {
+                // One settlement is planned as a town round the trunk crossing: a civic core, a high
+                // street ring and an industrial edge over the rolled themes.
                 int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
                 int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
-                districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
+                TownZoning.apply(districtMap, ixCenterX, ixCenterY);
             }
             // A real campaign spaceport gets a coherent port district on the
             // marine half of ordinary urban maps. The profile previously died

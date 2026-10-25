@@ -366,6 +366,9 @@
     {"id": "marines_mech_lift_02", "source": "mech-footsteps/marines_mech_lift_02.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     {"id": "marines_mara_blind_watch_debrief_initiative", "source": "wayline/marines_mara_blind_watch_debrief_initiative.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_castle_blind_watch_debrief_ready", "source": "wayline/marines_castle_blind_watch_debrief_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_jangala_debrief_road", "source": "wayline/marines_mara_jangala_debrief_road.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_jangala_debrief_manifests", "source": "wayline/marines_castle_jangala_debrief_manifests.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_jangala_debrief_why", "source": "wayline/marines_mara_jangala_debrief_why.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     // Mara Venn / Wayline story narration
     {"id": "marines_mara_relief_briefing_01", "source": "wayline/marines_mara_relief_briefing_01.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relief_briefing_02", "source": "wayline/marines_mara_relief_briefing_02.mp3", "kind": "ui", "out": "story/wayline"},
@@ -1185,6 +1188,10 @@
     {"id": "marines_bark_civilian_strain_c_3", "source": "marine-barks/speech/marines_bark_civilian_strain_c_3.mp3", "kind": "positional", "out": "battle/marine-barks"},
     {"id": "marines_bark_civilian_strain_d_1", "source": "marine-barks/speech/marines_bark_civilian_strain_d_1.mp3", "kind": "positional", "out": "battle/marine-barks"},
     {"id": "marines_bark_civilian_strain_d_2", "source": "marine-barks/speech/marines_bark_civilian_strain_d_2.mp3", "kind": "positional", "out": "battle/marine-barks"},
-    {"id": "marines_bark_civilian_strain_d_3", "source": "marine-barks/speech/marines_bark_civilian_strain_d_3.mp3", "kind": "positional", "out": "battle/marine-barks"}
+    {"id": "marines_bark_civilian_strain_d_3", "source": "marine-barks/speech/marines_bark_civilian_strain_d_3.mp3", "kind": "positional", "out": "battle/marine-barks"},
+    // Colony Breach (tools/generate_colony_breach_audio.py)
+    {"id": "marines_breach_bore_clawup_1", "source": "colony-breach/sfx/marines_breach_bore_clawup_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bore_clawup_2", "source": "colony-breach/sfx/marines_breach_bore_clawup_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bore_clawup_3", "source": "colony-breach/sfx/marines_breach_bore_clawup_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }

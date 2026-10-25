@@ -25,7 +25,7 @@ sector beside the garrison is what changes with density.
 
 | | Rural | Town | Urban |
 | --- | --- | --- | --- |
-| Beside each redoubt | a car or technical on each flank, out past the side wall | a technical on the street through or past the redoubt, and later ones on the street nearest each flank post (built, the Line only: on the Road, hulls beside the main street block the convoys); *not built:* riflemen in the house fronts | **a Hound pair in the street mouths and a walking rifle team, a mortar team in the yard** (built; the owner's pick `cordon-urban-allies`, the mech lance, with mortars added) |
+| Beside each redoubt | a car or technical on each flank, out past the side wall | a technical on the street through or past the redoubt, and later ones on the street nearest each flank post (built, the Line only: on the Road, hulls beside the main street block the convoys); a rifle team in the house fronts past each flank (built) | **a Hound pair in the street mouths and a walking rifle team, a mortar team in the yard** (built; the owner's pick `cordon-urban-allies`, the mech lance, with mortars added) |
 | Opening armour | two cars, two technicals | four technicals | none |
 | Base | a fenced yard on the main road; the shed builds | the base the map lays; the shed builds (*not built:* the town's goods yard) | the shed, a warehouse depot or a car-park depot, picked from the seed; the shed's berths or the depot's two open-air gantries build the Hounds |
 | Base produces | carrier, car, carrier, technical, round again | technical, carrier, Hound, round again | Hounds, one at a time at the shed's pace; no carriers |
@@ -80,7 +80,12 @@ also calls a gunship sortie or brings a gun battery is the heart's answer
   `cordon-allies-look` (opt-in `createSnapshots` suite);
   `-Dsnapshot.cordonAllies.options=town,urban` renders the built table at a
   redoubt instead.
-- Town: riflemen in the house fronts. A sector's first technical holds the
+- Town: riflemen in the house fronts (`CordonHouseFronts`): a team past each
+  flank wall, within sixteen cells and eight rows of the front, at the windows
+  that look out on the front, or where the houses have none there (most
+  town houses), behind the low cover in front of them, never a solid wall; all
+  four within six cells of each other, or that flank has none. They hold their
+  posts. A sector's first technical holds the
   street through or past its redoubt rather than a flank (a sector of one hull
   gives its flank up for it); a second takes a flank.
 - The base's own ground in a town: the town's goods yard. The shed builds meanwhile.

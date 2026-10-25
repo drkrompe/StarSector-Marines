@@ -146,7 +146,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior), line.id() + " supersedes " + prior);
         }
-        assertEquals(277, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(280, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 

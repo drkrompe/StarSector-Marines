@@ -14,27 +14,28 @@ class FreightRunProgressTest {
         String id=p.missionId();p.begin(id);p.settle(id,true,null);
         assertEquals(4,p.operation()); assertFalse(p.closed()); return p;
     }
-    @Test void receiptsSurviveSaveAndRetryOnlyMovesUnresolvedCargo() throws Exception {
+    @Test void aDefeatLeavesNoTraceAndTheRetryFieldsTheWholeCohort() throws Exception {
         var p=finale(); String id=p.missionId(); p.begin(id);
         var first=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(0),List.of(1),false);
         assertEquals(0,p.settle(id,false,null,first)); assertEquals(-1,p.settle(id,false,null,first));
         ByteArrayOutputStream bytes=new ByteArrayOutputStream();
         try(var out=new ObjectOutputStream(bytes)){out.writeObject(p);}
         try(var in=new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))){p=(BrokenSupplyRouteProgress)in.readObject();}
-        assertEquals(List.of(2),p.freight().waiting()); assertEquals(1,p.freight().deliveredCount()); assertEquals(1,p.freight().lostCount());
-        String retry=p.missionId();p.begin(retry);
-        var last=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(2),List.of(),true);
-        assertEquals(14000,p.payment(retry,true,null,last)); assertEquals(14000,p.settle(retry,true,null,last));
-        assertEquals(-1,p.settle(retry,true,null,last)); assertEquals(26000,p.storyPayment());
+        assertEquals(List.of(0,1,2),p.freight().waiting()); assertEquals(0,p.freight().deliveredCount()); assertEquals(0,p.freight().lostCount());
+        assertFalse(p.closed());
+        String retry=p.missionId();assertNotEquals(id,retry);p.begin(retry);
+        var won=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(0,2),List.of(1),true);
+        assertEquals(14000,p.payment(retry,true,null,won)); assertEquals(14000,p.settle(retry,true,null,won));
+        assertEquals(-1,p.settle(retry,true,null,won)); assertEquals(26000,p.storyPayment());
         assertTrue(p.successful());assertEquals(3,p.operation());assertEquals(1,p.job());
         String recurring=p.missionId();p.begin(recurring);assertEquals(12000,p.settle(recurring,true,null));
         assertEquals(26000,p.storyPayment());assertEquals(12000,p.recurringPayment());
     }
-    @Test void allCargoLostClosesWithoutPaymentOrRecurringWork() {
+    @Test void losingEveryCarrierIsARetryNotAClosedAccount() {
         var p=finale();String id=p.missionId();p.begin(id);
         var lost=new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(),List.of(0,1,2),false);
-        assertEquals(0,p.settle(id,false,null,lost));assertTrue(p.closed());assertFalse(p.successful());assertFalse(p.available());
-        assertEquals(12000,p.storyPayment());assertNull(p.missionId());
+        assertEquals(0,p.settle(id,false,null,lost));assertFalse(p.closed());assertTrue(p.available());
+        assertEquals(12000,p.storyPayment());assertEquals(List.of(0,1,2),p.freight().waiting());
     }
     @Test void forgedVictoryForeignAndMissingReceiptsCannotConsumeAttempt() {
         var p=finale();String id=p.missionId();p.begin(id);

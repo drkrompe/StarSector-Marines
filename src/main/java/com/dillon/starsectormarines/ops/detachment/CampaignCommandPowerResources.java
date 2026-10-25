@@ -8,6 +8,9 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 /** Live player-cargo adapter for command-power costs paid during a battle. */
 public final class CampaignCommandPowerResources implements CommandPowerResources {
 
+    /** Supplies this battle has taken from cargo, so an erased attempt can return them. */
+    private int spent;
+
     @Override
     public int availableSupplies() {
         CargoAPI cargo = cargo();
@@ -20,7 +23,16 @@ public final class CampaignCommandPowerResources implements CommandPowerResource
         CargoAPI cargo = cargo();
         if (cargo == null || cargo.getSupplies() < amount) return false;
         cargo.removeSupplies(amount);
+        spent += amount;
         return true;
+    }
+
+    /** Returns every supply this battle spent; the battle must not spend through it again. */
+    public void refundSpent() {
+        CargoAPI cargo = cargo();
+        if (cargo == null || spent <= 0) return;
+        cargo.addSupplies(spent);
+        spent = 0;
     }
 
     private static CargoAPI cargo() {

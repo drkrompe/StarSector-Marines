@@ -1616,7 +1616,7 @@ public final class TacticalScoring {
             if (!roster.isAliveById(candidate)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(candidate))
                     || !roster.identity().type(candidate).combatant
-                    || unitIndex.restraint().restrains(candidate)) continue;
+                    || unitIndex.withheld(candidate)) continue;
             int cx = world.cellX(candidate);
             int cy = world.cellY(candidate);
             if (!canSeePair(grid, sx, sy, cx, cy,
@@ -1709,7 +1709,7 @@ public final class TacticalScoring {
             if (!roster.isAliveById(u)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(u))
                     || !roster.identity().type(u).combatant
-                    || unitIndex.restraint().restrains(u)) continue;
+                    || unitIndex.withheld(u)) continue;
             if (Float.isFinite(currentDistance)
                     && !(cellDistance(selfX, selfY, world.x(u), world.y(u))
                     + RETARGET_DISTANCE_MARGIN < currentDistance)) continue;
@@ -1733,7 +1733,7 @@ public final class TacticalScoring {
             if (u == exclude || u == self || !roster.isAliveById(u)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(u))
                     || !roster.identity().type(u).combatant
-                    || unitIndex.restraint().restrains(u)
+                    || unitIndex.withheld(u)
                     || harmlessToGround(u)) continue;
             if (canSeePair(grid, selfCellX, selfCellY, world.cellX(u), world.cellY(u),
                     selfAir, vision.targetAirLosRadius(u))) return true;
@@ -2078,7 +2078,7 @@ public final class TacticalScoring {
         for (int i = 0, n = scratch.size; i < n; i++) {
             long enemy = scratch.ids[i];
             if (!roster.isAliveById(enemy) || !roster.identity().type(enemy).combatant) continue;
-            if (unitIndex.restraint().restrains(enemy)) continue;
+            if (unitIndex.withheld(enemy)) continue;
             if (!selfFaction.hostileTo(roster.identity().faction(enemy))) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
@@ -3582,7 +3582,7 @@ public final class TacticalScoring {
             long u = dense[i];
             if (!selfFaction.hostileTo(roster.identity().faction(u))) continue;
             if (!roster.identity().type(u).combatant) continue;
-            if (unitIndex.restraint().restrains(u)) continue;
+            if (unitIndex.withheld(u)) continue;
             sumX += world.cellX(u);
             sumY += world.cellY(u);
             count++;
@@ -3756,7 +3756,7 @@ public final class TacticalScoring {
             long u = units.ids[i];
             if (!selfFaction.hostileTo(roster.identity().faction(u))) continue;
             if (!roster.identity().type(u).combatant) continue;
-            if (unitIndex.restraint().restrains(u)) continue;
+            if (unitIndex.withheld(u)) continue;
             units.ids[write++] = u;
         }
         // In-place truncate: LongBucket.size is the live count, so dropping it

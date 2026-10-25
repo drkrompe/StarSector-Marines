@@ -1,9 +1,10 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
 /**
- * A Harrier sent off its pack to fetch a body home to the nest (`colony-breach-nouns.md`, Harrier, Carrying feed):
- * it {@linkplain Phase#SNATCH swoops} on a loose body, {@linkplain Phase#HAUL hauls} it low and slow to the nearest
- * living bore's mouth, where the harvest feeds it in, and {@linkplain Phase#RETURN flies back} to its pack.
+ * A Harrier sent off its pack to fetch a body home to the nest (`colony-breach-nouns.md`, Harrier, Carrying feed and
+ * Snatching the living): it {@linkplain Phase#SNATCH swoops} on a loose body or snatches a living colonist off its
+ * feet, {@linkplain Phase#HAUL hauls} it low and slow to the nearest living bore's mouth, where the harvest feeds it
+ * in, and {@linkplain Phase#RETURN flies back} to its pack.
  *
  * <p>A pack with nothing to hunt sends at most {@link #carriersFor} of its number ({@link #sends}); the rest keep the
  * ring. A carrier never bites and is no part of its pack's dives, but it is still one of its members: shot, drawn and

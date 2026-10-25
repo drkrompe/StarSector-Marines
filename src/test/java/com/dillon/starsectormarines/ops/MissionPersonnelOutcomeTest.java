@@ -38,6 +38,23 @@ class MissionPersonnelOutcomeTest {
     }
 
     @Test
+    void withdrawalWoundsOnlyTheSurvivorsAwayFromTheLandingZone() {
+        MissionOutcome outcome = MissionOutcome.builder()
+                .victory(false)
+                .missionId("personnel-outcome-test")
+                .missionType(MissionType.ASSAULT)
+                .risk(RiskLevel.MEDIUM)
+                .missionSource(MissionSource.GENERATED)
+                .survivingSoldierIds(Set.of("at-pad", "in-field"))
+                .fallenSoldierIds(Set.of())
+                .withdrawalWoundedSoldierIds(Set.of("in-field"))
+                .build();
+        Map<String, MarineSoldierStatus> fates = MissionResolver.resolvePersonnelOutcomes(outcome);
+        assertEquals(MarineSoldierStatus.ACTIVE, fates.get("at-pad"));
+        assertEquals(MarineSoldierStatus.WIA, fates.get("in-field"));
+    }
+
+    @Test
     void casualtyDispositionIsStableForAResolvedMission() {
         Set<String> fallen = new HashSet<>(Arrays.asList(
                 "marine-fallen-a", "marine-fallen-b", "marine-fallen-c"));

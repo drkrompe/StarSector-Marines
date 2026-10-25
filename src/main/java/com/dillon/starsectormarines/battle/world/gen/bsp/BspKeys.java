@@ -98,8 +98,12 @@ public final class BspKeys {
     /** Claimed multi-leaf compounds; perimeter stampers read it for exclusion masks. */
     public static final GenKey<List<Compound>> COMPOUNDS = GenKey.of("compounds");
 
-    /** Campaign-backed civilian spaceport campus reserved before generic compound claiming. Null for neutral and conquest maps. */
-    public static final GenKey<Compound> SPACEPORT_DISTRICT = GenKey.of("spaceportDistrict");
+    /**
+     * Districts planned before generic compound claiming ({@code set-piece-districts.md}), in the order they
+     * were planned: the civilian spaceport campus, then each district program's. Compound claiming takes
+     * their compounds first. Null when none was planned.
+     */
+    public static final GenKey<List<District>> DISTRICTS = GenKey.of("districts");
 
     // --- pipeline intermediates (produced by one stage, consumed by later ones) ---
 

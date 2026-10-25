@@ -4,12 +4,14 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MarketSquareTest {
@@ -104,4 +106,15 @@ class MarketSquareTest {
     }
 
     private static long key(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
+
+    @Test
+    void aHostThatNamesAFrontStreetOrAStreetThroughGetsTheSquareRoundThem() {
+        boolean[][] road = new boolean[40][30];
+        for (boolean[] column : road) Arrays.fill(column, true);
+        MarketSquare.Placement square = MarketSquare.choose(40, 30, List.of(), road, null, 8, 6, 31, 17,
+                (x, y) -> true, (x, y) -> x >= 8 && x <= 31, (x, y) -> y == 5, (x, y) -> false, MarketSquare.DEFAULT_PREFERENCE);
+        assertEquals(new MarketSquare.Pose(8, 6, 0), square.pose(), "the front on the named street");
+        assertNull(MarketSquare.choose(40, 30, List.of(), road, null, 8, 6, 31, 17,
+                (x, y) -> true, (x, y) -> true, (x, y) -> false, (x, y) -> false, MarketSquare.DEFAULT_PREFERENCE));
+    }
 }

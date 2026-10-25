@@ -1,0 +1,116 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Overhead pipe rack cell over its support: three east-west pipes on a north-south I-beam. Overhead; no cover.",
+      "name": "doodad.pipe-rack-beam",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Overhead pipe rack cell, three east-west pipes, flange collars on both edges. Overhead; no cover.",
+      "name": "doodad.pipe-rack-straight",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Second straight pipe rack cell, varied surface wear. Overhead; no cover.",
+      "name": "doodad.pipe-rack-straight-b",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Pipe gantry column foot: concrete footing, base plate, H-column. Stands under a pipe-rack-beam cell.",
+      "name": "doodad.gantry-column",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Concrete jersey crash barrier, yellow hazard bands at both ends.",
+      "name": "doodad.jersey-barrier",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Steel security bollard in a yellow ring.",
+      "name": "doodad.security-bollard",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Checkpoint boom-gate housing, pivot hub on its east side.",
+      "name": "doodad.boom-gate-post",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Red and white boom-gate arm, root west against the post, tip east. Overlay; no cover, walkable.",
+      "name": "doodad.boom-gate-arm",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "col": 0,
+      "cover": "none",
+      "id": "doodad.pipe-rack-beam",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "cover": "none",
+      "id": "doodad.pipe-rack-straight",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "cover": "none",
+      "id": "doodad.pipe-rack-straight-b",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.gantry-column",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "doodad.jersey-barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 6,
+      "cover": "med",
+      "id": "doodad.security-bollard",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 7,
+      "cover": "med",
+      "id": "doodad.boom-gate-post",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.boom-gate-arm",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/industrial-street-kit.png"
+}

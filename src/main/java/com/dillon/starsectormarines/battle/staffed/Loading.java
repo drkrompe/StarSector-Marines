@@ -261,6 +261,12 @@ public final class Loading {
     /** The road the truck leaves by, from its stand to the map's edge: xs then ys. */
     public float[][] exitRoute() { return exitRoute; }
 
+    /** The cell {@code share} of the way along the truck's road out. */
+    public int[] roadCell(float share) {
+        int i = Math.min(exitRoute[0].length - 1, Math.max(0, Math.round((exitRoute[0].length - 1) * share)));
+        return new int[]{(int) Math.floor(exitRoute[0][i]), (int) Math.floor(exitRoute[1][i])};
+    }
+
     /** Crates aboard so far. */
     public int delivered() { return delivered; }
 

@@ -32,7 +32,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -134,6 +136,7 @@ public final class BattleProbe {
         commands.put("pads", this::pads);
         commands.put("creep", a -> creep());
         commands.put("grid", this::grid);
+        commands.put("windows", this::windows);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
         commands.put("corridor", a -> {
@@ -258,6 +261,37 @@ public final class BattleProbe {
         return new JSONObject().put("x0", x0).put("rows", rows);
     }
 
+    /**
+     * Rows of the map between two cells, north last, marking windows: the side a cell's window looks out of
+     * ({@code n e s w}, the first found), {@code d} a doorway, {@code #} not walkable, {@code .} open floor.
+     */
+    private JSONObject windows(Args a) throws Exception {
+        NavigationGrid g = sim.getGrid();
+        int x0 = a.intAt(0), y0 = a.intAt(1), x1 = a.intAt(2), y1 = a.intAt(3);
+        JSONArray rows = new JSONArray();
+        for (int y = y1; y >= y0; y--) {
+            StringBuilder row = new StringBuilder(String.format(Locale.ROOT, "%4d ", y));
+            for (int x = x0; x <= x1; x++) {
+                if (!g.inBounds(x, y)) row.append(' ');
+                else if (!g.isWalkable(x, y)) row.append('#');
+                else if (g.isDoorway(x, y)) row.append('d');
+                else {
+                    char mark = '.';
+                    for (Direction side : Direction.CARDINALS) {
+                        SharedEdgeBarrier edge = g.getEdgeBarrier(x, y, side);
+                        if (edge != null && edge.kind() == SharedEdgeBarrier.Kind.WINDOW) {
+                            mark = Character.toLowerCase(side.name().charAt(0));
+                            break;
+                        }
+                    }
+                    row.append(mark);
+                }
+            }
+            rows.put(row.toString());
+        }
+        return new JSONObject().put("x0", x0).put("rows", rows);
+    }
+
     public BattleSimulation sim() {
         return sim;
     }
@@ -271,7 +305,11 @@ public final class BattleProbe {
         try {
             return command.run(args);
         } catch (Exception e) {
-            return new JSONObject().put("error", e.getClass().getSimpleName() + ": " + e.getMessage());
+            // The top frames, so a failure inside the battle names where it was without a rerun under a debugger.
+            JSONArray at = new JSONArray();
+            StackTraceElement[] trace = e.getStackTrace();
+            for (int i = 0; i < Math.min(8, trace.length); i++) at.put(trace[i].toString());
+            return new JSONObject().put("error", e.getClass().getSimpleName() + ": " + e.getMessage()).put("at", at);
         }
     }
 

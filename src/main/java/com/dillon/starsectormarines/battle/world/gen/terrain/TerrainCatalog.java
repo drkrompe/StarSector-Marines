@@ -15,7 +15,8 @@ public final class TerrainCatalog {
     public static final String RELAY_NINE = "data/world/terrain/relay-nine.terrain.json";
     public static final String THUNDER_RUN = "data/world/terrain/thunder-run.terrain.json";
     public static final String SHEPHERD_BASIN = "data/world/terrain/shepherd-basin.terrain.json";
-    public static final List<String> BUILTINS = List.of(RELIEF, COUNTERATTACK, JUNCTION, RELAY_NINE, THUNDER_RUN, SHEPHERD_BASIN);
+    public static final String DUST_LEDGER = "data/world/terrain/dust-ledger.terrain.json";
+    public static final List<String> BUILTINS = List.of(RELIEF, COUNTERATTACK, JUNCTION, RELAY_NINE, THUNDER_RUN, SHEPHERD_BASIN, DUST_LEDGER);
     private static volatile Map<String, TerrainPlan> plans = Map.of();
     private TerrainCatalog() {}
     @FunctionalInterface public interface Source { JSONObject read(String path) throws Exception; }
@@ -53,6 +54,7 @@ public final class TerrainCatalog {
             case RELAY_NINE -> { width = 208; height = 128; }
             case THUNDER_RUN -> { width = 320; height = 144; }
             case SHEPHERD_BASIN -> { width = 304; height = 224; }
+            case DUST_LEDGER -> { width = 192; height = 112; }
             default -> throw new IllegalArgumentException("Unknown mission terrain plan: " + path);
         }
         if (plan.width() != width || plan.height() != height)
