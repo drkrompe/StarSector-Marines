@@ -54,7 +54,7 @@ public final class TerrainCatalog {
             case RELAY_NINE -> { width = 208; height = 128; }
             case THUNDER_RUN -> { width = 320; height = 144; }
             case SHEPHERD_BASIN -> { width = 304; height = 224; }
-            case DUST_LEDGER -> { width = 192; height = 112; }
+            case DUST_LEDGER -> { width = 240; height = 112; }
             default -> throw new IllegalArgumentException("Unknown mission terrain plan: " + path);
         }
         if (plan.width() != width || plan.height() != height)

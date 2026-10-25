@@ -27,7 +27,7 @@ public final class DamageCatalog {
         return dustLedger;
     }
     public static void validateDustLedger(DamagePlan plan) {
-        if (plan.width() != 192 || plan.height() != 112) throw new IllegalArgumentException("Dust Ledger damage requires 192 x 112 cells");
+        if (plan.width() != 240 || plan.height() != 112) throw new IllegalArgumentException("Dust Ledger damage requires 240 x 112 cells");
     }
     public static void validateShepherdBasin(DamagePlan plan) {
         if (plan.width() != 304 || plan.height() != 224) throw new IllegalArgumentException("Shepherd basin damage requires 304 x 224 cells");

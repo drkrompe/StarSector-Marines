@@ -1,39 +1,8 @@
 {
   "version": 1,
-  "width": 192,
+  "width": 240,
   "height": 112,
   "roads": [
-    {
-      "id": "apron-track",
-      "points": [
-        [
-          30.0,
-          61.0
-        ],
-        [
-          44.0,
-          59.0
-        ],
-        [
-          60.0,
-          60.0
-        ],
-        [
-          74.0,
-          61.0
-        ],
-        [
-          88.0,
-          60.0
-        ]
-      ],
-      "width": 6,
-      "shoulder": 0,
-      "wear": 0.8,
-      "seed": 6101,
-      "material": "DIRT",
-      "endCap": "BUTT"
-    },
     {
       "id": "crawler-road",
       "points": [
@@ -58,18 +27,84 @@
           78.0
         ],
         [
-          180.0,
+          184.0,
           77.0
         ],
         [
-          191.0,
-          84.0
+          200.0,
+          76.0
+        ],
+        [
+          218.0,
+          79.0
+        ],
+        [
+          239.0,
+          86.0
         ]
       ],
       "width": 9,
       "shoulder": 0,
       "wear": 0.85,
       "seed": 6102,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "apron-track",
+      "points": [
+        [
+          27.0,
+          61.0
+        ],
+        [
+          44.0,
+          59.0
+        ],
+        [
+          60.0,
+          60.0
+        ],
+        [
+          74.0,
+          61.0
+        ],
+        [
+          88.0,
+          60.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 6101,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "back-lane",
+      "points": [
+        [
+          91.0,
+          40.0
+        ],
+        [
+          110.0,
+          39.0
+        ],
+        [
+          124.0,
+          40.0
+        ],
+        [
+          135.0,
+          38.0
+        ]
+      ],
+      "width": 4,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 6105,
       "material": "DIRT",
       "endCap": "BUTT"
     },
@@ -89,10 +124,29 @@
           84.0
         ]
       ],
-      "width": 4,
+      "width": 5,
       "shoulder": 0,
       "wear": 0.75,
       "seed": 6103,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "gate-apron",
+      "points": [
+        [
+          198.0,
+          77.0
+        ],
+        [
+          198.0,
+          71.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 6107,
       "material": "DIRT",
       "endCap": "BUTT"
     },
@@ -132,29 +186,21 @@
       "endCap": "BUTT"
     },
     {
-      "id": "back-lane",
+      "id": "harrow-lane",
       "points": [
         [
-          91.0,
-          40.0
+          107.0,
+          69.0
         ],
         [
-          110.0,
-          39.0
-        ],
-        [
-          124.0,
-          40.0
-        ],
-        [
-          135.0,
-          38.0
+          107.0,
+          41.0
         ]
       ],
       "width": 3,
       "shoulder": 0,
-      "wear": 0.8,
-      "seed": 6105,
+      "wear": 0.75,
+      "seed": 6108,
       "material": "DIRT",
       "endCap": "BUTT"
     },
