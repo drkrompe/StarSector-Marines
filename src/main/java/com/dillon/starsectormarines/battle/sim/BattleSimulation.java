@@ -253,7 +253,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
 import com.dillon.starsectormarines.battle.nav.SquadRouteRequest;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
@@ -3533,10 +3532,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // still at its tick-start position. Workers only read the published
         // fields; a step advanced during dispatch falls back until next tick.
         goapStageStart = System.nanoTime();
-        List<SquadRouteRequest> routeRequests =
-                SharedGoalPolicy.usesSquadRouteCorridors(liveUnitCount())
-                        ? SquadRoutePreparationSystem.collect(this)
-                        : List.of();
+        List<SquadRouteRequest> routeRequests = SquadRoutePreparationSystem.collect(this);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_COLLECTION,
                 System.nanoTime() - goapStageStart);
         goapStageStart = System.nanoTime();

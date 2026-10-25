@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
 import com.dillon.starsectormarines.battle.nav.NavigationService.SquadRouteDiagnostic;
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -137,7 +136,7 @@ public final class SquadOrderRecorder {
     private final int requestedFrames;
     private final Map<Layer, LayerState> layers = new LinkedHashMap<>();
     private final List<Transition> transitions = new ArrayList<>();
-    private record RouteSample(int tick, int goalX, int goalY, boolean enabled,
+    private record RouteSample(int tick, int goalX, int goalY,
             float centroidX, float centroidY, int activePaths, int movingMembers,
             SquadRouteDiagnostic route) {}
     private final List<RouteSample> routeSamples = new ArrayList<>();
@@ -213,7 +212,6 @@ public final class SquadOrderRecorder {
             if (sim.movement().has(member) && !sim.movement().settled(member)) moving++;
         }
         routeSamples.add(new RouteSample(sim.simTickIndex, goal.x(), goal.y(),
-                SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount()),
                 squad.centroidX, squad.centroidY, activePaths, moving,
                 sim.inspectSquadRoute(squad.id, squad.routingEpoch, step, goal.x(), goal.y(), starts)));
     }
@@ -382,7 +380,6 @@ public final class SquadOrderRecorder {
             route.put("tick", sample.tick);
             route.put("goalX", sample.goalX);
             route.put("goalY", sample.goalY);
-            route.put("enabled", sample.enabled);
             route.put("centroidX", sample.centroidX);
             route.put("centroidY", sample.centroidY);
             route.put("activePathMembers", sample.activePaths);
