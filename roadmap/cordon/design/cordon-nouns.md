@@ -87,6 +87,11 @@ terrace's cliff or ramps, and is recorded in the map's layout (`cordon-works-N`:
 its construction, its bounds, its gun cells) for the battle to read. A city
 redoubt with no crossroads worth walling up stays the compound, and a map whose
 mix would cost it its Cordon is the same map with every redoubt the compound.
+A farm or school is bricked up as troops would: every door and archway in its
+front face and flanks (an opening of three cells or fewer with wall at both
+ends) is walled with its neighbour's wall, so the swarm comes over the
+sandbags or through a breach, never in at a side door; the gaps its roads come
+in by stay open.
 
 **Picket line.** The ground between two neighbouring redoubts, held by works
 rather than walls, run from one redoubt's claimed edge to the next's at their
@@ -167,7 +172,10 @@ is dressed exactly as the colony's civil-defence compound is
 still manned, its teams inside it with no towers. Any other construction is
 manned from its record: a gun seated in each nest its builders laid, and its
 teams at its loopholes (the windows its buildings look out of) and its
-sandbags, the front first, the rest of the seats in its yard. Wherever the
+sandbags, the front first, the rest of the seats in its yard; each wall team
+holds its own stretch of those posts, side by side along the face, rather
+than the redoubt as a whole (told to hold the whole redoubt round its middle, a
+building's teams left their windows for the yard before the swarm came). Wherever the
 battle asks for a redoubt's gate, its guns or its yard (a truck's rear gate, the
 gun-to-gun reading, a city redoubt's mortar team) it asks the same of every
 construction: a built redoubt's rear gate is the gap in whatever walls its rear,
