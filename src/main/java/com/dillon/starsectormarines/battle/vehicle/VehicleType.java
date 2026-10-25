@@ -516,17 +516,19 @@ public enum VehicleType {
     public boolean hasBlade() { return this == DOZER_BREACHER; }
 
     /**
-     * Whether this hull's tracks flatten undergrowth and lone boulders it drives into ({@link HeavyTracks}): every
-     * Heavy-lift hull, which is the tank line and the dozer. Its planning and its motion read the tracks' crush view.
+     * Whether this hull flattens undergrowth and lone boulders it drives into ({@link HeavyTracks}): every hull of
+     * medium weight or more that runs on the ground, which is the APC lines, the rocket technical, the dozer and the
+     * gun tanks. A pickup, a scout car or a hauler is stopped, as is a hover hull. Its planning and its motion read
+     * the crush view.
      */
-    public boolean crushesUndergrowth() { return liftClass() == LiftClass.HEAVY && !isHover(); }
+    public boolean crushesUndergrowth() { return weight() != Weight.LIGHT && !isHover(); }
 
     /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }
 
     /**
      * The hull's weight class: the pickups, hover hulls and haulers are light, the APC lines, the missile
-     * carriers and the dozer medium, the gun tanks heavy. Read only by a Brute's charge so far.
+     * carriers and the dozer medium, the gun tanks heavy. Read by a Brute's charge and by what a hull crushes.
      */
     public Weight weight() {
         if (this == BREAKTHROUGH_TANK || this == SCREENED_TANK || this == LASER_TANK || this == PD_LASER_TANK) {

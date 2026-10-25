@@ -6,11 +6,11 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 
 /**
- * What a heavy-lift hull's tracks flatten, and the view of the map its planning <em>and</em> its motion read.
+ * What a medium or heavy hull flattens, and the view of the map its planning <em>and</em> its motion read.
  *
  * <p><b>The rule.</b> A cell is <em>crushable</em> when it is closed and carries {@link CellTag#CRUSHABLE}:
  * undergrowth (a young tree, or any tree the creep has killed, wherever no other living tree's crown holds the cell)
- * or a lone boulder. Infantry and lighter hulls are stopped by it as by any natural solid. A heavy-lift hull
+ * or a lone boulder. Infantry and light hulls are stopped by it as by any natural solid. A medium or heavy hull
  * ({@link VehicleType#crushesUndergrowth()}) drives into it: every crushable cell under its footprint after a move is
  * crushed through {@link MapEditor#crush}, the same destruction path a shell takes, so a tree falls whole to its
  * felled art and a boulder to its rubble, and the ground is open for everyone afterwards. Crushing costs the hull its
@@ -51,7 +51,7 @@ public final class HeavyTracks {
         this.editor = editor;
     }
 
-    /** Whether a heavy-lift hull flattens cell {@code (x, y)} by driving into it. See the class rule. */
+    /** Whether a medium or heavy hull flattens cell {@code (x, y)} by driving into it. See the class rule. */
     public static boolean crushes(NavigationGrid grid, int x, int y) {
         return grid.inBounds(x, y) && !grid.isWalkable(x, y) && grid.hasTag(x, y, CellTag.CRUSHABLE);
     }
@@ -120,7 +120,7 @@ public final class HeavyTracks {
     }
 
     /**
-     * The route cost a heavy-lift hull pays: what a wheel pays, but crushable ground costs what rubble does, so the
+     * The route cost a crushing hull pays: what a wheel pays, but crushable ground costs what rubble does, so the
      * hull goes round a thicket where going round is cheap and through it where it is not.
      */
     public static TerrainCostField costField(NavigationGrid grid, TerrainCostField base) {

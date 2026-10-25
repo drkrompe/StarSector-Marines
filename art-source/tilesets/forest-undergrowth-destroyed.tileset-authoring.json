@@ -1,0 +1,108 @@
+{
+  "alphaMin": 24,
+  "cellPx": 64,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "forest.bramble-destroyed",
+      "included": true,
+      "rect": [
+        16,
+        96,
+        480,
+        320
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "forest.bramble-small-destroyed",
+      "included": true,
+      "rect": [
+        528,
+        136,
+        480,
+        240
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.thicket-destroyed",
+      "included": true,
+      "rect": [
+        1040,
+        16,
+        480,
+        480
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.thicket-small-destroyed",
+      "included": true,
+      "rect": [
+        16,
+        528,
+        480,
+        480
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "forest.bracken-destroyed",
+      "included": true,
+      "rect": [
+        528,
+        648,
+        480,
+        240
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.saplings-destroyed",
+      "included": true,
+      "rect": [
+        1040,
+        528,
+        480,
+        480
+      ]
+    }
+  ],
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "note": "UndergrowthReskinTemplate (trampled): six species in Undergrowth order at 512 px pitch; each cut is the species' exact footprint box, 480 px on its longest side, so the art maps one to one onto the closed cells. Undergrowth lobes own collision, sight and the fog masks; cover is none because the natural-solid cells own obstruction. Preserve alpha; never trim or recenter. Prompt: forest-undergrowth-destroyed.prompt.txt.",
+  "sheet": "art-source/tilesets/forest-undergrowth-destroyed.raw.png",
+  "sheetName": "forest-undergrowth-destroyed"
+}

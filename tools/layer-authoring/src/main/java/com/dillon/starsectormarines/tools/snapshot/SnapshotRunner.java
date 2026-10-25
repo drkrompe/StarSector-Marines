@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -89,7 +90,7 @@ public final class SnapshotRunner {
                     Path output = item.output();
                     if (output.getParent() != null) Files.createDirectories(output.getParent());
                     write(item.artifact(), output);
-                    if (rawRoot != null) {
+                    if (rawRoot != null && !item.artifact().frames().isEmpty()) {
                         RawFrameDump.write(rawRoot.resolve(suite.id()).resolve(item.artifact().relativePath()),
                                 item.artifact().frames());
                     }
@@ -134,6 +135,10 @@ public final class SnapshotRunner {
     }
 
     private static void write(SnapshotArtifact artifact, Path output) throws IOException {
+        if (artifact.video()) {
+            Files.move(artifact.encoded(), output, StandardCopyOption.REPLACE_EXISTING);
+            return;
+        }
         if (!artifact.animated()) {
             PngStillWriter.write(artifact.image(), output);
             return;

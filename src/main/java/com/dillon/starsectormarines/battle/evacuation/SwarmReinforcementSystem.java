@@ -46,8 +46,14 @@ public final class SwarmReinforcementSystem {
     public static final float SEEPAGE_FLOOR_FRACTION = 0.40f;
     private static final int MIN_WAVE_SIZE = 4;
     private static final int MIN_RUNNER_SPACING = 2;
-    /** Ticks between two bodies of one surge leaving the mouth: a stream, not a crowd. */
+    /** Ticks between two bodies of one surge leaving the mouth with emergence off: a stream, not a crowd. */
     public static final int SURGE_RELEASE_SPACING_TICKS = 2;
+    /** Most bodies that break out of the hole together (`colony-breach-nouns.md`, Emergence). */
+    public static final int CLUTCH_MAX = 3;
+    /** Shortest and longest pause between two clutches, ticks. */
+    public static final int CLUTCH_GAP_MIN_TICKS = 10, CLUTCH_GAP_MAX_TICKS = 24;
+    /** The mouth cells a body breaks out on: the hole and the ring round it. */
+    private static final int HOLE_CELLS = 9;
     /** A due surge waits until at least this share of it fits under the target. */
     public static final float SURGE_MIN_FIT = 0.5f;
     /** Ticks a held surge waits before it asks again. */
@@ -74,6 +80,9 @@ public final class SwarmReinforcementSystem {
         boolean scavengers;
         /** The pack this surge's bodies are joining now; 0 while packs are off. */
         int pack;
+        /** The muster that pack forms up at ({@link SwarmEmergence}); 0 while emergence is off. */
+        int muster;
+        int clutches;
 
         Release(SwarmBore bore, int surgeIndex, List<Planned> bodies, int tick) {
             this.bore = bore;
@@ -289,7 +298,7 @@ public final class SwarmReinforcementSystem {
                 releases.remove(i);
                 continue;
             }
-            if (tick >= release.nextTick && releaseOne(sim, release, tick)) released = true;
+            if (tick >= release.nextTick && releaseClutch(sim, release, tick)) released = true;
             if (release.released >= release.size) releases.remove(i);
             else i++;
         }
@@ -383,19 +392,48 @@ public final class SwarmReinforcementSystem {
         return false;
     }
 
-    /** Puts the next body of a surge on the first free mouth cell, or waits a spacing for one. */
+    /**
+     * Lets the next clutch of a surge break out of the hole: one to {@link #CLUTCH_MAX} bodies at once, seeded by
+     * the bore, the pulse and the clutch, then a seeded pause (`colony-breach-nouns.md`, Emergence). The Matriarch
+     * comes out alone. With emergence off, one body every {@link #SURGE_RELEASE_SPACING_TICKS}.
+     */
+    private boolean releaseClutch(BattleSimulation sim, Release release, int tick) {
+        if (!sim.swarmEmergence().enabled()) {
+            release.nextTick = tick + SURGE_RELEASE_SPACING_TICKS;
+            return releaseOne(sim, release, tick);
+        }
+        long roll = SwarmBores.mix(seed ^ (release.bore.number() * 0xD1B54A32D192ED03L)
+                ^ ((long) release.surgeIndex << 24) ^ release.clutches);
+        release.clutches++;
+        int clutch = release.bodies.get(release.released).matriarch() ? 1 : 1 + (int) ((roll >>> 8) % CLUTCH_MAX);
+        release.nextTick = tick + CLUTCH_GAP_MIN_TICKS
+                + (int) ((roll >>> 32) % (CLUTCH_GAP_MAX_TICKS - CLUTCH_GAP_MIN_TICKS + 1));
+        boolean any = false;
+        for (int i = 0; i < clutch && release.released < release.size; i++) {
+            if (i > 0 && release.bodies.get(release.released).matriarch()) break;
+            if (!releaseOne(sim, release, tick)) break;
+            any = true;
+        }
+        // A choked hole tries again soon rather than after a whole pause.
+        if (!any) release.nextTick = tick + SURGE_RELEASE_SPACING_TICKS;
+        return any;
+    }
+
+    /** Puts the next body of a surge on the first free mouth cell (the hole first, as it emerges); false for none. */
     private boolean releaseOne(BattleSimulation sim, Release release, int tick) {
-        release.nextTick = tick + SURGE_RELEASE_SPACING_TICKS;
         NavigationGrid grid = sim.getGrid();
         byte[] occupancy = sim.getOccupancyMap();
         List<int[]> mouth = SwarmBores.mouthCells(grid, release.bore);
+        SwarmEmergence emergence = sim.swarmEmergence();
         int[] cell = null;
-        for (int i = 0; i < mouth.size(); i++) {
+        int hole = emergence.enabled() ? Math.min(HOLE_CELLS, mouth.size()) : 0;
+        for (int i = 0; i < hole && cell == null; i++) {
+            int[] candidate = mouth.get((release.released + i) % hole);
+            if ((occupancy[grid.index(candidate[0], candidate[1])] & 0xFF) == 0) cell = candidate;
+        }
+        for (int i = 0; i < mouth.size() && cell == null; i++) {
             int[] candidate = mouth.get((release.released + i) % mouth.size());
-            if ((occupancy[grid.index(candidate[0], candidate[1])] & 0xFF) == 0) {
-                cell = candidate;
-                break;
-            }
+            if ((occupancy[grid.index(candidate[0], candidate[1])] & 0xFF) == 0) cell = candidate;
         }
         if (cell == null) return false;
         SwarmBore bore = release.bore;
@@ -411,6 +449,17 @@ public final class SwarmReinforcementSystem {
                     ? sim.swarmPacks().open(body) : sim.swarmPacks().openLeaderless(body);
         } else {
             sim.swarmPacks().join(release.pack, body);
+        }
+        if (emergence.enabled()) {
+            emergence.begin(sim, body, bore.x() + 0.5f, bore.y() + 0.5f);
+            if (SwarmPacks.startsPack(release.released, release.size)) {
+                release.muster = emergence.openMuster(sim, bore.x(), bore.y());
+            }
+            if (slot.unitType == UnitType.SWARM_RUNNER) emergence.joinMuster(sim, release.muster, body);
+            if (release.released + 1 >= release.size || SwarmPacks.startsPack(release.released + 1, release.size)) {
+                emergence.closeMuster(release.muster, tick
+                        + Math.round(SwarmEmergence.emergeSeconds(slot.unitType) / BattleSimulation.TICK_DT));
+            }
         }
         release.released++;
         release.bore.released(planned.stage());

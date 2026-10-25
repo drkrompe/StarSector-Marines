@@ -48,6 +48,22 @@ It gives two tasks:
   arrives, the hull gives up waiting and stations. The riders travel as a
   count, off the field, and the mission seats them again at the drop.
 
+**A post is the mission's; the stand is allied command's.** The mission
+decides what a hull is for, a post: a slot in a line at a depth behind it,
+facing the enemy. Allied command decides where the hull stands to serve it
+(`PostStand`): a cell within four of the post in the hull's own clearance
+component, on ground it could set out from again whichever way its next order
+leaves, so that arriving never strands it. A post that faces a way keeps its
+hull on the line: sliding along the line costs least, depth behind it four
+times as much, and a cell ahead of the post toward the enemy is never a stand.
+A refused stand is answered first by another stand on the same post, passing
+over what the hull was refused, because the post is what the hull is for and
+ground pulled back toward the hull is only where it already was. Only when four
+stands are spent does the goal fall back to the leg-at-a-time pull-back below.
+When that is spent too the post is reported unservable
+(`AlliedCommand.postUnservable`) and the decision goes back up: the mission that
+chose the post chooses what the hull is for instead.
+
 **A refused place is reached a leg at a time.** A hull that steers wide (an
 APC turns on about twice a car's circle) is refused a long route with one
 corner it cannot make in a single drive, though every leg of it is drivable on
@@ -59,6 +75,18 @@ line instead. Both are bounded, so a hull with nowhere to go stops rather than
 asking every tick; a stationed hull that stopped short of its post is sent to it
 afresh after a pause (`AlliedCommand.STALL_RETRY_TICKS`), because the ground
 changes under it (a machine that stood in its way moves off, a wall comes down).
+
+**What a hull was refused it is not asked again from the same place.** A
+stalled hull that has not moved walks the same pull-backs to the same
+refusals, and on The Burn a handful of hulls stuck where they stood made most
+of the battle's vehicle refusals that way. So the commander keeps each hull's
+refused goals (`RefusedGoals`) and pulls a goal it already knows is refused
+straight past, without an order; out of pull-backs, the hull is not sent at all
+and waits for its retry. The memory is a statement about one place: the hull
+moving a cell and a half forgets it, and a minute forgets the goals (fire
+burns the undergrowth off, a wreck is towed away) so they are asked once more.
+Each retry that finds the hull where it stalled doubles the pause, up to eight
+times, and a move resets it.
 
 A mission sets its hulls down where they can drive out: facing the way they
 will go (the chassis heading, 0 at +Y), on ground whose footprint clears
