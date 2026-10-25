@@ -78,6 +78,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.ambient.BuildingWork;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
@@ -275,6 +276,8 @@ public final class BattleSetup {
 
     /** Total ambient civilians (mix of CIVILIAN/ENGINEER/SCIENTIST) scattered around residential POIs as map flavor. */
     private static final int AMBIENT_CIVILIAN_COUNT = 8;
+    /** Civilian warehouses a procedural operation map puts a crew to work in ({@code staffed-buildings.md}). */
+    private static final int STAFFED_WAREHOUSES = 2;
     /** BFS radius around each residential POI when looking for civilian spawn cells. */
     private static final int CIVILIAN_SPAWN_RADIUS = 5;
 
@@ -1283,6 +1286,7 @@ public final class BattleSetup {
         installAlliedGarrison(sim, map, profile, alliedGarrisonFactionId,
                 alliedGarrisonStrengthMult, risk, seed);
         spawnAmbientCivilians(sim, map, rng);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), STAFFED_WAREHOUSES);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         if (!coldAccount) installReinforcementLayer(sim, map, type, null, groundRoster, risk,
                 null);
