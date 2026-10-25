@@ -2142,8 +2142,8 @@ marine dying with Rav near draws a squadmate's curse, and a marine hurt with a R
 at arm's length grunts with a scuffle of boots and gear. Each marine keeps one of
 six voices for the battle, the operation radio's cast heard dry rather than over
 comms, a little pitched apart; the lines of a kind take turns so one is never heard
-twice running. A squad has one voice at a time, a marine and a squad keep their
-gaps, the most urgent bark goes first, and the battle has at most three sounding
+twice running. A squad has one voice at a time, save the cry of one being seized
+or thrown, which waits on no one; a marine and a squad keep their gaps, the most urgent bark goes first, and the battle has at most three sounding
 at once, so a big fight is a few overlapping shouts rather than a wall. They are
 heard only on seen ground. Takes are generated from a tracked catalog
 (`tools/generate_marine_barks.py`) and every take is levelled by its measured

@@ -37,6 +37,9 @@ import java.util.List;
  *       each down the mouth, where it slides in, sinks and is swallowed ({@link SwarmHarvest#feeding}).</li>
  *   <li>{@code swarm-sound-colony}: colonists running from a Runner pack and a Brute through a colony militia squad
  *       holding in the west, to hear the militia's and the colonists' barks ({@code MarineBarks}).</li>
+ *   <li>{@code swarm-sound-colonists}: a few colonists caught in the open by a Runner pack, a bore held open off to
+ *       the east so the Runners take what they catch: colonists are seized, hurt and killed beside the others, to
+ *       hear the colonists' cries and grief.</li>
  * </ul>
  * {@code -Dsnapshot.swarmSound.only=<shot>} records one shot alone. Opt-in: a mixing study, not part of {@code all}.
  */
@@ -62,7 +65,7 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         String only = System.getProperty("snapshot.swarmSound.only", "");
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String name : List.of("swarm-sound-assault", "swarm-sound-matriarch", "swarm-sound-matriarch-run",
-                "swarm-sound-skitterers", "swarm-sound-feeding", "swarm-sound-colony")) {
+                "swarm-sound-skitterers", "swarm-sound-feeding", "swarm-sound-colony", "swarm-sound-colonists")) {
             if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name)));
         }
         return out;
@@ -84,6 +87,7 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
                     case "swarm-sound-matriarch-run" -> caughtOut(placement);
                     case "swarm-sound-skitterers" -> skitterers(placement);
                     case "swarm-sound-colony" -> colony(placement);
+                    case "swarm-sound-colonists" -> colonists(placement);
                     default -> matriarch(placement);
                 },
                 placement -> List.of(LookReview.View.followAtPlay(placement, keys)),
@@ -117,6 +121,43 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         float[] b = placement.openNear(42f, H / 2f);
         sim.spawn(SwarmStrains.spec("Brute", UnitType.SWARM_BRUTE, (int) b[0], (int) b[1])
                 .health(UnitType.SWARM_BRUTE.maxHp * BRUTE_HEALTH));
+        return sim;
+    }
+
+    /**
+     * Six colonists in the open, two of them frail enough that a Runner's blow kills and the rest hardy enough to take
+     * several, so an elder's impale comes up among the blows, and an elder Runner pack coming at them from the east; two unarmed marines stand far off to the west so the battle has a side. A bore held open off the east edge gives the Runners somewhere to take what they catch, so they
+     * seize and impale as they do in a breach.
+     */
+    private static BattleSimulation colonists(LookReview.Placement placement) {
+        SceneBuilder builder = placement.builder();
+        int x0 = placement.site().x0(), y0 = placement.site().y0();
+        for (int i = 0; i < 6; i++) {
+            float[] c = placement.openNear(22f + (i % 2) * 3f, H / 2f - 5f + i * 2f);
+            boolean frail = i == 1 || i == 4;
+            builder.unit("colonist " + i, Faction.CIVILIAN, UnitType.CIVILIAN, (int) c[0] - x0, (int) c[1] - y0,
+                    spec -> {
+                        spec.role(UnitRole.FLEE);
+                        spec.health(UnitType.CIVILIAN.maxHp * (frail ? 0.3f : 3f));
+                    });
+        }
+        // A battle needs a side to fight it: two marines, unarmed so the Runners keep their catch, far to the west.
+        float[] post = placement.openNear(3f, H / 2f);
+        builder.squad("post").faction(Faction.MARINE).size(2).at((int) post[0] - x0, (int) post[1] - y0)
+                .unarmed().health(600f).stationary().done();
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        placement.subject("line", world.unit("colonist 2"));
+        float[] maw = placement.openNear(W - 4f, H / 2f);
+        SwarmBore bore = sim.swarmBores().open(sim, 1, false, (int) maw[0], (int) maw[1]);
+        if (bore == null) throw new IllegalStateException("the look's ground refused a bore");
+        sim.swarmBores().hold(bore);
+        for (int i = 0; i < 5; i++) {
+            float[] r = placement.openNear(40f + (i % 2) * 2f, H / 2f - 4f + i * 2f);
+            long runner = sim.spawn(SwarmStrains.spec("Runner " + i, UnitType.SWARM_RUNNER, (int) r[0], (int) r[1])
+                    .swarmStage(SwarmStage.ELDER));
+            if (i == 0) placement.subject("swarm", runner);
+        }
         return sim;
     }
 
