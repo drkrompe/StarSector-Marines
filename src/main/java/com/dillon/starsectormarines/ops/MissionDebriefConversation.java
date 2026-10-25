@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
@@ -40,6 +41,7 @@ final class MissionDebriefConversation {
         if (outcome != null && outcome.coldStart != null) return Strings.get("shepherdColdTranscriptTitle");
         if (outcome != null && outcome.salvageRights != null) return Strings.get("shepherdInspectionTranscriptTitle");
         if (firstContract(outcome)) return Strings.get("debriefTitleFirstContract");
+        if (jangalaClosing(outcome, SupplyRouteCampaign.current())) return Strings.get("debriefTitleJangala");
         return Strings.get(coldAccount(outcome) || blindWatch(outcome)
                 ? "debriefTitleAfterAction" : "debriefTitleRecovery");
     }
@@ -83,6 +85,8 @@ final class MissionDebriefConversation {
                 firstContractLine("cost", CASTLE, Strings.get(outcome.marinesLost > 0
                         ? "debriefReliefCostLosses" : "debriefReliefCostClean")),
                 firstContractLine("next", MARA, Strings.get("debriefReliefNext")));
+        var route = SupplyRouteCampaign.current();
+        if (jangalaClosing(outcome, route)) return jangalaLines(outcome, route);
         if (blindWatch(outcome)) return List.of("initiative", "ready")
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
@@ -280,11 +284,49 @@ final class MissionDebriefConversation {
                 castle ? CompanyManagementGuide.portrait() : MissionDialogue.speakerPortrait("vale"), false, false);
     }
 
+    /**
+     * The Thunder Run attempt that closed the freight account, won or exhausted. Only that attempt
+     * says goodbye to Jangala; a retry that left cargo waiting and later Route Security keep their reports.
+     */
+    static boolean jangalaClosing(MissionOutcome outcome, BrokenSupplyRouteProgress route) {
+        return outcome != null && outcome.missionSource == MissionSource.STORY && outcome.freightOutcome != null
+                && route != null && route.readable() && route.closed()
+                && route.lastMissionId().equals(outcome.missionId);
+    }
+
+    /**
+     * Closes the Jangala chapter from the persistent ledger, across every attempt, and hands the
+     * company its off-world lead: the broker on Asharu who opens The Corvus Account.
+     */
+    static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome, BrokenSupplyRouteProgress route) {
+        int delivered = route.freight().deliveredCount(), lost = route.freight().lostCount();
+        boolean held = route.successful();
+        String field = Strings.get(held ? "debriefJangalaFieldHeld" : "debriefJangalaFieldShort");
+        var lines = new ArrayList<WaylineNarration.Line>();
+        lines.add(jangalaLine("road", MARA, delivered == 0 ? Strings.get("debriefJangalaRoadLost")
+                : lost == 0 ? Strings.get("debriefJangalaRoadClean")
+                : Strings.format("debriefJangalaRoadPartial", delivered, lost)));
+        lines.add(jangalaLine("field", SABINE, outcome.marinesLost > 0
+                ? Strings.join("waylineSentenceJoin", field, Strings.get("debriefJangalaFieldCost")) : field));
+        lines.add(jangalaLine("manifests", CASTLE, Strings.get("debriefJangalaManifests")));
+        lines.add(jangalaLine("lead", MARA, Strings.get("debriefJangalaLead")));
+        if (delivered > 0) lines.add(jangalaLine("flying", MARA, Strings.get("debriefJangalaFlying")));
+        lines.add(jangalaLine("next", CASTLE, Strings.get(held ? "debriefJangalaNextHeld" : "debriefJangalaNextShort")));
+        return List.copyOf(lines);
+    }
+
     /** Written correspondence has no recording; keep it readable without offering silent playback. */
     private static final int CASTLE = 0, MARA = 1, SABINE = 2;
     private static WaylineNarration.Line firstContractLine(String beat, int speaker, String text) {
-        return new WaylineNarration.Line("first-contract-" + beat, OpeningOperationKind.RELIEF.missionId,
-                "debrief.relief." + beat, text, 10f, 10, 15f, List.of(),
+        return writtenLine("first-contract-" + beat, OpeningOperationKind.RELIEF.missionId, "debrief.relief." + beat,
+                speaker, text);
+    }
+    private static WaylineNarration.Line jangalaLine(String beat, int speaker, String text) {
+        return writtenLine("jangala-closing-" + beat, "story_supply_route_thunder", "debrief.jangala." + beat,
+                speaker, text);
+    }
+    private static WaylineNarration.Line writtenLine(String id, String missionId, String event, int speaker, String text) {
+        return new WaylineNarration.Line(id, missionId, event, text, 10f, 10, 15f, List.of(),
                 Strings.get(switch (speaker) { case CASTLE -> "debriefSpeakerCastle"; case SABINE -> "debriefSpeakerSabine";
                     default -> "debriefSpeakerMara"; }),
                 switch (speaker) { case CASTLE -> CompanyManagementGuide.portrait(); case SABINE -> OfficerInduction.SABINE_PORTRAIT;

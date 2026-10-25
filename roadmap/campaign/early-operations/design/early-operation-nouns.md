@@ -637,7 +637,11 @@ stability, industry or trade simulation is changed.
 
 **The Corvus Account** follows the closed Thunder Run account, including a
 freight run whose finite ledger ended in failure. Mara's correspondence preserves
-actual deliveries and losses without inventing casualties. Existing recurring arrangements
+actual deliveries and losses without inventing casualties. Thunder Run's closing
+attempt carries the handoff: a written Jangala conversation read from the
+persistent ledger and that attempt's company losses, ending with the broker on
+Asharu and Castle's order to plot a course there. Nothing in it grants a reward
+or advances progression. Existing recurring arrangements
 remain at their original site.
 
 The arc concerns **Sable Wake**, a mod-authored pirate crew buying Wayline's
