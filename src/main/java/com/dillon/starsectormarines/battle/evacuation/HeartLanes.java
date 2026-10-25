@@ -472,11 +472,10 @@ public final class HeartLanes {
     static final boolean BORE_ASSAULT = Boolean.parseBoolean(System.getProperty("battle.heart.boreAssault", "true"));
 
     /**
-     * Whether each lane's waves bring a mortar team (`heart-allied-tools-next.md`). Off by default: in its first
-     * Broad Front run 52 teams fired 166 rounds and none of them on the mouth they were sent to work. Removal condition:
-     * its rounds land on its mission and the owner has seen that run; {@code false} is the control, riflemen only.
+     * Whether each lane's waves bring a mortar team (`heart-allied-tools-next.md`). Removal condition: the owner has
+     * seen its Broad Front evidence; {@code false} is the control, every wave riflemen only.
      */
-    static final boolean MORTAR_TEAMS = Boolean.parseBoolean(System.getProperty("battle.heart.mortarTeams", "false"));
+    static final boolean MORTAR_TEAMS = Boolean.parseBoolean(System.getProperty("battle.heart.mortarTeams", "true"));
 
     /** What the lanes' assaults did, for the evidence (`heart-bore-assault.md`, Acceptance). */
     private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, fallenBack;
