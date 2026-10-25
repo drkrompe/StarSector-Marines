@@ -489,7 +489,8 @@ final class BuildingShellCore {
                                                Random rng, GroundKind interiorGround) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
-        boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
+        boolean twoDoors = !placement.frontageOnly
+                && w >= SECOND_DOORWAY_MIN_DIM
                 && h >= SECOND_DOORWAY_MIN_DIM
                 && (layout.forceOpposedPerimeterDoorways
                     || placement.forceOpposedDoorways

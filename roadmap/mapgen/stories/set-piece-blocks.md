@@ -69,23 +69,43 @@ an attack can come down is the lever that makes a fight harder or easier: one
 gate or two, a straight run at the bay or a dog-leg past cover.
 
 An objective may bring its own **pressure** rather than make the mission's enemy
-commander aware of it:
+commander aware of it. The loading's is `BorePressure`:
 
-- a bore of its own, opened through the ordinary bore seam (Cordon's
-  `BoreBeat` is the precedent);
-- a temporary director that claims that bore's broods with
-  `CommandAuthority.SCRIPTED` and sends them down the set piece's approach
-  lanes, paced to the objective's beats;
-- for a loading: probes while it starts, a wave at half the count, and a rush
-  along the road out once the truck sets off.
+- **Its own bore**, opened through the ordinary bore seam (Cordon's `BoreBeat`
+  is the precedent) about ten seconds after the crew start, on open street 28
+  to 45 steps' walk from the yard gate, the reachable cell farthest from the
+  yard. The yard publishes the marks it needs: its gate, its side gap and the
+  hall door (`LoadingBay`).
+- **Held, and surged on the objective's beats.** The bore never surges on its
+  own clock and adds nothing to the mission's population target; the
+  objective calls its surges (`SwarmReinforcementSystem.surgeScripted`), sized
+  in the director's weight, before the tremor as after it. A loading sends a
+  probe every forty seconds while the crew start, a wave at half the count and
+  a rush once the truck sets off.
+- **A director for its broods.** Ravs are not squads, so it does not claim
+  them with a command authority. It drives them (`SwarmDrives`): a driven body
+  hunts as any body does, but its idle wander becomes a walk down its lane,
+  alternately the gate lane (a point out in the street, the gate, the door)
+  and the side lane (out past the gap, the gap, the door). Once the truck
+  sets off, all of them are sent to a point on its road out.
 
-When the objective ends, the main commander inherits the survivors. The swarm
-spawn pass owns how bodies leave a bore; pressure only decides where its bore
-opens and where its broods are sent.
+When the objective ends, the drives are released and the survivors wander as
+the rest of the swarm. The swarm spawn pass owns how bodies leave a bore;
+pressure only decides where its bore opens, when it surges and where its
+broods are sent.
+
+Against a static six-marine guard on three yard colonies (`loading-pressure-look`),
+all three trucks got away, the guard fighting for it on two. A first, heavier
+pacing lost two yards of three. On one map the colony's own militia collapsed the
+fissure before the rush; a fissure is fragile, and whether the pressure bore
+should be tougher is open, as is tuning it against real play.
+
+The yard's warehouse has one doorway, onto the yard
+(`BuildingPlacement.frontageOnly`): its other walls back onto the compound wall.
 
 ## Plan
 
-Done: steps 1 and 2 (`freight-yard-look`).
+Done: steps 1, 2 and 4 (`freight-yard-look`, `loading-pressure-look`).
 
 1. The freight yard as an industrial compound layout, with its `LoadingBay`
    mark and a look suite.
