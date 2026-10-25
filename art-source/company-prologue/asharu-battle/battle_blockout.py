@@ -1033,9 +1033,12 @@ KEYFRAMES = {
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         # the port pod shot out by the Wolf (P)'s Harpoons (95.5 s), and burning from them
         fx=[('blast_on', 'colossus', 12, (-64, 36, -7), 95.5), ('fire_on', 'colossus', (-60, 36, -2), (-1, .4, .3), 95 - 95.55),
-            # the Mk.III's rake on the burning pod (97.67 s, ledger) is laid dead on: her seeded bursts land on
-            # other frames at 24 fps than at the 4 fps audit (S8-S9 final c01, 2026-10-25: nearest 2.1 s off)
-            ('tracer', 'colossus3', 'colossus', (-60, 30, 6), dict(sure_t=97.67)), ('tracer', 'colossus', 'wolf-p-a'),
+            # the Mk.III's rake on the burning pod (97.67 s, ledger) is laid dead on, in a burst held across it:
+            # her seeded bursts fall on other frames at 24 fps than at the 4 fps audit, and none spanned it
+            # (S8-S9 final c01, 2026-10-25: nearest 2.1 s off). Four bursts, as her seeded rhythm gave
+            ('tracer', 'colossus3', 'colossus', (-60, 30, 6),
+             dict(sure_t=97.67, bursts_t=[(90.6, 91.2), (93.3, 93.9), (95.9, 96.5), (97.2, 97.8)])),
+            ('tracer', 'colossus', 'wolf-p-a'),
             # the Colossus's fire on the Mk.III walks wide: about a quarter to a third lands, the rest
             # flies on past her (coordinator, 2026-10-24)
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0)),
