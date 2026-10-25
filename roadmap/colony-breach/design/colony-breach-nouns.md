@@ -924,7 +924,13 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
   late, grows its roots in sight.
 - **Its spire's roost**: the Brood spire's waiting brood (below).
 - **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
-- Next: clutter (egg clutches, pods, husks) along the roots and round the mouth.
+- **Clutter** (`NestClutter`): egg clutches (glossy eggs with amber hearts in a
+  cup of sinew), brood pods (low ribbed sacs bound down by sinew) and shed husks
+  (dry split shells) lie on the creep, a piece every few cells beside each root
+  once it is rope, never at its ends, and a few in the gaps round the mouth of a
+  bore at bore tier (two) or maw (four), past its rim and clear of its colonies
+  and roots. Drawn only, with the decals: nothing walks round, hides behind or
+  shoots them. Geometry-first paintings, three of each, never turned.
 
 **Brood spire.** The tall growth an old bloom raises on its creep, which
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some

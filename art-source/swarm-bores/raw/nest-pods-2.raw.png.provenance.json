@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173bf-50ff-78c1-ab46-1fd94688b5e5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173bf-50ff-78c1-ab46-1fd94688b5e5\\exec-9dd53b6e-3dc2-4e89-9f65-9ed0518de34e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\nest-pods-2.raw.png",
+    "sha256": "b29d49c98a7086ce207cb92e921ba72600c2c67148db4f6028eb6cbd5ee4cec4",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\nest-pods.prompt.txt",
+  "promptSha256": "edb1189852fe2a2250714315480c6a2c2537e015f808cf9645b8356570131179",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: BROOD PODS of the alien swarm for a top-down tactical game: small ground clutter lying on the swarm's creep near a nest, purely decorative. It is LOW and FLAT, never tall: two to four ribbed sacs of different sizes half-buried in the ground, each tipped over its own way, like the armoured abdomens of something growing underground. Each pod is a swollen ovoid of overlapping chitin bands, the bands separated by deep grooves where wet muscular sinew shows through; a mat of sinew binds the pods down into a low patch of heaved soil, with thick strands joining one pod to the next and thin ones reaching out into the ground; a few small amber nodes glow at the seams where a pod meets the ground. No firing pore, no tall dome, no spines, no plates standing up, not a spore colony (that is a big leaning sac cluster on a mound) and not a ground colony (that is a flat starfish with spines). Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical, do not add or remove pods. Read the guide's flat colours as materials: grey-violet = the swarm's chitin bands: smooth, curved, glossy carapace like a beetle's wing-case or a crab's shell, soft rounded edges and fine growth lines, never faceted, never stone; dark grey-green grooves, mats and tubes = sinew, glistening muscular rope; brown = low churned soil; orange-amber spots = glowing amber nodes, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between the strands; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is part of one designed bio-weapon organism (the same chitin as the swarm runner), never a plant, never fruit or seed pods, never a machine. It will be shown only about 40 to 110 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, band seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-nest-pods-2-guide.png",
+      "sha256": "2e882f363e6d3d748a9ee3155c7138257912cd38fe35d92c457a67800e84ca18",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to reskin the guide, preserving its geometry and lighting while matching the swarm’s materials."
+  ],
+  "usage": {
+    "input_tokens": 44622,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 690,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 72.5
+}
