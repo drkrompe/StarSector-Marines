@@ -7,6 +7,9 @@ it stands. ImageGen repaints the planes in the APC's materials and keeps their p
 
   enclosed-guide.png  a low armoured turret house with one long breech-loaded 120 mm tube (option A)
   open-guide.png      an open turntable with a raised heavy tube, its bore toward the eye, and a shell rack (option B)
+  open-v2-guide.png   option B redrawn so its planes imply the solid it is: the tube a shaded cylinder rising 45 degrees
+                      toward the nose, lighter as it climbs, its muzzle an ellipse foreshortened along the gun with the
+                      lit inner wall showing on the breech side of the bore (`open_raised`)
 
 Run from anywhere:
     python art-source/vehicles/mortar-carrier/guide.py
@@ -99,7 +102,103 @@ def open_mount():
     return img
 
 
+def shade(value, k):
+    return tuple(max(0, min(255, round(c * k))) for c in value[:3]) + (255,)
+
+
+def cylinder(d, foot, muzzle, lateral, radius, elevation_deg, steps=24):
+    """A cylinder rising from `foot` to `muzzle` (forward, cells) at `lateral`, seen from straight above: shaded round
+    its axis with the light from the upper left, lighter toward its raised end, capped at the top by its end face."""
+    import math
+    r_px = radius * CELL
+    for i in range(-int(r_px), int(r_px) + 1):
+        u = i / r_px                                    # -1 upper (lit) edge, +1 lower edge
+        roll = 0.55 + 0.45 * (1 - (u + 0.35) ** 2) if abs(u) < 1 else 0.5
+        for k in range(steps):
+            a = foot + (muzzle - foot) * k / steps
+            b = foot + (muzzle - foot) * (k + 1) / steps
+            climb = 0.55 + 0.60 * (k + 0.5) / steps
+            x0, y = px(a, lateral)
+            x1, _ = px(b, lateral)
+            d.line((x0, y + i, x1, y + i), fill=shade(TOP, roll * climb), width=2)
+    xa, ya = px(foot, lateral)
+    xb, _ = px(muzzle, lateral)
+    d.line((xa, ya - r_px, xb, ya - r_px), fill=OUTLINE, width=4)
+    d.line((xa, ya + r_px, xb, ya + r_px), fill=OUTLINE, width=4)
+
+
+def end_face(d, forward, lateral, radius, elevation_deg, bore=0.0):
+    """The cylinder's top end seen from above: an ellipse squeezed along the gun by sin(elevation). A bore shows its lit
+    inner wall on the breech side, falling to black toward the nose."""
+    import math
+    squash = math.sin(math.radians(elevation_deg))
+    cx, cy = px(forward, lateral)
+    rx, ry = radius * CELL * squash, radius * CELL
+    d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=shade(TOP, 1.08), outline=OUTLINE, width=5)
+    if bore > 0:
+        bx, by = rx * bore, ry * bore
+        d.ellipse((cx - bx, cy - by, cx + bx, cy + by), fill=BORE, outline=OUTLINE, width=3)
+        # The inner wall lit by the sky, seen down the tube on the breech (aft, right) side of the opening.
+        for j in range(12):
+            t = j / 12
+            w = bx * (1 - t) * 0.9
+            d.ellipse((cx + bx * 0.1 + bx * t * 0.8 - w * 0.25, cy - by * (0.85 - 0.3 * t), cx + bx * 0.98,
+                       cy + by * (0.85 - 0.3 * t)), fill=shade(SLOPE, 0.95 - 0.7 * t))
+        d.ellipse((cx - bx * 0.98, cy - by * 0.9, cx + bx * 0.35, cy + by * 0.9), fill=BORE)
+
+
+def open_raised(elevation_deg=45.0):
+    import math
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    # Turntable: a ring plate 0.34 cells in radius with a raised rim.
+    circle(d, 0.0, 0.0, 0.34, SLOPE)
+    circle(d, 0.0, 0.0, 0.30, LOW, width=4)
+    # Ready bombs stand upright in one curved rack round the rear: seen from above, round fuze tops.
+    for i in range(9):
+        a = math.radians(-72 + 18 * i)
+        circle(d, -0.245 * math.cos(a), 0.245 * math.sin(a), 0.034, UPPER, width=3)
+        circle(d, -0.245 * math.cos(a), 0.245 * math.sin(a), 0.014, LOW, width=2)
+    # Splinter shields across the front of the ring.
+    poly(d, [(0.30, -0.24), (0.33, -0.17), (0.33, -0.11), (0.26, -0.11), (0.25, -0.22)], UPPER)
+    poly(d, [(0.30, 0.24), (0.33, 0.17), (0.33, 0.11), (0.26, 0.11), (0.25, 0.22)], UPPER)
+    # The baseplate socket the tube's foot sits in, just aft of the pivot.
+    circle(d, -0.05, 0.0, 0.085, UPPER)
+    circle(d, -0.05, 0.0, 0.05, SLOPE, width=3)
+    # Tube: 0.58 cells long, rising at the elevation, so it reaches only cos(e) of that forward of its foot.
+    foot = -0.05
+    length = 0.58
+    muzzle = foot + length * math.cos(math.radians(elevation_deg))
+    radius = 0.068
+    # The tube's own shadow on the turntable, thrown down-right by the upper-left light: it leaves the foot and falls
+    # farther from the tube the higher the tube climbs, which is what says the tube is raised.
+    rise = length * math.sin(math.radians(elevation_deg))
+    drop = 0.35 * rise
+    shadow = [(foot, -radius * 0.8), (muzzle - drop, drop - radius), (muzzle - drop - 0.02, drop + radius * 1.1),
+              (foot, radius * 0.8)]
+    d.polygon([px(f, l) for f, l in shadow], fill=(40, 42, 38, 255))
+    # The recoil cylinders either side, parallel to the tube and lower on it.
+    for side in (-1, 1):
+        cylinder(d, foot + 0.06, foot + 0.06 + 0.26 * math.cos(math.radians(elevation_deg)), side * 0.098, 0.026,
+                 elevation_deg)
+        end_face(d, foot + 0.06 + 0.26 * math.cos(math.radians(elevation_deg)), side * 0.098, 0.026, elevation_deg)
+    cylinder(d, foot, muzzle, 0.0, radius, elevation_deg)
+    # The foot: the tube's rounded base cap seated in the socket, the lowest and darkest part of it.
+    fx, fy = px(foot, 0.0)
+    rx, ry = radius * CELL * math.sin(math.radians(elevation_deg)), radius * CELL
+    d.ellipse((fx - rx, fy - ry, fx + rx, fy + ry), fill=shade(TOP, 0.5), outline=OUTLINE, width=4)
+    # The cradle band clamping the tube, and the yoke arms out to the recoil cylinders.
+    band = foot + 0.40 * (muzzle - foot)
+    rect(d, band + 0.025, band - 0.025, -0.115, 0.115, UPPER)
+    # The muzzle: a reinforcing ring, then the bore.
+    end_face(d, muzzle, 0.0, radius * 1.12, elevation_deg, bore=0.78)
+    return img, muzzle
+
+
 def main():
+    raised, muzzle = open_raised()
+    raised.save(HERE / "open-v2-guide.png")
+    print(f"wrote {HERE / 'open-v2-guide.png'} (muzzle {muzzle:.3f} cells ahead of the pivot)")
     for name, img in (("enclosed-guide.png", enclosed()), ("open-guide.png", open_mount())):
         img.save(HERE / name)
         print(f"wrote {HERE / name} {img.size}")
