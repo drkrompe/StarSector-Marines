@@ -1819,6 +1819,15 @@ whether the mother collapsed beside the evacuation report. In the campaign it
 contains the bloom behind the call (*Campaign: blooms*); anything it pays beyond
 that and the Hegemony's regard is the owner's call and not yet settled.
 
+**Side objectives.** Optional objectives (`optional-objectives.md`) the breach
+offers beside the rescue, rolled at setup and advanced on the breach's own
+clock; they succeed or fail only themselves, never the cohort or the lift. Today
+there is one, **Secure the loading** (`staffed-buildings.md`): the colony's largest
+warehouse, worked by its own people, is loading the colony's stores onto a truck
+in its yard, and the company that holds the yard until the truck is away is paid
+out of what it carries. A colony whose warehouse has no stand a truck can leave
+from offers none.
+
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge

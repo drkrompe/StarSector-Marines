@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.setup;
+package com.dillon.starsectormarines.battle.staffed;
 
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -37,7 +37,7 @@ import java.util.Set;
  *
  * <p><b>Civilian buildings only.</b> A building with a garrison's compound over
  * it is the garrison's: its stores are a defender's, worked if at all by the
- * garrison ({@link StructureWatch}), never by townsfolk. Nobody holds a civilian
+ * garrison ({@code StructureWatch}), never by townsfolk. Nobody holds a civilian
  * warehouse, so a worker killed in one is not replaced.
  */
 public final class StaffedBuildings {
@@ -55,8 +55,8 @@ public final class StaffedBuildings {
 
     private StaffedBuildings() { }
 
-    /** One building put to work, and who is working it. */
-    public record Staffed(BuildingWork.Kind kind, PointOfInterest building, List<FixtureTask> work,
+    /** One building put to work, and who is working it; {@code site} is the place its claim groups answer to. */
+    public record Staffed(BuildingWork.Kind kind, PointOfInterest building, JobSite site, List<FixtureTask> work,
                           List<Long> crew) { }
 
     /** The building as a place with work in it: its interior, answering to its kind's purpose. */
@@ -84,8 +84,9 @@ public final class StaffedBuildings {
         candidates.sort(Comparator.comparingInt((Candidate c) -> c.work.size()).reversed());
         for (Candidate candidate : candidates) {
             if (staffed.size() >= most) break;
-            List<Long> crew = staff(sim, candidate, SITE_ID_BASE + candidate.index);
-            if (!crew.isEmpty()) staffed.add(new Staffed(candidate.kind, candidate.building, candidate.work, crew));
+            BuildingSite site = site(candidate);
+            List<Long> crew = staff(sim, candidate, site);
+            if (!crew.isEmpty()) staffed.add(new Staffed(candidate.kind, candidate.building, site, candidate.work, crew));
         }
         if (!staffed.isEmpty()) sim.ambientTasks().settle();
         return staffed;
@@ -114,9 +115,12 @@ public final class StaffedBuildings {
         return found;
     }
 
-    private static List<Long> staff(BattleSimulation sim, Candidate candidate, int siteId) {
+    private static BuildingSite site(Candidate candidate) {
         PointOfInterest b = candidate.building;
-        BuildingSite site = new BuildingSite(siteId, candidate.kind.purpose(), b.left, b.top, b.right, b.bottom);
+        return new BuildingSite(SITE_ID_BASE + candidate.index, candidate.kind.purpose(), b.left, b.top, b.right, b.bottom);
+    }
+
+    private static List<Long> staff(BattleSimulation sim, Candidate candidate, BuildingSite site) {
         // The claim groups exist before anybody is handed a route that names one.
         JobBoard.publish(sim.taskPoints(), candidate.work, site, null);
         int hands = Math.min(MOST_HANDS, StaffedCrew.hands(candidate.kind, candidate.work));
@@ -133,7 +137,7 @@ public final class StaffedBuildings {
         return crew;
     }
 
-    /** The anchor of any garrison compound inside the building, with no radius: the rule {@link StructureWatch} uses. */
+    /** The anchor of any garrison compound inside the building, with no radius: the rule {@code StructureWatch} uses. */
     private static boolean heldByGarrison(BattleSimulation sim, PointOfInterest building) {
         CompoundService compounds = sim.getCompoundService();
         if (compounds == null) return false;
