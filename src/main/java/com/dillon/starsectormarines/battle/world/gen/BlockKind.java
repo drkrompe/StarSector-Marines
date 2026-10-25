@@ -144,6 +144,13 @@ public enum BlockKind {
     DENSE_QUARTER,
 
     /**
+     * A lot planned for the market square set piece: two commercial or plaza parcels and the minor street
+     * between them, joined before the road graph ({@code set-piece-blocks.md}). Never rolled by a theme. A lot
+     * the square cannot stand in is filled as an ordinary plaza.
+     */
+    MARKET_SQUARE,
+
+    /**
      * Multi-leaf industrial site: one large factory, a fenced service/tank
      * yard, and a utility warehouse facing a shared striped loading apron.
      * Failed claims demote to an ordinary {@link #BUILDING_INDUSTRIAL}.

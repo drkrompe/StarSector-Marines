@@ -62,6 +62,47 @@ those colonies had an industrial compound at all. Requiring the street outside
 the gate to hold a hauler's turn costs a few more. A larger yard needs a claim
 built for it (`cross-leaf-footprint-planning.md`), not a bigger template.
 
+## The market square
+
+A commercial set piece: an open paved square framed by shopfronts whose doors
+face it, crossed by two rows of market stalls, entered by street mouths and
+alleys. Its tactical job is the killing ground: a fight crosses the square
+between the stall rows, and **the mouths decide which ways a fight can enter**.
+
+- **Shops down each side**, doors facing the square, with two cells of aisle
+  kept clear before every frontage. They are ordinary commercial shells, so
+  the staffed grocery crews work them like any shop.
+- **The back** is either a row of shops (the square framed on three sides) or
+  a second street running through.
+- **An alley** may break each side row.
+- **Stalls** are composed from existing props, since no stall or awning art
+  exists: a produce stall is three servery counters with a crate and a box
+  behind; a fish stall is iced fish crates with a counter at its end. Potted
+  planters stand at the front corners.
+- **A bandstand** stands at the centre of a square deep enough for it, as hard
+  cover.
+
+The **mouths** are the layout's variant and the owner's lever: one (the front
+street only), two (a street through), three (front and two alleys) or four
+(a street through and two alleys). The square publishes an **open square**
+(`OpenSquare` on `MapResult`): its centre, its open extent and every mouth's
+cells and outward step, for an objective to hold, cross or send pressure
+through.
+
+**The square needs ground no compound has.** A 24 by 12 layout fitted the
+dense quarter on 2 city maps in 24 and 7 colonies in 24, because the road
+reservation runs down every street between members; letting the reservation
+cross the open square and leaving out a shop it ran through still left broken
+frames on bare paving. The square therefore has a **market lot** planned for
+it: after compound claims and before the road graph, two complete commercial,
+plaza, dense-block or residential parcels and the minor street between them
+are joined into one lot, exactly as the industrial planning pass joins
+parcels. The street ring round the lot stays complete, so every mouth gives
+onto road. A lot the square cannot stand in is an ordinary plaza. Where the
+lot holds every layout, the mouths are picked from the lot's position without
+a random draw. With at least four shops standing, the square stands on 19 city
+maps in 24 and 20 colonies in 24.
+
 ## Lanes and pressure
 
 A set piece shapes the lanes near it with its walls, gates and gaps. Which lanes
@@ -85,7 +126,8 @@ opens and where its broods are sent.
 
 ## Plan
 
-Done: steps 1 and 2 (`freight-yard-look`).
+Done: steps 1 and 2 (`freight-yard-look`), and the market square of step 5
+(`market-square-look`).
 
 1. The freight yard as an industrial compound layout, with its `LoadingBay`
    mark and a look suite.
@@ -94,7 +136,8 @@ Done: steps 1 and 2 (`freight-yard-look`).
    have none, and a larger yard on a claim built for it.
 4. Objective pressure for the loading: its own bore and director.
 5. Further set pieces from the same seam: a factory row on a service lane, and
-   a market square with stalls for cover.
+   a market square with stalls for cover (done: `MarketSquare` on a planned
+   market lot, publishing its `OpenSquare`).
 
 ## Acceptance
 
@@ -102,4 +145,6 @@ Done: steps 1 and 2 (`freight-yard-look`).
   and a hauler standing in it can set out and leave the map by the gate.
 - A unit test on the layout's rule: in every pose the bay lies on a straight,
   clear drive to the gate.
+- The market square in every layout: every mouth reaches every cell before
+  every shop frontage between the stalls, and no stall stands in an aisle.
 - Owner look stills at 1920x1080 from the look preset.

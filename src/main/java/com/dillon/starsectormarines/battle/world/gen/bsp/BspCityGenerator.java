@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FortifiedPostFille
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseQuarterFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MarketSquareFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.LandingZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MilitaryBaseFiller;
@@ -71,6 +72,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.IndustrialTemplateParcelStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.MarketParcelStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LaneRouteStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
@@ -160,6 +162,7 @@ public final class BspCityGenerator implements MapGenerator {
         register(new SpaceportFiller());
         register(new AirbasePadFiller());
         register(new PlazaFiller());
+        register(new MarketSquareFiller());
         register(new ParkFiller());
         register(new IndustrialYardFiller());
         register(new WastelandRubbleFiller());
@@ -209,6 +212,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new AirbasePadSeedStage(),                  // Step 2a'  city landmark
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
                 new CompoundClaimStage(),                   // Step 2b
+                new MarketParcelStage(),                    // A market square's lot, from parcels no compound took
                 new RoadGraphStage(),                       // Step 2c
                 new VehicleCorridorStage(),                 // Step 2c'  conquest-only
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
@@ -284,6 +288,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new SpaceportDistrictPlanStage(),           // Step 2a   campaign civilian spaceport
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
                 new CompoundClaimStage(),                   // Step 2b
+                new MarketParcelStage(),                    // A market square's lot, from parcels no compound took
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
@@ -841,7 +846,8 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.get(BspKeys.FRONT_DEPTH), ctx.get(BspKeys.LANES))
                 .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)))
                 .withLayout(ctx.get(BspKeys.MISSION_LAYOUT_LAID))
-                .withLoadingBays(ctx.loadingBays);
+                .withLoadingBays(ctx.loadingBays)
+                .withOpenSquares(ctx.openSquares);
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

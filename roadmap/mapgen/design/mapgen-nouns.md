@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
+Updated: 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
+
+Earlier 2026-10-25 — set pieces: the freight yard is an industrial compound layout with a published loading bay.
 
 Earlier 2026-10-25 — forest undergrowth: closed, crushable floor growth between the trees; the forest-floor plants are redrawn overhead.
 
@@ -318,6 +320,25 @@ way. A compound that cannot hold it keeps the ordinary three-parcel works. The
 yard publishes a **loading bay** (`LoadingBay` on `MapResult`): the stand, its
 heading, the door and the gate. A mission that wants a vehicle loaded reads the
 bay rather than searching the finished map.
+
+The **market square** is a commercial set piece: an open paved square framed
+by shopfronts whose doors face it, crossed by two rows of stalls composed from
+existing counters, crates and fish boxes, with planters at its front corners
+and a bandstand as hard cover where the square is deep enough. Shops stand
+down each side; the back is a row of shops or a second street running
+through, and an alley may break each side row. Those openings are its
+**mouths**, one to four, and they are the lever that makes a fight in the
+square harder or easier. A road reservation crossing the square stays a
+street with no stall on it, and a shop it would stand on is left out, the
+street becoming one more mouth. The square stands on a **market lot**: after
+compound claims and before the road graph, two complete commercial, plaza,
+dense-block or residential parcels and the minor street between them are
+joined, under the industrial planning pass's rules (complete street ring, no
+trunk, smallest fitting lot, one per map, no random draw). A lot the square
+cannot stand in is an ordinary plaza. The square publishes an **open square**
+(`OpenSquare` on `MapResult`): its centre, its open extent and each mouth's
+cells with the step out onto the street, for an objective to hold, cross or
+send pressure through.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
