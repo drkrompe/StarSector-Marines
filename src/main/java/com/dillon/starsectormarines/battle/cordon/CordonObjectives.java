@@ -58,7 +58,7 @@ public final class CordonObjectives {
         List<OptionalObjective> out = new ArrayList<>();
         if (variant == CordonVariant.LINE) {
             out.add(beat(STRAGGLERS, "Stragglers", "A farm family in front of the line radios in: bring them in before the first tide.",
-                    Set.of(CordonSetPieces.FARMSTEAD), Set.of(), 2, pay(3_000, "food", 20), cost("bloom.cordon.refugees_lost", 6),
+                    Set.of(CordonSetPieces.STRAGGLERS_HOME), Set.of(), 2, pay(3_000, "food", 20), cost("bloom.cordon.refugees_lost", 6),
                     () -> new StragglersBeat(beats), beats));
             out.add(beat(GUNS_DRY, "The guns run dry", "A redoubt's guns are low: see the ammo truck up its supply road.",
                     Set.of(CordonSetPieces.AMMO_DUMP), Set.of(), 2, pay(2_500, "supplies", 15), cost("bloom.cordon.redoubt_shaken", 1),

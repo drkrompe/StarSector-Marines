@@ -7,9 +7,12 @@ import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -85,6 +88,17 @@ public final class LayoutGround {
     public boolean buildable(int x, int y) {
         return PreparedGround.open(ctx, x, y) && !isRoad(x, y) && ctx.topology.getBuildingId(x, y) == 0
                 && ctx.topology.getGroundKind(x, y) != CellTopology.GroundKind.INDOOR;
+    }
+
+    /** Whether the cell is open enough to take a prop: walkable, and no doorway, fixture or wall ({@link PreparedGround#open}). */
+    public boolean open(int x, int y) {
+        return PreparedGround.open(ctx, x, y);
+    }
+
+    /** The buildings standing, once the map is finished (the works phase); empty before. */
+    public Collection<Building> buildings() {
+        Buildings buildings = ctx.get(BspKeys.BUILDINGS);
+        return buildings == null ? List.of() : buildings.all();
     }
 
     /** The plan the map is laid out from (its places where they were pinned). */

@@ -51,12 +51,22 @@ public final class CordonGround {
 
     /** The walkable cell nearest {@code (x, y)} within twenty cells, or {@code null}. */
     static int[] nearestWalkable(NavigationGrid grid, int x, int y) {
+        return nearestWalkable(grid, x, y, (cx, cy) -> true);
+    }
+
+    /** A cell a search will take. */
+    interface Takes {
+        boolean at(int x, int y);
+    }
+
+    /** The walkable cell nearest {@code (x, y)} within twenty cells that {@code takes} accepts, or {@code null}. */
+    static int[] nearestWalkable(NavigationGrid grid, int x, int y, Takes takes) {
         for (int r = 0; r <= 20; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
                     if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
                     int cx = x + dx, cy = y + dy;
-                    if (grid.inBounds(cx, cy) && grid.isWalkable(cx, cy)) return new int[]{cx, cy};
+                    if (grid.inBounds(cx, cy) && grid.isWalkable(cx, cy) && takes.at(cx, cy)) return new int[]{cx, cy};
                 }
             }
         }

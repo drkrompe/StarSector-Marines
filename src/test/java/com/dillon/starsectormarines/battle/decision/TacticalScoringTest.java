@@ -932,6 +932,27 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void aRocketIsHeldWhileAFriendlyStandsInItsLaneOrBlast() {
+        BattleSimulation sim = openArena(20, 20);
+        long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
+        unit(sim, Faction.MARINE, 10, 6);
+        assertFalse(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret), "a Marine beside the target");
+
+        BattleSimulation lane = openArena(20, 20);
+        long shooter = rocketeer(lane, Faction.MARINE, 2, 5);
+        long bore = turret(lane, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 16, 5);
+        unit(lane, Faction.MARINE, 8, 5);
+        assertFalse(lane.getTacticalScoring().shouldCommitRocket(shooter, bore), "a Marine in the lane");
+
+        BattleSimulation clear = openArena(20, 20);
+        long other = rocketeer(clear, Faction.MARINE, 5, 5);
+        long far = turret(clear, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
+        unit(clear, Faction.MARINE, 15, 15);
+        assertTrue(clear.getTacticalScoring().shouldCommitRocket(other, far), "with the Marine clear of the blast, it fires");
+    }
+
+    @Test
     public void shouldCommitRocketBlocksWhenSquadmateAimingWouldKill() {
         // A Hephaestus has 85 HP — one rocket (18 * 3.5 = 63) isn't enough,
         // two (126) is overkill. So squad coordination should allow the second
