@@ -23,6 +23,11 @@ import java.util.Arrays;
  *
  * <p>Every blow is an action that holds the body ({@link MatriarchActions}): it begins, and lands part-way
  * through, so a reap is seen coming before it cuts. A Matriarch is not staggered and does not charge.
+ *
+ * <p>It walks, and it runs ({@link MatriarchRunRules}): infantry that has let it come within the band on open
+ * ground draws a tell, crown-down and bellowing, then a run at it that closes right in before the reap, so the
+ * cut lands on a body that kept walking. A run ends on the strike, on its time, or when the quarry changes, and
+ * its cooldown leaves room to walk away again.
  */
 final class SwarmMatriarchBehavior {
 
@@ -68,6 +73,11 @@ final class SwarmMatriarchBehavior {
                 }
                 return;
             }
+            if (action.kind == Kind.RUN_TELL) {
+                action.running = true;
+                action.runStartTick = now;
+                action.runQuarry = action.target;
+            }
             action.kind = Kind.NONE;
         }
 
@@ -76,6 +86,7 @@ final class SwarmMatriarchBehavior {
         if (target == 0L) target = SwarmPressureBehavior.selectTarget(matriarch, sim);
         sim.combat().setTargetId(matriarch, target);
         if (target == 0L) {
+            endRun(action, now);
             SwarmPressureBehavior.updateRoaming(matriarch, previousTarget, sim);
             return;
         }
@@ -83,8 +94,14 @@ final class SwarmMatriarchBehavior {
             sim.swarmCues().post(SwarmCues.Kind.ALERT, matriarch, sim);
         }
         boolean ready = sim.combat().cooldownTimer(matriarch) <= 0f;
+        float gap = SwarmBruteBehavior.gap(matriarch, target, sim);
+        if (action.running && MatriarchRunRules.runOver(
+                (now - action.runStartTick) * TICK_SECONDS, target == action.runQuarry, gap)) {
+            endRun(action, now);
+        }
 
-        if (SwarmBruteBehavior.gap(matriarch, target, sim) <= REACH) {
+        if (gap <= MatriarchRunRules.strikeGap(action.running, REACH)) {
+            endRun(action, now);
             sim.clearPath(matriarch);
             if (ready) {
                 float dx = sim.world().x(target) - sim.world().x(matriarch);
@@ -105,6 +122,7 @@ final class SwarmMatriarchBehavior {
         BreachPoint breach = SwarmBruteBehavior.breachPointToward(matriarch, target, BREAKER, sim);
         if (breach == null) breach = SwarmBruteBehavior.barricadeToward(matriarch, target, BREAKER, sim);
         if (breach != null) {
+            endRun(action, now);
             if (breach.inReach) {
                 sim.clearPath(matriarch);
                 if (ready) {
@@ -125,7 +143,33 @@ final class SwarmMatriarchBehavior {
                 return;
             }
         }
+        if (!action.running && tryRun(matriarch, action, target, gap, now, sim)) return;
         SwarmPressureBehavior.pressToward(matriarch, target, target != previousTarget, sim);
+    }
+
+    /** Begins the tell before a run at {@code target} when the rules allow one; true when it did. */
+    private static boolean tryRun(long matriarch, Action action, long target, float gap, int now,
+                                  BattleSimulation sim) {
+        boolean onFoot = BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY;
+        // The line is walked only for quarry in the band.
+        boolean open = gap <= MatriarchRunRules.BAND && SwarmBruteBehavior.lineOpen(sim,
+                sim.world().cellX(matriarch), sim.world().cellY(matriarch),
+                sim.world().cellX(target), sim.world().cellY(target));
+        if (!MatriarchRunRules.shouldRun(gap, REACH, onFoot, open, now, action.runReadyTick)) return false;
+        float dx = sim.world().x(target) - sim.world().x(matriarch);
+        float dy = sim.world().y(target) - sim.world().y(matriarch);
+        float d = (float) Math.hypot(dx, dy);
+        begin(action, Kind.RUN_TELL, now, target, d > 1e-4f ? dx / d : 0f, d > 1e-4f ? dy / d : 1f);
+        sim.clearPath(matriarch);
+        sim.swarmCues().post(SwarmCues.Kind.CHARGE_TELL, matriarch, sim);
+        return true;
+    }
+
+    /** Ends a run, if she is on one, and starts its cooldown. */
+    private static void endRun(Action action, int now) {
+        if (!action.running) return;
+        action.running = false;
+        action.runReadyTick = now + Math.round(MatriarchRunRules.COOLDOWN / TICK_SECONDS);
     }
 
     private static void begin(Action action, Kind kind, int now, long target, float axisX, float axisY) {

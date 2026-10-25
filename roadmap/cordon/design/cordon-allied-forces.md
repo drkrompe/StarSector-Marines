@@ -2,11 +2,11 @@
 
 Status: ACTIVE — the table is built (`CordonAlliedTable`, read by
 `CordonSetup`); the urban backbone is the owner's pick `cordon-urban-allies`
-(the mech lance, with a mortar team in each redoubt); air and guns wait on the shared
-`heart-allied-tool` pick; the rows marked *not built* below are open.
+(the mech lance, with a mortar team in each redoubt); air is the military's
+wing, called through each redoubt's forward observer; the rows marked *not built* below are open.
 
 Written: 2026-10-23
-Updated: 2026-10-24 — a town's technicals hold the streets; a city's trucks drive its streets, escorted on foot.
+Updated: 2026-10-25 — air: the military's wing through a forward observer in each redoubt.
 
 Step 3 of the owner's plan for the Cordon. `cordon-nouns.md` is the model
 (Allied armour, Logistics base, Allied column, Density); `allied-tools.md` is
@@ -34,7 +34,7 @@ sector beside the garrison is what changes with density.
 | Carriers forward | yes: lift, then stay on the flanks of a calling redoubt as support | yes, roadbound: set down outside the rear gate only, and wait there | no |
 | Ammunition | a truck up the supply road when a redoubt runs low (L2 empties one), escorted by a surplus hull that it keeps to | the same; where the road was not laid, or is cut off, through the town's streets | the same, through the city's streets to the rear gate (built), escorted on foot by a surplus Hound or a street mouth's rifle team (built); a redoubt the streets do not reach is sent none |
 | Reserve, asked by need | an armour pair of technicals for an uncovered sector | the same | a Hound pair walking up |
-| Air and guns | deferred to `heart-allied-tool` | deferred | deferred; matters most here |
+| Air and guns | the allied air wing, called through a forward observer in each redoubt (built) | the same | the same; the yard's mortar team as well |
 
 The pace, counts and lines are starting values to balance on `cordon-line`
 evidence at each density, not settled numbers. The table is one value per
@@ -64,11 +64,11 @@ base.
 
 ## Air and guns
 
-Whether the base calls a gunship sortie or brings a mortar or gun battery is
-the heart's open question (`heart-allied-tool`); the Cordon takes the same
-answer through the same producer (`allied-tools.md`), behind its own air gate
-(the swarm's fliers over the line). Not built for the Cordon until that pick
-is in.
+Air comes to the line from the military's air wing, not the base: each
+redoubt's garrison carries a forward observer, and the wing strikes the masses
+those observers see (`cordon-nouns.md`, Forward observer). Whether the base
+also calls a gunship sortie or brings a gun battery is the heart's answer
+(`heart-allied-forces.md`), not built for the Cordon.
 
 ## Open
 

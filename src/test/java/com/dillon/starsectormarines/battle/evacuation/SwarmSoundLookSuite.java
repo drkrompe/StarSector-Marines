@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -28,6 +29,8 @@ import java.util.List;
  *   <li>{@code swarm-sound-assault}: a Runner pack led by an elder, whelps among it, and two Brutes behind, tough
  *       enough to reach the line and charge it.</li>
  *   <li>{@code swarm-sound-matriarch}: the Matriarch walking in with a few Runners.</li>
+ *   <li>{@code swarm-sound-matriarch-run}: a rifle team caught out forward of the line, close to the Matriarch as
+ *       she comes out, falls back to it. She tells, runs it down before it gets there and reaps it.</li>
  * </ul>
  * Opt-in: a mixing study, not part of {@code all}.
  */
@@ -53,13 +56,15 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         out.addAll(LookReview.record(context.modRoot(), shot("swarm-sound-assault", logs, false)));
         out.addAll(LookReview.record(context.modRoot(), shot("swarm-sound-matriarch", logs, true)));
+        out.addAll(LookReview.record(context.modRoot(), shot("swarm-sound-matriarch-run", logs, true)));
         return out;
     }
 
     private static LookReview.Shot shot(String name, Path logs, boolean matriarch) {
         return new LookReview.Shot(name, LookGround.verdant(), W, H,
                 placement -> {
-                    BattleSimulation sim = matriarch ? matriarch(placement) : assault(placement);
+                    BattleSimulation sim = !matriarch ? assault(placement)
+                            : name.endsWith("-run") ? caughtOut(placement) : matriarch(placement);
                     BattleSoundLog.attach(placement, LookReview.View.followAtPlay(placement, "line", "swarm"),
                             logs.resolve(name + ".jsonl"));
                     return sim;
@@ -100,7 +105,29 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
     }
 
     private static BattleSimulation matriarch(LookReview.Placement placement) {
-        BattleSimulation sim = line(placement).sim();
+        return matriarch(placement, line(placement).sim());
+    }
+
+    /** The line, a rifle team a few cells in front of where the Matriarch comes out, ordered back to the line. */
+    private static BattleSimulation caughtOut(LookReview.Placement placement) {
+        SceneBuilder builder = placement.builder();
+        float[] home = placement.openNear(10f, H / 2f);
+        float[] out = placement.openNear(25f, H / 2f);
+        int x0 = placement.site().x0(), y0 = placement.site().y0();
+        int homeX = (int) home[0] - x0, homeY = (int) home[1] - y0;
+        builder.squad("caught").faction(Faction.MARINE).size(4).at((int) out[0] - x0, (int) out[1] - y0)
+                .primary("weapon.field-rifle").health(600f)
+                .assigned(id -> ObjectiveAssignment.withdraw(id, homeX, homeY)).done();
+        builder.squad("rifles").faction(Faction.MARINE).size(6).at(homeX, homeY - 2)
+                .primary("weapon.field-rifle").health(600f).stationary().done();
+        builder.squad("autos").faction(Faction.MARINE).size(2).at(homeX - 1, homeY + 3)
+                .primary("weapon.squad-automatic").health(600f).stationary().done();
+        SceneWorld world = builder.build();
+        placement.subject("line", world.members("caught")[0]);
+        return matriarch(placement, world.sim());
+    }
+
+    private static BattleSimulation matriarch(LookReview.Placement placement, BattleSimulation sim) {
         float[] at = placement.openNear(30f, H / 2f);
         placement.subject("swarm", sim.spawn(SwarmStrains.spec("Matriarch", UnitType.SWARM_MATRIARCH,
                 (int) at[0], (int) at[1])));

@@ -96,6 +96,7 @@ com.dillon.starsectormarines.battle.vehicle.SupplyTruckScene
 com.dillon.starsectormarines.battle.vehicle.ScoutCarScene
 com.dillon.starsectormarines.battle.vehicle.MissileCarrierScene
 com.dillon.starsectormarines.battle.vehicle.DozerBreachScene
+com.dillon.starsectormarines.battle.vehicle.TankUndergrowthScene
 com.dillon.starsectormarines.battle.power.ArmorDropPaceScene
 com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
 com.dillon.starsectormarines.battle.combat.HardTargetTimeToKillScene

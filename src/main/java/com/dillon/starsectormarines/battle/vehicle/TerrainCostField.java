@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
@@ -71,6 +72,24 @@ public final class TerrainCostField {
             }
         }
         return new TerrainCostField(w, h, cost);
+    }
+
+    /**
+     * This field with every cell carrying {@code tag} on {@code grid} raised to at least {@code floor}, for a hull
+     * that pays more for ground it has to work through ({@link HeavyTracks#costField}). A new field; this one is
+     * unchanged.
+     */
+    TerrainCostField withFloor(NavigationGrid grid, NavigationGrid.CellTag tag, float floor) {
+        if (grid.getWidth() != width || grid.getHeight() != height) {
+            throw new IllegalArgumentException("Cost field and grid dimensions differ");
+        }
+        float[] raised = cost.clone();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (grid.hasTag(x, y, tag)) raised[y * width + x] = Math.max(raised[y * width + x], floor);
+            }
+        }
+        return new TerrainCostField(width, height, raised);
     }
 
     public int getWidth()  { return width; }

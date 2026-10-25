@@ -1682,6 +1682,12 @@ public final class UnitRenderService implements RenderSystem {
                     RavSpitterComposer.emit(out, spitterArt, spitterRig,
                             cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
                             cam.cellPxSize() * spitterRig.scale(), unitAlpha);
+                    if (spitterRig.brace() > 0f) {
+                        sprites.ensureEngineFxSprites();
+                        RavSpitterComposer.emitGlow(out, sprites.engineGlowSprite(), spitterArt, spitterRig,
+                                cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
+                                cam.cellPxSize() * spitterRig.scale(), unitAlpha);
+                    }
                     continue;
                 }
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {

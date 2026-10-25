@@ -26,7 +26,8 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
  * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell open. A bladed
  * hull's move-order proof and its rolling local planner read that view, so ground the dozer can open counts as
  * reachable for the dozer and for nobody else; its physical sweep still reads the live grid, which is what holds the
- * hull against a wall until the blade has pushed it down.
+ * hull against a wall until the blade has pushed it down. The dozer is a heavy-lift hull, so where it has tracks the
+ * view is laid over their crush view ({@link HeavyTracks}), and its sweep reads that.
  */
 public final class DozerBlade {
 
@@ -45,6 +46,7 @@ public final class DozerBlade {
     /** Cells the blade bears on this tick, as x/y pairs. Host-thread scratch: vehicles are driven serially. */
     private final int[] bearing = new int[64];
     private int bearingCount;
+    private HeavyTracks tracks;
     private NavigationGrid view;
     private long viewRevision = Long.MIN_VALUE;
 
@@ -53,6 +55,9 @@ public final class DozerBlade {
         this.editor = editor;
         this.doodads = doodads;
     }
+
+    /** Lays the breach view over the tracks' crush view, the ground the dozer's own tracks open. */
+    public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
 
     /** Whether the blade can push cell {@code (x, y)} down right now. See the class rule. */
     public static boolean canPush(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
@@ -77,7 +82,13 @@ public final class DozerBlade {
      * live grid is not touched. Cells only: a closed shared edge stays closed.
      */
     public static NavigationGrid breachView(NavigationGrid grid, CellTopology topology, DoodadService doodads) {
-        NavigationGrid copy = grid.copyRoutingTopology();
+        return breachView(grid, grid, topology, doodads);
+    }
+
+    /** {@link #breachView(NavigationGrid, CellTopology, DoodadService)} laid over {@code base}, a view of {@code grid}. */
+    static NavigationGrid breachView(NavigationGrid base, NavigationGrid grid, CellTopology topology,
+                                     DoodadService doodads) {
+        NavigationGrid copy = base.copyRoutingTopology();
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!canPush(grid, topology, doodads, x, y)) continue;
@@ -93,7 +104,8 @@ public final class DozerBlade {
         NavigationGrid grid = navigation.getGrid();
         long revision = grid.topologyRevision();
         if (view == null || revision != viewRevision) {
-            view = breachView(grid, navigation.getTopology(), doodads);
+            NavigationGrid base = tracks != null ? tracks.motionGrid() : grid;
+            view = breachView(base, grid, navigation.getTopology(), doodads);
             viewRevision = revision;
         }
         return view;

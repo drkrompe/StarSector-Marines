@@ -337,12 +337,12 @@ public final class VehicleMoveOrderSystem {
      * <p>An order into a walled yard, onto a building or across water used to snap to the nearest cell the footprint
      * fits in, which is often inside the same yard: the order was refused, or proved by flooding everything the hull
      * could reach first, and a hull its command ordered there again stood parked. The nearest reachable cell is the
-     * closest the hull can actually come. A planning view (a blade's, a skirt's) is a new grid each time the map
-     * moves and would be labelled afresh, so it keeps the plain snap.
+     * closest the hull can actually come. A planning view rebuilt each time the map moves (a blade's, a skirt's) would
+     * be labelled afresh, so it keeps the plain snap; the tracks' crush view is kept and caught up like the live grid.
      */
     private int[] goal(NavigationGrid grid, VehicleType type, VehicleClearance clearance, int[] from,
                        int cellX, int cellY) {
-        if (grid == navigation.getGrid()) {
+        if (grid == navigation.getGrid() || controlSystem.isKeptView(grid)) {
             int[] reachable = VehicleRoutePlanner.snapToComponent(clearance,
                     convoy.clearances().components(grid, type), from[0], from[1], cellX, cellY, REACHABLE_SNAP_RADIUS);
             if (reachable != null) return reachable;

@@ -124,6 +124,8 @@ public final class TilesetExport {
         public String layer = "ground";
         /** Sliced sheets only: whether a unit may stand on this tile. */
         public boolean passable = true;
+        /** Sliced sheets only: whether a heavy-lift hull grinds this impassable tile down by driving into it. */
+        public boolean crushable = false;
         /**
          * Sliced sheets only: which bases this tile may be drawn over. Empty for
          * a ground tile, which overlays nothing. See
@@ -863,6 +865,7 @@ public final class TilesetExport {
             o.put("layer", entry.layer);
             if (!"none".equals(entry.cover)) o.put("cover", entry.cover);
             if (!entry.passable) o.put("passable", false);
+            if (!entry.passable && entry.crushable) o.put("crushable", true);
             if (!entry.validOn.isEmpty()) o.put("validOn", new JSONArray(entry.validOn));
             if (!entry.label.isEmpty()) o.put("name", entry.label);
             if (!entry.note.isEmpty()) o.put("description", entry.note);

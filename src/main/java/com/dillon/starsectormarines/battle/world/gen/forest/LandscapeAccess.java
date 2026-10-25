@@ -87,6 +87,68 @@ public final class LandscapeAccess {
         return tail == total;
     }
 
+    /**
+     * The same local proof for a hull {@code radius} cells either side of its centre line
+     * ({@link com.dillon.starsectormarines.battle.vehicle.VehicleClearance}): any two cells the hull could stand on
+     * and drive between inside the box before the obstacle must still be joined after it. Cells that lose their
+     * footing to the obstacle may go; a pocket that was already apart from its neighbours stays apart. The box
+     * reaches {@code radius + 2} past the obstacle, so a route's first and last cells inside it never lose footing
+     * and any route through it is replaced by a local detour.
+     */
+    public static boolean keepsClearance(NavigationGrid grid, boolean[] earlier,
+                                         int left, int bottom, int right, int top,
+                                         BiPredicate<Integer, Integer> closes, int radius) {
+        int w = grid.getWidth(), m = radius + 2;
+        int l = Math.max(0, left - m), b = Math.max(0, bottom - m);
+        int r = Math.min(w - 1, right + m), t = Math.min(grid.getHeight() - 1, top + m);
+        int bw = r - l + 1, bh = t - b + 1;
+        BiPredicate<Integer, Integer> before = (x, y) -> !earlier[y * w + x];
+        int[] was = label(grid, l, b, bw, bh, radius, before);
+        int[] now = label(grid, l, b, bw, bh, radius, (x, y) -> before.test(x, y) && !closes.test(x, y));
+        // Each earlier component's surviving cells must all carry one new label.
+        int[] joined = new int[bw * bh + 1];
+        for (int i = 0; i < was.length; i++) {
+            if (was[i] == 0 || now[i] == 0) continue;
+            if (joined[was[i]] == 0) joined[was[i]] = now[i];
+            else if (joined[was[i]] != now[i]) return false;
+        }
+        return true;
+    }
+
+    /** 4-connected labels, inside the box, of the cells a hull of {@code radius} stands on over ground {@code open} keeps. */
+    private static int[] label(NavigationGrid grid, int l, int b, int bw, int bh, int radius,
+                               BiPredicate<Integer, Integer> open) {
+        boolean[] fits = new boolean[bw * bh];
+        for (int y = b; y < b + bh; y++) for (int x = l; x < l + bw; x++)
+            fits[(y - b) * bw + x - l] = fits(grid, x, y, radius, open);
+        int[] label = new int[bw * bh], queue = new int[bw * bh];
+        int next = 0;
+        for (int i = 0; i < fits.length; i++) {
+            if (!fits[i] || label[i] != 0) continue;
+            int head = 0, tail = 0; queue[tail++] = i; label[i] = ++next;
+            while (head < tail) {
+                int at = queue[head++], x = at % bw, y = at / bw;
+                for (Direction d : Direction.CARDINALS) {
+                    int nx = x + d.dx, ny = y + d.dy, n = ny * bw + nx;
+                    if (nx < 0 || ny < 0 || nx >= bw || ny >= bh || !fits[n] || label[n] != 0) continue;
+                    label[n] = next; queue[tail++] = n;
+                }
+            }
+        }
+        return label;
+    }
+
+    /** Every cell of the hull's block walkable and kept by {@code open}, and every edge inside it open. */
+    private static boolean fits(NavigationGrid grid, int cx, int cy, int r, BiPredicate<Integer, Integer> open) {
+        for (int y = cy - r; y <= cy + r; y++) for (int x = cx - r; x <= cx + r; x++)
+            if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !open.test(x, y)) return false;
+        for (int y = cy - r; y <= cy + r; y++) for (int x = cx - r; x <= cx + r; x++) {
+            if (x < cx + r && !open(grid, x, y, Direction.E)) return false;
+            if (y < cy + r && !open(grid, x, y, Direction.N)) return false;
+        }
+        return true;
+    }
+
     private static boolean open(NavigationGrid grid, int x, int y, Direction d) {
         return grid.isEdgePassable(x, y, d) && grid.isEdgePassable(x + d.dx, y + d.dy, d.opposite());
     }

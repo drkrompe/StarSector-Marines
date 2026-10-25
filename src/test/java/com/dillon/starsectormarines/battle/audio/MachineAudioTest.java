@@ -60,4 +60,31 @@ class MachineAudioTest {
         audio.vent(unheard, true, false, 0f, 0f, loops, cues);
         assertTrue(loops.isEmpty() && cues.isEmpty(), "out of earshot or out of sight is silent");
     }
+
+    @Test
+    void aBumpCuesOnceWhenTheCountRisesLouderTheHarderItHit() {
+        MachineAudio audio = new MachineAudio();
+        Object hull = new Object();
+        List<MachineAudio.Cue> cues = new ArrayList<>();
+        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
+
+        audio.bump(hull, 3, true, tank, 1f, 0f, 0f, cues);
+        assertTrue(cues.isEmpty(), "a hull first seen does not replay its old bumps");
+        audio.bump(hull, 3, true, tank, 1f, 0f, 0f, cues);
+        assertTrue(cues.isEmpty(), "no new bump, no sound");
+        audio.bump(hull, 4, true, tank, tank.maxSpeed * .25f, 0f, 0f, cues);
+        audio.bump(hull, 5, true, tank, tank.maxSpeed, 0f, 0f, cues);
+        assertEquals(2, cues.size());
+        assertEquals(MachineAudio.HULL_BUMP, cues.get(0).soundId());
+        assertTrue(cues.get(1).volume() > cues.get(0).volume(), "a hit at top speed is louder");
+
+        audio.bump(hull, 6, false, tank, tank.maxSpeed, 0f, 0f, cues);
+        assertEquals(2, cues.size(), "an unheard bump is silent");
+
+        List<MachineAudio.Cue> light = new ArrayList<>();
+        Object pickup = new Object();
+        audio.bump(pickup, 0, true, VehicleType.MILITIA_TECHNICAL, 1f, 0f, 0f, light);
+        audio.bump(pickup, 1, true, VehicleType.MILITIA_TECHNICAL, 1f, 0f, 0f, light);
+        assertTrue(light.get(0).pitch() > cues.get(0).pitch(), "a light hull bumps higher than a tank");
+    }
 }
