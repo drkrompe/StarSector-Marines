@@ -1,0 +1,5 @@
+Edit the supplied top-down game sprite of a fifteen-tube LRM launcher box (seen from directly above, nose pointing LEFT) into its destroyed wreck, as it would lie on the roof mount of a knocked-out military vehicle. Real battle damage, not a colour change: the casing torn open and buckled by an internal explosion, one corner blown out with jagged peeled-back sheet metal, several launch tubes split, bent or missing with their black empty bores showing, the lid or hatch plate warped and partly torn away exposing scorched internals and wiring, shrapnel holes and gouges across the plate, paint burnt off to bare dark metal and soot streaks around the breaches.
+
+Keep: the same strict orthographic overhead view, the same overall footprint, position, size and nose-left orientation as the input so it registers in place; the same art style, outline weight, and the same worn olive and dark military materials where the paint survives; the soft top-left light.
+
+Output: the same canvas size with a true transparent background, including inside any holes torn clean through; no fire, no smoke, no ground, no cast shadow, no border, no text.

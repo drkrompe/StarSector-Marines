@@ -159,8 +159,7 @@ final class VehicleScuffs {
                         if (type.spriteFrame >= 0 && type.spriteFrame < frames.frames.length) {
                             masks[0] = build(sheet, frames.frames[type.spriteFrame], type.spriteFacingOffsetDeg, true);
                         }
-                        if (!type.turretArtFromMount() && type.turretFrame >= 0
-                                && type.turretFrame < frames.frames.length) {
+                        if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
                             masks[1] = build(sheet, frames.frames[type.turretFrame], 0f, false);
                         }
                     }

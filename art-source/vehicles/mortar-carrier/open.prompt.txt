@@ -1,0 +1,7 @@
+Repaint the supplied grey geometry guide as a finished top-down game sprite: the roof mount of a six-wheeled armoured personnel carrier converted to a mortar carrier, its open turntable carrying one heavy 120 mm mortar tube raised steeply for indirect fire (like an M1064 or a Soviet 2S12 carrier seen from directly above). Strict orthographic overhead view, looking straight down; no perspective tilt.
+
+Geometry: the guide is the exact authority for silhouette, placement, scale and canvas. Keep every part where it is and the same size: the round armoured turntable ring with its raised rim, the curved rack of upright mortar bombs (round fuze tops seen from above) around its rear half, the breech housing and the two recoil cylinders, the short fat tube standing steeply up toward the LEFT with its open black muzzle bore facing the viewer, and the two small splinter-shield plates at the front of the ring. Lighter grey planes stand higher. Do not move, rotate or resize anything.
+
+Materials: match the second reference exactly (worn olive-drab and dusty cream military paint, fine dark outlines, rivets, weld seams, scuffed edges, the same soft top-left light). The tube is dark gunmetal; bomb fuzes are brass and olive. It must look like it belongs on that APC hull.
+
+Output: the same canvas size, a true transparent background including all space around the mount; no ground, no cast shadow, no border, no text, no hull, nothing else in the image.
