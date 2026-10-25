@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.EnumSet;
@@ -8,8 +9,9 @@ import java.util.Set;
 
 /**
  * A bolt-on part a company fits to a vehicle's kit rack (mechs-nouns.md, vehicle kit). A vehicle's
- * gun, plate, drive and bay are sealed; a kit is the one thing that changes, and it changes only the
- * numbers the hull is set down with, so it adds no behaviour of its own.
+ * gun, plate and drive are sealed; a kit is the one thing that changes, and it changes only what the hull is
+ * set down with: its numbers, or a drone bay on a hull that has none ({@link #SENSOR_PAIR}). It adds no behaviour
+ * of its own; the bay's drones fly as any bay's do.
  *
  * <p>A rack holds one kit per slot ({@link #slots}) and at most one of each kit; a kit may need
  * something of the hull ({@link #suits}).</p>
@@ -22,7 +24,13 @@ public enum VehicleKit {
     /** Half again the rounds aboard the turret at the drop. Armed hulls only. */
     READY_RACK("kit.ready-rack", "@vehicleKitReadyRack", 1f, 1f, 1.5f, 0f),
     /** +2 armor rating. Tracked hulls only. */
-    SPACED_SKIRTS("kit.spaced-skirts", "@vehicleKitSpacedSkirts", 1f, 1f, 1f, 2f);
+    SPACED_SKIRTS("kit.spaced-skirts", "@vehicleKitSpacedSkirts", 1f, 1f, 1f, 2f),
+    /**
+     * A tethered pair of sensor drones the hull launches and flies ahead of its bow: sight past cover the hull
+     * cannot see over, which is what an indirect-fire hull otherwise needs a spotter for. Hulls with no bay of
+     * their own.
+     */
+    SENSOR_PAIR("kit.sensor-pair", "@vehicleKitSensorPair", 1f, 1f, 1f, 0f);
 
     public final String id;
     private final String label;
@@ -43,12 +51,18 @@ public enum VehicleKit {
 
     public String displayName() { return Strings.resolve(label); }
 
+    /** The drones this kit adds to the hull's bay, in launch order; empty for a kit that adds none. */
+    public List<DroneRole> droneBay() {
+        return this == SENSOR_PAIR ? List.of(DroneRole.SENSOR, DroneRole.SENSOR) : List.of();
+    }
+
     /** Whether the hull has what this kit works on: a magazine for the ready rack, tracks for the skirts. */
     public boolean suits(VehicleType type) {
         if (type == null) return false;
         return switch (this) {
             case READY_RACK -> type.hasTurretWeapon();
             case SPACED_SKIRTS -> type.isTank();
+            case SENSOR_PAIR -> type.droneBay().isEmpty();
             case APPLIQUE_PLATE, SPALL_LINER -> true;
         };
     }

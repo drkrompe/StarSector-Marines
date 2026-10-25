@@ -107,6 +107,8 @@ public final class SwarmAudio {
         MATRIARCH_REAP("matriarch_reap", 0.76f, 2, 1.3f, 0f),
         MATRIARCH_DEATH("brute_death", 0.41f, 1, 3f, 0f, 0.62f),
         MATRIARCH_BELLOW("brute_bellow", 0.35f, 1, 3.5f, 0f, 0.72f),
+        // The tell before her run: the Brute's charge tell a size deeper, -16 to -19 LUFS across its takes.
+        MATRIARCH_RUN_TELL("brute_charge_tell", 0.45f, 1, 1.5f, 0f, 0.7f),
         MATRIARCH_FOOTFALL("brute_footfall", 0.78f, 4, 1f, 0f, 0.65f),
         MATRIARCH_CROWN("brute_impact", 0.35f, 2, 2f, 0f, 0.75f),
         MATRIARCH_WALL_BREAK("brute_wall_break", 0.35f, 2, 3f, 0f, 0.8f),
@@ -302,6 +304,7 @@ public final class SwarmAudio {
             return switch (kind) {
                 case ROAR, MOULT -> Sound.MATRIARCH_ROAR;
                 case ALERT -> Sound.MATRIARCH_BELLOW;
+                case CHARGE_TELL -> Sound.MATRIARCH_RUN_TELL;
                 case REAP -> Sound.MATRIARCH_REAP;
                 case STRIKE, WALL_BLOW -> Sound.MATRIARCH_CROWN;
                 case WALL_BREAK -> Sound.MATRIARCH_WALL_BREAK;
