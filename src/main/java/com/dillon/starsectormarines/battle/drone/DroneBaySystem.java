@@ -197,6 +197,8 @@ public final class DroneBaySystem {
         if (role == DroneRole.SENSOR || role == DroneRole.HALO) {
             spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.DRONE_ION_ID));
         }
+        // A sensor drone looks out as any contributor does: its sight is the vision stat, not a channel of its own.
+        if (role == DroneRole.SENSOR) spec.visionRange(SENSOR_SIGHT_CELLS);
         long id = sim.spawn(spec);
         if (id == 0L) return;
         AirBody air = sim.world().kinematics(id);
