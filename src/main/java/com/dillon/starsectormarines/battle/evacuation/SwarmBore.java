@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * One bore: a hole the swarm comes out of (`colony-breach-nouns.md`, Bore).
@@ -28,6 +30,9 @@ import java.util.List;
  * next pulse in, so a just-fed bore answers with a big surge soon.
  */
 public final class SwarmBore {
+
+    /** A birth tick long before any battle began: a growth weeks old. */
+    public static final int OLD = Integer.MIN_VALUE / 2;
 
     /** Growth points a bore gains per second on its base clock, undamaged. */
     public static final float BASE_GROWTH_PER_SECOND = 0.6f;
@@ -71,6 +76,8 @@ public final class SwarmBore {
     private final List<Long> colonyView = Collections.unmodifiableList(colonies);
     private final List<Long> outposts = new ArrayList<>();
     private final List<Long> outpostView = Collections.unmodifiableList(outposts);
+    /** The tick each colony and outpost sprouted, which its root grows from (`colony-breach-nouns.md`, Nest). */
+    private final Map<Long, Integer> born = new HashMap<>();
 
     /**
      * @param number    the bore's number in eruption order, {@code 0} for the mother
@@ -210,12 +217,24 @@ public final class SwarmBore {
         nextSurgeTick = Math.max(nextSurgeTick, tick);
     }
 
-    void sprouted(long colony) {
+    void sprouted(long colony, int tick) {
         colonies.add(colony);
+        born.put(colony, tick);
     }
 
-    void outposted(long colony) {
+    void outposted(long colony, int tick) {
         outposts.add(colony);
+        born.put(colony, tick);
+    }
+
+    /** The tick the colony or outpost {@code id} sprouted, or {@link #OLD} for one grown weeks ago or not the bore's. */
+    public int bornTick(long id) {
+        return born.getOrDefault(id, OLD);
+    }
+
+    /** Its growths so far were grown weeks ago: the creep was matured at setup. */
+    void aged() {
+        born.replaceAll((id, tick) -> OLD);
     }
 
     void collapse(int tick) {

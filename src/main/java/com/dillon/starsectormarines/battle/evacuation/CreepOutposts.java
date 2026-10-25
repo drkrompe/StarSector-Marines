@@ -187,7 +187,7 @@ public final class CreepOutposts {
         String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
                 + " Spore Outpost " + (bore.outposts().size() + 1);
         long colony = sim.spawn(SwarmBores.bodySpec(name, bore.tier().sporeColonyStructure(), x, y));
-        bore.outposted(colony);
+        bore.outposted(colony, sim.getSimTickIndex());
     }
 
     private static int living(BattleSimulation sim, List<Long> ids) {
