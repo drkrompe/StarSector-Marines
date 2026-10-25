@@ -193,7 +193,11 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         BattleShipCommandController controller = new BattleShipCommandController(() -> sim, selection, targeter,
                 powerTarget::set, powerTarget::get, () -> {});
         BattleShipCommandOverlay ships = new BattleShipCommandOverlay(controller::state);
-        BattleRetreatOverlay retreat = new BattleRetreatOverlay(() -> {}, () -> {});
+        BattleRetreatOverlay retreat = new BattleRetreatOverlay(new BattleRetreatOverlayModel.Actions() {
+            @Override public void withdraw() { }
+            @Override public void proceed() { }
+            @Override public void retry() { }
+        });
         BattleManualObjectiveOverlay manual = new BattleManualObjectiveOverlay();
         BattleDirectControlOverlay control = new BattleDirectControlOverlay(selection, () -> {}, () -> {});
         StorySubtitleOverlay subtitle = new StorySubtitleOverlay();
@@ -203,7 +207,8 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         boolean selectedMech = selection.getSelectedUnitEntityId() != 0L
                 && sim.world().hasMechLoadout(selection.getSelectedUnitEntityId());
         ships.heroBottomInset(BattleShipCommandOverlay.heroBottomInset(position, selection, selectedMech));
-        ships.attach(position); retreat.attach(position, false);
+        ships.attach(position); retreat.attach(position, 0f, 0f,
+                BattleRetreatOverlayModel.Phase.ACTIVE, BattleRetreatOverlayModel.RetryOffer.NONE);
         manual.attach(position, sim); control.attach(position, sim, 1);
         subtitle.attach(position);
         subtitle.update(new WaylineNarration.Line("hud-layout", "fixture", "check",
@@ -240,7 +245,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
             var box = element.box().borderBox();
             surface.document().pointerDown(box.x() + box.width() / 2, box.y() + box.height() / 2);
             surface.document().pointerUp(box.x() + box.width() / 2, box.y() + box.height() / 2);
-            retreat.update(0, false);
+            retreat.update(0, BattleRetreatOverlayModel.Phase.ACTIVE, BattleRetreatOverlayModel.RetryOffer.NONE);
         }
         List<NamedSurface> surfaces = new ArrayList<>();
         if (!sim.directControl().active()) {

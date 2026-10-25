@@ -75,6 +75,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
+import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 import com.dillon.starsectormarines.ops.battleview.ArmoryRangeTrial;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
@@ -628,7 +629,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (retainedRetreatOverlay != null) {
             BattleSimulation current = ctx != null ? ctx.getBattleSimulation() : null;
-            retainedRetreatOverlay.update(dt, current != null && current.isComplete());
+            retainedRetreatOverlay.update(dt, exitPhase(current), retryOffer());
         }
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
@@ -1071,10 +1072,16 @@ public class BattleScreen implements Screen, BattleUiContext {
         shipCommandOverlay.heroBottomInset(shipHeroBottomInset());
         shipCommandOverlay.attach(position);
         if (retainedRetreatOverlay == null) {
-            retainedRetreatOverlay = new BattleRetreatOverlay(
-                    this::retreatFromBattle, this::continueFromBattle);
+            retainedRetreatOverlay = new BattleRetreatOverlay(new BattleRetreatOverlayModel.Actions() {
+                @Override public void withdraw() { retreatFromBattle(); }
+                @Override public void proceed() { continueFromBattle(); }
+                @Override public void retry() { retryOperation(); }
+            });
         }
-        retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
+        // The end panel hangs under the banner, which renderBanner centres on the play area.
+        float bannerX = layout != null ? layout.gridX + layout.gridW / 2f : position.getX() + position.getWidth() / 2f;
+        float bannerY = layout != null ? layout.gridY + layout.gridH / 2f : position.getY() + position.getHeight() / 2f;
+        retainedRetreatOverlay.attach(position, bannerX, bannerY, exitPhase(sim), retryOffer());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
                     this::togglePause, new BattleDirectControlHudModel.WeaponActions() {
@@ -1627,6 +1634,53 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (sim == null || !sim.retreat()) return;
         exitDirectControl();
         continueFromBattle();
+    }
+
+    private static BattleRetreatOverlayModel.Phase exitPhase(BattleSimulation sim) {
+        if (sim == null || !sim.isComplete()) return BattleRetreatOverlayModel.Phase.ACTIVE;
+        return sim.getWinner() == Faction.MARINE
+                ? BattleRetreatOverlayModel.Phase.VICTORY : BattleRetreatOverlayModel.Phase.DEFEAT;
+    }
+
+    /** A story operation not yet won can be tried again: free once per mission-select visit, then a story point. */
+    private BattleRetreatOverlayModel.RetryOffer retryOffer() {
+        if (!retryable()) return BattleRetreatOverlayModel.RetryOffer.NONE;
+        String cost = switch (ctx.storyRetry().cost()) {
+            case FREE -> "Free";
+            case STORY_POINT -> "StoryPoint";
+            case UNAVAILABLE -> "Unavailable";
+        };
+        return new BattleRetreatOverlayModel.RetryOffer(true,
+                ctx.storyRetry().cost() != StoryRetryAllowance.Cost.UNAVAILABLE,
+                Strings.get("battleRestart" + cost), Strings.get("battleRetry" + cost));
+    }
+
+    private boolean retryable() {
+        if (rangeTrial != null || ctx == null) return false;
+        Mission mission = ctx.getSelectedMission();
+        BattleSimulation sim = ctx.getBattleSimulation();
+        return mission != null && mission.source == MissionSource.STORY && sim != null
+                && !(sim.isComplete() && sim.getWinner() == Faction.MARINE);
+    }
+
+    /**
+     * Erases this attempt and returns to the briefing on the same map. Nothing
+     * settles: no casualties, losses or results, the arc's launch claim is
+     * withdrawn and supplies spent on powers come back. Only the retry allowance
+     * is paid.
+     */
+    private void retryOperation() {
+        if (!retryable() || ctx.battleSettlementStarted()) return;
+        Mission mission = ctx.getSelectedMission();
+        if (!ctx.storyRetry().charge(Strings.format("battleRetryLog", mission.name))) return;
+        BattleSimulation sim = ctx.getBattleSimulation();
+        exitDirectControl();
+        MissionLaunch.abandonAttempt(mission);
+        if (sim.getCommandPowerResources() instanceof CampaignCommandPowerResources spent) spent.refundSpent();
+        LOG.info("MarineOps: retrying story mission id=" + mission.id + "; attempt erased");
+        ctx.retainLaunchedSurveySeed();
+        ctx.setBattle(null, null, null);
+        ctx.goTo(ScreenId.BRIEFING);
     }
 
     private void continueFromBattle() {

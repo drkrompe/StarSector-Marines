@@ -71,6 +71,16 @@ public final class BrokenSupplyRouteProgress implements Serializable {
         return true;
     }
 
+    /**
+     * Closes an unsettled launch as if it never happened: the same attempt can launch again.
+     * An open freight attempt keeps its identity, as reopening one always does.
+     */
+    public boolean abandon(String id) {
+        if (id == null || !id.equals(activeId)) return false;
+        activeId = null;
+        return true;
+    }
+
     /** Pure displayed award; settlement independently verifies the frozen attempt. */
     public int payment(String id, boolean victory, LastLiftProgress.Outcome rescue) {
         return payment(id, victory, rescue, null);

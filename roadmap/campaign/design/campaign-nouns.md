@@ -41,12 +41,22 @@ consequence requires its own persisted authority and exactly-once boundary.
 
 ## Ending an operation
 
-Confirmed **Retreat** ends an active operation as defeat and opens the same
-Results settlement as objective completion. It preserves recorded personnel
-and boat losses without inventing casualties among surviving or unlanded troops.
-Rewards, officer recovery, contracts, events, and opening-operation retry follow
-their existing defeat policies; withdrawal adds no separate penalty or extraction
-sequence. Zero engaged troops with zero losses is not a total wipe.
+Confirmed **Retreat** is a **withdrawal**: it ends an active operation as defeat
+and opens the same Results settlement as objective completion. It preserves
+recorded personnel and boat losses and kills nobody further. Its one cost is
+wounds: survivors still on the ground away from every pad the company landed
+on come home wounded, while those at a landing zone extract unhurt. There is no
+extraction sequence. Rewards, officer recovery, contracts, events, and
+opening-operation retry follow their existing defeat policies. Zero engaged
+troops with zero losses is not a total wipe.
+
+A **story retry** erases a story operation's attempt instead of settling it:
+nothing reaches Results, the arc's launch claim is withdrawn without counting
+the attempt, supplies spent on powers return, and the company goes back to the
+briefing on the same map. It is offered on a story defeat beside Accept defeat,
+and as Restart inside Retreat's confirmation. One retry is free per visit to
+mission select; each further one spends a Starsector story point. Only story
+operations retry; contracts and recurring work settle every attempt.
 
 Terminal civilian evacuation facts freeze at either ending boundary. A result
 already decided by objectives cannot be replaced by Retreat. The active battle's
