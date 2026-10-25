@@ -256,6 +256,9 @@ public final class FactoryRow {
             int[] apron = pose.cell(x, HALL);
             c.topology.setGroundKind(apron[0], apron[1], GroundKind.STRIPED);
         }
+        // A grey slat canopy over each loading door, above its apron.
+        int[] back = pose.step(0, -1);
+        StreetDressing.doorCanopies(c.grid, c.doodads, 1, length - 2, x -> pose.cell(x, HALL - 1), back[0], back[1]);
 
         // Across the lane: machinery and pipe runs against the far wall, a parked vehicle at each end.
         for (int y = POCKET; y <= POCKET + 1; y++) {

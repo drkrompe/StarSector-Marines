@@ -287,6 +287,9 @@ public final class FreightYard {
                 BuildingPlacement.frontOnly(frontage));
         if (poi != null) c.pois.add(poi);
         if (size == Size.LARGE) stageAlongBackWall(c, pose, pallets);
+        // A grey slat canopy over the warehouse's loading door.
+        int[] in = pose.step(0, 1);
+        StreetDressing.doorCanopies(c.grid, c.doodads, 1, size.width - 2, x -> pose.cell(x, size.yard), in[0], in[1]);
 
         int[] nose = pose.step(0, -1);
         float heading = (float) Math.toDegrees(Math.atan2(nose[1], nose[0]));

@@ -369,6 +369,7 @@
     {"id": "marines_mara_jangala_debrief_road", "source": "wayline/marines_mara_jangala_debrief_road.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_castle_jangala_debrief_manifests", "source": "wayline/marines_castle_jangala_debrief_manifests.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     {"id": "marines_mara_jangala_debrief_why", "source": "wayline/marines_mara_jangala_debrief_why.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_jangala_debrief_next", "source": "wayline/marines_castle_jangala_debrief_next.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     // Mara Venn / Wayline story narration
     {"id": "marines_mara_relief_briefing_01", "source": "wayline/marines_mara_relief_briefing_01.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_relief_briefing_02", "source": "wayline/marines_mara_relief_briefing_02.mp3", "kind": "ui", "out": "story/wayline"},

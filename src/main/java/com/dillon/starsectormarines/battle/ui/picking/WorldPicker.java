@@ -51,7 +51,13 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * {@link #handleInputBeforeChrome} runs ahead of every panel: it holds a press
  * that lands on chrome until the pointer says what it was, a drag (a box
  * select) or a click (handed back to the chrome), and keeps a gesture under way
- * whatever chrome the pointer crosses or is released over.
+ * whatever chrome the pointer crosses or is released over. A press on chrome
+ * needs a longer drag than one on the world, so a sloppy button click stays a
+ * click, and a box from chrome that catches nobody leaves the selection alone.
+ *
+ * <p>A right press while a box is under way (or a chrome press is held) cancels
+ * it, as in most RTS games; that right button's release and the left release
+ * are swallowed so neither pans, orders nor clicks.
  *
  * <p>The world is the battle's squad browser. It writes the shared
  * {@link Selection}, and the selected-squad detail and GOAP diagnostic react
@@ -76,12 +82,19 @@ public final class WorldPicker implements HudPanel {
      */
     private static final float PICK_RADIUS_CELLS = 0.6f;
     private static final float DRAG_THRESHOLD_PX = 4f;
+    /** A press on chrome becomes a box only past this, so a click that wobbles still lands. */
+    private static final float CHROME_DRAG_THRESHOLD_PX = 10f;
     private static final Color DRAG_FILL = new Color(0x35, 0xC9, 0xF0, 0x24);
     private static final Color DRAG_BORDER = new Color(0x55, 0xDC, 0xFF, 0xF0);
 
     private final BattleUiContext ctx;
     private boolean primaryGestureActive;
     private boolean additiveGesture;
+    /** The gesture began on chrome: an empty box then keeps the selection. */
+    private boolean gestureFromChrome;
+    /** A right press cancelled the gesture; its releases still belong to it. */
+    private boolean swallowPrimaryRelease;
+    private boolean swallowSecondaryRelease;
     private float dragStartX;
     private float dragStartY;
     private float dragCurrentX;
@@ -151,11 +164,12 @@ public final class WorldPicker implements HudPanel {
         }
 
         for (InputEventAPI e : events) {
+            forgetStaleReleases(e);
             if (continueGesture(e, sim, camera)) continue;
             if (!e.isLMBDownEvent()) continue;
             if (!camera.containsScreen(e.getX(), e.getY())) continue;
 
-            beginGesture(e.getX(), e.getY(), e.isShiftDown());
+            beginGesture(e.getX(), e.getY(), e.isShiftDown(), false);
             e.consume();
         }
     }
@@ -182,10 +196,12 @@ public final class WorldPicker implements HudPanel {
         List<InputEventAPI> replayed = null;
         for (int i = 0; i < events.size(); i++) {
             InputEventAPI e = events.get(i);
+            forgetStaleReleases(e);
             if (heldPress != null && !e.isConsumed()
                     && (e.isMouseMoveEvent() || e.isLMBUpEvent())) {
-                if (pastDragThreshold(heldPress.getX(), heldPress.getY(), e.getX(), e.getY())) {
-                    beginGesture(heldPress.getX(), heldPress.getY(), heldPress.isShiftDown());
+                if (pastDragThreshold(heldPress.getX(), heldPress.getY(), e.getX(), e.getY(),
+                        CHROME_DRAG_THRESHOLD_PX)) {
+                    beginGesture(heldPress.getX(), heldPress.getY(), heldPress.isShiftDown(), true);
                     heldPress = null;
                 } else if (e.isLMBUpEvent()) {
                     if (replayed == null) replayed = new ArrayList<>(events.subList(0, i));
@@ -211,7 +227,28 @@ public final class WorldPicker implements HudPanel {
         if (e.isConsumed()) {
             // A consumed event's data is inaccessible (getX throws); if it ended our
             // gesture, abandon it rather than leave the drag stuck.
-            if (primaryGestureActive && e.isLMBUpEvent()) primaryGestureActive = false;
+            if (e.isLMBUpEvent()) {
+                primaryGestureActive = false;
+                swallowPrimaryRelease = false;
+            }
+            if (e.isRMBUpEvent()) swallowSecondaryRelease = false;
+            return true;
+        }
+        if ((primaryGestureActive || heldPress != null) && e.isRMBDownEvent()) {
+            cancel();
+            swallowPrimaryRelease = true;
+            swallowSecondaryRelease = true;
+            e.consume();
+            return true;
+        }
+        if (swallowPrimaryRelease && e.isLMBUpEvent()) {
+            swallowPrimaryRelease = false;
+            e.consume();
+            return true;
+        }
+        if (swallowSecondaryRelease && e.isRMBUpEvent()) {
+            swallowSecondaryRelease = false;
+            e.consume();
             return true;
         }
         if (primaryGestureActive && e.isLMBUpEvent()) {
@@ -229,9 +266,17 @@ public final class WorldPicker implements HudPanel {
         return false;
     }
 
-    private void beginGesture(float x, float y, boolean additive) {
+    /** A fresh press means its button was let go somewhere we never saw. */
+    private void forgetStaleReleases(InputEventAPI e) {
+        if (e.isConsumed()) return;
+        if (e.isLMBDownEvent()) swallowPrimaryRelease = false;
+        if (e.isRMBDownEvent()) swallowSecondaryRelease = false;
+    }
+
+    private void beginGesture(float x, float y, boolean additive, boolean fromChrome) {
         primaryGestureActive = true;
         additiveGesture = additive;
+        gestureFromChrome = fromChrome;
         dragStartX = x;
         dragStartY = y;
         dragCurrentX = x;
@@ -248,7 +293,7 @@ public final class WorldPicker implements HudPanel {
                     Math.max(dragStartY, dragCurrentY));
             if (picked != 0L) {
                 selectPlayerSquads(sim, squads, picked);
-            } else if (!additiveGesture) {
+            } else if (!additiveGesture && !gestureFromChrome) {
                 ctx.getSelection().clear();
             }
             return;
@@ -298,13 +343,15 @@ public final class WorldPicker implements HudPanel {
 
     private boolean isDragGesture() {
         return primaryGestureActive
-                && pastDragThreshold(dragStartX, dragStartY, dragCurrentX, dragCurrentY);
+                && pastDragThreshold(dragStartX, dragStartY, dragCurrentX, dragCurrentY,
+                DRAG_THRESHOLD_PX);
     }
 
-    private static boolean pastDragThreshold(float startX, float startY, float x, float y) {
+    private static boolean pastDragThreshold(float startX, float startY, float x, float y,
+                                             float threshold) {
         float dx = x - startX;
         float dy = y - startY;
-        return dx * dx + dy * dy > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX;
+        return dx * dx + dy * dy > threshold * threshold;
     }
 
     private static void paintRect(float minX, float minY, float maxX, float maxY,

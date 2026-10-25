@@ -171,7 +171,9 @@ lobster thread in `swarm-lore-guide.md`: winks only).
 industrial zone lays its pipe gantries with `pipeRun` (a column and beam at each end and every `bay` cells,
 overhead rack between: across a street it is one gantry on its two kerbs, along one a pipe rack); the
 cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figure walks under) and
-`bollard`; `jerseyBarrier` is there for a program that wants a chicane. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
+`bollard`; `jerseyBarrier` is there for a program that wants a chicane. Industrial doors take the grey slat
+canopy (`doorCanopies`, the steel awning, owner's pick): over each warehouse loading door above its apron, each
+factory-row workshop's lane door, and a freight yard's warehouse door. Main street keeps its shop colourways. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
 main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the owner's style choice for
 main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
 
