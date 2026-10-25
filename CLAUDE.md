@@ -42,7 +42,8 @@ otherwise; read-only investigation does not need one.
    session's branch or worktree.
 4. Before integrating: `git fetch origin`, `git merge main`,
    `git merge origin/main` in the worktree, resolve conflicts there, and re-run
-   the relevant verification.
+   the relevant verification: the tests your change touches, never the full
+   suite (see Tests).
 5. Integrate with `powershell -File tools/integrate.ps1 <branch>`
    (`tools/integrate.sh` on the Mac). It checks the main workspace, fast-forwards
    `main`, pushes `origin` and then `hub`, and stops at the first failure. If it
