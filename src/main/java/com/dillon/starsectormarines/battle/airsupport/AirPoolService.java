@@ -304,6 +304,21 @@ public final class AirPoolService {
         return this;
     }
 
+    private final List<RovingObservers> roving = new ArrayList<>();
+
+    /** Sends {@code teams}' roving observers up as the battle goes, before the side's officer looks for ground each tick. */
+    public AirPoolService rovingFrom(RovingObservers teams) {
+        roving.add(teams);
+        return this;
+    }
+
+    /** The roving observer teams the mission gave {@code side}, for readouts and evidence. */
+    public List<RovingObservers> roving(Faction side) {
+        List<RovingObservers> out = new ArrayList<>();
+        for (RovingObservers teams : roving) if (teams.side() == side) out.add(teams);
+        return out;
+    }
+
     /** The observer posts the mission gave {@code side}, for readouts and evidence. */
     public List<ForwardObservers> observers(Faction side) {
         List<ForwardObservers> out = new ArrayList<>();
@@ -431,6 +446,7 @@ public final class AirPoolService {
             if (sortie.job == AirMission.COVER) CoverTasking.task(sim, this, sortie.craft, sortie.mission, sortie.side);
         }
         for (ForwardObservers posted : observers) posted.tick(sim);
+        for (RovingObservers teams : roving) teams.tick(sim);
         for (Map.Entry<Faction, AirPoolAllowance> side : declaration.allowances().entrySet()) {
             if (!side.getValue().aiDirected()) continue;
             director(side.getKey()).tick(sim, this);

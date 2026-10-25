@@ -96,6 +96,36 @@ public final class StaffedCrew {
         return "staffed-" + kind.name().toLowerCase(Locale.ROOT) + "-";
     }
 
+    /**
+     * The loop one member of a crew walks while loading a vehicle: a crate lifted at a stores point,
+     * carried out and set down at the tailgate, and back for the next, members started at different
+     * stock and alternating between the tailgate's places so two are not stood on one.
+     *
+     * <p>Every leg out is a carry, because the tailgate's group is stores work too: the walk from
+     * stock to the vehicle is drawn with the crate in hand ({@link WorkMotions#between}). The walk
+     * back is drawn the same way; at this distance a hand going back for the next crate reads as
+     * the work, and nothing yet draws empty arms on a stores round.
+     *
+     * @param tailgate where a crate is set down, one place per hand that can stand there at once
+     * @param tailgateGroup the claim group those places answer to
+     * @param focusX what a hand at the tailgate faces: the vehicle
+     */
+    public static AmbientTaskRoute loading(JobSite site, BuildingWork.Kind kind, List<FixtureTask> tasks,
+                                           int member, List<float[]> tailgate, String tailgateGroup,
+                                           float focusX, float focusY) {
+        List<FixtureTask> stores = of(tasks, Affordance.STOW);
+        if (stores.isEmpty() || tailgate.isEmpty()) return null;
+        List<AmbientTaskRoute.Stop> stops = new ArrayList<>();
+        float drift = (member * 0.7f) % 2f;
+        for (int i = 0; i < stores.size(); i++) {
+            stops.add(stop(site, stores.get(Math.floorMod(member * 3 + i, stores.size())), STORES_DWELL + drift));
+            float[] place = tailgate.get(Math.floorMod(member + i, tailgate.size()));
+            stops.add(new AmbientTaskRoute.Stop(place[0], place[1], STORES_DWELL,
+                    CrewRole.activityFor(Affordance.STOW), focusX, focusY, tailgateGroup, true));
+        }
+        return route(idPrefix(kind) + site.id() + "-" + member, member, stops);
+    }
+
     /** How many hands this building's work keeps busy, before the caller's own cap. */
     public static int hands(BuildingWork.Kind kind, List<FixtureTask> tasks) {
         int stores = of(tasks, Affordance.STOW).size();

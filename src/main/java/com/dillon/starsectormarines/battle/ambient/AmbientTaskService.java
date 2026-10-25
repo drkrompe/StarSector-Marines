@@ -216,7 +216,7 @@ public final class AmbientTaskService {
             stoodDown.remove(actorId);
             return;
         }
-        if (isThreatened(actorId, waiting.route())) {
+        if (isThreatened(actorId, waiting.route()) || fightAtWork(actorId, waiting.route())) {
             waiting.calmSeconds = 0f;
             return;
         }
@@ -230,6 +230,32 @@ public final class AmbientTaskService {
     /** Whether this actor is working or merely waiting to go back to it. */
     public boolean isStoodDown(long actorId) {
         return stoodDown.containsKey(actorId);
+    }
+
+    /**
+     * The claim group of the job this actor is at right now: arrived and doing it, not walking to
+     * it. Null while walking, stood down or unassigned. A caller counting work done (crates set down
+     * at a truck) reads the moment this turns to the group it is counting.
+     */
+    public String workingAt(long actorId) {
+        Progress state = progress.get(actorId);
+        return state != null && state.working ? state.lastGroup : null;
+    }
+
+    /**
+     * Hands an actor a different loop without sending anybody back into danger: one at work starts
+     * the new loop at once, and one who stood down keeps waiting and goes back to the new loop
+     * rather than the old one once it is calm.
+     */
+    public void reroute(long actorId, AmbientTaskRoute route) {
+        StoodDown waiting = stoodDown.get(actorId);
+        if (waiting == null) {
+            assign(actorId, route);
+            return;
+        }
+        StoodDown replaced = new StoodDown(route, waiting.target());
+        replaced.calmSeconds = waiting.calmSeconds;
+        stoodDown.put(actorId, replaced);
     }
 
     public boolean isControlling(long actorId) {
@@ -815,11 +841,29 @@ public final class AmbientTaskService {
         if (route.threatPolicy() == AmbientThreatPolicy.NONE) return false;
         if (world.hasAiState(actorId) && world.fallbackTimer(actorId) > 0f) return true;
         if (route.threatPolicy() == AmbientThreatPolicy.UNDER_FIRE) return tookAHit(actorId);
+        if (route.threatPolicy() == AmbientThreatPolicy.FIGHT_NEARBY && tookAHit(actorId)) return true;
+        return armedInReach(actorId, route, world.x(actorId), world.y(actorId));
+    }
+
+    /**
+     * Whether the place a worker who yielded to a fight would go back to still has one in reach.
+     *
+     * <p>Calm where they stand is not calm where they work. A worker who ran from a fight at the
+     * warehouse door is soon far enough away to feel safe, and asked only about where they stood
+     * they would walk straight back into the fight still going on at the door, meet it, run again,
+     * and spend the battle going to and fro. So a crew that yields to a fight goes back once their
+     * work is clear of it as well, read at the first stop of their loop.
+     */
+    private boolean fightAtWork(long actorId, AmbientTaskRoute route) {
+        if (route.threatPolicy() != AmbientThreatPolicy.FIGHT_NEARBY) return false;
+        AmbientTaskRoute.Stop work = route.stops().get(0);
+        return armedInReach(actorId, route, work.worldX(), work.worldY());
+    }
+
+    /** Whether an armed actor the route's policy yields to is within its radius of {@code (x, y)}. */
+    private boolean armedInReach(long actorId, AmbientTaskRoute route, float x, float y) {
         boolean fightOnly = route.threatPolicy() == AmbientThreatPolicy.FIGHT_NEARBY;
-        if (fightOnly && tookAHit(actorId)) return true;
         if (route.threatRadiusCells() <= 0f) return false;
-        float x = world.x(actorId);
-        float y = world.y(actorId);
         Faction faction = roster.identity().faction(actorId);
         float radiusSq = route.threatRadiusCells() * route.threatRadiusCells();
         for (int i = 0; i < roster.liveCount(); i++) {
@@ -830,7 +874,14 @@ public final class AmbientTaskService {
             if (fightOnly && !(roster.combat().has(candidate) && roster.combat().targetId(candidate) != 0L)) continue;
             float dx = world.x(candidate) - x;
             float dy = world.y(candidate) - y;
-            if (dx * dx + dy * dy <= radiusSq) return true;
+            if (dx * dx + dy * dy > radiusSq) continue;
+            if (!fightOnly) return true;
+            // A fight is near when both ends of it are: a guard beside them shooting at something across the
+            // street is the guard at work, not the fight arriving.
+            long target = roster.combat().targetId(candidate);
+            float tx = world.x(target) - x;
+            float ty = world.y(target) - y;
+            if (tx * tx + ty * ty <= radiusSq) return true;
         }
         return false;
     }

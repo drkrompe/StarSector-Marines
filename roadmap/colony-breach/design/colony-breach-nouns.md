@@ -4,7 +4,9 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-25 — the skitterer, the nests' worker strain; a creep-killed tree is undergrowth a heavy tank pushes over.
+Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
+
+Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
 
 Updated: 2026-10-25 — the Matriarch and the Brute show damage as worn chitin, and each round as a puff or a glance.
 
@@ -737,10 +739,55 @@ opens, then one per tier interval (shorter at higher tiers) swung by a seeded
 jitter. A pulse is the tier's size plus a few bodies per unit of fresh biomass,
 which the pulse spends. A due pulse waits while less than half of it fits under
 the director's population target, so a bore whose bodies are still alive on
-the field stays quiet. A released pulse leaves the mouth as a stream, one body
-every couple of ticks from the open cells around the hole, each body's strain
-drawn from the tier's table; a bore that collapses mid-pulse releases no
-more.
+the field stays quiet. A released pulse comes up out of the hole in clutches
+(*Emergence*), each body's strain drawn from the tier's table; a bore that
+collapses mid-pulse releases no more.
+
+**Emergence.** How a body comes into the battle (`SwarmEmergence`; the owner,
+2026-10-25: the packs "just pop out as a full pack"). Nothing of the swarm
+appears whole. It is presentation and order only: a pulse's size, its bodies
+and its surge tick are the director's as before, and so is the flier law.
+- **Clutches.** A pulse breaks out of the hole one to three bodies at a time,
+  seeded by the bore, the pulse and the clutch, with a seeded pause of a third
+  of a second to most of a second between clutches. A pack of eight is out in
+  about two seconds and a maw's whole pulse in four or five, where it was out
+  in under one. The Matriarch comes out alone, first. A body breaks out on the
+  hole or the ring round it, and only on the mouth's outer cells when those are
+  all taken.
+- **Climbing out.** A body is held in the hole for a moment: seven tenths of a
+  second for a Runner, nine for a Spitter, eleven for a Brute, six for a
+  skitterer, nearly two for the Matriarch (who roars once she is out). It does
+  nothing while it is held (no step, no blow, no quarry), but it is on the
+  field from its first tick, counted, sensed and **shot as any body is**, so a
+  gun laid on a mouth kills them as they come up. Its picture climbs out of the
+  dark of the shaft: drawn at three fifths of its size and nearly black, it
+  grows and lights to full on an ease-out as it comes out, facing out of the
+  hole, and casts its shadow only as it rises. The hole throws a ring of dust as
+  each body breaks out.
+- **Muster.** Out of the hole, a pack forms up before it moves. Each pack of a
+  pulse has a muster four cells down its lane toward its prey; a Runner of it
+  with nothing to fight walks to its own seeded spot round there and mills,
+  until the pack's last body is out of the hole, and never longer than four
+  seconds from the pack's first. Prey it senses breaks the muster at once. So a
+  surge is seen boiling up out of the ground, spreading round the mouth and
+  setting off together, rather than standing up as a finished block.
+- **Fliers hatch.** A Harrier pack is hatched, not placed (`SwarmFliers.hatch`):
+  one Harrier climbs out of its source now and the rest one by one, a quarter
+  to over half a second apart, each low and close over the source with a puff
+  of dust, and climbs out to the loiter ring. The pack does not commit to a
+  dive until the last is out. A brood spire's pack hatches out of its crown, its roost emptying a hook at a time as they go; a
+  Matriarch's brood hatches off her back as she climbs out of the mother, and
+  the hatch follows her; a pack a heart beat raises against the guns hatches
+  out of the nearest bore's mouth and flies out to its standoff, and a spore
+  colony's pack out of the colony. A source that dies mid-hatch stops it: the
+  rest never come.
+- **Unseen.** Emergence is a rule of the battle, not of the camera: off-screen
+  or in fog a body is held and musters exactly as on screen, and the fog hides
+  it as it hides any swarm body. The dust and the climb are presentation:
+  nothing in the battle reads them, and a replay plays the same drawn or not.
+- `-Dbattle.swarm.emergence=false` is the control: bodies come out whole and go
+  at once, one every couple of ticks, and Harrier packs appear whole. Look
+  suite: `swarm-emergence` (before and after, a bore surge and a spire launch).
 
 **Mother bore.** The one bore whose collapse ends spawning from its precinct
 cluster and is the target of the optional hive objective. It erupts later than
@@ -836,10 +883,14 @@ air defence of its own until it grows another tier. Laws: no air sortie should
 be able to collapse a bore that still has its colonies without taking losses;
 air is for after the ground push, or for after the colonies.
 
-Colonies stand on the bore's **growth sites**, a seeded ring of open cells
-round the mouth (`BoreGrowthSites`). Only spore colonies use them; a ground
-colony roots out on the creep instead, against the gun it answers (Creep:
-Ground colony).
+Colonies stand on the bore's **growth sites**, a broken crescent of open cells
+round the mouth (`BoreGrowthSites`; owner, 2026-10-25, over an even ring that
+packed them into a knot). The crescent wraps part of the way round, each site
+at its own seeded distance, and the rest of the circle is the den's open
+approach, turned per bore; the back of the den fills first, then the two
+horns, so a bore's first three colonies already read as a den with a way in.
+Only spore colonies use them; a ground colony roots out on the creep instead,
+against the gun it answers (Creep: Ground colony).
 
 **Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
 seeds spore colonies of its current grade on its creep, away from the mouth:
@@ -853,6 +904,27 @@ bore and four at maw; a dead outpost frees its place and the creep grows
 another elsewhere. Outposts wither with their bore like the mouth's colonies.
 So an air sortie that waits watches the defended sky spread with the creep,
 and a bore's creep is worth burning back before its outposts stand.
+
+**Nest.** A bore and everything it grew, read as one organism rather than
+growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
+- **Its mouth is a den**: the crescent of growth sites above.
+- **Roots** (`NestTrails`). A rope of sinew raised out of the creep runs from
+  the bore's rim to each of its living colonies, outposts and its spire, bowed
+  and meandering by a seeded amount and tapering out to the growth, ringed in
+  segments, with the creep's pulse running out along it (the owner's pick of
+  rope, over a worn furrow and a lit vein path). A root is drawn only: nothing
+  walks, stops or fights by it, and it goes with its growth or its bore.
+  `-Dbattle.render.nestTrails=false` is the control.
+- **Roots grow** (owner: thinner veins "dig out and construct" from the bores
+  over time). From the moment its growth sprouts, a root digs out from the
+  bore as a vein, a band of the creep's veins thickened and lit, at 1.2 cells a
+  second, and once it reaches the growth it thickens into rope over fifteen
+  seconds. Creep matured at setup is weeks old, so the growths it starts with
+  have their ropes; an outpost that roots in the battle, or a satellite opened
+  late, grows its roots in sight.
+- **Its spire's roost**: the Brood spire's waiting brood (below).
+- **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
+- Next: clutter (egg clutches, pods, husks) along the roots and round the mouth.
 
 **Brood spire.** The tall growth an old bloom raises on its creep, which
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
@@ -871,8 +943,13 @@ through, made into a thing on the map the company can find and kill.
   launches a pack of seven off it, provided a marine or an ally stands within a
   Harrier's sense of it, no pack of its own is still in the air, at least
   forty-five seconds have passed since its last, and the flier law holds. The
-  pack rises off its crown, low and clustered, and is seen climbing out to its
-  loiter ring. A sleeping bore's spire is quiet with it.
+  pack hatches out of its crown one by one, low over it, and is seen climbing
+  out to its loiter ring (*Emergence*). A sleeping bore's spire is quiet with it.
+- **Its roost.** While it waits, its next brood clings to the hooks up its
+  flanks, wings folded, now and then half-opening them: none while its own pack
+  flies, then filling back one by one over the gap after a launch, so a full
+  roost is a spire ready to launch again. Drawn only: they are not units until
+  they rise (`SpirePerchRenderSystem`).
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
@@ -1195,8 +1272,8 @@ not read in a soft shadow at play zoom.
     hundred distance checks a tick.
   - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
     the flier law: off a satellite's **brood spire** with its bore's surge, and
-    as a Matriarch's **brood**, a pack of six that rises over her as she
-    emerges and flies as her escort. So the satellites and the front bores
+    as a Matriarch's **brood**, a pack of six that hatches off her back as she
+    emerges and flies as her escort (*Emergence*). So the satellites and the front bores
     send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):
     the Runner's lilac carapace with bat wings grown from its spike arms.
@@ -1306,8 +1383,9 @@ not read in a soft shadow at play zoom.
     head down and pecks at it, each body to its own rhythm; one going to the
     spire carries a glob of amber feed in its mandibles, and one coming home
     from a tree a wad of pulp (`load-feed`, `load-pulp`). It has no
-    cry and no strike; its feet are the Runner's clatter, thinner, and its
-    hurt and death the Runner's, all pitched up by its size. Dead, it bursts as
+    cry and no strike; it is heard small and busy (Sound, below): a quick
+    chitin patter, a thin squeak when hurt or scattering, and a soft wet
+    working bed while it is head-down at its work. Dead, it bursts as
     a Runner does and the creep digests it.
   - **How the company treats it.** An ordinary body on the swarm's side, shot
     as any other; clearing a nest of its workers is the player's call.
@@ -1601,18 +1679,22 @@ against its own control in `renderEvidence`.
   reaching in from the crown's rim while the leaves start to turn; a crust
   rolling in from the rim with the creep's beaded lip while the leaves brown;
   the crown withering, its dead leaves falling from a bare skeleton; and the
-  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
-  trunk to the crown's own outline, veins running out along them, drawn with a
+  dead tree, a snag of weathered grey-brown limbs, fissured and silvered on
+  their lit ridges, reaching unevenly from a crusted trunk toward the crown's
+  outline, some snapped short, a few dead leaves caught in them and veins
+  running out along them (bleached, smooth and evenly radial, they read as
+  bone), drawn with a
   dark outline over a soft ground shadow so it stands up off the dark creep at
   play zoom. The skeleton is grown by the bake rather than taken from the
   damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
   sheet baked from the canopy art and the creep's own surface and palette
   (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
-  ground. A dead tree felled, by heavy tracks or by fire, lies as dead wood: the
-  destroyed tree's stump and fallen limbs bleached bone-pale and bare, the stump
-  crusted, baked the same way from the destroyed-tree art (a sheet of its own,
-  `forest-blight-felled`); a tree felled while it lived keeps its green felled
-  art. On vegetation (grass, crops and the plants on them) the edge is not
+  ground. A dead tree felled, by heavy tracks or by fire, lies flattened: the
+  destroyed tree's stump and the butts of its limbs snapped off short, in the
+  same dead bark, the stump crusted, so it reads as ground a vehicle drives over
+  rather than a fallen tree still in the way; it is baked the same way from the
+  destroyed-tree art (a sheet of its own, `forest-blight-felled`). A tree felled
+  while it lived keeps its green felled art. On vegetation (grass, crops and the plants on them) the edge is not
   clean as it is on pavement: the creep's coverage spread a few cells out turns
   the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
   into it ahead of the lip, so grass and crop rows are seen to be taken before
@@ -1819,6 +1901,15 @@ whether the mother collapsed beside the evacuation report. In the campaign it
 contains the bloom behind the call (*Campaign: blooms*); anything it pays beyond
 that and the Hegemony's regard is the owner's call and not yet settled.
 
+**Side objectives.** Optional objectives (`optional-objectives.md`) the breach
+offers beside the rescue, rolled at setup and advanced on the breach's own
+clock; they succeed or fail only themselves, never the cohort or the lift. Today
+there is one, **Secure the loading** (`staffed-buildings.md`): the colony's largest
+warehouse, worked by its own people, is loading the colony's stores onto a truck
+in its yard, and the company that holds the yard until the truck is away is paid
+out of what it carries. A colony whose warehouse has no stand a truck can leave
+from offers none.
+
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge
@@ -1960,6 +2051,17 @@ Runner's cry, higher) and three wingbeats as it takes up, a few ticks apart; a
 Matriarch's brood rises with the same cue, quieter. A spire dying, shot down or
 withered with its bore, creaks (the wingbeat, slowed), cracks (the Brute's
 head-ram, deeper) and falls (the Brute's wall break, deeper).
+The skitterer, the nests' worker, never cries or strikes and is heard small and
+busy beside a Runner pack, all of it borrowed takes pitched up by its size: a
+light chitin patter on every stride (the Harrier's wingbeat, played higher; a
+Runner's feet fall on every other stride), the body drag while it hauls, a thin
+squeak when it is hurt and when it scatters from the company (the Runner's yelp,
+higher still; one hit that sends it running squeaks once), so a nest emptying
+under fire is heard, and the Runner's death. Head-down at a mend, a burn, a tree
+or an outpost it makes a soft wet working sound (the fissure's scratching
+ambience, raised): a loop placed on the seen workers at work nearest the
+camera, two at most, the second quieter by the crowd rule, so a busy nest
+murmurs and never drones. Everything it makes sits a few dB under a Runner.
 
 **The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
 creature sound's level is set from its take's measured loudness against the
@@ -1968,13 +2070,16 @@ and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
 LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
-since many bodies make them. A spire's launch sums near -23, by a Harrier
+since many bodies make them. The skitterer's squeak sits near -30 and its
+death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
 and rifle takes. A new sound or take is levelled the same way
-before it ships. The `swarm-sound` and `spire-sound` look suites log what the battle screen would
-start (`BattleSoundLog`) so a review hears the levels against the fire.
+before it ships. The `swarm-sound` and `spire-sound` look suites, run with
+`-Dsnapshot.lookSound=true`, log what the battle screen would start
+(`BattleSoundLog`) and mix it into their MP4s, so a review hears the levels
+against the fire.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

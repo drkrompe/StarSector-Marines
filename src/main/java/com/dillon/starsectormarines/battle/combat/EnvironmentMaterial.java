@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.forest.Undergrowth;
 import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
@@ -79,8 +80,22 @@ public enum EnvironmentMaterial {
      * rounded to the nearest point: feature structure is kept in whole points.
      */
     public int structuralDamage(float damage, float penetration) {
+        return structuralDamage(damage, penetration, false);
+    }
+
+    /**
+     * As {@link #structuralDamage(float, float)}, for a round that may {@code burn}: a beam or an energy bolt chars
+     * what burns (crates, furniture and standing trees) with its whole payload, whatever its penetration, where
+     * every other material reads it as an ordinary round.
+     */
+    public int structuralDamage(float damage, float penetration, boolean burn) {
         if (!(damage > 0f)) return 0;
-        return Math.round(damage * efficiency(penetration));
+        return Math.round(damage * (burn && burns() ? 1f : efficiency(penetration)));
+    }
+
+    /** Whether a burning round takes this material whatever its penetration: wood and timber. */
+    public boolean burns() {
+        return this == WOOD || this == TIMBER;
     }
 
     /** The material of a destructible prop by its definition id, or null for one rounds cannot wear. */
@@ -99,6 +114,7 @@ public enum EnvironmentMaterial {
         if (RockDamage.IDS.contains(definitionId)) return STONE;
         NaturalPropShape shape = NaturalPropShape.find(definitionId);
         if (shape instanceof TreeCanopy) return TIMBER;
+        if (shape instanceof Undergrowth) return WOOD;
         if (shape instanceof MineralFormation) return STONE;
         return null;
     }
