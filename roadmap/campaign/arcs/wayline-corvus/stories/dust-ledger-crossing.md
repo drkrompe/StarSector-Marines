@@ -128,6 +128,18 @@ Three approaches to the compound must be real choices: through the market
 (cover, civilians, short), along the ridge (overwatch, slow), and up the crawler
 road past the salvage yard (direct, exposed).
 
+**Art needs.** The map dresses these with stand-ins until art exists; none is
+generated yet.
+
+| Needed | Stand-in now |
+|---|---|
+| Market stall (table, goods, cloth) | `mess-table-long` under a street-kit awning, with a crate |
+| The warden's well (head, windlass) | `industrial-pump-set` in the court |
+| Burn barrel (ledger fire) | `industrial-drum-cluster` |
+| Broker's skimmer, parked | a bare concrete pad |
+| Compound sentry tower | none; gate sandbags and barriers only |
+| Market cart, burnt-out terraforming pipe | parked trucks; `industrial-pipe-bundle` pieces |
+
 **Garrison.** One finite Sable Wake crew of about 18 at Low quality: gate and
 wall sentries, roof watch, clerks' guards in the pump house, crawler crew, and
 the cantina drinkers. No reinforcements, vehicles or aircraft.
