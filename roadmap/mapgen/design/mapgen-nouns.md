@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
+Updated: 2026-10-25 — districts: a member can take a set-piece role; main street's plaza end is the market square where two end members hold it.
+
+Earlier 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
 
 Earlier 2026-10-25 — set pieces: the freight yard has a planned parcel of its own, in two sizes, and each bay publishes its turn.
 
@@ -373,7 +375,9 @@ trunk, smallest fitting lot, one per map, no random draw). A lot the square
 cannot stand in is an ordinary plaza. The square publishes an **open square**
 (`OpenSquare` on `MapResult`): its centre, its open extent and each mouth's
 cells with the step out onto the street, for an objective to hold, cross or
-send pressure through.
+send pressure through. A district can give it a member's ground as a role
+(main street's plaza end, below); the market lot then keeps far enough from
+that square that the two never reach onto the same street.
 
 A **district** is a set piece over several adjacent leaves and the streets between them
 (`set-piece-districts.md`). A district program asks for a claim shape, a **spine** (one straight street
@@ -386,9 +390,13 @@ see one network. Planning is read-only until it commits, draws no random number,
 leaves are labelled and before compound claims, which take each district's compound first; a district
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
 district, a cluster with no streets of its own. **Main street** is the first program: shopfronts behind
-pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
-hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
-door).
+pavements on both sides of one straight street, the kerb dressed as cover, a square at one end and a civic
+hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. A
+member can take a **set-piece role**, an existing set piece laid on that member's ground: where the two
+members at one end of a side hold the market square facing the main street, they and the cross street
+between them (which keeps its width and runs through the square) are its lot; elsewhere the end is a plain
+plaza. It publishes `MainStreet` on `MapResult` (the centre line, the plaza, the market square's
+`OpenSquare` where it stands, and the hall's door).
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
