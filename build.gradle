@@ -986,6 +986,8 @@ tasks.register('createSnapshots', JavaExec) {
     } else {
         classpath = sourceSets.test.runtimeClasspath
     }
+    // A look soundtrack (`-Dsnapshot.lookSound=true`, `LookReview`) is mixed from the Oggs in the gitignored mod/sounds.
+    if (System.getProperty('snapshot.lookSound') == 'true') dependsOn ':asset-pipeline:processAudio'
     mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath

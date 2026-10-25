@@ -1834,8 +1834,9 @@ LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. A new sound or take is levelled the same way
-before it ships. The `swarm-sound` look suite logs what the battle screen would
-start (`BattleSoundLog`) so a review hears the levels against the fire.
+before it ships. The `swarm-sound` look suite, run with `-Dsnapshot.lookSound=true`,
+logs what the battle screen would start (`BattleSoundLog`) and mixes it into its
+MP4s, so a review hears the levels against the fire.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

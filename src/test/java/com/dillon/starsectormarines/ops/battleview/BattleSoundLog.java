@@ -16,12 +16,14 @@ import java.util.Locale;
  * per tick as a JSON line ({@code frame, id, x, y, pitch, volume, listenerX, listenerY}). The creatures' sounds come
  * from {@link SwarmAudio.Mix#hear} and {@link HarrierAudio.Mix#hear}, the same rules and levels the game plays them
  * at; the fire from {@link BattleShotAudio#cue}. The listener is the view's centre, as it is the screen's in a battle.
- * Impacts and held beam loops are not logged.
+ * Impacts and held beam loops are not logged. {@link LookReview#record} attaches one to every look shot under
+ * {@code -Dsnapshot.lookSound=true} and mixes it into the MP4 ({@link BattleSoundMix}).
  */
 public final class BattleSoundLog {
 
     private final Path file;
-    private final SwarmAudio.Mix swarm = new SwarmAudio.Mix();
+    // Seeded, so the same battle logs the same pitches and mixes to the same soundtrack.
+    private final SwarmAudio.Mix swarm = new SwarmAudio.Mix().seeded(0L);
     private final HarrierAudio.Mix harrier = new HarrierAudio.Mix();
     private int frame;
 
