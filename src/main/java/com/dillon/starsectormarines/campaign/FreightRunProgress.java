@@ -61,17 +61,21 @@ public final class FreightRunProgress implements Serializable {
         if (activeAttempt == 0) activeAttempt = settledAttempt + 1;
         return new Attempt(siteId, activeAttempt, waiting());
     }
-    /** Returns newly earned chapter credits. Duplicate, stale or foreign outcomes cannot pay or alter cargo. */
+    /**
+     * Returns newly earned chapter credits. Duplicate, stale or foreign outcomes cannot pay or alter cargo.
+     * A defeat leaves no trace on the cargo: the story is told as if the company won the first time, so a
+     * retry fields the whole cohort again and only the won attempt's deliveries and losses are recorded.
+     */
     public int settle(Outcome outcome) {
         if (outcome == null || version != VERSION || activeAttempt == 0) return 0;
         Attempt expected = new Attempt(siteId, activeAttempt, waiting());
         if (!expected.equals(outcome.attempt()) || outcome.victory() && deliveredCount() + outcome.delivered().size() == 0) return 0;
-        for (int carrier : outcome.delivered()) deliveredMask |= 1 << carrier;
-        for (int carrier : outcome.lost()) lostMask |= 1 << carrier;
         settledAttempt = activeAttempt;
         activeAttempt = 0;
-        victorious = outcome.victory();
-        if (!victorious) return 0;
+        if (!outcome.victory()) return 0;
+        for (int carrier : outcome.delivered()) deliveredMask |= 1 << carrier;
+        for (int carrier : outcome.lost()) lostMask |= 1 << carrier;
+        victorious = true;
         payment = 6000 + 4000 * deliveredCount();
         return payment;
     }

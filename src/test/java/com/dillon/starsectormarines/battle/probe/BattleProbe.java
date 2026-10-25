@@ -271,7 +271,11 @@ public final class BattleProbe {
         try {
             return command.run(args);
         } catch (Exception e) {
-            return new JSONObject().put("error", e.getClass().getSimpleName() + ": " + e.getMessage());
+            // The top frames, so a failure inside the battle names where it was without a rerun under a debugger.
+            JSONArray at = new JSONArray();
+            StackTraceElement[] trace = e.getStackTrace();
+            for (int i = 0; i < Math.min(8, trace.length); i++) at.put(trace[i].toString());
+            return new JSONObject().put("error", e.getClass().getSimpleName() + ": " + e.getMessage()).put("at", at);
         }
     }
 

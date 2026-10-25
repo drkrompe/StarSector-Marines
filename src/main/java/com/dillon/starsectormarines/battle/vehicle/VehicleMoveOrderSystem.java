@@ -164,8 +164,9 @@ public final class VehicleMoveOrderSystem {
             // Right-clicking a loaded transport on itself is "everybody out",
             // the way Red Alert 2 read it: the vehicle is the target, and what
             // it does depends on whether anybody is in it. Resolved before the
-            // move, because a click on your own hull is not a destination.
-            if (!request.destinationOnly && commandable(request.vehicleId)
+            // move, because a click on your own hull is not a destination. A click: an enlisted hull's orders come
+            // from its AI command, whose carrier already standing at its drop was otherwise read as "everybody out".
+            if (!request.destinationOnly && !service.isEnlisted(request.vehicleId) && commandable(request.vehicleId)
                     && transport.pointsAt(request.vehicleId, request.cellX, request.cellY)
                     && !transport.manifest(request.vehicleId).isEmpty()) {
                 transport.dismountAll(request.vehicleId);
@@ -261,7 +262,8 @@ public final class VehicleMoveOrderSystem {
         // the whole experience on an ordered one, so an order that has stopped
         // converging is given up rather than parked.
         VehicleControlComponent s = convoy.control(id);
-        if (s.localPlanFailureTime >= GIVE_UP_SECONDS) {
+        if (s.localPlanFailureTime >= GIVE_UP_SECONDS || s.planlessReverses >= VehicleController.PLANLESS_GIVE_UP) {
+            s.planlessReverses = 0;
             service.refuse(id, order.requestedX(), order.requestedY(), Refusal.GAVE_UP);
         }
         return true;

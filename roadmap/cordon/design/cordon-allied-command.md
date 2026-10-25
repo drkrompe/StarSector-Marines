@@ -6,8 +6,7 @@ sector's armour, the company only where none is free). Both commanders are
 built: the company's (`CordonRadio`, `CordonCompanyRules`, behind
 `CordonCommand`) and the allied line command's (`CordonAlliedRules`, behind
 `CordonArmour`, `CordonLogistics` and `CordonLineCommand`, which draws on the
-base as a producer). Still open: the lift is decided (`liftWorth`) but not
-asked for until a Marine carry exists.
+base as a producer), and the company's lift (rule 10).
 
 Written: 2026-10-23
 Updated: 2026-10-24 — a convoy is Escorted only by its whole escort; the swarm on a truck calls the company
@@ -88,7 +87,6 @@ The company side:
   inside.
 - **No answer to the rear, a tide, or a lost sector.** The base being overrun,
   the tide's beat and a sector losing its machines change nothing.
-- **No lift.** The company walks everywhere; nothing asks a free carrier.
 
 ## The radio: what the company is told
 
@@ -277,7 +275,15 @@ duty stands, rather than being re-chosen each frame.
     base for a lift, in rural and town country only. The base grants it with a
     carrier that rule 4 of the allied command leaves free and that stands
     nearer the squad than the duty does. The squad walks to it, rides, and is
-    set down behind the redoubt; no carrier, no lift, and the squad walks.
+    set down behind the redoubt; no carrier, no lift, and the squad walks. The
+    carrier must seat the whole squad (a squad rides together or walks), and an
+    allied squad waiting at the base always comes first. The squad boards under
+    the company's own authority, so the player's order still takes it off the
+    ride. A lift whose duty ends, or moves half a lift's worth (an escorted
+    convoy moves all the while), before the drop sets the squad down where it is; a lift that leaves the squad no nearer its drop (the carrier
+    could not get there) bars that squad from asking for a minute, and one called
+    off bars it for twenty seconds. Read as `company lifts N asked, N granted, N
+    set down` in the line command's readings.
 
 ### Handing work between them
 
@@ -313,10 +319,10 @@ hand-built ones (under a second each, no map or battle):
 `CordonCommand.plan`, `CordonArmour.advance`, `CordonLogistics.advance` and
 `CordonLineCommand.advance` are the shells that freeze the picture, call these
 and issue the orders.
-The lift needs one new seam: `AlliedCommand.carry` seats its riders back as a
-count through the mission's `Delivery`, which suits militia but not Marines,
-whose identity, kit and wounds must come back as they went; a Marine carry
-keeps the squad's members aside and restores them at the drop.
+The lift's seam is `AlliedCommand.lift`: where `carry` seats its riders back as
+a count through the mission's `Delivery` (right for militia), a lift puts the
+squad itself aboard through `VehicleTransportService`, so its identity, kit,
+wounds and pace come back as they went.
 
 ## Evidence
 

@@ -135,10 +135,10 @@ asphalt where a colony would have left a lane. It publishes `MainStreet` on `Map
 centre line from the plaza end to the hall end, the carriageway width, the plaza's bounds and the hall's
 front door.
 
-Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 5 of 24 medium city maps and
-14 of 24 colonies (the freight yard and the market square plan their parcels first). Cities zone few civic or mixed pockets; counting the residential neighbourhood as half
-a pocket lifted cities from 5 to 15 of 24 and left colonies alone, which is a choice for the owner (a high
-street among houses) rather than the brief's commercial or civic pocket. Look:
+Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 15 of 24 medium city maps and
+14 of 24 colonies (the freight yard and the market square plan their parcels first). Cities zone few civic
+or mixed pockets, so the residential quarter weighs as much as the mixed town and a high street can stand
+among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 `createSnapshots -Psnapshot=main-street-look`.
 
 Open on main street: street lamps and awnings have no art (planters, benches, stalls and parked vans
