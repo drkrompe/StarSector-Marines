@@ -334,3 +334,4 @@ com.dillon.starsectormarines.battle.staffed.ColonyLoadingLookSuite
 com.dillon.starsectormarines.tools.forestauthoring.UndergrowthLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.BloomReliefLookSnapshotSuite
 com.dillon.starsectormarines.battle.setup.FreightYardLookSuite
+com.dillon.starsectormarines.battle.setup.FactoryRowLookSuite
