@@ -870,7 +870,8 @@ A refused proof is cheap to repeat and expensive to compute: an unreachable
 goal makes the search cost the whole component the chassis can reach. One
 search therefore shares that single flood across its endpoint candidates, and a
 refused intent stands for a backoff window rather than reopening each time the
-body drifts half a cell. Both are controls (`battle.pathfinding.shareExhaustedFlood`,
+body drifts half a cell or the map's topology moves (a burning map moves it every
+few ticks; a found route is still proved again on every change). Both are controls (`battle.pathfinding.shareExhaustedFlood`,
 `battle.pathfinding.clearanceFailureBackoff`); the serial scheduler runs proofs
 inside the tick, so an unbounded repeat there stalls the whole simulation.
 

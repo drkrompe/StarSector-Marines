@@ -87,6 +87,40 @@ class AsyncClearanceRoutesTest {
     }
 
     @Test
+    void aRefusalStandsAgainstATerrainChangeUntilItsBackoffElapses() {
+        NavigationGrid grid = floor();
+        for (int y = 0; y < 8; y++) grid.blockSharedEdge(5, y, Direction.E);
+        var request = new AsyncClearanceRoutes.Request(2f, 4f, 9, 4, .6f);
+        try (var routes = new AsyncClearanceRoutes(false)) {
+            routes.beginTick(10);
+            var first = routes.pollOrSubmit(1, request, grid);
+            assertEquals(PathRequestStatus.FAILED, first.status());
+            for (int y = 2; y <= 6; y++) grid.openSharedEdge(5, y, Direction.E);
+            routes.beginTick(11);
+            assertSame(first.proof(), routes.pollOrSubmit(1, request, grid).proof(),
+                    "a moved revision must not re-flood a fresh refusal");
+            routes.beginTick(10 + AsyncClearanceRoutes.FAILURE_RETRY_TICKS);
+            assertEquals(PathRequestStatus.READY, routes.pollOrSubmit(1, request, grid).status(),
+                    "the opened wall is found once the refusal lapses");
+        }
+    }
+
+    @Test
+    void forgettingAnOwnerKeepsItsFreshRefusal() {
+        NavigationGrid grid = floor();
+        for (int y = 0; y < 8; y++) grid.blockSharedEdge(5, y, Direction.E);
+        var request = new AsyncClearanceRoutes.Request(2f, 4f, 9, 4, .6f);
+        try (var routes = new AsyncClearanceRoutes(false)) {
+            routes.beginTick(10);
+            var first = routes.pollOrSubmit(1, request, grid);
+            routes.forget(1);
+            routes.beginTick(11);
+            assertSame(first.proof(), routes.pollOrSubmit(1, request, grid).proof(),
+                    "a cleared path must not cost the refusal it was refused with");
+        }
+    }
+
+    @Test
     void closedCoordinatorRefusesNewWork() {
         var routes = new AsyncClearanceRoutes(true);
         routes.close();
