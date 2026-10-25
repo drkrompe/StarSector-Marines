@@ -10,7 +10,7 @@ these stories.
 | Story | State and dependency |
 | --- | --- |
 | `bloom-installation-flavour.md` | **PLANNED.** The bloomed market's industry picks the colony's outlying installation (mine head, pumping yard, farm). Battle-side; campaign blooms have landed. |
-| Harrier in missions (no story doc yet) | **OPEN.** The Harrier flies in the `harrier-pack` scene only. Next: a Matriarch's brood pack released with her, and a mission beat that uses it (Broad Front's F3, "Spores ground the air"; The Burn's gun line, B3). The missions belong to the Heart feature; release through `SwarmFliers.releaseUnderCover`. Waiting on the owner's look pick. |
+| Harrier in missions (no story doc yet) | **IN PROGRESS.** Packs come from brood spires and Matriarch broods (`colony-breach-nouns.md`, Brood spire), built and scene-tested. Next: anti-air staged in the Cordon and the heart so the flier law can be met there, the company commander treating a known spire on its way, and the spire's final art on the owner's pick (`brood-spire-look`). |
 
 Live pressure and balance acceptance continues in `rescue-pressure-acceptance.md`
 once the spine, bores and strains have landed.

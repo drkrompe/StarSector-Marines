@@ -293,6 +293,7 @@
     },
     {
       "cover": "heavy",
+      "crushable": true,
       "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
       "frame": 29,
       "id": "nature.rock-large-1",
@@ -307,6 +308,7 @@
     },
     {
       "cover": "heavy",
+      "crushable": true,
       "description": "a leaning slab over a low stone \u2014 heavy cover, impassable",
       "frame": 30,
       "id": "nature.rock-large-2",
@@ -321,6 +323,7 @@
     },
     {
       "cover": "heavy",
+      "crushable": true,
       "description": "the tallest stack on the sheet \u2014 heavy cover, impassable",
       "frame": 31,
       "id": "nature.rock-large-3",

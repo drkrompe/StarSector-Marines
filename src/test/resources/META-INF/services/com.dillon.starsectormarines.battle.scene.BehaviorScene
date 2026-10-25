@@ -96,6 +96,7 @@ com.dillon.starsectormarines.battle.vehicle.SupplyTruckScene
 com.dillon.starsectormarines.battle.vehicle.ScoutCarScene
 com.dillon.starsectormarines.battle.vehicle.MissileCarrierScene
 com.dillon.starsectormarines.battle.vehicle.DozerBreachScene
+com.dillon.starsectormarines.battle.vehicle.TankUndergrowthScene
 com.dillon.starsectormarines.battle.power.ArmorDropPaceScene
 com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
 com.dillon.starsectormarines.battle.combat.HardTargetTimeToKillScene
@@ -154,3 +155,4 @@ com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceScene
 com.dillon.starsectormarines.battle.vehicle.VehicleRamScene
 com.dillon.starsectormarines.battle.evacuation.flier.HarrierPackScene
 com.dillon.starsectormarines.battle.fort.GateTowerScene
+com.dillon.starsectormarines.battle.evacuation.BroodSpireScene

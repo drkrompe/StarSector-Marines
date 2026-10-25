@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-22 — Fields are land in use: worked plots by the town and the country road, wild ground beyond, and fields on the town's other sides (Rural country).
+Updated: 2026-10-25 — a mineral formation is never crushable by a heavy tank.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -939,7 +939,9 @@ required access takes precedence over landscape density. Arid and living
 palettes do not receive ice or barren mineral fields.
 
 Each formation shares one structural damage pool across its footprint, as a
-tree does across its crown. Cracked survivors remain solid. Destruction leaves
+tree does across its crown. A formation is never crushable: a heavy tank stops
+at it as at a hill, where it flattens young trees and lone boulders
+(`convoy-nouns.md`, heavy tracks). Cracked survivors remain solid. Destruction leaves
 low fragments, opens movement and sight only where no surviving formation
 remains, and preserves the original ground. A blast spends damage once per
 formation. Large continuous ridges remain permanent terrain masses; their

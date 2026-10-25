@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 
 import java.util.List;
@@ -323,8 +324,17 @@ public enum VehicleType {
     /** Drones this hull launches and tethers to itself, or 0 for every hull that carries none. */
     public int droneComplement() { return droneBay().size(); }
 
-    /** How far this hull reports what it sees to its side, in cells; 0 for a hull that is not a sight source. */
+    /** How far a hull's crew sees out of it, in cells: a marine's own sight. */
+    public static final float CREW_SIGHT_CELLS = UnitType.MARINE.visionRange;
+
+    /** How far a sensor mast sees past the crew, in cells; 0 for a hull with no mast. */
     public float sightCells() { return 0f; }
+
+    /**
+     * How far this hull looks and reports what it sees to its side, in cells: its mast where it has one, the crew's
+     * sight otherwise. Every hull is an observer ({@link ScoutSight}, {@link SideObservers}).
+     */
+    public final float observeCells() { return Math.max(sightCells(), CREW_SIGHT_CELLS); }
 
     /**
      * How a deployed hull fights armor on its own ({@link VehicleEngagement}). A dueller takes the duel band its gun
@@ -499,6 +509,12 @@ public enum VehicleType {
      * breacher does; its route proof and its rolling planner read the blade's breach view instead of the live grid.
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
+
+    /**
+     * Whether this hull's tracks flatten undergrowth and lone boulders it drives into ({@link HeavyTracks}): every
+     * Heavy-lift hull, which is the tank line and the dozer. Its planning and its motion read the tracks' crush view.
+     */
+    public boolean crushesUndergrowth() { return liftClass() == LiftClass.HEAVY && !isHover(); }
 
     /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }

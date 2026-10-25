@@ -27,7 +27,9 @@ import java.util.Map;
  * <p>A dead tree has dropped its leaves, so its crown no longer hides anything
  * and no longer shelters anyone (sight passes and it gives no edge cover) while
  * its trunk still does both, and its tangle of bare limbs still stops a body
- * walking through it. Felling still works as it does on a living tree.
+ * walking through it. Felling still works as it does on a living tree. It is
+ * undergrowth now: a heavy tank pushes it over, trunk and all, wherever no
+ * living tree's crown holds its cells ({@code HeavyTracks}).
  *
  * <p>Reads the field and keeps its own per-tree state, so the field knows
  * nothing of trees. Looks every {@link #CHECK_TICKS}; deterministic in the seed.
@@ -72,12 +74,19 @@ public final class CreepVegetation {
         CreepField field = sim.creepFieldIfPresent();
         if (field == null || field.isEmpty()) return;
         MapEditor editor = sim.mapEditor();
-        look(tick, field, sim.getGrid(), sim.getDoodads(), editor::witherCrownCell);
+        look(tick, field, sim.getGrid(), sim.getDoodads(), new Wither() {
+            @Override public void open(int x, int y) { editor.witherCrownCell(x, y); }
+            @Override public void died(int originX, int originY) { editor.witherTree(originX, originY); }
+        });
     }
 
-    /** Opens one dead crown cell to sight; {@link MapEditor#witherCrownCell} in a battle. */
+    /**
+     * Opens one dead crown cell to sight ({@link MapEditor#witherCrownCell} in a battle), and hears of each tree as it
+     * dies ({@link MapEditor#witherTree}).
+     */
     public interface Wither {
         void open(int x, int y);
+        default void died(int originX, int originY) { }
     }
 
     /** One look over the map's trees, its doodads read on the first look only. */
@@ -91,6 +100,7 @@ public final class CreepVegetation {
             if (!standing(tree, grid)) continue;
             if (livingCoverage(tree, field) < tree.threshold) continue;
             idx.diedAt[t] = tick;
+            wither.died(tree.x, tree.y);
             for (int cell : tree.crown) {
                 if (opens(idx, cell)) wither.open(cell % grid.getWidth(), cell / grid.getWidth());
             }
