@@ -1748,7 +1748,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, hullSightings,
-                (side, x, y) -> commsSees(side, x, y)));
+                (side, x, y) -> commsSees(side, x, y), swarmHarvest::holdsStill));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             if (applyingInitialDamage) return;
