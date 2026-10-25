@@ -16,22 +16,44 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.LongPredicate;
 
 /**
  * Serial movement and boarding driver for the registered rescue cohort.
  * Squadless VIPs idle in ordinary unit dispatch; this system is their sole
- * path author and advances them toward the configured lift point.
+ * path author.
+ *
+ * <p><b>The people follow a squad; the squad leads them</b> (owner, 2026-10-25:
+ * the player guides the colonists through the map, not the other way round).
+ * A released civilian attaches to a squad, the commander's named escort when
+ * one is near, else the squad of the marine nearest it, and walks after that
+ * squad wherever it goes, standing once it is beside it. It walks in to board
+ * when its squad stands at the lift. It never heads for the lift on its
+ * own: a civilian whose squad has gone out of reach waits where it is until a
+ * marine comes for it.
  */
 public final class CivilianEvacuationSystem {
 
     /** A marine must physically reach the bunker entrance to open it. */
     static final int RELIEF_TRIGGER_RADIUS = 2;
-    /** Each civilian owns this leash independently; one protected VIP cannot move all eight. */
+    /** A waiting civilian attaches to the squad of a marine this close; each civilian decides for itself. */
     static final int ESCORT_LEASH_RADIUS = 5;
-    /** Maximum progress a civilian may hold ahead of its nearest escort toward the lift. */
-    static final float MAX_FORWARD_LEAD = 2f;
+    /** A civilian stands once its squad's nearest member is this close, and walks after it from further. */
+    static final int FOLLOW_DISTANCE = 2;
+    /**
+     * A civilian whose squad's nearest member is further than this has lost it and waits: past the tail of a column
+     * strung out down a lane behind an escort leading it ({@code RescueEscortCommand.escortLead}).
+     */
+    static final int FOLLOW_LEASH = 16;
+    /**
+     * A civilian walks in to board once its squad's nearest member stands within this many cells of the lift zone:
+     * the zone is two cells, too small for a squad to stand in, so a squad brought to the lift stands round it.
+     */
+    static final int BOARDING_REACH = 4;
     /** Nearby enemies make civilians hold a screened cell behind their escort. */
     static final int THREAT_SCREEN_RADIUS = 12;
     private static final int SCREEN_OFFSET = 2;
@@ -71,12 +93,15 @@ public final class CivilianEvacuationSystem {
         return unescorted > 0 ? HoldReason.REGROUPING : HoldReason.NONE;
     }
     public void requireStoryEscort() { storyEscort = true; }
-    private int assignedEscort(BattleSimulation sim) {
+    /** The squads the commander has named close escorts, by id, in its order; empty without a rescue commander. */
+    private static List<Integer> namedEscorts(BattleSimulation sim) {
+        List<Integer> named = new ArrayList<>();
         if (!(sim.getCommander(Faction.MARINE) instanceof RescueEscortCommand command)
-                || command.rescueSnapshot() == null) return -1;
-        return command.rescueSnapshot().squadIntents().stream()
+                || command.rescueSnapshot() == null) return named;
+        command.rescueSnapshot().squadIntents().stream()
                 .filter(s -> s.role() == RescueCommandSnapshot.Role.COHORT_ESCORT)
-                .mapToInt(s -> s.squadId()).findFirst().orElse(-1);
+                .forEach(s -> named.add(s.squadId()));
+        return named;
     }
     /**
      * The squad sealed in the shelter with the cohort, or {@link Squad#NO_SQUAD}.
@@ -98,6 +123,11 @@ public final class CivilianEvacuationSystem {
     private final List<Redoubt> redoubts = new ArrayList<>();
     /** Holdout members by identity; a member not listed belongs to the main redoubt. */
     private final Map<Long, Integer> redoubtOf = new HashMap<>();
+    /** Each walking civilian's squad, by identity. */
+    private final Map<Long, Leader> leaderOf = new HashMap<>();
+
+    /** The squad a civilian follows, or the lone marine it follows when that marine has no squad. */
+    private record Leader(int squadId, long unitId) { }
     /** A holdout falls once its garrison is dead and a swarm body stands this close to its walls. */
     static final int FALL_PERIMETER = 1;
 
@@ -262,7 +292,9 @@ public final class CivilianEvacuationSystem {
 
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
-        if (storyEscort) escortSquad = assignedEscort(sim);
+        List<Integer> namedOrder = namedEscorts(sim);
+        Set<Integer> named = new HashSet<>(namedOrder);
+        if (storyEscort) escortSquad = namedOrder.isEmpty() ? -1 : namedOrder.get(0);
         unescorted = 0; blocked = 0; awaitingPickup = 0; screened = 0; shelterThreat = false;
         if (multipleRedoubts()) {
             releaseRedoubts(sim);
@@ -308,8 +340,8 @@ public final class CivilianEvacuationSystem {
                 sim.clearPath(id);
                 continue;
             }
-            long escort = released(id) ? nearestMarine(id, sim) : 0L;
-            if (escort == 0L || !withinLeash(id, escort, sim)) {
+            long escort = released(id) ? follow(id, named, sim) : 0L;
+            if (escort == 0L) {
                 unescorted++;
                 sim.clearPath(id);
                 continue;
@@ -320,10 +352,12 @@ public final class CivilianEvacuationSystem {
             if (threat != 0L) {
                 screened++;
                 destination = screenedDestination(id, escort, threat, sim);
-            } else if (forwardLead(id, escort, sim) > MAX_FORWARD_LEAD) {
+            } else if (nearLift(sim.world().cellX(escort), sim.world().cellY(escort))) {
+                destination = packCell(liftX, liftY);
+            } else if (distanceSquared(id, escort, sim) <= FOLLOW_DISTANCE * FOLLOW_DISTANCE) {
                 destination = NO_CELL;
             } else {
-                destination = packCell(liftX, liftY);
+                destination = besideCell(id, escort, sim);
             }
             if (destination == NO_CELL) {
                 sim.clearPath(id);
@@ -512,7 +546,60 @@ public final class CivilianEvacuationSystem {
                 || SwarmDefenseRoster.insideLiftZone(x, y, placement));
     }
 
-    private long nearestMarine(long civilian, BattleSimulation sim) {
+    /**
+     * The marine a released civilian walks after, keeping its squad: a named escort's member within
+     * {@link #FOLLOW_LEASH} first, then its own squad's nearest member within that leash, then the
+     * squad of a marine within {@link #ESCORT_LEASH_RADIUS}, which it attaches to; {@code 0} when
+     * none, and it waits.
+     */
+    private long follow(long civilian, Set<Integer> named, BattleSimulation sim) {
+        float leash = FOLLOW_LEASH * FOLLOW_LEASH;
+        if (!named.isEmpty()) {
+            long escort = nearestMarine(civilian, sim, unit -> sim.squadOf(unit) != null
+                    && named.contains(sim.squadOf(unit).id));
+            if (escort != 0L && distanceSquared(civilian, escort, sim) <= leash) {
+                leaderOf.put(civilian, new Leader(sim.squadOf(escort).id, escort));
+                return escort;
+            }
+        }
+        Leader leader = leaderOf.get(civilian);
+        if (leader != null) {
+            long member = leader.squadId() != Squad.NO_SQUAD
+                    ? nearestMarine(civilian, sim, unit -> sim.squadOf(unit) != null
+                            && sim.squadOf(unit).id == leader.squadId())
+                    : (sim.resolveUnit(leader.unitId()) != 0L ? leader.unitId() : 0L);
+            if (member != 0L && distanceSquared(civilian, member, sim) <= leash) return member;
+            leaderOf.remove(civilian);
+        }
+        long marine = nearestMarine(civilian, sim, unit -> true);
+        if (marine == 0L || !withinLeash(civilian, marine, sim)) return 0L;
+        Squad squad = sim.squadOf(marine);
+        leaderOf.put(civilian, new Leader(squad != null ? squad.id : Squad.NO_SQUAD, marine));
+        return marine;
+    }
+
+    /** The open cell beside {@code escort} nearest {@code civilian}, where it walks to stand by it. */
+    private static long besideCell(long civilian, long escort, BattleSimulation sim) {
+        int ex = sim.world().cellX(escort), ey = sim.world().cellY(escort);
+        int cx = sim.world().cellX(civilian), cy = sim.world().cellY(civilian);
+        byte[] occupancy = sim.getOccupancyMap();
+        long best = packCell(ex, ey);
+        int bestScore = Integer.MAX_VALUE;
+        for (int y = ey - 1; y <= ey + 1; y++) {
+            for (int x = ex - 1; x <= ex + 1; x++) {
+                if ((x == ex && y == ey) || !sim.getGrid().inBounds(x, y) || !sim.getGrid().isWalkable(x, y)) continue;
+                if ((occupancy[sim.getGrid().index(x, y)] & 0xFF) != 0 && (x != cx || y != cy)) continue;
+                int score = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+                if (score < bestScore) {
+                    best = packCell(x, y);
+                    bestScore = score;
+                }
+            }
+        }
+        return best;
+    }
+
+    private long nearestMarine(long civilian, BattleSimulation sim, LongPredicate eligible) {
         long best = 0L;
         float bestDistance = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
@@ -520,6 +607,7 @@ public final class CivilianEvacuationSystem {
             if (sim.identity().faction(unit) != Faction.MARINE) continue;
             if (isShelterGuard(unit, sim)) continue;
             if (storyEscort && (sim.squadOf(unit) == null || sim.squadOf(unit).id != escortSquad)) continue;
+            if (!eligible.test(unit)) continue;
             float distance = distanceSquared(civilian, unit, sim);
             if (distance < bestDistance
                     || (distance == bestDistance && (best == 0L || unit < best))) {
@@ -553,18 +641,6 @@ public final class CivilianEvacuationSystem {
     private boolean withinLeash(long civilian, long escort, BattleSimulation sim) {
         return distanceSquared(civilian, escort, sim)
                 <= ESCORT_LEASH_RADIUS * ESCORT_LEASH_RADIUS;
-    }
-
-    private float forwardLead(long civilian, long escort, BattleSimulation sim) {
-        float civilianDx = sim.world().x(civilian) - (liftX + 0.5f);
-        float civilianDy = sim.world().y(civilian) - (liftY + 0.5f);
-        float escortDx = sim.world().x(escort) - (liftX + 0.5f);
-        float escortDy = sim.world().y(escort) - (liftY + 0.5f);
-        float civilianDistance = (float) Math.sqrt(
-                civilianDx * civilianDx + civilianDy * civilianDy);
-        float escortDistance = (float) Math.sqrt(
-                escortDx * escortDx + escortDy * escortDy);
-        return escortDistance - civilianDistance;
     }
 
     private long screenedDestination(long civilian, long escort, long threat,
@@ -690,6 +766,11 @@ public final class CivilianEvacuationSystem {
         if (tracker.activeCount() != 0) return;
         ShuttleMission pickup = pickupMission(sim);
         if (pickup != null) pickup.awaitingEvacuees = false;
+    }
+
+    private boolean nearLift(int x, int y) {
+        return Math.abs(x - liftX) <= radius + BOARDING_REACH
+                && Math.abs(y - liftY) <= radius + BOARDING_REACH;
     }
 
     private boolean insideLiftZone(int x, int y) {
