@@ -18,7 +18,7 @@ field at each density, over the shared catalogue (`allied-tools.md`);
 `allied-command.md` is how a machine carries out a task once it has one. This
 doc is the step between them: who decides what, on what they know, and how
 the company and the allies hand work to each other. Strikes at the bores and
-the line posture stay `cordon-company-command.md`'s.
+the line posture are `cordon-nouns.md`'s (Line posture).
 
 ## The two commanders
 
@@ -357,7 +357,7 @@ line held.
   `allied-command.md`.
 - What the allies field at each density: `cordon-allied-forces.md`,
   `allied-tools.md`.
-- Line posture, the readiness gate and strike detachments:
-  `cordon-company-command.md`, which builds the company's rules here.
+- Line posture, the readiness gate and strike detachments: `cordon-nouns.md`
+  (Line posture), built on the company's rules here.
 - The general allied column that replaces the scripted one:
   `cordon-allied-columns.md`.

@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.battle.cordon.CordonConstructions;
 import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonHouseFronts;
 import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
+import com.dillon.starsectormarines.battle.cordon.CordonPosture;
+import com.dillon.starsectormarines.battle.cordon.CordonStrikes;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
@@ -481,6 +483,12 @@ public final class CordonSetup {
      */
     public static BattleSimulation create(CordonMap cordon, CordonVariant variant, List<ShuttleAssignment> manifest,
                                           CordonSequence.Timetable timetable) {
+        return create(cordon, variant, manifest, timetable, CordonPosture.DEFAULT);
+    }
+
+    /** The Cordon battle on a map already generated, the company's commander playing {@code posture}. */
+    public static BattleSimulation create(CordonMap cordon, CordonVariant variant, List<ShuttleAssignment> manifest,
+                                          CordonSequence.Timetable timetable, CordonPosture posture) {
         MapResult map = cordon.map();
         Random rng = new Random(cordon.battleSeed());
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
@@ -543,7 +551,10 @@ public final class CordonSetup {
         }
         sequence.attachLine(new CordonLineCommand(sim, sequence, armour, logistics, cordon.density(), table, pickets,
                 map.layout));
-        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY, cordon.density(), logistics),
+        CordonStrikes strikes = new CordonStrikes(posture);
+        sequence.attachStrikes(strikes);
+        sim.setAutonomousCommander(Faction.MARINE,
+                new CordonCommand(WIDTH / 2, reserveY, cordon.density(), logistics, strikes),
                 CordonCommand.disclosure(sequence));
         CordonObjectives.install(sim, sequence, variant, cordon.density(), cordon.plan(), map.layout,
                 cordon.corridor(), cordon.battleSeed());

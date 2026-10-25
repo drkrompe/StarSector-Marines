@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.AssaultBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.ColdAccountBattleFixture;
-import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.DustLedgerBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
-import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.Set;
@@ -57,9 +56,7 @@ public enum CorvusChapter {
     /** Same production construction values for campaign launch and opt-in evidence. */
     public BattleFixture fixture(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
         return switch (this) {
-            case DUST_LEDGER -> RaidBattleFixture.fromFactoryInputs(seed, manifest, false,
-                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE)
-                    .withTarget(Strings.get("corvusDustLedgerTarget"), PointOfInterest.Kind.ADMINISTRATIVE);
+            case DUST_LEDGER -> new DustLedgerBattleFixture(seed, manifest, risk, profile);
             case BLIND_WATCH -> SabotageBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, false);
             case COLD_ACCOUNT -> new ColdAccountBattleFixture(AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,

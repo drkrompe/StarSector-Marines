@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.ui.picking.TacticalOrderIntent;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.util.List;
@@ -53,6 +54,8 @@ public final class OrderIntentCursorPanel implements HudPanel {
 
     @Override
     public void update(float dt) {
+        mouseX = (int) Global.getSettings().getMouseX();
+        mouseY = (int) Global.getSettings().getMouseY();
         BattleSimulation sim = ctx.getSim();
         BattleCamera camera = ctx.getCamera();
         if (sim == null || sim.directControl().active() || camera == null
@@ -82,19 +85,13 @@ public final class OrderIntentCursorPanel implements HudPanel {
                 camera, marker, cellX, cellY, alphaMult);
     }
 
+    /**
+     * Deliberately empty: the pointer is polled in {@link #update}, not read off
+     * events. Another surface may consume a mouse move, and a consumed event
+     * throws if its data is read; swallowing the move here instead would break
+     * every other panel's hover.
+     */
     @Override
     public void handleInput(List<InputEventAPI> events) {
-        if (events == null) return;
-        if (ctx.getSim() != null && ctx.getSim().directControl().active()) return;
-        for (InputEventAPI event : events) {
-            // Deliberately not consuming and not skipping consumed events: this
-            // only watches where the pointer is. Swallowing a move would break
-            // every other panel's hover, and ignoring a consumed one would
-            // freeze the marker whenever some other surface took the event.
-            if (event.isMouseMoveEvent()) {
-                mouseX = event.getX();
-                mouseY = event.getY();
-            }
-        }
     }
 }
