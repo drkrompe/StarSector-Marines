@@ -26,10 +26,10 @@ import java.util.List;
  *   ({@link #choose}). It is a structure on the swarm's side, fought as a bore's body is, and withers when its
  *   bore collapses.</li>
  *   <li><b>A spire launches with its bore's surge</b>: surges, not trickles. On each of its bore's surges it
- *   releases a pack of {@link #PACK} when {@link #releases} allows it, rising off its crown
- *   ({@link SwarmFliers#risingFrom}).</li>
+ *   releases a pack of {@link #PACK} when {@link #releases} allows it, hatching out of its crown one by one
+ *   ({@link SwarmFliers#hatch}).</li>
  *   <li><b>A Matriarch comes with her brood.</b> When a mother puts her Matriarch out, a pack of
- *   {@link #BROOD_PACK} rises over her and flies as her escort.</li>
+ *   {@link #BROOD_PACK} hatches off her back one by one as she climbs out, and flies as her escort.</li>
  *   <li><b>The flier law holds.</b> No pack rises while the marines and their allies have no anti-air on the map
  *   ({@link SwarmFliers#hasAirCover}).</li>
  * </ul>
@@ -118,6 +118,10 @@ public final class BroodSpires {
     /** How many Harriers cling to {@code s}'s hooks now ({@link #perched(boolean, int, int)}); none on a dead spire. */
     public int perched(BattleSimulation sim, Spire s) {
         if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return 0;
+        // A pack still hatching leaves its roost one by one: the hooks hold those still to come out.
+        if (s.pack != null && s.pack.unhatched() > 0 && sim.swarmFliers().packs().contains(s.pack)) {
+            return Math.min(PERCHES, s.pack.unhatched());
+        }
         return perched(aloft(sim, s), sim.getSimTickIndex() - s.lastReleaseTick, gapTicks(s.tendedTicks));
     }
 
@@ -256,8 +260,9 @@ public final class BroodSpires {
         float x = s.x + 0.5f, y = s.y + 0.5f;
         if (!releases(SwarmFliers.hasAirCover(sim), aloft(sim, s), tick - s.lastReleaseTick, s.tendedTicks,
                 preyNear(sim, x, y))) return;
-        s.pack = sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
-        sim.swarmFliers().risingFrom(sim, s.pack, x, y);
+        // The pack hatches out of the crown one by one; with emergence off it rises off it whole.
+        s.pack = sim.swarmFliers().hatchUnderCover(sim, HarrierLook.DEFAULT, s.entityId, x, y, x, y, PACK, 0L);
+        if (!sim.swarmEmergence().enabled()) sim.swarmFliers().risingFrom(sim, s.pack, x, y);
         s.lastReleaseTick = tick;
         s.tendedTicks = 0;
         s.packs++;
