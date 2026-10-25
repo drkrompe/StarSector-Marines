@@ -2,11 +2,17 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadArmorPlan;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import java.util.List;
-import java.util.function.Function;
 
-/** Steps a debug company squad through the weapon and armor cards its armory holds. */
+/**
+ * Issues the debug company's squads any weapon or armor card its armory holds. The debug
+ * company holds every card ({@code DebugCompany.unlockEveryCard}), so these are the whole
+ * catalog; a card the armory still refuses is simply not offered.
+ */
 final class DebugSquadCards {
     private DebugSquadCards() { }
 
@@ -15,36 +21,34 @@ final class DebugSquadCards {
         return roster.squads().stream().filter(s -> !s.reserve()).toList();
     }
 
-    /** The squad's weapon card after {@code step} cards, or the same card when none can be issued. */
-    static String cycleWeapons(MarineRoster roster, MarineSquad squad, int step) {
-        return cycle(roster, squad, step, true);
+    /** Every weapon card a squad may be given. */
+    static List<SquadWeaponDoctrine> weaponOptions(MarineRoster roster) {
+        return roster.armory().weaponDoctrines().stream()
+                .filter(d -> roster.armory().knowsWeaponCard(d.id())).toList();
     }
 
-    static String cycleArmor(MarineRoster roster, MarineSquad squad, int step) {
-        return cycle(roster, squad, step, false);
+    /** Every tactic sheet the armory can fill. */
+    static List<SquadArmorPlan> armorOptions(MarineRoster roster) {
+        return SquadEquipmentDoctrines.armorPlans().stream().filter(roster.armory()::canIssue).toList();
     }
 
-    static String weaponName(MarineRoster roster, MarineSquad squad) {
-        return roster.armory().weaponDoctrines().stream().filter(d -> d.id().equals(squad.weaponDoctrineId()))
-                .map(d -> d.displayName()).findFirst().orElse("None");
-    }
-
-    static String armorName(MarineRoster roster, MarineSquad squad) {
-        return roster.armory().armorDoctrines().stream().filter(d -> d.id().equals(squad.armorDoctrineId()))
-                .map(d -> d.displayName()).findFirst().orElse("None");
-    }
-
-    private static String cycle(MarineRoster roster, MarineSquad squad, int step, boolean weapons) {
-        List<String> ids = weapons ? roster.armory().weaponDoctrines().stream().map(d -> d.id()).toList()
-                : roster.armory().armorDoctrines().stream().map(d -> d.id()).toList();
-        String current = weapons ? squad.weaponDoctrineId() : squad.armorDoctrineId();
-        int start = Math.max(0, ids.indexOf(current));
-        for (int i = 1; i <= ids.size(); i++) {
-            String candidate = ids.get(Math.floorMod(start + step * i, ids.size()));
-            var result = weapons ? roster.applySquadEquipment(squad.id(), candidate, squad.armorDoctrineId())
-                    : roster.applySquadEquipment(squad.id(), squad.weaponDoctrineId(), candidate);
-            if (result == SquadEquipmentResult.APPLIED) return candidate;
+    /** Gives each of {@code squads} the weapon card, keeping its armor; returns how many took it. */
+    static int issueWeapons(MarineRoster roster, List<MarineSquad> squads, String doctrineId) {
+        int issued = 0;
+        for (MarineSquad squad : squads) {
+            if (roster.applySquadEquipment(squad.id(), doctrineId, squad.armorDoctrineId())
+                    == SquadEquipmentResult.APPLIED) issued++;
         }
-        return current;
+        return issued;
+    }
+
+    /** Gives each of {@code squads} the tactic sheet, keeping its weapons; returns how many took it. */
+    static int issueArmor(MarineRoster roster, List<MarineSquad> squads, String planId) {
+        int issued = 0;
+        for (MarineSquad squad : squads) {
+            if (roster.applySquadEquipment(squad.id(), squad.weaponDoctrineId(), planId)
+                    == SquadEquipmentResult.APPLIED) issued++;
+        }
+        return issued;
     }
 }

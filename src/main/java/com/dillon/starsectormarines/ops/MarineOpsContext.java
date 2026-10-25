@@ -453,6 +453,7 @@ public class MarineOpsContext {
         if (debugCompanyRoster == null) {
             debugCompanyRoster = debugStarterIssue ? DebugMissionCatalog.expectedCompany(debugPresetMission, getDebugSquadCount())
                     : DebugCompany.seeded(debugCompanyStage, getDebugSquadCount(), debugLoadoutSeed);
+            DebugCompany.unlockEveryCard(debugCompanyRoster);
         }
         return debugCompanyRoster;
     }

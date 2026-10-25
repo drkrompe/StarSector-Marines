@@ -56,13 +56,18 @@ public final class FirstRefit implements Serializable {
         MarineArmory armory = roster.armory();
         // Both paths' weapon cards are registered; only the chosen pair is collected.
         // The other stays a card to find through markets, patrons and recovery.
-        for (Path plan : Path.values()) {
-            armory.ensureWeaponDoctrine(plan.weapons, savedDoctrineName(plan), weapons(plan));
-        }
+        registerWeaponCards(armory);
         chosenPath = path;
         claimed = true;
         learnCards(armory, path);
         return true;
+    }
+
+    /** Registers every path's weapon card with the armory, without collecting any of them. */
+    public static void registerWeaponCards(MarineArmory armory) {
+        for (Path plan : Path.values()) {
+            armory.ensureWeaponDoctrine(plan.weapons, savedDoctrineName(plan), weapons(plan));
+        }
     }
 
     public static List<SquadWeaponIssue> weapons(Path path) {

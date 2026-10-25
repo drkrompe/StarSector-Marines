@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Builds the detached {@link MarineRoster} a debug mission deploys.
@@ -95,6 +97,25 @@ public final class DebugCompany {
             }
         }
         return roster;
+    }
+
+    /**
+     * Opens every card to the debug company: each built-in weapon loadout and the Wayline
+     * paths, every tactic sheet, and no warrant withholding any of them. Run after the squads
+     * are dealt, so the stage still bounds what they are randomly issued; this is the access
+     * the briefing's squad picker needs to override that deal with any card at all.
+     */
+    public static void unlockEveryCard(MarineRoster roster) {
+        MarineArmory armory = roster.armory();
+        FirstRefit.registerWeaponCards(armory);
+        for (SquadWeaponDoctrine doctrine : armory.weaponDoctrines()) {
+            LoadoutCard card = new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id());
+            if (card.defined()) armory.learnLoadoutCard(card);
+        }
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            armory.acquireArmorPlan(plan.id());
+        }
+        roster.setWithheldCards(Set.of());
     }
 
     /** Debug size has no scenario ceiling; only negative input normalizes to zero. */

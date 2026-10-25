@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -246,6 +246,33 @@
               </button>
             </div>
             <div id="mission-debug-controls" class="mission-debug-controls">
+              <!-- Each squad's two cards and each bay slot, drawn as the game draws them; pressing
+                   one opens the kit picker (DebugKitPicker) on every choice there is. -->
+              <div id="mission-debug-kit-heading" class="label heading tone-edge section-heading">SQUAD KIT  ·  EVERY CARD UNLOCKED</div>
+              <div id="mission-debug-kit" class="debug-kit-list">
+                <div each="row in debugKitRows" key="{row.id}" id="{row.id}" class="debug-kit-row console-readout">
+                  <div id="{row.labelId}" class="label heading tone-muted debug-kit-label">{row.label}</div>
+                  <div id="{row.cardsId}" class="debug-kit-cards">
+                    <button id="{row.weaponId}" class="debug-kit-card" onclick="{row.openWeapons}">
+                      <armory-card-chip chip="{row.weaponChip}" />
+                      <div id="{row.weaponNoteId}" class="{row.weaponNoteClasses}">{row.weaponNote}</div>
+                    </button>
+                    <button id="{row.armorId}" class="debug-kit-card" onclick="{row.openArmor}">
+                      <armory-card-chip chip="{row.armorChip}" />
+                      <div id="{row.armorNoteId}" class="{row.armorNoteClasses}">{row.armorNote}</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div id="mission-debug-bay-heading" class="label heading tone-edge section-heading">MECH BAY</div>
+              <div id="mission-debug-bay" class="debug-kit-bay">
+                <button each="slot in debugBaySlots" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
+                  <canvas id="{slot.pictureId}" class="debug-kit-slot-picture" width="96" height="64" />
+                  <div id="{slot.nameId}" class="label debug-kit-slot-name">{slot.name}</div>
+                </button>
+              </div>
+              <div id="mission-debug-fixture-heading" class="label heading tone-edge section-heading">FIXTURE</div>
+              <div id="mission-debug-control-list" class="debug-control-list">
               <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
                 <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
                 <div id="{control.bankId}" class="debug-control-bank">
@@ -256,6 +283,7 @@
                   <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
                   <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
                 </div>
+              </div>
               </div>
             </div>
             <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
@@ -297,6 +325,34 @@
 
           </div>
 
+    <!-- The debug kit picker: every choice for one squad card or bay slot, laid out whole. -->
+    <div id="mission-kit-picker" class="kit-picker-backdrop">
+      <div id="kit-picker-space-above" class="kit-picker-space" />
+      <div id="kit-picker-dialog" class="kit-picker-dialog console-readout">
+        <div id="kit-picker-header" class="kit-picker-header console-header">
+          <img id="kit-picker-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
+          <div id="kit-picker-heading" class="kit-picker-heading">
+            <div id="kit-picker-title" class="label title tone-edge">{kitPicker.title}</div>
+            <div id="kit-picker-subtitle" class="label tone-muted">{kitPicker.subtitle}</div>
+          </div>
+          <button id="kit-picker-close" class="kit-picker-close" onclick="{kitPicker.close}">{i18n.briefingVmDebugClose}</button>
+        </div>
+        <div id="kit-picker-weapons" class="kit-picker-grid">
+          <armory-loadout-card each="tile in kitPicker.weaponTiles" key="{tile.id}" tile="{tile}" />
+        </div>
+        <div id="kit-picker-armor" class="kit-picker-grid">
+          <armory-loadout-card each="tile in kitPicker.armorTiles" key="{tile.id}" tile="{tile}" />
+        </div>
+        <div id="kit-picker-bay" class="kit-picker-bay-grid">
+          <button each="tile in kitPicker.bayTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+            <canvas id="{tile.pictureId}" class="kit-bay-picture" width="234" height="150" />
+            <div id="{tile.nameId}" class="label heading kit-bay-name">{tile.name}</div>
+            <div id="{tile.detailId}" class="label tone-muted kit-bay-detail">{tile.detail}</div>
+          </button>
+        </div>
+      </div>
+      <div id="kit-picker-space-below" class="kit-picker-space" />
+    </div>
   </div>
 </template>
 
@@ -332,6 +388,37 @@
   .tier-numeral { height: 17px; text-align: center; }
   .tier-label { min-height: 24px; font-family: compact; text-align: center; white-space: normal; }
   .mission-debug-controls { flex-direction: column; height: 0px; flex-grow: 1; gap: 3px; padding: 1px; overflow: scroll; }
+  .debug-control-list { flex-direction: column; gap: 3px; }
+  .debug-kit-list { flex-direction: column; gap: 3px; }
+  .debug-kit-row { flex-direction: row; align-items: center; height: 82px; padding: 3px; gap: 4px; border-width: 1px; }
+  .debug-kit-label { width: 70px; height: auto; white-space: normal; }
+  .debug-kit-cards { flex-direction: column; align-items: flex-start; width: 0px; flex-grow: 1; gap: 4px; }
+  .debug-kit-card { flex-direction: row; align-items: center; width: 292px; height: 36px; padding: 0px; border-width: 1px; }
+  .debug-kit-cards .card-chip { pointer-events: none; }
+  .debug-kit-card:hover { border-color: #f2cf68; }
+  .debug-kit-note { width: 0px; flex-grow: 1; padding: 0px 8px; color: #d8bd67; }
+  .debug-kit-note-absent { display: none; }
+  .debug-kit-bay { flex-direction: row; height: 100px; gap: 4px; }
+  .debug-kit-slot { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 100px; padding: 2px; gap: 2px; border-width: 1px; }
+  .debug-kit-slot:hover { border-color: #f2cf68; }
+  .debug-kit-slot-picture { width: 96px; height: 64px; background-color: #0d202c; pointer-events: none; }
+  .debug-kit-slot-name { width: 100%; height: 28px; font-family: compact; text-align: center; white-space: normal; pointer-events: none; }
+  .kit-picker-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12e0; }
+  .kit-picker-space { height: 0px; flex-grow: 1; }
+  .kit-picker-dialog { flex-direction: column; width: 1800px; height: 960px; padding: 12px; gap: 10px; border-width: 2px; border-color: #c9b77a; background-color: #101a1f; }
+  .kit-picker-header { flex-direction: row; align-items: center; height: 60px; padding: 8px; gap: 10px; border-width: 1px; }
+  .kit-picker-heading { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
+  #kit-picker-title { height: 27px; }
+  #kit-picker-subtitle { height: 18px; }
+  .kit-picker-close { width: 120px; height: 36px; border-width: 2px; font-family: heading; text-align: center; }
+  .kit-picker-grid { display: grid; height: 0px; flex-grow: 1; gap: 14px; padding: 12px 24px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; overflow: scroll; }
+  .kit-picker-bay-grid { display: grid; height: 0px; flex-grow: 1; gap: 12px; padding: 12px 20px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; overflow: scroll; }
+  .debug-kit-option { flex-direction: column; width: 250px; height: 214px; padding: 6px; gap: 4px; border-width: 2px; border-color: #2a5566; background-color: #09131d; }
+  .debug-kit-option:hover { background-color: #0e1a26; border-color: #53c6e8; }
+  .debug-kit-option.selected { background-color: #16242f; border-color: #f2cf68; }
+  .kit-bay-picture { width: 234px; height: 150px; background-color: #0d202c; pointer-events: none; }
+  .kit-bay-name { height: 18px; color: #eaf3ff; pointer-events: none; }
+  .kit-bay-detail { height: 28px; font-family: compact; white-space: normal; pointer-events: none; }
   .debug-control-row { flex-direction: row; align-items: center; min-height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
   .debug-control-bank { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 28px; gap: 2px; }
   .debug-control-label { width: 112px; height: auto; white-space: normal; }

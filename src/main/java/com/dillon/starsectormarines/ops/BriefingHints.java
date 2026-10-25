@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
@@ -43,6 +44,14 @@ final class BriefingHints {
             binder.bind(markup.requireElement("mission-transport-readout"), landingCraft);
         }
         if (!Boolean.TRUE.equals(props.get("debugExpanded"))) return binder;
+        // The kit picker's cards open the same field notes and seat sheets they do in the Armory.
+        if (props.get("kitPicker") instanceof Map<?, ?> picker && Boolean.TRUE.equals(picker.get("open"))) {
+            for (String key : List.of("weaponTiles", "armorTiles")) {
+                List<FleetArmoryViewModel.DoctrineTile> tiles = new ArrayList<>();
+                for (Object tile : (List<?>) picker.get(key)) tiles.add((FleetArmoryViewModel.DoctrineTile) tile);
+                if (!tiles.isEmpty()) ArmorySpecSheets.bindDoctrineTiles(binder, markup, new Reactor().signal(tiles));
+            }
+        }
         for (Object value : (List<?>) props.getOrDefault("airRows", List.of())) {
             BriefingViewModel.AirRow row = (BriefingViewModel.AirRow) value;
             binder.bind(markup.requireElement(row.id()), new SpecSheet(row.label(),

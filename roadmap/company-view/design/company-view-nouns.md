@@ -1727,6 +1727,14 @@ ceiling; requested scale is limited only by the host's practical runtime resourc
 and missions still apply their real arrival policy. Player-side vehicle support remains deferred until a
 production vehicle deployment seam exists.
 
+The stage bounds what each squad is dealt, not what the briefing may issue. Once
+dealt, the debug company holds every weapon card and tactic sheet, and no warrant
+withholds any of them, so any squad can be given any card. The briefing's kit
+picker shows each squad's two cards as chips and each bay slot as a picture of
+what stands in it; choosing one opens a modal of every option drawn the way the
+game draws it: the Armory's own loadout cards, or the Mech Lab's chassis and hull
+previews. The choice can be issued to one squad or to every squad at once.
+
 ## Invariants for future work
 
 - `MarineRoster` remains authoritative for enduring personnel and organization.

@@ -68,6 +68,9 @@ final class BriefingViewModel {
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
         putDebugDrawer(props, false, false, () -> { });
+        props.put("debugKitRows", List.of());
+        props.put("debugBaySlots", List.of());
+        props.put("kitPicker", DebugKitPicker.modal(null, 0, null, new DebugBaySlot[0], card -> { }, slot -> { }, () -> { }));
         return withEmptyStyles(props);
     }
 
@@ -265,6 +268,18 @@ final class BriefingViewModel {
         if (!Boolean.TRUE.equals(props.get("debugExpanded"))) {
             UiElement drawer = markup.requireElement("mission-debug-drawer");
             drawer.parent().remove(drawer);
+        }
+        // The kit picker is in the document only while it is choosing, and shows only its own grid.
+        Map<?, ?> picker = props.get("kitPicker") instanceof Map<?, ?> map ? map : Map.of();
+        if (!Boolean.TRUE.equals(picker.get("open"))) {
+            UiElement modal = markup.requireElement("mission-kit-picker");
+            modal.parent().remove(modal);
+            return;
+        }
+        for (String grid : List.of("weapon", "armor", "bay")) {
+            if (!((List<?>) picker.get(grid + "Tiles")).isEmpty()) continue;
+            UiElement unused = markup.requireElement("kit-picker-" + (grid.equals("weapon") ? "weapons" : grid));
+            unused.parent().remove(unused);
         }
     }
 

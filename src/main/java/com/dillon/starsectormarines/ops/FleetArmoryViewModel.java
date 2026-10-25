@@ -67,6 +67,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -633,33 +634,40 @@ public final class FleetArmoryViewModel {
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadArmorDoctrine issued : distinctArmorIssues()) {
             SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(issued.id());
-            SquadLoadoutPresentationDef presentation = loadoutPresentation(
-                    plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
-                    maximumArmorTier(issued), plan.description());
             if (!filterAccepts(maximumArmorTier(issued))) continue;
             String id = "armor-doctrine:" + plan.id();
             SquadEquipmentPreview candidate = roster.previewSquadEquipment(
                     selectedSquadId.get(), selectedWeaponDoctrineId.get(), plan.id(),
                     equipmentIssueResources);
-            // The authored tier is what the sheet IS; the issued band is what
-            // this company would actually put in the field today. Showing both
-            // is the point of the picker under role-and-access.md — a sheet does
-            // not get better, the kit filling it does.
-            // The card shows the fielded tier as its chevrons, not in words.
-            String metadata = Strings.join("separatorDot", plan.armorClassDisplayName(), plan.tradition().displayName());
-            List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
-            List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
-            tiles.add(doctrineTile(id, plan.id().equals(selected),
-                    plan.displayName(), LoadoutEffectiveness.armorRating(issued),
-                    presentation, metadata, maximumArmorTier(issued),
-                    roleComposition(plan), joinSpans(patterns), patterns,
-                    armorCapabilities(capabilities), capabilities,
-                    cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition()),
-                    armorSeats(issued), armorSeatSheets(issued), () -> selectArmorDoctrine(plan.id()))
+            tiles.add(armorTile(id, plan, issued, roleComposition(plan), plan.id().equals(selected),
+                    () -> selectArmorDoctrine(plan.id()))
                     .withIssue(() -> issueArmorDoctrine(plan.id()), !candidate.canApply(),
                             issueReason(candidate), plan.id().equals(currentSquadArmorDoctrine())));
         }
         return rankedByRating(tiles);
+    }
+
+    /** Shared card presentation for a tactic sheet as {@code issued} fills it; {@code id} must keep the armor-doctrine: prefix. */
+    static DoctrineTile armorTile(String id, SquadArmorPlan plan, SquadArmorDoctrine issued,
+                                  String composition, boolean selected, Runnable select) {
+        SquadLoadoutPresentationDef presentation = loadoutPresentation(
+                plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
+                maximumArmorTier(issued), plan.description());
+        // The authored tier is what the sheet IS; the issued band is what
+        // this company would actually put in the field today. Showing both
+        // is the point of the picker under role-and-access.md — a sheet does
+        // not get better, the kit filling it does.
+        // The card shows the fielded tier as its chevrons, not in words.
+        String metadata = Strings.join("separatorDot", plan.armorClassDisplayName(), plan.tradition().displayName());
+        List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
+        List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
+        return doctrineTile(id, selected,
+                plan.displayName(), LoadoutEffectiveness.armorRating(issued),
+                presentation, metadata, maximumArmorTier(issued),
+                composition, joinSpans(patterns), patterns,
+                armorCapabilities(capabilities), capabilities,
+                cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition()),
+                armorSeats(issued), armorSeatSheets(issued), select);
     }
 
     /**
@@ -669,7 +677,7 @@ public final class FleetArmoryViewModel {
      * somebody wrote them, which put the starter kit above everything the
      * company has bought since. Ties break by name so the order is stable.
      */
-    private static List<DoctrineTile> rankedByRating(List<DoctrineTile> tiles) {
+    static List<DoctrineTile> rankedByRating(List<DoctrineTile> tiles) {
         List<DoctrineTile> ranked = new ArrayList<>(tiles);
         ranked.sort(Comparator.comparingInt(DoctrineTile::rating).reversed()
                 .thenComparing(DoctrineTile::name));
@@ -1106,6 +1114,11 @@ public final class FleetArmoryViewModel {
      * line beneath it ({@code role-and-access.md}).
      */
     private String roleComposition(SquadArmorPlan plan) {
+        return roleComposition(plan, this::ownsAnyPatternFor);
+    }
+
+    /** The sheet's roles, marking each {@code owned} says the company has no pattern for. */
+    static String roleComposition(SquadArmorPlan plan, BiPredicate<ArmorRole, ArmorClass> owned) {
         List<String> parts = new ArrayList<>();
         for (ArmorClass armorClass : ArmorClass.values()) {
             Map<ArmorRole, Integer> counts = new EnumMap<>(ArmorRole.class);
@@ -1119,7 +1132,7 @@ public final class FleetArmoryViewModel {
                 String part = plan.isMixedClass()
                         ? Strings.format("squadDoctrineRoleCountInClass", count, roleName, armorClass.displayName())
                         : Strings.format("squadDoctrineCount", count, roleName);
-                if (!ownsAnyPatternFor(role, armorClass)) part = Strings.format("squadDoctrineRoleNoKit", part);
+                if (!owned.test(role, armorClass)) part = Strings.format("squadDoctrineRoleNoKit", part);
                 parts.add(part);
             }
         }

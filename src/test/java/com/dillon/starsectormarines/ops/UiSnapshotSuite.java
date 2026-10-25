@@ -170,10 +170,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> MISSION_SELECT_COMPONENTS = List.of(
             "data/ui/components/missions/mission-dialogue.mlx",
             "data/ui/components/missions/mission-select.mlx");
-    private static final List<String> MISSION_BRIEFING_COMPONENTS = List.of(
-            "data/ui/components/missions/mission-dialogue.mlx",
-            "data/ui/components/missions/mission-comms.mlx",
-                "data/ui/components/missions/mission-briefing.mlx");
+    private static final List<String> MISSION_BRIEFING_COMPONENTS = BriefingScreen.COMPONENT_PATHS;
     private static final List<String> SQUAD_DEPLOYMENT_COMPONENTS = List.of(
             "data/ui/components/missions/squad-deployment.mlx");
     private static final List<String> STATIONING_COMPONENTS = List.of(
@@ -601,7 +598,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 BriefingScreen.previewProps(true, true), 1f, false, "power-barrage")),
                 new SnapshotArtifact("mission-briefing-air-hint-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                BriefingScreen.previewProps(true, true), 1f, false, "air-dagger")));
+                                BriefingScreen.previewProps(true, true), 1f, false, "air-dagger")),
+                new SnapshotArtifact("mission-briefing-debug-kit-drawer-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                DebugKitPicker.previewProps(null), 1f, false)),
+                new SnapshotArtifact("mission-briefing-debug-kit-drawer-scrolled-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                DebugKitPicker.previewProps(null), 1f, true)),
+                new SnapshotArtifact("mission-briefing-debug-kit-weapons-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                DebugKitPicker.previewProps(DebugKitPicker.Kind.WEAPONS), 1f, false)),
+                new SnapshotArtifact("mission-briefing-debug-kit-armor-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                DebugKitPicker.previewProps(DebugKitPicker.Kind.ARMOR), 1f, false)),
+                new SnapshotArtifact("mission-briefing-debug-kit-bay-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                DebugKitPicker.previewProps(DebugKitPicker.Kind.BAY), 1f, false)));
     }
 
     /**
@@ -1314,6 +1326,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
+            if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
+                DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
+                        MechLabDollCanvas::headlessAssets);
+                if (props.get("kitPicker") instanceof Map<?, ?> picker && Boolean.TRUE.equals(picker.get("open"))) {
+                    DebugKitPicker.wireBayPictures(document, instance, (List<?>) picker.get("bayTiles"),
+                            MechLabDollCanvas::headlessAssets);
+                }
+            }
             if (hintTarget != null) {
                 openSpecSheet(document, hints, width, height, uiScale, instance.requireElement(hintTarget));
             }

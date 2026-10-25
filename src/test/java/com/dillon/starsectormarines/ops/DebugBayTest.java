@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -33,14 +36,26 @@ class DebugBayTest {
         assertEquals(SpawnInOnslaught.ID, powers.get(0).id);
     }
 
-    @Test void aSquadCardCycleKeepsTheOtherCardAndMovesTheSquad() {
-        var roster = DebugMissionCatalog.starterCompany(2);
-        var squad = DebugSquadCards.lineSquads(roster).get(0);
+    @Test void anUnlockedDebugCompanyCanIssueEveryCardAndKeepsTheOtherHalf() {
+        var roster = DebugMissionCatalog.starterCompany(1);
+        DebugCompany.unlockEveryCard(roster);
+        var squads = DebugSquadCards.lineSquads(roster);
+        var squad = squads.get(0);
         String armor = squad.armorDoctrineId();
-        String weapons = squad.weaponDoctrineId();
-        String next = DebugSquadCards.cycleWeapons(roster, squad, 1);
-        assertEquals(next, squad.weaponDoctrineId());
+        var offered = DebugSquadCards.weaponOptions(roster).stream().map(SquadWeaponDoctrine::id).toList();
+        for (SquadWeaponDoctrine doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+            assertTrue(offered.contains(doctrine.id()), doctrine.id());
+            assertEquals(1, DebugSquadCards.issueWeapons(roster, squads, doctrine.id()), doctrine.id());
+            assertEquals(doctrine.id(), squad.weaponDoctrineId());
+        }
         assertEquals(armor, squad.armorDoctrineId());
-        assertEquals(weapons, DebugSquadCards.cycleWeapons(roster, squad, -1));
+        String weapons = squad.weaponDoctrineId();
+        var sheets = DebugSquadCards.armorOptions(roster);
+        assertTrue(sheets.size() > 1, "a starter company knows one sheet; the debug company knows them all");
+        for (var plan : sheets) {
+            assertEquals(1, DebugSquadCards.issueArmor(roster, squads, plan.id()), plan.id());
+            assertEquals(plan.id(), squad.armorDoctrineId());
+        }
+        assertEquals(weapons, squad.weaponDoctrineId());
     }
 }

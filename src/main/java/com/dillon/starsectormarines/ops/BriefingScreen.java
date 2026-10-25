@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.DebugBayPreviewAssets;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
@@ -184,6 +185,8 @@ public class BriefingScreen implements Screen {
     static final String ROOT_COMPONENT = "mission-briefing";
     static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/missions/mission-dialogue.mlx",
+            "data/ui/components/armory/armory-card-chip.mlx",
+            "data/ui/components/armory/armory-loadout-card.mlx",
             "data/ui/components/missions/mission-briefing.mlx",
             "data/ui/components/missions/mission-comms.mlx");
 
@@ -263,8 +266,12 @@ public class BriefingScreen implements Screen {
      */
     private int debugMechCount = DebugCompanyStage.FIRST_CONTRACT.mechs;
     private int debugMechRoll;
-    /** How many line squads the debug briefing offers weapon and armor cards for. */
+    /** How many line squads the debug briefing offers their own weapon and armor cards for. */
     private static final int DEBUG_CARD_SQUADS = 4;
+    /** Which squad card or bay slot the debug kit picker is choosing, if any. */
+    private final DebugKitPicker kitPicker = new DebugKitPicker();
+    /** The mech set the debug bay pictures draw from, released when the briefing closes. */
+    private final DebugBayPreviewAssets bayPreviews = new DebugBayPreviewAssets();
     /** The four bay slots once the player has edited them; null while the preset's own roster stands. */
     private DebugBaySlot[] debugBay;
 
@@ -353,6 +360,7 @@ public class BriefingScreen implements Screen {
                 debugMechCount = preset.mechs();
                 debugMechRoll = 0;
                 debugBay = null;
+                kitPicker.close();
                 debugAirSelections.clear();
                 debugWarship = DebugWarship.Spec.OFF;
                 lastDebugPresetRevision = ctx.debugPresetRevision();
@@ -398,8 +406,9 @@ public class BriefingScreen implements Screen {
             BriefingViewModel.applyVisibility(candidate, props);
             built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
+            built.theme(MarineOpsThemes.standard()).onCancel(this::onCancel);
             candidateHints = BriefingHints.install(built, candidate, props);
+            wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
@@ -422,6 +431,48 @@ public class BriefingScreen implements Screen {
             secondSquadGuide.update();
             input = new StarsectorUiInputAdapter(document, viewport);
         }
+    }
+
+    /** Draws each bay slot and bay choice the debug drawer and kit picker show. */
+    private void wireDebugBayPictures(UiDocument built, MarkupInstance candidate, Map<String, Object> props) {
+        if (!Boolean.TRUE.equals(props.get("debugExpanded"))) return;
+        DebugKitPicker.wireBayPictures(built, candidate, (List<?>) props.get("debugBaySlots"), bayPreviews::mechs);
+        if (props.get("kitPicker") instanceof Map<?, ?> picker && Boolean.TRUE.equals(picker.get("open"))) {
+            DebugKitPicker.wireBayPictures(built, candidate, (List<?>) picker.get("bayTiles"), bayPreviews::mechs);
+        }
+    }
+
+    /** Escape closes the kit picker before it leaves the briefing. */
+    private void onCancel() {
+        if (kitPicker.kind() != null) closeKitPicker();
+        else onBack();
+    }
+
+    private void openKitPicker(DebugKitPicker.Kind kind, int target) {
+        kitPicker.open(kind, target);
+        rebuild();
+    }
+
+    private void closeKitPicker() {
+        kitPicker.close();
+        rebuild();
+    }
+
+    /** Issues the picked card to the picker's squads, or fills its bay slot, and closes it. */
+    private void pickKitCard(String cardId) {
+        var roster = ctx.getDebugCompanyRoster();
+        var squads = DebugKitPicker.targets(roster, kitPicker.target());
+        if (kitPicker.kind() == DebugKitPicker.Kind.WEAPONS) DebugSquadCards.issueWeapons(roster, squads, cardId);
+        else if (kitPicker.kind() == DebugKitPicker.Kind.ARMOR) DebugSquadCards.issueArmor(roster, squads, cardId);
+        closeKitPicker();
+    }
+
+    private void pickKitSlot(Mission mission, DebugBaySlot slot) {
+        DebugBaySlot[] slots = debugBaySlots(mission).clone();
+        int target = kitPicker.target();
+        if (target >= 0 && target < slots.length) slots[target] = slot;
+        debugBay = slots;
+        closeKitPicker();
     }
 
     private PreparationGuide.Lesson campaignLesson() {
@@ -492,6 +543,7 @@ public class BriefingScreen implements Screen {
                 : "");
         props.put("tierSteps", debug && DebugMissionCatalog.scenario(mission) == null ? retainedTierSteps(mission) : List.of());
         props.put("debugControls", debug ? retainedDebugControls(mission) : List.of());
+        putDebugKit(props, mission, debug);
         props.put("airRows", debug && DevConfig.DEBUG_AIRCRAFT_PICKER
                 ? retainedAirRows() : List.of());
 
@@ -705,6 +757,19 @@ public class BriefingScreen implements Screen {
         return List.copyOf(steps);
     }
 
+    /** The drawer's squad cards and bay slots, and the kit picker modal over them. */
+    private void putDebugKit(Map<String, Object> props, Mission mission, boolean debug) {
+        if (!debug) return;
+        var roster = ctx.getDebugCompanyRoster();
+        props.put("debugKitRows", DebugKitPicker.squadRows(roster, DEBUG_CARD_SQUADS,
+                kind -> openKitPicker(kind, DebugKitPicker.ALL_SQUADS), this::openKitPicker));
+        DebugBaySlot[] bay = debugBaySlots(mission);
+        props.put("debugBaySlots", DevConfig.DEBUG_MECH_SUPPORT_PICKER
+                ? DebugKitPicker.baySlots(bay, slot -> openKitPicker(DebugKitPicker.Kind.BAY, slot)) : List.of());
+        props.put("kitPicker", kitPicker.modal(roster, bay, this::pickKitCard,
+                slot -> pickKitSlot(mission, slot), this::closeKitPicker));
+    }
+
     private List<BriefingViewModel.DebugControl> retainedDebugControls(Mission mission) {
         List<BriefingViewModel.DebugControl> controls = new ArrayList<>();
         int squads = ctx.getDebugSquadCount();
@@ -715,28 +780,6 @@ public class BriefingScreen implements Screen {
                 () -> adjustDebugSquadCount(1), () -> adjustDebugSquadCount(10),
                 () -> { }));
 
-        var cardRoster = ctx.getDebugCompanyRoster();
-        var cardSquads = DebugSquadCards.lineSquads(cardRoster);
-        for (int i = 0; i < Math.min(cardSquads.size(), DEBUG_CARD_SQUADS); i++) {
-            var squad = cardSquads.get(i);
-            controls.add(conquestControl("debug-squad-weapons-" + (i + 1), "Squad " + (i + 1) + " weapons",
-                    DebugSquadCards.weaponName(cardRoster, squad), false, false,
-                    () -> { DebugSquadCards.cycleWeapons(cardRoster, squad, -1); rebuild(); },
-                    () -> { DebugSquadCards.cycleWeapons(cardRoster, squad, 1); rebuild(); }));
-            controls.add(conquestControl("debug-squad-armor-" + (i + 1), "Squad " + (i + 1) + " armor",
-                    DebugSquadCards.armorName(cardRoster, squad), false, false,
-                    () -> { DebugSquadCards.cycleArmor(cardRoster, squad, -1); rebuild(); },
-                    () -> { DebugSquadCards.cycleArmor(cardRoster, squad, 1); rebuild(); }));
-        }
-        if (DevConfig.DEBUG_MECH_SUPPORT_PICKER) {
-            DebugBaySlot[] bay = debugBaySlots(mission);
-            for (int i = 0; i < DebugBaySlot.SLOTS; i++) {
-                int slot = i;
-                controls.add(conquestControl("debug-bay-slot-" + (i + 1), "Bay slot " + (i + 1),
-                        bay[i].label, false, false,
-                        () -> cycleDebugBaySlot(mission, slot, -1), () -> cycleDebugBaySlot(mission, slot, 1)));
-            }
-        }
         // Only the two missions whose maps are made of places read a sprawl, so
         // the dial is offered where it does something and nowhere else.
         if (DebugMissionCatalog.scenario(mission) == null && (mission.type == MissionType.ASSAULT || mission.type == MissionType.RAID)) {
@@ -2108,13 +2151,6 @@ public class BriefingScreen implements Screen {
         return slots;
     }
 
-    private void cycleDebugBaySlot(Mission mission, int slot, int step) {
-        DebugBaySlot[] slots = debugBaySlots(mission).clone();
-        slots[slot] = DebugBaySlot.cycle(slots[slot], step);
-        debugBay = slots;
-        rebuild();
-    }
-
     private DebugMechRoster debugMechRoster(Mission mission) {
         if (mission == null || !mission.source.isDebug()) return null;
         if (debugBay != null) return DebugMechRoster.ofSlots(java.util.Arrays.asList(debugBay));
@@ -2659,6 +2695,8 @@ public class BriefingScreen implements Screen {
         if (hints != null) hints.clear();
         if (document != null) document.deactivateInput();
         input = null;
+        kitPicker.close();
+        bayPreviews.release();
     }
 
     private WaylineNarration.Line displayedBriefingNarration() {
