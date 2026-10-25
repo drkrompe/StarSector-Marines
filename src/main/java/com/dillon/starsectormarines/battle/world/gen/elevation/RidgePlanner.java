@@ -360,7 +360,8 @@ public final class RidgePlanner {
         int trim = switch (shape) {
             // A capsule chain: its round ends lie inside the run, so the cliffs close round the segment's ends.
             case PLAIN -> (int) Math.ceil(radius);
-            case NATURAL, NARROW -> (int) Math.ceil(NATURAL_TIP) + 1;
+            // A spur's tip runs out at the run's end, as far as a capsule's round end reaches.
+            case NATURAL, NARROW -> (int) Math.floor(NATURAL_TIP);
             case BERM -> BERM_END;
         };
         int n = run.size();
@@ -378,9 +379,11 @@ public final class RidgePlanner {
             for (int i = 0; i < n; i++) {
                 double w = waist + (full - waist) * (.5 + .5 * swell.at(i));
                 double end = Math.min(i - trim, n - 1 - trim - i);
-                if (end < taper) w = tip + (w - tip) * smooth(Math.max(0, end) / taper);
+                // Toward each end the spur narrows and comes back onto the path, so it runs out where the band does.
+                double toEnd = end < taper ? smooth(Math.max(0, end) / taper) : 1;
+                w = tip + (w - tip) * toEnd;
                 r[i] = w;
-                offset[i] = wander.at(i) * (full - w) * .9;
+                offset[i] = wander.at(i) * (full - w) * .9 * toEnd;
             }
         } else {
             Arrays.fill(r, radius);

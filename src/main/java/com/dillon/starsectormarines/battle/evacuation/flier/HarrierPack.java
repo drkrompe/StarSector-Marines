@@ -55,6 +55,10 @@ public final class HarrierPack {
     long hatchSource;
     float hatchX, hatchY;
     HarrierLook hatchLook;
+    /** The circuit it flies off its spire's roost, or {@code null} for a pack that hunts. */
+    HarrierPatrol patrol;
+    /** Members that landed back on their spire this tick, for the battle to take off the field. */
+    final List<HarrierFlight> landedNow = new ArrayList<>();
     private final float[] push = new float[2];
 
     public HarrierPack(int id, float anchorX, float anchorY) {
@@ -72,6 +76,8 @@ public final class HarrierPack {
     public int unhatched() { return unhatched; }
     public float loiterX() { return loiterX; }
     public float loiterY() { return loiterY; }
+    /** The circuit the pack flies, or {@code null}. */
+    public HarrierPatrol patrol() { return patrol; }
 
     /** Moves the no-prey loiter point (the escort's position, say). */
     public void anchorAt(float x, float y) {
@@ -169,8 +175,31 @@ public final class HarrierPack {
             loiterX = anchorX;
             loiterY = anchorY;
         }
+        if (target == 0L && patrol != null && patrol.homing()) {
+            land(dt);
+            return;
+        }
         for (HarrierFlight m : members) circle(m, loiterSeconds, dt);
         if (target != 0L && unhatched <= 0 && loiterSeconds >= HarrierRules.MIN_LOITER_SECONDS && gathered()) commit();
+    }
+
+    /** A patrol home over its spire: each member drops onto the crown and lands there, one by one. */
+    private void land(float dt) {
+        for (int i = members.size() - 1; i >= 0; i--) {
+            HarrierFlight m = members.get(i);
+            HarrierSteering.separation(m, members, push);
+            float d = m.body.distanceTo(patrol.homeX, patrol.homeY);
+            HarrierSteering.fly(m.body, patrol.homeX, patrol.homeY, push[0] * 0.3f, push[1] * 0.3f,
+                    Math.min(HarrierRules.LOITER_SPEED, 1f + d), HarrierRules.LOITER_TURN_DEG_PER_SEC, dt);
+            float low = Math.max(HarrierRules.ROOST_ALTITUDE, Math.min(1f, d / HarrierRules.DIVE_GLIDE_CELLS * 2f));
+            m.altitude = HarrierSteering.ease(m.altitude, low, dt);
+            if (d <= HarrierPatrol.LAND_REACH && m.altitude <= HarrierRules.ROOST_ALTITUDE + 0.05f) {
+                members.remove(i);
+                landedNow.add(m);
+                patrol.landed++;
+            }
+        }
+        if (!landedNow.isEmpty()) reslot();
     }
 
     /** Flies one member round the loiter ring, at its slot, {@code seconds} into the orbit. */

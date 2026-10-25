@@ -55,6 +55,17 @@ public final class TurnAwareCorridor {
      * dispatch does, where an end is a drop point or a map edge rather than a hull or a click.
      */
     public static Result refine(float[][] route, VehicleType type, NavigationGrid grid, Pose departure) {
+        return refine(route, type, grid, departure, null);
+    }
+
+    /**
+     * {@link #refine(float[][], VehicleType, NavigationGrid, Pose)} with every footprint judged brushing
+     * ({@link SoftBrush#fits}): whole and slackened against {@code soft}, the grid with the hull's soft ground open,
+     * and exact but inset by the brush depth against {@code grid}. The last rung of an order's proof; {@code null}
+     * judges strictly. Bends, pivots and the departure maneuver are judged strictly either way.
+     */
+    static Result refine(float[][] route, VehicleType type, NavigationGrid grid, Pose departure,
+                         NavigationGrid soft) {
         int given = Math.min(route[0].length, route[1].length);
         if (given < 2) return Result.failure(given == 0 ? 0f : route[0][0], given == 0 ? 0f : route[1][0]);
 
@@ -121,7 +132,7 @@ public final class TurnAwareCorridor {
             addDistinct(outX, outY, owner, -1, xs[count - 1], ys[count - 1]);
 
             float[][] refined = arrays(outX, outY);
-            float[] failed = firstInfeasible(refined, length, width, grid, type, departure);
+            float[] failed = firstInfeasible(refined, length, width, grid, type, departure, soft);
             if (failed == null) return Result.success(refined);
             if (failed.length > 3) return Result.success(truncated(refined, (int) failed[2], failed[3], failed[4]));
             int bend = owner.get((int) failed[2]);
@@ -140,7 +151,7 @@ public final class TurnAwareCorridor {
      * {@code {x, y, index, lastClearX, lastClearY}}, the place to shorten the route to.
      */
     private static float[] firstInfeasible(float[][] refined, float length, float width, NavigationGrid grid,
-                                           VehicleType type, Pose departure) {
+                                           VehicleType type, Pose departure, NavigationGrid soft) {
         float total = 0f;
         for (int i = 1; i < refined[0].length; i++) {
             total += distance(refined[0][i - 1], refined[1][i - 1], refined[0][i], refined[1][i]);
@@ -161,8 +172,8 @@ public final class TurnAwareCorridor {
                 float x = ax + dx * t, y = ay + dy * t;
                 float along = run + segmentLength * t;
                 if (along < grace) {
-                    if (departs || VehicleFootprint.isPoseFeasible(x, y, facing,
-                            type.visualLengthCells, type.visualWidthCells, grid)) continue;
+                    if (departs || fits(x, y, facing, type.visualLengthCells, type.visualWidthCells,
+                            type, grid, soft)) continue;
                     if (!departureAsked) {
                         departureAsked = true;
                         departs = VehicleController.canTurnOntoRouteAt(grid, type, departure.x, departure.y,
@@ -171,7 +182,7 @@ public final class TurnAwareCorridor {
                     if (departs) continue;
                     return new float[]{x, y, i};
                 }
-                if (VehicleFootprint.isPoseFeasible(x, y, facing, length, width, grid)) {
+                if (fits(x, y, facing, length, width, type, grid, soft)) {
                     clearX = x;
                     clearY = y;
                     clearRun = along;
@@ -185,6 +196,13 @@ public final class TurnAwareCorridor {
             run += segmentLength;
         }
         return null;
+    }
+
+    /** The footprint test route proof samples with: strict, or brushing where {@code soft} is given. */
+    private static boolean fits(float x, float y, float facing, float length, float width, VehicleType type,
+                                NavigationGrid grid, NavigationGrid soft) {
+        if (soft == null) return VehicleFootprint.isPoseFeasible(x, y, facing, length, width, grid);
+        return SoftBrush.fits(x, y, facing, length, width, type.visualLengthCells, type.visualWidthCells, grid, soft);
     }
 
     /** {@code refined} ending at ({@code x}, {@code y}) on the segment that ends at point {@code index}. */
