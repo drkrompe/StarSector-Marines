@@ -10,16 +10,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WithdrawalExtractionTest {
 
-    private static final int MARGIN = WithdrawalExtraction.EXTRACTION_MARGIN_CELLS;
-
     @Test
-    void troopsOnOrBesideAPadExtractAndTheRestDoNot() {
-        List<LandingPad> pads = List.of(new LandingPad(50, 50, 3, 2, LandingPad.Approach.NORTH));
+    void troopsInsideThePadsCircleExtractAndTheRestDoNot() {
+        LandingPad pad = new LandingPad(50, 50, 3, 2, LandingPad.Approach.NORTH);
+        List<LandingPad> pads = List.of(pad);
+        float cx = WithdrawalExtraction.centreX(pad);
+        float cy = WithdrawalExtraction.centreY(pad);
+        float r = WithdrawalExtraction.radius(pad);
 
-        assertTrue(WithdrawalExtraction.extracts(pads, 50f, 50f));
-        assertTrue(WithdrawalExtraction.extracts(pads, 50f + 3 + MARGIN, 50f - 2 - MARGIN));
-        assertFalse(WithdrawalExtraction.extracts(pads, 50f + 3 + MARGIN + 0.5f, 50f));
-        assertFalse(WithdrawalExtraction.extracts(pads, Float.NaN, 50f));
+        assertTrue(WithdrawalExtraction.extracts(pads, cx, cy));
+        assertTrue(WithdrawalExtraction.extracts(pads, cx + r - 0.01f, cy));
+        assertFalse(WithdrawalExtraction.extracts(pads, cx + r + 0.01f, cy));
+        // The corner of the bounding square lies outside the circle.
+        assertFalse(WithdrawalExtraction.extracts(pads, cx + r * 0.8f, cy + r * 0.8f));
+        assertFalse(WithdrawalExtraction.extracts(pads, Float.NaN, cy));
     }
 
     @Test

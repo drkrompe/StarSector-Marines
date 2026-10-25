@@ -107,10 +107,19 @@ public final class CivilianEvacuationTracker {
         return transition(entityId, LOST);
     }
 
-    /** A death event, unlike terminal abandonment, is irreversible across story retries. */
+    /**
+     * A death event, unlike terminal abandonment, is irreversible across story retries. It also confirms a member
+     * already marked lost: the movement driver marks a member lost the tick its body is gone, which can come before
+     * the death mailbox drains, and a death read after that must still count as a death.
+     *
+     * @return whether this call newly confirmed the death
+     */
     public boolean markDead(long entityId) {
-        if (!transition(entityId, LOST)) return false;
-        confirmedDead[indexOf(entityId)] = true;
+        int index = indexOf(entityId);
+        if (sealed || index < 0) return false;
+        if (states[index] == ACTIVE) transition(entityId, LOST);
+        if (states[index] != LOST || confirmedDead[index]) return false;
+        confirmedDead[index] = true;
         return true;
     }
 

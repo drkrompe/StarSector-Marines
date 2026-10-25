@@ -90,6 +90,12 @@ class BoreAssaultTest {
     }
 
     @Test
+    void aSectionComingUpTrailsItsMilitiaUntilTheyAreOnTheLine() {
+        assertEquals(100 + 13, BoreAssault.sectionRing(40f, 100.0, 13f), "the militia still a hundred cells out");
+        assertEquals(BoreAssault.sectionRing(40f), BoreAssault.sectionRing(40f, 20.0, 13f), "on the support line");
+    }
+
+    @Test
     void aNewSurgeIsSeenOnce() {
         BoreAssault assault = new BoreAssault("1", BORE, BORE, 0f, -1f, false, 3, 0);
         assertFalse(assault.surged(3, 10));

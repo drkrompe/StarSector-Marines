@@ -71,9 +71,10 @@ public final class EngagementService {
      */
     public static boolean weaponTracksFliers(UnitRosterService roster, long shooter) {
         if (shooter == 0L || !roster.identity().has(shooter)) return false;
+        // A hull carries no handheld primary: its guns' reach into the air is the turret system's to answer.
         WeaponDef weapon = roster.turretState().isTurret(shooter)
                 ? roster.turretState().structure(shooter).mount.weapon
-                : roster.combat().primaryWeapon(shooter);
+                : roster.combat().has(shooter) ? roster.combat().primaryWeapon(shooter) : null;
         return weapon != null && weapon.tracksFliers();
     }
 

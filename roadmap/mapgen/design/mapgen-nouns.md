@@ -402,7 +402,8 @@ its width and runs through the square) are its lot; elsewhere the end is a plain
 and the hall's door). **Street dressing** (`StreetDressing`) is the
 kit districts lay along their streets: standing pieces (lamps, gantry columns, jersey barriers, bollards,
 boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, pipe rack cells) and the
-boom-gate arm block nothing and carry no cover. The **cordoned facility** stands on a quarter: an admin block, labs or
+boom-gate arm block nothing and carry no cover. Industrial loading doors (warehouses, factory-row workshops, a freight yard's
+warehouse) carry the grey slat canopy over the row in front of them. The **cordoned facility** stands on a quarter: an admin block, labs or
 workshops, a depot with its forecourt, a yard and a courtyard on the quarter's own streets inside one wall
 on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed to a three-cell lane
 between solid jambs with a boom gate across it just inside; a street ending against a lot is walled across. It publishes `CordonedFacility` on
