@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,23 +33,40 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
 
     public static final String ISSUER = "heart-assault";
 
-    /** The frozen Marine picture: the common frame and the bores the company knows of. */
+    /**
+     * The frozen Marine picture: the common frame, the bores the company knows of, and how many of its side stand within
+     * {@link #PUSH_RADIUS} of each living mother.
+     */
     public static final class Frame extends CommandFrame {
         final List<KnownBore> bores;
+        final Map<String, Integer> friendsNearMother;
 
-        Frame(CommandFrame base, List<KnownBore> bores) {
+        Frame(CommandFrame base, List<KnownBore> bores, Map<String, Integer> friendsNearMother) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.bores = List.copyOf(bores);
+            this.friendsNearMother = Map.copyOf(friendsNearMother);
+        }
+
+        int friendsNear(KnownBore mother) {
+            return friendsNearMother.getOrDefault(mother.key(), 0);
         }
     }
 
-    /** Discloses the open bores: they are great structures on open ground, seen from the start line. */
+    /**
+     * Discloses the open bores: they are great structures on open ground, seen from the start line. The fighting round
+     * a mother is in plain sight of the side's own lanes, so the frame counts its own side there too.
+     */
     public static final CommandFrameDisclosure<Frame> DISCLOSURE = (view, faction, topology, assignments) -> {
         List<KnownBore> bores = new ArrayList<>();
+        Map<String, Integer> near = new HashMap<>();
         for (SwarmBore bore : view.getSwarmBores()) {
             bores.add(new KnownBore(bore.beatKey(), bore.mother(), bore.x(), bore.y(), !bore.collapsed()));
+            if (bore.mother() && !bore.collapsed()) {
+                near.put(bore.beatKey(), view.getUnitIndex().countHostileCombatants(bore.x() + 0.5f, bore.y() + 0.5f,
+                        HeartAssaultCommand.PUSH_RADIUS, Faction.DEFENDER, 0L));
+            }
         }
-        return new Frame(CommandFrame.freeze(view, faction, topology, assignments), bores);
+        return new Frame(CommandFrame.freeze(view, faction, topology, assignments), bores, near);
     };
 
     /** Cells between neighbouring squads on the frontage. */
@@ -66,6 +85,8 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
     /** Where the company is holding, fixed when it starts to, so the order does not follow its own drift. */
     private int holdX = Integer.MIN_VALUE, holdY;
     private int fallBackX = Integer.MIN_VALUE, fallBackY;
+    /** The mother the company has gone in on with the lanes, so a thinning of the lanes there does not call it back. */
+    private String pushingOn;
     /** The allied lanes beside the company's: a satellite one of them lies nearer is that lane's work, not the company's. */
     private List<HeartLane> alongside = List.of();
 
@@ -135,6 +156,34 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         return Math.hypot(x - holdX, y - holdY) > FALL_BACK_REACH;
     }
 
+    /**
+     * Cells round a mother within which the side's own bodies are counted as the push on her ({@link #ALLIES_TO_PUSH}).
+     */
+    static final float PUSH_RADIUS = 60f;
+    /**
+     * Bodies of the company's side (the lanes' militia, mechs and any Marines) that must stand within
+     * {@link #PUSH_RADIUS} of a mother before the company goes in on her. Alone it was wiped seventy cells short
+     * (frozen 5, 2026-10-25, with the lanes a third of the way there). UNTUNED.
+     */
+    static final int ALLIES_TO_PUSH = 16;
+    /**
+     * {@code -Dbattle.heart.motherPush=false} is the control: the company holds while any satellite stands and then goes
+     * for the mothers at once. On, it goes in on a mother only with the lanes there ({@link #goesIn}). Temporary: remove
+     * with the losing arm once the owner has picked heart-mother-push and the Broad Front probes have been read against
+     * it (town arid 3, 2026-10-25: the company went for the mothers alone as the last satellite fell and ended the battle
+     * with one marine; held for the lanes, it kept seventeen).
+     */
+    public static final String MOTHER_PUSH_PROPERTY = "battle.heart.motherPush";
+    private static final boolean MOTHER_PUSH = !"false".equalsIgnoreCase(System.getProperty(MOTHER_PUSH_PROPERTY));
+
+    /**
+     * Whether the company goes in on {@code mother} now: once {@link #ALLIES_TO_PUSH} of its side stand round her, and
+     * from then on while she is the one it is pushing on.
+     */
+    static boolean goesIn(KnownBore mother, int friendsNear, String pushingOn) {
+        return mother.key().equals(pushingOn) || friendsNear >= ALLIES_TO_PUSH;
+    }
+
     /** Whether any satellite still stands. */
     static boolean satelliteStanding(List<KnownBore> bores) {
         for (KnownBore bore : bores) if (bore.living() && !bore.mother()) return true;
@@ -163,8 +212,13 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         if (!company.isEmpty()) { cx /= company.size(); cy /= company.size(); }
         KnownBore target = target(frame.bores, cx, cy);
         int tick = frame.tick();
-        boolean held = target != null && screen != null && screen.beyond(screen.along(target.x(), target.y()), tick);
         boolean waiting = waitForSatellites && target != null && target.mother() && satelliteStanding(frame.bores);
+        // Every satellite down, the company goes in on a mother with the lanes, not ahead of them.
+        if (MOTHER_PUSH && waitForSatellites && !waiting && target != null && target.mother()) {
+            if (goesIn(target, frame.friendsNear(target), pushingOn)) pushingOn = target.key();
+            else waiting = true;
+        }
+        boolean held = target != null && screen != null && screen.beyond(screen.along(target.x(), target.y()), tick);
         if (!waiting) holdX = Integer.MIN_VALUE;
         else if (holdX == Integer.MIN_VALUE) {
             holdX = fallBackX != Integer.MIN_VALUE ? fallBackX : Math.round(cx);
