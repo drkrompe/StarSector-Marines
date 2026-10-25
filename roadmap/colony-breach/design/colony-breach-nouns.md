@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
+
 Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
 
 Updated: 2026-10-25 — the brood spire's deep raids: four round the flak to a soft target behind the line, and home.
@@ -958,8 +960,17 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
 kind of spire like spawner"). It is the swarm's answer to a line it cannot walk
 through, made into a thing on the map the company can find and kill.
-- **Only an old bloom has one.** Spires grow when a battle's creep is matured
-  at setup as weeks old: the Cordon and the heart, never a fresh Colony Breach.
+- **An old bloom has grown them; a fresh one grows them by eating** (owner,
+  2026-10-25). Where a battle's creep is matured at setup as weeks old (the
+  Cordon and the heart) its spires stand at once. In any battle, a fresh Colony
+  Breach among them, a satellite bore that has reached maw having eaten four
+  colonists' worth raises one (`BroodSpires.raises`): once its creep holds ground
+  for one by the rule below, the spire's root digs out and thickens over ten
+  seconds and the spire rises at its end in a burst of creep, as a colony does
+  (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
+  every colonist kept from it is a spire that never grows. A bore raises one
+  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and
   twenty-eight cells from its mouth and five clear of its colonies, and never
@@ -1343,9 +1354,9 @@ not read in a soft shadow at play zoom.
     capped rate, move along the nose. Serial, in pack and slot order, with no
     random draw, so a replay flies the same; a pack of twenty costs four
     hundred distance checks a tick.
-  - **Where it comes from** (`BroodSpires`). Only in an old bloom, and only under
-    the flier law: off a satellite's **brood spire** with its bore's surge, and
-    as a Matriarch's **brood**, a pack of six that hatches off her back as she
+  - **Where it comes from** (`BroodSpires`). Only under the flier law: off a
+    satellite's **brood spire** with its bore's surge (an old bloom's, or one a
+    fed bore raised), and, in an old bloom, as a Matriarch's **brood**, a pack of six that hatches off her back as she
     emerges and flies as her escort (*Emergence*). So the satellites and the front bores
     send free hunters and the mothers send escorts.
   - **Look.** The lilac glider (`HarrierLook`, the owner's round-one pick):

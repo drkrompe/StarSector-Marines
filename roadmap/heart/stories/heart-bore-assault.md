@@ -37,13 +37,24 @@ bore a lane takes, the waves and the calls for armour stay the mission's.
    on a **spent surge**: a surge has come out, three seconds have passed, and the
    mouth holds no more than four of the swarm. A bore that has not surged for
    forty seconds with its mouth that quiet is gone in on as well.
+   This rule is strict on purpose. Three looser ones were played on Broad Front:
+   going in on a mouth quiet against half the lane, or after a minute's wait;
+   falling back only when the mouth outnumbers the lane; going in only while the
+   lane and the company at the bore outnumber it. Each sent militia in more and
+   did worse: two satellites down where the strict rule took four, because the
+   lanes' militia cannot win a Broad Front mouth and the armour on the ring did
+   the wearing down. The lanes need more tools, not a looser rule
+   (`heart-allied-tools-next.md`).
 4. **Falling back.** The bore's next surge sends the militia back to the support
    line, and the lane waits for that surge to be spent.
 5. **After the fall** the lane takes its next bore from where it stands, armour
    first.
 
-The assault takes a lane only where the guns allow it: never a bore past the
-barrage's hold. Until then the lane follows the barrage as before. Waves joining
+On The Burn the assault takes a lane only where the guns allow it: never a bore
+past the barrage's hold. Until then the lane follows the barrage as before. On
+Broad Front the lane's formation still goes between bores, screened by country,
+but it rallies on the bore's support line instead of on the bore, and the
+assault takes the lane from there. Waves joining
 the lane march to its support line, not to the bore. Behind
 `battle.heart.boreAssault`; `false` is the control, the old posts.
 
@@ -51,13 +62,10 @@ the lane march to its support line, not to the bore. Behind
 
 - Unit tests: a ring post lies outside the mouth, on the near side, spread from the
   others; the spent-surge rule opens and closes the window.
-- One Burn run whose summary reports, per lane, the phases entered and the
-  assaults launched on a spent surge, and the time hulls spent inside a mouth.
+- One Burn run and one Broad Front run whose summaries report, per lane, the phases entered and the
+  assaults launched on a spent surge, the lane-seconds in each phase, and the time hulls spent inside a mouth.
 - Eyes on The Burn: armour stands off and fires, militia go in behind a surge.
 
 ## Next
 
-- Broad Front's lanes go between bores as a screened advance and then attack
-  the bore as before; the same assault should take over where the formation
-  rallies.
 - A Matriarch out of the mouth: the armour steps back a ring.
