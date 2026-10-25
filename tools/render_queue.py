@@ -24,6 +24,7 @@ the job cleanly; it is relaunched later and its render skips finished frames.
 Commands (``python tools/render_queue.py <command> -h`` for options):
 
     submit  JOB.json [--commit C]        validate and publish a job
+    split   TEMPLATE.json --frames A:B   a frame range as parts either machine takes, + assembly
     status  [--job ID] [--json]          per machine: gate, running, ETA, queued
     cancel  ID                           withdraw a job (submitter or coordinator)
     gate    MACHINE run|pause            render coordinator, on the owner's word
@@ -379,11 +380,8 @@ def hub_reachable() -> bool:
     return r.returncode == 0
 
 
-def cmd_submit(args) -> int:
-    q = Queue(find_drive_root() / "render-queue")
-    job = read_json(Path(args.job))
-    if not isinstance(job, dict):
-        raise SystemExit(f"{args.job}: not a JSON object")
+def prepare_job(q: Queue, job: dict) -> None:
+    """Fills a job's defaults and submission stamps; refuses an id already in the queue."""
     for k, v in (("priority", 0), ("after", []), ("inputs", []), ("env", {}), ("requires", [])):
         job.setdefault(k, v)
     job["submitted"] = now_iso()
@@ -392,51 +390,162 @@ def cmd_submit(args) -> int:
     job.setdefault("submitted_by", f"{getpass.getuser()}@{socket.gethostname()}")
     if (q.d("jobs") / f"{job.get('id')}.json").exists():
         raise SystemExit(f"job {job.get('id')} already exists; pick a new id")
-    if args.commit:
-        commit = run(["git", "rev-parse", args.commit + "^{commit}"]).stdout.strip()
-        git_in = [i for i in job["inputs"] if i.get("kind") == "git"]
-        if not git_in:
-            git_in = [{"kind": "git"}]
-            job["inputs"].insert(0, git_in[0])
-        gi = git_in[0]
-        gi["commit"] = commit
-        run(["git", "fetch", "--quiet", "origin"], check=False, timeout=300)
-        on_main = run(["git", "merge-base", "--is-ancestor", commit, "origin/main"], check=False).returncode == 0
-        local_only = job.get("machine") == this_machine()
-        if on_main:
-            print(f"{commit[:9]} is on origin/main; every machine can check it out")
-        elif local_only:
-            print(f"{commit[:9]} runs on this machine, from this clone; nothing to transport")
-        elif args.via == "hub":
-            if not hub_reachable():
-                raise SystemExit("hub is unreachable from here, so a mac/any job cannot carry an "
-                                 "unpushed commit; pin the job to this machine, or use --via bundle")
-            ref = f"refs/render/{job.get('id')}"
-            run(["git", "push", "--quiet", "hub", f"{commit}:{ref}"], timeout=600, env=git_env())
-            gi["hub_ref"] = ref
-            print(f"pushed {commit[:9]} to hub as {ref}")
-        else:
-            ref = f"refs/render-queue/{job.get('id')}"
-            bundle = q.d("inputs") / f"{job.get('id')}.bundle"
-            run(["git", "update-ref", ref, commit])
-            try:
-                run(["git", "bundle", "create", str(bundle), ref, "^origin/main"])
-            finally:
-                run(["git", "update-ref", "-d", ref], check=False)
-            gi["bundle"] = f"inputs/{bundle.name}"
-            gi["bundle_ref"] = ref
-            print(f"bundled {commit[:9]} ^origin/main -> {bundle} ({bundle.stat().st_size} bytes)")
+
+
+def pin_commit(q: Queue, job: dict, rev: str, via: str, name: str) -> dict:
+    """Pins `rev` as the job's git input and makes it reachable from the machine that will run it:
+    nothing to do on origin/main or for a job pinned to this machine, else a hub ref or a bundle
+    named after `name`. Returns the git input, so jobs sharing the commit can share its transport."""
+    commit = run(["git", "rev-parse", rev + "^{commit}"]).stdout.strip()
+    git_in = [i for i in job["inputs"] if i.get("kind") == "git"]
+    if not git_in:
+        git_in = [{"kind": "git"}]
+        job["inputs"].insert(0, git_in[0])
+    gi = git_in[0]
+    gi["commit"] = commit
+    run(["git", "fetch", "--quiet", "origin"], check=False, timeout=300)
+    on_main = run(["git", "merge-base", "--is-ancestor", commit, "origin/main"], check=False).returncode == 0
+    local_only = job.get("machine") == this_machine()
+    if on_main:
+        print(f"{commit[:9]} is on origin/main; every machine can check it out")
+    elif local_only:
+        print(f"{commit[:9]} runs on this machine, from this clone; nothing to transport")
+    elif via == "hub":
+        if not hub_reachable():
+            raise SystemExit("hub is unreachable from here, so a mac/any job cannot carry an "
+                             "unpushed commit; pin the job to this machine, or use --via bundle")
+        ref = f"refs/render/{name}"
+        run(["git", "push", "--quiet", "hub", f"{commit}:{ref}"], timeout=600, env=git_env())
+        gi["hub_ref"] = ref
+        print(f"pushed {commit[:9]} to hub as {ref}")
+    else:
+        ref = f"refs/render-queue/{name}"
+        bundle = q.d("inputs") / f"{name}.bundle"
+        run(["git", "update-ref", ref, commit])
+        try:
+            run(["git", "bundle", "create", str(bundle), ref, "^origin/main"])
+        finally:
+            run(["git", "update-ref", "-d", ref], check=False)
+        gi["bundle"] = f"inputs/{bundle.name}"
+        gi["bundle_ref"] = ref
+        print(f"bundled {commit[:9]} ^origin/main -> {bundle} ({bundle.stat().st_size} bytes)")
+    return gi
+
+
+def check_job(q: Queue, job: dict) -> None:
+    """Refuses an invalid job; warns when no machine advertises what it requires."""
     errs = validate_job(job)
     if errs:
-        raise SystemExit("invalid job:\n  " + "\n  ".join(errs))
+        raise SystemExit(f"invalid job {job.get('id')}:\n  " + "\n  ".join(errs))
     tags = {m: set(st.get("tags", [])) for m, st in q.statuses().items() if st.get("tags")}
     need = set(job["requires"])
     fits = [m for m in MACHINES if job["machine"] in (m, "any") and need <= tags.get(m, need)]
     if not fits:
         print(f"warning: no machine advertises {sorted(need)} for placement {job['machine']}; "
               f"known tags: { {m: sorted(t) for m, t in tags.items()} }")
+
+
+def publish_job(q: Queue, job: dict) -> None:
     write_once(q.d("jobs") / f"{job['id']}.json", job)
     print(f"submitted {job['id']} ({job['machine']}, {job['lane']}) -> {q.root / 'jobs'}")
+
+
+def cmd_submit(args) -> int:
+    q = Queue(find_drive_root() / "render-queue")
+    job = read_json(Path(args.job))
+    if not isinstance(job, dict):
+        raise SystemExit(f"{args.job}: not a JSON object")
+    prepare_job(q, job)
+    if args.commit:
+        pin_commit(q, job, args.commit, args.via, job.get("id"))
+    check_job(q, job)
+    publish_job(q, job)
+    return 0
+
+
+# ---------------------------------------------------------------- split
+
+PART_TOKENS = ("part_first", "part_last", "part_count", "part_start_s", "part_end_s")
+
+
+def frame_parts(first: int, end: int, size: int) -> list:
+    """[(first, count)] covering frames first..end-1 in parts of `size`; the last may be shorter."""
+    return [(f, min(size, end - f)) for f in range(first, end, size)]
+
+
+def fill_part(obj, values: dict):
+    """`obj` with every {part_*} token in its strings replaced; other placeholders are left for the runner."""
+    if isinstance(obj, str):
+        for k, v in values.items():
+            obj = obj.replace("{" + k + "}", v)
+        return obj
+    if isinstance(obj, list):
+        return [fill_part(v, values) for v in obj]
+    if isinstance(obj, dict):
+        return {k: fill_part(v, values) for k, v in obj.items()}
+    return obj
+
+
+def part_values(first: int, count: int, fps: float) -> dict:
+    return {"part_first": str(first), "part_last": str(first + count - 1), "part_count": str(count),
+            "part_start_s": "%.6f" % (first / fps), "part_end_s": "%.6f" % ((first + count) / fps)}
+
+
+def split_jobs(template: dict, first: int, end: int, size: int, fps: float, assemble=None) -> list:
+    """The part jobs for frames first..end-1, then the assembly (if any) waiting on all of them.
+
+    A part's id is the template's id plus its first frame and length, so a part renders the same
+    frames under the same name however the range is cut, and redoing a sub-range of a shot gives
+    new ids only for the parts that are new."""
+    if end <= first:
+        raise SystemExit(f"--frames {first}:{end}: the end is exclusive and must be past the first frame")
+    if size < 1:
+        raise SystemExit("--part must be at least one frame")
+    if not any("{" + t + "}" in json.dumps(template) for t in PART_TOKENS):
+        raise SystemExit("the template uses no part placeholder ({" + "}, {".join(PART_TOKENS) + "}), "
+                         "so every part would render the same frames")
+    jobs = []
+    for f, c in frame_parts(first, end, size):
+        j = fill_part(template, part_values(f, c, fps))
+        j["id"] = f"{template['id']}-f{f:05d}-{c}"
+        j.setdefault("machine", "any")
+        if isinstance(j.get("frames"), dict):
+            j["frames"]["count"] = c
+        jobs.append(j)
+    if assemble is not None:
+        a = dict(assemble)
+        a["after"] = list(a.get("after", [])) + [j["id"] for j in jobs]
+        jobs.append(a)
+    return jobs
+
+
+def cmd_split(args) -> int:
+    q = Queue(find_drive_root() / "render-queue")
+    template = read_json(Path(args.template))
+    if not isinstance(template, dict) or not template.get("id"):
+        raise SystemExit(f"{args.template}: not a job template with an id")
+    try:
+        first, end = (int(x) for x in args.frames.split(":"))
+    except ValueError:
+        raise SystemExit(f"--frames {args.frames}: FIRST:END, frame numbers, END exclusive")
+    assemble = read_json(Path(args.assemble)) if args.assemble else None
+    jobs = split_jobs(template, first, end, args.part, args.fps, assemble)
+    for j in jobs:
+        print(f"  {j['id']:<64} {j.get('machine', 'any'):<8} "
+              + (f"{j['frames']['count']} frames" if isinstance(j.get("frames"), dict) else f"after {len(j['after'])}"))
+    if args.dry_run:
+        return 0
+    for j in jobs:
+        prepare_job(q, j)
+    if args.commit:
+        gi = pin_commit(q, jobs[0], args.commit, args.via, template["id"])
+        for j in jobs[1:]:
+            j["inputs"] = [i for i in j["inputs"] if i.get("kind") != "git"]
+            j["inputs"].insert(0, dict(gi))
+    for j in jobs:
+        check_job(q, j)
+    for j in jobs:
+        publish_job(q, j)
     return 0
 
 
@@ -1697,6 +1806,17 @@ def main(argv=None) -> int:
     s.add_argument("--via", choices=("bundle", "hub"), default="bundle",
                    help="how an unpushed commit reaches the other machine (default bundle)")
     s.set_defaults(fn=cmd_submit)
+    s = sub.add_parser("split", help="submit a frame range as parts either machine can take, plus an assembly")
+    s.add_argument("template", help="job whose strings use {part_first} {part_last} {part_count} "
+                                    "{part_start_s} {part_end_s}")
+    s.add_argument("--frames", required=True, metavar="FIRST:END", help="frame numbers, END exclusive")
+    s.add_argument("--part", type=int, default=48, help="frames per part (default 48)")
+    s.add_argument("--fps", type=float, default=24.0, help="for the {part_*_s} times (default 24)")
+    s.add_argument("--assemble", metavar="JOB.json", help="job to run once every part is done")
+    s.add_argument("--commit", metavar="REV", help="pin this commit as every job's git input")
+    s.add_argument("--via", choices=("bundle", "hub"), default="bundle")
+    s.add_argument("--dry-run", action="store_true", help="list the jobs; submit nothing")
+    s.set_defaults(fn=cmd_split)
     s = sub.add_parser("status", help="per machine: gate, running, ETA, queued")
     s.add_argument("--job")
     s.add_argument("--json", action="store_true")
