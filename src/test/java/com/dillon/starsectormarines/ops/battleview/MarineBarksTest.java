@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.ops.battleview.MarineBarks.Bark;
 import org.junit.jupiter.api.Test;
@@ -77,17 +78,41 @@ class MarineBarksTest {
         assertEquals(Bark.KILL, MarineBarks.kill(UnitType.SWARM_RUNNER));
     }
 
-    @Test void aMarineKeepsOneVoiceAndSquadmatesDiffer() {
+    @Test void aSpeakerKeepsOneVoiceAndSquadmatesDiffer() {
         MarineBarks.Mix mix = new MarineBarks.Mix();
-        Set<MarineBarks.Voice> squad = new HashSet<>();
-        for (long id = 1; id <= MarineBarks.Voice.values().length; id++) squad.add(mix.voice(id, 7L));
-        assertEquals(MarineBarks.Voice.values().length, squad.size(), "a squad of six speaks in six voices");
-        assertEquals(mix.voice(3L, 7L), mix.voice(3L, 7L), "and each keeps its own");
+        for (MarineBarks.Cast cast : MarineBarks.Cast.values()) {
+            Set<Integer> squad = new HashSet<>();
+            for (long id = 1; id <= cast.voices.length; id++) squad.add(mix.voice(cast.ordinal() * 100L + id, cast.ordinal(), cast));
+            assertEquals(cast.voices.length, squad.size(), cast + ": a squad as large as the cast speaks in every voice");
+        }
+        assertEquals(mix.voice(3L, 0L, MarineBarks.Cast.MARINE), mix.voice(3L, 0L, MarineBarks.Cast.MARINE),
+                "and each keeps its own");
         for (long id = 1; id <= 60; id++) {
             float pitch = MarineBarks.pitch(id);
             assertTrue(pitch >= 0.96f && pitch <= 1.04f);
         }
-        assertEquals("marines_bark_contact_ox_2", MarineBarks.soundId(Bark.CONTACT, MarineBarks.Voice.OX, 2));
-        assertEquals("marines_bark_scuffle", MarineBarks.soundId(Bark.SCUFFLE, MarineBarks.Voice.OX, 2));
+        assertEquals("marines_bark_contact_ox_2", MarineBarks.soundId(MarineBarks.Cast.MARINE, Bark.CONTACT, 4, 2));
+        assertEquals("marines_bark_civilian_grabbed_b_1",
+                MarineBarks.soundId(MarineBarks.Cast.CIVILIAN, Bark.GRABBED, 1, 1));
+        assertEquals("marines_bark_scuffle", MarineBarks.soundId(MarineBarks.Cast.MILITIA, Bark.SCUFFLE, 0, 2));
+    }
+
+    @Test void whoSpeaksAsWhat() {
+        assertEquals(MarineBarks.Cast.MARINE, MarineBarks.cast(Faction.MARINE, UnitType.MARINE));
+        assertEquals(MarineBarks.Cast.MILITIA, MarineBarks.cast(Faction.ALLY, UnitType.MILITIA));
+        assertEquals(MarineBarks.Cast.MARINE, MarineBarks.cast(Faction.ALLY, UnitType.MARINE), "allied company troops");
+        assertEquals(MarineBarks.Cast.CIVILIAN, MarineBarks.cast(Faction.CIVILIAN, UnitType.CIVILIAN));
+        assertNull(MarineBarks.cast(Faction.DEFENDER, UnitType.MARINE), "the enemy has no barks");
+        assertNull(MarineBarks.cast(Faction.MARINE, UnitType.HEAVY_MECH), "machines have no barks");
+        assertFalse(MarineBarks.Cast.CIVILIAN.barks.contains(Bark.RELOAD), "colonists make no soldier's calls");
+        assertTrue(MarineBarks.Cast.CIVILIAN.barks.contains(Bark.GRABBED));
+    }
+
+    @Test void squadlessPeopleShareAChannelWithTheirCastNearby() {
+        long here = MarineBarks.patch(MarineBarks.Cast.CIVILIAN, 10.2f, 10.7f);
+        assertEquals(here, MarineBarks.patch(MarineBarks.Cast.CIVILIAN, 11.9f, 2.1f), "the same patch of ground");
+        assertNotEquals(here, MarineBarks.patch(MarineBarks.Cast.CIVILIAN, 10.2f, 10.7f + MarineBarks.PATCH_CELLS),
+                "the next patch");
+        assertNotEquals(here, MarineBarks.patch(MarineBarks.Cast.MILITIA, 10.2f, 10.7f), "another cast");
     }
 }

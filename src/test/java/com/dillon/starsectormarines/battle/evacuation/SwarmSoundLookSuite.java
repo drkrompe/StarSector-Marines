@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -34,6 +35,8 @@ import java.util.List;
  *       for the line, and the nest's workers scatter under the fire.</li>
  *   <li>{@code swarm-sound-feeding}: close on a nest, its workers hauling the dead lying round it home and dropping
  *       each down the mouth, where it slides in, sinks and is swallowed ({@link SwarmHarvest#feeding}).</li>
+ *   <li>{@code swarm-sound-colony}: colonists running from a Runner pack and a Brute through a colony militia squad
+ *       holding in the west, to hear the militia's and the colonists' barks ({@code MarineBarks}).</li>
  * </ul>
  * {@code -Dsnapshot.swarmSound.only=<shot>} records one shot alone. Opt-in: a mixing study, not part of {@code all}.
  */
@@ -59,7 +62,7 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         String only = System.getProperty("snapshot.swarmSound.only", "");
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String name : List.of("swarm-sound-assault", "swarm-sound-matriarch", "swarm-sound-matriarch-run",
-                "swarm-sound-skitterers", "swarm-sound-feeding")) {
+                "swarm-sound-skitterers", "swarm-sound-feeding", "swarm-sound-colony")) {
             if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name)));
         }
         return out;
@@ -80,10 +83,41 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
                     case "swarm-sound-assault" -> assault(placement);
                     case "swarm-sound-matriarch-run" -> caughtOut(placement);
                     case "swarm-sound-skitterers" -> skitterers(placement);
+                    case "swarm-sound-colony" -> colony(placement);
                     default -> matriarch(placement);
                 },
                 placement -> List.of(LookReview.View.followAtPlay(placement, keys)),
                 TICKS, 1, 2, STILLS);
+    }
+
+    /**
+     * A militia squad holding in the west with colonists between it and the Rav, who run for it: a Runner pack and a
+     * Brute come on, catch some of the colonists and reach the squad. The militia are left mortal so a loss is heard.
+     */
+    private static BattleSimulation colony(LookReview.Placement placement) {
+        SceneBuilder builder = placement.builder();
+        float[] at = placement.openNear(10f, H / 2f);
+        int x0 = placement.site().x0(), y0 = placement.site().y0();
+        int x = (int) at[0] - x0, y = (int) at[1] - y0;
+        builder.squad("militia").faction(Faction.ALLY).type(UnitType.MILITIA).size(6).at(x, y - 2)
+                .primary("weapon.field-rifle").health(160f).stationary().done();
+        for (int i = 0; i < 8; i++) {
+            float[] c = placement.openNear(28f + (i % 3) * 2f, H / 2f - 6f + i * 1.5f);
+            builder.unit("colonist " + i, Faction.CIVILIAN, UnitType.CIVILIAN, (int) c[0] - x0, (int) c[1] - y0,
+                    spec -> spec.role(UnitRole.FLEE));
+        }
+        SceneWorld world = builder.build();
+        placement.subject("line", world.members("militia")[0]);
+        BattleSimulation sim = world.sim();
+        for (int i = 0; i < 10; i++) {
+            float[] r = placement.openNear(36f + (i % 3) * 2f, H / 2f - 5f + i);
+            long runner = sim.spawn(SwarmStrains.spec("Runner " + i, UnitType.SWARM_RUNNER, (int) r[0], (int) r[1]));
+            if (i == 0) placement.subject("swarm", runner);
+        }
+        float[] b = placement.openNear(42f, H / 2f);
+        sim.spawn(SwarmStrains.spec("Brute", UnitType.SWARM_BRUTE, (int) b[0], (int) b[1])
+                .health(UnitType.SWARM_BRUTE.maxHp * BRUTE_HEALTH));
+        return sim;
     }
 
     /** Six rifles and two squad automatics holding in the west, given health to last the shot. */
