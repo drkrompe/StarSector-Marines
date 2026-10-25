@@ -407,6 +407,13 @@ the market lot have claimed and before the road graph: only across a street that
 shared side from one cross street to the next, with the ring round the block complete and no trunk crossed, so
 no dead end is made and every planned claim stays where it was. Conquest's biome-banded lots build neither.
 
+A map that is one settlement has a **town plan** over its rolled zoning (`TownZoning`): a two-by-two **civic
+core** at the trunk crossing, a **high street ring** of mixed town round it where main street and the market
+find their pocket, and an **industrial edge** along the map edge farthest from the core (two blocks deep in an
+industrial economy). Elsewhere the roll stands, except that a civic block off the core and an industrial block
+not touching the belt are homes: one centre, one industrial edge. The coast keeps its waterfront. A map of
+precincts plans each place by its character instead.
+
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,
 consumable storage and packing rather than repeating a generic warehouse. The

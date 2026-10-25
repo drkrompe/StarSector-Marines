@@ -93,6 +93,9 @@ public final class DistrictMap {
         assignThemes(rng);
     }
 
+    /** The theme the world's economy leans the interior toward, or null for a world with no economic signal. */
+    public MapDistrictTheme economyTheme() { return econTheme; }
+
     public int districtsX() { return districtsX; }
     public int districtsY() { return districtsY; }
     public int districtCellWidth()  { return cellW; }
