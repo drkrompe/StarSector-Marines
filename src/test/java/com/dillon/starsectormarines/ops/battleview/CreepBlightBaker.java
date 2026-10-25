@@ -60,9 +60,57 @@ public final class CreepBlightBaker {
     /** How many limbs a dead tree grows and how far they fork: {@code sparse} (the default) or {@code dense} ({@code -Pskeleton=dense}). */
     static boolean dense;
 
+    /**
+     * How dead wood is drawn, every dead form alike (the withering skeleton, the dead tree, both war-damaged, and the
+     * felled wood): its bark colour and how far the light and grain move it, how ragged its limbs grow, how far the
+     * crust and veins climb, what share of dead leaves the dead tree keeps, the pale ridge its lit side takes, and
+     * where crust swallows the limbs in patches ({@code -PdeadLook=<name>}, an owner pick: the losers go once picked).
+     */
+    record DeadLook(String name, float[] bark, float contrast, float grain, float fissure, float rough,
+                    float crust, float veins, float keep, float[] ridge, float ridgeAmount, float swallowAt,
+                    float felledCrust) {
+        /** Bleached bone-pale, smooth and round: the first look. */
+        static final DeadLook BONE = new DeadLook("bone", new float[]{0.86f, 0.83f, 0.76f}, 1f, 0.12f, 0f, 0f,
+                0.2f, 0.7f, 0.97f, null, 0f, 2f, 0.13f);
+        /** A weathered snag: grey-brown fissured bark silvered on its lit ridges, ragged broken limbs, a few dead
+         *  leaves still caught in it. */
+        static final DeadLook WEATHERED = new DeadLook("weathered", new float[]{0.42f, 0.37f, 0.32f}, 0.9f, 0.3f,
+                0.2f, 0.45f, 0.2f, 0.55f, 0.86f, new float[]{0.66f, 0.64f, 0.6f}, 0.35f, 2f, 0.13f);
+        /** Half swallowed: dark bark under crust climbing the limbs and lumped along them. */
+        static final DeadLook SWALLOWED = new DeadLook("swallowed", new float[]{0.34f, 0.30f, 0.28f}, 0.9f, 0.3f,
+                0.2f, 0.45f, 0.5f, 1f, 0.97f, null, 0f, 0.6f, 0.3f);
+        /** Rotted black: near-black wet bark, ash-grey on its lit ridges, ragged. */
+        static final DeadLook ROTTED = new DeadLook("rotted", new float[]{0.13f, 0.115f, 0.11f}, 0.8f, 0.25f,
+                0.25f, 0.5f, 0.2f, 0.5f, 0.995f, new float[]{0.55f, 0.53f, 0.5f}, 0.6f, 2f, 0.13f);
+
+        static DeadLook named(String name) {
+            for (DeadLook look : new DeadLook[]{BONE, WEATHERED, SWALLOWED, ROTTED}) if (look.name.equals(name)) return look;
+            throw new IllegalArgumentException("No dead look " + name);
+        }
+
+        /** The wood's colour at light {@code l} (ungrained: the grain is the look's), from the fine noise there. */
+        void wood(float l, float[] fine, float[] col) {
+            float shade = (1f + contrast * (l - 1f)) * (1f + grain * (fine[0] - 0.5f) * 2f);
+            if (fissure > 0f) shade *= CreepShading.mix(0.55f, 1f, CreepShading.smoothstep(fissure - 0.06f, fissure + 0.06f, fine[1]));
+            for (int c = 0; c < 3; c++) col[c] = bark[c] * shade;
+            if (ridge == null) return;
+            float lit = CreepShading.smoothstep(0.92f, 1.12f, l) * ridgeAmount;
+            for (int c = 0; c < 3; c++) col[c] = CreepShading.mix(col[c], ridge[c] * l, lit);
+        }
+
+        /** Crust lumped along the limbs where the coarse noise runs past {@link #swallowAt}: pixels inside it. */
+        float swallowed(float coarse) {
+            return (coarse - swallowAt) * 60f;
+        }
+    }
+
+    /** The dead look this bake draws. */
+    static DeadLook look = DeadLook.BONE;
+
     public static void main(String[] args) throws Exception {
         Path mod = Path.of(args.length > 0 ? args[0] : "mod");
         dense = args.length > 1 && "dense".equals(args[1]);
+        if (args.length > 2) look = DeadLook.named(args[2]);
         BufferedImage canopies = ImageIO.read(mod.resolve("graphics/doodads/forest-canopies.png").toFile());
         BufferedImage damaged = ImageIO.read(mod.resolve("graphics/doodads/forest-damaged.png").toFile());
         JSONObject tileset = new JSONObject(Files.readString(mod.resolve("data/tilesets/forest-canopies.tileset.json")));
@@ -113,8 +161,6 @@ public final class CreepBlightBaker {
                 .put("cells", cells).put("doodads", defs);
     }
 
-    /** How far, as a share of the footprint's half-size, the crust reaches out from the stump. */
-    static final float FELLED_CRUST = 0.13f;
     /** A felled tree lies on the ground: its shadow is thrown this much of a standing dead tree's. */
     static final float FELLED_SHADOW = 0.35f;
 
@@ -141,9 +187,9 @@ public final class CreepBlightBaker {
                 CreepNoise.sample(cellX * 2.6f + 7.1f, cellY * 2.6f + 2.3f, noise);
                 CreepNoise.sample(cellX * 6f + 1.9f, cellY * 6f + 4.4f, fine);
                 float rr = (float) Math.hypot(x + 0.5f - cx, y + 0.5f - cy) / radius;
-                float l = CreepShading.clamp01(0.5f + 0.75f * f.lum[i]) * (0.9f + 0.2f * fine[0]);
+                float lit = CreepShading.clamp01(0.5f + 0.75f * f.lum[i]), l = lit * (0.9f + 0.2f * fine[0]);
                 float[] col = new float[3];
-                for (int c = 0; c < 3; c++) col[c] = BONE[c] * l;
+                look.wood(lit, fine, col);
                 CreepSurface.sample(cellX * CreepShading.WALL_VEIN_SCALE, cellY * CreepShading.WALL_VEIN_SCALE,
                         CreepShading.WALL_VEIN_SCALE, surf);
                 float vein = CreepShading.clamp01(surf[2] * 1.6f) * CreepShading.smoothstep(0.75f, 0.2f, rr);
@@ -151,7 +197,8 @@ public final class CreepBlightBaker {
                     float raised = CreepShading.mix(pal.flesh()[c], pal.rim()[c], 0.35f) * (0.6f + 0.4f * l);
                     col[c] = CreepShading.mix(col[c], raised, 0.8f * vein);
                 }
-                float crust = (FELLED_CRUST + (noise[0] - 0.5f) * 0.12f - rr) * radius;
+                float crust = Math.max((look.felledCrust() + (noise[0] - 0.5f) * 0.12f - rr) * radius,
+                        look.swallowed(noise[0]));
                 float cover = CreepShading.clamp01(crust + 0.5f);
                 if (cover > 0f) {
                     float[] c2 = crustColour(cellX, cellY, crust, 0.35f + 0.4f * l, noise[0], pal, surf);
@@ -344,8 +391,6 @@ public final class CreepBlightBaker {
         for (int c = 0; c < 3; c++) col[c] = CreepShading.mix(col[c], target[c], Math.min(1f, t * 1.15f));
     }
 
-    /** Dead wood's colour: bleached to a pale bone grey that reads over the dark creep. */
-    static final float[] BONE = {0.86f, 0.83f, 0.76f};
     /** The outline round a dead tree, and the shadow it casts on the creep. */
     static final float[] OUTLINE = {0.10f, 0.08f, 0.10f}, SHADOW = {0.05f, 0.03f, 0.06f};
     /** Outline width and shadow throw and softness, in sheet pixels (64 a cell). */
@@ -377,18 +422,21 @@ public final class CreepBlightBaker {
         // Grown limbs, out along the crown's reach in every direction. A damaged crown keeps only its own stubs.
         Frame reachOf = damaged ? broken : healthy;
         Random rng = new Random(seed);
-        int mains = dense ? 9 + rng.nextInt(3) : 6 + rng.nextInt(3);
+        boolean ragged = look.rough() > 0f;
+        int mains = dense ? 9 + rng.nextInt(3) : ragged ? 4 + rng.nextInt(3) : 6 + rng.nextInt(3);
         double start = rng.nextDouble() * Math.PI * 2;
-        float base = Math.max(3.5f, radius * 0.075f);
+        float base = Math.max(3.5f, radius * (ragged ? 0.095f : 0.075f));
         for (int k = 0; k < mains; k++) {
-            double angle = start + k * Math.PI * 2 / mains + (rng.nextDouble() - 0.5) * 0.5;
+            double angle = start + k * Math.PI * 2 / mains + (rng.nextDouble() - 0.5) * (ragged ? 1.1 : 0.5);
             float reach = reach(reachOf, cx, cy, angle);
             if (reach < radius * 0.25f) continue;
+            // A ragged tree's limbs reach unevenly, and now and then one has snapped off short.
+            if (ragged) reach *= rng.nextInt(4) == 0 ? 0.35f + 0.2f * rng.nextFloat() : 0.7f + 0.3f * rng.nextFloat();
             limb(wood, light, w, h, cx, cy, angle, reach * (dense ? 0.42f : 0.5f), base, dense ? 6 : 4, rng, reach, cx, cy);
         }
         // Leaves still hanging on, dead and dry.
         float[] noise = new float[4], fine = new float[4], surf = new float[4];
-        float keep = stage == 3 ? 0.45f : 0.97f;
+        float keep = stage == 3 ? 0.45f : look.keep();
         float[] r = new float[n], g = new float[n], b = new float[n], a = new float[n];
         // What the outline goes round: the whole crown while it withers, the bare wood once it is dead.
         float[] outlined = new float[n];
@@ -404,14 +452,15 @@ public final class CreepBlightBaker {
                 if (wood[i] > 0f) {
                     float grain = 0.88f + 0.24f * fine[0];
                     float l = CreepShading.clamp01(light[i]) * grain;
-                    for (int c = 0; c < 3; c++) col[c] = BONE[c] * l;
+                    look.wood(CreepShading.clamp01(light[i]), fine, col);
                     // Crust up the trunk and the bases of the limbs, veins out along them.
                     float lobes = (noise[0] - 0.5f) * 0.3f;
-                    float crust = ((stage == 3 ? 0.12f : 0.2f) + lobes - rr) * radius;
+                    float crust = Math.max((look.crust() * (stage == 3 ? 0.6f : 1f) + lobes - rr) * radius,
+                            stage == 3 ? -9f : look.swallowed(noise[0]));
                     CreepSurface.sample(cellX * CreepShading.WALL_VEIN_SCALE, cellY * CreepShading.WALL_VEIN_SCALE,
                             CreepShading.WALL_VEIN_SCALE, surf);
                     float vein = CreepShading.clamp01(surf[2] * 1.6f)
-                            * CreepShading.smoothstep(stage == 3 ? 0.45f : 0.7f, 0.15f, rr);
+                            * CreepShading.smoothstep(look.veins() - (stage == 3 ? 0.25f : 0f), 0.15f, rr);
                     for (int c = 0; c < 3; c++) {
                         float raised = CreepShading.mix(pal.flesh()[c], pal.rim()[c], 0.35f) * (0.6f + 0.4f * l);
                         col[c] = CreepShading.mix(col[c], raised, 0.8f * vein);
@@ -497,7 +546,7 @@ public final class CreepBlightBaker {
     static void limb(float[] wood, float[] light, int w, int h, float x0, float y0, double angle, float length,
                      float width, int depth, Random rng, float reach, float cx, float cy) {
         // A limb bends once along its length.
-        double bend = (rng.nextDouble() - 0.5) * 0.45;
+        double bend = (rng.nextDouble() - 0.5) * (look.rough() > 0f ? 0.9 : 0.45);
         float mx = x0 + (float) Math.cos(angle) * length * 0.5f, my = y0 + (float) Math.sin(angle) * length * 0.5f;
         double angle2 = angle + bend;
         float x1 = mx + (float) Math.cos(angle2) * length * 0.5f, y1 = my + (float) Math.sin(angle2) * length * 0.5f;
@@ -531,6 +580,7 @@ public final class CreepBlightBaker {
                 float t = CreepShading.clamp01((px * dx + py * dy) / len2);
                 float ex = px - dx * t, ey = py - dy * t;
                 float half = (w0 + (w1 - w0) * t) * 0.5f;
+                if (look.rough() > 0f) half *= 1f + look.rough() * (knot(x, y) - 0.5f);
                 float d = (float) Math.sqrt(ex * ex + ey * ey);
                 float cover = CreepShading.clamp01(half - d + 0.5f);
                 if (cover <= 0f) continue;
@@ -543,6 +593,14 @@ public final class CreepBlightBaker {
                 light[i] = lit;
             }
         }
+    }
+
+    private static final float[] KNOT = new float[4];
+
+    /** Coarse noise, 0..1, knotting a ragged limb's edge. */
+    static float knot(int x, int y) {
+        CreepNoise.sample(x / 9f + 3.3f, y / 9f + 8.1f, KNOT);
+        return KNOT[0];
     }
 
     /**

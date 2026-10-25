@@ -597,7 +597,7 @@ tasks.register('bakeCreepBlight', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.dillon.starsectormarines.ops.battleview.CreepBlightBaker'
     workingDir projectDir
-    args 'mod', (project.findProperty('skeleton') ?: 'sparse')
+    args 'mod', (project.findProperty('skeleton') ?: 'sparse'), (project.findProperty('deadLook') ?: 'weathered')
     outputs.upToDateWhen { false }
 }
 
