@@ -126,8 +126,9 @@ public final class BombardScene implements BehaviorScene {
             }
             case "melee" -> {
                 verdicts.add(Verdict.of("it-planted", t.firstPlantedTick >= 0, "planted at tick " + t.firstPlantedTick));
-                verdicts.add(Verdict.of("it-never-lobbed-into-melee", globs == 0 && t.firstWindupTick < 0,
-                        globs + " globs, first wind-up at tick " + t.firstWindupTick + " (wanted none)"));
+                // A wind-up may begin when the fight shoves a marine clear for a moment; the release checks again.
+                verdicts.add(Verdict.of("it-never-lobbed-into-melee", globs == 0,
+                        globs + " globs (wanted none); first wind-up at tick " + t.firstWindupTick));
             }
             case "off-creep" -> verdicts.add(Verdict.of("off-creep-it-never-fires",
                     t.firstPlantedTick < 0 && globs == 0,

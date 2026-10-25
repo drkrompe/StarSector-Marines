@@ -49,6 +49,8 @@ import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -115,6 +117,17 @@ class BattleFixtureJsonTest {
         decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(json);
         assertNull(decoded.launch().marineSeats().get(0).integralSystem());
         assertNull(decoded.launch().marineSeats().get(0).toLoadout().integralSystem);
+    }
+
+    @Test void heartRoundTripKeepsTheLanceItDeclaresForTheCompany() throws Exception {
+        var lance = MechDropDeclaration.NONE.with(Faction.MARINE,
+                new MechDropAllowance(1, List.of(MechVariant.BULWARK, MechVariant.HOUND), 300));
+        var heart = new BloomHeartBattleFixture(5L, Form.BROAD_FRONT, SurfacePalette.VERDANT, Density.TOWN,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)), List.of(), lance);
+        assertEquals(heart, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(heart)));
+        var bare = new BloomHeartBattleFixture(5L, Form.BROAD_FRONT, SurfacePalette.VERDANT, Density.TOWN,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)));
+        assertFalse(BattleFixtureJson.toJson(bare).has("declaredMechDrops"));
     }
 
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {
