@@ -11,3 +11,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Ground turret tiers (point emplacements, raised hardpoints) | https://claude.ai/artifact/QvtkjhMfubgYbeVsffMkC8 |
 | Vehicle and mech scuff decals | https://claude.ai/artifact/G91JXyfyHTcjS5tYdYWKXR |
 | Swarm sound and damage (creature mix, flak, spire, skitterer sounds; Rav wear) | https://claude.ai/artifact/4z35vGosDAhpVuy8E1hMQS |
+| LRM APC debug vehicle picker (vehicle names, mortar carrier) | https://claude.ai/artifact/PacQjobpzzyeHd2rFbGWSd |
