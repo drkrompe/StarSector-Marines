@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan.Pla
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan.Ramp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.function.IntPredicate;
 
 /**
@@ -26,18 +28,44 @@ public final class RidgePlanner {
     private RidgePlanner() {}
 
     /**
+     * What a band's hill segments look like ({@code elevation-nouns.md}, Relief). {@link #NATURAL} ground swells,
+     * narrows and wanders within the band's ground; a {@link #BERM} is an engineered bank graded along the path, the
+     * band's own width the whole way, its faces straight and its ends cut square where the band breaks.
+     */
+    public enum Relief { NATURAL, BERM }
+
+    /**
      * One authored ridge: a band {@code thickness} cells through, centred on a
      * path of cell points. Its ramps climb from the side {@code rampSide} names:
      * +1 is the left of the path's direction of travel (counter-clockwise from
      * it, in cell coordinates), -1 the right. {@code rampWidth} cells wide.
      */
-    public record Band(List<Point> path, int thickness, int rampSide, int rampWidth) {
+    public record Band(List<Point> path, int thickness, int rampSide, int rampWidth, Relief relief) {
         public Band {
             path = List.copyOf(path);
             if (path.size() < 2) throw new IllegalArgumentException("a band runs along at least two points");
             if (thickness < 4 || thickness > 64) throw new IllegalArgumentException("thickness 4-64");
             if (rampSide != -1 && rampSide != 1) throw new IllegalArgumentException("a ramp climbs from one side");
             if (rampWidth < 1 || rampWidth > 16) throw new IllegalArgumentException("ramp width 1-16");
+            if (relief == null) throw new IllegalArgumentException("a band has a relief");
+        }
+
+        /** A band of natural ground. */
+        public Band(List<Point> path, int thickness, int rampSide, int rampWidth) {
+            this(path, thickness, rampSide, rampWidth, Relief.NATURAL);
+        }
+
+        /** This band as an engineered bank. */
+        public Band berm() {
+            return new Band(path, thickness, rampSide, rampWidth, Relief.BERM);
+        }
+
+        /**
+         * Cells natural ground may swell past the band's thickness either side of the path: a berm keeps to it. The
+         * ground a band holds or seals reaches this much further ({@link #heldGround}, {@link #sideGround}).
+         */
+        public int spread() {
+            return relief == Relief.NATURAL ? naturalSpread(thickness) : 0;
         }
 
         /**
@@ -57,6 +85,26 @@ public final class RidgePlanner {
             return new Band(List.of(new Point(x, y0), new Point(x, y1)), x1 - x0 + 1, -toward, rampWidth);
         }
     }
+
+    /** How far natural ground may swell past its band's thickness either side, as a share of the thickness. */
+    static final double SPREAD = 0.3;
+
+    /** Cells natural ground {@code thickness} through may swell past it either side ({@link Band#spread}). */
+    public static int naturalSpread(int thickness) {
+        return (int) Math.round(thickness * SPREAD);
+    }
+    /**
+     * The narrowest natural ground runs, as a radius: enough that a top stays one body however its tall south face
+     * and roughening bite into it, so a waist never cuts a segment into a part with no ramp. Thick ground narrows to
+     * {@link #WAIST_SHARE} of its radius, no less.
+     */
+    static final double NATURAL_WAIST = 4.5, WAIST_SHARE = 0.7;
+    /** Radius a natural segment tapers to at its ends: a spur running out, not a capsule's round end. */
+    static final double NATURAL_TIP = 2.5;
+    /** Cells along the path between a natural segment's points. */
+    static final int NATURAL_STRIDE = 2;
+    /** Cells a berm's square ends stand inside its run, so its apron stays on the ground the run was proved over. */
+    static final int BERM_END = 2;
 
     /** Cells a segment must run to be worth raising, as a multiple of the band's thickness. */
     static final double MIN_RUN = 2.0;
@@ -107,36 +155,42 @@ public final class RidgePlanner {
         boolean[] through = zone;
         IntPredicate runFree = through == null ? free : i -> free.test(i) || through[i];
         IntPredicate rampClear = through == null ? i -> true : i -> !near(through, width, height, i % width, i / width, 3);
-        for (Band band : bands) {
+        for (int b = 0; b < bands.size(); b++) {
+            Band band = bands.get(b);
             List<Sample> samples = samples(band);
             for (int[] run : runs(band, samples, width, height, runFree)) {
-                List<Plateau> nextPlateaus = new ArrayList<>(plateaus);
-                List<Ramp> nextRamps = new ArrayList<>(ramps);
-                if (!segment(band, samples.subList(run[0], run[1] + 1), width, height, nextPlateaus, nextRamps,
-                        rampClear)) {
-                    continue;
+                List<Sample> span = samples.subList(run[0], run[1] + 1);
+                // Natural ground first, then kept to the band's own width, then the plain capsule where neither stands.
+                List<Shape> shapes = band.relief() == Relief.BERM ? List.of(Shape.BERM)
+                        : List.of(Shape.NATURAL, Shape.NARROW, Shape.PLAIN);
+                for (Shape shape : shapes) {
+                    List<Plateau> nextPlateaus = new ArrayList<>(plateaus);
+                    List<Ramp> nextRamps = new ArrayList<>(ramps);
+                    long salt = seed * 0x9E3779B97F4A7C15L + b * 0x632BE59BD9B4E019L + run[0];
+                    if (!segment(band, shape, span, salt, width, height, nextPlateaus, nextRamps, rampClear)) continue;
+                    ElevationLayout layout;
+                    try {
+                        layout = ElevationLayout.resolve(new ElevationPlan(width, height, PlateauPlanner.FACE_WIDTH,
+                                PlateauPlanner.SOUTH_FACE, .6, seed, nextPlateaus, nextRamps));
+                    } catch (IllegalArgumentException refused) {
+                        continue;
+                    }
+                    boolean[] next = PlateauPlanner.footprint(layout);
+                    if (through == null ? !PlateauPlanner.fits(next, footprint, width, height, free)
+                            : !fitsThrough(layout, next, footprint, segments, through, terraceFaces, width, height, free)) continue;
+                    Ramp ramp = nextRamps.get(nextRamps.size() - 1);
+                    int footX = (int) Math.round(ramp.foot().x()), footY = (int) Math.round(ramp.foot().y());
+                    if (!free.test(footY * width + footX)) continue;
+                    // Asked last, so a closable that allows a layout knows it is the one kept.
+                    if (!closable.allows(layout)) continue;
+                    plateaus = nextPlateaus;
+                    ramps = nextRamps;
+                    if (through != null) {
+                        for (int i = 0; i < next.length; i++) segments[i] |= next[i] && !through[i] && !terraced[i];
+                    }
+                    footprint = next;
+                    break;
                 }
-                ElevationLayout layout;
-                try {
-                    layout = ElevationLayout.resolve(new ElevationPlan(width, height, PlateauPlanner.FACE_WIDTH,
-                            PlateauPlanner.SOUTH_FACE, .6, seed, nextPlateaus, nextRamps));
-                } catch (IllegalArgumentException refused) {
-                    continue;
-                }
-                boolean[] next = PlateauPlanner.footprint(layout);
-                if (through == null ? !PlateauPlanner.fits(next, footprint, width, height, free)
-                        : !fitsThrough(layout, next, footprint, segments, through, terraceFaces, width, height, free)) continue;
-                Ramp ramp = nextRamps.get(nextRamps.size() - 1);
-                int footX = (int) Math.round(ramp.foot().x()), footY = (int) Math.round(ramp.foot().y());
-                if (!free.test(footY * width + footX)) continue;
-                // Asked last, so a closable that allows a layout knows it is the one kept.
-                if (!closable.allows(layout)) continue;
-                plateaus = nextPlateaus;
-                ramps = nextRamps;
-                if (through != null) {
-                    for (int i = 0; i < next.length; i++) segments[i] |= next[i] && !through[i] && !terraced[i];
-                }
-                footprint = next;
             }
         }
         return plateaus.isEmpty() ? null
@@ -178,7 +232,7 @@ public final class RidgePlanner {
         boolean[][] held = new boolean[width][height];
         int apron = PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1;
         for (Band band : bands) {
-            int reach = (int) Math.ceil(band.thickness() / 2.0) + apron + margin;
+            int reach = (int) Math.ceil(band.thickness() / 2.0) + band.spread() + apron + margin;
             for (Sample s : samples(band)) {
                 int cx = (int) Math.round(s.x()), cy = (int) Math.round(s.y());
                 for (int x = Math.max(0, cx - reach); x <= Math.min(width - 1, cx + reach); x++) {
@@ -200,7 +254,7 @@ public final class RidgePlanner {
         boolean[][] held = new boolean[width][height];
         int apron = PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1;
         for (Band band : bands) {
-            double reach = Math.ceil(band.thickness() / 2.0) + apron + margin;
+            double reach = Math.ceil(band.thickness() / 2.0) + band.spread() + apron + margin;
             List<Point> path = band.path();
             for (int i = 0; i + 1 < path.size(); i++) {
                 Point a = path.get(i), b = path.get(i + 1);
@@ -281,40 +335,120 @@ public final class RidgePlanner {
         return out;
     }
 
+    /** How a segment is outlined: as its band's relief asks, or the plain capsule natural ground falls back to. */
+    enum Shape {
+        NATURAL, NARROW, PLAIN, BERM;
+
+        boolean natural() { return this == NATURAL || this == NARROW; }
+    }
+
     /**
      * Adds one segment's plateau and its ramp, at the run's middle or, where that is not clear, the nearest point
      * of the run that is; false when the run is too short to hold them or no point of it is clear.
+     *
+     * <p>{@link Shape#PLAIN} is a capsule chain of the band's radius whose round ends lie inside the run.
+     * {@link Shape#NATURAL} swells and narrows along the run, from {@link #NATURAL_WAIST} to the band's radius plus
+     * its {@link Band#spread}, its crest wandering from side to side in the room its width leaves, and tapers to a
+     * spur at each end; seeded by {@code salt}, smooth over tens of cells. Its ramp climbs where it is at least the
+     * band's own width, wherever it can. {@link Shape#NARROW} is the same within the band's own width.
+     * {@link Shape#BERM} is the band's width the whole way and runs to {@link #BERM_END} cells from each end of the
+     * run, cut square there.
      */
-    private static boolean segment(Band band, List<Sample> run, int width, int height,
+    private static boolean segment(Band band, Shape shape, List<Sample> run, long salt, int width, int height,
                                    List<Plateau> plateaus, List<Ramp> ramps, IntPredicate rampClear) {
         double radius = band.thickness() / 2.0;
-        // A capsule chain: its round ends lie inside the run, so the cliffs close round the segment's ends.
-        int trim = (int) Math.ceil(radius);
-        if (run.size() <= 2 * trim) return false;
-        List<Sample> body = run.subList(trim, run.size() - trim);
+        int trim = switch (shape) {
+            // A capsule chain: its round ends lie inside the run, so the cliffs close round the segment's ends.
+            case PLAIN -> (int) Math.ceil(radius);
+            case NATURAL, NARROW -> (int) Math.ceil(NATURAL_TIP) + 1;
+            case BERM -> BERM_END;
+        };
+        int n = run.size();
+        if (n <= 2 * trim) return false;
+        // Each sample's radius and the crest's offset along its normal.
+        double[] r = new double[n], offset = new double[n];
+        double widest = radius;
+        if (shape.natural()) {
+            double waist = Math.min(Math.max(NATURAL_WAIST, radius * WAIST_SHARE), radius);
+            double full = radius + (shape == Shape.NATURAL ? band.spread() : 0);
+            widest = full;
+            Random random = new Random(salt);
+            Wave swell = new Wave(random), wander = new Wave(random);
+            double taper = Math.max(2 * radius, 8), tip = Math.min(NATURAL_TIP, waist);
+            for (int i = 0; i < n; i++) {
+                double w = waist + (full - waist) * (.5 + .5 * swell.at(i));
+                double end = Math.min(i - trim, n - 1 - trim - i);
+                if (end < taper) w = tip + (w - tip) * smooth(Math.max(0, end) / taper);
+                r[i] = w;
+                offset[i] = wander.at(i) * (full - w) * .9;
+            }
+        } else {
+            Arrays.fill(r, radius);
+        }
         List<Point> points = new ArrayList<>();
-        int stride = Math.max(1, (int) Math.floor(radius));
-        for (int i = 0; i < body.size(); i += stride) points.add(new Point(body.get(i).x(), body.get(i).y()));
-        Sample tail = body.get(body.size() - 1);
-        points.add(new Point(tail.x(), tail.y()));
+        List<Double> radii = new ArrayList<>();
+        int stride = shape.natural() ? NATURAL_STRIDE : Math.max(1, (int) Math.floor(radius));
+        int tail = n - trim - 1, i = trim;
+        for (; i < tail; i += stride) {
+            points.add(crest(run.get(i), offset[i]));
+            radii.add(r[i]);
+        }
+        // The tail once: a repeated point is a capsule of no length, a round end on a berm cut square.
+        points.add(crest(run.get(tail), offset[tail]));
+        radii.add(r[tail]);
         // Outward from the middle, alternately each way, to the first point whose ramp stands clear.
-        int middle = run.size() / 2;
-        for (int k = 0; k < 2 * run.size(); k++) {
-            int at = middle + (k % 2 == 0 ? k / 2 : -(k / 2 + 1));
-            if (at < trim || at >= run.size() - trim) continue;
-            Sample mid = run.get(at);
-            double fx = mid.nx() * band.rampSide(), fy = mid.ny() * band.rampSide();
-            // A ramp cut deeper where it climbs a tall south face, as the plateau planner cuts its own.
-            double south = Math.max(0, -fy) * PlateauPlanner.SOUTH_FACE;
-            Point foot = new Point(clamp(mid.x() + fx * (radius + 3), width), clamp(mid.y() + fy * (radius + 3), height));
-            Point head = new Point(clamp(mid.x() + fx * (radius - 4 - south), width),
-                    clamp(mid.y() + fy * (radius - 4 - south), height));
-            if (!rampClear(foot, head, band.rampWidth(), width, height, rampClear)) continue;
-            plateaus.add(new Plateau(1, radius, points));
-            ramps.add(new Ramp(foot, head, band.rampWidth()));
-            return true;
+        int middle = n / 2;
+        for (int pass = 0; pass < 2; pass++) {
+            for (int k = 0; k < 2 * n; k++) {
+                int at = middle + (k % 2 == 0 ? k / 2 : -(k / 2 + 1));
+                if (at < trim || at >= n - trim) continue;
+                if (pass == 0 && shape.natural() && r[at] < Math.min(radius, widest - 1)) continue;
+                Sample mid = run.get(at);
+                Point c = crest(mid, offset[at]);
+                double fx = mid.nx() * band.rampSide(), fy = mid.ny() * band.rampSide();
+                // A ramp cut deeper where it climbs a tall south face, as the plateau planner cuts its own.
+                double south = Math.max(0, -fy) * PlateauPlanner.SOUTH_FACE;
+                Point foot = new Point(clamp(c.x() + fx * (r[at] + 3), width), clamp(c.y() + fy * (r[at] + 3), height));
+                Point head = new Point(clamp(c.x() + fx * (r[at] - 4 - south), width),
+                        clamp(c.y() + fy * (r[at] - 4 - south), height));
+                if (!rampClear(foot, head, band.rampWidth(), width, height, rampClear)) continue;
+                plateaus.add(switch (shape) {
+                    case PLAIN -> new Plateau(1, radius, points);
+                    case NATURAL, NARROW -> new Plateau(1, widest, points, radii, false);
+                    case BERM -> new Plateau(1, radius, points, List.of(), true);
+                });
+                ramps.add(new Ramp(foot, head, band.rampWidth()));
+                return true;
+            }
+            if (!shape.natural()) break;
         }
         return false;
+    }
+
+    private static Point crest(Sample s, double offset) {
+        return new Point(s.x() + s.nx() * offset, s.y() + s.ny() * offset);
+    }
+
+    private static double smooth(double t) {
+        double c = Math.max(0, Math.min(1, t));
+        return c * c * (3 - 2 * c);
+    }
+
+    /**
+     * A smooth seeded wave along a run, -1 to 1: three sines of incommensurate lengths between about twenty and
+     * seventy cells, so a hill swells and narrows over a few tens of cells and never repeats along a ridge.
+     */
+    private record Wave(double l1, double l2, double l3, double p1, double p2, double p3) {
+        Wave(Random random) {
+            this(18 + random.nextDouble() * 10, 30 + random.nextDouble() * 14, 50 + random.nextDouble() * 20,
+                    random.nextDouble() * 2 * Math.PI, random.nextDouble() * 2 * Math.PI, random.nextDouble() * 2 * Math.PI);
+        }
+
+        double at(double s) {
+            double v = .5 * Math.sin(2 * Math.PI * s / l1 + p1) + .3 * Math.sin(2 * Math.PI * s / l2 + p2)
+                    + .2 * Math.sin(2 * Math.PI * s / l3 + p3);
+            return Math.max(-1, Math.min(1, v * 1.25));
+        }
     }
 
     /** Whether the ramp's ends and the corners of its corridor are all cells {@code clear} allows. */

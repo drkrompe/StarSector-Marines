@@ -43,6 +43,7 @@ public final class ElevationLayout {
     private final List<RampShape> ramps;
     private final double[][] plateauFields;
     private final int southFace;
+    private final boolean[] graded;
 
     /**
      * A ramp's corridor as resolved: from the foot along unit axis
@@ -57,7 +58,7 @@ public final class ElevationLayout {
 
     private ElevationLayout(int width, int height, int faceWidth, byte[] tier, byte[] kind,
                             double[][] artFields, double[] rampRise, List<RampShape> ramps,
-                            double[][] plateauFields, int southFace) {
+                            double[][] plateauFields, int southFace, boolean[] graded) {
         this.width = width;
         this.height = height;
         this.faceWidth = faceWidth;
@@ -68,6 +69,7 @@ public final class ElevationLayout {
         this.ramps = List.copyOf(ramps);
         this.plateauFields = plateauFields;
         this.southFace = southFace;
+        this.graded = graded;
     }
 
     public int width() { return width; }
@@ -102,6 +104,14 @@ public final class ElevationLayout {
      */
     public double[] plateauCorners(int k) { return plateauFields[k - 1].clone(); }
 
+    /**
+     * Whether the raised ground nearest the cell corner {@code (x, y)}, {@code 0..width} by {@code 0..height}, is
+     * graded: an engineered bank ({@link ElevationPlan.Plateau#graded}) rather than natural ground.
+     */
+    public boolean gradedCorner(int x, int y) {
+        return graded[Math.max(0, Math.min(height, y)) * (width + 1) + Math.max(0, Math.min(width, x))];
+    }
+
     /** The ramps as resolved, in plan order. */
     public List<RampShape> ramps() { return ramps; }
 
@@ -118,11 +128,14 @@ public final class ElevationLayout {
         int maxTier = 0;
         for (ElevationPlan.Plateau p : plan.plateaus()) maxTier = Math.max(maxTier, p.tier());
         double[][] raw = new double[maxTier][];
+        // Whether the plateau nearest each corner (the one whose field is highest there) is graded, read on tier 1,
+        // which every plateau raises.
+        boolean[] graded = new boolean[corners];
         for (int k = 1; k <= maxTier; k++) {
             raw[k - 1] = new double[corners];
             Arrays.fill(raw[k - 1], -128);
             for (ElevationPlan.Plateau p : plan.plateaus()) {
-                if (p.tier() >= k) sweep(plan, p, raw[k - 1]);
+                if (p.tier() >= k) sweep(plan, p, raw[k - 1], k == 1 ? graded : null);
             }
         }
         double[][] untilted = new double[maxTier][];
@@ -215,20 +228,32 @@ public final class ElevationLayout {
                 }
             }
         }
-        ElevationLayout layout = new ElevationLayout(w, h, fw, tier, faced, art, rampRise, shapes, untilted, plan.southFace());
+        ElevationLayout layout = new ElevationLayout(w, h, fw, tier, faced, art, rampRise, shapes, untilted,
+                plan.southFace(), graded);
         for (ElevationPlan.Ramp ramp : plan.ramps()) layout.requireRampEnds(ramp);
         layout.requireEveryPlateauReachable();
         return layout;
     }
 
-    private static void sweep(ElevationPlan plan, ElevationPlan.Plateau plateau, double[] field) {
+    /**
+     * Raises {@code field} to the plateau's signed distance wherever it is higher, and marks the corners it won in
+     * {@code won}, when given. A tapered chain interpolates its radius along each capsule; a graded one is not
+     * roughened and is cut square across its two ends: every capsule is clipped by a plane through each end point,
+     * square to the chain there, so no round joint pokes past a short last capsule.
+     */
+    private static void sweep(ElevationPlan plan, ElevationPlan.Plateau plateau, double[] field, boolean[] won) {
         int w = plan.width(), h = plan.height(), vw = w + 1;
         double reach = plateau.radius() + 4;
         double phase = (plan.seed() & 65535) * .013;
+        double rough = plateau.graded() ? 0 : plan.ruggedness() * 1.4;
         var points = plateau.points();
+        // The end planes: a point and the unit direction into the chain, or null for round ends.
+        double[] start = plateau.graded() ? endPlane(points, false) : null;
+        double[] end = plateau.graded() ? endPlane(points, true) : null;
         for (int s = 0; s < points.size(); s++) {
             var a = points.get(Math.max(0, s - 1));
             var b = points.get(s);
+            double ra = plateau.radiusAt(Math.max(0, s - 1)), rb = plateau.radiusAt(s);
             int x0 = Math.max(0, (int) Math.floor(Math.min(a.x(), b.x()) - reach));
             int x1 = Math.min(w, (int) Math.ceil(Math.max(a.x(), b.x()) + reach));
             int y0 = Math.max(0, (int) Math.floor(Math.min(a.y(), b.y()) - reach));
@@ -238,16 +263,42 @@ public final class ElevationLayout {
                 for (int x = x0; x <= x1; x++) {
                     double px = x - .5 - a.x(), py = y - .5 - a.y();
                     double t = den == 0 ? 0 : Math.max(0, Math.min(1, (px * dx + py * dy) / den));
-                    double noise = Math.sin(x * .59 + Math.sin(y * .37) + phase) * .65
-                            + Math.sin(y * 1.13 - x * .34 + phase) * .25
-                            + Math.sin(x * 2.1 + y * 1.8 + phase) * .10;
-                    double value = plateau.radius() - Math.hypot(px - t * dx, py - t * dy)
-                            + plan.ruggedness() * 1.4 * noise;
+                    double value = ra + (rb - ra) * t - Math.hypot(px - t * dx, py - t * dy);
+                    if (rough > 0) {
+                        double noise = Math.sin(x * .59 + Math.sin(y * .37) + phase) * .65
+                                + Math.sin(y * 1.13 - x * .34 + phase) * .25
+                                + Math.sin(x * 2.1 + y * 1.8 + phase) * .10;
+                        value += rough * noise;
+                    }
+                    if (start != null) {
+                        value = Math.min(value, (x - .5 - start[0]) * start[2] + (y - .5 - start[1]) * start[3]);
+                    }
+                    if (end != null) {
+                        value = Math.min(value, (x - .5 - end[0]) * end[2] + (y - .5 - end[1]) * end[3]);
+                    }
                     int i = y * vw + x;
-                    field[i] = Math.max(field[i], value);
+                    if (value > field[i]) {
+                        field[i] = value;
+                        if (won != null) won[i] = plateau.graded();
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * The plane square across a chain at its first point ({@code last} false) or its last: {x, y, ux, uy}, the
+     * point and the unit direction pointing into the chain; null for a chain of one point.
+     */
+    private static double[] endPlane(List<ElevationPlan.Point> points, boolean last) {
+        int n = points.size();
+        ElevationPlan.Point at = points.get(last ? n - 1 : 0);
+        for (int k = 1; k < n; k++) {
+            ElevationPlan.Point other = points.get(last ? n - 1 - k : k);
+            double dx = other.x() - at.x(), dy = other.y() - at.y(), len = Math.hypot(dx, dy);
+            if (len > 1e-9) return new double[]{at.x(), at.y(), dx / len, dy / len};
+        }
+        return null;
     }
 
     /**
