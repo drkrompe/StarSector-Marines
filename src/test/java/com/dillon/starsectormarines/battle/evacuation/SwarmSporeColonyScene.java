@@ -32,8 +32,8 @@ import java.util.Map;
  * <ul>
  *   <li>{@code fissure-light}: a light craft on an orbit inside a fissure
  *       colony's reach. The colony engages it.</li>
- *   <li>{@code fissure-wide}: a wider orbit, beyond a fissure colony's reach.
- *       Nothing fires.</li>
+ *   <li>{@code fissure-wide}: a wider orbit, beyond a fissure colony's reach from
+ *       anywhere on its bore's crescent. Nothing fires.</li>
  *   <li>{@code maw-heavy}: a heavy armed transport on the wide orbit over a bore
  *       fed to maw through the biomass seam. The bore has sprouted a colony of
  *       each grade; the maw-grade colony reaches the craft and carries the most
@@ -56,6 +56,11 @@ public final class SwarmSporeColonyScene implements BehaviorScene {
     private static final int CENTRE = 45;
     private static final float INSIDE_ORBIT = 7f;
     private static final float WIDE_ORBIT = 17f;
+    /**
+     * An orbit a fissure colony never reaches wherever on its bore's crescent it stands: its reach, plus the furthest a
+     * growth site lies from the mouth ({@link BoreGrowthSites}), plus slack for the craft's turn.
+     */
+    private static final float FISSURE_CLEAR_ORBIT = 21f;
     private static final int KILL_TICK = 300;
 
     @Override public String id() { return "swarm-spore-colonies"; }
@@ -72,7 +77,7 @@ public final class SwarmSporeColonyScene implements BehaviorScene {
         try {
             return List.of(
                     playOne("fissure-light", ShuttleType.KITE, INSIDE_ORBIT, 0f, frames),
-                    playOne("fissure-wide", ShuttleType.KITE, WIDE_ORBIT, 0f, FrameSink.NONE),
+                    playOne("fissure-wide", ShuttleType.KITE, FISSURE_CLEAR_ORBIT, 0f, FrameSink.NONE),
                     playOne("maw-heavy", ShuttleType.VALKYRIE, WIDE_ORBIT, 9f, frames),
                     playOne("colonies-killed", ShuttleType.KITE, INSIDE_ORBIT, 4f, frames),
                     playOne("collapsed", ShuttleType.KITE, INSIDE_ORBIT, 4f, FrameSink.NONE));

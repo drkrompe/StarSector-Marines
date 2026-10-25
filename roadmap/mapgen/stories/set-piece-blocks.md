@@ -4,11 +4,13 @@ Status: IN PROGRESS
 
 Written: 2026-10-25
 
+Updated: 2026-10-25 — step 3: the freight yard has ground planned for it, and a two-bay yard where that ground holds one.
+
 Read `compound-programs.md` (authored relationships within a compound) and
 `mapgen-nouns.md` (working-yard templates, compound claims, the road
-reservation) first. This story adds no generation mechanism: a set piece is one
-more authored compound layout, placed by the compound claim that already owns
-its ground.
+reservation) first. A set piece is an authored layout placed on ground that is
+already owned: a compound's claim, or a parcel planned for it the way the
+industrial template parcels are.
 
 ## Scope
 
@@ -52,15 +54,43 @@ heading, door and gate). A loading reads the bay rather than searching the
 finished map. Where a map has no freight yard, it still searches as it does
 today.
 
-**The yard is sized for the ground compounds have, not the ground it would
-like.** A 20 by 26 yard was laid out first and fitted no compound on 24 maps.
-Every ordinary industrial compound has the road reservation running between
-its members, so its largest clear rectangle is one member and the frame
-beside it. The yard is therefore 14 by 18: a nine-row yard and an eight-row
-hall. That stood on 9 of 12 city maps and 3 of 12 colonies, and only 7 of
-those colonies had an industrial compound at all. Requiring the street outside
-the gate to hold a hauler's turn costs a few more. A larger yard needs a claim
-built for it (`cross-leaf-footprint-planning.md`), not a bigger template.
+**The yard has ground planned for it, not ground it finds.** Placed only in
+industrial compounds, it stood on 3 of 12 colonies: only 7 had a compound, and
+every ordinary compound keeps the road reservation running between its
+members, so its largest clear rectangle is one member and the frame beside it.
+A compound claim cannot give it more, because claims keep their streets. So the
+yard is a **parcel**, like the industrial template parcels: before compounds
+claim and before the streets become a graph, one parcel per map is labelled a
+freight yard, joined to its neighbour across their minor street where that is
+what holds the larger yard. The street goes with it, the outer ring stays
+whole, and compounds, the spaceport district and the landmark seeds leave the
+parcel alone.
+
+- **Which ground.** Working parcels first (industrial buildings and yards),
+  then ground a settlement can spare (shops, dense blocks, ruins, plazas);
+  never homes, civic blocks, compounds or natural ground. The parcel must have
+  a street side long enough for the gate wall. Of what fits, the parcel
+  **nearest the map's edge** wins: a freight yard stands where the road leaves
+  town, and a hauler loaded in the middle of a colony has the whole town to
+  cross, which is exactly the drive vehicle routing gives up on.
+- **Which size.** Two sizes, tried largest first, so a short parcel is a
+  smaller yard rather than a hole: the **two-bay yard** (20 by 26: two gates
+  and drives either side of an island of freight, before a bigger hall) and the
+  **standard yard** (14 by 18). A parcel whose streets give no gate a hauler
+  can turn out of is an ordinary industrial yard.
+- **The drive out.** A hauler leaving a walled yard drives clear of the gate
+  before it turns; the cheapest path bends at the gate's mouth, hugging the
+  wall, and no hauler can follow it. Each bay therefore publishes its **turn**,
+  the point four cells out where the yard proved a hauler can turn either way,
+  and a loading drives straight out to it before routing off the map. A gate
+  facing the map's edge needs no road at all. A loading is sent only to a bay
+  it has proved a truck can leave; the yard still stands where none is.
+
+Measured over 24 Colony Breach colonies: a yard on 20, half of them with more
+than one bay, and the loading's truck standing in a yard's bay on 14. Where no
+bay can be driven out of, the loading parks by search at another warehouse,
+and every colony offered one. Over 12 stock city maps, a yard on 11. The industrial compound still lays a standard yard on
+its own ground where that ground holds one, so a map may have two.
 
 ## The factory row
 
@@ -92,6 +122,47 @@ four open cells outside them, the first a street cell. A compound that cannot
 hold the row fills as ordinary industrial lots. Across 24 maps of each, the row
 stood on 13 medium cities (18 had a host lot) and 16 colonies (all 24 had one).
 Most misses are the road reservation crossing every pose.
+
+## The market square
+
+A commercial set piece: an open paved square framed by shopfronts whose doors
+face it, crossed by two rows of market stalls, entered by street mouths and
+alleys. Its tactical job is the killing ground: a fight crosses the square
+between the stall rows, and **the mouths decide which ways a fight can enter**.
+
+- **Shops down each side**, doors facing the square, with two cells of aisle
+  kept clear before every frontage. They are ordinary commercial shells, so
+  the staffed grocery crews work them like any shop.
+- **The back** is either a row of shops (the square framed on three sides) or
+  a second street running through.
+- **An alley** may break each side row.
+- **Stalls** are composed from existing props, since no stall or awning art
+  exists: a produce stall is three servery counters with a crate and a box
+  behind; a fish stall is iced fish crates with a counter at its end. Potted
+  planters stand at the front corners.
+- **A bandstand** stands at the centre of a square deep enough for it, as hard
+  cover.
+
+The **mouths** are the layout's variant and the owner's lever: one (the front
+street only), two (a street through), three (front and two alleys) or four
+(a street through and two alleys). The square publishes an **open square**
+(`OpenSquare` on `MapResult`): its centre, its open extent and every mouth's
+cells and outward step, for an objective to hold, cross or send pressure
+through.
+
+**The square needs ground no compound has.** A 24 by 12 layout fitted the
+dense quarter on 2 city maps in 24 and 7 colonies in 24, because the road
+reservation runs down every street between members; letting the reservation
+cross the open square and leaving out a shop it ran through still left broken
+frames on bare paving. The square therefore has a **market lot** planned for
+it: after compound claims and before the road graph, two complete commercial,
+plaza, dense-block or residential parcels and the minor street between them
+are joined into one lot, exactly as the industrial planning pass joins
+parcels. The street ring round the lot stays complete, so every mouth gives
+onto road. A lot the square cannot stand in is an ordinary plaza. Where the
+lot holds every layout, the mouths are picked from the lot's position without
+a random draw. With at least four shops standing, the square stands on 19 city
+maps in 24 and 20 colonies in 24.
 
 ## Lanes and pressure
 
@@ -136,17 +207,20 @@ The yard's warehouse has one doorway, onto the yard
 
 ## Plan
 
-Done: steps 1, 2 and 4 (`freight-yard-look`, `loading-pressure-look`); the
-factory row of step 5 (`factory-row-look`).
+Done: steps 1 to 4 (`freight-yard-look`, `loading-pressure-look`; freight-yard
+coverage in `generatedSpaceEvidence`, `FreightYardCoverageEvidenceTest`); the
+factory row and the market square of step 5 (`factory-row-look`,
+`market-square-look`).
 
 1. The freight yard as an industrial compound layout, with its `LoadingBay`
    mark and a look suite.
 2. The loading stands at a freight yard's bay where the map has one.
-3. More colonies carry a freight yard: an industrial claim on colonies that
-   have none, and a larger yard on a claim built for it.
+3. More colonies carry a freight yard: a parcel planned for it, and the
+   two-bay yard where that parcel holds one.
 4. Objective pressure for the loading: its own bore and director.
 5. Further set pieces from the same seam: a factory row on a service lane, and
-   a market square with stalls for cover.
+   a market square with stalls for cover (done: `MarketSquare` on a planned
+   market lot, publishing its `OpenSquare`).
 
 ## Acceptance
 
@@ -157,4 +231,6 @@ factory row of step 5 (`factory-row-look`).
 - The factory row in any pose and length: both gates open outward, the lane is
   clear gate to gate, the cover stands off it, and the workshops fill the
   length sharing their party walls (`FactoryRowTest`).
+- The market square in every layout: every mouth reaches every cell before
+  every shop frontage between the stalls, and no stall stands in an aisle.
 - Owner look stills at 1920x1080 from the look preset.

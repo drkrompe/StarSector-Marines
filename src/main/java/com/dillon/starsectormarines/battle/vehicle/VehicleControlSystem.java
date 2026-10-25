@@ -413,6 +413,14 @@ public final class VehicleControlSystem {
                 return;
             }
             s.pivotTracking = false;
+            // Every answer from this pose has failed (forward plans, the turnaround, the reroute): back off the way
+            // the hull came and plan again from there. Without it a truck nosed into a building stood all battle,
+            // since the committed reverse otherwise starts only from a followed trajectory's stall or wall contact.
+            if (planlessReverseDue(mission, s) && beginReverseRecovery(body, type, s)) {
+                s.localPlanFailureTime = 0f;
+                s.localPlanFailureRerouteAttempted = false;
+                return;
+            }
             // The last rung of a move order, once every legal answer has failed: brush soft ground at a crawl
             // (SoftBrush). The failure clock holds while the hull brushes on, so an order that cannot brush either is
             // still given up on time.
@@ -736,6 +744,17 @@ public final class VehicleControlSystem {
                 s.wallStuckTime = 0f;
             }
         }
+    }
+
+    /**
+     * Whether a hull with no plan from where it stands should back off and replan: it is meant to be moving, its
+     * reroute has been tried and is not still searching, and it has held planless for
+     * {@link VehicleController#PLANLESS_REVERSE_SECONDS}. {@link #beginReverseRecovery} still declines when nothing
+     * is clear behind, or after {@link VehicleController#MAX_RECOVERY_ATTEMPTS} tries without progress.
+     */
+    static boolean planlessReverseDue(VehicleMission mission, VehicleControlComponent s) {
+        return mission.speedCap > 0f && s.localPlanFailureRerouteAttempted && s.pendingRecovery == null
+                && s.localPlanFailureTime >= VehicleController.PLANLESS_REVERSE_SECONDS;
     }
 
     /**

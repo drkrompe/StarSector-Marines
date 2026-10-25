@@ -64,16 +64,16 @@ public final class IndustrialTemplateParcelStage implements GenStage {
     private static boolean eligible(BlockLeaf leaf) {
         return leaf.kind==BlockKind.BUILDING_INDUSTRIAL || leaf.kind==BlockKind.INDUSTRIAL_YARD;
     }
-    private static boolean overlaps(BlockLeaf a,BlockLeaf b) {
+    static boolean overlaps(BlockLeaf a,BlockLeaf b) {
         return a.left<=b.right && a.right>=b.left && a.top<=b.bottom && a.bottom>=b.top;
     }
-    private static boolean roadRing(BlockLeaf b,Bsp.Partition p) {
+    static boolean roadRing(BlockLeaf b,Bsp.Partition p) {
         if (b.left<1 || b.top<1 || b.right>=p.width-1 || b.bottom>=p.height-1) return false;
         for (int x=b.left-1;x<=b.right+1;x++) if (!p.roadCells[x][b.top-1] || !p.roadCells[x][b.bottom+1]) return false;
         for (int y=b.top-1;y<=b.bottom+1;y++) if (!p.roadCells[b.left-1][y] || !p.roadCells[b.right+1][y]) return false;
         return true;
     }
-    private static boolean crossesTrunk(BlockLeaf b,TrunkPlan.Plan p) {
+    static boolean crossesTrunk(BlockLeaf b,TrunkPlan.Plan p) {
         for (TrunkPlan.TrunkSegment t : p.trunks)
             if (b.left<=t.right && b.right>=t.left && b.top<=t.bottom && b.bottom>=t.top) return true;
         return false;

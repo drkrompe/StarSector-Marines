@@ -9,6 +9,10 @@ blob's area, that persists past a flash's frames, is flagged with its frame and 
   big         at least AREA_PX pixels as measured at 1920 wide (scaled by the frame's own size)
   persists    the same region (overlapping boxes) on consecutive frames for longer than HOLD_24
               frames at 24 fps; a torn HE's single white frame passes, a held flash does not
+  lobed       at least THIN_PX thick as measured at 1920 wide (its area over its length along its
+              main axis): a beam's or a tracer's white core is a line, never a blob (S8-S9 final
+              f02208, 2026-10-25: a beam core 1195 px in an 84x358 box, about 3 px thick, held while the
+              beam fired, once effects_owned counted additive light)
   excluded    a ship's drives: a region holding the screen point of any engine (engines_px) is a
               drive glow, by position, never by loosening the thresholds
 
@@ -22,11 +26,13 @@ WHITE_LUMA = 230.0
 WHITE_SAT = .25
 OWNED = .5
 AREA_PX = 600          # at 1920 wide
+THIN_PX = 10.0         # at 1920 wide: a region thinner than this is a streak, not a blob
 HOLD_24 = 2            # a white region may hold this many frames at 24 fps
 
 
 def regions(mask):
-    """Connected regions (4-neighbour) of a boolean mask: [(area, (y0, x0, y1, x1), cy, cx)]."""
+    """Connected regions (4-neighbour) of a boolean mask: [(area, (y0, x0, y1, x1), cy, cx, length)],
+    length the region's extent along its main axis (a uniform bar's length from its pixel spread)."""
     import numpy as np
     h, w = mask.shape
     seen = np.zeros_like(mask, dtype=bool)
@@ -44,9 +50,10 @@ def regions(mask):
                 if 0 <= ny < h and 0 <= nx < w and mask[ny, nx] and not seen[ny, nx]:
                     seen[ny, nx] = True
                     stack.append((ny, nx))
-        a = np.array(pts)
+        a = np.array(pts, dtype=np.float64)
+        spread = np.linalg.eigvalsh(np.cov(a.T)).max() if len(pts) > 1 else 0.0
         out.append((len(pts), (int(a[:, 0].min()), int(a[:, 1].min()), int(a[:, 0].max()), int(a[:, 1].max())),
-                    float(a[:, 0].mean()), float(a[:, 1].mean())))
+                    float(a[:, 0].mean()), float(a[:, 1].mean()), max(1.0, (12.0 * spread) ** .5)))
     return out
 
 
@@ -62,13 +69,13 @@ def found(display, effects_owned, engines_px=()):
     area = AREA_PX * (w / 1920.0) ** 2
     kept = []
     for r in regions(mask):
-        if r[0] < area:
+        if r[0] < area or r[0] / r[4] < THIN_PX * w / 1920.0:
             continue
         y0, x0, y1, x1 = r[1]
         pad = max(12.0 * w / 1920.0, .5 * max(y1 - y0, x1 - x0))
         if any(x0 - pad <= ex <= x1 + pad and y0 - pad <= ey <= y1 + pad for ex, ey in engines_px):
             continue
-        kept.append(r)
+        kept.append(r[:4])
     return kept
 
 

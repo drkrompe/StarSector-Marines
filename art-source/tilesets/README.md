@@ -101,7 +101,8 @@ python -m unittest discover `
 | Runtime atlas | Raw source | Initial topology check |
 | --- | --- | --- |
 | `urban-tileset.png` | `urban-tileset.raw.png` (1254x1254 RGBA, keyed) | Exported from `urban-tileset.tileset-authoring.json`; withdrawn from `normalize_tilesets.py` |
-| `urban-tileset-2.png` | `urban-tileset-2-spaceport-apron.raw.png` (1254x1254 RGB) | The approved 3x3 spaceport apron is extracted panel-by-panel into the road atlas |
+| `urban-tileset-2.png` | `urban-tileset-2.raw.png` (the adopted atlas) | Exported from `urban-tileset-2.tileset-authoring.json`; the retired striped apron in columns 6-8 is no longer cut |
+| `marked-apron.png` | `marked-apron.raw.png` (1254x1254 RGB) | Reskin of `templates/marked-apron-guide.png`; exported from `marked-apron.tileset-authoring.json` |
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGBA, keyed) | Exported from `urban-tileset-3.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py` |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
