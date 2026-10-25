@@ -1448,18 +1448,22 @@ against its own control in `renderEvidence`.
   reaching in from the crown's rim while the leaves start to turn; a crust
   rolling in from the rim with the creep's beaded lip while the leaves brown;
   the crown withering, its dead leaves falling from a bare skeleton; and the
-  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
-  trunk to the crown's own outline, veins running out along them, drawn with a
+  dead tree, a snag of weathered grey-brown limbs, fissured and silvered on
+  their lit ridges, reaching unevenly from a crusted trunk toward the crown's
+  outline, some snapped short, a few dead leaves caught in them and veins
+  running out along them (bleached, smooth and evenly radial, they read as
+  bone), drawn with a
   dark outline over a soft ground shadow so it stands up off the dark creep at
   play zoom. The skeleton is grown by the bake rather than taken from the
   damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
   sheet baked from the canopy art and the creep's own surface and palette
   (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
-  ground. A dead tree felled, by heavy tracks or by fire, lies as dead wood: the
-  destroyed tree's stump and fallen limbs bleached bone-pale and bare, the stump
-  crusted, baked the same way from the destroyed-tree art (a sheet of its own,
-  `forest-blight-felled`); a tree felled while it lived keeps its green felled
-  art. On vegetation (grass, crops and the plants on them) the edge is not
+  ground. A dead tree felled, by heavy tracks or by fire, lies flattened: the
+  destroyed tree's stump and the butts of its limbs snapped off short, in the
+  same dead bark, the stump crusted, so it reads as ground a vehicle drives over
+  rather than a fallen tree still in the way; it is baked the same way from the
+  destroyed-tree art (a sheet of its own, `forest-blight-felled`). A tree felled
+  while it lived keeps its green felled art. On vegetation (grass, crops and the plants on them) the edge is not
   clean as it is on pavement: the creep's coverage spread a few cells out turns
   the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
   into it ahead of the lip, so grass and crop rows are seen to be taken before
