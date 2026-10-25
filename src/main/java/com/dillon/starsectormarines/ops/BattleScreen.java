@@ -150,6 +150,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 public class BattleScreen implements Screen, BattleUiContext {
 
     private static final Logger LOG = Global.getLogger(BattleScreen.class);
+    /** How far around a dragged-off friend the player still sees, in cells: enough to show the Runner and the ground ahead of it. */
+    private static final int HELD_BODY_SIGHT = 5;
 
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
@@ -682,6 +684,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (com.dillon.starsectormarines.battle.power.CommandPowerService.ActivePing p
                 : sim.getCommandPowerService().getActivePings()) {
             vis.addEphemeralSource(p.cellX, p.cellY, p.radius, 0f);
+        }
+        // Anyone dragged off alive by a Runner (a marine, an ally, a colonist) keeps a small bubble of
+        // sight around them, so the player watches them hauled to the bore rather than vanishing into
+        // the fog with their carrier. Colonists see nothing of their own, so without it they just disappear.
+        for (long body : sim.swarmHarvest().loads().values()) {
+            if (!airWorld.isAlive(body) || sim.identity().faction(body) == Faction.DEFENDER) continue;
+            vis.addEphemeralSource(airWorld.cellX(body), airWorld.cellY(body), HELD_BODY_SIGHT, 0f);
         }
         // A friendly warship is a spotter: its hull, the ground it is ordered onto and
         // where its rounds fall are observed, so the player can see what it does.
