@@ -239,6 +239,7 @@ import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.nav.ReachableRegion;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
@@ -1946,6 +1947,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public float physicalRadius(long id) {
         return rosterService.radius(id);
+    }
+
+    @Override
+    public ReachableRegion mechReachableRegion(long unit) {
+        return navigation.mechReachableRegion(world().x(unit), world().y(unit), physicalRadius(unit));
     }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }

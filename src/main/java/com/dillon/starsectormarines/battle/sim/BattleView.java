@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.nav.ReachableRegion;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -468,6 +469,12 @@ public interface BattleView {
      * ballistics for a live roster actor or targetable convoy vehicle.
      */
     float physicalRadius(long id);
+
+    /**
+     * The ground this mech was last proved able to reach, from a route proof that found some goal unreachable, or
+     * {@code null} when nothing is known ({@code MechReachability}). A preference for choosing destinations only.
+     */
+    default ReachableRegion mechReachableRegion(long unit) { return null; }
 
     /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live). */
     VehicleMission convoyMission(long id);

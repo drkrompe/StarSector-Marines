@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.nav;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,10 +53,13 @@ public final class ClearanceRoutePlanner {
 
     public record Point(float x, float y) {}
 
-    /** Pending and failed queries have no resolved endpoint and no waypoints. */
+    /**
+     * Pending and failed queries have no resolved endpoint and no waypoints. An {@code UNREACHABLE} result whose
+     * search emptied its frontier carries the {@link ReachableRegion} that flood found; every other result has none.
+     */
     public record Result(Status status, Point requested, Point resolved,
                          List<Point> waypoints, long topologyRevision,
-                         int expandedNodes, int clearanceChecks) {
+                         int expandedNodes, int clearanceChecks, ReachableRegion reached) {
         public Result { waypoints = List.copyOf(waypoints); }
     }
 
@@ -216,7 +220,14 @@ public final class ClearanceRoutePlanner {
                 goalIndex++;
                 prepared = false;
             }
-            return finish(Status.UNREACHABLE, null, List.of());
+            return finish(Status.UNREACHABLE, null, List.of(), exhausted ? reachedRegion(workspace) : null);
+        }
+
+        /** The start's whole component: an emptied frontier has costed every point reachable from it. */
+        private ReachableRegion reachedRegion(Workspace w) {
+            BitSet held = new BitSet(w.width * w.height);
+            for (int node : w.slots.keySet()) held.set(node);
+            return new ReachableRegion(w.radius, revision, w.width, w.height, held);
         }
 
         private List<Point> routeTo(Workspace w, int slot) {
@@ -237,12 +248,20 @@ public final class ClearanceRoutePlanner {
         @Override public void close() { cancel(); }
 
         private Result snapshot(Status status, Point resolved, List<Point> route) {
+            return snapshot(status, resolved, route, null);
+        }
+
+        private Result snapshot(Status status, Point resolved, List<Point> route, ReachableRegion reached) {
             return new Result(status, requested, resolved, route, revision,
-                    workspace.expanded, workspace.checks);
+                    workspace.expanded, workspace.checks, reached);
         }
 
         private Result finish(Status status, Point resolved, List<Point> route) {
-            latest = snapshot(status, resolved, route);
+            return finish(status, resolved, route, null);
+        }
+
+        private Result finish(Status status, Point resolved, List<Point> route, ReachableRegion reached) {
+            latest = snapshot(status, resolved, route, reached);
             workspace.grid = null;
             workspace = null;
             goals = null;

@@ -875,6 +875,22 @@ few ticks; a found route is still proved again on every change). Both are contro
 `battle.pathfinding.clearanceFailureBackoff`); the serial scheduler runs proofs
 inside the tick, so an unbounded repeat there stalls the whole simulation.
 
+That flood is also kept. A refusal that exhausted its search has, in its
+workspace, exactly the lattice the chassis's radius can reach from where it
+stood: its **reached ground** (`ReachableRegion`). The battle's mech
+reachability memory (`MechReachability`) holds a few of them, published at the
+next tick in owner order, replaced when the same component is proved again, and
+forgotten after their age so that ground opened since is learned by the next
+refusal; a body's reached ground is the newest region of its radius it stands
+in. It is a preference, never a refusal: the route proof stays the authority.
+Assault advance reads it before the mission boundary: a destination off this
+mech's reached ground becomes the nearest reached cell to it, the closest the
+chassis can actually come, so a geometric pick in an alley it cannot turn into
+is not paid for again a cell along while the mech stands still. Ground it knows
+nothing about leaves the pick as it was. Where on reached ground an advance
+should stand (sight over the ground that matters to the advance; cover only once
+threatened) is doctrine's, not this memory's.
+
 Tactical selection ranks candidates using the existing perceived contact and
 mission boundary, checks local room for the chassis, then requests a route for
 the chosen candidate. Refused candidates are remembered within bounded tactical
