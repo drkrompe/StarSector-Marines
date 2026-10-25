@@ -236,9 +236,13 @@ final class CordonWorks {
         return PreparedGround.sandbag(ctx, x, y, toward, corner);
     }
 
-    /** A one-cell obstacle prop: a hedgehog, a crate stack. */
+    /**
+     * A one-cell obstacle prop: a hedgehog, a crate stack. Refused on a cell a cover prop already stands on: a
+     * yard's dressing may stand on open ground, and two cover props in one cell are one too many.
+     */
     boolean obstacle(int x, int y, String id) {
         if (!free(x, y)) return false;
+        for (Doodad d : doodads) if (d.cover > 0 && overlaps(d, x, y, x, y)) return false;
         touch(x, y, x, y);
         return PreparedGround.obstacle(ctx, x, y, id);
     }
