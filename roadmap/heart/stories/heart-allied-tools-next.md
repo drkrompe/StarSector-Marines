@@ -1,6 +1,6 @@
 # The lanes' next tools
 
-Status: IN PROGRESS — the fire-support section and spotters are built on Broad Front; the rest wait on the owner decisions below.
+Status: IN PROGRESS — the fire-support section, shared spotting and the section's move-up are built on Broad Front; mortar teams are built but off (their rounds miss their mission); the rest wait on the owner decisions below.
 
 Written: 2026-10-25
 
@@ -115,6 +115,36 @@ carrier-seconds on a bore measure it.
   sight bubble around a hauled body is the screen's fog only.)
 - The summary reports sections called and carrier-seconds with a launcher on
   the bore.
+
+## Built: spotting for friends
+
+A launcher's spotters are its side's friends too (`Faction.friendlyTo`), not
+its own faction alone: a marine calls a target for the militia's carriers, and
+a militiaman for the marines'. Before, the company's marines, the only ones who
+reach the mothers' building, could never call fire for the lanes.
+
+## Built: the section moves up with its lane
+
+Support fire moves with the front, it does not wait at the bore:
+
+- The screened advance has a third element, the **support**, a line trailing
+  the main that follows the formation and never holds it. A lane's section
+  joins it as its carriers come up, and fires over the line on the bore the
+  lane is going for, else on what the front sees.
+- Between bores, where a lane goes straight into its next assault rather than
+  a formation, the section trails the lane's militia: its ring is never nearer
+  the bore than they stand plus its trail, and it takes its reach post once they
+  are on the support line. A lane with no militia left sends it to its reach
+  post behind the ring. Driving alone ahead of the militia, carriers were lost
+  60 to 125 cells short of the bore.
+
+## Built, off: militia mortar teams
+
+Each Broad Front wave's first team carries a field mortar (its leader), marches
+with the lane, and at a bore holds the support line with the mouth as its fire
+mission (`battle.heart.mortarTeams`, off by default). In its first run 52 teams
+fired 166 rounds and none on the mission: why their rounds miss the mouth is the
+next thing to find before it is switched on.
 
 ## Acceptance
 

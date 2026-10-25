@@ -125,6 +125,11 @@ point** as **one formation**:
   attack-move under `GARRISON` authority, and hulls and mechs take this
   command's station orders. So each element fights on its own doctrine wherever
   it stands, and the advance only moves it.
+- An optional third element, the **support**, trails the main by its own
+  distance: fire-support carriers, mortar teams, whatever fights by reaching
+  over the line (owner, 2026-10-25: support fire teams move up firing on the
+  front, screened). It moves and turns with the formation and fights from its
+  slot, but it follows: it never holds the advance or its rally.
 
 **One formation, not bounds** (owner, 2026-10-23): "I don't necessarily like
 'bounded' advance. I'd rather they moved in a formation instead. Otherwise the
