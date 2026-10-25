@@ -188,6 +188,8 @@ def main() -> None:
     root = Path(__file__).resolve().parents[2]
     catalog = root / CATALOG
     for part in make_guide.PARTS:
+        if "wounded" not in make_guide.part_states(part):
+            continue  # nothing hurts it, so it never bleeds
         block = bleed_block(part)
         write(catalog, part, block)
         print(part, [f"{sum(1 for a in w if a[3] == FISSURE)}/{len(w)} fissures" for w in block["wounds"]], flush=True)

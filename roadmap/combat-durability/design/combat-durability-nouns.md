@@ -77,7 +77,10 @@ needing an arbitrary bonus against every unit classified as hardened.
 - **Material efficiency** — the share of a direct round's payload damage that
   wears a material: none while penetration is under half the rating, rising
   linearly to full at the rating. It reads the armor law's ratio and ceiling
-  but not its chip floor.
+  but not its chip floor. A **burning round** (a beam, or an authored energy
+  weapon) chars what burns, wood and timber, with its whole payload whatever its
+  penetration, so a laser tank cuts trees down that a rifle only scars; every
+  other material reads it as an ordinary round.
 - **Resolved damage** — actual armor and structure removed, each clamped to
   the capacity that existed, plus the mitigated damage a screen absorbed. Requested
   damage and resisted energy are not credited as resolved damage; mitigated

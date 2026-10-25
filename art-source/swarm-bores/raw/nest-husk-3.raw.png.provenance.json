@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173c0-a605-7621-8ae5-a14a33e95fe3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173c0-a605-7621-8ae5-a14a33e95fe3\\exec-e97102b2-2057-4562-8d3a-46bbbc0085c6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\nest-husk-3.raw.png",
+    "sha256": "13fa25e923d5d698d3dc8f2080f5de6b2543476d2cc7132ce7dc4dc7f99a04d0",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\nest-husk.prompt.txt",
+  "promptSha256": "27be4638ef8030a50b367e2c7d06fc903cd637ec81b7c19cd53aac722915e90d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a SHED HUSK of the alien swarm for a top-down tactical game: small ground clutter lying on the swarm's creep near a nest, purely decorative. It is the empty, dried-out exoskeleton a swarm runner left behind when it moulted, lying flat on the ground: a long low shell of overlapping segment plates, split open down the middle of its back where the creature climbed out, the torn edges of the split curled up and outward like peeled bark over a dark, dry, empty hollow inside; a few leg stubs broken off at the joint stick out from under it, and a chip of plate lies loose beside it. It is DEAD and EMPTY: dry, dull and brittle, faded and dusty, cracked, no wet sheen, no flesh inside, no glow anywhere, no amber. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin segment plates: curved overlapping carapace like a beetle's wing-case or a woodlouse's back, with fine growth lines, chipped and cracked edges and a dry matte surface, never faceted, never stone; dark grey-green inside the split and between the plates = the shell's dry, papery inner lining, dark in shadow. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps around the legs and the loose chip; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: its charcoal-purple segmented chitin with worn bone-grey edges, here dried and faded towards dusty grey. It is the cast-off shell of one designed bio-weapon organism (the swarm runner), never a plant, never a seed pod or nut, never a machine, never a living creature. It will be shown only about 40 to 110 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, cracks and plate seams; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-nest-husk-3-guide.png",
+      "sha256": "d6b7d026378e3a413865a454402725089b91559152dbb354db9ceb4eb4db032f",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskin using the first image’s exact geometry and lighting, with the second image guiding the dry chitin material."
+  ],
+  "usage": {
+    "input_tokens": 42607,
+    "cached_input_tokens": 33664,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 614,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.9
+}

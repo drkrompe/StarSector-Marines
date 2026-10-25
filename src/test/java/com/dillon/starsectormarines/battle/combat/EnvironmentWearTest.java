@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
@@ -13,6 +16,9 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -79,6 +85,24 @@ class EnvironmentWearTest {
             assertEquals(0, g.props.getDoodadLevelOnCell(3, 3), "the crate's cover is gone");
             assertNull(g.wear.materialOf(crate), "a broken crate is nothing to wear");
             assertFalse(g.wear.wouldWear(crate, RIFLE_DAMAGE, RIFLE_PEN));
+        }
+    }
+
+    @Test
+    void aLaserBurnsATreeDownThatItsPenetrationAloneCouldNotScratch() {
+        try (Ground g = new Ground()) {
+            List<Doodad> trees = new ArrayList<>();
+            ForestBrush.stampTrees(List.of(new ForestField.Tree(2, 2, TreeCanopy.PINE, 0)), g.grid, g.topology,
+                    trees, null, false);
+            trees.forEach(g.props::addDoodad);
+            StruckFeature trunk = StruckFeature.cell(3, 3);
+            assertEquals(EnvironmentMaterial.TIMBER, g.wear.materialOf(trunk));
+            // The burst laser's round: 16 damage at penetration 3.
+            assertFalse(g.wear.wouldWear(trunk, 16f, 3f));
+            assertTrue(g.wear.wouldWear(trunk, 16f, 3f, true));
+            int rounds = 0;
+            while (!g.wear.apply(trunk, 16f, 3f, true)) assertTrue(++rounds < 20, "the tree never fell");
+            assertTrue(g.grid.isWalkable(3, 3), "the felled tree's ground is open");
         }
     }
 

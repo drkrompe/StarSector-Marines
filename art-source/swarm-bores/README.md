@@ -1,9 +1,10 @@
-# Swarm bores, spore colonies, the ground colony and the brood spire
+# Swarm bores, spore colonies, the ground colony, the brood spire and nest clutter
 
 Geometry-first ImageGen (`art-source/geometry-first-imagegen.md`) for the
 Colony Breach bore bodies (`structure.swarm-bore`, `structure.swarm-mother-bore`)
 and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
-`-maw`), the ground colony (`structure.ground-colony`) and the brood spire (`structure.brood-spire`), in the Runner's chitin (`art-source/alien-modular-topdown/`).
+`-maw`), the ground colony (`structure.ground-colony`), the brood spire (`structure.brood-spire`) and a swarm nest's
+ground clutter, in the Runner's chitin (`art-source/alien-modular-topdown/`).
 
 | Step | Command | Writes |
 | --- | --- | --- |
@@ -16,7 +17,8 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
 
 Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
-`spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each, `ground-colony` 3, `brood-spire` 3. The
+`spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each, `ground-colony` 3, `brood-spire` 3,
+and the nest clutter `nest-clutch`, `nest-pods`, `nest-husk` 3 each. The
 structure's art block declares `"variants": N` and names its layers with
 `{variant}`; `StructureArt.variantFor` picks one per structure from its entity
 id, the same for the body and its glow.
@@ -130,3 +132,14 @@ is the built-on plan's brief, which `generate.sh` uses for the shipped variants 
 **Registration.** `export.py` nudges the bounding-box fit by the small scale and shift that best overlays the
 painting's silhouette on the guide's, and grows the guide's material map over whatever the painting covers past the
 guide's edge, so a root painted a few pixels off its guide is still recoloured as root.
+
+**Nest clutter** (`make_guide.clutch_body`, `pods_body`, `husk_body`). Small, non-blocking ground decorations drawn
+on the creep along the sinew roots that join a bore to its spore colonies and round the bore's mouth: an egg clutch
+(glossy eggs lit amber from inside in a shallow cup of sinew and membrane), brood pods (ribbed carapace sacs
+half-buried at different sizes and leans, sinew in their grooves, small amber nodes) and a shed husk (a Runner's
+moulted shell split down its back, its torn edges curled over the hollow). They are drawn only, never hurt or
+destroyed, so they have the intact state alone (`make_guide.INTACT_ONLY`, `part_states`) and `wounds.py` skips
+them. All three stay low (at most about a fifth of a cell high, under half a spore sac) so they never read as a
+colony. The clutch and the pods get a `-glow` layer; the husk has no amber and none, and the export dries it towards
+grey like a dead body's remains (`export.DRIED`). Exported as `mod/graphics/structures/nest-<part>-<n>.png`; the
+renderer's drawn size is `make_guide.display_cells(part)`.

@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.forest.UndergrowthBrush;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.world.MapEditor;
@@ -33,8 +34,8 @@ import java.util.Random;
 
 /**
  * Forest-floor growth, drawn. Look shots on real verdant ground: a mature wood with its gaps grown over in
- * undergrowth, crossed by a breakthrough tank that flattens it; and open ground scattered with the floor plants, a
- * few undergrowth patches and a fire team for scale. Plus a catalog frame of every species in its three states and
+ * undergrowth, crossed by a breakthrough tank that flattens it; and open ground scattered with the floor plants, field
+ * stones in all three states, a few undergrowth patches and a fire team for scale. Plus a catalog frame of every species in its three states and
  * four turns, and the three reskin guides.
  */
 public final class UndergrowthLookSuite implements SnapshotSuite {
@@ -45,6 +46,7 @@ public final class UndergrowthLookSuite implements SnapshotSuite {
     private static final int LANE_Y0 = SHOT_H / 2 - 3, LANE_Y1 = SHOT_H / 2 + 3;
     private static final String[] PLANTS = {"nature.shrub-1", "nature.shrub-2", "nature.shrub-3",
             "nature.tuft-1", "nature.tuft-2", "nature.tuft-3"};
+    private static final String[] ROCKS = RockDamage.IDS.stream().sorted().toArray(String[]::new);
 
     public String id() { return "undergrowth-look"; }
     public String label() { return "Forest undergrowth and floor plants"; }
@@ -127,6 +129,17 @@ public final class UndergrowthLookSuite implements SnapshotSuite {
                             || map.topology.getGroundKind(x, y) != CellTopology.GroundKind.GRASS
                             || map.topology.getNatureOverlayIndex(x, y) >= 0) continue;
                     map.topology.setNatureOverlayIndex(x, y, tiles.tile(PLANTS[random.nextInt(PLANTS.length)]).index);
+                }
+            // Field stones among them, a third already cracked or shattered.
+            RockDamage rocks = new RockDamage(map.grid, map.doodads);
+            for (int y = placement.site().y0() + 2; y < placement.site().y0() + SHOT_H - 2; y++)
+                for (int x = placement.site().x0() + 2; x < placement.site().x0() + SHOT_W - 2; x++) {
+                    if (random.nextInt(28) != 0 || !map.grid.isWalkable(x, y) || map.topology.isFixture(x, y)
+                            || map.topology.getGroundKind(x, y) != CellTopology.GroundKind.GRASS
+                            || map.topology.getNatureOverlayIndex(x, y) >= 0) continue;
+                    map.topology.setNatureOverlayIndex(x, y, tiles.tile(ROCKS[random.nextInt(ROCKS.length)]).index);
+                    int hit = random.nextInt(6);
+                    if (hit < 2) rocks.damage(x, y, hit == 0 ? 10 : 1000, map.topology, tiles);
                 }
             var builder = placement.holdouts(placement.builder());
             for (int i = 0; i < 4; i++) {

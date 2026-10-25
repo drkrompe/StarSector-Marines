@@ -22,6 +22,9 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.forest.Undergrowth;
+import com.dillon.starsectormarines.battle.world.gen.forest.UndergrowthBrush;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
@@ -41,6 +44,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.IntPredicate;
@@ -546,10 +550,16 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** Cells a valley side stops short of a ford, either side of it, so the way down to the ford is open. */
     static final int FORD_APPROACH = 6;
 
+    /** Cells more a valley side may stand back from the water than the nearest it may, and more or less through. */
+    public static final int VALLEY_STAGGER = 4, VALLEY_VARY = 2;
+
     /**
      * Each banked brook's valley sides: a band along either bank, offset clear of
      * the water, the sand and the bank kept free of trees, broken at every ford
-     * and climbed from the country away from the water.
+     * and climbed from the country away from the water. The two sides of a
+     * stretch are never a matched pair: each stands its own seeded distance back
+     * from the water and is its own width through, and its natural relief
+     * ({@link RidgePlanner.Relief#NATURAL}) wanders on a seed of its own.
      */
     private static List<RidgePlanner.Band> valleySides(GenContext c, Landscape landscape) {
         List<RidgePlanner.Band> out = new ArrayList<>();
@@ -570,13 +580,18 @@ public final class OutdoorLandscapeStage implements GenStage {
                 i += brook.fordWidth();
             }
             stretches.add(new int[]{from, line.size() - 1});
+            Random stagger = new Random(c.seed ^ 0x56414c4c4559L);
             for (int[] stretch : stretches) {
                 if (stretch[1] - stretch[0] < 8) continue;
                 for (int side : new int[]{1, -1}) {
+                    int thickness = Math.max(6, brook.banks() + stagger.nextInt(2 * VALLEY_VARY + 1) - VALLEY_VARY);
                     List<ElevationPlan.Point> path = new ArrayList<>();
-                    for (int i = stretch[0]; i <= stretch[1]; i += 4) path.add(offsetPoint(line, i, side * offset));
-                    path.add(offsetPoint(line, stretch[1], side * offset));
-                    if (path.size() >= 2) out.add(new RidgePlanner.Band(path, brook.banks(), side, 5));
+                    // Back far enough that the side's swell never reaches the valley floor.
+                    double by = offset + (thickness - brook.banks()) / 2.0 + RidgePlanner.naturalSpread(thickness)
+                            + stagger.nextInt(VALLEY_STAGGER + 1);
+                    for (int i = stretch[0]; i <= stretch[1]; i += 4) path.add(offsetPoint(line, i, side * by));
+                    path.add(offsetPoint(line, stretch[1], side * by));
+                    if (path.size() >= 2) out.add(new RidgePlanner.Band(path, thickness, side, 5));
                 }
             }
         }
@@ -918,12 +933,14 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     /**
      * The widest ground hull's clearance radius: a crown may close a gap infantry still pass, never one a tank could
-     * drive and no longer can ({@code mapgen-nouns.md}, Authored forests).
+     * drive and no longer can, unless it is undergrowth the tank flattens ({@code mapgen-nouns.md}, Authored forests).
      */
     static final int TANK_CLEARANCE = VehicleClearance.radiusForWidth(VehicleType.LASER_TANK.visualWidthCells);
 
     private static void trees(GenContext c, boolean[] reserved, float woodland) {
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
+        // Cells a tank cannot flatten: every crown that is not undergrowth.
+        boolean[] hard = new boolean[reserved.length];
         PatchField groves = new PatchField(c.seed ^ 0x47524f5645L, 19);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
             if (reserved[y * c.width + x]) continue;
@@ -938,21 +955,117 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
         ForestField field = ForestField.build(c.width, c.height, c.seed ^ 0x5452454553L, ForestPlan.Woodland.MIXED, paint);
         List<ForestField.Tree> accepted = new ArrayList<>();
-        for (var tree : field.trees()) {
-            boolean closes = false;
-            for (int y = tree.y(); y < tree.y() + tree.height(); y++)
-                for (int x = tree.x(); x < tree.x() + tree.width(); x++)
-                    if (tree.blocks(x, y) && c.grid.isWalkable(x, y) && !closed[y * c.width + x]) closes = true;
-            int right = tree.x() + tree.width() - 1, top = tree.y() + tree.height() - 1;
-            if (closes && (!LandscapeAccess.canClose(c.grid, closed, tree.x(), tree.y(), right, top, tree::blocks)
-                    || !LandscapeAccess.keepsClearance(c.grid, closed, tree.x(), tree.y(), right, top, tree::blocks,
-                            TANK_CLEARANCE))) continue;
-            accepted.add(tree);
-            for (int y = tree.y(); y < tree.y() + tree.height(); y++)
-                for (int x = tree.x(); x < tree.x() + tree.width(); x++)
-                    if (tree.blocks(x, y)) closed[y * c.width + x] = true;
+        for (var proposed : field.trees()) {
+            // A mature crown that would shut a tank's lane is replanted as undergrowth on the same spot.
+            for (var tree : replants(proposed, paint, c.width, c.height)) {
+                if (!fits(c, tree, closed, hard)) continue;
+                accepted.add(tree);
+                for (int y = tree.y(); y < tree.y() + tree.height(); y++)
+                    for (int x = tree.x(); x < tree.x() + tree.width(); x++) {
+                        if (!tree.blocks(x, y)) continue;
+                        closed[y * c.width + x] = true;
+                        if (!tree.canopy().undergrowth()) hard[y * c.width + x] = true;
+                    }
+                break;
+            }
         }
         ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true);
+        undergrowth(c, paint, reserved);
+    }
+
+    /** Share of the lattice points left open in a wood that grow undergrowth. */
+    static final float UNDERGROWTH_SHARE = .45f;
+    /** How far the wood's floor reaches past its painted ground: the fringe brambles and saplings grow along. */
+    static final int UNDERGROWTH_FRINGE = 2;
+
+    /**
+     * Brambles, thickets, bracken and saplings in the gaps between the crowns and along the wood's edge, up to
+     * {@link #UNDERGROWTH_FRINGE} cells out from painted wood and never out in open country. Every patch
+     * is undergrowth a crushing hull flattens, so it needs no tank-lane proof; infantry keep the same local way round
+     * as a crown leaves them.
+     */
+    private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved) {
+        boolean[] floor = fringe(paint, c.width, c.height, UNDERGROWTH_FRINGE);
+        Random random = new Random(c.seed ^ 0x554E444552L);
+        Undergrowth[] kinds = Undergrowth.values();
+        boolean[] grown = new boolean[paint.length];
+        List<UndergrowthBrush.Placement> placed = new ArrayList<>();
+        for (int y = 1; y < c.height - 1; y += 3) for (int x = 1; x < c.width - 1; x += 3) {
+            // Draw every point's dice whether or not it grows, so one refusal never reshuffles the rest.
+            float roll = random.nextFloat();
+            Undergrowth kind = kinds[random.nextInt(kinds.length)];
+            int turns = random.nextInt(4), jx = random.nextInt(2), jy = random.nextInt(2);
+            if (roll >= UNDERGROWTH_SHARE || !floor[(y + jy) * c.width + x + jx]) continue;
+            var patch = new UndergrowthBrush.Placement(x + jx - kind.width(turns) / 2, y + jy - kind.height(turns) / 2,
+                    kind, turns);
+            if (!UndergrowthBrush.fits(patch, c.grid, c.topology, reserved) || !inWood(patch, floor, c.width)) continue;
+            if (!LandscapeAccess.canClose(c.grid, grown, patch.x(), patch.y(), patch.x() + patch.width() - 1,
+                    patch.y() + patch.height() - 1, patch::blocks)) continue;
+            placed.add(patch);
+            for (int yy = patch.y(); yy < patch.y() + patch.height(); yy++)
+                for (int xx = patch.x(); xx < patch.x() + patch.width(); xx++)
+                    if (patch.blocks(xx, yy)) grown[yy * c.width + xx] = true;
+        }
+        UndergrowthBrush.stamp(placed, c.grid, c.topology, c.doodads, reserved);
+    }
+
+    /** Cells within {@code reach} (Chebyshev) of painted wood. */
+    private static boolean[] fringe(boolean[] paint, int width, int height, int reach) {
+        boolean[] out = new boolean[paint.length];
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+            if (!paint[y * width + x]) continue;
+            for (int yy = Math.max(0, y - reach); yy <= Math.min(height - 1, y + reach); yy++)
+                for (int xx = Math.max(0, x - reach); xx <= Math.min(width - 1, x + reach); xx++) out[yy * width + xx] = true;
+        }
+        return out;
+    }
+
+    private static boolean inWood(UndergrowthBrush.Placement patch, boolean[] paint, int width) {
+        for (int y = patch.y(); y < patch.y() + patch.height(); y++)
+            for (int x = patch.x(); x < patch.x() + patch.width(); x++)
+                if (patch.blocks(x, y) && !paint[y * width + x]) return false;
+        return true;
+    }
+
+    /** Infantry keep a way round the crown, and a tank keeps its lane unless the crown is undergrowth it flattens. */
+    private static boolean fits(GenContext c, ForestField.Tree tree, boolean[] closed, boolean[] hard) {
+        boolean closes = false;
+        for (int y = tree.y(); y < tree.y() + tree.height(); y++)
+            for (int x = tree.x(); x < tree.x() + tree.width(); x++)
+                if (tree.blocks(x, y) && c.grid.isWalkable(x, y) && !closed[y * c.width + x]) closes = true;
+        if (!closes) return true;
+        int right = tree.x() + tree.width() - 1, top = tree.y() + tree.height() - 1;
+        if (!LandscapeAccess.canClose(c.grid, closed, tree.x(), tree.y(), right, top, tree::blocks)) return false;
+        return tree.canopy().undergrowth()
+                || LandscapeAccess.keepsClearance(c.grid, hard, tree.x(), tree.y(), right, top, tree::blocks, TANK_CLEARANCE);
+    }
+
+    /**
+     * The crown as packed, then, when it is not undergrowth, each undergrowth canopy centred where it stood, smallest
+     * last, kept only where every cell it closes was painted.
+     */
+    static List<ForestField.Tree> replants(ForestField.Tree tree, boolean[] paint, int width, int height) {
+        List<ForestField.Tree> out = new ArrayList<>();
+        out.add(tree);
+        if (tree.canopy().undergrowth()) return out;
+        int cx = tree.x() + tree.width() / 2, cy = tree.y() + tree.height() / 2;
+        List<TreeCanopy> young = new ArrayList<>();
+        for (TreeCanopy canopy : TreeCanopy.values()) if (canopy.undergrowth()) young.add(canopy);
+        young.sort(Comparator.comparingInt((TreeCanopy canopy) -> canopy.width() * canopy.height()).reversed());
+        for (TreeCanopy canopy : young) {
+            var replant = new ForestField.Tree(cx - canopy.width(tree.turns()) / 2, cy - canopy.height(tree.turns()) / 2,
+                    canopy, tree.turns());
+            if (painted(replant, paint, width, height)) out.add(replant);
+        }
+        return out;
+    }
+
+    private static boolean painted(ForestField.Tree tree, boolean[] paint, int width, int height) {
+        if (tree.x() < 0 || tree.y() < 0 || tree.x() + tree.width() > width || tree.y() + tree.height() > height) return false;
+        for (int y = tree.y(); y < tree.y() + tree.height(); y++)
+            for (int x = tree.x(); x < tree.x() + tree.width(); x++)
+                if (tree.blocks(x, y) && !paint[y * width + x]) return false;
+        return true;
     }
 
     private static boolean terrainVisible(GenContext c, int x, int y) {

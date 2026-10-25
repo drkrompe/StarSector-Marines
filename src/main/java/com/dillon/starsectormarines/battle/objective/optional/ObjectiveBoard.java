@@ -84,6 +84,12 @@ public final class ObjectiveBoard {
         return List.copyOf(out);
     }
 
+    /** The started runtime of the rolled objective {@code key}; null when it was not rolled or not started. */
+    public ObjectiveRuntime runtime(String key) {
+        for (Entry entry : entries) if (entry.objective.key().equals(key)) return entry.runtime;
+        return null;
+    }
+
     /** The beat key, without the mission prefix, for an objective's event. */
     public static String beat(OptionalObjective objective, String event) {
         return "objective_" + objective.key() + "_" + event;

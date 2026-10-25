@@ -39,7 +39,7 @@ REGISTRATION = {
     "open": {"scale": 475 / 505, "pivot": (723.0, 544.0)},
     "open-v2b": {"scale": 1.236, "pivot": (734.5, 543.5)},
 }
-DEFAULT = "open"
+DEFAULT = "open-v2b"
 
 
 def slot(sheet, index):

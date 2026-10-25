@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — a fed body slides into the mouth, sinks and is swallowed with a gulp.
+
 Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
 
 Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
@@ -627,7 +629,12 @@ bore at four tenths of its own pace, slower than a walking Marine. The body
 trails a little behind it, lying along the drag. A carrier does not strike. At
 the bore's mouth the body goes into the hole: it is **biomass**, one
 colonist's worth through the feed seam, so the bore grows and its next surge
-comes forward and swells. A carrier killed on the way drops the body where it
+comes forward and swells. It counts the moment its carrier lets go at the
+mouth, and is seen going down (owner, 2026-10-25): it slides from where it was
+let go into the middle of the mouth in under half a second, then shrinks and
+fades as it sinks out of sight over the next, with its blood, and the bore
+swallows it with a wet gulp and the thud of it landing down inside
+(`SwarmHarvest.feeding`). A carrier killed on the way drops the body where it
 fell; the body lies **loose**, and the next Runner to come within reach takes
 it up again. A carrier whose last bore collapses drops its load the same way.
 Laws:
@@ -924,7 +931,13 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
   late, grows its roots in sight.
 - **Its spire's roost**: the Brood spire's waiting brood (below).
 - **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
-- Next: clutter (egg clutches, pods, husks) along the roots and round the mouth.
+- **Clutter** (`NestClutter`): egg clutches (glossy eggs with amber hearts in a
+  cup of sinew), brood pods (low ribbed sacs bound down by sinew) and shed husks
+  (dry split shells) lie on the creep, a piece every few cells beside each root
+  once it is rope, never at its ends, and a few in the gaps round the mouth of a
+  bore at bore tier (two) or maw (four), past its rim and clear of its colonies
+  and roots. Drawn only, with the decals: nothing walks round, hides behind or
+  shoots them. Geometry-first paintings, three of each, never turned.
 
 **Brood spire.** The tall growth an old bloom raises on its creep, which
 Harrier packs launch from (`BroodSpires`; the owner's idea, 2026-10-25: "some
@@ -1901,6 +1914,15 @@ whether the mother collapsed beside the evacuation report. In the campaign it
 contains the bloom behind the call (*Campaign: blooms*); anything it pays beyond
 that and the Hegemony's regard is the owner's call and not yet settled.
 
+**Side objectives.** Optional objectives (`optional-objectives.md`) the breach
+offers beside the rescue, rolled at setup and advanced on the breach's own
+clock; they succeed or fail only themselves, never the cohort or the lift. Today
+there is one, **Secure the loading** (`staffed-buildings.md`): the colony's largest
+warehouse, worked by its own people, is loading the colony's stores onto a truck
+in its yard, and the company that holds the yard until the truck is away is paid
+out of what it carries. A colony whose warehouse has no stand a truck can leave
+from offers none.
+
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge
@@ -2008,7 +2030,10 @@ one without drowning the fire around them; two voices of one sound never start
 on one tick (the second waits a tick or two), and one body does not repeat
 itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
 the listener, so a pack reads as a pack, and the swarm is heard only on ground
-the player has seen. **A thrown body lands with one thud** whatever threw it
+the player has seen. A body fed to a bore is swallowed as it
+reaches the mouth: a wet gulp (the Spitter's lob, slowed) near -29 LUFS and, a
+beat later, its landing down inside (the body thud, deeper) near -33, pitched by
+the fed body's size. **A thrown body lands with one thud** whatever threw it
 (owner, 2026-10-24): a marine a Brute tramples, a Matriarch's reap throws or a
 Harrier drops, and a shot Harrier reaching the ground, a little lighter; it is
 the landing body's own sound, posted by that body. A body's growth
@@ -2071,6 +2096,26 @@ before it ships. The `swarm-sound` and `spire-sound` look suites, run with
 `-Dsnapshot.lookSound=true`, log what the battle screen would start
 (`BattleSoundLog`) and mix it into their MP4s, so a review hears the levels
 against the fire.
+
+**Marines bark in the fight** (owner, 2026-10-25). When the Rav reach them the
+marines are heard in the mix (`MarineBarks`): background shouts, cries and grunts,
+never hero lines, so nothing is shown, subtitled or waited on. They are read off
+what the battle already reports, as the swarm's sounds are: a squad that was clear
+calls contact as a pack closes, a marine starting a reload with Rav near calls it,
+a marine a Runner seizes or impales cries out, one thrown yells as it lands, the
+marine nearest a Brute's charge tell or the Matriarch's run tell warns the rest,
+a Rav dying near the line draws relief (more for a Brute or the Matriarch), a
+marine dying with Rav near draws a squadmate's curse, and a marine hurt with a Rav
+at arm's length grunts with a scuffle of boots and gear. Each marine keeps one of
+six voices for the battle, the operation radio's cast heard dry rather than over
+comms, a little pitched apart; the lines of a kind take turns so one is never heard
+twice running. A squad has one voice at a time, a marine and a squad keep their
+gaps, the most urgent bark goes first, and the battle has at most three sounding
+at once, so a big fight is a few overlapping shouts rather than a wall. They are
+heard only on seen ground. Takes are generated from a tracked catalog
+(`tools/generate_marine_barks.py`) and every take is levelled by its measured
+loudness to its kind's level, a little under the gunfire: calls near -26 LUFS a
+voice, cries and warnings -25, kills and reloads -28, grunts -29, the scuffle -31.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

@@ -4,8 +4,8 @@ Status: ACTIVE — StarCraft-style raised ground: a few discrete tiers, impassab
 
 Written: 2026-10-22
 
-Updated: 2026-10-24 — terraces stand built ground on a ridge's crest, its roads and its supply side ramped
-down; kept ground; sealed ground, which every route goes round; knolls, a place grown on a terrace of its own.
+Updated: 2026-10-25 — relief: natural ridges swell, narrow, wander and taper; a berm is graded, straight and cut
+square; a brook's valley sides differ; outcrops stand off the mission's lines.
 
 Read `stories.md` for open work.
 
@@ -255,9 +255,31 @@ Generators place plateaus where a mission wants them:
   the mission names. A segment is left out when it would not fit or would cut
   the host's ground apart, proved a segment at a time against the segments
   already kept. Nothing grows on a ridge's ramps, and no stock hill grows on
-  ground a ridge names. Elevation is stamped once: when a mission layout has
+  ground a ridge names. A brook's two valley sides are never a matched pair:
+  each stands its own seeded distance back from the water and is its own width
+  through. Elevation is stamped once: when a mission layout has
   ridges of its own, the landscape's ridges go up with them in the works phase
   (`mission-layout.md`, Ridge); otherwise the landscape pass raises them.
+- **Relief.** A band says what its segments look like (`RidgePlanner.Relief`).
+  **Natural** ground (the default: a hollow's rim, a valley side, an outcrop)
+  is not a capsule of the band's width: each segment swells and narrows along
+  its run, from a waist that keeps its top one body (a radius of 4.5) to the
+  band's half width plus its **spread** (three tenths of its thickness), its
+  crest wanders from side to side in the room its width leaves, and it tapers
+  to a spur at each end, all on smooth seeded waves tens of cells long. Its
+  ramp climbs where it is broad. Natural ground that will not stand so is
+  tried within the band's own width, then as the plain capsule. A **berm** is
+  built ground, an engineered bank the colony graded (owner, 2026-10-25: the
+  cordon's ridge and the Cordon's line): its band's width the whole way, its
+  faces unroughened and straight, its ends cut square two cells inside each
+  pass, so a break at a lane is clean (`ElevationPlan.Plateau.graded`). The
+  ground a natural band holds or seals reaches its spread further.
+- **Outcrops.** A mission may scatter natural high ground about its country,
+  off every line it drew: short bands at seeded places, bearings and bends,
+  climbed from a seeded side, kept clear of its lanes, rides, brook, hollow,
+  knoll and places (the heart's, `HeartCountry.outcrops`). They are the
+  country's hills and mesas, not the story's, and are broken or left out as any
+  ridge is.
 - **Held ground.** A ridge raised after generation fits only open country:
   among built places every stretch is broken. So a landscape may **hold** a
   ridge's ground before the places grow (`Landscape.held`,
@@ -385,6 +407,12 @@ draws.
   are a layered escarpment (owner, 2026-10-22): strata ledges along the face,
   a broken turf lip over exposed soil, and a gravel apron feathering into the
   grass, every edge wandering below cell scale.
+- **Graded banks.** A berm's faces are drawn as built
+  (`ElevationLayout.gradedCorner`, `CliffShading`): a turfed bank over packed
+  earth worn in broad patches, with no strata, ledges or scree, its edges
+  barely wandering, a clean trodden line along the crest and a drainage ditch
+  along the toe. Where a berm meets natural ground the two looks blend across a
+  cell.
 
 Units on a plateau are drawn where they stand, with no displacement, scale or
 parallax: the map is top-down.
