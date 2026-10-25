@@ -30,7 +30,8 @@ class DustLedgerCrossingTest {
         boolean[] reached = DustLedgerCrossing.reach(grid, layout.companyStart(), null);
         List<DustLedgerCrossing.Cell> sites = new ArrayList<>(List.of(layout.ledgerTarget(), layout.brokerOffice(),
                 layout.skimmerBoarding(), layout.gate(), layout.postern(), layout.southGate(), layout.wellHouse(),
-                layout.crateDrop(), layout.salvageTeamStart(), layout.couplingCrate()));
+                layout.crateDrop(), layout.couplingCrate()));
+        sites.addAll(layout.salvageTeam());
         layout.posts().values().forEach(sites::addAll);
         sites.addAll(layout.spotterPosts());
         sites.addAll(layout.canalCrossings());

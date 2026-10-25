@@ -88,7 +88,7 @@ public final class DustLedgerCrossing {
      * @param wellHouseArea    the well house building
      * @param harrowYard       the Harrow salvage yard on the crawler road
      * @param crateDrop        where the coupling is set down in the yard
-     * @param salvageTeamStart where the Harrow salvage team stands on the crawler road when it moves
+     * @param salvageTeam      one crawler-road cell per member of the Harrow salvage team, where it stands when it moves
      * @param spotterPosts     the warden's two rooftop watchmen
      * @param canalCrossings   west crossing first, then the southern crossing toward the skimmer pad
      * @param ridgeOverwatch   rim cells on the ridge that look down on the compound yard
@@ -104,7 +104,7 @@ public final class DustLedgerCrossing {
                          Area compound, Area exclusionRing, Cell gate, Cell postern, Cell southGate,
                          Map<PostRole, List<Cell>> posts,
                          PointOfInterest cantina, Cell wellHouse, PointOfInterest wellHouseArea,
-                         Area harrowYard, Cell crateDrop, Cell salvageTeamStart, List<Cell> spotterPosts,
+                         Area harrowYard, Cell crateDrop, List<Cell> salvageTeam, List<Cell> spotterPosts,
                          List<Cell> canalCrossings, List<Cell> ridgeOverwatch,
                          Map<Approach, List<Cell>> approaches,
                          List<PointOfInterest> warehouses, List<PointOfInterest> shops, List<PointOfInterest> homes) {}
@@ -134,6 +134,8 @@ public final class DustLedgerCrossing {
     static final Area HARROW_YARD = new Area(112, 55, 128, 64);
     static final Cell CRATE_DROP = new Cell(119, 62);
     static final Cell SALVAGE_TEAM = new Cell(126, 77);
+    private static final List<Cell> SALVAGE_TEAM_CELLS = List.of(new Cell(124, 76), new Cell(126, 76),
+            new Cell(124, 78), new Cell(126, 78));
 
     /** The ridge's ramps: west from the well lane, east above the gate. */
     static final Cell WEST_RAMP_FOOT = new Cell(88, 83), EAST_RAMP_FOOT = new Cell(156, 84);
@@ -172,7 +174,7 @@ public final class DustLedgerCrossing {
                 l.ledgerTarget(), l.burnBarrel(), l.countingRoom(), l.brokerOffice(), l.brokerOfficeRoom(),
                 l.radioRoom(), l.pumpHouse(), l.skimmerPad(), l.skimmerBoarding(), l.compound(), l.exclusionRing(),
                 l.gate(), l.postern(), l.southGate(), l.posts(), l.cantina(), l.wellHouse(), l.wellHouseArea(),
-                l.harrowYard(), l.crateDrop(), l.salvageTeamStart(), l.spotterPosts(), l.canalCrossings(),
+                l.harrowYard(), l.crateDrop(), l.salvageTeam(), l.spotterPosts(), l.canalCrossings(),
                 l.ridgeOverwatch(), l.approaches(), l.warehouses(), l.shops(), l.homes());
     }
 
@@ -414,7 +416,7 @@ public final class DustLedgerCrossing {
                         COMPOUND.right() + RING_MARGIN, COMPOUND.top() + RING_MARGIN),
                 GATE, POSTERN, SOUTH_GATE, posts, s.cantina,
                 new Cell(s.wellHouse.interiorAnchorX, s.wellHouse.interiorAnchorY), s.wellHouse,
-                HARROW_YARD, CRATE_DROP, SALVAGE_TEAM,
+                HARROW_YARD, CRATE_DROP, SALVAGE_TEAM_CELLS,
                 List.of(new Cell(s.northShop.interiorAnchorX, s.northShop.interiorAnchorY),
                         new Cell(s.eastHome.interiorAnchorX, s.eastHome.interiorAnchorY)),
                 List.of(WEST_CROSSING, SOUTH_CROSSING), overwatch(map), approachLines(),
@@ -453,7 +455,8 @@ public final class DustLedgerCrossing {
         boolean[] reached = reach(grid, l.companyStart(), null);
         List<Cell> required = new ArrayList<>(List.of(l.hauler(), l.couplingCrate(), l.ledgerTarget(),
                 l.brokerOffice(), l.skimmerBoarding(), l.gate(), l.postern(), l.southGate(), l.wellHouse(),
-                l.crateDrop(), l.salvageTeamStart()));
+                l.crateDrop()));
+        required.addAll(l.salvageTeam());
         for (List<Cell> cells : l.posts().values()) required.addAll(cells);
         required.addAll(l.spotterPosts());
         required.addAll(l.canalCrossings());
