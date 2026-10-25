@@ -151,6 +151,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.broodSpires` | control | 2026-10-25 | Kept: the control for Harriers in the Rav Bloom missions; `commanderEvidence` reads a mission with and without its spires and broods (colony-breach-nouns.md, Brood spire). |
+| `battle.swarm.workers` | control | 2026-10-25 | Kept: the control for the nests' skitterers; `commanderEvidence` reads the heart and the Cordon with and without them (colony-breach-nouns.md, Skitterer). |
 | `battle.swarm.creepOutposts` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.creepRoofCollapse` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.creepTrees` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
@@ -180,6 +181,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.vehicle.faceKnownOnly` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.faceWorstThreat` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.pivotAccuracy` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
+| `battle.vehicle.neutralPivot` | control | 2026-10-25 | Control for turning on the spot (`NeutralPivot`, convoy-nouns.md): remove it and the turning-circle-only path once The Burn's vehicle-order evidence and a convoy evidence pass have been read against it. |
 | `battle.vehicle.orderPlansPerTick` | tuning | 2026-10-24 | Move-order route proofs per tick (`VehicleMoveOrderSystem`); 0 plans every queued order at once, the control. Fold into the constant once the convoy and story-mission evidence has been read against it. |
 | `battle.vehicle.progressiveRecovery` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.recoveryExpansionsPerTick` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |

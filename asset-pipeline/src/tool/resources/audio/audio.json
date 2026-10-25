@@ -812,6 +812,13 @@
     {"id": "marines_breach_harrier_wingbeat_3", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
     // Colony Breach (tools/generate_colony_breach_audio.py)
     {"id": "marines_breach_body_thud_1", "source": "colony-breach/sfx/marines_breach_body_thud_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
-    {"id": "marines_breach_body_thud_3", "source": "colony-breach/sfx/marines_breach_body_thud_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
+    {"id": "marines_breach_body_thud_3", "source": "colony-breach/sfx/marines_breach_body_thud_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    // Turret flak: deeper report and air-burst built from the explosion and rifle takes (receipts beside each take)
+    {"id": "marines_flak_fire_1", "source": "turret-flak/marines_flak_fire_1.wav", "kind": "positional", "out": "battle/turret-flak"},
+    {"id": "marines_flak_fire_2", "source": "turret-flak/marines_flak_fire_2.wav", "kind": "positional", "out": "battle/turret-flak"},
+    {"id": "marines_flak_fire_3", "source": "turret-flak/marines_flak_fire_3.wav", "kind": "positional", "out": "battle/turret-flak"},
+    {"id": "marines_flak_burst_1", "source": "turret-flak/marines_flak_burst_1.wav", "kind": "positional", "out": "battle/turret-flak"},
+    {"id": "marines_flak_burst_2", "source": "turret-flak/marines_flak_burst_2.wav", "kind": "positional", "out": "battle/turret-flak"},
+    {"id": "marines_flak_burst_3", "source": "turret-flak/marines_flak_burst_3.wav", "kind": "positional", "out": "battle/turret-flak"}
   ]
 }

@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-24 — the gap law is closed with gap nests (street mouths in built country) and is acceptance
+Updated: 2026-10-25 — a forward observer in each redoubt calls the allied air wing
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -57,8 +57,12 @@ gates are where they cross its wall (a road that only runs past a square
 place's side opens it only where a street leaves, and a square place no road
 grew into is given arms off the road past it); the garrison makes the rest of it at
 setup: a gun tower beside each gate, firing slits and wall posts along its
-runs, floodlights at its corners. Its wall is field grade: a Brute, a charge or
-a ground colony's spines open it. Each redoubt is numbered across the line from
+runs, floodlights at its corners, and a flak position in its yard
+(`CordonGarrisons`; on the redoubt's ammunition with its guns). The flak is what
+meets the flier law over the line: the front's brood spires launch Harrier packs
+with their bores' surges only while some of it stands (`colony-breach-nouns.md`,
+Brood spire), and the packs hunt what it does not cover. Its wall is field
+grade: a Brute, a charge or a ground colony's spines open it. Each redoubt is numbered across the line from
 west to east, from 1.
 
 **Construction.** What a redoubt is built from (`CordonConstruction`; owner,
@@ -156,6 +160,18 @@ ground and fight from the slits: an order that draws them to the middle of the
 yard leaves the wall empty and the gates open. The garrison is kitted as the
 colony's best (troops dug in for weeks). A garrison is what makes a redoubt
 stand; the company never commands it.
+
+**Forward observer.** The world's military is organized, and its redoubts
+call air: each redoubt's garrison carries one radio, in its front wall team
+(the first team behind the slits facing the front), on a soldier other than its
+leader (`air-nouns.md`, Forward observer). Through it the military's **air
+wing** (two bombers and two fighters, flying in over the rear) strikes a swarm
+mass that observer has in sight, never within ten cells of an allied or company
+soldier, and never a Harrier pack overhead. Its officer reads the anti-air from
+the colonies the side has seen, so a mass in front of a bore whose colonies
+nobody has seen costs aircraft. A redoubt whose observer is killed calls no more
+air; the columns, the street teams, the town's militia, the refugees and the
+company carry no radio onto the wing's net. Both variants, every density.
 
 **Redoubt states.** A redoubt is **holding** while its garrison stands and no
 swarm body is inside its wall. It is **calling** (for relief) once a swarm

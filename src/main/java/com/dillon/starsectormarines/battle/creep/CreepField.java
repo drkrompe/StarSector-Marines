@@ -406,6 +406,9 @@ public final class CreepField {
 
     public int coverageAt(int x, int y) { return grid.inBounds(x, y) ? coverage[y * width + x] & 0xFF : 0; }
 
+    /** Whether a living source claims the cell and is growing it: a burnt cell it waits on counts. */
+    public boolean claimed(int idx) { return idx >= 0 && idx < cells && state[idx] == GROWING; }
+
     /** Living creep stands here: coverage and vitality both at least {@link #CREEPED}. */
     public boolean isCreeped(int x, int y) {
         if (!grid.inBounds(x, y)) return false;

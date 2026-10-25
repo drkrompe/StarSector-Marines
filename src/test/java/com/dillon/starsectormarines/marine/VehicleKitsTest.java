@@ -33,6 +33,15 @@ class VehicleKitsTest {
     }
 
     @Test
+    void aSensorPairSuitsOnlyAHullWithNoBayOfItsOwn() {
+        assertTrue(VehicleKit.SENSOR_PAIR.suits(VehicleType.LRM_CARRIER));
+        assertFalse(VehicleKit.SENSOR_PAIR.suits(VehicleType.HOVER_SCOUT), "it has a sensor pair already");
+        assertFalse(VehicleKit.SENSOR_PAIR.suits(VehicleType.DRONE_SKIMMER), "it has a bay");
+        assertEquals(2, VehicleKit.SENSOR_PAIR.droneBay().size());
+        assertTrue(VehicleKit.APPLIQUE_PLATE.droneBay().isEmpty());
+    }
+
+    @Test
     void kitsChangeOnlyTheNumbersTheHullIsSetDownWith() {
         VehicleKit.Effect effect = VehicleKit.Effect.of(List.of(VehicleKit.APPLIQUE_PLATE, VehicleKit.SPACED_SKIRTS));
         assertEquals(1.25f, effect.armorFactor(), 1e-6f);

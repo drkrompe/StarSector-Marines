@@ -179,6 +179,15 @@ public final class RavRunnerRig {
     private float lastCooldown;
     private final float[][] arm = {REST.clone(), REST.clone()};
 
+    // a skitterer's work: what it is doing, how far into the work pose it has eased, and the peck it is in
+    public static final int WORK_NONE = 0, WORK_HEAD_DOWN = 1, WORK_FEED = 2, WORK_PULP = 3;
+    /** Seconds one peck at the work takes, and how far the shoulders sink into the work. */
+    private static final float PECK_SECONDS = 0.7f, WORK_CROUCH = 0.07f;
+    /** How far the head swings side to side as it nibbles, cells, and dips toward the ground, cells. */
+    private static final float NIBBLE = 0.045f, DIP_DROP = 0.22f;
+    private int work;
+    private float workAmt, workClock, dip;
+
     // carrying and dying
     private boolean carrying;
     private float latch;            // 0..1, how far the jaws have closed on the load
@@ -186,7 +195,24 @@ public final class RavRunnerRig {
     private final RavBurst burst = new RavBurst(PIECE_POINTS, 2, PIECE_PARENT, LOOSE_CANDIDATES, POOL_CELLS);
 
     public RavRunnerRig(long seed) {
+        this(seed, false);
+    }
+
+    /**
+     * A skitterer's rig: the Runner's skeleton at {@link #WORKER_SCALE} of its size, which it is drawn, strides and
+     * latches at, drawn with the skitterer's own bones (`colony-breach-nouns.md`, Skitterer).
+     */
+    public static RavRunnerRig worker(long seed) {
+        return new RavRunnerRig(seed, true);
+    }
+
+    /** A skitterer against a Runner, linear: its rig's size, and {@code UnitType.SWARM_WORKER}'s render scale. */
+    public static final float WORKER_SCALE = 0.68f;
+
+    private RavRunnerRig(long seed, boolean worker) {
         this.seed = seed;
+        this.worker = worker;
+        this.scale = worker ? WORKER_SCALE : 1f;
         // Each Runner starts at its own point in the stride, so a pack lopes out of step.
         long h = (seed ^ 0xD1B54A32D192ED03L) * 0xBF58476D1CE4E5B9L;
         this.phi = ((h >>> 40) & 0xFFFF) / 65536f;
@@ -194,17 +220,22 @@ public final class RavRunnerRig {
 
     /** The body's growth stage, and its scale against its adult: what it is drawn at and with. */
     private SwarmStage stage = SwarmStage.ADULT;
-    private float scale = 1f;
+    private float scale;
+    /** Whether this is a skitterer's rig rather than a Runner's. */
+    private final boolean worker;
 
     /** Sets the growth stage; read each tick, so a Matriarch that matures in the field grows with it. */
     public void setStage(SwarmStage stage) {
         this.stage = SwarmStage.of(stage);
-        this.scale = this.stage.scale;
+        this.scale = this.stage.scale * (worker ? WORKER_SCALE : 1f);
     }
 
     public SwarmStage stage() { return stage; }
 
-    /** The stage's draw scale against the adult ({@link SwarmStage#scale}). */
+    /** Whether this rig is a skitterer's, drawn with its own bones and no spike arms. */
+    public boolean worker() { return worker; }
+
+    /** The body's draw scale against an adult Runner: its stage's ({@link SwarmStage#scale}), and a skitterer's size. */
     public float scale() { return scale; }
 
     /**
@@ -305,6 +336,14 @@ public final class RavRunnerRig {
         shx = swayAmp * s * (along < 0f ? 1.4f : 1f);     // hauling backward throws the shoulders hardest
         hpx = -swayAmp * s;
 
+        // At work the head goes down and pecks, a seeded rhythm per body so a nest does not work in step.
+        workAmt += ((work == WORK_HEAD_DOWN && next == Mode.PLANT ? 1f : 0f) - workAmt) * Math.min(1f, dt / 0.2f);
+        workClock = (workClock + dt) % PECK_SECONDS;
+        float peck = (workClock / PECK_SECONDS + ((seed * 0x9E3779B97F4A7C15L) >>> 40 & 0xFF) / 256f) % 1f;
+        float down = (float) Math.sin(Math.PI * peck);
+        dip = workAmt * (0.55f + 0.45f * down * down);
+        crouch += WORK_CROUCH * workAmt;
+
         float shY = lunge + SPINE / 2 * (1 + flex), hpY = lunge - SPINE / 2 * (1 + flex);
         float shZ = SHOULDER_Z - crouch, hpZ = HIP_Z - crouch * 0.6f;
         set(SHOULDER, shx, shY, shZ);
@@ -334,7 +373,8 @@ public final class RavRunnerRig {
         solveLegs(shY, shZ, hpY, hpZ);
         solveArms(shY, shZ);
         set(NECK, shx * 1.2f, shY + 0.12f, shZ + 0.03f);
-        set(HEAD, shx * 1.4f, shY + 0.25f + 0.03f * s * run, shZ - 0.01f);
+        float nibble = NIBBLE * workAmt * (float) Math.sin(2 * Math.PI * peck * 0.5f);
+        set(HEAD, shx * 1.4f + nibble, shY + 0.25f + 0.03f * s * run - 0.04f * dip, shZ - 0.01f - DIP_DROP * dip);
         set(MID, (shx + hpx) / 2, (shY + hpY) / 2, (shZ + hpZ) / 2);
         bendSpine();
         if (latch > 0.001f && carrying) latchOn(loadX, loadY, fwdX, fwdY);
@@ -692,6 +732,26 @@ public final class RavRunnerRig {
     public float poolY() { return burst.poolY(); }
     public float poolAngle() { return burst.poolAngle(); }
     public int poolVariant() { return burst.poolVariant(); }
+
+    /**
+     * What a skitterer is doing with its head ({@code SwarmWorkers.Show}): {@link #WORK_NONE}, {@link #WORK_HEAD_DOWN}
+     * over the work, or carrying {@link #WORK_FEED} or {@link #WORK_PULP} in its mandibles. Read each tick; a Runner
+     * is never told anything but none.
+     */
+    public void setWork(int work) {
+        this.work = work;
+    }
+
+    /** What its mandibles hold: {@link #WORK_FEED}, {@link #WORK_PULP}, or {@link #WORK_NONE}. */
+    public int held() {
+        return dead || (work != WORK_FEED && work != WORK_PULP) ? WORK_NONE : work;
+    }
+
+    /**
+     * How far the head is down over the work, 0 (carried) to 1 (in it): the composer draws a head that far down
+     * shorter, foreshortened as it pitches toward the ground, and a little darker in the body's shadow.
+     */
+    public float headDip() { return dead ? 0f : dip; }
 
     /** How far forward of the sim position the drawn body sits, cells; negative while hauling. */
     public float drawOffset() { return dead ? 0f : -CARRY_BACK * latch; }

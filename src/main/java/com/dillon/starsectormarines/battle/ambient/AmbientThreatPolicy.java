@@ -23,5 +23,15 @@ public enum AmbientThreatPolicy {
      */
     UNDER_FIRE,
     /** Civilians yield to any nearby armed actor and return to their normal role. */
-    ANY_COMBATANT
+    ANY_COMBATANT,
+    /**
+     * Civilians at work who yield to a fight rather than to a uniform.
+     *
+     * <p>{@link #ANY_COMBATANT} empties a garrisoned town's workplaces the first
+     * time its own patrol walks past, and a warehouse whose crew scatter for the
+     * guard on his rounds is not a town anybody lives in. So the trigger is an
+     * armed actor in reach who has somebody to shoot at, or a round finding the
+     * worker: the patrol is part of the town, a firefight is not.
+     */
+    FIGHT_NEARBY
 }

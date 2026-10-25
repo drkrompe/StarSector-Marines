@@ -50,7 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
  * death are the Brute's takes played deeper and slower through the pitch
  * argument, not baked copies. The Harrier, which flies with its pack rather than walking, is
- * {@link HarrierAudio}'s, played from here.
+ * {@link HarrierAudio}'s, and the brood spire it rises from {@link SpireAudio}'s, both played from here.
  */
 public final class SwarmAudio {
 
@@ -107,6 +107,8 @@ public final class SwarmAudio {
         MATRIARCH_REAP("matriarch_reap", 0.76f, 2, 1.3f, 0f),
         MATRIARCH_DEATH("brute_death", 0.41f, 1, 3f, 0f, 0.62f),
         MATRIARCH_BELLOW("brute_bellow", 0.35f, 1, 3.5f, 0f, 0.72f),
+        // The tell before her run: the Brute's charge tell a size deeper, -16 to -19 LUFS across its takes.
+        MATRIARCH_RUN_TELL("brute_charge_tell", 0.45f, 1, 1.5f, 0f, 0.7f),
         MATRIARCH_FOOTFALL("brute_footfall", 0.78f, 4, 1f, 0f, 0.65f),
         MATRIARCH_CROWN("brute_impact", 0.35f, 2, 2f, 0f, 0.75f),
         MATRIARCH_WALL_BREAK("brute_wall_break", 0.35f, 2, 3f, 0f, 0.8f),
@@ -216,6 +218,7 @@ public final class SwarmAudio {
      */
     public static void play(BattleSimulation sim, float listenerX, float listenerY) {
         HarrierAudio.play(sim, listenerX, listenerY);
+        SpireAudio.play(sim, listenerX, listenerY);
         for (Play p : MIXES.computeIfAbsent(sim, ignored -> new Mix()).hear(sim, listenerX, listenerY)) {
             Global.getSoundPlayer().playSound(p.soundId(), p.pitch(), p.volume(),
                     new Vector2f(p.x() * BattleShotAudio.WORLD_UNITS_PER_CELL, p.y() * BattleShotAudio.WORLD_UNITS_PER_CELL),
@@ -282,6 +285,11 @@ public final class SwarmAudio {
             if (stride % 2 != 0) return null;
             return stride % 6 == 0 ? Sound.RUNNER_CLATTER : Sound.RUNNER_GALLOP;
         }
+        // a skitterer's patter is the Runner's clatter, thinner still, played up at its size
+        if (strain == UnitType.SWARM_WORKER) {
+            if (carrying) return Sound.BODY_DRAG;
+            return stride % 3 == 0 ? Sound.RUNNER_CLATTER : null;
+        }
         return null;
     }
 
@@ -301,6 +309,7 @@ public final class SwarmAudio {
             return switch (kind) {
                 case ROAR, MOULT -> Sound.MATRIARCH_ROAR;
                 case ALERT -> Sound.MATRIARCH_BELLOW;
+                case CHARGE_TELL -> Sound.MATRIARCH_RUN_TELL;
                 case REAP -> Sound.MATRIARCH_REAP;
                 case STRIKE, WALL_BLOW -> Sound.MATRIARCH_CROWN;
                 case WALL_BREAK -> Sound.MATRIARCH_WALL_BREAK;
@@ -331,22 +340,25 @@ public final class SwarmAudio {
     }
 
     static Sound pain(UnitType strain) {
-        if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_PAIN;
+        if (strain == UnitType.SWARM_RUNNER || strain == UnitType.SWARM_WORKER) return Sound.RUNNER_PAIN;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_PAIN;
         if (heavy(strain)) return Sound.BRUTE_PAIN;
         return null;
     }
 
     static Sound death(UnitType strain) {
-        if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_DEATH;
+        if (strain == UnitType.SWARM_RUNNER || strain == UnitType.SWARM_WORKER) return Sound.RUNNER_DEATH;
         if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_DEATH;
         if (heavy(strain)) return Sound.BRUTE_DEATH;
         return null;
     }
 
-    /** A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up. */
+    /**
+     * A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up; a skitterer,
+     * smaller than any whelp, higher still.
+     */
     static float pitch(UnitType strain, SwarmStage stage) {
-        return 1f / SwarmStage.of(stage).scale(strain);
+        return 1f / (SwarmStage.of(stage).scale(strain) * (strain == UnitType.SWARM_WORKER ? strain.renderScale : 1f));
     }
 
     /** A body's loudness by its stage, against the adult's. */

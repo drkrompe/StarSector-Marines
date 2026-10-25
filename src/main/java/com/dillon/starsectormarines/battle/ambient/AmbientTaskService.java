@@ -815,6 +815,8 @@ public final class AmbientTaskService {
         if (route.threatPolicy() == AmbientThreatPolicy.NONE) return false;
         if (world.hasAiState(actorId) && world.fallbackTimer(actorId) > 0f) return true;
         if (route.threatPolicy() == AmbientThreatPolicy.UNDER_FIRE) return tookAHit(actorId);
+        boolean fightOnly = route.threatPolicy() == AmbientThreatPolicy.FIGHT_NEARBY;
+        if (fightOnly && tookAHit(actorId)) return true;
         if (route.threatRadiusCells() <= 0f) return false;
         float x = world.x(actorId);
         float y = world.y(actorId);
@@ -825,6 +827,7 @@ public final class AmbientTaskService {
             if (candidate == actorId || !roster.identity().type(candidate).combatant) continue;
             if (route.threatPolicy() == AmbientThreatPolicy.HOSTILE_COMBATANT
                     && !faction.hostileTo(roster.identity().faction(candidate))) continue;
+            if (fightOnly && !(roster.combat().has(candidate) && roster.combat().targetId(candidate) != 0L)) continue;
             float dx = world.x(candidate) - x;
             float dy = world.y(candidate) - y;
             if (dx * dx + dy * dy <= radiusSq) return true;

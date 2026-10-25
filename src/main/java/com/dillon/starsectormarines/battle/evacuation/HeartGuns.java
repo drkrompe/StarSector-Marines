@@ -40,6 +40,8 @@ public final class HeartGuns {
     public static final String BATTERY_FLAK = "battery-flak";
     /** The place the ammunition dump's flak stands. */
     public static final String DUMP = "dump";
+    /** The place the vehicle park's flak stands. */
+    public static final String PARK_FLAK = "park-flak";
 
     private static final String ISSUER = "heart guns";
 
@@ -62,7 +64,7 @@ public final class HeartGuns {
     /** Adds a gun to a place laid with {@link #place}; a gun at a place not laid is left unstocked. */
     public HeartGuns add(String name, long gun) {
         Place p = places.get(name);
-        if (p == null || gun == 0L) return this;
+        if (p == null || gun == 0L || p.guns().contains(gun)) return this;
         p.stock().add(gun);
         p.guns().add(gun);
         return this;

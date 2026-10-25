@@ -1,0 +1,11 @@
+Finish pass on a top-down game sprite layer for a 2D creature rig: the SKITTERER, a small non-combat nest worker of the Rav Bloom, an engineered alien swarm. It is the same organism as the swarm's Runner (reference 2), its body plan and chitin specialised for work. It never fights: NO spike arms, NO blades, NO claws on its back.
+
+Reference 1 is the GEOMETRY AUTHORITY: this creature as already painted. Keep its silhouette, outline, proportions, every part's position and size on the canvas, the centre line and its colour layout exactly; do not move, add or remove any part, and do not add legs or arms.
+
+Reference 2 is the STYLE AND MATERIAL AUTHORITY (not layout): repaint every carapace plate of reference 1 in exactly the Runner's chitin. The Runner's plates are faceted and crystalline, pointed leaf and kite shapes with a sharp ridge down their middle, pale lilac lit with pearly white facets and shading to dusky violet, sitting in deep crimson ropey sinew that shows between them, edged with ivory bone. Reference 1's plates are too smooth and rounded, like balloons: give them the Runner's facets, ridges, overlap and sinew while keeping each plate's outline and place.
+
+This is the MITE, a tick-like worker. Keep its one ROUND domed carapace and its layout of plates, but paint them PALER than the Runner (a pale whelp lilac, nearly pearl) with the crimson sinew seams between them deep and clear, the diamond keel plates down the spine faceted like the Runner's spine plates, and the tiny tail nub. Keep the ivory SHIELD-PLATE LIP over the head as polished bone. The pair of mandibles at the front of the small tucked head are flat placeholders in reference 1: paint them as SHORT, STOUT, HOOKED ivory bone PINCERS with one inner tooth each, curling inward toward each other, keeping exactly their drawn shape and size.
+
+The creature is drawn very small in game (about 20 pixels long): keep big clear shapes and strong value contrast between pale plates and dark sinew; no fine noise, no tiny scales, no texture grain.
+
+Strict overhead orthographic view, nose UP, same framing as reference 1 so the layer registers over it. Plain flat light grey background (#b4b4b4) everywhere outside the creature, no shadow, no ground, no text, no border.

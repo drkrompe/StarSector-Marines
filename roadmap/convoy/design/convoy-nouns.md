@@ -452,9 +452,9 @@ round. It applies to whichever plate the hit meets (above).
   (unattributed or scripted damage, a shooter already gone) meets the hull's
   nominal plate on no arc, and no arc draws on the random stream.
 - **What presents the front.** Production sets a dropped hull down facing the way
-  its carrier flew in. A duelling hull drives to its band nose first. A bicycle
-  hull cannot pivot in place, so every other turn toward the threat is a
-  manoeuvre on the same manual drive: it **backs with opposite lock** while the
+  its carrier flew in. A duelling hull drives to its band nose first. Facing a
+  threat does not use the neutral pivot (route travel's escape, below), so
+  every other turn toward the threat is a manoeuvre on the same manual drive: it **backs with opposite lock** while the
   target is within a little past the beam (120° off the nose), which swings the
   nose on while the hull gives ground, and drives a **forward turn** toward a
   target further behind than that.
@@ -592,12 +592,44 @@ drive forward is masked and the bounded cost search tries another corridor;
 failure suppresses the dispatch instead of exporting an impossible corner.
 The resulting corridor remains advisory: it is not an animation rail.
 
+**Neutral pivot.** A hull can turn on the spot when it has to
+(`NeutralPivot`), and how readily depends on what it runs on. A tank runs its
+tracks against each other (a half turn in about four and a half seconds) and a
+hover skirt yaws on its fans, quicker: for them a pivot is an ordinary
+manoeuvre. A wheeled hull spinning in place reads as wrong, so for a truck, an
+APC or a technical it is the last resort and nothing plans on it. Even for
+tracks a pivot is never how the hull prefers to turn. The turn pass fillets
+every bend it can and, for a tracked or hover hull only, keeps a bend sharp
+where no fillet fits (the legs are too short, or the arc clips the ground) and
+the footprint, with the same slack, clears the whole rotation about the vertex.
+A bend sharper than 135° is a route doubling back where its ends snapped, not a
+bend in the ground, and is still refused so the search looks elsewhere. The
+shorter way round is the only one asked, because a hull turning about its
+centre looks the same after half a turn. On ground like The Burn's rides and
+woods, where the turning circle alone refused most orders between connected
+cells, a tank's route exists wherever it can stand at its bends and turn. A
+wheeled hull's routes stay its turning circle's. `-Dbattle.vehicle.neutralPivot=false`
+is the control.
+
 The controller continuously tracks a rolling, local forward-only,
 kinematically feasible trajectory against the live navigation grid. Rolling
 goals carry the corridor tangent and require heading agreement, so proximity
 before a bend is not false success. Reverse is an explicit committed recovery,
 not a hidden cusp in an ordinary plan. The bicycle body, speed-aware lookahead,
 corner-speed governor, and terminal docking maneuver make turns continuous.
+Where the rolling planner finds no forward trajectory, a tracked or hover hull
+does not brake: it follows the corridor itself with a short carrot, driving at
+it while it points within 20° and otherwise stopping and pivoting until it
+points within 3°. Every step is swept against the live ground like any other
+move, so the corridor's proof guides the hull and the ground decides; a pivot
+that would clip leaves the hull to the ordinary brake, reroute and give-up.
+Turning toward the corridor counts as progress for the stall clock, and the
+forward planner is asked again at its ordinary cadence, taking the hull back
+the moment a forward plan exists. A wheeled hull brakes, reroutes, and only
+after four seconds braked with its reroute spent follows its corridor the same
+way: the last rung before an order is given up, turning in place beating
+standing still for the rest of the battle. A pivot reports its yaw to the
+hull's gun the way a driven turn does (what presents the front).
 Docking aligns the parked APC with its outbound corridor. The only pose playback
 is that short validated maneuver; ordinary route travel is always body-driven.
 When docking or ordinary pursuit can reach the exact drop-off, they remain
@@ -958,10 +990,14 @@ retains the same existing cross-domain behavior as an autonomous hull.
   the drag began and faces the way it went. That heading is an arrival goal like
   a delivery's departure heading, earned the same way — the terminal
   Reeds-Shepp docking maneuver, which may back and fill, including on the spot
-  for a vehicle already standing at its destination. A bicycle cannot pivot, so
-  where no feasible maneuver fits the ground the vehicle arrives on the heading
-  it drove in on, as an undragged order does; the heading is a goal, never a
-  reason to refuse the move.
+  for a vehicle already standing at its destination. Where no feasible maneuver
+  fits the ground a tracked or hover hull pivots onto the heading at its
+  destination; a wheeled hull, or one whose footprint cannot turn there, arrives
+  on the heading it drove in on, as an undragged order does; the heading is a
+  goal, never a reason to refuse the move. Dispatch's turn-round questions (the
+  docking pairing and the drop-point turn onto the exit) are likewise answered
+  yes for a tracked or hover hull with room to pivot where it stands; a wheeled
+  hull's last resort is never something dispatch plans on.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.
@@ -1010,7 +1046,8 @@ single-cannon magazine. Its independently traversing turret uses normal
 ballistic contact and blast payloads, so it can breach a gun line while lighter
 escorts screen infantry. It carries no passengers. The tracked silhouette uses
 a conservative rolling-turn envelope shared by route proof and body motion;
-neutral pivot, track slip and player-owned tank logistics are not modeled.
+where no rolling turn fits it pivots like any hull (Neutral pivot); track
+slip and player-owned tank logistics are not modeled.
 
 Its overhead hull has a broad, flat-fronted glacis between the tracks and a recessed
 engine deck at the rear, with continuous track tops and layered shoulder
@@ -1099,8 +1136,9 @@ medium rocks, shrubs and grass tufts were open ground for every hull already.
 Which living trees count as young is the owner's open pick
 (`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
 is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
-across young or creep-killed wood drives through it, felling what it touches,
-while a living mature wood and a troop APC in young wood are held.
+across young or creep-killed wood drives through it, felling what it touches
+(dead trees fall as bleached dead wood, `colony-breach-nouns.md`), while a
+living mature wood and a troop APC in young wood are held.
 
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the
@@ -1196,7 +1234,10 @@ observed round and flies at the weapon's ordinary accuracy. It fights from
 own line of sight there. It pays with no seats and less plate than the
 fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
 wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
-sight, and holds fire entirely without the spotter.
+sight, and holds fire entirely without the spotter. A carrier fitted with the
+**sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
+drones hold station beyond the bow, and what they see counts as eyes on the
+target (`SideObservers`), so it fires over a wall with nobody else looking.
 
 The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the
 pickup with a mech SRM-5 pod on its pintle ring and the technical's welded plate

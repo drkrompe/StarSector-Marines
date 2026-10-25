@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.air;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.function.LongPredicate;
@@ -68,6 +69,38 @@ public final class EnemyConcentration {
      */
     public static long densest(BattleSimulation sim, Faction side, LongPredicate eligible) {
         return densestAwayFrom(sim, side, null, 0, 0f, eligible);
+    }
+
+    /**
+     * As {@link #densest(BattleSimulation, Faction, LongPredicate)}, counting only bodies on the ground: a bomb or a
+     * gun run is a ground blast, and no ground blast reaches a flier, so a Harrier pack loitering over a few bodies is
+     * those few bodies to a strike, and a pack alone is no target at all. The unit returned is a ground body.
+     */
+    public static long densestOnGround(BattleSimulation sim, Faction side, LongPredicate eligible) {
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        LongBucket near = new LongBucket();
+        long best = 0L;
+        int bestCount = MIN_CLUSTER - 1;
+        for (Faction enemy : FACTIONS) {
+            if (!side.hostileTo(enemy)) continue;
+            long[] candidates = roster.factionDenseArray(enemy);
+            int count = roster.factionLiveCount(enemy);
+            for (int i = 0; i < count; i++) {
+                long u = candidates[i];
+                if (sim.identity().type(u).isFlier()) continue;
+                sim.getUnitIndex().gatherHostileCombatants(world.x(u), world.y(u), CLUSTER_RADIUS, side, near);
+                int grounded = 0;
+                for (int j = 0; j < near.size; j++) {
+                    if (!sim.identity().type(near.ids[j]).isFlier()) grounded++;
+                }
+                if (grounded > bestCount && eligible.test(u)) {
+                    bestCount = grounded;
+                    best = u;
+                }
+            }
+        }
+        return best;
     }
 
     /**
