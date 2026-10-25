@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongPredicate;
 
 /**
  * Creep carries the umbrella outward (`colony-breach-nouns.md`, Spore colony):
@@ -29,7 +30,9 @@ import java.util.Map;
  *   <li><b>Time.</b> A chosen cell must stay good for {@link #HOLD_SECONDS}
  *   before anything roots there.</li>
  *   <li><b>Cap.</b> {@link #capFor} living outposts per bore by tier; a dead
- *   outpost frees its place, so the creep regrows one elsewhere.</li>
+ *   outpost frees its place, so the creep regrows one elsewhere: where one
+ *   fell counts as an anchor for its bore's next ({@link #fallen}), so it never
+ *   roots again on the cell a company just cleared.</li>
  * </ul>
  *
  * Runs once per simulation tick after the creep has spread, looking every
@@ -60,6 +63,8 @@ public final class CreepOutposts {
 
     private final long seed;
     private final Map<Long, Pending> pending = new HashMap<>();
+    /** The cell centre each outpost rooted on, by its id: where it fell, once it is dead. */
+    private final Map<Long, float[]> rootedAt = new HashMap<>();
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
 
     public CreepOutposts(long seed) {
@@ -164,6 +169,7 @@ public final class CreepOutposts {
             }
             float spacing = spacingFor(bore.tier());
             List<float[]> anchors = anchors(sim, bores);
+            anchors.addAll(fallen(bore.outposts(), id -> sim.resolveUnit(id) != 0L, rootedAt));
             Pending held = pending.get(bore.entityId());
             if (held != null && good(ground, held.x, held.y, spacing, anchors)
                     && !SwarmBores.nearBody(sim, held.x, held.y, BODY_CLEARANCE)) {
@@ -183,11 +189,26 @@ public final class CreepOutposts {
         }
     }
 
-    private static void root(BattleSimulation sim, SwarmBore bore, int x, int y) {
+    private void root(BattleSimulation sim, SwarmBore bore, int x, int y) {
         String name = (bore.mother() ? "Mother Bore" : "Bore " + bore.number())
                 + " Spore Outpost " + (bore.outposts().size() + 1);
         long colony = sim.spawn(SwarmBores.bodySpec(name, bore.tier().sporeColonyStructure(), x, y));
         bore.outposted(colony);
+        rootedAt.put(colony, new float[]{x + 0.5f, y + 0.5f});
+    }
+
+    /**
+     * Where a bore's dead outposts stood, as anchors for its next: of {@code outposts}, each not {@code living}
+     * that {@code rootedAt} has a cell for. Frozen 3, 2026-10-25: a company cleared an outpost and the creep rooted
+     * the next on the same cell twenty seconds later, then again, a target it kept firing into.
+     */
+    static List<float[]> fallen(List<Long> outposts, LongPredicate living, Map<Long, float[]> rootedAt) {
+        List<float[]> out = new ArrayList<>();
+        for (long id : outposts) {
+            float[] at = rootedAt.get(id);
+            if (at != null && !living.test(id)) out.add(at);
+        }
+        return out;
     }
 
     private static int living(BattleSimulation sim, List<Long> ids) {
