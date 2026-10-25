@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Per-quad body effects (law 27) on real generated ground through the look preset, drawn on the GPU, which is the
  * only drain that draws them: {@code lit-firefight}, a rifle section with grenades against a militia picket at night,
- * where every muzzle flash and blast lights the bodies round it and a hit flashes the body it lands on;
+ * where every muzzle flash and blast lights the bodies round it;
  * {@code burning-dead}, a row of the dead in grass a fire sweeps over, glowing with embers as it burns and charred
  * once it has burnt. Opt-in: a look question, not part of {@code all}.
  */

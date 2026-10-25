@@ -35,7 +35,6 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
-import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -1523,8 +1522,6 @@ public final class UnitRenderService implements RenderSystem {
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
-        CombatService combat = roster.combat();
-        int tick = ctx.sim.getSimTickIndex();
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.liveSprites)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
@@ -1617,7 +1614,6 @@ public final class UnitRenderService implements RenderSystem {
                 if (uv == FogOfWarService.VIS_HIDDEN) continue;
                 float unitAlpha = alphaMult;
                 if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(denseIdx);
-                out.setFlash(HitFlash.amount(combat, entityId, tick));
                 effects.stampLight(out, rx[r], ry[r]);
                 effects.stampLiveWear(out, ctx.sim, rx[r], ry[r]);
 
