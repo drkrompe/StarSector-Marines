@@ -922,8 +922,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
-        // A bloom weeks old has grown its spires and its roots, and its nests are full of workers.
-        swarmBores.aged();
+        // A bloom weeks old has grown its spires, and its nests are full of workers.
         broodSpires.grow(this);
         swarmWorkers.populate(this);
     }
