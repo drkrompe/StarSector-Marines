@@ -711,9 +711,11 @@ on the street's own ground: the kerb, the flank, or a yard's paving where one
 is beside the asphalt, and otherwise the carriageway's outer cell, provided
 three cells of asphalt remain. A narrower street goes without on that side.
 **The sidewalk is ground, never a second painted layer.** It is the underlay
-of every city street cell the asphalt touches or neighbours, and of every
+of every city street cell within three cells of the asphalt, and of every
 building apron and sidewalk flank in the city whether a road runs past or not,
-so a city has one sidewalk material and asphalt is the only subcell paint. A cell the asphalt only
+so a city has one sidewalk material and asphalt is the only subcell paint. A
+road is padded out to its band's edge: a street wider than its asphalt meets a
+landing apron or a yard in sidewalk, not in a strip of bare pavers. A cell the asphalt only
 partly covers shows concrete beside the curve, and the concrete meets the
 untouched paving on whole cell edges. A sidewalk swept as a second subcell
 layer over the old kerb and paver tiles left half-cell triangles of the tile

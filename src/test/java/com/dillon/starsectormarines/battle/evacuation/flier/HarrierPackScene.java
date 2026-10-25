@@ -232,7 +232,8 @@ public final class HarrierPackScene implements BehaviorScene {
                     boolean aa = h.attacker() == flak;
                     if (aa) aaHits++;
                     if (h.died()) { killed++; if (aa) killedByAa++; }
-                    if (sim.identity().has(h.attacker()) && !tracks(sim, h.attacker())) hitsByNonTracker++;
+                    // A shooter that has since died has no weapon left to ask about.
+                    if (sim.combat().has(h.attacker()) && !tracks(sim, h.attacker())) hitsByNonTracker++;
                 } else if (h.attackerLabel().endsWith(UnitType.SWARM_HARRIER.name())) {
                     lineDamage += h.applied();
                 }

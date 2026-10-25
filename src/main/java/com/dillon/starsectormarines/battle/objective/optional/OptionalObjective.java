@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.objective.optional;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -10,7 +11,8 @@ import java.util.function.Function;
  * @param title player-facing name
  * @param briefing player-facing line for the briefing
  * @param needs names of placed structures in the map's laid layout; it fits only when each stands, whole or in part.
- *              Empty fits every map
+ *              A need may name alternatives joined by {@code |} (a farmstead in open country, a tenement in a city),
+ *              met by whichever stands. Empty fits every map
  * @param excludes keys never drawn in the same battle as this one (checked both ways)
  * @param weight relative chance in the roll, at least one
  * @param reward paid on success
@@ -31,6 +33,11 @@ public record OptionalObjective(String key, String title, String briefing, Set<S
         excludes = excludes == null ? Set.of() : Set.copyOf(excludes);
         reward = reward == null ? Reward.NONE : reward;
         cost = cost == null ? Cost.NONE : cost;
+    }
+
+    /** The piece names one need is met by: its alternatives, or the need itself. */
+    public static List<String> alternatives(String need) {
+        return List.of(need.split("\\|"));
     }
 
     /** Whether either of the two names the other in its excludes. */
