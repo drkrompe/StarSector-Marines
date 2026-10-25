@@ -2410,7 +2410,8 @@ def blender_main(cfg):
 
     def white_blob_lint(kf, display, effects_owned):
         """blob_lint on a finished span frame: near-white regions the effects own, held too long. The
-        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs."""
+        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs.
+        Each frame's regions are saved beside it (<span>_blobs_f<n>.json) for the cross-seam check."""
         import blob_lint
         from bpy_extras.object_utils import world_to_camera_view
         spec_ = KEYFRAMES[kf]
@@ -2425,7 +2426,11 @@ def blender_main(cfg):
         st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
         n_ = int(kf.rsplit('_f', 1)[1])
         dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
-        rows_, flagged_ = st['lint'].frame(n_, dt, display, effects_owned, engines)
+        kept_ = blob_lint.found(display, effects_owned, engines)
+        # this frame's regions, for the shot's assembly to chain across chunk seams (assemble_shot --blobs)
+        (raw / f'{span_}_blobs_f{n_:05d}.json').write_text(json.dumps(
+            dict(frame=n_, dt=dt, width=w_, regions=[[a, list(b), cy, cx] for a, b, cy, cx in kept_])))
+        rows_, flagged_ = st['lint'].step(n_, dt, w_, kept_)
         st['last_t'] = spec_['span_t']
         print(f'ASHARU blob lint {kf}: {len(rows_)} white regions, {len(flagged_)} held'
               + ''.join(f'; {r_}' for r_ in rows_[:4]), flush=True)

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173dd-ed5f-7782-a2f1-d7f2e9703924",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173dd-ed5f-7782-a2f1-d7f2e9703924\\exec-a3faf33e-3174-4506-989e-9a9c9436afb1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\frost\\field-stones-damaged.png",
+    "sha256": "50808d683c7a82bfdc4ba788803d7f075147c5941abd308ee0460508d8703196",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\frost\\field-stones-damaged.prompt.txt",
+  "promptSha256": "70802782274f0ccab528e7aa81e325b19a3b2a70e4708a36af336a985f070bd7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority\nImage 2: Identity: the intact stones, their material, colour, light and rendering\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into the DAMAGED state of seven overhead field-stone sprites for a top-down tactical game: the same stones after heavy fire has cracked and chipped them. Image 2 is the intact sheet and is the IDENTITY authority: the same stones, the same painterly stone, the same soft upper-left light and the same rounded forms. Image 1 says where the damage goes.\nPreserve image 1 exactly: 2:1 canvas, 4 columns x 2 rows, the eighth frame (bottom right) EMPTY. Every stone keeps the outline the guide gives it; the bites out of its rim are fresh chips. Do not add, merge, move or enlarge stones.\nCamera STRAIGHT DOWN from directly above, orthographic plan view, as in image 2.\nDamage: the dark lines in the guide are deep cracks running across each stone; chipped edges show fresh stone; a little grey dust on the stone tops. The stones are still whole and still rounded, Keep image 2's dark cold stone; snow caps survive only on the larger pieces; fresh breaks show dark bare stone, never pale. Stay as dark as image 2. NOT faceted, NOT low-poly. They must read clearly at about 50 pixels across: clear masses, a few bold cracks, no fine noise.\nNo grass, soil, scorch disc, ground patch or cast shadow outside the stones, no labels, no text, no border. True transparent background around and between every stone. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-damaged-guide.png",
+      "sha256": "f9677553d3c9f0ef02f295940651e44b52140f21dfb04321bd98fbd43f2c24ed",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority"
+    },
+    {
+      "path": "art-source\\tilesets\\field-stones\\frost\\field-stones.png",
+      "sha256": "4f5fa36cea6cc534cc8230c7d9600229516412ca0a42f6467abab13492cd46aa",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity: the intact stones, their material, colour, light and rendering"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one damaged sheet, preserving the guide’s layout and the intact stones’ appearance.\n"
+  ],
+  "usage": {
+    "input_tokens": 81587,
+    "cached_input_tokens": 66432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 658,
+    "reasoning_output_tokens": 42
+  },
+  "elapsedSeconds": 61.8
+}

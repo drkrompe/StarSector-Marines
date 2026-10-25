@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.RockDamage;
 
 /**
  * What the world's own ground is made of, distilled from the target planet so
@@ -82,5 +83,15 @@ public enum SurfacePalette {
     /** Unworked inland ground, including thin margins too small for a nature parcel. */
     public GroundKind inlandGround() {
         return this == VERDANT ? GroundKind.GRASS : approachGround;
+    }
+
+    /** The field-stone set lying loose on this ground; the mapping's rock pools for this palette name the same set. */
+    public RockDamage.Biome stones() {
+        return switch (this) {
+            case VERDANT -> RockDamage.Biome.MOSSED;
+            case ARID -> RockDamage.Biome.SANDSTONE;
+            case ROCK -> RockDamage.Biome.BASALT;
+            case FROZEN -> RockDamage.Biome.FROST;
+        };
     }
 }
