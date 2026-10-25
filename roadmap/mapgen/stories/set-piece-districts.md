@@ -189,6 +189,54 @@ Open on the cordoned facility: boom gates and street lamps have no art (the stri
 sandbags stand in); no tactical node or mission reads the mark yet; a research station did not reach the
 look stills, its seeds' battles laying another map.
 
+**Industrial zone, as built.** `IndustrialZoneProgram` asks for a spine of one to three members a side
+and at least three in all, a street at least 20 cells long and no wider than a primary trunk, members at
+least eight deep and eight along the street. It runs after main street and the cordoned facility, over the
+leaves they left. A member may be working ground or ground a settlement can spare (works, yards, rubble,
+shops, dense blocks, squares, parks) anywhere, and homes and guard posts inside the zoning's industrial
+pocket. Its pocket weighs the industrial quarter 2 and a harbour or the outskirts 1, plus 1 for a lot already
+labelled a works or a yard and 2 for the freight-yard parcel or the factory row's seed, so a zone gathers
+round the set pieces already planned rather than fighting them for leaves: the yard's parcel is a member
+whose role is its freight yard (two-bay where it fits), and the row's seed joins only where its leaf holds
+the row alone (otherwise it is ineligible, so it claims its neighbour as it would have and the zone looks
+along another street). Where the street has neither, the largest member that holds one takes it. Each
+guard post keeps its hardpoint inside a wall with a two-cell gate. The rest are **warehouses** where at
+least nine deep, and **depots** (tank farm and vehicle depot in turn) where shallower; where every one would
+be a warehouse and there are two, the smallest is a depot. Its rewrite narrows a cross street to three
+cells only between two warehouses or depots, so a yard or a row keeps the gates and turns its parcel was
+planned for.
+
+`IndustrialZoneLayout` paves each walled member's street row as the street's sidewalk (a wall on the
+carriageway's edge would leave a four-wide street too narrow for asphalt), then lays its role. A warehouse
+is a striped dock apron (two rows, three where the member is ten deep) walled at both ends, an open
+warehouse hall behind it with its doors and windows on the street alone (`BuildingPlacement.frontOnly`),
+one or two loading doors three wide cut where the row inside is floor or furniture (furniture in the way is
+taken out), and the hatched `apron.keep-clear` two rows deep before each; a member deep enough for the
+deepest hall (12) and four more keeps a walled stock yard behind it, with tanks and pallets on its back wall
+and a gap onto the cross street. A hauler is parked along the apron away from the docks, pipe runs on stands
+line the rest of its kerb with a gap every run, and crates stand at its ends. A tank farm is a walled yard
+with a vehicle gate (centred on a front of 14, at one end of a narrower one), blocks of four fluid tanks on
+earth beside a striped drive and a tanker parked at its end; a vehicle depot is striped hardstanding with
+haulers parked either side of the drive and drums on the back wall. Freight gantries
+(`origin-freight.gantry-span-clean` and its legs) span the street every 14 cells where both legs land on
+open apron. The service street and its cross-street stubs are painted city street. It publishes
+`IndustrialZone` on `MapResult.industrialZones`: the street's centre line and width, the hosted yards'
+`LoadingBay`s, the row's `ServiceLane`, and each warehouse dock's door with the street cell straight out
+from it.
+
+Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 4 of 24 medium city maps and
+12 of 24 colonies, hosting a freight yard on 3 city maps and 1 colony, a factory row on none. The claim
+shape is the limit, not the pocket: with every kind eligible the industrial pockets still rarely line one
+street with whole leaves on both sides, a freight-yard parcel stands at the map's edge with nothing across
+its street, and a factory row seed is nearly always the 11-by-11 lot that needs its neighbour. A shorter
+street (16) moved one city map and cost one colony. `storyMapPools` passes 144 of 144 with no seed swapped.
+Look: `createSnapshots -Psnapshot=industrial-zone-look`.
+
+Open on the industrial zone: a quarter claim as a second shape for cities; no large storage tank (the 1x1
+fluid tank stands in blocks of four), no dock shutter or leveller (the loading door is a plain doorway) and
+no moving traffic (haulers are parked); gantries rarely find both legs on open apron, since docks, haulers
+and the walled yards take the kerb first; no mission reads the mark yet.
+
 ## Order
 
 The seam and main street land first, as one piece: main street is the simplest

@@ -34,10 +34,13 @@ import java.util.function.BiPredicate;
  *       a deep leaf leaves a walled stock yard behind the hall. A hauler is parked along the apron's kerb away
  *       from the docks, and pipe runs on stands line what is left of the kerb.</li>
  *   <li>A <b>tank farm</b> or <b>vehicle depot</b> is a walled yard with one vehicle gate on the street: blocks
- *       of fluid tanks either side of a clear drive, or haulers parked nose to it.</li>
+ *       of fluid tanks beside a clear drive, or haulers parked either side of it.</li>
+ *   <li>A <b>guard post</b> keeps its hardpoint inside a wall with a narrow gate on the street.</li>
  * </ul>
  *
- * The street itself is paved city street, and freight gantries span it where both legs land on open apron.
+ * Every member but a yard or a row gives its row on the street to the street's sidewalk, so the carriageway
+ * meets pavement rather than a wall and keeps its asphalt. The street itself is paved city street, and freight
+ * gantries span it where both legs land on open apron.
  * Draws only from the map's random stream, inside the shell carves.
  */
 final class IndustrialZoneLayout {
