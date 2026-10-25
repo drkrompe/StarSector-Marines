@@ -223,6 +223,7 @@ class CordonCommandEvidenceTest {
                 }
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            AirWingProbe.print(runId, sim);
             // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
             StringBuilder objectives = new StringBuilder();
             ObjectiveBoard board = sim.getOptionalObjectives();

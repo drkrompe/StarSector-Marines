@@ -12,6 +12,11 @@ import java.util.List;
  * minimum turn radius, then the full result is footprint-sampled. A failure
  * identifies the bend the macro router must avoid and search around rather
  * than handing an instantaneous heading change to the controller.
+ *
+ * <p>A hull that turns on the spot as a matter of course ({@link NeutralPivot#onRoutes}) keeps a bend no
+ * fillet fits as a sharp vertex instead, provided its footprint clears the whole
+ * rotation there: the controller pivots at it. Every bend a fillet fits is still
+ * filleted, so a pivot is only ever where the turning circle could not go.
  */
 public final class TurnAwareCorridor {
 
@@ -19,6 +24,8 @@ public final class TurnAwareCorridor {
     private static final float SAMPLE_CELLS = 0.25f;
     private static final float FOOTPRINT_SLACK_CELLS = 0.6f;
     private static final float LENGTH_EPS = 1e-3f;
+    /** Sharpest bend (degrees) route proof keeps as a pivot; a sharper one is the route doubling back. */
+    private static final float MAX_PIVOT_BEND_DEG = 135f;
 
     /** Refined points, or {@code null} plus the route location that failed. */
     public record Result(float[][] points, float failedX, float failedY) {
@@ -39,49 +46,77 @@ public final class TurnAwareCorridor {
         float[] xs = bends[0], ys = bends[1];
         int count = xs.length;
 
+        boolean pivots = NeutralPivot.onRoutes(type);
+        float length = type.visualLengthCells + FOOTPRINT_SLACK_CELLS;
+        float width = type.visualWidthCells + FOOTPRINT_SLACK_CELLS;
         Corner[] corners = new Corner[count];
         for (int i = 1; i < count - 1; i++) {
             Corner corner = cornerAt(xs, ys, i, radius);
-            if (corner == Corner.INVALID) return Result.failure(xs[i], ys[i]);
+            if (corner == Corner.INVALID) {
+                if (!pivots || !pivotFits(xs, ys, i, length, width, grid)) return Result.failure(xs[i], ys[i]);
+                corner = Corner.PIVOT;
+            }
             corners[i] = corner;
         }
 
         // Adjacent fillets must not consume more than the straight segment
         // between their vertices. If they overlap, no forward min-radius path
-        // follows this route ordering.
+        // follows this route ordering — unless the hull pivots at one of the
+        // two, the wider first, which gives its whole share back.
         for (int i = 1; i < count - 2; i++) {
-            float used = tangent(corners[i]) + tangent(corners[i + 1]);
             float available = distance(xs[i], ys[i], xs[i + 1], ys[i + 1]);
-            if (used > available - LENGTH_EPS) {
+            if (tangent(corners[i]) + tangent(corners[i + 1]) <= available - LENGTH_EPS) continue;
+            int wider = tangent(corners[i]) >= tangent(corners[i + 1]) ? i : i + 1;
+            int other = wider == i ? i + 1 : i;
+            if (pivots && pivotFits(xs, ys, wider, length, width, grid)) corners[wider] = Corner.PIVOT;
+            else if (pivots && pivotFits(xs, ys, other, length, width, grid)) corners[other] = Corner.PIVOT;
+            if (tangent(corners[i]) + tangent(corners[i + 1]) > available - LENGTH_EPS) {
                 return Result.failure((xs[i] + xs[i + 1]) * 0.5f,
                         (ys[i] + ys[i + 1]) * 0.5f);
             }
         }
 
-        List<Float> outX = new ArrayList<>();
-        List<Float> outY = new ArrayList<>();
-        addDistinct(outX, outY, xs[0], ys[0]);
-        for (int i = 1; i < count - 1; i++) {
-            Corner corner = corners[i];
-            if (corner == null) {
-                addDistinct(outX, outY, xs[i], ys[i]);
-                continue;
+        // A fillet whose arc clips the ground is a bend the turning circle cannot drive either; a hull that turns on
+        // the spot pivots there instead, and the corridor is laid again. Each pass pivots one more bend, so this ends.
+        while (true) {
+            List<Float> outX = new ArrayList<>();
+            List<Float> outY = new ArrayList<>();
+            List<Integer> owner = new ArrayList<>();
+            addDistinct(outX, outY, owner, -1, xs[0], ys[0]);
+            for (int i = 1; i < count - 1; i++) {
+                Corner corner = corners[i];
+                if (corner == null || corner == Corner.PIVOT) {
+                    addDistinct(outX, outY, owner, -1, xs[i], ys[i]);
+                    continue;
+                }
+                addDistinct(outX, outY, owner, -1, corner.entryX, corner.entryY);
+                int samples = Math.max(1, (int) Math.ceil(radius * corner.sweepRadians / SAMPLE_CELLS));
+                for (int sample = 1; sample <= samples; sample++) {
+                    float t = sample / (float) samples;
+                    double angle = corner.startAngle + corner.signedSweepRadians * t;
+                    addDistinct(outX, outY, owner, i,
+                            corner.centerX + radius * (float) Math.cos(angle),
+                            corner.centerY + radius * (float) Math.sin(angle));
+                }
             }
-            addDistinct(outX, outY, corner.entryX, corner.entryY);
-            int samples = Math.max(1, (int) Math.ceil(radius * corner.sweepRadians / SAMPLE_CELLS));
-            for (int sample = 1; sample <= samples; sample++) {
-                float t = sample / (float) samples;
-                double angle = corner.startAngle + corner.signedSweepRadians * t;
-                addDistinct(outX, outY,
-                        corner.centerX + radius * (float) Math.cos(angle),
-                        corner.centerY + radius * (float) Math.sin(angle));
-            }
-        }
-        addDistinct(outX, outY, xs[count - 1], ys[count - 1]);
+            addDistinct(outX, outY, owner, -1, xs[count - 1], ys[count - 1]);
 
-        float[][] refined = arrays(outX, outY);
-        float length = type.visualLengthCells + FOOTPRINT_SLACK_CELLS;
-        float width = type.visualWidthCells + FOOTPRINT_SLACK_CELLS;
+            float[][] refined = arrays(outX, outY);
+            float[] failed = firstInfeasible(refined, length, width, grid);
+            if (failed == null) return Result.success(refined);
+            int bend = owner.get((int) failed[2]);
+            if (!pivots || bend < 0 || !pivotFits(xs, ys, bend, length, width, grid)) {
+                return Result.failure(failed[0], failed[1]);
+            }
+            corners[bend] = Corner.PIVOT;
+        }
+    }
+
+    /**
+     * The first pose along {@code refined} whose slackened footprint does not clear the ground, as
+     * {@code {x, y, index}} with the index of the point that ends its segment; {@code null} when every pose clears.
+     */
+    private static float[] firstInfeasible(float[][] refined, float length, float width, NavigationGrid grid) {
         for (int i = 1; i < refined[0].length; i++) {
             float ax = refined[0][i - 1], ay = refined[1][i - 1];
             float bx = refined[0][i], by = refined[1][i];
@@ -94,11 +129,11 @@ public final class TurnAwareCorridor {
                 float t = sample / (float) samples;
                 float x = ax + dx * t, y = ay + dy * t;
                 if (!VehicleFootprint.isPoseFeasible(x, y, facing, length, width, grid)) {
-                    return Result.failure(x, y);
+                    return new float[]{x, y, i};
                 }
             }
         }
-        return Result.success(refined);
+        return null;
     }
 
     /**
@@ -179,17 +214,32 @@ public final class TurnAwareCorridor {
                 centerX, centerY, startAngle, signedSweep, angle);
     }
 
+    /**
+     * Whether the slackened footprint can turn on the spot at vertex {@code i} from its in-leg's heading to its
+     * out-leg's. A bend sharper than {@link #MAX_PIVOT_BEND_DEG} is a route doubling back on itself, an artefact of
+     * where its ends snapped rather than a bend in the ground, and is refused as before so the search looks
+     * elsewhere; turning a hull right round is the controller's, where it starts or leaves facing the wrong way.
+     */
+    private static boolean pivotFits(float[] xs, float[] ys, int i, float length, float width, NavigationGrid grid) {
+        float in = AirBody.facingToward(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+        float out = AirBody.facingToward(xs[i + 1] - xs[i], ys[i + 1] - ys[i]);
+        if (Math.abs(NeutralPivot.signedDegrees(out - in)) > MAX_PIVOT_BEND_DEG) return false;
+        return NeutralPivot.clearDirection(xs[i], ys[i], in, out, length, width, grid) != 0;
+    }
+
     private static float tangent(Corner corner) {
         return corner == null ? 0f : corner.tangent;
     }
 
-    private static void addDistinct(List<Float> xs, List<Float> ys, float x, float y) {
+    /** Appends a point unless it repeats the last, recording which bend's arc it lies on ({@code -1} for none). */
+    private static void addDistinct(List<Float> xs, List<Float> ys, List<Integer> owner, int bend, float x, float y) {
         if (!xs.isEmpty()) {
             float dx = x - xs.get(xs.size() - 1), dy = y - ys.get(ys.size() - 1);
             if (dx * dx + dy * dy < 1e-8f) return;
         }
         xs.add(x);
         ys.add(y);
+        owner.add(bend);
     }
 
     private static float[][] arrays(List<Float> xs, List<Float> ys) {
@@ -212,6 +262,8 @@ public final class TurnAwareCorridor {
 
     private static final class Corner {
         static final Corner INVALID = new Corner();
+        /** A bend kept sharp because the hull turns on the spot there; it uses none of its legs. */
+        static final Corner PIVOT = new Corner();
 
         final float tangent;
         final float entryX, entryY;

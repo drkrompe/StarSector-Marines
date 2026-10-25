@@ -131,13 +131,15 @@ public final class VehicleController {
      * Nothing downstream recovers from that, because the recovery ladder plans
      * forward motion and the vehicle needs to reverse direction. Route
      * construction already proves the ordinary bends; this proves the one bend
-     * that is not on either polyline.
+     * that is not on either polyline. A hull that turns on the spot
+     * ({@link NeutralPivot}) and has room to turn there needs no maneuver.
      */
     public static boolean canReverseDirectionAt(NavigationGrid grid, VehicleType type,
                                          float lzX, float lzY,
                                          float approachFacingDeg, float departFacingDeg) {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return true;
+        if (canPivotAt(grid, type, lzX, lzY, approachFacingDeg, departFacingDeg)) return true;
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
         // Where the truck is when the docking maneuver would engage: one
         // trigger distance back along the heading it arrives on.
@@ -171,7 +173,8 @@ public final class VehicleController {
      * <p>So the question worth asking before committing to a route is the one
      * with no run-up in it: from the drop point, on the heading the route will
      * deliver, is there a feasible way onto the exit? That is exactly what the
-     * runtime turnaround attempts, asked ahead of time.
+     * runtime turnaround attempts, asked ahead of time, or, for a hull that
+     * turns on the spot, whether it can pivot onto the route's first leg there.
      */
     public static boolean canTurnOntoRouteAt(NavigationGrid grid, VehicleType type,
                                              float x, float y, float bodyFacingDeg,
@@ -179,6 +182,12 @@ public final class VehicleController {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return true;
         if (routeXs.length < 2) return true;
+        for (int i = 1; i < routeXs.length; i++) {
+            float dx = routeXs[i] - x, dy = routeYs[i] - y;
+            if (dx * dx + dy * dy < 1e-4f) continue;
+            if (canPivotAt(grid, type, x, y, bodyFacingDeg, AirBody.facingToward(dx, dy))) return true;
+            break;
+        }
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
         ReferenceCorridor corridor = new ReferenceCorridor(routeXs, routeYs, 1);
         Pose start = new Pose(x, y, bodyFacingDeg);
@@ -190,6 +199,17 @@ public final class VehicleController {
             if (isPathFeasible(start, path, turnRadius, type, grid)) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether {@code type} turns on the spot as a matter of course ({@link NeutralPivot#onRoutes}) and its footprint
+     * clears turning from one heading to the other at ({@code x}, {@code y}). A wheeled hull's last-resort pivot is
+     * never something dispatch plans on.
+     */
+    private static boolean canPivotAt(NavigationGrid grid, VehicleType type, float x, float y,
+                                      float fromDeg, float toDeg) {
+        return NeutralPivot.onRoutes(type) && NeutralPivot.clearDirection(x, y, fromDeg, toDeg,
+                type.visualLengthCells, type.visualWidthCells, grid) != 0;
     }
 
     /** Sample step (cells) along the RS path when validating feasibility against {@link VehicleFootprint}. */

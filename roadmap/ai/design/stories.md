@@ -8,6 +8,7 @@ Updated: 2026-10-23 — local squad traffic shipped and is folded.
 
 | Story | State | Intent |
 |---|---|---|
+| `staffed-buildings.md` | IN PROGRESS | Warehouses, then factories and grocery stores, worked by a small civilian crew carrying crates on populated maps; the guarded loading objective is designed, not built. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
 | `commander-field-analysis.md` | DRAFT | Add optional read-only frontline/bulge diagnostics over faction-local snapshots without granting assignment authority. |

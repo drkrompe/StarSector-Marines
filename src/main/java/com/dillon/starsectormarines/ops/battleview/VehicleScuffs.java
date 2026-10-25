@@ -107,8 +107,14 @@ final class VehicleScuffs {
      * the image cannot be read or has no room for a mark.
      */
     static Mask partMask(BattleSprites sprites, String path, int width, int height, boolean byPlate) {
+        return partMask(sprites, path, width, height, byPlate, DECAL_SHARE);
+    }
+
+    /** {@link #partMask(BattleSprites, String, int, int, boolean)} for marks {@code decalShare} of the narrower extent. */
+    static Mask partMask(BattleSprites sprites, String path, int width, int height, boolean byPlate,
+                         float decalShare) {
         if (path == null) return null;
-        String key = path + (byPlate ? "#plates" : "#whole");
+        String key = path + (byPlate ? "#plates" : "#whole") + (decalShare == DECAL_SHARE ? "" : "@" + decalShare);
         synchronized (PART_MASKS) {
             if (PART_MASKS.containsKey(key)) return PART_MASKS.get(key);
             Mask mask = null;
@@ -116,7 +122,7 @@ final class VehicleScuffs {
                 BufferedImage image = sprites.readPixels(path);
                 if (image != null) {
                     mask = build(image, new SpriteSheetFrames.Frame(0, 0, Math.min(width, image.getWidth()),
-                            Math.min(height, image.getHeight())), 0f, byPlate);
+                            Math.min(height, image.getHeight())), 0f, byPlate, decalShare);
                     if (mask.decalPx <= 0f) mask = null;
                 }
             } catch (Exception e) {
@@ -177,6 +183,12 @@ final class VehicleScuffs {
      * whose part of the hull's opaque extent it falls in, split along the diagonals; without, there is one region.
      */
     static Mask build(BufferedImage sheet, SpriteSheetFrames.Frame f, float facingOffsetDeg, boolean byPlate) {
+        return build(sheet, f, facingOffsetDeg, byPlate, DECAL_SHARE);
+    }
+
+    /** {@link #build(BufferedImage, SpriteSheetFrames.Frame, float, boolean)} for marks {@code decalShare} across. */
+    static Mask build(BufferedImage sheet, SpriteSheetFrames.Frame f, float facingOffsetDeg, boolean byPlate,
+                      float decalShare) {
         int step = Math.max(2, Math.round(Math.max(f.w, f.h) / 96f));
         int cols = f.w / step;
         int rows = f.h / step;
@@ -213,7 +225,7 @@ final class VehicleScuffs {
         }
         int regions = byPlate ? PLATES.length : 1;
         if (halfRight <= 0f || halfFwd <= 0f) return new Mask(f.w, f.h, 0f, new short[regions][0]);
-        float decalPx = DECAL_SHARE * Math.min(maxR - minR, maxF - minF);
+        float decalPx = decalShare * Math.min(maxR - minR, maxF - minF);
         float need = decalPx * MARK_REACH;
 
         int[] counts = new int[regions];
@@ -253,6 +265,24 @@ final class VehicleScuffs {
 
     /** {@link #place(Mask, int, float, long, Sink)} with {@code slots} marks for a fully stripped region. */
     static int place(Mask mask, int region, int slots, float wear, long seed, Sink sink) {
+        return place(mask, region, slots, wear, seed, sink, VehicleScuffs::stageOf);
+    }
+
+    /** A slot's kind from its place among its region's slots (0 first, 1 last). */
+    interface Stager {
+        int kind(float stage);
+    }
+
+    /** The hull's stages: scrapes and pocks, then scorch, then gouges and dents. */
+    static int stageOf(float stage) {
+        return stage < SCORCH_FROM ? SCRAPE : stage < GOUGE_FROM ? SCORCH : GOUGE;
+    }
+
+    /**
+     * {@link #place(Mask, int, int, float, long, Sink)} with each slot's kind chosen by {@code stager} from its place
+     * among the region's slots, so a body other than a hull lays its own stages by the same slot law.
+     */
+    static int place(Mask mask, int region, int slots, float wear, long seed, Sink sink, Stager stager) {
         int count = mask.count(region);
         if (wear <= 0f || count == 0) return 0;
         short[] points = mask.points[region];
@@ -264,8 +294,7 @@ final class VehicleScuffs {
             float alpha = Math.min(1f, (wear - threshold) / FADE);
             if (alpha <= 0f) break;
             int at = (int) Math.floorMod(h, (long) count) * 2;
-            float stage = (slot + 0.5f) / slots;
-            int kind = stage < SCORCH_FROM ? SCRAPE : stage < GOUGE_FROM ? SCORCH : GOUGE;
+            int kind = stager.kind((slot + 0.5f) / slots);
             float spin = ((h >>> 20) & 0x3FF) * (360f / 1024f);
             sink.mark(points[at], points[at + 1], kind, (int) ((h >>> 56) % VARIANTS), spin, alpha);
             placed++;
