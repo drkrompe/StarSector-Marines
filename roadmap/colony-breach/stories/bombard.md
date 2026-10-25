@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: IN PROGRESS — steps 1 to 3 (the spore haze, the body and the lob, the counters) are built and scene-tested.
+Status: IN PROGRESS — steps 1 to 4 (the spore haze, the body and the lob, the counters, the look) are built; steps 1 to 3 are scene-tested.
 
 Written: 2026-10-25
 
@@ -125,8 +125,7 @@ prompts and provenance.
    lands there; it never lobs into melee; off creep it does not fire; a squad
    inside its minimum range is never lobbed on. **Built**
    (`SwarmBombardBehavior`, `SwarmBombards`, `BoreStrainTable.Slot#BOMBARD`,
-   `weapon.swarm-bombard`); it draws as a stand-in on the Spitter's family until
-   step 4, and its glob uses the acid glob's sprite.
+   `weapon.swarm-bombard`).
 3. **Counters.** The step-out reaction, the launch reveal, the officer's
    designation. **Built**: `InfantryReflexes.IN_HAZE` (`HazeStepOut`) and the
    haze edge wait (`HazeEdge`), scene-tested in `bombard-haze`; the launch
@@ -137,7 +136,16 @@ prompts and provenance.
    The melee exception has no loop: marines back off a melee anyway.
 4. **Look.** Cut the G1 master into a rig (body, sac, tail segments, sling,
    legs, claws) with the wind-up and release; the glob and its falling shadow;
-   the amber haze; sac wear. Look suite `bombard-look` at 1920x1080.
+   the amber haze; sac wear. Look suite `bombard-look` at 1920x1080. **Built**:
+   `RavBombardRig` and `RavBombardComposer`, cut by
+   `art-source/rav-redesign/artillery/export_bombard_rig.py` (legs, shell, six tail
+   slices, sling, glob); the tail curls over the back through the wind-up and
+   whips straight on the throw, the sac glows and flares, the shell wears
+   (`RavWear` slots 0 to 6), and a dead one bursts as a Spitter does. The glob
+   flies on its own sprite with a ground shadow that tightens as it lands
+   (`groundShadow` on the weapon's render block). `bombard-look` shows the walk,
+   the lob's beats and the death; the battle frames are `bombard`'s `bombard-lob`
+   look shot. The haze's amber was already in `SmokeRenderSystem`.
 5. **Sound.** Wind-up creak, whip and hinge crack, burst, haze hiss.
 6. **Probe.** One or two probe fixtures (`cordon-line`, then
    `colony-breach-v1`), judged by behaviour.

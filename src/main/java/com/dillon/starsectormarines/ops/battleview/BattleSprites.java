@@ -118,6 +118,7 @@ public class BattleSprites {
     private RavBruteAssets ravBrute;
     private RavMatriarchAssets ravMatriarch;
     private RavSpitterAssets ravSpitter;
+    private RavBombardAssets ravBombard;
     /** Loaded families; asking for one not loaded loads it, once the shared layers have been. */
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class) {
@@ -275,6 +276,8 @@ public class BattleSprites {
     public RavMatriarchAssets ravMatriarchSprites() { return ravMatriarch; }
     /** The Spitter's rig sprites, or null when incomplete (the Spitter then keeps its layered art). */
     public RavSpitterAssets ravSpitterSprites() { return ravSpitter; }
+    /** The Bombard's rig sprites, or null when incomplete (the Bombard then keeps its stand-in art). */
+    public RavBombardAssets ravBombardSprites() { return ravBombard; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
@@ -1233,6 +1236,10 @@ public class BattleSprites {
         ravSpitter = RavSpitterAssets.load(this::loadLayeredSprite);
         if (ravSpitter == null) {
             LOG.warn("BattleSprites: Rav Spitter rig sprites incomplete; the Spitter keeps its layered art");
+        }
+        ravBombard = RavBombardAssets.load(this::loadLayeredSprite);
+        if (ravBombard == null) {
+            LOG.warn("BattleSprites: Rav Bombard rig sprites incomplete; the Bombard keeps its stand-in art");
         }
         ravMatriarch = RavMatriarchAssets.load(this::loadLayeredSprite);
         if (ravMatriarch == null) {

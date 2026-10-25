@@ -122,7 +122,7 @@ public enum LayeredArmorFamily {
             case SWARM_BRUTE:
             // The Matriarch is drawn on its own skeleton; the Brute's family stands in for its facing.
             case SWARM_MATRIARCH: return XENO_BRUTE;
-            // The Bombard has no rig yet (`bombard.md`, step 4); the Spitter's family stands in.
+            // The Bombard is drawn on its own skeleton; the Spitter's family stands in for its facing.
             case SWARM_BOMBARD:
             case SWARM_SPITTER: return XENO_SPITTER;
             case MARINE:

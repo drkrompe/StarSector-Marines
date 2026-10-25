@@ -157,6 +157,25 @@ public final class SwarmBombards {
         return out;
     }
 
+    /** How far into its wind-up a Bombard is, 0 to 1; 0 when it is not winding up. For the look. */
+    public float windupShare(long body) {
+        Stance stance = stances.get(body);
+        if (stance == null || stance.phase != Phase.WINDING_UP) return 0f;
+        return Math.max(0f, Math.min(1f, 1f - stance.timer / WINDUP_SECONDS));
+    }
+
+    /** How far planted a Bombard is: 0 walking, rising through its plant to 1, falling as it uproots. For the look. */
+    public float plantedShare(long body) {
+        Stance stance = stances.get(body);
+        if (stance == null) return 0f;
+        return switch (stance.phase) {
+            case WALKING -> 0f;
+            case PLANTING -> Math.max(0f, Math.min(1f, 1f - stance.timer / PLANT_SECONDS));
+            case UPROOTING -> Math.max(0f, Math.min(1f, stance.timer / PLANT_SECONDS));
+            case PLANTED, WINDING_UP -> 1f;
+        };
+    }
+
     /** Whether a Bombard has its tail cocked back for a lob, for evidence and the look. */
     public boolean windingUp(long body) {
         Stance stance = stances.get(body);

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavBombardRig;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
@@ -1327,7 +1328,9 @@ public final class UnitRenderService implements RenderSystem {
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets deadBruteArt = sprites.ravBruteSprites();
             RavSpitterAssets deadSpitterArt = sprites.ravSpitterSprites();
-            Object[] ravRigs = (ravArt != null || deadBruteArt != null || deadSpitterArt != null)
+            RavBombardAssets deadBombardArt = sprites.ravBombardSprites();
+            Object[] ravRigs = (ravArt != null || deadBruteArt != null || deadSpitterArt != null
+                    || deadBombardArt != null)
                     && t.has(c.RAV_RIG) ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
@@ -1378,6 +1381,16 @@ public final class UnitRenderService implements RenderSystem {
                     QuadMesh settled = settledBodies.spitter(deadSpitter, deadSpitterArt, splat, drop);
                     if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
                     else RavSpitterComposer.emitDead(out, deadSpitterArt, splat, drop, deadSpitter, bx, by, ppc, alpha);
+                    continue;
+                }
+                if (deadBombardArt != null && ravRigs != null && ravRigs[r] instanceof RavBombardRig deadBombard
+                        && deadBombard.dead()) {
+                    // A dead Bombard has burst as a Spitter does, over the same blood.
+                    LayeredSpriteCache[] splat = ravArt != null ? ravArt.splat : null;
+                    LayeredSpriteCache drop = ravArt != null ? ravArt.drop : null;
+                    RavBombardComposer.emitDead(out, deadBombardArt, splat, drop, deadBombard,
+                            cam.cellToScreenX(deadBombard.bodyX()), cam.cellToScreenY(deadBombard.bodyY()),
+                            cam.cellPxSize() * deadBombard.scale() * shrink, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
@@ -1557,7 +1570,9 @@ public final class UnitRenderService implements RenderSystem {
             RavBruteAssets bruteArt = sprites.ravBruteSprites();
             RavMatriarchAssets matriarchArt = sprites.ravMatriarchSprites();
             RavSpitterAssets spitterArt = sprites.ravSpitterSprites();
-            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null || spitterArt != null)
+            RavBombardAssets bombardArt = sprites.ravBombardSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null || spitterArt != null
+                    || bombardArt != null)
                     && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
@@ -1712,6 +1727,16 @@ public final class UnitRenderService implements RenderSystem {
                                 cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
                                 cam.cellPxSize() * spitterRig.scale(), unitAlpha);
                     }
+                    continue;
+                }
+                if (bombardArt != null && rig instanceof RavBombardRig bombardRig && bombardRig.posed()) {
+                    // The Bombard, sized in cells; its sac glows through the split shell.
+                    float bx = cam.cellToScreenX(bombardRig.bodyX()), by = cam.cellToScreenY(bombardRig.bodyY());
+                    float ppc = cam.cellPxSize() * bombardRig.scale() * riseScale;
+                    RavBombardComposer.emit(EmergenceLook.shaded(out, riseShade), bombardArt, bombardRig, bx, by, ppc,
+                            riseAlpha, ravWear(out, ctx.sim.world(), entityId));
+                    sprites.ensureEngineFxSprites();
+                    RavBombardComposer.emitGlow(out, sprites.engineGlowSprite(), bombardRig, bx, by, ppc, riseAlpha);
                     continue;
                 }
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {

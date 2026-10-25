@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechSectionModifier;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavBombardRig;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
@@ -689,13 +690,12 @@ public final class UnitRosterService {
         // that replaced the old instanceof-subclass checks.
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
-        // The Runner, the Brute, the Spitter and the Matriarch are drawn on their own skeletons (the skitterer on the
-        // Runner's); their layered
-        // appearance stays, for facing and the corpse.
+        // The Runner, the Brute, the Spitter, the Matriarch and the Bombard are drawn on their own skeletons
+        // (the skitterer on the Runner's); their layered appearance stays, for facing and the corpse.
         boolean ravRigged = layerDrawn
                 && (spec.type == UnitType.SWARM_RUNNER || spec.type == UnitType.SWARM_BRUTE
                     || spec.type == UnitType.SWARM_SPITTER || spec.type == UnitType.SWARM_MATRIARCH
-                    || spec.type == UnitType.SWARM_WORKER);
+                    || spec.type == UnitType.SWARM_WORKER || spec.type == UnitType.SWARM_BOMBARD);
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBelt ? 1 : 0) + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
@@ -809,6 +809,7 @@ public final class UnitRosterService {
                     spec.type == UnitType.SWARM_BRUTE ? new RavBruteRig(id)
                             : spec.type == UnitType.SWARM_MATRIARCH ? new RavMatriarchRig(id)
                             : spec.type == UnitType.SWARM_SPITTER ? new RavSpitterRig(id)
+                            : spec.type == UnitType.SWARM_BOMBARD ? new RavBombardRig(id)
                             : spec.type == UnitType.SWARM_WORKER ? RavRunnerRig.worker(id) : new RavRunnerRig(id));
         }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
