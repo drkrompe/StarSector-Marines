@@ -100,8 +100,10 @@ carrier-seconds on a bore measure it.
   lances' pace (`FIRE_SECTIONS`, a default for decision 4).
 - A lane on its bore calls one when none of its ring posts has a line of fire to
   the bore, or the bore has lost nothing for thirty seconds of base of fire.
-- Its carriers stand on a ring six cells behind the support line, facing the
-  bore, and fire on what the lane's spotters see. Broad Front only: The Burn's
+- Its carriers stand as far out as their launchers reach (less a margin),
+  facing the bore, and fire on what the lane's spotters see; never nearer than
+  six cells behind the support line. Stood just behind the militia, the soft
+  carriers were overrun within a minute or two of arriving. Broad Front only: The Burn's
   base sends trucks alone, and its battery is its indirect fire.
 - Its carriers carry the bore as a fire mission: they shell it whenever anyone
   on our side sees it, and pick the nearest target only while nobody does.

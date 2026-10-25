@@ -133,9 +133,14 @@ final class BoreAssault {
         return best;
     }
 
-    /** The fire section's ring: {@link #SECTION_BACK_CELLS} behind the support line. */
-    static int sectionRing() {
-        return MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SECTION_BACK_CELLS;
+    /**
+     * A fire-section carrier's ring: as far out as its launcher reaches, less {@link #RING_MARGIN_CELLS}, and never
+     * nearer than {@link #SECTION_BACK_CELLS} behind the support line. A carrier is soft, and one stood just behind the
+     * militia was overrun within a minute of each surge; its spotters stand on the support line, not beside it.
+     */
+    static int sectionRing(float reach) {
+        return Math.max(MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SECTION_BACK_CELLS,
+                Math.round(reach) - RING_MARGIN_CELLS);
     }
 
     /**

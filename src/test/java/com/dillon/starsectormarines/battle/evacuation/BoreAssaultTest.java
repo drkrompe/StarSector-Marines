@@ -83,9 +83,10 @@ class BoreAssaultTest {
     }
 
     @Test
-    void theSectionStandsBehindTheSupportLine() {
+    void theSectionStandsAtItsReachAndNeverBesideTheSupportLine() {
         int[] support = BoreAssault.supportCell(BORE, BORE, 0f, -1f);
-        assertTrue(BoreAssault.sectionRing() > BORE - support[1]);
+        assertTrue(BoreAssault.sectionRing(0f) > BORE - support[1]);
+        assertEquals(40 - BoreAssault.RING_MARGIN_CELLS, BoreAssault.sectionRing(40f));
     }
 
     @Test

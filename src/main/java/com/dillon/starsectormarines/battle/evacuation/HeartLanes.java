@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -401,10 +402,14 @@ public final class HeartLanes {
                 reaim(sim, beats);
             }
         }
-        if (tick % RETARGET_TICKS == 0) sampleMouths(sim);
+        if (tick % RETARGET_TICKS == 0) {
+            sampleMouths(sim);
+            logSections(sim, tick);
+        }
         for (Lane lane : lanes) {
             boolean formed = lane.squads != null && !lane.squads.isEmpty() && formation(sim, lane, tick);
             boolean assaulting = !formed && assault(sim, lane, tick);
+            if (tick % RETARGET_TICKS == 0) tallyRefusals(sim, lane, formed ? 0 : assaulting ? 1 : 2);
             if (tick % RETARGET_TICKS == 0 && !formed && !assaulting) driveArmour(sim, lane);
             lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
                 if (beat.equals("column_arrived_1")) beats.add("lane_arrived_" + lane.number);
@@ -451,6 +456,79 @@ public final class HeartLanes {
     /** Fire sections the lanes called, carrier-seconds on a bore's ring, and those with the launcher on the bore. */
     private int sectionsCalled, sectionSeconds, sectionSecondsOnBore;
     private int machineSeconds, machineSecondsInMouth;
+    /** Each fire-section carrier's life, for the evidence: made, seconds on its post, idle seconds, and lost. */
+    private final Map<Long, int[]> sectionLog = new HashMap<>();
+    private static final int LOG_MADE = 0, LOG_POSTED = 1, LOG_IDLE = 2, LOG_LOST = 3, LOG_LANE = 4, LOG_FROM_BORE = 5;
+
+    private void logSections(BattleSimulation sim, int tick) {
+        for (Lane lane : lanes) {
+            for (long hull : lane.section) {
+                int[] log = sectionLog.computeIfAbsent(hull, h -> new int[]{tick, 0, 0, -1, lane.number, -1});
+                if (log[LOG_LOST] >= 0) continue;
+                if (sim.convoy().structure(hull) <= 0f) log[LOG_LOST] = tick;
+                else if (lane.assault == null) log[LOG_IDLE]++;
+                else log[LOG_FROM_BORE] = (int) Math.round(Math.hypot(sim.convoy().body(hull).x - lane.assault.boreX,
+                        sim.convoy().body(hull).y - lane.assault.boreY));
+            }
+        }
+    }
+
+    /**
+     * Whose vehicle orders were refused for no route, one line for the evidence: the lanes' fire-section carriers,
+     * their armour, and every other hull by type.
+     */
+    public String noRouteLine(BattleSimulation sim) {
+        Map<String, int[]> by = new TreeMap<>();
+        for (Map.Entry<Long, Integer> e : sim.getVehicleMoveOrderService().noRouteByVehicle().entrySet()) {
+            long hull = e.getKey();
+            String who = null;
+            for (Lane lane : lanes) {
+                if (lane.section.contains(hull)) who = "section";
+                else if (lane.hulls.contains(hull)) who = "lane armour";
+            }
+            VehicleType type = sim.convoy().vehicleType(hull);
+            String key = (who == null ? "other" : who) + " " + (type == null ? "gone" : type.name());
+            int[] c = by.computeIfAbsent(key, k -> new int[2]);
+            c[0] += e.getValue();
+            c[1]++;
+        }
+        StringBuilder out = new StringBuilder("lane armour's while formed " + armourRefusalsBy[0] + ", assaulting "
+                + armourRefusalsBy[1] + ", otherwise " + armourRefusalsBy[2]);
+        for (Map.Entry<String, int[]> e : by.entrySet()) {
+            if (out.length() > 0) out.append("; ");
+            out.append(e.getKey()).append(' ').append(e.getValue()[0]).append(" from ").append(e.getValue()[1]).append(" hulls");
+        }
+        return out.toString();
+    }
+
+    /** Lane armour's no-route refusals by what had the lane: its formation, its assault, or neither. */
+    private final int[] armourRefusalsBy = new int[3];
+    private final Map<Long, Integer> refusalsSeen = new HashMap<>();
+
+    private void tallyRefusals(BattleSimulation sim, Lane lane, int mode) {
+        Map<Long, Integer> by = sim.getVehicleMoveOrderService().noRouteByVehicle();
+        for (long hull : lane.hulls) {
+            int now = by.getOrDefault(hull, 0);
+            Integer before = refusalsSeen.put(hull, now);
+            armourRefusalsBy[mode] += now - (before == null ? 0 : before);
+        }
+    }
+
+    /** Each fire-section carrier's life, one line for the evidence. */
+    public String sectionLogLine(BattleSimulation sim) {
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<Long, int[]> e : sectionLog.entrySet()) {
+            int[] log = e.getValue();
+            VehicleType type = sim.convoy().vehicleType(e.getKey());
+            if (out.length() > 0) out.append("; ");
+            out.append("lane ").append(log[LOG_LANE]).append(' ').append(type == null ? "?" : type.name())
+                    .append(" made ").append(log[LOG_MADE]).append(", posted ").append(log[LOG_POSTED])
+                    .append(" s, idle ").append(log[LOG_IDLE]).append(" s, ")
+                    .append(log[LOG_LOST] >= 0 ? "lost " + log[LOG_LOST] : "standing")
+                    .append(" (last ").append(log[LOG_FROM_BORE]).append(" cells from its bore)");
+        }
+        return out.toString();
+    }
 
     /**
      * The lane's assault on its bore this tick, begun where the guns allow it; whether the assault has the lane. Runs
@@ -599,7 +677,7 @@ public final class HeartLanes {
     }
 
     /**
-     * Posts the lane's fire-section carriers on their ring behind the support line, facing the bore, gives them the
+     * Posts the lane's fire-section carriers on their ring at their launchers' reach, facing the bore, gives them the
      * bore as their fire mission (they shell it whenever anyone on our side sees it), and counts each
      * second a carrier's launcher is on the bore: on its own sight or a spotter's call, since the code that aims it
      * takes either (`heart-allied-tools-next.md`, First check).
@@ -613,11 +691,16 @@ public final class HeartLanes {
             if (sim.convoy().structure(hull) <= 0f) continue;
             VehicleType type = sim.convoy().vehicleType(hull);
             int[] post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX, a.nearY,
-                    BoreAssault.sectionRing(), BoreAssault.slotDegrees(i++, count), taken, ARMOUR_SPACING);
+                    BoreAssault.sectionRing(reach(type)), BoreAssault.slotDegrees(i++, count), taken, ARMOUR_SPACING);
+            // Where its reach has no ground on the arc, the nearest ring behind the support line, then the line itself.
+            if (post == null) post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX,
+                    a.nearY, BoreAssault.sectionRing(0f), BoreAssault.slotDegrees(i - 1, count), taken, ARMOUR_SPACING);
             if (post == null) post = walkableNear(sim, a.supportX, a.supportY);
             taken.add(post);
             allied.station(sim, hull, post[0], post[1], a.boreX - post[0], a.boreY - post[1]);
             sectionSeconds++;
+            int[] log = sectionLog.get(hull);
+            if (log != null) log[LOG_POSTED]++;
             var turret = sim.convoy().turret(hull);
             if (turret == null) continue;
             turret.missionTargetId = bore.entityId();
