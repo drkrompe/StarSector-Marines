@@ -39,9 +39,11 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 - Junction victory opens Thunder Run immediately, with its convoy illustration,
   terms and HQ guidance. Route Security after success uses Relay Nine's territorial
   battlefield. No separate relay story fee is awarded.
-- Check the recovery beat and Corvus introduction against successful, partial
-  and exhausted freight ledgers; no Rill rescue or forgone-operation consequence
-  should be claimed.
+- Check the recovery beat, the Jangala closing conversation and the Corvus
+  introduction against successful, partial and exhausted freight ledgers; no Rill
+  rescue or forgone-operation consequence should be claimed. The conversation
+  appears only on the attempt that closed the account, and the HQ Corvus lead's
+  course to Asharu matches Castle's closing order.
 - Audition the revised Thunder Run briefing in the live mix; it should introduce
   the open junction and match the displayed convoy terms.
 - Thunder Run: clear the three road sites, observe the two staging stops and final

@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
+
 Updated: 2026-10-25 — the flier law counts any gun that tracks fliers, so the colony's heavy guns meet it; a tender builds flak first with fliers about.
 
 Updated: 2026-10-25 — Harriers snatch colonists in the open alive and fly them into the bore.
@@ -1013,14 +1015,18 @@ through, made into a thing on the map the company can find and kill.
   from the last raid's return, the same quiet spire sends four of its roost
   deep instead of a patrol: to the richest soft target fifty to a hundred and
   sixty cells off that no anti-air reaches (the radio a forward observer calls
-  the air in with, an unarmed truck, a medic, a soldier on his own, a gun),
-  the nearer on a tie. Its way is bent round every air gun's reach with six
+  the air in with, an unarmed truck, a medic, a colonist out in the open to
+  snatch, a soldier on his own, a gun, in that order), the nearer on a tie. Its way is bent round every air gun's reach with six
   cells to spare, straight when it can be, else by one or two turning points
   off the direct line; with no target or no such way it patrols, and looks
   again a few seconds on. Out and home it hunts nothing. Over the target it
   dives only on what is soft within sixteen cells of where it was sent, never
   the guns, two dives and it turns for home (sooner with nothing there to
-  dive on), flies the same way back and lands as a patrol does. One sortie of
+  dive on), flies the same way back and lands as a patrol does. Sent at
+  survivors, it dives on nothing there: one of the four snatches a colonist
+  (*Snatching the living*), and the carrier keeps with the raid home by its
+  way round the guns before it makes for the mouth, so a colony's people
+  behind the line are taken from under its flak, not over it. One sortie of
   a spire's is up at a time. So the line's rear is never safe from a spire it
   has left standing, and flak placed to cover the rear, not just the front,
   is what closes the ways in. Scene: `harrier-raid`; look: `harrier-raid-look`.

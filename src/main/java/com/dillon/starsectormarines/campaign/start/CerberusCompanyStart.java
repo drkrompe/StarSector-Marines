@@ -39,14 +39,14 @@ public final class CerberusCompanyStart implements Script {
     public static final int STARTING_CREDITS = 473;
     public static final int TRAVEL_SUPPLIES = 25;
     /**
-     * An empty tank (owner, 2026-10-20). Fuel burns only in hyperspace. The start sets the fleet down in its port's
-     * own system, and the yard, Mara Venn's office and the depot all start there; a re-pick after that port is lost
-     * stays in that system while any qualifying port remains in it ({@link OpeningPort}). Fuel is bought at the port
-     * when the company leaves.
+     * One unit of fuel (owner, 2026-10-25; the tank started empty). Fuel burns only in hyperspace. The start sets
+     * the fleet down in its port's own system, and the yard, Mara Venn's office and the depot all start there; a
+     * re-pick after that port is lost stays in that system while any qualifying port remains in it
+     * ({@link OpeningPort}). Fuel is bought at the port when the company leaves.
      * Nothing aboard to sell is also why a second squad is out of reach before Relief
      * ({@code SecondSquadAffordabilityTest}).
      */
-    public static final int STARTING_FUEL = 0;
+    public static final int STARTING_FUEL = 1;
     /** Hands aboard beyond the ship's minimum crew. */
     public static final int SURPLUS_CREW = 5;
 
@@ -222,7 +222,7 @@ public final class CerberusCompanyStart implements Script {
         return market.getPlanetEntity();
     }
     /**
-     * The start carries no fuel, which is safe while the company's port is in the system it stands in. When the
+     * The start carries a single unit of fuel, which is safe while the company's port is in the system it stands in. When the
      * locked port is lost during the opening and the replacement lies across hyperspace, Castle tops the tank up to
      * exactly what the fleet burns to reach it, once per replacement, and says so.
      */
