@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.IntPredicate;
 
 /**
  * The Road's relief convoys ({@code cordon-nouns.md}, Convoy): columns of allied trucks that set out
@@ -54,6 +56,8 @@ public final class CordonConvoys {
     static final int AMBUSH_REACH = 3;
     /** Corridor cells the truck ahead must be along before the next comes on behind it. */
     static final int SPACING = 8;
+    /** Corridor cells past the entry a truck may be set down at, for ground it can set out from. */
+    static final int SET_DOWN_REACH = 8;
     /** Ticks a convoy waits at the gate while its people board. */
     static final int LOADING_TICKS = 60 * 30;
     /**
@@ -410,12 +414,14 @@ public final class CordonConvoys {
     /** Trucks come on one at a time at the rear end, each once the one ahead has made room. */
     private void comeOn(BattleSimulation sim, Convoy c) {
         if (c.phase != Phase.INBOUND || c.trucks.size() >= TRUCKS) return;
+        int at = setDown(corridor.size(), entry, i -> TurnAwareCorridor.canSetOutFrom(corridor.get(i)[0] + .5f,
+                corridor.get(i)[1] + .5f, VehicleType.SUPPLY_TRUCK, sim.getGrid()));
         if (!c.trucks.isEmpty()) {
             Truck ahead = c.trucks.get(c.trucks.size() - 1);
-            if (!ahead.gone && nearestIndex(sim.convoy().body(ahead.hull)) < entry + SPACING) return;
+            if (!ahead.gone && nearestIndex(sim.convoy().body(ahead.hull)) < at + SPACING) return;
         }
-        int[] start = corridor.get(Math.min(corridor.size() - 1, entry));
-        int[] toward = corridor.get(Math.min(corridor.size() - 1, entry + 3));
+        int[] start = corridor.get(at);
+        int[] toward = corridor.get(Math.min(corridor.size() - 1, at + 3));
         float facing = (float) Math.toDegrees(Math.atan2(toward[1] - start[1], toward[0] - start[0])) - 90f;
         float x = start[0] + 0.5f, y = start[1] + 0.5f;
         long hull = sim.convoy().spawn(VehicleType.SUPPLY_TRUCK, Faction.ALLY, VehicleMission.deployed(x, y));
@@ -425,6 +431,17 @@ public final class CordonConvoys {
         t.hull = hull;
         c.trucks.add(t);
         route(sim, t, +1);
+    }
+
+    /**
+     * The corridor cell a truck is set down at: the entry, or the first within {@link #SET_DOWN_REACH} past it a truck
+     * can set out from. Set down on urban Road seed 1's entry, a corner a fence's width off its turn, a truck's every
+     * route was refused at its first pose and it stood there all battle; the entry itself where none can.
+     */
+    static int setDown(int size, int entry, IntPredicate canSetOut) {
+        int first = Math.min(size - 1, entry);
+        for (int i = first; i <= Math.min(size - 1, entry + SET_DOWN_REACH); i++) if (canSetOut.test(i)) return i;
+        return first;
     }
 
     private void inbound(BattleSimulation sim, int tick, Convoy c, List<float[]> swarm, Consumer<String> beat) {

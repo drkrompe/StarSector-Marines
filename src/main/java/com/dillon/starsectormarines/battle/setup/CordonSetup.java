@@ -348,14 +348,24 @@ public final class CordonSetup {
     }
 
     /**
-     * The ground a convoy's road is proved on: the map's, with the wreck across the corridor (beat R1) cleared, as
-     * the dozer will clear it. The wreck closes the road to trucks until then, so the corridor runs through it.
+     * The ground a convoy's road is proved on: the map's as the battle will stand it, every nest a gun is seated in
+     * closed, with the wreck across the corridor (beat R1) cleared, as the dozer will clear it. The wreck closes the
+     * road to trucks until then, so the corridor runs through it. A nest is open floor on the map and a gun's cell from
+     * setup: a corridor found past a picket nest's open cell (urban Road seed 6, at the gap) ran its trucks into a
+     * chicane three cells wide between that gun and the redoubt's wall, and every convoy stood short of the gap.
      */
     static NavigationGrid convoyGrid(MapResult map) {
-        Laid wreck = map.layout.find(CordonPlan.CORRIDOR_WRECK);
-        if (wreck == null || !wreck.isLaid() || wreck.kind() != Laid.Kind.BLOCK) return map.grid;
         NavigationGrid copy = map.grid.copyRoutingTopology();
-        for (int[] c : wreck.cells()) copy.setWalkable(c[0], c[1], true);
+        for (Laid laid : map.layout.pieces()) {
+            if (!laid.isLaid()) continue;
+            boolean picket = laid.kind() == Laid.Kind.LINE && laid.name().startsWith(CordonPlan.PICKET_LINE);
+            if (!picket && !laid.name().startsWith(CordonConstructions.WORKS)) continue;
+            for (int[] nest : laid.nests()) copy.setWalkable(nest[0], nest[1], false);
+        }
+        Laid wreck = map.layout.find(CordonPlan.CORRIDOR_WRECK);
+        if (wreck != null && wreck.isLaid() && wreck.kind() == Laid.Kind.BLOCK) {
+            for (int[] c : wreck.cells()) copy.setWalkable(c[0], c[1], true);
+        }
         return copy;
     }
 

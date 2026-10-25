@@ -391,7 +391,8 @@ class CordonCommandEvidenceTest {
             }
         }
         for (CordonRedoubt r : cordon.redoubts()) {
-            out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())
+            out.append("- Redoubt ").append(r.number())
+                    .append(r.construction() == null ? "" : " (" + r.construction().id + ")").append(": cells ").append(r.left()).append(',').append(r.top())
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")
                     .append(r.guns().size()).append('\n');
         }
