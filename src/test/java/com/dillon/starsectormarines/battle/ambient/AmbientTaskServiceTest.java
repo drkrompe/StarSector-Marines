@@ -334,6 +334,36 @@ class AmbientTaskServiceTest {
         }
     }
 
+    /**
+     * A crew guarded while it works: the guard beside them firing at something
+     * out of reach is no reason to drop the crate; the same guard firing at
+     * something at the door is.
+     */
+    @Test
+    void aFightIsNearOnlyWhenBothEndsOfItAre() {
+        try (BattleSimulation simulation = simulation()) {
+            long worker = simulation.spawn(new EntitySpec(
+                    "worker", Faction.CIVILIAN, UnitType.ENGINEER, 2, 2)
+                    .role(UnitRole.FLEE));
+            simulation.ambientTasks().assign(worker, oneStop(
+                    AmbientActivity.WORKING, AmbientThreatPolicy.FIGHT_NEARBY, 6f));
+            long guard = simulation.spawn(new EntitySpec(
+                    "guard", Faction.MARINE, UnitType.MARINE, 3, 2));
+            long far = simulation.spawn(new EntitySpec(
+                    "far", Faction.DEFENDER, UnitType.MARINE, 11, 11));
+            simulation.world().setTargetId(guard, far);
+
+            simulation.ambientTasks().advance(0f);
+            assertTrue(simulation.ambientTasks().isControlling(worker),
+                    "the worker dropped the work for a guard firing across the street");
+
+            simulation.world().setPos(far, 5.5f, 3.5f);
+            simulation.ambientTasks().advance(0f);
+            assertFalse(simulation.ambientTasks().isControlling(worker),
+                    "the worker carried on with the fight at the door");
+        }
+    }
+
     private static AmbientTaskRoute oneStop(
             AmbientActivity activity, AmbientThreatPolicy policy, float radius) {
         return new AmbientTaskRoute("test", 0f, 1f, radius, policy, List.of(

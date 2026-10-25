@@ -60,6 +60,8 @@ public final class DrivableRouteSearch {
     private final int width;
     private final int height;
     private final VehicleType type;
+    /** Where the hull an order is for stands, so the route's ends are judged as an order's; {@code null} for dispatch. */
+    private Pose departure;
 
     private Status status = Status.PENDING;
     private float[][] route;
@@ -226,6 +228,15 @@ public final class DrivableRouteSearch {
         return status;
     }
 
+    /**
+     * Judges the route's ends as those of an order for a hull standing at {@code pose}
+     * ({@link TurnAwareCorridor#refine(float[][], VehicleType, NavigationGrid, Pose)}). Set before the first advance.
+     */
+    DrivableRouteSearch departingFrom(Pose pose) {
+        this.departure = pose;
+        return this;
+    }
+
     /** How the search stands, without spending anything. */
     public Status status() { return status; }
 
@@ -266,7 +277,7 @@ public final class DrivableRouteSearch {
             status = Status.NO_ROUTE;
             return;
         }
-        TurnAwareCorridor.Result refined = TurnAwareCorridor.refine(macro, type, grid);
+        TurnAwareCorridor.Result refined = TurnAwareCorridor.refine(macro, type, grid, departure);
         if (refined.points() != null) {
             route = refined.points();
             status = Status.ROUTED;

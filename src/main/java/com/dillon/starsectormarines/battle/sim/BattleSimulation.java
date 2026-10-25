@@ -301,6 +301,7 @@ import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
+import com.dillon.starsectormarines.battle.evacuation.SwarmEmergence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
 import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
@@ -883,6 +884,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmEmergence swarmEmergence = new SwarmEmergence();
+    /** How bodies come up out of the bores and form up (`colony-breach-nouns.md`, Emergence). */
+    public SwarmEmergence swarmEmergence() { return swarmEmergence; }
     private final SwarmFliers swarmFliers = new SwarmFliers();
     private final BroodSpires broodSpires = new BroodSpires();
 
@@ -912,7 +916,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
-        // A bloom weeks old has grown its spires, and its nests are full of workers.
+        // A bloom weeks old has grown its spires and its roots, and its nests are full of workers.
+        swarmBores.aged();
         broodSpires.grow(this);
         swarmWorkers.populate(this);
     }
@@ -2326,6 +2331,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
     /** Rounds landed on plated Rav this tick; see {@code EffectsService.emitSwarmHit}. Drained into {@code ImpactFx.spawnSwarmHit}. */
     public List<float[]> getSwarmHitsThisFrame() { return effects.getSwarmHitsThisFrame(); }
+    /** Queues one puff of ground dust; see {@code EffectsService.emitGroundDust}. Presentation only. */
+    public void emitGroundDust(float x, float y, float vx, float vy, float radius, int kind) {
+        effects.emitGroundDust(x, y, vx, vy, radius, kind);
+    }
     /** Queues the look of a claw strike on a body; see {@code EffectsService.emitClawStrike}. */
     public void emitClawStrike(float x, float y, float dirX, float dirY, float blood) {
         effects.emitClawStrike(x, y, dirX, dirY, blood);
@@ -3933,6 +3942,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
+        swarmEmergence.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);

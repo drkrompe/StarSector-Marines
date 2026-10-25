@@ -11,7 +11,7 @@ REGISTRATION records each raw's measured scale against its guide and where the g
 edit of its live raw, but ImageGen rescales and moves the edit too, and torn plate sticks out past the live outline,
 so `wreck_fit.fit_to` searches the scale and offset at which the wreck's solid (alpha > 128) shape overlaps the live one most.
 
-    python art-source/vehicles/mortar-carrier/pack.py [enclosed|open]
+    python art-source/vehicles/mortar-carrier/pack.py [enclosed|open|open-v2b]
 """
 import sys
 from pathlib import Path
@@ -37,8 +37,9 @@ SHEET_PX_PER_CELL = SLOT_W / 2.4
 REGISTRATION = {
     "enclosed": {"scale": 995 / 769, "pivot": (838.0, 526.0)},
     "open": {"scale": 475 / 505, "pivot": (723.0, 544.0)},
+    "open-v2b": {"scale": 1.236, "pivot": (734.5, 543.5)},
 }
-DEFAULT = "open"
+DEFAULT = "open-v2b"
 
 
 def slot(sheet, index):
