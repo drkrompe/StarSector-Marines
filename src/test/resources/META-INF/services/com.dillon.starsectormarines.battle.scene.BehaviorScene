@@ -160,3 +160,4 @@ com.dillon.starsectormarines.battle.evacuation.HarrierPatrolScene
 com.dillon.starsectormarines.battle.evacuation.HarrierCarryScene
 com.dillon.starsectormarines.battle.evacuation.HarrierRaidScene
 com.dillon.starsectormarines.battle.evacuation.SwarmWorkerScene
+com.dillon.starsectormarines.battle.drone.SensorSearchScene

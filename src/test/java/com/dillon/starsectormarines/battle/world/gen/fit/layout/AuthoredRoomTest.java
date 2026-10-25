@@ -130,12 +130,12 @@ class AuthoredRoomTest {
     @Test
     void aPaintedFloorChangesThePictureAndNotTheDeck() {
         Furnished furnished = furnishAll(layout(
-                new LayoutOp.Flooring(1, 1, 2, 2, "road.striped")), RoomPose.CANONICAL);
+                new LayoutOp.Flooring(1, 1, 2, 2, "apron.keep-clear")), RoomPose.CANONICAL);
 
         CellTopology topology = furnished.topology();
-        assertEquals("road.striped", topology.getSurfaceId(ORIGIN + 1, ORIGIN + 1),
+        assertEquals("apron.keep-clear", topology.getSurfaceId(ORIGIN + 1, ORIGIN + 1),
                 "the cell was not told what to draw from");
-        assertEquals("road.striped", topology.getSurfaceId(ORIGIN + 2, ORIGIN + 2));
+        assertEquals("apron.keep-clear", topology.getSurfaceId(ORIGIN + 2, ORIGIN + 2));
         assertNull(topology.getSurfaceId(ORIGIN + 4, ORIGIN + 1),
                 "the paint ran past the cells it was given");
 

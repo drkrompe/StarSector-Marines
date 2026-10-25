@@ -300,6 +300,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
+import com.dillon.starsectormarines.battle.evacuation.SwarmDrives;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
 import com.dillon.starsectormarines.battle.evacuation.SwarmEmergence;
@@ -872,12 +873,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
     private static final long PACK_SEED_SALT = 0x50414B5F_4C4F5045L;
     private final SwarmBores swarmBores;
+    private final SwarmDrives swarmDrives = new SwarmDrives();
     private final CreepOutposts creepOutposts;
     private final GroundColonies groundColonies = new GroundColonies();
     /** The ground colonies the creep has grown against hostile emplacements. */
     public GroundColonies groundColonies() { return groundColonies; }
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+
+    /** Goals directors give the swarm's idle bodies ({@link SwarmDrives}). */
+    public SwarmDrives swarmDrives() { return swarmDrives; }
     @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
@@ -921,6 +926,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         broodSpires.grow(this);
         swarmWorkers.populate(this);
     }
+    /** An objective's own bore surges {@code budget} weight now ({@link SwarmReinforcementSystem#surgeScripted}). */
+    public boolean surgeScripted(SwarmBore bore, float budget) { return swarmReinforcements.surgeScripted(this, bore, budget); }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */

@@ -1,0 +1,219 @@
+{
+  "blocks": [
+    {
+      "damageBlock": "colony.concrete-damage",
+      "id": "apron.marked",
+      "layout": "edge-faces-4x4",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "damageBlock": "colony.concrete-damage",
+      "id": "apron.keep-clear",
+      "layout": "edge-faces-4x4",
+      "origin": [
+        4,
+        0
+      ]
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "apron.marked faces-0",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north",
+      "name": "apron.marked faces-1",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east",
+      "name": "apron.marked faces-2",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east",
+      "name": "apron.marked faces-3",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south",
+      "name": "apron.marked faces-4",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south",
+      "name": "apron.marked faces-5",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south",
+      "name": "apron.marked faces-6",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south",
+      "name": "apron.marked faces-7",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on west",
+      "name": "apron.marked faces-8",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and west",
+      "name": "apron.marked faces-9",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and west",
+      "name": "apron.marked faces-10",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and west",
+      "name": "apron.marked faces-11",
+      "row": 2
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south and west",
+      "name": "apron.marked faces-12",
+      "row": 3
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south and west",
+      "name": "apron.marked faces-13",
+      "row": 3
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south and west",
+      "name": "apron.marked faces-14",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "apron.marked faces-15",
+      "row": 3
+    },
+    {
+      "col": 4,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "apron.keep-clear faces-0",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north",
+      "name": "apron.keep-clear faces-1",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east",
+      "name": "apron.keep-clear faces-2",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east",
+      "name": "apron.keep-clear faces-3",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on south",
+      "name": "apron.keep-clear faces-4",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and south",
+      "name": "apron.keep-clear faces-5",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and south",
+      "name": "apron.keep-clear faces-6",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and south",
+      "name": "apron.keep-clear faces-7",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on west",
+      "name": "apron.keep-clear faces-8",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and west",
+      "name": "apron.keep-clear faces-9",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and west",
+      "name": "apron.keep-clear faces-10",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and west",
+      "name": "apron.keep-clear faces-11",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on south and west",
+      "name": "apron.keep-clear faces-12",
+      "row": 3
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and south and west",
+      "name": "apron.keep-clear faces-13",
+      "row": 3
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and south and west",
+      "name": "apron.keep-clear faces-14",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "apron.keep-clear faces-15",
+      "row": 3
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/marked-apron.png"
+}

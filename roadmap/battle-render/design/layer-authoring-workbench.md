@@ -54,7 +54,7 @@ fifteen. `RoomLayoutCheck` is what turns both into sentences, the fixture
 count shown is what actually stands up, and a layout that would seal its room
 is refused at save.
 A room draws its **deck** from blocks too: paint a run with `road.vent`,
-`road.striped`, a `floors.*` variant pool, anything that is not a wall. That
+`apron.keep-clear`, a `floors.*` variant pool, anything that is not a wall. That
 is flavour and nothing else — a vent run and a striped run are the same floor
 to pathing, cover and sight — which is why it is kept separate from setting a
 cell's `GroundKind`, the thing consumers actually read. The picker offers

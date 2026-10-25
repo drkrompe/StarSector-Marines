@@ -5,7 +5,7 @@
       "id": "road.road",
       "layout": "perimeter-3x3",
       "origin": [
-        10,
+        7,
         0
       ]
     },
@@ -20,19 +20,10 @@
     },
     {
       "damageBlock": "terrain.blast-metal",
-      "id": "road.striped",
-      "layout": "striped-3x3",
-      "origin": [
-        6,
-        0
-      ]
-    },
-    {
-      "damageBlock": "terrain.blast-metal",
       "id": "road.tile",
       "layout": "single",
       "origin": [
-        9,
+        6,
         0
       ]
     },
@@ -40,7 +31,7 @@
       "id": "road.sidewalk",
       "layout": "single",
       "origin": [
-        13,
+        10,
         0
       ]
     },
@@ -57,7 +48,7 @@
       "id": "road.vent",
       "layout": "single",
       "origin": [
-        14,
+        11,
         0
       ]
     },
@@ -65,8 +56,8 @@
       "id": "road.revetment",
       "layout": "wall-3x3",
       "origin": [
-        0,
-        3
+        12,
+        0
       ]
     }
   ],
@@ -110,42 +101,24 @@
     },
     {
       "col": 6,
-      "description": "fl-striped-nw",
-      "name": "road.striped nw",
-      "row": 0
-    },
-    {
-      "col": 7,
-      "description": "fl-striped-n",
-      "name": "road.striped n",
-      "row": 0
-    },
-    {
-      "col": 8,
-      "description": "fl-striped-ne",
-      "name": "road.striped ne",
-      "row": 0
-    },
-    {
-      "col": 9,
       "description": "fl-2",
       "name": "road.tile only",
       "row": 0
     },
     {
-      "col": 10,
+      "col": 7,
       "description": "road-nw",
       "name": "road.road nw",
       "row": 0
     },
     {
-      "col": 11,
+      "col": 8,
       "description": "road-n",
       "name": "road.road n",
       "row": 0
     },
     {
-      "col": 12,
+      "col": 9,
       "description": "road-ne",
       "name": "road.road ne",
       "row": 0
@@ -175,37 +148,25 @@
       "row": 1
     },
     {
-      "col": 6,
-      "description": "fl-striped-w",
-      "name": "road.striped w",
-      "row": 1
-    },
-    {
-      "col": 8,
-      "description": "fl-striped-e",
-      "name": "road.striped e",
-      "row": 1
-    },
-    {
-      "col": 13,
+      "col": 10,
       "description": "fl-3",
       "name": "road.sidewalk only",
       "row": 0
     },
     {
-      "col": 10,
+      "col": 7,
       "description": "road-w",
       "name": "road.road w",
       "row": 1
     },
     {
-      "col": 11,
+      "col": 8,
       "description": "road",
       "name": "road.road center",
       "row": 1
     },
     {
-      "col": 12,
+      "col": 9,
       "description": "road-e",
       "name": "road.road e",
       "row": 1
@@ -247,94 +208,76 @@
       "row": 2
     },
     {
-      "col": 6,
-      "description": "fl-striped-sw",
-      "name": "road.striped sw",
-      "row": 2
-    },
-    {
-      "col": 7,
-      "description": "fl-striped-s",
-      "name": "road.striped s",
-      "row": 2
-    },
-    {
-      "col": 8,
-      "description": "fl-striped-se",
-      "name": "road.striped se",
-      "row": 2
-    },
-    {
-      "col": 14,
+      "col": 11,
       "description": "grate-1",
       "name": "road.vent only",
       "row": 0
     },
     {
-      "col": 10,
+      "col": 7,
       "description": "road-sw",
       "name": "road.road sw",
       "row": 2
     },
     {
-      "col": 11,
+      "col": 8,
       "description": "road-s",
       "name": "road.road s",
       "row": 2
     },
     {
-      "col": 12,
+      "col": 9,
       "description": "road-se",
       "name": "road.road se",
       "row": 2
     },
     {
-      "col": 0,
+      "col": 12,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment nw",
-      "row": 3
+      "row": 0
     },
     {
-      "col": 1,
+      "col": 13,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment n",
-      "row": 3
+      "row": 0
     },
     {
-      "col": 2,
+      "col": 14,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment ne",
-      "row": 3
+      "row": 0
     },
     {
-      "col": 0,
+      "col": 12,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment w",
-      "row": 4
+      "row": 1
     },
     {
-      "col": 2,
+      "col": 14,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment e",
-      "row": 4
+      "row": 1
     },
     {
-      "col": 0,
+      "col": 12,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment sw",
-      "row": 5
+      "row": 2
     },
     {
-      "col": 1,
+      "col": 13,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment s",
-      "row": 5
+      "row": 2
     },
     {
-      "col": 2,
+      "col": 14,
       "description": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
       "name": "road.revetment se",
-      "row": 5
+      "row": 2
     }
   ],
   "doodads": [],

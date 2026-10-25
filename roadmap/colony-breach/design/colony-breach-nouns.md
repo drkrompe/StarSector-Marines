@@ -1983,6 +1983,14 @@ in its yard, and the company that holds the yard until the truck is away is paid
 out of what it carries. A colony whose warehouse has no stand a truck can leave
 from offers none.
 
+A side objective may bring its own **pressure** rather than make the breach's
+swarm aware of it (`set-piece-blocks.md`, Lanes and pressure). A loading in a
+freight yard has one: a held bore of its own (numbered 90, clear of the
+eruptions) opened down the street, whose surges the objective calls on its own
+beats, before the tremor as after it, and whose broods it sends in by the yard's
+gate and side gap. Collapsing that bore ends the pressure, which a guard may
+gamble on. When the objective ends its survivors wander as the rest of the swarm.
+
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge

@@ -79,24 +79,15 @@ public enum GridLayout {
     },
 
     /**
-     * Standard 3×3 (used by {@code road.striped}) — the named-direction edge
-     * sits on that side (N edge = top row), corners on the diagonals. The
-     * fully-open case has no center art on the sheet, so it falls back to the
-     * south-edge cell {@code (origin + (1,2))}. Never null.
+     * Sixteen full-cell ground marks addressed like {@link #WALL_FACES_4X4} (N=1, E=2, S=4,
+     * W=8, row-major), but for a marked ground rather than a wall: a flag means the ground
+     * ends on that side, against a wall or against any other ground. The renderer supplies
+     * that boundary mask instead of the wall mask, so a painted apron is outlined wherever
+     * it stops. Mask 0 is the open field.
      */
-    STRIPED_3X3 {
+    EDGE_FACES_4X4 {
         @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
-            int col, row;
-            if (!n && !s && !e && !w) { col = 1; row = 2; }   // open → south-edge stand-in
-            else if (n && w)         { col = 0; row = 0; }
-            else if (n && e)         { col = 2; row = 0; }
-            else if (s && w)         { col = 0; row = 2; }
-            else if (s && e)         { col = 2; row = 2; }
-            else if (n)              { col = 1; row = 0; }
-            else if (s)              { col = 1; row = 2; }
-            else if (w)              { col = 0; row = 1; }
-            else /* e */             { col = 2; row = 1; }
-            return new int[]{oc + col, or + row};
+            return WALL_FACES_4X4.resolve(oc, or, n, s, e, w);
         }
     },
 
@@ -117,7 +108,7 @@ public enum GridLayout {
 
     /**
      * Width and height, in cells, of the patch this layout addresses from its
-     * origin — 1 for {@link #SINGLE}, 2 for cardinal openings, 4 for the complete wall-face set,
+     * origin — 1 for {@link #SINGLE}, 2 for cardinal openings, 4 for the complete face sets,
      * and 3 for the legacy perimeter layouts.
      *
      * <p>Authoring tools need the extent to reserve a contiguous patch in a
@@ -127,11 +118,17 @@ public enum GridLayout {
      */
     public int span() {
         if (this == CARDINAL_2X2) return 2;
-        if (this == WALL_FACES_4X4) return 4;
+        if (isFaces()) return 4;
         return this == SINGLE ? 1 : 3;
     }
 
     public boolean isWall() { return this == WALL_3X3 || this == WALL_FACES_4X4; }
+
+    /** Whether this layout addresses sixteen exposed-face masks. */
+    public boolean isFaces() { return this == WALL_FACES_4X4 || this == EDGE_FACES_4X4; }
+
+    /** Whether a ground drawn with this layout reads its mask from where the ground ends, not from walls. */
+    public boolean marksGroundEdges() { return this == EDGE_FACES_4X4; }
 
     /** Parse from the tileset JSON {@code layout} field. */
     public static GridLayout fromJson(String s) {
@@ -141,8 +138,8 @@ public enum GridLayout {
             case "floor-3x3":     return FLOOR_3X3;
             case "wall-3x3":      return WALL_3X3;
             case "wall-faces-4x4": return WALL_FACES_4X4;
+            case "edge-faces-4x4": return EDGE_FACES_4X4;
             case "perimeter-3x3": return PERIMETER_3X3;
-            case "striped-3x3":   return STRIPED_3X3;
             default: throw new IllegalArgumentException("unknown grid layout '" + s + "'");
         }
     }
