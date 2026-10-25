@@ -392,6 +392,8 @@ public class BattleRenderer {
                 new HarrierRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),
+                // When the next shuttle sets down at each of the player's drop-off points.
+                new LiftTimerRenderSystem(),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
