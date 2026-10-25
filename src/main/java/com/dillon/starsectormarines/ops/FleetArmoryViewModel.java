@@ -723,8 +723,12 @@ public final class FleetArmoryViewModel {
         List<FittingFilterPill> filters = new ArrayList<>();
         for (LoadoutFilter filter : LoadoutFilter.values()) {
             String id = "loadout-filter:" + filter.name().toLowerCase(Locale.ROOT);
+            // While a tier is chosen the others dim, so the chosen one reads as on and
+            // clicking it again (which shows every tier) reads as turning it off.
+            String muted = selected != null && filter != selected ? " tier-pill-muted" : "";
             filters.add(new FittingFilterPill(id, filter.label(), filter.icon(), filter.tone(),
-                    FittingFilterPill.classes(filter == selected) + " tier-pill", showLoadoutFilterAction(filter)));
+                    FittingFilterPill.classes(filter == selected) + " tier-pill" + muted,
+                    showLoadoutFilterAction(filter)));
         }
         return List.copyOf(filters);
     }

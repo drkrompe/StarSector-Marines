@@ -18,6 +18,11 @@
      true proportion, so the two read as one symbol; the pill's frame says which tier is chosen. */
   .tier-pill .catalog-filter-chip { opacity: 1; }
   .tier-pill .catalog-filter-icon { width: 36px; height: 24px; }
+  /* A chosen tier is lit and framed brighter than a hover; the tiers it hides dim to a ghost. */
+  .tier-pill.selected { background-color: #4c5440; border-color: #f4ecd2; }
+  .tier-pill.selected:hover { background-color: #4c5440; border-color: #f4ecd2; }
+  .tier-pill-muted .catalog-filter-chip { opacity: 0.3; }
+  .tier-pill-muted:hover .catalog-filter-chip { opacity: 0.7; }
   .catalog-filter-pill:hover { background-color: #34382e; border-color: #dfc588; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
   .label { overflow: hidden; }
