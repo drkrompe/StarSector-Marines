@@ -186,7 +186,7 @@ kit as the cards issue it (`LoadoutCardIssue.seats`). Writes `matchups.md`,
   for up to four explicit pairings, off otherwise. About 20-30 s a recording.
   They are drawn through Java2D; `-PsnapshotBackend=gl` draws them on the GPU
   through the shipping renderer, which is the only way to see per-quad effects
-  such as the hit flash.
+  such as body lighting and wear.
 - Controlled construction with a detached kit, not a campaign roster, and not
   balance acceptance.
 

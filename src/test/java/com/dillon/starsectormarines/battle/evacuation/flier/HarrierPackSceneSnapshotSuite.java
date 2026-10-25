@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
-import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
@@ -9,16 +7,11 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.ops.battleview.HarrierAudio;
+import com.dillon.starsectormarines.ops.battleview.BattleSoundLog;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * The Harrier pack's frames: the {@code with-aa} and {@code no-aa} loops at 1920x1080 (verdict evidence, on a bare
@@ -95,9 +88,7 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
 
     /**
      * The sound shot, in place of the review set when {@code -Dsnapshot.harrierPack.soundLog} is set: the pack over the line under flak at play zoom, a frame every tick, with every sound
-     * {@link HarrierAudio} would start written as a JSON line per sound ({@code frame, id, x, y, pitch, volume,
-     * listenerX, listenerY}), and the line's fire, to that file for the review's soundtrack. The listener is
-     * the camera's centre, as it is the screen's in a battle. The throw chance is raised so a short clip hears one.
+     * the battle screen would start logged to that file for the review's soundtrack ({@link BattleSoundLog}). The throw chance is raised so a short clip hears one.
      * {@code -Dsnapshot.harrierPack.soundPack=N} releases a pack of {@code N} in place of the scene's, so a lone flier
      * can be heard against a pack.
      */
@@ -108,50 +99,7 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                     BattleSimulation sim = stage(placement, HarrierLook.DEFAULT, true,
                             Integer.getInteger("snapshot.harrierPack.soundPack", HarrierPackScene.PACK));
                     sim.swarmFliers().liftChance = STRIKE_LIFT_CHANCE;
-                    LookReview.View ear = LookReview.View.followAtPlay(placement, "line", "pack");
-                    HarrierAudio.Mix mix = new HarrierAudio.Mix();
-                    int[] frame = {0};
-                    try {
-                        Files.createDirectories(log.toAbsolutePath().getParent());
-                        Files.writeString(log, "");
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                    placement.beforeTick(s -> {
-                        float[] at = ear.focus().apply(s);
-                        StringBuilder lines = new StringBuilder();
-                        for (HarrierAudio.Play p : mix.hear(s, at[0], at[1])) {
-                            lines.append(String.format(Locale.ROOT,
-                                    "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": %.4f,"
-                                            + " \"volume\": %.3f, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
-                                    frame[0], p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at[0], at[1]));
-                        }
-                        // A thrown marine's landing is SwarmAudio's body thud, posted as a cue; logged at its level.
-                        for (SwarmCues.Cue cue : s.swarmCues().cuesThisFrame()) {
-                            if (cue.kind() != SwarmCues.Kind.THROWN) continue;
-                            lines.append(String.format(Locale.ROOT,
-                                    "{\"frame\": %d, \"id\": \"marines_breach_body_thud\", \"x\": %.2f, \"y\": %.2f,"
-                                            + " \"pitch\": 1, \"volume\": 0.8, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
-                                    frame[0], cue.x(), cue.y(), at[0], at[1]));
-                        }
-                        // The line's fire too, at BattleShotAudio's levels, so the mix sets the fliers against it.
-                        for (ShotEvent shot : s.getShotsThisFrame()) {
-                            String id = shot.turretStructureDef != null ? shot.turretStructureDef.mount.weapon.fireSoundId
-                                    : shot.primaryWeaponDef != null ? shot.primaryWeaponDef.fireSoundId : null;
-                            if (id == null) continue;
-                            lines.append(String.format(Locale.ROOT,
-                                    "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": 1,"
-                                            + " \"volume\": %.3f, \"listenerX\": %.2f, \"listenerY\": %.2f}%n",
-                                    frame[0], id, shot.fromX, shot.fromY, shot.turretStructureDef != null ? 1f : 0.85f,
-                                    at[0], at[1]));
-                        }
-                        frame[0]++;
-                        try {
-                            Files.writeString(log, lines, StandardOpenOption.APPEND);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    });
+                    BattleSoundLog.attach(placement, LookReview.View.followAtPlay(placement, "line", "pack"), log);
                     return sim;
                 },
                 placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack")),

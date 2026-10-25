@@ -1793,6 +1793,17 @@ its borrowed takes' measured loudness, since those differ by some 25 dB. Timing
 and jitter run on simulation time and a seed, so a replay
 sounds the same and a review can mix its soundtrack from the same rules.
 
+**The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
+creature sound's level is set from its take's measured loudness against the
+fire around it, never left at the take's own level: the generated takes run hot
+and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
+LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
+Brute's a few dB heavier, its charge tell over the guns so a charge is heard
+coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
+since many bodies make them. A new sound or take is levelled the same way
+before it ships. The `swarm-sound` look suite logs what the battle screen would
+start (`BattleSoundLog`) so a review hears the levels against the fire.
+
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling
 strain played at another pitch and speed before it is a new file, and a new

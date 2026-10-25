@@ -85,9 +85,9 @@ import static org.lwjgl.opengl.GL20.GL_MAX_TEXTURE_IMAGE_UNITS;
  * <p><b>Effects ride in the spare components.</b> Positions go as {@code x, y, z, w} and texture coordinates as
  * {@code s, t, r, q}: the same three fixed-function arrays at four components each, so effects need no array the
  * fixed-function contract does not carry (a secondary colour or normal array would want entry points LWJGL 3's
- * headless binding does not keep). A quad's hit flash is the fraction of its z past the lane
- * ({@link #lane(int, boolean, float)}); w is the light on it ({@link #packLight}); r the direction that light comes
- * from; q its wear: char and embers ({@link #packWear}). All four are zero for an ordinary quad, which then
+ * headless binding does not keep). A quad's z is its lane ({@link #lane(int, boolean)}); w is
+ * the light on it ({@link #packLight}); r the direction that light comes from; q its wear: char and embers
+ * ({@link #packWear}). All three are zero for an ordinary quad, which then
  * draws exactly as before. The packed values are whole numbers under 2^24, exact in a float, unpacked in the vertex
  * shader where every corner carries the same value.
  *
@@ -100,17 +100,11 @@ public final class PagedQuadRun {
     /** The most textures one run binds. Eight is under every GL 2.1 driver's fragment unit count worth supporting. */
     public static final int MAX_PAGES = 8;
 
-    /**
-     * The part of z's fraction a quad's hit flash takes: a flash of one is a lane plus this. Under one half, so the
-     * lane is always the floor of z.
-     */
-    static final float EFFECT_SPAN = 0.5f;
-
     /** The brightest light {@link #packLight} carries, as a multiple of the quad's own colour. */
     static final float LIGHT_MAX = 2f;
 
     private static final String VARYINGS = "varying vec2 uv; varying vec4 tint; varying float page; varying float additive;"
-            + " varying float flash; varying vec3 light; varying vec2 lightDir; varying vec3 wear; varying vec2 texels;\n";
+            + " varying vec3 light; varying vec2 lightDir; varying vec3 wear; varying vec2 texels;\n";
 
     private static final String VERTEX = "#version 120\n"
             + "uniform vec2 pageTexels[" + MAX_PAGES + "];\n"
@@ -118,8 +112,7 @@ public final class PagedQuadRun {
             + "void main(){\n"
             + "  gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, 0.0, 1.0);\n"
             + "  uv = gl_MultiTexCoord0.xy; tint = gl_Color;\n"
-            + "  float lane = floor(gl_Vertex.z);\n"
-            + "  flash = (gl_Vertex.z - lane) / " + EFFECT_SPAN + ";\n"
+            + "  float lane = floor(gl_Vertex.z + 0.5);\n"
             + "  additive = lane > " + MAX_PAGES + ".0 - 0.5 ? 1.0 : 0.0;\n"
             + "  page = lane - additive * " + MAX_PAGES + ".0;\n"
             + "  texels = pageTexels[int(page + 0.5)];\n"
@@ -169,8 +162,6 @@ public final class PagedQuadRun {
                 .append("    float speck = noise(p * 0.45 + 31.0);\n")
                 .append("    c.rgb += vec3(1.0, 0.42, 0.08) * smoothstep(0.86 - 0.3 * wear.y, 0.98, speck) * wear.y * 2.2;\n")
                 .append("  }\n")
-                // A hit flash: the quad's own colour pushed toward white, its shape and alpha untouched.
-                .append("  c.rgb = mix(c.rgb, vec3(1.0), flash);\n")
                 .append("  gl_FragColor = vec4(c.rgb * c.a, c.a * (1.0 - additive));\n}\n");
         FRAGMENT = fragment.toString();
     }
@@ -267,14 +258,6 @@ public final class PagedQuadRun {
      */
     public static int lane(int page, boolean additive) {
         return additive ? page + MAX_PAGES : page;
-    }
-
-    /**
-     * The z a quad carries with its effects: {@link #lane(int, boolean)}, and in the fraction its hit flash, the share
-     * of white mixed into its colour (law 27).
-     */
-    public static float lane(int page, boolean additive, float flash) {
-        return lane(page, additive) + Math.max(0f, Math.min(1f, flash)) * EFFECT_SPAN;
     }
 
     /**
