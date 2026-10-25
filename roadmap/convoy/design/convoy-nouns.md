@@ -1287,7 +1287,7 @@ fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
 wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
 sight, and holds fire entirely without the spotter. A carrier fitted with the
 **sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
-drones hold station beyond the bow, and what they see counts as eyes on the
+drones search the ground round it, and what they see counts as eyes on the
 target (`SideObservers`), so it fires over a wall with nobody else looking.
 
 The **fire-support APC** (`FIRE_SUPPORT_APC`, the mortar carrier) is the same hull
@@ -1426,9 +1426,18 @@ ground scale:
 
 - An **escort** flies the loose formation round the hull, engages what comes into its
   reach, and is held by a leash.
-- A **sensor** holds station ahead of the bow. It is a sight source on the scout's terms,
-  so it looks round the corner the hull cannot see past, and it carries only a light ion
-  sting.
+- A **sensor** searches (`SensorSearch`). The ring round the hull is four quadrants, and
+  the wing remembers when each was last in a sensor's sight, from sample cells far out
+  where a drone's own sight is the only sight there is. Each sensor holds the stalest
+  quadrant not already taken, leaning toward the way the hull faces, for a spell, then
+  moves on when it reads fresh, so ground goes stale and is searched again. The memory is
+  the wing's own, so any side's hull has it; it reads nothing from the player's fog. When
+  a sensor sees a hostile its hull has no line to, an armoured one before a soft one and
+  the nearest first, it **shadows** it: it holds a point between the hull and the target,
+  short of it by most of its sight and within the leash, turned until it has a line, while
+  the other sensor keeps searching. A target out of every sensor's sight is chased to where
+  it was last seen, then let go. A sensor is a sight source on the scout's terms, so it
+  looks round the corner the hull cannot see past, and it carries only a light ion sting.
 - A **halo** drone orbits tight round the hull wearing a carried point-defence mount
   (`PointDefenseService`), so it takes rockets and shells out of the air near the hull.
   The mount ends when the drone falls.
@@ -1464,8 +1473,12 @@ drone bay, with no gun. Its bay holds two escorts, two halo drones and a strike 
 Acceptance is the `hover-line` scene:
 - The scout crosses a river at which a wheeled APC is refused.
 - It drives over standing marines and shoves none, against the spotter pickup's control.
-- Its sensor pair holds station ahead and puts a defender the hull cannot see into the
+- Its sensor pair searches round the hull and puts a defender the hull cannot see into the
   side's picture.
+- `sensor-search`: a carrier's sensor pair, starting on the empty ground it faces, goes
+  round to find riflemen behind a wall; with no kit it finds nothing; and one sensor
+  shadows a tank driving a road beyond a long wall, keeping a spotter's call on it
+  while the carrier fires.
 - The skimmer's drones launch, stay on the leash and fight. Its strike drone detonates on
   a picket and is rebuilt. Its halo takes incoming rockets out of the air, and the flight
   falls with the hull.

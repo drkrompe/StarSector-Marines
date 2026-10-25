@@ -69,6 +69,8 @@ public final class DroneBaySystem {
     private static final Color STRIKE_BLAST_TINT = new Color(0x8F, 0xE6, 0xFF);
 
     private final Map<Long, DroneWing> wings = new LinkedHashMap<>();
+    /** Where each wing's sensors look, by hull ({@link SensorSearch}). */
+    private final Map<Long, SensorSearch> searches = new LinkedHashMap<>();
     private int scanCountdown;
     private int nextDrone;
     private int strikesDetonated;
@@ -86,6 +88,11 @@ public final class DroneBaySystem {
     /** The wing tethered to {@code hullId}, or null when that hull carries none or has not come onto the field. */
     public DroneWing wing(long hullId) {
         return wings.get(hullId);
+    }
+
+    /** The planner steering {@code hullId}'s sensors, or null when it has none out. For the scenes that read it. */
+    SensorSearch search(long hullId) {
+        return searches.get(hullId);
     }
 
     /** A sight source a side has in the air. */
@@ -129,6 +136,7 @@ public final class DroneBaySystem {
             if (mission == null || body == null || mission.state == VehicleState.WRECKED
                     || mission.state == VehicleState.GONE) {
                 collapse(wing, sim);
+                searches.remove(wing.hullId());
                 it.remove();
                 continue;
             }
@@ -216,7 +224,7 @@ public final class DroneBaySystem {
         if (sim.resolveUnit(sim.getSquad(wing.squadId).leaderId) == 0L) sim.getSquad(wing.squadId).leaderId = id;
     }
 
-    private static void publish(DroneWing wing, long focus, float seconds, BattleSimulation sim) {
+    private void publish(DroneWing wing, long focus, float seconds, BattleSimulation sim) {
         World world = sim.world();
         ArrayList<Long> drones = new ArrayList<>(wing.drones());
         long[] ids = new long[drones.size()];
@@ -226,7 +234,11 @@ public final class DroneBaySystem {
             at[2 * i] = world.x(ids[i]);
             at[2 * i + 1] = world.y(ids[i]);
         }
-        wing.publish(ids, at, focus, seconds);
+        Faction side = sim.convoy().faction(wing.hullId());
+        Map<Long, float[]> stations = side == null ? Map.of()
+                : searches.computeIfAbsent(wing.hullId(), h -> new SensorSearch())
+                        .plan(wing, sim, side, sim.getSimTickIndex());
+        wing.publish(ids, at, focus, seconds, stations);
     }
 
     private static long nearestHostile(Faction side, DroneWing wing, BattleSimulation sim) {
