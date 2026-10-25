@@ -974,6 +974,35 @@ public final class HeartLanes {
         return null;
     }
 
+    /**
+     * What an attacker was, for the evidence's damage ledger (`CombatTelemetryService.keepLedger`): a mortar tube, a
+     * lane's fire section, armour or mechs, its mortar teams' or riflemen's men, the company, or another ally; null
+     * for the swarm's own.
+     */
+    public String ledgerClass(BattleSimulation sim, long attacker) {
+        if (sim.fieldMortars().tubeOfEntity(attacker) != null) return "mortar tubes";
+        if (sim.convoy().isVehicle(attacker)) {
+            for (Lane lane : lanes) {
+                if (lane.section.contains(attacker)) return "fire sections";
+                if (lane.hulls.contains(attacker)) return "lane armour";
+            }
+            Faction side = sim.convoy().faction(attacker);
+            return side == Faction.MARINE ? "company hulls" : side == Faction.ALLY ? "other allied hulls" : null;
+        }
+        if (sim.resolveUnit(attacker) == 0L || !sim.identity().has(attacker)) return null;
+        Faction side = sim.identity().faction(attacker);
+        if (side == Faction.MARINE) return sim.identity().type(attacker).isTurret() ? "company emplacements" : "marines";
+        if (side != Faction.ALLY) return null;
+        for (Lane lane : lanes) if (lane.mechs.contains(attacker)) return "mech lances";
+        Squad squad = sim.squadOf(attacker);
+        for (Lane lane : lanes) {
+            if (squad == null) break;
+            if (lane.mortarTeams.contains(squad.id)) return "mortar teams' men";
+            if (lane.squads != null && lane.squads.contains(squad.id)) return "lane militia";
+        }
+        return sim.identity().type(attacker).isTurret() ? "allied emplacements" : "other allies";
+    }
+
     /** What the lanes' assaults did, one line for the evidence summary. */
     public String assaultLine() {
         StringBuilder phases = new StringBuilder();
