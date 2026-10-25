@@ -44,6 +44,8 @@ final class SwarmBombardBehavior {
     static final float FAR_FLIGHT_SECONDS = 4f;
     /** A swarm body this close to someone a haze would catch is in melee, and the haze is not thrown there. */
     static final float MELEE_GUARD = 2.5f;
+    /** A swarm fighter this close with someone a haze would catch as its target is in that fight. */
+    static final float ENGAGED_RADIUS = 8f;
     /** A mark standing still and firing counts this much more. */
     static final float STANDING_FIRE_BONUS = 1.5f;
     /** Rav bodies closing within this many cells of a mark make it count more. */
@@ -181,8 +183,8 @@ final class SwarmBombardBehavior {
     /**
      * Of the ground enemies it senses between {@link #MIN_RANGE} and its reach, the one whose haze would catch the
      * most: bodies inside a haze's radius of it, counting more for a mark {@linkplain #STANDING_FIRE_BONUS standing
-     * still and firing} and for each Rav body closing on it. Never a craft, and never a mark whose haze would
-     * cover a melee: a swarm body already on anyone it would catch. Ties go to the nearer, then the lower id. Shelter guards are left alone while the
+     * still and firing} and for each Rav body closing on it. Never a craft, and never a mark whose haze could cover
+     * a melee: a swarm body already on anyone within a haze's radius plus the scatter of it. Ties go to the nearer, then the lower id. Shelter guards are left alone while the
      * shelter is sealed, as they are by every strain.
      */
     static long markInRange(long body, BattleSimulation sim) {
@@ -209,8 +211,8 @@ final class SwarmBombardBehavior {
             float d = (float) Math.hypot(cx - x, cy - y);
             if (!inLobRange(d, range)) continue;
             if (!SwarmPressureBehavior.canSense(cellX, cellY, cx, cy, range, sim)) continue;
+            if (meleeUnderHaze(cx, cy, haze + scatterRadius(d, range), sim)) continue;
             sim.getUnitIndex().gatherHostileCombatants(cx, cy, haze, Faction.DEFENDER, around);
-            if (meleeUnder(around, sim)) continue;
             float score = around.size;
             if (standingAndFiring(candidate, sim)) score *= STANDING_FIRE_BONUS;
             score += closingRav(cx, cy, sim);
@@ -252,31 +254,39 @@ final class SwarmBombardBehavior {
         float mx = sim.world().x(mark);
         float my = sim.world().y(mark);
         float range = sim.combat().attackRange(body);
-        return inLobRange((float) Math.hypot(mx - x, my - y), range)
+        float d = (float) Math.hypot(mx - x, my - y);
+        return inLobRange(d, range)
                 && SwarmPressureBehavior.canSense((int) Math.floor(x), (int) Math.floor(y), mx, my, range, sim)
-                && !meleeUnderHaze(mx, my, sim);
+                && !meleeUnderHaze(mx, my, SporeHazes.RADIUS + scatterRadius(d, range), sim);
     }
 
-    /** Whether anyone a haze on the point would catch is in melee with the swarm. */
-    private static boolean meleeUnderHaze(float x, float y, BattleSimulation sim) {
+    /**
+     * Whether anyone within {@code reach} of the point is in melee with the swarm: the reach is a haze's radius plus
+     * the lob's scatter, everywhere a glob aimed there can catch.
+     */
+    private static boolean meleeUnderHaze(float x, float y, float reach, BattleSimulation sim) {
         LongBucket around = NEIGHBOURS.get();
-        sim.getUnitIndex().gatherHostileCombatants(x, y, SporeHazes.RADIUS, Faction.DEFENDER, around);
+        sim.getUnitIndex().gatherHostileCombatants(x, y, reach, Faction.DEFENDER, around);
         return meleeUnder(around, sim);
     }
 
-    /** Whether any of {@code caught} has a swarm fighter within {@link #MELEE_GUARD}. */
+    /** Whether any of {@code caught} is in melee with the swarm ({@link #inMelee}). */
     private static boolean meleeUnder(LongBucket caught, BattleSimulation sim) {
         for (int i = 0, n = caught.size; i < n; i++) {
-            long id = caught.ids[i];
-            if (inMelee(sim.world().x(id), sim.world().y(id), sim)) return true;
+            if (inMelee(caught.ids[i], sim)) return true;
         }
         return false;
     }
 
-    /** Whether a fighting swarm body stands within {@link #MELEE_GUARD} of the point. */
-    private static boolean inMelee(float x, float y, BattleSimulation sim) {
+    /**
+     * Whether a swarm fighter is on {@code body}: within {@link #MELEE_GUARD} of it, or within {@link #ENGAGED_RADIUS}
+     * with it as its target, so a Brute pulling back between charges still counts as in the fight.
+     */
+    private static boolean inMelee(long body, BattleSimulation sim) {
+        float x = sim.world().x(body);
+        float y = sim.world().y(body);
         LongBucket around = SWARM.get();
-        sim.getUnitIndex().gatherFaction(x, y, MELEE_GUARD, Faction.DEFENDER, around);
+        sim.getUnitIndex().gatherFaction(x, y, ENGAGED_RADIUS, Faction.DEFENDER, around);
         for (int i = 0, n = around.size; i < n; i++) {
             long id = around.ids[i];
             UnitType type = sim.identity().type(id);
@@ -284,7 +294,9 @@ final class SwarmBombardBehavior {
             if (!sim.world().isAlive(id)) continue;
             float dx = sim.world().x(id) - x;
             float dy = sim.world().y(id) - y;
-            if (dx * dx + dy * dy <= MELEE_GUARD * MELEE_GUARD) return true;
+            float d2 = dx * dx + dy * dy;
+            if (d2 <= MELEE_GUARD * MELEE_GUARD) return true;
+            if (d2 <= ENGAGED_RADIUS * ENGAGED_RADIUS && sim.combat().targetId(id) == body) return true;
         }
         return false;
     }

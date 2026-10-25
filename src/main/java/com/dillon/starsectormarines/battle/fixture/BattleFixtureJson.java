@@ -212,6 +212,7 @@ public final class BattleFixtureJson {
             if (heart.density() != Density.RURAL) root.put("density", heart.density().name());
             if (!heart.objectives().isEmpty()) root.put("objectives", new JSONArray(heart.objectives()));
             root.put("shuttles", shuttlesToJson(heart.manifest()));
+            if (!heart.mechDrops().isNone()) root.put("declaredMechDrops", mechDropsToJson(heart.mechDrops()));
             return root;
         }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
@@ -299,7 +300,7 @@ public final class BattleFixtureJson {
                     enumValue(Form.class, root.getString("form"), "form"),
                     storyBiome(root), root.has("density")
                             ? enumValue(Density.class, root.getString("density"), "density") : Density.RURAL,
-                    shuttlesFromJson(root.getJSONArray("shuttles")), heartObjectives(root));
+                    shuttlesFromJson(root.getJSONArray("shuttles")), heartObjectives(root), declaredMechDrops(root));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };

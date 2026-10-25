@@ -29,7 +29,7 @@ public final class HeartCommanderLookSuite implements SnapshotSuite {
 
     /** The battle: the canonical Broad Front town seed the commander's evidence plays. */
     static final String FIXTURE = "{\"schemaVersion\":2,\"kind\":\"BLOOM_HEART\",\"seed\":2,\"form\":\"BROAD_FRONT\","
-            + "\"biome\":\"VERDANT\",\"density\":\"TOWN\",\"shuttles\":["
+            + "\"biome\":\"VERDANT\",\"density\":\"TOWN\",\"declaredMechDrops\":{\"MARINE\":{\"lances\":1,\"lance\":[\"BULWARK\",\"HOUND\",\"HOUND\",\"WARDEN\"],\"debugCallTick\":300}},\"shuttles\":["
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
