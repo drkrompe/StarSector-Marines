@@ -313,9 +313,12 @@ final class SwarmBombardBehavior {
         return count;
     }
 
-    /** A mark with a target and no path left to walk: a squad holding a line and shooting. */
+    /**
+     * A mark with a target and no path left to walk: a squad holding a line and shooting. A machine fights through its
+     * own systems, not the infantry's combat state, so it never counts (a Marine lance on Broad Front, 2026-10-25).
+     */
     private static boolean standingAndFiring(long mark, BattleSimulation sim) {
-        if (sim.combat().targetId(mark) == 0L) return false;
+        if (!sim.combat().has(mark) || sim.combat().targetId(mark) == 0L) return false;
         if (sim.identity().type(mark).isStatic()) return true;
         return sim.movement().pathIdx(mark) >= Paths.cellCount(sim.movement().path(mark));
     }
