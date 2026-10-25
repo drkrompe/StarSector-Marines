@@ -220,7 +220,7 @@ public enum VehicleType {
      * The spotter pickup, a field rig: the pickup cut short on a shorter wheelbase, painted dust grey, with a
      * salvaged sensor mast where the gun stood. Its job
      * is information: it sees farther than a marine and reports what it sees to its side's fog and its commander
-     * ({@link ScoutSight}). The fastest hull in the bay, and the thinnest: no gun, no seats, almost no plate, and its
+     * ({@link HullSightings}). The fastest hull in the bay, and the thinnest: no gun, no seats, almost no plate, and its
      * sight is ordinary line of sight, so it has to be driven somewhere it can look.
      */
     SCOUT_CAR("graphics/battle/vehicles/scout-car.png", 0, 4, -90f,
@@ -234,7 +234,7 @@ public enum VehicleType {
     /**
      * Tri-Tachyon's hover scout, a purpose-built corporate hull and not a field rig: a lift-fan skirt under a
      * sleek composite shell, a sensor cluster that reports to its side as the spotter pickup's mast does
-     * ({@link ScoutSight}), and a light twin pulse emitter of the Wisp family for screening. Hover is a real
+     * ({@link HullSightings}), and a light twin pulse emitter of the Wisp family for screening. Hover is a real
      * trade ({@link HoverSkirt}): it crosses water and rubble no wheel can, and it cannot shove a body aside.
      * It pays in plate — thinner than the technical — and it is slower than the stripped pickup. Its sheet draws the
      * emitter at the hull's own scale, so the turret frame spans the hull frame (art-source/vehicles/tt-hover).
@@ -332,7 +332,7 @@ public enum VehicleType {
 
     /**
      * How far this hull looks and reports what it sees to its side, in cells: its mast where it has one, the crew's
-     * sight otherwise. Every hull is an observer ({@link ScoutSight}, {@link SideObservers}).
+     * sight otherwise. Every hull is an observer ({@link HullSightings}, {@link SideObservers}).
      */
     public final float observeCells() { return Math.max(sightCells(), CREW_SIGHT_CELLS); }
 
