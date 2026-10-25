@@ -398,7 +398,7 @@ public final class MissileCarrierScene implements BehaviorScene {
                 scoutAlive = present(sim, scout);
                 if (scoutAlive && tankUp) {
                     GroundBody sb = sim.convoy().body(scout);
-                    if (sb != null && ScoutSight.sees(grid, sb.x, sb.y, tx, ty, VehicleType.SCOUT_CAR.sightCells())) {
+                    if (sb != null && HullSightings.sees(grid, sb.x, sb.y, tx, ty, VehicleType.SCOUT_CAR.sightCells())) {
                         scoutSawTankTicks++;
                     }
                 }

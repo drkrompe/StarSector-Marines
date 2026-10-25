@@ -72,6 +72,9 @@ public final class ConvoyService implements BodyCarrier {
     /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
     private LongConsumer destructionSink;
 
+    /** Setup-time hook run once for every hull set down, so the battle can enrol it as a fog contributor. */
+    private LongConsumer spawnSink;
+
     /** Entity id to the mech-bay vehicle it realizes; only company vehicles are here. */
     private final Map<Long, String> companyVehicles = new LinkedHashMap<>();
 
@@ -157,6 +160,7 @@ public final class ConvoyService implements BodyCarrier {
         // A chassis that spawns already on the map is a body somebody could be
         // looking at this tick; one still off-map joins at the next rebuild.
         if (isTargetable(id)) roster.indexVehicle(id);
+        if (spawnSink != null) spawnSink.accept(id);
         return id;
     }
 
@@ -229,6 +233,11 @@ public final class ConvoyService implements BodyCarrier {
     /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
     public void setDestructionSink(LongConsumer sink) {
         this.destructionSink = sink;
+    }
+
+    /** Installs the hook {@link #spawn} runs on each new hull once its columns are seeded. */
+    public void setSpawnSink(LongConsumer sink) {
+        this.spawnSink = sink;
     }
 
     /** A hull out of structure stops and becomes scenery; {@code GroundSystem} owns the transition. */

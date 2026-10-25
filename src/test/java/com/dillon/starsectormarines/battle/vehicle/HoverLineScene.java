@@ -405,9 +405,9 @@ public final class HoverLineScene implements BehaviorScene {
             DroneWing wing = sim.droneBays().wing(hull);
             if (wing != null) sensors.addAll(wing.drones());
             boolean lurking = sim.world().isAlive(lurker);
-            boolean hullSees = lurking && ScoutSight.sees(sim.getGrid(), body.x, body.y, sim.world().x(lurker),
+            boolean hullSees = lurking && HullSightings.sees(sim.getGrid(), body.x, body.y, sim.world().x(lurker),
                     sim.world().y(lurker), VehicleType.HOVER_SCOUT.sightCells());
-            boolean sighted = lurking && sim.scoutSight().sighted(Faction.MARINE, lurker);
+            boolean sighted = lurking && sim.hullSightings().sighted(Faction.MARINE, lurker);
             if (sighted && !hullSees) {
                 hiddenSightings++;
                 if (firstHiddenSighting < 0) firstHiddenSighting = tick;
