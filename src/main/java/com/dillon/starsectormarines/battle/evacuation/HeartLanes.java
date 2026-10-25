@@ -515,7 +515,8 @@ public final class HeartLanes {
                 }
             }
             case ASSAULT -> {
-                if (surged) {
+                // A surge into a lane that still outnumbers it is fought through; one that outnumbers the lane is not.
+                if (BoreAssault.outnumbered(mouthBodies(sim, bore), militia(sim, lane))) {
                     fallenBack++;
                     enter(lane, BoreAssault.Phase.FALLING_BACK, tick);
                 }

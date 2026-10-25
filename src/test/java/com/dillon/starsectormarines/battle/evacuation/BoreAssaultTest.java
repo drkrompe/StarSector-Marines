@@ -81,6 +81,13 @@ class BoreAssaultTest {
     }
 
     @Test
+    void anAssaultFallsBackOnlyWhenTheMouthOutnumbersTheLane() {
+        assertFalse(BoreAssault.outnumbered(20, 24), "a surge the lane outnumbers is fought through");
+        assertFalse(BoreAssault.outnumbered(24, 24));
+        assertTrue(BoreAssault.outnumbered(25, 24));
+    }
+
+    @Test
     void aFormationRalliesOnTheSupportLineNotOnTheBore() {
         int back = BoreAssault.MOUTH_CELLS + BoreAssault.RING_MARGIN_CELLS + BoreAssault.SUPPORT_BACK_CELLS;
         int[] rally = BoreAssault.rallyCell(BORE, BORE - 60, BORE, BORE);

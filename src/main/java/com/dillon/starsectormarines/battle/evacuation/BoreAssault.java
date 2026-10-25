@@ -12,8 +12,8 @@ import java.util.List;
  * <p><b>Phases.</b> {@link Phase#MOVING_UP}: the machines drive to their posts on the stand-off ring; after a bore
  * has fallen the militia wait where they stand until the machines are set. {@link Phase#BASE_OF_FIRE}: machines on
  * the ring fight the bore, the militia hold the support line behind them. {@link Phase#ASSAULT}: on a spent surge the
- * militia go in. {@link Phase#FALLING_BACK}: the bore's next surge sends them back to the support line, and the lane
- * waits for that surge to be spent.
+ * militia go in, or after a minute on the support line. {@link Phase#FALLING_BACK}: once the mouth holds more of the
+ * swarm than the lane has militia they go back to the support line, and the lane waits for that surge to be spent.
  *
  * <p><b>The ring.</b> A post lies outside the bore's mouth by a margin, at a share of the hull's reach where that is
  * farther, on the lane's near side, spread along the ring ({@link #ringPost}). Allied command's stands then slide it
@@ -165,6 +165,11 @@ final class BoreAssault {
     /** Whether the mouth holds few enough of the swarm for the lane to go in: {@link #MOUTH_TO_LANE} of it, at least {@link #QUIET_BODIES}. */
     static boolean quiet(int mouthBodies, int laneBodies) {
         return mouthBodies <= Math.max(QUIET_BODIES, Math.round(laneBodies * MOUTH_TO_LANE));
+    }
+
+    /** Whether the militia in an assault fall back: the mouth holds more of the swarm than the lane has militia. */
+    static boolean outnumbered(int mouthBodies, int laneBodies) {
+        return mouthBodies > laneBodies;
     }
 
     /**

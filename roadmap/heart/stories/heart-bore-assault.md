@@ -42,8 +42,11 @@ bore a lane takes, the waves and the calls for armour stay the mission's.
    on Broad Front a mother's mouth never emptied, the ring could not see the
    mother inside its building, and the lanes stood on their support lines until
    the battle timed out.
-4. **Falling back.** The bore's next surge sends the militia back to the support
-   line, and the lane waits for that surge to be spent.
+4. **Falling back.** The militia go back to the support line only once the
+   mouth holds more of the swarm than the lane has militia, and the lane waits
+   for that surge to be spent. Falling back on every surge did not work on Broad
+   Front, whose bores surge on their own clocks: every assault turned back before
+   it finished a bore.
 5. **After the fall** the lane takes its next bore from where it stands, armour
    first.
 
