@@ -101,6 +101,30 @@ class RoadSurfaceStageTest {
         assertEquals(new Random(7).nextLong(), ctx.rng.nextLong());
     }
 
+    @Test void aStreetIsPaddedWithSidewalkOutToWhateverItMeets() {
+        var ctx = city();
+        new RoadSurfaceStage().run(ctx);
+        var surface = ctx.topology.roadSurface();
+        // The street's paving runs on two cells past its kerb, up to a marked apron.
+        for (int x = 0; x < 40; x++) {
+            ctx.grid.setWalkable(x, 9, true);
+            ctx.topology.setWall(x, 9, false);
+            ctx.topology.setGroundKind(x, 9, GroundKind.STREET);
+            ctx.topology.setGroundKind(x, 10, GroundKind.STREET);
+            ctx.topology.setGroundKind(x, 11, GroundKind.STRIPED);
+        }
+        boolean[][] footway = new boolean[40][30];
+        for (int x = 0; x < 40; x++) for (int y = 0; y < 30; y++) footway[x][y] = RoadSurfaceStage.footway(ctx, x, y);
+
+        var sidewalk = RoadSurfaceStage.sidewalks(ctx, surface, footway);
+
+        for (int y = 8; y <= 10; y++) {
+            assertNotNull(sidewalk[20][y], "a bare paving strip at " + y);
+            assertTrue(ctx.topology.surfaceId(sidewalk[20][y].surface()).startsWith("pavement.concrete."));
+        }
+        assertNull(sidewalk[20][11], "the apron keeps its own ground");
+    }
+
     @Test void cityRoadsSwitchIsTheControl() {
         var ctx = city();
         System.setProperty("battle.mapgen.cityRoads", "false");
@@ -139,6 +163,7 @@ class RoadSurfaceStageTest {
 
     private static boolean concrete(GenContext ctx, RoadSurface surface, int x, int y) {
         var underlay = surface.underlay(x, y);
-        return underlay != null && ctx.topology.surfaceId(underlay.surface()).startsWith("pavement.concrete.");
+        String id = underlay == null ? null : ctx.topology.surfaceId(underlay.surface());
+        return id != null && id.startsWith("pavement.concrete.");
     }
 }
