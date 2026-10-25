@@ -156,8 +156,9 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             String reason;
             float[] ride = frame.lifting.get(squad.squadId());
             if (ride != null && depot != null && (duty == null
-                    || Math.hypot(duty.x() - ride[2], duty.y() - ride[3]) > CordonLogistics.LIFT_REACH)) {
-                // The duty it rides for has ended or moved: set down where it is rather than carried to the old one.
+                    || Math.hypot(duty.x() - ride[2], duty.y() - ride[3]) > CordonCompanyRules.LIFT_WORTH / 2)) {
+                // The duty it rides for has ended, or moved half a lift's worth (a convoy it escorts moves all the
+                // while, so a smaller move is still worth the ride): set down where it is rather than carried on.
                 depot.callOff(squad.squadId());
                 calledOff.put(squad.squadId(), frame.tick());
                 ride = null;
