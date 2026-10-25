@@ -33,20 +33,16 @@ bore a lane takes, the waves and the calls for armour stay the mission's.
    spread along the ring, with a line of fire to the bore preferred. Allied
    command's stands slide a post along the ring or back from it, never in. The
    militia hold a **support line** five cells behind the ring, toward the lane.
-3. **Assault.** A hurt bore surges at most every twelve seconds. The militia go in
-   on a **spent surge**: a surge has come out, three seconds have passed, and the
-   mouth is **quiet**, holding no more of the swarm than half the lane's militia
-   (at least four). A bore that has not surged for forty seconds with its mouth
-   that quiet is gone in on as well. A lane that has held its support line a
-   minute goes in whatever the mouth holds, except in a surge's first seconds:
-   on Broad Front a mother's mouth never emptied, the ring could not see the
-   mother inside its building, and the lanes stood on their support lines until
-   the battle timed out.
-4. **Falling back.** The militia go back to the support line only once the
-   mouth holds more of the swarm than the lane has militia, and the lane waits
-   for that surge to be spent. Falling back on every surge did not work on Broad
-   Front, whose bores surge on their own clocks: every assault turned back before
-   it finished a bore.
+3. **Assault.** A hurt bore surges at most every twelve seconds. The lane goes in
+   on a **spent surge** (a surge has come out and three seconds have passed), when
+   no surge has come for forty seconds, or after a minute on its support line;
+   but only while what it can bring to the mouth, its militia and any of the
+   company standing at the bore, outnumbers the swarm in the mouth. A lane too
+   weak to win the mouth holds its support line and its machines keep firing.
+4. **Falling back.** The militia go back to the support line once the mouth
+   outnumbers them. On Broad Front, going in on a quiet mouth alone or falling
+   back on every surge sent broken lanes in to die and turned every assault back
+   before it finished a bore.
 5. **After the fall** the lane takes its next bore from where it stands, armour
    first.
 

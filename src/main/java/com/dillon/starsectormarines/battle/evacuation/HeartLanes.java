@@ -444,6 +444,8 @@ public final class HeartLanes {
 
     /** What the lanes' assaults did, for the evidence (`heart-bore-assault.md`, Acceptance). */
     private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, goneInOnWait, fallenBack;
+    /** Lane-seconds a lane was due to go in but held, outnumbered by the mouth. */
+    private int heldTooWeak;
     /** Lane-seconds spent in each assault phase, by {@link BoreAssault.Phase} ordinal. */
     private final int[] phaseSeconds = new int[BoreAssault.Phase.values().length];
     private int machineSeconds, machineSecondsInMouth;
@@ -505,18 +507,21 @@ public final class HeartLanes {
                 float sinceSurge = a.lastSurgeTick < 0 ? -1f : (tick - a.lastSurgeTick) * BattleSimulation.TICK_DT;
                 float sinceStart = (tick - a.startTick) * BattleSimulation.TICK_DT;
                 if (!squadsLeft || surged) break;
-                if (BoreAssault.spent(sinceSurge, sinceStart, mouthBodies(sim, bore), militia(sim, lane))) {
-                    if (a.lastSurgeTick >= 0) goneInOnSurge++;
-                    else goneInOnQuiet++;
-                    enter(lane, BoreAssault.Phase.ASSAULT, tick);
-                } else if (BoreAssault.waitedOut(sincePhase, sinceSurge)) {
-                    goneInOnWait++;
-                    enter(lane, BoreAssault.Phase.ASSAULT, tick);
+                boolean spent = BoreAssault.spent(sinceSurge, sinceStart);
+                if (!spent && !BoreAssault.waitedOut(sincePhase, sinceSurge)) break;
+                // Time to go in, but only with the strength to win the mouth: the lane's militia and the company there.
+                if (BoreAssault.outnumbered(mouthBodies(sim, bore), attackers(sim, lane, bore))) {
+                    heldTooWeak++;
+                    break;
                 }
+                if (!spent) goneInOnWait++;
+                else if (a.lastSurgeTick >= 0) goneInOnSurge++;
+                else goneInOnQuiet++;
+                enter(lane, BoreAssault.Phase.ASSAULT, tick);
             }
             case ASSAULT -> {
                 // A surge into a lane that still outnumbers it is fought through; one that outnumbers the lane is not.
-                if (BoreAssault.outnumbered(mouthBodies(sim, bore), militia(sim, lane))) {
+                if (BoreAssault.outnumbered(mouthBodies(sim, bore), attackers(sim, lane, bore))) {
                     fallenBack++;
                     enter(lane, BoreAssault.Phase.FALLING_BACK, tick);
                 }
@@ -637,10 +642,16 @@ public final class HeartLanes {
         return walkableNear(sim, (int) sim.world().x(leader), (int) sim.world().y(leader));
     }
 
-    /** The lane's living militia. */
-    private static int militia(BattleSimulation sim, Lane lane) {
+    /** What the lane can bring to the bore's mouth: its living militia, and the company's marines standing at the bore. */
+    private static int attackers(BattleSimulation sim, Lane lane, SwarmBore bore) {
         int n = 0;
         if (lane.squads != null) for (int squad : lane.squads) n += sim.squadMemberCount(squad);
+        for (int i = 0, count = sim.liveUnitCount(); i < count; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.MARINE || sim.identity().type(unit).isTurret()
+                    || !sim.world().isAlive(unit)) continue;
+            if (BoreAssault.atTheBore(Math.hypot(sim.world().x(unit) - bore.x(), sim.world().y(unit) - bore.y()))) n++;
+        }
         return n;
     }
 
@@ -698,7 +709,8 @@ public final class HeartLanes {
         }
         return assaultsBegun + " begun, " + boresFallen + " bores fallen to them, " + goneInOnSurge
                 + " gone in on a spent surge, " + goneInOnQuiet + " on a quiet mouth, " + goneInOnWait
-                + " after the longest wait, " + fallenBack + " fallen back; lane-seconds by phase: " + phases
+                + " after the longest wait, " + fallenBack + " fallen back, " + heldTooWeak
+                + " lane-seconds held outnumbered; lane-seconds by phase: " + phases
                 + "; machines in a living mouth " + machineSecondsInMouth + " of " + machineSeconds
                 + " machine-seconds";
     }

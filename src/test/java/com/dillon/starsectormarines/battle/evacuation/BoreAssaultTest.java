@@ -57,19 +57,11 @@ class BoreAssaultTest {
     }
 
     @Test
-    void aSurgeIsSpentOnceItHasSettledAndTheMouthIsQuiet() {
-        assertFalse(BoreAssault.spent(2f, 30f, 0, 8), "still pouring out");
-        assertTrue(BoreAssault.spent(4f, 30f, 2, 8));
-        assertFalse(BoreAssault.spent(4f, 30f, BoreAssault.QUIET_BODIES + 1, 8), "the mouth is full for a small lane");
-        assertFalse(BoreAssault.spent(-1f, 30f, 0, 8), "no surge yet: wait");
-        assertTrue(BoreAssault.spent(-1f, BoreAssault.QUIET_SECONDS, 0, 8), "a bore that never surges is gone in on");
-    }
-
-    @Test
-    void aStrongLaneGoesInPastMoreOfTheSwarm() {
-        assertFalse(BoreAssault.quiet(12, 8));
-        assertTrue(BoreAssault.quiet(12, 24), "half of twenty-four");
-        assertFalse(BoreAssault.quiet(13, 24));
+    void aSurgeIsSpentOnceItHasSettled() {
+        assertFalse(BoreAssault.spent(2f, 30f), "still pouring out");
+        assertTrue(BoreAssault.spent(4f, 30f));
+        assertFalse(BoreAssault.spent(-1f, 30f), "no surge yet: wait");
+        assertTrue(BoreAssault.spent(-1f, BoreAssault.QUIET_SECONDS), "a bore that never surges is gone in on");
     }
 
     @Test
@@ -81,10 +73,13 @@ class BoreAssaultTest {
     }
 
     @Test
-    void anAssaultFallsBackOnlyWhenTheMouthOutnumbersTheLane() {
+    void aLaneGoesInAndStaysInOnlyWhileItOutnumbersTheMouth() {
         assertFalse(BoreAssault.outnumbered(20, 24), "a surge the lane outnumbers is fought through");
         assertFalse(BoreAssault.outnumbered(24, 24));
         assertTrue(BoreAssault.outnumbered(25, 24));
+        int support = BoreAssault.MOUTH_CELLS + BoreAssault.RING_MARGIN_CELLS + BoreAssault.SUPPORT_BACK_CELLS;
+        assertTrue(BoreAssault.atTheBore(support), "the company on the support line counts");
+        assertFalse(BoreAssault.atTheBore(support + BoreAssault.SET_CELLS + 1), "the company elsewhere does not");
     }
 
     @Test

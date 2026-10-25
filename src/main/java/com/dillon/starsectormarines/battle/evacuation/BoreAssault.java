@@ -35,19 +35,12 @@ final class BoreAssault {
     static final int SUPPORT_BACK_CELLS = 5;
     /** Seconds after a surge comes out before it can be spent: the bodies are still pouring from the mouth. */
     static final float SETTLE_SECONDS = 3f;
-    /** Fewest of the swarm the mouth may hold and count as quiet, however small the lane. */
-    static final int QUIET_BODIES = 4;
-    /**
-     * The mouth is quiet when it holds no more of the swarm than this share of the lane's militia: a lane of forty
-     * goes in past a dozen, a lane of eight only past four.
-     */
-    static final float MOUTH_TO_LANE = 0.5f;
     /**
      * Longest a lane holds its support line before going in whatever the mouth holds, a surge's first seconds
      * excepted: a mouth that never empties (a mother's) is not a reason to stand all battle.
      */
     static final float MAX_WAIT_SECONDS = 60f;
-    /** Seconds without a surge after which a quiet mouth is gone in on anyway: the bore is not being hurt. */
+    /** Seconds without a surge after which the lane goes in anyway: the bore is not being hurt into surging. */
     static final float QUIET_SECONDS = 40f;
     /** Longest the militia wait for the machines after a fall before moving up to the support line anyway. */
     static final float ARMOUR_FIRST_SECONDS = 60f;
@@ -145,31 +138,32 @@ final class BoreAssault {
     static int[] rallyCell(int fromX, int fromY, int boreX, int boreY) {
         float dx = fromX - boreX, dy = fromY - boreY;
         float distance = (float) Math.hypot(dx, dy);
-        if (distance <= MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SET_CELLS) return null;
+        if (atTheBore(distance)) return null;
         return supportCell(boreX, boreY, dx / distance, dy / distance);
     }
 
     /**
-     * Whether the bore's last surge is spent: one has come out, {@link #SETTLE_SECONDS} have passed, and the mouth is
-     * {@linkplain #quiet quiet}; or none has come for {@link #QUIET_SECONDS} and the mouth is quiet.
+     * Whether the bore's last surge is spent: one has come out and {@link #SETTLE_SECONDS} have passed; or none has
+     * come for {@link #QUIET_SECONDS}. Whether the lane is strong enough to go in is {@link #outnumbered}'s.
      *
      * @param sinceSurge seconds since the last surge seen, or negative for none since the assault began
      * @param sinceStart seconds since the assault began
-     * @param laneBodies the lane's living militia
      */
-    static boolean spent(float sinceSurge, float sinceStart, int mouthBodies, int laneBodies) {
-        if (!quiet(mouthBodies, laneBodies)) return false;
+    static boolean spent(float sinceSurge, float sinceStart) {
         return sinceSurge >= 0f ? sinceSurge >= SETTLE_SECONDS : sinceStart >= QUIET_SECONDS;
     }
 
-    /** Whether the mouth holds few enough of the swarm for the lane to go in: {@link #MOUTH_TO_LANE} of it, at least {@link #QUIET_BODIES}. */
-    static boolean quiet(int mouthBodies, int laneBodies) {
-        return mouthBodies <= Math.max(QUIET_BODIES, Math.round(laneBodies * MOUTH_TO_LANE));
+    /**
+     * Whether the mouth holds more of the swarm than the lane can bring to it: its militia, and the company where it
+     * stands at the bore. An outnumbered lane does not go in, and one in falls back.
+     */
+    static boolean outnumbered(int mouthBodies, int attackers) {
+        return mouthBodies > attackers;
     }
 
-    /** Whether the militia in an assault fall back: the mouth holds more of the swarm than the lane has militia. */
-    static boolean outnumbered(int mouthBodies, int laneBodies) {
-        return mouthBodies > laneBodies;
+    /** Whether a body {@code distance} cells from the bore stands at it: on its support line or closer. */
+    static boolean atTheBore(double distance) {
+        return distance <= MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SET_CELLS;
     }
 
     /**
