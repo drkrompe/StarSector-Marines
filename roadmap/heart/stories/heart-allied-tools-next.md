@@ -103,6 +103,14 @@ carrier-seconds on a bore measure it.
 - Its carriers stand on a ring six cells behind the support line, facing the
   bore, and fire on what the lane's spotters see. Broad Front only: The Burn's
   base sends trucks alone, and its battery is its indirect fire.
+- Its carriers carry the bore as a fire mission: they shell it whenever anyone
+  on our side sees it, and pick the nearest target only while nobody does.
+  Without it a launcher took its own sight first, then the nearest, and was on
+  the bore 4% of the time.
+- Nobody calls fire while the swarm holds them: a marine or militia fighter
+  dragged alive to a bore's mouth, or not yet up from being dropped, is no
+  spotter, so a haul cannot bring rounds down on a bore early. (The player's
+  sight bubble around a hauled body is the screen's fog only.)
 - The summary reports sections called and carrier-seconds with a launcher on
   the bore.
 

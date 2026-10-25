@@ -599,7 +599,8 @@ public final class HeartLanes {
     }
 
     /**
-     * Posts the lane's fire-section carriers on their ring behind the support line, facing the bore, and counts each
+     * Posts the lane's fire-section carriers on their ring behind the support line, facing the bore, gives them the
+     * bore as their fire mission (they shell it whenever anyone on our side sees it), and counts each
      * second a carrier's launcher is on the bore: on its own sight or a spotter's call, since the code that aims it
      * takes either (`heart-allied-tools-next.md`, First check).
      */
@@ -618,7 +619,9 @@ public final class HeartLanes {
             allied.station(sim, hull, post[0], post[1], a.boreX - post[0], a.boreY - post[1]);
             sectionSeconds++;
             var turret = sim.convoy().turret(hull);
-            if (turret != null && turret.targetId == bore.entityId()) sectionSecondsOnBore++;
+            if (turret == null) continue;
+            turret.missionTargetId = bore.entityId();
+            if (turret.targetId == bore.entityId()) sectionSecondsOnBore++;
         }
     }
 
