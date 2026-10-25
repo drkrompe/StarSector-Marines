@@ -246,10 +246,10 @@ public final class CordonPlan {
     static final int RIDGE_EDGE = 2;
 
     /**
-     * The ridge along the line: from the map's west edge to its east, through
-     * each redoubt at the depth of its middle and straight between neighbours'
-     * facing edges, which is the course each picket line is dug along, lying
-     * {@link #RIDGE_FORWARD} cells to the front of it. Climbed from the rear.
+     * The ridge along the line, an engineered berm ({@link RidgePlanner.Relief#BERM}): from the map's west edge to
+     * its east, through each redoubt at the depth of its middle and straight between neighbours' facing edges, which
+     * is the course each picket line is dug along, lying {@link #RIDGE_FORWARD} cells to the front of it. Climbed
+     * from the rear.
      * The redoubts and the roads through the line break it into passes when it
      * is raised.
      *
@@ -257,7 +257,7 @@ public final class CordonPlan {
      * @param front  the unit step toward the front, {0, +1} or {0, -1}
      */
     static RidgePlanner.Band ridgeBand(List<int[]> bounds, int[] front, int width) {
-        return new RidgePlanner.Band(path(bounds, front, width), RIDGE_THICKNESS, -front[1], RIDGE_RAMP_WIDTH);
+        return new RidgePlanner.Band(path(bounds, front, width), RIDGE_THICKNESS, -front[1], RIDGE_RAMP_WIDTH).berm();
     }
 
     /**
@@ -267,7 +267,8 @@ public final class CordonPlan {
      */
     static List<RidgePlanner.Band> heldBands(List<int[]> seeds, int[] front, int width) {
         if (seeds.size() != REDOUBTS) return List.of();
-        return List.of(new RidgePlanner.Band(path(seeds, front, width), HELD_THICKNESS, -front[1], RIDGE_RAMP_WIDTH));
+        return List.of(new RidgePlanner.Band(path(seeds, front, width), HELD_THICKNESS, -front[1], RIDGE_RAMP_WIDTH)
+                .berm());
     }
 
     /**

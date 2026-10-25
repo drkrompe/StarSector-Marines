@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a173bf-5102-71c1-9713-7844e1bfe91a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a173bf-5102-71c1-9713-7844e1bfe91a\\exec-6f20dcd7-14c9-4ae0-82d1-3819634fb871.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\nest-clutch-2.raw.png",
+    "sha256": "fb5471552df3111c6f1b3e866e19cda48b59a10f727a18197b9405e00b9ff2ad",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\nest-clutch.prompt.txt",
+  "promptSha256": "25d355890074d052096262bd966945fe76367cb7ae080fb9fbef6820f33ee863",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: an EGG CLUTCH of the alien swarm for a top-down tactical game: small ground clutter lying on the swarm's creep near a nest, purely decorative. It is LOW and FLAT, a shallow nest pressed into the ground, never a tall growth, never a building: a handful of glossy ovoid eggs, each its own size and lie, packed in a shallow cup whose floor is wet dark membrane and whose ragged rim is a low, knotted lip of muscular sinew, with a few thin sinew strands lacing out over the lip into the ground. Each egg is a smooth, glossy, slightly translucent shell with a warm amber light glowing from inside it, brightest in its heart and fading to the shell's edge, a sharp wet highlight on its upper-left shoulder. No sac cluster, no domes, no pores, no spines, no plates standing up (those are other growths). Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical, do not add or remove eggs. Read the guide's flat colours as materials: pale warm grey-pink ovals = the eggs' glossy translucent shells, with the amber of what grows inside showing through; orange-amber = that inner glow, painted as light coming from inside, not as flat dots; dusky mauve = the wet dark membrane lining the cup; dark grey-green ring and tubes = sinew, glistening muscular rope. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between the strands; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple chitin with worn bone-grey edges, organic gunmetal-green sinew, small warm amber glowing nodes. It is part of one designed bio-weapon organism (the same flesh as the swarm runner), never a plant, never fruit, never a bird's nest of twigs, never a machine. It will be shown only about 40 to 100 pixels wide in play, so keep bold readable shapes, clear dark separations between the eggs and strong value contrast rather than fine noise. Add material, surface detail, veins and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-nest-clutch-2-guide.png",
+      "sha256": "7d9b632176f794760007af3f469bab718d3b2eb6a69a92d2d7175397326a3032",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to reskin the guide, preserving its geometry and lighting while matching the swarm’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 44312,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 492,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.8
+}

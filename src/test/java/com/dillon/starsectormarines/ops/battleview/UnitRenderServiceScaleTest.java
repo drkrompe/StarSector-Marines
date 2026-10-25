@@ -24,4 +24,12 @@ class UnitRenderServiceScaleTest {
                 UnitRenderService.layeredInfantryShoulderWidth(
                         cell, UnitType.ENGINEER.renderScale), 0.001f);
     }
+
+    @Test
+    void aFedBodyShrinksAsItSinksAndFadesOnlyOnceItIsGoingDown() {
+        assertEquals(1f, UnitRenderService.sinkScale(0f), 0.001f);
+        assertEquals(UnitRenderService.SINK_SCALE, UnitRenderService.sinkScale(1f), 0.001f);
+        assertEquals(1f, UnitRenderService.sinkAlpha(0.4f), 0.001f, "solid as it drops in");
+        assertEquals(0f, UnitRenderService.sinkAlpha(1f), 0.001f, "gone at the bottom");
+    }
 }

@@ -1,0 +1,61 @@
+{
+  "prefix": "marines_bark_",
+  "speechModelId": "eleven_v4",
+  "sfxModelId": "eleven_text_to_sound_v2",
+  "promptInfluence": 0.4,
+  "out": "battle/marine-barks",
+  "voices": {
+    "kestrel": "TX3LPaxmHKxFdv7VOQHJ",
+    "hammer": "HuAfwy9ycsANuERZQHLU",
+    "viper": "1I6DkREjhKUTww20MdUm",
+    "jackal": "YHOEWmZLDoCD6QyvyJKr",
+    "ox": "YUvgK8Ap5BSxIwdo4Uvr",
+    "rivet": "fGdXUaoUKa9laV1tzoOT"
+  },
+  "kinds": [
+    {"id": "contact", "lufs": -26, "lines": [
+      "[shouting] Contact, close!",
+      "[shouting, urgent] They're on us!",
+      "[shouting] Ravs! Here they come!"]},
+    {"id": "reload", "lufs": -28, "lines": [
+      "[shouting] Reloading!",
+      "[shouting, breathless] Changing mags! Cover me!",
+      "[shouting] I'm dry! Reloading!"]},
+    {"id": "grabbed", "lufs": -25, "lines": [
+      "[screaming in panic] Get it off me!",
+      "[screaming] It's got me! It's got me!",
+      "[panicked scream] Aaagh! Help me!"]},
+    {"id": "thrown", "lufs": -25, "lines": [
+      "[pained yell] Aaagh!",
+      "[winded cry of pain] Oof! Argh!",
+      "[yelling in pain] Gaah!"]},
+    {"id": "brute", "lufs": -25, "lines": [
+      "[shouting] Brute! Get clear!",
+      "[shouting, alarmed] Big one charging! Move!",
+      "[shouting] Brute coming through! Scatter!"]},
+    {"id": "matriarch", "lufs": -25, "lines": [
+      "[shouting, alarmed] Matriarch's running! Get back!",
+      "[shouting] She's coming! Move, move!",
+      "[shouting] Matriarch! Get out of her way!"]},
+    {"id": "kill", "lufs": -28, "lines": [
+      "[shouting] Got it!",
+      "[shouting, breathless] Stay down!",
+      "[shouting] Scratch one!"]},
+    {"id": "big_kill", "lufs": -27, "lines": [
+      "[shouting, relieved] Brute down!",
+      "[shouting] Big one's down!",
+      "[breathless, relieved] It's down! It's finally down!"]},
+    {"id": "man_down", "lufs": -26, "lines": [
+      "[shouting, anguished] Man down!",
+      "[shouting, angry] No! Damn it!",
+      "[shouting] We lost one!"]},
+    {"id": "strain", "lufs": -29, "lines": [
+      "[grunting with effort] Hngh!",
+      "[straining, through gritted teeth] Get... off!",
+      "[grunts in pain] Ugh!"]}
+  ],
+  "sfx": [
+    {"id": "scuffle", "lufs": -31, "durationSeconds": 0.8, "variants": 4,
+     "prompt": "A soldier scuffling in close combat: combat boots skidding and scraping on gravel, rifle sling, webbing and gear rattling, a body shoved, short, close, no voice, no gunshots, no music"}
+  ]
+}

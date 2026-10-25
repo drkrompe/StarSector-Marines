@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.overgrown;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
@@ -191,7 +192,8 @@ public final class HeartCountry {
                 form.scale.width, form.scale.height, rng);
         Precinct workings = place(plan, WORKINGS);
         Landscape.Knoll knoll = form == Form.BROAD_FRONT && density != Density.CITY ? knoll(density) : null;
-        Landscape landscape = landscapeFor(form, seed, workings, knoll == null ? null : place(plan, SETTLEMENT), knoll);
+        Landscape landscape = landscapeFor(form, seed, plan, workings, knoll == null ? null : place(plan, SETTLEMENT),
+                knoll);
         if (workings != null) landscape = landscape.withSealed(hollow(form, workings.seedX(), workings.seedY()));
         // The cordon ridge's ground is held before growth, as the Cordon holds its line's: in open country from
         // everything that grows, in a town from the fields alone. A city digs its forward line instead.
@@ -289,12 +291,13 @@ public final class HeartCountry {
      * the company lights its line behind. The brook bends round the workings'
      * hollow, when there is one, so its valley never cuts the rim, and a lane
      * that would run into the town's knoll turns along its foot to the south
-     * gate's road ({@link #laneTracks}).
+     * gate's road ({@link #laneTracks}). Outcrops stand about the approach
+     * ({@link #outcrops}).
      */
-    static Landscape landscapeFor(Form form, long seed, Precinct workings, Precinct town, Landscape.Knoll knoll) {
+    static Landscape landscapeFor(Form form, long seed, PrecinctPlan plan, Precinct workings, Precinct town,
+                                  Landscape.Knoll knoll) {
         int w = form.scale.width, h = form.scale.height;
         // The cordon ridge is the layout's (HeartLayout), raised before the works so the line is dug on its crest.
-        List<RidgePlanner.Band> ridges = List.of();
         List<Landscape.Track> tracks = new ArrayList<>();
         if (form == Form.BROAD_FRONT) {
             int top = Math.round(LANE_DEPTH * (h - 1));
@@ -302,7 +305,8 @@ public final class HeartCountry {
                 int x = Math.round(across * (w - 1)) - TRACK_WIDTH / 2;
                 tracks.addAll(laneTracks(x, top, town, knoll));
             }
-            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN, ridges);
+            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN,
+                    outcrops(form, seed, plan, knoll, null));
         }
         for (float depth : RIDE_DEPTH) {
             int x = Math.round(depth * (w - 1)) - RIDE_WIDTH / 2;
@@ -310,7 +314,96 @@ public final class HeartCountry {
         }
         Landscape.Brook brook = brook(w, h, seed);
         if (workings != null) brook = roundHollow(brook, workings.seedX(), workings.seedY());
-        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook), FIELD_MARGIN, ridges);
+        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook), FIELD_MARGIN,
+                outcrops(form, seed, plan, null, brook));
+    }
+
+    /** Outcrops each form tries to stand about its approach; The Burn's map is the smaller. */
+    static final int BROAD_FRONT_OUTCROPS = 7, THE_BURN_OUTCROPS = 5;
+    /**
+     * An outcrop's thickness in cells, at least and at most, and the cells of length it runs past the shortest run a
+     * ridge raises (twice its thickness and the gaps at its ends), at most: squat, a mesa rather than a ridge.
+     */
+    static final int OUTCROP_THICKNESS_MIN = 16, OUTCROP_THICKNESS_MAX = 22, OUTCROP_EXTRA_LENGTH = 10;
+    /** Cells across an outcrop's ramp: a scout car's width, not a tank's. */
+    static final int OUTCROP_RAMP_WIDTH = 7;
+    /** Cells an outcrop's middle keeps from a lane, a ride or the company's road, and from the brook's line. */
+    static final int OUTCROP_LANE_CLEAR = 18, OUTCROP_BROOK_CLEAR = 30;
+    /** Cells an outcrop's middle keeps from a place's seed, and from another outcrop's middle. */
+    static final int OUTCROP_PLACE_CLEAR = 44, OUTCROP_SPACING = 44;
+    private static final long OUTCROP_SALT = 0x4f55_5443_524f_5053L;
+
+    /**
+     * Natural high ground about the approach, off every line the mission drew (owner, 2026-10-25: "hills and mesas
+     * that aren't so convenient"): short bands of natural relief, each at a seeded depth between the cordon ridge
+     * and the hollow and a seeded place across, lying at a seeded bearing with a bend in it, climbed from a seeded
+     * side. None stands within reach of a lane, a ride, the company's road, the brook's valley, the hollow, the
+     * knoll or a place's seed; whatever else generation lays across one breaks it as it breaks any ridge, and one
+     * that finds no room is simply not raised. The mission's own ridge and rim stay where the story needs them;
+     * these are the country's.
+     */
+    static List<RidgePlanner.Band> outcrops(Form form, long seed, PrecinctPlan plan, Landscape.Knoll knoll,
+                                            Landscape.Brook brook) {
+        int w = form.scale.width, h = form.scale.height, size = form.advancesAlongY() ? h : w;
+        int acrossCells = form.advancesAlongY() ? w : h;
+        Random rng = new Random(seed ^ OUTCROP_SALT);
+        int longest = 2 * OUTCROP_THICKNESS_MAX + 8 + OUTCROP_EXTRA_LENGTH;
+        float near = (form.advancesAlongY() ? BROAD_FRONT_RIDGE_DEPTH : THE_BURN_RIDGE_DEPTH)
+                + (RIDGE_THICKNESS + 2f * longest / 3) / size;
+        float far = 0.8f;
+        int wanted = form.advancesAlongY() ? BROAD_FRONT_OUTCROPS : THE_BURN_OUTCROPS;
+        List<int[]> middles = new ArrayList<>();
+        List<RidgePlanner.Band> out = new ArrayList<>();
+        for (int attempt = 0; attempt < wanted * 40 && out.size() < wanted; attempt++) {
+            float depth = near + rng.nextFloat() * (far - near), across = 0.06f + rng.nextFloat() * 0.88f;
+            int thickness = OUTCROP_THICKNESS_MIN + rng.nextInt(OUTCROP_THICKNESS_MAX - OUTCROP_THICKNESS_MIN + 1);
+            int length = 2 * thickness + 8 + rng.nextInt(OUTCROP_EXTRA_LENGTH + 1);
+            double bearing = rng.nextDouble() * Math.PI, bend = (rng.nextDouble() - .5) * length / 6;
+            int side = rng.nextBoolean() ? 1 : -1;
+            int[] c = form.cellAt(depth, across);
+            if (!outcropClear(form, plan, knoll, brook, c, acrossCells, size, depth, across, middles)) continue;
+            double ux = Math.cos(bearing), uy = Math.sin(bearing), half = length / 2.0;
+            ElevationPlan.Point a = new ElevationPlan.Point(clampCell(c[0] - ux * half, w), clampCell(c[1] - uy * half, h));
+            ElevationPlan.Point m = new ElevationPlan.Point(clampCell(c[0] - uy * bend, w), clampCell(c[1] + ux * bend, h));
+            ElevationPlan.Point b = new ElevationPlan.Point(clampCell(c[0] + ux * half, w), clampCell(c[1] + uy * half, h));
+            out.add(new RidgePlanner.Band(List.of(a, m, b), thickness, side, OUTCROP_RAMP_WIDTH));
+            middles.add(c);
+        }
+        return out;
+    }
+
+    /** Whether an outcrop's middle at cell {@code c} keeps clear of every line, place and outcrop it must. */
+    private static boolean outcropClear(Form form, PrecinctPlan plan, Landscape.Knoll knoll, Landscape.Brook brook,
+                                        int[] c, int acrossCells, int size, float depth, float across,
+                                        List<int[]> middles) {
+        if (form.advancesAlongY()) {
+            for (float lane : LANE_ACROSS) if (Math.abs(across - lane) * acrossCells < OUTCROP_LANE_CLEAR) return false;
+            // The company's road up the middle.
+            if (Math.abs(across - 0.5f) * acrossCells < OUTCROP_LANE_CLEAR) return false;
+        } else {
+            for (float ride : RIDE_DEPTH) if (Math.abs(depth - ride) * size < OUTCROP_LANE_CLEAR) return false;
+        }
+        if (brook != null) {
+            for (int[] p : brook.line()) if (Math.hypot(p[0] - c[0], p[1] - c[1]) < OUTCROP_BROOK_CLEAR) return false;
+        }
+        for (Precinct place : plan.precincts()) {
+            double reach = OUTCROP_PLACE_CLEAR;
+            if (place.name().equals(WORKINGS)) reach = HOLLOW_RADIUS + HOLLOW_RIM + OUTCROP_PLACE_CLEAR / 2.0;
+            if (knoll != null && place.name().equals(knoll.place())) {
+                reach = Math.hypot(knoll.halfWidth(), knoll.halfHeight()) + knoll.ring() + OUTCROP_PLACE_CLEAR / 2.0;
+            }
+            if (Math.hypot(place.seedX() - c[0], place.seedY() - c[1]) < reach) return false;
+        }
+        Precinct landing = plan.landingPlace();
+        if (landing != null && Math.hypot(landing.seedX() - c[0], landing.seedY() - c[1]) < OUTCROP_PLACE_CLEAR) {
+            return false;
+        }
+        for (int[] m : middles) if (Math.hypot(m[0] - c[0], m[1] - c[1]) < OUTCROP_SPACING) return false;
+        return true;
+    }
+
+    private static double clampCell(double v, int size) {
+        return Math.max(2, Math.min(size - 3, v));
     }
 
     /**
@@ -346,16 +439,18 @@ public final class HeartCountry {
 
     /**
      * The cordon's ridge across the whole front, climbed from the start side.
-     * Roads, lanes, rides and the settlement break it into passes.
+     * Roads, lanes, rides and the settlement break it into passes. A berm the
+     * colony graded years ago as planetary defence works, not a natural rise
+     * (owner, 2026-10-25): straight runs, cut square at every pass.
      */
     static RidgePlanner.Band ridge(Form form) {
         int w = form.scale.width, h = form.scale.height;
         if (form.advancesAlongY()) {
             int y0 = Math.round(BROAD_FRONT_RIDGE_DEPTH * (h - 1));
-            return RidgePlanner.Band.rect(0, y0, w - 1, y0 + RIDGE_THICKNESS - 1, true, -1, RIDGE_RAMP_WIDTH);
+            return RidgePlanner.Band.rect(0, y0, w - 1, y0 + RIDGE_THICKNESS - 1, true, -1, RIDGE_RAMP_WIDTH).berm();
         }
         int x0 = Math.round(THE_BURN_RIDGE_DEPTH * (w - 1));
-        return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH);
+        return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH).berm();
     }
 
     /**
@@ -434,8 +529,14 @@ public final class HeartCountry {
         return new Landscape.Brook(path, BROOK_WIDTH, BROOK_FORD_EVERY, BROOK_FORD_WIDTH, VALLEY_SIDE);
     }
 
-    /** Cells from the brook's middle to the outer foot of a valley side, its apron included (`OutdoorLandscapeStage`). */
-    static final int BROOK_VALLEY_REACH = 25;
+    /**
+     * Cells from the brook's middle to the outer foot of a valley side, its apron included (`OutdoorLandscapeStage`):
+     * 25 for a side of the brook's own width at the nearest it stands, and more for the widest side, standing as far
+     * back as its stagger lets it, swelling to its spread on both its edges.
+     */
+    static final int BROOK_VALLEY_REACH = 25 + OutdoorLandscapeStage.VALLEY_VARY
+            + OutdoorLandscapeStage.VALLEY_STAGGER
+            + 2 * RidgePlanner.naturalSpread(VALLEY_SIDE + OutdoorLandscapeStage.VALLEY_VARY);
     /**
      * Cells, at least, from the workings' seed to the brook's middle: the
      * hollow out to the rim's outer foot and its apron, then the brook's valley

@@ -9,7 +9,7 @@ three cells gives a crown room to fit. One drag is one undoable stroke.
 the canopy are impassable, including leaves and branches away from the trunk.
 Erasing excludes those cells from placement, so a cleared path has no canopy
 overhang. Intact and damaged crowns are opaque obstacles. Combat can fell a
-whole tree, leaving low broken trunks and branches and releasing its canopy
+whole tree, leaving a low broken stump and the short butts of its limbs and releasing its canopy
 cells wherever no surviving tree or hill still obstructs them.
 
 The example `woodland.forest.json` is a 96x54 woodland with an open central lane.
@@ -58,6 +58,13 @@ prompts and reviewed crop documents live in
 `art-source/tilesets/forest-damaged.*` and `forest-destroyed.*`.
 The generated sheets retained the 1536x1024 canvas; reviewed cuts include
 branch tips and empty margins without alpha trimming or recentering.
+The felled trees ship flattened (owner, 2026-10-25): a heavy hull drives over
+them, and the generation's long fallen limbs read as a tree still in the way.
+`art-source/tilesets/forest-destroyed-flatten.py` keeps each cut's stump and
+the butts of its limbs, broken at a ragged line 40% out, into
+`forest-destroyed-flat/forest-destroyed.flat.png`, which the authoring document exports; the accepted
+`forest-destroyed.raw.png` is never altered. Re-bake the blight's felled wood
+(`gradlew.bat bakeCreepBlight`) after exporting.
 
 Export each with `tools/authoring.cmd tileset_export -` and JSON
 `{"name":"forest-damaged"}` or `{"name":"forest-destroyed"}` on stdin.
@@ -96,14 +103,16 @@ Export each with `tools/authoring.cmd tileset_export -` and
 The six one-cell floor plants (`nature.shrub-1..3`, `nature.tuft-1..3`) were
 redrawn overhead from `art-source/templates/forest-floor-plants-guide.py` into
 `art-source/tilesets/forest-floor-plants/forest-floor-plants.png`.
-`art-source/tilesets/nature-plants-refit.py` resamples them to the nature
+`art-source/tilesets/nature-tiles-refit.py` resamples them to the nature
 plate's scale, joins them to the right of the accepted plate without touching
-it, and points the six entries at them; then export `nature-tiles` and re-run
-`gradlew.bat :asset-pipeline:deriveTileMaps`.
+it, and points the six entries at them; it does the same for the seven field
+stones (`rock-damage.README.md`). Then export `nature-tiles` and `rock-damage`
+and re-run `gradlew.bat :asset-pipeline:deriveTileMaps`.
 
 `createSnapshots -Psnapshot=undergrowth-look` shows the guides, every species in
 its three states and four turns, and look shots: a wood whose tank lane is grown
-over, crossed by a breakthrough tank, and open ground with the floor plants.
+over, crossed by a breakthrough tank, and open ground with the floor plants and
+field stones in all three states.
 
 ## Outdoor map adoption
 

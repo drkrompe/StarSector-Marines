@@ -34,7 +34,10 @@ A line drawn across country by someone who has had weeks to choose:
 
 - **The line on the high ground.** The redoubts stand on the rise the
   country offers nearest the bloom: a low ridge across the map at the line's
-  depth (authored ground), with the front falling away below it. Redoubts sit
+  depth (authored ground), with the front falling away below it. It is a berm
+  the colony graded years ago, regular because it was built: straight runs,
+  faces drawn as a turfed bank, cut square at every pass (owner, 2026-10-25;
+  `elevation-nouns.md`, Relief). Redoubts sit
   on its crest at the roads, because roads are how the swarm comes and how
   the allies move.
 - **Redoubts where roads cross.** Each redoubt guards a road through the line.
