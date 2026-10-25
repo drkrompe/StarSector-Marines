@@ -331,13 +331,10 @@ class CordonCommandEvidenceTest {
                 .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n")
                 .append("- Optional objectives: ").append(objectives.isEmpty() ? "none" : objectives).append('\n')
                 .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
-                .append('
-')
-                .append("- Harriers: ").append(HarrierReading.line(sim)).append('
-');
+                .append('\n')
+                .append("- Harriers: ").append(HarrierReading.line(sim)).append('\n');
         out.append("- Outer picket: ").append(cordon.outerPicket() == null ? "none" : cordon.outerPicket().readings())
-                .append('
-');
+                .append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")
