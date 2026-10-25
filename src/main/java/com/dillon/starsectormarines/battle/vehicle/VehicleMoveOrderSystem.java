@@ -275,8 +275,7 @@ public final class VehicleMoveOrderSystem {
         // A bladed hull proves its route over the ground it can open, and a hover hull over the water it floats on.
         NavigationGrid grid = controlSystem.planningGrid(type);
 
-        VehicleClearance clearance = VehicleClearance.erode(grid,
-                VehicleClearance.radiusForWidth(type.visualWidthCells));
+        VehicleClearance clearance = convoy.clearances().of(grid, type);
         TerrainCostField cost = controlSystem.costField(type);
 
         int[] from = VehicleRoutePlanner.snapToMask(clearance,

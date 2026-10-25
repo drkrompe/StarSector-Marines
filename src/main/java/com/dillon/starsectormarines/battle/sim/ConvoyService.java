@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -74,9 +75,15 @@ public final class ConvoyService implements BodyCarrier {
     /** Entity id to the mech-bay vehicle it realizes; only company vehicles are here. */
     private final Map<Long, String> companyVehicles = new LinkedHashMap<>();
 
+    /** Held footprint masks, so a route question does not erode the whole map again. */
+    private final VehicleClearances clearances = new VehicleClearances();
+
     public ConvoyService(UnitRosterService roster) {
         this.roster = roster;
     }
+
+    /** The battle's held vehicle clearance masks, for any route question asked during play. */
+    public VehicleClearances clearances() { return clearances; }
 
     /**
      * Spawns one convoy vehicle: builds its {@link GroundBody} (teleported to the
