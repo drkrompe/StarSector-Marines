@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.overgrown;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
@@ -528,8 +529,14 @@ public final class HeartCountry {
         return new Landscape.Brook(path, BROOK_WIDTH, BROOK_FORD_EVERY, BROOK_FORD_WIDTH, VALLEY_SIDE);
     }
 
-    /** Cells from the brook's middle to the outer foot of a valley side, its apron included (`OutdoorLandscapeStage`). */
-    static final int BROOK_VALLEY_REACH = 25;
+    /**
+     * Cells from the brook's middle to the outer foot of a valley side, its apron included (`OutdoorLandscapeStage`):
+     * 25 for a side of the brook's own width at the nearest it stands, and more for the widest side, standing as far
+     * back as its stagger lets it, swelling to its spread on both its edges.
+     */
+    static final int BROOK_VALLEY_REACH = 25 + OutdoorLandscapeStage.VALLEY_VARY
+            + OutdoorLandscapeStage.VALLEY_STAGGER
+            + 2 * RidgePlanner.naturalSpread(VALLEY_SIDE + OutdoorLandscapeStage.VALLEY_VARY);
     /**
      * Cells, at least, from the workings' seed to the brook's middle: the
      * hollow out to the rim's outer foot and its apron, then the brook's valley

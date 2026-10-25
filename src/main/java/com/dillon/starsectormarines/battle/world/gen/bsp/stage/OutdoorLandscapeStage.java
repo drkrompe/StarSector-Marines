@@ -549,7 +549,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     static final int FORD_APPROACH = 6;
 
     /** Cells more a valley side may stand back from the water than the nearest it may, and more or less through. */
-    static final int VALLEY_STAGGER = 4, VALLEY_VARY = 2;
+    public static final int VALLEY_STAGGER = 4, VALLEY_VARY = 2;
 
     /**
      * Each banked brook's valley sides: a band along either bank, offset clear of
