@@ -6,6 +6,8 @@ Colony has stable Marine expedition branches; live acceptance remains open.
 
 Written: 2026-08-27
 
+Updated: 2026-10-25 — the people follow a squad: a released civilian attaches to a squad and walks after it, never to the lift on its own; the close escort leads four route cells ahead.
+
 Updated: 2026-10-21 — Colony Breach hive posture: the rescue commander sends and recalls a strike detachment under a readiness gate.
 
 Read `mission-command-nouns.md` for the shared architecture and
@@ -121,16 +123,24 @@ lead, left, right, and rear screen roles. Before release, separate shelter-
 approach cells organize relief; after release, route-relative guide and screen
 cells form the corridor to the lift. The guide is routed from the cohort's
 cell, or from the nearest open cell when the cohort's centroid falls on a
-wall between its members, so it never collapses onto the cohort itself. The
-close escort rallies one route cell ahead of the cohort rather than on it: a
-civilian holds while its nearest escort is more than two cells behind it toward
-the lift, and a pocket centred on the cohort can leave a trailing member as
-every civilian's nearest, which holds the cohort for good. A dispersed rear
-civilian becomes the cohort's anchor instead of being averaged into the main
-group. A civilian outside the leash waits where it stands, so the mean of it
-and the group lies behind the group; an escort formed there holds the group as
-well, and nothing moves again until the straggler dies. Anchored on the
-straggler, the escort fetches it while the group waits outside the leash.
+wall between its members, so it never collapses onto the cohort itself.
+
+**The people follow a squad** (owner, 2026-10-25: the player guides the
+colonists through the map, not the other way round). A released civilian
+attaches to a squad and walks after it wherever it goes; it never heads for
+the lift on its own (`CivilianEvacuationSystem`). It takes the commander's
+named close escort when a member of it is within twelve cells, else keeps the
+squad it has while a member is within twelve, else attaches to the squad of a
+marine within five. It stands once a member of its squad is within two cells,
+and walks in to board when its squad stands in the lift zone. A civilian whose
+squad has gone further than twelve cells has lost it and waits where it stands
+(counted unescorted) until a marine comes within five. So a squad under direct
+control leads its people anywhere, and the commander leads them by moving its
+escort: the close escort rallies four route cells ahead of the cohort, more
+than the two at which the people stand, so they keep walking after it. A
+dispersed rear civilian becomes the cohort's anchor instead of being averaged
+into the main group, and the escort's rally goes back for it; the rest follow
+the escort back, and then all walk on together.
 Repeated role echelons receive stable
 offsets instead of forming one brick. A local actionable contact may hold only
 the affected squad's current target for a bounded interval; it does not freeze
@@ -142,7 +152,7 @@ Marine reaches its own door. The commander's frame then carries each redoubt's
 public door, whether it is reached or fallen, and how many of its people are
 behind the door or walking. The model is the simplest honest one. Every redoubt
 whose people are walking gets its own close escort, the free squad nearest them,
-kept until they are aboard; the escort rallies a route cell ahead of its group,
+kept until they are aboard; the escort rallies four route cells ahead of its group,
 as the single escort does. The rest of the force relieves one pending redoubt
 at a time, forming on its door: the one whose route from the force's mean
 position is shortest, kept until it is reached or falls, so the force does not

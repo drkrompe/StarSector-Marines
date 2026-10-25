@@ -37,13 +37,14 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
 
     public static final int ADVANCE_SCREEN_CELLS = 5;
     /**
-     * Route cells the close escort's rally anchor leads the cohort by. A civilian
-     * holds while its nearest escort is behind it toward the lift, so an escort
-     * pocket centred on the cohort itself can leave a trailing member as every
-     * civilian's nearest and park the cohort for good. One cell keeps the pocket
-     * on the cohort and the escort's anchor clear of the lead screen's.
+     * Route cells the close escort's rally anchor leads a cohort of one by. The
+     * people follow their squad and stand once beside it ({@code
+     * CivilianEvacuationSystem}, two cells), so the escort leads by more than that
+     * or the cohort stands round it and nobody moves again ({@link #escortLead}).
      */
-    static final int ESCORT_LEAD_CELLS = 1;
+    static final int ESCORT_LEAD_CELLS = 4;
+    /** The most route cells the close escort leads by, however many walk behind it. */
+    static final int MAX_ESCORT_LEAD_CELLS = 10;
     /** Compatibility name for the legacy two-cell pressured bound. */
     public static final int ENGAGED_BOUND_CELLS = 2;
     public static final int ENGAGED_BOUND_TICKS = 150;
@@ -139,14 +140,15 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         }
         int[] route = frame.topology().route(anchorX, anchorY,
                 placement.liftX, placement.liftY);
+        int lead = escortLead(cohort.activeElements());
         int guideIndex = Paths.isEmpty(route) ? -1
-                : Math.min(ADVANCE_SCREEN_CELLS,
+                : Math.min(Math.max(ADVANCE_SCREEN_CELLS, lead + 1),
                 Paths.cellCount(route) - 1);
         int guideX = guideIndex >= 0 ? Paths.cellX(route, guideIndex) : anchorX;
         int guideY = guideIndex >= 0 ? Paths.cellY(route, guideIndex) : anchorY;
         int[] forward = direction(anchorX, anchorY, guideX, guideY);
         int escortIndex = Paths.isEmpty(route) ? -1
-                : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(route) - 1);
+                : Math.min(lead, Paths.cellCount(route) - 1);
         int escortX = escortIndex >= 0 ? Paths.cellX(route, escortIndex) : anchorX;
         int escortY = escortIndex >= 0 ? Paths.cellY(route, escortIndex) : anchorY;
 
@@ -319,11 +321,13 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
             anchorY = placement.liftY;
         }
         int[] route = topology.route(anchorX, anchorY, placement.liftX, placement.liftY);
-        int guideIndex = Paths.isEmpty(route) ? -1 : Math.min(ADVANCE_SCREEN_CELLS, Paths.cellCount(route) - 1);
+        int screenedLead = escortLead(screened != null ? screened.walking() : 0);
+        int guideIndex = Paths.isEmpty(route) ? -1
+                : Math.min(Math.max(ADVANCE_SCREEN_CELLS, screenedLead + 1), Paths.cellCount(route) - 1);
         int guideX = guideIndex >= 0 ? Paths.cellX(route, guideIndex) : anchorX;
         int guideY = guideIndex >= 0 ? Paths.cellY(route, guideIndex) : anchorY;
         int[] forward = direction(anchorX, anchorY, guideX, guideY);
-        int escortIndex = Paths.isEmpty(route) ? -1 : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(route) - 1);
+        int escortIndex = Paths.isEmpty(route) ? -1 : Math.min(screenedLead, Paths.cellCount(route) - 1);
         int forceEscortX = escortIndex >= 0 ? Paths.cellX(route, escortIndex) : anchorX;
         int forceEscortY = escortIndex >= 0 ? Paths.cellY(route, escortIndex) : anchorY;
 
@@ -358,7 +362,8 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 fallbackX = open != null ? open[0] : group.walkingCellX();
                 fallbackY = open != null ? open[1] : group.walkingCellY();
                 int[] walk = topology.route(fallbackX, fallbackY, placement.liftX, placement.liftY);
-                int lead = Paths.isEmpty(walk) ? -1 : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(walk) - 1);
+                int lead = Paths.isEmpty(walk) ? -1
+                        : Math.min(escortLead(group.walking()), Paths.cellCount(walk) - 1);
                 ideal = lead >= 0 ? new int[]{Paths.cellX(walk, lead), Paths.cellY(walk, lead)}
                         : new int[]{fallbackX, fallbackY};
                 role = Role.COHORT_ESCORT;
@@ -414,6 +419,16 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 frame.tick(), frame.influence() != null ? frame.influence().updatedTick() : -1,
                 pool.size(), 0, List.of(summary(cohort) + " relief=" + reliefTarget
                         + " escorts=" + escortOf.size() + strikeSummary()), proposals, detail);
+    }
+
+    /**
+     * Route cells the close escort leads {@code walkers} by from their anchor, their mean cell: past the two at which
+     * the people stand beside it by half the column they make, since in a lane the front of a long column is beside
+     * the escort while its middle, the anchor, is still well back, and an escort that led the middle by less would
+     * stand there with the people beside it. At most {@link #MAX_ESCORT_LEAD_CELLS}.
+     */
+    static int escortLead(int walkers) {
+        return Math.min(MAX_ESCORT_LEAD_CELLS, ESCORT_LEAD_CELLS + Math.max(0, walkers) / 2);
     }
 
     /**

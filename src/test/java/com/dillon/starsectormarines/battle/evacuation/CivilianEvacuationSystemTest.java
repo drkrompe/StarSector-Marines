@@ -57,9 +57,8 @@ class CivilianEvacuationSystemTest {
 
         assertFalse(sim.isCivilianShelterProtected());
         assertTrue(sim.isCivilianEvacuationTriggered());
-        assertFalse(Paths.isEmpty(sim.movement().path(first)));
 
-        sim.world().setCellPos(marine, 2, 2);
+        sim.releaseFromRegistry(marine);
         sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(Paths.isEmpty(sim.movement().path(first)));
@@ -90,7 +89,7 @@ class CivilianEvacuationSystemTest {
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(sim.isCivilianEvacuationTriggered());
         long civilian = payload.entityId(0);
-        sim.world().setCellPos(responder, 2, 2);
+        sim.releaseFromRegistry(responder);
         sim.clearPath(civilian);
 
         sim.advance(BattleSimulation.TICK_DT);
@@ -135,12 +134,12 @@ class CivilianEvacuationSystemTest {
                 payload.placement.shelterApproachX,
                 payload.placement.shelterApproachY));
 
+        // The marine leads: a step toward the lift whenever every walker has caught up with it.
+        int liftX = payload.placement.liftX, liftY = payload.placement.liftY;
         for (int tick = 0; tick < 2_400 && !sim.isComplete(); tick++) {
-            long active = firstActiveCivilian(sim);
-            if (active != 0L) {
-                sim.world().setCellPos(escort,
-                        sim.world().cellX(active),
-                        sim.world().cellY(active));
+            if (tick % 6 == 0 && everyoneWithin(sim, escort, 3)) {
+                int x = sim.world().cellX(escort), y = sim.world().cellY(escort);
+                sim.world().setCellPos(escort, x + Integer.compare(liftX, x), y + Integer.compare(liftY, y));
             }
             sim.advance(BattleSimulation.TICK_DT);
         }
@@ -175,9 +174,9 @@ class CivilianEvacuationSystemTest {
 
         long protectedCivilian = payload.entityId(0);
         long distantCivilian = payload.entityId(1);
-        sim.world().setCellPos(protectedCivilian, 10, 10);
-        sim.world().setCellPos(distantCivilian, 22, 18);
-        sim.world().setCellPos(marine, 10, 11);
+        sim.world().setCellPos(protectedCivilian, 3, 3);
+        sim.world().setCellPos(distantCivilian, 24, 20);
+        sim.world().setCellPos(marine, 3, 7);
         sim.clearPath(protectedCivilian);
         sim.clearPath(distantCivilian);
 
@@ -188,7 +187,7 @@ class CivilianEvacuationSystemTest {
     }
 
     @Test
-    void civilianStopsWhenMoreThanTwoCellsAheadOfNearestEscort() {
+    void aCivilianFollowsItsSquadEvenAwayFromTheLift() {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
                 sim, List.of(residential(12, 10)), 303L);
@@ -198,23 +197,48 @@ class CivilianEvacuationSystemTest {
                 payload.placement.shelterApproachY));
         sim.advance(BattleSimulation.TICK_DT);
 
+        // The squad walks off the far side of the civilian from the lift; the civilian goes after it.
         long civilian = payload.entityId(0);
-        int axisX = Math.abs(payload.placement.shelterX - payload.placement.liftX)
-                >= Math.abs(payload.placement.shelterY - payload.placement.liftY)
-                ? Integer.compare(payload.placement.shelterX, payload.placement.liftX) : 0;
-        int axisY = axisX == 0
-                ? Integer.compare(payload.placement.shelterY, payload.placement.liftY) : 0;
-        sim.world().setCellPos(civilian,
-                payload.placement.liftX + axisX * 5,
-                payload.placement.liftY + axisY * 5);
-        sim.world().setCellPos(marine,
-                payload.placement.liftX + axisX * 9,
-                payload.placement.liftY + axisY * 9);
+        int[] far = farCorner(payload.placement);
+        int cx = (far[0] + payload.placement.liftX) / 2, cy = (far[1] + payload.placement.liftY) / 2;
+        sim.world().setCellPos(civilian, cx, cy);
+        sim.world().setCellPos(marine, cx + Integer.compare(far[0], cx) * 6, cy + Integer.compare(far[1], cy) * 6);
         sim.clearPath(civilian);
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(Paths.isEmpty(sim.movement().path(civilian)));
+        int[] path = sim.movement().path(civilian);
+        assertFalse(Paths.isEmpty(path), "a civilian with its squad in reach walks after it");
+        assertTrue(Math.abs(Paths.destX(path) - sim.world().cellX(marine)) <= 1
+                && Math.abs(Paths.destY(path) - sim.world().cellY(marine)) <= 1,
+                "it walks to the squad, not to the lift");
+    }
+
+    @Test
+    void aCivilianStandsBesideItsSquadAndWaitsOnceTheSquadHasGoneOutOfReach() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 308L);
+        assertNotNull(payload);
+        long marine = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        // Away from the lift, in the far corner, so standing is not walking in to board.
+        long civilian = payload.entityId(0);
+        int[] far = farCorner(payload.placement);
+        int inward = far[0] < 13 ? 1 : -1;
+        sim.world().setCellPos(civilian, far[0], far[1]);
+        sim.world().setCellPos(marine, far[0] + inward, far[1]);
+        sim.clearPath(civilian);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(Paths.isEmpty(sim.movement().path(civilian)), "beside its squad it stands");
+
+        sim.world().setCellPos(marine, far[0] + inward * (CivilianEvacuationSystem.FOLLOW_LEASH + 2), far[1]);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(Paths.isEmpty(sim.movement().path(civilian)), "a squad out of reach is lost; it waits");
+        assertTrue(sim.getCivilianEvacuationProgress().unescorted() > 0);
     }
 
     @Test
@@ -250,17 +274,18 @@ class CivilianEvacuationSystemTest {
                 + fromMarineY * awayFromThreatY > 0);
     }
 
-    private static long firstActiveCivilian(BattleSimulation sim) {
+    /** Whether every active civilian stands within {@code cells} of {@code marine}. */
+    private static boolean everyoneWithin(BattleSimulation sim, long marine, int cells) {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
         for (int i = 0; i < tracker.registeredCount(); i++) {
             long id = tracker.entityIdAt(i);
-            if (tracker.state(id) == CivilianEvacuationTracker.State.ACTIVE
-                    && sim.resolveUnit(id) != 0L) {
-                return id;
-            }
+            if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE
+                    || sim.resolveUnit(id) == 0L) continue;
+            if (Math.abs(sim.world().cellX(id) - sim.world().cellX(marine)) > cells
+                    || Math.abs(sim.world().cellY(id) - sim.world().cellY(marine)) > cells) return false;
         }
-        return 0L;
+        return true;
     }
 
     @Test
