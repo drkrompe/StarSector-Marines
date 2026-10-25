@@ -38,8 +38,21 @@ public final class HarrierPatrol {
     final int size;
     /** Members that landed back on the spire. */
     int landed;
+    /** How fast the anchor flies the route. */
+    final float speed;
+    /** The waypoint a raid strikes at ({@link HarrierRaid}), or -1 for a patrol's loop. */
+    final int strikeLeg;
+    private boolean striking, struck;
+    private int divesAtStrike = -1;
+    private float strikeSeconds, idleSeconds;
 
     HarrierPatrol(float[] route, float homeX, float homeY, int size) {
+        this(route, homeX, homeY, size, SPEED, -1);
+    }
+
+    HarrierPatrol(float[] route, float homeX, float homeY, int size, float speed, int strikeLeg) {
+        this.speed = speed;
+        this.strikeLeg = strikeLeg;
         this.size = size;
         this.route = route;
         this.homeX = homeX;
@@ -61,19 +74,57 @@ public final class HarrierPatrol {
     /** Whether the patrol has flown its loop and is over its spire, landing. */
     public boolean homing() { return leg >= route.length / 2; }
 
+    /** Whether this is a raid, flying out to strike and back, rather than a patrol's loop. */
+    public boolean raid() { return strikeLeg >= 0; }
+
+    /** Where a raid strikes: its target's ground as it was sent. */
+    public float strikeX() { return route[Math.max(0, strikeLeg) * 2]; }
+    public float strikeY() { return route[Math.max(0, strikeLeg) * 2 + 1]; }
+
+    /** Whether a raid is over its target, hunting there. */
+    public boolean striking() { return striking; }
+
+    /** Whether a raid has been over its target and turned for home. */
+    public boolean struck() { return struck; }
+
+    /**
+     * A raid over its target: it turns for home once it has made {@link HarrierRaid#DIVES} dives there and is
+     * {@code loitering} again, or has had no {@code prey} for {@link HarrierRaid#STRIKE_IDLE_SECONDS}, or has stayed
+     * {@link HarrierRaid#STRIKE_MAX_SECONDS}. {@code dives} is the pack's count of dives so far.
+     */
+    void strikeTick(float dt, int dives, boolean loitering, boolean prey) {
+        if (!striking) return;
+        if (divesAtStrike < 0) divesAtStrike = dives;
+        strikeSeconds += dt;
+        idleSeconds = prey ? 0f : idleSeconds + dt;
+        boolean done = loitering && dives - divesAtStrike >= HarrierRaid.DIVES;
+        if (done || idleSeconds >= HarrierRaid.STRIKE_IDLE_SECONDS || strikeSeconds >= HarrierRaid.STRIKE_MAX_SECONDS) {
+            striking = false;
+            struck = true;
+            leg++;
+        }
+    }
+
     /** A copy of the route, for evidence and the scene. */
     public float[] route() { return route.clone(); }
 
-    /** Moves the anchor {@link #SPEED} along the route for {@code dt} seconds, waypoint after waypoint. */
+    /**
+     * Moves the anchor at its speed along the route for {@code dt} seconds, waypoint after waypoint; a raid stops on
+     * its strike leg and strikes there until {@link #strikeTick} turns it for home.
+     */
     void step(float dt) {
-        float left = SPEED * dt;
-        while (left > 0f && !homing()) {
+        float left = speed * dt;
+        while (left > 0f && !homing() && !striking) {
             float tx = route[leg * 2], ty = route[leg * 2 + 1];
             float dx = tx - x, dy = ty - y, d = (float) Math.hypot(dx, dy);
             if (d <= Math.max(ARRIVE, left)) {
                 x = tx;
                 y = ty;
                 left -= d;
+                if (leg == strikeLeg && !struck) {
+                    striking = true;
+                    break;
+                }
                 leg++;
                 continue;
             }

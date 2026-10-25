@@ -195,6 +195,8 @@ public final class SwarmReinforcementSystem {
             refreshSnapshot(sim, tickBores(sim));
             return;
         }
+        // An objective's scripted surge streams out before the tremor as after it (surgeScripted).
+        if (!releases.isEmpty()) streamReleases(sim, sim.getSimTickIndex());
         accumulator = Math.min(WAVE_INTERVAL_SECONDS, accumulator + Math.max(0f, dt));
         int live = liveRunnerCount(sim);
         int floor = activeFloor();
@@ -291,17 +293,7 @@ public final class SwarmReinforcementSystem {
         int tick = sim.getSimTickIndex();
         List<SwarmBore> all = bores.bores();
         boreTarget = Math.round(borePopulationTarget(all) * pressureShare);
-        boolean released = false;
-        for (int i = 0; i < releases.size(); ) {
-            Release release = releases.get(i);
-            if (release.bore.collapsed()) {
-                releases.remove(i);
-                continue;
-            }
-            if (tick >= release.nextTick && releaseClutch(sim, release, tick)) released = true;
-            if (release.released >= release.size) releases.remove(i);
-            else i++;
-        }
+        boolean released = streamReleases(sim, tick);
         float live = liveWeight(sim);
         float inFlight = 0f;
         for (Release release : releases) inFlight += release.weightLeft();
@@ -348,6 +340,41 @@ public final class SwarmReinforcementSystem {
         if (bores.livingCount() == 0) return "NO_LIVING_BORE";
         if (live >= boreTarget) return "PRESSURE_POPULATION_MET";
         return releases.isEmpty() ? "BORES_QUIET" : "BORE_SURGE";
+    }
+
+    /** Streams the surges already leaving their mouths; returns whether any body came out. */
+    private boolean streamReleases(BattleSimulation sim, int tick) {
+        boolean released = false;
+        for (int i = 0; i < releases.size(); ) {
+            Release release = releases.get(i);
+            if (release.bore.collapsed()) {
+                releases.remove(i);
+                continue;
+            }
+            if (tick >= release.nextTick && releaseClutch(sim, release, tick)) released = true;
+            if (release.released >= release.size) releases.remove(i);
+            else i++;
+        }
+        return released;
+    }
+
+    /**
+     * A scripted surge ({@code set-piece-blocks.md}, Lanes and pressure): an objective's own bore sends
+     * {@code budget} weight of bodies now, outside the field's population target and before the tremor
+     * as after it, so the objective's pressure keeps its own pace. The bore should be held
+     * ({@link SwarmBores#hold}) so it adds nothing to the field's target and never surges on its own
+     * clock. Returns false, changing nothing, for a collapsed bore or one whose last surge is still
+     * coming out.
+     */
+    public boolean surgeScripted(BattleSimulation sim, SwarmBore bore, float budget) {
+        if (bore == null || bore.collapsed() || releasing(bore) || !(budget > 0f)) return false;
+        int tick = sim.getSimTickIndex();
+        List<Planned> planned = plan(bore, bore.surges(), budget);
+        releases.add(new Release(bore, bore.surges(), planned, tick));
+        bore.surged(tick, 0f);
+        bore.hold();
+        sim.swarmBores().surged(bore, tick);
+        return true;
     }
 
     /**

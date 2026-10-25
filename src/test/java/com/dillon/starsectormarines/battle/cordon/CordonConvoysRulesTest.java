@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,5 +40,13 @@ class CordonConvoysRulesTest {
         assertArrayEquals(new int[]{104, 110},
                 CordonConvoys.swarmOn(trucks, List.of(new float[]{100, 95}, new float[]{104, 110})));
         assertNull(CordonConvoys.swarmOn(List.of(), List.of(new float[]{100, 100})));
+    }
+
+    @Test
+    void aTruckIsSetDownAtTheFirstCellPastTheEntryItCanSetOutFrom() {
+        assertEquals(12, CordonConvoys.setDown(100, 10, i -> i >= 12));
+        assertEquals(10, CordonConvoys.setDown(100, 10, i -> true));
+        assertEquals(10, CordonConvoys.setDown(100, 10, i -> false), "the entry where no cell near it will do");
+        assertEquals(99, CordonConvoys.setDown(100, 99, i -> false));
     }
 }

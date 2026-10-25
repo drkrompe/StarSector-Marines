@@ -70,6 +70,216 @@
       "col": 13,
       "name": "nature.rock-large-3-destroyed",
       "row": 0
+    },
+    {
+      "col": 14,
+      "name": "nature.rock-sandstone-small-1-damaged",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "name": "nature.rock-sandstone-small-1-destroyed",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "nature.rock-sandstone-small-2-damaged",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "name": "nature.rock-sandstone-small-2-destroyed",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "name": "nature.rock-sandstone-medium-1-damaged",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "name": "nature.rock-sandstone-medium-1-destroyed",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "name": "nature.rock-sandstone-medium-2-damaged",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "name": "nature.rock-sandstone-medium-2-destroyed",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "name": "nature.rock-sandstone-large-1-damaged",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "name": "nature.rock-sandstone-large-1-destroyed",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "name": "nature.rock-sandstone-large-2-damaged",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "name": "nature.rock-sandstone-large-2-destroyed",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "name": "nature.rock-sandstone-large-3-damaged",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "name": "nature.rock-sandstone-large-3-destroyed",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "name": "nature.rock-basalt-small-1-damaged",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "name": "nature.rock-basalt-small-1-destroyed",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "name": "nature.rock-basalt-small-2-damaged",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "name": "nature.rock-basalt-small-2-destroyed",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "name": "nature.rock-basalt-medium-1-damaged",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "name": "nature.rock-basalt-medium-1-destroyed",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "name": "nature.rock-basalt-medium-2-damaged",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "name": "nature.rock-basalt-medium-2-destroyed",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "name": "nature.rock-basalt-large-1-damaged",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "name": "nature.rock-basalt-large-1-destroyed",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "name": "nature.rock-basalt-large-2-damaged",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "name": "nature.rock-basalt-large-2-destroyed",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "name": "nature.rock-basalt-large-3-damaged",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "name": "nature.rock-basalt-large-3-destroyed",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "name": "nature.rock-frost-small-1-damaged",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "name": "nature.rock-frost-small-1-destroyed",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "name": "nature.rock-frost-small-2-damaged",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "name": "nature.rock-frost-small-2-destroyed",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "name": "nature.rock-frost-medium-1-damaged",
+      "row": 2
+    },
+    {
+      "col": 15,
+      "name": "nature.rock-frost-medium-1-destroyed",
+      "row": 2
+    },
+    {
+      "col": 0,
+      "name": "nature.rock-frost-medium-2-damaged",
+      "row": 3
+    },
+    {
+      "col": 1,
+      "name": "nature.rock-frost-medium-2-destroyed",
+      "row": 3
+    },
+    {
+      "col": 2,
+      "name": "nature.rock-frost-large-1-damaged",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "name": "nature.rock-frost-large-1-destroyed",
+      "row": 3
+    },
+    {
+      "col": 4,
+      "name": "nature.rock-frost-large-2-damaged",
+      "row": 3
+    },
+    {
+      "col": 5,
+      "name": "nature.rock-frost-large-2-destroyed",
+      "row": 3
+    },
+    {
+      "col": 6,
+      "name": "nature.rock-frost-large-3-damaged",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "name": "nature.rock-frost-large-3-destroyed",
+      "row": 3
     }
   ],
   "doodads": [
@@ -170,6 +380,300 @@
       "cover": "none",
       "id": "nature.rock-large-3-destroyed",
       "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "nature.rock-sandstone-small-1-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "nature.rock-sandstone-small-1-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "nature.rock-sandstone-small-2-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "nature.rock-sandstone-small-2-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 2,
+      "cover": "light",
+      "id": "nature.rock-sandstone-medium-1-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "nature.rock-sandstone-medium-1-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 4,
+      "cover": "light",
+      "id": "nature.rock-sandstone-medium-2-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "nature.rock-sandstone-medium-2-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 6,
+      "cover": "heavy",
+      "id": "nature.rock-sandstone-large-1-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "nature.rock-sandstone-large-1-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 8,
+      "cover": "heavy",
+      "id": "nature.rock-sandstone-large-2-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "nature.rock-sandstone-large-2-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 10,
+      "cover": "heavy",
+      "id": "nature.rock-sandstone-large-3-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "nature.rock-sandstone-large-3-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "id": "nature.rock-basalt-small-1-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "nature.rock-basalt-small-1-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "nature.rock-basalt-small-2-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "nature.rock-basalt-small-2-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 0,
+      "cover": "light",
+      "id": "nature.rock-basalt-medium-1-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "nature.rock-basalt-medium-1-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 2,
+      "cover": "light",
+      "id": "nature.rock-basalt-medium-2-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "nature.rock-basalt-medium-2-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 4,
+      "cover": "heavy",
+      "id": "nature.rock-basalt-large-1-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "nature.rock-basalt-large-1-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 6,
+      "cover": "heavy",
+      "id": "nature.rock-basalt-large-2-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "nature.rock-basalt-large-2-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 8,
+      "cover": "heavy",
+      "id": "nature.rock-basalt-large-3-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "nature.rock-basalt-large-3-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "nature.rock-frost-small-1-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "nature.rock-frost-small-1-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "id": "nature.rock-frost-small-2-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "nature.rock-frost-small-2-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 14,
+      "cover": "light",
+      "id": "nature.rock-frost-medium-1-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "nature.rock-frost-medium-1-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 0,
+      "cover": "light",
+      "id": "nature.rock-frost-medium-2-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "nature.rock-frost-medium-2-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 2,
+      "cover": "heavy",
+      "id": "nature.rock-frost-large-1-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "nature.rock-frost-large-1-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 4,
+      "cover": "heavy",
+      "id": "nature.rock-frost-large-2-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "nature.rock-frost-large-2-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 6,
+      "cover": "heavy",
+      "id": "nature.rock-frost-large-3-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "nature.rock-frost-large-3-destroyed",
+      "row": 3
     }
   ],
   "sheet": "graphics/doodads/rock-damage.png"

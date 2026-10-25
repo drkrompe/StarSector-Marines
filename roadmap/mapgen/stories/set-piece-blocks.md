@@ -93,6 +93,37 @@ one colony found no stand there either and offers no loading. Over 12 stock
 city maps, a yard on 11. The industrial compound still lays a standard yard on
 its own ground where that ground holds one, so a map may have two.
 
+## The factory row
+
+Workshops side by side along a private **service lane**:
+
+- two or three **workshops** sharing party walls, their **loading doors** onto
+  the lane and every other wall blank, so their **backs face the street** and
+  shape the street lanes outside;
+- the **lane** runs the length of the row, four cells clear, with a **vehicle
+  gate at each end** onto the street, so a fight down it can come from either
+  way;
+- across the lane, against the far wall, a **parked utility vehicle** near each
+  end, a generator by each gate and **pipe runs** with drum clusters to the
+  middle, leaving **pockets** of cover off the lane and the lane itself clear
+  gate to gate. The pockets mirror end to end.
+
+The row publishes its lane as a map mark (`ServiceLane`: the two gate cells, the
+centre line between them and the lane's width) for an objective to send
+pressure down or hold.
+
+**The row has its own compound kind** rather than sharing the industrial
+compound with the freight yard, which keeps that compound where it fits. The
+label pass promotes one lot per map to `FACTORY_ROW`: the largest industrial lot
+left of at least 11 by 11, or the largest commercial lot where no industrial lot
+qualifies. Its claim takes one neighbour. The row is 13 deep and 14, 16, 18 or
+20 long (three workshops from 18), so an 11-cell lot and its street frame hold
+the shortest. Gates on the reserved road win over a longer row. Both gates need
+four open cells outside them, the first a street cell. A compound that cannot
+hold the row fills as ordinary industrial lots. Across 24 maps of each, the row
+stood on 13 medium cities (18 had a host lot) and 16 colonies (all 24 had one).
+Most misses are the road reservation crossing every pose.
+
 ## Lanes and pressure
 
 A set piece shapes the lanes near it with its walls, gates and gaps. Which lanes
@@ -100,24 +131,45 @@ an attack can come down is the lever that makes a fight harder or easier: one
 gate or two, a straight run at the bay or a dog-leg past cover.
 
 An objective may bring its own **pressure** rather than make the mission's enemy
-commander aware of it:
+commander aware of it. The loading's is `BorePressure`:
 
-- a bore of its own, opened through the ordinary bore seam (Cordon's
-  `BoreBeat` is the precedent);
-- a temporary director that claims that bore's broods with
-  `CommandAuthority.SCRIPTED` and sends them down the set piece's approach
-  lanes, paced to the objective's beats;
-- for a loading: probes while it starts, a wave at half the count, and a rush
-  along the road out once the truck sets off.
+- **Its own bore**, opened through the ordinary bore seam (Cordon's `BoreBeat`
+  is the precedent) about ten seconds after the crew start, on open street 28
+  to 45 steps' walk from the yard gate, the reachable cell farthest from the
+  yard. The yard publishes the marks it needs: its gate, its side gap and the
+  hall door (`LoadingBay`).
+- **Held, and surged on the objective's beats.** The bore never surges on its
+  own clock and adds nothing to the mission's population target; the
+  objective calls its surges (`SwarmReinforcementSystem.surgeScripted`), sized
+  in the director's weight, before the tremor as after it. A loading sends a
+  probe every forty seconds while the crew start, a wave at half the count and
+  a rush once the truck sets off.
+- **A director for its broods.** Ravs are not squads, so it does not claim
+  them with a command authority. It drives them (`SwarmDrives`): a driven body
+  hunts as any body does, but its idle wander becomes a walk down its lane,
+  alternately the gate lane (a point out in the street, the gate, the door)
+  and the side lane (out past the gap, the gap, the door). Once the truck
+  sets off, all of them are sent to a point on its road out.
 
-When the objective ends, the main commander inherits the survivors. The swarm
-spawn pass owns how bodies leave a bore; pressure only decides where its bore
-opens and where its broods are sent.
+When the objective ends, the drives are released and the survivors wander as
+the rest of the swarm. The swarm spawn pass owns how bodies leave a bore;
+pressure only decides where its bore opens, when it surges and where its
+broods are sent.
+
+Against a static six-marine guard on three yard colonies (`loading-pressure-look`),
+all three trucks got away, the guard fighting for it on two. A first, heavier
+pacing lost two yards of three. On one map the colony's own militia collapsed the
+fissure before the rush; a fissure is fragile, and whether the pressure bore
+should be tougher is open, as is tuning it against real play.
+
+The yard's warehouse has one doorway, onto the yard
+(`BuildingPlacement.frontOnly`): its other walls back onto the compound wall.
 
 ## Plan
 
-Done: steps 1 to 3 (`freight-yard-look`; coverage in `generatedSpaceEvidence`,
-`FreightYardCoverageEvidenceTest`).
+Done: steps 1 to 4 (`freight-yard-look`, `loading-pressure-look`; freight-yard
+coverage in `generatedSpaceEvidence`, `FreightYardCoverageEvidenceTest`); the
+factory row of step 5 (`factory-row-look`).
 
 1. The freight yard as an industrial compound layout, with its `LoadingBay`
    mark and a look suite.
@@ -134,4 +186,7 @@ Done: steps 1 to 3 (`freight-yard-look`; coverage in `generatedSpaceEvidence`,
   and a hauler standing in it can set out and leave the map by the gate.
 - A unit test on the layout's rule: in every pose the bay lies on a straight,
   clear drive to the gate.
+- The factory row in any pose and length: both gates open outward, the lane is
+  clear gate to gate, the cover stands off it, and the workshops fill the
+  length sharing their party walls (`FactoryRowTest`).
 - Owner look stills at 1920x1080 from the look preset.

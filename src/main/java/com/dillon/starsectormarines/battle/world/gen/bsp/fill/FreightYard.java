@@ -266,7 +266,7 @@ public final class FreightYard {
         BlockLeaf hall = new BlockLeaf(Math.min(a[0], b[0]), Math.min(a[1], b[1]),
                 Math.max(a[0], b[0]), Math.max(a[1], b[1]), false);
         PointOfInterest poi = BuildingShellCore.carve(hall, c.grid, c.topology, c.doodads, c.rng, HALL,
-                new BuildingPlacement(frontage, false));
+                BuildingPlacement.frontOnly(frontage));
         if (poi != null) c.pois.add(poi);
         if (size == Size.LARGE) stageAlongBackWall(c, pose, pallets);
 
@@ -277,9 +277,9 @@ public final class FreightYard {
             // The hauler stands on the bay's centre line, between its two middle cells.
             int[] l = pose.cell(middle - 1, size.standY()), r = pose.cell(middle, size.standY());
             int[] door = door(c, pose, middle);
-            int[] gate = pose.cell(middle, -1), turn = pose.cell(middle, -TURN_OUT);
+            int[] gate = pose.cell(middle, -1), side = pose.cell(-1, GAP_Y), turn = pose.cell(middle, -TURN_OUT);
             LoadingBay bay = new LoadingBay((l[0] + r[0]) / 2f + .5f, (l[1] + r[1]) / 2f + .5f,
-                    heading, door[0], door[1], gate[0], gate[1], turn[0], turn[1]);
+                    heading, door[0], door[1], gate[0], gate[1], side[0], side[1], turn[0], turn[1]);
             c.loadingBays.add(bay);
             bays.add(bay);
         }

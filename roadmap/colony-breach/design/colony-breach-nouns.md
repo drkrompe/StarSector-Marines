@@ -4,6 +4,10 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — a growth's root leads: it digs out and thickens first, and the growth rises at its end.
+
+Updated: 2026-10-25 — the brood spire's deep raids: four round the flak to a soft target behind the line, and home.
+
 Updated: 2026-10-25 — Harriers carry feed: a pack with nothing to hunt flies the dead home into its bore's mouth.
 
 Updated: 2026-10-25 — the brood spire's patrols: three off a quiet, full roost fly a loop over the nest and land.
@@ -926,13 +930,20 @@ growths scattered on the creep (owner, 2026-10-25: "a more interesting nest").
   rope, over a worn furrow and a lit vein path). A root is drawn only: nothing
   walks, stops or fights by it, and it goes with its growth or its bore.
   `-Dbattle.render.nestTrails=false` is the control.
-- **Roots grow** (owner: thinner veins "dig out and construct" from the bores
-  over time). From the moment its growth sprouts, a root digs out from the
-  bore as a vein, a band of the creep's veins thickened and lit, at 1.2 cells a
-  second, and once it reaches the growth it thickens into rope over fifteen
-  seconds. Creep matured at setup is weeks old, so the growths it starts with
-  have their ropes; an outpost that roots in the battle, or a satellite opened
-  late, grows its roots in sight.
+- **Roots grow, and the growth rises where they end** (owner: thinner veins
+  "dig out and construct" from the bores, and the root must be the lead-up to
+  the growth, not follow it). A growth begun in play is first only its root: a
+  vein (a band of the creep's veins thickened and lit) digs out from the bore
+  over the first half of its lead and thickens into rope over the second, and
+  only when it has come does the colony or outpost rise at its end, throwing
+  the creep up round it. An outpost's lead is its twenty-second hold on its
+  cell (shortened as skitterers tend it), so it rises when it always did; the
+  creep counts a colony on its way as standing, so a held cell is never lost to
+  one rising. A mouth colony sprouts the moment a feed crosses a tier, which
+  nothing foresees, so its five-second lead stands it that much later than the
+  crossing. What stands at setup, and everything creep matured at setup grew,
+  stands at once with its rope; a satellite opened late is a bore, not a
+  growth, and erupts as one. Look: `nest-growth-look`.
 - **Its spire's roost**: the Brood spire's waiting brood (below).
 - **Its workers**: the skitterers it broods (Swarm strain: Skitterer).
 - **Clutter** (`NestClutter`): egg clutches (glossy eggs with amber hearts in a
@@ -981,6 +992,22 @@ through, made into a thing on the map the company can find and kill.
   that keeps clear of a spire is still found if it stands on the nest's beat,
   and flak that thins a patrol buys time against the next pack. Scene:
   `harrier-patrol`; look: `harrier-patrol-look`.
+- **Its raids** (`HarrierRaid`; the owner's "deep behind lines raids",
+  2026-10-25). On its own longer gap, ninety to a hundred and fifty seconds
+  from the last raid's return, the same quiet spire sends four of its roost
+  deep instead of a patrol: to the richest soft target fifty to a hundred and
+  sixty cells off that no anti-air reaches (the radio a forward observer calls
+  the air in with, an unarmed truck, a medic, a soldier on his own, a gun),
+  the nearer on a tie. Its way is bent round every air gun's reach with six
+  cells to spare, straight when it can be, else by one or two turning points
+  off the direct line; with no target or no such way it patrols, and looks
+  again a few seconds on. Out and home it hunts nothing. Over the target it
+  dives only on what is soft within sixteen cells of where it was sent, never
+  the guns, two dives and it turns for home (sooner with nothing there to
+  dive on), flies the same way back and lands as a patrol does. One sortie of
+  a spire's is up at a time. So the line's rear is never safe from a spire it
+  has left standing, and flak placed to cover the rear, not just the front,
+  is what closes the ways in. Scene: `harrier-raid`; look: `harrier-raid-look`.
 - **What it is to fight.** A structure on the swarm's side, fought as a bore's
   body is: shot, satchelled and destroyed through the ordinary paths (650
   structure under 220 plate, rating 12, so rifles wear it slowly and satchels,
@@ -1261,7 +1288,7 @@ not read in a soft shadow at play zoom.
     reaches it**; only an anti-air burst does. Unplated, 28 health: two rifle
     hits or one flak hit.
   - **What it hunts.** What the line is there to protect, over the line
-    itself: a gun or emplacement first, then a supply truck, then a medic,
+    itself: a gun or emplacement first, then the radio a forward observer carries, then a supply truck, then a medic,
     then a marine standing alone, and a rifleman in a squad last; an armed
     hull or a mech it only scratches. A target is worth less by every air gun
     whose reach covers it, so anti-air protects a line without shooting
@@ -1956,6 +1983,14 @@ in its yard, and the company that holds the yard until the truck is away is paid
 out of what it carries. A colony whose warehouse has no stand a truck can leave
 from offers none.
 
+A side objective may bring its own **pressure** rather than make the breach's
+swarm aware of it (`set-piece-blocks.md`, Lanes and pressure). A loading in a
+freight yard has one: a held bore of its own (numbered 90, clear of the
+eruptions) opened down the street, whose surges the objective calls on its own
+beats, before the tremor as after it, and whose broods it sends in by the yard's
+gate and side gap. Collapsing that bore ends the pressure, which a guard may
+gamble on. When the objective ends its survivors wander as the rest of the swarm.
+
 ## Flow
 
 1. **Landfall.** The company lands in the fields outside the colony's edge
@@ -2142,8 +2177,8 @@ marine dying with Rav near draws a squadmate's curse, and a marine hurt with a R
 at arm's length grunts with a scuffle of boots and gear. Each marine keeps one of
 six voices for the battle, the operation radio's cast heard dry rather than over
 comms, a little pitched apart; the lines of a kind take turns so one is never heard
-twice running. A squad has one voice at a time, a marine and a squad keep their
-gaps, the most urgent bark goes first, and the battle has at most three sounding
+twice running. A squad has one voice at a time, save the cry of one being seized
+or thrown, which waits on no one; a marine and a squad keep their gaps, the most urgent bark goes first, and the battle has at most three sounding
 at once, so a big fight is a few overlapping shouts rather than a wall. They are
 heard only on seen ground. Takes are generated from a tracked catalog
 (`tools/generate_marine_barks.py`) and every take is levelled by its measured

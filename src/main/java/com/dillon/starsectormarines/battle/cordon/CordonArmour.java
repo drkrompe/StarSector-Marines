@@ -241,9 +241,13 @@ public final class CordonArmour {
      * all battle.
      */
     int[] drivable(BattleSimulation sim, VehicleType type, int x, int y) {
+        return nearest(sim.getGrid(), mainGround(sim, type), x, y, SET_DOWN_REACH);
+    }
+
+    /** The map's main body of ground a hull of this type's footprint fits on ({@link #mainGround(NavigationGrid, int)}). */
+    boolean[] mainGround(BattleSimulation sim, VehicleType type) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
-        boolean[] main = mainGround.computeIfAbsent(radius, r -> mainGround(sim.getGrid(), r));
-        return nearest(sim.getGrid(), main, x, y, SET_DOWN_REACH);
+        return mainGround.computeIfAbsent(radius, r -> mainGround(sim.getGrid(), r));
     }
 
     /** The nearest cell to {@code (x, y)} in {@code ground}, out to {@code reach}, or {@code null}. */

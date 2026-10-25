@@ -258,6 +258,9 @@ public final class Loading {
     /** Whether the truck stands at a set piece's loading bay rather than a stand found by search. */
     public boolean atBay() { return atBay; }
 
+    /** The road the truck leaves by, from its stand to the map's edge: xs then ys. */
+    public float[][] exitRoute() { return exitRoute; }
+
     /** Crates aboard so far. */
     public int delivered() { return delivered; }
 
