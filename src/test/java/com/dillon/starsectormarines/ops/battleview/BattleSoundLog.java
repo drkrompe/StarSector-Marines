@@ -14,7 +14,8 @@ import java.util.Locale;
 /**
  * A look shot's soundtrack as data, for a review to mix offline: every sound the battle screen would start, written
  * per tick as a JSON line ({@code frame, id, x, y, pitch, volume, listenerX, listenerY}). The creatures' sounds come
- * from {@link SwarmAudio.Mix#hear}, {@link HarrierAudio.Mix#hear} and {@link SpireAudio.Mix#hear}, the marines' barks
+ * from {@link SwarmAudio.Mix#hear}, {@link HarrierAudio.Mix#hear} and {@link SpireAudio.Mix#hear}, the bores' cues and claw-ups from
+ * {@link BoreAudio.Mix#hear}, the marines' barks
  * from {@link MarineBarks.Mix#hear}, the same rules and
  * levels the game plays them at; the fire from {@link BattleShotAudio#cue}; impacts, a flak round's air-burst among
  * them, from {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as
@@ -33,6 +34,7 @@ public final class BattleSoundLog {
     private final SwarmAudio.Mix swarm = new SwarmAudio.Mix().seeded(0L);
     private final HarrierAudio.Mix harrier = new HarrierAudio.Mix();
     private final SpireAudio.Mix spire = new SpireAudio.Mix();
+    private final BoreAudio.Mix bores = new BoreAudio.Mix();
     private final MarineBarks.Mix barks = new MarineBarks.Mix();
     private int frame;
 
@@ -61,6 +63,8 @@ public final class BattleSoundLog {
         for (HarrierAudio.Play p : harrier.hear(sim, at[0], at[1]))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (SpireAudio.Play p : spire.hear(sim, at[0], at[1]))
+            line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        for (BoreAudio.Play p : bores.hear(sim))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (MarineBarks.Play p : barks.hear(sim))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);

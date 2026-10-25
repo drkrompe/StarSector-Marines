@@ -339,6 +339,15 @@
       "volume": 1.0
     },
     {
+      "id": "bore_clawup",
+      "trimmedFrom": "bore_growth, runner_clatter, body_drag",
+      "prompt": "A Rav clawing up out of a bore, once per clutch (colony-breach-nouns.md, Emergence): 0.65 s of bore_growth's wet tear a little quicker, a Runner clatter's chitin a little lower as the scrape, and body_drag's grit, mixed and levelled to -20 LUFS; trimmed, not generated. Receipts name the source takes and the filter.",
+      "durationSeconds": 0.65,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
       "id": "body_drag",
       "prompt": "A heavy sack being dragged slowly across dirt and loose gravel: a soft continuous scrape of rough cloth on earth, grit crunching and shifting under its weight, an occasional dull bump as it rolls over a stone, no voices, no music, seamless loop",
       "durationSeconds": 2.0,

@@ -55,7 +55,7 @@ class VehicleTransportTest {
 
         assertEquals(3, mounted, "the whole squad boards");
         assertEquals(3, sim.transport().manifest(apc).size());
-        assertEquals(1, sim.transport().seatsFree(apc), "an APC seats four");
+        assertEquals(VehicleType.HEAVY_APC.capacity - 3, sim.transport().seatsFree(apc), "three seats taken");
 
         // Carry it somewhere else entirely, then set it down.
         sim.convoy().body(apc).teleport(45.5f, 45.5f, 0f);
@@ -97,6 +97,23 @@ class VehicleTransportTest {
     }
 
     @Test
+    void aPassengerCanStillWalkWhenItGetsOut() {
+        // Move speed lives in MOVEMENT, which a rider gives up and gets back zeroed: without carrying it through
+        // the ride, a marine set down stood where it got out for the rest of the battle.
+        BattleSimulation sim = arena();
+        long apc = apcAt(sim, 30.5f, 30.5f);
+        int squadId = squadBeside(sim, 30, 30);
+        long marine = firstSquadMember(sim, squadId);
+        float speedBefore = sim.movement().moveSpeed(marine);
+        assertTrue(speedBefore > 0f, "fixture check: the marine starts able to walk");
+
+        sim.transport().mountSquad(apc, squadId);
+        sim.transport().dismountAll(apc);
+
+        assertEquals(speedBefore, sim.movement().moveSpeed(marine), 0.001f, "it walks as fast as it did before");
+    }
+
+    @Test
     void aRiddenSquadForgetsWhereItWasToldToGo() {
         // A ride across the map invalidates the objective by construction: a
         // squad that kept it would dismount and walk back the way it came.
@@ -117,14 +134,14 @@ class VehicleTransportTest {
         BattleSimulation sim = arena();
         long apc = apcAt(sim, 30.5f, 30.5f);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        for (int i = 0; i < 6; i++) {
-            sim.spawn(new EntitySpec("big" + i, Faction.MARINE, UnitType.MARINE, 30 + i % 3, 30)
+        for (int i = 0; i < VehicleType.HEAVY_APC.capacity + 1; i++) {
+            sim.spawn(new EntitySpec("big" + i, Faction.MARINE, UnitType.MARINE, 30 + i % 3, 30 + i / 3)
                     .squad(squadId));
         }
 
         int mounted = sim.transport().mountSquad(apc, squadId);
 
-        assertEquals(0, mounted, "six into four does not go, and half a squad is worse than none");
+        assertEquals(0, mounted, "one too many does not go, and half a squad is worse than none");
         assertTrue(sim.transport().manifest(apc).isEmpty());
     }
 

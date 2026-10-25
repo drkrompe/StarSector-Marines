@@ -387,7 +387,7 @@ leaves are labelled and before compound claims, which take each district's compo
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
 district, a cluster with no streets of its own. **Main street** is the first program: rows of shopfronts behind
 pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
-hall at the other. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
+hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
 door).
 
 A town's lots are built along their streets (`town-plan.md`). A **frontage row** cuts an ordinary shop or
