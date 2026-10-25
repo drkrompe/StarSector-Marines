@@ -162,7 +162,8 @@ parcels. The street ring round the lot stays complete, so every mouth gives
 onto road. A lot the square cannot stand in is an ordinary plaza. Where the
 lot holds every layout, the mouths are picked from the lot's position without
 a random draw. With at least four shops standing, the square stands on 19 city
-maps in 24 and 20 colonies in 24.
+maps in 24 and 20 colonies in 24. Main street's plaza end is a second host,
+a district role (`set-piece-districts.md`).
 
 ## Lanes and pressure
 
