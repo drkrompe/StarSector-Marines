@@ -58,7 +58,7 @@ public final class MarketSquare {
     /** Fewest shops that must stand for the square to be framed at all. */
     static final int LEAST_SHOPS = 4;
     /** How far past its host's ground the square may reach: across the street round it, to its far kerb. */
-    static final int MARGIN = 3;
+    public static final int MARGIN = 3;
 
     private static final BuildingShellCore.BuildingConfig SHOP = new BuildingShellCore.BuildingConfig(
             GroundKind.TILE, "COMMERCIAL", PointOfInterest.Kind.RESIDENTIAL,
@@ -269,9 +269,25 @@ public final class MarketSquare {
     public static Placement choose(GenContext c, int boxLeft, int boxTop, int boxRight, int boxBottom,
                                    BiPredicate<Integer, Integer> owned, BiPredicate<Integer, Integer> member,
                                    List<Mouths> preference) {
-        boolean[][] reserved = c.get(BspKeys.ROAD_RESERVATION);
         boolean[][] road = c.get(BspKeys.ROAD_CELLS);
         if (road == null) return null;
+        return choose(c.width, c.height, c.landingPads, road, c.get(BspKeys.ROAD_RESERVATION),
+                boxLeft, boxTop, boxRight, boxBottom, owned, member, (x, y) -> true, (x, y) -> false, preference);
+    }
+
+    /**
+     * {@link #choose(GenContext, int, int, int, int, BiPredicate, BiPredicate, List)} over explicit ground: a
+     * map of {@code mapWidth x mapHeight} cells, its pads, its street mask and its road reservation (null where
+     * it is not drawn yet, so every shop stands), and only where every cell in front of the square's front
+     * satisfies {@code front}, and every footprint cell in {@code between} falls between the side rows: a host
+     * that wants the square to face one street, or to be built round a street running through it, says so here.
+     * Reads nothing else, so a planner can ask it before the map is built.
+     */
+    public static Placement choose(int mapWidth, int mapHeight, List<LandingPad> pads, boolean[][] road,
+                                   boolean[][] reserved, int boxLeft, int boxTop, int boxRight, int boxBottom,
+                                   BiPredicate<Integer, Integer> owned, BiPredicate<Integer, Integer> member,
+                                   BiPredicate<Integer, Integer> front, BiPredicate<Integer, Integer> between,
+                                   List<Mouths> preference) {
         for (Mouths mouths : preference) {
             Placement best = null;
             int bestScore = 0;
@@ -280,8 +296,10 @@ public final class MarketSquare {
                 for (int bottom = boxTop - MARGIN; bottom + h - 1 <= boxBottom + MARGIN; bottom++) {
                     for (int left = boxLeft - MARGIN; left + w - 1 <= boxRight + MARGIN; left++) {
                         Pose pose = new Pose(left, bottom, turn);
+                        if (!faces(pose, front)) continue;
                         boolean[] standing = new boolean[shops(mouths).size()];
-                        int score = score(c, pose, mouths, owned, member, reserved, road, standing);
+                        int score = score(mapWidth, mapHeight, pads, pose, mouths, owned, member, between,
+                                reserved, road, standing);
                         if (score > bestScore) {
                             bestScore = score;
                             best = new Placement(pose, mouths, standing);
@@ -294,18 +312,29 @@ public final class MarketSquare {
         return null;
     }
 
+    /** Whether every cell in front of the square's front satisfies {@code front}. */
+    static boolean faces(Pose pose, BiPredicate<Integer, Integer> front) {
+        for (int x = 0; x < WIDTH; x++) {
+            int[] out = pose.cell(x, -1);
+            if (!front.test(out[0], out[1])) return false;
+        }
+        return true;
+    }
+
     /** How well the square stands here, or 0 where it may not, filling in which shops stand. Reads the map only. */
-    static int score(GenContext c, Pose pose, Mouths mouths, BiPredicate<Integer, Integer> owned,
-                     BiPredicate<Integer, Integer> member, boolean[][] reserved, boolean[][] road,
+    static int score(int mapWidth, int mapHeight, List<LandingPad> pads, Pose pose, Mouths mouths,
+                     BiPredicate<Integer, Integer> owned, BiPredicate<Integer, Integer> member,
+                     BiPredicate<Integer, Integer> between, boolean[][] reserved, boolean[][] road,
                      boolean[] standing) {
         int right = pose.left + pose.width() - 1, top = pose.bottom + pose.height() - 1;
-        if (pose.left < 1 || pose.bottom < 1 || right >= c.width - 1 || top >= c.height - 1) return 0;
+        if (pose.left < 1 || pose.bottom < 1 || right >= mapWidth - 1 || top >= mapHeight - 1) return 0;
         Arrays.fill(standing, true);
         int covered = 0;
         for (int y = 0; y < DEPTH; y++) {
             for (int x = 0; x < WIDTH; x++) {
                 int[] cell = pose.cell(x, y);
                 if (!owned.test(cell[0], cell[1])) return 0;
+                if ((x < SIDE || x >= WIDTH - SIDE) && between.test(cell[0], cell[1])) return 0;
                 int shop = shopAt(mouths, x, y);
                 if (shop >= 0 && reserved != null && reserved[cell[0]][cell[1]]) standing[shop] = false;
                 if (member.test(cell[0], cell[1])) covered++;
@@ -314,14 +343,15 @@ public final class MarketSquare {
         int shops = 0;
         for (boolean stands : standing) if (stands) shops++;
         if (shops < LEAST_SHOPS) return 0;
-        for (LandingPad pad : c.landingPads) {
+        for (LandingPad pad : pads) {
             if (pose.left <= pad.right() && right >= pad.left() && pose.bottom <= pad.top() && top >= pad.bottom())
                 return 0;
         }
         for (Opening opening : openings(mouths)) {
             for (int[] local : cells(opening)) {
                 int[] out = pose.cell(local[0] + opening.outX(), local[1] + opening.outY());
-                if (!c.grid.inBounds(out[0], out[1]) || !road[out[0]][out[1]]) return 0;
+                if (out[0] < 0 || out[1] < 0 || out[0] >= mapWidth || out[1] >= mapHeight || !road[out[0]][out[1]])
+                    return 0;
             }
         }
         int score = 1 + covered + shops * 2 * WIDTH * DEPTH;
@@ -386,6 +416,7 @@ public final class MarketSquare {
         DoodadDef crate = registry.doodad("doodad.crate");
         DoodadDef box = registry.doodad("doodad.box");
         DoodadDef fish = registry.doodad("origin-freight.seafood-crates-clean");
+        DoodadDef lobster = registry.doodad("doodad.lobster-tank");
         DoodadDef planter = registry.doodad("crew-lounge.planter");
         DoodadDef bandstand = registry.doodad("origin-park.bandstand-clean");
         int[] rows = stallRows(placement.mouths());
@@ -399,9 +430,10 @@ public final class MarketSquare {
                     prop(c, placement, road, x0, y0 + 1, 1, crate, true);
                     prop(c, placement, road, x0 + 2, y0 + 1, 1, box, true);
                 } else {
-                    // A fish stall: iced crates, and a counter at its end.
+                    // A fish stall: iced crates, a counter at its end, and the lobster's pressure tank behind it.
                     prop(c, placement, road, x0, y0, 2, fish, true);
                     prop(c, placement, road, x0 + 2, y0, 1, counter, true);
+                    prop(c, placement, road, x0 + 2, y0 + 1, 1, lobster, true);
                 }
             }
         }

@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.ui.debug.CommanderTraceDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
@@ -75,6 +76,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
+import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 import com.dillon.starsectormarines.ops.battleview.ArmoryRangeTrial;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
@@ -119,7 +121,9 @@ import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLE_FAN;
 import static org.lwjgl.opengl.GL11.GL_SCISSOR_BIT;
 import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
@@ -130,6 +134,7 @@ import static org.lwjgl.opengl.GL11.glColor4f;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glPopAttrib;
 import static org.lwjgl.opengl.GL11.glPushAttrib;
 import static org.lwjgl.opengl.GL11.glScissor;
@@ -156,6 +161,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
+    private static final Color EXTRACTION_COLOR = new Color(0x8F, 0xD8, 0xC4);
 
     /** Sound IDs declared in mod/data/config/sounds.json. */
     private static final String[] BATTLE_MUSIC_POOL = {
@@ -628,7 +634,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (retainedRetreatOverlay != null) {
             BattleSimulation current = ctx != null ? ctx.getBattleSimulation() : null;
-            retainedRetreatOverlay.update(dt, current != null && current.isComplete());
+            retainedRetreatOverlay.update(dt, exitPhase(current), retryOffer());
         }
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
@@ -1071,10 +1077,16 @@ public class BattleScreen implements Screen, BattleUiContext {
         shipCommandOverlay.heroBottomInset(shipHeroBottomInset());
         shipCommandOverlay.attach(position);
         if (retainedRetreatOverlay == null) {
-            retainedRetreatOverlay = new BattleRetreatOverlay(
-                    this::retreatFromBattle, this::continueFromBattle);
+            retainedRetreatOverlay = new BattleRetreatOverlay(new BattleRetreatOverlayModel.Actions() {
+                @Override public void withdraw() { retreatFromBattle(); }
+                @Override public void proceed() { continueFromBattle(); }
+                @Override public void retry() { retryOperation(); }
+            });
         }
-        retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
+        // The end panel hangs under the banner, which renderBanner centres on the play area.
+        float bannerX = layout != null ? layout.gridX + layout.gridW / 2f : position.getX() + position.getWidth() / 2f;
+        float bannerY = layout != null ? layout.gridY + layout.gridH / 2f : position.getY() + position.getHeight() / 2f;
+        retainedRetreatOverlay.attach(position, bannerX, bannerY, exitPhase(sim), retryOffer());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
                     this::togglePause, new BattleDirectControlHudModel.WeaponActions() {
@@ -1629,6 +1641,53 @@ public class BattleScreen implements Screen, BattleUiContext {
         continueFromBattle();
     }
 
+    private static BattleRetreatOverlayModel.Phase exitPhase(BattleSimulation sim) {
+        if (sim == null || !sim.isComplete()) return BattleRetreatOverlayModel.Phase.ACTIVE;
+        return sim.getWinner() == Faction.MARINE
+                ? BattleRetreatOverlayModel.Phase.VICTORY : BattleRetreatOverlayModel.Phase.DEFEAT;
+    }
+
+    /** A story operation not yet won can be tried again: free once per mission-select visit, then a story point. */
+    private BattleRetreatOverlayModel.RetryOffer retryOffer() {
+        if (!retryable()) return BattleRetreatOverlayModel.RetryOffer.NONE;
+        String cost = switch (ctx.storyRetry().cost()) {
+            case FREE -> "Free";
+            case STORY_POINT -> "StoryPoint";
+            case UNAVAILABLE -> "Unavailable";
+        };
+        return new BattleRetreatOverlayModel.RetryOffer(true,
+                ctx.storyRetry().cost() != StoryRetryAllowance.Cost.UNAVAILABLE,
+                Strings.get("battleRestart" + cost), Strings.get("battleRetry" + cost));
+    }
+
+    private boolean retryable() {
+        if (rangeTrial != null || ctx == null) return false;
+        Mission mission = ctx.getSelectedMission();
+        BattleSimulation sim = ctx.getBattleSimulation();
+        return mission != null && mission.source == MissionSource.STORY && sim != null
+                && !(sim.isComplete() && sim.getWinner() == Faction.MARINE);
+    }
+
+    /**
+     * Erases this attempt and returns to the briefing on the same map. Nothing
+     * settles: no casualties, losses or results, the arc's launch claim is
+     * withdrawn and supplies spent on powers come back. Only the retry allowance
+     * is paid.
+     */
+    private void retryOperation() {
+        if (!retryable() || ctx.battleSettlementStarted()) return;
+        Mission mission = ctx.getSelectedMission();
+        if (!ctx.storyRetry().charge(Strings.format("battleRetryLog", mission.name))) return;
+        BattleSimulation sim = ctx.getBattleSimulation();
+        exitDirectControl();
+        MissionLaunch.abandonAttempt(mission);
+        if (sim.getCommandPowerResources() instanceof CampaignCommandPowerResources spent) spent.refundSpent();
+        LOG.info("MarineOps: retrying story mission id=" + mission.id + "; attempt erased");
+        ctx.retainLaunchedSurveySeed();
+        ctx.setBattle(null, null, null);
+        ctx.goTo(ScreenId.BRIEFING);
+    }
+
     private void continueFromBattle() {
         if (rangeTrial != null) { exitDirectControl(); return; }
         if (ctx == null) return;
@@ -1679,6 +1738,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                 togglePause();
                 event.consume();
             }
+        }
+        // The chrome is see-through, so a press on it may still be a box select: the picker holds it
+        // until it is a drag or a click, and a box under way keeps its release over any chrome.
+        if (!directControlInput.active() && worldPicker != null) {
+            events = worldPicker.handleInputBeforeChrome(events, this::chromeMayStartBox);
         }
         boolean controlledAtInputStart = directControlInput.active();
         var manualSamples = BattleDirectControlInput.capture(events);
@@ -2064,6 +2128,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                 || !directControlInput.active() && hud != null && hud.blocksWorldPointer(screenX, screenY);
     }
 
+    /** Retained chrome a box select may start on, unless an armed targeter or a confirmation wants the click. */
+    private boolean chromeMayStartBox(float screenX, float screenY) {
+        if (commandPowerTargeting != null && commandPowerTargeting.isVisible()
+                || squadOrderTargeting != null && squadOrderTargeting.isVisible()
+                || shipOrderTargeting != null && shipOrderTargeting.active()
+                || retainedRetreatOverlay != null && retainedRetreatOverlay.confirmingRetreat()) return false;
+        return retainedChromeBlocksWorldPointer(screenX, screenY);
+    }
+
     private boolean retainedChromeBlocksWorldPointer(float screenX, float screenY) {
         if (turretAuthor != null && turretAuthor.active) return true;
         if (storySubtitles.blocksWorldPointer(screenX, screenY)) return true;
@@ -2217,6 +2290,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                     ? BattleRenderHostProfile.STANDALONE_BATTLE : BattleRenderHostProfile.EMBEDDED_SCENE);
             if (rangeTrial == null) renderer.renderWorld(rc);
             else renderer.renderWorld(rc, EnumSet.complementOf(EnumSet.of(RenderLayer.ROOFS, RenderLayer.FOG)));
+            if (strategic && retainedRetreatOverlay != null && retainedRetreatOverlay.confirmingRetreat()) {
+                renderExtractionZones(sim, alphaMult);
+            }
             glPopAttrib();
         }
 
@@ -2260,6 +2336,45 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
         if (sim == null) return;
         BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
+    }
+
+    /**
+     * While Retreat is being confirmed, the circles a withdrawal extracts from
+     * unhurt: {@link WithdrawalExtraction} tests exactly these.
+     */
+    private void renderExtractionZones(BattleSimulation sim, float alphaMult) {
+        if (sim == null || camera == null) return;
+        String label = Strings.upper(Strings.get("battleExtractionZone"));
+        for (LandingPad pad : sim.getMarineLandingPads()) {
+            float cx = camera.cellToScreenX(WithdrawalExtraction.centreX(pad));
+            float cy = camera.cellToScreenY(WithdrawalExtraction.centreY(pad));
+            float r = WithdrawalExtraction.radius(pad) * camera.cellPxSize();
+            int segments = Math.max(32, Math.min(128, Math.round(r / 4f)));
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(EXTRACTION_COLOR.getRed() / 255f, EXTRACTION_COLOR.getGreen() / 255f,
+                    EXTRACTION_COLOR.getBlue() / 255f, 0.14f * alphaMult);
+            glBegin(GL_TRIANGLE_FAN);
+            glVertex2f(cx, cy);
+            for (int i = 0; i <= segments; i++) {
+                double a = Math.PI * 2.0 * i / segments;
+                glVertex2f(cx + (float) Math.cos(a) * r, cy + (float) Math.sin(a) * r);
+            }
+            glEnd();
+            glColor4f(EXTRACTION_COLOR.getRed() / 255f, EXTRACTION_COLOR.getGreen() / 255f,
+                    EXTRACTION_COLOR.getBlue() / 255f, 0.85f * alphaMult);
+            glLineWidth(2f);
+            glBegin(GL_LINE_LOOP);
+            for (int i = 0; i < segments; i++) {
+                double a = Math.PI * 2.0 * i / segments;
+                glVertex2f(cx + (float) Math.cos(a) * r, cy + (float) Math.sin(a) * r);
+            }
+            glEnd();
+            float labelW = Fonts.ORBITRON_12_BOLD.measureWidth(label);
+            Fonts.ORBITRON_12_BOLD.drawString(label, cx - labelW / 2f,
+                    cy + r + 6f + Fonts.ORBITRON_12_BOLD.getLineHeight(), EXTRACTION_COLOR, alphaMult);
+        }
     }
 
     private void renderBanner(Faction winner, float alphaMult) {

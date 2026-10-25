@@ -22,6 +22,7 @@ class BattleCompletionTest {
         assertTrue(completion.retreat());
 
         assertTrue(completion.isComplete());
+        assertTrue(completion.retreated());
         assertEquals(Faction.DEFENDER, completion.winner());
         assertEquals(1, evacuation.report().evacuated);
         assertEquals(2, evacuation.report().lost);
@@ -40,6 +41,7 @@ class BattleCompletionTest {
             assertTrue(completion.finish(winner));
             assertTrue(evacuation.isSealed());
             assertFalse(completion.retreat());
+            assertFalse(completion.retreated());
             assertEquals(winner, completion.winner());
         }
     }

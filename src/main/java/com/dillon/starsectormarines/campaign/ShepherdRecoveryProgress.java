@@ -35,6 +35,11 @@ public final class ShepherdRecoveryProgress implements Serializable {
         if (!matches(id) || activeId != null || planet == null || planet.isBlank()) return false;
         activeId = id; activePlanet = planet; return true;
     }
+    /** Closes an unsettled launch as if it never happened: the same attempt can launch again. */
+    public boolean abandon(String id) {
+        if (id == null || !id.equals(activeId)) return false;
+        activeId = null; activePlanet = null; return true;
+    }
     private boolean receipt(String id, String planet, boolean victory, int payment, int crewLost, int expected) {
         return matches(id) && id.equals(activeId) && activePlanet != null && activePlanet.equals(planet)
                 && payment == (victory ? expected : 0) && crewLost >= 0 && crewLost <= 2 && (!victory || crewLost < 2);

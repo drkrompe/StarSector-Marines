@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.MainStreet;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -20,7 +22,10 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 
 /**
@@ -35,6 +40,8 @@ public final class StreetKitLookSuite implements SnapshotSuite {
 
     static final long SEED = 1;
     static final float CLOSE_CELLS = 30f;
+    static final float AWNING_CELLS = 12f;
+    static final int LOBSTER_SEEDS = 16;
 
     @Override public String id() { return "street-kit-look"; }
 
@@ -60,6 +67,7 @@ public final class StreetKitLookSuite implements SnapshotSuite {
             float nearY = street.startY() + (street.endY() - street.startY()) / 3f;
             out.add(new SnapshotArtifact("option-a-colonial.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     1920, 1080, nearX, nearY, CLOSE_CELLS).render(sim, "colonial")));
+            awningFade(context, sim, out);
             restyle(sim.getDoodads());
             out.add(new SnapshotArtifact("option-b-industrial.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     1920, 1080, nearX, nearY, CLOSE_CELLS).render(sim, "industrial")));
@@ -76,7 +84,77 @@ public final class StreetKitLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact("checkpoint.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     1920, 1080, gate[0] + 0.5f, gate[1] + 0.5f, CLOSE_CELLS).render(sim, "checkpoint")));
         }
+        lobster(context, out);
         return out;
+    }
+
+    /**
+     * The lobster trade's dressing where colony maps lay it, each found on the first seed that carries it and framed
+     * close with roofs off: a main street's licensed kitchen and its burst tank, a market fish stall's tank, and a
+     * freight yard's crates.
+     */
+    private static void lobster(SnapshotContext context, List<SnapshotArtifact> out) throws Exception {
+        Map<String, String> wanted = new LinkedHashMap<>();
+        wanted.put("lobster-kitchen", "doodad.lobster-cooker");
+        wanted.put("lobster-burst", "doodad.lobster-tank-burst");
+        wanted.put("lobster-stall", "doodad.lobster-tank");
+        wanted.put("lobster-freight", "doodad.lobster-crate");
+        for (long seed = 1; seed <= LOBSTER_SEEDS && !wanted.isEmpty(); seed++) {
+            try (BattleSimulation sim = BattleSetup.createCivilianRescue(seed, Collections.emptyList(), false,
+                    RiskLevel.HIGH)) {
+                for (Iterator<Map.Entry<String, String>> it = wanted.entrySet().iterator(); it.hasNext(); ) {
+                    Map.Entry<String, String> want = it.next();
+                    Doodad at = null;
+                    for (Doodad d : sim.getDoodads()) {
+                        // A stall's tank is one with no range beside it.
+                        if (want.getValue().equals(d.definitionId())
+                                && (!want.getKey().equals("lobster-stall") || !nearCooker(sim, d))) { at = d; break; }
+                    }
+                    if (at == null) continue;
+                    System.out.printf(Locale.ROOT, "[street-kit-look] %s on seed %d at %d,%d%n", want.getKey(), seed,
+                            at.cellX, at.cellY);
+                    out.add(new SnapshotArtifact(want.getKey() + ".png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), 1920, 1080, at.cellX + 0.5f, at.cellY + 0.5f, AWNING_CELLS)
+                            .withoutRoofs().render(sim, want.getKey())));
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    private static boolean nearCooker(BattleSimulation sim, Doodad tank) {
+        for (Doodad d : sim.getDoodads()) {
+            if ("doodad.lobster-cooker".equals(d.definitionId())
+                    && Math.abs(d.cellX - tank.cellX) <= 2 && Math.abs(d.cellY - tank.cellY) <= 2) return true;
+        }
+        return false;
+    }
+
+    /**
+     * A defender stood under the first awning on the street, framed close, and the same awning with nobody under it:
+     * the awning fades over a figure the player can see.
+     */
+    private static void awningFade(SnapshotContext context, BattleSimulation sim, List<SnapshotArtifact> out)
+            throws Exception {
+        Doodad awning = null;
+        for (Doodad d : sim.getDoodads()) {
+            if (StreetDressing.AWNINGS.contains(d.definitionId())) { awning = d; break; }
+        }
+        long figure = 0L;
+        for (int i = 0; i < sim.getRoster().liveCount() && figure == 0L; i++) {
+            long u = sim.getRoster().get(i);
+            UnitType type = sim.identity().type(u);
+            if (sim.identity().faction(u) == Faction.DEFENDER && type != null && !type.isStatic()) figure = u;
+        }
+        if (awning == null || figure == 0L) throw new IllegalStateException("no awning or no defender to stage");
+        float cx = awning.cellX + awning.footprintCellsX * 0.5f, cy = awning.cellY + awning.footprintCellsY * 0.5f;
+        out.add(new SnapshotArtifact("awning-clear.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                1920, 1080, cx, cy, AWNING_CELLS).render(sim, "awning")));
+        float x = sim.world().x(figure), y = sim.world().y(figure);
+        sim.world().setPos(figure, cx, cy);
+        out.add(new SnapshotArtifact("awning-fade.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                1920, 1080, cx, cy, AWNING_CELLS).render(sim, "awning")));
+        sim.world().setPos(figure, x, y);
     }
 
     /** Option B: every lamp a cobra-head and every awning a steel canopy, each in its own place and turn. */

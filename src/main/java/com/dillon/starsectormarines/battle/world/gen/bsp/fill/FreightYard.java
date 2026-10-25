@@ -264,12 +264,18 @@ public final class FreightYard {
                 c.topology.setSurface(cell[0], cell[1], keepClear);
             }
         }
-        // Freight outside the drives: cover facing the gates.
+        // Freight outside the drives: cover facing the gates. The first stack's front is a consignment of lobster
+        // in pressurised crates.
         DoodadDef crates = registry.doodad("doodad.industrial-crate-stack");
         DoodadDef pallets = registry.doodad("doodad.industrial-pallet-stack");
+        DoodadDef lobster = registry.doodad("doodad.lobster-crate");
+        boolean consignment = lobster != null;
         for (int y = 1; y < size.yard; y++) {
             for (int x = 1; x < size.width - 1; x++) {
-                if (size.stack(x, y)) solid(c, pose.cell(x, y), size.isFirstRow(y) ? crates : pallets);
+                if (!size.stack(x, y)) continue;
+                boolean front = size.isFirstRow(y);
+                solid(c, pose.cell(x, y), front && consignment ? lobster : front ? crates : pallets);
+                if (front) consignment = false;
             }
         }
 

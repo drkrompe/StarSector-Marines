@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -11,18 +12,26 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictClaim;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictProgram;
 import com.dillon.starsectormarines.battle.world.gen.bsp.SpineClaim;
+import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraphBuilder;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * The main street program ({@code set-piece-districts.md}): a {@link SpineClaim} of four to six leaves, two or
  * three each side, of shops, homes, offices or open public ground, standing in a civic, mixed or residential pocket on
- * balance ({@link #pocket}: the zoning's civic core, mixed town or residential quarter, or lots already labelled commercial). The larger end leaf becomes the {@link District.Role#PLAZA},
- * the leaf at the other end the {@link District.Role#LANDMARK} hall, and every other member a
- * {@link District.Role#SHOPFRONT}. Its street rewrite narrows the cross streets between shops to the
+ * balance ({@link #pocket}: the zoning's civic core, mixed town or residential quarter, or lots already labelled commercial). Where the two members at one end
+ * of a side hold the {@link MarketSquare} facing the street ({@link #square}), they and the cross street between
+ * them are its {@link District.Role#MARKET_SQUARE} lot; otherwise the larger end leaf becomes a plain
+ * {@link District.Role#PLAZA}. The leaf at the other end is the {@link District.Role#LANDMARK} hall, and every
+ * other member a {@link District.Role#SHOPFRONT}. Its street rewrite narrows the cross streets between shops to the
  * narrowest street, so the main street is the widest way through and its frontage nearly unbroken; every
  * cross street still reaches the main street.
  */
@@ -83,17 +92,87 @@ public final class MainStreetProgram implements DistrictProgram {
         boolean plazaLow = low.area() >= high.area();
         Map<BlockLeaf, District.Role> roles = new IdentityHashMap<>();
         for (BlockLeaf leaf : spine.members()) roles.put(leaf, District.Role.SHOPFRONT);
+        Square square = ctx == null ? square(spine, road, List.of(), null, plazaLow)
+                : square(spine, road, ctx.landingPads, ctx.get(BspKeys.TRUNK_PLAN), plazaLow);
+        if (square != null) {
+            for (BlockLeaf leaf : square.ground()) roles.put(leaf, District.Role.MARKET_SQUARE);
+            BlockLeaf hall = end(spine, square.ground(), !square.low());
+            roles.put(hall, District.Role.LANDMARK);
+            return new Plan(roles, hall, narrowed(spine, road, square.street()));
+        }
         roles.put(plazaLow ? low : high, District.Role.PLAZA);
         BlockLeaf hall = plazaLow ? high : low;
         roles.put(hall, District.Role.LANDMARK);
-        return new Plan(roles, hall, narrowed(spine, road));
+        return new Plan(roles, hall, narrowed(spine, road, null));
     }
 
-    /** The street mask with every cross street between shops narrowed to the narrowest street. */
-    static boolean[][] narrowed(SpineClaim.Spine spine, boolean[][] road) {
+    /**
+     * The market square's lot at one end of the spine: the two members at that end on one side and the cross
+     * street between them, which stays its full width and runs through the square. {@code low} says which end.
+     */
+    record Square(List<BlockLeaf> ground, SpineClaim.Gap street, boolean low) { }
+
+    /**
+     * The first end pair that holds the {@link MarketSquare} facing the main street, or null: a side with three
+     * members first, so the street keeps a shopfront both sides, then the plaza end before the other. Each is
+     * tried over its own street rewrite and the road reservation that rewrite would draw, given the trunk plan
+     * (without one every shop is taken to stand); the filler asks again over the finished streets and falls
+     * back to a plaza where the square no longer stands.
+     */
+    static Square square(SpineClaim.Spine spine, boolean[][] road, List<LandingPad> pads, TrunkPlan.Plan trunks,
+                         boolean plazaLow) {
+        List<Square> candidates = new ArrayList<>();
+        for (boolean low : new boolean[]{plazaLow, !plazaLow}) {
+            for (List<BlockLeaf> side : List.of(spine.near, spine.far)) {
+                if (side.size() < 2) continue;
+                BlockLeaf end = low ? side.get(0) : side.get(side.size() - 1);
+                BlockLeaf next = low ? side.get(1) : side.get(side.size() - 2);
+                candidates.add(new Square(List.of(end, next), between(spine, end, next), low));
+            }
+        }
+        candidates.sort(Comparator.comparingInt(sq -> spine.onNearSide(sq.ground().get(0))
+                ? -spine.near.size() : -spine.far.size()));
+        for (Square candidate : candidates) {
+            boolean[][] streets = narrowed(spine, road, candidate.street());
+            boolean[][] reserved = trunks == null ? null
+                    : RoadReservation.mask(RoadGraphBuilder.build(streets, trunks), road.length, road[0].length);
+            if (MainStreetLayout.chooseSquare(spine, candidate.ground(), streets, reserved, road.length,
+                    road[0].length, pads) != null) return candidate;
+        }
+        return null;
+    }
+
+    /** The cross street between two neighbouring members on one side, or null. */
+    private static SpineClaim.Gap between(SpineClaim.Spine spine, BlockLeaf a, BlockLeaf b) {
+        int from = Math.min(spine.alongHi(a), spine.alongHi(b)), to = Math.max(spine.alongLo(a), spine.alongLo(b));
+        for (SpineClaim.Gap gap : spine.gaps) {
+            if (gap.near() == spine.onNearSide(a) && gap.from() > from && gap.to() < to) return gap;
+        }
+        return null;
+    }
+
+    /** The member reaching furthest towards one end of the street, leaving out {@code taken}. */
+    private static BlockLeaf end(SpineClaim.Spine spine, List<BlockLeaf> taken, boolean low) {
+        BlockLeaf best = null;
+        for (BlockLeaf leaf : spine.members()) {
+            if (taken.contains(leaf)) continue;
+            if (best == null) { best = leaf; continue; }
+            int at = low ? -spine.alongLo(leaf) : spine.alongHi(leaf);
+            int bestAt = low ? -spine.alongLo(best) : spine.alongHi(best);
+            if (at > bestAt || (at == bestAt && leaf.area() > best.area())) best = leaf;
+        }
+        return best;
+    }
+
+    /**
+     * The street mask with every cross street between shops narrowed to the narrowest street, except
+     * {@code keep}, the street through the market square, or none where it is null.
+     */
+    static boolean[][] narrowed(SpineClaim.Spine spine, boolean[][] road, SpineClaim.Gap keep) {
         boolean[][] streets = new boolean[road.length][];
         for (int x = 0; x < road.length; x++) streets[x] = road[x].clone();
         for (SpineClaim.Gap gap : spine.gaps) {
+            if (gap.equals(keep)) continue;
             for (int a = gap.from() + Bsp.ROAD_WIDTH_MIN; a <= gap.to(); a++) {
                 for (int c = gap.lo(); c <= gap.hi(); c++) streets[spine.x(a, c)][spine.y(a, c)] = false;
             }

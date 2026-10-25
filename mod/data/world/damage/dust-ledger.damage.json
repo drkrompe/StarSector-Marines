@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "width": 192,
+  "height": 112,
+  "seed": 6120,
+  "layers": [
+    {
+      "name": "Terraforming ruins on the south hardpan",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "RUIN",
+          "radius": 4.5,
+          "points": [
+            [
+              11,
+              8
+            ],
+            [
+              14,
+              10
+            ]
+          ]
+        },
+        {
+          "mode": "RUIN",
+          "radius": 4.0,
+          "points": [
+            [
+              118,
+              7
+            ],
+            [
+              124,
+              9
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 4.0,
+          "points": [
+            [
+              30,
+              10
+            ],
+            [
+              40,
+              6
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Old fall debris on the east hardpan",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 3.5,
+          "points": [
+            [
+              176,
+              8
+            ],
+            [
+              186,
+              12
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 2.5,
+          "points": [
+            [
+              100,
+              6
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Worn crossroads and apron",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 1.6,
+          "points": [
+            [
+              84,
+              57
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.4,
+          "points": [
+            [
+              60,
+              62
+            ]
+          ]
+        },
+        {
+          "mode": "BATTERED",
+          "radius": 1.2,
+          "points": [
+            [
+              31,
+              41
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

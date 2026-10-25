@@ -344,6 +344,10 @@ com.dillon.starsectormarines.battle.staffed.LoadingPressureLookSuite
 com.dillon.starsectormarines.battle.setup.FactoryRowLookSuite
 com.dillon.starsectormarines.battle.setup.IndustrialZoneLookSuite
 com.dillon.starsectormarines.battle.setup.MainStreetLookSuite
+com.dillon.starsectormarines.battle.setpiece.WorkshopStripLookSuite
+com.dillon.starsectormarines.battle.setpiece.SquareMusterLookSuite
+com.dillon.starsectormarines.battle.setpiece.HallProcessionLookSuite
 com.dillon.starsectormarines.battle.setup.StreetKitLookSuite
 com.dillon.starsectormarines.battle.setup.TownPlanLookSuite
 com.dillon.starsectormarines.battle.setup.CordonedFacilityLookSuite
+com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossingSnapshotSuite

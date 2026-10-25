@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "width": 192,
+  "height": 112,
+  "roads": [
+    {
+      "id": "apron-road",
+      "points": [
+        [
+          35.0,
+          60.0
+        ],
+        [
+          88.0,
+          60.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.6,
+      "seed": 6101,
+      "material": "GRAVEL",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "crawler-road",
+      "points": [
+        [
+          88.0,
+          60.0
+        ],
+        [
+          106.0,
+          69.0
+        ],
+        [
+          124.0,
+          77.0
+        ],
+        [
+          180.0,
+          77.0
+        ],
+        [
+          191.0,
+          83.0
+        ]
+      ],
+      "width": 9,
+      "shoulder": 0,
+      "wear": 0.85,
+      "seed": 6102,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "well-lane",
+      "points": [
+        [
+          88.0,
+          63.0
+        ],
+        [
+          88.0,
+          80.0
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.7,
+      "seed": 6103,
+      "material": "GRAVEL",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "field-track",
+      "points": [
+        [
+          90.0,
+          57.0
+        ],
+        [
+          90.0,
+          38.0
+        ],
+        [
+          84.0,
+          28.0
+        ],
+        [
+          82.0,
+          4.0
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 6104,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "back-lane",
+      "points": [
+        [
+          90.0,
+          38.0
+        ],
+        [
+          135.0,
+          38.0
+        ]
+      ],
+      "width": 4,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 6105,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "pad-track",
+      "points": [
+        [
+          155.0,
+          29.0
+        ],
+        [
+          155.0,
+          12.0
+        ]
+      ],
+      "width": 4,
+      "shoulder": 0,
+      "wear": 0.75,
+      "seed": 6106,
+      "material": "DIRT",
+      "endCap": "BUTT"
+    }
+  ]
+}

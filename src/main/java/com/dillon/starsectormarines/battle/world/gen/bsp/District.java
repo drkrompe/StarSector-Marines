@@ -35,6 +35,11 @@ public final class District {
         SHOPFRONT,
         /** The open square at one end of a spine (main street). */
         PLAZA,
+        /**
+         * Ground under the market square set piece ({@code MarketSquare}), facing the district's street: the
+         * members holding it and the street between them are the square's lot (main street's plaza end).
+         */
+        MARKET_SQUARE,
         /** The public building closing the other end of a spine: a civic hall (main street). */
         LANDMARK,
         /** The facility's offices, which the mission's command sits in (cordoned facility). */

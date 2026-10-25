@@ -34,13 +34,15 @@ position, and shots remain visible through fog.
   cells, so overlapping sources cannot erase one another's sight.
 - A **temporary source** is a short-lived observer that participates in the same
   bitmap but has no battle-unit visibility row or cohort membership. It arrives
-  through one of two channels. A **projected source** is pushed by a render host
+  through one of three channels. A **projected source** is pushed by a render host
   each frame — a shuttle, a flyby fighter, an active recon ping. A **carried
   sweep** is pushed by the simulation each tick from a live unit whose armour
   pattern is running a sensor system (`progression-nouns.md`), so it exists in
-  every host and in a headless run alike. The two channels are separate because
-  they are cleared by different owners at different cadences; each is replaced
-  as a set, and both feed the one footprint rebuild.
+  every host and in a headless run alike. A **standing source** is held by a
+  mission while one of its conditions lasts — the Dust Ledger's rooftop spotters
+  over the compound yard (`dust-ledger-crossing.md`). The channels are separate
+  because they are cleared by different owners at different cadences; each is
+  replaced as a set, and all feed the one footprint rebuild.
 - A **unit visibility state** is the renderer's HIDDEN, VISIBLE, or FADING
   presentation of a live non-contributor. It is distinct from a unit's own
   tactical line-of-sight and from whether a cell has ever been explored. A

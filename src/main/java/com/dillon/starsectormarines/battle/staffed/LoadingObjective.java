@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.staffed;
 
 import com.dillon.starsectormarines.battle.objective.optional.Cost;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectivePressure;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
 import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.objective.optional.Reward;
@@ -24,13 +25,16 @@ public final class LoadingObjective implements ObjectiveRuntime {
     public static final String KEY = "secure_loading";
     /** Beat the runtime publishes once the truck sets off, under the board's prefix. */
     public static final String DEPARTED_BEAT = "objective_" + KEY + "_departed";
+    /** How far along the truck's road out its pressure's departure rush is sent, as a share of the road. */
+    static final float AMBUSH_ALONG = 0.4f;
 
     private final Loading loading;
-    private final LoadingPressure pressure;
+    private final ObjectivePressure pressure;
     private boolean departedSaid;
     private boolean ended;
+    private int[] ambush;
 
-    LoadingObjective(Loading loading, LoadingPressure pressure) {
+    LoadingObjective(Loading loading, ObjectivePressure pressure) {
         this.loading = loading;
         this.pressure = pressure;
     }
@@ -41,12 +45,12 @@ public final class LoadingObjective implements ObjectiveRuntime {
      */
     public static OptionalObjective entry(String title, String briefing, int weight, Reward reward, Cost cost,
                                           Supplier<Loading> loading) {
-        return entry(title, briefing, weight, reward, cost, loading, l -> LoadingPressure.NONE);
+        return entry(title, briefing, weight, reward, cost, loading, l -> ObjectivePressure.NONE);
     }
 
     /** {@link #entry}, with what the loading brings against itself, asked for once the loading is installed. */
     public static OptionalObjective entry(String title, String briefing, int weight, Reward reward, Cost cost,
-                                          Supplier<Loading> loading, Function<Loading, LoadingPressure> pressure) {
+                                          Supplier<Loading> loading, Function<Loading, ObjectivePressure> pressure) {
         return new OptionalObjective(KEY, title, briefing, Set.of(), Set.of(), weight, reward, cost,
                 ctx -> {
                     Loading installed = loading.get();
@@ -62,7 +66,7 @@ public final class LoadingObjective implements ObjectiveRuntime {
             departedSaid = true;
             ctx.publish(tick, DEPARTED_BEAT);
         }
-        pressure.advance(ctx.sim(), loading, tick);
+        pressure.advance(ctx.sim(), beat(phase), tick);
         Status status = switch (phase) {
             case AWAY -> Status.SUCCEEDED;
             case LOST -> Status.FAILED;
@@ -78,6 +82,14 @@ public final class LoadingObjective implements ObjectiveRuntime {
         return Status.LAPSED;
     }
 
+    /** Half the crates aboard is half way; once the truck sets off its pressure is sent ahead of it on its road out. */
+    private ObjectivePressure.Beat beat(Loading.Phase phase) {
+        boolean departing = phase == Loading.Phase.DEPARTING;
+        if (departing && ambush == null) ambush = loading.roadCell(AMBUSH_ALONG);
+        return new ObjectivePressure.Beat(loading.delivered() / (float) loading.target(), departing,
+                departing ? ambush : null);
+    }
+
     private void endPressure(ObjectiveContext ctx) {
         if (ended) return;
         ended = true;
@@ -85,7 +97,7 @@ public final class LoadingObjective implements ObjectiveRuntime {
     }
 
     /** What the loading brought against itself. */
-    public LoadingPressure pressure() {
+    public ObjectivePressure pressure() {
         return pressure;
     }
 

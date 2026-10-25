@@ -6,7 +6,7 @@ speak about it.
 
 Written: 2026-10-21
 
-Updated: 2026-10-24 — the lobster thread, provisional and open (owner); 2026-10-22 spores travel on cargo (owner); 2026-10-21 owner settled the name (the Rav Bloom); added the
+Updated: 2026-10-25 — the lobster thread becomes owner direction: a pressure-pinned super-evolver, handling laws, easter-egg winks (owner); 2026-10-24 the lobster thread, provisional and open (owner); 2026-10-22 spores travel on cargo (owner); 2026-10-21 owner settled the name (the Rav Bloom); added the
 whispered-reputation, sporeship-rumour and red-tide direction.
 
 Read `faction-lore-nouns.md` for evidence rules and shared setting laws, and
@@ -240,32 +240,58 @@ Speculation each voice is allowed to carry:
   as a question, never a revelation. Do not pay this off into an alien
   precursor.
 
-### The lobster thread (provisional, open)
+### The lobster thread (owner direction)
 
-**Provisional and open** (owner, 2026-10-24: "Yes, provisionally"). Behind the
-cargo route above, the authors carry one hidden thread: Volturnian lobster, the
-luxury shipped from Volturn to every market in the Sector, is somehow the
-Ravs' stock. It is not settled which reading is true, and none is to be chosen
-in text:
+**Owner direction** (2026-10-25, building on the provisional thread of
+2026-10-24). Volturnian lobster, the luxury shipped from Volturn to every
+market in the Sector, is the Ravs' stock, held in its lobster form only by
+pressure.
 
-- **Larval form:** the lobster is the Ravs' larval stage.
-- **Locust phase:** the lobster is the solitary phase, and crowding (a colony
-  dense enough to feed it, as in the life cycle above) flips it into the
-  swarming one.
-- **Weapon stock:** an ordinary lobster stock bio-engineered into a weapon
-  during the AI Wars.
+**The anchor.** The installed commodity text says the lobster is a mix of
+Old Earth species "and a little imagination", and that it grows wild in the
+crushing depths of Volturn's sea-floor. Volturn is the only source. Everything
+below is mod direction built on those two facts.
 
-Each reading explains why blooms surface anywhere goods travel and why they
-break out only sometimes. Rules while it stays open:
+**The reading.** The stock is a super-evolver. At the bottom of Volturn's
+world-sea the pressure pins it in one shape: the tasty crustacean, the way
+crab-like bodies keep re-evolving on Earth from unrelated lines. Off the
+sea-floor and out of pressure it runs through forms quickly, and on a world
+with food it becomes the Bloom. The earlier larval and locust readings fold
+into this one: the lobster is the pinned form, and release, not crowding, is
+the switch. The AI-War weapon-stock reading survives only as a voice's guess.
 
-- **Never stated.** No briefing, radio, intel, codex or item text links the
-  lobster to the Ravs, and no voice in the maker list above names it. It does
-  not replace the cargo line or the maker speculation; it sits under them.
-- **Set dressing only.** It may be carried by what a place holds: lobster
-  crates in a freight yard where a heart came up, tanks in a research annex,
-  a market's tanks under the creep (`heart-origins.md`). Most factions have
-  plainly not connected the dots; a research site that had is one of the
-  heart's origins.
+**The handling laws.** Because the lobster is so good and so dear, the Diktat
+and other polities keep harsh food-preparation laws on the books, framed as
+luxury protection: it must be kept in pressure tanks until it is cooked,
+cooked in a pressure vessel, and cooking it is a licensed trade. Wasting a
+lobster by letting it out of pressure is a crime. Nobody says aloud why the
+law is that strict, and most people take it for snobbery and price-fixing.
+
+**Where outbreaks come from.** Shoddy handling: a retailer cutting corners on
+tanks, a smuggler moving it cheap, a kitchen without a licence. Or a polity
+trying to farm its own lobster to break Volturn's price. This sits under the
+cargo route above and explains why blooms surface anywhere goods travel and
+break out only sometimes.
+
+Rules for the thread:
+
+- **Winks, never a confirmation.** Easter eggs may play the joke: a civilian
+  bark, a radio aside, a market note ("finally cheap Sindrian lobster on the
+  market and I can't enjoy it because it's doomsday"). Lobster crates, tanks
+  and pressure cookers can stand where a heart came up. No briefing, intel,
+  codex or item text states that the lobster becomes the Ravs, and no voice in
+  the maker list above names it as the cause. A wink is funny only to a player
+  who has put it together.
+- **The law can be shown straight.** The handling laws, licences and pressure
+  tanks are ordinary in-world facts any voice may mention, as food snobbery or
+  Diktat bureaucracy, never as containment.
+- **Set dressing.** Freight-yard lobster crates, tanks in a research annex, a
+  market's tanks under the creep (`heart-origins.md`), a burst pressure tank in
+  a back kitchen. Most factions have not connected the dots; a research site
+  that had is one of the heart's origins. The props are `lobster-trade` (a
+  pressure tank, the tank burst, a pressurised crate, a licensed range); a main
+  street's back kitchen, a market's fish stall and a freight yard's first stack
+  carry them.
 - **Art is not changed for it.** A faint crustacean resemblance is welcome in
   new swarm art but never required, and accepted strain art (the Runner, the
   Brute, the Matriarch and the rest) is not reworked to show it (owner).
