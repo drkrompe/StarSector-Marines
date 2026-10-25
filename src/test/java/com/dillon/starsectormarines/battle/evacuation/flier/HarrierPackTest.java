@@ -58,6 +58,17 @@ class HarrierPackTest {
     }
 
     @Test
+    void aPackStillHatchingNeverCommits() {
+        HarrierPack pack = pack(6, 60f, 30f);
+        pack.unhatched = 1;
+        fly(pack, 10f, PREY);
+        assertEquals(0, pack.dives(), "the pack waits for its last Harrier out of the hatch");
+        pack.unhatched = 0;
+        fly(pack, 10f, PREY);
+        assertTrue(pack.dives() >= 1, "with every Harrier out it commits");
+    }
+
+    @Test
     void everyStrikeOfADiveLandsOnTheOneCommittedTarget() {
         HarrierPack pack = pack(10, 60f, 30f);
         List<Strike> strikes = fly(pack, 20f, PREY);

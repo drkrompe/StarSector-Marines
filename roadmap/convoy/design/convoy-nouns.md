@@ -1125,7 +1125,8 @@ troop APC drives through, against a control where the APC alone is refused.
 
 A Heavy-lift hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the
-small oak), any tree the creep has killed, or a lone large boulder. A cell under
+small oak), any tree the creep has killed, a patch of forest undergrowth
+(`mapgen-nouns.md`, Authored forests), or a lone large boulder. A cell under
 two crowns is crushable only while every standing tree on it is undergrowth, so
 a dead tree leaning into a living oak holds where they meet, and a summit cell
 never is. Infantry and every lighter hull are stopped by it as by any natural

@@ -26,10 +26,10 @@ import java.util.List;
  *   ({@link #choose}). It is a structure on the swarm's side, fought as a bore's body is, and withers when its
  *   bore collapses.</li>
  *   <li><b>A spire launches with its bore's surge</b>: surges, not trickles. On each of its bore's surges it
- *   releases a pack of {@link #PACK} when {@link #releases} allows it, rising off its crown
- *   ({@link SwarmFliers#risingFrom}).</li>
+ *   releases a pack of {@link #PACK} when {@link #releases} allows it, hatching out of its crown one by one
+ *   ({@link SwarmFliers#hatch}).</li>
  *   <li><b>A Matriarch comes with her brood.</b> When a mother puts her Matriarch out, a pack of
- *   {@link #BROOD_PACK} rises over her and flies as her escort.</li>
+ *   {@link #BROOD_PACK} hatches off her back one by one as she climbs out, and flies as her escort.</li>
  *   <li><b>The flier law holds.</b> No pack rises while the marines and their allies have no anti-air on the map
  *   ({@link SwarmFliers#hasAirCover}).</li>
  * </ul>
@@ -62,6 +62,8 @@ public final class BroodSpires {
     static final float CLEARANCE = 5f;
     /** Directions tried on each ring. */
     static final int DIRECTIONS = 24;
+    /** Hooks a spire's brood clings to while it waits; drawn only (`colony-breach-nouns.md`, Brood spire). */
+    public static final int PERCHES = 5;
     /** Damage that withers a spire outright when its bore collapses. */
     private static final float WITHER_DAMAGE = 1_000_000f;
 
@@ -102,6 +104,30 @@ public final class BroodSpires {
     public List<Spire> spires() { return Collections.unmodifiableList(spires); }
 
     public List<Launch> launches() { return Collections.unmodifiableList(launches); }
+
+    /**
+     * How many of a spire's next brood cling to its hooks: none while its own pack is in the air, then filling back
+     * one by one over its gap of {@code gapTicks} after a launch (shorter when tended), so a full roost is a spire
+     * ready to launch again.
+     */
+    public static int perched(boolean packAloft, int ticksSinceLast, int gapTicks) {
+        if (packAloft) return 0;
+        return (int) Math.min(PERCHES, (long) Math.max(0, ticksSinceLast) * PERCHES / Math.max(1, gapTicks));
+    }
+
+    /** How many Harriers cling to {@code s}'s hooks now ({@link #perched(boolean, int, int)}); none on a dead spire. */
+    public int perched(BattleSimulation sim, Spire s) {
+        if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return 0;
+        // A pack still hatching leaves its roost one by one: the hooks hold those still to come out.
+        if (s.pack != null && s.pack.unhatched() > 0 && sim.swarmFliers().packs().contains(s.pack)) {
+            return Math.min(PERCHES, s.pack.unhatched());
+        }
+        return perched(aloft(sim, s), sim.getSimTickIndex() - s.lastReleaseTick, gapTicks(s.tendedTicks));
+    }
+
+    private static boolean aloft(BattleSimulation sim, Spire s) {
+        return s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
+    }
 
     /** The spire whose body is {@code entityId}, or {@code null}. */
     public Spire byEntity(long entityId) {
@@ -231,12 +257,12 @@ public final class BroodSpires {
 
     private void surged(BattleSimulation sim, Spire s, int tick) {
         if (sim.resolveUnit(s.entityId) == 0L || !sim.world().isAlive(s.entityId)) return;
-        boolean aloft = s.pack != null && !s.pack.members.isEmpty() && sim.swarmFliers().packs().contains(s.pack);
         float x = s.x + 0.5f, y = s.y + 0.5f;
-        if (!releases(SwarmFliers.hasAirCover(sim), aloft, tick - s.lastReleaseTick, s.tendedTicks,
+        if (!releases(SwarmFliers.hasAirCover(sim), aloft(sim, s), tick - s.lastReleaseTick, s.tendedTicks,
                 preyNear(sim, x, y))) return;
-        s.pack = sim.swarmFliers().releaseUnderCover(sim, HarrierLook.DEFAULT, x, y, PACK, 0L);
-        sim.swarmFliers().risingFrom(sim, s.pack, x, y);
+        // The pack hatches out of the crown one by one; with emergence off it rises off it whole.
+        s.pack = sim.swarmFliers().hatchUnderCover(sim, HarrierLook.DEFAULT, s.entityId, x, y, x, y, PACK, 0L);
+        if (!sim.swarmEmergence().enabled()) sim.swarmFliers().risingFrom(sim, s.pack, x, y);
         s.lastReleaseTick = tick;
         s.tendedTicks = 0;
         s.packs++;
