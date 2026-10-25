@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17339-50b5-7f13-93a5-31545fc61380",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17339-50b5-7f13-93a5-31545fc61380\\exec-63dd6a4c-179b-4ab8-9c67-9de1023c2fc1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\brood-spire-3-wounded.raw.png",
+    "sha256": "670bd75c7391faaa3e02a3f968f28aefc9f948b8f3b128f414baf3500b90b3ee",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\swarm-bores\\prompts\\brood-spire-wounded.prompt.txt",
+  "promptSha256": "08c218f537d84deb2ffe5f19d70eebbece9cff9d917db15da8fd2d230d70bacc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage\nImage 3: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a BROOD SPIRE of the alien swarm for a top-down tactical game: the one TALL growth the swarm raises on old creep, a nesting column that its winged fliers hatch from and launch off in packs. It is grown, not built, and lopsided. Body plan: ONE great curved horn of stacked chitin growth collars leaning out of a skirt of plates and sinew roots on a heaved mound, tapering to a bone-tipped crown with an amber vent; hooked bone perches curl out of alternate flanks up its length, and under each hangs a swollen brood pod of veined membrane glowing amber from inside. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry; on a column it is stacked growth collars, each lip a little proud of the segment above, like a horn or a cone shell; pale ivory = bone (spurs, horn tips); dark grey-green tubes = sinew roots and cords; brown = churned, thrown-up soil; dusky mauve = wet dark flesh; pale warm grey-pink domes and flaps = brood membrane: thin, taut, translucent skin laced with dark veins, with the amber of what grows inside showing through; orange-amber spots = glowing amber, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective: the column's height is shown only by its lean and the guide's shading. Genuine transparent background outside the silhouette, including the gaps between roots and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a tree, never a machine, never a building, never a different animal. It will be shown only about 100 to 260 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, collar seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n\nDAMAGE STATE: WOUNDED. This is the same structure as the undamaged painting in the identity reference, after it has taken heavy fire and lost about half its strength. Keep its painting identity exactly: the same plates, tusks, sacs, slabs and roots in the same places, the same colours, the same glossy hand-painted rendering, the same sun from the upper left. Show the damage the guide adds, and only that: where the guide shows a plate replaced by a low dusky-mauve patch with a jagged stump at its root, the plate has been torn out of its socket, leaving raw wet sinew and torn membrane, the broken stump's edge splintered and pale; where the guide cuts a dark groove across carapace or a sac, it is a fresh gash through the shell showing wet flesh beneath, edges cracked and chipped; a sac shown deflated with a raw crater at its crown has burst, its skin sagging and torn open, a little dark ichor around the wound; a short tusk or spine is snapped off, its broken end raw bone. For a ground colony, a sinew arm cut by the guide's groove is gashed open on wet flesh and some of its spines are snapped. The amber glow is weaker and fewer: the creature is hurt, not dead. It must still read at a glance as the same living structure, now visibly wounded.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-brood-spire-3-wounded-guide.png",
+      "sha256": "a3db5d9ef8fffe9d18d63976f22626c3213e766f3a1806528567752cc748e072",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\brood-spire-3.raw.png",
+      "sha256": "84739fc32da0b40a4d129af4864297258fef3c33ce2ef864c9b28a19be07cc43",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render one wounded sprite, preserving Image 1’s geometry and lighting while matching the painted references.\n"
+  ],
+  "usage": {
+    "input_tokens": 49416,
+    "cached_input_tokens": 37248,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 750,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.5
+}

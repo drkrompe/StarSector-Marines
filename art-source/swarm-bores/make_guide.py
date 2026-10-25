@@ -114,9 +114,9 @@ SEEDS = {"bore": 1100, "mother-bore": 2300, "spore-colony-fissure": 3100, "spore
 # The ground colony's body plan (``ground_colony_body``).
 GROUND_COLONY_STYLES = ("ridge", "star", "urchin")
 GROUND_COLONY_STYLE = "star"  # the owner's pick, 2026-10-22
-# The brood spire's body plan (``spire_body``); ``roost`` is built on until the owner picks.
+# The brood spire's body plan (``spire_body``).
 SPIRE_STYLES = ("roost", "chimney", "clutch")
-SPIRE_STYLE = "roost"
+SPIRE_STYLE = "roost"  # the owner's pick, 2026-10-25
 
 
 def to_sun_screen():
@@ -894,6 +894,22 @@ def spire_spine(base, angle, lean, height, r0, r_tip, curl=0.0, steps=90, materi
     return out
 
 
+def snapped(spine, at: float, fall_angle: float):
+    """A column broken ``at`` of the way up: the stump standing, and the rest lying where it fell along
+    ``fall_angle``, on its side on the ground, a little apart from the break."""
+    k = max(2, int(at * (len(spine) - 1)))
+    stump = spine[:k + 1]
+    bx, by, bz, br, _ = stump[-1]
+    fallen, run = [], br * 1.2 + 0.15
+    for i in range(k, len(spine) - 1):
+        x0, y0, z0, _, _ = spine[i]
+        x1, y1, z1, _, _ = spine[i + 1]
+        run += math.dist((x0, y0, z0), (x1, y1, z1))
+        _, _, _, r, mat = spine[i + 1]
+        fallen.append((bx + math.cos(fall_angle) * run, by + math.sin(fall_angle) * run, r * 0.2, r, mat))
+    return stump, fallen
+
+
 def spire_body(f: Field, style: str):
     """A brood spire: the tall growth on old creep that Harrier packs rise from (`colony-breach-nouns.md`).
 
@@ -909,6 +925,9 @@ def spire_body(f: Field, style: str):
       brood pods cradled in the crotch between them.
     """
     rng = f.rng
+    dmg = f.dmg
+    dead = f.state == "remains"
+    hurt = f.state == "wounded"
     sx, sy = to_sun_screen()
     # Off-centre towards the sun so the long shadow down-sun stays on the canvas.
     cx, cy = sx * 1.1 + rng.uniform(-0.15, 0.15), sy * 1.1 + rng.uniform(-0.15, 0.15)
@@ -928,11 +947,30 @@ def spire_body(f: Field, style: str):
         a = a0 + 2 * math.pi * k / skirt + rng.uniform(-0.25, 0.25)
         f.plate(cx + math.cos(a) * 0.25, cy + math.sin(a) * 0.25, a + rng.uniform(-0.2, 0.2),
                 rng.uniform(0.6, 0.85), rng.uniform(0.45, 0.6), rng.uniform(0.32, 0.45), 0.05, bulge=0.04,
-                jagged=rng.uniform(0, 0.25), round_=0.02)
+                jagged=rng.uniform(0, 0.25), round_=0.02,
+                torn=(dead and dmg.random() < 0.5) or (hurt and dmg.random() < 0.3), slump=0.6 if dead else 1.0)
+    f.open_tears()
+
+    def column(spine, rings, lean_a):
+        """Stands a column, or in remains snaps it and lays its top on the ground, fallen across its lean."""
+        if dead:
+            stump, fallen = snapped(spine, dmg.uniform(0.3, 0.45), lean_a + dmg.uniform(-0.5, 0.5))
+            stalk(f, stump, rings=rings * 0.4)
+            stalk(f, fallen, rings=rings * 0.6)
+            return stump
+        stalk(f, spine, rings=rings)
+        return spine
+
     # A lean away from the sun would hide the column in its own shadow; across or into the light shows it.
     toward = math.atan2(sy, sx)
 
     def pod(x, y, z, r, glow=1.0):
+        if dead or (hurt and dmg.random() < 0.5):
+            # Burst: a torn, emptied skin, and in the remains it has dropped to the foot of the column.
+            if dead:
+                z = 0.1
+            stalk(f, [(x, y, z, r * 0.6, FLESH), (x + r * 0.2, y, z - r * 0.2, r * 0.45, SAC)])
+            return
         f.stalk_pod(x, y, z, r, glow)
 
     if style == "roost":
@@ -940,18 +978,21 @@ def spire_body(f: Field, style: str):
         H = rng.uniform(3.1, 3.4)
         spine = spire_spine((cx, cy, 0.0), lean_a, rng.uniform(0.4, 0.46), H, 0.62, 0.07,
                             curl=rng.uniform(-0.5, 0.5), bone_from=0.9)
-        stalk(f, spine, rings=9)
+        standing = column(spine, 9, lean_a)
         # Perches: hooked bone spurs off alternate flanks, a brood pod hanging under each.
         for k, t in enumerate((0.28, 0.42, 0.55, 0.68, 0.8)):
+            if int(t * (len(spine) - 1)) >= len(standing):
+                continue
             x, y, z, r, _ = spine[int(t * (len(spine) - 1))]
             side = lean_a + (math.pi / 2 if k % 2 else -math.pi / 2) + rng.uniform(-0.5, 0.5)
             px_, py_ = x + math.cos(side) * r * 0.8, y + math.sin(side) * r * 0.8
             hook = spire_spine((px_, py_, z), side, 2.2, 0.28, 0.09, 0.025, curl=rng.uniform(-0.6, 0.6),
                                steps=24, material=BONE, droop=0.9)
+            if hurt and dmg.random() < 0.35:
+                hook = hook[:len(hook) // 2]  # snapped
             stalk(f, hook)
-            hx, hy, hz, _, _ = hook[-1]
             pod(x + math.cos(side) * (r + 0.2), y + math.sin(side) * (r + 0.2), z - 0.25, rng.uniform(0.16, 0.22))
-        tip = spine[-1]
+        tip = standing[-1]
         f.node(tip[0], tip[1], 0.12, 0.9)
     elif style == "chimney":
         lean_a = toward + rng.uniform(1.0, 2.0) * rng.choice((-1, 1))
@@ -964,6 +1005,9 @@ def spire_body(f: Field, style: str):
             r = 0.52 + 0.45 * (1 - t) ** 3 - 0.04 * t
             reach = lean * H * t
             spine.append((cx + math.cos(lean_a) * reach, cy + math.sin(lean_a) * reach, H * t, r, CHITIN))
+        if dead:
+            # Caved in on itself: the stack slumped to a low ragged ring, its top fallen in.
+            spine = [(x, y, z * 0.4, r * (1.05 if z > 0.5 * H else 1.0), m) for x, y, z, r, m in spine]
         stalk(f, spine, rings=6)
         # Sinew cords run up its flanks, the ribs of the stack.
         for k in range(7):
@@ -976,7 +1020,7 @@ def spire_body(f: Field, style: str):
         # The throat: open down into the stack, flesh-lined and lit from below.
         d = np.hypot(f.x - top[0], f.y - top[1])
         throat = d < 0.36
-        f.h[throat] = top[2] - 1.1 * np.clip(1 - d[throat] / 0.36, 0, 1) ** 0.6 + 0.15
+        f.h[throat] = top[2] - (0.3 if dead else 1.1) * np.clip(1 - d[throat] / 0.36, 0, 1) ** 0.6 + 0.15
         f.m[throat] = FLESH
         f.node(top[0], top[1], 0.18, 0.95)
         # The flaps: membrane peeled back off the rim, splayed and ragged.
@@ -984,7 +1028,9 @@ def spire_body(f: Field, style: str):
             a = 2 * math.pi * k / 6.5 + rng.uniform(-0.25, 0.25)
             f.plate(top[0] + math.cos(a) * 0.36, top[1] + math.sin(a) * 0.36, a + rng.uniform(-0.25, 0.25),
                     rng.uniform(0.45, 0.65), rng.uniform(0.35, 0.5), top[2] + 0.55, top[2] - 0.15, bulge=0.03,
-                    jagged=rng.uniform(0.2, 0.45), material=SAC, round_=0.02)
+                    jagged=rng.uniform(0.2, 0.45), material=SAC, round_=0.02,
+                    torn=(dead and dmg.random() < 0.6) or (hurt and dmg.random() < 0.35), slump=0.5 if dead else 1.0)
+        f.open_tears()
     else:  # clutch
         horns = rng.randint(3, 4)
         a0 = rng.uniform(0, 2 * math.pi)
@@ -994,8 +1040,7 @@ def spire_body(f: Field, style: str):
             H = rng.uniform(2.0, 2.9)
             spine = spire_spine((cx + math.cos(a) * 0.15, cy + math.sin(a) * 0.15, 0.0), a, rng.uniform(0.38, 0.55),
                                 H, rng.uniform(0.3, 0.36), 0.04, curl=rng.uniform(-0.6, 0.6), bone_from=0.82)
-            stalk(f, spine, rings=rng.randint(6, 8))
-            tops.append(spine)
+            tops.append(column(spine, rng.randint(6, 8), a))
         # The knot the horns grow from.
         stalk(f, [(cx, cy, z, 0.5 - 0.25 * z, UNDER) for z in np.linspace(0.0, 0.7, 12)])
         # Brood pods cradled in the crotch, and a few clinging up the horns.
@@ -1003,11 +1048,13 @@ def spire_body(f: Field, style: str):
             a = a0 + 2 * math.pi * (k + 0.5) / horns
             pod(cx + math.cos(a) * 0.3, cy + math.sin(a) * 0.3, 0.55, rng.uniform(0.2, 0.26))
         for spine in tops[:2]:
-            x, y, z, r, _ = spine[int(0.45 * (len(spine) - 1))]
+            x, y, z, r, _ = spine[min(len(spine) - 1, int(0.45 * 90))]
             pod(x, y, z + r * 0.4, 0.15, 0.8)
     for _ in range(6):
         a = rng.uniform(0, 2 * math.pi)
         f.crack(cx + math.cos(a) * 1.1, cy + math.sin(a) * 1.1, a, rng.uniform(0.3, 0.6), 0.01)
+    if f.state != "intact":
+        f.scars(6 if hurt else 9, (cx, cy), 1.6)
 
 
 def _stalk_pod(self: Field, x, y, z, r, glow=1.0):

@@ -873,8 +873,11 @@ through, made into a thing on the map the company can find and kill.
   geometry-first painting of the Runner's chitin, lit by the game's sun, its
   height told by its lean and a long shadow thrown down-sun, drawn half again
   its modelled size so it stands out as a landmark on a mass of creep. Brood
-  pods glow amber where the fliers hatch. The body plan is the owner's open
-  pick (`brood-spire-look`: roost, chimney or clutch); roost is built on.
+  pods glow amber where the fliers hatch. Its body plan is the **roost** (the
+  owner's pick of roost, chimney and clutch, 2026-10-25): one great curved horn
+  of stacked chitin collars leaning out of a plated footing, hooked bone perches
+  up its flanks with brood pods hanging under them. Three paintings; wounded, its
+  pods burst and its skirt torn; dead, the horn snapped and lying on the ground.
 - `-Dbattle.swarm.broodSpires=false` is the control: no spires and no broods.
   Scene: `brood-spire`.
 
