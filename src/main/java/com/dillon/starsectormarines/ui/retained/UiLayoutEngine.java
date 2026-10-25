@@ -159,6 +159,17 @@ public final class UiLayoutEngine {
 
         float free = Math.max(0f, mainExtent - totalGap - totalBasis);
         float cursor = horizontal ? content.x() : content.y();
+        // A growing child takes the free space; otherwise justify-content places it.
+        if (totalGrow <= 0f) {
+            switch (parent.justifyContent()) {
+                case CENTER -> cursor += free * 0.5f;
+                case END -> cursor += free;
+                case SPACE_BETWEEN -> {
+                    if (children.size() > 1) gap += free / (children.size() - 1);
+                }
+                case START -> { }
+            }
+        }
         for (UiElement child : children) {
             float main = flowBasis(parent, child, horizontal, content);
             if (child.grow() > 0f && totalGrow > 0f) {

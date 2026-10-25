@@ -371,6 +371,10 @@ to authored copy: all caps is a heading treatment, not a global font policy. Hor
 For composed controls, `align-items` places row or column children on the cross
 axis with `start`, `center`, `end`, or `stretch`. Centered legends use their
 intrinsic line height, so padding does not become a second alignment authority.
+`justify-content` places them on the main axis with `start`, `center`, `end`, or
+`space-between` when no child grows (a growing child takes the free space instead).
+It replaces growing spacer elements and padding nudges as the way to centre or push
+content along a row or column.
 `text-shadow` takes one colour and stamps a one-pixel halo of it behind every line,
 inherited like `color`. It exists for text with nothing behind it: the takeover HUD
 floats over the battle, and a halo keeps a pale label readable over pale ground from

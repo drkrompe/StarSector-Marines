@@ -5,7 +5,6 @@
       <canvas id="marine-doll-canvas" class="doll-canvas" width="52" height="118" />
       <div id="marine-doll-pad-right" class="{padClasses}"></div>
       <div id="marine-doll-kit" class="{kitClasses}">
-        <div id="marine-doll-kit-spacer" class="kit-spacer"></div>
         <div id="marine-doll-kit-0" class="{kit0Classes}">
           <div id="marine-doll-kit-0-name" class="kit-name">{kit0Name}</div>
           <div id="marine-doll-kit-0-count" class="kit-count">{kit0Count}</div>
@@ -60,9 +59,8 @@
   .doll-canvas { width: 52px; height: 118px; }
   .pad { width: 0px; flex-grow: 1; }
   .pad-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; }
-  .kit { width: 0px; flex-grow: 1; height: 100%; flex-direction: column; gap: 3px; }
+  .kit { width: 0px; flex-grow: 1; height: 100%; flex-direction: column; gap: 3px; justify-content: end; }
   .kit-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; }
-  .kit-spacer { height: 0px; flex-grow: 1; }
   .kit-row { height: 26px; flex-direction: row; gap: 3px; padding: 1px 4px; border-width: 1px; border-color: #6fd08a66; background-color: #0000004d; }
   .kit-row-spent { border-color: #2c3732; }
   .kit-row-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; }

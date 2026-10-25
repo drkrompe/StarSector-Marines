@@ -484,6 +484,11 @@ public final class UiElement {
         return computedStyle == null ? null : computedStyle.alignItems();
     }
 
+    /** CSS main-axis placement for this element's row or column children. */
+    public UiJustify justifyContent() {
+        return computedStyle == null ? UiJustify.START : computedStyle.justifyContent();
+    }
+
     public UiElement overflow(Overflow overflow) {
         this.overflow = Objects.requireNonNull(overflow, "overflow");
         authoredStyle.put(StyleProperty.OVERFLOW, overflow);

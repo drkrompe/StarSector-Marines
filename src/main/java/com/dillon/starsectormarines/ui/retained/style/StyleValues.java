@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
+import com.dillon.starsectormarines.ui.retained.UiJustify;
 import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
@@ -34,6 +35,7 @@ final class StyleValues {
             case DISPLAY -> parseDisplay(value);
             case FLEX_DIRECTION -> parseDirection(value);
             case ALIGN_ITEMS -> parseAlignItems(value);
+            case JUSTIFY_CONTENT -> parseJustifyContent(value);
             case POSITION -> parsePosition(value);
             case LEFT, TOP -> parseLength(value, true);
             case POINTER_EVENTS -> parsePointerEvents(value);
@@ -91,6 +93,17 @@ final class StyleValues {
             case "end", "flex-end" -> UiAlign.END;
             case "stretch" -> UiAlign.STRETCH;
             default -> throw new UiStyleException("align-items supports start, center, end, or stretch: " + value);
+        };
+    }
+
+    private static UiJustify parseJustifyContent(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "start", "flex-start" -> UiJustify.START;
+            case "center" -> UiJustify.CENTER;
+            case "end", "flex-end" -> UiJustify.END;
+            case "space-between" -> UiJustify.SPACE_BETWEEN;
+            default -> throw new UiStyleException(
+                    "justify-content supports start, center, end, or space-between: " + value);
         };
     }
 

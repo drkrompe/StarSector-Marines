@@ -137,12 +137,12 @@
               <div id="{squad.founderHeadingId}" class="raise-squad-heading">
                 <div id="{squad.founderTitleId}" class="label heading warm raise-squad-title">{i18n.openingUiShipboardBarracksRaiseSquad}</div>
               </div>
-              <div id="{squad.founderTopSpacerId}" class="raise-squad-spacer"></div>
-              <div id="{squad.founderEmblemId}" class="raise-squad-emblem">
-                <img id="{squad.founderEmblemIconId}" class="raise-squad-emblem-icon" src="graphics/ui/company/raise-squad.svg" />
+              <div id="{squad.founderMiddleId}" class="raise-squad-middle">
+                <div id="{squad.founderEmblemId}" class="raise-squad-emblem">
+                  <img id="{squad.founderEmblemIconId}" class="raise-squad-emblem-icon" src="graphics/ui/company/raise-squad.svg" />
+                </div>
+                <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
               </div>
-              <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
-              <div id="{squad.founderBottomSpacerId}" class="raise-squad-spacer"></div>
               <div id="{squad.founderCostsId}" class="raise-squad-costs">
                 <div each="cost in squad.founderCosts" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
                   <img id="{cost.iconId}" class="raise-cost-icon" src="{cost.icon}" />
@@ -305,8 +305,8 @@
   .raise-squad { flex-direction: column; align-items: center; width: 100%; height: 100%; gap: 6px; padding: 0px; border-width: 0px; text-align: left; }
   .raise-squad-heading { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 6px; }
   .raise-squad-title { width: 0px; flex-grow: 1; height: 20px; }
-  .raise-squad-spacer { width: 1px; height: 0px; flex-grow: 1; }
-  .raise-squad-emblem { flex-direction: row; align-items: center; width: 46px; height: 60px; padding: 0px 0px 0px 14px; border-width: 2px; border-color: #586154; background-color: #1d251f; }
+  .raise-squad-middle { flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 0px; flex-grow: 1; gap: 6px; }
+  .raise-squad-emblem { flex-direction: row; align-items: center; justify-content: center; width: 60px; height: 60px; padding: 0px; border-width: 2px; border-color: #586154; background-color: #1d251f; }
   .raise-squad-emblem-icon { width: 32px; height: 32px; }
   .raise-squad:hover .raise-squad-emblem { border-color: #dfc588; }
   .raise-squad-copy { width: 100%; height: 34px; text-align: center; }
