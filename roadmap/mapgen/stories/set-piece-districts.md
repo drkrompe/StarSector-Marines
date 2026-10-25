@@ -195,9 +195,9 @@ turns on their kerbs every four cells, off the road reservation and clear of cro
 `MapResult.cordonedFacilities`: its character and wall bounds, each gatehouse's lane with the step out and
 the step in, the courtyard, and each building's role, shell and front door.
 
-Coverage (`generatedSpaceEvidence --tests *CordonedFacilityPlacementEvidence`): 11 of 24 medium city maps
-and 21 of 24 colonies, nearly all two by two (one colony carries a two by three; two by three blocks are
-rare in the partition). Main street keeps 15 and 14; running the facility first moves neither by more
+Coverage (`generatedSpaceEvidence --tests *CordonedFacilityPlacementEvidence`): 14 of 24 medium city maps
+under the town plan's zoning and 21 of 24 colonies, nearly all two by two (a city and a colony each carry a
+two by three; two by three blocks are rare in the partition). Main street keeps 14 and 14; running the facility first moves neither by more
 than one map. `storyMapPools` passes 144 of 144 with no seed swapped. Look:
 `createSnapshots -Psnapshot=cordoned-facility-look`.
 
@@ -239,8 +239,8 @@ open apron. The service street and its cross-street stubs are painted city stree
 `LoadingBay`s, the row's `ServiceLane`, and each warehouse dock's door with the street cell straight out
 from it.
 
-Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 4 of 24 medium city maps and
-12 of 24 colonies, hosting a freight yard on 3 city maps and 1 colony, a factory row on none. The claim
+Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 3 of 24 medium city maps
+under the town plan's zoning and 12 of 24 colonies, hosting a freight yard on 2 city maps and 1 colony, a factory row on none. The claim
 shape is the limit, not the pocket: with every kind eligible the industrial pockets still rarely line one
 street with whole leaves on both sides, a freight-yard parcel stands at the map's edge with nothing across
 its street, and a factory row seed is nearly always the 11-by-11 lot that needs its neighbour. A shorter
