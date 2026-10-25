@@ -73,7 +73,8 @@ its coordinating session the image paths, and the coordinator shows them.
 stills) also goes on the parent's picks page, in its Previews section: a
 `previews.json` of `[{id, area, date, title, note, lead?, shots:[{file,label}]}]`,
 newest first, passed to `build.py --previews`, with the media under
-`media/<preview id>/`.
+`media/<preview id>/`. A shot may be an `.mp4`, which plays in place with its
+sound; an Artifact file is at most 15 MB, so encode a 30 s clip near 3.5 Mb/s.
 
 ## Questions: the picks page
 
