@@ -278,6 +278,10 @@ public final class BattleSetup {
     private static final int AMBIENT_CIVILIAN_COUNT = 8;
     /** Civilian warehouses a procedural operation map puts a crew to work in ({@code staffed-buildings.md}). */
     private static final int STAFFED_WAREHOUSES = 2;
+    /** Civilian factories it works. */
+    private static final int STAFFED_FACTORIES = 1;
+    /** Civilian shops it keeps open. */
+    private static final int STAFFED_GROCERIES = 2;
     /** BFS radius around each residential POI when looking for civilian spawn cells. */
     private static final int CIVILIAN_SPAWN_RADIUS = 5;
 
@@ -1287,6 +1291,8 @@ public final class BattleSetup {
                 alliedGarrisonStrengthMult, risk, seed);
         spawnAmbientCivilians(sim, map, rng);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), STAFFED_WAREHOUSES);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.FACTORY), STAFFED_FACTORIES);
+        StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), STAFFED_GROCERIES);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         if (!coldAccount) installReinforcementLayer(sim, map, type, null, groundRoster, risk,
                 null);
