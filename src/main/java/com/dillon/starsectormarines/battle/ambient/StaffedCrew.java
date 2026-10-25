@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The loops a staffed building's crew walk round its own work.
@@ -57,7 +58,7 @@ public final class StaffedCrew {
         List<FixtureTask> machines = of(tasks, Affordance.TEND);
         List<FixtureTask> desks = of(tasks, Affordance.READOUT);
         List<AmbientTaskRoute.Stop> stops = new ArrayList<>();
-        String id = "staffed-" + site.id() + "-" + member;
+        String id = idPrefix(kind) + site.id() + "-" + member;
         float drift = (member * 0.7f) % 2f;
 
         // A shop's first hand keeps the till and nothing else; everybody else restocks.
@@ -85,6 +86,14 @@ public final class StaffedCrew {
             stops.add(stop(site, desks.get(0), TALLY_DWELL));
         }
         return stops.isEmpty() ? null : route(id, member, stops);
+    }
+
+    /**
+     * What every hand of a building of this kind is named with, which is how a
+     * reader of the roster tells a warehouse's crew from a shop's.
+     */
+    public static String idPrefix(BuildingWork.Kind kind) {
+        return "staffed-" + kind.name().toLowerCase(Locale.ROOT) + "-";
     }
 
     /** How many hands this building's work keeps busy, before the caller's own cap. */

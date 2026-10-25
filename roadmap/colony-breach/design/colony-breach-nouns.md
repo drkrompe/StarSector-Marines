@@ -1853,6 +1853,13 @@ flier's voice set low for the same reason, and each sound's level is set from
 its borrowed takes' measured loudness, since those differ by some 25 dB. Timing
 and jitter run on simulation time and a seed, so a replay
 sounds the same and a review can mix its soundtrack from the same rules.
+The brood spire it rises from ships no audio of its own either (`SpireAudio`,
+read off the spire's launches and its body's death). A pack launching is a wet
+split as the pods open (the spore vent's burst, lower), the brood's chitter (the
+Runner's cry, higher) and three wingbeats as it takes up, a few ticks apart; a
+Matriarch's brood rises with the same cue, quieter. A spire dying, shot down or
+withered with its bore, creaks (the wingbeat, slowed), cracks (the Brute's
+head-ram, deeper) and falls (the Brute's wall break, deeper).
 
 **The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
 creature sound's level is set from its take's measured loudness against the
@@ -1861,8 +1868,12 @@ and differ by some 30 dB. One adult voice lands near the gunfire's -24 to -28
 LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
-since many bodies make them. A new sound or take is levelled the same way
-before it ships. The `swarm-sound` look suite logs what the battle screen would
+since many bodies make them. A spire's launch sums near -23, by a Harrier
+screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
+heavier than the line, its own deeper report and air-burst near -22 a voice
+(owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
+and rifle takes. A new sound or take is levelled the same way
+before it ships. The `swarm-sound` and `spire-sound` look suites log what the battle screen would
 start (`BattleSoundLog`) so a review hears the levels against the fire.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction

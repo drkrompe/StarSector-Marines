@@ -46,7 +46,10 @@ public final class StaffedBuildings {
     static final int LEAST_STORES = 4;
     /** Most hands in one building, whatever its stock could keep busy. */
     static final int MOST_HANDS = 4;
-    /** Site ids are scoped above every room's, so a building's claim groups never meet a room's. */
+    /**
+     * Site ids are scoped above every room's, so a building's claim groups never meet a room's, and are
+     * the building's own index above that, so staffing one kind and then another never reuses one.
+     */
     private static final int SITE_ID_BASE = 900_000;
     private static final long SALT = 0x5354414646454400L;
 
@@ -81,19 +84,21 @@ public final class StaffedBuildings {
         candidates.sort(Comparator.comparingInt((Candidate c) -> c.work.size()).reversed());
         for (Candidate candidate : candidates) {
             if (staffed.size() >= most) break;
-            List<Long> crew = staff(sim, candidate, SITE_ID_BASE + staffed.size());
+            List<Long> crew = staff(sim, candidate, SITE_ID_BASE + candidate.index);
             if (!crew.isEmpty()) staffed.add(new Staffed(candidate.kind, candidate.building, candidate.work, crew));
         }
         if (!staffed.isEmpty()) sim.ambientTasks().settle();
         return staffed;
     }
 
-    private record Candidate(BuildingWork.Kind kind, PointOfInterest building, List<FixtureTask> work) { }
+    /** A building that could be staffed; its index in the map's list is what scopes its claim groups. */
+    private record Candidate(BuildingWork.Kind kind, PointOfInterest building, int index, List<FixtureTask> work) { }
 
     /** Every civilian building on the map whose stock makes it one of {@code kinds}, in map order. */
     static List<Candidate> candidates(BattleSimulation sim, MapResult map, Set<BuildingWork.Kind> kinds) {
         List<Candidate> found = new ArrayList<>();
-        for (PointOfInterest building : map.pointsOfInterest) {
+        for (int index = 0; index < map.pointsOfInterest.size(); index++) {
+            PointOfInterest building = map.pointsOfInterest.get(index);
             if (heldByGarrison(sim, building)) continue;
             List<BuildingWork.Fixture> fixtures = fixturesIn(map.doodads, building);
             NavigationGrid grid = map.grid;
@@ -104,7 +109,7 @@ public final class StaffedBuildings {
                 continue;
             BuildingWork.Kind kind = BuildingWork.kindOf(fixtures, work,
                     building.kind == PointOfInterest.Kind.DEPOT, LEAST_STORES);
-            if (kind != null && kinds.contains(kind)) found.add(new Candidate(kind, building, work));
+            if (kind != null && kinds.contains(kind)) found.add(new Candidate(kind, building, index, work));
         }
         return found;
     }

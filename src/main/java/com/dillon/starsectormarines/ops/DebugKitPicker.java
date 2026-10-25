@@ -273,7 +273,9 @@ final class DebugKitPicker {
 
     static String name(DebugBaySlot slot) {
         if (slot.mech != null) return slot.mech.displayName();
-        if (slot.vehicle != null) return CampaignVehicle.typeName(slot.vehicle);
+        if (slot.vehicle != null) {
+            return CampaignVehicle.className(slot.vehicle) + " · " + CampaignVehicle.typeName(slot.vehicle);
+        }
         return "Empty";
     }
 
