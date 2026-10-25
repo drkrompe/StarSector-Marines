@@ -8,8 +8,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.IntPredicate;
 
-/** One structure pool per natural object; overlapping silhouettes retain obstruction. */
+/**
+ * One structure pool per natural object; overlapping silhouettes retain obstruction.
+ *
+ * <p>An object is <em>undergrowth</em> when a heavy-lift hull may flatten it ({@code HeavyTracks}): a young tree from
+ * the start ({@link NaturalPropShape#undergrowth}), any tree once the creep has killed it ({@link #wither}). A cell
+ * carries {@link NavigationGrid.CellTag#CRUSHABLE} exactly while every standing object owning it is undergrowth, so a
+ * dead crown overlapping a living mature one still stops the hull, and never on permanent ground (a summit).
+ */
 public final class NaturalPropDamage {
     public enum Result { NOT_NATURAL_PROP, UNCHANGED, DAMAGED, DESTROYED }
     @FunctionalInterface public interface ClearedCell { void accept(int x, int y); }
@@ -18,6 +26,7 @@ public final class NaturalPropDamage {
         final Doodad original;
         final DoodadDef damaged, destroyed;
         final int[] cells;
+        boolean undergrowth;
         int hp;
         long lastAttack = Long.MIN_VALUE;
         Entry(int index, Doodad original, DoodadDef damaged, DoodadDef destroyed, int[] cells, int hp) {
@@ -29,7 +38,13 @@ public final class NaturalPropDamage {
     private final NavigationGrid grid;
     private final List<Doodad> props;
     private final Map<Integer, List<Entry>> owners = new HashMap<>();
+    private final List<Entry> entries = new ArrayList<>();
+    /** Cells whose obstruction is the ground itself, never crushable: a summit a tree stands on. */
+    private IntPredicate permanent = cell -> false;
     public NaturalPropDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+
+    /** Names the cells (map indices) whose obstruction outlives any prop on them. */
+    public void setPermanent(IntPredicate permanent) { this.permanent = permanent; }
 
     public void register(int index, Doodad prop, TileRegistry registry) {
         NaturalPropShape shape = NaturalPropShape.find(prop.definitionId());
@@ -54,7 +69,45 @@ public final class NaturalPropDamage {
                 || destroyed.footprintCellsX != shape.width() || destroyed.footprintCellsY != shape.height())
             throw new IllegalStateException("Missing or mismatched natural prop damage pair for " + shape.id());
         Entry entry = new Entry(index, prop, damaged, destroyed, cells.stream().mapToInt(Integer::intValue).toArray(), shape.hitPoints());
+        entry.undergrowth = shape.undergrowth();
+        entries.add(entry);
         for (int cell : entry.cells) owners.computeIfAbsent(cell, unused -> new ArrayList<>()).add(entry);
+        refreshCrushable(entry);
+    }
+
+    /**
+     * The standing tree placed at this origin has died: it is undergrowth from now on. False when no standing object
+     * was placed there.
+     */
+    public boolean wither(int originX, int originY) {
+        boolean found = false;
+        for (Entry entry : entries) {
+            if (entry.hp <= 0 || entry.original.cellX != originX || entry.original.cellY != originY) continue;
+            found = true;
+            if (entry.undergrowth) continue;
+            entry.undergrowth = true;
+            refreshCrushable(entry);
+        }
+        return found;
+    }
+
+    private void refreshCrushable(Entry entry) {
+        for (int cell : entry.cells) {
+            int x = cell % grid.getWidth(), y = cell / grid.getWidth();
+            grid.setTag(x, y, NavigationGrid.CellTag.CRUSHABLE, crushable(cell));
+        }
+    }
+
+    /** Some object stands on the cell and every one that does is undergrowth. */
+    private boolean crushable(int cell) {
+        if (permanent.test(cell)) return false;
+        boolean standing = false;
+        for (Entry owner : owners.get(cell)) {
+            if (owner.hp <= 0) continue;
+            if (!owner.undergrowth) return false;
+            standing = true;
+        }
+        return standing;
     }
 
     /** The definition id of a standing natural object owning this cell, or null. */
@@ -101,6 +154,7 @@ public final class NaturalPropDamage {
                 continue;
             }
             result = Result.DESTROYED;
+            refreshCrushable(entry);
             for (int cell : entry.cells) {
                 boolean occupied = false;
                 for (Entry other : owners.get(cell)) if (other.hp > 0) { occupied = true; break; }

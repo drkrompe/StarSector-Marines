@@ -163,6 +163,7 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
+import com.dillon.starsectormarines.battle.vehicle.HeavyTracks;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.Crossfire;
@@ -1677,6 +1678,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         blade = new DozerBlade(navigation, mapEditor, doodadService);
         groundSystem.setBlade(blade);
+        // Heavy-lift hulls flatten the undergrowth and lone boulders they drive into (HeavyTracks); its switch is the
+        // control, under which every hull stops at them.
+        if (!"false".equalsIgnoreCase(System.getProperty(HeavyTracks.PROPERTY))) {
+            HeavyTracks tracks = new HeavyTracks(navigation, mapEditor);
+            groundSystem.setTracks(tracks);
+            blade.setTracks(tracks);
+        }
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));

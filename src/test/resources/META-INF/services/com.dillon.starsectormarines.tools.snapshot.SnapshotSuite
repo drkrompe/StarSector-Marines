@@ -222,6 +222,7 @@ com.dillon.starsectormarines.battle.vehicle.SupplyTruckSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.ScoutCarSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.MissileCarrierSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.DozerBreachSceneSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.TankUndergrowthSceneSnapshotSuite
 com.dillon.starsectormarines.ops.TankVariantsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.HoverLineSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DamageDollSnapshotSuite

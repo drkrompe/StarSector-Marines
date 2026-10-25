@@ -35,6 +35,11 @@ public final class TileDef {
     public final TileCover cover;
     public final boolean passable;
     /**
+     * An impassable overlay a heavy-lift hull grinds down by driving into it (a lone boulder): its cells carry
+     * {@code NavigationGrid.CellTag.CRUSHABLE}. Meaningless on a passable tile.
+     */
+    public final boolean crushable;
+    /**
      * Overlay-placement selectors (empty for ground/unconstrained tiles). Each
      * entry is one of: {@code "<id>"} (base tile id must equal it),
      * {@code "layer:ground"} (base tile's layer must match), or {@code "!<id>"}
@@ -53,7 +58,7 @@ public final class TileDef {
     public final String description;
 
     public TileDef(String id, String sheetPath, int index, int frame, TileLayer layer,
-                   TileCover cover, boolean passable, List<String> validOn,
+                   TileCover cover, boolean passable, boolean crushable, List<String> validOn,
                    String name, String description) {
         this.id = id;
         this.sheetPath = sheetPath;
@@ -62,6 +67,7 @@ public final class TileDef {
         this.layer = layer;
         this.cover = cover;
         this.passable = passable;
+        this.crushable = crushable && !passable;
         this.validOn = validOn == null ? List.of() : List.copyOf(validOn);
         this.name = name == null ? "" : name;
         this.description = description == null ? "" : description;

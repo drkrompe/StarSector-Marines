@@ -510,6 +510,12 @@ public enum VehicleType {
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
 
+    /**
+     * Whether this hull's tracks flatten undergrowth and lone boulders it drives into ({@link HeavyTracks}): every
+     * Heavy-lift hull, which is the tank line and the dozer. Its planning and its motion read the tracks' crush view.
+     */
+    public boolean crushesUndergrowth() { return liftClass() == LiftClass.HEAVY && !isHover(); }
+
     /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }
 

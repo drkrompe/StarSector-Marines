@@ -4,9 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of the water cells' squares.
-
-Updated: 2026-10-24 — a bloom's calls are the only missions the campaign seeds by planet.
+Updated: 2026-10-25 — a creep-killed tree is undergrowth a heavy tank pushes over.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1317,7 +1315,10 @@ against its own control in `renderEvidence`.
   tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
   over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
   only when both are dead, and never if it is either one's trunk. Felling still
-  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  works on a dead tree, and a dead tree is undergrowth: a heavy tank pushes it
+  over, trunk and all, where no living tree's crown holds its cells, so the
+  infection turns a wood a tank could not enter into one it drives through
+  (owner; `convoy-nouns.md`, heavy tracks). Creep therefore strips a wood of concealment the way it
   strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
   mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
 - **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
