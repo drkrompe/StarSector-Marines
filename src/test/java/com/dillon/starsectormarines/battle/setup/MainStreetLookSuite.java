@@ -88,7 +88,7 @@ public final class MainStreetLookSuite implements SnapshotSuite {
      * Whether the battle's map is the one read: the plaza's border is stone at two opposite corners, or, where
      * the market square stands there, most of its open square is brick.
      */
-    private static boolean sameStreet(CellTopology battle, MainStreet street) {
+    static boolean sameStreet(CellTopology battle, MainStreet street) {
         if (street.plazaLeft() < 0) return false;
         if (street.square() == null) {
             return battle.getGroundKind(street.plazaLeft(), street.plazaTop()) == GroundKind.STONE

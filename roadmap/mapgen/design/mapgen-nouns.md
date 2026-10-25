@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — districts: a member can take a set-piece role; main street's plaza end is the market square where two end members hold it.
+Updated: 2026-10-25 — districts: the industrial zone, a working street hosting the freight yard and the factory row, publishes `IndustrialZone`.
+
+Earlier 2026-10-25 — districts: a member can take a set-piece role; main street's plaza end is the market square where two end members hold it.
 
 Earlier 2026-10-25 — set pieces: the market square stands on a planned market lot and publishes an open square with its mouths.
 
@@ -390,17 +392,29 @@ see one network. Planning is read-only until it commits, draws no random number,
 leaves are labelled and before compound claims, which take each district's compound first; a district
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
 district, a cluster with no streets of its own. **Main street** is the first program: rows of shopfronts behind
-pavements on both sides of one straight street, the kerb dressed as cover, a square at one end and a civic
-hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. A
-member can take a **set-piece role**, an existing set piece laid on that member's ground: where the two
-members at one end of a side hold the market square facing the main street, they and the cross street
-between them (which keeps its width and runs through the square) are its lot; elsewhere the end is a plain
-plaza. It publishes `MainStreet` on `MapResult` (the centre line, the plaza, the market square's
-`OpenSquare` where it stands, and the hall's door). The **cordoned facility** stands on a quarter: an admin block, labs or
+pavements on both sides of one straight street, the kerb dressed as cover (street lamps, planters, stalls,
+parked vans) and an awning over each shop door, a square at one end and a civic hall at the other, in a
+civic, mixed or residential pocket, so a high street can stand among houses. A member can take a
+**set-piece role**, an existing set piece laid on that member's ground: where the two members at one end of
+a side hold the market square facing the main street, they and the cross street between them (which keeps
+its width and runs through the square) are its lot; elsewhere the end is a plain plaza. It publishes
+`MainStreet` on `MapResult` (the centre line, the plaza, the market square's `OpenSquare` where it stands,
+and the hall's door). **Street dressing** (`StreetDressing`) is the
+kit districts lay along their streets: standing pieces (lamps, gantry columns, jersey barriers, bollards,
+boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, pipe rack cells) and the
+boom-gate arm block nothing and carry no cover. The **cordoned facility** stands on a quarter: an admin block, labs or
 workshops, a depot with its forecourt, a yard and a courtyard on the quarter's own streets inside one wall
 on its outer rim. Each street that crosses the wall is a **gatehouse**, narrowed to a three-cell lane
-between solid jambs; a street ending against a lot is walled across. It publishes `CordonedFacility` on
-`MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door).
+between solid jambs with a boom gate across it just inside; a street ending against a lot is walled across. It publishes `CordonedFacility` on
+`MapResult` (its character, wall, gatehouses, courtyard, and each building's role and door). The
+**industrial zone** stands on a spine in an industrial pocket: one working service street with every member
+walled off from its neighbours and opening onto it. It **hosts** the set pieces already planned on its
+ground rather than taking leaves from them: the freight-yard parcel stays a freight yard and a factory row
+seed that holds the row alone stays a row, so a zone gathers round them; the rest are warehouses (loading
+doors on the street across a striped dock apron with a keep-clear hatch before each door) and walled tank
+farms, vehicle depots and guard posts, each gated onto the street. Freight gantries span the street where
+both legs land on open apron. It publishes `IndustrialZone` on `MapResult` (the service street, the yards'
+loading bays, the row's service lane and each warehouse's dock).
 
 A town's lots are built along their streets (`town-plan.md`). A **frontage row** cuts an ordinary shop or
 home lot along its street into narrow buildings side by side, neighbours sharing one **party wall**, doors and

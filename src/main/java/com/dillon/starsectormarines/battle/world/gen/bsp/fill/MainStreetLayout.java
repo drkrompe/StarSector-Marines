@@ -22,12 +22,14 @@ import java.util.function.BiPredicate;
  * The main street layout ({@code set-piece-districts.md}) over a planned {@link SpineClaim.Spine}. Each member
  * is a {@link FrontageRow} of narrow shopfronts behind a pavement, party walls between them, their doors and
  * windows on the street and on the service yard behind; a member too short for a row is one shop. The kerb is
- * cover: planters and stalls at a steady rhythm, and a parked van on each member's kerb where the pavement is
- * two rows deep (three keep a clear walk behind it), all kept out of the doorways and the cross-street corners.
- * Street lamps and awnings have no art yet. The plaza end is the {@link MarketSquare} set piece facing the
- * street where its lot holds it, framed by its own shops with the cross street between its two members running
- * through it, and otherwise an open paved square with a bandstand where it is large enough; the hall at the
- * other end faces the street like the shops. The cross streets' narrowed edges become pavement. Draws only from the
+ * cover: street lamps, planters and stalls at a steady rhythm, and a parked van on each member's kerb where the
+ * pavement is two rows deep (three keep a clear walk behind it), all kept out of the doorways and the
+ * cross-street corners. Each shop door has an awning over the pavement in front of it ({@link StreetDressing}),
+ * one colourway to a shopfront. The plaza end is the {@link MarketSquare} set piece facing the street where its
+ * lot holds it, framed by its own shops with the cross street between its two members running through it, and
+ * otherwise an open paved square with a bandstand where it is large enough; the hall at the other end faces the
+ * street like the shops. The cross streets' narrowed edges become
+ * pavement. Draws only from the
  * map's random stream, inside the shell carve.
  */
 final class MainStreetLayout {
@@ -173,10 +175,35 @@ final class MainStreetLayout {
         for (int a = aLo; a <= aHi; a++) {
             if (clear[a - aLo]) continue;
             if (beat++ % RHYTHM != 0) continue;
-            String id = (beat / RHYTHM) % 2 == 0 ? (s.horizontal ? PLANTER_H : PLANTER_V) : STALL;
+            // Every other piece is a lamp, its arm over the carriageway; planters and stalls take turns between.
+            int piece = (beat - 1) / RHYTHM;
+            if (piece % 2 == 0) {
+                StreetDressing.lamp(c.grid, c.topology, c.doodads, StreetDressing.LAMP, s.x(a, kerb), s.y(a, kerb),
+                        s.horizontal ? 0 : -step, s.horizontal ? -step : 0);
+                continue;
+            }
+            String id = piece % 4 == 1 ? (s.horizontal ? PLANTER_H : PLANTER_V) : STALL;
             solid(c, s.x(a, kerb), s.y(a, kerb), registry.doodad(id));
         }
+        if (!hall) awnings(c, s, aLo, aHi, wall, step);
         return door < 0 ? new int[]{-1, -1} : new int[]{s.x(door, wall), s.y(door, wall)};
+    }
+
+    /**
+     * An awning over the pavement in front of each of a shop's front doors that has a cell of frontage to either
+     * side, none overlapping the last. The colourway is the shopfront's, read off its door's place so it draws no
+     * random.
+     */
+    private static void awnings(GenContext c, SpineClaim.Spine s, int aLo, int aHi, int wall, int step) {
+        int half = StreetDressing.AWNING_SPAN / 2, row = wall - step;
+        int clearFrom = aLo + half;
+        for (int a = aLo + half; a <= aHi - half; a++) {
+            if (a < clearFrom || !c.grid.isDoorway(s.x(a, wall), s.y(a, wall))) continue;
+            String id = StreetDressing.AWNINGS.get(Math.floorMod(a * 31 + wall, StreetDressing.AWNINGS.size()));
+            StreetDressing.awning(c.doodads, id, s.x(a, row), s.y(a, row),
+                    s.horizontal ? 0 : step, s.horizontal ? step : 0);
+            clearFrom = a + StreetDressing.AWNING_SPAN;
+        }
     }
 
     /** The first run of a van's length clear of doors and corners, nearest the middle of the frontage. */

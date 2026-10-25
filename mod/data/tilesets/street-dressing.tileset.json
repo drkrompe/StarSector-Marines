@@ -1,0 +1,82 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Red and cream striped canvas shop awning, wall rail north, scalloped valance south. Overhead; no cover.",
+      "name": "doodad.street-awning-striped",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Plain bottle-green canvas shop awning, wall rail north, scalloped valance south. Overhead; no cover.",
+      "name": "doodad.street-awning-canvas",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Corrugated steel canopy on a dark fascia, wall rail north. Overhead; no cover.",
+      "name": "doodad.street-awning-steel",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Cast-iron street lamp, round lantern head; foot south, arm north over the carriageway.",
+      "name": "doodad.street-lamp-colonial",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Cobra-head street lamp, rounded luminaire; foot south, arm north over the carriageway.",
+      "name": "doodad.street-lamp-industrial",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.street-awning-striped",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.street-awning-canvas",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.street-awning-steel",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 9,
+      "cover": "light",
+      "id": "doodad.street-lamp-colonial",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.72,
+      "col": 10,
+      "cover": "light",
+      "id": "doodad.street-lamp-industrial",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/street-dressing.png"
+}

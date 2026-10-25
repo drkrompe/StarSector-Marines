@@ -158,14 +158,26 @@ or mixed pockets, so the residential quarter weighs as much as the mixed town an
 among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 `createSnapshots -Psnapshot=main-street-look`.
 
+The kerb's rhythm is lamp, planter, lamp, stall, every third clear cell, each lamp's arm over the
+carriageway, and each shop door with a cell of frontage either side has an awning over the pavement in front
+of it, one colourway to a shopfront (striped, green canvas or steel, read off its door's place, no random drawn). The art
+is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`).
+
+**Street dressing kit for the next two programs** (`StreetDressing`, art `industrial-street-kit`): the
+industrial zone lays its pipe gantries with `pipeRun` (a column and beam at each end and every `bay` cells,
+overhead rack between: across a street it is one gantry on its two kerbs, along one a pipe rack); the
+cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figure walks under) and
+`bollard`; `jerseyBarrier` is there for a program that wants a chicane. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
+main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the owner's style choice for
+main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
+
 The standalone market lot still plans its own square, keeping clear of a main street's, so a map may carry
 both: a market square stands on 21 of 24 city maps and 20 of 24 colonies
 (`MarketSquarePlacementEvidence`; 19 and 20 with the standalone lot alone). The square at the plaza end moved one pooled
 map: cordon-line ROCK seed 5 lost its carrier way from the base to the line and was swapped for seed 18.
 
-Open on main street: street lamps and awnings have no art (planters, benches, stalls and parked vans
-stand in); the market square misses most plaza ends whose members are under nine cells deep, the depth its
-twelve rows need with three reaching onto the street behind.
+Open on main street: the market square misses most plaza ends whose members are under nine cells deep, the
+depth its twelve rows need with three reaching onto the street behind.
 
 **Cordoned facility, as built.** `CordonedFacilityProgram` runs after main street and asks for a quarter
 of up to two rows of three, inner streets no wider than five, members at least seven a side, of works,
@@ -186,14 +198,16 @@ then walls the quarter's outer rim at the strength its character asks (`Fortific
 `CivilDefenceCompound.WALL_HP` for a civil-defence centre), dressed as a precinct wall
 (`InstallationWalls.perimeter`) with the military base's firing slits (`CompoundWallApertures`) and
 turreted corners. Each gatehouse is solid either side of its lane to a cell past each kerb, its lane
-striped as a checkpoint, turreted posts at the wall line and a sandbag course facing out just inside it.
+striped as a checkpoint, turreted posts at the wall line, a boom gate across the lane on the first row inside
+(its post on open ground beside the lane, off the road reservation) beside a sandbag course facing out, and a
+bollard before each jamb on the street outside where that is off the reservation.
 Buildings back onto the wall with a pavement onto their streets and face the main cross street, doors and
 windows there only (`BuildingPlacement.frontOnly`): the admin block a civic headquarters, labs a clinic's
 rooms (a workshop's at a depot), the depot a vehicle bay behind a striped forecourt with an APC, cargo truck
 or utility truck parked on it. The yard is striped hardstanding with crates, pallets and drums; the
 courtyard a brick square with a stone border, a planter at each corner and a radar mast in the middle
-except at a depot. The inner streets are paved city street with hedgehogs on their kerbs every four cells,
-off the road reservation and clear of crossings and gatehouses. It publishes `CordonedFacility` on
+except at a depot. The inner streets are paved city street with hedgehogs and cobra-head street lamps by
+turns on their kerbs every four cells, off the road reservation and clear of crossings and gatehouses. It publishes `CordonedFacility` on
 `MapResult.cordonedFacilities`: its character and wall bounds, each gatehouse's lane with the step out and
 the step in, the courtyard, and each building's role, shell and front door.
 
@@ -203,9 +217,56 @@ rare in the partition). Main street keeps 15 and 14; running the facility first 
 than one map. `storyMapPools` passes 144 of 144 with no seed swapped. Look:
 `createSnapshots -Psnapshot=cordoned-facility-look`.
 
-Open on the cordoned facility: boom gates and street lamps have no art (the striped lane, posts and
-sandbags stand in); no tactical node or mission reads the mark yet; a research station did not reach the
+Open on the cordoned facility: no tactical node or mission reads the mark yet; a research station did not reach the
 look stills, its seeds' battles laying another map.
+
+**Industrial zone, as built.** `IndustrialZoneProgram` asks for a spine of one to three members a side
+and at least three in all, a street at least 20 cells long and no wider than a primary trunk, members at
+least eight deep and eight along the street. It runs after main street and the cordoned facility, over the
+leaves they left. A member may be working ground or ground a settlement can spare (works, yards, rubble,
+shops, dense blocks, squares, parks) anywhere, and homes and guard posts inside the zoning's industrial
+pocket. Its pocket weighs the industrial quarter 2 and a harbour or the outskirts 1, plus 1 for a lot already
+labelled a works or a yard and 2 for the freight-yard parcel or the factory row's seed, so a zone gathers
+round the set pieces already planned rather than fighting them for leaves: the yard's parcel is a member
+whose role is its freight yard (two-bay where it fits), and the row's seed joins only where its leaf holds
+the row alone (otherwise it is ineligible, so it claims its neighbour as it would have and the zone looks
+along another street). Where the street has neither, the largest member that holds one takes it. Each
+guard post keeps its hardpoint inside a wall with a two-cell gate. The rest are **warehouses** where at
+least nine deep, and **depots** (tank farm and vehicle depot in turn) where shallower; where every one would
+be a warehouse and there are two, the smallest is a depot. Its rewrite narrows a cross street to three
+cells only between two warehouses or depots, so a yard or a row keeps the gates and turns its parcel was
+planned for.
+
+`IndustrialZoneLayout` paves each walled member's street row as the street's sidewalk (a wall on the
+carriageway's edge would leave a four-wide street too narrow for asphalt), then lays its role. A warehouse
+is a striped dock apron (two rows, three where the member is ten deep) walled at both ends, an open
+warehouse hall behind it with its doors and windows on the street alone (`BuildingPlacement.frontOnly`),
+one or two loading doors three wide cut where the row inside is floor or furniture (furniture in the way is
+taken out), and the hatched `apron.keep-clear` two rows deep before each; a member deep enough for the
+deepest hall (12) and four more keeps a walled stock yard behind it, with tanks and pallets on its back wall
+and a gap onto the cross street. A hauler is parked along the apron away from the docks, pipe runs on stands
+line the rest of its kerb with a gap every run, and crates stand at its ends. A tank farm is a walled yard
+with a vehicle gate (centred on a front of 14, at one end of a narrower one), blocks of four fluid tanks on
+earth beside a striped drive and a tanker parked at its end; a vehicle depot is striped hardstanding with
+haulers parked either side of the drive and drums on the back wall. Freight gantries
+(`origin-freight.gantry-span-clean` and its legs) span the street every 14 cells where both legs land on
+open apron. The service street and its cross-street stubs are painted city street. It publishes
+`IndustrialZone` on `MapResult.industrialZones`: the street's centre line and width, the hosted yards'
+`LoadingBay`s, the row's `ServiceLane`, and each warehouse dock's door with the street cell straight out
+from it.
+
+Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 4 of 24 medium city maps and
+12 of 24 colonies, hosting a freight yard on 3 city maps and 1 colony, a factory row on none. The claim
+shape is the limit, not the pocket: with every kind eligible the industrial pockets still rarely line one
+street with whole leaves on both sides, a freight-yard parcel stands at the map's edge with nothing across
+its street, and a factory row seed is nearly always the 11-by-11 lot that needs its neighbour. A shorter
+street (16) moved one city map and cost one colony. `storyMapPools` passes 144 of 144 with no seed swapped.
+Look: `createSnapshots -Psnapshot=industrial-zone-look`.
+
+Open on the industrial zone: a quarter claim as a second shape for cities; no large storage tank (the 1x1
+fluid tank stands in blocks of four), no dock shutter or leveller (the loading door is a plain doorway) and
+no moving traffic (haulers are parked); gantries rarely find both legs on open apron, since docks, haulers
+and the walled yards take the kerb first; no mission reads the mark yet.
 
 ## Order
 
