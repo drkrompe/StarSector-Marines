@@ -1147,12 +1147,13 @@ rubble, so a tank goes round a thicket where going round is cheap and through it
 where it is not. Living mature trees, mineral formations, hills and every wall
 stay solid; the dozer's breach view is laid over its crush view. Small and
 medium rocks, shrubs and grass tufts were open ground for every hull already.
-Which living trees count as young is the owner's open pick
-(`-Dbattle.vehicle.crushYoungTrees`); `-Dbattle.vehicle.crushUndergrowth=false`
-is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
+Living young trees give way as dead ones do (owner's pick, over dead trees
+only), which the forest generator relies on when it replants a tank lane with
+young trees; `-Dbattle.vehicle.crushUndergrowth=false` is the control. Acceptance is the `tank-undergrowth` scene: a tank ordered
 across young or creep-killed wood drives through it, felling what it touches
 (a dead tree falls flattened, a stump and short butts, `colony-breach-nouns.md`), while a
-living mature wood and a troop APC in young wood are held.
+living mature wood holds every hull, and a scout car is held by the young wood
+that a troop APC crushes through.
 
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the

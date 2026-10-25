@@ -173,6 +173,13 @@ nobody has seen costs aircraft. A redoubt whose observer is killed calls no more
 air; the columns, the street teams, the town's militia, the refugees and the
 company carry no radio onto the wing's net. Both variants, every density.
 
+**Roving observer team** (`air-nouns.md`, Roving observer). Now and then the
+military sends a two-man observer team up from the rear. Its vantages are the
+gaps beside the manned redoubts, watched from six cells past a side wall and
+six back toward home: the redoubts calling for relief first, then the one with
+the least garrison standing. A team watches one, moves on after a while or
+when the swarm is on it, and is gone when its observer dies.
+
 **Redoubt states.** A redoubt is **holding** while its garrison stands and no
 swarm body is inside its wall. It is **calling** (for relief) once a swarm
 body is inside the wall or half its garrison is down: the company hears the
