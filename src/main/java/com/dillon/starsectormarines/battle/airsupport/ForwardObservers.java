@@ -9,7 +9,9 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The forward observers a mission posts with a side's formations (`air-nouns.md`, Forward observer): one radio to each
@@ -102,16 +104,25 @@ public final class ForwardObservers {
     /**
      * A post for a formation that has no roster of its own but a band of the front: {@code side}'s squads whose leader
      * stands within {@code halfWidth} of {@code across} (along x when the front advances along y), earliest made first,
-     * so the radio goes to the first team to step off on that ground.
+     * so the radio goes to the first team to step off on that ground. Only squads that come onto the field after the post
+     * first looks count: what already stands in the band then (a battery's gun crews in their pits) holds its ground
+     * and never goes forward with the column.
      */
     public static Post band(Faction side, boolean advancesAlongY, int across, int halfWidth) {
+        Set<Integer> standing = new HashSet<>();
+        boolean[] looked = {false};
         return sim -> {
             List<Integer> out = new ArrayList<>();
             for (Squad squad : sim.getSquads()) {
-                if (squad.faction != side || !sim.world().isAlive(squad.leaderId)) continue;
+                if (!looked[0]) {
+                    standing.add(squad.id);
+                    continue;
+                }
+                if (squad.faction != side || standing.contains(squad.id) || !sim.world().isAlive(squad.leaderId)) continue;
                 float at = advancesAlongY ? sim.world().x(squad.leaderId) : sim.world().y(squad.leaderId);
                 if (Math.abs(at - across) <= halfWidth) out.add(squad.id);
             }
+            looked[0] = true;
             out.sort(null);
             return out;
         };

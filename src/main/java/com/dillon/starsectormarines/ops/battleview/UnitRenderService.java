@@ -1670,18 +1670,24 @@ public final class UnitRenderService implements RenderSystem {
                             layeredFacing != null ? layeredFacing[r] : 0f,
                             ctx.sim.identity().swarmStage(entityId));
                 }
+                // Climbing out of a bore: drawn smaller and dark as it rises out of the hole, lit once it is out.
+                float rise = ctx.sim.swarmEmergence().progress(entityId, ctx.sim.getSimTickIndex());
+                float riseScale = EmergenceLook.scale(rise);
+                float riseShade = EmergenceLook.shade(rise);
+                float riseAlpha = unitAlpha * EmergenceLook.alpha(rise);
                 if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
                     // The Brute too; its rig is sized in cells, so only its growth stage scales it.
-                    RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
-                            cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
-                            cam.cellPxSize() * bruteRig.scale(), unitAlpha, ravWear(out, ctx.sim.world(), entityId));
+                    RavBruteComposer.emit(EmergenceLook.shaded(out, riseShade), bruteArt.forStage(bruteRig.stage()),
+                            bruteRig, cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
+                            cam.cellPxSize() * bruteRig.scale() * riseScale, riseAlpha,
+                            ravWear(out, ctx.sim.world(), entityId));
                     continue;
                 }
                 if (spitterArt != null && rig instanceof RavSpitterRig spitterRig && spitterRig.posed()) {
                     // The Spitter too, sized in cells like the Brute.
-                    RavSpitterComposer.emit(out, spitterArt, spitterRig,
+                    RavSpitterComposer.emit(EmergenceLook.shaded(out, riseShade), spitterArt, spitterRig,
                             cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
-                            cam.cellPxSize() * spitterRig.scale(), unitAlpha);
+                            cam.cellPxSize() * spitterRig.scale() * riseScale, riseAlpha);
                     if (spitterRig.brace() > 0f) {
                         sprites.ensureEngineFxSprites();
                         RavSpitterComposer.emitGlow(out, sprites.engineGlowSprite(), spitterArt, spitterRig,
@@ -1693,7 +1699,7 @@ public final class UnitRenderService implements RenderSystem {
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
                     RavMatriarchComposer.emit(out, matriarchArt, matriarchRig,
                             cam.cellToScreenX(matriarchRig.bodyX()), cam.cellToScreenY(matriarchRig.bodyY()),
-                            cam.cellPxSize() * matriarchRig.scale(), unitAlpha,
+                            cam.cellPxSize() * matriarchRig.scale() * riseScale, riseAlpha,
                             ravWear(out, ctx.sim.world(), entityId));
                     continue;
                 }
@@ -1703,7 +1709,7 @@ public final class UnitRenderService implements RenderSystem {
                     // at its growth stage's size and in its stage's colours.
                     RavRunnerComposer.emit(out, ravArt.forRig(ravRig), ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * ravRig.scale(), 1f, unitAlpha);
+                            cam.cellPxSize() * ravRig.scale() * riseScale, riseShade, riseAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered

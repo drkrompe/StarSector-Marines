@@ -5,10 +5,14 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LookReviewTest {
 
@@ -18,6 +22,29 @@ class LookReviewTest {
         // 9 at frame 1 wins; 8 at frame 2 is too close; 7 at frame 5 is next; then 5 at frame 9.
         assertArrayEquals(new int[] {1, 5, 9}, LookReview.busiest(activity, 3, 3));
         assertArrayEquals(new int[] {0, 3}, LookReview.busiest(List.of(0, 0, 0, 0), 2, 3));
+    }
+
+    @Test
+    void stillCandidatesHoldEveryFrameTheBusiestPickCanChooseAndNoMore() {
+        Random random = new Random(7);
+        BufferedImage frame = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+        for (int trial = 0; trial < 50; trial++) {
+            int stills = 1 + random.nextInt(4);
+            int gap = 1 + random.nextInt(6);
+            List<Integer> activity = new ArrayList<>();
+            LookReview.StillCandidates candidates = new LookReview.StillCandidates(new int[0], stills, gap);
+            for (int i = 0; i < 120; i++) {
+                // Few distinct levels, so ties are common; a rising run puts the best frames last.
+                int level = trial % 2 == 0 ? random.nextInt(5) : i / 10 + random.nextInt(3);
+                activity.add(level);
+                candidates.offer(i, level, frame);
+            }
+            assertTrue(candidates.size() <= (stills - 1) * (2 * gap - 1) + 1);
+            for (int pick : LookReview.busiest(activity, stills, gap)) candidates.frame(pick);
+        }
+        LookReview.StillCandidates named = new LookReview.StillCandidates(new int[] {2, 5}, 4, 3);
+        for (int i = 0; i < 10; i++) named.offer(i, 0, frame);
+        assertEquals(2, named.size());
     }
 
     @Test

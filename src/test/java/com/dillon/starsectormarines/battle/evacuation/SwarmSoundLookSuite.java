@@ -10,21 +10,19 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.ops.battleview.BattleSoundLog;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * How loud the swarm is against the fight, for the owner rather than for a verdict: a marine line of rifles and squad
  * automatics on real ground, and the Rav coming at it, at play zoom, a frame every tick so the frames run in real time
- * at 30 fps. Every sound the battle screen would start is logged beside the frames ({@link BattleSoundLog},
- * {@code <shot>.jsonl} under {@code -Dsnapshot.swarmSound.logDir}, default {@code build/swarm-sound}), so a review
- * mixes the soundtrack offline from the game's own rules and levels.
+ * at 30 fps. With {@code -Dsnapshot.lookSound=true} every sound the battle screen would start is logged
+ * ({@link BattleSoundLog}, {@code <shot>.jsonl} under {@code build/look-sound}) and mixed into each MP4's soundtrack
+ * from the game's own rules and levels ({@link LookReview}).
  * <ul>
  *   <li>{@code swarm-sound-assault}: a Runner pack led by an elder, whelps among it, and two Brutes behind, tough
  *       enough to reach the line and charge it.</li>
@@ -47,39 +45,32 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "swarm-sound"; }
 
-    @Override public String label() { return "Swarm sound: a marine line against Runners, Brutes and the Matriarch, with the sounds logged"; }
+    @Override public String label() { return "Swarm sound: a marine line against Runners, Brutes and the Matriarch, to hear with -Dsnapshot.lookSound=true"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
-        Path logs = Path.of(System.getProperty("snapshot.swarmSound.logDir",
-                context.projectRoot().resolve("build/swarm-sound").toString()));
         String only = System.getProperty("snapshot.swarmSound.only", "");
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String name : List.of("swarm-sound-assault", "swarm-sound-matriarch", "swarm-sound-matriarch-run",
                 "swarm-sound-skitterers")) {
-            if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name, logs)));
+            if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name)));
         }
         return out;
     }
 
-    private static LookReview.Shot shot(String name, Path logs) {
+    private static LookReview.Shot shot(String name) {
         boolean nest = name.endsWith("-skitterers");
         String[] keys = nest ? new String[]{"nest"} : new String[]{"line", "swarm"};
         return new LookReview.Shot(name, LookGround.verdant(), nest ? SwarmWorkerLookSuite.W : W,
                 nest ? SwarmWorkerLookSuite.H : H,
-                placement -> {
-                    BattleSimulation sim = switch (name) {
-                        case "swarm-sound-assault" -> assault(placement);
-                        case "swarm-sound-matriarch-run" -> caughtOut(placement);
-                        case "swarm-sound-skitterers" -> skitterers(placement);
-                        default -> matriarch(placement);
-                    };
-                    BattleSoundLog.attach(placement, LookReview.View.followAtPlay(placement, keys),
-                            logs.resolve(name + ".jsonl"));
-                    return sim;
+                placement -> switch (name) {
+                    case "swarm-sound-assault" -> assault(placement);
+                    case "swarm-sound-matriarch-run" -> caughtOut(placement);
+                    case "swarm-sound-skitterers" -> skitterers(placement);
+                    default -> matriarch(placement);
                 },
                 placement -> List.of(LookReview.View.followAtPlay(placement, keys)),
                 TICKS, 1, 2, STILLS);

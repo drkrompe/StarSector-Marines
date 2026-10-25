@@ -19,6 +19,8 @@ import java.util.Locale;
  * them, from {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as
  * the screen plays them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
  * is logged on every tick it is held, with its slot as {@code loop}; held beam loops are not logged.
+ * {@link LookReview#record} attaches one to every look shot under {@code -Dsnapshot.lookSound=true} and mixes it into
+ * the MP4 ({@link BattleSoundMix}).
  */
 public final class BattleSoundLog {
 
@@ -26,7 +28,8 @@ public final class BattleSoundLog {
     private static final String EXPLOSIVE_FALLBACK = "marines_explosion";
 
     private final Path file;
-    private final SwarmAudio.Mix swarm = new SwarmAudio.Mix();
+    // Seeded, so the same battle logs the same pitches and mixes to the same soundtrack.
+    private final SwarmAudio.Mix swarm = new SwarmAudio.Mix().seeded(0L);
     private final HarrierAudio.Mix harrier = new HarrierAudio.Mix();
     private final SpireAudio.Mix spire = new SpireAudio.Mix();
     private int frame;

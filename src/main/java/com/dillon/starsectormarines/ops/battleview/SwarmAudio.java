@@ -16,8 +16,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.WeakHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 
 /**
  * The swarm bodies' sound (`colony-breach-nouns.md`, Sound), keyed to what each
@@ -166,6 +168,8 @@ public final class SwarmAudio {
     /** Per battle: the last tick heard, gait and health last seen, and the voices. */
     public static final class Mix {
         private int tick = -1;
+        /** The pitch jitter's source: the thread's own in a battle; seeded where a review needs the same mix twice. */
+        private RandomGenerator jitter;
         final VoicePool<Sound, Spot> voices = new VoicePool<>(Sound.class, sound -> sound.layering);
         // Readings by body, as float bits (fastutil-core has no float maps); absent reads NaN.
         private final Long2IntOpenHashMap gait = readings();
@@ -182,6 +186,17 @@ public final class SwarmAudio {
             Long2IntOpenHashMap map = new Long2IntOpenHashMap();
             map.defaultReturnValue(-1);
             return map;
+        }
+
+        /** This mix with its pitch jitter drawn from {@code seed}, so the same battle starts the same sounds. */
+        public Mix seeded(long seed) {
+            jitter = new SplittableRandom(seed);
+            return this;
+        }
+
+        float jitter() {
+            RandomGenerator source = jitter != null ? jitter : ThreadLocalRandom.current();
+            return source.nextFloat(-PITCH_JITTER, PITCH_JITTER);
         }
 
         private static Long2IntOpenHashMap readings() {
@@ -477,7 +492,7 @@ public final class SwarmAudio {
                              int tick, UnitType strain, SwarmStage stage, int heldFor) {
         if (sound == null || !sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) return;
         if (mix.voices.offer(sound, body, tick, new Spot(x, y, strain, stage), heldFor) != VoicePool.Admit.START) return;
-        float pitch = sound.pitch * pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
+        float pitch = sound.pitch * pitch(strain, stage) * (1f + mix.jitter());
         out.add(new Play(sound, x, y, pitch, sound.volume * volume(stage) * mix.voices.gain(sound), -1));
     }
 }
