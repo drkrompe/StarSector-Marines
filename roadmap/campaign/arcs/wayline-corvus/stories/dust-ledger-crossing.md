@@ -1,6 +1,7 @@
 # The Dust Ledger — Saltwell Cross
 
-Status: PLANNED — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25).
+Status: IN PROGRESS — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25); piece A's map
+(`DustLedgerCrossing`, `dust-ledger-crossing` snapshots) is built, not yet wired.
 Written: 2026-10-25
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus)
