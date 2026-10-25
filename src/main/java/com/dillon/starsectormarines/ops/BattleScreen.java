@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.ui.debug.CommanderTraceDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
@@ -120,7 +121,9 @@ import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLE_FAN;
 import static org.lwjgl.opengl.GL11.GL_SCISSOR_BIT;
 import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
@@ -131,6 +134,7 @@ import static org.lwjgl.opengl.GL11.glColor4f;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glPopAttrib;
 import static org.lwjgl.opengl.GL11.glPushAttrib;
 import static org.lwjgl.opengl.GL11.glScissor;
@@ -157,6 +161,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
+    private static final Color EXTRACTION_COLOR = new Color(0x8F, 0xD8, 0xC4);
 
     /** Sound IDs declared in mod/data/config/sounds.json. */
     private static final String[] BATTLE_MUSIC_POOL = {
@@ -2271,6 +2276,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                     ? BattleRenderHostProfile.STANDALONE_BATTLE : BattleRenderHostProfile.EMBEDDED_SCENE);
             if (rangeTrial == null) renderer.renderWorld(rc);
             else renderer.renderWorld(rc, EnumSet.complementOf(EnumSet.of(RenderLayer.ROOFS, RenderLayer.FOG)));
+            if (strategic && retainedRetreatOverlay != null && retainedRetreatOverlay.confirmingRetreat()) {
+                renderExtractionZones(sim, alphaMult);
+            }
             glPopAttrib();
         }
 
@@ -2314,6 +2322,45 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
         if (sim == null) return;
         BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
+    }
+
+    /**
+     * While Retreat is being confirmed, the circles a withdrawal extracts from
+     * unhurt: {@link WithdrawalExtraction} tests exactly these.
+     */
+    private void renderExtractionZones(BattleSimulation sim, float alphaMult) {
+        if (sim == null || camera == null) return;
+        String label = Strings.upper(Strings.get("battleExtractionZone"));
+        for (LandingPad pad : sim.getMarineLandingPads()) {
+            float cx = camera.cellToScreenX(WithdrawalExtraction.centreX(pad));
+            float cy = camera.cellToScreenY(WithdrawalExtraction.centreY(pad));
+            float r = WithdrawalExtraction.radius(pad) * camera.cellPxSize();
+            int segments = Math.max(32, Math.min(128, Math.round(r / 4f)));
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(EXTRACTION_COLOR.getRed() / 255f, EXTRACTION_COLOR.getGreen() / 255f,
+                    EXTRACTION_COLOR.getBlue() / 255f, 0.14f * alphaMult);
+            glBegin(GL_TRIANGLE_FAN);
+            glVertex2f(cx, cy);
+            for (int i = 0; i <= segments; i++) {
+                double a = Math.PI * 2.0 * i / segments;
+                glVertex2f(cx + (float) Math.cos(a) * r, cy + (float) Math.sin(a) * r);
+            }
+            glEnd();
+            glColor4f(EXTRACTION_COLOR.getRed() / 255f, EXTRACTION_COLOR.getGreen() / 255f,
+                    EXTRACTION_COLOR.getBlue() / 255f, 0.85f * alphaMult);
+            glLineWidth(2f);
+            glBegin(GL_LINE_LOOP);
+            for (int i = 0; i < segments; i++) {
+                double a = Math.PI * 2.0 * i / segments;
+                glVertex2f(cx + (float) Math.cos(a) * r, cy + (float) Math.sin(a) * r);
+            }
+            glEnd();
+            float labelW = Fonts.ORBITRON_12_BOLD.measureWidth(label);
+            Fonts.ORBITRON_12_BOLD.drawString(label, cx - labelW / 2f,
+                    cy + r + 6f + Fonts.ORBITRON_12_BOLD.getLineHeight(), EXTRACTION_COLOR, alphaMult);
+        }
     }
 
     private void renderBanner(Faction winner, float alphaMult) {
