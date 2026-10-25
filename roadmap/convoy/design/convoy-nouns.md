@@ -856,6 +856,16 @@ retains the same existing cross-domain behavior as an autonomous hull.
   is what turns it round. Short deliberately — a nearer goal buys a tighter
   swing, and lateral room is the scarce thing. The attempt is bounded, because
   a pose no maneuver can rescue must cost a couple of tries rather than loop.
+- An order's route is proved from where the hull stands. The proof samples the
+  corridor with a margin for tracking error, and a hull already standing at the
+  start has made none, so within a hull's length of the start its footprint
+  need only clear exactly; where even that clips on the first leg's heading, the
+  route is accepted if the hull can back and fill onto it from its real pose
+  (the departure turnaround below). Within a hull's length of the end, ground
+  the margin cannot stand on shortens the route to the last pose that clears
+  it, so the hull arrives a little short rather than being refused. Dispatch
+  keeps both ends to the margin, because its ends are drop points and map
+  edges, not hulls and clicks.
 - An order that cannot be carried out is refused, out loud. A dispatched route
   is proven before dispatch commits to it, and a destination somebody picked is
   not — so a move order is where feasibility is actually decided, and the
