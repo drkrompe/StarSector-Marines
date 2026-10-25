@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentia
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FortifiedPostFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FreightYardFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.FactoryRowFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.DenseQuarterFiller;
@@ -71,6 +72,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FreightYardParcelStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.IndustrialTemplateParcelStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.MarketParcelStage;
@@ -166,6 +168,7 @@ public final class BspCityGenerator implements MapGenerator {
         register(new MarketSquareFiller());
         register(new ParkFiller());
         register(new IndustrialYardFiller());
+        register(new FreightYardFiller());
         register(new WastelandRubbleFiller());
         register(new WaterfrontFiller());
         register(new DenseBlockFiller());
@@ -286,6 +289,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c   binds DISTRICT_MAP
                 new LabelLeavesStage(),                     // Step 2
+                new FreightYardParcelStage(),               // The freight yard's ground, before the other parcels and the claims
                 new IndustrialTemplateParcelStage(),        // Reserve fitting industrial lots before claim and road publication
                 new SpaceportDistrictPlanStage(),           // Step 2a   campaign civilian spaceport
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
