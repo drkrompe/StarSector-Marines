@@ -78,11 +78,6 @@ def build_file(f):
 def build_manifest(f):
     return json.loads((BUILDS / f['dir'] / f.get('manifest', 'manifest.json')).read_text())
 W, H = 1920, 1080
-# ASHARU_BACKDROP_CLEAN=1: the backdrop layer without the ships and effects it has drawn until now
-# (layered()). A temporary A/B (S5, 2026-10-25): every final so far was graded with additive effects
-# counted twice, so the owner picks from the S5 1143-1151 before/after; the session that added it then
-# removes this switch and the losing path.
-BACKDROP_CLEAN = os.environ.get('ASHARU_BACKDROP_CLEAN') == '1'
 
 # Asharu and the orbit. Asharu's real size is not given anywhere in the game or the story; a
 # small dry world a little smaller than Earth reads right and keeps the limb curving in frame.
@@ -2962,14 +2957,12 @@ def blender_main(cfg):
             for lc in lcs:
                 lc.exclude = base.get(lc.collection.name, False)
                 lc.holdout = lc.indirect_only = False
-                if not BACKDROP_CLEAN:
-                    apply_role(lc, role.get(lc.collection.name))
-            if BACKDROP_CLEAN:
-                # The roles once the whole tree is synced: synced parent first, a child's include put an
-                # excluded Stage back on the backdrop layer, which then drew every ship and effect, and
-                # the composite counted each additive effect twice (S5 audit, 2026-10-25)
-                for lc in lcs:
-                    apply_role(lc, role.get(lc.collection.name))
+            # The roles once the whole tree is synced: synced parent first, a child's include put an
+            # excluded Stage back on the backdrop layer, which then drew every ship and effect, and the
+            # composite counted each additive effect twice (S5 audit, 2026-10-25; the owner took the
+            # fix for new renders, finished finals keep theirs)
+            for lc in lcs:
+                apply_role(lc, role.get(lc.collection.name))
         bd_ = scene.view_layers['backdrop']
         print(f'ASHARU layers {kf}: backdrop excludes ' + ', '.join(
             f'{lc.collection.name} {lc.exclude}' for lc in walk(bd_.layer_collection) if lc.collection.name.startswith('Stage')),
@@ -3013,8 +3006,8 @@ def blender_main(cfg):
                                        world_n['Star gain'].inputs[1].default_value,
                                        scene.render.resolution_percentage,
                                        min(cfg['samples'], composite_layers.BACKDROP_SAMPLES),
-                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]
-                                      + ([] if not BACKDROP_CLEAN else ['clean'])).encode())
+                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL)),
+                                       'clean']).encode())     # never one cached with the ships and effects in it
         return h.hexdigest()[:16]
 
     def ship_matrix_at(spec):
