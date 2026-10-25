@@ -130,6 +130,7 @@ import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.evacuation.BroodSpires;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
@@ -877,6 +878,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
     private final SwarmFliers swarmFliers = new SwarmFliers();
+    private final BroodSpires broodSpires = new BroodSpires();
+
+    /** The old bloom's brood spires and the Matriarchs' broods: where Harrier packs come from. */
+    public BroodSpires broodSpires() { return broodSpires; }
     /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
     public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
@@ -896,6 +901,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepVegetation().look(this, 0);
         // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
         CreepRoofCollapse.matureOn(this);
+        // A bloom weeks old has grown its spires.
+        broodSpires.grow(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
@@ -3895,6 +3902,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        // After the director's surges and before the fliers fly, so a pack a surge launches flies this tick.
+        broodSpires.tick(this);
         swarmFliers.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
