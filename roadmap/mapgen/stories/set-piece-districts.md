@@ -136,8 +136,8 @@ centre line from the plaza end to the hall end, the carriageway width, the plaza
 front door.
 
 Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 5 of 24 medium city maps and
-15 of 24 colonies. Cities zone few civic or mixed pockets; counting the residential neighbourhood as half
-a pocket lifts cities to 15 of 24 and leaves colonies at 15, which is a choice for the owner (a high
+14 of 24 colonies (the freight yard and the market square plan their parcels first). Cities zone few civic or mixed pockets; counting the residential neighbourhood as half
+a pocket lifted cities from 5 to 15 of 24 and left colonies alone, which is a choice for the owner (a high
 street among houses) rather than the brief's commercial or civic pocket. Look:
 `createSnapshots -Psnapshot=main-street-look`.
 
