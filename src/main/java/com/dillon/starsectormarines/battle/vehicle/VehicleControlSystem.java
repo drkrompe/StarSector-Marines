@@ -57,6 +57,8 @@ public final class VehicleControlSystem {
     /** Hulls that can't act this tick: a Brute's charge stalls them ({@code colony-breach-nouns.md}, Brute). */
     private LongPredicate stalled = id -> false;
     private HoverSkirt skirt;
+    /** Heavy-lift hulls' tracks, or {@code null} where no map editor is wired: such a hull then drives the live grid. */
+    private HeavyTracks tracks;
 
     public VehicleControlSystem(ConvoyService convoy, NavigationService navigation) {
         this(convoy, navigation, Boolean.parseBoolean(System.getProperty(
@@ -75,12 +77,14 @@ public final class VehicleControlSystem {
     /** Gives bladed hulls their blade. Without one a dozer drives as the cannonless tank it looks like. */
     public void setBlade(DozerBlade blade) { this.blade = blade; }
 
+    /** Gives heavy-lift hulls their tracks. Without them a tank stops at undergrowth as a lighter hull does. */
+    public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
+
     /** Hulls that hold still this tick, whatever their route says. */
     public void setStall(LongPredicate stalled) { this.stalled = stalled; }
 
     /**
-     * The grid a hull's own planning reads: the blade's breach view for a bladed hull, the skirt's hover view for a
-     * hover hull, else the live grid.
+     * The grid a hull's own planning reads: the blade's breach view for a bladed hull, else the grid it moves over.
      */
     NavigationGrid planningGrid(VehicleType type) {
         return blade != null && type.hasBlade() ? blade.planningGrid() : motionGrid(type);
@@ -88,18 +92,29 @@ public final class VehicleControlSystem {
 
     /**
      * The grid a hull physically moves over: the skirt's hover view for a hover hull, which really does float over
-     * the water it opens ({@link HoverSkirt}), else the live grid — a dozer's wall is there until it is pushed down.
+     * the water it opens ({@link HoverSkirt}); the tracks' crush view for a heavy-lift hull, whose undergrowth gives
+     * as it is driven into ({@link HeavyTracks}); else the live grid — a dozer's wall is there until it is pushed
+     * down.
      */
     NavigationGrid motionGrid(VehicleType type) {
-        if (!type.isHover()) return navigation.getGrid();
-        if (skirt == null) skirt = new HoverSkirt(navigation);
-        return skirt.motionGrid();
+        if (type.isHover()) {
+            if (skirt == null) skirt = new HoverSkirt(navigation);
+            return skirt.motionGrid();
+        }
+        if (tracks != null && type.crushesUndergrowth()) return tracks.motionGrid();
+        return navigation.getGrid();
+    }
+
+    /** Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view. */
+    boolean isKeptView(NavigationGrid grid) {
+        return tracks != null && grid == tracks.currentView();
     }
 
     /** The route cost a hull's own move-order proof pays. */
     TerrainCostField costField(VehicleType type) {
-        return type.isHover() ? HoverSkirt.costField(navigation.getTopology())
-                : TerrainCostField.from(navigation.getTopology());
+        if (type.isHover()) return HoverSkirt.costField(navigation.getTopology());
+        TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
+        return tracks != null && type.crushesUndergrowth() ? HeavyTracks.costField(navigation.getGrid(), cost) : cost;
     }
 
     /**
@@ -1049,7 +1064,11 @@ public final class VehicleControlSystem {
                 new Pose(body.x, body.y, body.facingDegrees), type.visualLengthCells,
                 type.visualWidthCells, motionGrid(type), allowOffMap);
         applyPose(body, step.pose());
-        if (step.blocked()) body.speed = 0f;
+        if (step.blocked()) {
+            body.recordBlocked(body.speed);
+            body.speed = 0f;
+        }
+        if (tracks != null && type.crushesUndergrowth()) tracks.crush(body, type);
         return step.blocked();
     }
 

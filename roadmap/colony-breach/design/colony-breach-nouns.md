@@ -4,9 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of the water cells' squares.
-
-Updated: 2026-10-24 — a bloom's calls are the only missions the campaign seeds by planet.
+Updated: 2026-10-25 — a creep-killed tree is undergrowth a heavy tank pushes over.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1050,9 +1048,12 @@ not read in a soft shadow at play zoom.
   through the aimed-damage path; a craft at cruise altitude is out of reach.
   It stops advancing as soon as something is in range, so the Runners it came
   with close past it and it ends up behind them. No damage over time: the
-  damage model has none for ground bodies.
-- **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
-  wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
+  damage model has none for ground bodies. Its snout glows faint acid green
+  through the brace before each lob, so a player reads the lob coming off the
+  creature itself (owner, 2026-10-25).
+- **Matriarch** — one per mother bore at maw tier: large, very durable, a slow
+  walker that runs down infantry, wrecks emplacements. Answered by mechs, heavy
+  weapons or a lot of satchels.
   The mother owes it the first time it releases at maw tier, and that body is
   the Matriarch whatever the strain roll; it is never drawn otherwise, and its
   emergence is the `matriarch_emerged` beat. About four and a half cells nose
@@ -1066,6 +1067,27 @@ not read in a soft shadow at play zoom.
   curtain until something has worn that down), from further off, and never
   walks round to a door. It is not staggered and does not charge.
 
+  It has two paces: it **walks** at its sim speed, about two thirds of a cell a
+  second, which a Marine on foot outpaces, and it **runs** at nearly five
+  times that, well past a Marine (`MatriarchRunRules`). A **run** is taken only
+  at infantry that has let it come within a band of about eight cells (past its
+  reach) over open ground, and once the last run's cooldown has run, so
+  standing off from it and walking away early stays a real answer, and walking
+  away once it is close is not. It begins with a **tell**, the Brute's in its
+  shape: it stands crown-down for a moment and bellows, the player's warning.
+  Unlike a charge the run is not a committed line: it keeps hunting its quarry
+  at the run's pace, and closes right in before it reaps rather than reaping at
+  the edge of its reach, so the scythe lands on a body that kept walking
+  through the wind-up. The run ends on that reap, on its time (a few seconds),
+  or when it takes other quarry or has a wall to break, and a long cooldown
+  follows, in which a thrown marine can get up and walk off again. A hull or a
+  mech is walked down: nothing that heavy outpaces its walk by much, and its
+  weight against a lance is what the lance loop measures. The `matriarch`
+  scene's `walk-off` loop reads it: a marine inside the band walking away at a
+  Marine's pace is run down and reaped; in `far-off` one already well out of
+  it is never run at and gets away. The numbers are starting values in
+  `MatriarchRunRules`, to be felt out in play.
+
   Its weight is set against a lance: three Bulwarks and one Matriarch at full
   health come out near even (the `matriarch` scene's `mech-lance` loop reads
   it: two Bulwarks lost, the Matriarch left on its last few points), so it is
@@ -1074,7 +1096,10 @@ not read in a soft shadow at play zoom.
   Drawn on its own skeleton (`RavMatriarchRig`): the charcoal Siege Crown,
   matte charcoal plates edged in dried-blood red over wine-red sinew, a fan
   of yellowed ivory crown over a straight-ahead head, the legs pillars under
-  the body on a slow four-beat walk. Walking, it looks slowly left and right;
+  the body on a slow four-beat walk, which lengthens into a run on longer
+  strides with less of each on the ground and the feet lifted higher. Walking,
+  it looks slowly left and right; before a run the crown dips and the jaws
+  part;
   a reap turns the head toward the blade and opens the jaws; the roar gapes
   and shakes it. The two scythes hang from under the crown's rim, a mirrored
   pair about the head, and are long enough that a reap reads past the crown
@@ -1348,7 +1373,10 @@ against its own control in `renderEvidence`.
   tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
   over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
   only when both are dead, and never if it is either one's trunk. Felling still
-  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  works on a dead tree, and a dead tree is undergrowth: a heavy tank pushes it
+  over, trunk and all, where no living tree's crown holds its cells, so the
+  infection turns a wood a tank could not enter into one it drives through
+  (owner; `convoy-nouns.md`, heavy tracks). Creep therefore strips a wood of concealment the way it
   strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
   mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
 - **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
@@ -1452,7 +1480,11 @@ against its own control in `renderEvidence`.
   damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
   sheet baked from the canopy art and the creep's own surface and palette
   (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
-  ground. On vegetation (grass, crops and the plants on them) the edge is not
+  ground. A dead tree felled, by heavy tracks or by fire, lies as dead wood: the
+  destroyed tree's stump and fallen limbs bleached bone-pale and bare, the stump
+  crusted, baked the same way from the destroyed-tree art (a sheet of its own,
+  `forest-blight-felled`); a tree felled while it lived keeps its green felled
+  art. On vegetation (grass, crops and the plants on them) the edge is not
   clean as it is on pavement: the creep's coverage spread a few cells out turns
   the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
   into it ahead of the lip, so grass and crop rows are seen to be taken before
@@ -1776,8 +1808,9 @@ louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
 no voice. The Matriarch is the biggest of the Runner's and Brute's family and
 sounds it: only her roar (out of the bore and at each moult) and the whoosh
-and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
-wall breaking, pain and death are the Brute's, played deeper, slower and
+and cut of a reap are her own takes; her bellow on new quarry, the tell before
+her run (the Brute's charge tell), hoof, crown, wall breaking, pain and death
+are the Brute's, played deeper, slower and
 further apart. The Harrier is the other way round, lighter and quicker
 (`HarrierAudio`): chitin wingbeats on the downstroke of every flier within
 earshot, its one take of its own, cut short from the Runner's clatter and

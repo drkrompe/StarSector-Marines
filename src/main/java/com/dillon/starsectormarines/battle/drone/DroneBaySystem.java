@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
+import com.dillon.starsectormarines.battle.vehicle.HullSightings;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ import java.util.Map;
  *
  * <p>What the roles add is ordinary machinery. A halo drone wears a carried point-defence mount
  * ({@code PointDefenseService}), so it engages incoming rounds and the mount ends when the drone falls. A sensor
- * drone is a sight source for its side ({@link #forEachSensor}, read by {@link ScoutSight}). A strike drone is a
+ * drone is a sight source for its side ({@link #forEachSensor}, read by {@link HullSightings}). A strike drone is a
  * munition: the bay launches it at the hostile threatening the hull, it flies into it, and on arrival it detonates
  * as an ordinary blast credited to itself and is spent; the bay then rebuilds it.
  *
@@ -114,9 +115,10 @@ public final class DroneBaySystem {
             for (long hull : convoy.entityIds()) {
                 VehicleType type = convoy.vehicleType(hull);
                 VehicleMission mission = convoy.mission(hull);
-                if (type == null || type.droneBay().isEmpty() || mission == null || !mission.isVisible()
+                List<DroneRole> bay = convoy.droneBay(hull);
+                if (type == null || bay.isEmpty() || mission == null || !mission.isVisible()
                         || mission.state == VehicleState.WRECKED || wings.containsKey(hull)) continue;
-                wings.put(hull, new DroneWing(hull, type.droneBay(), type.visualLengthCells));
+                wings.put(hull, new DroneWing(hull, bay, type.visualLengthCells));
             }
         }
         float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
@@ -197,6 +199,8 @@ public final class DroneBaySystem {
         if (role == DroneRole.SENSOR || role == DroneRole.HALO) {
             spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.DRONE_ION_ID));
         }
+        // A sensor drone looks out as any contributor does: its sight is the vision stat, not a channel of its own.
+        if (role == DroneRole.SENSOR) spec.visionRange(SENSOR_SIGHT_CELLS);
         long id = sim.spawn(spec);
         if (id == 0L) return;
         AirBody air = sim.world().kinematics(id);

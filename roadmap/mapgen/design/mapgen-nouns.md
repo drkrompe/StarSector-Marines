@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-22 — Fields are land in use: worked plots by the town and the country road, wild ground beyond, and fields on the town's other sides (Rural country).
+Updated: 2026-10-25 — a mineral formation is never crushable by a heavy tank.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -873,7 +873,12 @@ canopy must also leave all remaining walkable ground in its local neighborhood
 connected through actual reciprocal navigation edges. This conservative local
 detour proof refuses optional scenery rather than cutting a route through it
 later, and preserves connectivity even for places a mission chooses after the
-map is generated. Existing disconnected ground is not repaired by this pass.
+map is generated. A procedural canopy proves the same for the widest ground
+hull: any two cells a tank could stand on and drive between in that
+neighbourhood stay joined at tank width (the hull's vehicle clearance), so a
+wood thins to lanes armour can use instead of gaps only infantry fit. A hand
+painted forest plan is not held to it. Existing disconnected ground is not
+repaired by this pass.
 
 A precinct plan may state its country through a **landscape** (`Landscape`):
 the share of wild ground that is wood (the stock city's is a little over half),
@@ -934,7 +939,9 @@ required access takes precedence over landscape density. Arid and living
 palettes do not receive ice or barren mineral fields.
 
 Each formation shares one structural damage pool across its footprint, as a
-tree does across its crown. Cracked survivors remain solid. Destruction leaves
+tree does across its crown. A formation is never crushable: a heavy tank stops
+at it as at a hill, where it flattens young trees and lone boulders
+(`convoy-nouns.md`, heavy tracks). Cracked survivors remain solid. Destruction leaves
 low fragments, opens movement and sight only where no surviving formation
 remains, and preserves the original ground. A blast spends damage once per
 formation. Large continuous ridges remain permanent terrain masses; their
