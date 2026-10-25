@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
@@ -99,6 +100,27 @@ public final class CordonLogistics implements AlliedDepot {
     private long exiting;
     private int exitingSince;
     private int carried, built, homed;
+    /** The company's lifts ({@code cordon-allied-command.md}, rule 10): asked, granted, and set down. */
+    private int liftsAsked, liftsGranted, liftsLanded;
+    /** Cells round a redoubt a duty may be and still be set down behind it. */
+    static final int LIFT_REACH = 6;
+    /**
+     * Ticks a squad a lift brought no nearer its duty walks before it may ask again (a minute): a carrier that cannot
+     * reach the drop stops where the squad boarded and sets it down there, and asked again it would do the same.
+     */
+    static final int FAILED_LIFT_TICKS = 1800;
+    /** The tick until which each squad a lift failed may not ask again, by squad. */
+    private final Map<Integer, Integer> liftBarred = new HashMap<>();
+    /** The tick of the last {@link #advance}, for the asks the company makes between them. */
+    private int now;
+    /** Lifts called off since the last review, by squad. */
+    private final List<Integer> cancels = new ArrayList<>();
+    /** Lifts asked since the last review: {hull, squad, x, y}. */
+    private final List<long[]> asks = new ArrayList<>();
+    /** The company squad each lifting carrier has aboard or is waiting for. */
+    private final Map<Long, Integer> lifting = new HashMap<>();
+    /** The duty each lifted squad asked to be taken to, {x, y}, by squad. */
+    private final Map<Integer, int[]> liftDuty = new HashMap<>();
 
     private CordonLogistics(CordonArmour armour, CordonAlliedTable table, int[] door, List<int[]> slots,
                             List<int[]> armourHomes, RiskLevel risk, Random rng) {
@@ -395,6 +417,7 @@ public final class CordonLogistics implements AlliedDepot {
      */
     public void advance(BattleSimulation sim, List<CordonRedoubt> redoubts, Consumer<String> beat) {
         AlliedCommand command = armour.command();
+        now = sim.getSimTickIndex();
         for (String told : landed) beat.accept(told);
         landed.clear();
         carriers.retainAll(command.hulls());
@@ -405,6 +428,11 @@ public final class CordonLogistics implements AlliedDepot {
         letOut(sim);
         if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
         waiting.removeIf(squad -> sim.squadMemberCount(squad) == 0);
+        lifting.keySet().removeIf(hull -> !command.carrying(hull));
+        liftDuty.keySet().retainAll(lifting.values());
+        for (int squad : cancels) cancelLift(sim, squad);
+        cancels.clear();
+        grantLifts(sim, redoubts);
         supporting.keySet().retainAll(carriers);
         bound.keySet().retainAll(carriers);
         bound.keySet().removeIf(hull -> !command.carrying(hull));
@@ -441,6 +469,108 @@ public final class CordonLogistics implements AlliedDepot {
                 landed.add("carried_" + carried);
             });
         }
+    }
+
+    /** A carrier the company may ask for a lift: its hull, where it stands, and the seats it has. */
+    public record Carrier(long hull, float x, float y, int seats) { }
+
+    /**
+     * The carriers free to lift a company squad (rule 4 of the allied command): none while an allied squad waits at
+     * the base, and none carrying, loading or on its way out of the shed.
+     */
+    public List<Carrier> liftable(BattleSimulation sim) {
+        List<Carrier> out = new ArrayList<>();
+        if (!waiting.isEmpty()) return out;
+        AlliedCommand command = armour.command();
+        for (long hull : carriers) {
+            if (command.carrying(hull) || outbound.containsKey(hull) || !command.hulls().contains(hull)) continue;
+            GroundBody body = sim.convoy().body(hull);
+            out.add(new Carrier(hull, body.x, body.y, sim.transport().seatsFree(hull)));
+        }
+        return out;
+    }
+
+    /**
+     * Each lifted company squad's ride, by squad: {carrier x, carrier y, duty x, duty y}. The squad walks to the
+     * carrier, then rides to the duty it asked for.
+     */
+    public Map<Integer, float[]> lifting(BattleSimulation sim) {
+        Map<Integer, float[]> out = new HashMap<>();
+        for (Map.Entry<Long, Integer> e : lifting.entrySet()) {
+            if (!armour.command().hulls().contains(e.getKey())) continue;
+            GroundBody body = sim.convoy().body(e.getKey());
+            int[] duty = liftDuty.get(e.getValue());
+            out.put(e.getValue(), new float[]{body.x, body.y, duty[0], duty[1]});
+        }
+        return out;
+    }
+
+    /**
+     * The company no longer wants a squad's lift (its duty ended or moved): the carrier stops waiting, or sets the
+     * squad down where it is.
+     */
+    public void cancelLift(BattleSimulation sim, int squad) {
+        for (Map.Entry<Long, Integer> e : new ArrayList<>(lifting.entrySet())) {
+            if (e.getValue() != squad) continue;
+            armour.command().setDown(sim, e.getKey());
+            lifting.remove(e.getKey());
+            liftDuty.remove(squad);
+        }
+    }
+
+    /** The company asks for a lift for a squad to a duty in a carrier {@link #liftable} named; granted at review. */
+    public void ask(long hull, int squad, int x, int y) {
+        for (long[] a : asks) if (a[1] == squad) return;
+        Integer barred = liftBarred.get(squad);
+        if (barred != null && now < barred) return;
+        if (lifting.containsValue(squad)) return;
+        asks.add(new long[]{hull, squad, x, y});
+        liftsAsked++;
+    }
+
+    /** The company calls off a squad's lift; done at review ({@link #cancelLift}). */
+    public void callOff(int squad) {
+        if (!cancels.contains(squad)) cancels.add(squad);
+    }
+
+    /** The company's lifts for evidence: asked, granted and set down. */
+    public String liftReadings() {
+        return liftsAsked + " asked, " + liftsGranted + " granted, " + liftsLanded + " set down";
+    }
+
+    /**
+     * Grants the lifts asked since the last review whose carrier is still free: an allied squad waiting comes first.
+     * The squad is set down behind the redoubt its duty is at, as a carried team is, else at the duty itself.
+     */
+    private void grantLifts(BattleSimulation sim, List<CordonRedoubt> redoubts) {
+        AlliedCommand command = armour.command();
+        for (long[] ask : asks) {
+            long hull = ask[0];
+            int squad = (int) ask[1], x = (int) ask[2], y = (int) ask[3];
+            if (!waiting.isEmpty() || command.carrying(hull) || outbound.containsKey(hull)
+                    || !carriers.contains(hull) || lifting.containsValue(squad) || sim.squadMemberCount(squad) == 0
+                    || sim.squadMemberCount(squad) > sim.transport().seatsFree(hull)) {
+                continue;
+            }
+            int[] drop = {x, y};
+            for (CordonRedoubt r : redoubts) if (r.manned() && r.contains(x, y, LIFT_REACH)) drop = dropAt(sim, r);
+            supporting.remove(hull);
+            lifting.put(hull, squad);
+            liftDuty.put(squad, new int[]{x, y});
+            liftsGranted++;
+            int[] to = drop;
+            GroundBody from = sim.convoy().body(hull);
+            float boardX = from.x, boardY = from.y;
+            command.lift(sim, hull, squad, to[0], to[1], CommandAuthority.MISSION_COMMAND, CordonCommand.ISSUER,
+                    (s, riders, dx, dy) -> {
+                        liftsLanded++;
+                        // Set down no nearer the drop than half the way: the carrier could not take it there.
+                        if (Math.hypot(to[0] - dx, to[1] - dy) > Math.hypot(to[0] - boardX, to[1] - boardY) / 2) {
+                            liftBarred.put(squad, s.getSimTickIndex() + FAILED_LIFT_TICKS);
+                        }
+                    });
+        }
+        asks.clear();
     }
 
     /**
