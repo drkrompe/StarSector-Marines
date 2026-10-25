@@ -118,6 +118,7 @@ public final class TileRegistry {
             "data/tilesets/compound-furniture-damage.tileset.json",
             "data/tilesets/forest-destroyed.tileset.json",
             "data/tilesets/forest-blight.tileset.json",
+            "data/tilesets/forest-blight-felled.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/ground-feather.tileset.json",
             "data/tilesets/water-shore.tileset.json",

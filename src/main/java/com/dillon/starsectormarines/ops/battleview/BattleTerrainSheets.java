@@ -35,7 +35,8 @@ import java.util.Set;
  *       wall knocked down or a cell blasted draws its art rather than loading it then;
  *   <li>pavement edges, only where the map blends its pavement by edge mask (no road surface);
  *   <li>every placed doodad, its damaged and destroyed states (the names the damage channels
- *       look up), its machine motion parts, and its blight stages where creep can spread;
+ *       look up), its machine motion parts, and its blight stages and felled dead wood where
+ *       creep can spread;
  *   <li>the damage states of the rocks scattered as nature overlay, and the field-salvage art
  *       where the battle has caches.
  * </ul>
@@ -112,7 +113,10 @@ public final class BattleTerrainSheets {
             addDamageStates(id, doodads);
             NaturalPropShape shape = NaturalPropShape.find(id);
             if (shape != null) addDamageStates(shape.id(), doodads);
-            if (creep) for (int k = 1; k <= 4; k++) doodads.add(id + "-blight-" + k);
+            if (creep) {
+                for (int k = 1; k <= 4; k++) doodads.add(id + "-blight-" + k);
+                doodads.add(id + "-destroyed" + CreepTreeTwins.FELLED);
+            }
         }
         // Rocks scattered as overlay become doodads of their own when first hit.
         for (int overlay : overlays) {
