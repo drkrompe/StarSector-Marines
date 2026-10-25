@@ -1064,10 +1064,8 @@ KEYFRAMES = {
         fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead', (0, 0, 0),
                                                          # her guns bear only until 105 s (then the Lasher swings 60-87
                                                          # deg off them, past their turn rate): the bolts that land her
-                                                         # 103.5 s breach and 104.6 s plating loss;
-                                                         # one HE flash per spot per quarter second
-                                                         dict(trained=True, bursts_t=[(102.5, 105.0)], walk=.35,
-                                                              flash_gap_s=.25)),
+                                                         # 103.5 s breach and 104.6 s plating loss
+                                                         dict(trained=True, bursts_t=[(102.5, 105.0)], walk=.35)),
             # the Lasher's burst that opens the Falcon's flank (104.79 s, on its round)
             ('blast_on', 'falcon-p', 18, (14, -5, -5), 104.79),
             # option (c), coordinator 2026-10-24: the Falcon's two drawn bursts (103.71 and 104.5 s) set her
@@ -3133,8 +3131,6 @@ def blender_main(cfg):
                             opts['cease'] = fr_(opts.pop('cease_t'))
                         if 'sure_t' in opts:     # a round must land then (the kill): laid dead on
                             opts['sure'] = fr_(opts.pop('sure_t'))
-                        if 'flash_gap_s' in opts:     # scene_fx.tracer flash_gap, in frames
-                            opts['flash_gap'] = round(opts.pop('flash_gap_s') * fps_s)
                         if 'bursts_t' in opts:
                             opts['bursts'] = [(fr_(t0_), fr_(t1_)) for t0_, t1_ in opts.pop('bursts_t')]
                         done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,
