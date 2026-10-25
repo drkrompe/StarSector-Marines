@@ -33,12 +33,12 @@ public final class HarrierRaid {
 
     /**
      * Whether a candidate is worth a raid: the radio that calls the air in, an unarmed truck, a medic, a body on its
-     * own, or a gun, and nothing that answers fliers reaches it.
+     * own, a gun, or a colonist out in the open to snatch, and nothing that answers fliers reaches it.
      */
     static boolean soft(HarrierTargeting.Candidate c) {
         if (c.airCover() > 0) return false;
         return switch (c.prey()) {
-            case RADIO, LOGISTICS, MEDIC, ISOLATED, GUN -> true;
+            case RADIO, LOGISTICS, MEDIC, SURVIVOR, ISOLATED, GUN -> true;
             default -> false;
         };
     }

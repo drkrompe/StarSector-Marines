@@ -40,7 +40,7 @@ separate from the workshop bill. The player chose one Cerberus and a staged plan
 consignment, with no support freighter. The start supplies 473 spendable credits,
 a separate 4,862-credit reserve usable only for the original ship's conversion (the
 yard waives the estimate's 124-credit pressure test when it pays), minimum
-crew plus five, 25 travel supplies and no fuel (owner, 2026-10-20). Fuel burns only in hyperspace.
+crew plus five, 25 travel supplies and one unit of fuel (owner, 2026-10-25). Fuel burns only in hyperspace.
 The start sets the fleet down in its port's own system, and the yard, Mara Venn's office and the
 depot all start in it; a re-pick after the port is lost keeps to that system while any qualifying
 port remains there. When a re-pick during the opening (conversion unpaid or depot stores left) does

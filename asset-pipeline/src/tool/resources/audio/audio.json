@@ -1185,6 +1185,10 @@
     {"id": "marines_bark_civilian_strain_c_3", "source": "marine-barks/speech/marines_bark_civilian_strain_c_3.mp3", "kind": "positional", "out": "battle/marine-barks"},
     {"id": "marines_bark_civilian_strain_d_1", "source": "marine-barks/speech/marines_bark_civilian_strain_d_1.mp3", "kind": "positional", "out": "battle/marine-barks"},
     {"id": "marines_bark_civilian_strain_d_2", "source": "marine-barks/speech/marines_bark_civilian_strain_d_2.mp3", "kind": "positional", "out": "battle/marine-barks"},
-    {"id": "marines_bark_civilian_strain_d_3", "source": "marine-barks/speech/marines_bark_civilian_strain_d_3.mp3", "kind": "positional", "out": "battle/marine-barks"}
+    {"id": "marines_bark_civilian_strain_d_3", "source": "marine-barks/speech/marines_bark_civilian_strain_d_3.mp3", "kind": "positional", "out": "battle/marine-barks"},
+    // Colony Breach (tools/generate_colony_breach_audio.py)
+    {"id": "marines_breach_bore_clawup_1", "source": "colony-breach/sfx/marines_breach_bore_clawup_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bore_clawup_2", "source": "colony-breach/sfx/marines_breach_bore_clawup_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bore_clawup_3", "source": "colony-breach/sfx/marines_breach_bore_clawup_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }

@@ -29,6 +29,17 @@ class HarrierRaidTest {
     }
 
     @Test
+    void itRaidsTheSurvivorsInTheOpenWhenNothingRicherIsSoft() {
+        Candidate survivor = new Candidate(5, 100, 0, Prey.SURVIVOR, 0);
+        Candidate alone = new Candidate(6, 60, 0, Prey.ISOLATED, 0);
+        assertEquals(5, HarrierRaid.choose(List.of(alone, survivor), 0, 0), "a colonist to snatch over a lone soldier");
+        assertEquals(2, HarrierRaid.choose(List.of(survivor, new Candidate(2, 90, 0, Prey.RADIO, 0)), 0, 0),
+                "the radio first");
+        assertEquals(0, HarrierRaid.choose(List.of(new Candidate(5, 100, 0, Prey.SURVIVOR, 1)), 0, 0),
+                "never under the guns");
+    }
+
+    @Test
     void itRaidsOnlyPastTheSpiresWakeAndWithinItsRange() {
         assertEquals(0, HarrierRaid.choose(List.of(new Candidate(1, 30, 0, Prey.MEDIC, 0)), 0, 0), "too near");
         assertEquals(0, HarrierRaid.choose(List.of(new Candidate(1, 400, 0, Prey.MEDIC, 0)), 0, 0), "too far");

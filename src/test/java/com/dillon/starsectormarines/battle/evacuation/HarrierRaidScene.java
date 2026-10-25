@@ -11,7 +11,10 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,6 +29,8 @@ import java.util.Map;
  *       out of the flak's reach; they dive on him, fly home and land on the hooks.</li>
  *   <li>{@code covered}: a second flak stands by him, so nothing soft is left in raid range. The spire sends no raid,
  *       and patrols instead.</li>
+ *   <li>{@code survivors}: colonists stand out in the open where he stood. The raid flies round the flak to them,
+ *       snatches one off its feet, the carrier hauls it alive into the bore, and the raid comes home and lands.</li>
  * </ul>
  */
 public final class HarrierRaidScene implements BehaviorScene {
@@ -46,21 +51,30 @@ public final class HarrierRaidScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
-        return List.of(run("raid", false, frames), run("covered", true, FrameSink.NONE));
+        return List.of(run("raid", false, false, frames), run("covered", true, false, FrameSink.NONE),
+                run("survivors", false, true, FrameSink.NONE));
     }
 
-    private SceneReport run(String loop, boolean covered, FrameSink frames) {
+    private SceneReport run(String loop, boolean covered, boolean survivors, FrameSink frames) {
         SceneBuilder builder = SceneBuilder.openGround(W, H).seed(20261025L).missionCompletion(false);
         builder.squad("line").faction(Faction.MARINE).size(6).at(LINE_X, LINE_Y).primary("weapon.field-rifle")
                 .stationary().done();
-        builder.squad("rear").faction(Faction.MARINE).size(1).at(REAR_X, REAR_Y).primary("weapon.field-rifle")
-                .stationary().done();
+        if (!survivors) {
+            builder.squad("rear").faction(Faction.MARINE).size(1).at(REAR_X, REAR_Y).primary("weapon.field-rifle")
+                    .stationary().done();
+        }
         SceneWorld scene = builder.build();
         try (BattleSimulation sim = scene.sim()) {
             HarrierPatrolScene.quietMaw(sim, BORE_X, BORE_Y);
             sim.spawn(MapTurret.create("flak", Faction.MARINE, BroodSpireScene.FLAK, LINE_X + 2, LINE_Y));
             if (covered) sim.spawn(MapTurret.create("flak-rear", Faction.MARINE, BroodSpireScene.FLAK, REAR_X + 2, REAR_Y));
-            long rear = firstOf(sim, scene.squadId("rear"));
+            long rear = survivors ? 0L : firstOf(sim, scene.squadId("rear"));
+            if (survivors) {
+                for (int i = 0; i < 3; i++) {
+                    sim.spawn(new EntitySpec("Colonist " + (i + 1), Faction.CIVILIAN, UnitType.CIVILIAN,
+                            REAR_X + i * 2, REAR_Y + (i % 2) * 2).role(UnitRole.FLEE));
+                }
+            }
             BroodSpires spires = sim.broodSpires();
             BroodSpires.Spire spire = spires.spires().get(0);
             // Its raid due now, its patrol not for a while yet.
@@ -96,7 +110,18 @@ public final class HarrierRaidScene implements BehaviorScene {
                 if (e.kind() == SwarmFliers.Event.Kind.LANDED) landed++;
             }
             List<Verdict> verdicts = new ArrayList<>();
-            if (!covered) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            if (survivors) {
+                verdicts.add(Verdict.of("a-raid-goes-for-the-survivors", spire.raids() == 1 && raid != null
+                                && raid.patrol().raid(), spire.raids() + " raids, sortie at tick " + launchTick));
+                verdicts.add(Verdict.of("its-way-keeps-out-of-the-flak", nearestFlak > FLAK_REACH,
+                        "came within " + nearestFlak + " cells of the flak, which reaches " + FLAK_REACH));
+                verdicts.add(Verdict.of("it-snatches-one-alive-into-the-bore",
+                        harvest.snatchedByFliers() >= 1 && harvest.taken() >= 1,
+                        harvest.snatchedByFliers() + " snatched, " + harvest.taken() + " taken at the mouth"));
+                verdicts.add(Verdict.of("it-comes-home-and-lands", homeTick > 0 && landed > 0,
+                        landed + " landed, home at tick " + homeTick));
+            } else if (!covered) {
                 verdicts.add(Verdict.of("a-quiet-spire-raids-past-the-line",
                         spire.raids() == 1 && raid != null && raid.patrol().raid(),
                         spire.raids() + " raids, sortie at tick " + launchTick));
@@ -115,6 +140,7 @@ public final class HarrierRaidScene implements BehaviorScene {
             metrics.put("homeTick", homeTick);
             metrics.put("nearestFlak", nearestFlak);
             metrics.put("strikesOnRear", strikesOnRear);
+            metrics.put("snatched", harvest.snatchedByFliers());
             return new SceneReport(id(), loop, ticks, verdicts, metrics);
         }
     }

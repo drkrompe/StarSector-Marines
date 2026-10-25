@@ -4,6 +4,10 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
+
+Updated: 2026-10-25 — the flier law counts any gun that tracks fliers, so the colony's heavy guns meet it; a tender builds flak first with fliers about.
+
 Updated: 2026-10-25 — Harriers snatch colonists in the open alive and fly them into the bore.
 
 Updated: 2026-10-25 — a fresh bloom grows its spires by eating: a satellite fed to maw raises one, root first.
@@ -517,7 +521,8 @@ militia make the rest of it when the battle is set up:
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
   other flank, so it always has two. Those guns are its whole armament: no
-  layers, no bunkers, no anti-air;
+  layers, no bunkers, no flak. Its heavy machine guns track fliers, so they
+  answer Harriers and meet the flier law (*Laws*);
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
@@ -1010,14 +1015,18 @@ through, made into a thing on the map the company can find and kill.
   from the last raid's return, the same quiet spire sends four of its roost
   deep instead of a patrol: to the richest soft target fifty to a hundred and
   sixty cells off that no anti-air reaches (the radio a forward observer calls
-  the air in with, an unarmed truck, a medic, a soldier on his own, a gun),
-  the nearer on a tie. Its way is bent round every air gun's reach with six
+  the air in with, an unarmed truck, a medic, a colonist out in the open to
+  snatch, a soldier on his own, a gun, in that order), the nearer on a tie. Its way is bent round every air gun's reach with six
   cells to spare, straight when it can be, else by one or two turning points
   off the direct line; with no target or no such way it patrols, and looks
   again a few seconds on. Out and home it hunts nothing. Over the target it
   dives only on what is soft within sixteen cells of where it was sent, never
   the guns, two dives and it turns for home (sooner with nothing there to
-  dive on), flies the same way back and lands as a patrol does. One sortie of
+  dive on), flies the same way back and lands as a patrol does. Sent at
+  survivors, it dives on nothing there: one of the four snatches a colonist
+  (*Snatching the living*), and the carrier keeps with the raid home by its
+  way round the guns before it makes for the mouth, so a colony's people
+  behind the line are taken from under its flak, not over it. One sortie of
   a spire's is up at a time. So the line's rear is never safe from a spire it
   has left standing, and flak placed to cover the rear, not just the front,
   is what closes the ways in. Scene: `harrier-raid`; look: `harrier-raid-look`.
@@ -2096,7 +2105,15 @@ by these rules, and a line that a later beat makes stale is superseded by it.
 Bores and bodies sound through presentation cues the simulation writes and
 never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
-surging and collapsing, and breathes a tier ambience while it lives. A swarm
+surging and collapsing, and breathes a tier ambience while it lives. Each clutch
+it lets go is heard clawing up out of the hole (*Emergence*; `BoreAudio`): chitin
+scraping on rock and wet earth tearing, one short take per clutch at the mouth,
+read off the emergence rather than posted, pitched by the clutch's heaviest body
+(the Matriarch deep and slow, a skitterer light) and a little louder for three
+bodies than one. A surge's clutches overlap and layer by the crowd rule under a
+budget of four, so emptying a maw is a churn under the surge cue, not a wall. Its
+one take of its own is mixed from shipped ones (bore growth's tear, a Runner's
+clatter lowered, the body drag's grit). A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
 and lives, and dies. A Runner taking up a body is heard latching onto it, and
@@ -2180,7 +2197,9 @@ LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. The skitterer's squeak sits near -30 and its
-death -28, its drag -35, each work loop -36 and its patter -39. A spire's launch sums near -23, by a Harrier
+death -28, its drag -35, each work loop -36 and its patter -39. A Runner clutch's claw-up sits near
+-28, three bodies' and the Matriarch's -26, and the surge they come up under
+-22, a one-off a little over the guns. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
 heavier than the line, its own deeper report and air-burst near -22 a voice
 (owner, 2026-10-25: a deeper thump and pop), built from the mod's explosion
@@ -2244,8 +2263,12 @@ argument.
   the director's budget, deterministic under the battle seed.
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
-  the map (an anti-air emplacement, or a hull with a mount that engages air;
-  `SwarmFliers.releaseUnderCover` refuses otherwise). A scene's control may
+  the map: a seated gun that answers fliers (an anti-air position, or any gun
+  whose weapon tracks them, as a colony's heavy machine guns and a flak
+  emplacement do), or a hull whose turret does (`SwarmFliers.hasAirCover`,
+  the same rule by which a pack senses the guns; `releaseUnderCover` refuses
+  otherwise). So a Colony Breach meets it with the compound's gun towers and
+  the militia's guns, and a tender meets it with flak. A scene's control may
   break this; a mission may not.
 - **Air cannot clear the map.** Every living bore has spore colonies round it
   until they are killed; they die with the bore.

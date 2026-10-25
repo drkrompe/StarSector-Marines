@@ -1308,4 +1308,6 @@
 	"marines_bark_civilian_strain_d_1": [{"file": "sounds/battle/marine-barks/marines_bark_civilian_strain_d_1.ogg", "pitch": 1.0, "volume": 0.263}],
 	"marines_bark_civilian_strain_d_2": [{"file": "sounds/battle/marine-barks/marines_bark_civilian_strain_d_2.ogg", "pitch": 1.0, "volume": 0.195}],
 	"marines_bark_civilian_strain_d_3": [{"file": "sounds/battle/marine-barks/marines_bark_civilian_strain_d_3.ogg", "pitch": 1.0, "volume": 0.182}],
+	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
+	"marines_breach_bore_clawup": [{"file": "sounds/battle/colony-breach/marines_breach_bore_clawup_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_bore_clawup_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_bore_clawup_3.ogg", "pitch": 1.0, "volume": 1.0}],
 }

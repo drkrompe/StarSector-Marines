@@ -299,6 +299,7 @@ public final class CordonLineCommand {
         out.append("trucks ").append(delivered).append(" delivered, ").append(lost).append(" lost");
         int onRoad = deliveries.size() - delivered - lost;
         if (onRoad > 0) out.append(", ").append(onRoad).append(" on the road");
+        if (logistics != null) out.append("; company lifts ").append(logistics.liftReadings());
         out.append(" (ways");
         for (CordonRedoubt r : sequence.redoubts()) {
             out.append(" r").append(r.number()).append(' ')

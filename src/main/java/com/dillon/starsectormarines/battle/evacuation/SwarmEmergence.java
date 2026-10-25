@@ -8,8 +8,11 @@ import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 
 /**
  * How a body comes up out of a bore (`colony-breach-nouns.md`, Emergence): it claws up out of the hole and is held
@@ -104,6 +107,18 @@ public final class SwarmEmergence {
             sim.emitGroundDust(x + ux * 0.25f, y + uy * 0.25f, ux * 1.4f, uy * 1.4f, radius,
                     EffectsService.DUST_WHEEL);
         }
+    }
+
+    /**
+     * The bodies that began climbing out on {@code tick}: the clutch each bore let go then. Presentation's read
+     * (the claw-up in {@code BoreAudio}), kept while the bodies are remembered, a second past their climb.
+     */
+    public LongList begunAt(int tick) {
+        LongArrayList out = new LongArrayList();
+        for (Long2IntMap.Entry e : startTick.long2IntEntrySet()) if (e.getIntValue() == tick) out.add(e.getLongKey());
+        // Map order is not insertion order; sorted, so a clutch is heard the same way every run.
+        out.sort(null);
+        return out;
     }
 
     /** Whether {@code body} is still climbing out: it does nothing this tick. */

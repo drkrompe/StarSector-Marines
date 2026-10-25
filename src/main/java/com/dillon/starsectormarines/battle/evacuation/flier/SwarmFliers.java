@@ -110,24 +110,38 @@ public final class SwarmFliers {
     }
 
     /**
-     * Whether the side the swarm fights has anti-air on the map: an anti-air emplacement, or a hull with a mount
-     * that engages air, on the marines' side or an ally's. A pack may only be released over a map that has it
+     * Whether the side the swarm fights has anti-air on the map: a seated gun that answers fliers ({@link #airGun}: an
+     * anti-air position, or any gun that tracks them, such as a colony's heavy machine guns), or a hull whose turret
+     * does ({@link #airMount}), on the marines' side or an ally's. A pack may only be released over a map that has it
      * ({@link #releaseUnderCover}), so the flier is never a threat the player has nothing to answer with.
      */
     public static boolean hasAirCover(BattleSimulation sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!preySide(sim.identity().faction(u)) || !sim.turretState().isTurret(u)) continue;
-            if (sim.turretState().structure(u).targetRole == TurretRole.AA) return true;
+            if (airGun(sim.turretState().structure(u))) return true;
         }
         ConvoyService convoy = sim.getRoster().convoy();
         for (int i = 0, n = sim.bodies().bodyCount(); i < n; i++) {
             long b = sim.bodies().bodyAt(i);
             if (!convoy.isVehicle(b) || !preySide(convoy.faction(b))) continue;
-            StructureDef mount = convoy.vehicleType(b).turretStructure();
-            if (mount != null && mount.mount.engagesAir) return true;
+            if (airMount(convoy.vehicleType(b).turretStructure())) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether a seated gun answers fliers: an anti-air position, or any gun whose weapon tracks them (the colony's
+     * heavy machine guns, a flak emplacement). The flier law and a pack's sense of the guns read the same rule.
+     */
+    static boolean airGun(StructureDef s) {
+        WeaponDef w = s.mount.weapon;
+        return s.targetRole == TurretRole.AA || w != null && w.tracksFliers();
+    }
+
+    /** Whether a hull's turret answers fliers: a mount that engages air, or a weapon that tracks them. */
+    static boolean airMount(StructureDef mount) {
+        return mount != null && (mount.mount.engagesAir || mount.mount.weapon != null && mount.mount.weapon.tracksFliers());
     }
 
     /**
@@ -195,12 +209,36 @@ public final class SwarmFliers {
      */
     public RaidPlan raidPlan(BattleSimulation sim, float x, float y) {
         buildCandidates(sim);
-        long target = HarrierRaid.choose(candidates, x, y);
+        List<HarrierTargeting.Candidate> all = candidates;
+        List<HarrierTargeting.Candidate> survivors = survivors(sim);
+        if (!survivors.isEmpty()) {
+            all = new ArrayList<>(candidates);
+            all.addAll(survivors);
+        }
+        long target = HarrierRaid.choose(all, x, y);
         if (target == 0L) return null;
         World world = sim.world();
         float[] way = HarrierRaid.route(x, y, world.x(target), world.y(target), airGuns, sim.getGrid().getWidth(),
                 sim.getGrid().getHeight());
         return way == null ? null : new RaidPlan(target, way);
+    }
+
+    /**
+     * The colonists a raid may fly to ({@link HarrierTargeting.Prey#SURVIVOR}): each living one out in the open that a
+     * Harrier may snatch, with how many air guns reach it. Read after {@link #buildCandidates}, which finds the guns.
+     */
+    private List<HarrierTargeting.Candidate> survivors(BattleSimulation sim) {
+        List<HarrierTargeting.Candidate> out = new ArrayList<>();
+        SwarmHarvest harvest = sim.swarmHarvest();
+        if (!harvest.isOpen()) return out;
+        World world = sim.world();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long u = sim.liveUnitAt(i);
+            if (sim.identity().faction(u) != Faction.CIVILIAN || !harvest.snatchable(sim, u)) continue;
+            out.add(new HarrierTargeting.Candidate(u, world.x(u), world.y(u), HarrierTargeting.Prey.SURVIVOR,
+                    cover(world.x(u), world.y(u))));
+        }
+        return out;
     }
 
     /** A raid's target and its way out ({@link #raidPlan}). */
@@ -368,6 +406,8 @@ public final class SwarmFliers {
             else pack.prey(0L, 0f, 0f, 0f);
             if (pack.phase == HarrierPack.Phase.DIVE) followPrey(sim, pack);
             if (pack.patrol == null || !pack.patrol.raid() && !pack.patrol.homing()) scavenge(sim, pack, alive);
+            // A raid over its ground snatches the living there, and leaves the dead.
+            else if (pack.patrol.raid() && pack.patrol.striking()) scavenge(sim, pack, true);
             fetch(sim, pack, tick);
             if (pack.patrol != null && !alive && pack.phase == HarrierPack.Phase.LOITER && pack.unhatched <= 0) {
                 pack.patrol.step(BattleSimulation.TICK_DT);
@@ -510,7 +550,10 @@ public final class SwarmFliers {
                     }
                     SwarmBore bore = sim.swarmBores().nearestLiving(m.body.x, m.body.y);
                     if (bore == null) c.giveUp();
-                    else c.haul(m, bore.x() + 0.5f, bore.y() + 0.5f, dt);
+                    // A raid's carrier keeps with the raid, home by its way round the guns, then makes for the mouth.
+                    else if (pack.patrol != null && pack.patrol.raid() && !pack.patrol.homing()) {
+                        c.haul(m, pack.patrol.x(), pack.patrol.y(), dt);
+                    } else c.haul(m, bore.x() + 0.5f, bore.y() + 0.5f, dt);
                 }
                 case RETURN -> {
                     if (c.rejoin(m, pack.loiterX(), pack.loiterY(), ring, dt)) m.carry = null;
@@ -693,16 +736,14 @@ public final class SwarmFliers {
             if (!preySide(sim.identity().faction(u)) || !sim.turretState().isTurret(u)) continue;
             StructureDef s = sim.turretState().structure(u);
             WeaponDef w = s.mount.weapon;
-            if (s.targetRole == TurretRole.AA || w != null && w.tracksFliers()) {
-                airGuns.add(new float[]{world.x(u), world.y(u), w != null ? w.range : 0f});
-            }
+            if (airGun(s)) airGuns.add(new float[]{world.x(u), world.y(u), w != null ? w.range : 0f});
         }
         for (int i = 0, n = sim.bodies().bodyCount(); i < n; i++) {
             long b = sim.bodies().bodyAt(i);
             if (!convoy.isVehicle(b) || !preySide(convoy.faction(b)) || !sim.bodies().isTargetable(b)) continue;
             StructureDef mount = convoy.vehicleType(b).turretStructure();
-            if (mount != null && (mount.mount.engagesAir || mount.mount.weapon.tracksFliers())) {
-                airGuns.add(new float[]{world.x(b), world.y(b), mount.mount.weapon.range});
+            if (airMount(mount)) {
+                airGuns.add(new float[]{world.x(b), world.y(b), mount.mount.weapon != null ? mount.mount.weapon.range : 0f});
             }
         }
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {

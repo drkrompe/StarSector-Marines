@@ -135,6 +135,8 @@ public final class HarrierAudio {
                         if (d2 <= WINGBEAT_RANGE_CELLS * WINGBEAT_RANGE_CELLS) beats.add(new Beat(d2, x, y, m.id));
                     }
                     if (wentIn(swap(fold, m.id, m.fold), m.fold)) emit(out, Sound.SCREECH, m.id, x, y, 0);
+                    // A flier shot down this tick is a corpse until its pack lets go: no health to read, and the DEATH below voices it.
+                    if (!sim.world().isAlive(m.id)) continue;
                     float hp = sim.world().hp(m.id);
                     if (hurt(swap(health, m.id, hp), hp)) emit(out, Sound.PAIN, m.id, x, y, 0);
                 }

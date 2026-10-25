@@ -19,8 +19,8 @@ import java.util.Set;
 
 /**
  * The main street program ({@code set-piece-districts.md}): a {@link SpineClaim} of four to six leaves, two or
- * three each side, of shops, homes, offices or open public ground, standing in a civic or mixed pocket on
- * balance ({@link #pocket}: the zoning's civic core or mixed town, or lots already labelled commercial). The larger end leaf becomes the {@link District.Role#PLAZA},
+ * three each side, of shops, homes, offices or open public ground, standing in a civic, mixed or residential pocket on
+ * balance ({@link #pocket}: the zoning's civic core, mixed town or residential quarter, or lots already labelled commercial). The larger end leaf becomes the {@link District.Role#PLAZA},
  * the leaf at the other end the {@link District.Role#LANDMARK} hall, and every other member a
  * {@link District.Role#SHOPFRONT}. Its street rewrite narrows the cross streets between shops to the
  * narrowest street, so the main street is the widest way through and its frontage nearly unbroken; every
@@ -55,12 +55,16 @@ public final class MainStreetProgram implements DistrictProgram {
     }
 
     /**
-     * How much a leaf belongs on a main street: the civic core of the zoning counts twice and the mixed town
-     * once, and a lot the labeller already made a shop, an office or a square counts once more wherever it is.
-     * A street of homes outside the town's commercial and civic pockets weighs nothing.
+     * How much a leaf belongs on a main street: the civic core of the zoning counts twice, and the mixed town
+     * and the residential quarter once each, so a high street stands among houses (owner, 2026-10-25); a lot
+     * the labeller already made a shop, an office or a square counts once more wherever it is.
      */
     static int pocket(BlockKind kind, MapDistrictTheme theme) {
-        int zoned = theme == MapDistrictTheme.CIVIC ? 2 : theme == MapDistrictTheme.MIXED ? 1 : 0;
+        int zoned = switch (theme) {
+            case CIVIC -> 2;
+            case MIXED, RESIDENTIAL -> 1;
+            default -> 0;
+        };
         boolean commercial = kind == BlockKind.BUILDING_COMMERCIAL || kind == BlockKind.BUILDING_CIVIC
                 || kind == BlockKind.PLAZA;
         return zoned + (commercial ? 1 : 0);
