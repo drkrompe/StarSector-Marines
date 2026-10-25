@@ -18,6 +18,9 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WorldPickerTest {
 
@@ -99,6 +102,68 @@ class WorldPickerTest {
             assertEquals(second.squadId, fixture.selection.getHoveredSquadId());
             fixture.picker.updateHover(x, y, false);
             assertEquals(Selection.NONE, fixture.selection.getHoveredSquadId());
+        }
+    }
+
+    @Test
+    void clickOnChromeIsHandedBackToTheChromeAheadOfTheRelease() {
+        try (Fixture fixture = fixture()) {
+            Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 12, 12);
+            int x = fixture.screenX(marine.entityId), y = fixture.screenY(marine.entityId);
+            InputEventAPI down = event(Kind.LEFT_DOWN, x, y);
+            InputEventAPI up = event(Kind.LEFT_UP, x + 2, y + 1);
+
+            List<InputEventAPI> chrome = fixture.picker.handleInputBeforeChrome(
+                    List.of(down, event(Kind.MOVE, x + 2, y + 1), up), (px, py) -> true);
+
+            assertTrue(down.isConsumed());
+            assertEquals(4, chrome.size());
+            InputEventAPI press = chrome.get(2);
+            assertTrue(press.isLMBDownEvent() && !press.isConsumed());
+            assertEquals(x, press.getX());
+            assertSame(up, chrome.get(3));
+            assertFalse(up.isConsumed());
+            assertEquals(Selection.NONE, fixture.selection.getSelectedSquadId());
+        }
+    }
+
+    @Test
+    void dragStartedOnChromeSelectsTheBox() {
+        try (Fixture fixture = fixture()) {
+            Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 12, 12);
+            int startX = Math.round(fixture.camera.cellToScreenX(10));
+            int startY = Math.round(fixture.camera.cellToScreenY(10));
+            int endX = Math.round(fixture.camera.cellToScreenX(15));
+            int endY = Math.round(fixture.camera.cellToScreenY(15));
+            InputEventAPI up = event(Kind.LEFT_UP, endX, endY);
+
+            fixture.picker.handleInputBeforeChrome(List.of(event(Kind.LEFT_DOWN, startX, startY)),
+                    (px, py) -> true);
+            List<InputEventAPI> chrome = fixture.picker.handleInputBeforeChrome(
+                    List.of(event(Kind.MOVE, endX, endY), up), (px, py) -> true);
+
+            assertEquals(2, chrome.size());
+            assertTrue(up.isConsumed());
+            assertEquals(marine.squadId, fixture.selection.getSelectedSquadId());
+        }
+    }
+
+    @Test
+    void worldDragReleasedOverChromeStillSelects() {
+        try (Fixture fixture = fixture()) {
+            Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 12, 12);
+            int startX = Math.round(fixture.camera.cellToScreenX(10));
+            int startY = Math.round(fixture.camera.cellToScreenY(10));
+            int endX = Math.round(fixture.camera.cellToScreenX(15));
+            int endY = Math.round(fixture.camera.cellToScreenY(15));
+            fixture.picker.handleInput(List.of(event(Kind.LEFT_DOWN, startX, startY)));
+            InputEventAPI up = event(Kind.LEFT_UP, endX, endY);
+
+            fixture.picker.handleInputBeforeChrome(List.of(event(Kind.MOVE, endX, endY), up),
+                    (px, py) -> true);
+
+            assertTrue(up.isConsumed());
+            assertEquals(marine.squadId, fixture.selection.getSelectedSquadId());
         }
     }
 
