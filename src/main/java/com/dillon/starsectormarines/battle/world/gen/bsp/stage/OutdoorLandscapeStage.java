@@ -548,10 +548,16 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** Cells a valley side stops short of a ford, either side of it, so the way down to the ford is open. */
     static final int FORD_APPROACH = 6;
 
+    /** Cells more a valley side may stand back from the water than the nearest it may, and more or less through. */
+    public static final int VALLEY_STAGGER = 4, VALLEY_VARY = 2;
+
     /**
      * Each banked brook's valley sides: a band along either bank, offset clear of
      * the water, the sand and the bank kept free of trees, broken at every ford
-     * and climbed from the country away from the water.
+     * and climbed from the country away from the water. The two sides of a
+     * stretch are never a matched pair: each stands its own seeded distance back
+     * from the water and is its own width through, and its natural relief
+     * ({@link RidgePlanner.Relief#NATURAL}) wanders on a seed of its own.
      */
     private static List<RidgePlanner.Band> valleySides(GenContext c, Landscape landscape) {
         List<RidgePlanner.Band> out = new ArrayList<>();
@@ -572,13 +578,18 @@ public final class OutdoorLandscapeStage implements GenStage {
                 i += brook.fordWidth();
             }
             stretches.add(new int[]{from, line.size() - 1});
+            Random stagger = new Random(c.seed ^ 0x56414c4c4559L);
             for (int[] stretch : stretches) {
                 if (stretch[1] - stretch[0] < 8) continue;
                 for (int side : new int[]{1, -1}) {
+                    int thickness = Math.max(6, brook.banks() + stagger.nextInt(2 * VALLEY_VARY + 1) - VALLEY_VARY);
                     List<ElevationPlan.Point> path = new ArrayList<>();
-                    for (int i = stretch[0]; i <= stretch[1]; i += 4) path.add(offsetPoint(line, i, side * offset));
-                    path.add(offsetPoint(line, stretch[1], side * offset));
-                    if (path.size() >= 2) out.add(new RidgePlanner.Band(path, brook.banks(), side, 5));
+                    // Back far enough that the side's swell never reaches the valley floor.
+                    double by = offset + (thickness - brook.banks()) / 2.0 + RidgePlanner.naturalSpread(thickness)
+                            + stagger.nextInt(VALLEY_STAGGER + 1);
+                    for (int i = stretch[0]; i <= stretch[1]; i += 4) path.add(offsetPoint(line, i, side * by));
+                    path.add(offsetPoint(line, stretch[1], side * by));
+                    if (path.size() >= 2) out.add(new RidgePlanner.Band(path, thickness, side, 5));
                 }
             }
         }
