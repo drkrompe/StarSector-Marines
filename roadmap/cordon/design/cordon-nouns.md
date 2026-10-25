@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-25 — a forward observer in each redoubt calls the allied air wing
+Updated: 2026-10-25 — the outer picket; a forward observer in each redoubt calls the allied air wing
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -132,6 +132,22 @@ would seal the ground are not laid. A picket line is optional: one the town
 breaks is still a Cordon. A picket team
 mans its course under the same order a holdout's line team has, and falls back
 into the nearer redoubt when it breaks.
+
+**Outer picket** (`CordonOuterPicket`; owner, 2026-10-25). One allied team
+out in front of each redoubt, put there to be lost: the line's eyes while the
+company is still landing and moving up. It stands on the road the swarm comes
+down, a little under thirty cells out from the redoubt's front wall in the
+column of its first street mouth (a street's cell before open ground, nearer
+the wall where that row has none), and keeps some twenty-five cells off every
+bore, under garrison authority and never in the player's command pool. What it
+sees the player sees (an allied body casts the side's fog as a Marine does),
+and the battle hears it make contact. It holds its post until it is pressed
+(half its team down with the swarm on it, or outnumbered two to one where it
+stands), then withdraws down its road to its redoubt, and whoever gets in joins
+the garrison; most of it dies on the way. It never calls, and neither the allies
+nor the company are sent for it. The point is what the player thinks about in
+the opening, not the reading: lost pickets feed the swarm's harvest, and the
+first surge is drawn forward to them.
 
 **Gap.** Where a road crosses the line: between two redoubts, where it is left
 open in the picket works and the redoubts either side cover it, or through a
@@ -301,13 +317,19 @@ the door when its time to get clear is up (a carrier steers too wide to be
 proved a way out of a lane narrower than its clearance) is towed out onto the
 threshold by the tug when that ground is clear, and goes on from there; one that
 stood in the lane stopped the shed, since the next machine is drawn out into
-that same stretch. A carrier waits
+that same stretch. One out of the door but still standing in front of it when
+its time is up is towed the same way, clear onto the apron, and the next waits
+until it has: let out on top of it, the shed's machines piled up on one cell
+there for the battle. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
 doorway, on ground its footprint fits and can drive away from: every hull of
 the allies' is set down on the main body of the map's ground for its width,
 never in a pocket (the nearest cell that merely fitted once put the first slot
 inside a walled pen beside the shed, and nothing from the base reached the
-line); there are as many carriers as slots,
+line), each slot apart from the others and off the threshold (two slots
+snapped to the one cell near both that a carrier fitted, and the second
+carrier waited on the threshold for good, turning every later hull aside at
+the door); there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
 out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
@@ -427,8 +449,11 @@ from where it stands to the road a stretch further on and given the rest from
 there: headway, not standing still, since a truck circling a point it cannot
 turn onto is moving all the time. On a map whose corridor does not pass the
 base, trucks come on a few cells in from the rear edge, since a hull set down
-on the edge row has no route out of it. Nothing is parked within a few cells of
-the corridor.
+on the edge row has no route out of it. A truck is set down at the first
+cell a little past its entry from which it can set out whichever way its first
+leg points (set down on a corner a fence's width off its turn, one stood there
+all battle), the entry itself where none can. Nothing is parked within a few
+cells of the corridor.
 
 The Road also has a **second road** through the line, from the base's gate
 through the gap beside redoubt 2 to the compound's rear gate (beat R5),
@@ -527,7 +552,13 @@ The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the
 finished map, not carved: the cheapest way a truck can drive from where the
 country road leaves the rear edge to a street at the compound, every cell
-open with room either side and road five times cheaper than open ground. It
+open with room either side and road five times cheaper than open ground, and
+a turn made on a cell with no room to turn on (two cells open all round) much
+dearer: a truck drives a lane three wide straight but cannot turn into one,
+and a corridor that turned into an alley wedged every convoy at its mouth. It
+is found on the ground as the battle will stand it, every nest a gun is seated
+in closed: a corridor found past a nest's open cell ran its trucks into a
+chicane between that gun and a redoubt's wall. It
 keeps to the country road and the streets where they go its way and crosses
 country where the generator left no road (it prunes links between places
 that carry nobody to a map edge). On the first seeds it runs 76 to 91% on
@@ -678,6 +709,9 @@ with the same keys.
 | --- | --- | --- | --- |
 | `landfall` | both | PLAYER | First Marine on the ground |
 | `line_contact` | both | PLAYER | First swarm body inside any redoubt's reach |
+| `picket_contact_N` | both | PLAYER | The swarm reaches outer picket post N |
+| `picket_back_N` | both | PLAYER | Outer picket N's survivors are inside their redoubt and join its garrison |
+| `picket_lost_N` | both | PLAYER | Outer picket N's last man dies |
 | `tide_N` | both | PLAYER | The Nth tide: every living bore surges at once |
 | `eruption_N` | both | PLAYER | The Nth eruption: a new bore opens in front of the line |
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |

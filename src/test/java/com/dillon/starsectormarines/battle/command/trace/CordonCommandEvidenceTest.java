@@ -328,6 +328,8 @@ class CordonCommandEvidenceTest {
                 .append("- Optional objectives: ").append(objectives.isEmpty() ? "none" : objectives).append('\n')
                 .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
                 .append('\n');
+        out.append("- Outer picket: ").append(cordon.outerPicket() == null ? "none" : cordon.outerPicket().readings())
+                .append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")

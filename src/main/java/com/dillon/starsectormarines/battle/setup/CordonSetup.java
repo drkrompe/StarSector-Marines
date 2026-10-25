@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonConstruction;
 import com.dillon.starsectormarines.battle.cordon.CordonConstructions;
 import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
+import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
@@ -518,6 +519,10 @@ public final class CordonSetup {
             armour.deploy(sim, opening.get(i), WIDTH * (i + 1) / (opening.size() + 1), reserveY);
         }
         standMouths(sim, armour, redoubts, table, new Random(cordon.battleSeed() ^ MOUTH_SALT));
+        if (CordonOuterPicket.enabled()) {
+            sequence.attachOuterPicket(CordonOuterPicket.stand(sim, armour, redoubts,
+                    CordonFront.frontward(cordon.plan()), GARRISON_RISK, new Random(cordon.battleSeed() ^ PICKET_SALT)));
+        }
         // The military's air wing, called through an observer in each redoubt's front wall team (`cordon-nouns.md`).
         AlliedAirWing.install(sim, WIDTH / 2f, rearRow,
                 redoubts.stream().map(r -> (ForwardObservers.Post) s -> r.teams()).toList());
@@ -584,6 +589,7 @@ public final class CordonSetup {
     /** Cells round its post a mouth's rifle team holds. */
     private static final int MOUTH_TEAM_HOLD = 4;
     private static final long MOUTH_SALT = 0x4D4F555448534C54L;
+    private static final long PICKET_SALT = 0x5049434B4554534CL;
 
     /**
      * Each refugee group's way out, in departure order: from the rear hamlets
