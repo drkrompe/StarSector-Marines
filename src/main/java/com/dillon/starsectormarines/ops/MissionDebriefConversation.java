@@ -86,7 +86,7 @@ final class MissionDebriefConversation {
                         ? "debriefReliefCostLosses" : "debriefReliefCostClean")),
                 firstContractLine("next", MARA, Strings.get("debriefReliefNext")));
         var route = SupplyRouteCampaign.current();
-        if (jangalaClosing(outcome, route)) return jangalaLines(outcome);
+        if (jangalaClosing(outcome, route)) return jangalaLines(outcome, catalog);
         if (blindWatch(outcome)) return List.of("initiative", "ready")
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
@@ -296,27 +296,23 @@ final class MissionDebriefConversation {
 
     /**
      * Ends Wayline's brush with bankruptcy: the star-port road is back and its owed contracts ship,
-     * though nobody yet knows why it happened. Castle's closing line hands the company on to Asharu.
+     * though nobody yet knows why it happened. The recorded turns come from the catalog; Castle's closing
+     * line stays written until the Asharu lead it hands the company to is settled.
      */
-    static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome) {
-        var lines = new ArrayList<WaylineNarration.Line>();
-        lines.add(jangalaLine("road", MARA, Strings.get("debriefJangalaRoad")));
-        lines.add(jangalaLine("field", SABINE, Strings.get("debriefJangalaField")));
-        if (outcome.marinesLost > 0) lines.add(jangalaLine("cost", SABINE, Strings.get("debriefJangalaCost")));
-        lines.add(jangalaLine("manifests", CASTLE, Strings.get("debriefJangalaManifests")));
-        lines.add(jangalaLine("why", MARA, Strings.get("debriefJangalaWhy")));
-        lines.add(jangalaLine("next", CASTLE, Strings.get("debriefJangalaNext")));
+    static List<WaylineNarration.Line> jangalaLines(MissionOutcome outcome, WaylineNarration catalog) {
+        var beats = outcome.marinesLost > 0 ? List.of("road", "field", "cost", "manifests", "why")
+                : List.of("road", "field", "manifests", "why");
+        var lines = new ArrayList<>(authored(catalog, JANGALA_MISSION, "debrief.jangala.", beats.toArray(String[]::new)));
+        lines.add(writtenLine("jangala-closing-next", JANGALA_MISSION, "debrief.jangala.next", CASTLE,
+                Strings.get("debriefJangalaNext")));
         return List.copyOf(lines);
     }
+    private static final String JANGALA_MISSION = "story_supply_route_thunder_run";
 
     /** Written correspondence has no recording; keep it readable without offering silent playback. */
     private static final int CASTLE = 0, MARA = 1, SABINE = 2;
     private static WaylineNarration.Line firstContractLine(String beat, int speaker, String text) {
         return writtenLine("first-contract-" + beat, OpeningOperationKind.RELIEF.missionId, "debrief.relief." + beat,
-                speaker, text);
-    }
-    private static WaylineNarration.Line jangalaLine(String beat, int speaker, String text) {
-        return writtenLine("jangala-closing-" + beat, "story_supply_route_thunder", "debrief.jangala." + beat,
                 speaker, text);
     }
     private static WaylineNarration.Line writtenLine(String id, String missionId, String event, int speaker, String text) {
