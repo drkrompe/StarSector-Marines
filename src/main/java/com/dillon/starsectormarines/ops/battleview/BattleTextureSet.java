@@ -148,10 +148,7 @@ public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs
             UnitType type = sim.identity().type(id);
             if (type == null) continue;
             if (type.drawnAsMechLayers()) mechSides.add(sim.identity().faction(id));
-            if (type == UnitType.SWARM_RUNNER || type == UnitType.SWARM_BRUTE
-                    || type == UnitType.SWARM_MATRIARCH) {
-                rav = true;
-            }
+            if (type.isSwarm()) rav = true;
         }
         for (long id : sim.getConvoyVehicleIds()) {
             VehicleType type = sim.convoy().vehicleType(id);

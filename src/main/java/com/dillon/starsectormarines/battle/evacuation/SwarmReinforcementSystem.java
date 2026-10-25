@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
@@ -319,7 +320,7 @@ public final class SwarmReinforcementSystem {
                 bore.deferSurge(tick + SURGE_RECHECK_TICKS);
                 continue;
             }
-            List<Planned> planned = plan(bore, bore.surges(), Math.min(size, headroom));
+            List<Planned> planned = plan(bore, bore.surges(), Math.min(size, headroom), bombardAllowed(sim, bore));
             float bodies = 0f;
             for (Planned body : planned) bodies += body.weight();
             if (!surged) surgeWave = new ArrayList<>();
@@ -374,7 +375,7 @@ public final class SwarmReinforcementSystem {
     public boolean surgeScripted(BattleSimulation sim, SwarmBore bore, float budget) {
         if (bore == null || bore.collapsed() || releasing(bore) || !(budget > 0f)) return false;
         int tick = sim.getSimTickIndex();
-        List<Planned> planned = plan(bore, bore.surges(), budget);
+        List<Planned> planned = plan(bore, bore.surges(), budget, bombardAllowed(sim, bore));
         releases.add(new Release(bore, bore.surges(), planned, tick));
         bore.surged(tick, 0f);
         bore.hold();
@@ -383,18 +384,65 @@ public final class SwarmReinforcementSystem {
     }
 
     /**
+     * Whether {@code bore} may draw a Bombard now ({@link BombardQuota}): it has none living, the battle is under
+     * the cap counting Bombards still waiting in a surge, and it is one of the bores that can draw one nearest the
+     * line, the nearest hostile combatant.
+     */
+    private boolean bombardAllowed(BattleSimulation sim, SwarmBore bore) {
+        if (!drawsBombard(bore)) return false;
+        int alive = 0;
+        for (SwarmBore other : bores.bores()) {
+            if (other.bombard() != 0L) alive++;
+        }
+        for (Release release : releases) {
+            for (int i = release.released; i < release.size; i++) {
+                if (release.bodies.get(i).slot() == BoreStrainTable.Slot.BOMBARD) alive++;
+            }
+        }
+        float own = distanceToLine(sim, bore);
+        int closer = 0;
+        for (SwarmBore other : bores.bores()) {
+            if (other == bore || !drawsBombard(other)) continue;
+            float d = distanceToLine(sim, other);
+            if (d < own || d == own && other.number() < bore.number()) closer++;
+        }
+        return BombardQuota.allowed(bore.bombard() != 0L, alive, closer);
+    }
+
+    private static boolean drawsBombard(SwarmBore bore) {
+        return !bore.collapsed() && BoreStrainTable.weight(bore.tier(), BoreStrainTable.Slot.BOMBARD) > 0;
+    }
+
+    /** Cells from the bore to the nearest combatant hostile to the swarm; the largest float when there is none. */
+    private static float distanceToLine(BattleSimulation sim, SwarmBore bore) {
+        UnitRosterService roster = sim.getRoster();
+        float best = Float.MAX_VALUE;
+        for (Faction side : Faction.values()) {
+            if (!side.hostileTo(Faction.DEFENDER)) continue;
+            long[] units = roster.factionDenseArray(side);
+            for (int i = 0, n = roster.factionLiveCount(side); i < n; i++) {
+                long unit = units[i];
+                if (!sim.identity().type(unit).combatant) continue;
+                best = Math.min(best, (float) Math.hypot(sim.world().x(unit) - bore.x(), sim.world().y(unit) - bore.y()));
+            }
+        }
+        return best;
+    }
+
+    /**
      * The bodies of one surge: drawn body by body, strain and stage each keyed
      * by the bore, the pulse and the body's index, until the surge's weight
      * reaches {@code budget} (`colony-breach-nouns.md`, Age mix: the director
      * counts weight, so a fed bore sends fewer, older bodies). A bore that owes
      * its Matriarch sends her first; otherwise the pulse's first elder, its pack
-     * leader, is moved to the head of the stream.
+     * leader, is moved to the head of the stream. It may draw one Bombard only when {@code bombardAllowed}
+     * ({@link BombardQuota}).
      */
-    List<Planned> plan(SwarmBore bore, int surgeIndex, float budget) {
+    List<Planned> plan(SwarmBore bore, int surgeIndex, float budget, boolean bombardAllowed) {
         BoreTier tier = bore.tier();
         boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), tier, bore.matriarchReleased());
         int[] mix = SwarmAgeMix.weights(tier, bore.biomassFed());
-        boolean bombardFree = bore.bombard() == 0L;
+        boolean bombardFree = bombardAllowed;
         List<Planned> bodies = new ArrayList<>();
         float weight = 0f;
         for (int i = 0; weight < budget; i++) {

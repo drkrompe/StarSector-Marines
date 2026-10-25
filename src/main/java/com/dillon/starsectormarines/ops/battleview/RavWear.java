@@ -50,6 +50,8 @@ final class RavWear {
     static final Slots MATRIARCH_HEAD = new Slots(5, 3);
     static final Slots BRUTE_HALF = new Slots(6, 4);
     static final Slots BRUTE_HEAD = new Slots(2, 2);
+    /** The Bombard's shell over its sac: unplated, so only its wounds show. */
+    static final Slots BOMBARD_BODY = new Slots(0, 6);
 
     /** Wear of the shell: the share of {@code maxArmor} gone, 0 for a body that never had plate. */
     static float shellWear(float armor, float maxArmor) {
