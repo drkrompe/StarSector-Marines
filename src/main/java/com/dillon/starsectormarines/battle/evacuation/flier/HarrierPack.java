@@ -125,16 +125,31 @@ public final class HarrierPack {
         for (int i = 0; i < members.size(); i++) members.get(i).slot = i;
     }
 
+    /** Where the members flying with the pack are, on average (its carriers away fetching are not). */
     public float centreX() {
         float s = 0f;
-        for (HarrierFlight m : members) s += m.body.x;
-        return members.isEmpty() ? anchorX : s / members.size();
+        int n = 0;
+        for (HarrierFlight m : members) if (m.carry == null) { s += m.body.x; n++; }
+        return n == 0 ? anchorX : s / n;
     }
 
     public float centreY() {
         float s = 0f;
-        for (HarrierFlight m : members) s += m.body.y;
-        return members.isEmpty() ? anchorY : s / members.size();
+        int n = 0;
+        for (HarrierFlight m : members) if (m.carry == null) { s += m.body.y; n++; }
+        return n == 0 ? anchorY : s / n;
+    }
+
+    /** Members away fetching a body ({@link HarrierCarry}). */
+    public int carriersOut() {
+        int n = 0;
+        for (HarrierFlight m : members) if (m.carry != null) n++;
+        return n;
+    }
+
+    /** Members flying with the pack. */
+    private int flying() {
+        return members.size() - carriersOut();
     }
 
     /** One tick of the pack: the phase decision, then every member's flight. */
@@ -150,13 +165,13 @@ public final class HarrierPack {
         for (HarrierFlight m : members) {
             m.wingClock += dt;
             // Folding is for going in: a member still circling out its stagger keeps its wings spread.
-            boolean diving = phase == Phase.DIVE && !m.struck && phaseSeconds >= m.diveDelay;
+            boolean diving = phase == Phase.DIVE && m.carry == null && !m.struck && phaseSeconds >= m.diveDelay;
             m.fold = diving ? Math.min(1f, m.fold + folding) : Math.max(0f, m.fold - folding);
             // The head locks on what it is diving at, and otherwise looks about the prey the pack has in mind.
             boolean ownPrey = m.prey != 0L;
             float lookX = ownPrey ? m.preyX : target != 0L ? targetX : Float.NaN;
             float lookY = ownPrey ? m.preyY : target != 0L ? targetY : Float.NaN;
-            m.rig.advance(m, HarrierWingbeat.phase(m, phase), lookX, lookY, diving, dt);
+            m.rig.advance(m, HarrierWingbeat.phase(m, m.carry != null ? Phase.LOITER : phase), lookX, lookY, diving, dt);
             HarrierAltitude.follow(m, dt);
         }
     }
@@ -179,14 +194,17 @@ public final class HarrierPack {
             land(dt);
             return;
         }
-        for (HarrierFlight m : members) circle(m, loiterSeconds, dt);
+        for (HarrierFlight m : members) if (m.carry == null) circle(m, loiterSeconds, dt);
         if (target != 0L && unhatched <= 0 && loiterSeconds >= HarrierRules.MIN_LOITER_SECONDS && gathered()) commit();
     }
 
     /** A patrol home over its spire: each member drops onto the crown and lands there, one by one. */
     private void land(float dt) {
+        loiterX = patrol.homeX;
+        loiterY = patrol.homeY;
         for (int i = members.size() - 1; i >= 0; i--) {
             HarrierFlight m = members.get(i);
+            if (m.carry != null) continue;
             HarrierSteering.separation(m, members, push);
             float d = m.body.distanceTo(patrol.homeX, patrol.homeY);
             HarrierSteering.fly(m.body, patrol.homeX, patrol.homeY, push[0] * 0.3f, push[1] * 0.3f,
@@ -221,20 +239,22 @@ public final class HarrierPack {
         float r = HarrierRules.ringRadius(members.size()) + HarrierRules.GATHER_MARGIN;
         float r2 = r * r;
         for (HarrierFlight m : members) {
+            if (m.carry != null) continue;
             float dx = m.body.x - loiterX, dy = m.body.y - loiterY;
             if (dx * dx + dy * dy <= r2) near++;
         }
-        return near >= HarrierRules.GATHER_SHARE * members.size();
+        return near >= HarrierRules.GATHER_SHARE * flying();
     }
 
     private void commit() {
         phase = Phase.DIVE;
         phaseSeconds = 0f;
-        divedWith = members.size();
+        divedWith = flying();
         diveFromX = centreX();
         diveFromY = centreY();
         dives++;
         for (HarrierFlight m : members) {
+            if (m.carry != null) continue;
             m.struck = false;
             m.wentLow = false;
             m.prey = 0L;
@@ -247,6 +267,7 @@ public final class HarrierPack {
     private void dive(float dt, Strikes strikes) {
         boolean allDone = true;
         for (HarrierFlight m : members) {
+            if (m.carry != null) continue;
             if (!m.struck && phaseSeconds < m.diveDelay) {
                 // Not its turn yet: it circles on, and goes in later from further round the ring.
                 allDone = false;
@@ -286,6 +307,7 @@ public final class HarrierPack {
 
     private void pullUp(float dt) {
         for (HarrierFlight m : members) {
+            if (m.carry != null) continue;
             HarrierSteering.separation(m, members, push);
             climbOut(m, dt);
         }
@@ -293,7 +315,7 @@ public final class HarrierPack {
             phase = Phase.LOITER;
             phaseSeconds = 0f;
             loiterSeconds = 0f;
-            int lost = divedWith - members.size();
+            int lost = divedWith - flying();
             splitDue = divedWith > 0 && lost >= HarrierRules.SPLIT_LOSS_SHARE * divedWith
                     && members.size() >= 2 * HarrierRules.SPLIT_MIN_HALF;
         }

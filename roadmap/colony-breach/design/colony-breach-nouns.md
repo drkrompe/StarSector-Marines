@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-25 — Harriers carry feed: a pack with nothing to hunt flies the dead home into its bore's mouth.
+
 Updated: 2026-10-25 — the brood spire's patrols: three off a quiet, full roost fly a loop over the nest and land.
 
 Updated: 2026-10-25 — a fed body slides into the mouth, sinks and is swallowed with a gulp.
@@ -1294,6 +1296,21 @@ not read in a soft shadow at play zoom.
     **splits** in two, and the halves come on separately and bleed the line
     slowly. A pack escorting a Matriarch loiters over her with no prey in
     reach, and scatters into fliers of one when she dies.
+  - **Carrying feed** (`HarrierCarry`; the owner's "some carry for feed",
+    2026-10-25). A body a Harrier's bite kills lies loose, as a dropped load
+    does (*Harvest*), for anything of the nest's to fetch. A pack with nothing
+    to hunt, every member hatched, sends its member nearest the nearest loose
+    body within twenty-two cells (a marine it killed, a colonist, or one of the
+    swarm's own dead) to fetch it: never more than one in three of its number
+    at once, and never a patrol already on its way home. The carrier swoops
+    low, takes the body up, and hauls it low and slow (three cells a second, at
+    about a third of its height, within reach of rifles) to the nearest living
+    bore, where the harvest feeds it in down the mouth as any load; then it
+    flies back up to its pack. A carrier never bites and is no part of its
+    pack's dives, but it is still one of the pack: shot, drawn and heard, and a
+    carrier shot down drops its load where it falls. So a line that kills the
+    carriers keeps the nest from feeding on its dead. Scene: `harrier-carry`;
+    look: `harrier-carry-look`.
   - **How it flies.** Its own steering, never the ground flow field, which is a
     map of walls a flier is not in: seek a goal, push off packmates, turn at a
     capped rate, move along the nose. Serial, in pack and slot order, with no

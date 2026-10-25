@@ -84,6 +84,10 @@ import java.util.function.LongPredicate;
  * on the field, fighting only what is already within its reach, and attacks like
  * any Runner once nothing is left to fetch.
  *
+ * <p><b>Harriers carry too</b> (`colony-breach-nouns.md`, Harrier, Carrying feed): a body a Harrier's bite killed
+ * lies loose ({@link #airStruck}), and a Harrier sent off its pack takes a loose body up
+ * ({@link #takeUpByFlier}) and flies it to the mouth, dragged and delivered as any load is.
+ *
  * <p>{@code -Dbattle.colonyBreach.harvest=false} is the control: Runners leave
  * the dead where they fall, as they did before harvest.
  * {@code -Dbattle.colonyBreach.impale=false} keeps harvest and turns impales
@@ -158,6 +162,9 @@ public final class SwarmHarvest {
     private final List<Long> fallen = new ArrayList<>();
     /** Runners that died this tick: their bodies go loose for the swarm to recycle. */
     private final List<Long> fallenRunners = new ArrayList<>();
+    /** Bodies a Harrier bit since the last tick, and those of them that died: a flier's kill lies loose for the nest. */
+    private final Set<Long> airStrikes = new HashSet<>();
+    private final List<Long> airFallen = new ArrayList<>();
     /** Runners of a scavenger pack: they fetch the swarm's dead before they fight. */
     private final Set<Long> scavengers = new HashSet<>();
     /** Carrier to load, in the order they were seized. */
@@ -188,6 +195,7 @@ public final class SwarmHarvest {
     private int taken;
     private int firstHarvestTick = -1;
     private int hauledByWorkers;
+    private int hauledByFliers;
 
     public SwarmHarvest(boolean enabled) {
         this(enabled, impaleByDefault(), areaHitsHeldByDefault());
@@ -341,6 +349,35 @@ public final class SwarmHarvest {
     /** Bodies, recycled or delivered, that a skitterer rather than a Runner brought into a bore. */
     public int hauledByWorkers() { return hauledByWorkers; }
 
+    /** Bodies, recycled or delivered, that a Harrier flew into a bore. */
+    public int hauledByFliers() { return hauledByFliers; }
+
+    /**
+     * A Harrier bit {@code target}. Serial, from the fliers' tick; if the bite kills, the body lies loose
+     * ({@link #isLoose}) for anything of the nest's to fetch, as a dropped load does.
+     */
+    public void airStruck(long target) {
+        if (open) airStrikes.add(target);
+    }
+
+    /**
+     * Serial: a Harrier ({@code flier}) takes up the loose {@code body} to fly it to a bore. Refused (false) while
+     * harvest is shut, or when the body is not loose or already held, or the flier already carries.
+     */
+    public boolean takeUpByFlier(BattleSimulation sim, long flier, long body) {
+        if (!open || !loose.contains(body) || carriers.containsKey(body) || loads.containsKey(flier)) return false;
+        if (!sim.world().hasPosition(body) || sim.resolveUnit(flier) == 0L || !sim.world().isAlive(flier)) return false;
+        loads.put(flier, body);
+        carrierPace.put(flier, 1f);
+        carriers.put(body, flier);
+        loose.remove(body);
+        if (!isRavBody(sim, body)) {
+            seized++;
+            if (firstHarvestTick < 0) firstHarvestTick = sim.getSimTickIndex();
+        }
+        return true;
+    }
+
     /** The bodies going down a mouth now, in the order they were let go. Presentation reads it. */
     public Collection<Feed> feeding() { return Collections.unmodifiableCollection(feeding.values()); }
 
@@ -407,6 +444,7 @@ public final class SwarmHarvest {
     public void onDeath(DeathEvent event) {
         long id = event.unitId();
         if (strikes.containsKey(id)) fallen.add(id);
+        else if (airStrikes.contains(id)) airFallen.add(id);
         else fallenRunners.add(id);
     }
 
@@ -433,6 +471,9 @@ public final class SwarmHarvest {
                 for (long body : fallenRunners) {
                     if (isRavBody(sim, body) && sim.world().hasPosition(body) && !loose.contains(body)) loose.add(body);
                 }
+                for (long body : airFallen) {
+                    if (harvestable(sim, body) && !carriers.containsKey(body) && !loose.contains(body)) loose.add(body);
+                }
                 takeUpLoose(sim);
             } else {
                 loose.removeIf(body -> !sim.world().hasPosition(body));
@@ -442,6 +483,8 @@ public final class SwarmHarvest {
         impales.clear();
         fallen.clear();
         fallenRunners.clear();
+        airStrikes.clear();
+        airFallen.clear();
         open = enabled && boreLives;
     }
 
@@ -586,6 +629,7 @@ public final class SwarmHarvest {
                 if (rav) recycled++;
                 else delivered++;
                 if (sim.identity().type(carrier) == UnitType.SWARM_WORKER) hauledByWorkers++;
+                if (sim.identity().type(carrier) == UnitType.SWARM_HARRIER) hauledByFliers++;
             }
         }
     }
