@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.District;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MarketSquare;
 
@@ -21,7 +22,9 @@ import java.util.List;
  * <p>The rules are the industrial planning pass's ({@link IndustrialTemplateParcelStage}): only complete
  * parcels of the eligible kinds may be joined, the street ring round the lot must stay complete so every
  * neighbour keeps its frontage and every mouth gives onto road, and trunk roads are inviolate. The smallest
- * fitting lot wins, at most one per map, with no random draw. The road graph is derived afterwards from the
+ * fitting lot wins, at most one per map, with no random draw. A main street's own square
+ * ({@link District.Role#MARKET_SQUARE}) does not count against it, but this lot keeps far enough from it that the
+ * two never reach onto the same street. The road graph is derived afterwards from the
  * remaining streets, so it never routes through the lot.
  */
 public final class MarketParcelStage implements GenStage {
@@ -31,6 +34,7 @@ public final class MarketParcelStage implements GenStage {
         TrunkPlan.Plan plan = c.get(BspKeys.TRUNK_PLAN);
         if (partition == null || plan == null) return;
         List<BlockLeaf> eligible = partition.leaves.stream().filter(MarketParcelStage::eligible).toList();
+        List<BlockLeaf> districtSquares = districtSquares(c.get(BspKeys.DISTRICTS));
         BlockLeaf best = null;
         List<BlockLeaf> owned = List.of();
         for (int i = 0; i < eligible.size(); i++) {
@@ -40,7 +44,7 @@ public final class MarketParcelStage implements GenStage {
                         Math.max(a.right, b.right), Math.max(a.bottom, b.bottom), false);
                 if (best != null && box.area() >= best.area()) continue;
                 if (!MarketSquare.fitsParcel(box.width(), box.height())) continue;
-                if (!roadRing(box, partition) || crossesTrunk(box, plan)) continue;
+                if (!roadRing(box, partition) || crossesTrunk(box, plan) || near(box, districtSquares)) continue;
                 List<BlockLeaf> members = new ArrayList<>();
                 boolean valid = true;
                 for (BlockLeaf leaf : partition.leaves) {
@@ -78,6 +82,28 @@ public final class MarketParcelStage implements GenStage {
                 plan.roadCells[x][y] = false;
             }
         }
+    }
+
+    /** Every district member under a market square. */
+    private static List<BlockLeaf> districtSquares(List<District> districts) {
+        List<BlockLeaf> out = new ArrayList<>();
+        if (districts == null) return out;
+        for (District district : districts) {
+            district.roles.forEach((leaf, role) -> {
+                if (role == District.Role.MARKET_SQUARE) out.add(leaf);
+            });
+        }
+        return out;
+    }
+
+    /** Whether a square on this lot could reach the same ground as a square on one of {@code leaves}. */
+    private static boolean near(BlockLeaf box, List<BlockLeaf> leaves) {
+        int reach = 2 * MarketSquare.MARGIN;
+        for (BlockLeaf leaf : leaves) {
+            if (box.left - reach <= leaf.right && box.right + reach >= leaf.left
+                    && box.top - reach <= leaf.bottom && box.bottom + reach >= leaf.top) return true;
+        }
+        return false;
     }
 
     private static boolean eligible(BlockLeaf leaf) {

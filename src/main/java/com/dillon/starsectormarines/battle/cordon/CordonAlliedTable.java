@@ -25,11 +25,13 @@ import java.util.List;
  * @param mouthRifleTeam  whether a walking rifle team stands behind each redoubt's Hounds at setup
  * @param yardMortar      whether a mortar team stands in each redoubt's yard at setup, its tube on the ground in front
  *                        of the redoubt (the owner, with the pick: "mortar teams in those redoubts too")
+ * @param houseFronts     whether a rifle team holds the front windows of the houses past each redoubt's flanks
+ *                        ({@link CordonHouseFronts})
  * @param reserve         what the base holds back for the allied line command to ask for by need
  */
 public record CordonAlliedTable(List<VehicleType> openingArmour, boolean openingCarrier, List<Machine> baseLine,
                                 float basePace, boolean carriersForward, CarrierDrop drop, int mouthHounds, boolean mouthRifleTeam,
-                                boolean yardMortar, Reserve reserve) {
+                                boolean yardMortar, boolean houseFronts, Reserve reserve) {
 
     /**
      * The base's reserve, drawn on by request rather than on the shed's timer ({@code cordon-allied-command.md}, The
@@ -78,16 +80,19 @@ public record CordonAlliedTable(List<VehicleType> openingArmour, boolean opening
             true,
             List.of(Machine.hull(VehicleType.HEAVY_APC), Machine.hull(VehicleType.SCOUT_CAR),
                     Machine.hull(VehicleType.HEAVY_APC), Machine.hull(VehicleType.MILITIA_TECHNICAL)),
-            BASE_PACE, true, CarrierDrop.BEHIND_WALL, 0, false, false, RESERVE);
+            BASE_PACE, true, CarrierDrop.BEHIND_WALL, 0, false, false, false, RESERVE);
 
-    /** A town: technicals and carriers kept to the streets, every third machine off the line a Hound. */
+    /**
+     * A town: technicals and carriers kept to the streets, every third machine off the line a Hound, and riflemen in
+     * the house fronts past each redoubt's flanks.
+     */
     static final CordonAlliedTable TOWN = new CordonAlliedTable(
             List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.MILITIA_TECHNICAL, VehicleType.MILITIA_TECHNICAL,
                     VehicleType.MILITIA_TECHNICAL),
             true,
             List.of(Machine.hull(VehicleType.MILITIA_TECHNICAL), Machine.hull(VehicleType.HEAVY_APC),
                     Machine.mech(MechVariant.HOUND)),
-            BASE_PACE, true, CarrierDrop.REAR_GATE, 0, false, false, RESERVE);
+            BASE_PACE, true, CarrierDrop.REAR_GATE, 0, false, false, true, RESERVE);
 
     /**
      * A city: the mech lance (the owner's pick {@code cordon-urban-allies}, option a). A Hound pair and a rifle team
@@ -96,7 +101,7 @@ public record CordonAlliedTable(List<VehicleType> openingArmour, boolean opening
      */
     static final CordonAlliedTable URBAN = new CordonAlliedTable(
             List.of(), false, List.of(Machine.mech(MechVariant.HOUND)),
-            BASE_PACE, false, CarrierDrop.BEHIND_WALL, 2, true, true, RESERVE);
+            BASE_PACE, false, CarrierDrop.BEHIND_WALL, 2, true, true, false, RESERVE);
 
     /** The table for country as built-up as {@code density}. */
     public static CordonAlliedTable of(CordonPlan.Density density) {

@@ -74,7 +74,9 @@ override layer: changing core generation policy remains a deliberate core edit.
   above the people under it; an overhead doodad (a shop awning, a pipe rack
   cell) is one whose motion is a fixed overhead part on itself, with no cover
   and placed as no fixture, so it blocks neither movement nor sight
-  (`street-dressing-motions.tileset.json`). The fort's roof machinery is building art rather than a
+  (`street-dressing-motions.tileset.json`). A fixed overhead part fades to
+  partial alpha while a figure the player can see stands under its prop, so
+  nobody hides under an awning from the player; moving parts do not fade. The fort's roof machinery is building art rather than a
   doodad and keeps its own rules, sharing only the running clock.
 - A **mapping definition** is the selection policy between generated concepts
   and registry ids: render-surface dispatch, named doodad pools, and tunables

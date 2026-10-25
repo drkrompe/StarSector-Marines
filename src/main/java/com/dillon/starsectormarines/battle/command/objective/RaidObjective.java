@@ -142,6 +142,15 @@ public final class RaidObjective implements Objective {
         if (targetSecured) return Phase.EGRESS;
         return marineServicing || serviceProgress > 0f ? Phase.SERVICE : Phase.APPROACH;
     }
+    /**
+     * Raises the installation alarm from outside the target room: a mission whose garrison is roused by something
+     * other than the target being worked (the Dust Ledger's shots, sightings and lift-off clock). The first raise
+     * stands; a later one, from here or from servicing, changes nothing.
+     */
+    public void raiseAlarm(int tick) {
+        if (alarmRaisedTick < 0) alarmRaisedTick = tick;
+    }
+
     public TargetAlarm defenderAlarm() {
         return alarmRaisedTick >= 0 ? new TargetAlarm(true, alarmRaisedTick)
                 : TargetAlarm.quiet();

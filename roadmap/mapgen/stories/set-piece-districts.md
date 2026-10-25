@@ -129,20 +129,31 @@ district's compound first. What the next programs build on:
 **Main street, as built.** `MainStreetProgram` asks for a spine of two or three members a side, a
 street at least 24 cells long and no wider than a primary trunk, members of shops, homes, offices,
 plazas or parks. Its pocket weighs the zoning's civic core 2 and mixed town 1, plus 1 for a lot the
-labeller already made a shop, an office or a square. The larger end leaf is the plaza, the leaf at the
-other end the civic hall; its rewrite narrows each cross street between shops to three cells.
+labeller already made a shop, an office or a square. The plaza end is the **market square** where it fits:
+a member can take a **set-piece role** (`District.Role.MARKET_SQUARE`), and the program gives it the two
+members at one end of a side and the cross street between them, which keeps its full width and runs through
+the square. It tries a side of three members first (so the street keeps a shopfront on both sides), the
+larger end before the other, each over its own street rewrite and the road reservation that rewrite would
+draw, and takes the first pair `MarketSquare` stands on facing the main street (front on the carriageway or
+its run-on past the spine's end, footprint on the pair and the streets round it, never on the main street or
+another leaf, and the street through between its side rows, so it enters from the main street and leaves by
+the back or through a back shop left out). Otherwise the larger end leaf is a plain plaza. The leaf at the other end is the civic hall;
+the rewrite narrows every other cross street between shops to three cells.
 `MainStreetLayout` stands each member's shops behind a pavement of one to three rows as a frontage row
 (`town-plan.md`): shopfronts five to seven cells wide sharing party walls, doors and windows on the street and
 on the service yard behind; a member too short for two stays one shop, and the hall is one building with its
 doors on the street alone (`BuildingPlacement.frontOnly`). It dresses the kerb with planters and counter stalls every third cell and a parked van per
-shop frontage, all kept out of doorways and corners, paves the plaza with a bandstand where it is ten
-cells a side, and paves the spine and its cross-street stubs as city street, so the street finish lays
+shop frontage, all kept out of doorways and corners, lays the market square over its pair (what the square
+leaves of the pair is brick paving, and the square publishes its `OpenSquare` as a standalone one does) or
+paves the plain plaza with a bandstand where it is ten cells a side, and paves the spine and its cross-street stubs as city street, so the street finish lays
 asphalt where a colony would have left a lane. It publishes `MainStreet` on `MapResult.mainStreets`: the
 centre line from the plaza end to the hall end, the carriageway width, the plaza's bounds and the hall's
-front door.
+front door, and the market square's `OpenSquare` where it stands, whose open extent is then the plaza's
+bounds. Should the finished streets no longer hold the square, the end member is a plain plaza and the other
+a shop.
 
-Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 15 of 24 medium city maps and
-14 of 24 colonies (the freight yard and the market square plan their parcels first). Cities zone few civic
+Coverage (`generatedSpaceEvidence --tests *MainStreetPlacementEvidence`): 14 of 24 medium city maps under
+the town plan's zoning and 14 of 24 colonies, the market square at the plaza end of 4 and 6 of them (the freight yard and the market square plan their parcels first). Cities zone few civic
 or mixed pockets, so the residential quarter weighs as much as the mixed town and a high street can stand
 among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 `createSnapshots -Psnapshot=main-street-look`.
@@ -160,8 +171,13 @@ cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figur
 main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the owner's style choice for
 main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
 
-Open on main street: the market square takes the plaza role once its lot can be a district member (today it joins
-two parcels after compound claims, so a district member is never its lot).
+The standalone market lot still plans its own square, keeping clear of a main street's, so a map may carry
+both: a market square stands on 18 of 24 city maps and 20 of 24 colonies
+(`MarketSquarePlacementEvidence`; 17 and 20 with the standalone lot alone). The square at the plaza end moved one pooled
+map: cordon-line ROCK seed 5 lost its carrier way from the base to the line and was swapped for seed 18.
+
+Open on main street: the market square misses most plaza ends whose members are under nine cells deep, the
+depth its twelve rows need with three reaching onto the street behind.
 
 **Cordoned facility, as built.** `CordonedFacilityProgram` runs after main street and asks for a quarter
 of up to two rows of three, inner streets no wider than five, members at least seven a side, of works,
@@ -195,9 +211,9 @@ turns on their kerbs every four cells, off the road reservation and clear of cro
 `MapResult.cordonedFacilities`: its character and wall bounds, each gatehouse's lane with the step out and
 the step in, the courtyard, and each building's role, shell and front door.
 
-Coverage (`generatedSpaceEvidence --tests *CordonedFacilityPlacementEvidence`): 11 of 24 medium city maps
-and 21 of 24 colonies, nearly all two by two (one colony carries a two by three; two by three blocks are
-rare in the partition). Main street keeps 15 and 14; running the facility first moves neither by more
+Coverage (`generatedSpaceEvidence --tests *CordonedFacilityPlacementEvidence`): 14 of 24 medium city maps
+under the town plan's zoning and 21 of 24 colonies, nearly all two by two (a city and a colony each carry a
+two by three; two by three blocks are rare in the partition). Main street keeps 14 and 14; running the facility first moves neither by more
 than one map. `storyMapPools` passes 144 of 144 with no seed swapped. Look:
 `createSnapshots -Psnapshot=cordoned-facility-look`.
 
@@ -239,8 +255,8 @@ open apron. The service street and its cross-street stubs are painted city stree
 `LoadingBay`s, the row's `ServiceLane`, and each warehouse dock's door with the street cell straight out
 from it.
 
-Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 4 of 24 medium city maps and
-12 of 24 colonies, hosting a freight yard on 3 city maps and 1 colony, a factory row on none. The claim
+Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`): 3 of 24 medium city maps
+under the town plan's zoning and 12 of 24 colonies, hosting a freight yard on 2 city maps and 1 colony, a factory row on none. The claim
 shape is the limit, not the pocket: with every kind eligible the industrial pockets still rarely line one
 street with whole leaves on both sides, a freight-yard parcel stands at the map's edge with nothing across
 its street, and a factory row seed is nearly always the 11-by-11 lot that needs its neighbour. A shorter
