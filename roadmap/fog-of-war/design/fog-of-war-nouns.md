@@ -173,8 +173,8 @@ marine does, and a scout car or hover scout sees farther. It takes the same
 cohort refresh and cached footprint as a soldier or a mech, so a parked hull
 costs nothing per pass. It is also an observer for its side's commander and for
 indirect fire (`HullSightings`), so what the player sees through a hull the side
-knows too. A sensor drone is the one hull-borne observer that is no contributor
-and arrives as a temporary source.
+knows too. A sensor drone is a contributor as well, with a wider sight than a
+marine's, so nothing hull-borne arrives as a temporary source.
 
 Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
 the ground it is ordered onto and where its rounds and lance tips fall; a hostile

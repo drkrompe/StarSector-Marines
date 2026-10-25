@@ -135,13 +135,6 @@ public final class FogOfWarService {
      */
     private final TemporarySources carried = new TemporarySources();
 
-    /**
-     * Sources the simulation replaces each tick for a sensor drone, which is no contributor: it has no vision stats
-     * and no slot in a cohort. Its own channel for the reason {@link #carried} has one — a different owner clears it
-     * at a different point in the tick. A hull is a contributor, not a source here.
-     */
-    private final TemporarySources droneSight = new TemporarySources();
-
     public Buildings getBuildings() { return buildings; }
     public PlayerVisionState getVisionState() { return visionState; }
 
@@ -464,19 +457,6 @@ public final class FogOfWarService {
         add(carried, cellX, cellY, range, wallReadRadius);
     }
 
-    /** Clears the drone sight sources; called by the system that republishes them, once per tick. */
-    public void clearDroneSightSources() {
-        droneSight.clear();
-    }
-
-    /**
-     * Registers a sensor drone as a temporary observer for this tick: ordinary ground-level shadowcast from its
-     * cell, walls block. The same seam every temporary observer uses, never a second reveal path.
-     */
-    public void addDroneSightSource(int cellX, int cellY, int range) {
-        add(droneSight, cellX, cellY, range, 0f);
-    }
-
     private void add(TemporarySources sources, int cellX, int cellY,
                      int range, float airLosRadius) {
         if (!initialized) return;
@@ -498,7 +478,6 @@ public final class FogOfWarService {
         int total = castInto(projected, 0, false);
         // A sweep is carried by somebody on the ground: it reads walls, not cliffs, beyond its radius.
         total = castInto(carried, total, true);
-        total = castInto(droneSight, total, false);
         total = revealExposed(total);
         ephemeralPrevCount = total;
 
@@ -725,7 +704,6 @@ public final class FogOfWarService {
         }
         addClearAirFootprints(projected);
         addClearAirFootprints(carried);
-        addClearAirFootprints(droneSight);
         adoptClearAir();
     }
 

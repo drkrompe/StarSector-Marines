@@ -28,6 +28,26 @@ class LandscapeAccessTest {
         assertFalse(LandscapeAccess.canClose(edges, new boolean[81], 4, 4, 4, 4, (x, y) -> x == 4 && y == 4));
     }
 
+    @Test void aCrownMayNotNarrowAGapBelowAHullsWidth() {
+        // A wall across x=8 with a five-cell opening (y 6..10): a radius-2 hull drives through on y=8 only.
+        NavigationGrid grid = floor(17, 17);
+        for (int y = 0; y < 17; y++) if (y < 6 || y > 10) grid.setWalkable(8, y, false);
+        boolean[] earlier = new boolean[17 * 17];
+        // One cell in the opening still leaves infantry a way, but no tank.
+        assertTrue(LandscapeAccess.canClose(grid, earlier, 8, 10, 8, 10, (x, y) -> x == 8 && y == 10));
+        assertFalse(LandscapeAccess.keepsClearance(grid, earlier, 8, 10, 8, 10, (x, y) -> x == 8 && y == 10, 2));
+        // The same crown out in the open costs the hull nothing.
+        assertTrue(LandscapeAccess.keepsClearance(grid, earlier, 3, 3, 3, 3, (x, y) -> x == 3 && y == 3, 2));
+    }
+
+    @Test void aPocketAlreadyTooNarrowForAHullMayBeWooded() {
+        // The opening is four cells: no tank fits before the crown, so closing a cell of it strands nothing.
+        NavigationGrid grid = floor(17, 17);
+        for (int y = 0; y < 17; y++) if (y < 6 || y > 9) grid.setWalkable(8, y, false);
+        assertTrue(LandscapeAccess.keepsClearance(grid, new boolean[17 * 17], 8, 9, 8, 9,
+                (x, y) -> x == 8 && y == 9, 2));
+    }
+
     @Test void routeReservationFollowsTheActualOpeningAndKeepsItsWidth() {
         NavigationGrid grid = floor(15, 11);
         for (int y = 0; y < 11; y++) if (y != 7) grid.setWalkable(7, y, false);

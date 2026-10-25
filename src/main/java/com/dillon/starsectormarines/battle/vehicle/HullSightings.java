@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -23,9 +22,8 @@ import java.util.function.LongConsumer;
  * squad's beliefs are written: the hull informs command, and a squad learns of what it saw by being ordered toward
  * it. It is not a combat buff — nothing it sees changes a hit roll.
  *
- * <p>What the player sees through a hull is not here. A hull is a fog contributor like a soldier or a mech
- * ({@code FogOfWarService#addHullContributor}), cached and refreshed by cohort. Only a sensor drone, which is no
- * contributor, is published to the fog from this tick.
+ * <p>What the player sees through a hull or a sensor drone is not here. Both are fog contributors like a soldier or
+ * a mech ({@code FogOfWarService}), cached and refreshed by cohort.
  *
  * <p>Runs after the spatial index is rebuilt, so its sightings are read by the next commander capture, well inside
  * its cadence.
@@ -45,7 +43,7 @@ public final class HullSightings {
                 (int) Math.floor(tx), (int) Math.floor(ty));
     }
 
-    /** A sight source that is not a hull: a side's sensor drone at a point, with its range in cells. */
+    /** An observer that is not a hull: a side's sensor drone at a point, with its range in cells. */
     @FunctionalInterface
     public interface Observer {
         void observe(Faction side, float x, float y, float rangeCells);
@@ -57,15 +55,13 @@ public final class HullSightings {
         void forEach(Observer sink);
     }
 
-    public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
-                     NavigationGrid grid, FogOfWarService fog) {
-        tick(convoy, roster, index, grid, fog, sink -> { });
+    public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index, NavigationGrid grid) {
+        tick(convoy, roster, index, grid, sink -> { });
     }
 
-    /** As {@link #tick(ConvoyService, UnitRosterService, UnitSpatialIndex, NavigationGrid, FogOfWarService)}, adding {@code extra} observers on the same terms as a hull. */
+    /** As {@link #tick(ConvoyService, UnitRosterService, UnitSpatialIndex, NavigationGrid)}, adding {@code extra} observers on the same terms as a hull. */
     public void tick(ConvoyService convoy, UnitRosterService roster, UnitSpatialIndex index,
-                     NavigationGrid grid, FogOfWarService fog, Observers extra) {
-        fog.clearDroneSightSources();
+                     NavigationGrid grid, Observers extra) {
         counts.clear();
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long id = convoy.vehicleAt(i);
@@ -74,12 +70,7 @@ public final class HullSightings {
             GroundBody body = convoy.body(id);
             observe(convoy.faction(id), body.x, body.y, type.observeCells(), roster, index, grid);
         }
-        extra.forEach((side, x, y, range) -> {
-            if (side != null && fog.isInitialized() && fog.getVisionState().isContributor(side)) {
-                fog.addDroneSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
-            }
-            observe(side, x, y, range, roster, index, grid);
-        });
+        extra.forEach((side, x, y, range) -> observe(side, x, y, range, roster, index, grid));
         // Sorted and de-duplicated, so two scouts seeing one body report it once and the order never depends on
         // the spatial index's buckets.
         for (Map.Entry<Faction, Integer> entry : counts.entrySet()) {
