@@ -57,6 +57,9 @@ the same swarm pack, so the four pictures read side by side.
   producer.
 - **Mech lance** (`allies-mechs`): a pair of Hounds walks with a lane in the
   town and the city, where armour is roadbound. Exists in `HeartLanes`.
+- **Fire-support section** (`heart-allied-tools-next.md`): an LRM carrier and a
+  mortar carrier, called by a lane whose ring cannot hurt its bore, standing
+  behind its support line and firing on what its militia see.
 
 The owner's answer: offer all four, and let the commander choose by need. The
 trucks may also rearm turrets and flak pits at the bases. The base stocks the

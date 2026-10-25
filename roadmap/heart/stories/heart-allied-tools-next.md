@@ -1,6 +1,6 @@
 # The lanes' next tools
 
-Status: PLANNED — design only; owner decisions below before building.
+Status: IN PROGRESS — the fire-support section and spotters are built on Broad Front; the rest wait on the owner decisions below.
 
 Written: 2026-10-25
 
@@ -82,11 +82,29 @@ with a place in the bore assault.
    waves on their timetable.
 4. **Caps.** How many sections, teams and lances a battle may field.
 
-## First check before building
+## First check (answered from the code)
 
-Whether a standing-off carrier fires on a target it cannot see but a friendly
-spotter can, and whether a bore (a swarm structure) is a target it takes. If
-either is no, that is the first piece of work, before any shed changes.
+Yes on both. Both carriers' weapons are indirect fire, and an indirect-fire
+launcher takes a target it cannot see when someone on its side within 34 cells
+can (`GroundVehicleTurretSystem`, `SideObservers`). A bore is a hostile
+turret-type structure, so it counts as hardened and even the LRM's hardened-only
+mount takes it. Spotters therefore need no code of their own: the militia on
+the support line, twenty cells from the bore, and the lane's forward observer
+already call for the section whenever they can see the bore. The run's
+carrier-seconds on a bore measure it.
+
+## Built: the fire-support section
+
+- The shed's `FIRE_SECTION` (an LRM carrier and a mortar carrier) comes up the
+  supply road like the armour: one ready, at most two, restocked at the mech
+  lances' pace (`FIRE_SECTIONS`, a default for decision 4).
+- A lane on its bore calls one when none of its ring posts has a line of fire to
+  the bore, or the bore has lost nothing for thirty seconds of base of fire.
+- Its carriers stand on a ring six cells behind the support line, facing the
+  bore, and fire on what the lane's spotters see. Broad Front only: The Burn's
+  base sends trucks alone, and its battery is its indirect fire.
+- The summary reports sections called and carrier-seconds with a launcher on
+  the bore.
 
 ## Acceptance
 

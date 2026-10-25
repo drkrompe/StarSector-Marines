@@ -81,6 +81,8 @@ public final class HeartLanes {
         boolean broken;
         /** The lane's armour (The Burn's battlegroups): hulls and mechs both stationed by the allied command. */
         final List<Long> hulls = new ArrayList<>();
+        /** The lane's fire sections' carriers, posted behind its support line rather than on the ring. */
+        final List<Long> section = new ArrayList<>();
         final List<Long> mechs = new ArrayList<>();
         /**
          * Hulls the allied command could not serve a slot in the line for, moved back to a second rank one spacing
@@ -446,6 +448,8 @@ public final class HeartLanes {
     private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, fallenBack;
     /** Lane-seconds spent in each assault phase, by {@link BoreAssault.Phase} ordinal. */
     private final int[] phaseSeconds = new int[BoreAssault.Phase.values().length];
+    /** Fire sections the lanes called, carrier-seconds on a bore's ring, and those with the launcher on the bore. */
+    private int sectionsCalled, sectionSeconds, sectionSecondsOnBore;
     private int machineSeconds, machineSecondsInMouth;
 
     /**
@@ -492,6 +496,21 @@ public final class HeartLanes {
         BoreAssault a = lane.assault;
         phaseSeconds[a.phase.ordinal()]++;
         List<int[]> posts = postMachines(sim, lane, a);
+        postSection(sim, lane, a, bore);
+        float integrity = integrity(sim, bore);
+        if (integrity < a.integrity - 1e-4f) {
+            a.integrity = integrity;
+            a.integrityTick = tick;
+        }
+        if (shed != null && a.phase != BoreAssault.Phase.MOVING_UP && !sectionStanding(sim, lane)
+                && shed.onRoad(AlliedTool.FIRE_SECTION, place(lane.number)) == 0) {
+            float unhurt = (tick - a.integrityTick) * BattleSimulation.TICK_DT;
+            boolean sees = ringSeesBore(sim, posts, a);
+            if (BoreAssault.needsSection(sees, unhurt) && shed.request(sim, new AlliedRequest(AlliedTool.FIRE_SECTION,
+                    place(lane.number), a.supportX, a.supportY, sees ? "unhurt" : "unseen"))) {
+                sectionsCalled++;
+            }
+        }
         boolean surged = a.surged(bore.surges(), tick);
         float sincePhase = (tick - a.phaseTick) * BattleSimulation.TICK_DT;
         boolean squadsLeft = lane.squads != null && !lane.squads.isEmpty();
@@ -577,6 +596,52 @@ public final class HeartLanes {
             allied.stationMech(sim, mech, post[0], post[1]);
         }
         return taken;
+    }
+
+    /**
+     * Posts the lane's fire-section carriers on their ring behind the support line, facing the bore, and counts each
+     * second a carrier's launcher is on the bore: on its own sight or a spotter's call, since the code that aims it
+     * takes either (`heart-allied-tools-next.md`, First check).
+     */
+    private void postSection(BattleSimulation sim, Lane lane, BoreAssault a, SwarmBore bore) {
+        List<int[]> taken = new ArrayList<>();
+        int count = 0;
+        for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) count++;
+        int i = 0;
+        for (long hull : lane.section) {
+            if (sim.convoy().structure(hull) <= 0f) continue;
+            VehicleType type = sim.convoy().vehicleType(hull);
+            int[] post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX, a.nearY,
+                    BoreAssault.sectionRing(), BoreAssault.slotDegrees(i++, count), taken, ARMOUR_SPACING);
+            if (post == null) post = walkableNear(sim, a.supportX, a.supportY);
+            taken.add(post);
+            allied.station(sim, hull, post[0], post[1], a.boreX - post[0], a.boreY - post[1]);
+            sectionSeconds++;
+            var turret = sim.convoy().turret(hull);
+            if (turret != null && turret.targetId == bore.entityId()) sectionSecondsOnBore++;
+        }
+    }
+
+    private boolean sectionStanding(BattleSimulation sim, Lane lane) {
+        for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) return true;
+        return false;
+    }
+
+    /** Whether any of the lane's ring posts has a line of fire to the bore. */
+    private static boolean ringSeesBore(BattleSimulation sim, List<int[]> posts, BoreAssault a) {
+        for (int[] post : posts) {
+            if (sim.getGrid().hasLineOfFire(post[0] + .5f, post[1] + .5f, a.boreX + .5f, a.boreY + .5f)) return true;
+        }
+        return false;
+    }
+
+    /** The share of the bore's hit points and armour left, 1 untouched. */
+    private static float integrity(BattleSimulation sim, SwarmBore bore) {
+        long id = bore.entityId();
+        if (sim.resolveUnit(id) == 0L) return 0f;
+        var structure = sim.turretState().structure(id);
+        float full = structure.maxStructure + structure.armorCapacity;
+        return full <= 0f ? 1f : (sim.world().hp(id) + sim.world().armor(id)) / full;
     }
 
     /** A machine's ring post, or, where the arc has none, a cell on the support line beside the others. */
@@ -686,7 +751,9 @@ public final class HeartLanes {
         }
         return assaultsBegun + " begun, " + boresFallen + " bores fallen to them, " + goneInOnSurge
                 + " gone in on a spent surge, " + goneInOnQuiet + " on a quiet mouth, " + fallenBack
-                + " fallen back; lane-seconds by phase: " + phases + "; machines in a living mouth "
+                + " fallen back; lane-seconds by phase: " + phases + "; fire sections called " + sectionsCalled
+                + ", carriers on a bore " + sectionSecondsOnBore + " of " + sectionSeconds
+                + " carrier-seconds; machines in a living mouth "
                 + machineSecondsInMouth + " of " + machineSeconds + " machine-seconds";
     }
 
@@ -981,6 +1048,29 @@ public final class HeartLanes {
      * depot cell, joining the lane's armour so it is driven with the rest; on the road until both are within
      * {@link #ARRIVED_CELLS} of the lane's aim, or gone.
      */
+    /**
+     * The shed's maker for a lane's fire section (`heart-allied-tools-next.md`): an LRM carrier and a mortar carrier,
+     * set down at the depot for the lane that called, kept apart from its armour so they stand behind its support line.
+     */
+    public AlliedToolShed.Maker sectionMaker() {
+        return (sim, from, request) -> {
+            Lane lane = laneFor(request);
+            if (lane == null || from == null) return null;
+            int before = lane.section.size();
+            float facing = advanceFacing(lane.ground.advancesAlongY(), advanceSign);
+            for (VehicleType type : new VehicleType[]{VehicleType.LRM_CARRIER, VehicleType.FIRE_SUPPORT_APC}) {
+                long hull = placeHull(sim, type, from[0], from[1], facing);
+                if (hull != 0L) lane.section.add(hull);
+            }
+            if (lane.section.size() == before) return null;
+            List<Long> sent = new ArrayList<>(lane.section.subList(before, lane.section.size()));
+            return s -> {
+                for (long id : sent) if (onTheRoad(s, lane, id)) return false;
+                return true;
+            };
+        };
+    }
+
     public AlliedToolShed.Maker armourMaker() {
         return (sim, from, request) -> {
             Lane lane = laneFor(request);
@@ -1198,6 +1288,14 @@ public final class HeartLanes {
             lane.mechs.add(mech);
             return true;
         }
+        long hull = placeHull(sim, type, x, y, facing);
+        if (hull == 0L) return false;
+        lane.hulls.add(hull);
+        return true;
+    }
+
+    /** Sets a hull of {@code type} down near ({@code x}, {@code y}) clear of the other machines; 0 where none fits. */
+    private long placeHull(BattleSimulation sim, VehicleType type, int x, int y, float facing) {
         VehicleClearance clearance = clearance(sim, type);
         // Ground it can set out from whichever way its route leaves; only where there is none near, ground it fits.
         int[] cell = null;
@@ -1208,10 +1306,9 @@ public final class HeartLanes {
                             && clearOfArmour(x + dx + .5f, y + dy + .5f)
                             && (pass == 1 || TurnAwareCorridor.canSetOutFrom(x + dx + .5f, y + dy + .5f, type, sim.getGrid())))
                         cell = new int[]{x + dx, y + dy};
-        if (cell == null) return false;
+        if (cell == null) return 0L;
         placed.add(new float[]{cell[0] + .5f, cell[1] + .5f});
-        lane.hulls.add(allied.deploy(sim, type, cell[0], cell[1], facing));
-        return true;
+        return allied.deploy(sim, type, cell[0], cell[1], facing);
     }
 
     /** Moves a lane's armour up to its aim when the aim has moved: each machine to its own cell across the lane. */

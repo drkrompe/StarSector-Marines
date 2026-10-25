@@ -33,6 +33,13 @@ final class BoreAssault {
     static final float POST_SPREAD_DEG = 15f;
     /** Cells behind the nearest ring the militia hold, toward the lane. */
     static final int SUPPORT_BACK_CELLS = 5;
+    /**
+     * Cells behind the support line a fire section stands: its rounds arc over the militia, out of the mouth's reach
+     * and inside its launchers' reach.
+     */
+    static final int SECTION_BACK_CELLS = 6;
+    /** Seconds of base of fire with the bore no weaker after which the lane calls a fire section. */
+    static final float UNHURT_SECONDS = 30f;
     /** Seconds after a surge comes out before it can be spent: the bodies are still pouring from the mouth. */
     static final float SETTLE_SECONDS = 3f;
     /** Most of the swarm the mouth may hold for a surge to count as spent. */
@@ -60,6 +67,9 @@ final class BoreAssault {
     int lastSurgeTick = -1;
     /** The militia's support line, a walkable cell; set when the assault begins. */
     int supportX, supportY;
+    /** The bore's integrity when it was last seen to fall, and the tick it was. */
+    float integrity = 1f;
+    int integrityTick;
 
     BoreAssault(String boreKey, int boreX, int boreY, float nearX, float nearY, boolean armourFirst,
                 int surges, int tick) {
@@ -72,6 +82,7 @@ final class BoreAssault {
         this.armourFirst = armourFirst;
         this.startTick = tick;
         this.phaseTick = tick;
+        this.integrityTick = tick;
         this.surgesSeen = surges;
     }
 
@@ -120,6 +131,19 @@ final class BoreAssault {
             }
         }
         return best;
+    }
+
+    /** The fire section's ring: {@link #SECTION_BACK_CELLS} behind the support line. */
+    static int sectionRing() {
+        return MOUTH_CELLS + RING_MARGIN_CELLS + SUPPORT_BACK_CELLS + SECTION_BACK_CELLS;
+    }
+
+    /**
+     * Whether a lane on its bore needs a fire section: none of its machines on the ring has a line of fire to the
+     * bore, or the bore has lost nothing for {@link #UNHURT_SECONDS} of base of fire.
+     */
+    static boolean needsSection(boolean ringSeesBore, float unhurtSeconds) {
+        return !ringSeesBore || unhurtSeconds >= UNHURT_SECONDS;
     }
 
     /** The militia's support line: {@link #SUPPORT_BACK_CELLS} behind the nearest ring, on the near way. */
