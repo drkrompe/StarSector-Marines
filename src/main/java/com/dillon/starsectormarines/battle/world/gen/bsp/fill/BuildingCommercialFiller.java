@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
  * rotated authored shops or procedural shells, with warm masonry or ceramic
  * materials and shop-style props (shelves, desks, chests and crates).
  *
+ * <p>In town an ordinary lot is a {@link FrontageRow} of narrow shops along its street; a shop stands alone on
+ * its lot only in the outskirts or where the frontage holds one.
+ *
  * <p>No dedicated {@code SHOP} POI kind exists yet, so the building is tagged
  * as {@link PointOfInterest.Kind#RESIDENTIAL} for mission-anchor purposes —
  * the materials and shop furnishings differentiate them from residential.
@@ -35,6 +38,9 @@ public final class BuildingCommercialFiller implements BlockFiller {
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
         BuildingPlacement.Side front=BuildingResidentialFiller.streetFrontage(leaf,ctx);
+        if (leaf.kind == BlockKind.BUILDING_COMMERCIAL && FrontageRow.place(leaf, ctx, front,
+                FrontageRow.forShops(BuildingResidentialFiller.theme(leaf, ctx)), CONFIG,
+                BuildingResidentialFiller.streetBehind(leaf, ctx, front))) return;
         if (LotYardTemplate.tryPlace(leaf,ctx,CONFIG,front)) return;
         if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.COMMERCIAL)) return;
         PointOfInterest poi = BuildingShellCore.carve(leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG, new BuildingPlacement(front,true));

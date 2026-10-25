@@ -55,7 +55,7 @@ class VehicleTransportTest {
 
         assertEquals(3, mounted, "the whole squad boards");
         assertEquals(3, sim.transport().manifest(apc).size());
-        assertEquals(1, sim.transport().seatsFree(apc), "an APC seats four");
+        assertEquals(VehicleType.HEAVY_APC.capacity - 3, sim.transport().seatsFree(apc), "three seats taken");
 
         // Carry it somewhere else entirely, then set it down.
         sim.convoy().body(apc).teleport(45.5f, 45.5f, 0f);
@@ -134,14 +134,14 @@ class VehicleTransportTest {
         BattleSimulation sim = arena();
         long apc = apcAt(sim, 30.5f, 30.5f);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        for (int i = 0; i < 6; i++) {
-            sim.spawn(new EntitySpec("big" + i, Faction.MARINE, UnitType.MARINE, 30 + i % 3, 30)
+        for (int i = 0; i < VehicleType.HEAVY_APC.capacity + 1; i++) {
+            sim.spawn(new EntitySpec("big" + i, Faction.MARINE, UnitType.MARINE, 30 + i % 3, 30 + i / 3)
                     .squad(squadId));
         }
 
         int mounted = sim.transport().mountSquad(apc, squadId);
 
-        assertEquals(0, mounted, "six into four does not go, and half a squad is worse than none");
+        assertEquals(0, mounted, "one too many does not go, and half a squad is worse than none");
         assertTrue(sim.transport().manifest(apc).isEmpty());
     }
 

@@ -33,19 +33,27 @@ final class BuildingPlacement {
     final boolean forceOpposedDoorways;
     /** Only the frontage carries doors and windows; every other wall is blank. Needs a frontage. */
     final boolean frontOnly;
+    /** Doors and windows on the frontage and the wall opposite it; the flanks are party walls and stay blank. */
+    final boolean terraced;
 
     BuildingPlacement(Side frontage, boolean forceOpposedDoorways) {
-        this(frontage, forceOpposedDoorways, false);
+        this(frontage, forceOpposedDoorways, false, false);
     }
 
-    private BuildingPlacement(Side frontage, boolean forceOpposedDoorways, boolean frontOnly) {
+    private BuildingPlacement(Side frontage, boolean forceOpposedDoorways, boolean frontOnly, boolean terraced) {
         this.frontage = frontage;
         this.forceOpposedDoorways = forceOpposedDoorways;
         this.frontOnly = frontOnly;
+        this.terraced = terraced;
     }
 
     /** Doors and windows on {@code frontage} alone, the other walls blank. */
     static BuildingPlacement frontOnly(Side frontage) {
-        return new BuildingPlacement(frontage, false, true);
+        return new BuildingPlacement(frontage, false, true, false);
+    }
+
+    /** A building in a row ({@link FrontageRow}): front and back doors and windows, blank party walls. */
+    static BuildingPlacement terraced(Side frontage) {
+        return new BuildingPlacement(frontage, true, false, true);
     }
 }

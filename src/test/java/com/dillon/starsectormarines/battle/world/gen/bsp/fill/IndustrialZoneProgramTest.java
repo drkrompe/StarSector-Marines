@@ -1,0 +1,109 @@
+package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
+
+import com.dillon.starsectormarines.battle.world.gen.BlockKind;
+import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
+import com.dillon.starsectormarines.battle.world.gen.bsp.District;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictProgram;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictStreets;
+import com.dillon.starsectormarines.battle.world.gen.bsp.SpineClaim;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * The industrial zone program ({@code set-piece-districts.md}) on a small block plan: a street four wide along x,
+ * three working lots and a guard post above it, the freight yard's parcel and one more lot below, with a
+ * four-wide cross street between the first two lots above and another beside the yard.
+ */
+class IndustrialZoneProgramTest {
+
+    final BlockLeaf a1 = leaf(1, 3, 8, 11, BlockKind.BUILDING_INDUSTRIAL);
+    final BlockLeaf a2 = leaf(13, 3, 20, 11, BlockKind.INDUSTRIAL_YARD);
+    final BlockLeaf a3 = leaf(24, 3, 31, 11, BlockKind.FORTIFIED_POST);
+    final BlockLeaf yard = leaf(1, 16, 14, 35, BlockKind.FREIGHT_YARD);
+    final BlockLeaf b2 = leaf(19, 16, 31, 24, BlockKind.BUILDING_INDUSTRIAL);
+    final List<BlockLeaf> leaves = List.of(a1, a2, a3, yard, b2);
+
+    static BlockLeaf leaf(int left, int top, int right, int bottom, BlockKind kind) {
+        BlockLeaf leaf = new BlockLeaf(left, top, right, bottom, false);
+        leaf.kind = kind;
+        return leaf;
+    }
+
+    boolean[][] road() {
+        boolean[][] road = new boolean[36][40];
+        for (int x = 0; x < 36; x++) for (int y = 0; y < 40; y++) road[x][y] = true;
+        for (BlockLeaf leaf : leaves) {
+            for (int x = leaf.left; x <= leaf.right; x++) for (int y = leaf.top; y <= leaf.bottom; y++) road[x][y] = false;
+        }
+        return road;
+    }
+
+    SpineClaim.Spine spine(boolean[][] road) {
+        SpineClaim.Spine spine = SpineClaim.find(leaves, road, leaf -> true, leaf -> 1, IndustrialZoneProgram.SPEC);
+        assertNotNull(spine);
+        return spine;
+    }
+
+    @Test
+    void hostsTheYardKeepsThePostAndMakesTheSmallestLotADepot() {
+        boolean[][] road = road();
+        SpineClaim.Spine spine = spine(road);
+        DistrictProgram.Plan plan = new IndustrialZoneProgram().plan(spine, road, null);
+        assertNotNull(plan);
+        assertEquals(District.Role.FREIGHT_YARD, plan.roles().get(yard), "the yard's parcel keeps its set piece");
+        assertEquals(yard, plan.seed(), "and carries the zone's seed");
+        assertEquals(District.Role.SECURITY_POST, plan.roles().get(a3), "a guard post keeps its hardpoint");
+        assertEquals(District.Role.TANK_FARM, plan.roles().get(a1), "the smallest lot is the depot");
+        assertEquals(District.Role.WAREHOUSE, plan.roles().get(a2));
+        assertEquals(District.Role.WAREHOUSE, plan.roles().get(b2));
+    }
+
+    @Test
+    void narrowsOnlyTheCrossStreetBetweenPlainLotsAndKeepsEveryWayIn() {
+        boolean[][] road = road();
+        SpineClaim.Spine spine = spine(road);
+        DistrictProgram.Plan plan = new IndustrialZoneProgram().plan(spine, road, null);
+        for (int y = 3; y <= 11; y++) {
+            assertTrue(plan.streets()[11][y], "the cross street between the depot and the warehouse keeps three cells");
+            assertFalse(plan.streets()[12][y], "and gives up its fourth");
+        }
+        for (int y = 16; y <= 24; y++) {
+            for (int x = 15; x <= 18; x++) assertTrue(plan.streets()[x][y], "the yard's cross street stays whole");
+        }
+        assertTrue(DistrictStreets.keepsEntries(spine, road, plan.streets()));
+    }
+
+    @Test
+    void takesWorkingGroundAnywhereAndHousingOnlyInsideTheIndustrialPocket() {
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.WASTELAND_RUBBLE), MapDistrictTheme.CIVIC));
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_RESIDENTIAL),
+                MapDistrictTheme.RESIDENTIAL));
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.BUILDING_RESIDENTIAL),
+                MapDistrictTheme.INDUSTRIAL));
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 9, 9, BlockKind.MILITARY_BASE),
+                MapDistrictTheme.INDUSTRIAL), "a compound seed is never a member");
+        assertFalse(IndustrialZoneProgram.eligible(leaf(0, 0, 11, 10, BlockKind.FACTORY_ROW),
+                MapDistrictTheme.INDUSTRIAL), "a row seed too small to hold the row alone claims its neighbour instead");
+        assertTrue(IndustrialZoneProgram.eligible(leaf(0, 0, 13, 12, BlockKind.FACTORY_ROW),
+                MapDistrictTheme.INDUSTRIAL));
+        assertEquals(4, IndustrialZoneProgram.pocket(BlockKind.FREIGHT_YARD, MapDistrictTheme.INDUSTRIAL));
+        assertEquals(0, IndustrialZoneProgram.pocket(BlockKind.BUILDING_COMMERCIAL, MapDistrictTheme.CIVIC));
+    }
+
+    @Test
+    void aWarehouseKeepsAStockYardOnlyBehindTheDeepestHall() {
+        assertEquals(IndustrialZoneLayout.APRON_SHALLOW, IndustrialZoneLayout.apron(8));
+        assertEquals(6, IndustrialZoneLayout.hallDepth(8));
+        assertEquals(IndustrialZoneLayout.APRON, IndustrialZoneLayout.apron(12));
+        assertEquals(9, IndustrialZoneLayout.hallDepth(12), "no room for a stock yard: the hall takes the depth");
+        assertEquals(IndustrialZoneLayout.HALL_MAX, IndustrialZoneLayout.hallDepth(20));
+        assertEquals(1, IndustrialZoneLayout.kerbRun(new boolean[]{true, false, false, false, true}, 3, 0, 2));
+    }
+}

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17462-7617-7df2-adbc-76fea6a390e1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17462-7617-7df2-adbc-76fea6a390e1\\exec-bbc87150-e85a-4d99-9729-278ebafd543d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\street-dressing.raw.png",
+    "sha256": "bb1abf554a049e73cb9b3379dca49b02ee6a3d82769c8e1cca6bb5dbe715725c",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\street-dressing.prompt.txt",
+  "promptSha256": "b9fc6a0b77638578a46cc01c6f064727990dd7655052cf660518c3e1db58e918",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact positions, outlines, sizes and empty space\nImage 2: Material and rendering style only; not layout\n\nUse case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites); do not copy its objects or layout.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground under the objects.\n\nPaint five pieces of colonial main-street furniture, in reading order:\n1. Top left, a 3-cell-wide shop awning seen from above: a dark steel wall rail along its top edge, then a red and cream striped canvas falling away from the wall toward the viewer's bottom edge, ending in a scalloped valance. Weathered fabric, faint sag between ribs, sun-faded stripes, subtle soiling; the stripes run top to bottom exactly where the guide puts them.\n2. Middle left, the same awning in plain deep bottle-green canvas with a darker green scalloped valance.\n3. Bottom left, the same canopy as corrugated steel sheet on a dark fascia: ribbed galvanised metal with rust streaks, ribs exactly where the guide draws them.\n4. Top right, a colonial cast-iron street lamp seen from straight above: round base plate and post top low in the cell, a slim arm reaching up the frame to a round lantern head with a warm cream glass lens.\n5. Middle right, an industrial cobra-head street lamp: the same base and arm, a rounded grey luminaire housing with a pale lens.\n\nGrounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, chipped paint, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style.\n\nTrue alpha transparency around every object and in every gap of the guide, including the thin gap above each valance; no floor, no background, no shadow slab, no border, no labels, no text, no watermark. Paint only these five objects and nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\street-dressing-guide.png",
+      "sha256": "408d4abc572710041351a9fcfe2de897c064126886103086f3c5237104f07b0b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact positions, outlines, sizes and empty space"
+    },
+    {
+      "path": "mod\\graphics\\tilesets\\parked-vehicles.png",
+      "sha256": "3c4574b6ed55b72be717f9a406e314d26a987d3d8f9465f7ea249cfd217053fc",
+      "dimensions": [
+        1920,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Material and rendering style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and silhouettes, with the second reference guiding materials and rendering.\n"
+  ],
+  "usage": {
+    "input_tokens": 43902,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 600,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.6
+}

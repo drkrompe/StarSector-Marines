@@ -189,6 +189,21 @@ public enum BlockKind {
     MAIN_STREET,
 
     /**
+     * The cordoned facility district ({@code set-piece-districts.md}): an admin block, labs or workshops, a
+     * depot, a yard and a courtyard on their own streets inside one wall, gated where the town's streets meet
+     * it. Never rolled by a theme: the district plan stage gives it to the admin block's leaf, and the quarter's
+     * other members become {@link #COMPOUND_MEMBER}s.
+     */
+    CORDONED_FACILITY,
+
+    /**
+     * The industrial zone district ({@code set-piece-districts.md}): yards, warehouses and a factory row walled
+     * along one working service street, each gated onto it. Never rolled by a theme: the district plan stage
+     * gives it to the zone's seed leaf, and the street's other members become {@link #COMPOUND_MEMBER}s.
+     */
+    INDUSTRIAL_ZONE,
+
+    /**
      * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
      * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
      * {@link com.dillon.starsectormarines.battle.world.gen.BlockFiller}

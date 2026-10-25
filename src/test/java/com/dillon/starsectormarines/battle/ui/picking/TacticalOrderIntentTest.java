@@ -84,11 +84,11 @@ class TacticalOrderIntentTest {
 
     @Test
     void aSquadTooBigForTheApcReadsNoRoom_andIsNotAMountOrder() {
-        // An APC seats four. Six is not a ride, and saying so beats a click
+        // One more than an APC seats is not a ride, and saying so beats a click
         // that looks like it was ignored.
         BattleSimulation sim = arena();
         apcAt(sim, 50.5f, 50.5f);
-        int squadId = squadAt(sim, 20, 20, 6);
+        int squadId = squadAt(sim, 20, 20, VehicleType.HEAVY_APC.capacity + 1);
         Selection selection = new Selection();
         selection.selectSquad(squadId);
 

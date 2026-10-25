@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17462-760c-7a70-bf71-1fd4614e2da7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17462-760c-7a70-bf71-1fd4614e2da7\\exec-7a14ba01-adf6-458d-b717-1b766ae5aace.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\industrial-street-kit.raw.png",
+    "sha256": "cb9bd27fbb2188fa03771f7d272e9369a8723757eb1d3f77b3a9de0804b1a6a4",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\industrial-street-kit.prompt.txt",
+  "promptSha256": "f98ac890d030c684f888eaeccd212ba7e6dd67f2c2c10277ed0344db27acdee4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact positions, outlines, sizes and empty space\nImage 2: Material and rendering style only; not layout\n\nUse case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites); do not copy its objects or layout.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground under the objects.\n\nPaint the pieces of an industrial street and a security checkpoint, in reading order:\n1. Top left, a straight overhead pipe rack seen from above: three parallel process pipes running left to right (a grey steel pipe, a larger rust-brown insulated or painted pipe, a smaller blue-grey pipe), dark bolted flange collars exactly where the guide puts them, and under the left end a weathered steel I-beam crossing the pipes from top to bottom of the cell. The pipes must keep exactly the same width, colour and brightness along their whole length so the strip can be cut and repeated; vary only small surface detail.\n2. Top right, the gantry column foot from above: a concrete footing, a steel base plate with four anchor bolts and the top of a painted steel H-column.\n3. Middle left, a concrete jersey crash barrier from above: worn cast concrete, a narrower top ridge, chipped edges, faded yellow hazard bands at both ends.\n4. Middle centre, a steel security bollard from above: a dark steel cap in a yellow-painted ring.\n5. Middle right, a checkpoint boom-gate housing from above: a cream steel cabinet with a red top band and the dark pivot hub on its right side.\n6. Bottom left, the boom gate arm from above: a long slim pole with red and white bands exactly as the guide spaces them, a dark rubber tip at the right end.\n\nGrounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, chipped paint, rust, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style.\n\nTrue alpha transparency around every object and in every gap of the guide; no floor, no background, no shadow slab, no border, no labels, no text, no watermark. Paint only these objects and nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\industrial-street-kit-guide.png",
+      "sha256": "21477ff6ea6493ce5e7d2eb5634787343d267312d5b22553756fa363f1912f00",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact positions, outlines, sizes and empty space"
+    },
+    {
+      "path": "mod\\graphics\\tilesets\\parked-vehicles.png",
+      "sha256": "3c4574b6ed55b72be717f9a406e314d26a987d3d8f9465f7ea249cfd217053fc",
+      "dimensions": [
+        1920,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Material and rendering style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to render one sprite sheet, preserving the guide’s geometry and transparent gaps.\n"
+  ],
+  "usage": {
+    "input_tokens": 43982,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 584,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.1
+}
