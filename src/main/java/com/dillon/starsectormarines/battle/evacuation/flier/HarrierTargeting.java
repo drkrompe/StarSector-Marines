@@ -25,6 +25,11 @@ public final class HarrierTargeting {
         LOGISTICS(4f),
         /** A squad's medic. */
         MEDIC(3f),
+        /**
+         * A colonist out in the open: what a raid may fly to, to snatch one off its feet. Never bitten, so never among
+         * the bodies a pack dives on; only a raid's choice of target sees it.
+         */
+        SURVIVOR(2.5f),
         /** A body on foot with no friend near it. */
         ISOLATED(2f),
         /** A body on foot among its squad. */
