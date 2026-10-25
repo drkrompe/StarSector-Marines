@@ -405,6 +405,7 @@ public final class HeartLanes {
         if (tick % RETARGET_TICKS == 0) {
             sampleMouths(sim);
             logSections(sim, tick);
+            for (Lane lane : lanes) moveSectionUp(sim, lane);
         }
         for (Lane lane : lanes) {
             boolean formed = lane.squads != null && !lane.squads.isEmpty() && formation(sim, lane, tick);
@@ -466,7 +467,7 @@ public final class HeartLanes {
                 int[] log = sectionLog.computeIfAbsent(hull, h -> new int[]{tick, 0, 0, -1, lane.number, -1});
                 if (log[LOG_LOST] >= 0) continue;
                 if (sim.convoy().structure(hull) <= 0f) log[LOG_LOST] = tick;
-                else if (lane.assault == null) log[LOG_IDLE]++;
+                else if (lane.assault == null && (lane.advance == null || !lane.advance.active())) log[LOG_IDLE]++;
                 else log[LOG_FROM_BORE] = (int) Math.round(Math.hypot(sim.convoy().body(hull).x - lane.assault.boreX,
                         sim.convoy().body(hull).y - lane.assault.boreY));
             }
@@ -500,6 +501,39 @@ public final class HeartLanes {
         }
         return out.toString();
     }
+
+    /**
+     * Cells a fire section trails its lane's formation: as far back as its shorter launcher still reaches past the
+     * screen's contact range, so it fires over the line on whatever the front meets.
+     */
+    static final float SECTION_BEHIND = Math.max(ScreenedAdvance.DEFAULT_SPACING,
+            Math.min(reach(VehicleType.LRM_CARRIER), reach(VehicleType.FIRE_SUPPORT_APC))
+                    - ScreenedAdvance.DEFAULT_SCREEN_AHEAD - ScreenedAdvance.DEFAULT_CONTACT_RANGE
+                    - BoreAssault.RING_MARGIN_CELLS);
+
+    /**
+     * A lane on the move takes its fire section with it (`heart-allied-tools-next.md`): each living carrier joins the
+     * formation's support, behind the main, and its fire mission is the bore the lane is going for, else whatever the
+     * front sees. Counts each carrier-second on the move, and those with a launcher on a target.
+     */
+    private void moveSectionUp(BattleSimulation sim, Lane lane) {
+        if (lane.assault != null || lane.advance == null || !lane.advance.active()) return;
+        KnownBore next = sentFor(sim, lane);
+        SwarmBore bore = next == null ? null : bore(sim, next.key());
+        long mission = bore == null || bore.collapsed() ? 0L : bore.entityId();
+        for (long hull : lane.section) {
+            if (sim.convoy().structure(hull) <= 0f) continue;
+            if (!lane.advance.support().has(hull)) lane.advance.joinSupport(1, hull);
+            var turret = sim.convoy().turret(hull);
+            if (turret == null) continue;
+            turret.missionTargetId = mission;
+            sectionSecondsMoving++;
+            if (turret.targetId != 0L) sectionSecondsMovingFiring++;
+        }
+    }
+
+    /** Carrier-seconds a section moved up with its lane's formation, and those with a launcher on a target. */
+    private int sectionSecondsMoving, sectionSecondsMovingFiring;
 
     /** Lane armour's no-route refusals by what had the lane: its formation, its assault, or neither. */
     private final int[] armourRefusalsBy = new int[3];
@@ -839,7 +873,8 @@ public final class HeartLanes {
                 + " gone in on a spent surge, " + goneInOnQuiet + " on a quiet mouth, " + fallenBack
                 + " fallen back; lane-seconds by phase: " + phases + "; fire sections called " + sectionsCalled
                 + ", carriers on a bore " + sectionSecondsOnBore + " of " + sectionSeconds
-                + " carrier-seconds; machines in a living mouth "
+                + " carrier-seconds, moving up with a formation " + sectionSecondsMoving + " carrier-seconds, "
+                + sectionSecondsMovingFiring + " of them firing; machines in a living mouth "
                 + machineSecondsInMouth + " of " + machineSeconds + " machine-seconds";
     }
 
@@ -919,10 +954,13 @@ public final class HeartLanes {
         lane.formedMachines.addAll(mechs);
         ScreenedAdvance.Element infantry = new ScreenedAdvance.Element().squads(lane.squads);
         ScreenedAdvance.Element armour = new ScreenedAdvance.Element().hulls(hulls).mechs(mechs);
+        List<Long> section = new ArrayList<>();
+        for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) section.add(hull);
         return ScreenedAdvance.builder("lane-" + lane.number, ISSUER, allied,
                         AdvanceRoute.straight(from[0], from[1], rally[0], rally[1]))
                 .screen(lane.armourLeads ? armour : infantry)
                 .main(lane.armourLeads ? infantry : armour)
+                .support(new ScreenedAdvance.Element().hulls(section), SECTION_BEHIND)
                 .side(Faction.ALLY)
                 .frontage(2f * lane.ground.halfWidth())
                 .startWhen(ScreenedAdvance.Trigger.now())
