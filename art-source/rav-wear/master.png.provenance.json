@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17346-8d0e-7d10-b5d2-105f24eb174b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17346-8d0e-7d10-b5d2-105f24eb174b\\exec-76f00e80-d896-4292-918d-656b448df98a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-wear\\master.png",
+    "sha256": "41e1f04002b47bc24bcab40e6709c26efd4e453acd33b4b28e6445491f19e244",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\rav-wear\\prompt.txt",
+  "promptSha256": "9506362f26669f9ee0ab813ce83d3b184fcf8fd94eb329941f1d307e74f2a414",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact grid, positions, sizes and outlines of the twelve decals\nImage 2: Material/style only; not layout\n\nA sheet of twelve battle-damage decals for an overhead (straight top-down) alien creature sprite: organic wear marks\nlaid over the creature's armoured chitin as it is shot. The creature is a huge armoured beast of matte charcoal chitin\nplates edged in dried-blood red over wine-red sinew. Painted, slightly gritty realistic game-art style, matching the\ncreature reference. This is flesh and shell, never metal: no bare steel, no rivets, no scorch, no sparks.\n\nLayout: reference 1 is the exact layout. It is a 4 x 3 grid of equal square cells on a transparent canvas, and each\nflat grey shape is the footprint of one decal. Fill every grey footprint with its decal, keeping its position, size,\noutline and orientation. Do not move, merge, add or remove marks. Keep every cell's empty space fully transparent.\n\nRows, top to bottom (each row is one stage of wear; the four columns are variants of it):\n1. Scored and chipped chitin. Scores are gouged lines where rounds skidded across the shell, cutting through the dark\n   outer layer to a paler bone-grey and dull ivory under-layer, with a thin dark edge and flaked shell at the ends.\n   Chips are small round strikes: a shallow starred crater of pale cracked shell with flakes broken out round it.\n2. Bruising and cracked plate. Soft, irregular dark bruises in the shell: a deep purple-black and dark plum centre\n   fading out through dull maroon, with a fine web of hairline cracks across it and a little dark ichor seeping from\n   the cracks. Soft feathered alpha at the rim.\n3. Weeping wounds. The shell torn through: broken, lifted chitin plate edges with pale fractured rims around a wet\n   opening of raw crimson sinew and dark glistening ichor. Where a thin tail leaves a wound, it is a glossy run of\n   dark red ichor ending in a bead. Wet highlights from the upper left.\n\nLighting from the upper left, matching the creature reference. Colours must sit on charcoal shell and on red sinew:\npale marks are bone-grey and ivory, bruises plum-black, ichor a deep dark red; never bright pink or orange.\n\nOutput: a true transparent background, including every gap between and inside marks; no creature, no shell plate\nbacking, no ground, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside its\nown cell.\n\nReference 2 is material and style only: the creature's own body sprite from the same game, for the look of its\nchitin, plate edges and sinew. Do not draw the creature or copy its layout.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-wear\\guide.png",
+      "sha256": "d8d5cea2a3aed07c9548c11088362016d8366292ec0fc18907504ae641475c7f",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the exact grid, positions, sizes and outlines of the twelve decals"
+    },
+    {
+      "path": "mod\\graphics\\battle\\rav-matriarch\\body.png",
+      "sha256": "5e28a469f0d80b87a7c0fa09218c7d95689e6ba47f584bf5bc9cd785d0d7f2ce",
+      "dimensions": [
+        410,
+        614
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent decal sheet using the first image for geometry and the second for material and style."
+  ],
+  "usage": {
+    "input_tokens": 42041,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 669,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.7
+}

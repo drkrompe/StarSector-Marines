@@ -140,6 +140,7 @@ public final class ReviewImpactFx {
             fx.spawnGroundDust(dust[0], dust[1], dust[2], dust[3], dust[4], (int) dust[5]);
         }
         for (float[] s : sim.getClawStrikesThisFrame()) fx.spawnClawStrike(s[0], s[1], s[2], s[3], s[4]);
+        for (float[] h : sim.getSwarmHitsThisFrame()) fx.spawnSwarmHit(h);
         for (float[] burst : sim.getFireBurstsThisFrame()) {
             fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
             lights.spawnFire(burst[0], burst[1], burst[2]);

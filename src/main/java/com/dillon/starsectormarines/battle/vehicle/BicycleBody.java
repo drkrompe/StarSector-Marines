@@ -45,6 +45,8 @@ public class BicycleBody extends GroundBody {
 
     /** Current steering angle, radians; positive = left turn. Slewed toward desired each tick. */
     private float steeringRad;
+    /** Yaw rate of the last tick's {@link #pivot}, degrees a second; zero once the hull drives again. */
+    private float pivotYawDegPerSec;
 
     public BicycleBody(float wheelbaseCells,
                        float maxSteeringDeg, float steeringSlewDegPerSec,
@@ -71,6 +73,31 @@ public class BicycleBody extends GroundBody {
     @Override
     protected void onTeleport() {
         steeringRad = 0f;
+        pivotYawDegPerSec = 0f;
+    }
+
+    /**
+     * Turn {@code signedDeg} on the spot this tick (positive counterclockwise), standing still: the
+     * {@link NeutralPivot}. The front wheels straighten while it turns, and the caller sweeps the footprint
+     * through the turn, as it does every other move.
+     */
+    public void pivot(float signedDeg, float dt) {
+        if (immobilised) {
+            speed = 0f;
+            return;
+        }
+        speed = 0f;
+        float steeringStep = steeringSlewRadPerSec * dt;
+        steeringRad -= Math.max(-steeringStep, Math.min(steeringStep, steeringRad));
+        facingDegrees += signedDeg;
+        if (facingDegrees >  360f) facingDegrees -= 360f;
+        if (facingDegrees < -360f) facingDegrees += 360f;
+        pivotYawDegPerSec = dt > 0f ? signedDeg / dt : 0f;
+    }
+
+    /** The pivot is over: the hull no longer reports turning on the spot. */
+    public void endPivot() {
+        pivotYawDegPerSec = 0f;
     }
 
     @Override
@@ -124,6 +151,7 @@ public class BicycleBody extends GroundBody {
     }
 
     private void integrateSteering(float desiredSteering, float targetSpeed, float dt) {
+        pivotYawDegPerSec = 0f;
         // Slew steering toward desired — bounded driver wheel-spin rate.
         float steeringStep = steeringSlewRadPerSec * dt;
         float dSteer = desiredSteering - steeringRad;
@@ -163,6 +191,7 @@ public class BicycleBody extends GroundBody {
     /** The heading's rate of turn from speed and steering: {@code (v / L) tan(delta)}, as the next tick integrates it. */
     @Override
     public float yawRateDegPerSec() {
+        if (pivotYawDegPerSec != 0f) return pivotYawDegPerSec;
         return (float) Math.toDegrees((speed / wheelbaseCells) * Math.tan(steeringRad));
     }
 

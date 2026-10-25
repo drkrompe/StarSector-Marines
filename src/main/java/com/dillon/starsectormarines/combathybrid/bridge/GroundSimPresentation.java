@@ -238,6 +238,7 @@ public final class GroundSimPresentation {
         }
         for (float[] burst : sim.getFireBurstsThisFrame()) fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
         for (float[] s : sim.getClawStrikesThisFrame()) fx.spawnClawStrike(s[0], s[1], s[2], s[3], s[4]);
+        for (float[] h : sim.getSwarmHitsThisFrame()) fx.spawnSwarmHit(h);
     }
 
     /**
