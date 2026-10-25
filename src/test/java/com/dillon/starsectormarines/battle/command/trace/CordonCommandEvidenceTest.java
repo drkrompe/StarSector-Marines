@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
+import com.dillon.starsectormarines.battle.evacuation.HarrierReading;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
@@ -326,7 +327,8 @@ class CordonCommandEvidenceTest {
                 .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n")
                 .append("- Optional objectives: ").append(objectives.isEmpty() ? "none" : objectives).append('\n')
                 .append("- Allied line command: ").append(cordon.line() == null ? "none" : cordon.line().readings())
-                .append('\n');
+                .append('\n')
+                .append("- Harriers: ").append(HarrierReading.line(sim)).append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")
