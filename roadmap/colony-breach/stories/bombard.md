@@ -73,7 +73,9 @@ line. It spoils its aim, so the Runners get across.
   shell wears by the Matriarch's worn-chitin law. When it dies, the sac
   bursts into one last small haze where it falls.
 - **Rarity.** Drawn from a bore's strain table at **maw tier only**, at a small
-  weight, and at most **one living Bombard per bore**. An old bloom's nests may
+  weight, at most **one living Bombard per bore**, and at most **three across the
+  battle** (`BombardQuota`), drawn only by the three such bores nearest the line;
+  one that dies frees its place, so the long arm regrows. An old bloom's nests may
   stand with one at setup. In a fresh Colony Breach it appears only once a bore
   has been fed to maw, as part of the feeding ramp.
 - **The tell.** Everything shows on the creature and in the air: the tail
@@ -165,6 +167,10 @@ prompts and provenance.
    planted and called on belief, at a score above all but a dense pack: over
    the same seeds, air calls on Bombards rose from 10 to 65 and Bombards killed
    under one from 8 to 25 (35 held, 1 broken).
+   With the battle cap of three (pick `bombard-count`, recommended option, held
+   unmerged): at most 3 alive in every battle, 122 fielded over the 36 seeds with
+   regrowth, 59 globs (81 uncapped), 48 troops hazed, 49 air calls on them;
+   33 held, 3 broken.
 
 ## Acceptance
 
