@@ -167,6 +167,11 @@ fade state must likewise transfer or clear with roster compaction and release.
 `stories.md` owns the two bounded compatibility corrections where the existing
 cache and lifecycle do not yet satisfy those laws.
 
+Every friendly ground hull reveals the fog around it, out to a marine's sight:
+the crew looks out of the hull. That reveal is fog only. A scout car or hover scout
+sees farther and also reports contacts to command (`ScoutSight`); an ordinary
+hull does neither.
+
 Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
 the ground it is ordered onto and where its rounds and lance tips fall; a hostile
 ship gives the player nothing), active recon pings, and a

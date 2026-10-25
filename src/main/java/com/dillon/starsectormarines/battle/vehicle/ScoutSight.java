@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -24,10 +25,17 @@ import java.util.function.LongConsumer;
  * squad's beliefs are written: the scout informs command and the player, and a squad learns of what it saw by being
  * ordered toward it. It is not a combat buff — nothing it sees changes a hit roll.
  *
+ * <p>Every other hull of a player-visible side still reveals the fog around it, out to {@link #CREW_SIGHT_CELLS}: the
+ * crew looks out of the hull as a marine does. That reveal is fog only; the hull is not an observer, so it reports no
+ * sighting to the commander and is no {@code SideObservers} spotter.
+ *
  * <p>Runs after the spatial index is rebuilt, so its fog sources are read by the next vision pass and its
  * sightings by the next commander capture; both are well inside their own cadences.
  */
 public final class ScoutSight {
+
+    /** How far an ordinary hull's crew sees, in cells: a marine's own sight. */
+    public static final float CREW_SIGHT_CELLS = UnitType.MARINE.visionRange;
 
     private final LongBucket scratch = new LongBucket();
     private final Map<Faction, long[]> sightings = new EnumMap<>(Faction.class);
@@ -67,8 +75,12 @@ public final class ScoutSight {
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long id = convoy.vehicleAt(i);
             VehicleType type = convoy.vehicleType(id);
-            if (type == null || type.sightCells() <= 0f || !convoy.isPresent(id)) continue;
+            if (type == null || !convoy.isPresent(id)) continue;
             GroundBody body = convoy.body(id);
+            if (type.sightCells() <= 0f) {
+                publishToFog(convoy.faction(id), body.x, body.y, CREW_SIGHT_CELLS, fog);
+                continue;
+            }
             observe(convoy.faction(id), body.x, body.y, type.sightCells(), roster, index, grid, fog);
         }
         extra.forEach((side, x, y, range) -> observe(side, x, y, range, roster, index, grid, fog));
@@ -89,9 +101,7 @@ public final class ScoutSight {
     private void observe(Faction side, float x, float y, float range, UnitRosterService roster,
                          UnitSpatialIndex index, NavigationGrid grid, FogOfWarService fog) {
         if (side == null) return;
-        if (fog.isInitialized() && fog.getVisionState().isContributor(side)) {
-            fog.addVehicleSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
-        }
+        publishToFog(side, x, y, range, fog);
         scratch.clear();
         index.gatherHostileCombatants(x, y, range, side, scratch);
         for (int k = 0; k < scratch.size; k++) {
@@ -101,6 +111,11 @@ public final class ScoutSight {
                 record(side, target);
             }
         }
+    }
+
+    private static void publishToFog(Faction side, float x, float y, float range, FogOfWarService fog) {
+        if (side == null || !fog.isInitialized() || !fog.getVisionState().isContributor(side)) return;
+        fog.addVehicleSightSource((int) Math.floor(x), (int) Math.floor(y), Math.round(range));
     }
 
     /** Every hostile body {@code side}'s scouts saw on the last tick, once each, in id order. */
