@@ -13,12 +13,12 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 /**
- * The main street layout ({@code set-piece-districts.md}) over a planned {@link SpineClaim.Spine}. Each shop
- * stands back from the street behind a pavement, its doors and windows on the street and every other wall
- * blank. The kerb is cover: planters and stalls at a steady rhythm, and a parked van on each shop's kerb
- * where the pavement is two rows deep (three keep a clear walk behind it), all kept out of the doorways and
- * the cross-street corners. Street lamps and awnings have no art yet. The
- * plaza end is an open paved square with a bandstand where it is large enough, and the hall at the other end
+ * The main street layout ({@code set-piece-districts.md}) over a planned {@link SpineClaim.Spine}. Each member
+ * is a {@link FrontageRow} of narrow shopfronts behind a pavement, party walls between them, their doors and
+ * windows on the street and on the service yard behind; a member too short for a row is one shop. The kerb is
+ * cover: planters and stalls at a steady rhythm, and a parked van on each member's kerb where the pavement is
+ * two rows deep (three keep a clear walk behind it), all kept out of the doorways and the cross-street corners.
+ * Street lamps and awnings have no art yet. The plaza end is an open paved square with a bandstand where it is large enough, and the hall at the other end
  * faces the street like the shops. The cross streets' narrowed edges become pavement. Draws only from the
  * map's random stream, inside the shell carve.
  */
@@ -112,10 +112,13 @@ final class MainStreetLayout {
         int bLo = near ? cLo : cLo + pave, bHi = near ? cHi - pave : cHi;
         BlockLeaf shell = s.horizontal ? new BlockLeaf(aLo, bLo, aHi, bHi, false)
                 : new BlockLeaf(bLo, aLo, bHi, aHi, false);
-        PointOfInterest poi = BuildingShellCore.carve(shell, c.grid, c.topology, c.doodads, c.rng,
-                hall ? BuildingCivicFiller.CONFIG : BuildingCommercialFiller.CONFIG,
-                BuildingPlacement.frontOnly(side(s, leaf)));
-        if (poi != null) c.pois.add(poi);
+        if (hall || !FrontageRow.place(shell, c, side(s, leaf), FrontageRow.SHOPFRONTS,
+                BuildingCommercialFiller.CONFIG, false)) {
+            PointOfInterest poi = BuildingShellCore.carve(shell, c.grid, c.topology, c.doodads, c.rng,
+                    hall ? BuildingCivicFiller.CONFIG : BuildingCommercialFiller.CONFIG,
+                    BuildingPlacement.frontOnly(side(s, leaf)));
+            if (poi != null) c.pois.add(poi);
+        }
 
         boolean[] clear = new boolean[aHi - aLo + 1];
         int door = -1, centre = (aLo + aHi) / 2;

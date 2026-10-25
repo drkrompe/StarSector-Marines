@@ -48,6 +48,11 @@ public final class GroundTurret {
     /** Sim-seconds until a missile launcher next looks for a new target. */
     public float relookTimer;
     /**
+     * A launcher's fire mission, or {@code 0L}: the body it is told to shell. It takes it whenever it may, on its own
+     * sight or a spotter's, before any other, and picks its own target only while nobody on its side sees it.
+     */
+    public long missionTargetId;
+    /**
      * How far an arcing launcher stands raised on its trunnion, 0 lying flat to 1 raised to fire. A look only:
      * the renderer foreshortens the rack by it, and nothing in the sim decides anything from it.
      */

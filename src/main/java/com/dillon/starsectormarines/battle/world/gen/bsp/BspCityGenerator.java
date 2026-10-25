@@ -95,6 +95,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationSpawnStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TownBlockStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.GrownTrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.VehicleCorridorStage;
@@ -314,6 +315,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new DistrictPlanStage(DISTRICT_PROGRAMS),   // Step 2a''' districts over whole blocks and their streets
                 new CompoundClaimStage(),                   // Step 2b
                 new MarketParcelStage(),                    // A market square's lot, from parcels no compound took
+                new TownBlockStage(),                       // Town lots nothing claimed join into blocks
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
@@ -885,8 +887,13 @@ public final class BspCityGenerator implements MapGenerator {
         this.lastRoadGraph = roadGraph != null ? roadGraph : RoadGraph.EMPTY;
         this.lastTacticalRegions = ctx.get(BspKeys.TACTICAL_REGIONS);
         this.lastStationGraph = ctx.get(BspKeys.STATION_GRAPH);
+        this.lastPartition = ctx.get(BspKeys.PARTITION);
         return result;
     }
+
+    /** Last BSP partition produced by {@link #generate}, its leaves carrying their final kinds — exposed for the town-plan evidence. Null for recipes with no partition. */
+    private Bsp.Partition lastPartition;
+    public Bsp.Partition getLastPartition() { return lastPartition; }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */
     private DistrictMap lastDistrictMap;

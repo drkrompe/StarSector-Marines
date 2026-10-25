@@ -344,4 +344,5 @@ com.dillon.starsectormarines.battle.staffed.LoadingPressureLookSuite
 com.dillon.starsectormarines.battle.setup.FactoryRowLookSuite
 com.dillon.starsectormarines.battle.setup.IndustrialZoneLookSuite
 com.dillon.starsectormarines.battle.setup.MainStreetLookSuite
+com.dillon.starsectormarines.battle.setup.TownPlanLookSuite
 com.dillon.starsectormarines.battle.setup.CordonedFacilityLookSuite
