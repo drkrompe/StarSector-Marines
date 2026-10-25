@@ -55,6 +55,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     }
     static String locationOf(Mission mission) {
         var story = DebugMissionCatalog.scenario(mission);
+        if (story == null && DebugMissionCatalog.colonyBreach(mission)) story = DebugMissionCatalog.Scenario.CORDON_LINE;
         return story != null ? story.location() : mission.targetPlanetName;
     }
     static List<String> locations(List<Mission> catalog, int group) {
@@ -80,7 +81,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         context.goTo(context.planet == null ? ScreenId.COMPANY_HQ : ScreenId.MISSION_SELECT);
     }
     static int groupOf(Mission mission) {
-        if (DebugMissionCatalog.scenario(mission) != null) return 0;
+        if (DebugMissionCatalog.scenario(mission) != null || DebugMissionCatalog.colonyBreach(mission)) return 0;
         return mission.id.startsWith("debug:CONQUEST_DEFENDER:") || mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE ? 2 : 1;
     }
     static Map<String, Object> previewProps() {
@@ -125,7 +126,8 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
             row.put("titleId", "debug-card-title-" + i);
             row.put("forceId", "debug-card-force-" + i); row.put("title", story == null ? m.name : Strings.join("separatorPath", story.sequence(), m.name));
             row.put("group", Strings.join("separatorPath", locationOf(m),
-                    story == null ? Strings.get("missionSelectTier" + m.tier.name()) : story.group));
+                    story != null ? story.group : DebugMissionCatalog.colonyBreach(m) ? DebugMissionCatalog.Scenario.CORDON_LINE.group
+                    : Strings.get("missionSelectTier" + m.tier.name())));
             String force = Strings.format("debugMissionForce", preset.squads(), preset.squads() * 12);
             if (preset.mechs() > 0) force = Strings.format("debugMissionForceArmor", force);
             row.put("force", Strings.upper(force));
