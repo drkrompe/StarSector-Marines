@@ -108,6 +108,9 @@ public final class VehicleMoveOrderService {
      * garrison has gone or another order supersedes it. It names no target; the turret keeps its own pick.
      */
     private final Map<Long, MachineGuard> guards = new ConcurrentHashMap<>();
+    /** Running tallies for evidence: orders accepted, arrived, and refused or abandoned by reason. */
+    private int acceptedCount, arrivedCount;
+    private final int[] refusalCounts = new int[Refusal.values().length];
     /**
      * Allied hulls a mission's allied command has enlisted ({@code allied-command.md}). An enlisted
      * {@code ALLY} hull takes orders through this mailbox as the player's own hulls do, and between
@@ -264,22 +267,33 @@ public final class VehicleMoveOrderService {
         for (PendingOrder order : since) enqueue(order);
     }
 
+    /** Orders accepted with a proven route, over the battle so far. */
+    public int acceptedCount() { return acceptedCount; }
+
+    /** Accepted orders that ended with the hull arriving, over the battle so far. */
+    public int arrivedCount() { return arrivedCount; }
+
+    /** Orders refused or abandoned for {@code reason}, over the battle so far. */
+    public int refusalCount(Refusal reason) { return refusalCounts[reason.ordinal()]; }
+
     /** How many orders wait for the planner. */
     public int pendingCount() { return pending.size(); }
 
     void activate(long vehicleId, ActiveOrder order) {
+        acceptedCount++;
         active.put(vehicleId, order);
         refused.remove(vehicleId);
     }
 
     /** Completed successfully — the vehicle arrived, so there is nothing to report. */
     void complete(long vehicleId) {
-        active.remove(vehicleId);
+        if (active.remove(vehicleId) != null) arrivedCount++;
         refused.remove(vehicleId);
     }
 
     /** Gave up or was never viable. The reason survives so the interface can show it. */
     void refuse(long vehicleId, int requestedX, int requestedY, Refusal reason) {
+        refusalCounts[reason.ordinal()]++;
         active.remove(vehicleId);
         refused.put(vehicleId, new RefusedOrder(requestedX, requestedY, reason));
     }

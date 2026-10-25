@@ -125,7 +125,14 @@ public enum UnitType {
      * track it ({@link #isFlier}). Its numbers are issued at release ({@code HarrierRules}); these are
      * placeholders, the {@link #DRONE} convention. Append-only.
      */
-    SWARM_HARRIER(false, null, true, 28f, 9f, 0f, 1.0f, 1.0f, 0.9f, 44f, 1.0f, 1.4f, 0.35f, 0.35f);
+    SWARM_HARRIER(false, null, true, 28f, 9f, 0f, 1.0f, 1.0f, 0.9f, 44f, 1.0f, 1.4f, 0.35f, 0.35f),
+    /**
+     * The skitterer, the nest's worker ({@code SwarmWorkers}): a small Runner-family body that hauls the dead,
+     * mends the nest's growths, tends its creep and feeds its spire, and never fights. Drawn on the Runner's
+     * skeleton at {@link #renderScale} of its size with its own bones. Its kit is issued at spawn
+     * ({@code SwarmStrains}). Append-only.
+     */
+    SWARM_WORKER(true, null, true, 10f, 0f, 2.8f, 0f, 1.0f, 0f, 12f, 0.68f, 0.3f, 0.22f, 0.22f);
 
     /** Whether the body carries a {@code SPRITE} component: see {@link #carriesSprite()}. */
     private final boolean carriesSprite;
@@ -285,11 +292,17 @@ public enum UnitType {
      */
     public boolean isFlier() { return this == SWARM_HARRIER; }
 
-    /** Whether this archetype is a swarm strain body: runner, brute or spitter. */
+    /** Whether this archetype is a swarm strain body on the ground: runner, brute, spitter, matriarch or skitterer. */
     public boolean isSwarm() {
         return this == SWARM_RUNNER || this == SWARM_BRUTE || this == SWARM_SPITTER
-                || this == SWARM_MATRIARCH;
+                || this == SWARM_MATRIARCH || this == SWARM_WORKER;
     }
+
+    /**
+     * Whether this is the skitterer, the swarm's worker: a swarm body that never fights, kept out of the
+     * director's population and every surge ({@code SwarmWorkers}).
+     */
+    public boolean isSwarmWorker() { return this == SWARM_WORKER; }
 
     /**
      * Whether this unit is a trained humanoid whose individual soldier profile

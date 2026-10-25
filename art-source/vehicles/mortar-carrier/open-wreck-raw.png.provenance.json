@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17359-f806-75a2-a818-e83d37063128",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17359-f806-75a2-a818-e83d37063128\\exec-28947b42-1edb-4617-b0f9-3a002090990f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\mortar-carrier\\open-wreck-raw.png",
+    "sha256": "5ecf73cf7df7aec31dfee8905fdc2e376e39c457d6644be74794fb24a5d2a242",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\mortar-carrier\\wreck.prompt.txt",
+  "promptSha256": "94553241138004e018928af14fe29e0ae5d176e2915a355773186033004ae57d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: the live turret to damage in place; keep its footprint, scale and orientation\n\nEdit the supplied top-down game sprite of a vehicle's roof mortar turret (seen from directly above, gun pointing LEFT) into its destroyed wreck, as it sits on a knocked-out armoured carrier. Real battle damage, not a colour change: the mortar tube split and bent near the muzzle, its end torn open; armour plates buckled and peeled back with jagged edges; a hatch blown off or hanging open showing a scorched, gutted interior; ready rounds burst or missing, leaving empty blackened sockets; shrapnel holes and gouges; paint burnt off to bare dark metal with soot streaks around every breach.\n\nKeep: the same strict orthographic overhead view; the same overall footprint, position, size and orientation as the input so it registers in place; the same art style, outline weight and the same worn olive/cream military materials where the paint survives; the soft top-left light.\n\nOutput: the same canvas size with a true transparent background, including through any holes torn clean through; no fire, no smoke, no ground, no cast shadow, no border, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\mortar-carrier\\open-raw.png",
+      "sha256": "3397ba4eedde9c956d6d1a08a5f4926fee84f391e400746e9941fd61c5df3ae7",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "mode": "RGBA",
+      "role": "Edit target: the live turret to damage in place; keep its footprint, scale and orientation"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one wrecked-turret image, preserving its placement, scale, and left-facing orientation with a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 40838,
+    "cached_input_tokens": 32768,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 386,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.6
+}

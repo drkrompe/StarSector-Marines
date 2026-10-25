@@ -77,7 +77,7 @@ public final class CreepVegetationScene implements BehaviorScene {
     static float[] groveView() { return new float[]{58f, 27f, 60f}; }
 
     /** The ground every case stands up: grass and plants, the two groves and the fields. */
-    static GenContext country() {
+    public static GenContext country() {
         GenContext ctx = new GenContext(new NavigationGrid(WIDTH, HEIGHT), new CellTopology(WIDTH, HEIGHT),
                 new Random(SEED), WIDTH, HEIGHT, SEED);
         ctx.put(BspKeys.MARKET_PROFILE, new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT,

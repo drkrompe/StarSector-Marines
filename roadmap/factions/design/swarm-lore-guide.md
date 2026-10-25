@@ -192,7 +192,7 @@ the right one tells the player who is talking.
 
 | Speaker | Calls it | Notes |
 | --- | --- | --- |
-| Colonists | "the things", "ravs", "the ground" ("the ground took them"); the Bloom only in a whisper | Plain, frightened, local. Strain nicknames: runners "grabbers", brutes "breakers", spitters "spitters". |
+| Colonists | "the things", "ravs", "the ground" ("the ground took them"); the Bloom only in a whisper | Plain, frightened, local. Strain nicknames: runners "grabbers", brutes "breakers", spitters "spitters", skitterers "ticks". |
 | Spacers / traders | "a bloom", "the Rav Bloom" | Understated, weather-like; "Ravager Bloom" from the old hands. |
 | Colony militia | "ravs", "bugs" | Practical radio shorthand; calls bores "holes" or "the pit". |
 | Marine company | "ravs" on the radio; strain names and "the swarm" as in the mission UI; bores by number | Clear, countable, unexcited. |

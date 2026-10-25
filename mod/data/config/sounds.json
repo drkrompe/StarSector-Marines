@@ -452,6 +452,18 @@
 		{"file":"sounds/battle/explosions/marines_explosion_muffled_distant.ogg","pitch":1,"volume":0.8},
 	],
 
+	# ----- Turret flak (asset-pipeline audio/turret-flak, receipts beside each take) -----
+	"marines_flak_fire":[
+		{"file":"sounds/battle/turret-flak/marines_flak_fire_1.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/turret-flak/marines_flak_fire_2.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/turret-flak/marines_flak_fire_3.ogg","pitch":1,"volume":1.0},
+	],
+	"marines_flak_burst":[
+		{"file":"sounds/battle/turret-flak/marines_flak_burst_1.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/turret-flak/marines_flak_burst_2.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/turret-flak/marines_flak_burst_3.ogg","pitch":1,"volume":1.0},
+	],
+
 	# ----- Rook field rifle -----
 	"marines_rook_rifle_fire":[
 		{"file":"sounds/battle/small-arms/marines_rook_rifle_fire.ogg","pitch":1,"volume":0.49},

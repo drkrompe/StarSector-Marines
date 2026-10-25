@@ -78,6 +78,7 @@
     "data/tilesets/compound-furniture-damage.tileset.json",
     "data/tilesets/forest-destroyed.tileset.json",
     "data/tilesets/forest-blight.tileset.json",
+    "data/tilesets/forest-blight-felled.tileset.json",
     "data/tilesets/forest-undergrowth.tileset.json",
     "data/tilesets/forest-undergrowth-damaged.tileset.json",
     "data/tilesets/forest-undergrowth-destroyed.tileset.json",

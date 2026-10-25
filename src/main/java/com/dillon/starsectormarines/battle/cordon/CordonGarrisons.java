@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
@@ -120,6 +121,7 @@ public final class CordonGarrisons {
             }
         }
         if (posts.size() < seats) return null;
+        seatFlak(sim, number, guns, posts, left, top, right, bottom, centreX, centreY);
         List<Integer> teams = new ArrayList<>();
         int radius = Math.max(right - left, bottom - top) / 2 + 2;
         for (int t = 0; t < TEAMS; t++) {
@@ -156,6 +158,7 @@ public final class CordonGarrisons {
         int seats = TEAMS * ColonyMilitia.POST_SIZE;
         List<int[]> posts = worksPosts(grid, map.doodads, works.nests(), left, top, right, bottom, front, seats);
         if (posts.size() < seats) return null;
+        seatFlak(sim, number, guns, posts, left, top, right, bottom, centreX, centreY);
         List<Integer> teams = new ArrayList<>();
         int radius = Math.max(right - left, bottom - top) / 2 + 2;
         for (int t = 0; t < TEAMS; t++) {
@@ -253,6 +256,36 @@ public final class CordonGarrisons {
         }
         if (right - left < 4 || bottom - top < 4) return null;
         return new int[]{left, top, right, bottom};
+    }
+
+    /**
+     * Seats the redoubt's flak position (`cordon-nouns.md`, Field redoubt) on the open yard cell nearest its centre
+     * that no post takes and that leaves the ground round it walkable, and adds it to the redoubt's guns, so the
+     * trucks rearm it with the rest. It is what meets the flier law over the line: without it no brood spire
+     * launches (`colony-breach-nouns.md`, Brood spire). A yard with no such cell has none.
+     */
+    private static void seatFlak(BattleSimulation sim, int number, List<Long> guns, List<int[]> posts,
+                                 int left, int top, int right, int bottom, int centreX, int centreY) {
+        NavigationGrid grid = sim.getGrid();
+        int reach = Math.max(right - left, bottom - top);
+        for (int r = 0; r <= reach; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int x = centreX + dx, y = centreY + dy;
+                    if (x < left || x > right || y < top || y > bottom || !grid.isWalkable(x, y)
+                            || grid.isDoorway(x, y) || taken(posts, x, y)) continue;
+                    int open = 0;
+                    for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        if (grid.inBounds(x + d[0], y + d[1]) && grid.isWalkable(x + d[0], y + d[1])) open++;
+                    }
+                    if (open < 4) continue;
+                    guns.add(ColonyMilitia.seatEmplacement(sim, new int[]{x, y}, "Redoubt " + number + " flak",
+                            TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID));
+                    return;
+                }
+            }
+        }
     }
 
     private static boolean taken(List<int[]> cells, int x, int y) {

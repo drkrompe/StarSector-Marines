@@ -30,7 +30,7 @@ public final class BroodSpireScene implements BehaviorScene {
 
     static final int W = 120, H = 80;
     static final int BORE_X = 30, BORE_Y = 40;
-    static final int LINE_X = 62, LINE_Y = 40;
+    static final int LINE_X = 44, LINE_Y = 40;
     static final int TICKS = 900;
     static final int SECOND_SURGE = 300, KILL_TICK = 60;
     static final String FLAK = "structure.turret-anti-air-flak";

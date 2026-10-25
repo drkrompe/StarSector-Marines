@@ -1,0 +1,11 @@
+Top-down game sprite layer for a 2D creature rig: the body of the SKITTERER, a small non-combat nest worker of an engineered alien swarm (the Rav Bloom). It is the same organism as the swarm's Runner (reference 2), its body plan and chitin specialised for work: it hauls the swarm's dead home, repairs nest structures and tends brood. It never fights, so it has NO spike arms, NO blades and NO claws on its back or shoulders.
+
+Reference 1 is the GEOMETRY AUTHORITY. Paint over it exactly: keep its silhouette, outline, proportions, the position and scale of every part on the canvas, the centre line, and its colour layout (which areas are lilac plate, crimson sinew, ivory bone, amber). Do not move, add or remove any part; do not add legs or arms. Only replace the flat cartoon shading with finished painted chitin.
+
+Reference 2 is MATERIAL AND PALETTE ONLY, not layout: paint with exactly its finish and colours - pale lilac to dusky-violet glossy carapace plates with soft pearly highlights, deep crimson ropey sinew between the plates, ivory bone edges, small glowing amber nodes. Same lighting (soft light from the upper left), same rendering style and level of detail.
+
+Option HAULER - a beast of burden. A squat, broad, flat-backed body: an oval shield of lilac rim plates down both flanks around a shallow dished CRADLE along the spine, its dark dusky-violet floor crossed by five pairs of smooth ivory ribs that curl up at the flanks, where loads ride. One single glowing amber node at the front of the cradle. A short blunt plated tail stub. A short sinewy neck and a small rounded lilac head with two small amber eyes, and a pair of SHORT, THICK, HOOKED ivory pincer mandibles that curve forward and hook inward toward each other in front of the head, like a stag beetle's but short and stout. Reads as a pack animal: heavy, low and practical.
+
+The creature will be drawn very small in game (about 20 pixels long), so keep big clear shapes and strong value contrast between plates and sinew; no fine noise, no tiny scales, no texture grain.
+
+Strict overhead orthographic view, nose pointing UP, same framing as reference 1 so the layer registers over it. Plain flat light grey background (#b4b4b4) everywhere outside the creature, no shadow, no ground, no text, no border, no legs.

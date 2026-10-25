@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-24 — Broad Front waves join a standing lane; a satellite nearer an allied lane is that lane's, not the company's; gunship_lost beat
+Updated: 2026-10-25 — a forward observer attached to each Broad Front lane calls the military's air wing
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -155,6 +155,14 @@ the road for good (F6). The gunship is not road-borne.
   on open air, and one ammunition truck.
 - On The Burn, which has no lanes, it holds ammunition trucks alone.
 Every truck in the heart comes from it, the B5 beat's included.
+The base digs **flak** at its first ammunition dump and its vehicle park, and on
+The Burn among the battery (`HeartObjectives.airDefence`), each on the guns'
+stock. That is what meets the flier law over the heart: while any of it stands,
+the satellites' brood spires launch Harrier packs with their surges and each
+Matriarch comes out with her brood (`colony-breach-nouns.md`, Brood spire); with
+none standing, nothing flies. The packs hunt wherever the flak does not reach,
+which is most of the country: the lanes and the company far more than the base.
+The air beats (F3, B3) use these pits rather than digging their own.
 
 **Rounds on hand.** The heart's own guns, the Burn's battery and the flak pits
 the beats dig, keep a stock of rounds per place (`GunStock`). Every barrage
@@ -178,6 +186,19 @@ field. It never orders the company and never ends the battle.
   bore a broken lane is on, else the bore the most stalled lanes are on. Only
   with the air open. While the air is shut, the base shoots the colonies
   keeping it shut instead, since nothing else in play reaches them.
+
+**Forward observer** (Broad Front). The lanes' waves are militia, but the
+world's military attaches one observer to each lane: the radio goes to a
+soldier other than the leader of the first team to step off on the lane's
+ground (`air-nouns.md`, Forward observer). Through it the military's **air
+wing** (two bombers and two fighters, flying in over the farmland behind the
+start line) strikes a swarm mass that observer has in sight. It is a different
+tool from the base's gunship: the gunship is the commander's one heavy sortie
+onto a bore, flown when called; the wing is the observers' own, onto the masses
+in front of them, judged on the anti-air the side has seen, so both are
+sometimes shot down by colonies nobody had seen. Never within ten cells of a
+friendly soldier, never at a Harrier pack overhead. A lane whose observer dies
+calls no more air. The Burn has none: its guns are its fire support.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at

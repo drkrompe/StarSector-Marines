@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.modifier.UnitModifier;
+import com.dillon.starsectormarines.battle.modifier.UnitStat;
+
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -20,7 +24,9 @@ public final class MatriarchActions {
         REAP_RIGHT(1.03f, 0.37f),
         REAP_LEFT(1.03f, 0.37f),
         /** Rocks back and drives the crown into a hull, an emplacement, a mech or a wall. */
-        CROWN(1.27f, 0.50f);
+        CROWN(1.27f, 0.50f),
+        /** Before a run: it stands crown-down and bellows ({@link MatriarchRunRules#TELL}). No blow. */
+        RUN_TELL(MatriarchRunRules.TELL, -1f);
 
         /** Seconds the action holds the body. */
         public final float seconds;
@@ -44,6 +50,11 @@ public final class MatriarchActions {
         SwarmBruteBehavior.BreachPoint breach;
         boolean roared;
         boolean nextLeft;
+        /** Whether it is running, at whom, since when, and the tick its next run may begin. */
+        boolean running;
+        long runQuarry;
+        int runStartTick;
+        int runReadyTick;
     }
 
     private final ConcurrentHashMap<Long, Action> actions = new ConcurrentHashMap<>();
@@ -63,6 +74,22 @@ public final class MatriarchActions {
     public float ageSeconds(long matriarch, int tick) {
         Action a = actions.get(matriarch);
         return a == null || a.kind == Kind.NONE ? 0f : age(a, tick);
+    }
+
+    /** Whether {@code matriarch} is running: presentation, and the pace its movement reads. */
+    public boolean running(long matriarch) {
+        Action a = actions.get(matriarch);
+        return a != null && a.running;
+    }
+
+    /** Her run pace, as a stat modifier on the runner. */
+    public UnitModifier runModifier() {
+        return new UnitModifier() {
+            @Override public String name(long unit) { return "Running"; }
+            @Override public Set<UnitStat> stats() { return Set.of(UnitStat.MOVE_SPEED); }
+            @Override public boolean appliesTo(long unit) { return running(unit); }
+            @Override public float multiplier(long unit, UnitStat stat) { return MatriarchRunRules.PACE; }
+        };
     }
 
     static float age(Action a, int tick) {

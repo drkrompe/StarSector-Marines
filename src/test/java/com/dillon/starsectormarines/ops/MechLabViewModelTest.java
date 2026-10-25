@@ -339,7 +339,7 @@ class MechLabViewModelTest {
         MechLabViewModel.GantryRow row = viewModel.gantryRows().get().get(1);
         assertFalse(row.disabled());
         assertEquals("Mule 01", row.name());
-        assertTrue(row.detail().contains("Escort APC"));
+        assertTrue(row.detail().contains(CampaignVehicle.typeName(VehicleType.ESCORT_APC)));
         assertTrue(viewModel.gantryRows().get().get(2).disabled());
         assertEquals("2 / 4 assets", viewModel.squadRows().get().get(0).strength());
         assertTrue(viewModel.mechRows().get().stream()
@@ -348,7 +348,7 @@ class MechLabViewModelTest {
         row.select().run();
         assertEquals(1, viewModel.selectedGantryIndex());
         assertEquals("Mule 01", viewModel.selectedMechName().get());
-        assertTrue(viewModel.selectedMechIdentity().get().contains("Escort APC"));
+        assertTrue(viewModel.selectedMechIdentity().get().contains(CampaignVehicle.typeName(VehicleType.ESCORT_APC)));
         assertTrue(viewModel.selectedMechIdentity().get().contains("VEHICLE"));
         assertEquals(VehicleType.ESCORT_APC.hasTurretWeapon(),
                 viewModel.selectedMechDoctrine().get().startsWith("TURRET"));
@@ -429,7 +429,7 @@ class MechLabViewModelTest {
         assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.chassisPreview() != null));
 
         MechLabViewModel.CatalogRow apc = viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals("Escort APC"))
+                .filter(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.ESCORT_APC)))
                 .findFirst().orElseThrow();
         assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
@@ -459,7 +459,7 @@ class MechLabViewModelTest {
         viewModel.selectGantryAction(0).run();
 
         assertTrue(viewModel.catalogRows().get().stream()
-                .noneMatch(row -> row.name().equals("Escort APC")));
+                .noneMatch(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.ESCORT_APC))));
         assertFalse(viewModel.fabricateVehicle(VehicleType.ESCORT_APC));
         assertEquals("This fabrication pattern has not been acquired.",
                 viewModel.feedbackText().get());
@@ -470,7 +470,7 @@ class MechLabViewModelTest {
         assertTrue(bay.learnPattern(MechPattern.of(VehicleType.ESCORT_APC).id()));
         viewModel.selectGantryAction(0).run();
         assertTrue(viewModel.catalogRows().get().stream()
-                .anyMatch(row -> row.name().equals("Escort APC")));
+                .anyMatch(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.ESCORT_APC))));
     }
 
     @Test

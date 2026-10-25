@@ -30,9 +30,14 @@ import java.util.Random;
  * a dark outline and a soft ground shadow stand it up off the creep. Every stage
  * exists for the intact and the war-damaged crown.
  *
+ * <p>A dead tree felled lies as dead wood ({@link #felled}): the destroyed
+ * sheet's stump and fallen limbs, bleached bone-pale and bare of leaves, the
+ * stump crusted and veins running out along the limbs. It is a sheet of its own,
+ * {@code forest-blight-felled}, so the staged sheet's texture keeps its size.
+ *
  * <p>Run with {@code gradlew.bat bakeCreepBlight}; it rewrites
- * {@code mod/graphics/doodads/forest-blight.png} and
- * {@code mod/data/tilesets/forest-blight.tileset.json}.
+ * {@code mod/graphics/doodads/forest-blight.png},
+ * {@code mod/graphics/doodads/forest-blight-felled.png} and their tilesets.
  */
 public final class CreepBlightBaker {
 
@@ -67,6 +72,98 @@ public final class CreepBlightBaker {
         Files.writeString(mod.resolve("data/tilesets/forest-blight.tileset.json"),
                 tileset(tileset.getJSONArray("doodads")).toString(2) + "\n", StandardCharsets.UTF_8);
         System.out.println("[creep-blight] wrote " + png + " (" + sheet.getWidth() + "x" + sheet.getHeight() + ")");
+
+        BufferedImage destroyed = ImageIO.read(mod.resolve("graphics/doodads/forest-destroyed.png").toFile());
+        JSONArray fallen = new JSONObject(Files.readString(mod.resolve("data/tilesets/forest-destroyed.tileset.json")))
+                .getJSONArray("doodads");
+        File felledPng = mod.resolve("graphics/doodads/" + FELLED_SHEET + ".png").toFile();
+        ImageIO.write(felledSheet(destroyed, fallen, CreepPalette.HIVE), "png", felledPng);
+        Files.writeString(mod.resolve("data/tilesets/" + FELLED_SHEET + ".tileset.json"),
+                felledTileset(fallen).toString(2) + "\n", StandardCharsets.UTF_8);
+        System.out.println("[creep-blight] wrote " + felledPng);
+    }
+
+    /** The felled dead trees' sheet, and the suffix on a destroyed tree's id naming its dead-wood twin. */
+    static final String FELLED_SHEET = "forest-blight-felled", FELLED_SUFFIX = "-blight";
+
+    /** The felled sheet: every destroyed tree as dead wood, where the destroyed sheet has it. */
+    static BufferedImage felledSheet(BufferedImage destroyed, JSONArray doodads, CreepPalette pal) throws Exception {
+        BufferedImage out = new BufferedImage(destroyed.getWidth(), destroyed.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        for (int i = 0; i < doodads.length(); i++) {
+            JSONObject d = doodads.getJSONObject(i);
+            int x = d.getInt("col") * CELL, y = d.getInt("row") * CELL;
+            JSONArray fp = d.getJSONArray("footprintCells");
+            int w = fp.getInt(0) * CELL, h = fp.getInt(1) * CELL;
+            out.setRGB(x, y, w, h, felled(new Frame(destroyed, x, y, w, h), pal), 0, w);
+        }
+        return out;
+    }
+
+    /** The felled sheet's tileset: each destroyed tree's footprint, cover and placement, renamed. */
+    static JSONObject felledTileset(JSONArray doodads) throws Exception {
+        JSONArray cells = new JSONArray(), defs = new JSONArray();
+        for (int i = 0; i < doodads.length(); i++) {
+            JSONObject def = new JSONObject(doodads.getJSONObject(i).toString());
+            String id = def.getString("id") + FELLED_SUFFIX;
+            def.put("id", id);
+            defs.put(def);
+            cells.put(new JSONObject().put("name", id).put("col", def.getInt("col")).put("row", def.getInt("row")));
+        }
+        return new JSONObject().put("cellPx", CELL).put("sheet", "graphics/doodads/" + FELLED_SHEET + ".png")
+                .put("cells", cells).put("doodads", defs);
+    }
+
+    /** How far, as a share of the footprint's half-size, the crust reaches out from the stump. */
+    static final float FELLED_CRUST = 0.13f;
+    /** A felled tree lies on the ground: its shadow is thrown this much of a standing dead tree's. */
+    static final float FELLED_SHADOW = 0.35f;
+
+    /**
+     * A destroyed tree, dead: its stump and fallen limbs bleached bone-pale with the bark's own shading kept as
+     * grain, its leaves gone, the stump crusted over and veins running out along the limbs, outlined over a low
+     * shadow.
+     */
+    static int[] felled(Frame f, CreepPalette pal) {
+        int w = f.w, h = f.h, n = w * h;
+        float cx = w * 0.5f, cy = h * 0.5f, radius = Math.min(w, h) * 0.5f;
+        float[] r = new float[n], g = new float[n], b = new float[n], a = new float[n];
+        float[] noise = new float[4], fine = new float[4], surf = new float[4];
+        // The wood: closed over the holes its leaves leave, then opened so the twigs' leafy scraps do not speckle.
+        boolean[] wood = new boolean[n];
+        for (int i = 0; i < n; i++) wood[i] = f.a[i] >= 0.5f && !f.leaf(i);
+        wood = shrink(grow(wood, w, h, 1), w, h, 1);
+        wood = grow(shrink(wood, w, h, 1), w, h, 1);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int i = y * w + x;
+                if (!wood[i] || f.a[i] <= 0.01f) continue;
+                float cellX = x / (float) CELL, cellY = y / (float) CELL;
+                CreepNoise.sample(cellX * 2.6f + 7.1f, cellY * 2.6f + 2.3f, noise);
+                CreepNoise.sample(cellX * 6f + 1.9f, cellY * 6f + 4.4f, fine);
+                float rr = (float) Math.hypot(x + 0.5f - cx, y + 0.5f - cy) / radius;
+                float l = CreepShading.clamp01(0.5f + 0.75f * f.lum[i]) * (0.9f + 0.2f * fine[0]);
+                float[] col = new float[3];
+                for (int c = 0; c < 3; c++) col[c] = BONE[c] * l;
+                CreepSurface.sample(cellX * CreepShading.WALL_VEIN_SCALE, cellY * CreepShading.WALL_VEIN_SCALE,
+                        CreepShading.WALL_VEIN_SCALE, surf);
+                float vein = CreepShading.clamp01(surf[2] * 1.6f) * CreepShading.smoothstep(0.75f, 0.2f, rr);
+                for (int c = 0; c < 3; c++) {
+                    float raised = CreepShading.mix(pal.flesh()[c], pal.rim()[c], 0.35f) * (0.6f + 0.4f * l);
+                    col[c] = CreepShading.mix(col[c], raised, 0.8f * vein);
+                }
+                float crust = (FELLED_CRUST + (noise[0] - 0.5f) * 0.12f - rr) * radius;
+                float cover = CreepShading.clamp01(crust + 0.5f);
+                if (cover > 0f) {
+                    float[] c2 = crustColour(cellX, cellY, crust, 0.35f + 0.4f * l, noise[0], pal, surf);
+                    for (int c = 0; c < 3; c++) col[c] = CreepShading.mix(col[c], c2[c], cover);
+                }
+                r[i] = col[0];
+                g[i] = col[1];
+                b[i] = col[2];
+                a[i] = f.a[i];
+            }
+        }
+        return standUp(r, g, b, a, a.clone(), w, h, FELLED_SHADOW);
     }
 
     /** The whole output sheet. */
@@ -341,7 +438,7 @@ public final class CreepBlightBaker {
                 a[i] = alpha;
             }
         }
-        return standUp(r, g, b, a, outlined, w, h);
+        return standUp(r, g, b, a, outlined, w, h, 1f);
     }
 
     /** Radius, in sheet pixels, of the opening that keeps only the damaged sheet's limbs. */
@@ -448,8 +545,11 @@ public final class CreepBlightBaker {
         }
     }
 
-    /** Puts a soft shadow under the silhouette and a dark outline round {@code outlined}, and packs the pixels. */
-    static int[] standUp(float[] r, float[] g, float[] b, float[] a, float[] outlined, int w, int h) {
+    /**
+     * Puts a soft shadow under the silhouette, thrown {@code throwScale} of a standing tree's, and a dark outline
+     * round {@code outlined}, and packs the pixels.
+     */
+    static int[] standUp(float[] r, float[] g, float[] b, float[] a, float[] outlined, int w, int h, float throwScale) {
         int n = w * h;
         // Outline: the silhouette grown by OUTLINE_PX.
         int reach = (int) Math.ceil(OUTLINE_PX);
@@ -470,7 +570,7 @@ public final class CreepBlightBaker {
         }
         // Shadow: the outlined silhouette thrown down and to the right, softened.
         float[] thrown = new float[n];
-        int sx = Math.round(SHADOW_DX), sy = Math.round(SHADOW_DY);
+        int sx = Math.round(SHADOW_DX * throwScale), sy = Math.round(SHADOW_DY * throwScale);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int fx = x - sx, fy = y - sy;

@@ -51,7 +51,7 @@ final class RavRigStandIn {
             spitter.advance(x, y, facing, 1f, false, dt);
             return spitter;
         }
-        RavRunnerRig runner = new RavRunnerRig(seed);
+        RavRunnerRig runner = ((RavRunnerRig) rig).worker() ? RavRunnerRig.worker(seed) : new RavRunnerRig(seed);
         runner.setStage(stage);
         runner.advance(x, y, facing, 0f, false, dt);
         return runner;

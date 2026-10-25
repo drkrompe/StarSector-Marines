@@ -90,7 +90,7 @@ final class VehicleDoll {
             if (structureId == null) return HEAVY_MG;
             return switch (structureId) {
                 case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> CANNON;
-                case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID -> MORTAR;
+                case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID, TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
                 case TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID -> LASER;
                 case TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID, TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> PULSE;
                 case TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID -> LRM;
