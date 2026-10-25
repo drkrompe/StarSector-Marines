@@ -51,6 +51,20 @@ class ColonyEruptionPlanTest {
     }
 
     @Test
+    void theWalkInFromTheFieldIsLeftOpen() {
+        // The field in the south; inward is north-west, to the shelter.
+        float fx = 200, fy = 225, ux = 80 - fx, uy = 120 - fy, ul = (float) Math.hypot(ux, uy);
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of(new int[]{200, 225})), 4, 3L);
+        int corridor = ColonyEruptionPlan.corridor(W, H);
+        for (ColonyEruptionPlan.Site site : plan.sites()) {
+            if (site.mother()) continue;
+            float across = Math.abs(ux * (site.y() - fy) - uy * (site.x() - fx)) / ul;
+            assertTrue(across >= corridor, "a bore " + across + " cells off the walk in at " + site.x() + ","
+                    + site.y());
+        }
+    }
+
+    @Test
     void theMotherComesUpOnTheFlankAwayFromTheLift() {
         // The field in the south, the lift off to its east end; inward is north-west, to the shelter.
         float fx = 200, fy = 225, ux = 80 - fx, uy = 120 - fy;

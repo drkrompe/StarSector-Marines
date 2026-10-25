@@ -23,7 +23,7 @@ import java.util.Locale;
  * The town plan ({@code town-plan.md}) on fixed seeds, for comparing the planner before and after a change:
  * three stock medium cities (a Sabotage battle's map) and three Colony Breach colonies, each at play zoom and
  * close with the roofs off, centred on the map's main street where it has one and on the map's middle where it
- * has none. Look-preset stills. Opt-in.
+ * has none, and each city whole. Look-preset stills. Opt-in.
  *
  * <p>The map is generated once on its own to find the centre, then the battle is built from the same seed; a
  * battle that laid another map is skipped and says so.
@@ -70,6 +70,13 @@ public final class TownPlanLookSuite implements SnapshotSuite {
                             1920, 1080, cx, cy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, stem)));
                     out.add(new SnapshotArtifact(stem + "-close-open.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, cx, cy, CLOSE_CELLS).withoutRoofs().render(sim, stem)));
+                    if (!colony) {
+                        // The whole town at once, for its zoning: where the centre, the shops, the homes and the
+                        // industry stand.
+                        out.add(new SnapshotArtifact(stem + "-town.png", BattleReviewFrameRenderer.look(
+                                context.modRoot(), 1920, 1080, scale.width / 2f, scale.height / 2f, scale.width)
+                                .render(sim, stem)));
+                    }
                 }
             }
         }
