@@ -307,7 +307,7 @@ sight accessor, and the seen side reads the tolerant one that answers with plain
 grid line-of-sight for an entity that has no vision. The same rule covers a
 remembered contact that has since become a corpse. Every hull looks, and does so
 without becoming a perceiver: it is a squadless observer beside the body
-(`ScoutSight`; the light roles, below), out to a marine's sight, or to its mast's
+(`HullSightings`; the light roles, below), out to a marine's sight, or to its mast's
 where it has one, so the perception components stay off every chassis.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
@@ -1120,13 +1120,12 @@ The **spotter pickup** (`SCOUT_CAR`) is the pickup cut short on a shorter
 wheelbase, the fastest hull in the bay and the thinnest, with a salvaged sensor
 mast where the gun stood. Its job
 is information, and its mast sees past a crew's eyes. Every hull is a
-**squadless observer** (`ScoutSight`) out to `observeCells()`, a marine's sight
-unless a mast reaches farther: each tick it
-is a temporary ground-level fog source for its side when that side's sight is
-shown to the player — the same seam a sensor sweep or a recon ping uses — and it
-records every hostile combatant it has ordinary line of sight to within its
-range, which reaches the side's commander as direct contacts reported by no squad,
-as a fort gun's target does. No squad's beliefs are written: the scout tells
+**squadless observer** out to `observeCells()`, a marine's sight
+unless a mast reaches farther. To the player it is a fog contributor like a soldier
+or a mech (`fog-of-war-nouns.md`), cached and refreshed by cohort. To command each
+tick (`HullSightings`) it records every hostile combatant it has ordinary line of
+sight to within its range, which reaches the side's commander as direct contacts
+reported by no squad, as a fort gun's target does. No squad's beliefs are written: the scout tells
 command and the player, and a squad learns of what it saw by being sent toward
 it. Its sight is plain line of sight from the ground, so it has to be driven
 somewhere it can look. Acceptance is the `scout-car` scene: a position no marine
@@ -1319,7 +1318,7 @@ are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Ta
 drone (`DroneLook`; `art-source/drones/tt-drones/`).
 
 The **hover scout** (`HOVER_SCOUT`, Light lift) carries a sensor mast on the spotter pickup's
-terms (`ScoutSight`). It also carries a light twin pulse emitter of the drone-pulse family,
+terms (`HullSightings`). It also carries a light twin pulse emitter of the drone-pulse family,
 so it can screen, and a sensor pair. The stripped pickup stays the fastest hull in the
 bay.
 
