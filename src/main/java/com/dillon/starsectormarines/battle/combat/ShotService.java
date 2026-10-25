@@ -96,6 +96,24 @@ public final class ShotService {
         public final SpecialEquipmentDef specialEquipmentDef;
         /** Where on a person the round landed, or null when the victim has no parts or the payload is not a modeled round. */
         public final BodyPart part;
+        /** Where the round met the body ({@link BallisticResolver.BodyHit}), or NaN when the queue site has none. */
+        public float hitX = Float.NaN, hitY = Float.NaN;
+
+        /** Records where the round met the body, for what its landing shows. Returns this. */
+        public PendingImpact at(float x, float y) {
+            this.hitX = x;
+            this.hitY = y;
+            return this;
+        }
+
+        /** {@link #at} where {@code res}'s round met this impact's victim: its body contact, else where it stopped. */
+        public PendingImpact at(BallisticResolver.Resolution res) {
+            for (int i = res.bodyHits().size() - 1; i >= 0; i--) {
+                BallisticResolver.BodyHit hit = res.bodyHits().get(i);
+                if (hit.victimId() == victimId) return at(hit.x(), hit.y());
+            }
+            return at(res.endX(), res.endY());
+        }
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
                              float damage, float penetration, float moraleImpact,
