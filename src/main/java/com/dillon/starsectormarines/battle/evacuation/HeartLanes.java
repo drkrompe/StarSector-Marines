@@ -12,8 +12,11 @@ import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.battle.command.BarrageScreen;
@@ -112,6 +115,8 @@ public final class HeartLanes {
         int reaims;
         /** The lane's assault on its bore (`heart-bore-assault.md`), or {@code null} while it follows the guns. */
         BoreAssault assault;
+        /** The lane's mortar teams: each wave's first team, its leader carrying a tube. */
+        final Set<Integer> mortarTeams = new HashSet<>();
         /** Squads already given the current assault phase's order. */
         final Set<Integer> assaultOrdered = new HashSet<>();
         /** Whether the lane's last bore fell under its assault, so the next one is taken armour first. */
@@ -126,6 +131,21 @@ public final class HeartLanes {
             List<AlliedColumns.Departure> departures = new ArrayList<>();
             for (int seconds : waveSeconds) departures.add(new AlliedColumns.Departure(seconds, entryX, entryY));
             this.column = new AlliedColumns(departures, teams, ISSUER, risk, rng);
+        }
+
+        /**
+         * A wave's first team carries a field mortar (`heart-allied-tools-next.md`, mortar teams): it marches and
+         * fights with the lane, and at a bore it works the tube from the support line on the mouth.
+         */
+        @Override public void seated(BattleSimulation sim, int number, List<Integer> squads) {
+            // Broad Front only: The Burn has its battery for indirect fire.
+            if (!MORTAR_TEAMS || screen != null || squads.isEmpty()) return;
+            int team = squads.get(0);
+            long leader = sim.getSquad(team).leaderId;
+            if (leader == 0L) return;
+            SpecialEquipmentDef tube = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
+            sim.world().attachSpecialEquipment(leader, tube, tube.startingAmmo());
+            mortarTeams.add(team);
         }
 
         @Override public int[] destination(BattleSimulation sim) {
@@ -405,6 +425,8 @@ public final class HeartLanes {
         if (tick % RETARGET_TICKS == 0) {
             sampleMouths(sim);
             logSections(sim, tick);
+            for (Lane lane : lanes) moveSectionUp(sim, lane);
+            countTubes(sim);
         }
         for (Lane lane : lanes) {
             boolean formed = lane.squads != null && !lane.squads.isEmpty() && formation(sim, lane, tick);
@@ -449,6 +471,13 @@ public final class HeartLanes {
      */
     static final boolean BORE_ASSAULT = Boolean.parseBoolean(System.getProperty("battle.heart.boreAssault", "true"));
 
+    /**
+     * Whether each lane's waves bring a mortar team (`heart-allied-tools-next.md`). Off by default: in its first
+     * Broad Front run 52 teams fired 166 rounds and none of them on the mouth they were sent to work. Removal condition:
+     * its rounds land on its mission and the owner has seen that run; {@code false} is the control, riflemen only.
+     */
+    static final boolean MORTAR_TEAMS = Boolean.parseBoolean(System.getProperty("battle.heart.mortarTeams", "false"));
+
     /** What the lanes' assaults did, for the evidence (`heart-bore-assault.md`, Acceptance). */
     private int assaultsBegun, boresFallen, goneInOnSurge, goneInOnQuiet, fallenBack;
     /** Lane-seconds spent in each assault phase, by {@link BoreAssault.Phase} ordinal. */
@@ -466,7 +495,7 @@ public final class HeartLanes {
                 int[] log = sectionLog.computeIfAbsent(hull, h -> new int[]{tick, 0, 0, -1, lane.number, -1});
                 if (log[LOG_LOST] >= 0) continue;
                 if (sim.convoy().structure(hull) <= 0f) log[LOG_LOST] = tick;
-                else if (lane.assault == null) log[LOG_IDLE]++;
+                else if (lane.assault == null && (lane.advance == null || !lane.advance.active())) log[LOG_IDLE]++;
                 else log[LOG_FROM_BORE] = (int) Math.round(Math.hypot(sim.convoy().body(hull).x - lane.assault.boreX,
                         sim.convoy().body(hull).y - lane.assault.boreY));
             }
@@ -500,6 +529,59 @@ public final class HeartLanes {
         }
         return out.toString();
     }
+
+    /**
+     * Cells a fire section trails its lane's formation: as far back as its shorter launcher still reaches past the
+     * screen's contact range, so it fires over the line on whatever the front meets.
+     */
+    static final float SECTION_BEHIND = Math.max(ScreenedAdvance.DEFAULT_SPACING,
+            Math.min(reach(VehicleType.LRM_CARRIER), reach(VehicleType.FIRE_SUPPORT_APC))
+                    - ScreenedAdvance.DEFAULT_SCREEN_AHEAD - ScreenedAdvance.DEFAULT_CONTACT_RANGE
+                    - BoreAssault.RING_MARGIN_CELLS);
+
+    /**
+     * A lane on the move takes its fire section with it (`heart-allied-tools-next.md`): each living carrier joins the
+     * formation's support, behind the main, and its fire mission is the bore the lane is going for, else whatever the
+     * front sees. Counts each carrier-second on the move, and those with a launcher on a target.
+     */
+    private void moveSectionUp(BattleSimulation sim, Lane lane) {
+        if (lane.advance == null || !lane.advance.active()) return;
+        KnownBore next = sentFor(sim, lane);
+        SwarmBore bore = next == null ? null : bore(sim, next.key());
+        long mission = bore == null || bore.collapsed() ? 0L : bore.entityId();
+        for (long hull : lane.section) {
+            if (sim.convoy().structure(hull) <= 0f) continue;
+            if (!lane.advance.support().has(hull)) lane.advance.joinSupport(1, hull);
+            var turret = sim.convoy().turret(hull);
+            if (turret == null) continue;
+            turret.missionTargetId = mission;
+            sectionSecondsMoving++;
+            if (turret.targetId != 0L) sectionSecondsMovingFiring++;
+        }
+    }
+
+    private int mortarTeamCount() {
+        int n = 0;
+        for (Lane lane : lanes) n += lane.mortarTeams.size();
+        return n;
+    }
+
+    /** Rounds the allies' tubes have fired, and those on an assigned mission, as each tube last stood. */
+    private int mortarRounds, mortarMissionRounds;
+    private final Map<Long, int[]> tubeRounds = new HashMap<>();
+
+    private void countTubes(BattleSimulation sim) {
+        for (FieldMortarService.Tube tube : sim.fieldMortars().tubes()) {
+            int[] was = tubeRounds.computeIfAbsent(tube.entityId(), id -> new int[2]);
+            mortarRounds += tube.roundsFired() - was[0];
+            mortarMissionRounds += tube.missionRoundsFired() - was[1];
+            was[0] = tube.roundsFired();
+            was[1] = tube.missionRoundsFired();
+        }
+    }
+
+    /** Carrier-seconds a section moved up with its lane's formation, and those with a launcher on a target. */
+    private int sectionSecondsMoving, sectionSecondsMovingFiring;
 
     /** Lane armour's no-route refusals by what had the lane: its formation, its assault, or neither. */
     private final int[] armourRefusalsBy = new int[3];
@@ -629,6 +711,14 @@ public final class HeartLanes {
             if (!lane.assaultOrdered.add(squad)) continue;
             ObjectiveAssignment order;
             String why;
+            // A mortar team never goes in: it holds the support line and works its tube on the mouth in every phase.
+            if (lane.mortarTeams.contains(squad) && a.phase != BoreAssault.Phase.MOVING_UP) {
+                order = ObjectiveAssignment.defendArea(squad, a.supportX, a.supportY)
+                        .withFireMission(new ObjectiveAssignment.FireMission(a.boreX, a.boreY, BoreAssault.MOUTH_CELLS));
+                sim.assignSquadCommand(order, CommandAuthority.GARRISON, ISSUER,
+                        "lane " + lane.number + "'s mortar team works the mouth of " + a.boreKey);
+                continue;
+            }
             switch (a.phase) {
                 case MOVING_UP -> {
                     int[] at = squadCell(sim, squad);
@@ -686,13 +776,23 @@ public final class HeartLanes {
         List<int[]> taken = new ArrayList<>();
         int count = 0;
         for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) count++;
+        // The section trails the lane's militia up to the bore, and takes its reach post once they are on the line.
+        // A lane with no militia left has nobody to trail: the section takes its reach post behind the ring.
+        int[] militia = lane.squads == null ? null : laneBody(sim, lane, List.of());
+        double militiaFromBore = militia == null ? 0.0 : Math.hypot(militia[0] - a.boreX, militia[1] - a.boreY);
+        if (militia == null) militia = new int[]{a.supportX, a.supportY};
         int i = 0;
         for (long hull : lane.section) {
             if (sim.convoy().structure(hull) <= 0f) continue;
             VehicleType type = sim.convoy().vehicleType(hull);
             int[] post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX, a.nearY,
-                    BoreAssault.sectionRing(reach(type)), BoreAssault.slotDegrees(i++, count), taken, ARMOUR_SPACING);
-            // Where its reach has no ground on the arc, the nearest ring behind the support line, then the line itself.
+                    BoreAssault.sectionRing(reach(type), militiaFromBore, SECTION_BEHIND), BoreAssault.slotDegrees(i++, count),
+                    taken, ARMOUR_SPACING);
+            // Trailing with no ground on its arc, it keeps to its militia; at the bore, where its reach has no ground on
+            // the arc, the nearest ring behind the support line, then the line itself.
+            boolean trailing = BoreAssault.sectionRing(reach(type), militiaFromBore, SECTION_BEHIND)
+                    > BoreAssault.sectionRing(reach(type));
+            if (post == null && trailing) post = walkableNear(sim, militia[0], militia[1]);
             if (post == null) post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX,
                     a.nearY, BoreAssault.sectionRing(0f), BoreAssault.slotDegrees(i - 1, count), taken, ARMOUR_SPACING);
             if (post == null) post = walkableNear(sim, a.supportX, a.supportY);
@@ -839,7 +939,9 @@ public final class HeartLanes {
                 + " gone in on a spent surge, " + goneInOnQuiet + " on a quiet mouth, " + fallenBack
                 + " fallen back; lane-seconds by phase: " + phases + "; fire sections called " + sectionsCalled
                 + ", carriers on a bore " + sectionSecondsOnBore + " of " + sectionSeconds
-                + " carrier-seconds; machines in a living mouth "
+                + " carrier-seconds, moving up with a formation " + sectionSecondsMoving + " carrier-seconds, "
+                + sectionSecondsMovingFiring + " of them firing; mortar teams " + mortarTeamCount() + ", allied tube rounds "
+                + mortarRounds + " (" + mortarMissionRounds + " on a mission); machines in a living mouth "
                 + machineSecondsInMouth + " of " + machineSeconds + " machine-seconds";
     }
 
@@ -919,10 +1021,13 @@ public final class HeartLanes {
         lane.formedMachines.addAll(mechs);
         ScreenedAdvance.Element infantry = new ScreenedAdvance.Element().squads(lane.squads);
         ScreenedAdvance.Element armour = new ScreenedAdvance.Element().hulls(hulls).mechs(mechs);
+        List<Long> section = new ArrayList<>();
+        for (long hull : lane.section) if (sim.convoy().structure(hull) > 0f) section.add(hull);
         return ScreenedAdvance.builder("lane-" + lane.number, ISSUER, allied,
                         AdvanceRoute.straight(from[0], from[1], rally[0], rally[1]))
                 .screen(lane.armourLeads ? armour : infantry)
                 .main(lane.armourLeads ? infantry : armour)
+                .support(new ScreenedAdvance.Element().hulls(section), SECTION_BEHIND)
                 .side(Faction.ALLY)
                 .frontage(2f * lane.ground.halfWidth())
                 .startWhen(ScreenedAdvance.Trigger.now())

@@ -24,6 +24,21 @@ class CivilianEvacuationTrackerTest {
     }
 
     @Test
+    void aDeathReadAfterTheBodyWasMarkedLostStillCountsAsADeath() {
+        CivilianEvacuationTracker tracker = fullTracker(2);
+
+        assertTrue(tracker.markLost(1L));
+        assertTrue(tracker.markDead(1L));
+        assertTrue(tracker.isConfirmedDead(1L));
+        assertFalse(tracker.markDead(1L), "once only");
+        assertEquals(1, tracker.lostCount());
+
+        assertTrue(tracker.markEvacuated(2L));
+        assertFalse(tracker.markDead(2L), "the evacuated are not the dead");
+        assertFalse(tracker.isConfirmedDead(2L));
+    }
+
+    @Test
     void transitionsAreOneWayAndReplaySafe() {
         CivilianEvacuationTracker tracker = fullTracker(3);
 

@@ -361,7 +361,8 @@ public final class InfantryUnitPrep {
         float dx = sim.world().x(target) - sim.world().x(unit);
         float dy = sim.world().y(target) - sim.world().y(unit);
         if (dx * dx + dy * dy > special.range() * special.range()) return false;
-        return sim.getTacticalScoring().hasClearShot(unit, target);
+        return sim.getTacticalScoring().hasClearShot(unit, target)
+                && !sim.getTacticalScoring().dangerClose(unit, sim.world().x(target), sim.world().y(target));
     }
 
     private static boolean tickSmokeThrow(long unit, SpecialEquipmentDef special,

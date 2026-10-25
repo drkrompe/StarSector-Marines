@@ -598,6 +598,28 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void aSpitterWithTheShooterInItsLobRangeIsShotBeforeANearerRunner() {
+        BattleSimulation sim = openArena(40, 12);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 30f);
+        unit(sim, Faction.DEFENDER, UnitType.SWARM_RUNNER, 9, 5);
+        long spitter = unit(sim, Faction.DEFENDER, UnitType.SWARM_SPITTER, 17, 5);
+        // It lobs from inside its pack, which does not hide it.
+        unit(sim, Faction.DEFENDER, UnitType.SWARM_BRUTE, 18, 6);
+        unit(sim, Faction.DEFENDER, UnitType.SWARM_BRUTE, 18, 4);
+        unit(sim, Faction.DEFENDER, UnitType.SWARM_RUNNER, 19, 5);
+        assertEquals(spitter, sim.getTacticalScoring().findBestTarget(marine));
+        assertEquals(spitter, sim.getTacticalScoring().closestEnemyInAttackRange(marine));
+
+        BattleSimulation outOfReach = openArena(40, 12);
+        long other = unit(outOfReach, Faction.MARINE, 5, 5);
+        outOfReach.world().setAttackRange(other, 30f);
+        long runner = unit(outOfReach, Faction.DEFENDER, UnitType.SWARM_RUNNER, 9, 5);
+        unit(outOfReach, Faction.DEFENDER, UnitType.SWARM_SPITTER, 26, 5);
+        assertEquals(runner, outOfReach.getTacticalScoring().findBestTarget(other), "a Spitter that cannot reach waits");
+    }
+
+    @Test
     public void shouldKeepPursuingRetargetsForDefenderSymmetrically() {
         BattleSimulation sim = openArena(30, 12);
         long defender = unit(sim, Faction.DEFENDER, 5, 5);

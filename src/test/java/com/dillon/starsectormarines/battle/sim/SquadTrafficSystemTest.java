@@ -166,6 +166,47 @@ class SquadTrafficSystemTest {
         assertEquals(local.world.y(local.first), translated.world.y(translated.first) - 200f, 5e-5f);
     }
 
+    @Test
+    void aSquadMarchesInFilesOnOpenGroundInContactOrNotAndSingleFileInAPassage() {
+        for (boolean contact : new boolean[]{false, true}) {
+            float[] open = marchedLateral(false, contact);
+            for (int a = 0; a < open.length; a++) {
+                for (int b = a + 1; b < open.length; b++) {
+                    assertTrue(Math.abs(open[a] - open[b]) >= SquadTrafficSystem.FILE_SPACING * 0.8f,
+                            "members " + a + " and " + b + " share a file (contact " + contact + "): "
+                                    + open[a] + ", " + open[b]);
+                }
+            }
+        }
+        for (float y : marchedLateral(true, false)) {
+            assertEquals(10.5f, y, 0.3f, "a one-cell passage is walked single file");
+        }
+    }
+
+    /** Where across the lane each member of one three-strong squad stands after two seconds' march. */
+    private static float[] marchedLateral(boolean passage, boolean contact) {
+        Fixture f = new Fixture();
+        if (passage) {
+            for (int x = 0; x < 100; x++) {
+                for (int y = 0; y < 32; y++) if (y != 10) f.grid.setWalkable(x, y, false);
+            }
+        }
+        long[] members = f.squadOf(3);
+        Squad squad = f.squadOfMember(members[0]);
+        squad._engagedThisTick = contact;
+        for (int tick = 0; tick < 60; tick++) {
+            f.prepare(0L);
+            for (long member : members) {
+                if (!f.traffic.advance(member, squad, f.goalX, f.goalY, DT)) {
+                    f.movement.advanceAlongPath(f.world, member, DT);
+                }
+            }
+        }
+        float[] lateral = new float[members.length];
+        for (int i = 0; i < members.length; i++) lateral[i] = f.world.y(members[i]);
+        return lateral;
+    }
+
     private static SquadPlan plan(long member) {
         return plan(member, GOAL_X, GOAL_Y);
     }
@@ -245,6 +286,33 @@ class SquadTrafficSystemTest {
             movement.setPathRef(id, path);
             movement.setPathIdx(id, 0);
         }
+
+        /** One squad of {@code n} on the same cell and route, apart from the fixture's two. */
+        long[] squadOf(int n) {
+            long[] members = new long[n];
+            members[0] = roster.spawn(new EntitySpec("member", Faction.MARINE, UnitType.MARINE_BLUE,
+                    10 + shiftX, 10 + shiftY));
+            int squadId = roster.mintSquad(Faction.MARINE, members[0]);
+            for (int i = 1; i < n; i++) {
+                members[i] = roster.spawn(new EntitySpec("member", Faction.MARINE, UnitType.MARINE_BLUE,
+                        10 + shiftX, 10 + shiftY));
+            }
+            SquadPlan.Step step = new SquadPlan.Step(new AttackMove(goalX, goalY));
+            step.assignments.put("travel", List.of(members[0], members[1], members[2]));
+            for (long id : members) {
+                roster.squad().assignSquad(id, squadId);
+                repath(id);
+            }
+            Squad squad = roster.getSquad(squadId);
+            squad.aliveMembers = n;
+            squad.currentPlan = new SquadPlan(List.of(step));
+            // The fixture's own two stand clear, beyond the squad's reach.
+            world.setPos(first, 10.5f + shiftX, 28.5f + shiftY);
+            world.setPos(second, 12.5f + shiftX, 28.5f + shiftY);
+            return members;
+        }
+
+        Squad squadOfMember(long id) { return roster.getSquad(roster.squad().squadId(id)); }
 
         void prepare(long controlled) { traffic.prepare(view, controlled, DT); }
 

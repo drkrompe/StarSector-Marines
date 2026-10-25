@@ -31,6 +31,11 @@ import java.util.function.Consumer;
  * fighting, or hands the elements back to the mission. A screen worn below its floor either halts the
  * advance or hands the lead to the main.
  *
+ * <p>A third element, the <b>support</b>, may trail the main by {@code supportBehind} cells: fire-support carriers,
+ * mortar teams, whatever fights from behind the line by reaching over it. It moves up with the formation and fights
+ * from its slot like the others, but it never holds the advance or its rally: it follows rather than being waited
+ * for. A contact turns it with the rest, still behind the main.
+ *
  * <p>Mission-neutral and owned by the mission, which advances it from its own serial tick before its
  * {@link AlliedCommand}: an authored battle declares its elements, route, trigger and, where something
  * else sets how far it may go (a walking barrage), a limit; generic command can take the defaults. Hulls
@@ -101,6 +106,8 @@ public final class ScreenedAdvance {
         public Element squad(int id) { squads.add(id); return this; }
         public Element hulls(List<Long> ids) { hulls.addAll(ids); return this; }
         public Element hull(long id) { hulls.add(id); return this; }
+        /** Whether the hull or mech {@code id} is of this element. */
+        public boolean has(long id) { return hulls.contains(id) || mechs.contains(id); }
         public Element mechs(List<Long> ids) { mechs.addAll(ids); return this; }
         public Element mech(long id) { mechs.add(id); return this; }
 
@@ -109,6 +116,8 @@ public final class ScreenedAdvance {
 
     /** Default cells the screen's line stands in front of the main's. */
     public static final float DEFAULT_SCREEN_AHEAD = 6f;
+    /** Default cells the support's line trails the main's. */
+    public static final float DEFAULT_SUPPORT_BEHIND = 10f;
     /** Default cells between neighbours across the advance. */
     public static final float DEFAULT_SPACING = 6f;
     /** Default cells from a screen member within which a hostile is contact. */
@@ -186,10 +195,10 @@ public final class ScreenedAdvance {
     private final Limit limit;
     private final Faction side;
     private final Screening screening;
-    private final float screenAhead, spacing, frontage, contactRange, contactClear, contactHold;
+    private final float screenAhead, supportBehind, spacing, frontage, contactRange, contactClear, contactHold;
     private final Broken broken;
     private final Stalled stalled;
-    private final Element screen, main;
+    private final Element screen, main, support;
     private final Consumer<String> beats;
 
     private Phase phase = Phase.WAITING;
@@ -226,6 +235,8 @@ public final class ScreenedAdvance {
         stalled = b.stalled;
         screen = b.screen;
         main = b.main;
+        support = b.support;
+        supportBehind = b.supportBehind;
         beats = b.beats;
     }
 
@@ -246,7 +257,8 @@ public final class ScreenedAdvance {
         float contactRange = DEFAULT_CONTACT_RANGE, contactClear = CONTACT_CLEAR_SECONDS, contactHold = CONTACT_HOLD_SECONDS;
         Broken broken = Broken.HOLD;
         Stalled stalled = Stalled.PUSH_THROUGH;
-        Element screen = new Element(), main = new Element();
+        Element screen = new Element(), main = new Element(), support = new Element();
+        float supportBehind = DEFAULT_SUPPORT_BEHIND;
         Consumer<String> beats = beat -> { };
 
         Builder(String name, String issuer, AlliedCommand allied, AdvanceRoute route) {
@@ -258,6 +270,8 @@ public final class ScreenedAdvance {
 
         public Builder screen(Element element) { screen = element; return this; }
         public Builder main(Element element) { main = element; return this; }
+        /** The support, a line {@code behind} cells behind the main's that follows the formation and never holds it. */
+        public Builder support(Element element, float behind) { support = element; supportBehind = behind; return this; }
         public Builder startWhen(Trigger trigger) { start = trigger; return this; }
         /** The formation's main line never goes further along the route than this says. */
         public Builder limitedBy(Limit cap) { limit = cap; return this; }
@@ -291,6 +305,7 @@ public final class ScreenedAdvance {
     public AdvanceRoute route() { return route; }
     public Element screen() { return screen; }
     public Element main() { return main; }
+    public Element support() { return support; }
     /** Distance along the route of the main's line, or NaN before step-off. */
     public float anchor() { return anchor; }
     /** Cells along the route the screen's line stands in front of the main's. */
@@ -340,6 +355,14 @@ public final class ScreenedAdvance {
         joinedLate(mech ? 2 : 1, id);
     }
 
+    /** A squad, hull or mech joins the support. {@code kind} is 0 for a squad, 1 a hull, 2 a mech. */
+    public void joinSupport(int kind, long id) {
+        if (kind == 0) support.squads.add((int) id);
+        else if (kind == 1) support.hulls.add(id);
+        else support.mechs.add(id);
+        joinedLate(kind, id);
+    }
+
     /** A member joining after step-off is off the line until it has walked up to its slot. */
     private void joinedLate(int kind, long id) {
         if (phase != Phase.WAITING) paces.put(kind + ":" + id, new Pace(false, 0));
@@ -350,6 +373,7 @@ public final class ScreenedAdvance {
         int tick = sim.getSimTickIndex();
         Map<Integer, float[]> centres = squadCentres(sim, screen);
         centres.putAll(squadCentres(sim, main));
+        centres.putAll(squadCentres(sim, support));
         for (Slot slot : slots()) {
             float[] p = where(sim, slot.kind, slot.id, centres);
             if (p == null) continue;
@@ -403,6 +427,7 @@ public final class ScreenedAdvance {
         if (suspended || tick % DECIDE_TICKS != 0 || !active()) return;
         prune(sim, screen);
         prune(sim, main);
+        prune(sim, support);
         if (phase != Phase.WAITING) pace(sim);
         switch (phase) {
             case WAITING -> {
@@ -537,7 +562,11 @@ public final class ScreenedAdvance {
                     sim.assignSquadCommand(ObjectiveAssignment.attackMove((int) slot.id, cell[0], cell[1]),
                             CommandAuthority.GARRISON, issuer, name + ": " + reason);
                 }
-                case 1 -> allied.station(sim, slot.id, at[0], at[1]);
+                // A support hull faces the way the formation does, its launchers over the line.
+                case 1 -> {
+                    if (slot.role == SUPPORT) allied.station(sim, slot.id, at[0], at[1], slot.fx, slot.fy);
+                    else allied.station(sim, slot.id, at[0], at[1]);
+                }
                 default -> allied.stationMech(sim, slot.id, at[0], at[1]);
             }
         }
@@ -547,7 +576,7 @@ public final class ScreenedAdvance {
      * One squad's or machine's place in the formation: {@code index} of {@code count} in a line abreast through
      * {@code (x, y)}, across the facing {@code (fx, fy)}. {@code kind} is 0 for a squad, 1 a hull, 2 a mech.
      */
-    private record Slot(int kind, long id, boolean screen, float x, float y, float fx, float fy,
+    private record Slot(int kind, long id, int role, float x, float y, float fx, float fy,
                         int index, int count, float spacing) {
         int[] cell() {
             float across = (index - (count - 1) / 2f) * spacing;
@@ -570,22 +599,40 @@ public final class ScreenedAdvance {
                     ? new float[]{at[0] + dir[0] * screenAhead, at[1] + dir[1] * screenAhead}
                     : route.pointAt(anchor + screenAhead);
             float[] frontDir = facing != null ? dir : route.directionAt(anchor + screenAhead);
-            line(out, s, true, front, frontDir, 0, s.size());
-            line(out, m, false, at, dir, 0, m.size());
+            line(out, s, SCREEN, front, frontDir, 0, s.size());
+            line(out, m, MAIN, at, dir, 0, m.size());
         } else {
             int count = s.size() + m.size(), left = s.size() / 2;
-            line(out, s.subList(0, left), true, at, dir, 0, count);
-            line(out, m, false, at, dir, left, count);
-            line(out, s.subList(left, s.size()), true, at, dir, left + m.size(), count);
+            line(out, s.subList(0, left), SCREEN, at, dir, 0, count);
+            line(out, m, MAIN, at, dir, left, count);
+            line(out, s.subList(left, s.size()), SCREEN, at, dir, left + m.size(), count);
+        }
+        List<long[]> t = members(support);
+        if (!t.isEmpty()) {
+            float[] back = supportPoint(route, anchor, facing, supportBehind);
+            float[] backDir = facing != null ? dir : route.directionAt(Math.max(0f, anchor - supportBehind));
+            line(out, t, SUPPORT, back, backDir, 0, t.size());
         }
         return out;
     }
 
-    private void line(List<Slot> out, List<long[]> members, boolean isScreen, float[] at, float[] dir, int first, int count) {
+    static final int SCREEN = 0, MAIN = 1, SUPPORT = 2;
+
+    /**
+     * The support line's point: {@code behind} cells back along the route from the anchor while advancing (never
+     * before its start), or straight back from the main's point, away from the threat, while engaged.
+     */
+    static float[] supportPoint(AdvanceRoute route, float anchor, float[] facing, float behind) {
+        float[] at = route.pointAt(anchor);
+        if (facing != null) return new float[]{at[0] - facing[0] * behind, at[1] - facing[1] * behind};
+        return route.pointAt(Math.max(0f, anchor - behind));
+    }
+
+    private void line(List<Slot> out, List<long[]> members, int role, float[] at, float[] dir, int first, int count) {
         float gap = count > 1 ? Math.min(spacing, frontage / (count - 1)) : spacing;
         for (int i = 0; i < members.size(); i++) {
             long[] member = members.get(i);
-            out.add(new Slot((int) member[0], member[1], isScreen, at[0], at[1], dir[0], dir[1], first + i, count, gap));
+            out.add(new Slot((int) member[0], member[1], role, at[0], at[1], dir[0], dir[1], first + i, count, gap));
         }
     }
 
@@ -677,9 +724,9 @@ public final class ScreenedAdvance {
     private boolean inPlace(BattleSimulation sim, Element element) {
         int live = 0, there = 0;
         Map<Integer, float[]> centres = squadCentres(sim, element);
-        boolean isScreen = element == screen;
+        int role = element == screen ? SCREEN : element == main ? MAIN : SUPPORT;
         for (Slot slot : slots()) {
-            if (slot.screen != isScreen) continue;
+            if (slot.role != role) continue;
             float[] p = where(sim, slot.kind, slot.id, centres);
             // A straggler is left to catch up, here as in the body: it cannot keep the formation from rallying.
             if (p == null || !keepsUp(sim, slot.kind, slot.id)) continue;

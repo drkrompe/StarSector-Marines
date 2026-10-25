@@ -28,9 +28,8 @@ import java.util.function.BiPredicate;
  * one colourway to a shopfront. The plaza end is the {@link MarketSquare} set piece facing the street where its
  * lot holds it, framed by its own shops with the cross street between its two members running through it, and
  * otherwise an open paved square with a bandstand where it is large enough; the hall at the other end faces the
- * street like the shops. The cross streets' narrowed edges become
- * pavement. Draws only from the
- * map's random stream, inside the shell carve.
+ * street like the shops. The cross streets' narrowed edges become pavement. One shop keeps a licensed lobster
+ * kitchen in its back room. Draws only from the map's random stream, inside the shell carve.
  */
 final class MainStreetLayout {
 
@@ -54,6 +53,11 @@ final class MainStreetLayout {
     private static final String STALL = "doodad.galley-servery-counter";
     private static final String VAN_ID = "doodad.parked-box-van";
     private static final String BANDSTAND = "origin-park.bandstand-clean";
+    private static final String COOKER = "doodad.lobster-cooker";
+    private static final String TANK = "doodad.lobster-tank";
+    private static final String TANK_BURST = "doodad.lobster-tank-burst";
+    /** One main street in this many has its kitchen's tank burst, read off the shop's place. */
+    static final int BURST_ONE_IN = 3;
 
     private MainStreetLayout() { }
 
@@ -65,6 +69,7 @@ final class MainStreetLayout {
         BlockLeaf plaza = null, hall = null;
         int doorX = -1, doorY = -1;
         List<BlockLeaf> squareGround = new ArrayList<>();
+        boolean kitchen = false;
         for (BlockLeaf leaf : s.members()) {
             District.Role role = district.roles.get(leaf);
             if (role == District.Role.MARKET_SQUARE) {
@@ -77,6 +82,7 @@ final class MainStreetLayout {
                 continue;
             }
             int[] door = frontage(c, s, leaf, role == District.Role.LANDMARK, registry);
+            if (!kitchen && role != District.Role.LANDMARK) kitchen = kitchen(c, s, leaf);
             if (role == District.Role.LANDMARK) {
                 hall = leaf;
                 doorX = door[0];
@@ -204,6 +210,52 @@ final class MainStreetLayout {
                     s.horizontal ? 0 : step, s.horizontal ? step : 0);
             clearFrom = a + StreetDressing.AWNING_SPAN;
         }
+    }
+
+    /**
+     * A licensed lobster kitchen in the back of one of the member's shops: the range against a back wall with its
+     * pressure tank beside it, at the first run of three indoor cells, nearest the back, with a wall behind and room
+     * in front and no doorway among them. On one street in {@link #BURST_ONE_IN} the tank stands burst. Returns
+     * whether the kitchen was laid.
+     */
+    private static boolean kitchen(GenContext c, SpineClaim.Spine s, BlockLeaf leaf) {
+        boolean near = s.onNearSide(leaf);
+        int aLo = s.alongLo(leaf), aHi = s.alongHi(leaf);
+        // The step toward the back of the member, and the rows from its back edge toward the street.
+        int back = near ? -1 : 1, from = near ? s.acrossLo(leaf) : s.acrossHi(leaf);
+        int to = near ? s.acrossHi(leaf) : s.acrossLo(leaf);
+        for (int r = from; r != to; r -= back) {
+            for (int a = aLo + 1; a + 2 < aHi; a++) {
+                boolean fits = true;
+                for (int k = 0; k < 3 && fits; k++) fits = backRoom(c, s, a + k, r, back);
+                if (!fits) continue;
+                int dx = s.horizontal ? 0 : back, dy = s.horizontal ? back : 0;
+                int minX = Math.min(s.x(a, r), s.x(a + 1, r)), minY = Math.min(s.y(a, r), s.y(a + 1, r));
+                StreetDressing.standing(c.grid, c.topology, c.doodads, COOKER, minX, minY, dx, dy);
+                boolean burst = Math.floorMod(leaf.left * 7 + leaf.top * 13, BURST_ONE_IN) == 0;
+                StreetDressing.standing(c.grid, c.topology, c.doodads, burst ? TANK_BURST : TANK,
+                        s.x(a + 2, r), s.y(a + 2, r), dx, dy);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A shop's floor cell (tiled, or plain indoor) with a blank wall behind it toward {@code back}, open floor in front,
+     * and no doorway. The shell's walls are not yet tagged as walls when the street is laid; a wall is the blocked
+     * cell that is no fixture, doorway or window.
+     */
+    private static boolean backRoom(GenContext c, SpineClaim.Spine s, int a, int r, int back) {
+        int x = s.x(a, r), y = s.y(a, r);
+        int bx = s.x(a, r + back), by = s.y(a, r + back), fx = s.x(a, r - back), fy = s.y(a, r - back);
+        if (!c.grid.inBounds(bx, by) || !c.grid.inBounds(fx, fy)) return false;
+        GroundKind floor = c.topology.getGroundKind(x, y);
+        return (floor == GroundKind.TILE || floor == GroundKind.INDOOR) && c.grid.isWalkable(x, y)
+                && !c.topology.isFixture(x, y) && !c.grid.isDoorway(x, y)
+                && !c.grid.isWalkable(bx, by) && !c.topology.isFixture(bx, by) && !c.grid.isDoorway(bx, by)
+                && !c.topology.isWindow(bx, by)
+                && c.grid.isWalkable(fx, fy) && !c.topology.isFixture(fx, fy) && !c.grid.isDoorway(fx, fy);
     }
 
     /** The first run of a van's length clear of doors and corners, nearest the middle of the frontage. */

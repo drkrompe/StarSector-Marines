@@ -413,6 +413,7 @@ public final class MissionResolver {
                 .districtEscort(sim.getDistrictEscort()==null?null:sim.getDistrictEscort().report(sim))
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
+                .dustLedger(sim.getDustLedger()==null?null:sim.getDustLedger().report())
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .fieldSalvage(sim.fieldSalvage().recovered())

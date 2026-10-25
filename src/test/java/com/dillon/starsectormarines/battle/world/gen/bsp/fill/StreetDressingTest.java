@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Street dressing's placement rules: a gantry blocks only at its columns, and a boom gate only at its post, with the
- * arm laid out the way it points.
+ * arm laid out the way it points; a door canopy hangs over each run of doors, centred, one per span.
  */
 class StreetDressingTest {
 
@@ -32,6 +32,7 @@ class StreetDressingTest {
         previous = TileRegistry.installed();
         TileRegistry registry = new TileRegistry();
         registry.ingestSheet(new JSONObject(Files.readString(Path.of("mod/data/tilesets/industrial-street-kit.tileset.json"))));
+        registry.ingestSheet(new JSONObject(Files.readString(Path.of("mod/data/tilesets/street-dressing.tileset.json"))));
         TileRegistry.install(registry);
     }
 
@@ -67,6 +68,22 @@ class StreetDressingTest {
         assertEquals(3, arm.cellY);
         assertEquals(1, arm.footprintCellsX);
         assertEquals(StreetDressing.BOOM_REACH, arm.footprintCellsY);
+    }
+
+    @Test
+    void aCanopyHangsOverEachRunOfDoorsInFrontOfTheWall() {
+        NavigationGrid grid = floor();
+        // A three-wide loading door at x 2..4 and two single doors at x 7 and 8, close enough to share one canopy.
+        for (int x : new int[]{2, 3, 4, 7, 8}) grid.setDoorway(x, 6, true);
+        List<Doodad> doodads = new ArrayList<>();
+        StreetDressing.doorCanopies(grid, doodads, 1, 10, x -> new int[]{x, 6}, 0, 1);
+        assertEquals(2, doodads.size());
+        Doodad first = doodads.get(0), second = doodads.get(1);
+        assertEquals(StreetDressing.CANOPY, first.definitionId());
+        assertEquals(2, first.cellX, "centred on the door's middle");
+        assertEquals(5, first.cellY, "on the row in front of the wall");
+        assertEquals(StreetDressing.AWNING_SPAN, first.footprintCellsX);
+        assertEquals(6, second.cellX);
     }
 
     private static NavigationGrid floor() {

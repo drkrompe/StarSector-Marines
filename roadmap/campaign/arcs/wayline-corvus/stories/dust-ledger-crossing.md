@@ -1,7 +1,7 @@
 # The Dust Ledger — Saltwell Cross
 
-Status: IN PROGRESS — owner chose the freight-cover hook with pre-alarm side objectives (2026-10-25); pieces A
-(the map, `DustLedgerCrossing`) and B (mission behaviour) are built, C and D are under way.
+Status: IN PROGRESS — wired into the campaign: the chapter now plays Saltwell Cross with the quiet phase,
+burning ledger, broker and side objectives. A second, more detailed map pass and difficulty tuning remain.
 Written: 2026-10-25
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus)
@@ -183,18 +183,28 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 
 ## Acceptance
 
-- [ ] Authored map renders from the look preset; no capture point exists except
+- [x] Authored map renders from the look preset; no capture point exists except
   the mission's own objectives.
-- [ ] Every site is reachable from the apron; all three approaches stay open.
+- [x] Every site is reachable from the apron; all three approaches stay open.
+- [ ] Second map pass: detail, a road hierarchy and a larger compound with inner
+  structure, on a larger map if needed (owner, 2026-10-25).
 - [x] Quiet phase holds until a listed trigger; each trigger raises the alarm in
   a unit test.
 - [ ] Ledger burn stops at seizure and reports its grade; a burned ledger still
   completes the chapter.
 - [x] Broker surrender, escort, escape and clock departure each resolve.
 - [x] Each side objective pays off only if complete before the alarm.
-- [ ] Every victory debrief names Prell's authority and the Warion lead.
+- [x] Every victory debrief names Prell's authority and the Warion lead: the
+  debrief selects Castle's opening by grade, Mara's finding by grade and broker,
+  and Castle's close by broker (`MissionDebriefConversation.dustLedgerLines`).
 - [ ] Headless playback with two squads wins with acceptable losses, with and
-  without side objectives.
+  without side objectives. First playback (`commanderEvidence -Pmission=corvus
+  -Dbattle.corvus.chapter=DUST_LEDGER`) wins, but the autonomous company walks
+  into the ring, is sighted, and rushes the pump house. With six elite clerks
+  and gate guards it lost 24/24 infantry, the Hound winning alone. With the crew
+  all militia (current), it loses 12/24, against 1/24 on the old procedural map.
+  The pump house interior is the killing ground. Tune after the second map pass
+  rebuilds the compound.
 - [ ] Live play on Asharu in a campaign, including save/reload mid-arc.
 
 ## Open questions

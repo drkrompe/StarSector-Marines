@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1749a-f23a-7c82-a1c1-e7142e61b326",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1749a-f23a-7c82-a1c1-e7142e61b326\\exec-771c18da-b137-4d2e-9714-501931ed678e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\lobster-trade.raw.png",
+    "sha256": "d52d8cfe6580fa87f30cada04dd27043892896a3fe52c16af1783006bbd2fb0a",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\lobster-trade.prompt.txt",
+  "promptSha256": "794c8e70861c7cf2b892fa2febce86ec0851185ee47a2cbe8bfd6f19dc9e312b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact positions, outlines, sizes and empty space\nImage 2: Material and rendering style only; not layout\n\nUse case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1024 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites from the same game); do not copy its objects or layout.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground under the objects except where the guide draws spilled water.\n\nPaint four pieces of a luxury seafood trade's equipment, in reading order:\n1. Top left, a heavy round steel pressure tank seen from above: a thick bolted rim, a lid with a round glass porthole, and behind the glass in dark sea-green water one live red-orange lobster with its two claws exactly where the guide puts them; a small cream pressure gauge dial and a red valve handwheel at the rim.\n2. Top centre, the same pressure tank burst open: its lid torn outward into jagged bent steel petals, the inside dark and empty with nothing in it, and a pool of spilled grey-green sea water on the floor round its foot inside the guide's shape. Ominous but plain, no creature, no blood, no slime.\n3. Top right, a pressurised refrigerated shipping crate seen from above: a dark steel frame, a frosted off-white insulated body, a round bolted pressure hatch in the middle and a small red lobster pictogram in one corner (a simple silhouette, no letters).\n4. Bottom left, a licensed professional kitchen range seen from above: a stainless steel range with a dark backsplash along its top edge, a large clamped pressure cooker on the left burner with locking lid clamps and a red steam valve, an empty cast-iron burner on the right, and a small brass licence plaque on the right (no legible text).\n\nGrounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, worn steel, bolts and seams, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style, no text, numbers or letters anywhere.\n\nTrue alpha transparency around every object and in every gap of the guide; no floor, no background, no shadow slab, no border, no labels, no watermark. Paint only these four objects and nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\lobster-trade-guide.png",
+      "sha256": "7d7a7ae70d6e0411c686193c03a856589b90ed07c847b2d6211f1dd8f08ad945",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact positions, outlines, sizes and empty space"
+    },
+    {
+      "path": "art-source\\tilesets\\street-dressing.raw.png",
+      "sha256": "bb1abf554a049e73cb9b3379dca49b02ee6a3d82769c8e1cca6bb5dbe715725c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and rendering style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact geometry and the second for materials and rendering style."
+  ],
+  "usage": {
+    "input_tokens": 45353,
+    "cached_input_tokens": 37760,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 558,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.7
+}
