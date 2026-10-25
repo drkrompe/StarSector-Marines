@@ -80,7 +80,7 @@ reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
 | Switch line | A trench behind the middle | A trench and a barricaded street | A second row of barricaded blocks |
 | Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets, the boulevard before a back street |
 | Set pieces | Farmstead, posts in sandbag rings, eruption site in open ground | As rural | A tenement, posts in the biggest buildings, a cleared lot |
-| Base | A fenced yard on the main road | A fenced yard on the main road (*not built:* the town's goods yard) | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
+| Base | A fenced yard on the main road | A fenced yard on the main road, or the town's goods yard | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
 
 ## The beats' set pieces
 
