@@ -386,9 +386,13 @@ see one network. Planning is read-only until it commits, draws no random number,
 leaves are labelled and before compound claims, which take each district's compound first; a district
 that cannot claim leaves its leaves to fill as they would have. The spaceport campus is the first
 district, a cluster with no streets of its own. **Main street** is the first program: shopfronts behind
-pavements on both sides of one straight street, the kerb dressed as cover, a plaza at one end and a civic
-hall at the other, in a civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on `MapResult` (the centre line, the plaza and the hall's
-door).
+pavements on both sides of one straight street, the kerb dressed as cover (street lamps, planters, stalls,
+parked vans) and an awning over each shop door, a plaza at one end and a civic hall at the other, in a
+civic, mixed or residential pocket, so a high street can stand among houses. It publishes `MainStreet` on
+`MapResult` (the centre line, the plaza and the hall's door). **Street dressing** (`StreetDressing`) is the
+kit districts lay along their streets: standing pieces (lamps, gantry columns, jersey barriers, bollards,
+boom-gate posts) are see-through fixtures with cover; overhead pieces (awnings, pipe rack cells) and the
+boom-gate arm block nothing and carry no cover.
 
 A medical campus owns three complementary parcels: a purpose-partitioned clinic,
 a medical supply annex and an open service court. The annex handles clean stock,

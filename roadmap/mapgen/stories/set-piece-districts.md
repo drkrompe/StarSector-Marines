@@ -141,8 +141,20 @@ or mixed pockets, so the residential quarter weighs as much as the mixed town an
 among houses (owner, 2026-10-25); without it cities carried 5 of 24. Look:
 `createSnapshots -Psnapshot=main-street-look`.
 
-Open on main street: street lamps and awnings have no art (planters, benches, stalls and parked vans
-stand in); the market square takes the plaza role once its lot can be a district member (today it joins
+The kerb's rhythm is lamp, planter, lamp, stall, every third clear cell, each lamp's arm over the
+carriageway, and each shop door with a cell of frontage either side has an awning over the pavement in front
+of it, one colourway to a shop (striped, green canvas or steel, read off its place, no random drawn). The art
+is `street-dressing` (geometry-first, `templates/street-dressing-guide.py`).
+
+**Street dressing kit for the next two programs** (`StreetDressing`, art `industrial-street-kit`): the
+industrial zone lays its pipe gantries with `pipeRun` (a column and beam at each end and every `bay` cells,
+overhead rack between: across a street it is one gantry on its two kerbs, along one a pipe rack); the
+cordoned facility's gatehouses use `boomGate` (post and a three-cell arm a figure walks under),
+`jerseyBarrier` and `bollard`. Overhead pieces draw in the roof pass and block nothing. Preview staged on a
+main street: `createSnapshots -Psnapshot=street-kit-look`, which also frames the owner's style choice for
+main street (cast-iron lamps and canvas awnings against cobra-head lamps and steel canopies).
+
+Open on main street: the market square takes the plaza role once its lot can be a district member (today it joins
 two parcels after compound claims, so a district member is never its lot).
 
 ## Order

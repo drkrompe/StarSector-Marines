@@ -70,7 +70,11 @@ override layer: changing core generation policy remains a deliberate core edit.
     task point on its footprint whose claimant has that job in hand, the same
     fact an actor's work motion reads, so the two cannot disagree.
   A machine that stops keeps its place in its cycle and runs down rather than
-  snapping to rest. The fort's roof machinery is building art rather than a
+  snapping to rest. A **fixed overhead** part draws a piece in the roof pass,
+  above the people under it; an overhead doodad (a shop awning, a pipe rack
+  cell) is one whose motion is a fixed overhead part on itself, with no cover
+  and placed as no fixture, so it blocks neither movement nor sight
+  (`street-dressing-motions.tileset.json`). The fort's roof machinery is building art rather than a
   doodad and keeps its own rules, sharing only the running clock.
 - A **mapping definition** is the selection policy between generated concepts
   and registry ids: render-surface dispatch, named doodad pools, and tunables
