@@ -640,8 +640,8 @@ stability, industry or trade simulation is changed.
 freight run whose finite ledger ended in failure. Mara's correspondence preserves
 actual deliveries and losses without inventing casualties. The won Thunder Run
 carries the handoff: a written Jangala conversation, with a separate line for
-that run's company losses, ending with the broker on Asharu and Castle's order
-to plot a course there. Nothing in it grants a reward
+that run's company losses. It closes Wayline's brush with bankruptcy, leaves the
+cause unexplained and ends with Castle's order to plot a course for Asharu. Nothing in it grants a reward
 or advances progression. Existing recurring arrangements
 remain at their original site.
 
