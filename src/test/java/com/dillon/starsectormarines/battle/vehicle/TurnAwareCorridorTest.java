@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,6 +28,7 @@ class TurnAwareCorridorTest {
         assertAllSegmentsFeasible(result.points(), grid);
     }
 
+    /** Too narrow for the APC's fillet, and for its footprint to swing round on the spot. */
     @Test
     void rejectsAThreeCellElbowThatOnlyFitsTheStaticWidthMask() {
         NavigationGrid grid = new NavigationGrid(30, 30);
@@ -58,6 +60,48 @@ class TurnAwareCorridorTest {
                 }, VehicleType.BREAKTHROUGH_TANK, grid);
 
         assertNotNull(result.points(), "failed at " + result.failedX() + "," + result.failedY());
+    }
+
+    @Test
+    void pivotsAtABendNoFilletFitsWhereTheTankCanTurnOnTheSpot() {
+        NavigationGrid grid = new NavigationGrid(60, 60);
+        // A crossroads of two five-cell rides, as The Burn cuts them: room to turn on the spot at the middle, none for
+        // the turning circle.
+        carve(grid, 28, 0, 32, 59);
+        carve(grid, 0, 28, 59, 32);
+
+        float[][] route = {new float[]{30.5f, 30.5f, 22.5f}, new float[]{50.5f, 30.5f, 30.5f}};
+        TurnAwareCorridor.Result result = TurnAwareCorridor.refine(route, VehicleType.BREAKTHROUGH_TANK, grid);
+
+        assertNotNull(result.points(), "failed at " + result.failedX() + "," + result.failedY());
+        assertEquals(3, result.points()[0].length, "the pivot bend stays a sharp vertex");
+        assertEquals(30.5f, result.points()[0][1], 1e-4f);
+        assertEquals(30.5f, result.points()[1][1], 1e-4f);
+    }
+
+    @Test
+    void neverPlansAPivotForAWheeledHull() {
+        NavigationGrid grid = new NavigationGrid(60, 60);
+        carve(grid, 0, 0, 59, 59);
+        // Legs two cells long: no fillet fits, and open ground all round to turn on the spot.
+        float[][] route = {new float[]{30.5f, 30.5f, 28.5f}, new float[]{32.5f, 30.5f, 30.5f}};
+
+        assertNotNull(TurnAwareCorridor.refine(route, VehicleType.BREAKTHROUGH_TANK, grid).points());
+        assertNull(TurnAwareCorridor.refine(route, VehicleType.HEAVY_APC, grid).points(),
+                "a truck spinning in place is its last resort, not a route");
+    }
+
+    @Test
+    void stillFilletsABendTheTurningCircleFitsRatherThanPivoting() {
+        NavigationGrid grid = new NavigationGrid(60, 60);
+        carve(grid, 0, 0, 59, 59);
+
+        TurnAwareCorridor.Result result = TurnAwareCorridor.refine(
+                new float[][]{new float[]{30.5f, 30.5f, 10.5f}, new float[]{55.5f, 30.5f, 30.5f}},
+                VehicleType.BREAKTHROUGH_TANK, grid);
+
+        assertNotNull(result.points());
+        assertTrue(result.points()[0].length > 3, "open ground keeps the arc");
     }
 
     private static void assertAllSegmentsFeasible(float[][] path, NavigationGrid grid) {
