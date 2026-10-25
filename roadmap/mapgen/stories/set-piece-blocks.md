@@ -88,9 +88,8 @@ parcel alone.
 
 Measured over 24 Colony Breach colonies: a yard on 20, half of them with more
 than one bay, and the loading's truck standing in a yard's bay on 14. Where no
-bay can be driven out of, the loading parks by search at another warehouse;
-one colony found no stand there either and offers no loading. Over 12 stock
-city maps, a yard on 11. The industrial compound still lays a standard yard on
+bay can be driven out of, the loading parks by search at another warehouse,
+and every colony offered one. Over 12 stock city maps, a yard on 11. The industrial compound still lays a standard yard on
 its own ground where that ground holds one, so a map may have two.
 
 ## The factory row
