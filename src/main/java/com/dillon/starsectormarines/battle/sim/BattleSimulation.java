@@ -1541,6 +1541,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the corpse transmute: harvest takes up the body the transmute just made.
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
+        rosterService.modifiers().register(matriarchActions.runModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths

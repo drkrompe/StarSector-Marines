@@ -19,7 +19,8 @@ import java.util.function.LongPredicate;
  * estimate does not include, which is exactly how a strike gets surprised by one.
  *
  * <p>Every turret reaches the air by the area model (the air system's anti-air bubble); a dedicated anti-air mount
- * also fires real rounds or guided missiles, so it counts for more. A fort's anti-air yard is counted by its mounts' real
+ * also fires real rounds or guided missiles, so it counts for more, and counts wherever its own weapon reaches: a
+ * maw-grade spore colony or a flak gun twenty cells off threatens the point though it stands outside the bubble. A fort's anti-air yard is counted by its mounts' real
  * reach instead of the bubble (a guided battery covers far more than fourteen cells), and a yard whose console is
  * wrecked covers nothing. UNTUNED: the figures are first-pass and were not
  * set to hit a target.
@@ -28,6 +29,11 @@ public final class AaRisk {
 
     /** Cells within which a turret threatens an aircraft over the point; mirrors the air system's anti-air bubble. */
     public static final float THREAT_RADIUS_CELLS = 14f;
+    /**
+     * The farthest a dedicated anti-air emplacement outside a fort is looked for: past a maw-grade spore colony's and a
+     * flak gun's own reach, which are counted by that reach rather than the bubble.
+     */
+    static final float AA_REACH_CELLS = 30f;
     /** Share of an airframe one ordinary emplacement costs a pass over its bubble. UNTUNED. */
     static final float LOSS_PER_GUN = 0.30f;
     /** Further share a dedicated anti-air mount adds over an ordinary one. UNTUNED. */
@@ -54,7 +60,7 @@ public final class AaRisk {
         if (known == null) return NONE;
         World world = sim.world();
         LongBucket scratch = new LongBucket();
-        sim.getUnitIndex().gather(x, y, THREAT_RADIUS_CELLS, scratch);
+        sim.getUnitIndex().gather(x, y, Math.max(THREAT_RADIUS_CELLS, AA_REACH_CELLS), scratch);
         int guns = 0;
         int aa = 0;
         for (int i = 0; i < scratch.size; i++) {
@@ -62,11 +68,14 @@ public final class AaRisk {
             if (!world.isAlive(e) || !side.hostileTo(sim.identity().faction(e))) continue;
             if (sim.forts().airMountFort(e) != null) continue; // a fort's anti-air is counted by its real reach below
             if (!sim.identity().type(e).isTurret() || !known.test(e)) continue;
+            StructureDef structure = sim.turretState().isTurret(e) ? sim.turretState().structure(e) : null;
+            boolean antiAir = structure != null && structure.targetRole == TurretRole.AA && structure.mount != null;
+            // A dedicated anti-air mount threatens out to its own weapon's reach; every other turret, the bubble.
+            float reach = antiAir ? structure.mount.weapon.range : THREAT_RADIUS_CELLS;
+            float dx = world.x(e) - x, dy = world.y(e) - y;
+            if (dx * dx + dy * dy > reach * reach) continue;
             guns++;
-            if (sim.turretState().isTurret(e)) {
-                StructureDef structure = sim.turretState().structure(e);
-                if (structure != null && structure.targetRole == TurretRole.AA) aa++;
-            }
+            if (antiAir) aa++;
         }
         for (Fort fort : sim.forts().forts()) {
             if (fort.airMountIds().isEmpty() || fort.airDefenceWrecked()) continue;

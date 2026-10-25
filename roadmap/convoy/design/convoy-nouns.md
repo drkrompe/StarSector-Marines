@@ -1197,7 +1197,10 @@ observed round and flies at the weapon's ordinary accuracy. It fights from
 own line of sight there. It pays with no seats and less plate than the
 fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
 wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
-sight, and holds fire entirely without the spotter.
+sight, and holds fire entirely without the spotter. A carrier fitted with the
+**sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
+drones hold station beyond the bow, and what they see counts as eyes on the
+target (`SideObservers`), so it fires over a wall with nobody else looking.
 
 The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the
 pickup with a mech SRM-5 pod on its pintle ring and the technical's welded plate
