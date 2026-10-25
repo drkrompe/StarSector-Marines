@@ -153,10 +153,11 @@ public enum BuildingStamp {
     /**
      * Saltwell Cross's old terraforming pump house (`dust-ledger-crossing.md`): the pump hall on the west, and
      * off a one-cell corridor the broker's office and the radio room to the north, the counting room and the ledger
-     * room to the south. The ledger room opens on the corridor and through the counting room. Story map only.
+     * room to the south. Every office also opens on the yard, and the ledger room has four ways in (the corridor, the
+     * counting room, and yard doors east and south), so taking it is not one doorway's fight. Story map only.
      */
     PUMP_HOUSE("Pump house", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
-            "##nn#nn###nnn#####nnn##",
+            "##nn#nn###n+n#####n+n##",
             "#k.....k#d....k#c....c#",
             "w.......#......#......e",
             "#.......#d.....#......#",
@@ -166,10 +167,10 @@ public enum BuildingStamp {
             "#.......###+#######+###",
             "#.......#......#......#",
             "w.......#......#......e",
-            "#.......#......+......#",
+            "#.......#......+......+",
             "#.......#......#......#",
             "#k.....k#d.d.d.#k.....#",
-            "##s++s#####ss#####ss###");
+            "##s++s#####s+#####s+###");
 
     /**
      * The plans a city lot may draw. The farm buildings stand only where the

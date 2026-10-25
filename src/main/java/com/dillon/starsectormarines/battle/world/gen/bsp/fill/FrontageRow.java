@@ -67,7 +67,7 @@ final class FrontageRow {
     /** Semi-detached pairs and wide villas in a mixed town: broader plots, a deeper front garden. */
     static final Character VILLAS = new Character(8, 11, 2, 6, 9, 3);
     /** Main street shopfronts behind the district's own pavement: the narrowest, most rhythmic fronts. */
-    static final Character SHOPFRONTS = new Character(5, 7, 0, 5, 10, 3);
+    static final Character SHOPFRONTS = new Character(4, 6, 0, 5, 10, 3);
 
     /**
      * One building of a row in the lot's own frame: {@code along} runs with the street, {@code depth} from the

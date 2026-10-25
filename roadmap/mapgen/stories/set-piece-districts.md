@@ -140,11 +140,12 @@ another leaf, and the street through between its side rows, so it enters from th
 the back or through a back shop left out). Otherwise the larger end leaf is a plain plaza. The leaf at the other end is the civic hall;
 the rewrite narrows every other cross street between shops to three cells.
 `MainStreetLayout` stands each member's shops behind a pavement of one to three rows as a frontage row
-(`town-plan.md`): shopfronts five to seven cells wide sharing party walls, doors and windows on the street and
+(`town-plan.md`): shopfronts four to six cells wide sharing party walls, doors and windows on the street and
 on the service yard behind; a member too short for two stays one shop, and the hall is one building with its
 doors on the street alone (`BuildingPlacement.frontOnly`). It dresses the kerb with planters and counter stalls every third cell and a parked van per
 shop frontage, all kept out of doorways and corners, lays the market square over its pair (what the square
-leaves of the pair is brick paving, and the square publishes its `OpenSquare` as a standalone one does) or
+leaves of the pair along the street past it, five cells or more, is more shopfronts facing the street, the rest
+brick paving, and the square publishes its `OpenSquare` as a standalone one does) or
 paves the plain plaza with a bandstand where it is ten cells a side, and paves the spine and its cross-street stubs as city street, so the street finish lays
 asphalt where a colony would have left a lane. It publishes `MainStreet` on `MapResult.mainStreets`: the
 centre line from the plaza end to the hall end, the carriageway width, the plaza's bounds and the hall's

@@ -110,7 +110,7 @@ delay the burn, is deferred until the first two are played.
 ## Map
 
 Authored like Relief and Shepherd Basin: a Java recipe plus road, terrain and
-damage documents. About 192x112 cells. No compound filler and no grown garrison
+damage documents. 240x112 cells, wide enough for a compound of several yards. No compound filler and no grown garrison
 precinct; buildings publish only through `HeldPlaces`, so nothing becomes a
 capture point by accident. Surface palette follows the actual planet (ARID).
 
@@ -121,7 +121,7 @@ capture point by accident. Surface palette follows the actual planet (ARID).
 | Crawler road | The Harrow salvage yard with its stranded crawler, between market and compound. |
 | North | A rock escarpment (raised cliffs) with a standable ridge reached by ramps, overlooking the compound yard: an overwatch position to take during the quiet phase. |
 | South | The dry terraforming canal (excavated, impassable, see-through) with dead fields along it and two crossings. |
-| East | The pump house compound: walled yard, gate on the crawler road, counting room and ledger room with the burn barrel in the pump house's administrative interior, broker's office, radio room, crawler garage, bunkhouse, sentry posts. The broker's skimmer pad lies beyond the southern canal crossing. |
+| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The broker's skimmer pad lies beyond the southern canal crossing. |
 | Beyond | Open hardpan, wreck debris and scattered ruins framing the edges. |
 
 Three approaches to the compound must be real choices: through the market
@@ -186,7 +186,7 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 - [x] Authored map renders from the look preset; no capture point exists except
   the mission's own objectives.
 - [x] Every site is reachable from the apron; all three approaches stay open.
-- [ ] Second map pass: detail, a road hierarchy and a larger compound with inner
+- [x] Second map pass: detail, a road hierarchy and a larger compound with inner
   structure, on a larger map if needed (owner, 2026-10-25).
 - [x] Quiet phase holds until a listed trigger; each trigger raises the alarm in
   a unit test.
@@ -198,13 +198,13 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
   debrief selects Castle's opening by grade, Mara's finding by grade and broker,
   and Castle's close by broker (`MissionDebriefConversation.dustLedgerLines`).
 - [ ] Headless playback with two squads wins with acceptable losses, with and
-  without side objectives. First playback (`commanderEvidence -Pmission=corvus
-  -Dbattle.corvus.chapter=DUST_LEDGER`) wins, but the autonomous company walks
-  into the ring, is sighted, and rushes the pump house. With six elite clerks
-  and gate guards it lost 24/24 infantry, the Hound winning alone. With the crew
-  all militia (current), it loses 12/24, against 1/24 on the old procedural map.
-  The pump house interior is the killing ground. Tune after the second map pass
-  rebuilds the compound.
+  without side objectives. Baseline on the second-pass compound
+  (`commanderEvidence -Pmission=corvus -Dbattle.corvus.chapter=DUST_LEDGER`):
+  victory in 224 s, losing 5/24 infantry against a militia-only crew. The
+  autonomous company walks into the ring, is sighted (alarm at tick 2860) and
+  takes no side objective, so this measures the worst approach only. On the
+  first compound the same run lost 12/24, and 24/24 with elite clerks. The
+  side-objective runs and live player-controlled tuning remain.
 - [ ] Live play on Asharu in a campaign, including save/reload mid-arc.
 
 ## Open questions

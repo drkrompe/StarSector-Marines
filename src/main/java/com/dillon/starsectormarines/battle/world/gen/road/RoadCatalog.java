@@ -48,7 +48,7 @@ public final class RoadCatalog {
             case LAST_LIFT -> new int[]{192,128};
             case RELAY_NINE -> new int[]{208,128};
             case SHEPHERD_BASIN -> new int[]{304,224};
-            case DUST_LEDGER -> new int[]{192,112};
+            case DUST_LEDGER -> new int[]{240,112};
             default -> throw new IllegalArgumentException("Unknown mission road plan: " + path);
         };
         if (plan.width() != size[0] || plan.height() != size[1])

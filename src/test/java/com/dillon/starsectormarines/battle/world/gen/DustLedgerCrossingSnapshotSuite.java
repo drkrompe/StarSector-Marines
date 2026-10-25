@@ -15,7 +15,7 @@ import java.util.Set;
 
 /**
  * Saltwell Cross, The Dust Ledger's authored map ({@code dust-ledger-crossing.md}), through the look preset: the
- * whole map, then the apron, the market, the Harrow yard, the ridge, the compound and pump house, and both canal
+ * whole map, then the apron, the market, the Harrow yard, the ridge, the compound, its east yard and pump house, and both canal
  * crossings, at site and play zoom. Real ground, nothing drawn over it; every camera is placed from the recipe's own
  * sites, so a run before a change and one after frame the same ground. Opt-in. 1920x1080.
  */
@@ -54,7 +54,7 @@ public final class DustLedgerCrossingSnapshotSuite implements SnapshotSuite {
             DustLedgerCrossing.Cell ramp = DustLedgerCrossing.WEST_RAMP_FOOT;
             frame(out, look, sim, "06-ridge-west-ramp-close.png", ramp.x(), ramp.y() + 5, CLOSE_CELLS);
             DustLedgerCrossing.Area compound = layout.compound();
-            frame(out, look, sim, "07-compound-site.png", compound.centre().x(), compound.centre().y(), SITE_CELLS * .8f);
+            frame(out, look, sim, "07-compound-site.png", compound.centre().x(), compound.centre().y(), SITE_CELLS);
             DustLedgerCrossing.Cell ledger = layout.ledgerTarget();
             look.withoutRoofs();
             frame(out, look, sim, "08-pump-house-close.png", ledger.x() - 10, ledger.y() + 6, CLOSE_CELLS);
@@ -63,6 +63,7 @@ public final class DustLedgerCrossingSnapshotSuite implements SnapshotSuite {
             frame(out, look, sim, "09-south-crossing-play.png", south.x(), south.y() - 4, play);
             DustLedgerCrossing.Cell west = layout.canalCrossings().get(0);
             frame(out, look, sim, "10-west-crossing-play.png", west.x(), west.y() + 4, play);
+            frame(out, look, sim, "11-compound-east-yard-play.png", ledger.x() + 8, ledger.y() + 4, play);
         }
         return out;
     }
