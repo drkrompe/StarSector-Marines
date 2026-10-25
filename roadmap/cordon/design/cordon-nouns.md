@@ -271,7 +271,13 @@ system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
 **Logistics base.** The allies' depot behind the middle of the line: a
 fenced compound with a vehicle shed, stores and a muster yard
-(`FortressProgram.logisticsBase`). A city's base mixes that **shed** with two
+(`FortressProgram.logisticsBase`). A town's base is that shed or, as likely,
+the town's **goods yard**: a goods shed on the front side of the yard's road (or
+of its own drive across the middle, where the town's road only reaches the
+gate), flatbeds and cargo trucks on its apron beside a cargo loader, the
+freight waiting to go out stacked in rows, and behind the road the yard's
+workshop and the same two open-air gantries as a city's depots, an industrial
+fence round it all. A city's base mixes that **shed** with two
 constructions (`CordonConstruction`, picked from the seed, each equally
 likely): a **warehouse depot** (two freight warehouses on the road's front side
 with trucks on their apron, an industrial fence round the yard) and a **car
