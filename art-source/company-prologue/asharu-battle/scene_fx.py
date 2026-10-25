@@ -992,13 +992,13 @@ class SceneFx:
         self.rows.append(f'debris {key} x{count}')
         return True
 
-    def breach(self, key, at, toward, age_s, vent):
+    def breach(self, key, at, toward, age_s, vent, blast_m=None):
         ship = self.ship(key)
         if ship is None:
             return False
         with ship.kit() as (ctx, kit):
             self.m['swfx_impacts'].breach(ctx, self.now - round(age_s * self.fps), tuple(at), tuple(toward),
-                                          vent=vent, flame='stream')
+                                          vent=vent, flame='stream', blast_m=blast_m)
         self.rows.append(f'breach {key} {age_s:g} s old')
         return True
 

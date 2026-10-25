@@ -1071,7 +1071,9 @@ KEYFRAMES = {
             # option (c), coordinator 2026-10-24: the Falcon's two drawn bursts (103.71 and 104.5 s) set her
             # forward deck burning and tear plating off her bow; the fire spreads aft along her deck,
             # venting, with small secondary pops, until it reaches her magazine at 107.6 s and she breaks up
-            ('fire_on', 'lasher-lead', (49, -5, 5), (-.2, .5, 1), 105 - 103.71),
+            # its opening blast at 2.6 m, not 3.3: close on her bow the torn flash still held 625 white px
+            # on its third frame at full quality (S9b final c00, 2026-10-25; blob lint limit 600 px, 2 frames)
+            ('fire_on', 'lasher-lead', (49, -5, 5), (-.2, .5, 1), 105 - 103.71, 2.6),
             ('debris', 'lasher-lead', 25, (53, -3, -4), 104.5),
             ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
             ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
@@ -3158,9 +3160,11 @@ def blender_main(cfg):
                                            frame=anchor + round((fx[4] - spec['key_t']) * fps_s) - 8
                                            if len(fx) > 4 else None)
                     elif kind == 'fire_on':
-                        # optional 5th: how long before the key time it was lit (default 1.5 s)
+                        # optional 5th: how long before the key time it was lit (default 1.5 s); optional
+                        # 6th: the blast that opens it, metres (default swfx_impacts.breach's, 1.1 x its size)
                         done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3),
-                                           fx[4] if len(fx) > 4 else 1.5, vent=True)
+                                           fx[4] if len(fx) > 4 else 1.5, vent=True,
+                                           blast_m=fx[5] if len(fx) > 5 else None)
                     elif kind == 'smoke':
                         done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .2, .5), 5.0, vent=False)
                     elif kind == 'flares':
