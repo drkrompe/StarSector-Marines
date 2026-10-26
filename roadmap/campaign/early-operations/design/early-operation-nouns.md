@@ -455,16 +455,6 @@ company lift. No line names the fee; the amount lives in the offer's terms.
    Mara reports that dispatch can resume and refers the company to other
    Independent brokers. Her completed dossier preserves both chapter labels.
 
-**Secondhand Wings** bridges Counterattack and the later supply-route work without
-adding another mandatory chapter. Castle explains why Second Wind's repaired Hermes
-couriers are limiting the company; Mara locates a pair of surplus Aeroshuttles. The
-optional 5,000-credit purchase (13,000 when it also opens the still-sealed second bay)
-exchanges the old complement for two refurbished 6-seat boats. HQ retains a Boat Deck
-pointer until purchase. Story completion, not repeatable Depot Clearance, unlocks it.
-Boat ownership, payment, review, loss and the hull-specific adapters are defined in
-`company-view-nouns.md`. This interlude uses text and existing portraits, with no
-new narration recordings.
-
 Mission prose stays in-universe. Contacts address the captain, company, crews
 and dispatch office; transport requirements name company lift. Persistent
 casualties and deliveries are explained through manifests and remaining work,
@@ -551,8 +541,8 @@ and issue semantics remain in `progression-nouns.md` and `company-view-nouns.md`
 Wayline begins close to dissolution: losing the depot threatens the drivers'
 work and the cooperative's ability to stay together. Relief buys breathing
 room; recovering the depot restores somewhere to organize work. Mara's referrals,
-the recovered Hound and the optional Secondhand Wings purchase make the company's
-growing capability tangible. Purchased craft are celebrated only after delivery.
+the recovered Hound and the Hermes refits make the company's
+growing capability tangible.
 No chapter declares the player's finances secure or their roster intact.
 
 The supply-route finale gives a pause before the Corvus pursuit. Freight receipts

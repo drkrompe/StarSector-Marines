@@ -17,10 +17,6 @@ class CompanyNoticesTest {
         assertTrue(CompanyNotices.unread(roster, BoatBayState.DAMAGED).contains(CompanyNotices.Notice.SECOND_BAY));
         CompanyNotices.Notice.SECOND_BAY.review(roster);
         assertFalse(CompanyNotices.unread(roster, BoatBayState.DAMAGED).contains(CompanyNotices.Notice.SECOND_BAY));
-        roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
-        assertTrue(CompanyNotices.unread(roster, BoatBayState.DAMAGED).contains(CompanyNotices.Notice.SECONDHAND_WINGS));
-        CompanyNotices.Notice.SECONDHAND_WINGS.review(roster);
-        assertFalse(roster.boatDeck().secondhandWingsPurchased());
         assertTrue(CompanyNotices.unread(roster, BoatBayState.DAMAGED).contains(CompanyNotices.Notice.FIRST_REFIT));
     }
 
