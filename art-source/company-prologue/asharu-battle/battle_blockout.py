@@ -1196,6 +1196,22 @@ def _m5_point(d, up=0.0, side=0.0):
 # S11: entry, a chase from just behind the Colossus as plasma builds round both hulls and Morrow drifts
 # apart from her; the last of it breaks into the recording screen's static (asharu_preview)
 M11_T = 122.0
+
+
+# S11's wind is on trial (2026-10-26): ASHARU_M11_WIND=up or down (the default), one light check of both.
+# Remove the switch, keeping the winner, once the owner has picked from that check.
+M11_WIND_TILT = -.7 if os.environ.get('ASHARU_M11_WIND', 'down') == 'down' else .7
+
+
+def m11_wind(pose):
+    """S11's airflow over a hull: back along her nose, tilted off it (M11_WIND_TILT). Straight aft streams
+    every wake at the chase camera above and behind her, as S12's first span drew it (bow shocks as orbs,
+    wakes as dots): tilted down, the wake falls away under her toward the planet, about 55 degrees off
+    the lens; tilted up it leaves her back toward the camera (about 15 degrees off it)."""
+    n = _nose(pose)
+    w = (-n[0], -n[1], -n[2] + M11_WIND_TILT)
+    k = math.sqrt(sum(c * c for c in w))
+    return tuple(c / k for c in w)
 M11_COLOSSUS = at_time(K5_SHIPS['colossus'], 122.0)
 M11_MORROW = fly('morrow', K5_SHIPS['morrow'].at(M11_T), M11_T, [
     dict(t=118, hd=1, pt=-23, rl=10), dict(t=126, hd=-9, pt=-27, rl=-4, v=36)], v=44, wobble=1.0, thrust=None)
@@ -1404,8 +1420,10 @@ BLOCKED = {
                               dict(t=126, loc=track(M11_COLOSSUS, _along(_m11, 270, 65, 0), 1.0, .3),
                                    target=track(M11_COLOSSUS, _along(_m11, -40, 0, -75)), lens=38)], M11_T, shake=.3),
         ships={'colossus': M11_COLOSSUS, 'morrow': M11_MORROW},
-        # entry plasma is new effects work: a proxy here (asharu_preview 'plasma'), building from 118 s to 124 s
+        # entry plasma building from 118 s to 124 s: S12's hull-shaped sheath (swfx_entry) lit, the preview's
+        # sheath cone in the motion preview (asharu_preview 'plasma')
         fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5)],
+        bloom=1.0,          # the plasma is light, as in S12
         labels=['colossus', 'morrow']),
 }
 # S5 is lit (coordinator, 2026-10-24): it goes through the kit, the link and motion audits and the
@@ -1414,6 +1432,9 @@ KEYFRAMES['m5'] = BLOCKED.pop('m5')
 # S2 is lit too (owner, 2026-10-26: the shots missing from the cut). It has no effects to time; its key time is
 # the Lasher's, the one flown ship (M2_T).
 KEYFRAMES['m2'] = BLOCKED.pop('m2')
+# S11 is lit (owner, 2026-10-26): its plasma is S12's sheath, building (fx 'plasma'); its key time is
+# Morrow's, the one flown ship (M11_T).
+KEYFRAMES['m11'] = BLOCKED.pop('m11')
 SHOTS = {**KEYFRAMES, **BLOCKED}
 SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
@@ -2565,17 +2586,19 @@ def blender_main(cfg):
         import swfx_entry
         return swfx_entry
 
-    def entry_sheath(pose, key, t):
+    def entry_sheath(pose, key, t, wind=K6_WIND, glow=1.0, grow=None):
         """S12: a falling hull inside her plasma, shaped by her own hull (swfx_entry.sheath): the sheath
         white on the faces she meets the air with, the shock layer standing off them, flames peeling
-        off her silhouette into one wake that grows as she goes deeper since 126 s."""
+        off her silhouette into one wake that grows as she goes deeper since 126 s. S11 passes its own
+        wind, a glow that builds, and no growth (S12 opens at glow 1, growth 0)."""
         kit = entry_kit()
         e = bpy.data.objects.get('Ship | ' + key)
         if e is None:
             return
         verts, faces = kit.hull_soup(e)
-        kit.sheath('Entry ' + key, verts, faces, stage_fx, K6_WIND, SHIP_LENGTH[key], glow=1.0,
-                   streamers=22 if key == 'colossus' else 16, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5),
+        kit.sheath('Entry ' + key, verts, faces, stage_fx, wind, SHIP_LENGTH[key], glow=glow,
+                   streamers=22 if key == 'colossus' else 16, seed=len(key),
+                   grow=min(1.0, (t - 126.0) / 4.5) if grow is None else grow,
                    lights=stage_ships,      # the sheath's glow on her own windward plates
                    belly=e.matrix_world.to_3x3() @ Vector((0.0, 0.0, -1.0)))
 
@@ -3332,6 +3355,12 @@ def blender_main(cfg):
                     entry_sheath(spec['ships'][fx[1]], fx[1], spec.get('t', K6_T))
                 elif kind == 'wreckfall' and not cfg.get('motion_preview'):
                     wreckfall(spec.get('t', K6_T))
+                elif kind == 'plasma' and not cfg.get('motion_preview'):   # S11: ('plasma', ship, t in, t full)
+                    t_ = spec.get('t', fx[3])
+                    glow_ = max(0.0, min(1.0, (t_ - fx[2]) / (fx[3] - fx[2])))
+                    if glow_ > .02:
+                        entry_sheath(spec['ships'][fx[1]], fx[1], t_, wind=m11_wind(spec['ships'][fx[1]].at(t_)),
+                                     glow=glow_ * glow_, grow=0.0)
             c = spec['camera']
             aim(c['loc'], c.get('target'), c['lens'], c.get('look'), c.get('roll', 0.0))
             if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default
