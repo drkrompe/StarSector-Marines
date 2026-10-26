@@ -2,7 +2,7 @@
 
 Status: PLANNED — design; D2, D4 and D5 open on the picks page
 Written: 2026-10-26
-Updated: 2026-10-26 — owner answered lift (D3), old saves (D6) and other patterns (D7), which also settles the budget (D1).
+Updated: 2026-10-26 — owner answered lift (D3), old saves (D6), other patterns (D7) and ship changes; the budget (D1) follows.
 
 The standing model is in `company-view-nouns.md` (Boat Deck, Boat spare, Fitting)
 and `air-nouns.md` (fitted boat, Lift, the rotation). This story replaces the
@@ -46,9 +46,12 @@ swapping boats is no longer part of the campaign.
 - Other patterns (Aeroshuttle, Valkyrie, the bus-class freighters) remain
   employer and mission transports with their pattern numbers. The refit ladder
   is the company's Hermes's.
-- Reading of the owner's "no swapping boats", to confirm: the two Hermes move
-  with the company rather than with a hull, so a change of ship no longer
-  leaves boats behind or reconciles the deck against a new hull's pattern.
+- **The two Hermes belong to the company and move with it to any ship**
+  (owner). A change of ship never leaves a boat behind and never reconciles the
+  deck against the new hull's pattern: `BoatDeck.reconcile`'s left-behind path
+  and `LeftBehind` go, and the berths a hull offers only say where the boats
+  stand aboard her. A hull with fewer berths than boats still carries both; a
+  boat with no berth is stowed, flies like any other, and is not drawn in the bay.
 
 ## The six axes
 
@@ -118,6 +121,8 @@ fitting slots' legacy readings, go without a migration.
 - **D3 Hermes lift:** a separate lift part up to Heavy, costing no seats; a
   load slows the boat, and drive tiers that cost frame weight fix it.
 - **D6 Old saves:** none to support.
+- **Ship changes:** the two Hermes move with the company to any ship; none is
+  ever left behind.
 - **D7 Other patterns:** parts transfer between the company's boats, but
   upgrading or swapping boats leaves the campaign; the company flies two Hermes.
 
