@@ -2638,6 +2638,7 @@
     "briefingUiAssignTwoSquads": "Assign two squads / four ready each",
     "briefingUiReinforceCargo": "Reinforce +{0,number,integer}  ·  {1,number,integer} cargo",
     "briefingUiNeedNoMarines": "Need {0,number,integer}  ·  no marines",
+    "briefingUiNeedSquad": "Need {0,number,integer}  ·  found a squad",
     "briefingUiAssignShortfall": "Assign {0,number,integer}",
     "briefingUiBlocked": "Blocked",
     "briefingUiReadyToDeploy": "Ready to deploy",
