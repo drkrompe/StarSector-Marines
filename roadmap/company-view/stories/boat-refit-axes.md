@@ -189,7 +189,8 @@ Each slice is a green, integrable commit chain.
 6. **Shield arc in the dome shader.** An arc mask (facing, width) on
    `ShieldDomeShader`, the dome being the full circle, proven by
    `shaderEvidence` and a look shot; then boats draw their shield with it.
-   The mask is independent; wiring boats to it needs slice 5.
+   The mask is in (`ShieldDomeDraw`'s arc, clean bright ends, the flat
+   fallback cut to it); wiring boats to it needs slice 5.
 
 ## Owner answers (2026-10-26)
 

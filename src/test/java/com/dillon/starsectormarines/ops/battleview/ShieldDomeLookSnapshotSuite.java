@@ -36,7 +36,8 @@ import java.util.stream.IntStream;
  * <p>Every frame is the same ground under a different dome state, so what varies
  * is the dome: steady state for a friendly and a hostile dome, the fill ladder,
  * an impact sequence (six rounds of different weight, one still sheet and one
- * animation), and the collapse and recovery.
+ * animation), the collapse and recovery, and a directional shield's arc beside
+ * a full dome.
  */
 public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
 
@@ -77,6 +78,7 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         out.add(new SnapshotArtifact("impact-stills.png", impactStills(large)));
         out.add(SnapshotArtifact.colorAnimation("impacts.gif", impactFrames(large), 100));
         out.add(new SnapshotArtifact("collapse-recovery.png", collapse(renderer.render(map, SEED, 10))));
+        out.add(new SnapshotArtifact("arc.png", arcSheet(renderer.render(map, SEED, 20))));
         return out;
     }
 
@@ -184,6 +186,19 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
             g.dispose();
             caption(frame, px, py + HEIGHT / 3 - 30, WIDTH / 3, words[i]);
         }
+        return frame;
+    }
+
+    /** A full dome beside the same bubble cut to a 120 degree arc facing up, as a boat's shield is drawn. */
+    private static BufferedImage arcSheet(BufferedImage ground) {
+        BufferedImage frame = crop(ground, WIDTH, HEIGHT);
+        composite(frame, dome(WIDTH * 0.27f, HEIGHT * 0.5f, 20f, Faction.MARINE, 0.18f), 2.4f);
+        ShieldDomeDraw arc = dome(WIDTH * 0.73f, HEIGHT * 0.5f, 20f, Faction.MARINE, 0.18f);
+        arc.arcDirX = 0f;
+        arc.arcDirY = 1f;
+        arc.arcCos = (float) Math.cos(Math.toRadians(60));
+        composite(frame, arc, 2.4f);
+        caption(frame, "Full dome, and the same shield cut to a 120° arc facing up: nothing drawn outside it, each end a clean edge like the rim. 20 px a cell.");
         return frame;
     }
 

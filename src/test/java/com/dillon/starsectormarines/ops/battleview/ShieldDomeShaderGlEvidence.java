@@ -35,7 +35,8 @@ import static org.lwjgl.opengl.GL11.glViewport;
  * <p>The comparison is deliberately limited to what the two should agree on. The
  * shimmer and wobble are {@code sin}, which a GPU evaluates at lower precision
  * than {@link Math#sin}, and the per-cell hash is trig-free for the same reason.
- * Every scenario, the rim, the hexagonal field, the impacts and the collapse, is
+ * Every scenario, the rim, the hexagonal field, the impacts, the collapse and a
+ * directional shield's arc with its two ends, is
  * compared pixel for pixel against the model with a tolerance for 8-bit output
  * and single-precision trig. Most run with an empty pool; the twinkling lit
  * cells are exercised by the full-pool unit test and a live check.
@@ -88,7 +89,11 @@ class ShieldDomeShaderGlEvidence {
                     new Scenario("rippling", struck(steady(), 0.7f, 0.8f)),
                     new Scenario("flashing", flashing(steady())),
                     new Scenario("down, half recovered", down(0.5f, 0f)),
-                    new Scenario("collapsing", down(1f, 0.8f)));
+                    new Scenario("collapsing", down(1f, 0.8f)),
+                    new Scenario("arc 120 up", arc(steady(), 0f, 1f, 120f)),
+                    new Scenario("arc 90 slanted, struck", arc(struck(steady(), 0.05f, 1f), 0.6f, -0.8f, 90f)),
+                    new Scenario("arc 120, collapsing", arc(down(0.5f, 0.6f), 0f, 1f, 120f)),
+                    new Scenario("arc 300 flashing", arc(flashing(steady()), -1f, 0f, 300f)));
             for (Scenario scenario : scenarios) {
                 float[] expected = model(scenario.draw);
                 float[] drawn = drawWithShader(shader, scenario.draw);
@@ -234,6 +239,14 @@ class ShieldDomeShaderGlEvidence {
         d.impacts[5] = -0.3f;
         d.impacts[6] = age * 0.5f;
         d.impacts[7] = 0.6f;
+        return d;
+    }
+
+    /** Cuts {@code d} to an arc of {@code degrees} facing ({@code dirX}, {@code dirY}). */
+    private static ShieldDomeDraw arc(ShieldDomeDraw d, float dirX, float dirY, float degrees) {
+        d.arcDirX = dirX;
+        d.arcDirY = dirY;
+        d.arcCos = (float) Math.cos(Math.toRadians(degrees * 0.5f));
         return d;
     }
 
