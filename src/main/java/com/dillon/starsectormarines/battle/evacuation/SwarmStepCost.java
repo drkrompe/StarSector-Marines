@@ -60,6 +60,11 @@ public final class SwarmStepCost {
         return combined;
     }
 
+    /** Whether a stopped hull kept routes off this cell in the costing last published; worker-safe between publishes. */
+    public boolean isStandingHull(int x, int y) {
+        return x >= 0 && y >= 0 && x < width && y < height && built.get(y * width + x);
+    }
+
     private RouteCostField hullLayer() {
         float[] cost = new float[width * height];
         Arrays.fill(cost, 1f);

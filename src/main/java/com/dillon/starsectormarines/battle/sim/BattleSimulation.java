@@ -935,8 +935,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
     public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
 
+    /** The swarm's step cost, for asking which cells a stopped hull keeps routes off. */
+    public SwarmStepCost swarmStepCost() { return swarmStepCost; }
+
     /** Serial, once a tick: the swarm flow fields' step cost, the fire and every stopped hull ({@link SwarmStepCost}). */
-    public RouteCostField swarmStepCost() {
+    public RouteCostField publishSwarmStepCost() {
         vehicleRepulsion.forEachStandingHullCell(swarmStepCost::standingHull);
         return swarmStepCost.publish(fireHazard());
     }

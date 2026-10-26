@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The swarm's step cost ({@link SwarmStepCost}): a stopped hull's cells are dear, folded over the fire's. */
 class SwarmStepCostTest {
@@ -35,6 +37,19 @@ class SwarmStepCostTest {
         cost.standingHull(2, 1);
         assertNotSame(first, cost.publish(null), "a hull that moved is a new costing");
         assertNull(cost.publish(null), "a hull that drove off costs nothing again");
+    }
+
+    @Test
+    void aCellIsAStandingHullsFromThePublishThatMarkedIt() {
+        SwarmStepCost cost = new SwarmStepCost(W, H);
+        cost.standingHull(2, 1);
+        assertFalse(cost.isStandingHull(2, 1), "a mark counts once published");
+        cost.publish(null);
+        assertTrue(cost.isStandingHull(2, 1));
+        assertFalse(cost.isStandingHull(1, 1));
+        assertFalse(cost.isStandingHull(-1, 9), "off the map is nobody's");
+        cost.publish(null);
+        assertFalse(cost.isStandingHull(2, 1), "the hull drove off");
     }
 
     @Test
