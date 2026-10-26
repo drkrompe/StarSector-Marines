@@ -10,7 +10,7 @@
     "ARID": [
       { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
       { "seed": 10, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
-      { "seed": 14, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" }
+      { "seed": 18, "note": "rear north; redoubt guns 3-3-3-3; every redoubt laid (seed 14 left: once the industrial zone laid its works street, a road 27 wide ran along redoubt 2's edge)" }
     ],
     "ROCK": [
       { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
