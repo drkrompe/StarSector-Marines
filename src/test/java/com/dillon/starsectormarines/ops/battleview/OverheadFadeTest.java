@@ -45,6 +45,7 @@ class OverheadFadeTest {
         float half = PropMotionRenderSystem.ease(1f, low, t / 2);
         assertEquals((1f + low) / 2, half, 1e-5f);
         assertEquals(low, PropMotionRenderSystem.ease(low, low, t), 1e-5f, "holds at its target");
+        assertEquals(low, PropMotionRenderSystem.ease(1f, low, 0f), 1e-5f, "a still shows where the fade is going");
     }
 
     @Test

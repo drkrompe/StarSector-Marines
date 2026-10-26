@@ -1633,6 +1633,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         ravRunnerRigSystem.matriarchState(id -> matriarchActions.kind(id, simTickIndex).ordinal(),
                 id -> matriarchActions.ageSeconds(id, simTickIndex));
         ravRunnerRigSystem.bombardState(swarmBombards::windupShare, swarmBombards::plantedShare);
+        // each claw of a Bombard's tripod kicks up a little dust as it comes down
+        ravRunnerRigSystem.bombardFootfall((x, y, outX, outY, scale) -> emitGroundDust(x, y, outX * 0.5f * scale,
+                outY * 0.5f * scale, 0.22f * scale, EffectsService.DUST_WHEEL));
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);

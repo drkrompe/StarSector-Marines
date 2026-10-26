@@ -2205,7 +2205,8 @@ sounding, so many bodies doing one thing are thicker and somewhat louder than
 one without drowning the fire around them; two voices of one sound never start
 on one tick (the second waits a tick or two), and one body does not repeat
 itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
-the listener, so a pack reads as a pack, and the swarm is heard only on ground
+the listener, so a pack reads as a pack (the Bombard's from its tripod landing, as its rig steps it, rather than
+from ground covered), and the swarm is heard only on ground
 the player has seen. A body fed to a bore is swallowed as it
 reaches the mouth: a wet gulp (the Spitter's lob, slowed) near -29 LUFS and, a
 beat later, its landing down inside (the body thud, deeper) near -33, pitched by

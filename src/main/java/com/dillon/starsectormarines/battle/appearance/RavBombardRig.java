@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+import com.dillon.starsectormarines.battle.mech.MechGaitState.FootEvent;
+import com.dillon.starsectormarines.battle.mech.MechGaitState.FootPhase;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 
 /**
@@ -11,9 +13,13 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
  *
  * <p>The rig frame is the body's own, in cells, centred on the sim position (the master's {@link #ANCHOR_ROW}): x to
  * the right, y forward, z up. Each walking leg keeps its claw planted where it last stepped and turns about its hip
- * to reach it, so the legs push back as the body passes over them; a leg pulled too far from where it rests lifts and
- * steps ahead, in two alternating sets of three, crab-fashion. The same rule steps the legs round as it turns on the
- * spot. The feeler claws beside the head twitch. Standing, the tail lies almost flat out behind and sways.
+ * to reach it, so the legs push back as the body passes over them. It walks as the mechs do ({@link MechGaitState}),
+ * a set of three at a time: once a claw is pulled too far from where it rests, its whole tripod lifts together and
+ * steps ahead while the other three carry it, then all six stand for a beat before the next set lifts. The drawn
+ * shell sways onto the tripod carrying it, on the mech's waist spring, and drops a little as each set lands; each
+ * landing and lifting is a {@link FootEvent} that a footfall and dust key off. The same rule steps the legs round as it
+ * turns on the spot. The feeler claws beside the head twitch. Standing, the tail lies almost flat out behind and
+ * sways.
  *
  * <p>Planting is a dig: through the sim's plant the legs stamp outward into the creep, side against side, the body
  * dipping at each stroke and sinking lower, and it settles with a slight bounce once set. Uprooting is the same in
@@ -77,13 +83,17 @@ public final class RavBombardRig {
     static final float WHIP_SECONDS = 0.12f, SETTLE_SECONDS = 0.9f, LASH_DEG = 9f, LASH_HZ = 2.6f;
     private static final float RESET_JUMP = 0.3f;
 
-    /** The scuttle: cells walked per bob cycle and how far the body bobs, cells. */
-    private static final float STRIDE = 0.55f, BOB = 0.015f;
     /**
-     * A step: how far (cells) a planted claw may be pulled from where it rests before the leg lifts, how far past its
-     * rest it lands, as a share of the pull, and how long it is in the air.
+     * A step: how far (cells) a planted claw may be pulled from where it rests before its set lifts, how far past its
+     * rest it lands, as a share of the pull, how long a set is in the air, and the beat all six stand between sets.
      */
-    static final float STEP_REACH = 0.13f, STEP_LEAD = 0.8f, STEP_SECONDS = 0.13f;
+    static final float STEP_REACH = 0.2f, STEP_LEAD = 0.8f, STEP_SECONDS = 0.26f, SUPPORT_SECONDS = 0.12f;
+    /**
+     * The sway onto the carrying tripod, as the mech's waist: the share of the way to its middle the drawn shell
+     * leans, the most it leans (cells), and the spring's stiffness (1/s^2), critically damped. Then the drop as a set
+     * lands: the shell's downward speed, a share of its size a second, on its height spring.
+     */
+    static final float SWAY_WEIGHT = 0.7f, SWAY_MAX = 0.12f, SWAY_K = 44f, LAND_DROP = 0.6f;
     /** A lifted leg draws this much larger at the top of its step; a reaching leg stretches between these. */
     static final float STEP_LIFT = 0.08f, REACH_MIN = 0.88f, REACH_MAX = 1.15f;
     /** The feeler claws' twitch, degrees and Hz. */
@@ -119,10 +129,10 @@ public final class RavBombardRig {
 
     private float bodyX, bodyY, facingDeg;
     private boolean started;
-    private float stride, motion, time;
+    private float motion, time;
     private float lastCooldown = Float.NaN;
     private float sinceFling = Float.MAX_VALUE;
-    private float curl, flingFrom, windup, plant, plantRaw = Float.NaN, bob, glow;
+    private float curl, flingFrom, windup, plant, plantRaw = Float.NaN, glow;
     private float digSplayL, digSplayR, digSwing;
     private float emptied;
     /** The springs: the body's height (share of its size), its lurch forward (cells) and its rock (degrees). */
@@ -151,6 +161,13 @@ public final class RavBombardRig {
     private final float[] legAngle = new float[LEGS], legReach = new float[LEGS], legLift = new float[LEGS];
     private final float[] restX = new float[LEGS], restY = new float[LEGS];
     private boolean feetSet;
+    /** The set in the air (-1 none), the one that steps next, the beat left before either may lift. */
+    private int airSet = -1, nextSet, landedNow = -1;
+    private float supportLeft;
+    /** The drawn shell's lean onto its supports, body frame (cells), and its speed. */
+    private float swayX, swayY, swayVX, swayVY;
+    private long footEvents;
+    private FootEvent lastTouchdown, lastLiftOff;
     /** Each joint's yaw off the facing (degrees) and the tail's points root to sling, x y z in the rig frame. */
     private final float[] yaw = new float[TAIL_SEGMENTS];
     private final float[] lash = new float[TAIL_SEGMENTS];
@@ -199,7 +216,6 @@ public final class RavBombardRig {
         bodyY = posY;
         facingDeg = facing;
         moved /= scale;
-        stride += moved / STRIDE;
         float moving = smooth((moved / dt - MOVE_BELOW) / (MOVE_FULL - MOVE_BELOW));
         motion += (moving - motion) * (1f - (float) Math.exp(-dt / 0.2f));
         time += dt;
@@ -270,8 +286,6 @@ public final class RavBombardRig {
                 : 0f;
         if (sinceFling > WHIP_SECONDS) emptied = Math.max(0f, emptied - dt / REFILL_SECONDS);
 
-        float cycle = (float) (2 * Math.PI * stride);
-        bob = motion * BOB * (float) Math.sin(2 * cycle);
         stepLegs(dt);
         float flash = sinceFling < WHIP_SECONDS ? GLOW_FLASH * (1f - sinceFling / WHIP_SECONDS) : 0f;
         float full = Math.min(GLOW_PEAK,
@@ -280,12 +294,15 @@ public final class RavBombardRig {
     }
 
     /**
-     * The walking legs: a planted claw stays where it is in the world while the body moves and turns over it; one
-     * pulled more than {@link #STEP_REACH} from its rest lifts, if no leg of the other set is in the air, and lands
-     * past its rest by {@link #STEP_LEAD} of the pull. Each leg is then turned about its hip and stretched to reach its
-     * claw. Feet hold still through the dig of a plant or an uproot; set, it steps round as it turns.
+     * The walking legs, a tripod at a time: a planted claw stays where it is in the world while the body moves and
+     * turns over it. Once one is pulled more than {@link #STEP_REACH} from its rest and all six have stood for
+     * {@link #SUPPORT_SECONDS}, its set lifts together (the set due next, unless only the other needs it) and lands each
+     * claw past its rest by {@link #STEP_LEAD} of its pull. The shell leans toward the carrying tripod and drops as a
+     * set lands. Each leg is then turned about its hip and stretched to reach its claw from where the shell is drawn.
+     * Feet hold still through the dig of a plant or an uproot; set, it steps round as it turns.
      */
     private void stepLegs(float dt) {
+        landedNow = -1;
         double rad = Math.toRadians(facingDeg);
         float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
         for (int i = 0; i < LEGS; i++) {
@@ -296,38 +313,40 @@ public final class RavBombardRig {
             System.arraycopy(restY, 0, footY, 0, LEGS);
             feetSet = true;
         }
-        boolean inAir0 = false, inAir1 = false;
-        for (int i = 0; i < LEGS; i++) {
-            if (!stepping[i]) continue;
-            if (LEG_SET[i] == 0) inAir0 = true;
-            else inAir1 = true;
-        }
-        // the claws hold still while they dig in or heave free; set, it turns on them as it walks on them
-        boolean dug = plantRaw > 0f && plantRaw < 1f;
-        for (int i = 0; i < LEGS; i++) {
-            if (LEG_SET[i] < 0) continue;
-            if (stepping[i]) {
+        if (airSet >= 0) {
+            float t = 0f;
+            for (int i = 0; i < LEGS; i++) {
+                if (LEG_SET[i] != airSet) continue;
                 // aimed at where the rest is now, led on by the pull it lifted with, so a moving body's step lands ahead
                 float toX = restX[i] + (restX[i] - fromX[i]) * STEP_LEAD * 0.5f;
                 float toY = restY[i] + (restY[i] - fromY[i]) * STEP_LEAD * 0.5f;
-                stepT[i] = Math.min(1f, stepT[i] + dt / STEP_SECONDS);
+                stepT[i] = t = Math.min(1f, stepT[i] + dt / STEP_SECONDS);
                 float e = smooth(stepT[i]);
                 footX[i] = fromX[i] + (toX - fromX[i]) * e;
                 footY[i] = fromY[i] + (toY - fromY[i]) * e;
-                if (stepT[i] >= 1f) stepping[i] = false;
-                continue;
             }
-            float pull = (float) Math.hypot(footX[i] - restX[i], footY[i] - restY[i]) / scale;
-            boolean otherInAir = LEG_SET[i] == 0 ? inAir1 : inAir0;
-            if (!dug && pull > STEP_REACH && !otherInAir) {
-                stepping[i] = true;
-                stepT[i] = 0f;
-                fromX[i] = footX[i];
-                fromY[i] = footY[i];
-                if (LEG_SET[i] == 0) inAir0 = true;
-                else inAir1 = true;
+            if (t >= 1f) land();
+        } else {
+            supportLeft = Math.max(0f, supportLeft - dt);
+            // the claws hold still while they dig in or heave free; set, it turns on them as it walks on them
+            boolean dug = plantRaw > 0f && plantRaw < 1f;
+            if (supportLeft <= 0f && !dug) {
+                float pull0 = pull(0), pull1 = pull(1);
+                boolean need0 = pull0 > STEP_REACH, need1 = pull1 > STEP_REACH;
+                int set = -1;
+                if (need0 && need1) {
+                    float due = nextSet == 0 ? pull0 : pull1, other = nextSet == 0 ? pull1 : pull0;
+                    set = other > due * 1.35f ? 1 - nextSet : nextSet;
+                } else if (need0) {
+                    set = 0;
+                } else if (need1) {
+                    set = 1;
+                }
+                if (set >= 0) liftSet(set);
             }
         }
+        sway(fx, fy, dt);
+        float ox = swayX, oy = swayY + lurch + tremble;
         for (int i = 0; i < LEGS; i++) {
             if (LEG_SET[i] < 0) {
                 legAngle[i] = FEELER_DEG * (float) Math.sin(2 * Math.PI * FEELER_HZ * time + i);
@@ -335,8 +354,9 @@ public final class RavBombardRig {
                 legLift[i] = 0f;
                 continue;
             }
-            float hx = (HIP_COL[i] - CENTRE_COL) / U_LAYER, hy = (ANCHOR_ROW - HIP_ROW[i]) / U_LAYER;
-            float rx = (FOOT_COL[i] - CENTRE_COL) / U_LAYER - hx, ry = (ANCHOR_ROW - FOOT_ROW[i]) / U_LAYER - hy;
+            float hx = (HIP_COL[i] - CENTRE_COL) / U_LAYER + ox, hy = (ANCHOR_ROW - HIP_ROW[i]) / U_LAYER + oy;
+            float rx = (FOOT_COL[i] - CENTRE_COL) / U_LAYER - (hx - ox), ry = (ANCHOR_ROW - FOOT_ROW[i]) / U_LAYER
+                    - (hy - oy);
             float dx = (footX[i] - bodyX) / scale, dy = (footY[i] - bodyY) / scale;
             float bx = dx * fy - dy * fx - hx, by = dx * fx + dy * fy - hy;
             double turn = Math.atan2(by, bx) - Math.atan2(ry, rx);
@@ -345,6 +365,82 @@ public final class RavBombardRig {
             legReach[i] = Math.max(REACH_MIN, Math.min(REACH_MAX, reach));
             legLift[i] = stepping[i] ? (float) Math.sin(Math.PI * stepT[i]) : 0f;
         }
+    }
+
+    /** The furthest any claw of {@code set} is pulled from its rest, cells of an adult. */
+    private float pull(int set) {
+        float most = 0f;
+        for (int i = 0; i < LEGS; i++) {
+            if (LEG_SET[i] == set) most = Math.max(most, (float) Math.hypot(footX[i] - restX[i], footY[i] - restY[i]));
+        }
+        return most / scale;
+    }
+
+    /** Lifts {@code set}'s three claws together. */
+    private void liftSet(int set) {
+        airSet = set;
+        for (int i = 0; i < LEGS; i++) {
+            if (LEG_SET[i] != set) continue;
+            stepping[i] = true;
+            stepT[i] = 0f;
+            fromX[i] = footX[i];
+            fromY[i] = footY[i];
+        }
+        lastLiftOff = event(FootPhase.LIFT, set);
+    }
+
+    /** The set in the air lands: the shell drops onto it, and all six stand for a beat. */
+    private void land() {
+        for (int i = 0; i < LEGS; i++) {
+            if (LEG_SET[i] == airSet) stepping[i] = false;
+        }
+        lastTouchdown = event(FootPhase.LAND, airSet);
+        landedNow = airSet;
+        liftV -= LAND_DROP;
+        nextSet = 1 - airSet;
+        airSet = -1;
+        supportLeft = SUPPORT_SECONDS;
+    }
+
+    /** A footfall of {@code set}, at the middle of its three claws. */
+    private FootEvent event(FootPhase phase, int set) {
+        float x = 0f, y = 0f;
+        for (int i = 0; i < LEGS; i++) {
+            if (LEG_SET[i] != set) continue;
+            x += footX[i] / 3f;
+            y += footY[i] / 3f;
+        }
+        return new FootEvent(++footEvents, phase, set, x, y);
+    }
+
+    /**
+     * The drawn shell's lean, as {@link MechGaitState}'s waist: while a set is in the air, toward the middle of the
+     * tripod carrying it, by {@link #SWAY_WEIGHT} of the way and at most {@link #SWAY_MAX}; with all six down, back
+     * over the middle. A critically damped spring, in the body's frame.
+     */
+    private void sway(float fx, float fy, float dt) {
+        float tx = 0f, ty = 0f;
+        if (airSet >= 0) {
+            int carrying = 1 - airSet;
+            for (int i = 0; i < LEGS; i++) {
+                if (LEG_SET[i] != carrying) continue;
+                float dx = (footX[i] - bodyX) / scale, dy = (footY[i] - bodyY) / scale;
+                tx += (dx * fy - dy * fx) / 3f;
+                ty += (dx * fx + dy * fy) / 3f;
+            }
+            tx *= SWAY_WEIGHT;
+            ty *= SWAY_WEIGHT;
+            float m = (float) Math.hypot(tx, ty);
+            if (m > SWAY_MAX) {
+                tx *= SWAY_MAX / m;
+                ty *= SWAY_MAX / m;
+            }
+        }
+        float damping = 2f * (float) Math.sqrt(SWAY_K);
+        swayVX += ((tx - swayX) * SWAY_K - swayVX * damping) * dt;
+        swayVY += ((ty - swayY) * SWAY_K - swayVY * damping) * dt;
+        swayX += swayVX * dt;
+        swayY += swayVY * dt;
     }
 
     /** Where leg {@code i}'s claw rests in the world, the body facing ({@code fx}, {@code fy}). */
@@ -432,7 +528,8 @@ public final class RavBombardRig {
         lurch = ease(lurch, 0f, dt, 0.1f);
         rock = ease(rock, 0f, dt, 0.1f);
         tremble = 0f;
-        bob = 0f;
+        swayX = ease(swayX, 0f, dt, 0.1f);
+        swayY = ease(swayY, 0f, dt, 0.1f);
         glow = (float) Math.exp(-sinceDeath / RUPTURE_SECONDS * 3f);
         burst.advance(dt);
     }
@@ -504,8 +601,20 @@ public final class RavBombardRig {
         float buckle = dead ? BUCKLE * RavRunnerRig.easeOut(sinceDeath / 0.3f) : 0f;
         return 1f + SPLAY * plant + (left ? digSplayL : digSplayR) + brace + buckle;
     }
-    /** How far the body is shifted forward, cells: the walk's bob, the crouch, the throw's lurch, the tremble. */
-    public float shift() { return bob + lurch + tremble; }
+    /** How far the body is shifted forward, cells: the lean onto its supports, the crouch, the throw's lurch, the tremble. */
+    public float shift() { return swayY + lurch + tremble; }
+    /** How far the body is shifted to its right, cells: its lean onto the tripod carrying it. */
+    public float sideShift() { return swayX; }
+    /** The last set to land and the last to lift, as the mechs report theirs; {@code null} before the first. */
+    public FootEvent lastTouchdown() { return lastTouchdown; }
+    public FootEvent lastLiftOff() { return lastLiftOff; }
+    /** The set that landed on the last tick, or -1. */
+    public int landedSet() { return landedNow; }
+    /** The set leg {@code i} steps with, -1 for a feeler. */
+    public static int legSet(int i) { return LEG_SET[i]; }
+    /** Where leg {@code i}'s claw is in the world, cells. */
+    public float clawX(int i) { return footX[i]; }
+    public float clawY(int i) { return footY[i]; }
     /** The body's turn off the facing, degrees: the rock after a throw. */
     public float rock() { return rock; }
     /** The shell's draw scale: lower as it plants, crouches and slumps, pressed down by the throw. */
