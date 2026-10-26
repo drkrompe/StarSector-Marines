@@ -412,6 +412,97 @@ def marine(name, suit=False):
     return d.write()
 
 
+
+# -------------------------------------------------------------------- aircraft
+#
+# An aircraft is one plan view seen from above, nose up, centred in the frame. It
+# has no located damage in the briefing, so every panel is the HULL; the panels
+# still tile with the doll's gap so a craft reads in the same hand as the mechs.
+# Each follows its battle sprite's silhouette, not its detail.
+
+AIR_W = 170          # a plan needs no second view, so its frame is square-ish and the craft reads larger
+AIR_X = AIR_W // 2
+
+
+def aircraft(name, panels, pairs=(), details=()):
+    """``panels`` sit on the centre line; each of ``pairs`` is authored on the left and mirrored."""
+    d = Doll(name, width=AIR_W)
+    for points in panels:
+        d.panel("HULL", points, AIR_X)
+    for points in pairs:
+        d.pair("HULL", "HULL", points, AIR_X)
+    d.detail("HULL", details, AIR_X)
+    return d.write()
+
+
+def talon():
+    """Twin rounded lobes either side of a thin spine, a long needle nose, two exhausts."""
+    return aircraft("air-talon",
+                    [[(-3, 12), (3, 12), (6, 40), (-6, 40)],
+                     [(-8, 40), (8, 40), (9, 132), (-9, 132)]],
+                    [[(-54, 84), (-40, 56), (-12, 46), (-12, 128), (-50, 128)],
+                     octagon(-44, 130, -16, 150, 5)])
+
+
+def wasp():
+    """A drone on an X: a slim body, two swept arms forward, two back."""
+    return aircraft("air-wasp",
+                    [[(-3, 14), (3, 14), (7, 40), (-7, 40)],
+                     [(-9, 40), (9, 40), (11, 126), (-11, 126)],
+                     [(-8, 128), (8, 128), (6, 146), (-6, 146)]],
+                    [[(-70, 28), (-62, 22), (-12, 70), (-12, 84)],
+                     [(-12, 94), (-12, 108), (-62, 152), (-70, 146)]])
+
+
+def broadsword():
+    """A broad armoured wedge: a wide hull, flat side wings, gun barrels forward, twin engines."""
+    return aircraft("air-broadsword",
+                    [[(-16, 18), (16, 18), (26, 58), (24, 132), (-24, 132), (-26, 58)]],
+                    [[(-66, 92), (-56, 64), (-30, 52), (-28, 132), (-62, 138)],
+                     [(-46, 28), (-38, 28), (-38, 60), (-46, 62)],
+                     octagon(-30, 134, -8, 156, 5)])
+
+
+def thunder():
+    """A long spear: a needle nose ahead of a tapered hull, swept rear wings, guns at the shoulders."""
+    return aircraft("air-thunder",
+                    [[(-4, 4), (4, 4), (9, 62), (-9, 62)],
+                     [(-14, 62), (14, 62), (20, 140), (-20, 140)]],
+                    [[(-60, 128), (-22, 84), (-22, 140), (-58, 146)],
+                     [(-34, 40), (-27, 40), (-27, 100), (-34, 104)],
+                     octagon(-24, 142, -6, 164, 4)])
+
+
+def longbow():
+    """A heavy X-frame: a short body, four arms, big engine pods on the rear pair, missiles forward."""
+    return aircraft("air-longbow",
+                    [[(-8, 14), (8, 14), (16, 32), (-16, 32)],
+                     [(-18, 34), (18, 34), (22, 104), (-22, 104)]],
+                    [[(-64, 34), (-56, 24), (-20, 60), (-22, 76)],
+                     [(-22, 86), (-20, 102), (-48, 128), (-58, 118)],
+                     octagon(-80, 118, -50, 150, 6),
+                     [(-74, 6), (-66, 6), (-66, 34), (-74, 30)]])
+
+
+def dagger():
+    """A long fuselage between two outrigger tanks, short wings joining them, tail fins."""
+    return aircraft("air-dagger",
+                    [[(-4, 6), (4, 6), (9, 26), (-9, 26)],
+                     [(-11, 26), (11, 26), (12, 140), (-12, 140)]],
+                    [[(-48, 98), (-14, 74), (-14, 116), (-48, 118)],
+                     [(-64, 34), (-54, 34), (-52, 146), (-64, 146)],
+                     [(-32, 146), (-14, 132), (-14, 156), (-30, 160)]])
+
+
+def mudskipper():
+    """A boxy gunship shuttle: a blunt cab, a deep body with turret pods, two engines astern."""
+    return aircraft("air-mudskipper",
+                    [[(-26, 18), (26, 18), (34, 42), (-34, 42)],
+                     [(-34, 44), (34, 44), (34, 118), (-34, 118)]],
+                    [[(-50, 62), (-36, 54), (-36, 104), (-50, 98)],
+                     octagon(-34, 120, -6, 152, 6)])
+
+
 def main():
     written = [
         tank("tank"),
@@ -431,6 +522,13 @@ def main():
         warden("mech-warden"),
         marine("marine"),
         marine("marine-suit", suit=True),
+        talon(),
+        wasp(),
+        broadsword(),
+        thunder(),
+        longbow(),
+        dagger(),
+        mudskipper(),
     ]
     print("wrote", ", ".join(written))
 

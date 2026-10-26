@@ -23,7 +23,7 @@ final class BriefingHints {
                         ? Strings.get("briefingUiHintCaptainStationed") : Strings.get("briefingUiHintCaptainCommander"));
         bindChoices(binder, markup, props, "powerRows", Strings.get("briefingUiHintCommandPower"));
         bindChoices(binder, markup, props, "sourceRows", Strings.get("briefingUiHintPowerSource"));
-        bindChoices(binder, markup, props, "carrierRows", Strings.get("briefingUiHintFighterCover"));
+        BriefingAir.bindHints(binder, markup, props);
         binder.bind(markup.requireElement("mission-survey"), surveyHint(props));
         for (BriefingViewModel.SquadPicture squad : BriefingViewModel.fieldSquads(props)) {
             binder.bind(markup.requireElement(squad.id()), squad.hint());

@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullReach;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.Arrays;
 
@@ -56,6 +59,8 @@ public final class SwarmMovement {
     static final int RUNNER_BLOW = 8;
     /** How far from a barricade cell's centre a body can strike it. */
     private static final float BARRICADE_REACH = 1.6f;
+    /** Cells down the prey field a body looks for a stopped hull barring its way: about a blow's reach and the hull's margin. */
+    static final int HULL_LOOKAHEAD = 3;
     /** Cells down the field a body close to its target looks for a barricade it should tear through. */
     private static final int BARRICADE_LOOKAHEAD = (int) LOCAL_PURSUIT_RANGE + 2;
     /** A destination within this many cells (on each axis) is pathed to with the bounded search. */
@@ -93,6 +98,7 @@ public final class SwarmMovement {
                 && Faction.DEFENDER.hostileTo(sim.identity().faction(target));
         boolean onField = field && (!isLocal(body, target, sim) || behindBarricade(body, sim));
         if (onField && assaultBarricade(body, sim)) return;
+        if (onField && assaultHull(body, sim)) return;
         if (onField && moveToward(body, SwarmGoal.PREY, sim)) return;
         // Close in, a victim the bounded search cannot reach is not close: the field goes round to it.
         if (!ensurePath(body, sim.world().cellX(target), sim.world().cellY(target), retargeted, !field, sim)
@@ -140,7 +146,7 @@ public final class SwarmMovement {
     public static void prepare(BattleSimulation sim) {
         SwarmFlowFields fields = sim.getGrid().swarmFlowFields();
         int tick = sim.getSimTickIndex();
-        fields.setStepCost(sim.fireHazard());
+        fields.setStepCost(sim.publishSwarmStepCost());
         for (SwarmGoal goal : SwarmGoal.values()) {
             if (!fields.isWanted(goal.ordinal(), tick)) continue;
             int[] sources = goal == SwarmGoal.PREY
@@ -196,6 +202,39 @@ public final class SwarmMovement {
         if (sim.combat().cooldownTimer(body) <= 0f) {
             int blow = sim.identity().type(body) == UnitType.SWARM_BRUTE ? SwarmBruteBehavior.WALL_BLOW : RUNNER_BLOW;
             sim.swarmStrikes().postBlow(body, bx, by, null, blow);
+            sim.combat().setCooldownTimer(body, SwarmPressureBehavior.strikeCooldown(body, sim));
+        }
+        return true;
+    }
+
+    /**
+     * Strikes the stopped hull the prey field leads this body into, once it stands within its reach of the hull's
+     * side. A hull costs the field the most a step can ({@link SwarmStepCost}), so the field leads into one only where
+     * it bars the only way, and there the swarm tears at it as at a barricade: a Runner's or a Brute's own blow, on
+     * its own cooldown, so a vehicle parked as a barricade holds as long as its hull lasts. True when the body is at
+     * such a hull, struck or waiting to; it holds there rather than pressing into it.
+     */
+    static boolean assaultHull(long body, BattleSimulation sim) {
+        UnitType type = sim.identity().type(body);
+        if (type != UnitType.SWARM_RUNNER && type != UnitType.SWARM_BRUTE) return false;
+        SwarmFlowFields.Field field = sim.getGrid().swarmFlowFields().field(SwarmGoal.PREY.ordinal());
+        if (field == null) return false;
+        int[] ahead = field.descend(sim.getGrid(), sim.world().cellX(body), sim.world().cellY(body), HULL_LOOKAHEAD);
+        long hull = 0L;
+        for (int i = 1, n = Paths.cellCount(ahead); i < n && hull == 0L; i++) {
+            int x = Paths.cellX(ahead, i), y = Paths.cellY(ahead, i);
+            if (sim.swarmStepCost().isStandingHull(x, y)) hull = sim.vehicleRepulsion().standingHullAt(x, y, Faction.DEFENDER);
+        }
+        if (hull == 0L) return false;
+        GroundBody at = sim.convoy().body(hull);
+        VehicleType hullType = sim.convoy().vehicleType(hull);
+        float side = HullReach.gap(at.x, at.y, at.facingDegrees, hullType.visualLengthCells / 2f,
+                hullType.visualWidthCells / 2f, sim.world().x(body), sim.world().y(body));
+        if (side > sim.combat().attackRange(body)) return false;
+        sim.clearPath(body);
+        if (sim.combat().cooldownTimer(body) <= 0f) {
+            sim.applyDamage(hull, body, sim.combat().attackDamage(body), 0f, type.moraleImpact);
+            sim.swarmCues().post(SwarmCues.Kind.STRIKE, body, sim);
             sim.combat().setCooldownTimer(body, SwarmPressureBehavior.strikeCooldown(body, sim));
         }
         return true;

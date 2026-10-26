@@ -3,15 +3,10 @@ package com.dillon.starsectormarines.marine;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Squad-founding stores for tests: cargo counts, a credit balance and whether the fleet is docked
- * at a civilized port (it is, unless a test says otherwise). A spend takes the whole bill or nothing;
- * it counts the bills it paid.
- */
+/** Squad-founding stores for tests: cargo counts and a credit balance. A spend takes the whole bill or nothing; it counts the bills it paid. */
 public final class TestStores implements SquadFoundingResources {
     public final Map<String, Integer> stock = new HashMap<>();
     public long credits;
-    public boolean atMarket = true;
     public int spends;
 
     /** Enough marines and credits for {@code squads} founding bills. */
@@ -23,11 +18,8 @@ public final class TestStores implements SquadFoundingResources {
         return stores;
     }
 
-    public TestStores away() { atMarket = false; return this; }
-
     @Override public int available(String commodityId) { return stock.getOrDefault(commodityId, 0); }
     @Override public long credits() { return credits; }
-    @Override public boolean atMarket() { return atMarket; }
     @Override public String commodityName(String commodityId) { return commodityId; }
     @Override public String commodityIcon(String commodityId) { return ""; }
 

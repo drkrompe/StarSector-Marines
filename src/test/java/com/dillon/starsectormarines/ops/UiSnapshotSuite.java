@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
+import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
@@ -59,6 +60,7 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -159,6 +161,7 @@ import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Arrays;
+import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -1397,6 +1400,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
             BriefingLift.install(document, instance, props);
+            BriefingAir.install(document, instance, props);
             BriefingViewModel.installMusters(document, instance, props);
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
@@ -1859,7 +1863,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command",
-                "empty", "empty-no-port", "large", "guide", "guide-replenish"), true, true);
+                "empty", "large", "guide", "guide-replenish"), true, true);
     }
 
     /**
@@ -1883,7 +1887,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (String state : states) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            int count = state.startsWith("empty") ? 0 : state.equals("large") ? 120 : 12;
+            int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
             roster.bootstrapInitialComplement(count * MarineSquad.CAPACITY);
             MarineCaptain captain = new MarineCaptain("Tamsin Vale", "graphics/portraits/portrait_hegemony06.png", Rank.MAJOR, 0f);
             roster.add(captain);
@@ -1905,8 +1909,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
             }
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
-                    // Away from a port, the raise tile's bill ends in NO PORT and the tile refuses.
-                    snapshotEquipmentResources(), snapshotSquadFoundingResources(!state.endsWith("no-port")), () -> 0,
+                    snapshotEquipmentResources(), snapshotSquadFoundingResources(), () -> 0,
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             if (state.equals("medic")) {
                 // Field Medicine marks each of the officer's squads' medic billet.
@@ -1947,7 +1950,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 viewModel.command().selectCommand(captain.id());
             }
-            if (!state.startsWith("guide") && !state.startsWith("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
+            if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
             if (state.startsWith("guide-")) {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
@@ -2547,7 +2550,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 // The fleet away from a port: credits in hand, but BUY is refused and the strip says so.
                 new SnapshotArtifact("boat-no-port-fabrication.png", renderBoatDeck(context, renderer, 1920, 1080, false, true, NO_PORT)),
                 new SnapshotArtifact("boat-no-port-fitting.png", renderBoatDeck(context, renderer, 1920, 1080, true, false, NO_PORT)),
-                new SnapshotArtifact("mech-no-port.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "no-port")));
+                new SnapshotArtifact("mech-no-port.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "no-port")),
+                // A hostile port, decided by vanilla's trade mode: dark and unseen its black market sells; identified, it refuses.
+                new SnapshotArtifact("mech-hostile-port-black-market.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "hostile-SNEAK")),
+                new SnapshotArtifact("mech-hostile-port-refused.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "hostile-NONE")));
     }
 
     static List<SnapshotArtifact> renderEquipmentSheets(SnapshotContext context) throws Exception {
@@ -2830,7 +2836,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         MechLabViewModel viewModel = new MechLabViewModel(
                 reactor, bay, recycling ? snapshotMachineShop(Reclamation.TOOLED)
                         : snapshotPurse("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 60_000,
-                                "no-port".equals(materialHint)));
+                                "no-port".equals(materialHint) || materialHint != null && materialHint.startsWith("hostile-")
+                                        && !CivilizedPort.trades(hostilePort(), materialHint.substring(8))));
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             int step = Integer.parseInt(materialHint.substring(7));
             if (step >= 2) viewModel.guideLabLesson();
@@ -3465,6 +3472,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static TestPurse snapshotMechResources() { return snapshotPurse(60_000, false); }
 
     /** @param away whether the fleet is out of port, where nothing can be bought */
+    /** A hostile faction's market with a black market, as vanilla's trade mode sees it. */
+    private static MarketAPI hostilePort() {
+        return (MarketAPI) Proxy.newProxyInstance(MarketAPI.class.getClassLoader(), new Class<?>[]{MarketAPI.class},
+                (proxy, method, args) -> method.getName().equals("hasSubmarket") ? (Object) true : null);
+    }
+
     private static TestPurse snapshotPurse(long credits, boolean away) {
         TestPurse purse = new TestPurse(credits);
         return away ? purse.away() : purse;
@@ -3494,14 +3507,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     private static SquadFoundingResources snapshotSquadFoundingResources() {
-        return snapshotSquadFoundingResources(true);
-    }
-
-    private static SquadFoundingResources snapshotSquadFoundingResources(boolean atMarket) {
         return new SquadFoundingResources() {
             @Override public int available(String commodityId) { return 2_000; }
             @Override public long credits() { return 60_000; }
-            @Override public boolean atMarket() { return atMarket; }
             @Override public boolean spend(SquadFoundingCost cost) { return cost != null; }
             @Override public String commodityName(String commodityId) {
                 return snapshotCommodities().commodityName(commodityId);

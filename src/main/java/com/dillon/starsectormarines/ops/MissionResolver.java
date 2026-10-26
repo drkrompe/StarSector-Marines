@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveResult;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
 import com.dillon.starsectormarines.campaign.CampaignMarks;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
@@ -417,6 +418,7 @@ public final class MissionResolver {
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .dustLedger(sim.getDustLedger()==null?null:sim.getDustLedger().report())
+                .blindWatch(sim.getBlindWatch()==null?null:sim.getBlindWatch().report())
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .fieldSalvage(sim.fieldSalvage().recovered())
@@ -732,11 +734,13 @@ public final class MissionResolver {
 
     /**
      * Writes the campaign mark each side objective earned, from the settled outcome rather than the live battle
-     * ({@code mission-command-nouns.md}). Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
+     * ({@code mission-command-nouns.md}), and the marks a mission's own outcome leaves (Blind Watch's warned Garnir).
+     * Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
      */
     static void writeCampaignMarks(CampaignMarks marks, MissionOutcome outcome) {
         if (marks == null || outcome == null) return;
         for (SideObjectiveResult side : outcome.sideObjectives) if (side.marked()) marks.write(side.mark());
+        if (outcome.blindWatch != null && outcome.blindWatch.garnirWarned()) marks.write(BlindWatchProgress.GARNIR_WARNED);
     }
 
     /**

@@ -395,24 +395,23 @@ public final class VehicleControlSystem {
             // to find and never will, because turning a bicycle round needs more
             // lateral room than a road has. Back and fill onto the corridor
             // instead — the same Reeds-Shepp maneuver docking already uses.
+            // A hull that turns on the spot has a deeper answer than braking: follow the corridor itself, which
+            // route proof drove at the chassis's turning circle wherever one fits and pivots it at the bends where
+            // none does, stopping to pivot whenever the corridor turns further than it can steer. Tracks and skirts
+            // do so at once, before any turnaround: a dozer set down in a narrow street spent half a minute driving
+            // a Reeds-Shepp loop round its junction where it could have turned where it stood. Wheels pivot only once
+            // braking, the turnaround and the reroute have all failed.
+            boolean pivotsFirst = !s.brushing && NeutralPivot.onRoutes(type);
+            if (pivotsFirst && pivotTracks(mission, body, type, s, xs, ys, dt)) return;
             if (leg.mayTurnAroundOntoRoute() && tryEngageDepartureTurnaround(body, type, s)) {
                 s.localPlanFailureTime = 0f;
                 advanceDocking(mission, body, type, s, dt);
                 return;
             }
-            // A hull that turns on the spot has a deeper answer than braking: follow the corridor itself, which
-            // route proof drove at the chassis's turning circle wherever one fits and pivots it at the bends where
-            // none does, stopping to pivot whenever the corridor turns further than it can steer. Tracks and skirts
-            // do so at once; wheels only once braking and the reroute have both failed.
-            boolean pivotDue = !s.brushing && (NeutralPivot.onRoutes(type) || s.pivotTracking
+            boolean pivotDue = !s.brushing && !pivotsFirst && (s.pivotTracking
                     || s.localPlanFailureRerouteAttempted
                     && s.localPlanFailureTime >= NeutralPivot.LAST_RESORT_SECONDS);
-            if (pivotDue && pivotTrack(mission, body, type, s, xs, ys, dt, false)) {
-                s.pivotTracking = true;
-                s.localPlanFailureTime = 0f;
-                s.localPlanFailureRerouteAttempted = false;
-                return;
-            }
+            if (pivotDue && pivotTracks(mission, body, type, s, xs, ys, dt)) return;
             s.pivotTracking = false;
             // Every answer from this pose has failed (forward plans, the turnaround, the reroute): back off the way
             // the hull came and plan again from there. Without it a truck nosed into a building stood all battle,
@@ -566,6 +565,16 @@ public final class VehicleControlSystem {
      *
      * @return whether the hull moved or turned this tick; {@code false} leaves it to the ordinary brake and reroute
      */
+    /** {@link #pivotTrack} as the planless rung: whether the hull follows its corridor by pivot this tick. */
+    private boolean pivotTracks(VehicleMission mission, GroundBody body, VehicleType type,
+                                VehicleControlComponent s, float[] xs, float[] ys, float dt) {
+        if (!pivotTrack(mission, body, type, s, xs, ys, dt, false)) return false;
+        s.pivotTracking = true;
+        s.localPlanFailureTime = 0f;
+        s.localPlanFailureRerouteAttempted = false;
+        return true;
+    }
+
     private boolean pivotTrack(VehicleMission mission, GroundBody body, VehicleType type,
                                VehicleControlComponent s, float[] xs, float[] ys, float dt, boolean brushing) {
         float rate = NeutralPivot.rateDegPerSec(type);
@@ -637,8 +646,9 @@ public final class VehicleControlSystem {
     /** {@link NeutralPivot#clearDirection} for the hull as it stands, judged by {@link SoftBrush} when brushing. */
     private int clearDirection(GroundBody body, VehicleType type, float targetDeg, boolean brushing) {
         if (brushing) return brush.clearDirection(body.x, body.y, body.facingDegrees, targetDeg, type, motionGrid(type));
+        // A bladed hull turns through what it grinds down, as it drives through it (pivotStep).
         return NeutralPivot.clearDirection(body.x, body.y, body.facingDegrees, targetDeg,
-                type.visualLengthCells, type.visualWidthCells, motionGrid(type));
+                type.visualLengthCells, type.visualWidthCells, planningGrid(type));
     }
 
     /**
@@ -659,6 +669,11 @@ public final class VehicleControlSystem {
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         float owed = NeutralPivot.positiveDegrees(s.pivotDirection * (targetDeg - body.facingDegrees));
         body.pivot(s.pivotDirection * Math.min(rate * dt, owed), dt);
+        if (!brushing && bladeGrinds(body, type, s, dt)) {
+            // Swinging into what its blade could push: it holds the turn and grinds it down.
+            applyPose(body, new Pose(prevX, prevY, prevFacing));
+            return true;
+        }
         if (applySweep(body, type, prevX, prevY, prevFacing, false, brushing)) {
             endPivotTracking(body, s);
             return false;

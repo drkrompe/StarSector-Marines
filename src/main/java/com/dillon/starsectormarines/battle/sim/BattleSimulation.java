@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.setup.SupportKitIssue;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
+import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
@@ -204,6 +207,7 @@ import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmStepCost;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHitFeedback;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
@@ -760,6 +764,31 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         addObjective(dustLedger);
         return dustLedger;
     }
+    private BlindWatchSequence blindWatch;
+    /** Blind Watch's alarm, warning, charge effects and side objectives, or {@code null} on every other battle. */
+    public BlindWatchSequence getBlindWatch() { return blindWatch; }
+    /**
+     * Installs Blind Watch over its three installed charge sites ({@code blind-watch-sounding.md}): stands the riggers
+     * in their module, offers the side jobs and puts the standing mast's eyes on Sable Wake's side. {@code stoodTo} is the
+     * fixture's reading of the campaign ({@link BlindWatchProgress#stoodTo}).
+     */
+    public BlindWatchSequence installBlindWatch(BlindWatchSequence.Sites sites, List<ChargeSiteObjective> charges,
+                                                List<EntitySpec> riggers, boolean stoodTo) {
+        if (simTickIndex != 0 || blindWatch != null) throw new IllegalStateException("Install Blind Watch once at setup");
+        if (!getObjectives().containsAll(charges)) throw new IllegalStateException("Install the three charge sites first");
+        blindWatch = new BlindWatchSequence(sites, charges, stoodTo, storyBeats);
+        blindWatch.begin(this, riggers);
+        addObjective(blindWatch);
+        return blindWatch;
+    }
+    private SideObservers.CommsSight missionSight = SideObservers.CommsSight.NONE;
+    /**
+     * Eyes a mission adds to a side's observers (an authored installation that spots like a fort's radar), which its
+     * indirect-fire hulls fire on. At setup.
+     */
+    public void setMissionSight(SideObservers.CommsSight sight) {
+        missionSight = sight == null ? SideObservers.CommsSight.NONE : sight;
+    }
     private WaterUnderSealSequence waterUnderSeal;
     public WaterUnderSealSequence getWaterUnderSeal() { return waterUnderSeal; }
     public void installWaterUnderSeal(int technicians, long carrier, List<Integer> militia, List<EntitySpec> reserve) {
@@ -905,6 +934,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
     public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
+
+    /** The swarm's step cost, for asking which cells a stopped hull keeps routes off. */
+    public SwarmStepCost swarmStepCost() { return swarmStepCost; }
+
+    /** Serial, once a tick: the swarm flow fields' step cost, the fire and every stopped hull ({@link SwarmStepCost}). */
+    public RouteCostField publishSwarmStepCost() {
+        vehicleRepulsion.forEachStandingHullCell(swarmStepCost::standingHull);
+        return swarmStepCost.publish(fireHazard());
+    }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -1446,6 +1484,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SeparationSystem separation;
     /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
     private final VehicleRepulsionSystem vehicleRepulsion;
+    private final SwarmStepCost swarmStepCost;
     /** Hulls keep out of each other, and the lighter yields. See {@link HullContactSystem}. */
     private final HullContactSystem hullContact;
     /** Walking mechs ram the other side. See {@link MechRamSystem}. */
@@ -1689,6 +1728,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
+        this.swarmStepCost = new SwarmStepCost(grid.getWidth(), grid.getHeight());
         navigation.setOccupancyContributor(vehicleRepulsion::occupyStandingHulls);
         this.hullContact = new HullContactSystem(rosterService, grid);
         this.mechRam = new MechRamSystem(rosterService, unitIndex);
@@ -2447,6 +2487,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<SmokingWreck> getSmokingWrecks() { return effects.getSmokingWrecks(); }
     /** Fighter wings committed to this battle. {@code AirCoverSystem} reads this each tick and flies each wing's schedule as off-map sorties. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
+    /** The dispatcher flying {@link #getFlybyRoster}; read-only use (a renewable wing's bay cycle) by probes and scenes. */
+    public AirCoverSystem getAirCoverSystem() { return airCoverSystem; }
     public void setFlybyRoster(FlybyRoster roster) {
         requireInternalAir("setFlybyRoster");
         this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY;
@@ -2565,6 +2607,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Whether one of {@code side}'s comms operators has the point in sight: a spotter for the missile carriers. */
     private boolean commsSees(Faction side, float x, float y) {
+        if (missionSight.sees(side, x, y)) return true;
         for (CommsOperators.Operator eye : CommsOperators.available(this, side)) {
             if (CommsOperators.knowledge(this, eye, x, y, false) == CommsOperators.Knowledge.SIGHT) return true;
         }
@@ -4101,6 +4144,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
         if (dustLedger != null) dustLedger.advance(this);
+        if (blindWatch != null) blindWatch.advance(this);
         if (cordon != null) cordon.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may

@@ -662,11 +662,14 @@ before a bend is not false success. Reverse is an explicit committed recovery,
 not a hidden cusp in an ordinary plan. The bicycle body, speed-aware lookahead,
 corner-speed governor, and terminal docking maneuver make turns continuous.
 Where the rolling planner finds no forward trajectory, a tracked or hover hull
-does not brake: it follows the corridor itself with a short carrot, driving at
+does not brake, nor back and fill a turnaround: it follows the corridor itself
+with a short carrot, driving at
 it while it points within 20° and otherwise stopping and pivoting until it
 points within 3°. Every step is swept against the live ground like any other
 move, so the corridor's proof guides the hull and the ground decides; a pivot
-that would clip leaves the hull to the ordinary brake, reroute and give-up.
+that would clip leaves the hull to the turnaround and the ordinary brake,
+reroute and give-up. A dozer turns through ground its blade could push as it
+drives through it, holding the turn while its hull grinds that ground down.
 Turning toward the corridor counts as progress for the stall clock, and the
 forward planner is asked again at its ordinary cadence, taking the hull back
 the moment a forward plan exists. A wheeled hull brakes, reroutes, and only
@@ -946,7 +949,12 @@ retains the same existing cross-domain behavior as an autonomous hull.
   the margin cannot stand on shortens the route to the last pose that clears
   it, so the hull arrives a little short rather than being refused. Dispatch
   keeps both ends to the margin, because its ends are drop points and map
-  edges, not hulls and clicks.
+  edges, not hulls and clicks. Each bend the proof cannot drive is masked off
+  and the search tried again; where those masks have cut the start off from
+  the goal, as at the mouth of a narrow gap met along the wall it opens in, an
+  order's search tries once more with each mask moved a few cells back along
+  the leg that ran into its bend, so the route keeps the gap and comes at it
+  from further back. Dispatch keeps its refusals and moves on to its next drop.
 - An order that cannot be carried out is refused, out loud. A dispatched route
   is proven before dispatch commits to it, and a destination somebody picked is
   not — so a move order is where feasibility is actually decided, and the

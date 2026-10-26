@@ -30,7 +30,7 @@ deck's spares.
 
 New campaigns contain only structural organization: the non-deployable reserve
 pool and an empty four-gantry support lance. Fleet Armory squad founding is one
-atomic transaction at a civilized port: twelve generic Marines out of cargo plus one
+atomic transaction, anywhere: twelve generic Marines out of cargo plus one
 credit price for their baseline stores (`SquadFoundingCost`); it creates the named line
 squad only after the complete bill can be consumed.
 Mech chassis are likewise player-fabricated in the Mech Lab. Do not restore a
