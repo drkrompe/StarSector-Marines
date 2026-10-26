@@ -14,7 +14,8 @@
 //              story_voice   → every story dialogue line, one baseline whatever the speaker or treatment
 //              mission_voice → operation net and company officer, under the story
 //            Music is always leveled; barks are leveled in sounds.json by tools/generate_marine_barks.py;
-//            effects keep their authored level.
+//            effects keep their authored level. Never give a cinematic's clips a mix class: each
+//            cinematic is mixed shot by shot against its own source levels (owner).
 //
 // Comments and trailing commas are tolerated. ffmpeg must be on PATH (or $FFMPEG set).
 {
@@ -569,19 +570,19 @@
     {"id": "wayline_junction_gunship_hit", "source": "wayline/wayline_junction_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms", "mix": "story_voice"},
     {"id": "wayline_junction_gunship_lost", "source": "wayline/wayline_junction_gunship_lost.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms", "mix": "story_voice"},
     {"id": "wayline_junction_gunship_returned", "source": "wayline/wayline_junction_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_hail_01", "source": "jangala-arrival/jangala_arrival_hail_01.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_hail_02", "source": "jangala-arrival/jangala_arrival_hail_02.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_hail_03", "source": "jangala-arrival/jangala_arrival_hail_03.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_hail_04", "source": "jangala-arrival/jangala_arrival_hail_04.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_hail_07", "source": "jangala-arrival/jangala_arrival_hail_07.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_hail_08", "source": "jangala-arrival/jangala_arrival_hail_08.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms", "mix": "story_voice"},
+    {"id": "jangala_arrival_hail_01", "source": "jangala-arrival/jangala_arrival_hail_01.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_02", "source": "jangala-arrival/jangala_arrival_hail_02.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_hail_03", "source": "jangala-arrival/jangala_arrival_hail_03.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_04", "source": "jangala-arrival/jangala_arrival_hail_04.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_hail_07", "source": "jangala-arrival/jangala_arrival_hail_07.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_08", "source": "jangala-arrival/jangala_arrival_hail_08.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
     // Castle's lines from the entry to C5 (owner's script, 2026-10-19; arrival-audio/sfx-cues.md): the intercom,
     // the ship's loudspeaker heard from the yard, and clean beside the Commander for the last.
-    {"id": "jangala_arrival_castle_planetside", "source": "jangala-arrival/jangala_arrival_castle_planetside.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_castle_reels", "source": "jangala-arrival/jangala_arrival_castle_reels.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_castle_yard", "source": "jangala-arrival/jangala_arrival_castle_yard.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms", "mix": "story_voice"},
-    {"id": "jangala_arrival_castle_all_hands", "source": "jangala-arrival/jangala_arrival_castle_all_hands.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "ship_pa", "mix": "story_voice"},
-    {"id": "jangala_arrival_castle_own_way", "source": "jangala-arrival/jangala_arrival_castle_own_way.mp3", "kind": "ui", "out": "story/jangala-arrival", "mix": "story_voice"},
+    {"id": "jangala_arrival_castle_planetside", "source": "jangala-arrival/jangala_arrival_castle_planetside.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_castle_reels", "source": "jangala-arrival/jangala_arrival_castle_reels.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_castle_yard", "source": "jangala-arrival/jangala_arrival_castle_yard.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_castle_all_hands", "source": "jangala-arrival/jangala_arrival_castle_all_hands.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "ship_pa"},
+    {"id": "jangala_arrival_castle_own_way", "source": "jangala-arrival/jangala_arrival_castle_own_way.mp3", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "c5_yard_steam_vent", "source": "jangala-yard/c5_yard_steam_vent.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "c5_yard_hull_ticks", "source": "jangala-yard/c5_yard_hull_ticks.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "c5_yard_crane_horn", "source": "jangala-yard/c5_yard_crane_horn.wav", "kind": "ui", "out": "story/jangala-arrival"},
