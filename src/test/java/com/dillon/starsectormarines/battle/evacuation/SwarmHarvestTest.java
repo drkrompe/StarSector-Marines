@@ -150,6 +150,25 @@ class SwarmHarvestTest {
             assertEquals(1, harvest.recycled());
             assertEquals(0, harvest.delivered());
             assertEquals(1, bore.feeds());
+            assertEquals(SwarmHarvest.RAV_BODY_BIOMASS, bore.biomassFed(), 1e-6f, "the swarm's own dead pay the Rav value");
+        }
+    }
+
+    @Test
+    void aBodyPaysItsBoreByKindAndTheSwarmsOwnDeadPayLessThanPrey() {
+        assertEquals(SwarmHarvest.RAV_BODY_BIOMASS, SwarmHarvest.biomass(true));
+        assertEquals(SwarmHarvest.PREY_BODY_BIOMASS, SwarmHarvest.biomass(false));
+        assertTrue(SwarmHarvest.biomass(true) < SwarmHarvest.biomass(false), "a Rav body is worth less than prey");
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            SwarmBore bore = sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long runner = SwarmStrains.spawn(sim, "runner", UnitType.SWARM_RUNNER, 4, 5);
+            killedBy(harvest, colonist(sim, 5, 5), runner, sim);
+            harvest.tick(sim);
+            sim.world().setPos(runner, 19.5f, 5.5f);
+            harvest.tick(sim);
+            assertEquals(SwarmHarvest.PREY_BODY_BIOMASS, bore.biomassFed(), 1e-6f, "a colonist pays the prey value");
         }
     }
 

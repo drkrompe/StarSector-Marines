@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-25 — a maw may draw a Bombard, one living per bore. Earlier: the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-26 — feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -601,7 +601,7 @@ tick and hands it to the installed eruption handler, which is where a bore is
 built.
 
 **Budding** (owner, 2026-10-25: the ramp is the hive feeding). Each time a bore
-has eaten three colonists' worth since its last bud, it puts out another a
+has eaten `BUD_BIOMASS` of biomass (some nine colonists) since its last bud, it puts out another a
 block or two further in (`SwarmBores.budInward`): of the kept places sixteen to
 forty-eight cells from it and at least eight nearer the shelter than it is,
 spaced from every bore, bore on its way and spire, the one nearest the shelter.
@@ -659,9 +659,9 @@ takes minutes to become a bore and longer again to become a maw. A tier once
 reached is never lost. The mother bore opens at bore tier.
 
 **The feed seam.** Biomass reaches a bore through one call,
-`SwarmBores.feed(sim, bore, amount)`, with `amount` in colonists' bodies; the
+`SwarmBores.feed(sim, bore, amount)`, with `amount` in biomass; the
 bore to deliver to is found with `nearestLiving`. A feed buys growth at once
-(a handful of bodies takes a fissure to bore, roughly twice that to maw), adds
+(ten colonists take a fissure to bore, about twice that to maw), adds
 to the bore's fresh biomass, and brings its next surge forward. A feed into a
 collapsed bore is refused and changes nothing: the delivery is lost.
 
@@ -672,8 +672,8 @@ Marine on foot) is not left where it fell: the Runner seizes it and becomes a
 **carrier**, dragging the body home down the bore field to the nearest living
 bore at four tenths of its own pace, slower than a walking Marine. The body
 trails a little behind it, lying along the drag. A carrier does not strike. At
-the bore's mouth the body goes into the hole: it is **biomass**, one
-colonist's worth through the feed seam, so the bore grows and its next surge
+the bore's mouth the body goes into the hole: it is **biomass**, `PREY_BODY_BIOMASS` through the feed seam
+(owner, 2026-10-26: the ramp was too fast), so the bore grows and its next surge
 comes forward and swells. It counts the moment its carrier lets go at the
 mouth, and is seen going down (owner, 2026-10-25): it slides from where it was
 let go into the middle of the mouth in under half a second, then shrinks and
@@ -696,8 +696,9 @@ Laws:
   Brute's or a Spitter's kill, or a body shot down by the company, stays where
   it fell.
 - **The swarm recycles its own dead.** A dead Runner lies loose, to be taken
-  up and dragged home like any load. At the bore it is worth half a colonist of
-  biomass, and it is counted apart (recycled), never as a seizure or a
+  up and dragged home like any load. At the bore it is worth `RAV_BODY_BIOMASS`,
+  under a quarter of a colonist (owner, 2026-10-26: a Rav body fed is worth
+  less than a colonist), so a recycled Runner buys back well under one Runner, and it is counted apart (recycled), never as a seizure or a
   delivery, so it raises no harvest beat. A Brute or a Spitter is too heavy and
   is left to the creep.
 - **Forager packs** (owner, 2026-10-25: the first pulses hunt into the city).
@@ -1007,8 +1008,8 @@ through, made into a thing on the map the company can find and kill.
 - **An old bloom has grown them; a fresh one grows them by eating** (owner,
   2026-10-25). Where a battle's creep is matured at setup as weeks old (the
   Cordon and the heart) its spires stand at once. In any battle, a fresh Colony
-  Breach among them, a satellite bore that has reached maw having eaten four
-  colonists' worth raises one (`BroodSpires.raises`): once its creep holds ground
+  Breach among them, a satellite bore that has reached maw having eaten `FED_BIOMASS` of
+  biomass (a dozen colonists) raises one (`BroodSpires.raises`): once its creep holds ground
   for one by the rule below, the spire's root digs out and thickens over ten
   seconds and the spire rises at its end in a burst of creep, as a colony does
   (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
