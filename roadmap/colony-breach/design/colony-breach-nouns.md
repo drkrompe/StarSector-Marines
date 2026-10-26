@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-26 — the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-26 — the swarm's flow fields go round a standing vehicle. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -463,6 +463,17 @@ what makes it read as one. A redoubt's barricade ring is works and takes many
 times the blows a roadblock's does, and a charge rams it rather than bowling a
 piece over (`combat-durability-nouns.md`, Fortified works). Ordinary yard fences
 elsewhere in the town stay walls.
+
+**A standing vehicle is ground the swarm goes round.** A stopped hull's
+footprint, widened by a body's reach (the cells squad routes already keep off),
+costs the swarm's flow fields the most a step can, as the heart of a fire does
+(`SwarmStepCost`). Where there is a way round the swarm takes it; where a
+parked hull plugs the only one the field still leads through, and the hull
+holds the swarm against its side while it stands. Without the cost a body
+heading home or for prey walked into the hull's side, was pushed back as fast
+as it walked in, and replanned into the same cells every few seconds. A body
+whose target is the vehicle still closes on it; striking a hull that bars the
+way, as a barricade is struck, is not built.
 A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
 toppled flat and gives no cover. Trucks do not break.
 `-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
