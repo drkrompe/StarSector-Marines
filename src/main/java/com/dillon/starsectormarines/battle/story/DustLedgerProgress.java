@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.audio.MusicState;
  * The Dust Ledger's rules, free of the simulation ({@code dust-ledger-crossing.md}, Mission flow): the quiet phase and
  * its lift-off clock, the one alarm and what raised it, the ledger burn and its grade, and the broker's flight,
  * surrender and escape. The side objectives, the broker's delivery among them, are side-objective toolkit jobs
- * ({@code side-objective-toolkit.md}) whose window is this quiet phase.
+ * ({@code mission-command-nouns.md}) whose window is this quiet phase.
  *
  * <p>Each advance takes what the battle saw this tick ({@link Facts}) and moves the state on.
  */

@@ -1085,7 +1085,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SideObjectiveService sideObjectives = new SideObjectiveService();
 
     /**
-     * The battle's side objectives ({@code side-objective-toolkit.md}): the optional jobs its mission offers at setup.
+     * The battle's side objectives ({@code mission-command-nouns.md}): the optional jobs its mission offers at setup.
      * Ticked before the story sequences; never part of the win check. Empty on a battle that offers none.
      */
     public SideObjectiveService getSideObjectives() { return sideObjectives; }
