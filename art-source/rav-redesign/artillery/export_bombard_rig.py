@@ -15,7 +15,8 @@ parts: RavBombardRig curls the tail slices up over the back.
                   slices, so it can curl over the back in a smooth curve;
   sling           the bony sling cup at the tail's end;
   glob            the glob in flight with its drip, travelling up, as projectile sprites do;
-  shell-l, shell-r  the body cut in two down its seam, for the death: the shell cracks open along the split
+  shell-l, shell-r  the body cut in two along a ragged crack down its seam (CRACK, a fixed zigzag that wanders off
+                  the middle), for the death: the shell cracks open along the split
                   over the sac and its halves fall apart.
 A dead Bombard falls apart into these same parts, so it has no corpse sprite of its own.
 Boxes and pivots are canvas pixels of the 1536 x 1024 master; RavBombardRig names the same ones. Sprites are
@@ -49,8 +50,13 @@ LEGS_BOTTOM = 712                          # the hind legs' last row; below it i
 LEGS_UNDER = 16                            # px of the shell's rim kept under the legs
 LEG_MIN_PX = 800                           # a piece of the plate smaller than this is no leg
 LEG_ROOT = 20                              # px the leg's piece grows back under the rim at its root
-SHELL_L_BOX = (BODY_BOX[0], BODY_BOX[1], CENTRE_COL + 4, BODY_BOX[3])
-SHELL_R_BOX = (CENTRE_COL - 4, BODY_BOX[1], BODY_BOX[2], BODY_BOX[3])
+# The crack the dead shell splits along: (row, column) points top to bottom, a ragged zigzag that wanders off the
+# seam, so the halves come apart unevenly. Both halves' boxes take in its widest swing.
+CRACK = [(150, 1074), (196, 1086), (232, 1066), (270, 1080), (318, 1090), (352, 1071), (398, 1084), (446, 1060),
+         (486, 1078), (530, 1095), (566, 1072), (610, 1088), (652, 1066), (694, 1083), (730, 1076)]
+CRACK_SWING = 20
+SHELL_L_BOX = (BODY_BOX[0], BODY_BOX[1], CENTRE_COL + CRACK_SWING, BODY_BOX[3])
+SHELL_R_BOX = (CENTRE_COL - CRACK_SWING, BODY_BOX[1], BODY_BOX[2], BODY_BOX[3])
 TAIL_TOP, TAIL_SLING = 680, 860            # the tail's root (under the shell's rear) and the sling's hinge
 TAIL_SLICES = 6
 TAIL_SEAMS = tuple(round(TAIL_TOP + (TAIL_SLING - TAIL_TOP) * i / TAIL_SLICES) for i in range(TAIL_SLICES + 1))
@@ -144,10 +150,11 @@ def parts():
     body = body_mask(h, w)
     in_body = feathered(body, 0, 1.5)
     legs, report = leg_layers(plate, frame, body)
+    crack = np.interp(rows, [r for r, _ in CRACK], [c for _, c in CRACK])
     layers = {
         "body": (masked(plate, frame * in_body), BODY_BOX),
-        "shell-l": (masked(plate, frame * in_body * (1 - ramp(cols, CENTRE_COL - 2, 4))), SHELL_L_BOX),
-        "shell-r": (masked(plate, frame * in_body * ramp(cols, CENTRE_COL - 2, 4)), SHELL_R_BOX),
+        "shell-l": (masked(plate, frame * in_body * (1 - ramp(cols, crack - 1, 2))), SHELL_L_BOX),
+        "shell-r": (masked(plate, frame * in_body * ramp(cols, crack - 1, 2)), SHELL_R_BOX),
     }
     width = 1 - ramp(np.abs(cols - CENTRE_COL), TAIL_HALF - 4, 8)
     for i in range(TAIL_SLICES):
