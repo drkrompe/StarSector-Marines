@@ -57,9 +57,9 @@ as goofy). Each part of the outline is a location, coloured by its state.
 - The doll plate replaces the boxed section schematic beside the takeover status
   and above the selected-mech panel; its width is bounded by the takeover HUD's
   clear centre at the smallest supported hosts.
-- The briefing's armor lift section draws each bay machine with the same doll
-  before launch: a mech from its frozen deployment, carrying the wear an
-  unfinished repair leaves; a vehicle whole, since the bay keeps no damage on one
+- The briefing's field inset draws each bay machine with the same doll, small and
+  captionless (`DamageDollCanvas.bare`), before launch: a mech from its frozen
+  deployment, carrying the wear an unfinished repair leaves; a vehicle whole, since the bay keeps no damage on one
   (`air-nouns.md`, The briefing reads lift before launch).
 
 ## Remaining

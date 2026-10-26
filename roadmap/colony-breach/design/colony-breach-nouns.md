@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-26 — each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-26 — holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -383,6 +383,13 @@ guard; it is redoubt 1. On the colony map the shelter stands inside the
 colony's **civil-defence compound** (below). The colony has one to three **holdouts** besides
 (seeded, so two to four redoubts in all): a militia post with three or four of
 the cohort inside, deeper in than the fireteam's firing cells.
+
+A holdout is **placed in relation to the bores** (owner, 2026-10-26: a holdout
+sat between two first-wave bores was "a lost cause"). The breach is planned
+first, and a holdout stands at least 56 cells from every planned bore site
+(`ColonyRedoubts.BREACH_CLEARANCE`), so the first wave keeps the outskirts and
+no hole opens at a holdout's door. No place within that ring is left for a
+bore to bud on or to be re-seated at when a side objective clears its own ring.
 
 A holdout **claims a block, not a building**. Its people have thrown up
 **works** round the building they hold, a few cells out, so a yard lies
