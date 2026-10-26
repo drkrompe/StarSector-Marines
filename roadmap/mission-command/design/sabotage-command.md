@@ -42,6 +42,16 @@ outside does not restart a finished entry/clear loop. The planting slot belongs
 to a carrier of that exact unfinished site's kit; a finished or different-site
 planter in the same campaign squad cannot take it.
 
+The **plant** is the kit squad's job, not the carrier's alone. While a squad
+holds a site's kit (a live planter of that site carries it), the charge is worked
+whenever the carrier or any live infantry squad mate stands within
+`ChargeSiteObjective.PLANT_RADIUS_CELLS` of the site cell with a structural line
+to it, settled or not; mechs and vehicles never plant. No eligible body in reach
+resets progress to zero. When the carrier falls the kit drops and the squad no
+longer holds it, so a mate already beside the charge does not keep the channel;
+the retriever who picks the kit up becomes the site's planter and their squad
+plants again. `planterOnSite` in facts, HUD and traces means "being worked".
+
 A site on **open ground** (in the map's open exterior, the zone that dwarfs every
 other, `ZoneGraph.exteriorZoneId`) has no room to clear or doorways to hold: its
 security squads defend the site's own cell (`DEFEND_SITE`) instead of clearing
@@ -59,7 +69,7 @@ kit, awaiting planter, or completion for each site.
 
 Defenders know their installation identities, geometry, zones, and completion,
 but not Marine task identity, kit state, exact plant progress, or inferred
-hostile cells. A legal settled plant raises an identity-free installation alarm
+hostile cells. A charge being worked raises an identity-free installation alarm
 that remains latched for a bounded interval after interruption. Belief-derived
 pressure is separate evidence.
 
