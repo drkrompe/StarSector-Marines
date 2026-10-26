@@ -15,10 +15,15 @@ import java.util.Set;
  * requested track therefore has to be observed playing before a different current-file value
  * can mean that it ended. This also prevents the outgoing campaign track from being mistaken
  * for the end of the battle track during the initial crossfade.
+ *
+ * <p>Tracks are named by their file stem. A playlist with a set suffix plays the sound set
+ * {@code stem + suffix} (the same file declared at another volume in {@code sounds.json}) and
+ * still recognises it by its file.
  */
 public final class BattleMusicPlaylist {
 
     private final List<String> tracks;
+    private final String setSuffix;
     private final Random random;
     private final List<String> remaining = new ArrayList<>();
     private String lastTrack;
@@ -27,6 +32,10 @@ public final class BattleMusicPlaylist {
     private boolean currentTrackObserved;
 
     public BattleMusicPlaylist(List<String> tracks, Random random) {
+        this(tracks, "", random);
+    }
+
+    public BattleMusicPlaylist(List<String> tracks, String setSuffix, Random random) {
         if (tracks == null || tracks.isEmpty()) {
             throw new IllegalArgumentException("Battle music playlist requires at least one track");
         }
@@ -36,6 +45,7 @@ public final class BattleMusicPlaylist {
             throw new IllegalArgumentException("Battle music playlist tracks must be non-empty and unique");
         }
         this.tracks = List.copyOf(tracks);
+        this.setSuffix = setSuffix;
         this.random = random;
     }
 
@@ -44,7 +54,7 @@ public final class BattleMusicPlaylist {
         active = true;
         currentTrackObserved = false;
         currentTrack = takeNext();
-        return currentTrack;
+        return currentTrack + setSuffix;
     }
 
     /**
@@ -61,7 +71,7 @@ public final class BattleMusicPlaylist {
 
         currentTrackObserved = false;
         currentTrack = takeNext();
-        return currentTrack;
+        return currentTrack + setSuffix;
     }
 
     public void stop() {

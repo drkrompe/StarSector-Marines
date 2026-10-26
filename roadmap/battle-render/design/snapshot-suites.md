@@ -31,7 +31,7 @@ sound the battle screen would start, heard from the first view's centre, is logg
 `build/look-sound/<shot>.jsonl`, `-Dsnapshot.lookSound.logDir` moves it) and mixed (`BattleSoundMix`): each take
 decoded once, at its tick, volume and pitch (pitch resampled, so speed moves with it, as the game plays it), panned
 across the view, the takes of an id played in turn, the whole scaled down if it would clip. The mix is
-deterministic; the engine's distance roll-off is not modelled. The flag makes `createSnapshots` run
+deterministic; the engine's distance roll-off is not modelled. The battle music is the screen's own music director run on the same battle, its tracks mixed at the centre with their crossfades and each change of music state printed (`battle-radio-nouns.md`, Battle music). The flag makes `createSnapshots` run
 `:asset-pipeline:processAudio` first, since the mix reads the generated Oggs in `mod/sounds`. Scenes with look shots: `fire-support-apc`
 (`apc-shelling`), `mech-duel-range` (`mech-duel`), `field-mortar` (`mortar-section`), `tank-undergrowth` (`young-wood`, `dead-wood`); the LRM carrier's look is its
 own suite, `lrm-carrier-look`.

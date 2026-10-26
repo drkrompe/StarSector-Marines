@@ -1,8 +1,10 @@
 # Battle music director
 
-Status: PLANNED — owner-requested 2026-10-26; the Dust Ledger is the first user.
+Status: IN PROGRESS — built and integrated; the model is in `battle-radio-nouns.md` (Battle music). Awaiting the owner's acceptance of the Dust Ledger music-states video and the quiet and alert track sourcing; retire on acceptance.
 
 Written: 2026-10-26
+
+Updated: 2026-10-26 — director, Dust Ledger declaration and battle-screen host built; the bridge host plays no music.
 
 Read `battle-radio-nouns.md` (presentation-only audio, hosts, the voice
 budget) and `dust-ledger-crossing.md` (the quiet phase and the alarm) first.

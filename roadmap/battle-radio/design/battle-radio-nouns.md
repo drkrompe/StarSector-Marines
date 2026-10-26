@@ -1,10 +1,10 @@
 # Battle Radio
 
-Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix and release-audio provenance remain unsettled.
+Status: ACTIVE — one presentation-only cue policy spans both battle hosts; battle music follows the battle through four music states; mix, quiet and alert beds, and release-audio provenance remain unsettled.
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — field command: the founding officer relays company-wide orders when she leads the deployment.
+Updated: 2026-10-26 — battle music: the music director picks quiet, alert, combat or aftermath from published battle facts.
 
 Read `stories.md` for the open-work board.
 
@@ -77,6 +77,41 @@ may vary between presentations without changing a replay or outcome.
 Marine Operations presents the cue policy's reports in generated voices over
 the shipboard radio net and adds sampled assignment exchanges under the same
 voice budget. The hybrid host has no squad radio.
+
+## Battle music
+
+The **music director** (`BattleMusicDirector`) is presentation only, under the
+same boundary as the radio: it reads published battle facts after each
+advance, picks a **music state**, and tells the host what to play. It never
+writes battle state and the battle never waits on it.
+
+- **Quiet**: before contact, or a stealth phase.
+- **Alert**: contact is near, or the fighting has lulled but not ended.
+- **Combat**: the fighting.
+- **Aftermath**: the battle is won or lost.
+
+**Who decides.** A finished battle is in aftermath. Otherwise a mission may
+declare its state as a published fact (`BattleMusicFacts`); the Dust Ledger
+declares quiet while the company walks in as freight and combat from the
+alarm on (`DustLedgerProgress.musicState`). A mission that declares nothing
+gets the **heat rule**: quiet until first contact (the company fires or is
+fired on), combat on contact and for a hold after the last one, then alert,
+then quiet after a long lull. The heat clock runs on battle time, so a paused
+battle keeps its music, and the hold is the hysteresis: steady sparse fire
+stays combat, and a long lull settles once, through alert to quiet.
+
+**Transitions.** Raising the music crossfades at once. Lowering fades slowly
+and never cuts a track in its first seconds; the change waits until the track
+has played that long. Each state has its own playlist with the no-repeat
+shuffle, retained across battles.
+
+**Tracks.** Combat plays the battle pool. Until quiet and alert beds are
+sourced (the owner's call), quiet and aftermath are silence under the map's
+ambient loops, and alert plays the combat files at reduced volume (the
+`_alert` sound sets). The standalone battle screen is the only music host; the
+vanilla-combat bridge plays no music of its own. Each change of state is
+logged with its reason. Headless look recordings run the same director and
+mix its tracks into the soundtrack under `-Dsnapshot.lookSound=true`.
 
 ## Content and extension law
 
