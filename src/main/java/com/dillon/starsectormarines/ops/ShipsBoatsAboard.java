@@ -77,18 +77,14 @@ public final class ShipsBoatsAboard {
      * itself which hull, which pattern and how many berths that means. Asked
      * twice in a row it is a no-op, which is what lets both callers simply run
      * it rather than working out whether the other one has.
-     *
-     * @return what the move this call discovered left behind, or
-     *     {@link BoatDeck.LeftBehind#NONE} when the company is aboard nothing
-     *     this can read
      */
-    public static BoatDeck.LeftBehind reconcile(BoatDeck deck) {
-        if (deck == null) return BoatDeck.LeftBehind.NONE;
+    public static void reconcile(BoatDeck deck) {
+        if (deck == null) return;
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        if (aboard == null) return BoatDeck.LeftBehind.NONE;
+        if (aboard == null) return;
         CompanyShip ship = CompanyShipResolver.read(aboard);
         deck.registerFoundingWrecks(CerberusCompanyStart.startingShipId());
-        return deck.reconcile(aboard.getId(), ShipsBoats.carriedBy(ship),
+        deck.reconcile(aboard.getId(), ShipsBoats.carriedBy(ship),
                 ShipsBoats.aboard(ship).size());
     }
 

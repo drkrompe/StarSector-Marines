@@ -1,6 +1,6 @@
 # Boat refit axes: the Hermes as the company's boat
 
-Status: IN PROGRESS — slices 2 (catalog, six sockets, frame budget), 3 (seats, deboard, load) and 4 (three turrets, weapon families) shipped; slices 1, 5 and 6 open
+Status: IN PROGRESS — slices 1–4 and slice 6's arc mask shipped; slice 5 (boat flux and shield) and wiring boats to the mask open
 Written: 2026-10-26
 Updated: 2026-10-26 — owner answered every picks question: cycle, lift, shield and flux, weapons, saves, patterns and ship changes.
 
@@ -191,7 +191,8 @@ Each slice is a green, integrable commit chain.
 6. **Shield arc in the dome shader.** An arc mask (facing, width) on
    `ShieldDomeShader`, the dome being the full circle, proven by
    `shaderEvidence` and a look shot; then boats draw their shield with it.
-   The mask is independent; wiring boats to it needs slice 5.
+   The mask is in (`ShieldDomeDraw`'s arc, clean bright ends, the flat
+   fallback cut to it); wiring boats to it needs slice 5.
 
 ## Owner answers (2026-10-26)
 

@@ -81,11 +81,12 @@ class MarineOpsPageNavTest {
             }
             assertArrayEquals(new int[]{1, 0, 1, 1}, counts, "Original retained controls must open all newly available rooms");
             assertSame(boatButton, markup.requireElement("page-nav-boats"));
+            var barracksButton = markup.requireElement("page-nav-barracks");
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.SHIP_TRANSFER, rooms::get,
-                    List.of(CompanyNotices.Notice.SECONDHAND_WINGS));
-            assertTrue(boatButton.hasClass("page-nav-new"));
+                    List.of(CompanyNotices.Notice.FIRST_REFIT));
+            assertTrue(barracksButton.hasClass("page-nav-new"));
             MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.SHIP_TRANSFER, rooms::get, List.of());
-            assertFalse(boatButton.hasClass("page-nav-new"), "Review clears the retained marker without rebuilding the route");
+            assertFalse(barracksButton.hasClass("page-nav-new"), "Review clears the retained marker without rebuilding the route");
             document.requestFocus(boatButton, true);
             document.keyPressed(UiKey.ENTER, Set.of(), false);
             assertEquals(2, counts[3]);
