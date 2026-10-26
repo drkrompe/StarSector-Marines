@@ -1411,6 +1411,9 @@ BLOCKED = {
 # S5 is lit (coordinator, 2026-10-24): it goes through the kit, the link and motion audits and the
 # blob lint like every key frame. Its key time is the first of its ships' (M5_T).
 KEYFRAMES['m5'] = BLOCKED.pop('m5')
+# S2 is lit too (owner, 2026-10-26: the shots missing from the cut). It has no effects to time; its key time is
+# the Lasher's, the one flown ship (M2_T).
+KEYFRAMES['m2'] = BLOCKED.pop('m2')
 SHOTS = {**KEYFRAMES, **BLOCKED}
 SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
