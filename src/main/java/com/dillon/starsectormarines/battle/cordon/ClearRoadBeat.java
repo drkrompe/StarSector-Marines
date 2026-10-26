@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -180,7 +181,9 @@ final class ClearRoadBeat extends CordonBeat {
      * ({@link SupplyDelivery#facing}); where none can, where it always was, facing the front. Set down at the corridor
      * cell {@link #FORWARD} short of the gap whatever lay there, it stood in town where its footprint could not turn
      * onto the street (every route refused at its first bend), or snapped into a yard walled all round, and never
-     * reached the wreck.
+     * reached the wreck. The cell must also let it set out whichever way its route leaves: set down in a street three
+     * cells wide beside a vehicle pad (urban frozen 11), the route proved but every trajectory from its first pose was
+     * refused, and it stood there all battle with the wreck across the road.
      */
     private long setDown(BattleSimulation sim, CordonConvoys convoys) {
         List<int[]> corridor = beats.corridor();
@@ -198,7 +201,7 @@ final class ClearRoadBeat extends CordonBeat {
         float[][][] way = new float[1][][];
         int index = goal == null ? -1 : startIndex(preferred, convoys.entry(), convoys.gapIndex() - 1, i -> {
             int[] cell = VehicleRoutePlanner.snapToMask(stand, corridor.get(i)[0], corridor.get(i)[1], CordonBeats.STAND_REACH);
-            if (cell == null || !mask.isPassable(cell[0], cell[1])) return false;
+            if (cell == null || !mask.isPassable(cell[0], cell[1]) || !setsOutFrom(cell, view)) return false;
             float[][] route = VehicleRoutePlanner.routeDrivable(cell[0], cell[1], goal[0], goal[1], view, cost, mask, type);
             if (route == null) return false;
             at[0] = cell;
@@ -211,6 +214,11 @@ final class ClearRoadBeat extends CordonBeat {
         }
         float facing = SupplyDelivery.facing(way[0], at[0][0] + .5f, at[0][1] + .5f, goal[0] + .5f, goal[1] + .5f);
         return beats.command().deploy(sim, type, at[0][0], at[0][1], facing);
+    }
+
+    /** Whether the dozer set down at {@code cell} can set out from it whichever way its route leaves. */
+    static boolean setsOutFrom(int[] cell, NavigationGrid view) {
+        return TurnAwareCorridor.canSetOutFrom(cell[0] + .5f, cell[1] + .5f, VehicleType.DOZER_BREACHER, view);
     }
 
     /** Cells a move order looks round its goal for ground the hull fits, as {@code VehicleMoveOrderSystem} does. */
