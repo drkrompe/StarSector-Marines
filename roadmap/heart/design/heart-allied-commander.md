@@ -37,7 +37,8 @@ the bore assault takes it once it has rallied.
 Broad Front where its formation rallies (on the bore's support line, not the
 bore), a lane assaults its bore in phases (`BoreAssault`, `heart-bore-assault.md`):
 - **base of fire:** machines on a stand-off ring outside the bore's mouth, on
-  the lane's near side, facing it; militia on a support line behind them;
+  the lane's near side, facing it; militia on a support line behind them,
+  a squad short of it moving up by attack move and holding it once there;
 - **assault:** the militia go in on a spent surge;
 - **falling back:** the next surge sends them back to the support line.
 

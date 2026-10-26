@@ -33,6 +33,10 @@ bore a lane takes, the waves and the calls for armour stay the mission's.
    spread along the ring, with a line of fire to the bore preferred. Allied
    command's stands slide a post along the ring or back from it, never in. The
    militia hold a **support line** five cells behind the ring, toward the lane.
+   A squad more than six cells short of it moves up by attack move, fighting on
+   the way, and holds it once there. Told only to hold it, a squad short of the
+   line fought where it stood: Broad Front verdant 3's lane 4 stood fifty to
+   eighty cells short from tick 9000 to the end, its satellite untouched.
 3. **Assault.** A hurt bore surges at most every twelve seconds. The militia go in
    on a **spent surge**: a surge has come out, three seconds have passed, and the
    mouth holds no more than four of the swarm. A bore that has not surged for
