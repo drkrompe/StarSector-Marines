@@ -1203,9 +1203,12 @@ have left they fall at once and it drives on at the speed the rest gives: one
 crate barricade checks it to about nine tenths of its way, a row of housing
 wall across its blade to about half. Where it does not, they share it and the
 dozer is brought up, for the blade to finish at its rate: a row of city wall
-stops it just short. Bearing on pushable ground is progress, so
-the wall-contact and stall recovery leave a pushing hull alone; bearing on a
-fortified wall is not, and recovery treats it as any other wall.
+stops it just short. Where its hull rather than its blade is held by
+pushable cells, its tail or flank swung into a house wall as it turns, and
+nothing else holds it, it grinds them down at the same rate: its route counts
+that ground open, so its turns may sweep there. Bearing on pushable ground is
+progress, so the wall-contact and stall recovery leave a pushing hull alone;
+bearing on a fortified wall is not, and recovery treats it as any other wall.
 
 Route proof for a bladed hull reads a **breach view**: a routing copy of the
 grid with every pushable cell open. Its move-order proof and rolling local
