@@ -211,6 +211,13 @@ public final class MissionOutcome {
         return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
+    /** Credits the side objectives earned, paid at settlement: each job done that pays. */
+    public int sideObjectiveCredits() {
+        long total = 0L;
+        for (SideObjectiveResult side : sideObjectives) total += side.credits();
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
     /** @return a builder with every field defaulted to its "absent" value. */
     public static Builder builder() {
         return new Builder();

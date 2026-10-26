@@ -639,7 +639,9 @@ an edge indicator, and Locate moves only the camera.
 Side objectives (`mission-command-nouns.md`) sit in an **Optional** section
 under the numbered steps: their own heading, a mark per row, never counted in
 the tally, and a lapsed or failed row stays struck until the battle ends. Each
-row names who offered the job. Their beacons are rings in the optional tone,
+row names what the job earns ("Pays 1,500 / Harrow will remember"), or who
+offered it when it earns nothing beyond its effect. A hidden job has no row or beacon until found, then reads "New"
+for a moment. Their beacons are rings in the optional tone,
 apart from the mission's diamonds; Locate works on them, but they keep no
 off-camera edge indicator. A toast and a narration line announce each change,
 and the row always shows the same state.

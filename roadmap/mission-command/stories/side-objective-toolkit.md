@@ -1,6 +1,6 @@
 # Side-objective toolkit
 
-Status: IN PROGRESS — all four steps built and integrated, awaiting owner acceptance; the model is folded into `mission-command-nouns.md` (Side objectives) and `ui-nouns.md`.
+Status: IN PROGRESS — all four steps built and integrated, then discovery and per-job credits from the owner's answers; awaiting owner acceptance. The model is folded into `mission-command-nouns.md` (Side objectives) and `ui-nouns.md`.
 
 Written: 2026-10-26
 
@@ -113,11 +113,12 @@ escort died). These map onto `MissionObjectiveSnapshot.State` for the picture.
 - Tests cover the triggers, windows and the mark. Each runs in under one
   second; no battle is played in `test`.
 
-## Open questions
+## Owner answers (2026-10-26)
 
-- Do marks expire, or are they permanent until a story clears them? Default:
-  permanent.
-- Should an offered job ever be hidden until discovered (a contact met in the
-  field)? Default: no; every job is listed at the briefing.
-- Bonus pay per job: debrief text only (the Dust Ledger's default), or
-  credits? Default: text only until the owner picks.
+- Marks are permanent until a story clears them.
+- Some jobs are hidden until discovered in the field: a discovery trigger on
+  the definition, a notice and a short "new" mark when found, and a missed job
+  reported only by an authored line. Built.
+- Pay depends on what the job is for: debrief text and mark, credits, or both,
+  declared on the job's return and paid at settlement. Built; the Dust Ledger's
+  amounts are an owner pick (`dust-ledger-crossing.md`, Side objectives).

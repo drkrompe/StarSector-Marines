@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.objective.side.Ground;
 import com.dillon.starsectormarines.battle.objective.side.SideField.Who;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective;
+import com.dillon.starsectormarines.battle.objective.side.SideObjective.Discovery;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective.Effect;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective.Hook;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective.Return;
@@ -28,7 +29,8 @@ import java.util.function.Supplier;
  * The Dust Ledger's four side objectives on the toolkit ({@code dust-ledger-crossing.md}, Side objectives;
  * {@code side-objective-toolkit.md}): the salvagers' coupling, the warden's nod and cutting the feed, open until the
  * alarm, and the broker, open until he is gone. Their payoffs (the salvage team, the cantina held and the spotters, the
- * dark nests) are the sequence's to carry out from each job's state.
+ * dark nests) are the sequence's to carry out from each job's state. The feed is hidden until a squad finds the tap; the
+ * coupling and the broker also pay credits.
  */
 final class DustLedgerSideObjectives {
     static final String COUPLING = "dust-ledger-coupling", WARDEN = "dust-ledger-warden", FEED = "dust-ledger-feed",
@@ -39,6 +41,12 @@ final class DustLedgerSideObjectives {
     static final float NOD_SECONDS = 8f;
     /** How long a company combatant works the feed junction, unbroken, to cut the nests' power. UNTUNED first pass. */
     static final float FEED_SECONDS = 10f;
+    /** How far a company combatant spots the tap's junction box from. UNTUNED first pass. */
+    static final float FEED_SIGHT_CELLS = 12f;
+    /** Wayline's delivery fee for the coupling, beside a 22,000-credit Low contract. Owner pick pending. */
+    static final int COUPLING_FEE = 1_500;
+    /** What Wayline pays for the broker delivered alive. Owner pick pending. */
+    static final int BROKER_BOUNTY = 3_000;
     private static final String LINE = "corvus.dust_ledger.";
 
     private DustLedgerSideObjectives() { }
@@ -49,7 +57,7 @@ final class DustLedgerSideObjectives {
                 Map.of(State.WORKING, LINE + "harrow_crate", State.DONE, LINE + "harrow_delivered")),
                 new SideTrigger.Carry(Who.COMBATANT, cell(sites.crate()), DustLedgerSequence.CRATE_REACH_CELLS,
                         ground(sites.harrowYard())),
-                Window.phase(progress::quiet), Effect.NONE, Return.done("corvus.harrow.coupling_delivered"), null);
+                Window.phase(progress::quiet), Effect.NONE, Return.done("corvus.harrow.coupling_delivered", COUPLING_FEE), null);
     }
 
     /** A squad leader waits at the well house before the alarm: the watch holds the cantina and spots the yard. */
@@ -62,16 +70,22 @@ final class DustLedgerSideObjectives {
                         "dustLedgerHudSpotterStatus", sites.spotterPosts(), MissionObjectiveSnapshot.State.COMPLETE) : List.of());
     }
 
-    /** Work the power tap's junction box, unbroken, before the alarm: the gun nests are dead when it comes. */
+    /**
+     * Work the power tap's junction box, unbroken, before the alarm: the gun nests are dead when it comes. Hidden: the
+     * briefing knows only that the nests have power from somewhere, until a squad sights or reaches the box.
+     */
     static SideObjective feed(Sites sites, DustLedgerProgress progress, Effect cutNests, Supplier<List<Cell>> nests,
                               BooleanSupplier nestsPowered) {
+        Ground junction = ground(sites.feedJunction());
         return new SideObjective(FEED, new Hook("dustLedgerSideFeed", "dustLedgerSideOffererCompany",
                 Map.of(State.WORKING, LINE + "feed_approach", State.DONE, LINE + "feed_cut", State.LAPSED, LINE + "feed_lapsed")),
-                new SideTrigger.Hold(Who.COMBATANT, ground(sites.feedJunction()), FEED_SECONDS),
+                new SideTrigger.Hold(Who.COMBATANT, junction, FEED_SECONDS),
                 Window.phase(progress::quiet), cutNests, Return.done("corvus.sable_wake.feed_cut"),
                 // The nests are marked while they can still fire on the company.
                 () -> nestsPowered.getAsBoolean() ? markers("dust-ledger-nest-", "dustLedgerHudNest", "dustLedgerHudNestStatus",
-                        nests.get(), MissionObjectiveSnapshot.State.ACTIVE) : List.of());
+                        nests.get(), MissionObjectiveSnapshot.State.ACTIVE) : List.of())
+                .hidden(Discovery.anyOf(Discovery.sight(Who.COMBATANT, junction, FEED_SIGHT_CELLS),
+                        Discovery.reach(Who.COMBATANT, junction)), LINE + "feed_found");
     }
 
     /** Take the broker's surrender and bring him to the freight apron alive; his skimmer leaving closes the job. */
@@ -80,7 +94,7 @@ final class DustLedgerSideObjectives {
         return new SideObjective(BROKER, new Hook("dustLedgerSideBroker", "dustLedgerSideOffererCompany",
                 Map.of(State.WORKING, LINE + "broker_surrendered", State.DONE, LINE + "broker_apron", State.FAILED, LINE + "broker_lost")),
                 new SideTrigger.Escort(broker, () -> progress.broker() == Broker.HELD, ground(sites.apron())),
-                Window.phase(() -> progress.broker() != Broker.ESCAPED), Effect.NONE, Return.done("corvus.teague.delivered"),
+                Window.phase(() -> progress.broker() != Broker.ESCAPED), Effect.NONE, Return.done("corvus.teague.delivered", BROKER_BOUNTY),
                 () -> List.of(new Marker("dust-ledger-pad", Strings.get("dustLedgerHudSkimmerPad"), pad.x(), pad.y(),
                         Strings.get("dustLedgerHudSkimmerPadStatus"), self.get().state().picture())));
     }
