@@ -998,6 +998,7 @@ public final class VehicleEngagement {
     }
 
     private boolean valid(long candidate, Faction own, GroundBody body, float aware, boolean indirect) {
+        if (roster.unitIndex().withheld(candidate)) return false;
         boolean vehicle = convoy.isVehicle(candidate);
         if (vehicle) {
             if (!convoy.isTargetable(candidate) || convoy.structure(candidate) <= 0f) return false;
