@@ -37,6 +37,18 @@ final class SwitchLineBeat extends CordonBeat {
         return Status.ACTIVE;
     }
 
+    /**
+     * Where team {@code k} of {@code n} holds the switch line: the middle of its own stretch along the line's long side.
+     * Told to hold a circle round the whole line, a garrison whose redoubt stood inside the circle never moved: on
+     * urban Line seeds 1 and 11 the given-up garrison stood all battle where it was, short of the line.
+     */
+    static int[] stretch(int[] line, int k, int n) {
+        int w = line[2] - line[0], h = line[3] - line[1];
+        float along = (k + 0.5f) / n;
+        return w >= h ? new int[]{line[0] + Math.round(along * w), (line[1] + line[3]) / 2}
+                : new int[]{(line[0] + line[2]) / 2, line[1] + Math.round(along * h)};
+    }
+
     /** The middle redoubt the switch line was laid behind: the one whose middle is nearest it, or {@code null}. */
     static CordonRedoubt switchRedoubt(CordonBeats beats) {
         int[] at = beats.centre(CordonPlan.SWITCH_LINE);
@@ -65,10 +77,9 @@ final class SwitchLineBeat extends CordonBeat {
             if (setOut == 0 || !beats.sequence().giveUp(r)) return Status.LAPSED;
             redoubt = r;
             teams = new ArrayList<>(r.teams());
-            int cx = (line[0] + line[2]) / 2, cy = (line[1] + line[3]) / 2;
-            int radius = Math.max(line[2] - line[0], line[3] - line[1]) / 2 + IN_LINE;
-            for (int squad : teams) {
-                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, cx, cy, radius),
+            for (int k = 0; k < teams.size(); k++) {
+                int[] at = stretch(line, k, teams.size());
+                sim.assignSquadCommand(ObjectiveAssignment.defendArea(teams.get(k), at[0], at[1], IN_LINE),
                         CommandAuthority.GARRISON, CordonGarrisons.ISSUER, "fall back to the switch line");
             }
         }
