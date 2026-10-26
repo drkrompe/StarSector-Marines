@@ -119,6 +119,43 @@ public final class ColonyEruptionPlan {
         return count;
     }
 
+    /**
+     * This plan kept {@code radius} cells clear of ({@code x}, {@code y}), a side objective's set piece under its
+     * own bore: a site inside the ring is re-seated at the place outside it nearest where it stood, spaced from
+     * the other sites, keeping its number, role and delay (a site with no such place stays put); no place inside
+     * the ring is left to bud on.
+     */
+    public ColonyEruptionPlan clearOf(int x, int y, int radius) {
+        List<int[]> free = new ArrayList<>();
+        for (int[] p : places) if (!within(p[0], p[1], x, y, radius)) free.add(p);
+        List<Site> seated = new ArrayList<>(sites);
+        for (int i = 0; i < seated.size(); i++) {
+            Site site = seated.get(i);
+            if (!within(site.x(), site.y(), x, y, radius)) continue;
+            List<int[]> others = new ArrayList<>();
+            for (Site other : seated) if (other != site) others.add(new int[]{other.x(), other.y()});
+            int[] best = null;
+            double bestDistance = Double.POSITIVE_INFINITY;
+            for (int[] p : free) {
+                if (!spacedFrom(p, others, spacing)) continue;
+                double distance = Math.hypot(p[0] - site.x(), p[1] - site.y());
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = p;
+                }
+            }
+            if (best == null) continue;
+            free.remove(best);
+            seated.set(i, new Site(site.number(), best[0], best[1], site.role(), site.delayTicks(), kind(best[2])));
+        }
+        return new ColonyEruptionPlan(seated, requestedFirstWave, free, heartX, heartY, spacing);
+    }
+
+    private static boolean within(int px, int py, int x, int y, int radius) {
+        int dx = px - x, dy = py - y;
+        return dx * dx + dy * dy < radius * radius;
+    }
+
     /** Whether every requested first-wave site and the mother were seated. */
     public boolean isComplete() {
         return firstWaveCount() == requestedFirstWave && mother() != null;

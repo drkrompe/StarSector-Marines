@@ -2081,7 +2081,13 @@ its own (numbered from 90, clear of the eruptions) opened on the street near
 the set piece, whose surges the objective calls on its own beats, before the
 tremor as after it, and whose broods it sends in down the set piece's lanes.
 Collapsing that bore ends the pressure, which a guard may gamble on. When the
-objective ends its survivors wander as the rest of the swarm.
+objective ends its survivors wander as the rest of the swarm. The breach keeps
+out of the set piece's way: once the objective is rolled, any eruption site
+within 80 cells of the set piece's middle (a first-wave bore's foraging pulse
+overruns a yard from closer) is
+re-seated at the nearest place outside that ring, keeping its number and time,
+and no bore buds inside it (`ColonyEruptionPlan.clearOf`), so what reaches the
+set piece first is the pressure its beats pace.
 
 ## Flow
 

@@ -976,6 +976,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmBores.budInward(plan.places(), plan.heartX(), plan.heartY(), plan.spacing(), plan.firstWaveCount() + 1);
         swarmReinforcements.beginSeepage();
     }
+
+    /**
+     * Keeps the installed breach's bores {@code radius} cells clear of ({@code x}, {@code y}): a side objective's
+     * set piece, whose pressure is its own bore's ({@link ColonyEruptionPlan#clearOf}). Setup only, after
+     * {@link #installColonyBreach}.
+     */
+    public void clearColonyBreachOf(int x, int y, int radius) {
+        if (simTickIndex != 0 || colonyBreach == null)
+            throw new IllegalStateException("Clear the Colony Breach at setup, once it is installed");
+        ColonyEruptionPlan plan = colonyBreach.plan().clearOf(x, y, radius);
+        colonyBreach.replanAtSetup(plan);
+        swarmBores.budInward(plan.places(), plan.heartX(), plan.heartY(), plan.spacing(), plan.firstWaveCount() + 1);
+    }
     private ColonyLivingField colonyLivingField;
     /** The colony's scattered allies and civilians, or {@code null} off the colony map or with the control. */
     public ColonyLivingField colonyLivingField() { return colonyLivingField; }

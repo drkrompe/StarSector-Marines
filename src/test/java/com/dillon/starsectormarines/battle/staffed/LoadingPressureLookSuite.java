@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.staffed;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.evacuation.BorePressure;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyObjectiveForce;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -93,6 +94,10 @@ public final class LoadingPressureLookSuite implements SnapshotSuite {
                 float fx = (tx + site[0] + .5f) / 2f, fy = (ty + site[1] + .5f) / 2f;
                 System.out.printf(Locale.ROOT, "[%s] seed %d: truck %.0f,%.0f at bay %b, bore site %d,%d (%.0f away), %d guards%n",
                         id(), seed, tx, ty, loading.atBay(), site[0], site[1], Math.hypot(site[0] - tx, site[1] - ty), guards);
+                StringBuilder breach = new StringBuilder();
+                for (ColonyEruptionPlan.Site s : sim.getColonyBreach().plan().sites())
+                    breach.append(String.format(Locale.ROOT, " %d@%.0f", s.number(), Math.hypot(s.x() - tx, s.y() - ty)));
+                System.out.println("[" + id() + "] seed " + seed + ": breach sites (number@cells from truck)" + breach);
                 // Wide enough to hold the yard and the bore together, with the yard's half-width beyond each.
                 float across = Math.max(BattleReviewFrameRenderer.PLAY_ZOOM_CELLS, Math.max(
                         Math.abs(site[0] - tx) + 2 * MARGIN, (Math.abs(site[1] - ty) + 2 * MARGIN) * 1920f / 1080f));

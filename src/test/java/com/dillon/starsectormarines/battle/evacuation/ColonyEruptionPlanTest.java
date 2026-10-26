@@ -129,4 +129,28 @@ class ColonyEruptionPlanTest {
         assertFalse(plan.isComplete());
         assertEquals(1, plan.firstWaveCount(), "two neighbouring places seat one site");
     }
+
+    @Test
+    void anObjectivesSetPieceIsKeptClearOfEveryBoreAndBud() {
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of()),
+                ColonyEruptionPlan.FIRST_WAVE_SITES, 11L);
+        ColonyEruptionPlan.Site first = plan.sites().get(0);
+        int radius = 45;
+        ColonyEruptionPlan cleared = plan.clearOf(first.x(), first.y(), radius);
+        assertEquals(plan.sites().size(), cleared.sites().size(), "every site still opens");
+        for (int i = 0; i < cleared.sites().size(); i++) {
+            ColonyEruptionPlan.Site site = cleared.sites().get(i), was = plan.sites().get(i);
+            assertTrue(Math.hypot(site.x() - first.x(), site.y() - first.y()) >= radius,
+                    "bore " + site.number() + " inside the ring at " + site.x() + "," + site.y());
+            assertEquals(was.number(), site.number());
+            assertEquals(was.delayTicks(), site.delayTicks(), "a moved bore keeps its time");
+            for (int j = 0; j < i; j++) {
+                ColonyEruptionPlan.Site other = cleared.sites().get(j);
+                assertTrue(Math.hypot(site.x() - other.x(), site.y() - other.y()) >= plan.spacing(),
+                        "bores " + site.number() + " and " + other.number() + " crowd each other");
+            }
+        }
+        for (int[] place : cleared.places())
+            assertTrue(Math.hypot(place[0] - first.x(), place[1] - first.y()) >= radius, "a bud place in the ring");
+    }
 }
