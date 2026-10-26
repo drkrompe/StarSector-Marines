@@ -569,7 +569,11 @@ increasing an encounter's total armored threat.
   that separated under Free Reign. **Free Reign** releases generic formation
   and support tethering so every member may execute its own doctrine
   independently. Both remain subordinate to the lance's mission assignment
-  and legal contact picture. A lance begins on Form on Lead.
+  and legal contact picture. A lance begins on Form on Lead. It is the rule of
+  commander and enemy lances; the player has no lance-order control. Player
+  mechs move individually — every player drop lands as its own one-mech squad,
+  so there is no player lance to form — and keep company with infantry through
+  an attachment instead.
 - A **tactical move order** is a one-shot, battle-local destination for one
   exact player Mech. It temporarily owns that chassis's locomotion without
   replacing the lance's mission directive, shared plan, doctrine, or contact
@@ -1027,10 +1031,11 @@ presentation-only and never enters battle determinism, save data, spawning, or
 mechanical authority.
 
 Selecting an exact friendly mech during battle may request another effective
-role, another lance order, a lance-wide Defend Area order, or a tactical move.
-The role request affects only that mech; the lance and Defend Area requests
-affect its whole battle lance; the tactical move temporarily affects only the
-selected chassis's locomotion. The battle
+role, a Defend Area order for its squad, a tactical move, an attachment to an
+infantry squad, or a detach. The role request affects only that mech; the
+Defend Area request affects its whole squad; the tactical move temporarily
+affects only the selected chassis's locomotion. The lance order is not a player
+request (lance order, above). The battle
 applies each request at its serialized command boundary. Doctrine and lance
 changes invalidate the movement and planning state owned by the changed layer
 and replan immediately. Defend Area installs one player tactical assignment on

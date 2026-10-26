@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentService;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -18,17 +18,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.LongConsumer;
 
-/** Render-free projection for selected-Mech doctrine and lance coordination. */
+/**
+ * Render-free projection for the selected Mech's doctrine and attachment. The attachment row says
+ * which squad the mech follows, if any, and offers DETACH; attaching is a right-click on a squad.
+ */
 final class BattleMechOverlayModel {
 
     private static final String DEFAULT_STATE =
             "doctrine-state doctrine-state-default";
     private static final String OVERRIDDEN_STATE =
             "doctrine-state doctrine-state-overridden";
-    private static final String LANCE_ORDER_CARD = "lance-order-card";
-    private static final String LANCE_ORDER_CARD_ACTIVE =
-            "lance-order-card lance-order-card-active";
+    private static final String ATTACHMENT_FREE = "attachment-state attachment-state-free";
+    private static final String ATTACHMENT_ATTACHED = "attachment-state attachment-state-attached";
 
     private final MutableSignal<String> mechTitle;
     private final MutableSignal<String> mechIdentity;
@@ -36,38 +39,32 @@ final class BattleMechOverlayModel {
     private final MutableSignal<String> effectiveDoctrine;
     private final MutableSignal<String> doctrineState;
     private final MutableSignal<String> doctrineStateClasses;
-    private final MutableSignal<String> formOnLeadClasses;
-    private final MutableSignal<String> freeReignClasses;
-    private final MutableSignal<String> formOnLeadMeta;
-    private final MutableSignal<String> freeReignMeta;
-    private final MutableSignal<Boolean> formOnLeadDisabled;
-    private final MutableSignal<Boolean> freeReignDisabled;
+    private final MutableSignal<String> attachmentState;
+    private final MutableSignal<String> attachmentClasses;
+    private final MutableSignal<Boolean> detachDisabled;
     private final MutableSignal<List<DoctrineCard>> doctrineCards;
     private final Runnable backAction;
     private final BiConsumer<Long, MechRole> doctrineRequest;
-    private final BiConsumer<Long, MechLanceOrder> lanceOrderRequest;
+    private final LongConsumer detachRequest;
     private final Map<MechRole, Runnable> roleActions = new EnumMap<>(MechRole.class);
 
     private long selectedMechId;
 
     BattleMechOverlayModel(Reactor reactor, Runnable backAction,
                            BiConsumer<Long, MechRole> doctrineRequest,
-                           BiConsumer<Long, MechLanceOrder> lanceOrderRequest) {
+                           LongConsumer detachRequest) {
         this.backAction = backAction;
         this.doctrineRequest = doctrineRequest;
-        this.lanceOrderRequest = lanceOrderRequest;
+        this.detachRequest = detachRequest;
         mechTitle = reactor.signal(Strings.get("battleMechTitle"));
         mechIdentity = reactor.signal(Strings.get("battleMechSelected"));
         deployedDoctrine = reactor.signal(Strings.format("battleMechDeployed", "--"));
         effectiveDoctrine = reactor.signal(Strings.format("battleMechEffective", "--"));
         doctrineState = reactor.signal(Strings.get("battleMechDoctrineDefault"));
         doctrineStateClasses = reactor.signal(DEFAULT_STATE);
-        formOnLeadClasses = reactor.signal(LANCE_ORDER_CARD_ACTIVE);
-        freeReignClasses = reactor.signal(LANCE_ORDER_CARD);
-        formOnLeadMeta = reactor.signal(Strings.get("battleMechActive"));
-        freeReignMeta = reactor.signal(Strings.get("battleMechSelect"));
-        formOnLeadDisabled = reactor.signal(true);
-        freeReignDisabled = reactor.signal(false);
+        attachmentState = reactor.signal(Strings.get("battleMechUnattached"));
+        attachmentClasses = reactor.signal(ATTACHMENT_FREE);
+        detachDisabled = reactor.signal(true);
         doctrineCards = reactor.signal(List.of());
     }
 
@@ -79,16 +76,10 @@ final class BattleMechOverlayModel {
         props.put("effectiveDoctrine", effectiveDoctrine);
         props.put("doctrineState", doctrineState);
         props.put("doctrineStateClasses", doctrineStateClasses);
-        props.put("formOnLeadClasses", formOnLeadClasses);
-        props.put("freeReignClasses", freeReignClasses);
-        props.put("formOnLeadMeta", formOnLeadMeta);
-        props.put("freeReignMeta", freeReignMeta);
-        props.put("formOnLeadDisabled", formOnLeadDisabled);
-        props.put("freeReignDisabled", freeReignDisabled);
-        props.put("formOnLeadAction", (Runnable) () -> requestLanceOrder(
-                MechLanceOrder.FORM_ON_LEAD));
-        props.put("freeReignAction", (Runnable) () -> requestLanceOrder(
-                MechLanceOrder.FREE_REIGN));
+        props.put("attachmentState", attachmentState);
+        props.put("attachmentClasses", attachmentClasses);
+        props.put("detachDisabled", detachDisabled);
+        props.put("detachAction", (Runnable) this::requestDetach);
         props.put("doctrineCards", doctrineCards);
         props.put("backAction", backAction);
         props.put("defaultAction", (Runnable) () -> request(null));
@@ -121,14 +112,15 @@ final class BattleMechOverlayModel {
         }
         return updateProjected(new MechState(selectedSquadId, selectedUnitEntityId,
                 sim.identity().name(selectedUnitEntityId), loadout.variant.displayName(),
-                loadout.deployedRole(), loadout.effectiveRole(), squad.lanceOrder(),
+                loadout.deployedRole(), loadout.effectiveRole(),
+                anchorLabel(sim, sim.getMechAttachmentService().anchorOf(selectedSquadId)),
                 selectableRoles()));
     }
 
     Presentation updateProjected(MechState mech) {
         if (mech == null || mech.squadId() < 0 || mech.entityId() == 0L
                 || mech.deployedRole() == null
-                || mech.effectiveRole() == null || mech.lanceOrder() == null
+                || mech.effectiveRole() == null
                 || mech.availableRoles().isEmpty()) {
             return hide();
         }
@@ -144,13 +136,11 @@ final class BattleMechOverlayModel {
         doctrineState.set(Strings.get(overridden ? "battleMechDoctrineOverride" : "battleMechDoctrineDefault"));
         doctrineStateClasses.set(overridden ? OVERRIDDEN_STATE : DEFAULT_STATE);
 
-        boolean forming = mech.lanceOrder() == MechLanceOrder.FORM_ON_LEAD;
-        formOnLeadClasses.set(forming ? LANCE_ORDER_CARD_ACTIVE : LANCE_ORDER_CARD);
-        freeReignClasses.set(forming ? LANCE_ORDER_CARD : LANCE_ORDER_CARD_ACTIVE);
-        formOnLeadMeta.set(Strings.get(forming ? "battleMechActive" : "battleMechSelect"));
-        freeReignMeta.set(Strings.get(forming ? "battleMechSelect" : "battleMechActive"));
-        formOnLeadDisabled.set(forming);
-        freeReignDisabled.set(!forming);
+        boolean attached = mech.anchorLabel() != null;
+        attachmentState.set(attached ? Strings.format("battleMechAttachedTo", Strings.upper(mech.anchorLabel()))
+                : Strings.get("battleMechUnattached"));
+        attachmentClasses.set(attached ? ATTACHMENT_ATTACHED : ATTACHMENT_FREE);
+        detachDisabled.set(!attached);
 
         List<DoctrineCard> cards = new ArrayList<>(mech.availableRoles().size());
         for (MechRole role : mech.availableRoles()) {
@@ -178,8 +168,17 @@ final class BattleMechOverlayModel {
         if (selectedMechId != 0L) doctrineRequest.accept(selectedMechId, role);
     }
 
-    private void requestLanceOrder(MechLanceOrder order) {
-        if (selectedMechId != 0L) lanceOrderRequest.accept(selectedMechId, order);
+    private void requestDetach() {
+        if (selectedMechId != 0L) detachRequest.accept(selectedMechId);
+    }
+
+    /** The followed squad's name as its own plate shows it, or {@code null} when the mech follows nobody. */
+    private static String anchorLabel(BattleSimulation sim, int anchorId) {
+        if (anchorId == MechAttachmentService.NONE) return null;
+        Squad anchor = sim.getSquad(anchorId);
+        if (anchor == null) return null;
+        return anchor.campaignLabel != null && !anchor.campaignLabel.isBlank()
+                ? anchor.campaignLabel : Strings.format("battleSquadNumbered", anchor.id);
     }
 
     private Presentation hide() {
@@ -223,7 +222,7 @@ final class BattleMechOverlayModel {
 
     record MechState(int squadId, long entityId, String unitName, String variantName,
                      MechRole deployedRole, MechRole effectiveRole,
-                     MechLanceOrder lanceOrder,
+                     String anchorLabel,
                      List<MechRole> availableRoles) {
         MechState {
             availableRoles = availableRoles == null

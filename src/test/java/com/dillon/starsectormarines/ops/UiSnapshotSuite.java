@@ -67,7 +67,6 @@ import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
-import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
@@ -878,11 +877,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         BattleMechOverlayModel model = new BattleMechOverlayModel(
                 reactor, () -> { }, (mechId, role) -> { },
-                (mechId, order) -> { });
+                mechId -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
                 3, 303L, "Warden Three", MechVariant.WARDEN.displayName(),
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
-                MechLanceOrder.FREE_REIGN,
+                "Alpha",
                 BattleMechOverlayModel.selectableRoles()));
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

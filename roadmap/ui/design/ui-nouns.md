@@ -667,13 +667,13 @@ fire-team roster; its default cards expose health and equipment shorthand while
 hover reveals the marine's full primary, special equipment, suit system, profile,
 role, armour, and readiness without enlarging the persistent HUD. Selecting an
 exact live player Mech replaces that infantry roster with a compact Mech plate:
-variant, deployed doctrine, effective doctrine, the lance-wide Form on Lead or
-Free Reign order, Brawler, Tank, Long Range Support, and Balanced choices, plus
-Reset Doctrine. Tactical placement orders live in the separate bottom order bar. Tank is
-presentation shorthand for Frontline Support. Scope is
-visible beside the controls: the lance order affects the whole selected battle
-lance, Defend Area affects that whole lance's temporary assignment, and doctrine
-affects only the exact selected mech. The plate projects
+variant, deployed doctrine, effective doctrine, its **attachment** — the squad it
+follows, or that it is free, with DETACH — then Brawler, Tank, Long Range Support,
+and Balanced choices, plus Reset Doctrine. There is no lance-order control: player
+mechs move individually. Tactical placement orders live in the separate bottom
+order bar. Tank is presentation shorthand for Frontline Support. Scope is visible
+beside the controls: the attachment and doctrine affect only the selected mech,
+and Defend Area affects its squad's temporary assignment. The plate projects
 the simulation's effective state and sends serialized battle-command requests;
 it never mutates the squad, loadout, campaign default, assignment, or contact
 picture directly, and it is absent for enemies, infantry, rescue payloads, and
