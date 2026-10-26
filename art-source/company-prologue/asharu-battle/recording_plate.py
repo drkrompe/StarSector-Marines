@@ -28,7 +28,7 @@ import radio_log
 
 W, H, FPS = 1920, 1080, 24
 SHOTS = {'s0': ('rec0', 0.0, 10.0, 'open'), 's11': ('m11', 118.0, 126.0, 'static'),
-         's13': ('rec13', 134.0, 147.0, 'close')}
+         's13': ('rec13', 138.0, 151.0, 'close')}
 RECORDING_END_S = 124.5         # S11: the picture breaks into the screen's static here (asharu_preview)
 FADE_IN = (.8, 1.6)             # S0: black, then the screen
 
