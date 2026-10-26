@@ -160,7 +160,11 @@ never stands out in front of armour that has fallen behind. Only members that
 without moving a cell is a **straggler**: a hull that cannot find its way, a squad
 pinned down. So is a member that joined after step-off and has not yet walked up
 to its slot. A straggler is left to catch up and rejoins the body when it moves
-again (or, for a late joiner, once it has stood on its slot). Leaving it out matters
+again (or, for a late joiner, once it has stood on its slot). A member that has
+stood ten seconds **in place** (within reach of its slot) without moving a cell
+is counted at its slot, not where it halted: otherwise a hull that stopped five
+cells short of a slot six ahead held the anchor where its slot stayed in reach,
+and was never moved on (Broad Front frozen 5, 2026-10-25). Leaving it out matters
 because the anchor never runs more than a few cells ahead of the body, and a
 member already on its slot cannot go further forward. One member that could not
 reach its own slot would otherwise hold the whole formation where it stood: on

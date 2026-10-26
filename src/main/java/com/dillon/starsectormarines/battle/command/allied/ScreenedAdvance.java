@@ -165,14 +165,27 @@ public final class ScreenedAdvance {
         private boolean onLine;
         private float x = Float.NaN, y = Float.NaN;
         private int movedSince;
+        /** Whether it stood in place at its last observation, and its slot's distance along the route then. */
+        private boolean inPlace;
+        private float slotAlong = Float.NaN;
+        /** Where it last moved a cell from, in place or not, and when. */
+        private float stillX = Float.NaN, stillY = Float.NaN;
+        private int stillSince;
 
         Pace(boolean onLine, int tick) {
             this.onLine = onLine;
             movedSince = tick;
+            stillSince = tick;
         }
 
         /** The member stands at {@code (x, y)} at {@code tick}, on its slot or not. */
         void observe(int tick, float x, float y, boolean inPlace) {
+            this.inPlace = inPlace;
+            if (Float.isNaN(stillX) || Math.hypot(x - stillX, y - stillY) >= 1f) {
+                stillX = x;
+                stillY = y;
+                stillSince = tick;
+            }
             if (inPlace) onLine = true;
             if (inPlace || Float.isNaN(this.x) || Math.hypot(x - this.x, y - this.y) >= 1f) {
                 this.x = x;
@@ -183,6 +196,20 @@ public final class ScreenedAdvance {
 
         boolean keepsUp(int tick) {
             return onLine && tick - movedSince < STRAGGLE_TICKS;
+        }
+
+        /** Its slot stands {@code along} the route. */
+        void slotAt(float along) {
+            slotAlong = along;
+        }
+
+        /**
+         * How far along the route it has got at {@code tick}, for the anchor's keep-up: its slot's distance once it has
+         * stood in place without moving a cell for {@link #STRAGGLE_TICKS}, else {@code along}, where it stands. One
+         * still walking up inside its reach holds the anchor as it always did.
+         */
+        float keepUpAlong(float along, int tick) {
+            return inPlace && tick - stillSince >= STRAGGLE_TICKS && !Float.isNaN(slotAlong) ? slotAlong : along;
         }
     }
 
@@ -387,8 +414,9 @@ public final class ScreenedAdvance {
             float[] p = where(sim, slot.kind, slot.id, centres);
             if (p == null) continue;
             int[] at = slot.cell();
-            paces.computeIfAbsent(slot.kind + ":" + slot.id, k -> new Pace(true, tick))
-                    .observe(tick, p[0], p[1], Math.hypot(p[0] - at[0] - .5f, p[1] - at[1] - .5f) <= ARRIVE_REACH);
+            Pace pace = paces.computeIfAbsent(slot.kind + ":" + slot.id, k -> new Pace(true, tick));
+            pace.observe(tick, p[0], p[1], Math.hypot(p[0] - at[0] - .5f, p[1] - at[1] - .5f) <= ARRIVE_REACH);
+            pace.slotAt(route.along(at[0] + .5f, at[1] + .5f));
         }
     }
 
@@ -530,7 +558,7 @@ public final class ScreenedAdvance {
      */
     private float slowest(BattleSimulation sim) {
         float least = Float.POSITIVE_INFINITY;
-        float[] s = body(sim, screen), m = body(sim, main);
+        float[] s = body(sim, screen, true), m = body(sim, main, true);
         if (s != null) least = Math.min(least, s[2] - screenAhead);
         if (m != null) least = Math.min(least, m[2]);
         // Nothing keeps up (every member straggling, or still walking up to its slot): the formation holds.
@@ -544,15 +572,28 @@ public final class ScreenedAdvance {
      * of the element lives and keeps up.
      */
     public float[] body(BattleSimulation sim, Element element) {
+        return body(sim, element, false);
+    }
+
+    /**
+     * As {@link #body(BattleSimulation, Element)}; {@code keepUp}, each member standing still in place is counted along
+     * the route at its slot rather than where it stands ({@link Pace#keepUpAlong}). The anchor runs at most {@link #KEEP_UP} past the slowest, and a
+     * member within {@link #ARRIVE_REACH} of its slot is in place: a hull halted five cells short of a slot six ahead
+     * held the anchor where its slot stayed in reach, and was never moved on (Broad Front frozen 5, 2026-10-25: lane 1
+     * stood from tick 21400 to the cap).
+     */
+    private float[] body(BattleSimulation sim, Element element, boolean keepUp) {
         List<float[]> at = new ArrayList<>();
         Map<Integer, float[]> centres = squadCentres(sim, element);
         for (long[] member : members(element)) {
             float[] p = where(sim, (int) member[0], member[1], centres);
-            if (p != null && keepsUp(sim, (int) member[0], member[1])) at.add(p);
+            if (p == null || !keepsUp(sim, (int) member[0], member[1])) continue;
+            float along = route.along(p[0], p[1]);
+            Pace pace = keepUp ? paces.get(member[0] + ":" + member[1]) : null;
+            at.add(new float[]{p[0], p[1], pace == null ? along : pace.keepUpAlong(along, sim.getSimTickIndex())});
         }
         if (at.isEmpty()) return null;
-        List<float[]> ranked = new ArrayList<>();
-        for (float[] p : at) ranked.add(new float[]{p[0], p[1], route.along(p[0], p[1])});
+        List<float[]> ranked = at;
         ranked.sort((a, b) -> Float.compare(b[2], a[2]));
         int keep = (int) Math.ceil(ranked.size() * ARRIVE_SHARE);
         float x = 0f, y = 0f, along = 0f;

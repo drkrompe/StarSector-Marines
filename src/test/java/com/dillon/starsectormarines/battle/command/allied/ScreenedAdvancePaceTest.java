@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.command.allied;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,6 +44,19 @@ class ScreenedAdvancePaceTest {
         assertTrue(ScreenedAdvance.engages(true, 2200, 2200), "the push spent, a contact holds it again");
         assertFalse(ScreenedAdvance.engages(false, 2200, 2200));
         assertTrue(ScreenedAdvance.engages(true, 30, 0), "never pushed, any contact holds it");
+    }
+
+    @Test
+    void aMemberHaltedInPlaceShortOfItsSlotCountsAtTheSlotForTheKeepUp() {
+        // Broad Front frozen 5's lane 1 hull: in place, 64.6 along the route, its slot at 70.6.
+        ScreenedAdvance.Pace hull = new ScreenedAdvance.Pace(true, 0);
+        hull.slotAt(70.6f);
+        hull.observe(0, 149f, 208f, true);
+        assertEquals(64.6f, hull.keepUpAlong(64.6f, 0), 1e-4f, "just arrived, it is waited for where it stands");
+        hull.observe(LATER, 149.3f, 208.2f, true);
+        assertEquals(70.6f, hull.keepUpAlong(64.6f, LATER), 1e-4f, "halted, it no longer holds the anchor");
+        hull.observe(LATER + 15, 149.3f, 208.2f, false);
+        assertEquals(64.6f, hull.keepUpAlong(64.6f, LATER + 15), 1e-4f, "off its slot, it counts where it stands");
     }
 
     @Test
