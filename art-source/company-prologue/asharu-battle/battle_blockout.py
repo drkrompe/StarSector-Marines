@@ -1071,9 +1071,10 @@ KEYFRAMES = {
             # option (c), coordinator 2026-10-24: the Falcon's two drawn bursts (103.71 and 104.5 s) set her
             # forward deck burning and tear plating off her bow; the fire spreads aft along her deck,
             # venting, with small secondary pops, until it reaches her magazine at 107.6 s and she breaks up
-            # its opening blast at 2.6 m, not 3.3: close on her bow the torn flash still held 625 white px
-            # on its third frame at full quality (S9b final c00, 2026-10-25; blob lint limit 600 px, 2 frames)
-            ('fire_on', 'lasher-lead', (49, -5, 5), (-.2, .5, 1), 105 - 103.71, 2.6),
+            # its opening blast at 2.2 m, not 3.3: close on her bow the torn flash still held 625 white px
+            # on its third frame at full quality (S9b final c00, 2026-10-25; blob lint limit 600 px, 2 frames),
+            # and at 2.6 m still 610 px (S9b final f02448 at 50691e12e, k4b_f02491)
+            ('fire_on', 'lasher-lead', (49, -5, 5), (-.2, .5, 1), 105 - 103.71, 2.2),
             ('debris', 'lasher-lead', 25, (53, -3, -4), 104.5),
             ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
             ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
