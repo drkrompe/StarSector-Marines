@@ -1,14 +1,14 @@
 # Boat refit axes: the Hermes as the company's boat
 
-Status: PLANNED — design; D2, D4 and D5 open on the picks page
+Status: PLANNED — design decided; tier numbers and part list still to author
 Written: 2026-10-26
-Updated: 2026-10-26 — owner answered lift (D3), old saves (D6), other patterns (D7) and ship changes; the budget (D1) follows.
+Updated: 2026-10-26 — owner answered every picks question: cycle, lift, shield and flux, weapons, saves, patterns and ship changes.
 
 The standing model is in `company-view-nouns.md` (Boat Deck, Boat spare, Fitting)
 and `air-nouns.md` (fitted boat, Lift, the rotation). This story replaces the
 three fitting slots with six refit axes and makes the Hermes the boat they are
-built around. Nothing here is shipped; the open decisions are at the end and on
-the boat refit picks page (`tools/picks/pages.md`).
+built around. Nothing here is shipped. The owner's answers are recorded on the
+boat refit picks page (`tools/picks/pages.md`) and summarised at the end.
 
 ## Why
 
@@ -30,10 +30,13 @@ swapping boats is no longer part of the campaign.
   trades for another pattern. Getting better boats means refitting these two.
 - The Hermes takes every axis. `BoatFitting.supports` and `BoatGun.supports`
   stop refusing it; "no upgrade path" copy goes.
-- **Its stock numbers are tier 1** of every ladder: 55 HP, 11 cells/s, 4 seats
-  (one fire team), one hardpoint, no lift, no shield, no flux. Each tier above is
-  authored as a step from those numbers, so a fully refitted Hermes is a
-  different boat in play while staying the same airframe, sprite and hull id.
+- **Tier 1 is the Hermes as the base game builds her**, at battle scale: her
+  hull, speed and four seats as the mod flies her today, plus what the mod has
+  so far left out of her hull table and spec. She has three small turret slots
+  and an omni shield (120° arc, upkeep 0.5, efficiency 1.0) over a 1,000 flux
+  pool dissipating 80 a second, scaled the way warships scale hull figures
+  (`WarshipFlux`). Each tier above is a step from those numbers; she stays the
+  same airframe, sprite and hull id.
 - Tiers are parts, kept as boat spares (`company-view-nouns.md`): built from a
   bill into stores, dragged on and off sockets, and moved freely between the
   two boats.
@@ -59,81 +62,123 @@ Each axis is a socket kind on the boat doll, with a yard-standard tier 1 part
 that is free and never stored. Every other part has a **weight** against the
 Hermes frame's rating (below).
 
-1. **Speed** (drive socket). How fast she gets in, out and round again. Tiers
-   scale forward speed and both accelerations, as the drive does today, and are
-   also what carries a heavy load at speed (see Lift). Whether speed also
-   shortens the deboard cadence or the deck turnaround is D2.
+1. **Speed** (drive socket). How fast she gets in, out and round again. Drive
+   tiers scale forward speed and both accelerations, as the drive does today,
+   and also **shorten the deboard cadence**: a better drive comes with a quick
+   ramp, so she sits on a hot landing zone for less time. The deck crew's
+   turnaround stays paid in hand-seconds (`air-nouns.md`, "A turnaround is a
+   window"). Drive tiers are also what carries a heavy load at speed (Lift).
 2. **Lift** (hold socket, its own part). The heaviest machine class she
    carries: none at tier 1, then Light (Hound, heavy APC), Medium (Warden,
    escort APC, militia technical) and Heavy (Bulwark, breakthrough tank).
    **Lift never costs seats** (owner: the company has only two boats). A
    sortie is still one kind: a squad load or exactly one machine
    (`air-nouns.md`, Lift). Every consumer still asks `LiftAdmission`.
-   - **A load slows her.** A boat carrying a machine flies slower by its lift
-     class. Drive tiers win that speed back, and they weigh against the frame,
-     so a Hermes fitted to carry a Bulwark at full speed has that much less for
-     armour, shield and guns. An empty or squad sortie flies at the drive's own
-     speed.
 3. **Seats** (cabin socket, new). How many marines a sortie lands: 4, then 6
    (a half-squad), then 8 (two fire teams). Today seats are the pattern's
    `capacity` and `FittedBoat` delegates them untouched; the cabin makes them a
    fitted number. More seats means fewer trips to land a squad.
-4. **Weapons** (hardpoint sockets). The Hermes's one hardpoint does not
-   change; what goes on it does. Today four ballistic door guns. Whether
-   energy guns (drawing flux) and missile pods (finite rounds) join is D5.
-5. **Armor and shield** (plating socket, plus an emitter socket). Plating
-   tiers scale the hull and its armour skin, as today. A **shield emitter** is
-   new for boats: raised, it turns anti-air hits from inside its arc into hard
-   flux instead of hull damage. How it is modelled is D4.
-6. **Flux** (power socket, new). A capacitor and vent part: flux capacity and
-   dissipation. It is what a shield and any energy gun draw on, so it is the
-   axis that makes the other two a trade. With no shield and no energy gun
-   fitted it does nothing, and the card says so.
+4. **Weapons** (one socket per turret slot). The Hermes hull already has three
+   small turret slots: two forward quarters (45° either side, 150° arcs) and one
+   astern (210° arc). The mod flies her with one gun today; all three become
+   sockets, and the player chooses what goes on each. Three families:
+   - **Ballistic**: the door guns (heavy MG, Arbalest, grenade launcher,
+     Hephaestus).
+   - **Energy**: new boat guns that fire on flux and need no ammunition.
+   - **Missile**: new pods with finite rounds and no flux, a few volleys a
+     sortie for a hard opening strike on the run in.
+   **Mount rules bend for boats** (owner): the hull's slots are small ballistic
+   turrets, and a boat socket takes any family regardless. What limits a socket
+   is the frame's weight, not the slot's type or size. A slot's position and
+   arc stay the hull's, so the stern gun still only covers the stern.
+5. **Armor and shield** (plating socket, emitter socket). Plating tiers scale
+   the hull and its armour skin, as today. The **shield** tries to block
+   incoming fire: raised, it turns a hit from inside its arc into hard flux
+   instead of hull damage. Emitter tiers widen the arc and improve efficiency
+   (less flux per point blocked). It raises itself when fire is near, as a
+   warship's does in automatic mode (`WarshipShield`).
+6. **Flux** (power socket). Capacitors and vents: flux capacity and
+   dissipation. **Flux is one shared pool for the guns and the shield**
+   (owner): every gun but a missile pod builds flux as it fires, the raised
+   shield draws upkeep, and blocked shots add hard flux. A full pool
+   overloads: the shield drops and the guns stop until it vents, as a
+   warship's does. So a boat that fights its way in has less shield left for
+   the landing.
 
-**The frame budget** (settled by the lift answer). Every part above tier 1 has
-a weight, and the Hermes frame has a rating, as a mech's parts are weighed
-against its engine (`MechFrameBudget`). A refit over the rating is refused.
-The trade is the point: lift and the drive that keeps a loaded boat fast take
-weight that armour, shield, flux and guns cannot use. The Boat Deck shows the
-frame as a meter, the way the Mech Lab shows the engine budget.
+**Weight, loads and the cycle.** A boat flies slower with weight aboard: a
+machine slows her by its lift class, and a full cabin slows her a little. Once
+she has dropped her load she is lighter, so **the run back is faster than the
+run in** and she cycles round sooner. Drive tiers win the loaded speed back.
+
+**The frame budget.** Every part above tier 1 has a weight, and the Hermes
+frame has a rating, as a mech's parts are weighed against its engine
+(`MechFrameBudget`). A refit over the rating is refused. The trade is the
+point: lift, and the drive that keeps a loaded boat fast, take weight that
+armour, shield, flux and guns cannot use. The Boat Deck shows the frame as a
+meter, the way the Mech Lab shows the engine budget.
 
 ## What the battle reads
 
 `FittedBoat` is still the only battle noun, frozen at launch. It gains seats,
-lift, shield and flux figures and the load slowdown, and if D2 says so a
-deboard cadence. The air systems read them from the frame; nothing in the
-battle learns about the campaign. Seats move from `type.capacity` to the frame
-in `AirSystem` and `LiftQueueReadout`. The load slowdown applies while a
-machine is aboard, so the run in is slow and the run out is the boat's own
-speed. A shield reuses the warship's flux and shield rules (`WarshipFlux`,
-`WarshipShield`) at boat scale if D4 picks the full model. Fixtures keep
-writing part ids, never the frame.
+lift, a deboard cadence, a weight-to-speed rule, a gun per turret slot, and a
+shield and flux pool. The air systems read them from the frame; nothing in the
+battle learns about the campaign.
+
+- Seats move from `type.capacity` to the frame in `AirSystem` and
+  `LiftQueueReadout`, and the deboard cadence from `type.deboardInterval`.
+- Speed is recomputed from what is aboard when the load changes: on boarding
+  and after each deboard, so the run in is slower than the run out.
+- A boat's guns mount on all three of the hull's turret slots
+  (`TurretSlotResolver`), each with the family the player chose, whatever type
+  the slot names.
+- Flux and shield reuse the warship's rules (`WarshipFlux`, `WarshipShield`)
+  at boat scale rather than a second model: one pool fed by gunfire, shield
+  upkeep and blocked hits, draining at dissipation, overloading at capacity.
+  An anti-air hit inside a raised shield's arc goes to flux, not the hull.
+- **A boat's shield is drawn with the shield dome's shader** (owner;
+  `ShieldDomeShader`, `ShieldDomeRenderSystem`), not the warship's sprite
+  shield: the bright rim and hex field, cells lit as the pool fills, a ripple
+  where each blocked round lands, the collapse on overload and the rim
+  re-forming. A boat's shield is an arc, so the shader gains an arc mask (its
+  facing and width as uniforms, the dome being the full-circle case) rather
+  than a second shield effect. It keeps the dome's fail-soft flat drawing and
+  its side colours, and needs `shaderEvidence` and a `SnapshotSuite` look shot.
+
+Fixtures keep writing part ids, never the frame.
 
 ## Saves
 
 No old saves need to load (owner). The work deletes compatibility code rather
-than adding any: Secondhand Wings' purchase record and adapter, and the
-fitting slots' legacy readings, go without a migration.
+than adding any: Secondhand Wings' purchase record and adapter, the deck's
+left-behind record, and the fitting slots' legacy readings, go without a
+migration.
 
-## Owner answers
+## Still to author
 
-- **D1 Budget:** a frame weight budget; follows from the lift answer.
-- **D3 Hermes lift:** a separate lift part up to Heavy, costing no seats; a
-  load slows the boat, and drive tiers that cost frame weight fix it.
-- **D6 Old saves:** none to support.
+- The part list: tiers per axis, each with its numbers, weight and bill, and
+  the frame rating. These are tuned numbers and belong in the catalog with a
+  card-sheet or matchup evidence run, not in this doc.
+- The energy guns and missile pods themselves: names, turret structures and
+  art, against the turret catalog.
+
+## Owner answers (2026-10-26)
+
+- **Budget:** a frame weight budget; follows from the lift answer.
+- **Cycle:** drive tiers also speed deboarding; a boat is lighter once it has
+  dropped its load, so it cycles back faster. Turnaround stays hand-seconds.
+- **Lift:** a separate lift part up to Heavy, costing no seats; a load slows
+  the boat, and drive tiers that cost frame weight fix it.
+- **Shield and flux:** the shield tries to block incoming fire; blocked shots
+  build flux; flux is one pool shared by firing weapons and the shield.
+  Draw it with the shield dome's shader.
+- **Weapons:** ballistic, energy and missile; the hull's existing turret slots
+  are the sockets, the player chooses what goes on each, and mount-type rules
+  bend to allow it.
+- **Old saves:** none to support.
+- **Other patterns:** parts transfer between the company's boats, but
+  upgrading or swapping boats leaves the campaign; the company flies two Hermes.
 - **Ship changes:** the two Hermes move with the company to any ship; none is
   ever left behind.
-- **D7 Other patterns:** parts transfer between the company's boats, but
-  upgrading or swapping boats leaves the campaign; the company flies two Hermes.
-
-## Open decisions (picks page)
-
-- **D2 Cycle.** Speed is flight only / flight plus deboard cadence, a quick
-  ramp (recommended) / flight, deboard and deck turnaround.
-- **D4 Shield and flux.** No shield, armour only / the warship shield and flux
-  model at boat scale (recommended) / a flat damage cut that spends power points.
-- **D5 Weapon families.** Ballistic door guns only / add energy guns on flux
-  and missile pods with finite rounds (recommended).
 
 ## Acceptance
 
@@ -141,7 +186,10 @@ fitting slots' legacy readings, go without a migration.
   refits them on all six axes from spares; no screen offers another pattern.
 - A refit over the frame rating is refused, and the frame meter shows why.
 - Each axis changes the number the battle reads, shown by a unit test on
-  `FittedBoat` per axis; a loaded boat flies slower than an empty one and a
-  drive tier recovers it; a shield absorbs a hit into flux in one unit test.
+  `FittedBoat` per axis.
+- In unit tests: a loaded boat flies slower than an empty one and a drive tier
+  recovers it; a shield turns a hit into flux; gunfire and shield draw on one
+  pool, and a full pool drops the shield and silences the guns.
+- A Hermes mounts a different family on each of her three turret slots.
 - Boat Deck previews at 1920x1080 show a Hermes at tier 1, one fitted to lift,
   and one fitted to fight.
