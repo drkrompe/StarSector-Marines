@@ -554,7 +554,11 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
         }
     }
 
-    private static void installFonts(SnapshotContext context, BitmapFont... fonts) throws Exception {
+    /**
+     * Installs each font's metrics from the mod (or the game's core) before any battle is built: a font first touched
+     * without them draws no glyphs after, leaving a label's backing plate empty.
+     */
+    static void installFonts(SnapshotContext context, BitmapFont... fonts) throws Exception {
         for (BitmapFont font : fonts) {
             Path path = context.modRoot().resolve(font.sourcePath());
             if (!Files.exists(path)) path = context.starsectorCore().resolve(font.sourcePath());

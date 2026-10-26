@@ -209,17 +209,28 @@ public final class LookReview {
      * @param everyTicks a frame is recorded every this many ticks
      * @param stills     how many stills of the busiest moments to keep per view
      * @param stillFrames recorded-frame indices to keep as stills instead of the busiest moments; empty for those
+     * @param speed      how many times real speed the recording plays at: 1 plays a frame every {@code everyTicks}
+     *                   in real time; 4 with a frame every 4 ticks is 30 frames a second, and the soundtrack's starts
+     *                   move with it while each sound keeps its own length and pitch
      */
     public record Shot(String name, LookGround ground, int footprintW, int footprintH,
                        Function<Placement, BattleSimulation> stage, Function<Placement, List<View>> views,
-                       int ticks, int everyTicks, int stills, int[] stillFrames) {
+                       int ticks, int everyTicks, int stills, int[] stillFrames, int speed) {
         public Shot {
             Objects.requireNonNull(name, "name");
             Objects.requireNonNull(ground, "ground");
             Objects.requireNonNull(stage, "stage");
             Objects.requireNonNull(views, "views");
             if (ticks <= 0 || everyTicks <= 0) throw new IllegalArgumentException("ticks and everyTicks must be positive");
+            if (speed <= 0) throw new IllegalArgumentException("speed must be positive");
             stillFrames = stillFrames == null ? new int[0] : stillFrames.clone();
+        }
+
+        /** A shot played back in real time. */
+        public Shot(String name, LookGround ground, int footprintW, int footprintH,
+                    Function<Placement, BattleSimulation> stage, Function<Placement, List<View>> views,
+                    int ticks, int everyTicks, int stills, int[] stillFrames) {
+            this(name, ground, footprintW, footprintH, stage, views, ticks, everyTicks, stills, stillFrames, 1);
         }
 
         /** A shot whose stills are its busiest moments. */
@@ -236,7 +247,8 @@ public final class LookReview {
         }
 
         public Shot on(LookGround other) {
-            return new Shot(name, other, footprintW, footprintH, stage, views, ticks, everyTicks, stills, stillFrames);
+            return new Shot(name, other, footprintW, footprintH, stage, views, ticks, everyTicks, stills, stillFrames,
+                    speed);
         }
 
         /**
@@ -244,7 +256,13 @@ public final class LookReview {
          * telling moment is not its busiest: a pack circling before it dives fires nothing.
          */
         public Shot withStills(int... frames) {
-            return new Shot(name, ground, footprintW, footprintH, stage, views, ticks, everyTicks, stills, frames);
+            return new Shot(name, ground, footprintW, footprintH, stage, views, ticks, everyTicks, stills, frames, speed);
+        }
+
+        /** Plays the recording back at {@code times} real speed. */
+        public Shot atSpeed(int times) {
+            return new Shot(name, ground, footprintW, footprintH, stage, views, ticks, everyTicks, stills, stillFrames,
+                    times);
         }
     }
 
@@ -300,7 +318,7 @@ public final class LookReview {
                 if (mp4) {
                     Path out = Files.createTempFile(scratch, shot.name() + "-" + view.name() + "-", ".mp4");
                     encoders.add(FfmpegVideo.open(out, width, height,
-                            Math.round(1f / BattleSimulation.TICK_DT) + "/" + shot.everyTicks()));
+                            Math.round(shot.speed() / BattleSimulation.TICK_DT) + "/" + shot.everyTicks()));
                 }
             }
             List<List<Integer>> activity = new ArrayList<>();
@@ -334,9 +352,10 @@ public final class LookReview {
             if (sound) {
                 wav = Files.createTempFile(scratch, shot.name() + "-", ".wav");
                 BattleSoundMix.mix(modRoot, soundLog,
-                        recordedFrames * shot.everyTicks() * (double) BattleSimulation.TICK_DT, wav);
+                        recordedFrames * shot.everyTicks() * (double) BattleSimulation.TICK_DT / shot.speed(), wav,
+                        shot.speed());
             }
-            int delay = Math.max(20, Math.round(1000f * BattleSimulation.TICK_DT * shot.everyTicks()));
+            int delay = Math.max(20, Math.round(1000f * BattleSimulation.TICK_DT * shot.everyTicks() / shot.speed()));
             List<SnapshotArtifact> artifacts = new ArrayList<>();
             StringBuilder stillsAt = new StringBuilder();
             for (int v = 0; v < views.size(); v++) {
