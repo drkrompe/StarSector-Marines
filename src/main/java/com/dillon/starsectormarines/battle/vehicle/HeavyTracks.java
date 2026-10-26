@@ -14,7 +14,8 @@ import com.dillon.starsectormarines.battle.world.MapEditor;
  * ({@link VehicleType#crushesUndergrowth()}) drives into it: every crushable cell under its footprint after a move is
  * crushed through {@link MapEditor#crush}, the same destruction path a shell takes, so a tree falls whole to its
  * felled art and a boulder to its rubble, and the ground is open for everyone afterwards. Crushing costs the hull its
- * way: a tick that crushes anything leaves it at no more than {@link #CRUSH_SPEED_FRACTION} of its top speed.
+ * way: each cell it crushes takes {@link #CRUSH_STRUCTURE} of its momentum ({@link HullMomentum}), so a tank flattens
+ * a sapling barely slowed and an APC lurches through a thicket.
  *
  * <p><b>Why both planning and motion.</b> Unlike the dozer's wall, which really is there until the blade has worn it
  * down ({@link DozerBlade}), undergrowth gives at once, so the hull's route proof, rolling planner, recovery and
@@ -33,8 +34,11 @@ public final class HeavyTracks {
      */
     public static final String PROPERTY = "battle.vehicle.crushUndergrowth";
 
-    /** The share of top speed a hull keeps on a tick it crushes something. */
-    public static final float CRUSH_SPEED_FRACTION = .5f;
+    /**
+     * Structure of a hull's momentum each crushed cell takes ({@link HullMomentum}). An APC at its top speed keeps
+     * nine tenths of its way through one cell and half through a thicket of three at once; a gun tank barely slows.
+     */
+    public static final float CRUSH_STRUCTURE = 120f;
 
     private final NavigationService navigation;
     private final MapEditor editor;
@@ -92,8 +96,8 @@ public final class HeavyTracks {
     NavigationGrid currentView() { return view; }
 
     /**
-     * Crushes every crushable cell under {@code body}'s footprint as it stands now, and holds the hull to
-     * {@link #CRUSH_SPEED_FRACTION} of its top speed if anything gave.
+     * Crushes every crushable cell under {@code body}'s footprint as it stands now, and takes
+     * {@link #CRUSH_STRUCTURE} of the hull's momentum for each cell that gave.
      *
      * @return how many cells were crushed
      */
@@ -113,8 +117,8 @@ public final class HeavyTracks {
             if (editor.crush(crushing[i * 2], crushing[i * 2 + 1])) crushed++;
         }
         if (crushed > 0) {
-            float cap = type.maxSpeed * CRUSH_SPEED_FRACTION;
-            body.speed = Math.copySign(Math.min(Math.abs(body.speed), cap), body.speed);
+            float kept = HullMomentum.speedAfter(type.massTonnes(), Math.abs(body.speed), crushed * CRUSH_STRUCTURE);
+            body.speed = Math.copySign(kept, body.speed);
         }
         return crushed;
     }

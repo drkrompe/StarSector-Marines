@@ -30,6 +30,12 @@ public interface SideField {
 
     float y(long id);
 
+    /**
+     * Whether a company unit of this kind has a line of sight, within {@code range} cells, to any cell of {@code ground}
+     * (its anchor or outline). A hand-built field sees nothing unless it says so.
+     */
+    default boolean sees(Who who, Ground ground, float range) { return false; }
+
     /** The field over a live battle. */
     static SideField of(BattleSimulation sim) {
         return new SideField() {
@@ -74,6 +80,30 @@ public interface SideField {
             @Override public float x(long id) { return sim.world().x(id); }
 
             @Override public float y(long id) { return sim.world().y(id); }
+
+            @Override public boolean sees(Who who, Ground ground, float range) {
+                if (who == Who.LEADER) {
+                    for (Squad squad : sim.getSquads())
+                        if (squad.faction == Faction.MARINE && onField(squad.leaderId) && sees(squad.leaderId, ground, range)) return true;
+                    return false;
+                }
+                for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                    long id = sim.liveUnitAt(i);
+                    if (combatant(id) && sees(id, ground, range)) return true;
+                }
+                return false;
+            }
+
+            private boolean sees(long id, Ground ground, float range) {
+                int ux = sim.world().cellX(id), uy = sim.world().cellY(id);
+                var anchor = ground.anchor();
+                // Far beyond range of the whole place: no ray is cast.
+                if (Math.hypot(anchor.x() - ux, anchor.y() - uy) > range + 8) return false;
+                if (sim.getGrid().hasLineOfSightWithin(ux, uy, anchor.x(), anchor.y(), range)) return true;
+                for (var cell : ground.outline())
+                    if (sim.getGrid().hasLineOfSightWithin(ux, uy, cell.x(), cell.y(), range)) return true;
+                return false;
+            }
 
             private boolean combatant(long id) {
                 return sim.identity().faction(id) == Faction.MARINE && sim.identity().type(id).combatant

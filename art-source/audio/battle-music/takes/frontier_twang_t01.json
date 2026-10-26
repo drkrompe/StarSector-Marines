@@ -1,0 +1,82 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "tempo": 130,
+  "request": {
+    "composition_plan": {
+      "positive_global_styles": [
+        "instrumental retro science-fiction synth score, 1990s action film sound",
+        "analog synthesizers, warm detuned pads, tape-saturated",
+        "130 BPM with a half-time feel, E minor",
+        "tense and watchful but not yet fighting, steady, neutral, leaves room for sound effects",
+        "a seamless loop: the same energy from the first bar to the last, no intro build and no ending",
+        "a lonely reverb-drenched clean electric guitar with tremolo plays sparse twangy notes",
+        "a pulsing synth bass in eighths and a low analog drone underneath",
+        "dusty frontier-colony mood with industrial metal clanks and a slow mechanical half-time beat",
+        "gritty, working-class, military outpost"
+      ],
+      "negative_global_styles": [
+        "vocals",
+        "choir",
+        "lyrics",
+        "orchestra",
+        "heroic brass fanfare",
+        "big drum fills",
+        "crash cymbals",
+        "guitar solo",
+        "dubstep drop",
+        "fade in",
+        "fade out",
+        "silence",
+        "final chord",
+        "fast tempo"
+      ],
+      "sections": [
+        {
+          "section_name": "Outpost",
+          "positive_local_styles": [
+            "guitar phrases with space between them over the bass pulse"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 29538,
+          "lines": []
+        },
+        {
+          "section_name": "Patrol",
+          "positive_local_styles": [
+            "a quiet arpeggiated synth joins under the guitar",
+            "the beat firms up slightly"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 29538,
+          "lines": []
+        },
+        {
+          "section_name": "Outpost again",
+          "positive_local_styles": [
+            "back to the opening texture",
+            "guitar phrases over the bass pulse"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 29538,
+          "lines": []
+        },
+        {
+          "section_name": "Turn",
+          "positive_local_styles": [
+            "same groove and level as the opening, leading straight back into it"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 14769,
+          "lines": []
+        }
+      ]
+    },
+    "respect_sections_durations": true
+  },
+  "audioSha256": "e82a8ef52682860f7cab4787481c2dd68700dd898cc783d08d34be9f8a6d8382",
+  "durationSeconds": 103.42,
+  "peakDb": -0.4,
+  "integratedLufs": -14.1
+}

@@ -74,6 +74,8 @@ public final class BattleMusicPlaylist {
         return currentTrack + setSuffix;
     }
 
+    public int size() { return tracks.size(); }
+
     public void stop() {
         active = false;
         currentTrack = null;

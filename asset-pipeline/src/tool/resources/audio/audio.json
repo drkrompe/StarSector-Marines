@@ -402,6 +402,10 @@
     // marines_intel_music ("Next Move", MechWarrior 4: Mercenaries) is the one proprietary track,
     // kept as a credited homage; see mod/CREDITS. Remove it on any rightsholder request.
     { "id": "marines_intel_music",  "source": "music/next-move.ogg", "kind": "music", "out": "battle/music" },
+    // The battle music's quiet bed, looped (BattleMusicDirector): the strings take of the Second Wind
+    // arrival's ElevenLabs score, cut to its sounding span so the loop never falls silent:
+    // ffmpeg -ss 3.8 -to 125.0 -i art-source/company-prologue/second-wind-cinematic/arrival-audio/music-takes/score_strings_t01.mp3 -c:a libvorbis -q:a 8 music/arrival-strings-bed.ogg
+    { "id": "marines_battle_quiet_strings", "source": "music/arrival-strings-bed.ogg", "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_02", "source": "music/DavidKBD - InterstellarPack - 01 - Interstellar.ogg",          "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_03", "source": "music/DavidKBD - InterstellarPack - 02 - Plasma Storm.ogg",          "kind": "music", "out": "battle/music" },
     { "id": "marines_battle_music_04", "source": "music/DavidKBD - InterstellarPack - 03 - Temple of Madness.ogg",     "kind": "music", "out": "battle/music" },

@@ -43,6 +43,9 @@ FAMILIES = {
     "beds": ("The room and the set", "The operations room's air and the CRT's hum, under everything."),
 }
 ORDER = list(FAMILIES)
+ROUND = 4
+# the owner's notes from the round before, shown on the card they were left on
+PRIOR = {}
 
 
 def mp3(x, path, solo=False):
@@ -70,7 +73,7 @@ def build(videos):
         for family, label, t in marks:
             cues.setdefault(family, []).append(dict(shot=shot, label=label, t=round(t - SHOT_START[shot], 2)))
         for family in sorted({f for f, _, _ in marks}):
-            options = pa.OPTIONS.get(family)
+            options = pa.OPTIONS.get(family) if family in pa.REVIEW else None
             if not options:                             # one sound: its solo only
                 y, _ = pa.build(shot, only=family)
                 mp3(y, media / ("solo-%s-%s.mp3" % (shot, family)), solo=True)
@@ -86,8 +89,13 @@ def build(videos):
         if fam not in cues:
             continue
         title, about = FAMILIES[fam]
-        opts = [dict(key=k, label=v[0], current=pa.CHOICE[fam] == k) for k, v in pa.OPTIONS.get(fam, {}).items()]
-        families.append(dict(id=fam, title=title, about=about, options=opts,
+        review = fam in pa.REVIEW
+        opts = [dict(key=k, label=v[0], current=pa.CHOICE[fam] == k) for k, v in pa.OPTIONS[fam].items()] if review else []
+        if fam in pa.OPTIONS and not review:
+            about += " Picked: %s, %s." % (pa.CHOICE[fam], pa.OPTIONS[fam][pa.CHOICE[fam]][0])
+        if fam in PRIOR:
+            about += " Your note last round: “%s”." % PRIOR[fam]
+        families.append(dict(id=fam, doc=fam + ("-r%d" % ROUND if review else "-final" if not pa.REVIEW else ""), title=title, about=about, options=opts,
                              cues=sorted(cues[fam], key=lambda c: (c["shot"] != "s0", c["t"]))))
     page = (HERE / "sound-review.html").read_text(encoding="utf-8")
     page = page.replace("__FAMILIES__", json.dumps(families, ensure_ascii=False))

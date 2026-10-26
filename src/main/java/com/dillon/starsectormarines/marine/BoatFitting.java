@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,7 @@ import java.util.List;
  *
  * @param effect what the part does to the boat it is on
  * @param weight what it takes out of the frame's rating; zero for a standard part
- * @param bill what the yard consumes out of the fleet's hold to build one spare
+ * @param bill what the yard charges, in credits, to build one spare
  * @param provenance where the thing comes from, for the player reading the card
  */
 public record BoatFitting(
@@ -106,79 +105,79 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_PLATING = new BoatFitting(
             "standard_plating", "@openingBoatFittingYardStandardPlating", BoatFittingSlot.PLATING, 1,
-            Effect.NONE, 0, cost(5, 0, 10, 0), "@openingBoatFittingWhatABoatLeavesTheYardWith");
+            Effect.NONE, 0, credits(800), "@openingBoatFittingWhatABoatLeavesTheYardWith");
 
     public static final BoatFitting REINFORCED_PLATING = new BoatFitting(
             "reinforced_plating", "@openingBoatFittingReinforcedBellyPlate", BoatFittingSlot.PLATING, 2,
-            Effect.armor(1.35f), 2, cost(10, 0, 20, 0), "@openingBoatFittingASecondSkinLaidOverTheBelly");
+            Effect.armor(1.35f), 2, credits(1600), "@openingBoatFittingASecondSkinLaidOverTheBelly");
 
     public static final BoatFitting ARMOURED_PLATING = new BoatFitting(
             "armoured_plating", "@openingBoatFittingArmouredLanderShell", BoatFittingSlot.PLATING, 3,
-            Effect.armor(1.75f), 3, cost(20, 5, 40, 0), "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
+            Effect.armor(1.75f), 3, credits(3950), "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
 
     public static final BoatFitting STANDARD_DRIVE = new BoatFitting(
             "standard_drive", "@openingBoatFittingYardStandardDrive", BoatFittingSlot.DRIVE, 1,
-            Effect.NONE, 0, cost(8, 3, 0, 0), "@openingBoatFittingThePlantTheHullWasRatedFor");
+            Effect.NONE, 0, credits(1250), "@openingBoatFittingThePlantTheHullWasRatedFor");
 
     public static final BoatFitting TUNED_DRIVE = new BoatFitting(
             "tuned_drive", "@openingBoatFittingTunedDrive", BoatFittingSlot.DRIVE, 2,
-            Effect.drive(1.20f, 0.80f), 2, cost(15, 5, 0, 0), "@openingBoatFittingARefitCrewSWeekCleanFeed");
+            Effect.drive(1.20f, 0.80f), 2, credits(2250), "@openingBoatFittingARefitCrewSWeekCleanFeed");
 
     public static final BoatFitting UPRATED_DRIVE = new BoatFitting(
             "uprated_drive", "@openingBoatFittingUpratedDrive", BoatFittingSlot.DRIVE, 3,
-            Effect.drive(1.45f, 0.60f), 4, cost(30, 10, 0, 5), "@openingBoatFittingABiggerPlantThanTheHullWas");
+            Effect.drive(1.45f, 0.60f), 4, credits(5500), "@openingBoatFittingABiggerPlantThanTheHullWas");
 
     public static final BoatFitting STANDARD_LIFT = new BoatFitting(
             "standard_lift", "@boatFittingStandardHold", BoatFittingSlot.LIFT, 1,
-            Effect.NONE, 0, cost(5, 0, 10, 0), "@boatFittingStandardHoldProvenance");
+            Effect.NONE, 0, credits(800), "@boatFittingStandardHoldProvenance");
 
     public static final BoatFitting LIFT_CRADLE = new BoatFitting(
             "lift_cradle", "@boatFittingLiftCradle", BoatFittingSlot.LIFT, 2,
-            Effect.lift(LiftRating.LIGHT), 2, cost(15, 10, 30, 0), "@boatFittingLiftCradleProvenance");
+            Effect.lift(LiftRating.LIGHT), 2, credits(3900), "@boatFittingLiftCradleProvenance");
 
     public static final BoatFitting HEAVY_CRADLE = new BoatFitting(
             "heavy_cradle", "@boatFittingHeavyCradle", BoatFittingSlot.LIFT, 3,
-            Effect.lift(LiftRating.MEDIUM), 3, cost(30, 20, 60, 5), "@boatFittingHeavyCradleProvenance");
+            Effect.lift(LiftRating.MEDIUM), 3, credits(8800), "@boatFittingHeavyCradleProvenance");
 
     public static final BoatFitting HEAVY_LIFT_FRAME = new BoatFitting(
             "heavy_lift_frame", "@boatFittingHeavyLiftFrame", BoatFittingSlot.LIFT, 4,
-            Effect.lift(LiftRating.HEAVY), 5, cost(45, 30, 90, 10), "@boatFittingHeavyLiftFrameProvenance");
+            Effect.lift(LiftRating.HEAVY), 5, credits(13700), "@boatFittingHeavyLiftFrameProvenance");
 
     public static final BoatFitting STANDARD_CABIN = new BoatFitting(
             "standard_cabin", "@boatFittingStandardCabin", BoatFittingSlot.CABIN, 1,
-            Effect.NONE, 0, cost(5, 2, 5, 0), "@boatFittingStandardCabinProvenance");
+            Effect.NONE, 0, credits(950), "@boatFittingStandardCabinProvenance");
 
     public static final BoatFitting HALF_SQUAD_CABIN = new BoatFitting(
             "half_squad_cabin", "@boatFittingHalfSquadCabin", BoatFittingSlot.CABIN, 2,
-            Effect.cabin(6), 1, cost(10, 5, 15, 0), "@boatFittingHalfSquadCabinProvenance");
+            Effect.cabin(6), 1, credits(2200), "@boatFittingHalfSquadCabinProvenance");
 
     public static final BoatFitting TWO_TEAM_CABIN = new BoatFitting(
             "two_team_cabin", "@boatFittingTwoTeamCabin", BoatFittingSlot.CABIN, 3,
-            Effect.cabin(8), 2, cost(20, 10, 30, 0), "@boatFittingTwoTeamCabinProvenance");
+            Effect.cabin(8), 2, credits(4400), "@boatFittingTwoTeamCabinProvenance");
 
     public static final BoatFitting STANDARD_EMITTER = new BoatFitting(
             "standard_emitter", "@boatFittingStandardEmitter", BoatFittingSlot.EMITTER, 1,
-            Effect.NONE, 0, cost(5, 5, 0, 0), "@boatFittingStandardEmitterProvenance");
+            Effect.NONE, 0, credits(1250), "@boatFittingStandardEmitterProvenance");
 
     public static final BoatFitting WIDE_EMITTER = new BoatFitting(
             "wide_emitter", "@boatFittingWideEmitter", BoatFittingSlot.EMITTER, 2,
-            Effect.emitter(180f, 0.8f), 1, cost(10, 10, 0, 5), "@boatFittingWideEmitterProvenance");
+            Effect.emitter(180f, 0.8f), 1, credits(3500), "@boatFittingWideEmitterProvenance");
 
     public static final BoatFitting ASSAULT_EMITTER = new BoatFitting(
             "assault_emitter", "@boatFittingAssaultEmitter", BoatFittingSlot.EMITTER, 3,
-            Effect.emitter(240f, 0.6f), 2, cost(20, 15, 0, 10), "@boatFittingAssaultEmitterProvenance");
+            Effect.emitter(240f, 0.6f), 2, credits(6250), "@boatFittingAssaultEmitterProvenance");
 
     public static final BoatFitting STANDARD_POWER = new BoatFitting(
             "standard_power", "@boatFittingStandardPower", BoatFittingSlot.POWER, 1,
-            Effect.NONE, 0, cost(5, 2, 5, 0), "@boatFittingStandardPowerProvenance");
+            Effect.NONE, 0, credits(950), "@boatFittingStandardPowerProvenance");
 
     public static final BoatFitting CAPACITOR_BANK = new BoatFitting(
             "capacitor_bank", "@boatFittingCapacitorBank", BoatFittingSlot.POWER, 2,
-            Effect.power(1.5f, 1f), 1, cost(10, 5, 10, 5), "@boatFittingCapacitorBankProvenance");
+            Effect.power(1.5f, 1f), 1, credits(3050), "@boatFittingCapacitorBankProvenance");
 
     public static final BoatFitting MILITARY_CAPACITORS = new BoatFitting(
             "military_capacitors", "@boatFittingMilitaryCapacitors", BoatFittingSlot.POWER, 3,
-            Effect.power(1.75f, 1.5f), 2, cost(20, 10, 20, 10), "@boatFittingMilitaryCapacitorsProvenance");
+            Effect.power(1.75f, 1.5f), 2, credits(6100), "@boatFittingMilitaryCapacitorsProvenance");
 
     private static final List<BoatFitting> CATALOG = List.of(
             STANDARD_PLATING, REINFORCED_PLATING, ARMOURED_PLATING,
@@ -301,17 +300,7 @@ public record BoatFitting(
         return fitting != null && fitting.slot() == slot ? fitting : standard(slot);
     }
 
-    private static FabricationCost cost(int supplies, int machinery,
-                                        int metals, int rareMetals) {
-        List<FabricationCost.Line> lines = new ArrayList<>(4);
-        if (supplies > 0) lines.add(new FabricationCost.Line(Commodities.SUPPLIES, supplies));
-        if (machinery > 0) {
-            lines.add(new FabricationCost.Line(Commodities.HEAVY_MACHINERY, machinery));
-        }
-        if (metals > 0) lines.add(new FabricationCost.Line(Commodities.METALS, metals));
-        if (rareMetals > 0) {
-            lines.add(new FabricationCost.Line(Commodities.RARE_METALS, rareMetals));
-        }
-        return new FabricationCost(lines);
+    private static FabricationCost credits(int credits) {
+        return new FabricationCost(credits);
     }
 }

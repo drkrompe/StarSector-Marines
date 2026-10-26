@@ -228,12 +228,12 @@ public final class ShipConditionModel {
                 String key = "refit:" + next.name();
                 bill = CompanyResources.creditBill(next.price, offer.credits());
                 var rows = new ArrayList<CompanyResources.Row>(CompanyResources.credits("survey-repair-cost", offer.credits(), next.price));
-                for (var need : next.materials().entrySet())
+                for (var need : next.cores().entrySet())
                     rows.add(CompanyResources.cost("survey-repair-" + slug(need.getKey()), goods.commodityName(need.getKey()),
                             goods.commodityIcon(need.getKey()), offer.held(need.getKey()), need.getValue()));
                 m.put("billRows", List.copyOf(rows));
                 m.put("billStyle", CompanyResources.billHeight(rows));
-                reason = offer.refusal() != null ? offer.refusal() : next.materials().isEmpty()
+                reason = offer.refusal() != null ? offer.refusal() : next.cores().isEmpty()
                         ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded")
                         : Strings.get("openingRefitMaterialsFromCargo");
                 m.put("actionClasses", "restoration-action console-action");

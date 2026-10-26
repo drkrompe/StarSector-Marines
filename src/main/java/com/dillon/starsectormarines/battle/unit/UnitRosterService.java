@@ -277,6 +277,9 @@ public final class UnitRosterService {
     /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@code AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
     private int deboardedMarineCount = 0;
 
+    /** The spatial index this roster keeps; read for what its hostile scans withhold ({@link UnitSpatialIndex#withheld}). */
+    public UnitSpatialIndex unitIndex() { return unitIndex; }
+
     public UnitRosterService(UnitSpatialIndex unitIndex, DamageService damageService) {
         this.unitIndex = unitIndex;
         this.damageService = damageService;

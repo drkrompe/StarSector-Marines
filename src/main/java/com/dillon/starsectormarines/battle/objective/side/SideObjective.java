@@ -30,9 +30,11 @@ public final class SideObjective {
         /** The window closed first; a job half done at that moment lapses too. Pays nothing. */
         LAPSED,
         /** The job was ruined, as when the escorted unit dies. */
-        FAILED;
+        FAILED,
+        /** A hidden job never found before its window closed: never shown, reported only by an authored missed line. */
+        MISSED;
 
-        public boolean isFinal() { return this == DONE || this == LAPSED || this == FAILED; }
+        public boolean isFinal() { return this == DONE || this == LAPSED || this == FAILED || this == MISSED; }
 
         /** The state the shared mission picture shows. */
         public MissionObjectiveSnapshot.State picture() {
@@ -49,7 +51,9 @@ public final class SideObjective {
      * {@code Steps} (the briefing line), one phase per state ({@code Offered}, {@code Working}, {@code Done},
      * {@code Lapsed}, {@code Failed}, the last two falling back to the shared {@code sideObjectiveLapsed} and
      * {@code sideObjectiveFailed}), {@code Timer} for a timed job, {@code Target} and {@code Destination} for its beacons,
-     * and {@code Debrief} plus the final state's part for the debrief line.
+     * and {@code Debrief} plus the final state's part for the debrief line ({@code DebriefMissed} is optional: a hidden
+     * job never found says nothing unless the mission authors it). {@code Reward}, if authored, is what the job earns
+     * beyond credits, such as "Harrow will remember".
      *
      * @param offererKey story key naming the offerer, a contact or a faction
      * @param lines      the field line spoken when the job reaches a state: a narration catalog event, or absent
@@ -73,7 +77,40 @@ public final class SideObjective {
             return !text.equals(key) || !state.isFinal() || state == State.DONE ? text : Strings.get("sideObjective" + state.keyPart());
         }
 
-        public String debrief(State state) { return Strings.get(prefix + "Debrief" + state.keyPart()); }
+        public String debrief(State state) {
+            String key = prefix + "Debrief" + state.keyPart(), text = Strings.get(key);
+            return state == State.MISSED && text.equals(key) ? "" : text;
+        }
+
+        /** What the job earns beyond credits, or empty when the mission authors nothing. */
+        public String reward() {
+            String key = prefix + "Reward", text = Strings.get(key);
+            return text.equals(key) ? "" : text;
+        }
+    }
+
+    /**
+     * How a hidden job is found: a company unit meets its offerer, reaches its place or sights its prop. Until then the
+     * job is absent from the briefing, the checklist and the map, and its trigger is not judged.
+     */
+    @FunctionalInterface
+    public interface Discovery {
+        boolean found(SideField field);
+
+        /** A company unit of this kind stands in the ground: the place reached, or the offerer met where they wait. */
+        static Discovery reach(SideField.Who who, Ground ground) { return field -> field.anyIn(who, ground); }
+
+        /** A company unit of this kind has a line of sight to the ground within {@code range} cells. */
+        static Discovery sight(SideField.Who who, Ground ground, float range) { return field -> field.sees(who, ground, range); }
+
+        /** Found by whichever comes first. */
+        static Discovery anyOf(Discovery... ways) {
+            List<Discovery> all = List.of(ways);
+            return field -> {
+                for (Discovery way : all) if (way.found(field)) return true;
+                return false;
+            };
+        }
     }
 
     /** When a job is open. Once it closes, an unfinished job lapses. */
@@ -104,12 +141,14 @@ public final class SideObjective {
 
     /**
      * What the campaign keeps: a mark per final state that earns one, such as {@code corvus.harrow.coupling_delivered},
-     * written at settlement from the outcome ({@link CampaignMarks}).
+     * and the credits the job pays when done, both written at settlement from the outcome ({@link CampaignMarks}). A
+     * job may pay either, both or neither; its effect in the battle is its own reward.
      */
-    public record Return(Map<State, String> marks) {
-        public static final Return NONE = new Return(Map.of());
+    public record Return(Map<State, String> marks, int credits) {
+        public static final Return NONE = new Return(Map.of(), 0);
 
         public Return {
+            if (credits < 0) throw new IllegalArgumentException("a side objective pays no negative credits");
             marks = marks == null || marks.isEmpty() ? Map.of() : Map.copyOf(new EnumMap<>(marks));
             for (var mark : marks.entrySet()) {
                 if (!mark.getKey().isFinal()) throw new IllegalArgumentException("only a final state earns a mark");
@@ -119,9 +158,15 @@ public final class SideObjective {
         }
 
         /** A mark for the job done. */
-        public static Return done(String mark) { return new Return(Map.of(State.DONE, mark)); }
+        public static Return done(String mark) { return new Return(Map.of(State.DONE, mark), 0); }
+
+        /** A mark and credits for the job done. */
+        public static Return done(String mark, int credits) { return new Return(Map.of(State.DONE, mark), credits); }
 
         public String mark(State state) { return marks.getOrDefault(state, ""); }
+
+        /** The credits a job in this state has earned: its pay when done, none otherwise. */
+        public int credits(State state) { return state == State.DONE ? credits : 0; }
     }
 
     private final String key;
@@ -132,6 +177,10 @@ public final class SideObjective {
     private final Return ret;
     private final Supplier<List<Marker>> context;
     private State state = State.OFFERED;
+    private Discovery discovery;
+    private String foundLine;
+    private boolean found;
+    private float foundAt = -1f, lastElapsed;
 
     /**
      * @param context extra beacons the mission shows on this job's row, such as what its payoff will change; may be null
@@ -155,13 +204,42 @@ public final class SideObjective {
     public List<Marker> context() { return context.get(); }
 
     /**
+     * Hides the job until {@code discovery} finds it, at setup only. {@code line} is the field line spoken when it is
+     * found (a narration catalog event), or null.
+     */
+    public SideObjective hidden(Discovery discovery, String line) {
+        if (discovery == null) throw new IllegalArgumentException("a hidden job needs a way to be found");
+        if (lastElapsed > 0f) throw new IllegalStateException("hide side objective " + key + " at setup");
+        this.discovery = discovery;
+        this.foundLine = line;
+        return this;
+    }
+
+    /** Whether the job is on the checklist and map: offered openly, or hidden and since found. */
+    public boolean known() { return discovery == null || found; }
+
+    /** Whether the job is hidden and was found within the last {@link #NEW_SECONDS}: its row reads as new. */
+    public boolean fresh() { return found && lastElapsed - foundAt < NEW_SECONDS; }
+
+    /** How long a found job's row is marked new. */
+    public static final float NEW_SECONDS = 12f;
+
+    String foundLine() { return foundLine; }
+
+    /**
      * One tick: a closed window lapses the job; otherwise the trigger is judged, and completion fires the effect once.
      *
      * @return whether the state changed
      */
     boolean step(SideField field, float dt, float elapsed, BattleSimulation sim) {
+        lastElapsed = elapsed;
         if (state.isFinal()) return false;
-        if (!window.open(elapsed)) return set(State.LAPSED);
+        if (!window.open(elapsed)) return set(known() ? State.LAPSED : State.MISSED);
+        if (!known()) {
+            if (!discovery.found(field)) return false;
+            found = true;
+            foundAt = elapsed;
+        }
         return switch (trigger.judge(field, dt)) {
             case DONE -> { set(State.DONE); effect.apply(sim); yield true; }
             case FAILED -> set(State.FAILED);
@@ -173,12 +251,13 @@ public final class SideObjective {
     /** Completes the job outright, as if it had been done, while its window is open; the effect fires. */
     void grant(float elapsed, BattleSimulation sim) {
         if (state.isFinal() || !window.open(elapsed)) throw new IllegalStateException("side objective " + key + " is closed");
+        if (!known()) { found = true; foundAt = -NEW_SECONDS; }
         state = State.DONE;
         effect.apply(sim);
     }
 
-    /** The battle is over: an unfinished job lapses. */
-    boolean end() { return !state.isFinal() && set(State.LAPSED); }
+    /** The battle is over: an unfinished job lapses, and a hidden one never found is missed. */
+    boolean end() { return !state.isFinal() && set(known() ? State.LAPSED : State.MISSED); }
 
     private boolean set(State next) {
         if (state == next) return false;

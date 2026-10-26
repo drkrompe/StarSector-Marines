@@ -88,10 +88,13 @@ class HeavyTracksTest {
             body.facingDegrees = 0f;
             body.speed = type.maxSpeed;
 
-            assertTrue(tracks.crush(body, type) > 0);
+            int crushed = tracks.crush(body, type);
+            assertTrue(crushed > 0);
             assertEquals("forest.pine-destroyed", g.props.getDoodads().get(0).definitionId());
             assertTrue(g.grid.isWalkable(8, 7));
-            assertTrue(body.speed <= type.maxSpeed * HeavyTracks.CRUSH_SPEED_FRACTION + 1e-6f);
+            assertEquals(HullMomentum.speedAfter(type.massTonnes(), type.maxSpeed, crushed * HeavyTracks.CRUSH_STRUCTURE),
+                    body.speed, 1e-5f, "what gave came off its way");
+            assertTrue(body.speed < type.maxSpeed);
 
             body.speed = type.maxSpeed;
             assertEquals(0, tracks.crush(body, type), "open ground");

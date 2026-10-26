@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 
 import java.util.Map;
 
-/** Draws local prepaid stores first, preserving the ship's travelling reserves. */
+/** Draws local prepaid stores and yard credit first, preserving the ship's travelling reserves. */
 public final class WorkshopStores {
     private final CargoAPI cargo;
     private final PreparationDepot depot;
@@ -48,12 +48,24 @@ public final class WorkshopStores {
         return true;
     }
 
-    /** Salvage goes aboard the ship, never into a depot it may leave behind. */
-    public boolean credit(Map<String, Integer> salvage) {
-        if (cargo == null) return false;
-        for (var line : salvage.entrySet()) {
-            if (line.getValue() > 0) cargo.addCommodity(line.getKey(), line.getValue());
-        }
+    /** The company's credits plus any yard credit this job may draw. */
+    public long credits() {
+        long aboard = cargo == null || cargo.getCredits() == null ? 0 : Math.max(0, (long) Math.floor(cargo.getCredits().get()));
+        return aboard + (depot == null ? 0 : depot.credits(purpose));
+    }
+
+    /** Pays {@code price} from yard credit first, then the purse, or pays nothing. */
+    public boolean spendCredits(int price) {
+        if (purpose == Purpose.PREFLIGHT || price < 0 || credits() < price) return false;
+        int local = depot == null ? 0 : depot.drawCredits(price, purpose);
+        if (price - local > 0) cargo.getCredits().subtract(price - local);
+        return true;
+    }
+
+    /** Recycled credits go to the purse, never into a depot the company may leave behind. */
+    public boolean refund(int credits) {
+        if (cargo == null || cargo.getCredits() == null) return false;
+        if (credits > 0) cargo.getCredits().add(credits);
         return true;
     }
 }

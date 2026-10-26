@@ -4,16 +4,11 @@ import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.LiftAdmission;
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.air.VehicleSupportPayload;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
-import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
-import com.dillon.starsectormarines.battle.power.MarineInsertion;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
@@ -29,7 +24,6 @@ import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
-import com.fs.starfarer.api.impl.campaign.ids.HullMods;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -50,24 +44,23 @@ import java.util.Set;
  *
  * <p>Mapping is many-to-one and one-to-many (several ships can grant the same
  * power; one ship can grant several); {@link #resolve} dedupes by power id, so
- * three scanner ships still surface one Recon Ping.
+ * two Valkyries still surface one Mech Support.
  */
 public final class PowerCatalog {
 
     private static final Logger LOG = Global.getLogger(PowerCatalog.class);
 
-    // ---- Recon Ping sources (survey § Recon/Intel/EW, through the projection lens) ----
-    /** High Resolution Sensors — flavor text literally "increases the ship's in-combat vision range." No {@code ids.HullMods} constant exists for it, hence the literal. */
-    private static final String HIRES_SENSORS_MOD = "hiressensors";
-    /** Surveying Equipment — the planetary-investigation tool. */
-    private static final String SURVEYING_EQUIPMENT_MOD = HullMods.SURVEYING_EQUIPMENT;
-    /** Apogee — built-in survey/sensor suite (the canonical scanner cruiser). Base hull id. */
-    private static final String APOGEE_HULL = "apogee";
+    /**
+     * Ids of command powers since removed (Recon Ping, Resupply, Marine Drop, Armour
+     * Support) that a frozen commitment may still name; {@link #restore} drops them.
+     */
+    private static final Set<String> RETIRED_IDS = Set.of(
+            "recon_ping", "emergency_resupply", "marine_insertion", "vehicle_support");
+    /** Armour Support's retired id: the bay vehicles it froze now ride Mech Support. */
+    private static final String RETIRED_ARMOUR_SUPPORT = "vehicle_support";
     private static final String VALKYRIE_HULL = "valkyrie";
     private static final String GROUND_SUPPORT_MOD = "ground_support";
     private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
-    private static final String TARSUS_HULL = "tarsus";
-    private static final String ATLAS_HULL = "atlas";
     private static final String ONSLAUGHT_HULL = "onslaught";
     private static final String INVICTUS_HULL = "invictus";
 
@@ -76,12 +69,6 @@ public final class PowerCatalog {
     /**
      * Resolve the command-power roster for a battle from the committed ships plus
      * the mission's employer offerings, deduped by power id.
-     *
-     * <p>Recon ping is now <em>sourced</em> — from a committed ship's kit (below)
-     * or the employer's offer. The {@link com.dillon.starsectormarines.DevConfig#ALWAYS_GRANT_RECON_PING}
-     * dev flag seeds it unconditionally so the loop stays demoable on a fleet
-     * with no recon ship (the power UI hides itself on an empty roster); flip it
-     * off to feel the real gating.
      */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m) {
         return resolve(committedShips, m, List.of());
@@ -94,10 +81,8 @@ public final class PowerCatalog {
     }
 
     /**
-     * As above, plus the mech bay's frozen vehicles for Armour Support. {@code null}
-     * vehicles means no bay was consulted (debug, detached fixtures): a sourced Armour
-     * Support keeps its fallback hull. An empty list means the bay holds no vehicle, and
-     * Armour Support has nothing to bring down.
+     * As above, plus the mech bay's frozen vehicles, which ride Mech Support's manifest.
+     * {@code null} vehicles means no bay was consulted (debug, detached fixtures).
      */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
                                              List<MechDeploymentSpec> configuredMechs,
@@ -107,7 +92,7 @@ public final class PowerCatalog {
 
     /**
      * As above, with the company boats committed to the operation. A cradled
-     * boat that lifts the drop flies Mech Support or Armour Support in place of
+     * boat that lifts the drop flies Mech Support in place of
      * the synthetic Valkyrie when a fleet ship grants the power; where the
      * mission or the employer supplies the lift the synthetic carrier stays.
      * Who may call is unchanged: this only decides who flies.
@@ -116,9 +101,8 @@ public final class PowerCatalog {
                                              List<MechDeploymentSpec> configuredMechs,
                                              List<VehicleDeploymentSpec> configuredVehicles,
                                              List<FittedBoat> committedBoats) {
-        List<CommandPower> powers = bayManifest(withBayVehicles(
-                resolveSourced(committedShips, m, configuredMechs),
-                arrangedHeavyLift(m), configuredVehicles), configuredMechs, configuredVehicles);
+        List<CommandPower> powers = bayManifest(resolveSourced(committedShips, m, configuredMechs),
+                arrangedHeavyLift(m), configuredMechs, configuredVehicles);
         if (committedBoats == null || committedBoats.isEmpty()) return powers;
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
@@ -127,30 +111,30 @@ public final class PowerCatalog {
     }
 
     /**
-     * One bay, one call: where both drop powers are in the roster and the bay was read,
-     * Mech Support carries the bay's vehicles in its manifest beside its mechs and
-     * Armour Support leaves the roster, so the player picks any bay space from one picker
-     * ({@code mechs-nouns.md}, Armor drop). Armour Support alone (no mech source) is unchanged.
+     * One bay, one call: Mech Support carries the bay's vehicles in its manifest after its
+     * mechs, so the player calls any bay space from one picker ({@code mechs-nouns.md}, Armor
+     * drop). Story battles whose employer arranges the heavy lift grant Mech Support for a
+     * bay that holds only vehicles, as they do for its mechs. {@code null} vehicles means no
+     * bay was consulted, and the roster is unchanged.
      */
-    static List<CommandPower> bayManifest(List<CommandPower> powers,
+    static List<CommandPower> bayManifest(List<CommandPower> powers, boolean arrangedLift,
                                           List<MechDeploymentSpec> configuredMechs,
                                           List<VehicleDeploymentSpec> configuredVehicles) {
-        if (configuredMechs == null || configuredVehicles == null || configuredVehicles.isEmpty()) {
-            return powers;
-        }
-        boolean mech = false;
-        boolean vehicles = false;
+        if (configuredVehicles == null || configuredVehicles.isEmpty()) return powers;
+        List<CommandPower> out = new ArrayList<>(powers.size() + 1);
+        boolean carried = false;
         for (CommandPower power : powers) {
-            mech |= power instanceof MechSupport;
-            vehicles |= power instanceof VehicleSupport;
+            if (power instanceof MechSupport mech) {
+                out.add(MechSupport.configured(configuredMechs != null ? configuredMechs
+                        : mech.deployments(), configuredVehicles, null, true));
+                carried = true;
+            } else {
+                out.add(power);
+            }
         }
-        if (!mech || !vehicles) return powers;
-        List<CommandPower> out = new ArrayList<>(powers.size());
-        for (CommandPower power : powers) {
-            if (power instanceof VehicleSupport) continue;
-            out.add(power instanceof MechSupport
-                    ? MechSupport.configured(configuredMechs, configuredVehicles, null, true)
-                    : power);
+        if (!carried && arrangedLift) {
+            out.add(MechSupport.configured(configuredMechs != null ? configuredMechs : List.of(),
+                    configuredVehicles, null, true));
         }
         return List.copyOf(out);
     }
@@ -179,60 +163,24 @@ public final class PowerCatalog {
     }
 
     /**
-     * Hands each fleet-granted drop power the cradled company boat best suited
-     * to it, one boat per power, Mech Support first. A power the employer
-     * offered keeps its synthetic carrier, and the synthetic lift stays behind
-     * a company boat for the calls it cannot fly.
+     * Hands a fleet-granted Mech Support the cradled company boat best suited to
+     * its manifest. A power the employer offered keeps its synthetic carrier,
+     * and the synthetic lift stays behind a company boat for the calls it
+     * cannot fly.
      */
     static void assignCompanyLift(Map<String, CommandPower> byId, Set<String> fleetGranted,
                                   List<FittedBoat> committedBoats) {
         if (committedBoats == null || committedBoats.isEmpty()) return;
-        Set<FittedBoat> taken = new LinkedHashSet<>();
         if (fleetGranted.contains(MechSupport.ID)
                 && byId.get(MechSupport.ID) instanceof MechSupport mech) {
             List<LiftClass> load = mech.manifest().entries().stream()
                     .map(BayManifest.Entry::weightClass).toList();
-            FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, taken);
+            FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, Set.of());
             if (boat != null) {
                 byId.put(MechSupport.ID, MechSupport.configured(mech.deployments(),
                         mech.vehicles(), boat, true));
-                taken.add(boat);
             }
         }
-        if (fleetGranted.contains(VehicleSupport.ID)
-                && byId.get(VehicleSupport.ID) instanceof VehicleSupport vehicles) {
-            List<LiftClass> load = vehicles.deployments().isEmpty()
-                    ? List.of(VehicleSupportPayload.FALLBACK.liftClass())
-                    : vehicles.deployments().stream()
-                            .map(deployment -> deployment.type().liftClass()).toList();
-            FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, taken);
-            if (boat != null) {
-                byId.put(VehicleSupport.ID,
-                        VehicleSupport.configured(vehicles.deployments(), boat, true));
-            }
-        }
-    }
-
-    /**
-     * Story battles whose employer arranges the heavy lift grant Armour Support whenever
-     * the bay holds a vehicle, as they grant Mech Support for its mechs; elsewhere it
-     * stays sourced by a committed Valkyrie.
-     */
-    private static List<CommandPower> withBayVehicles(List<CommandPower> powers, boolean arrangedLift,
-                                                      List<VehicleDeploymentSpec> vehicles) {
-        if (vehicles == null) return powers;
-        List<CommandPower> out = new ArrayList<>(powers.size() + 1);
-        boolean sourced = false;
-        for (CommandPower power : powers) {
-            if (power instanceof VehicleSupport) {
-                sourced = true;
-                if (!vehicles.isEmpty()) out.add(VehicleSupport.configured(vehicles));
-            } else {
-                out.add(power);
-            }
-        }
-        if (!sourced && arrangedLift && !vehicles.isEmpty()) out.add(VehicleSupport.configured(vehicles));
-        return List.copyOf(out);
     }
 
     /** The story battles whose employer lifts the company's own armour; see {@link #resolveSourced}. */
@@ -265,21 +213,11 @@ public final class PowerCatalog {
         }
         Map<String, CommandPower> byId = new LinkedHashMap<>();
 
-        // Dev convenience — grant recon ping for free (see DevConfig). Off in prod.
-        if (com.dillon.starsectormarines.DevConfig.ALWAYS_GRANT_RECON_PING) {
-            byId.put(ReconPing.ID, new ReconPing());
-        }
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MECH_SUPPORT) {
             byId.put(MechSupport.ID, new MechSupport());
         }
-        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_EMERGENCY_RESUPPLY) {
-            byId.put(EmergencyResupply.ID, new EmergencyResupply());
-        }
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_ORBITAL_BARRAGE) {
             byId.put(OrbitalBarrage.ID, new OrbitalBarrage());
-        }
-        if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_MARINE_INSERTION) {
-            byId.put(MarineInsertion.ID, new MarineInsertion());
         }
         if (com.dillon.starsectormarines.DevConfig.DEBUG_GRANT_CLOSE_AIR_SUPPORT) {
             byId.put(CloseAirSupport.ID, new CloseAirSupport());
@@ -331,7 +269,7 @@ public final class PowerCatalog {
         return restore(id, mechDeployments, ships, List.of());
     }
 
-    /** As above, plus the frozen company vehicles an Armour Support commitment carries. */
+    /** As above, plus the frozen company vehicles a Mech Support commitment carries. */
     public static CommandPower restore(String id,
                                        List<MechDeploymentSpec> mechDeployments,
                                        List<ShipSupportSource> ships,
@@ -342,17 +280,26 @@ public final class PowerCatalog {
     /**
      * As above, plus the company boat a drop power was given to fly with
      * (synthetic lift stays behind it), or {@code null}.
+     *
+     * <p>Returns {@code null} for a removed power's id, so a frozen commitment that
+     * still names one launches without it; a retired Armour Support's vehicles
+     * restore as a Mech Support carrying them.
      */
     public static CommandPower restore(String id,
                                        List<MechDeploymentSpec> mechDeployments,
                                        List<ShipSupportSource> ships,
                                        List<VehicleDeploymentSpec> vehicleDeployments,
                                        FittedBoat companyCarrier) {
+        if (RETIRED_ARMOUR_SUPPORT.equals(id)
+                && vehicleDeployments != null && !vehicleDeployments.isEmpty()) {
+            return restore(MechSupport.ID, List.of(), List.of(), vehicleDeployments, companyCarrier);
+        }
+        if (RETIRED_IDS.contains(id)) {
+            LOG.info("PowerCatalog: dropping retired command power '" + id + "' from a frozen commitment");
+            return null;
+        }
         if (companyCarrier != null) {
             CommandPower base = restore(id, mechDeployments, ships, vehicleDeployments, null);
-            if (base instanceof VehicleSupport vehicles) {
-                return VehicleSupport.configured(vehicles.deployments(), companyCarrier, true);
-            }
             if (base instanceof MechSupport mech) {
                 return MechSupport.configured(mech.deployments(), mech.vehicles(),
                         companyCarrier, true);
@@ -364,10 +311,7 @@ public final class PowerCatalog {
                 return MechSupport.configured(mechDeployments == null ? List.of() : mechDeployments,
                         vehicleDeployments, null, true);
             }
-            if (!VehicleSupport.ID.equals(id)) {
-                throw new IllegalArgumentException("Power '" + id + "' cannot carry vehicles");
-            }
-            return VehicleSupport.configured(vehicleDeployments);
+            throw new IllegalArgumentException("Power '" + id + "' cannot carry vehicles");
         }
         Objects.requireNonNull(id, "id");
         List<MechDeploymentSpec> deployments = mechDeployments == null
@@ -456,22 +400,13 @@ public final class PowerCatalog {
     static List<String> contributedPowerIds(String baseId, Collection<String> mods) {
         Set<String> ids = new LinkedHashSet<>();
         Collection<String> fitted = mods != null ? mods : Set.of();
-        if (fitted.contains(HIRES_SENSORS_MOD) || fitted.contains(SURVEYING_EQUIPMENT_MOD)) {
-            ids.add(ReconPing.ID);
-        }
         if (fitted.contains(GROUND_SUPPORT_MOD) || fitted.contains(ADVANCED_GROUND_SUPPORT_MOD)) {
             ids.add(MechSupport.ID);
             ids.add(OrbitalBarrage.ID);
         }
-        if (APOGEE_HULL.equals(baseId)) ids.add(ReconPing.ID);
         if (VALKYRIE_HULL.equals(baseId)) ids.add(MechSupport.ID);
-        if (VALKYRIE_HULL.equals(baseId)) ids.add(MarineInsertion.ID);
-        if (VALKYRIE_HULL.equals(baseId)) ids.add(VehicleSupport.ID);
         if (baseId != null && ShuttleType.MUDSKIPPER.matchingHullIds.contains(baseId)) {
             ids.add(CloseAirSupport.ID);
-        }
-        if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
-            ids.add(EmergencyResupply.ID);
         }
         if (ONSLAUGHT_HULL.equals(baseId) || INVICTUS_HULL.equals(baseId)) {
             ids.add(OrbitalBarrage.ID);
@@ -486,12 +421,8 @@ public final class PowerCatalog {
 
     /** Maps a stable power id to a fresh power instance. Returns null for unknown ids. */
     private static CommandPower forId(String id) {
-        if (ReconPing.ID.equals(id)) return new ReconPing();
         if (MechSupport.ID.equals(id)) return new MechSupport();
-        if (EmergencyResupply.ID.equals(id)) return new EmergencyResupply();
         if (OrbitalBarrage.ID.equals(id)) return new OrbitalBarrage();
-        if (MarineInsertion.ID.equals(id)) return new MarineInsertion();
-        if (VehicleSupport.ID.equals(id)) return new VehicleSupport();
         if (CloseAirSupport.ID.equals(id)) return new CloseAirSupport();
         if (SpawnInOnslaught.ID.equals(id)) return new SpawnInOnslaught();
         return null;

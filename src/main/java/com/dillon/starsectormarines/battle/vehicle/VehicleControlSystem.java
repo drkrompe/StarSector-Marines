@@ -193,7 +193,8 @@ public final class VehicleControlSystem {
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         bicycle.tickManual(throttle, steering, dt);
         if (dt == 0f) return;
-        boolean pushing = throttle > 0f && bladeWorks(body, type, convoy.control(id), dt);
+        boolean pushing = throttle > 0f && (bladeWorks(body, type, convoy.control(id), dt)
+                || bladeGrinds(body, type, convoy.control(id), dt));
         boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false) && !pushing;
         if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(prevX, prevY, prevFacing);
@@ -520,6 +521,11 @@ public final class VehicleControlSystem {
         boolean pushing = targetSpeed > 0f && bladeWorks(body, type, s, dt);
         if (pushing) s.timeSinceProgress = 0f;
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
+        // Nor is a hull its turn has swung into what its blade could push: it grinds it down.
+        if (!pushing && targetSpeed > 0f && bladeGrinds(body, type, s, dt)) {
+            pushing = true;
+            s.timeSinceProgress = 0f;
+        }
         // Only delivery entry/exit tails may cross the map bounds; their
         // on-map terrain and edges still receive the same physical sweep.
         boolean deliveryTail = leg != VehicleLeg.MOVE_ORDER && (!VehicleFootprint.isPoseWithinGrid(
@@ -1142,6 +1148,14 @@ public final class VehicleControlSystem {
 
     private boolean bladeWorks(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
         return blade != null && type.hasBlade() && blade.push(body, type, s, dt);
+    }
+
+    /**
+     * Whether a bladed hull, at the pose its move would reach, is held only by ground it grinds down
+     * ({@link DozerBlade#grind}).
+     */
+    private boolean bladeGrinds(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
+        return blade != null && type.hasBlade() && blade.grind(body, type, s, dt);
     }
 
     private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,

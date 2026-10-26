@@ -109,6 +109,8 @@ public final class DustLedgerCrossing {
      * @param pillboxes        the three manned pillboxes: compound gate, postern, pump house yard doors
      * @param feedJunction     where a squad stands to cut the guns' feed at the junction box
      * @param feedJunctionArea the junction's pad, outside the exclusion ring
+     * @param technicalStands  where Sable Wake's rocket truck may stand, its park in the east yard first; every one is
+     *                         joined to the others by a lane a light hull clears, round the pump house's east side
      */
     public record Layout(MapResult map, Area landing, Cell companyStart, Cell hauler, Cell couplingCrate,
                          Area ledgerRoom, Cell ledgerTarget, Cell burnBarrel, Area countingRoom,
@@ -121,7 +123,8 @@ public final class DustLedgerCrossing {
                          List<Cell> canalCrossings, List<Cell> ridgeOverwatch,
                          Map<Approach, List<Cell>> approaches,
                          List<PointOfInterest> warehouses, List<PointOfInterest> shops, List<PointOfInterest> homes,
-                         List<Nest> nests, List<Pillbox> pillboxes, Cell feedJunction, Area feedJunctionArea) {}
+                         List<Nest> nests, List<Pillbox> pillboxes, Cell feedJunction, Area feedJunctionArea,
+                         List<Cell> technicalStands) {}
 
     /**
      * A gun nest: a light defence post (a sealed mount in a parapet ring, {@code DefensePostStamper}) on a paved pad.
@@ -185,8 +188,17 @@ public final class DustLedgerCrossing {
             List.of(new Cell(1, 4), new Cell(5, 4), new Cell(6, 3)));
     private static final PillboxPlan POSTERN_PILLBOX = new PillboxPlan(138, 41, 2, PostRole.WALL,
             List.of(new Cell(1, 4), new Cell(3, 4)));
-    private static final PillboxPlan YARD_PILLBOX = new PillboxPlan(197, 37, 0, PostRole.CLERKS,
+    private static final PillboxPlan YARD_PILLBOX = new PillboxPlan(197, 36, 0, PostRole.CLERKS,
             List.of(new Cell(3, 4), new Cell(0, 3)));
+
+    /**
+     * Sable Wake's rocket truck's stands, its park first: the east yard by the ledger room's east door, the yard's south
+     * end behind the clerks' pillbox, the pump house's south-east corner and the south yard beneath it, the lane
+     * between the pump house and the workshop, and the gate drive's two sides. The east yard's cover leaves a lane
+     * between them: north up the lane to the gate drive, south past the pillbox into the south yard.
+     */
+    static final List<Cell> TECHNICAL_STANDS = List.of(new Cell(206, 48), new Cell(205, 41), new Cell(196, 42),
+            new Cell(190, 41), new Cell(203, 57), new Cell(202, 64), new Cell(209, 63));
 
     /** Sable Wake's tap on the old terraforming power line: the junction box's work cell and its pad. */
     static final Cell FEED_JUNCTION = new Cell(122, 32);
@@ -248,7 +260,7 @@ public final class DustLedgerCrossing {
                 l.gate(), l.postern(), l.southGate(), l.posts(), l.cantina(), l.wellHouse(), l.wellHouseArea(),
                 l.harrowYard(), l.crateDrop(), l.salvageTeam(), l.spotterPosts(), l.canalCrossings(),
                 l.ridgeOverwatch(), l.approaches(), l.warehouses(), l.shops(), l.homes(),
-                l.nests(), l.pillboxes(), l.feedJunction(), l.feedJunctionArea());
+                l.nests(), l.pillboxes(), l.feedJunction(), l.feedJunctionArea(), l.technicalStands());
     }
 
     /** What the stages learned while building, read back into the layout. */
@@ -684,20 +696,20 @@ public final class DustLedgerCrossing {
         barrier(c, 199, 60);
         place(c, 206, 65, "fort-emplacement-n", 0);
         StreetDressing.boomGate(c.grid, c.topology, c.doodads, 195, 71, 1, 0);
-        // The east yard, between the pump house and the works: cover in broken lines toward the ledger room's doors.
+        // The east yard, between the pump house and the works: cover in broken lines toward the ledger room's doors,
+        // leaving the rocket truck its lane: north between the pump house and the workshop, south past the pillbox.
         barrier(c, 198, 53);
         barrier(c, 200, 47);
-        barrier(c, 197, 41);
-        for (int[] at : new int[][]{{201, 56}, {202, 51}, {198, 45}, {202, 43}, {200, 38}, {197, 58}})
+        for (int[] at : new int[][]{{199, 56}, {200, 49}, {198, 45}, {200, 38}, {197, 58}})
             place(c, at[0], at[1], "industrial-crate-stack", 0);
         place(c, 203, 46, "industrial-pallet-stack", 0);
-        cargo(c, 197, 50);
+        cargo(c, 196, 50);
         cargo(c, 214, 66);
         cargo(c, 209, 44);
         barrier(c, 214, 49);
         for (int[] at : new int[][]{{219, 36}, {219, 37}, {204, 35}, {215, 62}, {219, 58}, {210, 66}})
             place(c, at[0], at[1], "industrial-crate-stack", 0);
-        for (int y = 52; y <= 55; y++) place(c, 202, y, "sandbag-straight-w", 0);
+        for (int y = 52; y <= 55; y++) place(c, 200, y, "sandbag-straight-w", 0);
         place(c, 196, 57, "military-radar-dish", 0);
         place(c, 212, 46, "parked-utility-truck", 0);
         place(c, 213, 63, "industrial-scrap-pile", 0);
@@ -706,7 +718,7 @@ public final class DustLedgerCrossing {
         for (int x = 216; x <= 218; x++) place(c, x, 68, "sandbag-straight-n", 0);
         for (int x = 217; x <= 219; x++) place(c, x, 31, "sandbag-straight-s", 0);
         for (int x = 138; x <= 140; x++) place(c, x, 69, "sandbag-straight-n", 0);
-        for (int[] at : new int[][]{{166, 60}, {220, 50}, {166, 42}, {204, 62}}) lamp(c, at[0], at[1], 1, 0);
+        for (int[] at : new int[][]{{166, 60}, {220, 50}, {166, 42}, {213, 62}}) lamp(c, at[0], at[1], 1, 0);
         // Inside: the pump hall's pumps, the ledger room's records and burn barrel, the radio room's set.
         inside(c, PUMP_LEFT + 2, PUMP_BOTTOM + 8, "industrial-pump-set");
         inside(c, PUMP_LEFT + 2, PUMP_BOTTOM + 4, "industrial-pump-set");
@@ -892,7 +904,7 @@ public final class DustLedgerCrossing {
                         new Cell(s.eastHome.interiorAnchorX, s.eastHome.interiorAnchorY)),
                 List.of(WEST_CROSSING, SOUTH_CROSSING), overwatch(map), approachLines(),
                 List.copyOf(s.warehouses), List.copyOf(s.shops), List.copyOf(s.homes),
-                List.copyOf(s.nests), List.copyOf(s.pillboxes), FEED_JUNCTION, FEED_PAD);
+                List.copyOf(s.nests), List.copyOf(s.pillboxes), FEED_JUNCTION, FEED_PAD, TECHNICAL_STANDS);
     }
 
     /** Up to {@code count} walkable floor cells spread through a building, its interior anchor first. */

@@ -9,7 +9,7 @@ import java.util.List;
  * Atomic campaign authority for fitting and building a ship's boat.
  *
  * <p>The Boat Deck's counterpart to {@link MechWorkshop}, and it keeps parts
- * the same way: a part is built from its bill into stores
+ * the same way: a part is bought for its price into stores
  * ({@link #fabricatePart}), a fit takes a spare out of stores, and the part it
  * replaces goes back in as a spare. Taking a part off ({@link #strip}) returns
  * it to stores and leaves the socket empty. The stock parts a boat is built with
@@ -22,9 +22,14 @@ import java.util.List;
  * than she is.
  *
  * <p><b>A failed commit changes nothing.</b> Every check runs before anything
- * moves, and a build spends its whole bill before the spare is stowed, so a
- * refusal or a short hold leaves the boat, the stores and the hold exactly as
+ * moves, and a build pays its whole price before the spare is stowed, so a
+ * refusal or a short purse leaves the boat, the stores and the purse exactly as
  * they were.
+ *
+ * <p><b>Buying needs a port.</b> Building a part or a boat and expediting a
+ * repair are refused ({@link Status#NO_MARKET}) unless the fleet is docked at a
+ * civilized market; fitting, stripping, moving and recycling what is already
+ * aboard work anywhere.
  */
 public final class BoatWorkshop {
 
@@ -46,13 +51,14 @@ public final class BoatWorkshop {
         if (fitting == null && gun == null) return Result.of(Status.UNKNOWN_FITTING);
         FabricationCost bill = fitting != null ? fitting.bill() : gun.bill();
         if (bill == null) return Result.of(Status.NOT_FABRICABLE);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         if (!resources.spend(resources.quote(bill))) return Result.of(Status.CANNOT_AFFORD);
         deck.stow(partId);
         return Result.of(Status.PART_FABRICATED);
     }
 
     /**
-     * What recycling one spare of {@code partId} would put back in the hold now: the machine
+     * What recycling one spare of {@code partId} would pay back now: the machine
      * shop's share of what building one costs. Null for a part with no bill, or a shop that
      * cannot recycle. It does not ask whether a spare is in stores; {@link #recycle} does.
      */
@@ -62,8 +68,9 @@ public final class BoatWorkshop {
     }
 
     /**
-     * Breaks one spare in stores back down into materials. The hold is credited before the
-     * spare leaves stores, so a fleet with no hold to take them keeps its spare.
+     * Breaks one spare in stores down for credits. The purse is paid before the spare leaves
+     * stores, so a fleet with no purse to take them keeps its spare. It needs no port: the
+     * machine shop aboard does the work.
      */
     public Result recycle(String partId) {
         if (BoatFitting.findById(partId) == null && BoatGun.findById(partId) == null) {
@@ -80,7 +87,7 @@ public final class BoatWorkshop {
     }
 
     /**
-     * What scrapping one boat would put back in the hold now: the machine shop's share of
+     * What scrapping one boat would pay back now: the machine shop's share of
      * her pattern's quote, less the stock parts a new boat of that pattern is built with.
      * Whatever is fitted to her goes to stores on its own, so the hull never pays for those
      * parts twice. Null when nothing would come back.
@@ -110,8 +117,8 @@ public final class BoatWorkshop {
 
     /**
      * Breaks one boat up and leaves her berth vacant: every fitting and gun on her is stripped
-     * to stores, then the shop's share of the hull goes to the hold. A shop that cannot
-     * recycle still breaks her up, for her parts alone. The hold is checked before anything
+     * to stores, then the shop's share of the hull goes to the purse. A shop that cannot
+     * recycle still breaks her up, for her parts alone. The purse is checked before anything
      * moves, so a refusal leaves her standing as she was.
      */
     public Result scrap(String boatId) {
@@ -236,9 +243,9 @@ public final class BoatWorkshop {
      * been reconciled has no berths and no pattern to build, and reports the
      * berth as missing, which is what it is.
      *
-     * <p>The same order as a fit, for the same reason: the bill is spent in
+     * <p>The same order as a fit, for the same reason: the price is paid in
      * full before anything is stood up, so a failed spend leaves the deck and
-     * the hold exactly as they were.
+     * the purse exactly as they were.
      */
     public Result fabricate(int berthIndex) {
         ShuttleType pattern = deck.pattern();
@@ -247,6 +254,7 @@ public final class BoatWorkshop {
         }
         CampaignBoat standing = deck.boats().get(berthIndex);
         if (standing != null) return new Result(Status.BERTH_OCCUPIED, standing);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         FabricationCost price = fabricationQuote(pattern);
         if (price == null || !resources.spend(price)) {
             return Result.of(Status.CANNOT_AFFORD);
@@ -258,15 +266,12 @@ public final class BoatWorkshop {
         return new Result(Status.FABRICATED, built);
     }
 
-    /** Half a replacement bill at maximum damage; the remaining work reduces it further. */
+    /** Half a replacement's price at maximum damage; the remaining work reduces it further. */
     public RepairQuote repairQuote(String boatId, float day) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null || boat.airworthy(day)) return null;
         float fraction = Math.min(1f, boat.repairDaysRemaining(day) / 2f);
-        FabricationCost full = BoatFabricationCatalog.recipe(boat.pattern()).bill();
-        FabricationCost bill = new FabricationCost(full.lines().stream().map(line ->
-                new FabricationCost.Line(line.commodityId(),
-                        Math.max(1, (int) Math.ceil(line.quantity() * .5f * fraction)))).toList());
+        FabricationCost bill = BoatFabricationCatalog.recipe(boat.pattern()).bill().scaled(.5f * fraction);
         return new RepairQuote(boatId, boat.repairUntilDay(), resources.quote(bill));
     }
 
@@ -277,12 +282,8 @@ public final class BoatWorkshop {
         RepairQuote live = repairQuote(reviewed.boatId(), day);
         if (boat == null || live == null || live.untilDay() != reviewed.untilDay())
             return Result.of(Status.STALE_REPAIR);
-        for (FabricationCost.Line line : live.bill().lines()) {
-            int approved = reviewed.bill().lines().stream()
-                    .filter(old -> old.commodityId().equals(line.commodityId()))
-                    .mapToInt(FabricationCost.Line::quantity).sum();
-            if (line.quantity() > approved) return Result.of(Status.STALE_REPAIR);
-        }
+        if (live.bill().credits() > reviewed.bill().credits()) return Result.of(Status.STALE_REPAIR);
+        if (!resources.atMarket()) return new Result(Status.NO_MARKET, boat);
         if (!resources.spend(live.bill())) return new Result(Status.CANNOT_AFFORD, boat);
         boat.finishRepairs();
         return new Result(Status.REPAIRED, boat);
@@ -300,6 +301,8 @@ public final class BoatWorkshop {
         OVER_FRAME,
         ALREADY_FITTED,
         CANNOT_AFFORD,
+        /** Buying needs the fleet docked at a civilized market, and it is not. */
+        NO_MARKET,
         NO_SPARE,
         NOT_FABRICABLE,
         NOTHING_TO_STRIP,
@@ -311,7 +314,7 @@ public final class BoatWorkshop {
         SCRAPPED,
         /** The machine shop's machinery is not running, so nothing can be broken down. */
         WORKSHOP_IDLE,
-        /** Too little of the bill would come back to be worth a line. */
+        /** Too little of the price would come back to be worth a credit. */
         NOTHING_TO_RECOVER,
         NO_HOLD,
         NO_SUCH_BERTH,

@@ -23,6 +23,16 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
  * and unit from then on. Opening is the only direction it edits: like every destruction op, it can only make the map
  * more permissive, so nothing derived from it is invalidated beyond the ordinary opened-cell flush.
  *
+ * <p><b>Momentum.</b> A hull driving onto what it pushes spends its way on the cells its nose reaches that tick
+ * ({@link HullMomentum}). Where the structure its speed carries and this tick's push cover all those cells have left,
+ * they fall at once and the hull drives on at the speed the rest of its energy gives; where they do not, they share
+ * its momentum and the hull is brought up against them, for the blade to push down at its rate from a standstill.
+ *
+ * <p><b>The hull.</b> A dozer is held by pushable ground only while it pushes it down. Where its hull, not its blade,
+ * is what bears on pushable cells, its tail or flank swung into a house wall as it turns, and nothing else holds it,
+ * it {@link #grind grinds} them at the blade's rate. Its route proof counts that ground open, so its turns may sweep
+ * there; without this a hull stood against a wall its own plan had driven it into.
+ *
  * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell open. A bladed
  * hull's move-order proof and its rolling local planner read that view, so ground the dozer can open counts as
  * reachable for the dozer and for nobody else; its physical sweep still reads the live grid, which is what holds the
@@ -39,6 +49,8 @@ public final class DozerBlade {
     static final float REACH_CELLS = .6f;
     /** How far back from the nose the bearing strip starts, so a cell already touching the hull is still pushed. */
     static final float OVERLAP_CELLS = .2f;
+    /** Cells past where its nose gets to this tick that a hull counts as hitting: the sweep's contact skin. */
+    static final float CONTACT_CELLS = .05f;
 
     private final NavigationService navigation;
     private final MapEditor editor;
@@ -46,6 +58,11 @@ public final class DozerBlade {
     /** Cells the blade bears on this tick, as x/y pairs. Host-thread scratch: vehicles are driven serially. */
     private final int[] bearing = new int[64];
     private int bearingCount;
+    /** Cells the hull's nose hits this tick, as x/y pairs. */
+    private final int[] struck = new int[64];
+    private int struckCount;
+    /** Whether something the blade cannot push holds the hull this tick ({@link #grind}). */
+    private boolean heldElsewhere;
     private HeavyTracks tracks;
     private NavigationGrid view;
     private long viewRevision = Long.MIN_VALUE;
@@ -145,9 +162,83 @@ public final class DozerBlade {
         float pending = control.bladeCarry + PUSH_PER_SECOND * dt;
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
+        strike(body, type, grid, topology, spend, dt);
         if (spend > 0) {
             for (int i = 0; i < bearingCount; i++) editor.damageWall(bearing[i * 2], bearing[i * 2 + 1], spend);
         }
         return true;
+    }
+
+    /**
+     * One tick of a hull held where it means to move: at {@code body}'s pose, the pose its move would reach, its
+     * footprint overlaps blocking cells. Where every one is pushable it spends this tick's push on them, as the blade
+     * does.
+     *
+     * @return whether it bore on pushable cells and on nothing else — work that counts as progress, as
+     *         {@link #push}'s does; {@code false}, and nothing spent, where anything else holds it
+     */
+    public boolean grind(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
+        NavigationGrid grid = navigation.getGrid();
+        CellTopology topology = navigation.getTopology();
+        bearingCount = 0;
+        heldElsewhere = false;
+        VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, 0f,
+                type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
+                    if (grid.isWalkable(x, y)) return;
+                    if (!canPush(grid, topology, doodads, x, y) || bearingCount * 2 >= bearing.length) {
+                        heldElsewhere = true;
+                        return;
+                    }
+                    bearing[bearingCount * 2] = x;
+                    bearing[bearingCount * 2 + 1] = y;
+                    bearingCount++;
+                });
+        if (heldElsewhere || bearingCount == 0) return false;
+        float pending = control.bladeCarry + PUSH_PER_SECOND * dt;
+        int spend = (int) pending;
+        control.bladeCarry = pending - spend;
+        if (spend > 0) {
+            for (int i = 0; i < bearingCount; i++) editor.damageWall(bearing[i * 2], bearing[i * 2 + 1], spend);
+        }
+        return true;
+    }
+
+    /**
+     * The hull's momentum spent on what its nose reaches this tick: the pushable cells within the way it moves, not
+     * the whole strip the blade bears on, so a cell beside its path that it never hits does not stop it. Where its
+     * momentum and {@code spend} cover all those cells have left they fall now and it drives on at the speed the rest
+     * gives; where they do not, they share its momentum and it is brought up against them.
+     */
+    private void strike(GroundBody body, VehicleType type, NavigationGrid grid, CellTopology topology, int spend,
+                        float dt) {
+        float tonnes = type.massTonnes();
+        float impact = HullMomentum.structure(tonnes, body.speed);
+        if (impact <= 0f) return;
+        float reach = OVERLAP_CELLS + body.speed * dt + CONTACT_CELLS;
+        struckCount = 0;
+        VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees,
+                type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, type.visualWidthCells, grid,
+                (x, y) -> {
+                    if (!canPush(grid, topology, doodads, x, y) || struckCount * 2 >= struck.length) return;
+                    struck[struckCount * 2] = x;
+                    struck[struckCount * 2 + 1] = y;
+                    struckCount++;
+                });
+        if (struckCount == 0) return;
+        int standing = 0;
+        for (int i = 0; i < struckCount; i++) standing += Math.max(0, grid.getWallHp(struck[i * 2], struck[i * 2 + 1]) - spend);
+        if (impact >= standing) {
+            // It goes through: what it hits falls, and what that took comes off its way.
+            for (int i = 0; i < struckCount; i++) {
+                int x = struck[i * 2], y = struck[i * 2 + 1];
+                editor.damageWall(x, y, Math.max(0, grid.getWallHp(x, y) - spend));
+            }
+            body.speed = HullMomentum.speedAfter(tonnes, body.speed, standing);
+            return;
+        }
+        // It is brought up: its whole way goes into what it hits, shared.
+        int share = (int) (impact / struckCount);
+        for (int i = 0; i < struckCount; i++) editor.damageWall(struck[i * 2], struck[i * 2 + 1], share);
+        body.speed = 0f;
     }
 }

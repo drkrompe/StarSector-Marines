@@ -353,9 +353,19 @@ victory or defeat; it never enters `WinCheckSystem`. A mission declares one
 keys under one prefix), a **trigger** (`SideTrigger`: reach, hold, carry,
 escort, or the mission's own), a **window** (always, a phase, a clock, or
 another job's state), a **battle effect** applied once on completion through
-existing seams, and a **return** (a debrief line per outcome and a namespaced
-campaign mark). State runs `OFFERED`, `WORKING`, then one of `DONE`, `LAPSED`
-(the window closed first, half-done included) or `FAILED` (the job was ruined).
+existing seams, and a **return** (a debrief line per outcome, a namespaced
+campaign mark, and credits paid when done: either, both or neither, as fits
+what the job gives). State runs `OFFERED`, `WORKING`, then one of `DONE`,
+`LAPSED` (the window closed first, half-done included) or `FAILED` (the job
+was ruined).
+
+A job may be **hidden** behind a **discovery** (`SideObjective.Discovery`): a
+company unit meets its offerer, reaches its place or sights its prop. Until
+then it is absent from the briefing, the checklist and the map, and its
+trigger is not judged; once found it joins the Optional section with a notice
+and a field line, marked new for a moment. A hidden job never found ends
+`MISSED`, never `LAPSED`: it earns nothing and the debrief says nothing of it
+unless the mission authors a missed line.
 
 `SideObjectiveService` on `BattleSimulation` owns the live state. It ticks
 right after field salvage and before the story sequences, so a job finished on
@@ -363,8 +373,8 @@ the tick its window closes still counts; a control lever grants a job silently.
 `SideObjectiveRows` publishes one optional row per job into the mission
 picture; a mission never writes those rows itself. At resolution each job's
 outcome rides on `MissionOutcome`, and settlement (never the live battle)
-writes its mark into `CampaignMarks`, where it stays until a story
-clears them. Nothing reads a mark yet; that is the next consumer's work. The
+pays its credits and writes its mark into `CampaignMarks`, where it stays until
+a story clears it. Nothing reads a mark yet; that is the next consumer's work. The
 rolled pool in `optional-objectives.md` is a sibling: a pool rolls against the
 laid map, a side objective is authored for one mission.
 

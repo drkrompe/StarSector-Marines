@@ -15,7 +15,7 @@ Supplies pool with the base-game commodity icon resolved from the live spec.
 - A **command power** is a player-invoked battlefield ability with an immutable identity, targeting contract, pacing, and at-use costs. It is not an AI order or a passive fleet modifier.
 - **Availability** is the roster of powers this mission could bring. It answers *which tools exist*.
 - **Capacity** is the command deck's limit on how much of that available roster may be brought. It answers *how many tools fit*; it must not unlock powers by itself.
-- A **command deck** is the slotted subset of available powers, selected before launch and revalidated at the launch boundary.
+- A **command deck** is the slotted subset of available powers, selected before launch and revalidated at the launch boundary. The armor drop (Mech Support) is **implied**, not slotted: machines in the bay and lift for them are the call, so it never appears on the deck, costs no slot, and launches whenever the mission resolved it (`CommandDeck.implied`). The briefing's lift row and field inset are where it reads.
 - A **detachment** is the frozen, battle-facing support contribution resolved at mission acceptance. It combines player commitments with employer offerings without carrying campaign fleet objects into the simulation.
 - A **power source** is either a committed player fleet member whose hull or fitting contributes a capability, or an employer offer recorded on the mission. Several sources may contribute the same power; the battle roster is deduplicated by power identity.
 - **Commitment** is the player's pre-battle decision to bring a support asset. Transport, fighter-cover, and power-source membership are all detachment inputs, even when their battlefield contributions differ.
@@ -27,7 +27,7 @@ The campaign fleet and mission own source facts. The power catalog interprets co
 
 Mission launch resolves that input once into a detachment, filters it through the command deck, and injects only the resulting capability lists into battle. The battle therefore receives powers, shuttle delivery, and fighter cover as battle-native support rather than as a live campaign fleet dependency.
 
-In battle, the command-power service owns command points, cooldowns, charges, pending activations, and transient power effects. The UI may arm a targeting mode and enqueue a request, but only the simulation commits it after checking roster membership, affordability, charges, cooldown, and target validity. A committed power spends its current at-use resources, begins pacing, then enacts its effect. Recon's temporary reveal is simulation state projected through the existing fog presentation seam; it is not a separate fog authority.
+In battle, the command-power service owns command points, cooldowns, charges, pending activations, and transient power effects. The UI may arm a targeting mode and enqueue a request, but only the simulation commits it after checking roster membership, affordability, charges, cooldown, and target validity. A committed power spends its current at-use resources, begins pacing, then enacts its effect.
 
 The in-battle roster is presented as one bounded bottom-center MLX tray, not a
 free-growing menu. A compact command-resource block and at most the five
@@ -45,7 +45,7 @@ brackets the exact snapped cell, and labels the placement `VALID` or `BLOCKED`.
 An invalid click remains armed and never spends resources; the visual result is
 still downstream of the power's own target predicate and radius contract.
 
-The current catalog demonstrates distinct expressions of the same contract: recon, mech support, emergency resupply, orbital barrage, marine insertion, close air support, and a called ship. A capability may become a direct battlefield power or scale one; ship-only survival flavor does neither and is not a command-power source.
+The current catalog demonstrates distinct expressions of the same contract: mech support, orbital barrage, close air support, a called ship and an air strike. Recon Ping, Emergency Resupply, Marine Insertion and Armour Support were removed (owner) for having no real use yet; a frozen commitment that still names one launches without it, and a frozen Armour Support's vehicles restore onto Mech Support. A capability may become a direct battlefield power or scale one; ship-only survival flavor does neither and is not a command-power source.
 
 ## Briefing and commitment contract
 
@@ -74,12 +74,9 @@ commitment.
 
 ## Current power families
 
-- **Recon Ping** projects a temporary circular vision source through the
-  existing fog seam. Sensor/survey fittings and the Apogee are player sources;
-  an employer may offer the same capability.
 - **Mech Support** calls the company's armor down from its ship's bay one
   machine per order: arming the card pauses the battle and opens a picker over
-  the frozen bay manifest (mechs and vehicles), and each click on valid landing
+  the frozen bay manifest (mechs, then vehicles), and each click on valid landing
   ground orders the picked machine. Orders are free (no command points, no
   cooldown); the mission's lift budget bounds what reaches the ground, an entry
   it cannot lift is disabled with the reason, and the shared lift queue decides
@@ -88,30 +85,24 @@ commitment.
   revalidates it before anything is spent. A queued order is withdrawn through
   the service's drop-cancel request, which the simulation honours only while no
   craft has taken the job.
-  Valkyries and ground-support fittings are production sources. The production
+  Valkyries and ground-support fittings are production sources; a story battle
+  whose employer arranges the heavy lift grants it for whatever the bay holds,
+  vehicles alone included. It is the only power that brings the company's
+  vehicles down. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
   iteration support. Sources decide who may call; lift decides who flies: every
   carrier behind the budget (a committed cradled boat, or employer, story or
-  ship heavy lift) flies as a ferry craft. Armour Support orders the same way
-  (`air-nouns.md`, the lift queue). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
+  ship heavy lift) flies as a ferry craft (`air-nouns.md`, the lift queue). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
   of command points: see `mechs-nouns.md` and `reinforcement-nouns.md`; it is not a command power and the player's
   power is unchanged.
-- **Emergency Resupply** calls a vulnerable utility shuttle that leaves a
-  finite persistent supply cache. Tarsus and Atlas hulls are its player sources.
 - **Orbital Barrage** targets a zone, presents a warning, then resolves a heavy
   delayed blast with intentional friendly fire and structural interaction. It
   consumes supplies when fired and is limited per battle. Onslaught, Invictus,
   and ground-support fittings are player sources; the warning window is the
   extension seam for future counter-battery play.
 - **Ship on Station** calls a committed ship over the battle: a physical cruiser, capital or Shepherd descends through the clouds on the company's side a short glide from a seen cell, stations over it, works it under the company's mission stance for a bounded visit, then departs. Each committed ship is its own charge on one card, from its frozen fitted loadout; debug and employer sources feed the same power. It spends supplies like Orbital Barrage and writes nothing back to the fleet yet. `ship-support.md` owns the design. The defending world may call the same mechanism for its own side (not a command power: no card, cost or player activation), by its commander, once, with a warning.
-- **Close Air Support** calls a Mudskipper gunship over a seen cell: a physical craft that enters from the nearest map edge, circles overhead of the cell while its one turret works the ground beneath it, and leaves when its bounded visit is spent. A committed Mudskipper of either mark is the source, so the card exists only for a company that brought one; an employer may offer it too. Two activations a battle, paid in command points and supplies. It conjures a battle-native craft the way Marine Insertion does and reads or writes nothing in the campaign fleet. `air-nouns.md` (Gunships) owns how the craft flies and fires.
+- **Close Air Support** calls a Mudskipper gunship over a seen cell: a physical craft that enters from the nearest map edge, circles overhead of the cell while its one turret works the ground beneath it, and leaves when its bounded visit is spent. A committed Mudskipper of either mark is the source, so the card exists only for a company that brought one; an employer may offer it too. Two activations a battle, paid in command points and supplies. It conjures a battle-native craft and reads or writes nothing in the campaign fleet. `air-nouns.md` (Gunships) owns how the craft flies and fires.
 - **Air Strike** directs one airframe of the company's **air pool** onto a seen cell. The pool is the standing model, not a card: each side holds a regenerating stock of bombers and fighters whose rate and cap the mission declares, as it does the mech-drop allowance (legacy missions declare none, so no card is offered). The power is gated on the pool and a living, unsuppressed comms operator with sight of the cell; it spends no command points or charges. A sortie busies its airframe; one shot down is lost until it regenerates, one driven off or aborted returns. The AI draws on the same pool through the same request. `air-nouns.md` (Air support pool) owns the model.
-- **Marine Insertion** sends a physical manned Valkyrie from the nearest map
-  edge to a safe scored landing zone near the requested cell, then unloads a
-  full infantry squad into the ordinary roster and commander flow. It is
-  Valkyrie-only; selectable landing geography, air-defense pressure, and
-  alternate craft classes are deferred shared-delivery concerns rather than
-  properties of this power.
 
 ## Laws
 
@@ -132,7 +123,7 @@ commitment.
 Command progression may change deck capacity, command-point pacing, and
 cooldown curves, but it never creates fleet-derived availability. Future
 reach geography may add named landing zones, air-defense contesting, and
-craft-specific delivery risk on the shared insertion/delivery seam.
+craft-specific delivery risk on the shared delivery seam.
 
 Map-authored orbital-defense state may constrain a power at target-validation
 time without removing its frozen source or deck identity. A surface-to-orbit

@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.cordon.CordonFront;
 import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
@@ -86,7 +89,8 @@ class StoryMapPoolEvidenceTest {
         String failure = null, detail = "";
         try {
             Form form = BloomHeartSetup.formOf(job.map());
-            detail = form != null ? heart(job.map(), job.biome(), job.entry()) : cordon(job.map(), job.biome(), job.entry());
+            detail = job.map() == StoryMap.COLONY_BREACH ? colony(job.biome(), job.entry())
+                    : form != null ? heart(job.map(), job.biome(), job.entry()) : cordon(job.map(), job.biome(), job.entry());
         } catch (Exception | AssertionError e) {
             failure = String.valueOf(e.getMessage());
         }
@@ -148,6 +152,18 @@ class StoryMapPoolEvidenceTest {
             detail += "; redoubt guns " + guns;
         }
         return detail;
+    }
+
+    /** Stands the Colony Breach up on the pooled seed alone (which throws when it no longer carries the mission). */
+    private static String colony(SurfacePalette biome, StoryMapPool.Entry entry) {
+        try (BattleSimulation sim = BattleSetup.createPooledColonyBreach(biome, entry, List.of())) {
+            List<int[]> holdouts = ColonyRedoubts.holdoutCentres(sim.getCivilianRedoubts());
+            List<ColonyEruptionPlan.Site> bores = sim.getColonyBreach().plan().sites();
+            double nearest = Double.MAX_VALUE;
+            for (int[] h : holdouts) for (ColonyEruptionPlan.Site b : bores) nearest = Math.min(nearest, Math.hypot(h[0] - b.x(), h[1] - b.y()));
+            return holdouts.size() + " holdouts; " + bores.size() + " bore sites"
+                    + (holdouts.isEmpty() || bores.isEmpty() ? "" : String.format(Locale.ROOT, "; nearest holdout to bore %.0f cells", nearest));
+        }
     }
 
     private static String heart(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
