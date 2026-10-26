@@ -52,6 +52,13 @@ public final class TurretMountDef {
     public final Flux flux;
 
     /**
+     * Seconds a hull's stock loader takes to put one trigger pack (the weapon's burst) back in this mount's
+     * magazine, for the whole battle and never past its capacity (`convoy-nouns.md`, the loader); infinite when
+     * nothing reloads it. Read by the vehicle turret pass only: an emplacement's magazine is its own.
+     */
+    public final float loaderSeconds;
+
+    /**
      * Whether a vehicle carrying this mount also puts its gun on hostile aircraft: fighters, gunships and
      * shuttles in the air within its reach, with a clear line up. The gun is the same gun, on the same magazine,
      * cadence and flux, so a craft it takes is ground it leaves. Read by the vehicle turret pass only; an
@@ -94,11 +101,12 @@ public final class TurretMountDef {
                            int ammoCapacity, float turnRateDegPerSec,
                            float visualCells, float muzzleOffsetCells,
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
-                           boolean hardenedTargetsOnly, Flux flux,
+                           boolean hardenedTargetsOnly, Flux flux, float loaderSeconds,
                            boolean engagesAir, float maxDepressionDeg,
                            String spritePath, String recoilSpritePath, Recoil recoil,
                            boolean ejectsCasings, float scorchCells) {
         this.id = id;
+        this.loaderSeconds = loaderSeconds;
         this.scorchCells = scorchCells;
         this.recoil = recoil;
         this.ejectsCasings = ejectsCasings;
@@ -152,6 +160,9 @@ public final class TurretMountDef {
             }
             flux = new Flux(capacity, perRound, dissipation, vent);
         }
+        float loaderSeconds = sim.has("loaderSeconds")
+                ? (float) sim.getDouble("loaderSeconds") : Float.POSITIVE_INFINITY;
+        if (sim.has("loaderSeconds")) requirePositiveFinite(loaderSeconds, id, "loaderSeconds");
         float visualCells = render != null
                 ? (float) render.optDouble("visualCells", 0.0) : 0f;
         float muzzleOffsetCells = render != null
@@ -218,7 +229,7 @@ public final class TurretMountDef {
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
+                flux, loaderSeconds, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
                 render != null && render.optBoolean("casings", false), scorch);
     }
 

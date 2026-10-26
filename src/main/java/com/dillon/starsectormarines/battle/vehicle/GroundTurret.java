@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +32,20 @@ public final class GroundTurret {
     public long targetId;
     /** Rounds remaining in the magazine. Seeded from the authored mount capacity. */
     public int ammo;
+    /** Rounds the magazine holds full: what it was set down with, the mount's capacity and a ready rack's share. */
+    public final int capacity;
+    /**
+     * Seconds the hull's loader takes to put one trigger pack back ({@code TurretMountDef#loaderSeconds}, quicker
+     * with an accelerated loader), or infinite for a gun nothing reloads. Capacity bounds the ready rounds, not how
+     * many packs come back in a battle.
+     */
+    public float loaderSeconds = Float.POSITIVE_INFINITY;
+    /** Loader work toward the next pack, in seconds. */
+    public float loaderProgress;
     /** The gun's flux ({@code TurretMountDef#flux}); zero and unread for a mount without flux. */
     public float flux;
+    /** The gun's flux capacity as a share of its mount's: more with a capacitor pack. */
+    public float fluxCapacityFactor = 1f;
     /** Whether the gun overloaded and is venting: its trigger is held until its flux is gone. */
     public boolean overloaded;
     /** Rounds left in the current burst (excluding the trigger-pull round). */
@@ -95,7 +108,42 @@ public final class GroundTurret {
 
     public GroundTurret(int startingAmmo, HullTurretSection section) {
         this.ammo = startingAmmo;
+        this.capacity = startingAmmo;
         this.section = section;
+    }
+
+    /**
+     * A full gun on {@code mount}, its loader and flux bank as the hull's kits make them, with {@code rounds} in a
+     * magazine of that size.
+     */
+    public static GroundTurret fitted(TurretMountDef mount, int rounds, VehicleKit.Effect kits,
+                                      HullTurretSection section) {
+        GroundTurret turret = new GroundTurret(rounds, section);
+        turret.loaderSeconds = mount.loaderSeconds * kits.loaderFactor();
+        turret.fluxCapacityFactor = kits.fluxCapacityFactor();
+        return turret;
+    }
+
+    /** The flux this gun overloads at: its mount's capacity, scaled by a capacitor pack. */
+    public float fluxCapacity(TurretMountDef mount) {
+        return mount.flux == null ? 0f : mount.flux.capacity() * fluxCapacityFactor;
+    }
+
+    /**
+     * Runs the loader for {@code dt}: a pack of {@code packRounds} comes back each {@link #loaderSeconds}, firing
+     * or not, until the magazine is full again, the way a mech's replenisher restores its racks.
+     */
+    public void advanceLoader(float dt, int packRounds) {
+        if (ammo >= capacity || !Float.isFinite(loaderSeconds)) {
+            loaderProgress = 0f;
+            return;
+        }
+        loaderProgress += Math.max(0f, dt);
+        while (loaderProgress >= loaderSeconds && ammo < capacity) {
+            ammo = Math.min(capacity, ammo + Math.max(1, packRounds));
+            loaderProgress -= loaderSeconds;
+        }
+        if (ammo >= capacity) loaderProgress = 0f;
     }
 
     /**

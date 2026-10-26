@@ -16,7 +16,6 @@ implementation subtracks of this one noun, not separate domains.
 | `slice-4-tuning-feel.md` | **Partially shipped; playtest-led.** Speed-scaled lookahead and the corner governor landed. Tune controller and cost/clearance knobs together from real runs; cumulative avoidance is correctness substrate, not a conditional feel fix. |
 | `multi-truck-convoys.md` | **Queued.** LZ separation is shipped; add one dispatch's staggered same-route vehicles and following distance after the single-vehicle route/control behavior passes playtest. Extend planner-budget evidence to simultaneous vehicles. |
 | `slice-5-perf-budget.md` | **In progress.** Attribute remaining bounded recovery slices and fleet-wide work; distinguish physical overlap from padding-only planner refusal before changing escape behavior. |
-| `vehicle-rearm.md` | **Planned; owner's pick open.** Vehicle magazines never refill today. Options: an onboard loader (or an autoloader kit), the resupply authority serving hulls, magazine-free lasers. Recommended: magazine-free lasers first, then hulls as resupply recipients. |
 | `truck-infantry-interaction.md` | **Partial.** Hulls repel bodies (contact + bow wave, `VehicleRepulsionSystem`), ram the other side (`HullRam`) and keep out of each other (`HullContactSystem`). Remaining: hull footprint as an infantry path cost, crushing, and chassis-level yielding for non-story vehicles. |
 
 The completed routing and controller slices are listed in `shipped.md`.

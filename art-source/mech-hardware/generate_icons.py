@@ -452,6 +452,21 @@ def cells(x0, x1, y0, y1, count, gap=5):
     return s
 
 
+def loader(fast):
+    """A missile loader, 2x1: a magazine of rounds feeding a chute; the accelerated feed adds a
+    drive motor and a third chevron."""
+    s = block(8, 12, 62, 68, 6)
+    for y in (22, 36, 50):
+        s += poly([(16, y - 4), (44, y - 4), (54, y + 1), (44, y + 6), (16, y + 6)], L)
+    s += hbar(64, 132, 40, 12, MID, rx=0)
+    for k in range(3 if fast else 2):
+        x = 72 + k * 20
+        s += poly([(x, 28), (x + 8, 28), (x + 18, 40), (x + 8, 52), (x, 52), (x + 10, 40)], D)
+    if fast:
+        s += ell(120, 22, 12, 12, D) + ell(120, 22, 4, 4, L)
+    return s
+
+
 def internals(f):
     # Industrial engine, 2x1: an intake ring, a finned turbine casing and an exhaust cone.
     b = block(8, 14, 30, 66, 6) + rect(13, 22, 4, 36, L)
@@ -500,19 +515,6 @@ def internals(f):
     b += turbine_fan(120, 38, 22, 24, 5)
     f['vent-auxiliary'] = banded(150, 100, b, 'VNT')
 
-    # Missile loaders, 2x1: a magazine of rounds feeding a chute; the accelerated feed adds a
-    # drive motor and a third chevron.
-    def loader(fast):
-        s = block(8, 12, 62, 68, 6)
-        for y in (22, 36, 50):
-            s += poly([(16, y - 4), (44, y - 4), (54, y + 1), (44, y + 6), (16, y + 6)], L)
-        s += hbar(64, 132, 40, 12, MID, rx=0)
-        for k in range(3 if fast else 2):
-            x = 72 + k * 20
-            s += poly([(x, 28), (x + 8, 28), (x + 18, 40), (x + 8, 52), (x, 52), (x + 10, 40)], D)
-        if fast:
-            s += ell(120, 22, 12, 12, D) + ell(120, 22, 4, 4, L)
-        return s
     f['loader-standard'] = banded(150, 100, loader(False), 'LDR')
     f['loader-accelerated'] = banded(150, 100, loader(True), 'LDR')
     f['fab'] = fabricator_icon()
@@ -751,6 +753,9 @@ def vehicles(f):
     f['kit-ready-rack'] = banded(150, 100, kit_ready_rack(), 'RDY')
     f['kit-spaced-skirts'] = banded(150, 100, kit_skirts(), 'SKT')
     f['kit-sensor-pair'] = banded(150, 100, kit_sensor_pair(), 'SNS')
+    # The hull's own systems uprated: a mech's accelerated feed, and a deeper bank of four cells.
+    f['kit-accelerated-loader'] = banded(150, 100, loader(True), 'ACL')
+    f['kit-capacitor-pack'] = banded(150, 100, hbar(10, 140, 12, 4, MID, rx=0) + cells(14, 136, 20, 64, 4, gap=4), 'CAP')
 
 
 def fabricator_icon():

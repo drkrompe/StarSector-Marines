@@ -166,8 +166,8 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             Duty on = null;
             for (Duty d : duties) if (d.key().equals(key)) on = d;
             if (on == null) progress.forget(id);
-            else if (progress.stalled(id, key, Math.hypot(on.x() - s.centroidX(), on.y() - s.centroidY()),
-                    frame.lifting.containsKey(id), frame.tick())) {
+            else if (progress.stalled(id, key, s.centroidX(), s.centroidY(),
+                    Math.hypot(on.x() - s.centroidX(), on.y() - s.centroidY()), frame.lifting.containsKey(id), frame.tick())) {
                 // Rule 11: it is not getting there; the duty goes to the next nearest, and it stays off it a while.
                 barred.put(id, new Barred(key, frame.tick() + CordonCompanyRules.BARRED_TICKS));
             }

@@ -272,7 +272,8 @@ final class BattleDirectControlStatus {
                 world.hasArmor(id) ? world.armorRating(id) : 0f);
         String name = sim.identity().name(id);
         if (sim.directControl().controlledVehicleId() == id) {
-            return new Snapshot(id, name, Carrier.VEHICLE, durability, vehicleWeapons(sim, id));
+            return new Snapshot(id, name, Carrier.VEHICLE, durability, vehicleWeapons(sim, id), List.of(),
+                    MarineSprint.EMPTY, vehicleFlux(sim, id));
         }
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
@@ -533,6 +534,19 @@ final class BattleDirectControlStatus {
         return List.copyOf(weapons);
     }
 
+    /**
+     * The driven hull's main gun's flux, on the mech's gauge, or null for a gun that builds none: a launcher or a
+     * laser the driver fires as fast as its flux allows needs to see it.
+     */
+    static MechFluxStatus vehicleFlux(BattleSimulation sim, long id) {
+        GroundTurret turret = sim.convoy().turret(id);
+        VehicleType type = sim.convoy().vehicleType(id);
+        if (turret == null || type == null || type.turretStructure() == null || turret.destroyed()) return null;
+        TurretMountDef mount = type.turretStructure().mount;
+        if (mount.flux == null) return null;
+        return new MechFluxStatus(turret.flux, turret.overloaded, turret.fluxCapacity(mount));
+    }
+
     /** The cursor's distance from the turret ring, or NaN without a finite aim. */
     private static float vehicleAimDistance(BattleSimulation sim, TurretMountGeometry.Point ring) {
         var intent = sim.directControl().intent();
@@ -556,8 +570,8 @@ final class BattleDirectControlStatus {
         return new WeaponStatus(number, slotKey, weapon.displayName(), behavior(weapon, weapon.burstCount),
                 ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,
-                new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
-                false, "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group, turret.holdRounds);
+                new Ammo(turret.ammo, turret.capacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
+                turret.overloaded, "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group, turret.holdRounds);
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {

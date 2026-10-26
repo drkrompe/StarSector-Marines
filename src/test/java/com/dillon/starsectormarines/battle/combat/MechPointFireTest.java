@@ -536,9 +536,10 @@ class MechPointFireTest {
         assertEquals(0, lrm.chainSalvos);
         assertEquals(cycleAtSecond - 120 * BattleSimulation.TICK_DT, lrm.cycleRemaining, 1e-4f,
                 "the cycle counts from the second salvo");
-        f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
-        assertEquals(2 * perSalvo, f.roster.telemetry().roundsFired(f.shooter),
-                "a fresh press after release waits out the cycle");
+        for (int i = 0; i < 5; i++) f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
+        assertTrue(f.roster.telemetry().roundsFired(f.shooter) > 2 * perSalvo,
+                "a press inside the cycle fires the rack's next group, as a hold would");
+        assertEquals(lrm.component.ammoCapacity - 3, lrm.ammo);
     }
 
     @Test

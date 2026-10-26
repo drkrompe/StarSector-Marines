@@ -360,6 +360,24 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
+    void clicksInsideTheCooldownFireTheRacksNextGroupsAndTheLoaderBringsThemBack() {
+        Fixture f = new Fixture(VehicleType.LRM_CARRIER);
+        int groups = f.mount.mount.ammoCapacity / f.weapon.burstCount;
+        int ticks = 0;
+        for (int click = 0; click < groups; click++) {
+            f.tick(f.north(), true);
+            for (int i = 0; i < 30; i++, ticks++) f.tick(f.north(), false);
+        }
+        assertTrue(ticks * DT < f.weapon.cooldown, "every click lands inside the first group's cooldown");
+        assertEquals(groups * f.weapon.burstCount, f.shots.getActiveShots().size(), "each click is the next group");
+        assertEquals(0, f.turret.ammo);
+        assertFalse(f.turret.overloaded, "the whole load fits inside the gun's flux");
+
+        for (int i = 0; i < (int) Math.ceil(f.turret.loaderSeconds / DT) + 1; i++) f.tick(f.north(), false);
+        assertEquals(f.weapon.burstCount, f.turret.ammo, "the loader brings one group back per cadence");
+    }
+
+    @Test
     void anAutonomousLauncherChainsTwoSalvosIntoATank() {
         Fixture f = new Fixture(VehicleType.LRM_CARRIER);
         long tank = f.hostileHull(VehicleType.BREAKTHROUGH_TANK, 20.5f, 45.5f);
@@ -446,6 +464,7 @@ class GroundVehicleTurretSystemTest {
             roster.convoy().body(other).teleport(x, y, 180f);
             // Its own gun stays silent: these fixtures ask about the launcher, and the bare fixture has no scorer.
             roster.convoy().turret(other).ammo = 0;
+            roster.convoy().turret(other).loaderSeconds = Float.POSITIVE_INFINITY;
             return other;
         }
         long enemy(int x, int y) {

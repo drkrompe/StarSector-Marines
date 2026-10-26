@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
@@ -117,12 +118,13 @@ public final class ConvoyService implements BodyCarrier {
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
-        GroundTurret turret = type.hasTurretWeapon()
-                ? new GroundTurret(Math.round(type.turretStructure().mount.ammoCapacity * fitted.ammoFactor()),
+        TurretMountDef gun = type.hasTurretWeapon() ? type.turretStructure().mount : null;
+        GroundTurret turret = gun != null
+                ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), fitted,
                         HullTurretSection.forHull(type, fitted)) : null;
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
-            for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount));
+            for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, fitted));
         }
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;

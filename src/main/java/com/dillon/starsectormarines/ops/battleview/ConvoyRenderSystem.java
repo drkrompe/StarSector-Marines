@@ -242,7 +242,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
         if (turret == null) return;
         StructureDef structure = type.turretStructure();
         if (structure == null || structure.mount.flux == null) return;
-        float level = Math.min(1f, turret.flux / structure.mount.flux.capacity());
+        float level = Math.min(1f, turret.flux / turret.fluxCapacity(structure.mount));
         if (FluxHaze.strength(level, turret.overloaded) <= 0f) return;
         sprites.ensureEngineFxSprites();
         // Hull-local +Y is the nose (the turret mount's own transform); aft is -Y.

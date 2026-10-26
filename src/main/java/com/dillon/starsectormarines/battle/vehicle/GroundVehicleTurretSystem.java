@@ -120,6 +120,7 @@ public final class GroundVehicleTurretSystem {
             float mountX = mount.x();
             float mountY = mount.y();
             dissipate(turret, structure.mount, dt);
+            reload(turret, structure.mount, dt);
             if (turret.chainGap > 0f) turret.chainGap -= dt;
             if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
             if (id == controlledId) {
@@ -149,6 +150,7 @@ public final class GroundVehicleTurretSystem {
             StructureDef structure = gun.mount().structure();
             TurretMountGeometry.Point at = mountPoint(body, gun.mount().mountX(), gun.mount().mountY());
             dissipate(turret, structure.mount, dt);
+            reload(turret, structure.mount, dt);
             if (turret.chainGap > 0f) turret.chainGap -= dt;
             if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
             if (controlled && !gun.mount().crewed()) {
@@ -213,11 +215,11 @@ public final class GroundVehicleTurretSystem {
         turret.targetId = 0L;
         TurretMountDef mount = structure.mount;
         WeaponDef weapon = mount.weapon;
-        // A held launcher chains its salvos (SalvoChain); letting go starts its cooldown from the last one.
+        // A launcher chains its salvos (SalvoChain): a hold that has fired, or a press inside the cooldown of the
+        // last salvo, fires the next loaded one as soon as that has gone. Letting go keeps the cooldown running.
         boolean holding = trigger && SalvoChain.chains(weapon);
         if (holding) {
-            // Only a hold that has already fired chains: a fresh press waits out the cooldown.
-            if (turret.holdRounds > 0) turret.chainSalvos = Integer.MAX_VALUE;
+            if (turret.holdRounds > 0 || turret.cooldownTimer > 0f) turret.chainSalvos = Integer.MAX_VALUE;
         } else {
             turret.chainSalvos = 0;
             turret.holdRounds = 0;
@@ -659,8 +661,14 @@ public final class GroundVehicleTurretSystem {
     static void addFlux(GroundTurret turret, TurretMountDef mount) {
         TurretMountDef.Flux flux = mount.flux;
         if (flux == null) return;
-        turret.flux = Math.min(flux.capacity(), turret.flux + flux.perRound());
-        if (turret.flux >= flux.capacity()) turret.overloaded = true;
+        float capacity = turret.fluxCapacity(mount);
+        turret.flux = Math.min(capacity, turret.flux + flux.perRound());
+        if (turret.flux >= capacity) turret.overloaded = true;
+    }
+
+    /** One tick of the hull's loader on this gun: a pack is the weapon's burst ({@link GroundTurret#advanceLoader}). */
+    static void reload(GroundTurret turret, TurretMountDef mount, float dt) {
+        turret.advanceLoader(dt, Math.max(1, mount.weapon.burstCount));
     }
 
     private static void finishBurstRound(GroundTurret turret, WeaponDef weapon) {

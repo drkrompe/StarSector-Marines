@@ -103,6 +103,8 @@ public final class FabricationService {
         public VehicleType vehicle;
         /** The rounds a vehicle on the stocks gets when it is finished: its gun stands empty until then. */
         public int frameAmmo;
+        /** The seconds a pack takes on that gun's loader, held off while it stands on the stocks. */
+        public float frameLoaderSeconds = Float.POSITIVE_INFINITY;
         /** The body standing on the stocks, or 0 while there is none. */
         public long frameId;
         /** How many machines this bay has put out. */
