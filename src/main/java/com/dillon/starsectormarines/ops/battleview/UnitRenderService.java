@@ -1055,11 +1055,15 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /**
-     * Draws the guns on a parked hull, on its weapon slots and trained along its nose, at the
+     * Draws the guns on a parked hull, on its weapon slots, at the
      * ground scale its hull is drawn at: the same guns, in the same places, that it lifts with.
      *
      * <p>A berth a yard has refitted carries its own {@link AirfieldService.Berth#doorGuns};
      * any other carries its airframe's kit. Worked out again only when that kit changes.
+     *
+     * <p>A refitted berth's guns are a company boat's, which keep their hull slot's arc in battle
+     * ({@code AirArmament.mounts(Airframe, ...)} for a {@code FittedBoat}) and so stand trained
+     * along their own mount's facing: a stern gun parks looking aft, as it lifts.
      */
     private void emitParkedGuns(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
                                 float centerCellX, float centerCellY, float cellPx, float alphaMult) {
@@ -1067,7 +1071,7 @@ public final class UnitRenderService implements RenderSystem {
         ParkedGuns guns = parkedGuns.get(berth);
         if (guns == null || !Arrays.equals(guns.kit(), kit)) {
             guns = new ParkedGuns(kit.clone(), AirArmament.mounts(kit, berth.airframe.renderHullId(),
-                    berth.facingDegrees));
+                    berth.facingDegrees, berth.doorGuns != null));
             parkedGuns.put(berth, guns);
         }
         if (guns.mounts().length == 0) return;

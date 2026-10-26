@@ -74,7 +74,7 @@ public final class WorkshopRestorationModel {
         }
         @Override public Object markupProperty(String key) {
             WorkshopState state = offer.state();
-            boolean complete = state == WorkshopState.EQUIPPED;
+            boolean complete = state == WorkshopState.RECLAIMING;
             return switch (key) {
                 case "classes" -> state == WorkshopState.NONE ? "restoration-panel hidden" : "restoration-panel";
                 case "portrait" -> CompanyManagementGuide.portrait();
@@ -82,20 +82,23 @@ public final class WorkshopRestorationModel {
                     case BURIED -> Strings.get("openingWorkshopRestorationWorkshopBuried");
                     case CLEARED -> Strings.get("openingWorkshopRestorationWorkshopCleared");
                     case REPAIRED -> Strings.get("openingWorkshopRestorationWorkshopRepaired");
-                    default -> Strings.get("openingWorkshopRestorationWorkshopEquipped");
+                    case EQUIPPED -> Strings.get("openingWorkshopRestorationWorkshopEquipped");
+                    default -> Strings.get("workshopRestorationWorkshopReclaiming");
                 };
                 case "progress" -> "graphics/ui/company/workshop-stage-" + Math.max(0, state.ordinal() - 1) + ".svg";
                 case "copy" -> switch (state) {
                     case BURIED -> Strings.get("openingWorkshopRestorationThatHatchStaysShutTheYardCan");
                     case CLEARED -> Strings.get("openingWorkshopRestorationThePatchIsHoldingAndTheFloor");
                     case REPAIRED -> Strings.get("openingWorkshopRestorationSheWorksGiveTheHandsProperTooling");
-                    default -> Strings.get("openingWorkshopRestorationAProperShopBuiltBackByOur");
+                    case EQUIPPED -> Strings.get("openingWorkshopRestorationAProperShopBuiltBackByOur");
+                    default -> Strings.get("workshopRestorationReclaimingCopy");
                 };
                 case "benefit" -> switch (state) {
                     case BURIED -> Strings.get("openingWorkshopRestorationNextClearWreckageAndSealTheBreach");
                     case CLEARED -> Strings.get("openingWorkshopRestorationNextRestoreMachineryUnlockReclamationHeavyMachinery");
                     case REPAIRED -> Strings.get("openingWorkshopRestorationNextInstallToolingBoatAndMechLab");
-                    default -> Strings.get("openingWorkshopRestorationActiveReclamationAndFewerSuppliesForBoat");
+                    case EQUIPPED -> Strings.get("workshopRestorationNextInstallReclamationLine");
+                    default -> Strings.get("workshopRestorationActiveReclamationLine");
                 };
                 case "bill" -> complete ? "" : CompanyResources.creditBill(state.price(), offer.credits());
                 case "billRows" -> complete ? List.of() : CompanyResources.credits("workshop-cost", offer.credits(), state.price());
@@ -106,7 +109,8 @@ public final class WorkshopRestorationModel {
                 case "reclaimBill" -> List.of(CompanyResources.cost("reclaim-machinery-cost", goods.commodityName(Commodities.HEAVY_MACHINERY), goods.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery(), 1));
                 case "reason" -> offer.refusal() == null ? Strings.get("openingWorkshopRestorationPlanetaryYardLaborAndInstallationIncluded") : offer.refusal();
                 case "actionLabel" -> !reviewed ? Strings.get("openingWorkshopRestorationInspectWorkshop") : switch (state) {
-                    case BURIED -> Strings.get("openingWorkshopRestorationClear"); case CLEARED -> Strings.get("openingWorkshopRestorationRepair"); default -> Strings.get("openingWorkshopRestorationInstallTools");
+                    case BURIED -> Strings.get("openingWorkshopRestorationClear"); case CLEARED -> Strings.get("openingWorkshopRestorationRepair");
+                    case REPAIRED -> Strings.get("openingWorkshopRestorationInstallTools"); default -> Strings.get("workshopRestorationInstallLine");
                 };
                 case "actionClasses" -> complete ? "restoration-action hidden" : "restoration-action console-action";
                 case "disabled" -> reviewed && offer.refusal() != null;

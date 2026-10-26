@@ -100,7 +100,7 @@ class BoatRecoveryLessonTest {
             assertTrue(gone.copy().contains("no longer aboard"));
             gone.action().run();
             assertFalse(roster.campaignLessons().boatRecoveryPending());
-            assertTrue(roster.boatDeck().airworthy(20f).isEmpty());
+            assertTrue(roster.boatDeck().flightReady(20f).isEmpty());
         }
     }
     private static UiElement find(UiElement element, String id) {

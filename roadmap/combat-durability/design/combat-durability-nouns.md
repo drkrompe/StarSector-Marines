@@ -164,6 +164,19 @@ editor boundary. These breaches are neither doorways nor masonry collapses;
 they do not peel adjacent roofs. Decorative walkable placements do not
 acquire this obstruction contract.
 
+**Fortified works hold the swarm off longer than a house.** The ground of a
+fort or an objective (a Cordon redoubt and everything inside its wall, built or
+compound; a colony compound's curtain; a Colony Breach redoubt's barricade
+ring; a Cordon beat's set piece) is marked as works (`FortifiedWorks`). A swarm
+strain's structural hit there, a Brute's blow, a charge's ram, a Runner's claw
+at a barricade, counts for a fraction of what it does to a house wall, and a
+charge rams a barricade on works rather than bowling it over. The wall keeps
+its hit points, so it is still light enough for a Brute to choose to break,
+and everything else's wall damage (a demolition charge, a shell, fire, a
+dozer) is unchanged. So a field-grade wall still opens to a Brute, but in
+something like the time a squad needs to answer the call, rather than the five
+seconds a house wall takes. Ordinary buildings carry no mark.
+
 Storage boxes, wooden crates and industrial crate stacks spend that same
 structural damage in both walkable and blocking placements. Broken panels and
 scattered supplies retain the original material and placement. Surviving damage

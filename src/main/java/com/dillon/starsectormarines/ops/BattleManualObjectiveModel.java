@@ -19,9 +19,10 @@ final class BattleManualObjectiveModel {
     void update(MissionObjectiveSnapshot snapshot) {
         cards.set(snapshot.objectives().stream()
                 .map(item -> new BattleHudOverlayModel.MissionCard(item, () -> {})).toList());
-        score.set(snapshot.objectives().stream()
+        // Side objectives never count toward the tally.
+        score.set(snapshot.required().stream()
                 .filter(item -> item.state() == MissionObjectiveSnapshot.State.COMPLETE).count()
-                + " / " + snapshot.objectives().size());
+                + " / " + snapshot.required().size());
     }
 
     Map<String, Object> props() { return Map.of("cards", cards, "score", score); }

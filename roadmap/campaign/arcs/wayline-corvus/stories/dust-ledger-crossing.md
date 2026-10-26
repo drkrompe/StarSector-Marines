@@ -87,6 +87,9 @@ any bonus (see Open questions).
 
 ## Side objectives (quiet phase only)
 
+All four jobs, the broker included, are side objectives on the toolkit
+(`mission-command-nouns.md`), declared in `DustLedgerSideObjectives`.
+
 Each must be completed before the alarm to pay off; one started and not finished
 pays nothing. All live entirely outside the exclusion ring, so their cost is
 clock time and squads not yet in position, never detection.

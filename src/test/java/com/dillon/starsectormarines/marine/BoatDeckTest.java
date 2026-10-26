@@ -36,8 +36,8 @@ class BoatDeckTest {
         assertEquals(6, deck.berths());
         assertEquals(ShuttleType.AEROSHUTTLE, deck.pattern(),
                 "the deck remembers what her bays hold, because fabrication needs it");
-        assertEquals(6, deck.airworthy().size());
-        for (CampaignBoat boat : deck.airworthy()) {
+        assertEquals(6, deck.flightReady().size());
+        for (CampaignBoat boat : deck.flightReady()) {
             assertEquals(ShuttleType.AEROSHUTTLE, boat.pattern());
             assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
             assertSame(BoatFitting.STANDARD_DRIVE, boat.drive());
@@ -74,7 +74,7 @@ class BoatDeckTest {
         assertEquals(before, ids(deck), "no boat is left behind, however few berths the hull offers");
         assertSame(BoatFitting.ARMOURED_PLATING,
                 deck.boatById(before.get(0)).plating());
-        assertEquals(6, deck.airworthy().size(), "a stowed boat flies like any other");
+        assertEquals(6, deck.flightReady().size(), "a stowed boat flies like any other");
     }
 
     @Test
@@ -117,7 +117,7 @@ class BoatDeckTest {
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
 
         assertEquals(6, deck.berths(), "the ship still has six bays");
-        assertEquals(5, deck.airworthy().size());
+        assertEquals(5, deck.flightReady().size());
         assertEquals(List.of(2), deck.vacantBerths());
         assertNull(deck.boats().get(2));
         assertEquals(before.get(3), deck.boats().get(3).id(),
@@ -133,7 +133,7 @@ class BoatDeckTest {
         assertEquals(0, deck.lose(List.of("boat_99")));
         assertEquals(0, deck.lose(List.of()));
         assertEquals(0, deck.lose(null));
-        assertEquals(6, deck.airworthy().size());
+        assertEquals(6, deck.flightReady().size());
     }
 
     /** A change of home never pays the replacement bill. */
@@ -146,7 +146,7 @@ class BoatDeckTest {
 
         deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 6);
 
-        assertEquals(4, deck.airworthy().size());
+        assertEquals(4, deck.flightReady().size());
         assertEquals(List.of(4, 5), deck.vacantBerths());
         assertEquals(List.of(before.get(0), before.get(2), before.get(3), before.get(5)),
                 ids(deck).subList(0, 4), "the survivors compact into her berths in order");
@@ -165,7 +165,7 @@ class BoatDeckTest {
         deck.reconcile(WARSHIP, ShuttleType.HERMES, 2);
         deck.lose(List.of(ids(deck).get(0), ids(deck).get(1)));
         for (int berth : deck.vacantBerths()) deck.fabricate(berth);
-        for (CampaignBoat boat : deck.airworthy()) seen.add(boat.displayName());
+        for (CampaignBoat boat : deck.flightReady()) seen.add(boat.displayName());
 
         assertEquals(8, seen.size(), "6 landing craft, then 2 more built after the loss");
         assertTrue(seen.contains("Aeroshuttle 01"));
@@ -174,7 +174,7 @@ class BoatDeckTest {
     }
 
     private static void collect(BoatDeck deck, Set<String> names) {
-        for (CampaignBoat boat : deck.airworthy()) {
+        for (CampaignBoat boat : deck.flightReady()) {
             assertTrue(names.add(boat.displayName()),
                     boat.displayName() + " is a tail number the deck has already used");
         }
@@ -182,7 +182,7 @@ class BoatDeckTest {
 
     private static List<String> ids(BoatDeck deck) {
         List<String> found = new ArrayList<>();
-        for (CampaignBoat boat : deck.airworthy()) found.add(boat.id());
+        for (CampaignBoat boat : deck.flightReady()) found.add(boat.id());
         return found;
     }
 }

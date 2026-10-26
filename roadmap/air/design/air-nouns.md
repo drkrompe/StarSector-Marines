@@ -426,6 +426,15 @@ carry it is free, and reads as having no craft when none is left alive. The
 carrier crosses launch in the power's commitment like the rest of its payload.
 The commander AI's mech drop and enemy lances keep their own deliveries.
 
+**The briefing reads lift before launch.** Its armor lift section names the
+**company lift** (the best cradle aboard, and the boat flying the drop) and the
+**mission lift** (heavy lift a ship, employer or contract supplies), then draws
+every bay machine as its damage doll, carrying the wear its repair still leaves,
+with one verdict: drops, needs its drop call selected, no lift of its class,
+lift spent ahead of it, no drop call at all, or held back. It asks the
+`LiftBudget` the drop power will build, machine by machine in bay order, and
+decides nothing itself (`BriefingLift`).
+
 **Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
 worst missing-hull fraction observed across its trips, including a final partial tick.
 Its persistent identity joins those observations after tactical entities leave the

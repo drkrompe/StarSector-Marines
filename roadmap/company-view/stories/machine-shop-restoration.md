@@ -24,6 +24,9 @@ indication, a reviewed bill, and the current workshop service.
   boat fittings, Mech Lab chassis and weapon fabrication. Recycled spares return
   three quarters of their bill. Round each supplies
   line up, minimum one. Other commodities, squad issue and pattern gates remain.
+- Install reclamation line: 7,500 credits, after tooling; recycled spares and
+  scrapped boats, mechs and vehicles return their whole bill, so the player can
+  try parts and machines at no material risk. The room keeps its equipped look.
 
 Reclamation is an instantaneous, irreversible workshop transaction using cargo,
 never prepaid starting-depot stores. Reclamation can be used aboard the repaired

@@ -95,7 +95,7 @@ class BoatDeckViewModelTest {
                 new Reactor(), deck, TestResources.stocked(2_000), "Valkyrie");
         model.selectBoatAction(0).run();
         String drive = BoatDoll.slotKey(BoatFittingSlot.DRIVE);
-        assertFalse(model.canLiftOff(drive), "the yard drive is not a spare to lift");
+        assertTrue(model.canLiftOff(drive), "the stock drive comes off like any part");
         assertFalse(model.canPickUp(BoatDoll.Kind.DRIVE, BoatFitting.TUNED_DRIVE.id()));
         row(model.catalogRows().get(), BoatFitting.TUNED_DRIVE.id()).card().action().run();
         model.dropOnSocket(BoatDoll.Kind.DRIVE, BoatFitting.TUNED_DRIVE.id(), drive);
@@ -103,10 +103,15 @@ class BoatDeckViewModelTest {
         assertTrue(model.canLiftOff(drive));
         model.returnToStores(drive);
 
-        assertEquals(BoatFitting.STANDARD_DRIVE, deck.boats().get(0).drive());
+        assertNull(deck.boats().get(0).drive(), "the socket stands empty");
         assertEquals(1, deck.spares(BoatFitting.TUNED_DRIVE.id()));
+        assertEquals(1, deck.spares(BoatFitting.STANDARD_DRIVE.id()), "the stock drive came off at the refit");
         assertTrue(model.canPickUp(BoatDoll.Kind.DRIVE, BoatFitting.TUNED_DRIVE.id()));
         assertTrue(model.feedbackText().get().contains("stores"), model.feedbackText().get());
+        BoatDoll.Slot socket = model.doll().get().slots().stream()
+                .filter(slot -> slot.key().equals(drive)).findFirst().orElseThrow();
+        assertTrue(socket.missing(), "an empty drive warns: she cannot fly without one");
+        assertFalse(deck.boats().get(0).flightReady(0f));
     }
 
     @Test
@@ -491,6 +496,9 @@ class BoatDeckViewModelTest {
         props.put("bayNoteClasses", "hidden");
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,

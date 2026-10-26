@@ -84,6 +84,10 @@ that advances the board from its own story sequence.
 - **The mechanism interprets no grant and no cost.** Their meaning belongs to
   the arc that receives them; the outcome is the seam it reads.
 
+A mission's authored side jobs are the sibling noun, side objectives
+(`mission-command-nouns.md`): declared, not rolled, with an Optional checklist
+section and campaign marks of their own.
+
 ## Open
 
 - The heart's pool, count range and runtimes (`heart-mission-depth.md`).

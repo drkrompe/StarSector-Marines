@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "An old CRT television switched off: a soft electrical pop, a short static crackle and a quick descending whine fading to silence, no music",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "b25c0330280a242b3ab9d2768d266dc857821b7d2679ff845aa1e460078b72ac",
+  "durationSeconds": 2.48,
+  "peakDb": -6.3,
+  "integratedLufs": -38.8
+}

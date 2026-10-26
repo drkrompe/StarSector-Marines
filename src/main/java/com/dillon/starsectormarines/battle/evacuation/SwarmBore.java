@@ -6,7 +6,10 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.LongPredicate;
 
 /**
  * One bore: a hole the swarm comes out of (`colony-breach-nouns.md`, Bore).
@@ -76,6 +79,11 @@ public final class SwarmBore {
     /** Colonies on their way: each rises where its root ends once the root has come (`colony-breach-nouns.md`, Nest). */
     private final List<Growing> growing = new ArrayList<>();
     private final List<Growing> growingView = Collections.unmodifiableList(growing);
+    /**
+     * Its own living bodies by strain (`colony-breach-nouns.md`, Hold), which its hold counts. The dead are forgotten
+     * before each surge; a collapsed bore's are orphans, held by no bore.
+     */
+    private final Map<BoreStrainTable.Slot, List<Long>> held = new EnumMap<>(BoreStrainTable.Slot.class);
 
     /**
      * A colony on its way: its root digs out from the mouth to cell ({@code x}, {@code y}) and thickens from
@@ -216,6 +224,34 @@ public final class SwarmBore {
     void released(SwarmStage stage) {
         bodiesSpawned++;
         stagesReleased[stage.ordinal()]++;
+    }
+
+    /** Records {@code body}, just released as {@code slot}, as one of this bore's own. */
+    void adopt(BoreStrainTable.Slot slot, long body) {
+        held.computeIfAbsent(slot, s -> new ArrayList<>()).add(body);
+    }
+
+    /** Forgets every body of its own that {@code living} no longer answers for. */
+    void forgetDead(LongPredicate living) {
+        for (List<Long> bodies : held.values()) bodies.removeIf(body -> !living.test(body));
+    }
+
+    /** How many of its own bodies of {@code slot} it last knew to be living. */
+    public int held(BoreStrainTable.Slot slot) {
+        List<Long> bodies = held.get(slot);
+        return bodies == null ? 0 : bodies.size();
+    }
+
+    /** How many more of {@code slot} its hold at its tier lets it put on the field. */
+    public int freeHold(BoreStrainTable.Slot slot) {
+        return Math.max(0, tier.hold(slot) - held(slot));
+    }
+
+    /** How many more bodies of any strain its hold lets it put on the field. */
+    public int freeHold() {
+        int free = 0;
+        for (BoreStrainTable.Slot slot : BoreStrainTable.Slot.values()) free += freeHold(slot);
+        return free;
     }
 
     /** Records that the body just released is this bore's Bombard. */

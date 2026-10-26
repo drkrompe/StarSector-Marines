@@ -45,9 +45,12 @@ import java.util.function.DoubleSupplier;
  *
  * <p>The Mech Lab's grammar over a different noun: an overview of everything in
  * the room, one selected asset, its slots, and a catalog scoped to the selected
- * slot. What differs is what a fitting <em>is</em> — installed work rather than
- * a spare — so nothing comes back to stores. A separate strip shows shared fleet
- * material stock while each fitting row answers whether the fleet can pay for it.
+ * slot. Parts are kept the lab's way: every part, the stock ones too, drags off
+ * into stores and back on from there, and a socket can stand empty. A boat
+ * missing a required part warns on the board, the way a mech without its engine
+ * does, and stays off the lift until one is fitted. A separate strip shows
+ * shared fleet material stock while each card answers whether the fleet can pay
+ * for one more.
  *
  * <p>It reads the deck and never reconciles it. Which hull the company is on is
  * the screen's question, asked once on attach through {@code ShipsBoatsAboard};
@@ -90,6 +93,8 @@ public final class BoatDeckViewModel {
     private final MutableSignal<BoatDoll.Kind> storesFilter;
     /** The part whose RECYCLE was pressed once and waits for its confirming press; null for none. */
     private String armedRecycle;
+    /** The boat whose SCRAP was pressed once and waits for its confirming press; null for none. */
+    private String scrapArmed;
     private final ComputedSignal<List<FittingFilterPill>> filterPills;
     private final ComputedSignal<BoatDoll> doll;
     private final ComputedSignal<String> overviewClasses;
@@ -193,7 +198,7 @@ public final class BoatDeckViewModel {
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
             return recipe == null ? List.of()
-                    : materialRows("boat-fabrication", resources.quote(recipe.bill()));
+                    : materialRows("boat-fabrication", workshop.fabricationQuote(recipe.pattern()));
         });
         materialStock = reactor.computed(this::buildMaterialStock);
         fabricationActionClasses = reactor.computed(() -> affordableToBuild()
@@ -201,8 +206,8 @@ public final class BoatDeckViewModel {
         fabricationBlocked = reactor.computed(() -> !affordableToBuild());
         fabricationReason = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            if (recipe == null || resources.canAfford(resources.quote(recipe.bill()))) return "";
-            return Strings.format("openingBoatDeckShort", shortest(resources.quote(recipe.bill())));
+            if (recipe == null || resources.canAfford(workshop.fabricationQuote(recipe.pattern()))) return "";
+            return Strings.format("openingBoatDeckShort", shortest(workshop.fabricationQuote(recipe.pattern())));
         });
     }
 
@@ -250,10 +255,20 @@ public final class BoatDeckViewModel {
                 });
     }
 
+    /** Whether she can fly, and if not why: a missing required part first, since only the player fits one. */
     static String recoveryStatus(CampaignBoat boat, float day) {
+        if (!boat.missingParts().isEmpty()) return Strings.format("boatIncomplete", missingNames(boat));
         return boat.airworthy(day) ? Strings.get("boatReady") : Strings.format("boatRepairRemaining",
                 Math.round(boat.condition(day) * 100f), Math.ceil(boat.repairDaysRemaining(day) * 10f) / 10d);
     }
+
+    /** The required parts a boat is missing, named for her status line. */
+    public static String missingNames(CampaignBoat boat) {
+        List<String> names = new ArrayList<>();
+        for (BoatFittingSlot slot : boat.missingParts()) names.add(slotLabel(slot).toLowerCase(Strings.locale()));
+        return String.join(Strings.get("separatorDot"), names);
+    }
+
 
     public record Recovery(String classes, String style, String status, String fillStyle, String orderClasses,
                            List<Row> materials, boolean disabled, Runnable expedite) implements MarkupPropertySource {
@@ -293,6 +308,16 @@ public final class BoatDeckViewModel {
             : Strings.get("openingUiBoatDeckBoatBayBerths"); }); }
     public Signal<String> stageStatus() { return selectedBerth.map(berth -> { revision.get(); return fittingFocused()
             ? Strings.get("boatDeckSelectSlot") : Strings.get("openingUiBoatDeckDeckCrewOnWatch"); }); }
+    /** SCRAP beside the stage heading while the room is opened on a boat; CONFIRM once armed. */
+    public Signal<String> scrapLabel() { return selectedBerth.map(berth -> { revision.get();
+        CampaignBoat boat = selectedBoat();
+        return boat != null && boat.id().equals(scrapArmed) ? Strings.get("openingMechLabScrapConfirm")
+                : Strings.get("openingMechLabScrap"); }); }
+    public Signal<String> scrapClasses() { return selectedBerth.map(berth -> { revision.get();
+        CampaignBoat boat = selectedBoat();
+        if (!fittingFocused() || boat == null) return "hidden";
+        return boat.id().equals(scrapArmed) ? "boat-scrap console-action armed" : "boat-scrap console-action"; }); }
+    public Runnable scrapAction() { return this::scrapSelected; }
     public Signal<String> fittingClasses() { return fittingClasses; }
     public Signal<String> fabricationClasses() { return fabricationClasses; }
     public Signal<String> fabricationBerthLabel() { return fabricationBerthLabel; }
@@ -312,9 +337,9 @@ public final class BoatDeckViewModel {
 
     /**
      * Whether a stores part carried onto the board would fit the socket under it: a socket
-     * that {@linkplain #socketTakes takes the part}, and a spare to fit, or the socket's own
-     * yard-standard part. The drag lights the socket green or red by this, so a refusal shows
-     * before the part is let go.
+     * that {@linkplain #socketTakes takes the part}, a spare to fit, and room on the frame.
+     * The drag lights the socket green or red by this, so a refusal shows before the part is
+     * let go.
      */
     public boolean canDropOnSocket(BoatDoll.Kind kind, String itemId, String key) {
         if (!socketTakes(kind, itemId, key)) return false;
@@ -323,41 +348,23 @@ public final class BoatDeckViewModel {
         if (kind == BoatDoll.Kind.HARDPOINT) {
             int hardpoint = BoatDoll.hardpointOf(key);
             BoatGun gun = BoatGun.findById(itemId);
-            return (gun.standardOn(boat.pattern(), hardpoint) || deck.spares(itemId) > 0)
+            return deck.spares(itemId) > 0
                     && BoatFrame.admits(boat, before, BoatFrame.weightWithGun(boat, hardpoint, gun));
         }
         BoatFitting fitting = BoatFitting.findById(itemId);
-        return (fitting.standard() || deck.spares(itemId) > 0)
-                && BoatFrame.admits(boat, before, BoatFrame.weightWith(boat, fitting));
+        return deck.spares(itemId) > 0 && BoatFrame.admits(boat, before, BoatFrame.weightWith(boat, fitting));
     }
 
-    /**
-     * Whether a stores card can be picked up: a spare is in stores, or it is a yard-standard
-     * part one of this boat's sockets has for nothing. A card with neither only offers BUY.
-     */
+    /** Whether a stores card can be picked up: a spare is in stores. A card with none only offers BUY. */
     public boolean canPickUp(BoatDoll.Kind kind, String itemId) {
         CampaignBoat boat = selectedBoat();
         if (boat == null || kind == null || itemId == null) return false;
-        if (deck.spares(itemId) > 0) return true;
-        if (kind != BoatDoll.Kind.HARDPOINT) {
-            BoatFitting fitting = BoatFitting.findById(itemId);
-            return fitting != null && fitting.standard();
-        }
-        BoatGun gun = BoatGun.findById(itemId);
-        return gun != null && !mountsStandardFor(boat, gun).isEmpty();
+        return deck.spares(itemId) > 0;
     }
 
-    /** Whether the socket holds a part that can be lifted off: anything but its yard-standard part. */
+    /** Whether the socket holds a part that can be lifted off: anything fitted, stock parts too. */
     public boolean canLiftOff(String key) {
-        CampaignBoat boat = selectedBoat();
-        if (boat == null || key == null) return false;
-        int hardpoint = BoatDoll.hardpointOf(key);
-        if (hardpoint >= 0) {
-            BoatGun gun = boat.gunOn(hardpoint);
-            return gun != null && !gun.standardOn(boat.pattern(), hardpoint);
-        }
-        BoatFittingSlot slot = slotOf(key);
-        return slot != null && !boat.fittingIn(slot).standard();
+        return installedIn(key) != null;
     }
 
     /** The kind of socket a doll key names, or null for an unknown one. */
@@ -378,7 +385,8 @@ public final class BoatDeckViewModel {
             return gun == null ? null : gun.id();
         }
         BoatFittingSlot slot = slotOf(key);
-        return slot == null ? null : boat.fittingIn(slot).id();
+        BoatFitting fitting = slot == null ? null : boat.fittingIn(slot);
+        return fitting == null ? null : fitting.id();
     }
 
     /** Whether a part lifted off one socket can go straight onto another: a gun, to another hardpoint. */
@@ -408,21 +416,24 @@ public final class BoatDeckViewModel {
     }
 
     /**
-     * Takes the part in one socket off into stores, as dropping it on the stores does; the
-     * socket goes back to its yard-standard part.
+     * Takes the part in one socket off into stores, as dropping it on the stores does, and
+     * leaves the socket empty. Taking out a required part is allowed: she stays off the lift
+     * until one is fitted, and the feedback says so.
      */
     public void returnToStores(String key) {
         CampaignBoat boat = selectedBoat();
         if (boat == null || !canLiftOff(key)) return;
         String name = partName(installedIn(key));
         int hardpoint = BoatDoll.hardpointOf(key);
+        BoatFittingSlot slot = hardpoint >= 0 ? null : slotOf(key);
         BoatWorkshop.Result result = hardpoint >= 0
                 ? workshop.stripGun(boat.id(), hardpoint)
-                : workshop.strip(boat.id(), slotOf(key));
+                : workshop.strip(boat.id(), slot);
         selectDollSlot(key);
-        report(result, result.succeeded()
-                ? Strings.format("boatDeckReturnedToStores", name, boat.displayName())
-                : Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged"));
+        report(result, !result.succeeded() ? Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged")
+                : slot != null && CampaignBoat.REQUIRED_SLOTS.contains(slot)
+                ? Strings.format("boatDeckRequiredStripped", name, boat.displayName())
+                : Strings.format("boatDeckReturnedToStores", name, boat.displayName()));
     }
 
     /** Builds one spare of a part into stores out of the fleet's hold. */
@@ -474,6 +485,7 @@ public final class BoatDeckViewModel {
 
     private void report(BoatWorkshop.Result result, String text) {
         armedRecycle = null;
+        scrapArmed = null;
         feedbackText.set(text);
         feedbackClasses.set(result.succeeded()
                 ? "boat-deck-feedback tone-good surface-dark"
@@ -496,15 +508,6 @@ public final class BoatDeckViewModel {
         return null;
     }
 
-    /** The hardpoints whose yard gun this is, in order. */
-    private static List<Integer> mountsStandardFor(CampaignBoat boat, BoatGun gun) {
-        List<Integer> mounts = new ArrayList<>();
-        for (int index = 0; index < boat.pattern().hardpoints(); index++) {
-            if (gun.standardOn(boat.pattern(), index)) mounts.add(index);
-        }
-        return mounts;
-    }
-
     /**
      * Whether the socket is one this part goes in, whatever it costs: the right kind of
      * socket, a part this boat's pattern can carry, and not what is already there.
@@ -520,7 +523,7 @@ public final class BoatDeckViewModel {
         }
         BoatFitting fitting = BoatFitting.findById(itemId);
         return fitting != null && hardpoint < 0 && BoatDoll.slotKey(fitting.slot()).equals(key)
-                && !fitting.id().equals(boat.fittingIn(fitting.slot()).id()) && fitting.supports(boat.pattern());
+                && fitting != boat.fittingIn(fitting.slot()) && fitting.supports(boat.pattern());
     }
 
     /**
@@ -597,8 +600,8 @@ public final class BoatDeckViewModel {
         List<CampaignBoat> boats = deck.boats().stream().filter(Objects::nonNull).toList();
         List<String> summary = new ArrayList<>();
         summary.add(Strings.format("openingBoatCount", boats.size()));
-        if (deck.airworthy(day()).size() < boats.size())
-            summary.add(Strings.format("boatDeckReadiness", deck.airworthy(day()).size(), boats.size()));
+        if (deck.flightReady(day()).size() < boats.size())
+            summary.add(Strings.format("boatDeckReadiness", deck.flightReady(day()).size(), boats.size()));
         ShuttleType pattern = boats.isEmpty() ? null : boats.get(0).pattern();
         if (pattern != null) summary.add(pattern.displayName());
         if (carrierName != null && !carrierName.isBlank())
@@ -628,8 +631,9 @@ public final class BoatDeckViewModel {
                     berthLabel(index),
                     vacant ? (deck.wreckInBerth(index) ? Strings.get("openingBoatDeckWreckedHermes") : Strings.get("openingBoatDeckEmptyBerth")) : boat.displayName(),
                     vacant ? (deck.wreckInBerth(index) ? Strings.get("openingBoatDeckOriginalShipSBoatAwaitingRepair") : buildablePattern()) : boat.pattern().displayName(),
-                    vacant ? buildableBill() : boat.plating().displayName(),
-                    vacant ? "" : boat.airworthy(day()) ? boat.drive().displayName() : recoveryStatus(boat, day()),
+                    vacant ? buildableBill() : boat.plating() != null ? boat.plating().displayName()
+                            : Strings.get("boatDeckBareHull"),
+                    vacant ? "" : boat.flightReady(day()) ? boat.drive().displayName() : recoveryStatus(boat, day()),
                     () -> selectBoat(berth)));
         }
         return List.copyOf(rows);
@@ -650,7 +654,8 @@ public final class BoatDeckViewModel {
         if (boat == null) return List.of();
         ShuttleType pattern = boat.pattern();
         FittedBoat fitted = boat.freezeForDeployment();
-        int cabin = boat.fittingIn(BoatFittingSlot.CABIN).seats();
+        BoatFitting cabinFit = boat.fittingIn(BoatFittingSlot.CABIN);
+        int cabin = cabinFit == null ? 0 : cabinFit.seats();
         int seats = cabin > 0 ? cabin : pattern.capacity;
         int maxSeats = pattern.capacity;
         for (BoatFitting part : BoatFitting.catalog(BoatFittingSlot.CABIN)) maxSeats = Math.max(maxSeats, part.seats());
@@ -708,9 +713,9 @@ public final class BoatDeckViewModel {
      * kinds the filter lets through, each a card to be dragged onto a socket on the board.
      *
      * <p>Parts are kept as the lab keeps them: a card counts the spares in stores, and one with
-     * none shows its bill and a BUY that builds one. A yard-standard part is every socket's for
-     * nothing and is never counted. Whether a particular socket takes a part is the drop's to
-     * say ({@link #canDropOnSocket}), not the card's.
+     * none shows its bill and a BUY that builds one. The stock parts are counted like any
+     * other. Whether a particular socket takes a part is the drop's to say
+     * ({@link #canDropOnSocket}), not the card's.
      */
     private List<CatalogRow> buildStores() {
         revision.get();
@@ -730,7 +735,7 @@ public final class BoatDeckViewModel {
             }
             BoatFittingSlot slot = fittingSlot(kind);
             for (BoatFitting fitting : BoatFitting.catalog(slot)) {
-                boolean installed = fitting.id().equals(boat.fittingIn(slot).id());
+                boolean installed = fitting == boat.fittingIn(slot);
                 if (!installed && !fitting.supports(boat.pattern())) continue;
                 rows.add(fittingCard(boat, fitting, installed));
             }
@@ -739,8 +744,8 @@ public final class BoatDeckViewModel {
     }
 
     private CatalogRow gunCard(CampaignBoat boat, BoatGun gun, List<Integer> mounts) {
-        boolean free = mountsStandardFor(boat, gun).size() == boat.pattern().hardpoints();
-        FabricationCost bill = free ? null : resources.quote(gun.bill());
+        boolean free = false;
+        FabricationCost bill = resources.quote(gun.bill());
         boolean held = selectedHardpoint.get() != NO_HARDPOINT && mounts.contains(selectedHardpoint.get());
         String on = mounts.stream().map(index -> Strings.format("boatDeckHardpointShort", index + 1))
                 .reduce((a, b) -> a + "  ·  " + b).orElse("");
@@ -753,7 +758,7 @@ public final class BoatDeckViewModel {
         boolean held = installed && selectedHardpoint.get() == NO_HARDPOINT && selectedSlot.get() == fitting.slot();
         return card(dollKind(fitting.slot()), fitting.id(), "boat-catalog:" + fitting.id(), fitting.displayName(),
                 fitting.tier(), effect(fitting), installed ? "" : change(boat, fitting), installed, held,
-                fitting.standard(), fitting.standard() ? null : resources.quote(fitting.bill()));
+                false, resources.quote(fitting.bill()));
     }
 
     /**
@@ -797,9 +802,13 @@ public final class BoatDeckViewModel {
     /** What fitting this would do to her figures against what she carries now. */
     private String change(CampaignBoat boat, BoatFitting fitting) {
         ShuttleType pattern = boat.pattern();
-        BoatFitting installed = boat.fittingIn(fitting.slot());
+        BoatFitting fitted = boat.fittingIn(fitting.slot());
+        // Against an empty socket the change is the whole part, measured from the stock one's figures,
+        // or, for plating, from the bare hull she flies with.
+        BoatFitting installed = fitted != null ? fitted : BoatFitting.standard(fitting.slot());
+        float hullNow = fitted != null ? fitted.hullFactor() : FittedBoat.BARE_HULL_FACTOR;
         return switch (fitting.slot()) {
-            case PLATING -> signed(Math.round(pattern.maxHp() * (fitting.hullFactor() - installed.hullFactor())),
+            case PLATING -> signed(Math.round(pattern.maxHp() * (fitting.hullFactor() - hullNow)),
                     Strings.get("openingBoatDeckHull"));
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
@@ -834,8 +843,9 @@ public final class BoatDeckViewModel {
             int[] socket = BoatHardware.socket(slot.kind());
             String base = "boat-mount:" + slot.key();
             String key = slot.key();
+            boolean filled = slot.itemId() != null;
             FittingSlotCard card = new FittingSlotCard(base, "doll-slot selected", slot.title(),
-                    FittedBadge.label(true), FittedBadge.slotClasses(true), slot.fitted(), slot.tier(),
+                    FittedBadge.label(filled), FittedBadge.slotClasses(filled), slot.fitted(), slot.tier(),
                     kindSingular(slot.kind()) + " / " + Strings.format("boatDeckGrid", socket[0], socket[1]),
                     false, "hidden", () -> selectDollSlot(key), null);
             return List.of(new SlotRow(card, key, slot.kind(), slot.itemId()));
@@ -935,11 +945,17 @@ public final class BoatDeckViewModel {
         ShuttleType pattern = boat.pattern();
         int hardpoint = selectedHardpoint.get();
         List<BoatDoll.Slot> slots = new ArrayList<>();
+        List<BoatFittingSlot> missing = boat.missingParts();
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             if (slot == BoatFittingSlot.LIFT && !liftable(pattern)) continue;
             BoatFitting fitting = boat.fittingIn(slot);
-            slots.add(BoatDoll.Slot.fitting(slot, fitting.id(), slotLabel(slot), fitting.displayName(),
-                    tierLabel(fitting), hardpoint == NO_HARDPOINT && slot == selectedSlot.get()));
+            boolean selected = hardpoint == NO_HARDPOINT && slot == selectedSlot.get();
+            slots.add(fitting == null
+                    ? BoatDoll.Slot.fitting(slot, null, slotLabel(slot), Strings.get(missing.contains(slot)
+                            ? "boatDeckSocketMissing" : slot == BoatFittingSlot.PLATING ? "boatDeckBareHull"
+                            : "boatDeckSocketEmpty"), "", selected, missing.contains(slot))
+                    : BoatDoll.Slot.fitting(slot, fitting.id(), slotLabel(slot), fitting.displayName(),
+                            tierLabel(fitting), selected, false));
         }
         List<WeaponSlot> mounts = TurretSlotResolver.mounts(pattern.renderHullId());
         for (int index = 0; index < pattern.hardpoints(); index++) {
@@ -1029,6 +1045,33 @@ public final class BoatDeckViewModel {
         if (result.succeeded()) deckChanged.run();
     }
 
+    /**
+     * SCRAP takes two presses, as the lab's does: the first arms it and says what comes back,
+     * the second breaks the boat up through the workshop and returns to the deck with her
+     * berth vacant.
+     */
+    private void scrapSelected() {
+        CampaignBoat boat = selectedBoat();
+        if (boat == null) return;
+        FabricationCost back = workshop.scrapQuote(boat.id());
+        String hull = back == null ? Strings.get("openingMechLabNoSalvage") : recoveryLine(back);
+        if (!boat.id().equals(scrapArmed)) {
+            scrapArmed = boat.id();
+            feedbackText.set(Strings.format("boatDeckScrapArmed", boat.displayName(), hull));
+            feedbackClasses.set("boat-deck-feedback tone-danger surface-dark");
+            revision.update(value -> value + 1);
+            return;
+        }
+        scrapArmed = null;
+        BoatWorkshop.Result result = workshop.scrap(boat.id());
+        if (!result.succeeded()) {
+            report(result, Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged"));
+            return;
+        }
+        selectedBerth.set(NO_BERTH);
+        report(result, Strings.format("boatDeckScrapped", boat.displayName(), hull));
+    }
+
     private void showDeckOverview() {
         selectedBerth.set(NO_BERTH);
         feedbackText.set(Strings.get("openingBoatDeckSelectABerthToInspectItsBoat"));
@@ -1096,7 +1139,7 @@ public final class BoatDeckViewModel {
 
     private boolean affordableToBuild() {
         BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-        return recipe != null && resources.canAfford(resources.quote(recipe.bill()));
+        return recipe != null && resources.canAfford(workshop.fabricationQuote(recipe.pattern()));
     }
 
     /** What a vacant berth would be built back up as, for its card. */
@@ -1113,7 +1156,7 @@ public final class BoatDeckViewModel {
                 BoatFabricationCatalog.recipe(deck.pattern());
         if (recipe == null) return "";
         StringBuilder bill = new StringBuilder();
-        for (FabricationCost.Line line : resources.quote(recipe.bill()).lines()) {
+        for (FabricationCost.Line line : workshop.fabricationQuote(recipe.pattern()).lines()) {
             if (bill.length() > 0) bill.append("  ·  ");
             bill.append(resources.commodityName(line.commodityId()))
                     .append(' ').append(line.quantity());
@@ -1199,7 +1242,7 @@ public final class BoatDeckViewModel {
         return Strings.format("boatDeckHardpoint", hardpoint + 1);
     }
 
-    /** A yard gun reads as yard issue rather than a tier, so a refit reads as one. */
+    /** A yard gun reads as yard issue as well as its tier, so a refit reads as one. */
     private static String gunTier(CampaignBoat boat, int hardpoint, BoatGun gun) {
         return gun.standardOn(boat.pattern(), hardpoint)
                 ? Strings.format("openingBoatDeckTier", gun.tier()) + "  ·  " + Strings.get("boatDeckGunStandard")

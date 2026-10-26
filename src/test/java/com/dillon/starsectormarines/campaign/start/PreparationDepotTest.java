@@ -52,16 +52,17 @@ class PreparationDepotTest {
         var depot = new PreparationDepot("jangala", true);
         var cargo = cargo(new HashMap<>());
         var initial = depot.stock();
+        int boat = hermes(Commodities.SUPPLIES);
         assertFalse(new WorkshopStores(cargo, depot).spend(Map.of(Commodities.SUPPLIES, 1)));
         assertFalse(new WorkshopStores(cargo, depot, Purpose.PREFLIGHT).spend(initial));
-        assertFalse(new WorkshopStores(cargo, depot, Purpose.BOAT).spend(Map.of(Commodities.SUPPLIES, 21)));
+        assertFalse(new WorkshopStores(cargo, depot, Purpose.BOAT).spend(Map.of(Commodities.SUPPLIES, boat + 1)));
         assertFalse(new WorkshopStores(cargo, depot, Purpose.SQUAD).spend(Map.of(Commodities.SUPPLIES, 37)));
         assertEquals(initial, depot.stock());
         depot = roundTrip(depot);
-        assertEquals(20, depot.available(Commodities.SUPPLIES, Purpose.BOAT));
+        assertEquals(boat, depot.available(Commodities.SUPPLIES, Purpose.BOAT));
         assertEquals(36, depot.available(Commodities.SUPPLIES, Purpose.SQUAD));
         assertEquals(0, depot.available(Commodities.SUPPLIES, Purpose.GENERAL));
-        assertEquals(56, depot.available(Commodities.SUPPLIES, Purpose.PREFLIGHT));
+        assertEquals(boat + 36, depot.available(Commodities.SUPPLIES, Purpose.PREFLIGHT));
     }
 
     @Test void unavailableDepotAndShortBillsCannotSpendAnyStores() {
@@ -72,13 +73,14 @@ class PreparationDepotTest {
         assertFalse(away.spend(initial));
         WorkshopStores docked = new WorkshopStores(cargo(cargo), depot);
         Map<String, Integer> shortBill = new LinkedHashMap<>(initial);
-        shortBill.put(Commodities.METALS, 31);
+        shortBill.put(Commodities.METALS, hermes(Commodities.METALS) + 1);
         assertFalse(docked.spend(shortBill));
         assertEquals(initial, depot.stock());
         assertEquals(25f, cargo.get(Commodities.SUPPLIES));
-        assertTrue(docked.spend(Map.of(Commodities.SUPPLIES, 60)));
+        int held = depot.available(Commodities.SUPPLIES);
+        assertTrue(docked.spend(Map.of(Commodities.SUPPLIES, held + 4)));
         assertEquals(0, depot.available(Commodities.SUPPLIES));
-        assertEquals(21f, cargo.get(Commodities.SUPPLIES));
+        assertEquals(21f, cargo.get(Commodities.SUPPLIES), "the depot is drawn first, then the hold");
     }
 
     @Test void yardRefusesEveryInvalidOrderBeforeMutating() {
@@ -123,5 +125,11 @@ class PreparationDepotTest {
             return spend(new FabricationCost(cost.lines().stream()
                     .map(l -> new FabricationCost.Line(l.commodityId(), l.quantity())).toList()));
         }
+    }
+
+    /** What the depot holds for the first boat: the Hermes bill. */
+    private static int hermes(String commodity) {
+        return BoatFabricationCatalog.recipe(ShuttleType.HERMES).bill().lines().stream()
+                .filter(line -> line.commodityId().equals(commodity)).mapToInt(FabricationCost.Line::quantity).sum();
     }
 }

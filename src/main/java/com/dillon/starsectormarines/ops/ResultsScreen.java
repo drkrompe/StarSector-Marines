@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.objective.optional.Cost;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
 import com.dillon.starsectormarines.battle.objective.optional.Reward;
+import com.dillon.starsectormarines.battle.objective.side.SideObjective;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveResult;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -324,6 +326,19 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return Strings.join("separatorDot", parts.toArray(String[]::new));
     }
 
+    /** The job's result, then the debrief line its story chose for that result. */
+    static String sideSummary(SideObjectiveResult side) {
+        return Strings.join("separatorDot", Strings.get("resultsScreenSide" + side.outcome().keyPart()), side.debrief());
+    }
+
+    private static String sideTone(SideObjective.State outcome) {
+        return switch (outcome) {
+            case DONE -> "tone-good";
+            case FAILED -> "tone-danger";
+            default -> "tone-muted";
+        };
+    }
+
     private static String commodityName(String commodityId) {
         var settings = Global.getSettings();
         var spec = settings == null ? null : settings.getCommoditySpec(commodityId);
@@ -383,6 +398,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         for (ObjectiveResult objective : outcome.objectives) {
             rows.add(row("result-objective-" + objective.key(), objective.title(),
                     objectiveSummary(objective), objectiveTone(objective.status())));
+        }
+        for (SideObjectiveResult side : outcome.sideObjectives) {
+            rows.add(row("result-side-" + side.key(), side.title(), sideSummary(side), sideTone(side.outcome())));
         }
         rows.add(row("result-casualties", trimLabel(copy.apply("resultsCasualtiesLabel")),
                 MessageFormat.format(copy.apply("resultsCasualtiesFmt"),

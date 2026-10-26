@@ -223,6 +223,9 @@ public final class BoatDeckScreen implements Screen {
         props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,

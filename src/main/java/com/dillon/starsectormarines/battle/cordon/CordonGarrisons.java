@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.evacuation.FortifiedWorks;
 import com.dillon.starsectormarines.battle.evacuation.HoldoutLoopholes;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -59,7 +60,11 @@ public final class CordonGarrisons {
             CordonRedoubt redoubt = built.generated()
                     ? man(sim, redoubts.get(i), i + 1, front, risk, rng)
                     : manWorks(sim, map, i + 1, built, front, risk, rng);
-            if (redoubt != null) out.add(redoubt);
+            if (redoubt == null) continue;
+            // Its wall and everything inside it stand up to the swarm as works, a house wall it is built of too.
+            FortifiedWorks.mark(sim.getGrid(), redoubt.left() - 1, redoubt.top() - 1, redoubt.right() + 1,
+                    redoubt.bottom() + 1);
+            out.add(redoubt);
         }
         return out;
     }

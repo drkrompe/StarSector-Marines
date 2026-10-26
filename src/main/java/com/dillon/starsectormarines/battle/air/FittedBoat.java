@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -62,8 +63,14 @@ public final class FittedBoat implements Airframe, AirHandling {
     private final BoatFitting drive;
     private final BoatFitting lift;
     private final String boatId;
-    /** Turret structure per hardpoint for an air-to-ground sortie; a null entry is the sortie kit's own gun. */
+    /** Turret structure per hardpoint for an air-to-ground sortie; a null entry is a bare hardpoint. */
     private final String[] guns;
+
+    /** A hardpoint entry naming no gun at all, where null or a missing entry is the sortie kit's own. */
+    public static final String BARE = "";
+
+    /** Her hull with no plating fitted, against the pattern's own: she flies, but weak. */
+    public static final float BARE_HULL_FACTOR = 0.6f;
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive) {
         this(pattern, plating, drive, null);
@@ -91,16 +98,21 @@ public final class FittedBoat implements Airframe, AirHandling {
     }
 
     /**
-     * @param fit the fitting in each slot; a slot it leaves out holds its standard fitting
+     * @param fit the fitting in each slot; a slot it leaves out holds its standard fitting,
+     *     and plating or an emitter mapped to null is none: a bare hull
+     *     ({@link #BARE_HULL_FACTOR}), or no shield
      * @param guns the door gun's turret structure on each hardpoint, or null
-     *     (or a null entry) for the gun the sortie kit would mount there
+     *     (or a null entry) for the gun the sortie kit would mount there, or
+     *     {@link #BARE} for no gun
      */
     public FittedBoat(ShuttleType pattern, Map<BoatFittingSlot, BoatFitting> fit, String boatId, String[] guns) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
         this.fit = new EnumMap<>(BoatFittingSlot.class);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             BoatFitting fitted = fit == null ? null : fit.get(slot);
-            this.fit.put(slot, fitted == null ? BoatFitting.standard(slot) : requireSlot(fitted, slot));
+            if (fitted != null) this.fit.put(slot, requireSlot(fitted, slot));
+            else if (optional(slot) && fit != null && fit.containsKey(slot)) this.fit.put(slot, null);
+            else this.fit.put(slot, BoatFitting.standard(slot));
         }
         this.plating = this.fit.get(BoatFittingSlot.PLATING);
         this.drive = this.fit.get(BoatFittingSlot.DRIVE);
@@ -110,7 +122,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         this.guns = new String[kit.length];
         for (int index = 0; index < kit.length; index++) {
             String fitted = guns != null && index < guns.length ? guns[index] : null;
-            this.guns[index] = fitted != null && !fitted.isBlank() ? fitted : kit[index];
+            this.guns[index] = fitted == null ? kit[index] : fitted.isBlank() ? null : fitted;
         }
     }
 
@@ -122,13 +134,14 @@ public final class FittedBoat implements Airframe, AirHandling {
     /** The airframe underneath the fit — what kind of boat this is. */
     public ShuttleType pattern() { return pattern; }
 
+    /** Her plating, or null for a bare hull. */
     public BoatFitting plating() { return plating; }
 
     public BoatFitting drive() { return drive; }
 
     public BoatFitting lift() { return lift; }
 
-    /** The fitting in any slot; never null. */
+    /** The fitting in any slot; null only for plating or an emitter she flies without. */
     public BoatFitting fitting(BoatFittingSlot slot) { return fit.get(slot); }
 
     /**
@@ -179,7 +192,7 @@ public final class FittedBoat implements Airframe, AirHandling {
     public List<String> guns() { return Collections.unmodifiableList(Arrays.asList(guns.clone())); }
     @Override public AirHandling flight() { return this; }
 
-    @Override public float maxHp() { return pattern.maxHp() * plating.hullFactor(); }
+    @Override public float maxHp() { return pattern.maxHp() * (plating == null ? BARE_HULL_FACTOR : plating.hullFactor()); }
 
     /** The cabin's seats, or the pattern's where the cabin seats fewer. */
     @Override
@@ -208,10 +221,12 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     /**
      * Her shield and its capacitors: arc and flux per blocked damage from the emitter, pool and venting from the
-     * power fitting. An omni shield, turning fast to whatever fires on her.
+     * power fitting. An omni shield, turning fast to whatever fires on her. Null with no emitter fitted: she flies
+     * unshielded, and her guns have no pool to charge.
      */
     public FluxShieldSpec shieldSpec() {
         BoatFitting emitter = fit.get(BoatFittingSlot.EMITTER);
+        if (emitter == null) return null;
         BoatFitting power = fit.get(BoatFittingSlot.POWER);
         float arc = emitter.shieldArcDeg() > 0f ? emitter.shieldArcDeg() : BASE_SHIELD_ARC;
         float vent = BASE_VENT * power.fluxDissipationFactor();
@@ -222,7 +237,8 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     /** Her shield's look by its emitter's tier: low-tech orange, midline teal, high-tech blue. */
     public ShieldTint shieldTint() {
-        return switch (fit.get(BoatFittingSlot.EMITTER).tier()) {
+        BoatFitting emitter = fit.get(BoatFittingSlot.EMITTER);
+        return switch (emitter == null ? 1 : emitter.tier()) {
             case 1 -> ShieldTint.ORANGE;
             case 2 -> ShieldTint.TEAL;
             default -> ShieldTint.BLUE;
@@ -296,7 +312,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         if (!(other instanceof FittedBoat boat)) return false;
         if (pattern != boat.pattern) return false;
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
-            if (!fit.get(slot).id().equals(boat.fit.get(slot).id())) return false;
+            if (!Objects.equals(idOf(fit.get(slot)), idOf(boat.fit.get(slot)))) return false;
         }
         return Objects.equals(boatId, boat.boatId)
                 && Arrays.equals(guns, boat.guns);
@@ -305,21 +321,30 @@ public final class FittedBoat implements Airframe, AirHandling {
     @Override
     public int hashCode() {
         int result = pattern.hashCode();
-        for (BoatFittingSlot slot : BoatFittingSlot.values()) result = 31 * result + fit.get(slot).id().hashCode();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) result = 31 * result + Objects.hashCode(idOf(fit.get(slot)));
         result = 31 * result + Arrays.hashCode(guns);
         return 31 * result + Objects.hashCode(boatId);
     }
 
     @Override
     public String toString() {
-        StringBuilder text = new StringBuilder(pattern + "[" + plating.id() + "," + drive.id());
+        StringBuilder text = new StringBuilder(pattern + "[" + (plating == null ? "bare" : plating.id()) + "," + drive.id());
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             BoatFitting fitted = fit.get(slot);
-            if (slot != BoatFittingSlot.PLATING && slot != BoatFittingSlot.DRIVE && !fitted.standard()) {
-                text.append(',').append(fitted.id());
+            if (slot != BoatFittingSlot.PLATING && slot != BoatFittingSlot.DRIVE && (fitted == null || !fitted.standard())) {
+                text.append(',').append(fitted == null ? "no-" + slot.name().toLowerCase(Locale.ROOT) : fitted.id());
             }
         }
         return text.append(boatId != null ? "," + boatId : "").append(']').toString();
+    }
+
+    /** A slot she can fly with nothing in: plating (a bare hull) and the emitter (no shield). */
+    public static boolean optional(BoatFittingSlot slot) {
+        return slot == BoatFittingSlot.PLATING || slot == BoatFittingSlot.EMITTER;
+    }
+
+    private static String idOf(BoatFitting fitting) {
+        return fitting == null ? null : fitting.id();
     }
 
     private static BoatFitting requireSlot(BoatFitting fitting, BoatFittingSlot slot) {

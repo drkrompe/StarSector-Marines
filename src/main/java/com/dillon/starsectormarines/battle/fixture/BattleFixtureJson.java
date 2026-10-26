@@ -449,7 +449,7 @@ public final class BattleFixtureJson {
             // employer's craft rather than a boat, and encoding only the
             // interesting case would make those two decode identically.
             if (shuttle.airframe instanceof FittedBoat boat) {
-                encoded.put("platingId", boat.plating().id());
+                encoded.put("platingId", boat.plating() == null ? "" : boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
                 putRefittedFittings(encoded, boat);
                 putRefittedGuns(encoded, boat);
@@ -891,7 +891,7 @@ public final class BattleFixtureJson {
     private static JSONObject boatToJson(FittedBoat boat) throws Exception {
         JSONObject encoded = new JSONObject();
         encoded.put("type", boat.pattern().name());
-        encoded.put("platingId", boat.plating().id());
+        encoded.put("platingId", boat.plating() == null ? "" : boat.plating().id());
         encoded.put("driveId", boat.drive().id());
         encoded.put("liftId", boat.lift().id());
         putRefittedFittings(encoded, boat);
@@ -907,8 +907,8 @@ public final class BattleFixtureJson {
      */
     private static void putRefittedGuns(JSONObject encoded, FittedBoat boat) throws Exception {
         if (boat.guns().equals(FittedBoat.standard(boat.pattern()).guns())) return;
-        // A bare hardpoint is written blank: the codec reads blank as the yard's own, which is bare.
-        encoded.put("guns", new JSONArray(boat.guns().stream().map(gun -> gun == null ? "" : gun).toList()));
+        // A bare hardpoint is written blank, which the codec reads back as bare.
+        encoded.put("guns", new JSONArray(boat.guns().stream().map(gun -> gun == null ? FittedBoat.BARE : gun).toList()));
     }
 
     private static String[] gunsFromJson(JSONObject encoded) throws Exception {
@@ -927,21 +927,28 @@ public final class BattleFixtureJson {
 
     /**
      * Every slot past plating and drive, only when a yard changed it: a slot at its
-     * standard fitting writes nothing, so a fixture names only the work done.
+     * standard fitting writes nothing, so a fixture names only the work done. An
+     * emitter she flies without is written blank.
      */
     private static void putRefittedFittings(JSONObject encoded, FittedBoat boat) throws Exception {
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             if (slot == BoatFittingSlot.PLATING || slot == BoatFittingSlot.DRIVE) continue;
             BoatFitting fitted = boat.fitting(slot);
-            if (!fitted.standard()) encoded.put(fittingKey(slot), fitted.id());
+            if (fitted == null) encoded.put(fittingKey(slot), "");
+            else if (!fitted.standard()) encoded.put(fittingKey(slot), fitted.id());
         }
     }
 
-    /** Each slot's fitting by its key ({@code platingId}, {@code cabinId}, ...); a missing key is the standard fit. */
+    /**
+     * Each slot's fitting by its key ({@code platingId}, {@code cabinId}, ...); a missing key is the standard fit,
+     * and blank plating or a blank emitter is none.
+     */
     private static Map<BoatFittingSlot, BoatFitting> fitFromJson(JSONObject encoded) {
         Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
-            fit.put(slot, BoatFitting.resolve(encoded.optString(fittingKey(slot), null), slot));
+            String id = encoded.optString(fittingKey(slot), null);
+            fit.put(slot, FittedBoat.optional(slot) && id != null && id.isBlank()
+                    ? null : BoatFitting.resolve(id, slot));
         }
         return fit;
     }
