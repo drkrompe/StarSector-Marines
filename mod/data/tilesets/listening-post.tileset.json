@@ -1,0 +1,42 @@
+{
+  "sheet": "graphics/doodads/listening-post.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.listening-dish",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.oxygen-sphere",
+      "col": 4,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        2
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Listening dish",
+      "description": "A listening post's dish on its turntable, four cells across: the radar dish master drawn at an installation's scale. Stand-in until a dish of its own is drawn."
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "Oxygen sphere",
+      "description": "A pressurised gas sphere on its valve manifold, two cells across: the fluid tank master at a store's scale. Oxygen or fuel for a post on airless ground."
+    }
+  ]
+}

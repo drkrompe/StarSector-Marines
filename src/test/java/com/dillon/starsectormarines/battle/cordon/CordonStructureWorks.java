@@ -398,6 +398,11 @@ final class CordonStructureWorks {
             case PILLBOX -> new int[]{7, 5};
             case PREFAB_MODULE -> new int[]{11, 5};
             case CONTROL_HUT -> new int[]{7, 5};
+            case PREFAB_BUNKHOUSE -> new int[]{15, 5};
+            case PREFAB_LOCK_MODULE -> new int[]{13, 5};
+            case PREFAB_SHORT_MODULE -> new int[]{9, 5};
+            case PREFAB_TUBE -> new int[]{5, 3};
+            case PREFAB_NARROW_TUBE -> new int[]{3, 3};
         };
         return (turns & 1) == 0 ? s : new int[]{s[1], s[0]};
     }

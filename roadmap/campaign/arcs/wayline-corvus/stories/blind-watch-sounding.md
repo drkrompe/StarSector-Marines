@@ -1,6 +1,6 @@
 # Blind Watch — the Sounding
 
-Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); the map (`BlindWatchSounding`) is built, mission behaviour and wiring under way.
+Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); the map (`BlindWatchSounding`) is built and has had its second, detail pass; mission behaviour and wiring under way.
 Written: 2026-10-26
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus),
@@ -164,12 +164,19 @@ precinct; buildings publish only as held places, so nothing becomes a capture
 point by accident. The crater rim and the uplink knoll are authored elevation in
 the recipe (tier one, with ramps), stamped before anything is built on them.
 
+It is a cratered moon, and the ground says so. Impact craters of several sizes lie on the flat and
+round the landing ground: each a raised crescent rim (terrain document, real cover and an obstacle)
+broken where it slumped, round a bowl swept bare, with ejecta thrown out in rays and boulders on the
+big ones' aprons (`BlindWatchSounding.CRATERS` mirrors the rims). The post sits in a crater of its own:
+the rim curves round the north, and low walls close it west of the dish field, along the south and
+down the east, broken where the rover track and the rille come in.
+
 | Area | Content |
 |---|---|
 | West | The landing ground behind a low ridge: three berths, one logical landing area (`Layout.landing`). The ridge is three masses with passes between: north (to the boulder field), middle (the rover track), south (to the rille). |
-| Centre | Open regolith flat with a few old impact craters, crossed by the rover track; a boulder field to the north (basalt formations on a jittered lattice, slow and covered, `Layout.boulderCover`); a dry sinuous rille to the south (excavation: impassable, see-through), broken by two crossings (`Layout.rilleCrossings`), ending under the dish field's south-west corner, with boulder clusters along its south bank. |
+| Centre | Open regolith flat pocked with impact craters (rims, bowls, ejecta and its boulders), crossed by the rover track, worn into ruts, with dead rovers and wreckage where they stopped; a boulder field to the north (basalt formations on a jittered lattice, slow and covered, `Layout.boulderCover`); a dry sinuous rille to the south (excavation: impassable, see-through), broken by two crossings (`Layout.rilleCrossings`), ending under the dish field's south-west corner, with boulder clusters along its south bank. |
 | North-east | The crater rim, a long arc one tier up whose south-west spur reaches toward the rover track. On it the ranging mast (gravel pad, `Installation.MAST`) and two rim guns (`DefensePostStamper.stampNest`, heavy MGs): one on the spur's tip over the track and the flat's east half, one beside the mast over the crater floor. Two ramps: a four-cell one at the spur's west flank from the boulder field (`Layout.rimRamps` first), a five-cell one from the crater floor. |
-| East floor | The fenced dish field (six dishes on concrete footings, gates north, south and east, `Installation.DISH_FIELD`) with its control hut and console (`Layout.controlHut`, `Layout.console`); the hab cluster, four prefab modules either side of the hab street (two bunk modules, the signals racks, the riggers' module at the east end of the south row); the cold drop between the riggers' module and the lander pad: the cryo pod racks in two rows with the aisle a squad holds them from (`Layout.podRacks`, `Layout.podHold`), their chiller, the chem module and the chemist (`Layout.chemModule`, `Layout.chemist`); on the lander pad the crates on pallets (`Layout.drugCrates`) and the half-loaded cargo crawler with its crew (`Layout.cargoCrawler`, `Layout.landerCrew`); the motor pool south of the cold drop. |
+| East floor | Inside the post's crater wall. The fenced dish field (six four-cell listening dishes on concrete footings, their cables laid to the control hut, gates north, south and east, `Installation.DISH_FIELD`) with its control hut and console (`Layout.controlHut`, `Layout.console`); the hab cluster either side of the hab street: north the long bunkhouse and a short bunk module joined by a tube, south the signals racks' module (entered through its airlock) and the riggers' module at the row's east end, a narrow tube between them; power laid along the street, antenna masts, oxygen spheres and gas bottle racks behind the bunks, containers and crates; the cold drop between the riggers' module and the lander pad: the cryo pod racks in two rows with the aisle a squad holds them from (`Layout.podRacks`, `Layout.podHold`), their chiller, the chem module and the chemist (`Layout.chemModule`, `Layout.chemist`); on the lander pad the crates on pallets (`Layout.drugCrates`) and the half-loaded cargo crawler with its crew (`Layout.cargoCrawler`, `Layout.landerCrew`); fuel skids on the pad; the motor pool south of the cold drop, its tanker parked. |
 | South-east | The uplink knoll, one tier up, climbed by one six-cell ramp from the west (`Layout.knollRamp`): the uplink's transmitter, switch gear and generator on a gravel pad (`Installation.UPLINK`), and the rocket truck's stands (`Layout.technicalStands`). |
 
 Three approaches are real choices, each proved open on its own ground
@@ -203,13 +210,20 @@ generated yet.
 | Needed | Stand-in now |
 |---|---|
 | Ranging mast (lattice mast, sensor head) | `gantry-column` beside a `military-radar-dish`, with a generator and switch gear, on a gravel pad |
-| Listening dish (large, three to four cells) | `military-radar-dish` (one cell) on a three-cell concrete footing, a cable drum beside it |
+| Listening dish (large, three to four cells) | `listening-dish`: the radar dish master at four cells (`listening-post` sheet, `build_listening_post.py`), on a six-cell concrete footing, a cable drum beside it |
+| Dish cabling | `ship-dressing.cable-run` laid on the ground (walkable) |
 | Uplink transmitter (tight-beam dish on a mount) | `military-radar-dish`, `industrial-reactor-housing`, switch gear and a generator on a gravel pad |
-| Prefab pressurised module (hab, signals, riggers) | `PREFAB_MODULE` stamp in the colony workshop style (olive wall, concrete floor) |
+| Prefab pressurised module (hab, signals, riggers) | `PREFAB_MODULE`, `PREFAB_SHORT_MODULE` (olive wall, corrugated roof), `PREFAB_BUNKHOUSE` and `PREFAB_LOCK_MODULE` (white ceramic, slab roof) stamps |
+| Airlock | the lock module's end lock: outer hatch, a one-cell lock, inner hatch |
+| Connecting tube | `PREFAB_TUBE` and `PREFAB_NARROW_TUBE` stamps between modules, their own hatch to the street |
+| Antenna mast | `gantry-column` with a `military-radar-dish` at its head |
+| Oxygen and fuel stores | `oxygen-sphere` (the fluid tank master at two cells, `listening-post` sheet), `origin-lab.tank-rack-clean`, `shuttle-bay.fluid-skid`, `parked-tanker-truck` |
+| Dead rover, wreckage | `parked-utility-truck`, `parked-armored-apc`, `basin-scrap-*` pieces, with salvage beside them |
 | Control hut and its console | `CONTROL_HUT` stamp; `industrial-control-console` and a `civic-server-rack` |
 | Signals racks | `civic-server-rack` rows in a module |
 | Regolith berm round a pillbox | sandbag runs on the berm's ring |
-| Rover tracks (twin ruts) | a narrow worn DIRT road (`blind-watch.road.json`) |
+| Rover tracks (twin ruts) | a narrow worn DIRT road (`blind-watch.road.json`), scarred along its edges (damage layer "Rover track wear") |
+| Crater bowl, ejecta | bare regolith in the bowl; basalt stones in rays outside the rim |
 | Lander pad markings | concrete slab with hazard corner marks (`StoryServiceYard.bay`) |
 | Cryo pod rack (organ pods, chiller) | `galley-cold-store` cabinets in rows; an `industrial-generator` and a fluid tank as the chiller |
 | Chem module fittings | `CONTROL_HUT` stamp; `medical-drug-locker` and a `medical-treatment-table` |
@@ -251,6 +265,7 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 - [x] The owner picks the hook: A, ears, eyes and voice (2026-10-26).
 - [x] Authored map renders from the look preset; no capture point except the three sites.
 - [x] Every site is reachable from the landing ground; three approaches stay open; the crawler's lane passes `VehicleRoutePlanner`.
+- [x] Second map pass: craters on the flat, the post's crater closed round its floor, large dishes, varied modules with airlock and tubes, stores, wrecks and track wear.
 - [ ] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
 - [ ] Each side job pays off only inside its window.
 - [ ] `commanderEvidence -Pmission=corvus "-Dbattle.corvus.chapter=BLIND_WATCH"`: worst approach (autonomous, no side jobs) and prepared approach (side jobs granted, mast first) both measured; the prepared one clearly easier.
