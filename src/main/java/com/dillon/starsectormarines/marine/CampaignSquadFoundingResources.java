@@ -9,10 +9,19 @@ import java.util.Map;
 
 /** Live player-fleet cargo plus any accessible prepaid depot and vanilla commodity presentation for squad founding. */
 public final class CampaignSquadFoundingResources implements SquadFoundingResources {
+    private final Purpose purpose;
+
+    public CampaignSquadFoundingResources() { this(Purpose.SQUAD); }
+    private CampaignSquadFoundingResources(Purpose purpose) { this.purpose = purpose; }
+
+    /** The whole consignment counted for a preview, spendable by nothing. */
+    public static CampaignSquadFoundingResources forPreparation() {
+        return new CampaignSquadFoundingResources(Purpose.PREFLIGHT);
+    }
 
     @Override
     public int available(String commodityId) {
-        return WorkshopStores.current(Purpose.SQUAD).available(commodityId);
+        return WorkshopStores.current(purpose).available(commodityId);
     }
 
     @Override
@@ -30,6 +39,6 @@ public final class CampaignSquadFoundingResources implements SquadFoundingResour
         Map<String, Integer> bill = new LinkedHashMap<>();
         for (SquadFoundingCost.Line line : cost.lines())
             bill.merge(line.commodityId(), line.quantity(), Integer::sum);
-        return WorkshopStores.current(Purpose.SQUAD).spend(bill);
+        return WorkshopStores.current(purpose).spend(bill);
     }
 }

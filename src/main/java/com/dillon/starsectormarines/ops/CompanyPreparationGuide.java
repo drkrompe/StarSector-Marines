@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
-import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.SquadFoundingCost;
+import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
@@ -25,28 +26,35 @@ final class CompanyPreparationGuide {
 
     /**
      * Leaving the planet closes access to its stores, not the saved consignment or lesson. The induction draws the
-     * squad's kit there; the first-lift lesson after Relief draws the Hermes parts.
+     * squad's kit there; the first-lift lesson after Relief draws the yard credit held for the Hermes.
      */
     static PreparationGuide.Lesson withDepotAccess(MarineRoster roster, PreparationGuide.Lesson lesson,
                                                   Runnable leave) {
         if (lesson == null) return lesson;
-        List<FabricationCost.Line> bill;
+        int boat;
+        List<SquadFoundingCost.Line> squad;
         String copy;
         if (CompanyPreparation.required(roster)) {
             Step step = roster.officerInduction().step(roster);
-            if (step == Step.SHIP) bill = CompanyPreparation.remainingBill(roster, ShuttleType.HERMES);
-            else if (step == Step.FORMATION) bill = CompanyPreparation.squadBill(roster);
-            else return lesson;
+            if (step == Step.SHIP) {
+                boat = CompanyPreparation.boatPrice(roster, ShuttleType.HERMES);
+                squad = CompanyPreparation.squadBill(roster);
+            } else if (step == Step.FORMATION) {
+                boat = 0;
+                squad = CompanyPreparation.squadBill(roster);
+            } else return lesson;
             copy = "openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur";
         } else if (CampaignLessons.firstLiftPending(roster)) {
-            bill = CompanyPreparation.boatBill(roster, ShuttleType.HERMES);
+            boat = CompanyPreparation.boatPrice(roster, ShuttleType.HERMES);
+            squad = List.of();
             copy = "openingCompanyPreparationGuideTheHermesPartsAreStillWaitingAt";
         } else return lesson;
         var depot = CerberusCompanyStart.depot();
         if (depot == null || CerberusCompanyStart.accessibleDepot() != null) return lesson;
-        var resources = CampaignFabricationResources.forPreparation();
-        boolean needsLocalStores = bill.stream()
-                .anyMatch(line -> resources.available(line.commodityId()) < line.quantity()
+        var credits = CampaignFabricationResources.forPreparation();
+        var stores = CampaignSquadFoundingResources.forPreparation();
+        boolean needsLocalStores = boat > 0 && credits.credits() < boat && depot.credits() > 0
+                || squad.stream().anyMatch(line -> stores.available(line.commodityId()) < line.quantity()
                         && depot.available(line.commodityId()) > 0);
         if (!needsLocalStores) return lesson;
         var destination = CerberusCompanyStart.destination();

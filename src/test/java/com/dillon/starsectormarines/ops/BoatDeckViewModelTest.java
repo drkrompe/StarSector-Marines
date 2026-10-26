@@ -10,19 +10,16 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
-import com.dillon.starsectormarines.marine.FabricationCost;
-import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +36,7 @@ class BoatDeckViewModelTest {
         BoatDeck boats = new BoatDeck();
         boats.reconcile("courier", ShuttleType.HERMES, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
-                new Reactor(), boats, TestResources.stocked(200), "Second Wind");
+                new Reactor(), boats, new TestPurse(60_000), "Second Wind");
         model.selectBoatAction(0).run();
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             model.selectSlotAction(slot).run();
@@ -53,7 +50,7 @@ class BoatDeckViewModelTest {
         BoatDeck boats = new BoatDeck();
         boats.reconcile("freighter", ShuttleType.BUFFALO, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
-                new Reactor(), boats, TestResources.stocked(200), "Buffalo");
+                new Reactor(), boats, new TestPurse(60_000), "Buffalo");
         model.selectBoatAction(0).run();
 
         assertTrue(model.filterPills().get().stream().anyMatch(pill -> pill.id().equals("boat-filter:lift")));
@@ -65,7 +62,7 @@ class BoatDeckViewModelTest {
     @Test
     void aGunDraggedOntoAHardpointArmsTheDoll() {
         BoatDeckViewModel model = new BoatDeckViewModel(
-                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck(), new TestPurse(60_000), "Valkyrie");
         model.selectBoatAction(0).run();
         model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 0);
 
@@ -92,7 +89,7 @@ class BoatDeckViewModelTest {
     void aFittedPartLiftedOffGoesBackToStores() {
         BoatDeck deck = deck();
         BoatDeckViewModel model = new BoatDeckViewModel(
-                new Reactor(), deck, TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
         model.selectBoatAction(0).run();
         String drive = BoatDoll.slotKey(BoatFittingSlot.DRIVE);
         assertTrue(model.canLiftOff(drive), "the stock drive comes off like any part");
@@ -117,7 +114,7 @@ class BoatDeckViewModelTest {
     @Test
     void theStoresShowEveryPartUntilAFilterOrASocketNarrowsThem() {
         BoatDeckViewModel model = new BoatDeckViewModel(
-                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck(), new TestPurse(60_000), "Valkyrie");
         model.selectBoatAction(0).run();
 
         List<BoatDoll.Kind> kinds = model.catalogRows().get().stream()
@@ -140,7 +137,7 @@ class BoatDeckViewModelTest {
     @Test
     void aFreshDeckShowsOneCardPerBerthAtStandardFit() {
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck(), new TestPurse(60_000), "Valkyrie");
 
         assertFalse(viewModel.fittingFocused());
         assertEquals(-1, viewModel.selectedBerthIndex());
@@ -161,7 +158,7 @@ class BoatDeckViewModelTest {
     @Test
     void selectingABerthOpensThatBoatOverItsInstalledFittings() {
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck(), new TestPurse(60_000), "Valkyrie");
 
         viewModel.boatRows().get().get(1).select().run();
 
@@ -184,18 +181,19 @@ class BoatDeckViewModelTest {
     @Test
     void buyingADriveSpendsItsWholeBillAndDroppingItMovesTheMountAndTheMeters() {
         BoatDeck deck = deck();
-        TestResources resources = TestResources.stocked(100);
+        TestPurse resources = new TestPurse(60_000);
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 new Reactor(), deck, resources, "Valkyrie");
         viewModel.boatRows().get().get(0).select().run();
-        row(viewModel.catalogRows().get(), BoatFitting.TUNED_DRIVE.id()).card().action().run();
+        BoatDeckViewModel.CatalogRow drive = row(viewModel.catalogRows().get(), BoatFitting.TUNED_DRIVE.id());
+        long price = drive.materials().get(0).required();
+        drive.card().action().run();
 
         viewModel.dropOnSocket(BoatDoll.Kind.DRIVE, BoatFitting.TUNED_DRIVE.id(),
                 BoatDoll.slotKey(BoatFittingSlot.DRIVE));
 
         assertEquals(BoatFitting.TUNED_DRIVE.id(), deck.boats().get(0).drive().id());
-        assertEquals(85, resources.available(Commodities.SUPPLIES));
-        assertEquals(95, resources.available(Commodities.HEAVY_MACHINERY));
+        assertEquals(60_000 - price, resources.credits);
         assertEquals(BoatFitting.TUNED_DRIVE.displayName(),
                 dollSlot(viewModel, BoatDoll.slotKey(BoatFittingSlot.DRIVE)).fitted());
         assertEquals(BoatFitting.TUNED_DRIVE.displayName(), viewModel.boatRows().get().get(0).drive());
@@ -207,10 +205,9 @@ class BoatDeckViewModelTest {
     }
 
     @Test
-    void aBillTheHoldCannotCoverIsRefusedWithTheLineThatIsShort() {
+    void aPriceTheCompanyCannotCoverIsRefusedAndShowsTheShortfall() {
         BoatDeck deck = deck();
-        TestResources resources = TestResources.stocked(2_000);
-        resources.set(Commodities.METALS, 3);
+        TestPurse resources = new TestPurse(3);
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 new Reactor(), deck, resources, "Valkyrie");
         viewModel.boatRows().get().get(0).select().run();
@@ -219,9 +216,9 @@ class BoatDeckViewModelTest {
                 BoatFitting.REINFORCED_PLATING.id());
         String plating = BoatDoll.slotKey(BoatFittingSlot.PLATING);
         assertFalse(viewModel.canDropOnSocket(reinforced.kind(), reinforced.itemId(), plating));
-        // The card says which line is short by that line's own chip, not by a word.
-        assertTrue(reinforced.materials().stream()
-                .anyMatch(line -> line.id().endsWith(Commodities.METALS) && line.shortfall() > 0));
+        // The card says it is short by the credits row's own chip, not by a word.
+        assertEquals(1, reinforced.materials().size());
+        assertTrue(reinforced.materials().get(0).shortfall() > 0);
 
         reinforced.card().action().run();
         assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
@@ -230,8 +227,7 @@ class BoatDeckViewModelTest {
 
         assertEquals(0, deck.spares(BoatFitting.REINFORCED_PLATING.id()));
         assertEquals(BoatFitting.STANDARD_PLATING.id(), deck.boats().get(0).plating().id());
-        assertEquals(3, resources.available(Commodities.METALS));
-        assertEquals(2_000, resources.available(Commodities.SUPPLIES));
+        assertEquals(3, resources.credits);
         assertEquals("60 HP", meter(viewModel, "HULL").value());
     }
 
@@ -239,7 +235,7 @@ class BoatDeckViewModelTest {
     void backToDeckReturnsToTheOverviewWithoutTouchingTheBoats() {
         BoatDeck deck = deck();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deck, TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
         viewModel.boatRows().get().get(2).select().run();
         assertTrue(viewModel.fittingFocused());
 
@@ -255,7 +251,7 @@ class BoatDeckViewModelTest {
     void theSummaryCountsEmptyBerths() {
         BoatDeck deck = deckOneBoatDown();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deck, TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
 
         String summary = viewModel.deckSummary().get();
         assertTrue(summary.startsWith("5 boats aboard"), summary);
@@ -270,7 +266,7 @@ class BoatDeckViewModelTest {
     @Test
     void selectingAVacantBerthOpensFabricationNotFitting() {
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deckOneBoatDown(), TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deckOneBoatDown(), new TestPurse(60_000), "Valkyrie");
 
         viewModel.boatRows().get().get(2).select().run();
 
@@ -284,10 +280,8 @@ class BoatDeckViewModelTest {
         assertEquals(ShuttleType.AEROSHUTTLE.displayName(),
                 viewModel.fabricationPatternName().get());
         assertEquals("PURPOSE-BUILT LANDER", viewModel.fabricationCopy().get());
-        assertEquals(3, viewModel.fabricationMaterials().get().size());
-        assertEquals("40",
-                viewModel.fabricationMaterials().get().get(0).label());
-        assertTrue(viewModel.fabricationMaterials().get().get(0).id().endsWith(Commodities.SUPPLIES));
+        assertEquals(1, viewModel.fabricationMaterials().get().size());
+        assertTrue(viewModel.fabricationMaterials().get().get(0).id().endsWith(":material:credits"));
         assertEquals("", viewModel.fabricationReason().get());
         assertFalse(viewModel.fabricationBlocked().get());
 
@@ -301,16 +295,15 @@ class BoatDeckViewModelTest {
     @Test
     void fabricatingSpendsTheBillStandsTheBoatAndOpensItsFitting() {
         BoatDeck deck = deckOneBoatDown();
-        TestResources resources = TestResources.stocked(100);
+        TestPurse resources = new TestPurse(60_000);
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 new Reactor(), deck, resources, "Valkyrie");
         viewModel.boatRows().get().get(2).select().run();
+        long price = viewModel.fabricationMaterials().get().get(0).required();
 
         viewModel.fabricateAction().run();
 
-        assertEquals(40, resources.available(Commodities.METALS));
-        assertEquals(85, resources.available(Commodities.HEAVY_MACHINERY));
-        assertEquals(60, resources.available(Commodities.SUPPLIES));
+        assertEquals(60_000 - price, resources.credits);
         assertEquals(ShuttleType.AEROSHUTTLE, deck.boats().get(2).pattern());
         assertEquals(BoatFitting.STANDARD_PLATING.id(), deck.boats().get(2).plating().id());
         assertEquals(BoatFitting.STANDARD_DRIVE.id(), deck.boats().get(2).drive().id());
@@ -334,24 +327,22 @@ class BoatDeckViewModelTest {
     }
 
     @Test
-    void aShortHoldDisablesFabricationAndNamesTheLine() {
+    void aShortPurseDisablesFabricationAndSaysCredits() {
         BoatDeck deck = deckOneBoatDown();
-        TestResources resources = TestResources.stocked(2_000);
-        resources.set(Commodities.METALS, 41);
+        TestPurse resources = new TestPurse(41);
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 new Reactor(), deck, resources, "Valkyrie");
         viewModel.boatRows().get().get(2).select().run();
 
         assertTrue(viewModel.fabricationBlocked().get());
-        assertEquals("SHORT METALS", viewModel.fabricationReason().get());
+        assertEquals("SHORT CREDITS", viewModel.fabricationReason().get());
         assertTrue(viewModel.fabricationActionClasses().get().contains("blocked"),
                 viewModel.fabricationActionClasses().get());
 
         viewModel.fabricateAction().run();
 
         assertNull(deck.boats().get(2));
-        assertEquals(41, resources.available(Commodities.METALS));
-        assertEquals(2_000, resources.available(Commodities.SUPPLIES));
+        assertEquals(41, resources.credits);
         assertTrue(viewModel.fabricationFocused());
         assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
         assertTrue(viewModel.feedbackText().get().contains("short"),
@@ -359,10 +350,37 @@ class BoatDeckViewModelTest {
     }
 
     @Test
+    void buyingNeedsAPortEvenWhenTheCreditsAreThere() {
+        TestPurse purse = new TestPurse(60_000);
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(new Reactor(), deck(), purse, "Valkyrie");
+        viewModel.boatRows().get().get(0).select().run();
+        String drive = BoatFitting.TUNED_DRIVE.id();
+
+        assertFalse(row(viewModel.catalogRows().get(), drive).card().actionDisabled());
+        assertEquals(Strings.get("companyResourcePortDocked"), portRow(viewModel).label());
+
+        purse.away();
+        viewModel.refresh();
+        viewModel.boatRows().get().get(0).select().run();
+
+        var card = row(viewModel.catalogRows().get(), drive).card();
+        assertTrue(card.actionDisabled());
+        assertEquals(Strings.get("fabricationNoPort"), card.actionHint());
+        assertEquals(Strings.get("companyResourcePortAway"), portRow(viewModel).label());
+        card.action().run();
+        assertEquals(60_000, purse.credits);
+    }
+
+    private static CompanyResources.Row portRow(BoatDeckViewModel viewModel) {
+        return viewModel.materialStock().get().stream()
+                .filter(row -> row.id().equals("boat-material-stock:port")).findFirst().orElseThrow();
+    }
+
+    @Test
     void shippedRoomBuildsWithinWideAndLowResolutionBoundsAndOwnsItsRoute() throws Exception {
         Reactor reactor = new Reactor();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                reactor, deck(), TestResources.stocked(2_000), "Valkyrie");
+                reactor, deck(), new TestPurse(60_000), "Valkyrie");
         MarkupLoader loader = new MarkupLoader(
                 path -> Files.readString(Path.of(path)), COMPONENTS);
         loader.reload();
@@ -385,7 +403,7 @@ class BoatDeckViewModelTest {
     void berthAndBackControlsNavigateWithPointerAt1080p() throws Exception {
         Reactor reactor = new Reactor();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                reactor, deckOneBoatDown(), TestResources.stocked(2000), "Valkyrie");
+                reactor, deckOneBoatDown(), new TestPurse(60_000), "Valkyrie");
         MarkupLoader loader = new MarkupLoader(
                 path -> Files.readString(Path.of(path)), COMPONENTS);
         loader.reload();
@@ -508,50 +526,12 @@ class BoatDeckViewModelTest {
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
-
-    private static final class TestResources implements FabricationResources {
-        private final Map<String, Integer> stock = new HashMap<>();
-
-        private static TestResources stocked(int quantity) {
-            TestResources resources = new TestResources();
-            resources.stock.put(Commodities.SUPPLIES, quantity);
-            resources.stock.put(Commodities.HEAVY_MACHINERY, quantity);
-            resources.stock.put(Commodities.METALS, quantity);
-            resources.stock.put(Commodities.RARE_METALS, quantity);
-            return resources;
-        }
-
-        private void set(String commodityId, int quantity) {
-            stock.put(commodityId, quantity);
-        }
-
-        @Override public int available(String commodityId) {
-            return stock.getOrDefault(commodityId, 0);
-        }
-
-        @Override public String commodityName(String commodityId) {
-            return commodityId.replace('_', ' ');
-        }
-
-        @Override public String commodityIcon(String commodityId) {
-            return "graphics/icons/cargo/" + commodityId + ".png";
-        }
-
-        @Override public boolean spend(FabricationCost cost) {
-            if (!canAfford(cost)) return false;
-            for (FabricationCost.Line line : cost.lines()) {
-                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
-            }
-            return true;
-        }
-    }
-
     /** A missing required part heads the readiness list in red, and clicking it opens that socket. */
     @Test
     void aMissingRequiredPartHeadsTheReadinessListAndOpensItsSocket() {
         BoatDeck deck = deck();
         BoatDeckViewModel model = new BoatDeckViewModel(
-                new Reactor(), deck, TestResources.stocked(2_000), "Valkyrie");
+                new Reactor(), deck, TestPurse.rich(), "Valkyrie");
         model.selectBoatAction(0).run();
         model.returnToStores(BoatDoll.slotKey(BoatFittingSlot.DRIVE));
         model.returnToStores(BoatDoll.slotKey(BoatFittingSlot.PLATING));

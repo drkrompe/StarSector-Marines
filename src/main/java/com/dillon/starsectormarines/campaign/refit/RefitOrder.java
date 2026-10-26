@@ -16,123 +16,123 @@ import java.util.Map;
  * distribution and mess orders; they keep those orders' prices and saved
  * receipts. Fabrication has no orders here: the workshop chain sells it.
  *
- * <p>Beyond credits, most tiers take materials out of fleet cargo: metals for
- * structure and plating, heavy machinery for plant and drive, transplutonics for
- * flux and sensor work. The strongest tiers are gated on AI cores, the base
- * game's own measure of something powerful: a gamma core runs the processing
- * cluster, a beta core the tactical core, and an alpha core the military flux
- * grid, the tier that starts making her more than a frigate.
+ * <p>A price is credits only: the metals, machinery, transplutonics and organics
+ * tiers once took from cargo were folded in at their base prices (`FabricationCost`).
+ * The strongest tiers are also gated on AI cores, the base game's own measure of
+ * something powerful, which no price stands in for: a gamma core runs the processing
+ * cluster, a beta core the tactical core, and an alpha core the military flux grid,
+ * the tier that starts making her more than a frigate.
  */
 public enum RefitOrder {
     POWER_RESTORED(RefitTrack.POWER, RefitBand.RESTORED, 3_000, "POWER"),
-    POWER_OVERHAUL(RefitTrack.POWER, RefitBand.IMPROVED_I, 12_000,
+    POWER_OVERHAUL(RefitTrack.POWER, RefitBand.IMPROVED_I, 14_100,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
-    POWER_AUXILIARY(RefitTrack.POWER, RefitBand.IMPROVED_II, 30_000,
+    POWER_AUXILIARY(RefitTrack.POWER, RefitBand.IMPROVED_II, 35_000,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
-    LIFE_SUPPORT_RESTORED(RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, 3_500,
+    LIFE_SUPPORT_RESTORED(RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, 4_100,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    STRUCTURE_RESTORED(RefitTrack.STRUCTURE, RefitBand.RESTORED, 4_000),
+    STRUCTURE_RESTORED(RefitTrack.STRUCTURE, RefitBand.RESTORED, 5_200),
     COMPUTE_RESTORED(RefitTrack.COMPUTE, RefitBand.RESTORED, 2_500,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
     COMPUTE_CLUSTER(RefitTrack.COMPUTE, RefitBand.IMPROVED_I, 14_000,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    COMPUTE_TACTICAL(RefitTrack.COMPUTE, RefitBand.IMPROVED_II, 35_000,
+    COMPUTE_TACTICAL(RefitTrack.COMPUTE, RefitBand.IMPROVED_II, 37_000,
             RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
     MESS_RESTORED(RefitTrack.MESS, RefitBand.RESTORED, 2_500, "MESS_HALL"),
-    MESS_GALLEY(RefitTrack.MESS, RefitBand.IMPROVED_I, 8_000,
+    MESS_GALLEY(RefitTrack.MESS, RefitBand.IMPROVED_I, 8_600,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    MESS_COLD_STORE(RefitTrack.MESS, RefitBand.IMPROVED_II, 18_000,
+    MESS_COLD_STORE(RefitTrack.MESS, RefitBand.IMPROVED_II, 18_900,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.RESTORED),
-    RANGE_OPEN(RefitTrack.RANGE, RefitBand.RESTORED, 7_500,
+    RANGE_OPEN(RefitTrack.RANGE, RefitBand.RESTORED, 8_700,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.RESTORED),
-    GYM_OPEN(RefitTrack.GYM, RefitBand.RESTORED, 6_000,
+    GYM_OPEN(RefitTrack.GYM, RefitBand.RESTORED, 6_600,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    SICK_BAY_OPEN(RefitTrack.SICK_BAY, RefitBand.RESTORED, 8_000,
+    SICK_BAY_OPEN(RefitTrack.SICK_BAY, RefitBand.RESTORED, 8_750,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.RESTORED),
-    REC_LOUNGE_OPEN(RefitTrack.REC_LOUNGE, RefitBand.RESTORED, 4_000,
+    REC_LOUNGE_OPEN(RefitTrack.REC_LOUNGE, RefitBand.RESTORED, 4_300,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    BRIG_OPEN(RefitTrack.BRIG, RefitBand.RESTORED, 3_500,
+    BRIG_OPEN(RefitTrack.BRIG, RefitBand.RESTORED, 3_950,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     // The reserved facilities' improvements. Each names cores the room's opening did
     // not: the workshop that cuts its fittings, the overhauled plant that runs its
     // machinery, the cluster that drives its screens. The brig has none yet: no
     // battle takes a prisoner for it to question.
     /** Pop-up targets and traps cut in the workshop, run off the overhauled plant. */
-    RANGE_MACHINERY(RefitTrack.RANGE, RefitBand.IMPROVED_I, 14_000,
+    RANGE_MACHINERY(RefitTrack.RANGE, RefitBand.IMPROVED_I, 15_500,
             RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
     /** Simulated targets need the processing cluster, the plant behind it and tooled projector mounts. */
-    RANGE_SIMULATOR(RefitTrack.RANGE, RefitBand.IMPROVED_II, 32_000,
+    RANGE_SIMULATOR(RefitTrack.RANGE, RefitBand.IMPROVED_II, 35_200,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
     /** Press, rack and powered cardio built in the workshop and wired to restored distribution. */
-    GYM_CONDITIONING(RefitTrack.GYM, RefitBand.IMPROVED_I, 12_000,
+    GYM_CONDITIONING(RefitTrack.GYM, RefitBand.IMPROVED_I, 13_050,
             RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     /** A timed loop: lap boards on the compute net, the overhauled plant, sprung decking from the workshop. */
-    GYM_TRACK(RefitTrack.GYM, RefitBand.IMPROVED_II, 28_000,
+    GYM_TRACK(RefitTrack.GYM, RefitBand.IMPROVED_II, 29_800,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
     /** A theatre needs the overhauled plant's steady power and instruments made in the workshop. */
-    SICK_BAY_SURGERY(RefitTrack.SICK_BAY, RefitBand.IMPROVED_I, 16_000,
+    SICK_BAY_SURGERY(RefitTrack.SICK_BAY, RefitBand.IMPROVED_I, 17_750,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
     /** Monitored beds on the processing cluster, an isolation loop on life support, the plant behind both. */
-    SICK_BAY_TRAUMA(RefitTrack.SICK_BAY, RefitBand.IMPROVED_II, 36_000,
+    SICK_BAY_TRAUMA(RefitTrack.SICK_BAY, RefitBand.IMPROVED_II, 39_200,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
     /** Screens and a library on the compute net, powered from restored distribution. */
-    REC_LOUNGE_CENTRE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_I, 10_000,
+    REC_LOUNGE_CENTRE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_I, 10_750,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     /** A shore-leave deck of projected views: the cluster, the overhauled plant, and the workshop's frames. */
-    REC_LOUNGE_SHORE_LEAVE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_II, 26_000,
+    REC_LOUNGE_SHORE_LEAVE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_II, 27_750,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
-    MECH_CALIBRATION_RESTORED(RefitTrack.MECH_CALIBRATION, RefitBand.RESTORED, 3_000,
+    MECH_CALIBRATION_RESTORED(RefitTrack.MECH_CALIBRATION, RefitBand.RESTORED, 3_300,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
-    MECH_CALIBRATION_I(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_I, 12_000,
+    MECH_CALIBRATION_I(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_I, 13_000,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
-    MECH_CALIBRATION_II(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_II, 28_000,
+    MECH_CALIBRATION_II(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_II, 30_600,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_II, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
-    MECH_COOLANT_RESTORED(RefitTrack.MECH_COOLANT, RefitBand.RESTORED, 3_000,
+    MECH_COOLANT_RESTORED(RefitTrack.MECH_COOLANT, RefitBand.RESTORED, 3_450,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    MECH_COOLANT_I(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_I, 12_000,
+    MECH_COOLANT_I(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_I, 13_200,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    MECH_COOLANT_II(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_II, 26_000,
+    MECH_COOLANT_II(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_II, 29_100,
             RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
-    MECH_ARMOR_RESTORED(RefitTrack.MECH_ARMOR, RefitBand.RESTORED, 3_500,
+    MECH_ARMOR_RESTORED(RefitTrack.MECH_ARMOR, RefitBand.RESTORED, 4_100,
             RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    MECH_ARMOR_I(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_I, 12_000,
+    MECH_ARMOR_I(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_I, 13_200,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.RESTORED),
-    MECH_ARMOR_II(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_II, 25_000,
+    MECH_ARMOR_II(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_II, 28_800,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
-    MECH_REPAIR_RESTORED(RefitTrack.MECH_REPAIR, RefitBand.RESTORED, 2_500,
+    MECH_REPAIR_RESTORED(RefitTrack.MECH_REPAIR, RefitBand.RESTORED, 2_800,
             RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
-    MECH_REPAIR_I(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_I, 10_000,
+    MECH_REPAIR_I(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_I, 10_600,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.RESTORED),
-    MECH_REPAIR_II(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_II, 20_000,
+    MECH_REPAIR_II(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_II, 21_800,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
-    HYDROPONICS_RESTORED(RefitTrack.HYDROPONICS, RefitBand.RESTORED, 4_000,
+    HYDROPONICS_RESTORED(RefitTrack.HYDROPONICS, RefitBand.RESTORED, 4_600,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
-    HYDROPONICS_I(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_I, 12_000,
+    HYDROPONICS_I(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_I, 13_200,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    HYDROPONICS_II(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II, 26_000,
+    HYDROPONICS_II(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II, 28_400,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
     // The wardroom and the briefing room are the two ends of the mess, so the mess must be in service.
-    WARDROOM_RESTORED(RefitTrack.WARDROOM, RefitBand.RESTORED, 3_500,
+    WARDROOM_RESTORED(RefitTrack.WARDROOM, RefitBand.RESTORED, 3_800,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED,
             RefitTrack.MESS, RefitBand.RESTORED),
-    WARDROOM_I(RefitTrack.WARDROOM, RefitBand.IMPROVED_I, 12_000,
+    WARDROOM_I(RefitTrack.WARDROOM, RefitBand.IMPROVED_I, 12_700,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    WARDROOM_II(RefitTrack.WARDROOM, RefitBand.IMPROVED_II, 28_000,
+    WARDROOM_II(RefitTrack.WARDROOM, RefitBand.IMPROVED_II, 29_800,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    BRIEFING_RESTORED(RefitTrack.BRIEFING, RefitBand.RESTORED, 3_000,
+    BRIEFING_RESTORED(RefitTrack.BRIEFING, RefitBand.RESTORED, 3_150,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED,
             RefitTrack.MESS, RefitBand.RESTORED),
     /** The plot table: the holo-tank's mount. Its own battle passive has no hook yet, so it changes nothing in battle. */
-    BRIEFING_I(RefitTrack.BRIEFING, RefitBand.IMPROVED_I, 8_000,
+    BRIEFING_I(RefitTrack.BRIEFING, RefitBand.IMPROVED_I, 8_450,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
     /** The holo-tank, run off the processing cluster: the briefing shows the garrison the operation faces. */
-    BRIEFING_II(RefitTrack.BRIEFING, RefitBand.IMPROVED_II, 20_000,
+    BRIEFING_II(RefitTrack.BRIEFING, RefitBand.IMPROVED_II, 21_500,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    HOLDS_RESTORED(RefitTrack.HOLDS, RefitBand.RESTORED, 3_000,
+    HOLDS_RESTORED(RefitTrack.HOLDS, RefitBand.RESTORED, 3_600,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
-    HOLDS_I(RefitTrack.HOLDS, RefitBand.IMPROVED_I, 10_000,
+    HOLDS_I(RefitTrack.HOLDS, RefitBand.IMPROVED_I, 11_200,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
-    HOLDS_II(RefitTrack.HOLDS, RefitBand.IMPROVED_II, 24_000,
+    HOLDS_II(RefitTrack.HOLDS, RefitBand.IMPROVED_II, 26_700,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I),
     /** Two machines set aside whole, off their berths and gantries. */
     RESERVE_HANGAR_RESTORED(RefitTrack.RESERVE_HANGAR, RefitBand.RESTORED, 12_000,
@@ -140,29 +140,29 @@ public enum RefitOrder {
     /** Four, racked two high on cradles the machine shop cuts. */
     RESERVE_HANGAR_I(RefitTrack.RESERVE_HANGAR, RefitBand.IMPROVED_I, 20_000,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
-    HULL_RESTORED(RefitTrack.HULL, RefitBand.RESTORED, 9_000,
+    HULL_RESTORED(RefitTrack.HULL, RefitBand.RESTORED, 10_800,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
-    HULL_I(RefitTrack.HULL, RefitBand.IMPROVED_I, 20_000,
+    HULL_I(RefitTrack.HULL, RefitBand.IMPROVED_I, 25_000,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I),
-    HULL_II(RefitTrack.HULL, RefitBand.IMPROVED_II, 40_000,
+    HULL_II(RefitTrack.HULL, RefitBand.IMPROVED_II, 49_500,
             RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
-    FLUX_RESTORED(RefitTrack.FLUX, RefitBand.RESTORED, 10_000,
+    FLUX_RESTORED(RefitTrack.FLUX, RefitBand.RESTORED, 12_000,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    FLUX_I(RefitTrack.FLUX, RefitBand.IMPROVED_I, 22_000,
+    FLUX_I(RefitTrack.FLUX, RefitBand.IMPROVED_I, 26_000,
             RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
-    FLUX_II(RefitTrack.FLUX, RefitBand.IMPROVED_II, 45_000,
+    FLUX_II(RefitTrack.FLUX, RefitBand.IMPROVED_II, 51_000,
             RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.COMPUTE, RefitBand.IMPROVED_II),
-    SENSORS_RESTORED(RefitTrack.SENSORS, RefitBand.RESTORED, 6_000,
+    SENSORS_RESTORED(RefitTrack.SENSORS, RefitBand.RESTORED, 7_000,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    SENSORS_I(RefitTrack.SENSORS, RefitBand.IMPROVED_I, 14_000,
+    SENSORS_I(RefitTrack.SENSORS, RefitBand.IMPROVED_I, 16_000,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I),
-    SENSORS_II(RefitTrack.SENSORS, RefitBand.IMPROVED_II, 30_000,
+    SENSORS_II(RefitTrack.SENSORS, RefitBand.IMPROVED_II, 34_000,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_II, RefitTrack.POWER, RefitBand.IMPROVED_II),
-    DRIVE_RESTORED(RefitTrack.DRIVE, RefitBand.RESTORED, 8_000,
+    DRIVE_RESTORED(RefitTrack.DRIVE, RefitBand.RESTORED, 9_500,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
-    DRIVE_I(RefitTrack.DRIVE, RefitBand.IMPROVED_I, 16_000,
+    DRIVE_I(RefitTrack.DRIVE, RefitBand.IMPROVED_I, 18_250,
             RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.RESTORED),
-    DRIVE_II(RefitTrack.DRIVE, RefitBand.IMPROVED_II, 32_000,
+    DRIVE_II(RefitTrack.DRIVE, RefitBand.IMPROVED_II, 38_000,
             RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.IMPROVED_I);
 
     public final RefitTrack track;
@@ -186,75 +186,25 @@ public enum RefitOrder {
         this.requires = Collections.unmodifiableMap(needs);
     }
 
-    private static final Map<RefitOrder, Map<String, Integer>> MATERIALS = new EnumMap<>(RefitOrder.class);
+    private static final Map<RefitOrder, Map<String, Integer>> CORES = new EnumMap<>(RefitOrder.class);
     static {
-        bill(POWER_OVERHAUL, Commodities.HEAVY_MACHINERY, 10, Commodities.METALS, 20);
-        bill(POWER_AUXILIARY, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 10);
-        bill(LIFE_SUPPORT_RESTORED, Commodities.HEAVY_MACHINERY, 4);
-        bill(STRUCTURE_RESTORED, Commodities.METALS, 40);
         bill(COMPUTE_CLUSTER, Commodities.GAMMA_CORE, 1);
-        bill(COMPUTE_TACTICAL, Commodities.BETA_CORE, 1, Commodities.RARE_METALS, 10);
-        bill(MESS_GALLEY, Commodities.HEAVY_MACHINERY, 4);
-        bill(MESS_COLD_STORE, Commodities.HEAVY_MACHINERY, 6);
-        bill(RANGE_OPEN, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 2);
-        bill(GYM_OPEN, Commodities.METALS, 20);
-        bill(SICK_BAY_OPEN, Commodities.HEAVY_MACHINERY, 3, Commodities.METALS, 10);
-        bill(REC_LOUNGE_OPEN, Commodities.METALS, 10);
-        bill(BRIG_OPEN, Commodities.METALS, 15);
-        bill(RANGE_MACHINERY, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 20);
-        bill(RANGE_SIMULATOR, Commodities.GAMMA_CORE, 1, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 8);
-        bill(GYM_CONDITIONING, Commodities.HEAVY_MACHINERY, 4, Commodities.METALS, 15);
-        bill(GYM_TRACK, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
-        bill(SICK_BAY_SURGERY, Commodities.HEAVY_MACHINERY, 5, Commodities.RARE_METALS, 5);
-        bill(SICK_BAY_TRAUMA, Commodities.GAMMA_CORE, 1, Commodities.HEAVY_MACHINERY, 8, Commodities.RARE_METALS, 10);
-        bill(REC_LOUNGE_CENTRE, Commodities.METALS, 15, Commodities.HEAVY_MACHINERY, 2);
-        bill(REC_LOUNGE_SHORE_LEAVE, Commodities.METALS, 25, Commodities.RARE_METALS, 5);
-        bill(MECH_CALIBRATION_RESTORED, Commodities.HEAVY_MACHINERY, 2);
-        bill(MECH_CALIBRATION_I, Commodities.RARE_METALS, 5);
-        bill(MECH_CALIBRATION_II, Commodities.BETA_CORE, 1, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 4);
-        bill(MECH_COOLANT_RESTORED, Commodities.HEAVY_MACHINERY, 3);
-        bill(MECH_COOLANT_I, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 10);
-        bill(MECH_COOLANT_II, Commodities.HEAVY_MACHINERY, 10, Commodities.RARE_METALS, 8);
-        bill(MECH_ARMOR_RESTORED, Commodities.METALS, 20);
-        bill(MECH_ARMOR_I, Commodities.METALS, 40);
-        bill(MECH_ARMOR_II, Commodities.METALS, 60, Commodities.RARE_METALS, 10);
-        bill(MECH_REPAIR_RESTORED, Commodities.METALS, 10);
-        bill(MECH_REPAIR_I, Commodities.HEAVY_MACHINERY, 4);
-        bill(MECH_REPAIR_II, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
-        bill(HYDROPONICS_RESTORED, Commodities.METALS, 10, Commodities.ORGANICS, 10);
-        bill(HYDROPONICS_I, Commodities.HEAVY_MACHINERY, 4, Commodities.ORGANICS, 20);
-        bill(HYDROPONICS_II, Commodities.HEAVY_MACHINERY, 8, Commodities.ORGANICS, 40);
-        bill(WARDROOM_RESTORED, Commodities.METALS, 10);
-        bill(WARDROOM_I, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 2);
-        bill(WARDROOM_II, Commodities.HEAVY_MACHINERY, 4, Commodities.RARE_METALS, 6);
-        bill(BRIEFING_RESTORED, Commodities.METALS, 5);
-        bill(BRIEFING_I, Commodities.METALS, 15);
-        bill(BRIEFING_II, Commodities.GAMMA_CORE, 1, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 6);
-        bill(HOLDS_RESTORED, Commodities.METALS, 20);
-        bill(HOLDS_I, Commodities.METALS, 40);
-        bill(HOLDS_II, Commodities.METALS, 60, Commodities.HEAVY_MACHINERY, 6);
-        bill(HULL_RESTORED, Commodities.METALS, 60);
-        bill(HULL_I, Commodities.METALS, 100, Commodities.RARE_METALS, 10);
-        bill(HULL_II, Commodities.METALS, 150, Commodities.RARE_METALS, 25);
-        bill(FLUX_RESTORED, Commodities.RARE_METALS, 10);
-        bill(FLUX_I, Commodities.RARE_METALS, 20);
-        bill(FLUX_II, Commodities.ALPHA_CORE, 1, Commodities.RARE_METALS, 30);
-        bill(SENSORS_RESTORED, Commodities.RARE_METALS, 5);
-        bill(SENSORS_I, Commodities.RARE_METALS, 10);
-        bill(SENSORS_II, Commodities.RARE_METALS, 20);
-        bill(DRIVE_RESTORED, Commodities.HEAVY_MACHINERY, 10);
-        bill(DRIVE_I, Commodities.HEAVY_MACHINERY, 15);
-        bill(DRIVE_II, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 15);
+        bill(COMPUTE_TACTICAL, Commodities.BETA_CORE, 1);
+        bill(RANGE_SIMULATOR, Commodities.GAMMA_CORE, 1);
+        bill(SICK_BAY_TRAUMA, Commodities.GAMMA_CORE, 1);
+        bill(MECH_CALIBRATION_II, Commodities.BETA_CORE, 1);
+        bill(BRIEFING_II, Commodities.GAMMA_CORE, 1);
+        bill(FLUX_II, Commodities.ALPHA_CORE, 1);
     }
 
     private static void bill(RefitOrder order, Object... pairs) {
-        var materials = new LinkedHashMap<String, Integer>();
-        for (int i = 0; i < pairs.length; i += 2) materials.put((String) pairs[i], (Integer) pairs[i + 1]);
-        MATERIALS.put(order, Collections.unmodifiableMap(materials));
+        var cores = new LinkedHashMap<String, Integer>();
+        for (int i = 0; i < pairs.length; i += 2) cores.put((String) pairs[i], (Integer) pairs[i + 1]);
+        CORES.put(order, Collections.unmodifiableMap(cores));
     }
 
-    /** Commodities taken from fleet cargo besides the credits, in bill order; empty for a credits-only tier. */
-    public Map<String, Integer> materials() { return MATERIALS.getOrDefault(this, Map.of()); }
+    /** The AI cores taken from fleet cargo besides the credits; empty for a credits-only tier. */
+    public Map<String, Integer> cores() { return CORES.getOrDefault(this, Map.of()); }
 
     /** The order that brings {@code track} from {@code band} to the next tier, or null. */
     public static RefitOrder after(RefitTrack track, RefitBand band) {

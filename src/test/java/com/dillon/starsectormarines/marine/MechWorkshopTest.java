@@ -3,13 +3,10 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,14 +19,14 @@ class MechWorkshopTest {
 
     @Test void restoredBerthsGateFabricationAtCommitWithoutSpendingOrDeletingOwnedMechs() {
         var bay = new MechBay();
-        var resources = TestResources.stocked(2000);
+        var resources = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         int[] berths = {0};
         var workshop = new MechWorkshop(bay, resources, () -> berths[0]);
         for (int count = 0; count <= 4; count++) {
-            int supplies = resources.available(Commodities.SUPPLIES);
+            long credits = resources.credits;
             assertEquals(MechWorkshop.Status.LANCE_FULL,
                     workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).status());
-            assertEquals(supplies, resources.available(Commodities.SUPPLIES));
+            assertEquals(credits, resources.credits);
             assertEquals(count, bay.activeSquad().mechs().size());
             if (count < 4) {
                 berths[0]++;
@@ -44,7 +41,7 @@ class MechWorkshopTest {
     @Test
     void scrappingFreesThePadReturnsFittedPartsToStoresAndTheShopsShareOfTheHullToTheHold() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(100);
+        TestPurse resources = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         MechWeaponComponent arms = Arrays.stream(MechMountSlot.values())
@@ -52,6 +49,7 @@ class MechWorkshopTest {
         int spareArms = bay.availableWeapon(arms.id);
         long fitted = Arrays.stream(MechMountSlot.values()).filter(slot -> mech.weaponAt(slot) == arms).count();
         int occupied = bay.activeSquad().occupied();
+        long before = resources.credits;
         FabricationCost quoted = workshop.mechSalvage(mech.id());
         assertNotNull(quoted);
 
@@ -60,17 +58,17 @@ class MechWorkshopTest {
         assertNull(bay.mechById(mech.id()));
         assertEquals(occupied - 1, bay.activeSquad().occupied());
         assertEquals(spareArms + fitted, bay.availableWeapon(arms.id), "every fitted copy is a spare again");
-        for (FabricationCost.Line line : quoted.lines()) {
-            assertEquals(100 + line.quantity(), resources.available(line.commodityId()), "what was quoted is what arrives");
-        }
+        assertEquals(before + quoted.credits(), resources.credits, "what was quoted is what arrives");
         assertEquals(MechWorkshop.Status.INVALID, workshop.scrapMech(mech.id()).status());
     }
 
     @Test
     void fabricatesAndInstallsAWeaponAsOneMaterialTransaction() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(100);
+        TestPurse resources = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
+        long before = resources.credits;
+        FabricationCost bill = workshop.weaponQuote(MechWeaponComponent.PULSE_LASER);
 
         MechWorkshop.Result result = workshop.fitWeapon(MechBay.STARTER_MECH_ID,
                 MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER);
@@ -78,17 +76,14 @@ class MechWorkshopTest {
         assertEquals(MechWorkshop.Status.FABRICATED_AND_INSTALLED, result.status());
         assertEquals(MechWeaponComponent.PULSE_LASER,
                 bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
-        for (FabricationCost.Line line : MechFabricationCatalog.weapon(MechWeaponComponent.PULSE_LASER).cost().lines()) {
-            assertEquals(100 - line.quantity(), resources.available(line.commodityId()));
-        }
-        assertEquals(100, resources.available(Commodities.SUPPLIES), "the lab spends no supplies");
+        assertEquals(before - bill.credits(), resources.credits);
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
     }
 
     @Test
     void insufficientMaterialsChangeNeitherCargoNorInstalledWeapon() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(5);
+        TestPurse resources = new TestPurse(5).reclaiming(Reclamation.MACHINERY);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
         MechWorkshop.Result result = workshop.fitWeapon(MechBay.STARTER_MECH_ID,
@@ -97,14 +92,15 @@ class MechWorkshopTest {
         assertEquals(MechWorkshop.Status.INSUFFICIENT_MATERIALS, result.status());
         assertEquals(MechWeaponComponent.CHAINGUN,
                 bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
-        assertEquals(5, resources.available(Commodities.SUPPLIES));
+        assertEquals(5, resources.credits);
+        assertEquals(0, resources.spends);
         assertEquals(0, bay.ownedWeapon(MechWeaponComponent.PULSE_LASER.id));
     }
 
     @Test
     void removedWeaponReturnsToStoresAndLeavesTheDeploymentMountEmpty() {
         MechBay bay = MechBay.legacyStarterFixture();
-        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(0));
+        MechWorkshop workshop = new MechWorkshop(bay, new TestPurse(0).reclaiming(Reclamation.MACHINERY));
 
         MechWorkshop.Result result = workshop.stripWeapon(MechBay.STARTER_MECH_ID,
                 MechMountSlot.LEFT_ARM);
@@ -118,7 +114,7 @@ class MechWorkshopTest {
     @Test
     void installedWeaponMovesAtomicallyOnlyToACompatibleVacantMount() {
         MechBay bay = MechBay.legacyStarterFixture();
-        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(0));
+        MechWorkshop workshop = new MechWorkshop(bay, new TestPurse(0).reclaiming(Reclamation.MACHINERY));
         assertTrue(bay.stripWeapon(MechBay.STARTER_MECH_ID,
                 MechMountSlot.RIGHT_SHOULDER));
 
@@ -140,7 +136,7 @@ class MechWorkshopTest {
     @Test
     void chassisFabricationBuildsTheLanceUntilAllFourGantriesAreOccupied() {
         MechBay bay = new MechBay();
-        TestResources resources = TestResources.stocked(2_000);
+        TestPurse resources = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
         MechWorkshop.Result hound = workshop.fabricateChassis(
@@ -159,54 +155,36 @@ class MechWorkshopTest {
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
                 MechVariant.HOUND).succeeded());
 
-        int supplies = resources.available(Commodities.SUPPLIES);
+        long credits = resources.credits;
         MechWorkshop.Result full = workshop.fabricateChassis(
                 MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
         assertFalse(full.succeeded());
         assertEquals(MechWorkshop.Status.LANCE_FULL, full.status());
-        assertEquals(supplies, resources.available(Commodities.SUPPLIES));
+        assertEquals(credits, resources.credits);
         assertEquals(4, bay.activeSquad().mechs().size());
     }
 
-    static final class TestResources implements FabricationResources {
-        private final Map<String, Integer> stock = new HashMap<>();
+    /** Buying needs a port: away from one every purchase is refused unspent, while stores and the bay still work. */
+    @Test
+    void awayFromAPortNothingIsBoughtButASpareFromStoresStillFits() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        TestPurse purse = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
+        MechWorkshop workshop = new MechWorkshop(bay, purse);
+        assertEquals(MechWorkshop.Status.STRIPPED,
+                workshop.stripWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.LEFT_ARM).status());
+        long before = purse.credits;
 
-        static TestResources stocked(int quantity) {
-            TestResources resources = new TestResources();
-            resources.stock.put(Commodities.SUPPLIES, quantity);
-            resources.stock.put(Commodities.HEAVY_MACHINERY, quantity);
-            resources.stock.put(Commodities.METALS, quantity);
-            resources.stock.put(Commodities.RARE_METALS, quantity);
-            return resources;
-        }
+        purse.away();
+        assertEquals(MechWorkshop.Status.NO_MARKET, workshop.fabricateWeapon(MechWeaponComponent.PULSE_LASER).status());
+        assertEquals(MechWorkshop.Status.NO_MARKET, workshop.fitWeapon(MechBay.STARTER_MECH_ID,
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER).status());
+        assertEquals(MechWorkshop.Status.NO_MARKET,
+                new MechWorkshop(new MechBay(), purse).fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).status());
+        assertEquals(before, purse.credits);
+        assertNull(bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
 
-        @Override public int available(String commodityId) {
-            return stock.getOrDefault(commodityId, 0);
-        }
-
-        @Override public String commodityName(String commodityId) {
-            return commodityId.replace('_', ' ');
-        }
-
-        @Override public String commodityIcon(String commodityId) {
-            return "graphics/icons/cargo/" + commodityId + ".png";
-        }
-
-        @Override public boolean spend(FabricationCost cost) {
-            if (!canAfford(cost)) return false;
-            for (FabricationCost.Line line : cost.lines()) {
-                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
-            }
-            return true;
-        }
-
-        @Override public Reclamation reclamation() { return Reclamation.MACHINERY; }
-
-        @Override public boolean credit(FabricationCost salvage) {
-            for (FabricationCost.Line line : salvage.lines()) {
-                stock.merge(line.commodityId(), line.quantity(), Integer::sum);
-            }
-            return true;
-        }
+        assertEquals(MechWorkshop.Status.INSTALLED_FROM_STORES, workshop.fitWeapon(MechBay.STARTER_MECH_ID,
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN).status());
+        assertEquals(before, purse.credits);
     }
 }

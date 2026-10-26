@@ -12,8 +12,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
  * transient effects down.
  *
  * <p>The view layer ({@code ops.BattleScreen}) owns the {@code TARGETING}
- * state and projects {@link CommandPowerService.ActivePing}s into the fog; this
- * system never touches the UI or the vision pass. It only ever drives the
+ * state; this system never touches the UI or the vision pass. It only ever drives the
  * {@code COMMITTED -> COOLDOWN} half of the lifecycle.
  */
 public final class CommandPowerSystem {
@@ -49,7 +48,6 @@ public final class CommandPowerSystem {
         }
         service.regenCommandPoints(dt);
         service.tickCooldowns(dt);
-        service.tickActivePings(dt);
         service.tickFireMissions(dt, battle);
     }
 }

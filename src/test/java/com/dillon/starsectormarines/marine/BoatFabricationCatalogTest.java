@@ -31,16 +31,12 @@ class BoatFabricationCatalogTest {
         assertEquals(ShuttleType.values().length, priced.size());
     }
 
-    /** A bigger boat always costs more of everything; a ladder that crosses is a bug. */
+    /** A boat costs at least her stock parts together, or building one and recycling them would mint credits. */
     @Test
-    void theLadderRisesWithTheHull() {
-        int previousTotal = 0;
+    void aBoatNeverCostsLessThanHerStockParts() {
         for (BoatFabricationCatalog.Recipe recipe : BoatFabricationCatalog.recipes()) {
-            int total = 0;
-            for (FabricationCost.Line line : recipe.bill().lines()) total += line.quantity();
-            assertTrue(total > previousTotal,
-                    recipe.pattern() + " costs no more than the hull below it");
-            previousTotal = total;
+            assertTrue(recipe.bill().credits() >= FabricationCost.total(BoatFabricationCatalog.stockParts(recipe.pattern())),
+                    recipe.pattern() + " costs less than the parts she leaves the yard with");
         }
     }
 }

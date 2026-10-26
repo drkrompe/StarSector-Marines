@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * circles overhead of the cell while its turret works the ground beneath it,
  * and leaves when its time is up.
  *
- * <p>The power conjures a fresh craft the way Marine Insertion conjures a Valkyrie. A committed
+ * <p>The power conjures a fresh craft the way Mech Support conjures a Valkyrie. A committed
  * Mudskipper is the <em>source</em> (its presence in the detachment is what makes the card exist)
  * and the sortie flown is a battle-native one, so nothing here reads or changes the campaign
  * fleet and the craft is as expendable as any other in the sim. How the craft flies the ring is

@@ -253,7 +253,7 @@ public final class CerberusCompanyStart implements Script {
     private static boolean openingUnderway() {
         if (conversionRequired()) return true;
         PreparationDepot depot = depot();
-        return depot != null && depot.stock().values().stream().anyMatch(quantity -> quantity > 0);
+        return depot != null && depot.holdsAnything();
     }
     /** The start port's star system, or null before the start has locked one (or for an ordinary start). */
     public static StarSystemAPI homeSystem() {

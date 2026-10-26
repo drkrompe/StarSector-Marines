@@ -290,7 +290,6 @@ public final class ShipConditionOverlay {
 
     /** The retained subset measures wrapped leaves, not auto-sized container trees, so fit columns from them. */
     private void fitCard() {
-        fitColumn(markup.requireElement("workshop-reclaim"));
         fitColumn(markup.requireElement("survey-needs-list"));
         document.advance(0f);
         fitColumn(markup.requireElement("survey-needs"));

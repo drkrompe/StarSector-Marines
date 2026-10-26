@@ -178,8 +178,8 @@ increasing an encounter's total armored threat.
   `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
   two share. A vehicle has no chassis, flux, engine budget or weapon components:
   its gun, plate, drive and bay are its type's and never come off. Mechs and vehicles count against
-  the same four gantries and the same restored berths, fabricate from the same
-  material currency against a learned pattern, and a save from before vehicles
+  the same four gantries and the same restored berths, are bought for credits
+  against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
 - A **vehicle kit** (`VehicleKit`) is the one thing a company fits to a vehicle:
   a bolt-on part from stores, in a **kit rack** of fixed slots. A vehicle is
@@ -191,7 +191,7 @@ increasing an encounter's total armored threat.
   one slot, a Medium two, a Heavy three (`VehicleType.weight`). A vehicle carries
   at most one of each kit, and a kit may need something of the hull (a magazine to
   extend, tracks to skirt). Kits are inventory parts exactly as internals are:
-  learned as patterns, built from the bill into stores, dragged onto the rack and
+  learned as patterns, bought for their price into stores, dragged onto the rack and
   off it again, lost with the hull and spared by a scrap. A kit changes the
   vehicle's numbers when it is frozen for a drop, or gives a hull with no drone
   bay one the battle already flies, so it adds no behaviour of its own and no
@@ -214,17 +214,12 @@ increasing an encounter's total armored threat.
 - The **bay manifest** is the active squad's bay spaces frozen at launch: its
   mechs in gantry order, then its vehicles, each with chassis or hull, weight
   class and callsign. Vehicles carry their campaign id across the launch-fixture
-  seam as mechs carry theirs. Armour Support is sourced as before (a committed
-  Valkyrie, or a story battle whose employer arranges the heavy lift while the
-  bay holds a vehicle). Where Mech Support and Armour Support would both be in
-  the roster and the bay was read, Mech Support carries the whole manifest and
-  Armour Support leaves the roster: one bay, one picker. Armour Support alone (a
-  vehicle source with no mech source) opens the same picker over the bay's
-  vehicles; only a debug grant or a launch with no bay sets down its two unowned
-  fallback APCs.
-- An **armor drop** is one machine ordered down by Mech Support (or Armour
-  Support where it is the vehicle-only source). Arming the card pauses the battle
-  and opens the picker: every manifest entry with its state (aboard, queued,
+  seam as mechs carry theirs. Mech Support carries the whole manifest: one bay,
+  one picker. A story battle whose employer arranges the heavy lift grants Mech
+  Support for a bay that holds only vehicles. There is no separate vehicle
+  power (Armour Support was removed; a frozen one restores as Mech Support).
+- An **armor drop** is one machine ordered down by Mech Support. Arming the card
+  pauses the battle and opens the picker: every manifest entry with its state (aboard, queued,
   called) or the reason lift refuses it. The player picks one machine and clicks
   its landing ground, which is checked as any drop zone is; Shift-click places it
   and keeps the picker open on the next machine, and right-click or Escape closes
@@ -532,9 +527,9 @@ increasing an encounter's total armored threat.
   everything, and a mount whose socket already decides the kind offers none. A fitted part is on the mech, not in that list. Fitting is a drag from a
   spare onto a mount, and taking a part off is a drag back to stores (or the X);
   there is no install button. A known pattern with no spare in stores carries a
-  build strip under its piece: its material cost and a wide BUY button;
-  it builds one into stores and fits nothing, and is dimmed while the materials are
-  short. A row with a spare offers no build at all: the spare is what to drag, and
+  build strip under its piece: its price and a wide BUY button;
+  it buys one into stores and fits nothing, and is dimmed while the credits are
+  short or the fleet is away from a civilized port (`company-view-nouns.md`, Civilized port). A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
   has no mount to drop on, so a spare plate is fitted from its row. Internals
   drag off like weapons (or come off by their X) and leave their room empty. An
@@ -1109,7 +1104,7 @@ On Second Wind, this recovery also makes the reserved Mech Lab accessible and
 restores its first berth. The other three gantries require separate paid repairs
 owned by company campaign restoration; `company-view-nouns.md` owns those orders.
 Mech fabrication consumes only working physical capacity, rechecked before a
-material debit. Restoring a berth grants no chassis or component, and a smaller
+credit debit. Restoring a berth grants no chassis or component, and a smaller
 working bay never deletes an already-owned mech.
 The transfer is once-only and adds its installed parts to owned inventory.
 The award also supplies one loose SRM-5 and Castle's optional, text-only gantry
@@ -1127,7 +1122,7 @@ save that already owns Wayward receives the lesson package once on load.
 New campaigns fabricate only the basic nose chaingun, SRM-5 and Hound pattern.
 These are the existing baseline weapons, without a new quality modifier. Other
 owned weapons remain refittable, but ownership does not confer their fabrication
-pattern. The workshop checks permission before spending cargo, including drag
+pattern. The workshop checks permission before spending credits, including drag
 commits; older saves retain their prior unrestricted workshop. Wider pattern
 acquisition is reserved for subsequent progression content.
 
@@ -1315,7 +1310,7 @@ support sortie, subject only to practical runtime resources.
 - The catalog beside the doll filters by hardpoint category or by cargo stock
   without losing the selected socket's context, and clicking a dock on the doll
   selects that socket. A card in free cargo stock offers a spare install with no
-  bill; one that must be fabricated shows its material bill and affordability.
+  price; one that must be bought shows its price and affordability.
   Weapon cards and the equipped rack read damage, range, trigger capacity and
   ammunition, and a candidate shows its difference from what the selected socket
   holds. An occupied, unlocked mount can be stripped back to cargo in one atomic
@@ -1382,7 +1377,7 @@ support sortie, subject only to practical runtime resources.
   the credit must agree with which faction's markets weight the pattern up
   (`MechPatternPicker`): a navy's issue is that navy's, and a pickup-based field rig is a
   frontier or pirate workshop's. With nothing chosen the first pattern
-  the filter shows is previewed. A successful cargo-backed BUILD puts one persistent
+  the filter shows is previewed. A successful BUILD, paid in credits at a civilized port, puts one persistent
   chassis, or one vehicle, onto that exact pad and immediately makes
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
   callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
@@ -1396,8 +1391,8 @@ support sortie, subject only to practical runtime resources.
 - **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
   presses: the first arms it and says what comes back, the second breaks the machine
   up. Nothing fitted is lost (weapons, internals and the loader stay owned and are
-  spares in stores again) and the machine shop's recycling share of its hull returns
-  to the ship's hold, never to a depot it may leave behind (`company-view-nouns.md`,
+  spares in stores again) and the machine shop's recycling share of its hull is paid
+  back to the company's purse, never to a depot it may leave behind (`company-view-nouns.md`,
   Recycling). This is the opposite of a
   battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
   A single spare in stores breaks down the same two-press way from its card's RECYCLE.
@@ -1416,28 +1411,23 @@ support sortie, subject only to practical runtime resources.
   lettered tile per pad (the machine standing there with its fitted guns, or an empty pad), and
   the selected lance lists every pad as a card with its thumbnail, vacant pads included
   as BUILD cards, so what a lance lacks reads as plainly as what it holds.
-- Fabrication spends three ordinary player-fleet materials: metals, heavy machinery
-  and transplutonics (the base game's `rare_metals`). The lab spends no supplies.
+- Everything the lab builds has one credit **price** (`company-view-nouns.md`, Price).
   **Hardware is priced, not authored.** A weapon is worth its mass (footprint, tier
   weight and heavy build) at a common rate, times its access tier; an internal is
-  worth its role's stock part, times its tier. What the part is made of decides
-  which materials pay that worth: plate is mostly metals, mechanisms and engines
-  mostly machinery, energy weapons, guidance and capacitance mostly
-  transplutonics. A bigger or rarer part therefore costs more without a second
+  worth its role's stock part, times its tier; a kit is a common bolt-on's worth
+  times its tier. A bigger or rarer part therefore costs more without a second
   table to keep in step with the first (`MechFabricationCatalog.weaponValue`).
-  Chassis and vehicle bills stay authored, because they carry the armor-per-credit
-  parity between hulls and walkers. Workshop tooling saves a fifth of the heavy
-  machinery (and of a boat job's supplies). A shared icon-and-count strip shows fleet material stock; each
-  fabrication pattern shows only its required quantities beside commodity icons.
-  Hover details supply material names, exact cargo counts and shortages. Icons and
-  names resolve from the base game's live commodity specifications, so the Mech Lab
-  does not copy or re-author cargo art.
-- A weapon commit uses a free owned assembly when available. Otherwise it rechecks the
-  complete material bill, consumes it atomically, creates one finite owned assembly,
+  Chassis and vehicle prices stay authored, because they carry the armor-per-credit
+  parity between hulls and walkers; a chassis is sold as a bare frame, its standard-fit
+  price less its removable parts' prices. Workshop tooling takes 15% off. The room's
+  stock strip shows the company's credits and whether the fleet is at a civilized
+  port; each pattern shows one credits row with Short by.
+- A weapon commit uses a free owned assembly when available, anywhere. Otherwise it
+  rechecks the port and the price, pays it atomically, creates one finite owned assembly,
   and installs it; the outgoing assembly becomes free stock. A chassis commit performs
   the same recheck before creating identity and default doctrine, and builds the bare
-  frame. Failed compatibility, capacity, cargo,
-  or gantry checks change neither cargo nor campaign hardware.
+  frame. Failed compatibility, capacity, port, credit
+  or gantry checks change neither the purse nor campaign hardware.
 - The active home-deck gantries reproject the campaign loadouts after every successful
   commit. Weapon layers and newly fabricated chassis therefore change in the physical
   room immediately, while mission commitment separately freezes the same components

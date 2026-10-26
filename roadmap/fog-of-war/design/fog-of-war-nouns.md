@@ -35,7 +35,7 @@ position, and shots remain visible through fog.
 - A **temporary source** is a short-lived observer that participates in the same
   bitmap but has no battle-unit visibility row or cohort membership. It arrives
   through one of three channels. A **projected source** is pushed by a render host
-  each frame — a shuttle, a flyby fighter, an active recon ping. A **carried
+  each frame — a shuttle, a flyby fighter, a warship. A **carried
   sweep** is pushed by the simulation each tick from a live unit whose armour
   pattern is running a sensor system (`progression-nouns.md`), so it exists in
   every host and in a headless run alike. A **standing source** is held by a
@@ -186,7 +186,7 @@ marine's, so nothing hull-borne arrives as a temporary source.
 
 Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
 the ground it is ordered onto and where its rounds and lance tips fall; a hostile
-ship gives the player nothing), active recon pings, and a
+ship gives the player nothing), and a
 marine running a carried sensor sweep can all provide temporary vision. Their
 footprints may therefore open a roof briefly when they see an interior; that is
 intentional.
