@@ -113,7 +113,7 @@ two or three, drawn from the battle seed over what the map laid.
 | F3 | `air_corridor` | `ammo-dump-1` | the colonies of the two satellites nearest the company all dead | never; lapses | credits |
 | F4 | `matriarch_down` | nothing | the first Matriarchs out dead within 150 s | she lives longer | credits |
 | F6 | `road_open` | `supply-road` | the satellite nearest the road collapses | the battle ends first | credits |
-| B1 | `clear_of_the_walk` | nothing | the barrage ends without a gun holding its fire for the company | the first held round | credits |
+| B1 | `clear_of_the_walk` | nothing | the barrage ends without a gun holding its fire for the company | the first round held for a Marine (one held for a lane's body is the lane's) | credits |
 | B5 | `one_more_line` | `vehicle-park` | an ammunition truck reaches the guns before the last line lifts: the plan gains one more line | every truck lost, too late, or the battle ends first | credits |
 | B6 | `last_stretch` | nothing | every mother down within four minutes of the barrage's end | the four minutes pass | credits |
 

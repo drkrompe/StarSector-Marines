@@ -115,6 +115,10 @@ public final class WalkingBarrage {
     private float owed;
     private int fired;
     private int vetoed;
+    private int vetoedForSide;
+    private long lastVetoedBy;
+    /** Whether the round {@link #dangerClose} last held was held for a body of the barrage's own side. */
+    private boolean lastHeldForSide;
     private int silenced;
     private StructureDef battery;
     private long[] guns;
@@ -144,6 +148,10 @@ public final class WalkingBarrage {
     public List<Event> events() { return events; }
     public int fired() { return fired; }
     public int vetoed() { return vetoed; }
+    /** Rounds held for a body of the barrage's own side, not only an ally's: what the side itself is answerable for. */
+    public int vetoedForSide() { return vetoedForSide; }
+    /** The friendly body the last held round was held for, or 0: what a probe reads to trace a veto. */
+    public long lastVetoedBy() { return lastVetoedBy; }
     /** Shells the battery could not fire because none of its guns was left. */
     public int silenced() { return silenced; }
     /** Shells a dry gun held back, firing rationed. */
@@ -210,7 +218,11 @@ public final class WalkingBarrage {
             int[] cell = ground.cellAt(depth, rng.nextFloat());
             float x = Math.max(0, Math.min(width - 1, cell[0])) + 0.5f;
             float y = Math.max(0, Math.min(height - 1, cell[1])) + 0.5f;
-            if (dangerClose(sim, x, y, flightTo(sim, x, y))) { vetoed++; continue; }
+            if (dangerClose(sim, x, y, flightTo(sim, x, y))) {
+                vetoed++;
+                if (lastHeldForSide) vetoedForSide++;
+                continue;
+            }
             if (battery == null) {
                 PendingDetonation round = shell(CombatTelemetryService.NO_ATTACKER, x, y, plan.shell().flightSeconds(), line);
                 round.asUnmarked();
@@ -275,20 +287,32 @@ public final class WalkingBarrage {
         return best;
     }
 
-    /** Whether a friendly body stands where the shell could reach it by the time it lands {@code flight} seconds on. */
+    /**
+     * Whether a friendly body stands where the shell could reach it by the time it lands {@code flight} seconds on;
+     * {@link #lastHeldForSide} says whether one of them is the barrage's own side's.
+     */
     private boolean dangerClose(BattleSimulation sim, float x, float y, float flight) {
         float radius = plan.shell().radius() + FieldMortarService.FRIENDLY_MARGIN_CELLS
                 + Math.max(WALK_MARGIN_CELLS, WALK_CELLS_PER_SECOND * flight);
         bucket.clear();
         sim.getUnitIndex().gather(x, y, radius, bucket);
         float radiusSq = radius * radius;
+        boolean held = false;
+        lastHeldForSide = false;
         for (int i = 0, n = bucket.size; i < n; i++) {
             long id = bucket.ids[i];
-            if (!sim.world().isAlive(id) || !side.friendlyTo(sim.identity().faction(id))) continue;
+            Faction faction = sim.identity().faction(id);
+            if (!sim.world().isAlive(id) || !side.friendlyTo(faction)) continue;
             if (sim.identity().type(id).isTurret()) continue;
             float dx = sim.world().x(id) - x, dy = sim.world().y(id) - y;
-            if (dx * dx + dy * dy <= radiusSq) return true;
+            if (dx * dx + dy * dy > radiusSq) continue;
+            held = true;
+            lastVetoedBy = id;
+            if (faction == side) {
+                lastHeldForSide = true;
+                break;
+            }
         }
-        return false;
+        return held;
     }
 }

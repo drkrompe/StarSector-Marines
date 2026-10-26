@@ -458,13 +458,17 @@ public final class HeartObjectives {
         return best;
     }
 
-    /** B1: no gun ever held its fire for the company, to the barrage's end. */
+    /**
+     * B1: no gun ever held its fire for the company, to the barrage's end. A round held for an allied lane's body is the
+     * lane's, not the company's: Burn town 3's only held round was for a militia technical a lane had driven under the
+     * second line (2026-10-26).
+     */
     static ObjectiveRuntime clear(ObjectiveContext ctx) {
         return (c, tick) -> {
             HeartSequence heart = c.sim().getHeart();
             WalkingBarrage barrage = heart == null ? null : heart.barrage();
             if (barrage == null) return Status.LAPSED;
-            if (barrage.vetoed() > 0) return Status.FAILED;
+            if (barrage.vetoedForSide() > 0) return Status.FAILED;
             return c.hasBeat("barrage_ended") ? Status.SUCCEEDED : Status.ACTIVE;
         };
     }
