@@ -1351,7 +1351,9 @@ support sortie, subject only to practical runtime resources.
   never by a number. A vacant pad is marked as a build site in the BUY amber (a faint
   wash, corner brackets, the fabrication cog and BUILD), never a bare plus. The status
   line on the right of the heading says what the current view asks for: select a pad,
-  choose a chassis or vehicle, or select a mount. Selecting
+  choose a chassis or vehicle, or select a mount. Any pad is selected by pressing it in
+  the view (an occupied pad is bracketed in amber under the pointer) or by its card in the
+  rail below, a card per pad at its own width that never stretches across the rail. Selecting
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
   chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
