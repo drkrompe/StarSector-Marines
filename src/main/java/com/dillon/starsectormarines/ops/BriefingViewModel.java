@@ -7,6 +7,10 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ops.battleview.SquadMuster;
+import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
@@ -161,7 +165,11 @@ final class BriefingViewModel {
                 forceCard("tf-3", "Colonel Okafor", "24 squads · 288 marines",
                         "graphics/portraits/portrait_mercenary03.png", ""),
                 forceCard("tf-4", "Colonel Reyes", "12 squads · 144 marines",
-                        "graphics/portraits/portrait_mercenary04.png", "")) : List.of());
+                        "graphics/portraits/portrait_mercenary04.png", "")).stream()
+                .map(card -> card.withSquads(previewSquads(card.id(), 24))).toList()
+                : List.of(forceCard("tf-1", "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                        "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()
+                        .withSquads(previewSquads("tf-1", 1))));
         props.put("commandSummary", "5 / 5 slots");
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
@@ -489,10 +497,8 @@ final class BriefingViewModel {
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
         int cards = ((List<?>) props.getOrDefault("taskForceRows", List.of())).size();
-        // Three cards (268x84 outside their padding and border) fit a row of the commitment
-        // column; past two rows the grid scrolls.
-        int cardRows = Math.min(2, (cards + 2) / 3);
-        int cardsHeight = cardRows * 84 + Math.max(0, cardRows - 1) * 8;
+        // One row of officer cards (150px with their squads' musters) shows; more rows scroll.
+        int cardsHeight = cards > 0 ? 160 : 0;
         props.put("forceSummaryStyle", hasForceCards ? "height: " + (240 + cardsHeight) + "px" : "height: 174px");
         props.put("groupCommandStyle", hasForceCards ? "height: 54px" : "height: 0px; gap: 0px; overflow: hidden");
         props.put("forceCardsStyle", hasForceCards ? "height: " + cardsHeight + "px" : "height: 0px");
@@ -557,31 +563,92 @@ final class BriefingViewModel {
                                String tone, boolean namedOfficer) {
         return new ForceCard("briefing-info-" + key, name, detail, portrait,
                 "label force-card-detail " + tone, namedOfficer,
-                Strings.get(namedOfficer ? "briefingVmRoleSubCommander" : "briefingVmRoleActingNco"));
+                Strings.get(namedOfficer ? "briefingVmRoleSubCommander" : "briefingVmRoleActingNco"), List.of());
     }
 
     record ForceCard(String id, String name, String detail, String portrait, String detailClasses,
-                     boolean namedOfficer, String role)
+                     boolean namedOfficer, String role, List<SquadPicture> squads)
             implements MarkupPropertySource {
         ForceCard asOperationCommander() {
             return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer,
-                    Strings.get("briefingVmRoleOpCommander"));
+                    Strings.get("briefingVmRoleOpCommander"), squads);
         }
+
+        /** The same card drawing {@code musters}, the first {@link #MUSTERS_SHOWN} of them, the rest counted. */
+        ForceCard withSquads(List<SquadMuster> musters) {
+            List<SquadPicture> pictures = new ArrayList<>();
+            int shown = Math.min(MUSTERS_SHOWN, musters.size());
+            for (int i = 0; i < shown; i++) {
+                SquadMuster muster = musters.get(i);
+                int more = i == shown - 1 ? musters.size() - shown : 0;
+                pictures.add(new SquadPicture(id + "-squad-" + i, more > 0
+                        ? Strings.format("briefingVmSquadMore", muster.squadName(), more) : muster.squadName(), muster));
+            }
+            return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer, role, List.copyOf(pictures));
+        }
+
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
                 case "nameId" -> id + "-label"; case "detailId" -> id + "-value";
                 case "copyId" -> id + "-copy"; case "portraitId" -> id + "-portrait";
+                case "headerId" -> id + "-header"; case "mustersId" -> id + "-musters";
                 case "roleId" -> id + "-role"; case "role" -> role;
                 case "roleClasses" -> "label heading force-card-role "
                         + (Strings.get("briefingVmRoleOpCommander").equals(role) ? "tone-accent" : "tone-muted");
                 case "name" -> name; case "detail" -> detail; case "portrait" -> portrait;
                 case "detailClasses" -> detailClasses;
+                case "squads" -> squads;
+                case "cardClasses" -> "force-card console-readout"
+                        + (squads.size() > 1 ? " force-card-" + squads.size() : "");
                 case "portraitClasses" -> "force-card-portrait console-well"
                         + (portrait == null || portrait.isBlank() ? " portrait-absent" : "");
                 default -> null;
             };
         }
+    }
+
+    /** Squads one officer card draws before it only counts the rest. */
+    static final int MUSTERS_SHOWN = 2;
+
+    /** One squad on an officer's card: its three fire teams of four, as the Barracks draws them. */
+    record SquadPicture(String id, String label, SquadMuster muster) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "musterId" -> id + "-muster"; case "labelId" -> id + "-label";
+                case "label" -> label;
+                default -> null;
+            };
+        }
+    }
+
+    /** Draws every squad muster the officer cards carry. */
+    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
+        for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
+            for (SquadPicture squad : ((ForceCard) value).squads()) {
+                document.canvases().set(markup.requireElement(squad.id() + "-muster"),
+                        new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD));
+            }
+        }
+    }
+
+    /** {@code count} preview squads, the last one two marines short. */
+    static List<SquadMuster> previewSquads(String key, int count) {
+        List<SquadMuster> squads = new ArrayList<>();
+        for (int i = 0; i < count; i++) squads.add(previewMuster(key + "-" + i,
+                String.format(Locale.ROOT, "Squad %02d", i + 1), i == count - 1 && count > 1 ? 10 : MarineSquad.CAPACITY));
+        return squads;
+    }
+
+    /** A preview squad at full strength: twelve ready billets, the first of each team its leader. */
+    static SquadMuster previewMuster(String id, String name, int ready) {
+        List<SquadMuster.Billet> billets = new ArrayList<>();
+        for (int i = 0; i < MarineSquad.CAPACITY; i++) {
+            SquadMuster.State state = i < ready ? SquadMuster.State.READY : SquadMuster.State.VACANT;
+            billets.add(new SquadMuster.Billet(i, state == SquadMuster.State.VACANT ? null : id + "-" + i,
+                    "Marine " + (i + 1), "PVT", state, -1f, i % MarineSquad.TEAM_SIZE == 0, false));
+        }
+        return new SquadMuster(id, name, false, billets, ready, 0, MarineSquad.CAPACITY - ready, 0, 0, -1f);
     }
 
     static InfoRow info(String key, String label, String value, String valueClasses) {

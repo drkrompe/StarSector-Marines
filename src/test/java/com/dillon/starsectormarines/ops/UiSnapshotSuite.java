@@ -1398,6 +1398,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
             BriefingLift.install(document, instance, props, Strings::get);
+            BriefingViewModel.installMusters(document, instance, props);
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
                         MechLabDollCanvas::headlessAssets);
@@ -3337,8 +3338,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .doll(() -> viewModel.doll().get(), () -> 0d);
             UiElement bayElement = instance.requireElement("boat-deck-canvas");
             document.canvases().set(bayElement, bayCanvas);
-            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
-                    viewModel.slotRows().get());
+            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get());
             // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
             document.layout(width, height);
             BoatDeckCanvas.fitSurface(bayElement);
@@ -3754,7 +3754,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("readinessRows", viewModel.readinessRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());

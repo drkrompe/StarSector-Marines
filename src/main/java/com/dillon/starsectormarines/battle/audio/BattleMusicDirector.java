@@ -31,7 +31,7 @@ public final class BattleMusicDirector {
             "marines_battle_music_08", "marines_battle_music_09", "marines_battle_music_10");
     /**
      * The quiet state's bed, and aftermath's by fallback: the Marine Ops theme, played as
-     * {@code <id>_bed} (declared louder than the menu's), until a quiet bed is sourced. A raise fades
+     * {@code <id>_bed} (declared under the combat pool), until a quiet bed is sourced. A raise fades
      * it out over the raise crossfade.
      */
     public static final List<String> QUIET_TRACKS = List.of("marines_intel_music");

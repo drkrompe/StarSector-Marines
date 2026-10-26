@@ -1,4 +1,4 @@
-<template props="filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,readinessRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,scrapLabel,scrapClasses,scrapAction,storeLabel,storeClasses,storeAction,reserveClasses,reserveTitle,reserveRows,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="boat-deck-room-bar" class="panel room-bar">
@@ -93,7 +93,7 @@
       </div>
 
       <!-- The specifications column, as the Mech Lab's: her figures against her pattern's,
-           her condition, and the socket the board has selected. -->
+           her condition, and her readiness: why she can or cannot fly, each line opening its socket. -->
       <div id="boat-fitting" class="{fittingClasses}">
         <div id="boat-slot-rack" class="panel slot-panel">
           <div id="boat-performance-card" class="performance-card surface-dark">
@@ -117,10 +117,15 @@
             </div>
           </div>
 
-          <div id="boat-slot-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabFittingLocations}</div>
-          <div id="boat-slot-copy" class="label tone-muted slot-copy">{i18n.boatDeckSelectSocketCopy}</div>
-          <div id="boat-slot-list" class="slot-list">
-            <fitting-slot-card each="slot in slotRows" key="{slot.id}" slot="{slot}" />
+          <div id="boat-readiness-heading" class="section-title label heading tone-edge">{i18n.boatReadinessHeading}</div>
+          <div id="boat-readiness-list" class="slot-list">
+            <button each="row in readinessRows" key="{row.id}" id="{row.id}" class="{row.classes}" onclick="{row.select}">
+              <div id="{row.barId}" class="{row.barClasses}" />
+              <div id="{row.textId}" class="readiness-text">
+                <div id="{row.titleId}" class="label heading readiness-title">{row.title}</div>
+                <div id="{row.detailId}" class="label tone-muted readiness-detail">{row.detail}</div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -226,6 +231,19 @@
   .slot-panel { flex-direction: column; width: 340px; padding: 6px; gap: 4px; overflow: hidden; }
   .slot-copy { height: 20px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
+  .readiness-row { flex-direction: row; height: 50px; gap: 8px; padding: 6px 8px; background-color: #0d1215; border-width: 1px; border-color: #20292c; }
+  .readiness-link:hover { background-color: #18211f; border-color: #dfc588; }
+  .readiness-bar { width: 5px; height: 100%; }
+  .readiness-bar-danger { background-color: #e85a4a; }
+  .readiness-bar-warn { background-color: #edc273; }
+  .readiness-bar-good { background-color: #7ee09a; }
+  .readiness-bar-muted { background-color: #5d6660; }
+  .readiness-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .readiness-title { height: 20px; color: #d3d0c5; }
+  .readiness-danger .readiness-title { color: #e85a4a; }
+  .readiness-warn .readiness-title { color: #edc273; }
+  .readiness-good .readiness-title { color: #7ee09a; }
+  .readiness-detail { height: 17px; }
   .boat-drag-ghost { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .material-cost { flex-direction: row; width: 100%; height: 16px; padding: 0px 3px; gap: 4px; background-color: #121719; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }

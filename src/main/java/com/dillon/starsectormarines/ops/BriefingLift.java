@@ -15,10 +15,13 @@ import com.dillon.starsectormarines.ops.battleview.DamageDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -72,9 +75,10 @@ public final class BriefingLift {
      * @param companyCarrier the cradled company boat a drop call flies with, or {@code null}
      * @param companyBest    the best rating among the company's boats
      * @param cradled        how many company boats carry a cradle
+     * @param berths         boat berths the company ship has, flown or not
      * @param missionLift    whether a mission, employer, hull or ship supplies heavy lift
      */
-    public record Readout(List<FittedBoat> boats, FittedBoat companyCarrier, LiftRating companyBest,
+    public record Readout(List<FittedBoat> boats, int berths, FittedBoat companyCarrier, LiftRating companyBest,
                           int cradled, boolean missionLift, boolean dropCall, List<Machine> machines) {
 
         public int dropping() {
@@ -88,13 +92,14 @@ public final class BriefingLift {
      * Reads the bay against the resolved powers.
      *
      * @param boats    the company boats committed (every boat aboard)
+     * @param berths   boat berths the company ship has, flown or not
      * @param powers   the powers this mission resolved
      * @param selected ids of the powers on the command deck
      * @param mechs    the active lance as it would launch
      * @param vehicles the bay's vehicles
      * @param heldBack the lance's mechs left out of the manifest
      */
-    public static Readout read(List<FittedBoat> boats, List<CommandPower> powers, Collection<String> selected,
+    public static Readout read(List<FittedBoat> boats, int berths, List<CommandPower> powers, Collection<String> selected,
                                List<MechDeploymentSpec> mechs, List<VehicleDeploymentSpec> vehicles,
                                List<MechDeploymentSpec> heldBack) {
         List<FittedBoat> fleet = boats == null ? List.of() : boats;
@@ -156,7 +161,7 @@ public final class BriefingLift {
         List<Machine> ordered = new ArrayList<>(machines.size());
         for (Machine machine : machines) if (!machine.status.drops) ordered.add(machine);
         for (Machine machine : machines) if (machine.status.drops) ordered.add(machine);
-        return new Readout(fleet, companyCarrier, best, cradled, missionLift,
+        return new Readout(fleet, Math.max(berths, fleet.size()), companyCarrier, best, cradled, missionLift,
                 mechsCarried || vehiclesCarried, List.copyOf(ordered));
     }
 
@@ -175,20 +180,59 @@ public final class BriefingLift {
 
     // ---- presentation ----
 
-    /** One machine card: its doll, its name and lift class, and its verdict. */
-    record Card(String id, Machine machine, String type, String status, String statusClasses)
+    /** The symbol for a lift class or rating: a weight block sized by class, struck through for none. */
+    static String weightSymbol(LiftRating rating) {
+        return rating == null || rating == LiftRating.NONE ? "graphics/ui/briefing/weight-none.svg"
+                : "graphics/ui/mech-hardware/weight-" + rating.name().toLowerCase(Locale.ROOT) + ".svg";
+    }
+
+    static String weightChipClasses(LiftRating rating) {
+        return "weight-chip weight-" + (rating == null ? LiftRating.NONE : rating).name().toLowerCase(Locale.ROOT);
+    }
+
+    /** One lift carrier: a boat berth, or the mission's heavy lift. */
+    record Carrier(String id, String classes, String image, String role, String name, LiftRating rating,
+                   SpecSheet hint) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "classes" -> classes;
+                case "imageId" -> id + ":image";
+                case "copyId" -> id + ":copy";
+                case "roleId" -> id + ":role";
+                case "nameId" -> id + ":name";
+                case "chipId" -> id + ":chip";
+                case "weightId" -> id + ":weight";
+                case "image" -> image;
+                case "role" -> role;
+                case "name" -> name;
+                case "chipClasses" -> weightChipClasses(rating);
+                case "weight" -> weightSymbol(rating);
+                default -> null;
+            };
+        }
+    }
+
+    /** One machine card: its doll, its weight, a warning when lift falls short, and its verdict. */
+    record Card(String id, Machine machine, String status, String statusClasses, SpecSheet hint)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "classes" -> "lift-machine console-readout"
+                        + (machine.status().drops || machine.status() == Status.NOT_CALLED ? "" : " lift-machine-refused");
                 case "dollId" -> id + ":doll";
-                case "copyId" -> id + ":copy";
+                case "chipId" -> id + ":chip";
+                case "weightId" -> id + ":weight";
+                case "warningId" -> id + ":warning";
                 case "nameId" -> id + ":name";
-                case "typeId" -> id + ":type";
                 case "statusId" -> id + ":status";
+                case "chipClasses" -> weightChipClasses(LiftRating.of(machine.load().liftClass()));
+                case "weight" -> weightSymbol(LiftRating.of(machine.load().liftClass()));
+                case "warningClasses" -> liftShort(machine.status()) ? "lift-warning" : "lift-warning-absent";
                 case "name" -> machine.name();
-                case "type" -> type;
                 case "status" -> status;
                 case "statusClasses" -> statusClasses;
                 default -> null;
@@ -196,45 +240,78 @@ public final class BriefingLift {
         }
     }
 
-    /** Fills the briefing's lift section; hides it when the company has no armor to bring. */
+    /** Whether a verdict is lift falling short, which the card marks with a warning. */
+    static boolean liftShort(Status status) {
+        return status == Status.NO_LIFT || status == Status.LIFT_SPENT || status == Status.NO_DROP_CALL;
+    }
+
+    /** Fills the briefing's armor and lift section; hides it when there is no lift and no armor to show. */
     static void put(Map<String, Object> props, Readout readout) {
-        boolean shown = readout != null && !readout.machines().isEmpty();
+        boolean shown = readout != null && (readout.berths() > 0 || !readout.machines().isEmpty());
         props.put("liftClasses", shown ? "briefing-section lift-block" : "briefing-section lift-block lift-hidden");
         props.put("liftHeader", Strings.get("briefingLiftHeader"));
         if (!shown) {
             props.put("liftSummary", "");
             props.put("liftSummaryClasses", "label heading");
-            props.put("liftCompany", "");
-            props.put("liftCompanyClasses", "label lift-source-value");
-            props.put("liftMission", "");
-            props.put("liftMissionClasses", "label lift-source-value");
+            props.put("liftCarriers", List.of());
             props.put("liftMachines", List.of());
             return;
         }
         int dropping = readout.dropping();
         int total = readout.machines().size();
-        props.put("liftSummary", Strings.format("briefingLiftSummary", dropping, total));
+        props.put("liftSummary", total == 0 ? "" : Strings.format("briefingLiftSummary", dropping, total));
         props.put("liftSummaryClasses", "label heading " + (dropping == total ? "tone-good"
                 : dropping == 0 ? "tone-danger" : "tone-accent"));
-        boolean companyLifts = readout.companyBest() != LiftRating.NONE;
-        props.put("liftCompany", companyLine(readout));
-        // A source with no lift is only a danger when the other brings none either.
-        props.put("liftCompanyClasses", "label lift-source-value "
-                + sourceTone(companyLifts, readout.missionLift()));
-        props.put("liftMission", missionLine(readout));
-        props.put("liftMissionClasses", "label lift-source-value "
-                + sourceTone(readout.missionLift(), companyLifts));
+        props.put("liftCarriers", carriers(readout));
         List<Card> cards = new ArrayList<>();
         for (int i = 0; i < readout.machines().size(); i++) {
             Machine machine = readout.machines().get(i);
-            String type = machine.load().isVehicle()
-                    ? Strings.format("briefingLiftMachineClass", typeName(machine.load()), machine.liftName())
-                    : Strings.format("briefingLiftMachineClass", machine.load().mech().variant().displayName(),
-                    machine.liftName());
-            cards.add(new Card("briefing-lift-machine-" + i, machine, type, statusLine(machine),
-                    "label lift-machine-status " + tone(machine.status())));
+            cards.add(new Card("briefing-lift-machine-" + i, machine, statusLine(machine),
+                    "label lift-machine-status " + tone(machine.status()), machineHint(machine)));
         }
         props.put("liftMachines", List.copyOf(cards));
+    }
+
+    /** One slot per berth the ship has, filled or not, then the mission's heavy lift. */
+    static List<Carrier> carriers(Readout readout) {
+        List<Carrier> carriers = new ArrayList<>();
+        String company = companyLine(readout);
+        for (int i = 0; i < readout.berths(); i++) {
+            String role = Strings.format("briefingLiftBerth", i + 1);
+            String id = "briefing-lift-berth-" + i;
+            if (i < readout.boats().size()) {
+                FittedBoat boat = readout.boats().get(i);
+                carriers.add(new Carrier(id, "lift-carrier console-readout", boat.pattern().spritePath, role,
+                        boatName(boat), boat.liftRating(), new SpecSheet(boatName(boat), role,
+                        boat.pattern().spritePath, "command", List.of(), List.of(
+                        Strings.format("briefingLiftBoatRating", LiftReadout.ratingName(boat.liftRating())),
+                        company))));
+            } else {
+                carriers.add(new Carrier(id, "lift-carrier console-readout lift-carrier-empty", null, role,
+                        Strings.get("briefingLiftBerthEmpty"), LiftRating.NONE, new SpecSheet(role,
+                        Strings.get("briefingLiftBerthEmpty"), null, "command", List.of(),
+                        List.of(Strings.get("briefingLiftBerthEmptyNote")))));
+            }
+        }
+        LiftRating mission = readout.missionLift() ? ShuttleType.VALKYRIE.liftRating() : LiftRating.NONE;
+        String role = Strings.get("briefingLiftMissionLabel");
+        carriers.add(new Carrier("briefing-lift-mission", "lift-carrier console-readout"
+                + (readout.missionLift() ? "" : " lift-carrier-empty"), ShuttleType.VALKYRIE.spritePath, role,
+                readout.missionLift() ? ShuttleType.VALKYRIE.displayName() : Strings.get("briefingLiftMissionNone"),
+                mission, new SpecSheet(role, LiftReadout.ratingName(mission), ShuttleType.VALKYRIE.spritePath,
+                "command", List.of(), List.of(missionLine(readout)))));
+        return List.copyOf(carriers);
+    }
+
+    private static String boatName(FittedBoat boat) {
+        return boat.cradled() ? LiftReadout.carrierName(boat) : boat.pattern().displayName();
+    }
+
+    private static SpecSheet machineHint(Machine machine) {
+        String type = machine.load().isVehicle() ? typeName(machine.load())
+                : machine.load().mech().variant().displayName();
+        return new SpecSheet(machine.name(), Strings.format("briefingLiftMachineClass", type, machine.liftName()),
+                null, "command", List.of(), List.of(Strings.get("briefingLiftWhy" + machine.status().name())));
     }
 
     /** Draws each machine card's doll: wear for a mech, whole for a vehicle. */
@@ -248,6 +325,18 @@ public final class BriefingLift {
             if (load.isVehicle()) view.readStock(load.vehicle().type());
             else view.readDeployment(load.mech());
             document.canvases().set(markup.requireElement(card.id() + ":doll"), new DamageDollCanvas(view, copy));
+        }
+    }
+
+    /** Hovers on each berth, the mission lift and each machine. */
+    static void bindHints(SpecSheetBinder binder, MarkupInstance markup, Map<String, Object> props) {
+        for (Object value : (List<?>) props.getOrDefault("liftCarriers", List.of())) {
+            Carrier carrier = (Carrier) value;
+            binder.bind(markup.requireElement(carrier.id()), carrier.hint());
+        }
+        for (Object value : (List<?>) props.getOrDefault("liftMachines", List.of())) {
+            Card card = (Card) value;
+            binder.bind(markup.requireElement(card.id()), card.hint());
         }
     }
 
@@ -271,7 +360,7 @@ public final class BriefingLift {
             return Strings.format("briefingLiftMissionHeavy",
                     LiftReadout.ratingName(ShuttleType.VALKYRIE.liftRating()), ShuttleType.VALKYRIE.displayName());
         }
-        return Strings.get(readout.dropCall() ? "briefingLiftMissionNone" : "briefingLiftMissionNoCall");
+        return Strings.get(readout.dropCall() ? "briefingLiftMissionNoHeavy" : "briefingLiftMissionNoCall");
     }
 
     static String statusLine(Machine machine) {
@@ -283,10 +372,6 @@ public final class BriefingLift {
             case NO_DROP_CALL -> Strings.get("briefingLiftNoDropCall");
             case HELD_BACK -> Strings.get("briefingLiftHeldBack");
         };
-    }
-
-    private static String sourceTone(boolean lifts, boolean otherLifts) {
-        return lifts ? "tone-good" : otherLifts ? "tone-muted" : "tone-danger";
     }
 
     private static String tone(Status status) {
