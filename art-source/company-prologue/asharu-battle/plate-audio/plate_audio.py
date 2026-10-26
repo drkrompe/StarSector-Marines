@@ -64,7 +64,33 @@ OPTIONS = {
                    "D": ("Interface sweep, take 2", "take:ui_transition_t02"),
                    "E": ("Minimal: one soft tone, the hum swell only", "minimal")},
 }
-CHOICE = {"crt_on": "B", "crt_off": "B", "text": "B", "transition": "B"}
+OPTIONS.update({
+    # round two (owner: answers "more 90s sci-fi movie terminal, a la Starship Troopers"; pings "too happy";
+    # radio "strange warp comes across as bangs"; stamps denied)
+    "answer": {"A": ("Readout: a burst of chunky blips, then the answer's tone", "readout"),
+               "B": ("FM bleeps: a 90s synth computer voice", "fm"),
+               "C": ("Trill: two tones rattling, pitched by the answer", "trill"),
+               "D": ("Terminal readout, take 1", "take:answer_readout_t01"),
+               "E": ("Terminal readout, take 2", "take:answer_readout_t02")},
+    "ping": {"A": ("Low sonar: dark, minor, a long tail", "sonar"),
+             "B": ("Radar contact: a dry click and a low thump", "radar"),
+             "C": ("Radar ping, take 1", "take:radar_ping_t01"),
+             "D": ("Radar ping, take 2", "take:radar_ping_t02"),
+             "E": ("Silent: no pings", "none")},
+    "radio": {"A": ("The other static take, squelch as before", "take2"),
+              "B": ("Clean hiss, squelch as before", "hiss"),
+              "C": ("Clean hiss, a soft squelch", "softsq"),
+              "D": ("Clean hiss, no squelch: the hiss lifts under each line", "nosq")},
+    "stamp": {"A": ("Digital: a two-tone chord falling", "digital"),
+              "B": ("Lock: a run of blips onto a held low tone", "lock"),
+              "C": ("Record lock, take 1", "take:ui_stamp_t01"),
+              "D": ("Record lock, take 2", "take:ui_stamp_t02"),
+              "E": ("Soft thump only", "soft")},
+})
+# the owner's picks (sound review, round one), and round two's best guesses
+CHOICE = {"crt_on": "C", "crt_off": "A", "text": "C", "transition": "A",
+          "answer": "A", "ping": "B", "radio": "C", "stamp": "B"}
+REVIEW = ("answer", "ping", "radio", "stamp")      # the families the review page asks about this round
 
 # every level, in dB, in one place: the mix is judged and turned here
 # (beds and synthesised sounds by RMS; the set's switching sounds, all transient, by peak)
@@ -307,6 +333,101 @@ def transition(style, kind, dur, rising=True, seed=1):
     return np.zeros(1)
 
 
+def fm(fc, dur, ratio=1.5, index=3.0):
+    """A two-operator FM bleep, its brightness falling: the 90s synth computer's voice."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    i = index * np.exp(-t / (dur * .5))
+    e = np.minimum(1, t / .003) * np.minimum(1, (dur - t) / .01)
+    return np.sin(2 * math.pi * fc * t + i * np.sin(2 * math.pi * fc * ratio * t)) * e
+
+
+ANSWER_TONES = {"ok": (1568, 2093), "note": (1397,), "flag": (880, 698), "down": (784, 659, 523)}
+
+
+def answer_sound(style, kind, seed):
+    """An answer landing, by the answer's kind (ok, note, flag, down), in a style."""
+    r = random.Random(seed)
+    tones = ANSWER_TONES[kind]
+    if style == "readout":
+        burst = [tone(r.choice((1046, 1175, 1397, 1568, 1760, 2093)), .028) for _ in range(5)]
+        return seq(*burst, *[tone(f, .09) for f in tones], gap=.012)
+    if style == "fm":
+        return seq(*[fm(f, .11, ratio=1.41, index=2.5) for f in tones], gap=.025)
+    if style == "trill":
+        out = []
+        for f in tones:
+            n = int(.14 * SR)
+            gate = (np.arange(n) // int(SR / 60)) % 2
+            w = np.where(gate == 0, np.sin(2 * math.pi * f * np.arange(n) / SR),
+                         np.sin(2 * math.pi * f * 1.26 * np.arange(n) / SR))
+            out.append(onepole(np.sign(w), 3500) * .6)
+        return seq(*out, gap=.02)
+    if style.startswith("take:"):
+        x = peak(take_file(style[5:]), -3)
+        return x * np.minimum(1, (len(x) - np.arange(len(x))) / (.05 * SR))
+    return ANSWERS[kind]()
+
+
+def ping_sound(style, which):
+    """A relay's ping in a style; which is the relay (lower) or the array (higher)."""
+    lo = which == "relay"
+    if style == "sonar":
+        n = int(1.6 * SR)
+        f = 330 if lo else 392
+        t = np.arange(n) / SR
+        p = (np.sin(2 * math.pi * f * t) + .35 * np.sin(2 * math.pi * f * 1.189 * t)) * env(n, .004, .35)
+        p = onepole(p, 1200)
+        for d, g in ((.18, .3), (.37, .15)):
+            i = int(d * SR)
+            p[i:] += p[:n - i] * g
+        return p
+    if style == "radar":
+        n = int(.5 * SR)
+        t = np.arange(n) / SR
+        click = np.random.default_rng(31).normal(0, 1, n)
+        click = (onepole(click, 2400) - onepole(click, 700)) * env(n, .0005, .012) * 3
+        thump = np.sin(2 * math.pi * np.cumsum((160 if lo else 200) * np.exp(-t * 3)) / SR) * env(n, .002, .09)
+        return click + thump
+    if style.startswith("take:"):
+        return peak(take_file(style[5:]), -6) * (1 if lo else .7)
+    return np.zeros(1)
+
+
+def stamp_sound(style, which):
+    """A stamp in a style; which is NOT ESCALATED (lighter) or ARCHIVED (heavier, lower)."""
+    low = which == "archived"
+    k = .75 if low else 1.0
+    if style == "digital":
+        a = tone(660 * k, .12) + tone(990 * k, .12)
+        b = tone(440 * k, .22, decay=.15) + tone(660 * k, .22, decay=.15)
+        return seq(a * .5, b * .5, gap=.02)
+    if style == "lock":
+        run = [tone(f * k, .03) for f in (1760, 1568, 1397, 1175)]
+        hold = tone(220 * k, .32, decay=.25) + .5 * tone(330 * k, .32, decay=.25)
+        return seq(*run, hold, gap=.01)
+    if style.startswith("take:"):
+        return peak(take_file(style[5:]), -3) * (.9 if low else 1)
+    if style == "soft":
+        return thunk(90 if low else 120, .5) * .6
+    return np.zeros(1)
+
+
+def hiss(dur, seed=5):
+    """Steady radio hiss, band-limited, nothing else in it."""
+    n = int(dur * SR)
+    x = np.random.default_rng(seed).normal(0, 1, n)
+    return onepole(x, 3200) - onepole(x, 380)
+
+
+def soft_squelch(closing=False):
+    """A soft squelch: a short breath of hiss, rising in (open) or out (close)."""
+    n = int(.09 * SR)
+    u = np.arange(n) / n
+    e = (u if not closing else 1 - u) ** 1.5 * np.sin(math.pi * u) ** .3
+    return hiss(.09, 41 if closing else 40) * e
+
+
 # ---------------------------------------------------------------------------------------- mix
 
 class Mix:
@@ -429,7 +550,8 @@ def build(shot, choice=None, only=None):
     for key_, period, off_ in (("relay", 3.0, 0.0), ("array", 2.2, .9)):
         t = corvus[1] + (-(corvus[1] + off_)) % period
         while t < corvus[2]:
-            m.at(t, ping(740 if key_ == "relay" else 990), L["ping"], -20)
+            if source("ping", choice) != "none":
+                m.at(t, ping_sound(source("ping", choice), key_), L["ping"], -20)
             t += period
     m.mark("ping", "Corvus's relay pings", corvus[1] + .2)
     if open_:
@@ -449,15 +571,15 @@ def build(shot, choice=None, only=None):
             m.fam = "text"
             m.typed(q[0], "> " + q[1], rp.TYPE_CPS, L["key"], 1000 + 50 * k)
             m.fam = "answer"
-            m.at(rp.answered(q), ANSWERS[q[3]](), L["answer"], -20)
+            m.at(rp.answered(q), answer_sound(source("answer", choice), q[3], 3000 + k), L["answer"], -20)
             m.mark("text", "Query typed: " + q[1], q[0])
             m.mark("answer", "Answer (%s): %s" % (q[3], q[2]), rp.answered(q))
 
     # the stamps
     m.fam = "stamp"
     if not open_:
-        m.at(rp.NOT_ESCALATED_S, seq(thunk(120), tone(520, .14, decay=.1), gap=.0), L["stamp"], -20)
-        m.at(rp.ARCHIVE_S, seq(thunk(90, .6), tone(390, .2, decay=.14), gap=.0), L["stamp"], -20)
+        m.at(rp.NOT_ESCALATED_S, stamp_sound(source("stamp", choice), "not_escalated"), L["stamp"], -20)
+        m.at(rp.ARCHIVE_S, stamp_sound(source("stamp", choice), "archived"), L["stamp"], -20)
         m.mark("stamp", "NOT ESCALATED", rp.NOT_ESCALATED_S)
         m.mark("stamp", "ARCHIVED", rp.ARCHIVE_S)
 
@@ -478,14 +600,20 @@ def build(shot, choice=None, only=None):
     def static_level(t):
         live = any(a - .05 <= t <= b + .05 for _, _, a, b, _ in lines)
         return (L["static_line"] if live else L["static_bed"]) - L["static_bed"]
-    m.bed(take("relay_static"), tap_on, tap_off, L["static_bed"], fade=.2, level=static_level)
+    rs = source("radio", choice)
+    static = take_file("relay_static_t02") if rs == "take2" else take("relay_static") if rs == "take1" else hiss(10.0)
+    m.bed(static, tap_on, tap_off, L["static_bed"], fade=.2, level=static_level)
     m.mark("radio", "The relay channel: squelch and static under each line", lines[0][2] - .3)
-    sq_open, sq_close = decode(SQUELCH / "squelch_open.wav"), decode(SQUELCH / "squelch_close.wav")
-    for _, _, a, b, _ in lines:
-        m.at(a - .06, sq_open, L["squelch"], -20)
-        m.at(b, sq_close, L["squelch"], -20)
-    if not open_:
-        m.at(rp.TAP_CLOSE_S, sq_close, L["squelch"] + 2, -20)
+    if rs == "softsq":
+        sq_open, sq_close = soft_squelch(), soft_squelch(closing=True)
+    else:
+        sq_open, sq_close = decode(SQUELCH / "squelch_open.wav"), decode(SQUELCH / "squelch_close.wav")
+    if rs != "nosq":
+        for _, _, a, b, _ in lines:
+            m.at(a - .06, sq_open, L["squelch"], -20)
+            m.at(b, sq_close, L["squelch"], -20)
+        if not open_:
+            m.at(rp.TAP_CLOSE_S, sq_close, L["squelch"] + 2, -20)
 
     # hard cut at S0's end (the picture takes over); the set's own fade at S13's
     x = m.buf
