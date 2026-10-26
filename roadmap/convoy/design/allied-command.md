@@ -193,8 +193,8 @@ The advance picks up again once the contact has **cleared**: nothing hostile in
 range and nothing seen, for five seconds. It is not a fixed timeout. A contact it
 cannot clear is **capped** at forty-five seconds by default. At the cap the
 mission's choice applies: the formation either **pushes through**, facing the
-route again and fighting as it moves, or **hands back**, suspending itself so
-the mission decides. A battle where contact never lets up (a swarm) can shorten
+route again and fighting as it moves for as long again before a contact can hold
+it once more, or **hands back**, suspending itself so the mission decides. A battle where contact never lets up (a swarm) can shorten
 both times.
 
 The fighting advance sits above a squad's own attack-move, and the two differ:

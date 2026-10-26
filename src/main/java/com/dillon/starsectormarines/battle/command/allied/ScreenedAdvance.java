@@ -28,7 +28,7 @@ import java.util.function.Consumer;
  * screen swinging round to stand between it and the threat, and every element fights from its slot. It
  * picks the advance back up once the contact has cleared (nothing hostile in range and nothing seen by any
  * squad of it, for a few seconds). A contact it cannot clear is capped: at the cap it pushes on
- * fighting, or hands the elements back to the mission. A screen worn below its floor either halts the
+ * fighting for as long again before a contact can hold it once more, or hands the elements back to the mission. A screen worn below its floor either halts the
  * advance or hands the lead to the main.
  *
  * <p>A third element, the <b>support</b>, may trail the main by {@code supportBehind} cells: fire-support carriers,
@@ -88,7 +88,10 @@ public final class ScreenedAdvance {
 
     /** What a fighting advance does with a contact it has not cleared by the cap. */
     public enum Stalled {
-        /** Faces the route again and goes on, fighting as it moves. */
+        /**
+         * Faces the route again and goes on, fighting as it moves, for as long as the contact held it before a contact
+         * can hold it again.
+         */
         PUSH_THROUGH,
         /** Suspends itself and raises {@code .stalled}: the mission decides, and resumes it when it wants. */
         HAND_BACK
@@ -204,6 +207,12 @@ public final class ScreenedAdvance {
     private Phase phase = Phase.WAITING;
     private int phaseSince;
     private int quietSince;
+    /**
+     * The tick until which a pushed advance goes on through its contact. It went straight back into the contact it had
+     * pushed, so a swarm that never let up held it where it was: the heart's lanes stood eighty cells short of the
+     * mothers from the last satellite's fall to the cap (Broad Front frozen 5, 2026-10-25).
+     */
+    private int pushingUntil;
     private int contacts;
     private int screenStrength;
     /** Distance along the route of the main's line; the screen's slots are fixed relative to it. */
@@ -442,7 +451,7 @@ public final class ScreenedAdvance {
             case ADVANCING -> {
                 if (brokenScreen(sim)) return;
                 float[] threat = threat(sim);
-                if (threat != null) {
+                if (engages(threat != null, tick, pushingUntil)) {
                     contacts++;
                     beat(sim, "contact_" + contacts);
                     quietSince = tick;
@@ -478,12 +487,18 @@ public final class ScreenedAdvance {
                         suspend();
                     } else {
                         beat(sim, "pushed_" + contacts);
+                        pushingUntil = tick + seconds(contactHold);
                         goOn(sim);
                     }
                 }
             }
             default -> { }
         }
+    }
+
+    /** Whether a threat in range holds an advancing formation now: not while it is pushing on through one. */
+    static boolean engages(boolean threat, int tick, int pushingUntil) {
+        return threat && tick >= pushingUntil;
     }
 
     /** Faces the route again and picks the advance back up. */
