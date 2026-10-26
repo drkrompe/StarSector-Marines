@@ -120,6 +120,10 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     private final CordonLogistics depot;
     /** The tick each squad's lift was last called off, by squad. */
     private final Map<Integer, Integer> calledOff = new HashMap<>();
+    /** Whether each squad walking to its duty is getting there. */
+    private final CordonCompanyRules.Progress progress = new CordonCompanyRules.Progress();
+    /** The duty each squad that stalled on it is kept off, and until which tick, by squad. */
+    private final Map<Integer, Barred> barred = new HashMap<>();
     /** The posture's raids at the bores, or {@code null} for a commander that never raids. */
     private final CordonStrikes strikes;
 
@@ -131,6 +135,9 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         this.depot = depot;
         this.strikes = strikes;
     }
+
+    /** A duty a squad stalled on, and the tick it may take it again. */
+    private record Barred(String key, int until) { }
 
     @Override public Faction faction() { return Faction.MARINE; }
     @Override public String strategyId() { return ISSUER; }
@@ -154,7 +161,22 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         // A squad on strike is never drawn for a duty: the gate already counted what it leaves behind.
         for (CommandSquadState s : owned) {
             if (striking.contains(s.squadId())) continue;
-            squads.add(new Squad(s.squadId(), s.centroidX(), s.centroidY(), onDuty.get(s.squadId())));
+            int id = s.squadId();
+            String key = onDuty.get(id);
+            Duty on = null;
+            for (Duty d : duties) if (d.key().equals(key)) on = d;
+            if (on == null) progress.forget(id);
+            else if (progress.stalled(id, key, Math.hypot(on.x() - s.centroidX(), on.y() - s.centroidY()),
+                    frame.lifting.containsKey(id), frame.tick())) {
+                // Rule 11: it is not getting there; the duty goes to the next nearest, and it stays off it a while.
+                barred.put(id, new Barred(key, frame.tick() + CordonCompanyRules.BARRED_TICKS));
+            }
+            Barred bar = barred.get(id);
+            if (bar != null && bar.until() <= frame.tick()) {
+                barred.remove(id);
+                bar = null;
+            }
+            squads.add(new Squad(id, s.centroidX(), s.centroidY(), key, s.machine(), bar == null ? null : bar.key()));
         }
         Map<Integer, Duty> assigned = CordonCompanyRules.assign(duties, squads,
                 CordonCompanyRules.reserveFloor(owned.size(), frame.tide));
