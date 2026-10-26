@@ -23,6 +23,9 @@ public interface SideTrigger {
     /** Where it must go, for its beacon; null for a job done in place. */
     default Ground destination() { return null; }
 
+    /** Whether the destination is marked before the work begins; an escort marks it once the unit is under escort. */
+    default boolean destinationShownIdle() { return true; }
+
     /** Seconds of unbroken work so far, for a timed job; -1 when untimed. */
     default float worked() { return -1f; }
 
@@ -134,5 +137,6 @@ public interface SideTrigger {
         }
 
         @Override public Ground destination() { return destination; }
+        @Override public boolean destinationShownIdle() { return false; }
     }
 }
