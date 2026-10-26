@@ -1674,7 +1674,8 @@ SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else
 READABLE = {'borer': 2.5}
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
-ATTACH_TOL_M = 1.0              # how far a turret mount or effects copy may sit off its hull (attachment_lint)
+ATTACH_TOL_M = 1.5              # how far a turret mount or effects copy may sit off its hull (attachment_lint): a
+                                # Colossus head tipped 65 deg on its trunnions carries its mount 1.0 m
 
 
 # ======================================================================================= Blender
@@ -2450,44 +2451,45 @@ def blender_main(cfg):
     def attachment_lint(kf):
         """Nothing attached to a hull floats off it (owner, 2026-10-26, a standing safeguard): every
         turret mount (a '<mount> pivot' joint) drawn this frame, in her hull copy and in her kit copy,
-        where her placement puts that mount at rest in her build, and every ship's effects copy on her
-        hull. Training turns a pivot about itself, so its place never moves. Measured against the
-        library build, never the drawn copy's own chain: S8-S9's Colossus fired from four turrets
+        sits where its own parent joint, as drawn, carries it at its build's rest offset, and every
+        ship's effects copy sits on her hull. The parent's training, a wreck section's drift and the
+        hull's placement all move the parent too, so only a broken link reads. Measured against the
+        library build's offsets, never the drawn copy's own: S8-S9's Colossus fired from four turrets
         hanging off her hull while a check against the copy's own parents read 0.000 m."""
         bpy.context.view_layer.update()
         hulls = {o.name: o for o in stage_ships.objects if o.name.startswith('Ship | ')}
-        rest = {}
+        rest = {}            # (key, joint) -> (its parent's name, its rest offset in that parent's frame)
         for key in placed:
             for o in placed[key]['lib']['coll'].all_objects:
                 name = ship_fx.base_name(o.name)
-                if name.endswith(' pivot'):
-                    rest[(key, name)] = chain(o).translation.copy()
-        worst, n, far = (0.0, None), 0, []
+                if name.endswith(' pivot') and o.parent is not None:
+                    rest[(key, name)] = (ship_fx.base_name(o.parent.name),
+                                         (chain(o.parent).inverted() @ chain(o)).translation.copy())
+        drawn, joints = {}, []
         for inst in bpy.context.evaluated_depsgraph_get().object_instances:
-            if not inst.is_instance:
+            if not inst.is_instance or inst.parent is None:
                 continue
             ob = inst.object.original
-            name, at_ = ship_fx.base_name(ob.name), re.search(r' @([\w-]+)$', ob.name)
-            key = at_.group(1) if at_ else next((h[7:] for h in [inst.parent.original.name]
-                                                 if inst.parent is not None and h in hulls), None)
-            hull = hulls.get(f'Ship | {key}')
-            if hull is None or (key, name) not in rest:
+            at_ = re.search(r' @([\w-]+)$', ob.name)
+            top = inst.parent.original.name
+            key = at_.group(1) if at_ else (top[7:] if top in hulls else None)
+            if key is None:
                 continue
-            off = (inst.matrix_world.translation - hull.matrix_world @ rest[(key, name)]).length
+            name = ship_fx.base_name(ob.name)
+            drawn[(top, name)] = inst.matrix_world.copy()
+            if (key, name) in rest:
+                joints.append((top, key, name, inst.matrix_world.translation.copy()))
+        worst, n, far = (0.0, None), 0, []
+        for top, key, name, at in joints:
+            parent, off_l = rest[(key, name)]
+            pm = drawn.get((top, parent))
+            if pm is None:
+                continue
+            off = (at - pm @ off_l).length
             n += 1
             worst = max(worst, (off, f'{key} {name}'), key=lambda w: w[0])
             if off > ATTACH_TOL_M:
                 far.append(f'{key} {name} {off:.1f} m')
-                if len(far) == 1:            # the first one's chain, joint by joint: which link moved it
-                    o_, rows_ = ob, []
-                    while o_ is not None:
-                        b_, i_ = o_.matrix_basis, o_.matrix_parent_inverse
-                        rows_.append(f'{ship_fx.base_name(o_.name)}: basis {tuple(round(v, 1) for v in b_.translation)} '
-                                     f'rot {tuple(round(math.degrees(v)) for v in b_.to_euler())} parent-inverse '
-                                     f'{tuple(round(v, 1) for v in i_.translation)} '
-                                     f'rot {tuple(round(math.degrees(v)) for v in i_.to_euler())}')
-                        o_ = o_.parent
-                    print(f'ASHARU attached {kf} chain of {key} {name}: ' + ' <- '.join(rows_), flush=True)
         for o in stage_fx.objects:
             hull = hulls.get('Ship | ' + o.name[len('Ship fx | '):]) if o.name.startswith('Ship fx | ') else None
             if hull is not None:
