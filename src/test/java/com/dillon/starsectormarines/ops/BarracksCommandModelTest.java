@@ -73,25 +73,6 @@ class BarracksCommandModelTest {
         assertEquals(0, roster.vacancies(squads.get(1)));
     }
 
-    @Test void awayFromAPortTheRaiseTileRefusesAndSaysWhy() {
-        var roster = new MarineRoster();
-        var lieutenant = new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f);
-        roster.add(lieutenant);
-        TestStores stores = TestStores.forSquads(1).away();
-        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
-                stores, () -> 0, id -> new PersonnelDrawResult(0, 0)).command();
-        model.selectCommand(lieutenant.id());
-        var tile = raiseTile(model);
-        assertEquals(true, tile.get("founderDisabled"));
-        @SuppressWarnings("unchecked")
-        var costs = (List<Map<String, Object>>) tile.get("founderCosts");
-        assertEquals("barracks-raise-cost:port", costs.get(costs.size() - 1).get("id"));
-        int squads = roster.squads().size();
-        model.raiseSquad();
-        assertEquals(squads, roster.squads().size());
-        assertEquals(0, stores.spends);
-    }
-
     @Test void raiseTileIsTheLastTileAndUnaffordableStoresDisableIt() {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);

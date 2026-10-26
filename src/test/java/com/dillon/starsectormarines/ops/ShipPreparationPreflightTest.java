@@ -32,7 +32,6 @@ class ShipPreparationPreflightTest {
         SquadFoundingResources stores = new SquadFoundingResources() {
             @Override public int available(String id) { return Commodities.MARINES.equals(id) ? marines[0] : 100; }
             @Override public long credits() { return purse.credits; }
-            @Override public boolean atMarket() { return true; }
             @Override public String commodityName(String id) { return id; }
             @Override public String commodityIcon(String id) { return ""; }
             @Override public boolean spend(SquadFoundingCost cost) { fail("Preflight must not consume cargo"); return false; }

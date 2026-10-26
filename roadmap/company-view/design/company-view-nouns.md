@@ -64,9 +64,9 @@ shared mapping instead of assigning paths independently in each screen.
   board, that takes twelve Marines out of cargo and one credit price for their stores
   (the 36 supplies and 24 food it was once billed in, at their base prices: Price)
   before creating a full named line formation under an officer with a free command
-  slot. Like every purchase it needs a Civilized port. Its live bill (credits, then
-  marines, then NO PORT when away) stays on that tile; a partial bill creates neither
-  personnel nor squad identity. Barracks is the only place a squad is founded.
+  slot. Unlike the workshops' purchases it needs no port (owner): a squad can be raised
+  anywhere. Its live bill (credits, then marines) stays on that tile; a partial bill
+  creates neither personnel nor squad identity. Barracks is the only place a squad is founded.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
 - **Seat kit** — what one marine carries: exactly what the squad's cards issue
@@ -152,9 +152,14 @@ shared mapping instead of assigning paths independently in each screen.
   for is an **AI core**: a refit tier that needs an alpha, beta or gamma core still
   takes it from fleet cargo beside its credits (`RefitOrder.cores`).
 - **Civilized port** — where the company can buy: the fleet docked at a visible,
-  populated colony with a spaceport (disrupted or not) whose owner is not hostile
-  (`CivilizedPort`). Hidden pirate and Pather bases, derelicts, bare worlds and
-  hostile ports are not. Buying a part or a machine, building a boat, refitting
+  populated colony with a spaceport (disrupted or not) that the base game would let
+  the player trade with (`CivilizedPort`). The company never re-derives that: vanilla's
+  docking rules (`MarketPostOpen` in `rules.csv`, weighing transponder, standing and
+  patrols) leave the dialog-local `$tradeMode`, and the port buys when it is `OPEN`,
+  or `SNEAK` at a market with a black market, exactly where vanilla's own submarkets
+  open (`BaseSubmarketPlugin.isEnabled`). So a hostile port sells through its black
+  market to a fleet that came in dark, and refuses one it turned away. Hidden pirate
+  and Pather bases, derelicts and bare worlds are not civilized. Buying a part or a machine, building a boat, refitting
   with a newly bought part and expediting a repair need one; away from it the
   rooms say why and BUY refuses (`NO_MARKET`). Fitting, stripping and moving what is
   already in stores, recycling and scrapping work anywhere, so a company heading

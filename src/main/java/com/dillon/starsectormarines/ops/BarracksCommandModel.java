@@ -541,17 +541,14 @@ public final class BarracksCommandModel {
         row.put("founderId", id);
         for (String part : List.of("Heading", "Title", "Middle", "Emblem", "EmblemIcon", "Destination", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
-        boolean ready = shown && raiseCommander() != null && foundingResources.canBuy(SquadFoundingCost.STANDARD);
+        boolean ready = shown && raiseCommander() != null && foundingResources.canAfford(SquadFoundingCost.STANDARD);
         row.put("founderClasses", shown ? "raise-squad" : "hidden");
         row.put("founderDisabled", !ready);
         row.put("raise", shown ? (Runnable) this::raiseSquad : (Runnable) () -> { });
         row.put("founderDestination", shown ? raiseDestination() : "");
         row.put("founderCosts", shown ? foundingCostRows() : List.of());
     }
-    /**
-     * The whole founding bill as one line of icons and counts, the price for its stores and then its marines;
-     * a short item is marked, and away from a civilized port a last item says there is nowhere to buy.
-     */
+    /** The whole founding bill as one line of icons and counts, the price for its stores and then its marines; a short item is marked. */
     private List<Map<String, Object>> foundingCostRows() {
         SquadFoundingCost cost = SquadFoundingCost.STANDARD;
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -561,12 +558,6 @@ public final class BarracksCommandModel {
             rows.add(foundingCostRow(line.commodityId(), foundingResources.commodityIcon(line.commodityId()),
                     CompanyResources.number(line.quantity()),
                     foundingResources.available(line.commodityId()) < line.quantity()));
-        }
-        if (!foundingResources.atMarket()) {
-            Map<String, Object> port = foundingCostRow("port", "graphics/ui/company/port-away.svg",
-                    Strings.get("fabricationNoPortShort"), true);
-            port.put("classes", "raise-cost short port");
-            rows.add(port);
         }
         return rows;
     }
@@ -605,11 +596,6 @@ public final class BarracksCommandModel {
             return;
         }
         SquadFoundingWorkshop.Result result = founding.foundSquad();
-        if (result.status() == SquadFoundingWorkshop.Status.NO_MARKET) {
-            feedback = Strings.get("openingBarracksCommandRaiseSquadNoPort");
-            refresh();
-            return;
-        }
         if (!result.succeeded()) {
             feedback = Strings.get("openingFleetArmoryInsufficientCargoTheCompleteFoundingBillMust");
             refresh();

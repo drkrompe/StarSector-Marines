@@ -22,7 +22,8 @@ import java.util.List;
  * shoots and how it stands under acid), and once on a Broad Front town battle (arid, seed 3) after its own satellites
  * are down, going to one the lanes left standing ({@code company-helps}). Each stands the battle up and plays it to the
  * shot unrecorded; opt-in. {@code lance-standoff} follows the company's mech lance on Broad Front verdant 3 as the
- * Brutes reach it, stepping back from their charges.
+ * Brutes reach it, stepping back from their charges. {@code frozen5-endgame} watches Broad Front frozen 5's last mother
+ * fall.
  */
 public final class HeartCompanyLookSuite implements SnapshotSuite {
 
@@ -47,6 +48,9 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
     /** The open-country battle whose lance the Brutes caught before the stand-off (2026-10-25), and the lance's squad. */
     static final String LANCE_FIXTURE = HELP_FIXTURE.replace("\"ARID\"", "\"VERDANT\"").replace(",\"density\":\"TOWN\"", "");
     static final int LANCE_SQUAD = 30;
+    /** Broad Front frozen 5, which the company and the lanes win together (2026-10-26), and its last mother's cell. */
+    static final String FROZEN_FIXTURE = LANCE_FIXTURE.replace("\"VERDANT\"", "\"FROZEN\"").replace("\"seed\":3", "\"seed\":5");
+    static final float[] MOTHER_1 = {371.5f, 312.5f};
 
     @Override public String id() { return "heart-company-look"; }
 
@@ -69,8 +73,27 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
             if (only.isEmpty() || only.contains("lance"))
                 out.addAll(LookReview.record(context.modRoot(), shot("lance-standoff", LANCE_FIXTURE, LANCE_SQUAD,
                         LookGround.verdant(), 6500, 900, 50f)));
+            if (only.isEmpty() || only.contains("endgame"))
+                out.addAll(LookReview.record(context.modRoot(), watch("frozen5-endgame", FROZEN_FIXTURE,
+                        LookGround.of(SurfacePalette.FROZEN, 5), 24500, 900, MOTHER_1[0], MOTHER_1[1], 60f)));
             return out;
         }
+    }
+
+    /** {@code fixture} played unrecorded to {@code fromTick}, then {@code ticks} recorded on a fixed camera at {@code (x, y)}. */
+    static LookReview.Shot watch(String name, String fixture, LookGround ground, int fromTick, int ticks,
+                                 float x, float y, float cellsAcross) {
+        return new LookReview.Shot(name, ground, 40, 30, placement -> {
+            BattleSimulation sim;
+            try {
+                sim = HeadlessBattles.fixture(new JSONObject(fixture));
+            } catch (Exception e) {
+                throw new IllegalStateException("heart fixture", e);
+            }
+            while (sim.getSimTickIndex() < fromTick) sim.advance(BattleSimulation.TICK_DT);
+            System.out.printf("    [look/%s] at tick %d%n", name, sim.getSimTickIndex());
+            return sim;
+        }, placement -> List.of(LookReview.View.close("play", x, y, cellsAcross)), ticks, 6, 4);
     }
 
     /** {@code fixture} played unrecorded to {@code fromTick}, then {@code ticks} recorded {@code cellsAcross} wide on {@code squad}. */
