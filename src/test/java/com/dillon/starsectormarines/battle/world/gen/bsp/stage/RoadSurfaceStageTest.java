@@ -101,6 +101,23 @@ class RoadSurfaceStageTest {
         assertEquals(new Random(7).nextLong(), ctx.rng.nextLong());
     }
 
+    @Test void streetFurnitureKeepsTheStreetUnderIt() {
+        var ctx = city();
+        // A lamp on the carriageway and a bollard on the kerb: fixtures, so not walkable.
+        for (int[] at : new int[][]{{20, 6}, {22, 8}}) {
+            ctx.grid.setWalkable(at[0], at[1], false);
+            ctx.grid.setSeeThrough(at[0], at[1], true);
+            ctx.topology.setFixture(at[0], at[1], true);
+        }
+
+        new RoadSurfaceStage().run(ctx);
+
+        var surface = ctx.topology.roadSurface();
+        assertTrue(area(surface.patch(20, 6, 0)) > 1 - 1e-6, "the asphalt runs on under a lamp in the street");
+        assertTrue(concrete(ctx, surface, 22, 8), "the sidewalk runs on under a bollard on the kerb");
+        assertFalse(ctx.grid.isWalkable(20, 6), "a finish never moves a fixture");
+    }
+
     @Test void aStreetIsPaddedWithSidewalkOutToWhateverItMeets() {
         var ctx = city();
         new RoadSurfaceStage().run(ctx);

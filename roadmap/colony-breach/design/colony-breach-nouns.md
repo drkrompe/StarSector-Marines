@@ -2336,7 +2336,8 @@ argument.
   is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed. A maw may draw a
-  Bombard (`bombard.md`), at a small weight and at most one living per bore.
+  Bombard (`bombard.md`), at a small weight, at most one living per bore and
+  three across the battle, at the bores nearest the line (`BombardQuota`).
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
   the map: a seated gun that answers fliers (an anti-air position, or any gun

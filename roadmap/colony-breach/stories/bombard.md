@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: IN PROGRESS — steps 1 to 4 (the spore haze, the body and the lob, the counters, the look) are built; steps 1 to 3 are scene-tested.
+Status: IN PROGRESS — steps 1 to 4 (the spore haze, the body and the lob, the counters, the look) are built, steps 1 to 3 scene-tested, and the probe (step 6) read on Cordon and Colony Breach with the battle cap in. The sound (step 5) is with the creature sound session.
 
 Written: 2026-10-25
 
@@ -73,7 +73,9 @@ line. It spoils its aim, so the Runners get across.
   shell wears by the Matriarch's worn-chitin law. When it dies, the sac
   bursts into one last small haze where it falls.
 - **Rarity.** Drawn from a bore's strain table at **maw tier only**, at a small
-  weight, and at most **one living Bombard per bore**. An old bloom's nests may
+  weight, at most **one living Bombard per bore**, and at most **three across the
+  battle** (`BombardQuota`), drawn only by the three such bores nearest the line;
+  one that dies frees its place, so the long arm regrows. An old bloom's nests may
   stand with one at setup. In a fresh Colony Breach it appears only once a bore
   has been fed to maw, as part of the feeding ramp.
 - **The tell.** Everything shows on the creature and in the air: the tail
@@ -157,14 +159,18 @@ prompts and provenance.
    creep. The globs hazed 81 troops, who stepped out in about two seconds on
    average; each throw gave a launch reveal; 10 of 409 allied air calls went at
    planted Bombards, and 8 Bombards died under one. Ground fire almost never
-   reaches them. Colony Breach v1: 7 fielded, 2 globs, 3 troops hazed. Open: the
-   one-per-bore cap, not the slot's weight, sets how many there are.
+   reaches them. Colony Breach v1: 7 fielded, 2 globs, 3 troops hazed. The
+   one-per-bore cap, not the slot's weight, set how many there were.
    The air gap was a bug: the launch reveal reached only the player's fog, so the
    strike director could designate a Bombard only on an operator's own sight,
    and they plant beyond it. A revealed Bombard is now remembered while it stays
    planted and called on belief, at a score above all but a dense pack: over
    the same seeds, air calls on Bombards rose from 10 to 65 and Bombards killed
    under one from 8 to 25 (35 held, 1 broken).
+   The owner picked a few at once (`bombard-count`): with the battle cap of
+   three, at most 3 alive in every battle, 122 fielded over the 36 seeds with
+   regrowth, 59 globs (81 uncapped), 48 troops hazed, 49 air calls on them;
+   33 held, 3 broken.
 
 ## Acceptance
 

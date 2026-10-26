@@ -84,7 +84,7 @@ public final class IndustrialZoneProgram implements DistrictProgram {
      * a smaller seed is left to claim its neighbour as it would have, and the zone looks along another street.
      */
     static boolean eligible(BlockLeaf leaf) {
-        if (leaf.kind == BlockKind.FACTORY_ROW) return Math.max(leaf.width(), leaf.height()) >= FactoryRow.DEPTH;
+        if (leaf.kind == BlockKind.FACTORY_ROW) return Math.max(leaf.width(), leaf.height()) >= FactoryRow.SHALLOW;
         return KINDS.contains(leaf.kind);
     }
 
@@ -154,7 +154,8 @@ public final class IndustrialZoneProgram implements DistrictProgram {
      * neighbour: the seed then stays outside, to claim as it would have. Without {@code join} no neighbouring
      * pair is joined: the plan falls back to that where a joined cross street would cut a way in. The freight-yard parcel stays a yard
      * and the row's seed a row. Where the street has neither, the largest member that holds one alone takes
-     * it, else the neighbouring pair whose joined ground holds it. The rest are warehouses where deep and wide
+     * it, else the neighbouring pair whose joined ground holds it; the yard takes its ground first unless the row
+     * first hosts both. The rest are warehouses where deep and wide
      * enough and depots where not, alternating tank farm and vehicle depot along the street; where every one of
      * them would be a warehouse and there are two or more, the smallest becomes a depot. A guard post keeps its
      * hardpoint.
@@ -177,8 +178,15 @@ public final class IndustrialZoneProgram implements DistrictProgram {
             if (ground == null) return null;
             for (BlockLeaf m : ground) roles.put(m, District.Role.FACTORY_ROW);
         }
+        // The yard takes the largest ground first; where that leaves the row none, the row first may host both.
+        Map<BlockLeaf, District.Role> rowFirst = new IdentityHashMap<>(roles);
         host(spine, roles, District.Role.FREIGHT_YARD, FreightYard.Size.STANDARD::fits, join, stands);
         host(spine, roles, District.Role.FACTORY_ROW, FactoryRow::fits, join, stands);
+        if (hosted(roles) < 2) {
+            host(spine, rowFirst, District.Role.FACTORY_ROW, FactoryRow::fits, join, stands);
+            host(spine, rowFirst, District.Role.FREIGHT_YARD, FreightYard.Size.STANDARD::fits, join, stands);
+            if (hosted(rowFirst) > hosted(roles)) roles = rowFirst;
+        }
         List<BlockLeaf> warehouses = new ArrayList<>(), depots = new ArrayList<>();
         for (BlockLeaf leaf : spine.members()) {
             if (roles.containsKey(leaf)) continue;
@@ -201,6 +209,12 @@ public final class IndustrialZoneProgram implements DistrictProgram {
             roles.put(leaf, depot++ % 2 == 0 ? District.Role.TANK_FARM : District.Role.VEHICLE_DEPOT);
         }
         return roles;
+    }
+
+    /** How many of the freight yard and the factory row {@code roles} hosts. */
+    private static int hosted(Map<BlockLeaf, District.Role> roles) {
+        return (roles.containsValue(District.Role.FREIGHT_YARD) ? 1 : 0)
+                + (roles.containsValue(District.Role.FACTORY_ROW) ? 1 : 0);
     }
 
     /**

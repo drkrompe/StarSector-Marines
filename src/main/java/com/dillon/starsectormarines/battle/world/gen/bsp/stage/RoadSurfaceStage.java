@@ -152,6 +152,18 @@ public final class RoadSurfaceStage implements GenStage {
                 && !ctx.isMadeGround(x, y) && kind != GroundKind.INDOOR;
     }
 
+    /**
+     * Open city ground, or street furniture standing on it (a lamp, a hedgehog, a parked van): a fixture is not
+     * walkable, but the street runs on under it, so the finish reaches under it rather than leaving the old paving
+     * showing round the prop.
+     */
+    private static boolean streetGround(GenContext ctx, int x, int y) {
+        if (outdoorOpen(ctx, x, y)) return true;
+        return ctx.topology.isFixture(x, y) && !ctx.topology.isWall(x, y) && !ctx.topology.hasBuildingKindHint(x, y)
+                && !ctx.grid.isDoorway(x, y) && !ctx.isMadeGround(x, y)
+                && ctx.topology.getGroundKind(x, y) != GroundKind.INDOOR;
+    }
+
     /** The widest sidewalk flank a side street's mouth crosses (a primary trunk's is two). */
     static final int MOUTH_DEPTH = 3;
 
@@ -189,7 +201,7 @@ public final class RoadSurfaceStage implements GenStage {
 
     private static boolean flank(GenContext ctx, int x, int y) {
         return ctx.topology.getGroundKind(x, y) == GroundKind.SIDEWALK && ctx.topology.getSurface(x, y) == 0
-                && outdoorOpen(ctx, x, y) && !kerb(ctx, x, y);
+                && streetGround(ctx, x, y) && !kerb(ctx, x, y);
     }
 
     /**
@@ -240,7 +252,7 @@ public final class RoadSurfaceStage implements GenStage {
     static boolean footway(GenContext ctx, int x, int y) {
         var kind = ctx.topology.getGroundKind(x, y);
         return (kind == GroundKind.STREET || kind == GroundKind.SIDEWALK) && ctx.topology.getSurface(x, y) == 0
-                && outdoorOpen(ctx, x, y);
+                && streetGround(ctx, x, y);
     }
 
     /**
@@ -250,7 +262,7 @@ public final class RoadSurfaceStage implements GenStage {
      */
     static boolean carriageway(GenContext ctx, int x, int y) {
         return ctx.topology.getGroundKind(x, y) == GroundKind.STREET && ctx.topology.getSurface(x, y) == 0
-                && outdoorOpen(ctx, x, y) && !kerb(ctx, x, y);
+                && streetGround(ctx, x, y) && !kerb(ctx, x, y);
     }
 
     private static boolean kerb(GenContext ctx, int x, int y) {

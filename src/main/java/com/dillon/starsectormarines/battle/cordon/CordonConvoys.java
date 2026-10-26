@@ -58,8 +58,8 @@ public final class CordonConvoys {
     static final int SPACING = 8;
     /** Corridor cells past the entry a truck may be set down at, for ground it can set out from. */
     static final int SET_DOWN_REACH = 8;
-    /** Ticks a convoy waits at the gate while its people board. */
-    static final int LOADING_TICKS = 60 * 30;
+    /** Ticks a convoy waits at the gate while its people board: thirty seconds. */
+    static final int LOADING_TICKS = Math.round(30f / BattleSimulation.TICK_DT);
     /**
      * Corridor cells in from the rear edge a truck comes on at, and leaves from, with no base on the
      * road: a hull set down on the edge row has no route out of it.
@@ -85,8 +85,8 @@ public final class CordonConvoys {
     static final int ESCORT_LEAD = 14;
     /** Corridor cells in each stretch the road's route is proved over. */
     static final int STRETCH = 30;
-    /** Ticks a truck may make no headway along an open route before it is given a way on again. */
-    static final int STUCK_TICKS = 60 * 5;
+    /** Ticks (five seconds) a truck may make no headway along an open route before it is given a way on again. */
+    static final int STUCK_TICKS = Math.round(5f / BattleSimulation.TICK_DT);
     /**
      * Ticks past its loading a convoy waits at the gate for a truck still on its way there before it turns for home
      * without it: the straggler is given none of the people and drives back empty.

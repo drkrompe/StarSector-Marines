@@ -14,11 +14,11 @@ class FactoryRowTest {
 
     @Test
     void everyPoseLaysTheWholeFootprintOnceAndOpensBothGatesOutward() {
-        for (int length : FactoryRow.LENGTHS) {
+        for (int depth : FactoryRow.DEPTHS) for (int length : FactoryRow.LENGTHS) {
             for (int turn = 0; turn < 4; turn++) {
-                FactoryRow.Pose pose = new FactoryRow.Pose(10, 20, turn, length);
+                FactoryRow.Pose pose = new FactoryRow.Pose(10, 20, turn, length, depth);
                 Set<Long> cells = new HashSet<>();
-                for (int y = 0; y < FactoryRow.DEPTH; y++) {
+                for (int y = 0; y < depth; y++) {
                     for (int x = 0; x < length; x++) {
                         int[] c = pose.cell(x, y);
                         assertTrue(c[0] >= 10 && c[0] < 10 + pose.width() && c[1] >= 20 && c[1] < 20 + pose.height(),
@@ -26,7 +26,7 @@ class FactoryRowTest {
                         cells.add(key(c));
                     }
                 }
-                assertEquals(length * FactoryRow.DEPTH, cells.size(), length + "/" + turn + " laid a cell twice");
+                assertEquals(length * depth, cells.size(), length + "/" + turn + " laid a cell twice");
                 assertFalse(cells.contains(key(pose.cell(-1, FactoryRow.CENTRE))), length + "/" + turn + " gate A inward");
                 assertFalse(cells.contains(key(pose.cell(length, FactoryRow.CENTRE))), length + "/" + turn + " gate B inward");
             }
@@ -55,6 +55,40 @@ class FactoryRowTest {
                 }
             }
         }
+    }
+
+    @Test
+    void theShallowRowClosesItsFarWallWithMachineryAndKeepsTheLaneClear() {
+        int depth = FactoryRow.SHALLOW;
+        for (int length : FactoryRow.LENGTHS) {
+            for (int y = FactoryRow.HALL; y < FactoryRow.POCKET; y++) {
+                for (int x = 0; x < length; x++) {
+                    assertFalse(FactoryRow.wall(length, depth, x, y), "wall in the lane at " + x + "," + y);
+                    assertNull(FactoryRow.machinery(length, depth, x, y), "machinery in the lane at " + x + "," + y);
+                }
+            }
+            int machines = 0;
+            for (int x = 0; x < length; x++) {
+                String machine = FactoryRow.machinery(length, depth, x, depth - 1);
+                // Every far-wall cell is wall or machinery, never both and never open.
+                assertTrue(FactoryRow.wall(length, depth, x, depth - 1) != (machine != null), "far wall open at " + x);
+                assertEquals(machine, FactoryRow.machinery(length, depth, length - 1 - x, depth - 1));
+                if (machine != null) machines++;
+            }
+            assertTrue(machines >= 2, "no machinery at length " + length);
+            assertTrue(FactoryRow.wall(length, depth, 0, depth - 1) && FactoryRow.wall(length, depth, length - 1, depth - 1));
+        }
+        // The full row keeps its machinery in the pockets, not in its wall.
+        for (int x = 0; x < 20; x++) assertNull(FactoryRow.machinery(20, FactoryRow.DEPTH, x, FactoryRow.DEPTH - 1));
+    }
+
+    @Test
+    void aLotHoldsARowWhereItIsAsDeepAsTheShallowRow() {
+        int shortest = FactoryRow.LENGTHS[FactoryRow.LENGTHS.length - 1];
+        assertTrue(FactoryRow.fits(shortest, FactoryRow.SHALLOW));
+        assertTrue(FactoryRow.fits(FactoryRow.SHALLOW, shortest));
+        assertFalse(FactoryRow.fits(shortest, FactoryRow.SHALLOW - 1));
+        assertFalse(FactoryRow.fits(shortest - 1, FactoryRow.DEPTH));
     }
 
     @Test
