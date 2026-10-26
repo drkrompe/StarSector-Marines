@@ -1,0 +1,31 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "military-radar-dish.png": {
+      "id": "doodad.listening-dish",
+      "name": "Listening dish",
+      "description": "A listening post's dish on its turntable, four cells across: the radar dish master drawn at an installation's scale. Stand-in until a dish of its own is drawn.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [4, 4],
+      "order": 1
+    },
+    "industrial-fluid-tank.png": {
+      "id": "doodad.oxygen-sphere",
+      "name": "Oxygen sphere",
+      "description": "A pressurised gas sphere on its valve manifold, two cells across: the fluid tank master at a store's scale. Oxygen or fuel for a post on airless ground.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [2, 2],
+      "order": 2
+    }
+  }
+}

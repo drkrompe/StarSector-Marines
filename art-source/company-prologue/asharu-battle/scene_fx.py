@@ -768,8 +768,12 @@ class SceneFx:
         elev['elevation_synthesized'] = True
         inv = elev.matrix_basis.inverted()
         for ch in [c for c in piv.children if c is not elev]:
+            # read before reparenting: assigning .parent clears the parent inverse, and on a build
+            # whose parts carry their pivot's inverse (the Colossus's) that drew each head at twice
+            # its mount's offset from the hull origin (S8-S9, 38-52 m off her hull, firing)
+            mpi = ch.matrix_parent_inverse.copy()
             ch.parent = elev
-            ch.matrix_parent_inverse = inv @ ch.matrix_parent_inverse
+            ch.matrix_parent_inverse = inv @ mpi
         msg = (f'WARNING: elevation joint made for the {piv.name} of {a} at {z:.2f} u above its train '
                f'axis: the build has none (the Hound builds have had one since 87356990e; update this build)')
         self.rows.append(msg)
