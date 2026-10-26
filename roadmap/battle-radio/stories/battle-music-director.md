@@ -59,9 +59,9 @@ Until quiet and alert tracks are sourced:
 
 - **quiet**: a bed, never silence (owner, 2026-10-26: "we need pre-battle
   music"). Interim: the Marine Ops theme, `marines_intel_music`, played as
-  `marines_intel_music_bed` at full volume because it is mastered about 17 dB
-  under the combat pool. It sits about 12 dB under combat and fades out over
-  the raise crossfade at the alarm. The owner picks the real bed: this
+  `marines_intel_music_bed`, about 5 dB under the combat pool (music is
+  encoded to one loudness). It fades out over the raise crossfade at the
+  alarm. The owner picks the real bed: this
   theme, the arrival's strings score, or a track from the Eternity pack;
 - **alert**: the quiet bed if one exists, otherwise combat at reduced volume,
   if the host can set music volume;
