@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftCompany,liftCompanyClasses,liftMission,liftMissionClasses,liftMachines">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -212,6 +212,33 @@
                       </button>
                     </div>
                   </div>
+              </div>
+            </div>
+            <!-- Armor lift: what the company's boats and the mission lift, and each bay machine drawn as the battle's damage doll. -->
+            <div id="mission-lift-block" class="{liftClasses}">
+              <div id="mission-lift-heading" class="deck-heading-row">
+                <div id="mission-lift-title" class="label heading tone-edge">{liftHeader}</div>
+                <div id="mission-lift-summary" class="{liftSummaryClasses}">{liftSummary}</div>
+              </div>
+              <div id="mission-lift-sources" class="lift-sources">
+                <div id="mission-lift-company" class="lift-source">
+                  <div id="mission-lift-company-label" class="label heading tone-muted lift-source-label">{i18n.briefingLiftCompanyLabel}</div>
+                  <div id="mission-lift-company-value" class="{liftCompanyClasses}">{liftCompany}</div>
+                </div>
+                <div id="mission-lift-mission" class="lift-source">
+                  <div id="mission-lift-mission-label" class="label heading tone-muted lift-source-label">{i18n.briefingLiftMissionLabel}</div>
+                  <div id="mission-lift-mission-value" class="{liftMissionClasses}">{liftMission}</div>
+                </div>
+              </div>
+              <div id="mission-lift-machines" class="lift-machines">
+                <div each="machine in liftMachines" key="{machine.id}" id="{machine.id}" class="lift-machine console-readout">
+                  <canvas id="{machine.dollId}" class="lift-machine-doll" width="166" height="118" />
+                  <div id="{machine.copyId}" class="lift-machine-copy">
+                    <div id="{machine.nameId}" class="label heading tone-edge lift-machine-name">{machine.name}</div>
+                    <div id="{machine.typeId}" class="label tone-muted lift-machine-type">{machine.type}</div>
+                    <div id="{machine.statusId}" class="{machine.statusClasses}">{machine.status}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -565,6 +592,17 @@
   .landing-craft-readout { flex-direction: row; align-items: center; height: 104px; padding: 4px; gap: 7px; background-color: transparent; }
   .landing-craft-copy { flex-direction: column; height: 96px; width: 0px; flex-grow: 1; gap: 2px; }
   #mission-carrier-list { height: 0px; flex-grow: 1; overflow: scroll; }
+  .lift-block { height: auto; gap: 6px; }
+  .lift-hidden { display: none; }
+  .lift-sources { flex-direction: column; height: auto; gap: 2px; }
+  .lift-source { flex-direction: row; align-items: center; height: 18px; gap: 10px; }
+  .lift-source-label { width: 120px; height: 16px; }
+  .lift-source-value { width: 0px; flex-grow: 1; height: 16px; white-space: nowrap; overflow: hidden; }
+  .lift-machines { display: grid; height: 176px; gap: 8px; overflow: scroll; width: 100%; }
+  .lift-machine { flex-direction: column; align-items: center; width: 174px; height: 170px; padding: 3px; gap: 2px; border-width: 1px; }
+  .lift-machine-doll { width: 166px; height: 118px; pointer-events: none; }
+  .lift-machine-copy { flex-direction: column; width: 166px; height: 44px; gap: 1px; }
+  .lift-machine-name, .lift-machine-type, .lift-machine-status { height: 14px; text-align: center; white-space: nowrap; overflow: hidden; }
   .mission-briefing-actions { flex-direction: row; height: 40px; padding: 8px; gap: 14px; border-width: 0px; overflow: hidden; }
   .mission-briefing-actions button { flex-direction: row; align-items: center; width: 158px; flex-grow: 0; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; height: 30px; }
   #mission-briefing-back { width: 114px; }

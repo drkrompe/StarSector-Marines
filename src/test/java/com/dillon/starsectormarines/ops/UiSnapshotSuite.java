@@ -1372,7 +1372,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return renderMissionBriefing(context, renderer, width, height, props, uiScale, scrolled, null);
     }
 
-    private static BufferedImage renderMissionBriefing(
+    static BufferedImage renderMissionBriefing(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, Map<String, Object> props, float uiScale,
             boolean scrolled, String hintTarget) throws Exception {
@@ -1393,6 +1393,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
+            BriefingLift.install(document, instance, props, Strings::get);
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
                         MechLabDollCanvas::headlessAssets);
