@@ -35,15 +35,17 @@ public final class SideObjectiveRows {
         List<Marker> markers = new ArrayList<>();
         SideTrigger.Spot target = trigger.target(field);
         Ground destination = trigger.destination();
-        // A moving thing is marked while the job is open; a place done in is marked to the end.
+        // A moving thing is marked while the job is open, a place done in to the end; where it goes, while it is open.
         if (target != null && (destination == null || !state.isFinal()))
             markers.add(new Marker(id(job) + "-target", hook.target(), target.x(), target.y(), phase, shown, target.outline()));
-        if (destination != null) markers.add(new Marker(id(job) + "-destination", hook.destination(),
+        if (destination != null && !state.isFinal() && (state == SideObjective.State.WORKING || trigger.destinationShownIdle()))
+            markers.add(new Marker(id(job) + "-destination", hook.destination(),
                 destination.anchor().x(), destination.anchor().y(), Strings.get(hook.prefix() + "DestinationStatus"), shown,
                 destination.outline()));
         markers.addAll(job.context());
-        return new Item(id(job), hook.name(), shown, phase, hook.steps(), phase,
-                timed ? MissionObjectiveFamilies.timed(hook.timer(), trigger.worked(), trigger.required()) : phase,
+        String offeredBy = Strings.format("sideObjectiveOfferedBy", hook.offerer());
+        return new Item(id(job), hook.name(), shown, phase, hook.steps(), offeredBy,
+                timed ? MissionObjectiveFamilies.timed(hook.timer(), trigger.worked(), trigger.required()) : offeredBy,
                 timed ? trigger.worked() / trigger.required() : -1, "", markers,
                 markers.isEmpty() ? "" : markers.get(0).id(), true);
     }

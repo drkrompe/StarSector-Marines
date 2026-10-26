@@ -1304,8 +1304,11 @@ support sortie, subject only to practical runtime resources.
   Motion follows the presentation clock without mutating campaign hardware.
   The complete well is the pointer target. Catalog art can be dragged onto a
   compatible mount, installed weapons can move to a compatible vacant mount, and
-  dropping them over stores returns them to finite inventory. The carried weapon
-  stays visible above the document; Escape or an outside drop cancels the gesture.
+  dropping them over stores returns them to finite inventory. A carried part
+  (weapon, internal or kit) is never drawn nowhere: over a socket that takes it,
+  or the one it came off, it is drawn snapped into that socket a little
+  translucent; anywhere else, a refusing socket included, it rides the pointer
+  above the document. Escape or an outside drop cancels the gesture.
   All commits use the atomic campaign refit commands. An explicit empty weapon
   mount remains empty in the frozen deployment and fixture serialization. An
   authored empty socket stays visible while an absent socket produces no well.

@@ -619,7 +619,7 @@ public final class BoatDeckViewModel {
                     vacant ? (deck.wreckInBerth(index) ? Strings.get("openingBoatDeckWreckedHermes") : Strings.get("openingBoatDeckEmptyBerth")) : boat.displayName(),
                     vacant ? (deck.wreckInBerth(index) ? Strings.get("openingBoatDeckOriginalShipSBoatAwaitingRepair") : buildablePattern()) : boat.pattern().displayName(),
                     vacant ? buildableBill() : boat.plating() != null ? boat.plating().displayName()
-                            : Strings.get("boatDeckSocketMissing"),
+                            : Strings.get("boatDeckBareHull"),
                     vacant ? "" : boat.flightReady(day()) ? boat.drive().displayName() : recoveryStatus(boat, day()),
                     () -> selectBoat(berth)));
         }
@@ -790,10 +790,12 @@ public final class BoatDeckViewModel {
     private String change(CampaignBoat boat, BoatFitting fitting) {
         ShuttleType pattern = boat.pattern();
         BoatFitting fitted = boat.fittingIn(fitting.slot());
-        // Against an empty socket the change is the whole part, measured from the stock one's figures.
+        // Against an empty socket the change is the whole part, measured from the stock one's figures,
+        // or, for plating, from the bare hull she flies with.
         BoatFitting installed = fitted != null ? fitted : BoatFitting.standard(fitting.slot());
+        float hullNow = fitted != null ? fitted.hullFactor() : FittedBoat.BARE_HULL_FACTOR;
         return switch (fitting.slot()) {
-            case PLATING -> signed(Math.round(pattern.maxHp() * (fitting.hullFactor() - installed.hullFactor())),
+            case PLATING -> signed(Math.round(pattern.maxHp() * (fitting.hullFactor() - hullNow)),
                     Strings.get("openingBoatDeckHull"));
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
@@ -937,7 +939,8 @@ public final class BoatDeckViewModel {
             boolean selected = hardpoint == NO_HARDPOINT && slot == selectedSlot.get();
             slots.add(fitting == null
                     ? BoatDoll.Slot.fitting(slot, null, slotLabel(slot), Strings.get(missing.contains(slot)
-                            ? "boatDeckSocketMissing" : "boatDeckSocketEmpty"), "", selected, missing.contains(slot))
+                            ? "boatDeckSocketMissing" : slot == BoatFittingSlot.PLATING ? "boatDeckBareHull"
+                            : "boatDeckSocketEmpty"), "", selected, missing.contains(slot))
                     : BoatDoll.Slot.fitting(slot, fitting.id(), slotLabel(slot), fitting.displayName(),
                             tierLabel(fitting), selected, false));
         }
