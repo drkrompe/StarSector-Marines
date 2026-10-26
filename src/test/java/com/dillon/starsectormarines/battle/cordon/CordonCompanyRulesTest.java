@@ -91,6 +91,9 @@ class CordonCompanyRulesTest {
         List<int[]> beats = List.of(new int[]{10, 10, 2}, new int[]{20, 20, 2});
         List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), beats, null);
         assertEquals("beat-0", duties.get(0).key());
+        // A call that names its beat keeps that beat's key whatever calls before it.
+        assertEquals("beat-2", CordonCompanyRules.duties(List.of(), List.of(), List.of(),
+                List.of(new int[]{10, 10, 1, 2}), null).get(0).key());
         assertEquals(3, CordonCompanyRules.assign(duties, company(6), 0).size());
     }
 
@@ -145,7 +148,7 @@ class CordonCompanyRulesTest {
         assertFalse(progress.stalled(2, "convoy-0", 0, 0, 40, false, 0));
         assertFalse(progress.stalled(2, "convoy-0", 0, 12, 45, false, stall - 1));
         assertFalse(progress.stalled(2, "convoy-0", 0, 24, 50, false, 2 * stall - 2));
-        // Standing on the duty, or riding to it or fighting on the way, never stalls.
+        // Standing on the duty or riding to it never stalls.
         assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 0));
         assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 3 * stall));
         assertFalse(progress.stalled(4, "beat-0", 0, 0, 90, true, 0));

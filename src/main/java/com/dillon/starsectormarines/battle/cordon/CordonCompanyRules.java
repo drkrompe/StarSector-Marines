@@ -94,9 +94,9 @@ public final class CordonCompanyRules {
      * cells from where it stood {@link #STALL_TICKS} ago, while still more than {@link #ON_DUTY} cells off its duty, has
      * stalled. Its own going, not the way left: a convoy's escort cell runs ahead of the trucks, so a squad walking
      * after it never closes on it, and judged by that every escort was taken off as stalled and the next sent, none
-     * ever reaching the trucks (town Road, arid 8). A squad on its duty, riding to it, or fighting on the way is never
-     * stalled: one standing to fight short of the loading trucks was swapped for a squad from the line a hundred cells
-     * back. A new duty starts its watch afresh.
+     * ever reaching the trucks (town Road, arid 8). A squad fighting on its way is not excused: one held in a fight
+     * ninety cells off the stragglers kept their call all battle (Line town arid 10). A squad on its duty, or riding to
+     * it, is never stalled; a new duty starts its watch afresh.
      */
     static final class Progress {
         private record Watch(String key, float x, float y, int since) { }
@@ -104,12 +104,12 @@ public final class CordonCompanyRules {
         private final Map<Integer, Watch> watches = new HashMap<>();
 
         /**
-         * One look at {@code squad}, standing at {@code x, y}, {@code away} cells from its duty {@code key}, and
-         * {@code busy} riding to it or in contact; true once it has stalled.
+         * One look at {@code squad}, standing at {@code x, y}, {@code away} cells from its duty {@code key}; true once
+         * it has stalled.
          */
-        boolean stalled(int squad, String key, float x, float y, double away, boolean busy, int tick) {
+        boolean stalled(int squad, String key, float x, float y, double away, boolean riding, int tick) {
             Watch w = watches.get(squad);
-            if (w == null || !w.key().equals(key) || busy || away <= ON_DUTY
+            if (w == null || !w.key().equals(key) || riding || away <= ON_DUTY
                     || Math.hypot(x - w.x(), y - w.y()) >= PROGRESS) {
                 watches.put(squad, new Watch(key, x, y, tick));
                 return false;
@@ -129,7 +129,7 @@ public final class CordonCompanyRules {
      * The ordered duties: the road's (unchanged), then each redoubt's (breached, uncovered, bled without help), the
      * beats, and the base when it is overrun.
      *
-     * @param beats each {x, y, squads}
+     * @param beats each {x, y, squads}, and the beat's own number where the call carries one
      * @param base  the apron's cell while the base is overrun, else {@code null}
      */
     static List<Duty> duties(List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> convoys,
@@ -169,10 +169,10 @@ public final class CordonCompanyRules {
                 out.add(new Duty("relieve-" + r.number(), Kind.BLED, r.x(), r.y(), DETACHMENT));
             }
         }
-        // By its place in the list, not its cell: a beat's call moves with its truck.
+        // By the beat, not its cell: a beat's call moves with its truck.
         for (int i = 0; i < beats.size(); i++) {
             int[] b = beats.get(i);
-            out.add(new Duty("beat-" + i, Kind.BEAT, b[0], b[1], b[2]));
+            out.add(new Duty("beat-" + (b.length > 3 ? b[3] : i), Kind.BEAT, b[0], b[1], b[2]));
         }
         if (base != null) out.add(new Duty("base", Kind.BASE, base[0], base[1], DETACHMENT));
         return out;
