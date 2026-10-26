@@ -69,6 +69,9 @@ public final class FittedBoat implements Airframe, AirHandling {
     /** A hardpoint entry naming no gun at all, where null or a missing entry is the sortie kit's own. */
     public static final String BARE = "";
 
+    /** Her hull with no plating fitted, against the pattern's own: she flies, but weak. */
+    public static final float BARE_HULL_FACTOR = 0.6f;
+
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive) {
         this(pattern, plating, drive, null);
     }
@@ -96,7 +99,8 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     /**
      * @param fit the fitting in each slot; a slot it leaves out holds its standard fitting,
-     *     and an emitter mapped to null is none, so she flies unshielded
+     *     and plating or an emitter mapped to null is none: a bare hull
+     *     ({@link #BARE_HULL_FACTOR}), or no shield
      * @param guns the door gun's turret structure on each hardpoint, or null
      *     (or a null entry) for the gun the sortie kit would mount there, or
      *     {@link #BARE} for no gun
@@ -107,7 +111,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             BoatFitting fitted = fit == null ? null : fit.get(slot);
             if (fitted != null) this.fit.put(slot, requireSlot(fitted, slot));
-            else if (slot == BoatFittingSlot.EMITTER && fit != null && fit.containsKey(slot)) this.fit.put(slot, null);
+            else if (optional(slot) && fit != null && fit.containsKey(slot)) this.fit.put(slot, null);
             else this.fit.put(slot, BoatFitting.standard(slot));
         }
         this.plating = this.fit.get(BoatFittingSlot.PLATING);
@@ -130,13 +134,14 @@ public final class FittedBoat implements Airframe, AirHandling {
     /** The airframe underneath the fit — what kind of boat this is. */
     public ShuttleType pattern() { return pattern; }
 
+    /** Her plating, or null for a bare hull. */
     public BoatFitting plating() { return plating; }
 
     public BoatFitting drive() { return drive; }
 
     public BoatFitting lift() { return lift; }
 
-    /** The fitting in any slot; null only for an emitter she flies without. */
+    /** The fitting in any slot; null only for plating or an emitter she flies without. */
     public BoatFitting fitting(BoatFittingSlot slot) { return fit.get(slot); }
 
     /**
@@ -187,7 +192,7 @@ public final class FittedBoat implements Airframe, AirHandling {
     public List<String> guns() { return Collections.unmodifiableList(Arrays.asList(guns.clone())); }
     @Override public AirHandling flight() { return this; }
 
-    @Override public float maxHp() { return pattern.maxHp() * plating.hullFactor(); }
+    @Override public float maxHp() { return pattern.maxHp() * (plating == null ? BARE_HULL_FACTOR : plating.hullFactor()); }
 
     /** The cabin's seats, or the pattern's where the cabin seats fewer. */
     @Override
@@ -323,7 +328,7 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     @Override
     public String toString() {
-        StringBuilder text = new StringBuilder(pattern + "[" + plating.id() + "," + drive.id());
+        StringBuilder text = new StringBuilder(pattern + "[" + (plating == null ? "bare" : plating.id()) + "," + drive.id());
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             BoatFitting fitted = fit.get(slot);
             if (slot != BoatFittingSlot.PLATING && slot != BoatFittingSlot.DRIVE && (fitted == null || !fitted.standard())) {
@@ -331,6 +336,11 @@ public final class FittedBoat implements Airframe, AirHandling {
             }
         }
         return text.append(boatId != null ? "," + boatId : "").append(']').toString();
+    }
+
+    /** A slot she can fly with nothing in: plating (a bare hull) and the emitter (no shield). */
+    public static boolean optional(BoatFittingSlot slot) {
+        return slot == BoatFittingSlot.PLATING || slot == BoatFittingSlot.EMITTER;
     }
 
     private static String idOf(BoatFitting fitting) {

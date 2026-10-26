@@ -132,7 +132,7 @@ def register(speech, sfx):
     clips = []
     for item in speech:
         clips.append((item["id"], '{"id": "%s", "source": "colony-breach/speech/%s.mp3", "kind": "ui", '
-                      '"out": "%s", "processing": "comms"}' % (item["id"], item["id"], SPEECH_OUT)))
+                      '"out": "%s", "processing": "comms", "mix": "story_voice"}' % (item["id"], item["id"], SPEECH_OUT)))
     for item in sfx:
         clips.append((item["id"], '{"id": "%s", "source": "colony-breach/sfx/%s.mp3", "kind": "positional", '
                       '"out": "%s"}' % (item["id"], item["id"], sfx_catalog["out"])))
