@@ -1213,16 +1213,16 @@ def _m5_point(d, up=0.0, side=0.0):
 M11_T = 122.0
 
 
-# S11's wind is on trial (2026-10-26): ASHARU_M11_WIND=up or down (the default), one light check of both.
-# Remove the switch, keeping the winner, once the owner has picked from that check.
-M11_WIND_TILT = -.7 if os.environ.get('ASHARU_M11_WIND', 'down') == 'down' else .7
+# S11's wind is on trial (2026-10-26): ASHARU_M11_WIND=up (the default, recommended from the light check
+# asharu-ab-s11-wind: the heat on her bow and belly, the wake rising soft behind her) or down (the air on
+# her deck, the side facing the camera burning). Remove the switch, keeping the winner, once the owner picks.
+M11_WIND_TILT = -.7 if os.environ.get('ASHARU_M11_WIND', 'up') == 'down' else .7
 
 
 def m11_wind(pose):
-    """S11's airflow over a hull: back along her nose, tilted off it (M11_WIND_TILT). Straight aft streams
-    every wake at the chase camera above and behind her, as S12's first span drew it (bow shocks as orbs,
-    wakes as dots): tilted down, the wake falls away under her toward the planet, about 55 degrees off
-    the lens; tilted up it leaves her back toward the camera (about 15 degrees off it)."""
+    """S11's airflow over a hull: back along her nose, tilted off it (M11_WIND_TILT). Tilted up, the air
+    meets her bow and belly as she dives and her wake rises behind her; the light check read it as a hot
+    rim under the hull and a soft plume, not the orbs and dots a wake straight at the lens drew in S12."""
     n = _nose(pose)
     w = (-n[0], -n[1], -n[2] + M11_WIND_TILT)
     k = math.sqrt(sum(c * c for c in w))
