@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -62,6 +63,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Full production chapter playback; outcome is a finding, not a required victory. */
 @Tag("corvus-command-evidence")
 class CorvusCombatEvidenceTest {
+    /** The armor-drop pick that names the recovered Hound, the one machine in the evidence company's bay. */
+    private static final List<Integer> HOUND_PICK = List.of(0);
+
     private StoryNarrationPlayer narration;
     @Test void recommendedCompanyAndRecoveredHound() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
@@ -155,6 +159,9 @@ class CorvusCombatEvidenceTest {
                 int houndShots = 0, houndKills = 0;
                 float houndDamage = 0, houndHp = 0, houndArmor = 0;
                 boolean houndAlive = false;
+                // The Dust Ledger's rocket truck, the defence a lone Hound has to meet: what it fired, when it first did,
+                // and whether it lives. A hull keeps no telemetry, and it holds fire at men, so its salvoes are the count.
+                int technicalShots = 0, technicalFirstShotAt = -1, technicalLostAt = -1;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
                 int peakInfantryPickups = 0, peakLandedPickups = 0;
@@ -174,8 +181,9 @@ class CorvusCombatEvidenceTest {
                     var service = sim.getCommandPowerService();
                     var support = service.getPower(MechSupport.ID);
                     if (requestedAt < 0 && service.canActivate(support)) {
-                        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim)) {
-                            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY);
+                        // An armor drop names its machine: the recovered Hound is the only one aboard.
+                        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, HOUND_PICK)) {
+                            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, HOUND_PICK);
                             requestedAt = sim.getSimTickIndex() + 1;
                             break;
                         }
@@ -319,6 +327,15 @@ class CorvusCombatEvidenceTest {
                         houndHp = sim.world().hp(hound); houndArmor = sim.world().armor(hound);
                         houndKills = sim.telemetry().kills(hound); houndDamage = sim.telemetry().damageDealt(hound);
                     }
+                    long technical = sim.getDustLedger() == null ? 0L : sim.getDustLedger().technical();
+                    if (technical != 0L && technicalLostAt < 0) {
+                        var truck = sim.convoy().mission(technical);
+                        if (truck == null || truck.state == VehicleState.WRECKED || truck.state == VehicleState.GONE) technicalLostAt = tick;
+                        for (var shot : sim.getShotsThisFrame()) if (shot.shooterId == technical) {
+                            if (technicalFirstShotAt < 0) technicalFirstShotAt = tick;
+                            technicalShots++;
+                        }
+                    }
                     if (tick % 300 == 0 || sim.isComplete() || tick == maxTicks) {
                         samples.put(new JSONObject().put("tick", tick).put("landed", landed.size()).put("fallen", fallen.size())
                                 .put("liveMarines", count(sim, Faction.MARINE)).put("liveDefenders", count(sim, Faction.DEFENDER))
@@ -366,6 +383,7 @@ class CorvusCombatEvidenceTest {
                         .put("suppliesSpent",30-resources.availableSupplies()).put("houndLandedAt",houndLandedAt)
                         .put("houndAlive",houndAlive).put("houndLostAt",houndLostAt).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
                         .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
+                        .put("technicalShots",technicalShots).put("technicalFirstShotAt",technicalFirstShotAt).put("technicalLostAt",technicalLostAt)
                         .put("objectives",objectives(sim)).put("kits",kits);
                 report.put("dialogue", dialogue);
                 var intervention = sim.getColdAccount();

@@ -57,7 +57,7 @@ class ShipConditionTest {
     }
 
     @Test void theWholeTreeIsReachableFromTheBatteredStart() {
-        var state = ShipCondition.battered().with(RefitTrack.FABRICATION, RefitBand.IMPROVED_I);
+        var state = ShipCondition.battered().with(RefitTrack.FABRICATION, RefitBand.IMPROVED_II);
         for (boolean progress = true; progress; ) {
             progress = false;
             for (RefitTrack track : RefitTrack.values()) {

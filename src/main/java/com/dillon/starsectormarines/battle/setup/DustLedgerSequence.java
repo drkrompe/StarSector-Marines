@@ -217,6 +217,7 @@ public final class DustLedgerSequence implements Objective {
     private final List<Long> nests = new ArrayList<>();
     private final List<Cell> nestCells = new ArrayList<>();
     private final List<Integer> pillboxSquads = new ArrayList<>();
+    private long technical;
 
     public DustLedgerSequence(Sites sites, RaidObjective raid, List<EntitySpec> drinkers, List<EntitySpec> salvageTeam,
                               StoryBeatLog log) {
@@ -292,6 +293,14 @@ public final class DustLedgerSequence implements Objective {
         pillboxSquads.addAll(pillboxSquadIds);
         if (feedCut()) for (long nest : nests) sim.turretState().cutPower(nest);
     }
+
+    /** Sable Wake's rocket truck, recorded at setup: covered like every Sable Wake body while quiet. */
+    public void technical(long id) {
+        if (technical != 0L) throw new IllegalStateException("record the technical once");
+        technical = id;
+    }
+
+    public long technical() { return technical; }
 
     public List<Long> nests() { return List.copyOf(nests); }
     /** Where the nests stand, for their markers. */

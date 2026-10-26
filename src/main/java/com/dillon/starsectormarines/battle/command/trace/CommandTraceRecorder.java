@@ -512,6 +512,7 @@ public final class CommandTraceRecorder {
             numberField(out, "collapsedTick", bore.collapsedTick());
             stageField(out, "ageMix", bore.ageMix());
             stageField(out, "releasedByStage", bore.released());
+            out.append(",\"held\":").append(Arrays.toString(bore.held()).replace(" ", ""));
             out.append('}');
         }
         out.append("]}");

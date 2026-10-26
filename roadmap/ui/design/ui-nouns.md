@@ -644,6 +644,12 @@ apart from the mission's diamonds; Locate works on them, but they keep no
 off-camera edge indicator. A toast and a narration line announce each change,
 and the row always shows the same state.
 
+A beacon's card is battle glass: its rule spans the card's own text, never a
+fixed slot. Below 16 pixels a cell the map is an overview, where a card is its
+name alone (the open step and edge indicators keep their status line), rules
+and bars drop, and areas and rings fade. The HUD tells the camera which corner
+its right rail covers, and no card or edge indicator draws under it.
+
 The right rail keeps independent branches visible together; an archive does
 not acquire a fictitious extraction step. Cohort counts separate boarded,
 remaining and lost people, including partial-survival completion. Blockers come

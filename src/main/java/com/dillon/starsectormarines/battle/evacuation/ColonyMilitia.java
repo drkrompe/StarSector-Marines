@@ -91,11 +91,12 @@ public final class ColonyMilitia {
      *
      * @param colony whether this is the Colony Breach colony; a smaller rescue
      *               map seats the shelter guard alone
+     * @param bores  the bore sites the breach plans; a holdout keeps {@link ColonyRedoubts#BREACH_CLEARANCE} from each
      */
     public static Installed install(BattleSimulation sim, MapResult map,
                                     CivilianEvacuationPlacement placement,
                                     List<LandingPad> pads, RiskLevel risk, long seed,
-                                    boolean colony) {
+                                    boolean colony, List<ColonyEruptionPlan.Site> bores) {
         RescueShelterGarrison shelter = RescueShelterGarrison.install(sim, map, placement, risk, seed);
         if (shelter == null) return null;
         if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of(), List.of());
@@ -110,7 +111,7 @@ public final class ColonyMilitia {
         boolean redoubts = ColonyRedoubts.enabled();
         int wanted = redoubts ? ColonyRedoubts.holdoutsFor(seed) : OUTLYING_POSTS;
         int seats = POST_SIZE + (redoubts ? ColonyRedoubts.MAX_COHORT : 0);
-        List<Post> posts = choosePosts(sim, map, placement, pads, seed, wanted, seats, claimed);
+        List<Post> posts = choosePosts(sim, map, placement, pads, seed, wanted, seats, claimed, bores);
         if (redoubts && posts.size() < ColonyRedoubts.MIN_HOLDOUTS) return null;
         List<Integer> holdouts = new ArrayList<>();
         boolean[] walk = routeMask(sim.getGrid(), placement, 1);
@@ -203,7 +204,7 @@ public final class ColonyMilitia {
     private static List<Post> choosePosts(BattleSimulation sim, MapResult map,
                                           CivilianEvacuationPlacement placement,
                                           List<LandingPad> pads, long seed, int wanted, int seats,
-                                          List<int[]> claimed) {
+                                          List<int[]> claimed, List<ColonyEruptionPlan.Site> bores) {
         NavigationGrid grid = sim.getGrid();
         int spacing = ColonyEruptionPlan.siteSpacing(grid.getWidth(), grid.getHeight());
         int clearance = ColonyEruptionPlan.shelterClearance(grid.getWidth(), grid.getHeight());
@@ -217,6 +218,7 @@ public final class ColonyMilitia {
                     + Math.abs(place.interiorAnchorY - placement.shelterY) < clearance) continue;
             if (sim.isInsideRescueOpeningProtectedZone(place.interiorAnchorX, place.interiorAnchorY)) continue;
             if (onPad(pads, place.interiorAnchorX, place.interiorAnchorY, 4)) continue;
+            if (!ColonyRedoubts.clearOfBores(place.interiorAnchorX, place.interiorAnchorY, bores)) continue;
             if (insideWorks(claimed, place.interiorAnchorX, place.interiorAnchorY, 2 + RedoubtWorks.HOLDOUT_MARGIN)) continue;
             TacticalNode node = heldPlace(map, place);
             if (node == null) continue;

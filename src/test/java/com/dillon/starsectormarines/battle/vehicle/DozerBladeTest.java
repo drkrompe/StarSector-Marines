@@ -148,6 +148,46 @@ class DozerBladeTest {
         }
     }
 
+    @Test void aDozerDrivingOntoOneBarricadeCellGoesThroughItAndKeepsMostOfItsWay() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        wall(grid, topology, 10, 10, 100);
+        VehicleType type = VehicleType.DOZER_BREACHER;
+        GroundBody body = dozerAtRow10(type);
+        body.speed = type.maxSpeed;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
+            assertTrue(blade.push(body, type, new VehicleControlComponent(), 1f / 30f));
+            assertTrue(grid.isWalkable(10, 10), "down at the first touch, not pushed over seconds");
+            assertTrue(body.speed > type.maxSpeed * .8f && body.speed < type.maxSpeed, "checked, not stopped: " + body.speed);
+        }
+    }
+
+    @Test void aDozerDrivingOntoAWallAcrossItsBladeIsBroughtUpAndTheWallTakesItsWay() {
+        NavigationGrid grid = floor();
+        CellTopology topology = new CellTopology(SIZE, SIZE);
+        for (int x = 8; x <= 12; x++) wall(grid, topology, x, 10, 100);
+        VehicleType type = VehicleType.DOZER_BREACHER;
+        GroundBody body = dozerAtRow10(type);
+        body.speed = type.maxSpeed;
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
+            assertTrue(blade.push(body, type, new VehicleControlComponent(), 1f / 30f));
+            assertEquals(0f, body.speed, "its whole way went into the wall");
+            assertFalse(grid.isWalkable(10, 10), "a city wall across the blade stands the hit");
+            int left = grid.getWallHp(10, 10);
+            assertTrue(left > 0 && left < 100 - (int) (DozerBlade.PUSH_PER_SECOND / 30f), "and is worn by it: " + left);
+        }
+    }
+
+    /** A dozer driving north with its blade bearing on row 10 from x 9 to 12. */
+    private static GroundBody dozerAtRow10(VehicleType type) {
+        GroundBody body = type.createBody();
+        body.x = 10.5f;
+        body.y = 10.1f - type.visualLengthCells * .5f;
+        return body;
+    }
+
     private static NavigationGrid floor() {
         NavigationGrid grid = new NavigationGrid(SIZE, SIZE);
         for (int y = 0; y < SIZE; y++) for (int x = 0; x < SIZE; x++) grid.setWalkableFloor(x, y);

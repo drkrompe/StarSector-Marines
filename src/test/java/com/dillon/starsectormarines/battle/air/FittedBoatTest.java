@@ -32,11 +32,12 @@ class FittedBoatTest {
     }
 
     @Test
-    void platingScalesTheHullAndTheDriveScalesSpeedAndBothAccelerations() {
+    void platingScalesTheArmorOverTheHullAndTheDriveScalesSpeedAndBothAccelerations() {
         FittedBoat boat = new FittedBoat(ShuttleType.AEROSHUTTLE,
                 BoatFitting.REINFORCED_PLATING, BoatFitting.TUNED_DRIVE);
 
-        assertEquals(ShuttleType.AEROSHUTTLE.maxHp() * 1.35f, boat.maxHp(), EPSILON);
+        assertEquals(ShuttleType.AEROSHUTTLE.maxHp(), boat.maxHp(), EPSILON, "plating is armour over the hull");
+        assertEquals(ShuttleType.AEROSHUTTLE.armor() * 1.35f, boat.armor(), EPSILON);
         assertEquals(ShuttleType.AEROSHUTTLE.maxSpeed() * 1.20f, boat.maxSpeed(), EPSILON);
         assertEquals(ShuttleType.AEROSHUTTLE.accel() * 1.20f, boat.accel(), EPSILON);
         assertEquals(ShuttleType.AEROSHUTTLE.brakingAccel() * 1.20f,

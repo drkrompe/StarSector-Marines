@@ -381,6 +381,11 @@
 		"marines_intel_music":[
 			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.525},
 		],
+		# The same track as the battle music's quiet bed (BattleMusicDirector, "<id>_bed") until one is sourced:
+		# music is encoded to one loudness, so the bed sits about 5 dB under the combat pool. Volume UNTUNED.
+		"marines_intel_music_bed":[
+			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.3},
+		],
 		# Battle music pool: the combat state. BattleMusicDirector plays these as a shuffled, non-repeating playlist.
 		"marines_battle_music_02":[
 			{"file":"marines_battle_music_02.ogg","source":"sounds/battle/music","volume":0.525},

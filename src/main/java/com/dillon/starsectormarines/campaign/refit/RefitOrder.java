@@ -134,6 +134,12 @@ public enum RefitOrder {
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
     HOLDS_II(RefitTrack.HOLDS, RefitBand.IMPROVED_II, 26_700,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    /** Two machines set aside whole, off their berths and gantries. */
+    RESERVE_HANGAR_RESTORED(RefitTrack.RESERVE_HANGAR, RefitBand.RESTORED, 12_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    /** Four, racked two high on cradles the machine shop cuts. */
+    RESERVE_HANGAR_I(RefitTrack.RESERVE_HANGAR, RefitBand.IMPROVED_I, 20_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
     HULL_RESTORED(RefitTrack.HULL, RefitBand.RESTORED, 10_800,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
     HULL_I(RefitTrack.HULL, RefitBand.IMPROVED_I, 25_000,
@@ -209,8 +215,8 @@ public enum RefitOrder {
 
     /** The highest band {@code track} can reach in this catalog. */
     public static RefitBand ceiling(RefitTrack track) {
-        // The workshop chain's last stage, tooling, is fabrication's first improvement.
-        if (track == RefitTrack.FABRICATION) return RefitBand.IMPROVED_I;
+        // The workshop chain's last two stages, tooling and the reclamation line, are fabrication's improvements.
+        if (track == RefitTrack.FABRICATION) return RefitBand.IMPROVED_II;
         RefitBand top = track.start();
         for (RefitOrder order : values()) if (order.track == track && order.band.atLeast(top)) top = order.band;
         return top;

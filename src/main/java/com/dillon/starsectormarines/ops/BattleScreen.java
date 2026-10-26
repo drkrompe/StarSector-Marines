@@ -343,8 +343,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final java.util.Random audioRng = new java.util.Random();
     /**
      * Picks quiet, alert, combat or aftermath music from the battle's facts. Its per-state shuffles
-     * are retained across battles to avoid repeats. Quiet and aftermath have no tracks yet: silence
-     * under the ambient loops.
+     * are retained across battles to avoid repeats.
      */
     private final BattleMusicDirector battleMusic = BattleMusicDirector.shipped(audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */

@@ -64,6 +64,7 @@ public record SwarmPressureSnapshot(
      * @param collapsedTick the tick it collapsed, {@code -1} while it lives
      * @param ageMix        the stage weights its next surge draws from, out of a hundred
      * @param released      the bodies its surges have released, by stage
+     * @param held          its own bodies living, by {@link BoreStrainTable.Slot} ordinal (`colony-breach-nouns.md`, Hold)
      */
     public record BoreState(
             String key,
@@ -84,7 +85,8 @@ public record SwarmPressureSnapshot(
             int eruptedTick,
             int collapsedTick,
             StageCounts ageMix,
-            StageCounts released) { }
+            StageCounts released,
+            int[] held) { }
 
     /** A picture with no growth-stage counts. */
     public SwarmPressureSnapshot(int revision, int tick, Phase phase, String pressureReason, int targetPopulation,

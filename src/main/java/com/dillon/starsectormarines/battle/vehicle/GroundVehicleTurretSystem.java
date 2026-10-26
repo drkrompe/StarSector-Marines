@@ -572,6 +572,8 @@ public final class GroundVehicleTurretSystem {
         if (vehicle && (!convoy.isTargetable(target) || convoy.structure(target) <= 0f)) return NO_SIGHT;
         Faction other = vehicle ? convoy.faction(target) : roster.identity().faction(target);
         if (other == null || !side.hostileTo(other)) return NO_SIGHT;
+        // A mission's quiet phase covers bodies from hostile scans; a launcher does not pick them either.
+        if (roster.unitIndex().withheld(target)) return NO_SIGHT;
         if (mount.hardenedTargetsOnly && !hardened(target)) return NO_SIGHT;
         WeaponDef weapon = mount.weapon;
         float tx = world.x(target);

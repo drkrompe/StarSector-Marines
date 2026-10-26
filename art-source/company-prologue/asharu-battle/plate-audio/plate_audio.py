@@ -314,6 +314,7 @@ class Mix:
         self.t0, self.t1 = t0, t1
         self.buf = np.zeros(int(round((t1 - t0) * SR)) + 1, np.float64)
         self.style = "keys"
+        self.fam, self.only = None, None             # the family being placed; the one to keep, if soloing
         self.cues = []                                  # (family, label, t): where each judged sound plays
 
     def mark(self, family, label, t):
@@ -322,6 +323,8 @@ class Mix:
 
     def at(self, t, x, db, norm_db=None):
         """x placed at sequence time t, at db (x normalised to norm_db first if given)."""
+        if self.only and self.fam != self.only:
+            return
         if norm_db is not None:
             x = norm(x, norm_db)
         x = np.asarray(x, np.float64) * 10 ** (db / 20)
@@ -355,11 +358,13 @@ def source(family, choice):
     return OPTIONS[family][choice[family]][1]
 
 
-def build(shot, choice=None):
-    """The shot's mix, as a stereo float array, and the cues it placed: [(family, label, t)]."""
+def build(shot, choice=None, only=None):
+    """The shot's mix, as a stereo float array, and the cues it placed: [(family, label, t)]. With
+    only, the mix holds that family's sounds alone (the review page's solo)."""
     choice = dict(CHOICE, **(choice or {}))
     _, t0, t1, mode = rp.SHOTS[shot]
     m = Mix(t0, t1)
+    m.only = only
     m.style = source("text", choice)
     tr = source("transition", choice)
     open_ = mode == "open"
@@ -367,35 +372,43 @@ def build(shot, choice=None):
     lines = radio_log.OPENING if open_ else radio_log.CLOSING
 
     # the set and its room
+    m.fam = "beds"
     m.bed(take("room_bed"), t0, t1, L["room"], fade=1.0)
     m.mark("beds", "The room and the set's hum", t0 + (1.5 if open_ else 15.5))
     on, off = (rp.POWER_ON[0], t1) if open_ else (t0, rp.TUNE_OUT[0] + .15)
     m.bed(take("crt_hum"), on + (.3 if open_ else 0), off, L["hum"], fade=.4)
     if open_:
+        m.fam = "crt_on"
         src = source("crt_on", choice)
         m.at(rp.POWER_ON[0] - .05, peak(crt_on_synth() if src == "synth" else take_file(src[5:]), 0), L["crt_on"])
         m.at(rp.POWER_ON[1], snow(rp.ROLL_LOCK_S), L["snow"], -20)
         m.mark("crt_on", "The set switches on", rp.POWER_ON[0])
     else:
+        m.fam = "crt_off"
         src = source("crt_off", choice)
         m.at(rp.TUNE_OUT[0] - .05, peak(crt_off_synth() if src == "synth" else take_file(src[5:]), 0), L["crt_off"])
         m.mark("crt_off", "The set switches off", rp.TUNE_OUT[0])
 
     # the boot slate: the name, the directorate, the status typed out; the crest settling up
     if open_:
+        m.fam = "text"
         for k, (name, text) in enumerate((("name", "HEGEMONY NAVY"), ("sub", "SECURITY DIRECTORATE  //  TRAFFIC ANALYSIS"),
                                           ("status", "ESTABLISHING SECTOR FEED"))):
             m.typed(rp.BOOT_TYPE[name], text, rp.BOOT_CPS, L["boot_key"], 100 * (k + 1))
         m.mark("text", "The boot slate types out", rp.BOOT_TYPE["name"])
+        m.fam = "crest"
         m.at(rp.CREST_TO_HEADER[0], push(rp.CREST_TO_HEADER[1] - rp.CREST_TO_HEADER[0] + .2), L["crest"], -20)
         m.mark("crest", "The crest settles into the header", rp.CREST_TO_HEADER[0])
     else:
+        m.fam = "crest"
         m.at(rp.CREST_BACK[0], push(rp.CREST_BACK[1] - rp.CREST_BACK[0] + .3, rising=False), L["crest"], -20)
         m.mark("crest", "The crest comes back to the slate", rp.CREST_BACK[0])
+        m.fam = "text"
         m.typed(rp.SLATE_OUT_TYPE, "FEED IDLE // TRACKING CONTINUES", rp.BOOT_CPS, L["boot_key"], 900)
         m.mark("text", "The slate types its sign-off", rp.SLATE_OUT_TYPE)
 
     # the views writing in, the zoom boxes between them
+    m.fam = "transition"
     views = rp.S0_VIEWS if open_ else rp.S13_VIEWS
     for k, (name, a, _) in enumerate(views):
         if t0 < a < t1:
@@ -406,10 +419,12 @@ def build(shot, choice=None):
         m.mark("transition", "Zoom box: %s to %s" % (src_.replace("_", " "), dst.replace("_", " ")), za)
 
     # the sector's sweep, Corvus's relay pings, the contact, the flag
+    m.fam = "sweep"
     for k, (t, _) in enumerate(rp.SWEEP if open_ else rp.SWEEP_OUT):
         m.at(t, seq(tone(1480, .04), tone(1480, .04), gap=.05), L["sweep"], -20)
         if k == 0:
             m.mark("sweep", "The sector sweep", t)
+    m.fam = "ping"
     corvus = next(v for v in views if v[0] == "corvus")
     for key_, period, off_ in (("relay", 3.0, 0.0), ("array", 2.2, .9)):
         t = corvus[1] + (-(corvus[1] + off_)) % period
@@ -418,10 +433,12 @@ def build(shot, choice=None):
             t += period
     m.mark("ping", "Corvus's relay pings", corvus[1] + .2)
     if open_:
+        m.fam = "flag"
         m.at(rp.UNKNOWN_SEEN, tone(560, .12, decay=.08), L["flag"] - 4, -20)
         m.at(rp.FLAG_S, seq(tone(620, .09), tone(620, .09), tone(620, .09), gap=.07), L["flag"], -20)
         m.mark("flag", "The contact, then the flag", rp.UNKNOWN_SEEN)
     else:
+        m.fam = "route"
         m.at(rp.ADVISED_S, chatter(1.2, 77) * np.linspace(1, .3, int(1.3 * SR) + SR // 10)[:len(chatter(1.2, 77))],
              L["route"], -20)
         m.mark("route", "The patrol route redrawn", rp.ADVISED_S)
@@ -429,12 +446,15 @@ def build(shot, choice=None):
     # the query log: the keys under each call, the answer's tone
     for k, q in enumerate(rp.QUERIES):
         if t0 <= q[0] < t1:
+            m.fam = "text"
             m.typed(q[0], "> " + q[1], rp.TYPE_CPS, L["key"], 1000 + 50 * k)
+            m.fam = "answer"
             m.at(rp.answered(q), ANSWERS[q[3]](), L["answer"], -20)
             m.mark("text", "Query typed: " + q[1], q[0])
             m.mark("answer", "Answer (%s): %s" % (q[3], q[2]), rp.answered(q))
 
     # the stamps
+    m.fam = "stamp"
     if not open_:
         m.at(rp.NOT_ESCALATED_S, seq(thunk(120), tone(520, .14, decay=.1), gap=.0), L["stamp"], -20)
         m.at(rp.ARCHIVE_S, seq(thunk(90, .6), tone(390, .2, decay=.14), gap=.0), L["stamp"], -20)
@@ -442,6 +462,7 @@ def build(shot, choice=None):
         m.mark("stamp", "ARCHIVED", rp.ARCHIVE_S)
 
     # the camera: into the optic for the cut to picture, back out of it
+    m.fam = "transition"
     if open_:
         m.at(rp.CAM_IN[0], transition(tr, "push", rp.CAM_IN[1] - rp.CAM_IN[0]), L["push"], -20)
         m.mark("transition", "The camera pushes into the optic", rp.CAM_IN[0])
@@ -450,6 +471,7 @@ def build(shot, choice=None):
         m.mark("transition", "The camera pulls back out of the optic", t0)
 
     # the relay channel: static under the tap, lifted with the squelch under each line
+    m.fam = "radio"
     tap_on = rp.R[1] if open_ else t0
     tap_off = t1 if open_ else rp.TAP_CLOSE_S
 

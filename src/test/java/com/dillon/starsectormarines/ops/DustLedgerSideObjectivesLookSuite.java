@@ -30,7 +30,8 @@ import java.util.List;
 
 /**
  * The Dust Ledger's side objectives in the quiet phase, through the look preset with the mission beacons and the HUD
- * rail: every job offered; the feed being worked; the feed cut while the coupling is carried. The production chapter
+ * rail: every job offered; the feed being worked; the feed cut while the coupling is carried, then that moment at play
+ * zoom on the market and over the whole map. The production chapter
  * fixture under autonomous command (whose company picks the crate up on its way off the apron), with a linesman stood
  * at the junction box as the controlled stand-in for a squad the player sends. 1920x1080 at 100%. Look evidence,
  * opt-in.
@@ -38,6 +39,8 @@ import java.util.List;
 public final class DustLedgerSideObjectivesLookSuite implements SnapshotSuite {
     /** The junction box's work cell. */
     static final int FEED_X = 122, FEED_Y = 32;
+    /** The HUD's inset from the screen edge, as in play. */
+    static final int HUD_INSET = 12;
 
     @Override public String id() { return "dust-ledger-side-objectives"; }
 
@@ -67,6 +70,9 @@ public final class DustLedgerSideObjectivesLookSuite implements SnapshotSuite {
                 require(sim, "dust-ledger-feed", SideObjective.State.DONE);
                 require(sim, "dust-ledger-coupling", SideObjective.State.WORKING);
                 out.add(shot(context, sim, "03-feed-done-coupling-carried", 78f, 52f, 150f));
+                out.add(shot(context, sim, "04-market-play-zoom", 78f, 52f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS));
+                int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+                out.add(shot(context, sim, "05-whole-map", w / 2f, h / 2f, w));
             }
         }
         return out;
@@ -85,8 +91,6 @@ public final class DustLedgerSideObjectivesLookSuite implements SnapshotSuite {
 
     private static SnapshotArtifact shot(SnapshotContext context, BattleSimulation sim, String name,
                                          float x, float y, float cellsAcross) throws Exception {
-        BufferedImage world = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y, cellsAcross)
-                .withMissionMarkers().render(sim, "");
         MissionObjectiveSnapshot picture = MissionObjectiveProjection.capture(sim);
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
@@ -99,13 +103,18 @@ public final class DustLedgerSideObjectivesLookSuite implements SnapshotSuite {
             var doc = new UiDocument(instance.root());
             instance.styles().forEach(doc::addStyleSheet);
             doc.theme(MarineOpsThemes.standard());
-            var hud = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore()).render(doc, 1896,
-                    Math.round(BattleHudOverlay.documentHeight(presentation)));
+            int height = Math.round(BattleHudOverlay.documentHeight(presentation));
+            doc.layout(1896, height);
+            var rail = instance.requireElement("battle-command-rail").box().borderBox();
+            BufferedImage world = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y, cellsAcross)
+                    .withMissionMarkers().withHudCover(HUD_INSET + rail.x(), 1080 - HUD_INSET - rail.bottom())
+                    .render(sim, "");
+            var hud = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore()).render(doc, 1896, height);
             var g = world.createGraphics();
-            g.drawImage(hud, 12, 12, null);
+            g.drawImage(hud, HUD_INSET, HUD_INSET, null);
             g.dispose();
+            return new SnapshotArtifact(name + ".png", world);
         }
-        return new SnapshotArtifact(name + ".png", world);
     }
 
     private static void installFonts(SnapshotContext context, BitmapFont... fonts) throws Exception {

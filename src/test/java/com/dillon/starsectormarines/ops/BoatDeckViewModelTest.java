@@ -56,7 +56,7 @@ class BoatDeckViewModelTest {
         assertTrue(model.filterPills().get().stream().anyMatch(pill -> pill.id().equals("boat-filter:lift")));
         model.selectSlotAction(BoatFittingSlot.LIFT).run();
         assertEquals(4, model.catalogRows().get().size());
-        assertEquals(BoatFitting.STANDARD_LIFT.displayName(), model.slotRows().get().get(0).fitting());
+        assertEquals(BoatFitting.STANDARD_LIFT.displayName(), dollSlot(model, BoatDoll.slotKey(BoatFittingSlot.LIFT)).fitted());
     }
 
     @Test
@@ -169,10 +169,10 @@ class BoatDeckViewModelTest {
         assertTrue(viewModel.overviewClasses().get().contains("hidden"));
         assertFalse(viewModel.fittingClasses().get().contains("hidden"));
 
-        List<BoatDeckViewModel.SlotRow> mount = viewModel.slotRows().get();
-        assertEquals(1, mount.size(), "the selected mount is the one socket the board has selected");
-        assertEquals("PLATING", mount.get(0).name());
-        assertEquals(BoatFitting.STANDARD_PLATING.displayName(), mount.get(0).fitting());
+        List<BoatDeckViewModel.ReadinessRow> readiness = viewModel.readinessRows().get();
+        assertTrue(readiness.get(readiness.size() - 1).id().endsWith(":frame"), "her frame closes the list");
+        assertTrue(readiness.stream().noneMatch(row -> row.classes().contains("readiness-danger")),
+                "a boat at standard fit is missing nothing");
         assertEquals(List.of("boat-filter:all", "boat-filter:hardpoint", "boat-filter:plating", "boat-filter:drive",
                         "boat-filter:cabin", "boat-filter:power", "boat-filter:lift", "boat-filter:emitter"),
                 viewModel.filterPills().get().stream().map(FittingFilterPill::id).toList());
@@ -194,7 +194,8 @@ class BoatDeckViewModelTest {
 
         assertEquals(BoatFitting.TUNED_DRIVE.id(), deck.boats().get(0).drive().id());
         assertEquals(60_000 - price, resources.credits);
-        assertEquals(BoatFitting.TUNED_DRIVE.displayName(), viewModel.slotRows().get().get(0).fitting());
+        assertEquals(BoatFitting.TUNED_DRIVE.displayName(),
+                dollSlot(viewModel, BoatDoll.slotKey(BoatFittingSlot.DRIVE)).fitted());
         assertEquals(BoatFitting.TUNED_DRIVE.displayName(), viewModel.boatRows().get().get(0).drive());
         // 10 cells/s of pattern at the drive's 1.20, read as gain past the pattern's own figure.
         assertEquals("12 CELLS/S", meter(viewModel, "SPEED").value());
@@ -490,7 +491,7 @@ class BoatDeckViewModelTest {
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("readinessRows", viewModel.readinessRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
@@ -517,11 +518,33 @@ class BoatDeckViewModelTest {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
+    }
+    /** A missing required part heads the readiness list in red, and clicking it opens that socket. */
+    @Test
+    void aMissingRequiredPartHeadsTheReadinessListAndOpensItsSocket() {
+        BoatDeck deck = deck();
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), deck, TestPurse.rich(), "Valkyrie");
+        model.selectBoatAction(0).run();
+        model.returnToStores(BoatDoll.slotKey(BoatFittingSlot.DRIVE));
+        model.returnToStores(BoatDoll.slotKey(BoatFittingSlot.PLATING));
+        model.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.CABIN));
+
+        List<BoatDeckViewModel.ReadinessRow> rows = model.readinessRows().get();
+        assertTrue(rows.get(0).classes().contains("readiness-danger"), rows.get(0).classes());
+        assertTrue(rows.get(1).id().endsWith(":bare-hull"), rows.get(1).id());
+        rows.get(0).select().run();
+        assertTrue(dollSlot(model, BoatDoll.slotKey(BoatFittingSlot.DRIVE)).selected());
+    }
+
+    private static BoatDoll.Slot dollSlot(BoatDeckViewModel model, String key) {
+        return model.doll().get().slots().stream().filter(slot -> slot.key().equals(key)).findFirst().orElseThrow();
     }
 }

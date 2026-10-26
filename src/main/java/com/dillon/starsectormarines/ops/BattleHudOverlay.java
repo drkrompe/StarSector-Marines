@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
 import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -79,6 +80,13 @@ final class BattleHudOverlay {
             document.layout(viewport.documentWidth(), viewport.documentHeight());
         }
         input = new StarsectorUiInputAdapter(document, viewport);
+        coverCamera();
+    }
+
+    /** Tells the camera where the right rail sits, so world labels stay out from under it. */
+    private void coverCamera() {
+        Rect rail = markupInstance.requireElement("battle-command-rail").box().borderBox();
+        camera.coverTopRight(viewport.screenXFor(rail.x()), viewport.screenBottomFor(rail));
     }
 
     private void installDocument() {
@@ -128,6 +136,7 @@ final class BattleHudOverlay {
             viewport = viewport(position, presentation);
             document.layout(viewport.documentWidth(), viewport.documentHeight());
             input = new StarsectorUiInputAdapter(document, viewport);
+            coverCamera();
         }
         if (document != null) document.advance(realDt);
     }
@@ -200,6 +209,7 @@ final class BattleHudOverlay {
     void detach() {
         if (document != null) document.deactivateInput();
         input = null;
+        camera.coverTopRight(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
         primaryPointerActive = false;
         secondaryPointerActive = false;
     }

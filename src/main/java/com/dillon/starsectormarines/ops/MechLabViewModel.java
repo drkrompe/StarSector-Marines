@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechDamage;
 import com.dillon.starsectormarines.marine.MechWorkshop;
+import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
@@ -53,6 +54,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
@@ -86,6 +88,11 @@ public final class MechLabViewModel {
     private final MutableSignal<MechPattern.WeightClass> weightFilter;
     /** The machine a first press of SCRAP armed; any other selection disarms it. */
     private final MutableSignal<String> scrapArmedId;
+    /** The machine a first press of STORE armed; any other selection disarms it. */
+    private final MutableSignal<String> storeArmedId;
+    /** The company's reserve hangar and what the home ship's refit lets it hold; null until the screen attaches it. */
+    private ReserveHangar reserve;
+    private IntSupplier reserveCapacity = () -> 0;
     /** The pattern selected on a vacant pad: previewed on the pad, built only by BUILD. */
     private final MutableSignal<String> previewRecipeId;
     private final MutableSignal<MechWeaponComponent> hoveredWeapon;
@@ -205,6 +212,7 @@ public final class MechLabViewModel {
         catalogFilter = reactor.signal(CategoryFilter.ALL);
         weightFilter = reactor.signal(null);
         scrapArmedId = reactor.signal(null);
+        storeArmedId = reactor.signal(null);
         previewRecipeId = reactor.signal(null);
         hoveredWeapon = reactor.signal(null);
         hoveredInternal = reactor.signal(null);
@@ -2139,9 +2147,115 @@ public final class MechLabViewModel {
      * SCRAP takes two presses: the first arms it and says what comes back, the second breaks
      * the machine up through the workshop and returns to the lance with its pad vacant.
      */
+    /** Attaches the company's reserve hangar: STORE beside SCRAP and the Reserve strip in the lance rail. */
+    public void reserve(ReserveHangar hangar, IntSupplier capacity) {
+        reserve = hangar;
+        reserveCapacity = capacity;
+        revision.update(value -> value + 1);
+    }
+
+    /** The template's STORE and Reserve strip properties. */
+    public void putReserveProps(Map<String, Object> props) {
+        props.put("storeLabel", reactor.computed(() -> {
+            revision.get();
+            String armed = storeArmedId.get();
+            return armed != null && armed.equals(selectedMachineId())
+                    ? Strings.get("reserveStoreConfirm") : Strings.get("reserveStore");
+        }));
+        props.put("storeClasses", reactor.computed(() -> {
+            revision.get();
+            if (!fittingFocused.get() || selectedMachineId() == null || reserve == null
+                    || reserveCapacity.getAsInt() <= 0) return "hidden";
+            String armed = storeArmedId.get();
+            return armed != null && armed.equals(selectedMachineId())
+                    ? "reserve-store console-action armed" : "reserve-store console-action";
+        }));
+        props.put("storeAction", (Runnable) this::storeSelected);
+        props.put("reserveClasses", reactor.computed(() -> {
+            revision.get();
+            return fittingFocused.get() || reserve == null
+                    || reserveCapacity.getAsInt() <= 0 && reserve.mechs().isEmpty() && reserve.vehicles().isEmpty()
+                    ? "hidden" : "reserve-strip";
+        }));
+        props.put("reserveTitle", reactor.computed(() -> {
+            revision.get();
+            return reserve == null ? "" : ReserveRow.title(reserve.stored(), reserveCapacity.getAsInt());
+        }));
+        props.put("reserveRows", reactor.computed(() -> {
+            revision.get();
+            selectedSquadId.get();
+            return reserveRows();
+        }));
+    }
+
+    List<ReserveRow> reserveRows() {
+        if (reserve == null) return List.of();
+        CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
+        boolean vacant = squad != null && squad.occupied() < physicalGantries && bay.canAddMech(squad.id());
+        List<ReserveRow> rows = new ArrayList<>();
+        for (CampaignMech mech : reserve.mechs()) {
+            rows.add(new ReserveRow("mech-reserve-" + mech.id(), mech.displayName(), mech.variant().displayName(),
+                    vacant, () -> recall(mech.id(), mech.displayName())));
+        }
+        for (CampaignVehicle vehicle : reserve.vehicles()) {
+            rows.add(new ReserveRow("mech-reserve-" + vehicle.id(), vehicle.displayName(),
+                    CampaignVehicle.className(vehicle.type()), vacant, () -> recall(vehicle.id(), vehicle.displayName())));
+        }
+        return rows;
+    }
+
+    /**
+     * STORE takes two presses, as SCRAP does: the first arms it, the second takes the machine off
+     * its gantry into the reserve hangar, fit and repair clock and all, and returns to the lance.
+     */
+    private void storeSelected() {
+        String machineId = selectedMachineId();
+        if (machineId == null || reserve == null) return;
+        CampaignMech mech = selectedMech();
+        String name = mech != null ? mech.displayName() : selectedVehicle().displayName();
+        scrapArmedId.set(null);
+        if (!machineId.equals(storeArmedId.get())) {
+            storeArmedId.set(machineId);
+            feedbackText.set(Strings.format("openingMechLabStoreArmed", name));
+            feedbackClasses.set("mech-lab-feedback tone-accent surface-dark");
+            return;
+        }
+        storeArmedId.set(null);
+        String pad = padLetter(selectedGantryIndex());
+        int capacity = reserveCapacity.getAsInt();
+        ReserveHangar.Status status = reserve.storeMachine(bay, machineId, capacity);
+        if (status != ReserveHangar.Status.STORED) {
+            feedbackText.set(status == ReserveHangar.Status.HANGAR_FULL
+                    ? Strings.format("reserveHangarFull", capacity)
+                    : Strings.get("openingMechLabRefitBlockedCampaignHardwareWasNotChanged"));
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+            return;
+        }
+        showLanceOverview();
+        feedbackText.set(Strings.format("openingMechLabStored", name, pad));
+        feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
+        bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    /** RECALL puts a stored machine on the shown lance's first vacant working gantry. */
+    private void recall(String machineId, String name) {
+        if (reserve == null) return;
+        CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
+        ReserveHangar.Status status = squad == null ? ReserveHangar.Status.NO_VACANT_PLACE
+                : reserve.recallMachine(bay, machineId, squad.id(), physicalGantries);
+        boolean recalled = status == ReserveHangar.Status.RECALLED;
+        feedbackText.set(recalled ? Strings.format("openingMechLabRecalled", name, squad.displayName())
+                : Strings.format("openingMechLabRecallNoGantry", name));
+        feedbackClasses.set(recalled ? "mech-lab-feedback tone-good surface-dark" : "mech-lab-feedback tone-danger surface-dark");
+        if (recalled) bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
     private void scrapSelected() {
         String machineId = selectedMachineId();
         if (machineId == null) return;
+        storeArmedId.set(null);
         CampaignMech mech = selectedMech();
         String name = mech != null ? mech.displayName() : selectedVehicle().displayName();
         FabricationCost salvage = mech != null ? workshop.mechSalvage(machineId) : workshop.vehicleSalvage(machineId);

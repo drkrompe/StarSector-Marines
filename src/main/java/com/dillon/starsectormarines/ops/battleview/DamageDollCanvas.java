@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechCarriedWear;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.battle.mech.MechSections;
@@ -203,6 +205,40 @@ public final class DamageDollCanvas implements CanvasProducer {
             set(DollLocation.TORSO_REAR.ordinal(), true, true, rear, structure[torso], destroyed[torso]);
             crippled = sections != null && sections.crippled();
             sensorsLost = sections != null && sections.sensorsLost();
+        }
+
+        /**
+         * Shows a mech as it would drop: every fitted section whole, less the wear an unfinished repair
+         * still leaves on it ({@link MechCarriedWear}). An empty mount reads as the battle reads it,
+         * outline only.
+         */
+        public void readDeployment(MechDeploymentSpec mech) {
+            if (mech == null) {
+                clear();
+                return;
+            }
+            begin(dollPath(mech.variant()));
+            MechCarriedWear wear = mech.wear();
+            for (MechSection section : MechSection.values()) {
+                MechMountSlot slot = section.mount();
+                float structureLost = wear.structureLost(section);
+                set(DollLocation.of(section).ordinal(), slot == null || mech.weaponAt(slot) != null, true,
+                        1f - wear.armorLost(section), 1f - structureLost, structureLost >= 1f);
+            }
+            int torso = DollLocation.TORSO.ordinal();
+            set(DollLocation.TORSO_REAR.ordinal(), true, true, armor[torso], structure[torso], destroyed[torso]);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
+        }
+
+        /** Shows a vehicle whole: the bay keeps no damage on one. */
+        public void readStock(VehicleType type) {
+            begin(dollPath(type));
+            for (DollLocation location : DollLocation.values()) set(location.ordinal(), true, false, 0f, 1f, false);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
         }
 
         /**
