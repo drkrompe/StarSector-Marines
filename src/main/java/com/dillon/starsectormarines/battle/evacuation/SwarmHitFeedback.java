@@ -36,9 +36,12 @@ public final class SwarmHitFeedback {
 
     private SwarmHitFeedback() {}
 
-    /** Whether {@code type} shows its hits this way: the plated strains, the Brute and the Matriarch. */
+    /**
+     * Whether {@code type} shows its hits this way: the plated strains, the Brute and the Matriarch, and the Bombard,
+     * which has no plate, so every round on it is an ichor puff off its split shell.
+     */
     public static boolean shows(UnitType type) {
-        return type == UnitType.SWARM_BRUTE || type == UnitType.SWARM_MATRIARCH;
+        return type == UnitType.SWARM_BRUTE || type == UnitType.SWARM_MATRIARCH || type == UnitType.SWARM_BOMBARD;
     }
 
     /** The share of rounds at {@code penetration} that glance off {@code armor} points of plate rated {@code rating}. */

@@ -1,6 +1,6 @@
 # Bombard: the Rav long arm
 
-Status: IN PROGRESS — steps 1 to 4 (the spore haze, the body and the lob, the counters, the look) are built, steps 1 to 3 scene-tested, and the probe (step 6) read on Cordon and Colony Breach with the battle cap in. The sound (step 5) is with the creature sound session.
+Status: IN PROGRESS — steps 1 to 4 (the spore haze, the body and the lob, the counters, the look) are built, steps 1 to 3 scene-tested, the look's animation pass is with the owner, and the probe (step 6) read on Cordon and Colony Breach with the battle cap in. The sound (step 5) is with the creature sound session.
 
 Written: 2026-10-25
 
@@ -143,11 +143,24 @@ prompts and provenance.
    `art-source/rav-redesign/artillery/export_bombard_rig.py` (legs, shell, six tail
    slices, sling, glob); the tail curls over the back through the wind-up and
    whips straight on the throw, the sac glows and flares, the shell wears
-   (`RavWear` slots 0 to 6), and a dead one bursts as a Spitter does. The glob
+   (`RavWear` slots 0 to 6). The glob
    flies on its own sprite with a ground shadow that tightens as it lands
-   (`groundShadow` on the weapon's render block). `bombard-look` shows the walk,
-   the lob's beats and the death; the battle frames are `bombard`'s `bombard-lob`
-   look shot. The haze's amber was already in `SmokeRenderSystem`.
+   (`groundShadow` on the weapon's render block). The haze's amber was already
+   in `SmokeRenderSystem`.
+   **Animation pass** (owner's picks pending: `bombard-throw`, `bombard-plant`,
+   `bombard-death`, built on the recommended options): the tail arches up off the
+   ground and over the back in pitch, drawn larger and shorter as it rises, so the
+   sling hangs over the shell as the master draws it, instead of hooking sideways.
+   Planting is a dig, three stamps a side with the body sinking, and uprooting
+   reverses it. The body's height, lurch and rock are springs: it crouches and
+   trembles at full draw, and on the throw it lurches and rocks while the sac flares,
+   goes dull and refills through the reload. Dead, it falls apart its own way: the
+   sac flashes, the shell cracks open on its seam (`shell-l`, `shell-r`), the legs
+   buckle and the tail falls limp to one side. Hits on it puff ichor
+   (`SwarmHitFeedback`). The throw happens on the same sim tick as before.
+   `bombard-look` shows the walk, the lob through to the uproot, and a death in
+   mid wind-up. The battle frames are `bombard`'s look shots: `bombard-lob`, and
+   `bombard-fire` (a rifle squad shooting a Bombard until it dies).
 5. **Sound.** Wind-up creak, whip and hinge crack, burst, haze hiss.
 6. **Probe.** One or two probe fixtures (`cordon-line`, then
    `colony-breach-v1`), judged by behaviour.
