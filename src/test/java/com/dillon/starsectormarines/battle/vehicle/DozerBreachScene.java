@@ -27,10 +27,11 @@ import java.util.Map;
  * give their vehicles real player move orders through {@link VehicleMoveOrderService}, so the route proof, the
  * rolling planner and the physical sweep are all production.
  *
- * <p>{@code breach} orders the APC across first, which is refused for want of a route; then the dozer, whose proof
- * reads ground it can open as reachable; then, once the dozer is through, the APC again over the same field. {@code
- * control} has the APC alone and ordered across for the whole run. Nothing here clears a cell: the gap is whatever
- * the blade made.
+ * <p>{@code breach} orders the APC across first, which takes it no farther than the near side of the wall (a vehicle
+ * order goes to the nearest cell the hull can reach); then the dozer, whose proof reads ground it can open as
+ * reachable; then, once the dozer is through, the APC again over the same field. {@code control} has the APC alone
+ * and ordered across for the whole run. Nothing here clears a cell: the gap is whatever the blade made. Orders are
+ * planned from a queue, so each is read once it has been resolved.
  */
 public final class DozerBreachScene implements BehaviorScene {
 
@@ -116,22 +117,23 @@ public final class DozerBreachScene implements BehaviorScene {
         }
 
         orders.requestMove(apc, APC_GOAL_X, APC_GOAL_Y);
-        sim.advance(BattleSimulation.TICK_DT);
+        settle(sim, orders, apc);
         VehicleMoveOrderService.RefusedOrder firstApc = orders.refusal(apc);
-        boolean apcRefusedAtWall = firstApc != null && firstApc.reason() == VehicleMoveOrderService.Refusal.NO_ROUTE
-                && orders.activeOrder(apc) == null;
+        VehicleMoveOrderService.ActiveOrder firstRoute = orders.activeOrder(apc);
+        boolean apcHeldAtWall = firstRoute != null ? firstRoute.destinationY() < WALL_Y0
+                : firstApc != null && firstApc.reason() == VehicleMoveOrderService.Refusal.NO_ROUTE;
 
         boolean dozerAccepted = false;
         if (dozer) {
             orders.requestMove(bladed, DOZER_GOAL_X, DOZER_GOAL_Y);
-            sim.advance(BattleSimulation.TICK_DT);
+            settle(sim, orders, bladed);
             dozerAccepted = orders.activeOrder(bladed) != null;
         }
 
         GroundBody apcBody = sim.convoy().body(apc);
         GroundBody dozerBody = dozer ? sim.convoy().body(bladed) : null;
         int dozerThroughTick = -1, apcOrderTick = -1, apcThroughTick = -1;
-        boolean apcSecondAccepted = false, legal = true;
+        boolean apcSecondAccepted = false, apcSecondDecided = false, legal = true;
         float apcMaxY = apcBody.y;
         for (int tick = 0; tick < TICKS; tick++) {
             if (dozer && dozerThroughTick < 0 && dozerBody.y > THROUGH_Y) {
@@ -144,7 +146,10 @@ public final class DozerBreachScene implements BehaviorScene {
             }
             if (!dozer && tick > 0 && tick % 300 == 0) orders.requestMove(apc, APC_GOAL_X, APC_GOAL_Y);
             sim.advance(BattleSimulation.TICK_DT);
-            if (apcOrderTick >= 0 && apcOrderTick == tick) apcSecondAccepted = orders.activeOrder(apc) != null;
+            if (apcOrderTick >= 0 && !apcSecondDecided && !orders.pending(apc)) {
+                apcSecondAccepted = orders.activeOrder(apc) != null;
+                apcSecondDecided = true;
+            }
             apcMaxY = Math.max(apcMaxY, apcBody.y);
             if (apcThroughTick < 0 && apcBody.y > THROUGH_Y) apcThroughTick = tick;
             legal &= VehicleFootprint.isPoseFeasible(apcBody.x, apcBody.y, apcBody.facingDegrees,
@@ -164,8 +169,8 @@ public final class DozerBreachScene implements BehaviorScene {
         }
 
         List<Verdict> verdicts = new ArrayList<>();
-        verdicts.add(Verdict.of("apc-refused-at-wall", apcRefusedAtWall,
-                "the APC's first order across the intact wall is refused for want of a route"));
+        verdicts.add(Verdict.of("apc-held-at-wall", apcHeldAtWall,
+                "the APC's first order across the intact wall takes it no farther than the near side"));
         verdicts.add(Verdict.of("whole-hull-clear", legal,
                 "every applied pose of every hull clears the live grid: nothing drove through a standing wall"));
         verdicts.add(Verdict.of("fortified-stands", openedFortified == 0,
@@ -199,6 +204,15 @@ public final class DozerBreachScene implements BehaviorScene {
         }
         sim.close();
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    /**
+     * Ticks until {@code vehicle}'s queued order is resolved: orders are planned from a queue, a couple of route proofs
+     * a tick, so one may wait a few ticks for its verdict.
+     */
+    private static void settle(BattleSimulation sim, VehicleMoveOrderService orders, long vehicle) {
+        do sim.advance(BattleSimulation.TICK_DT);
+        while (orders.pending(vehicle));
     }
 
     private static String caption(String loop, int tick, NavigationGrid grid) {
