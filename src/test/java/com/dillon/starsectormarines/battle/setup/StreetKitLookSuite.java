@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.gen.MainStreet;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -42,6 +43,8 @@ public final class StreetKitLookSuite implements SnapshotSuite {
     static final long SEED = 1;
     static final float CLOSE_CELLS = 30f;
     static final float AWNING_CELLS = 12f;
+    /** Cells of sight round the awning that put the figure under it in the player's view. */
+    static final int SEEN_RANGE = 4;
     static final int LOBSTER_SEEDS = 16;
 
     @Override public String id() { return "street-kit-look"; }
@@ -132,8 +135,9 @@ public final class StreetKitLookSuite implements SnapshotSuite {
     }
 
     /**
-     * A defender stood under the first awning on the street, framed close, and the same awning with nobody under it:
-     * the awning fades over a figure the player can see.
+     * The first awning on the street with nobody under it, then with a defender under it the player cannot see (the
+     * awning stays whole over them), then with that defender in the player's sight (a scout's vision projected onto
+     * the awning for one fog update), where the awning fades over them and the pavement shows through.
      */
     private static void awningFade(SnapshotContext context, BattleSimulation sim, List<SnapshotArtifact> out)
             throws Exception {
@@ -155,6 +159,13 @@ public final class StreetKitLookSuite implements SnapshotSuite {
         sim.world().setPos(figure, cx, cy);
         out.add(new SnapshotArtifact("awning-fade.png", BattleReviewFrameRenderer.look(context.modRoot(),
                 1920, 1080, cx, cy, AWNING_CELLS).render(sim, "awning")));
+        FogOfWarService fog = sim.getFogOfWar();
+        fog.addEphemeralSource((int) cx, (int) cy, SEEN_RANGE, 0f);
+        fog.tick(0, sim.getRoster());
+        out.add(new SnapshotArtifact("awning-fade-seen.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                1920, 1080, cx, cy, AWNING_CELLS).render(sim, "awning")));
+        fog.clearEphemeralSources();
+        fog.tick(0, sim.getRoster());
         sim.world().setPos(figure, x, y);
     }
 
