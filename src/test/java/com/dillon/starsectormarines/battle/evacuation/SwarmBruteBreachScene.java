@@ -42,11 +42,22 @@ import java.util.Map;
  *       industrial fence beyond the building, its only gate on the far side,
  *       as a colony redoubt's works are laid. The Brute breaks the fence
  *       between it and them rather than walking round to the gate.</li>
+ *   <li>{@code works}: the far-door building at the same colony wall strength,
+ *       its ground marked as a fort's ({@link FortifiedWorks}). The Brute still
+ *       breaks in, and its first breach comes later than {@code far-door}'s.</li>
+ *   <li>{@code works-yard}: the fenced yard marked as a fort's. A charge rams the
+ *       fence rather than bowling it over, and the first fence cell opens later
+ *       than {@code fenced-yard}'s.</li>
  * </ul>
+ *
+ * <p>Each loop reports {@code firstBreachTick}, the tick its first wall, window or
+ * fence cell opened: the time a Brute takes to get in, house wall against works.
  */
 public final class SwarmBruteBreachScene implements BehaviorScene {
 
     private static final int TICKS = 1500;
+    /** Long enough for a Brute to get through works, which are meant to hold it several times longer. */
+    private static final int WORKS_TICKS = 3600;
     private static final int COLONY_WALL_HP = 100;
     private static final int FORTIFIED_WALL_HP = 240;
 
@@ -60,19 +71,37 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("far-door", "near-door", "fortified", "emplacement", "fenced-yard")) {
-            reports.add(playOne(loop, frames));
+        int[] firstBreach = new int[2];
+        int[] worksBreach = new int[2];
+        for (String loop : List.of("far-door", "near-door", "fortified", "emplacement", "fenced-yard",
+                "works", "works-yard")) {
+            SceneReport report = playOne(loop, frames);
+            int breach = report.metrics().get("firstBreachTick").intValue();
+            switch (loop) {
+                case "far-door" -> firstBreach[0] = breach;
+                case "fenced-yard" -> firstBreach[1] = breach;
+                case "works" -> worksBreach[0] = breach;
+                case "works-yard" -> worksBreach[1] = breach;
+                default -> { }
+            }
+            reports.add(report);
         }
+        reports.add(comparison("works-hold-longer", firstBreach, worksBreach));
         return reports;
     }
 
     private SceneReport playOne(String loop, FrameSink frames) throws Exception {
         boolean fortified = loop.equals("fortified");
         boolean emplacement = loop.equals("emplacement");
-        boolean yard = loop.equals("fenced-yard");
+        boolean works = loop.startsWith("works");
+        boolean yard = loop.equals("fenced-yard") || loop.equals("works-yard");
+        int ticks = works ? WORKS_TICKS : TICKS;
         SwarmStrainGround ground = new SwarmStrainGround(yard ? 56 : 48, 28, 22, 10, 29, 17,
                 fortified ? FORTIFIED_WALL_HP : COLONY_WALL_HP)
                 .window(21, 12).window(21, 15);
+        if (works) {
+            FortifiedWorks.mark(ground.grid, 0, 0, ground.grid.getWidth() - 1, ground.grid.getHeight() - 1);
+        }
         if (loop.equals("near-door")) ground.door(21, 13);
         else ground.door(30, 14);
         // The yard's fence: closed to movement, open to sight, its gate on the side away from the Brute.
@@ -105,8 +134,8 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
             Trace trace = new Trace(brute, turret, marines, ground, sim);
             SceneRun.of(world).observe(trace)
                     .frames(frames, loop, 30, tick -> loop + " / brute / tick " + tick)
-                    .run(TICKS);
-            return yard ? yardReport(trace, sim, fence) : report(loop, trace, sim, ground, turret);
+                    .run(ticks);
+            return yard ? yardReport(loop, ticks, trace, sim, fence) : report(loop, ticks, trace, sim, ground, turret);
         }
     }
 
@@ -137,7 +166,27 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         return laid;
     }
 
-    private SceneReport yardReport(Trace trace, BattleSimulation sim, int fence) {
+    /** Both works loops' first breach comes later than their house-wall twin's: the Brute takes longer to get in. */
+    private SceneReport comparison(String loop, int[] house, int[] works) {
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("building-holds-longer", later(works[0], house[0]),
+                "first breach tick " + works[0] + " on works against " + house[0] + " on a house wall"));
+        verdicts.add(Verdict.of("fence-holds-longer", later(works[1], house[1]),
+                "first fence cell open tick " + works[1] + " on works against " + house[1] + " in a plain yard"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("houseBreachTick", house[0]);
+        metrics.put("worksBreachTick", works[0]);
+        metrics.put("yardBreachTick", house[1]);
+        metrics.put("worksYardBreachTick", works[1]);
+        return new SceneReport(id(), loop, WORKS_TICKS, verdicts, metrics);
+    }
+
+    /** Whether a breach at {@code works} (-1 for none) came later than one at {@code house}, which must have come. */
+    private static boolean later(int works, int house) {
+        return house >= 0 && (works < 0 || works > house);
+    }
+
+    private SceneReport yardReport(String loop, int ticks, Trace trace, BattleSimulation sim, int fence) {
         SwarmStrikeSystem strikes = sim.swarmStrikes();
         int opened = 0;
         for (int y = YARD_TOP; y <= YARD_BOTTOM; y++) {
@@ -162,11 +211,12 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         metrics.put("blows", strikes.blowsLanded());
         metrics.put("bowled", bowled);
         metrics.put("fenceCellsOpened", opened);
+        metrics.put("firstBreachTick", trace.firstBreachTick);
         metrics.put("marineDamage", trace.marineDamage());
-        return new SceneReport(id(), "fenced-yard", TICKS, verdicts, metrics);
+        return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
-    private SceneReport report(String loop, Trace trace, BattleSimulation sim,
+    private SceneReport report(String loop, int ticks, Trace trace, BattleSimulation sim,
                                SwarmStrainGround ground, long turret) {
         SwarmStrikeSystem strikes = sim.swarmStrikes();
         int breaches = 0;
@@ -178,7 +228,7 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         }
         List<Verdict> verdicts = new ArrayList<>();
         switch (loop) {
-            case "far-door" -> {
+            case "far-door", "works" -> {
                 verdicts.add(Verdict.of("strikes-the-building", strikes.blowsLanded() > 0,
                         strikes.blowsLanded() + " blows on walls and windows"));
                 verdicts.add(Verdict.of("breaks-in", breaches > 0,
@@ -218,9 +268,10 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         metrics.put("structuresBroken", strikes.structuresBroken());
         metrics.put("breachedRingCells", breaches);
         metrics.put("firstInsideTick", trace.firstInsideTick);
+        metrics.put("firstBreachTick", trace.firstBreachTick);
         metrics.put("marineDamage", trace.marineDamage());
         metrics.put("turretDamage", trace.turretDamage);
-        return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+        return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
     private static final class Trace implements TickObserver {
@@ -234,6 +285,7 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         private final float turretHp;
         private long firstTarget = -1L;
         private int firstInsideTick = -1;
+        private int firstBreachTick = -1;
         private boolean reachedTurret;
         private float turretDamage;
         private float[] lastHp;
@@ -275,6 +327,15 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
             return true;
         }
 
+        /** Whether any cell closed at the start, wall, window or fence, now stands open. */
+        private boolean breached(BattleSimulation sim) {
+            int w = ground.grid.getWidth();
+            for (int i = 0; i < closedAtStart.length; i++) {
+                if (closedAtStart[i] && sim.getGrid().isWalkable(i % w, i / w)) return true;
+            }
+            return false;
+        }
+
         float marineDamage() {
             float total = 0f;
             for (int i = 0; i < marines.length; i++) total += initialHp[i] - lastHp[i];
@@ -288,6 +349,7 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
             }
             long target = sim.combat().targetId(brute);
             if (firstTarget < 0 && target != 0L) firstTarget = target;
+            if (firstBreachTick < 0 && breached(sim)) firstBreachTick = tick;
             if (firstInsideTick < 0
                     && ground.inside(sim.world().cellX(brute), sim.world().cellY(brute))) {
                 firstInsideTick = tick;

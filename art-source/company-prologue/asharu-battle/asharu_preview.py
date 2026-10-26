@@ -651,16 +651,17 @@ def radio_caption(im, f, shot):
     lines = radio_log.speaking(f / FPS)
     if not lines:
         return im
-    _, who, _, _, line, ph = lines[0]
+    _, callsign, _, _, line, ph = lines[0]
+    who, role = radio_log.caption(callsign)      # the callsign leads; the designation is a role word after it
     W, H = motion_preview.W, motion_preview.H
     f_who, f_line, f_ph = motion_preview._font(24, True), motion_preview._font(30), motion_preview._font(20)
     dr = ImageDraw.Draw(im, 'RGBA')
-    tag = 'TIMING PLACEHOLDER, NOT DIALOGUE' if ph else ''
-    width = max(dr.textlength(line, font=f_line), dr.textlength(who + '   ' + tag, font=f_who)) + 60
+    tag = '   '.join(x for x in (role, 'TIMING PLACEHOLDER, NOT DIALOGUE' if ph else '') if x)
+    width = max(dr.textlength(line, font=f_line), dr.textlength(who + '   ', font=f_who) + dr.textlength(tag, font=f_ph)) + 60
     x0, y0 = (W - width) / 2, H - 196
     dr.rectangle((x0, y0, x0 + width, y0 + 92), fill=(0, 0, 0, 170))
     dr.text((x0 + 30, y0 + 10), who, font=f_who, fill=(255, 186, 90, 255))
-    if ph:
+    if tag:
         dr.text((x0 + 30 + dr.textlength(who + '   ', font=f_who), y0 + 13), tag, font=f_ph, fill=(150, 156, 164, 255))
     dr.text((x0 + 30, y0 + 44), line, font=f_line, fill=(150, 156, 164, 255) if ph else (240, 242, 245, 255))
     return im
