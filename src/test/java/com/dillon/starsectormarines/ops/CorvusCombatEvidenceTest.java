@@ -162,6 +162,10 @@ class CorvusCombatEvidenceTest {
                 // The Dust Ledger's rocket truck, the defence a lone Hound has to meet: what it fired, when it first did,
                 // and whether it lives. A hull keeps no telemetry, and it holds fire at men, so its salvoes are the count.
                 int technicalShots = 0, technicalFirstShotAt = -1, technicalLostAt = -1;
+                // Its route as cells it reached, and the cells it fired from.
+                var technicalTrack = new JSONArray();
+                var technicalFiredFrom = new JSONArray();
+                int[] technicalCell = {-1, -1};
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
                 int peakInfantryPickups = 0, peakLandedPickups = 0;
@@ -331,9 +335,16 @@ class CorvusCombatEvidenceTest {
                     if (technical != 0L && technicalLostAt < 0) {
                         var truck = sim.convoy().mission(technical);
                         if (truck == null || truck.state == VehicleState.WRECKED || truck.state == VehicleState.GONE) technicalLostAt = tick;
+                        var truckBody = sim.convoy().body(technical);
+                        int cx = (int) truckBody.x, cy = (int) truckBody.y;
+                        if (technicalLostAt < 0 && Math.abs(cx - technicalCell[0]) + Math.abs(cy - technicalCell[1]) >= 3) {
+                            technicalCell[0] = cx; technicalCell[1] = cy;
+                            technicalTrack.put(new JSONArray().put(tick).put(cx).put(cy));
+                        }
                         for (var shot : sim.getShotsThisFrame()) if (shot.shooterId == technical) {
                             if (technicalFirstShotAt < 0) technicalFirstShotAt = tick;
                             technicalShots++;
+                            technicalFiredFrom.put(new JSONArray().put(tick).put(cx).put(cy));
                         }
                     }
                     if (tick % 300 == 0 || sim.isComplete() || tick == maxTicks) {
@@ -384,6 +395,7 @@ class CorvusCombatEvidenceTest {
                         .put("houndAlive",houndAlive).put("houndLostAt",houndLostAt).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
                         .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
                         .put("technicalShots",technicalShots).put("technicalFirstShotAt",technicalFirstShotAt).put("technicalLostAt",technicalLostAt)
+                        .put("technicalTrack",technicalTrack).put("technicalFiredFrom",technicalFiredFrom)
                         .put("objectives",objectives(sim)).put("kits",kits);
                 report.put("dialogue", dialogue);
                 var intervention = sim.getColdAccount();

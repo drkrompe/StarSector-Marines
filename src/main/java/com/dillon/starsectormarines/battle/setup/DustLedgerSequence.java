@@ -217,7 +217,7 @@ public final class DustLedgerSequence implements Objective {
     private final List<Long> nests = new ArrayList<>();
     private final List<Cell> nestCells = new ArrayList<>();
     private final List<Integer> pillboxSquads = new ArrayList<>();
-    private long technical;
+    private DustLedgerTechnical technical;
 
     public DustLedgerSequence(Sites sites, RaidObjective raid, List<EntitySpec> drinkers, List<EntitySpec> salvageTeam,
                               StoryBeatLog log) {
@@ -294,13 +294,18 @@ public final class DustLedgerSequence implements Objective {
         if (feedCut()) for (long nest : nests) sim.turretState().cutPower(nest);
     }
 
-    /** Sable Wake's rocket truck, recorded at setup: covered like every Sable Wake body while quiet. */
-    public void technical(long id) {
-        if (technical != 0L) throw new IllegalStateException("record the technical once");
-        technical = id;
+    /**
+     * Sable Wake's rocket truck, recorded at setup with the stands the map leaves it: covered like every Sable Wake
+     * body while quiet, and from the alarm working the yard's corners against the company's armor
+     * ({@link DustLedgerTechnical}).
+     */
+    public void technical(BattleSimulation sim, long id, List<Cell> stands) {
+        if (technical != null) throw new IllegalStateException("record the technical once");
+        technical = new DustLedgerTechnical(sim, id, stands);
     }
 
-    public long technical() { return technical; }
+    /** The truck's hull id, or 0 when the mission fields none. */
+    public long technical() { return technical == null ? 0L : technical.id(); }
 
     public List<Long> nests() { return List.copyOf(nests); }
     /** Where the nests stand, for their markers. */
@@ -365,6 +370,7 @@ public final class DustLedgerSequence implements Objective {
         }
         walkBroker(sim);
         updateSpotters(sim);
+        if (technical != null && !progress.quiet()) technical.tick(sim);
     }
 
     private void onAlarm(BattleSimulation sim) {
