@@ -138,6 +138,12 @@ rather than new systems.
 - **Volatile tanks (if the mechanic exists).** Fuel tanks in the tank farm that
   go up under fire, dangerous to whoever stands beside them. Use an existing
   explosive-prop or fire mechanic if there is one; otherwise leave it as a note.
+  *Checked: none exists.* A prop's destroyed state is presentation only
+  (`PropDamage`), and the fire system burns wooden props alone (`BattleFire`).
+  The one prop-like blast is a parked airframe's cook-off
+  (`AirframeCookOffSystem`, through `Detonations`). Volatile tanks need a hook
+  from a prop's destroyed state to a detonation, so the tank farm is scenery
+  until that hook exists.
 
 Difficulty is then tuned against the worst approach (autonomous company, no side
 objectives, which should cost real losses but still win) and the best approach
@@ -157,7 +163,7 @@ capture point by accident. Surface palette follows the actual planet (ARID).
 | Crawler road | The Harrow salvage yard with its stranded crawler, between market and compound. |
 | North | A rock escarpment (raised cliffs) with a standable ridge reached by ramps, overlooking the compound yard: an overwatch position to take during the quiet phase. |
 | South | The dry terraforming canal (excavated, impassable, see-through) with dead fields along it and two crossings. |
-| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The broker's skimmer pad lies beyond the southern canal crossing. |
+| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The defences (`Layout.nests`, `Layout.pillboxes`): three gun nests on paved pads (a light cannon on the gate drive, machine guns by the tank farm and in the east yard) and three pillboxes, at the gate, the postern and the pump house's yard doors, crewed from the gate, wall and clerks' posts. The feed junction (`Layout.feedJunction`) stands on its pad south of the back lane, with the power line carried overhead to the compound's west wall. The broker's skimmer pad lies beyond the southern canal crossing. |
 | Beyond | Open hardpan, wreck debris and scattered ruins framing the edges. |
 
 Three approaches to the compound must be real choices: through the market
@@ -173,7 +179,8 @@ generated yet.
 | The warden's well (head, windlass) | `industrial-pump-set` in the court |
 | Burn barrel (ledger fire) | `industrial-drum-cluster` |
 | Broker's skimmer, parked | a bare concrete pad |
-| Compound sentry tower | none; gate sandbags and barriers only |
+| Compound sentry tower | a `fort-emplacement` prop beside the gate; the gate pillbox holds the gate itself |
+| Power-line pylons, junction box | an overhead pipe rack; `industrial-switchboard` on a concrete pad |
 | Market cart, burnt-out terraforming pipe | parked trucks; `industrial-pipe-bundle` pieces |
 
 **Garrison.** One finite Sable Wake crew of about 18 at Low quality: gate and

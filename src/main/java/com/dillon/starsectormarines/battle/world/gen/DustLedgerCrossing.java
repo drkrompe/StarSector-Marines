@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -102,6 +105,10 @@ public final class DustLedgerCrossing {
      * @param warehouses       market warehouses a crew can staff
      * @param shops            market shops (the cantina among them) a crew can staff
      * @param homes            market buildings ambient civilians live in; the compound's bunkhouse is not one
+     * @param nests            the compound's three powered gun nests: gate drive, tank farm, east yard
+     * @param pillboxes        the three manned pillboxes: compound gate, postern, pump house yard doors
+     * @param feedJunction     where a squad stands to cut the guns' feed at the junction box
+     * @param feedJunctionArea the junction's pad, outside the exclusion ring
      */
     public record Layout(MapResult map, Area landing, Cell companyStart, Cell hauler, Cell couplingCrate,
                          Area ledgerRoom, Cell ledgerTarget, Cell burnBarrel, Area countingRoom,
@@ -113,7 +120,28 @@ public final class DustLedgerCrossing {
                          Area harrowYard, Cell crateDrop, List<Cell> salvageTeam, List<Cell> spotterPosts,
                          List<Cell> canalCrossings, List<Cell> ridgeOverwatch,
                          Map<Approach, List<Cell>> approaches,
-                         List<PointOfInterest> warehouses, List<PointOfInterest> shops, List<PointOfInterest> homes) {}
+                         List<PointOfInterest> warehouses, List<PointOfInterest> shops, List<PointOfInterest> homes,
+                         List<Nest> nests, List<Pillbox> pillboxes, Cell feedJunction, Area feedJunctionArea) {}
+
+    /**
+     * A gun nest: a light defence post (a sealed mount in a parapet ring, {@code DefensePostStamper}) on a paved pad.
+     * The post is also in {@link MapResult#defensePosts}; spawning it, its side and its power are the mission's.
+     *
+     * @param cell   the mount, the post's anchor
+     * @param facing the way its field of fire opens, toward what it covers
+     * @param post   the stamped post, its turret spec ready for {@code BattleSetup.buildMap}
+     */
+    public record Nest(Cell cell, Direction facing, DefensePost post) {}
+
+    /**
+     * A pillbox: a hardened building held like any other, whose crew fights from its slits.
+     *
+     * @param building the building (a held place, never a capture point)
+     * @param covers   the entrance it covers
+     * @param role     the duty its posts come from
+     * @param posts    the posts inside it, each a slit cell, already counted in {@link Layout#posts()}
+     */
+    public record Pillbox(PointOfInterest building, Cell covers, PostRole role, List<Cell> posts) {}
 
     /** The apron slab: three berths down its west side, freight stacked between and along the east. */
     static final Area APRON = new Area(4, 40, 29, 80);
@@ -133,9 +161,36 @@ public final class DustLedgerCrossing {
     /** The pump house at the yard's heart; the motor pool and quarters west of it, workshop and stores east. */
     private static final int PUMP_LEFT = 172, PUMP_BOTTOM = 44;
     private static final int GARAGE_LEFT = 139, GARAGE_BOTTOM = 58;
-    private static final int BUNK_LEFT = 139, BUNK_BOTTOM = 32;
+    /** The bunkhouse and mess, east of the postern's yard so the postern pillbox sees it whole. */
+    private static final int BUNK_LEFT = 146, BUNK_BOTTOM = 32, MESS_LEFT = 159, MESS_BOTTOM = 34;
     /** The terraforming pipeline's line, from the canal bank north through the south wall to the pump gear. */
     private static final int PIPELINE_X = 184;
+
+    /** The gun nests' mounts, each on a paved pad: the gate drive, by the tank farm, the east yard. */
+    private static final List<Cell> NEST_CELLS = List.of(new Cell(198, 63), new Cell(153, 47), new Cell(212, 47));
+    private static final List<Direction> NEST_FACING = List.of(Direction.N, Direction.W, Direction.W);
+    /** The light cannon on the drive, where a crawler would come in; machine guns where infantry does. */
+    private static final List<String> NEST_GUNS = List.of(TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID,
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID);
+    /** Cells of paved pad round a nest's mount, kept clear of dressing so its field of fire stays open. */
+    private static final int NEST_PAD = 2;
+
+    /**
+     * The pillboxes, by the entrance each covers: a corner and quarter turns of {@link BuildingStamp#PILLBOX}, and its
+     * posts as slit cells in the plan's own frame. The gate's looks across the drive, the postern's down on the
+     * postern, the yard's over the pump house's east and south yard doors.
+     */
+    private record PillboxPlan(int left, int bottom, int turns, PostRole role, List<Cell> slits) {}
+    private static final PillboxPlan GATE_PILLBOX = new PillboxPlan(189, 61, 3, PostRole.GATE,
+            List.of(new Cell(1, 4), new Cell(5, 4), new Cell(6, 3)));
+    private static final PillboxPlan POSTERN_PILLBOX = new PillboxPlan(138, 41, 2, PostRole.WALL,
+            List.of(new Cell(1, 4), new Cell(3, 4)));
+    private static final PillboxPlan YARD_PILLBOX = new PillboxPlan(197, 37, 0, PostRole.CLERKS,
+            List.of(new Cell(3, 4), new Cell(0, 3)));
+
+    /** Sable Wake's tap on the old terraforming power line: the junction box's work cell and its pad. */
+    static final Cell FEED_JUNCTION = new Cell(122, 32);
+    static final Area FEED_PAD = new Area(119, 30, 125, 35);
 
     static final Area SKIMMER_PAD = new Area(151, 5, 159, 10);
     static final Cell SKIMMER_BOARDING = new Cell(155, 11);
@@ -171,12 +226,13 @@ public final class DustLedgerCrossing {
                 DustLedgerCrossing::yardSurfaces, DustLedgerCrossing::groundWear,
                 DustLedgerCrossing::apronFreight, DustLedgerCrossing::marketDressing,
                 DustLedgerCrossing::compoundDressing, DustLedgerCrossing::hardpan, DustLedgerCrossing::terrain,
-                DustLedgerCrossing::ridge, new FinalizeStage(), new OutdoorLandscapeStage(anchors()))).run(c);
+                DustLedgerCrossing::ridge, new FinalizeStage(), context -> nests(context, s),
+                new OutdoorLandscapeStage(anchors()))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, COMPANY_START.x(), COMPANY_START.y(),
                 s.pumpHouse.interiorAnchorX, s.pumpHouse.interiorAnchorY, c.pois, c.doodads,
                 new TacticalMap(HeldPlaces.fromBuildings(c.pois,
                         poi -> COMPOUND.contains(poi.interiorAnchorX, poi.interiorAnchorY) ? Faction.DEFENDER : Faction.CIVILIAN)),
-                c.get(BspKeys.BUILDINGS), List.of(),
+                c.get(BspKeys.BUILDINGS), List.copyOf(c.defensePosts),
                 AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.DUST_LEDGER), ""), c.landingPads);
         Layout layout = layout(map, s);
         validate(layout);
@@ -191,19 +247,22 @@ public final class DustLedgerCrossing {
                 l.radioRoom(), l.pumpHouse(), l.skimmerPad(), l.skimmerBoarding(), l.compound(), l.exclusionRing(),
                 l.gate(), l.postern(), l.southGate(), l.posts(), l.cantina(), l.wellHouse(), l.wellHouseArea(),
                 l.harrowYard(), l.crateDrop(), l.salvageTeam(), l.spotterPosts(), l.canalCrossings(),
-                l.ridgeOverwatch(), l.approaches(), l.warehouses(), l.shops(), l.homes());
+                l.ridgeOverwatch(), l.approaches(), l.warehouses(), l.shops(), l.homes(),
+                l.nests(), l.pillboxes(), l.feedJunction(), l.feedJunctionArea());
     }
 
     /** What the stages learned while building, read back into the layout. */
     private static final class Sites {
         PointOfInterest pumpHouse, cantina, wellHouse, northShop, eastHome;
         final List<PointOfInterest> warehouses = new ArrayList<>(), shops = new ArrayList<>(), homes = new ArrayList<>();
+        final List<Nest> nests = new ArrayList<>();
+        final List<Pillbox> pillboxes = new ArrayList<>();
     }
 
     private static int[] anchors() {
         List<Cell> cells = new ArrayList<>(List.of(COMPANY_START, HAULER, COUPLING_CRATE, CROSSROADS, GATE, POSTERN,
                 SOUTH_GATE, SKIMMER_BOARDING, WEST_CROSSING, SOUTH_CROSSING, CRATE_DROP, SALVAGE_TEAM,
-                WEST_RAMP_FOOT, EAST_RAMP_FOOT));
+                WEST_RAMP_FOOT, EAST_RAMP_FOOT, FEED_JUNCTION));
         for (List<Cell> line : approachLines().values()) cells.addAll(line);
         int[] out = new int[cells.size() * 2];
         for (int i = 0; i < cells.size(); i++) {
@@ -247,6 +306,7 @@ public final class DustLedgerCrossing {
         slab(c, APRON);
         slab(c, new Area(COMPOUND.left() + 1, COMPOUND.bottom() + 1, COMPOUND.right() - 1, COMPOUND.top() - 1));
         slab(c, SKIMMER_PAD);
+        slab(c, FEED_PAD);
     }
 
     private static void slab(GenContext c, Area area) {
@@ -296,7 +356,14 @@ public final class DustLedgerCrossing {
         stamp(c, BuildingStamp.OFFSET_DEPOT, GARAGE_LEFT, GARAGE_BOTTOM, 2); // Crawler garage, doors on both long sides.
         stamp(c, BuildingStamp.BARN, 152, 59, 0); // Vehicle shed, its doors on the yard.
         stamp(c, BuildingStamp.CORNER_HOME, BUNK_LEFT, BUNK_BOTTOM, 2); // Bunkhouse, door on the yard.
-        stamp(c, BuildingStamp.FARMHOUSE, 153, 34, 0); // Mess.
+        stamp(c, BuildingStamp.FARMHOUSE, MESS_LEFT, MESS_BOTTOM, 0); // Mess.
+        // The pillboxes, each covering an entrance from inside, its door on the yard.
+        for (PillboxPlan plan : List.of(GATE_PILLBOX, POSTERN_PILLBOX, YARD_PILLBOX)) {
+            PointOfInterest building = stamp(c, BuildingStamp.PILLBOX, plan.left(), plan.bottom(), plan.turns());
+            Cell covers = plan == GATE_PILLBOX ? GATE : plan == POSTERN_PILLBOX ? POSTERN
+                    : new Cell(PUMP_LEFT + 22, PUMP_BOTTOM + 3);
+            s.pillboxes.add(new Pillbox(building, covers, plan.role(), slitCells(plan)));
+        }
         // East, the works: the pump workshop and the stores.
         stamp(c, BuildingStamp.T_WORKSHOP, 205, 50, 0);
         stamp(c, BuildingStamp.OFFSET_DEPOT, 206, 33, 0);
@@ -349,7 +416,7 @@ public final class DustLedgerCrossing {
                 if (c.topology.getGroundKind(x, y) != GroundKind.COURTYARD || c.topology.isWall(x, y)) continue;
                 boolean house = x >= PUMP_LEFT - 3 && x <= PUMP_LEFT + 25 && y >= PUMP_BOTTOM - 3 && y <= PUMP_BOTTOM + 16;
                 boolean drive = Math.abs(x - GATE.x()) <= 3 && y >= PUMP_BOTTOM + 14;
-                if (house || drive) continue;
+                if (house || drive || nestPad(x, y)) continue;
                 boolean bed = x <= 158 && y >= 44 && y <= 57 || x >= 200 && y <= 48;
                 if (bed || patches.sample(x, y) < .25) {
                     c.topology.setGroundKind(x, y, GroundKind.STONE);
@@ -625,7 +692,6 @@ public final class DustLedgerCrossing {
             place(c, at[0], at[1], "industrial-crate-stack", 0);
         place(c, 203, 46, "industrial-pallet-stack", 0);
         cargo(c, 197, 50);
-        cargo(c, 196, 42);
         cargo(c, 214, 66);
         cargo(c, 209, 44);
         barrier(c, 214, 49);
@@ -653,6 +719,13 @@ public final class DustLedgerCrossing {
         for (int y = 26; y <= 28; y++) place(c, PIPELINE_X, y, lengths[y % 3], 0);
         int i = 0;
         for (int x = 190; x <= 202; x += 3) place(c, x, 27 + (i % 2), lengths[i++ % 3], 0);
+        // The feed: Sable Wake's tap on the town's old terraforming power line. The junction box on its pad south of
+        // the back lane, the line carried overhead from it to the compound's west wall, its drum inside.
+        place(c, FEED_JUNCTION.x() - 1, FEED_JUNCTION.y() + 1, "industrial-switchboard", 0);
+        place(c, FEED_PAD.left() + 1, FEED_PAD.bottom() + 1, "industrial-cable-reel", 0);
+        StreetDressing.pipeRun(c.grid, c.topology, c.doodads, FEED_PAD.right() + 1, FEED_JUNCTION.y() - 1,
+                COMPOUND.left() - 1, FEED_JUNCTION.y() - 1, 3);
+        place(c, COMPOUND.left() + 2, FEED_JUNCTION.y() - 1, "industrial-cable-reel", 0);
     }
 
     /** Wreckage of the old low-orbit battle and the terraforming's ruins framing the hardpan. */
@@ -688,7 +761,7 @@ public final class DustLedgerCrossing {
 
     private static boolean open(GenContext c, int x, int y, int w, int h) {
         for (int yy = y; yy < y + h; yy++) for (int xx = x; xx < x + w; xx++) {
-            if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy)
+            if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy) || nestPad(xx, yy)
                     || c.topology.hasBuildingKindHint(xx, yy) || c.topology.getGroundKind(xx, yy) == GroundKind.STREET)
                 return false;
             for (int ty = yy - 1; ty <= yy + 1; ty++) for (int tx = xx - 1; tx <= xx + 1; tx++)
@@ -762,17 +835,50 @@ public final class DustLedgerCrossing {
 
     private static ElevationPlan.Point point(Cell cell) { return new ElevationPlan.Point(cell.x(), cell.y()); }
 
+    /** A pillbox's slit cells in world cells, posed as the pillbox is. */
+    private static List<Cell> slitCells(PillboxPlan plan) {
+        List<Cell> out = new ArrayList<>();
+        for (Cell slit : plan.slits()) {
+            int[] at = BuildingStamp.PILLBOX.posed(slit.x(), slit.y(), plan.turns());
+            out.add(new Cell(plan.left() + at[0], plan.bottom() + at[1]));
+        }
+        return List.copyOf(out);
+    }
+
+    private static boolean nestPad(int x, int y) {
+        for (Cell nest : NEST_CELLS)
+            if (Math.abs(x - nest.x()) <= NEST_PAD && Math.abs(y - nest.y()) <= NEST_PAD) return true;
+        return false;
+    }
+
+    /**
+     * The gun nests, stamped once the ground is final: the light post's parapet ring round one sealed mount, on its
+     * paved pad. Unmanned and powered; whether they spawn, for whom, and whether the feed still runs are the mission's.
+     */
+    private static void nests(GenContext c, Sites s) {
+        for (int i = 0; i < NEST_CELLS.size(); i++) {
+            Cell at = NEST_CELLS.get(i);
+            DefensePost post = DefensePostStamper.stampNest(c.grid, c.topology, c.doodads, at.x(), at.y(), NEST_GUNS.get(i));
+            c.defensePosts.add(post);
+            s.nests.add(new Nest(at, NEST_FACING.get(i), post));
+        }
+    }
+
     private static void ridge(GenContext c) {
         ElevationBrush.stamp(ridgePlan(), c.grid, c.topology);
     }
 
     private static Layout layout(MapResult map, Sites s) {
         Map<PostRole, List<Cell>> posts = new EnumMap<>(PostRole.class);
-        posts.put(PostRole.GATE, List.of(new Cell(194, 65), new Cell(198, 67), new Cell(202, 65)));
-        posts.put(PostRole.WALL, List.of(new Cell(217, 67), new Cell(218, 33), new Cell(139, 68)));
+        // Gate, postern and yard posts stand at the pillboxes' slits; the count per duty is unchanged.
+        posts.put(PostRole.GATE, slitCells(GATE_PILLBOX));
+        List<Cell> wall = new ArrayList<>(List.of(new Cell(217, 67)));
+        wall.addAll(slitCells(POSTERN_PILLBOX));
+        posts.put(PostRole.WALL, List.copyOf(wall));
         posts.put(PostRole.ROOF, List.of(new Cell(PUMP_LEFT + 3, PUMP_BOTTOM + 12), new Cell(PUMP_LEFT + 19, PUMP_BOTTOM + 11)));
-        posts.put(PostRole.CLERKS, List.of(new Cell(PUMP_LEFT + 12, PUMP_BOTTOM + 7), new Cell(PUMP_LEFT + 11, PUMP_BOTTOM + 3),
-                new Cell(PUMP_LEFT + 18, PUMP_BOTTOM + 4)));
+        List<Cell> clerks = new ArrayList<>(List.of(new Cell(PUMP_LEFT + 12, PUMP_BOTTOM + 7)));
+        clerks.addAll(slitCells(YARD_PILLBOX));
+        posts.put(PostRole.CLERKS, List.copyOf(clerks));
         posts.put(PostRole.CRAWLER, List.of(new Cell(151, 62), new Cell(146, 53), new Cell(140, 55)));
         posts.put(PostRole.CANTINA, interiorCells(map, s.cantina, 4));
         return new Layout(map, APRON, COMPANY_START, HAULER, COUPLING_CRATE, ledgerRoom(), ledgerTarget(), burnBarrel(),
@@ -785,7 +891,8 @@ public final class DustLedgerCrossing {
                 List.of(new Cell(s.northShop.interiorAnchorX, s.northShop.interiorAnchorY),
                         new Cell(s.eastHome.interiorAnchorX, s.eastHome.interiorAnchorY)),
                 List.of(WEST_CROSSING, SOUTH_CROSSING), overwatch(map), approachLines(),
-                List.copyOf(s.warehouses), List.copyOf(s.shops), List.copyOf(s.homes));
+                List.copyOf(s.warehouses), List.copyOf(s.shops), List.copyOf(s.homes),
+                List.copyOf(s.nests), List.copyOf(s.pillboxes), FEED_JUNCTION, FEED_PAD);
     }
 
     /** Up to {@code count} walkable floor cells spread through a building, its interior anchor first. */
@@ -826,6 +933,7 @@ public final class DustLedgerCrossing {
         required.addAll(l.spotterPosts());
         required.addAll(l.canalCrossings());
         required.addAll(l.ridgeOverwatch());
+        required.add(l.feedJunction());
         for (PointOfInterest poi : l.map().pointsOfInterest) required.add(new Cell(poi.interiorAnchorX, poi.interiorAnchorY));
         for (LandingPad pad : l.map().landingPads) {
             if (!pad.isClear(grid, l.map().topology)) throw new IllegalStateException("Saltwell apron berth obstructed");
@@ -847,6 +955,12 @@ public final class DustLedgerCrossing {
         for (Cell cell : List.of(l.harrowYard().centre(), l.crateDrop(), l.wellHouse(), l.companyStart()))
             if (l.exclusionRing().contains(cell.x(), cell.y()))
                 throw new IllegalStateException("Quiet-phase site inside the exclusion ring: " + cell);
+        if (l.exclusionRing().contains(l.feedJunction().x(), l.feedJunction().y()))
+            throw new IllegalStateException("Feed junction inside the exclusion ring");
+        for (Pillbox pillbox : l.pillboxes())
+            for (Cell post : pillbox.posts())
+                if (l.map().topology.getBuildingId(post.x(), post.y()) == 0)
+                    throw new IllegalStateException("Pillbox post outside its pillbox: " + post);
         if (l.exclusionRing().contains(l.skimmerBoarding().x(), l.skimmerBoarding().y()))
             throw new IllegalStateException("Skimmer pad inside the exclusion ring");
     }

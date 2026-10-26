@@ -170,7 +170,17 @@ public enum BuildingStamp {
             "#.......#......+......+",
             "#.......#......#......#",
             "#k.....k#d.d.d.#k.....#",
-            "##s++s#####s+#####s+###");
+            "##s++s#####s+#####s+###"),
+    /**
+     * A hardened pillbox (`dust-ledger-crossing.md`, Defences): one room behind firing slits on three faces, its door
+     * on the fourth, so its crew covers an entrance from under cover. Pose it with the door toward the yard. Story map only.
+     */
+    PILLBOX("Pillbox", BuildingKind.FORTIFIED, BuildingStyle.WORKSHOP,
+            "#n#n#n#",
+            "w.....e",
+            "#.....#",
+            "w.....e",
+            "###+###");
 
     /**
      * The plans a city lot may draw. The farm buildings stand only where the
@@ -212,7 +222,7 @@ public enum BuildingStamp {
     }
 
     /** Counterclockwise quarter turns, matching Doodad's placement convention. */
-    int[] posed(int x, int y, int turns) {
+    public int[] posed(int x, int y, int turns) {
         switch (Math.floorMod(turns, 4)) {
             case 1: return new int[]{height - 1 - y, x};
             case 2: return new int[]{width - 1 - x, height - 1 - y};
@@ -421,7 +431,7 @@ public enum BuildingStamp {
                 }
             }
         }
-        PointOfInterest.Kind poiKind = kind == BuildingKind.INDUSTRIAL ? PointOfInterest.Kind.DEPOT
+        PointOfInterest.Kind poiKind = kind == BuildingKind.INDUSTRIAL || kind == BuildingKind.FORTIFIED ? PointOfInterest.Kind.DEPOT
                 : kind == BuildingKind.CIVIC ? PointOfInterest.Kind.ADMINISTRATIVE : PointOfInterest.Kind.RESIDENTIAL;
         ctx.pois.add(new PointOfInterest(poiKind, left, bottom,
                 left + width(turns) - 1, bottom + height(turns) - 1,
