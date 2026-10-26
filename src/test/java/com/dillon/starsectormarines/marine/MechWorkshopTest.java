@@ -42,7 +42,7 @@ class MechWorkshopTest {
     }
 
     @Test
-    void scrappingFreesThePadReturnsFittedPartsToStoresAndHalfTheBillToTheHold() {
+    void scrappingFreesThePadReturnsFittedPartsToStoresAndTheShopsShareOfTheHullToTheHold() {
         MechBay bay = MechBay.legacyStarterFixture();
         TestResources resources = TestResources.stocked(100);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
@@ -52,14 +52,16 @@ class MechWorkshopTest {
         int spareArms = bay.availableWeapon(arms.id);
         long fitted = Arrays.stream(MechMountSlot.values()).filter(slot -> mech.weaponAt(slot) == arms).count();
         int occupied = bay.activeSquad().occupied();
+        FabricationCost quoted = workshop.mechSalvage(mech.id());
+        assertNotNull(quoted);
 
         assertEquals(MechWorkshop.Status.SCRAPPED, workshop.scrapMech(mech.id()).status());
 
         assertNull(bay.mechById(mech.id()));
         assertEquals(occupied - 1, bay.activeSquad().occupied());
         assertEquals(spareArms + fitted, bay.availableWeapon(arms.id), "every fitted copy is a spare again");
-        for (FabricationCost.Line line : MechFabricationCatalog.chassis(mech.variant()).cost().lines()) {
-            assertEquals(100 + line.quantity() / 2, resources.available(line.commodityId()));
+        for (FabricationCost.Line line : quoted.lines()) {
+            assertEquals(100 + line.quantity(), resources.available(line.commodityId()), "what was quoted is what arrives");
         }
         assertEquals(MechWorkshop.Status.INVALID, workshop.scrapMech(mech.id()).status());
     }
@@ -197,6 +199,8 @@ class MechWorkshopTest {
             }
             return true;
         }
+
+        @Override public Reclamation reclamation() { return Reclamation.MACHINERY; }
 
         @Override public boolean credit(FabricationCost salvage) {
             for (FabricationCost.Line line : salvage.lines()) {

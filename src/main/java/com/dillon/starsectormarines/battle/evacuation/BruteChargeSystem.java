@@ -588,7 +588,7 @@ public final class BruteChargeSystem {
             int hp = grid.getWallHp(cx, cy);
             boolean light = hp > 0 && hp <= SwarmBruteBehavior.LIGHT_WALL_HP;
             // A barricade on a fort's or an objective's ground is rammed like its wall, never bowled through.
-            boolean works = FortifiedWorks.SWARM_TOUGHNESS > 1 && FortifiedWorks.isWorks(grid, cx, cy, null);
+            boolean works = FortifiedWorks.isWorks(grid, cx, cy, null);
             boolean barricade = light && sim.isBarricadeAt(cx, cy);
             if (barricade && !works) {
                 sim.mapEditor().damageWall(cx, cy, hp);

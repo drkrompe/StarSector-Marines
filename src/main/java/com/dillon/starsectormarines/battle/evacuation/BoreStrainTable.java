@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Which strain a bore's surge is made of, keyed by tier
@@ -69,8 +71,17 @@ public final class BoreStrainTable {
      * whose Bombard is alive, or already in this surge, draws the same roll over the other strains.
      */
     public static Slot pick(BoreTier tier, long roll, boolean owesMatriarch, boolean bombardFree) {
+        return pick(tier, roll, owesMatriarch, bombardFree ? EnumSet.noneOf(Slot.class) : EnumSet.of(Slot.BOMBARD));
+    }
+
+    /**
+     * {@link #pick(BoreTier, long, boolean)} over the strains not in {@code out}: a strain whose hold is full
+     * (`colony-breach-nouns.md`, Hold) is out of the draw, and the same roll falls on the others. {@code null} when
+     * every strain the tier draws is out.
+     */
+    public static Slot pick(BoreTier tier, long roll, boolean owesMatriarch, Set<Slot> out) {
         if (owesMatriarch) return Slot.MATRIARCH;
-        return pick(tier, roll, bombardFree ? null : Slot.BOMBARD);
+        return pick(tier, roll, out);
     }
 
     /**
@@ -79,15 +90,16 @@ public final class BoreStrainTable {
      * picks the same strain.
      */
     public static Slot pick(BoreTier tier, long roll) {
-        return pick(tier, roll, null);
+        return pick(tier, roll, EnumSet.noneOf(Slot.class));
     }
 
-    private static Slot pick(BoreTier tier, long roll, Slot excluded) {
+    private static Slot pick(BoreTier tier, long roll, Set<Slot> out) {
         int total = 0;
-        for (Slot slot : Slot.values()) if (slot != excluded) total += weight(tier, slot);
+        for (Slot slot : Slot.values()) if (!out.contains(slot)) total += weight(tier, slot);
+        if (total == 0) return null;
         long at = Math.floorMod(roll, (long) total);
         for (Slot slot : Slot.values()) {
-            if (slot == excluded) continue;
+            if (out.contains(slot)) continue;
             at -= weight(tier, slot);
             if (at < 0) return slot;
         }

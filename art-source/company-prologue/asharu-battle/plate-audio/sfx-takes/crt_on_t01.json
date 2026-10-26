@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "44",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "An old CRT television switched on in a quiet room: a sharp relay click, a deep degauss thunk with a wobbling electrical hum, then a faint high-pitched tube whine settling in, no music",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "f461a01d8db22b121d7d35d82be7b7d02e56084cfba155a36d283ba3a50d4f4f",
+  "durationSeconds": 4.0,
+  "peakDb": -19.7,
+  "integratedLufs": -44.4
+}

@@ -199,7 +199,7 @@ class CompanyYardTest {
             assertEquals(0, CompanyYard.reservedCredits(ship));
             PreparationDepot depot = CerberusCompanyStart.accessibleDepot();
             assertNotNull(depot);
-            depot.draw("metals", 30, Purpose.BOAT);
+            depot.draw("metals", depot.available("metals", Purpose.BOAT), Purpose.BOAT);
             assertNotNull(CompanyYard.install(ship, market));
             CerberusCompanyStart.establishDepot(ship, market);
             assertSame(depot, CerberusCompanyStart.depot());

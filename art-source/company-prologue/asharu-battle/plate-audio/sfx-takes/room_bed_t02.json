@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "165",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Quiet military operations room at night: low air handling hum, distant computer fans and electronics, very faint, no voices, no music",
+    "duration_seconds": 15.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "8dfebbabba57121993b0a88330e8ab0f08659fd7110315d2dd1ce02c0bdd7697",
+  "durationSeconds": 15.0,
+  "peakDb": -26.5,
+  "integratedLufs": -46.9
+}
