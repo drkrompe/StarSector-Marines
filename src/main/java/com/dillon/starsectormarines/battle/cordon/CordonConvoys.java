@@ -762,18 +762,45 @@ public final class CordonConvoys {
 
     /**
      * The road's route from one corridor cell to another: each stretch of {@link #STRETCH} cells a
-     * drivable route the planner proves for a truck; where it proves none, a way a truck's footprint
-     * fits along; and the corridor's own cells where there is not even that.
+     * drivable route the planner proves for a truck; where it proves none, or meets the stretch before
+     * in a sharp turn, one driven from halfway along the stretch before, so the turn is proved with them;
+     * where not even that, a way a truck's footprint fits along; and the corridor's own cells where there
+     * is not even that. Proved apart, two stretches can meet in a turn no truck makes: on town verdant 8
+     * one ran east to the corner of the square and the next set off south-west from it, and every
+     * convoy's lead truck stuck there.
      */
     private float[][] lay(BattleSimulation sim, int from, int to) {
         int direction = to >= from ? 1 : -1;
         List<float[]> points = new ArrayList<>();
+        int[] before = null;
+        int beforeMark = 0;
+        float[] beforeHeading = null, endHeading = null;
         for (int i = from; i != to; ) {
             int next = direction > 0 ? Math.min(to, i + STRETCH) : Math.max(to, i - STRETCH);
             int[] a = corridor.get(i), b = corridor.get(next);
             int[] sa = VehicleRoutePlanner.snapToMask(clearance, a[0], a[1], SNAP);
             int[] sb = VehicleRoutePlanner.snapToMask(clearance, b[0], b[1], SNAP);
             float[][] way = prove(sim, sa, sb);
+            int mark = points.size();
+            if (before != null && (way == null || dot(endHeading, heading(way, true)) < SHARP)) {
+                // Driven from halfway along the stretch before, so the turn where they meet is proved too; only
+                // a way setting off as the stretch before was going, never one turning back down another street.
+                float[][] back = prove(sim, before, sb);
+                if (back != null && dot(beforeHeading, heading(back, true)) >= SHARP) {
+                    points.subList(beforeMark, points.size()).clear();
+                    mark = beforeMark;
+                    way = back;
+                }
+            }
+            before = null;
+            if (way != null) {
+                int[] half = halfway(way);
+                int h = Math.min(half[0] + 1, way[0].length - 1);
+                before = new int[]{half[1], half[2]};
+                beforeMark = mark + half[0] + 1;
+                beforeHeading = unit(way[0][h] - way[0][half[0]], way[1][h] - way[1][half[0]]);
+                endHeading = heading(way, false);
+            }
             // Where no turn is proved, a way the footprint fits along, clear of what was set on the
             // map after the corridor was found; the road's own cells only where there is not even that.
             if (way == null && sa != null && sb != null) {
@@ -794,6 +821,42 @@ public final class CordonConvoys {
             path[1][k] = points.get(k)[1];
         }
         return path;
+    }
+
+    /** The least cosine between two stretches' headings where they meet that is not a sharp turn. */
+    private static final float SHARP = 0.5f;
+
+    /** The way's heading as it sets off ({@code start}) or as it arrives, over its first or last few cells. */
+    private static float[] heading(float[][] way, boolean start) {
+        int n = way[0].length, at = start ? 0 : n - 1, step = start ? 1 : -1;
+        int k = at + step;
+        while (k + step >= 0 && k + step < n && Math.hypot(way[0][k] - way[0][at], way[1][k] - way[1][at]) < 3f) k += step;
+        if (k < 0 || k >= n) return null;
+        return start ? unit(way[0][k] - way[0][at], way[1][k] - way[1][at]) : unit(way[0][at] - way[0][k], way[1][at] - way[1][k]);
+    }
+
+    private static float[] unit(float dx, float dy) {
+        float d = (float) Math.hypot(dx, dy);
+        return d <= 0f ? null : new float[]{dx / d, dy / d};
+    }
+
+    /** The cosine between two headings; 1 where either is unknown. */
+    private static float dot(float[] a, float[] b) {
+        return a == null || b == null ? 1f : a[0] * b[0] + a[1] * b[1];
+    }
+
+    /** The cell halfway along a way, and the last of its points short of it: {@code {point, x, y}}. */
+    private static int[] halfway(float[][] way) {
+        int n = way[0].length;
+        float[] run = new float[n];
+        for (int k = 1; k < n; k++) run[k] = run[k - 1] + (float) Math.hypot(way[0][k] - way[0][k - 1], way[1][k] - way[1][k - 1]);
+        float half = run[n - 1] / 2f;
+        int k = 0;
+        while (k + 2 < n && run[k + 1] < half) k++;
+        int m = Math.min(k + 1, n - 1);
+        float t = run[m] <= run[k] ? 0f : (half - run[k]) / (run[m] - run[k]);
+        return new int[]{k, (int) Math.floor(way[0][k] + t * (way[0][m] - way[0][k])),
+                (int) Math.floor(way[1][k] + t * (way[1][m] - way[1][k]))};
     }
 
     /** A drivable route the planner proves for a truck between two cells, or {@code null}. */

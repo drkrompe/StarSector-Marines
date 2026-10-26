@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setpiece;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.BorePressure;
 import com.dillon.starsectormarines.battle.evacuation.ColonyObjectiveForce;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
@@ -34,8 +35,8 @@ import java.util.stream.LongStream;
 
 /**
  * A Colony Breach side objective played on its set piece under its own pressure ({@code set-piece-blocks.md},
- * Lanes and pressure), the way {@code loading-pressure-look} plays the loading: the objective forced, a static
- * six-marine guard stood round the place it is about, and the bore's broods sent in down the set piece's lanes.
+ * Lanes and pressure), the way {@code loading-pressure-look} plays the loading: the objective forced, a
+ * six-marine guard holding the place it is about on a player's defend-area order, and the bore's broods sent in down the set piece's lanes.
  * Logs the beat every few seconds and the outcome, renders a frame a second wide enough for the set piece and the
  * bore together for a clip, and a close still every fifteen seconds. Opt-in, a look and pacing question; frames
  * are skipped with {@code -Dbattle.pressureLookFrames=false} for a quick pacing read, and
@@ -46,7 +47,9 @@ abstract class SetPiecePressureLook<T extends PressuredObjective.Task> implement
 
     static final int GUARDS = 6;
     static final float GUARD_RING = 5f;
-    static final float LIMIT_SECONDS = 330f;
+    /** The ground a player's defend-area order covers round the place, in cells. */
+    static final int HOLD_RADIUS = 8;
+    static final float LIMIT_SECONDS = 300f;
     static final float AFTER_SECONDS = 20f;
     static final float LOG_SECONDS = 5f;
     static final float FRAME_SECONDS = 1f;
@@ -218,7 +221,9 @@ abstract class SetPiecePressureLook<T extends PressuredObjective.Task> implement
             sim.spawn(spec);
         }
         sim.getSquad(squad).originalSize = cells.size();
-        sim.claimSquadCommand(squad, CommandAuthority.GARRISON, id(), "guarding the objective");
+        // What a player does with a squad sent to hold the place: defend the area round it.
+        sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, Math.round(x0), Math.round(y0), HOLD_RADIUS),
+                CommandAuthority.PLAYER_INTERVENTION, id(), "holding the objective");
         return cells.size();
     }
 

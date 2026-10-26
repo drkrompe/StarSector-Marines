@@ -23,6 +23,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DefendAreaTest {
 
     @Test
+    void aDefenderShootsWhatItCanHitFromItsGroundBeforeWhatItWouldMoveFor() {
+        assertEquals(7L, DefendArea.fromItsGround(3L, 7L), "a runner in reach beats a flier beyond it");
+        assertEquals(3L, DefendArea.fromItsGround(3L, 0L), "with nothing in reach it keeps the far target");
+    }
+
+    @Test
     void quietSquadFansOutInsteadOfPackingABlock() {
         int count = 12;
         float nearest = Float.MAX_VALUE;

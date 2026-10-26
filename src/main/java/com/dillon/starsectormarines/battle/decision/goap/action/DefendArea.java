@@ -96,8 +96,11 @@ public final class DefendArea implements Action {
             if (target == 0L
                     || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
                 target = sim.getTacticalScoring().findBestTarget(member);
-                sim.world().setTargetId(member, target);
             }
+            if (target != 0L && !inReach(member, target, sim)) {
+                target = fromItsGround(target, sim.getTacticalScoring().findBestTargetInReach(member));
+            }
+            sim.world().setTargetId(member, target);
         }
         if (target != 0L) return engageInsideArea(member, target, squad, sim);
 
@@ -109,6 +112,21 @@ public final class DefendArea implements Action {
                 : quietPosition(member, squad, sim);
         moveToward(member, destination[0], destination[1], sim);
         return ActionStatus.RUNNING;
+    }
+
+    /**
+     * A defender holds its ground: a target it would have to move to hit gives way to one it can hit from
+     * where it stands ({@code inReach}, 0 when there is none). A guard watching a flier at the edge of its
+     * sight while runners cross the yard is the failure this prevents.
+     */
+    static long fromItsGround(long target, long inReach) {
+        return inReach != 0L ? inReach : target;
+    }
+
+    private static boolean inReach(long member, long target, BattleControl sim) {
+        return TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                sim.world().x(target), sim.world().y(target)) <= sim.world().attackRange(member)
+                && sim.getTacticalScoring().hasClearShot(member, target);
     }
 
     /** Fires every mount that is in band on {@code target}, from wherever the mech stands. */
