@@ -82,7 +82,7 @@ def segments(keyframes):
     for kf, spec in keyframes.items():
         a, _, b = spec['shot'].partition('-')
         ids = order[order.index(a):order.index(b or a) + 1]
-        span[a] = (kf, ids)
+        span.setdefault(a, (kf, ids))     # the shot's own key frame, not a still copied from it (k6c)
     covered = {i for _, ids in span.values() for i in ids}
     segs = []
     for r in rows:
