@@ -65,6 +65,7 @@ import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -284,13 +285,7 @@ public class BriefingScreen implements Screen {
     /** The four bay slots once the player has edited them; null while the preset's own roster stands. */
     private DebugBaySlot[] debugBay;
 
-    /**
-     * Indices into {@link #cachedCarriers} the player has deselected for the
-     * current mission's fighter cover. Default empty = all carriers committed.
-     * Reset when the mission changes.
-     */
-    private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
-    /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
+    /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}; every one flies. */
     private List<PlayerFleetWings.CarrierBay> cachedCarriers = java.util.Collections.emptyList();
     /** Stable fleet-member ids held back as command-power sources. */
     private final java.util.Set<String> deselectedPowerSources = new java.util.HashSet<>();
@@ -359,7 +354,6 @@ public class BriefingScreen implements Screen {
                     : m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
             lastSelectedMissionId = m.id;
             debugDrawerExpanded = false;
-            deselectedCarriers.clear();
             deselectedPowerSources.clear();
             selectedPowerIds.clear();
             commandDeckInitialized = false;
@@ -422,6 +416,7 @@ public class BriefingScreen implements Screen {
             wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
             BriefingLift.install(built, candidate, props);
+            BriefingAir.install(built, candidate, props);
             BriefingViewModel.installMusters(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
@@ -600,7 +595,7 @@ public class BriefingScreen implements Screen {
                     List.of(repairingLift, Strings.get("boatRepairCopy"))));
         }
         BriefingLift.put(props, liftReadout(mission));
-        props.put("carrierRows", retainedCarrierRows());
+        BriefingAir.put(props, BriefingAir.read(cachedCarriers, cachedAvailablePowers, gunshipShips()));
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
         props.put("preparationClasses", SecondSquadPreparation.relevant(mission, liveRoster()) ? "mission-preparation" : "briefing-assign-hidden");
@@ -1164,25 +1159,6 @@ public class BriefingScreen implements Screen {
         rebuild();
     }
 
-    private List<BriefingViewModel.ChoiceRow> retainedCarrierRows() {
-        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
-        for (int i = 0; i < cachedCarriers.size(); i++) {
-            final int index = i;
-            PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
-            boolean committed = !deselectedCarriers.contains(i);
-            rows.add(new BriefingViewModel.ChoiceRow("briefing-carrier-" + i,
-                    "choice-row" + (committed ? " selected" : ""), carrier.shipName,
-                    Strings.format("briefingUiCarrierBays", carrier.bayCount()),
-                    false, () -> toggleCarrier(index), carrier.spriteName));
-        }
-        return List.copyOf(rows);
-    }
-
-    private void toggleCarrier(int index) {
-        if (!deselectedCarriers.remove(index)) deselectedCarriers.add(index);
-        rebuild();
-    }
-
     private static BriefingViewModel.InfoRow employerRow(String id, String labelKey, String valueKey) {
         return BriefingViewModel.info(id, Strings.get(labelKey), Strings.get(valueKey), "");
     }
@@ -1708,29 +1684,16 @@ public class BriefingScreen implements Screen {
             y -= ROW_GAP;
         }
 
-        // Fighter cover — one opt-in toggle per committable carrier.
+        // Fighter cover — every carrier aboard flies; nothing to toggle.
         if (!cachedCarriers.isEmpty() && y >= floor) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingFighterCover"), x, y, LABEL_COLOR));
             y -= ROW_GAP;
-            for (int i = 0; i < cachedCarriers.size(); i++) {
+            for (PlayerFleetWings.CarrierBay carrier : cachedCarriers) {
                 if (y < floor) return;
-                final int idx = i;
-                PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
-                boolean committed = !deselectedCarriers.contains(idx);
-                String marker = committed ? "[x]" : "[ ]";
-                String rowLabel = marker + " " + carrier.shipName
-                        + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")"
-                        + (committed ? "" : " — held back");
-                Color rowColor = committed ? VALUE_COLOR : LABEL_COLOR;
-                ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
-                        () -> {
-                            if (deselectedCarriers.contains(idx)) deselectedCarriers.remove(idx);
-                            else deselectedCarriers.add(idx);
-                            rebuild();
-                        });
-                widgets.add(toggle);
+                String rowLabel = carrier.shipName
+                        + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")";
                 widgets.add(new SpriteThumbWidget(carrier.spriteName, x, y - 20f, THUMB, THUMB));
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, x + THUMB + 10f, y, rowColor));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, x + THUMB + 10f, y, VALUE_COLOR));
                 y -= ROW_GAP;
             }
         }
@@ -2040,13 +2003,19 @@ public class BriefingScreen implements Screen {
                 ctx.getSelectedCaptain(), ctx.getSelectedMarineSquadIds());
     }
 
-    /** Currently-committed carriers — {@link #cachedCarriers} minus the deselected. */
-    private List<PlayerFleetWings.CarrierBay> committedCarriers() {
-        List<PlayerFleetWings.CarrierBay> out = new java.util.ArrayList<>();
-        for (int i = 0; i < cachedCarriers.size(); i++) {
-            if (!deselectedCarriers.contains(i)) out.add(cachedCarriers.get(i));
+    /** Committed fleet ships whose presence brings close air support: each is one gunship over the field. */
+    private List<String> gunshipShips() {
+        List<String> out = new ArrayList<>();
+        for (PlayerFleetPowerSources.SourceShip source : cachedPowerSources) {
+            if (deselectedPowerSources.contains(source.memberId)) continue;
+            if (source.powers.stream().anyMatch(p -> CloseAirSupport.ID.equals(p.id))) out.add(source.shipName);
         }
         return out;
+    }
+
+    /** The carriers that fly: every one aboard. */
+    private List<PlayerFleetWings.CarrierBay> committedCarriers() {
+        return cachedCarriers;
     }
 
     /** Marine-side fighter cover from the committed carriers (player side only). */

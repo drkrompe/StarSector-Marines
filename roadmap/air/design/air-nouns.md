@@ -438,7 +438,11 @@ breathing whenever it will not drop. Its words are its hover, which gives
 one verdict: drops, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
-decides nothing itself (`BriefingLift`). Past nine squads, every full-strength
+decides nothing itself (`BriefingLift`). Beside it, the briefing's **air cover**
+shows what flies over the company as plans in the same hand: one tile per fighter
+type with how many aircraft its carriers put up (one a bay, every carrier aboard,
+no toggle), and the close-air-support gunship, one per fleet ship that brings it
+(`BriefingAir`). The count is airframes, not sorties. Past nine squads, every full-strength
 squad folds into one stacked tile with a multiplier, its hover counting the stack
 per officer, so only the wounded and short-handed squads keep their own tiles.
 

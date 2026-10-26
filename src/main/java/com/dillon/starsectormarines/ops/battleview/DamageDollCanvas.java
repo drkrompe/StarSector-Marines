@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.mech.MechCarriedWear;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -180,6 +181,14 @@ public final class DamageDollCanvas implements CanvasProducer {
         return DOLL_DIR + "mech-" + variant.id + ".svg";
     }
 
+    /** The plan a fighter wing draws as. */
+    public static String dollPath(FighterProfile profile) {
+        return DOLL_DIR + "air-" + profile.hullId + ".svg";
+    }
+
+    /** The plan the close-air-support gunship draws as. */
+    public static final String GUNSHIP_DOLL = DOLL_DIR + "air-mudskipper.svg";
+
     /** The doll a vehicle line draws as; variants of a family share one. */
     public static String dollPath(VehicleType type) {
         String name = switch (type) {
@@ -267,6 +276,15 @@ public final class DamageDollCanvas implements CanvasProducer {
             }
             int torso = DollLocation.TORSO.ordinal();
             set(DollLocation.TORSO_REAR.ordinal(), true, true, armor[torso], structure[torso], destroyed[torso]);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
+        }
+
+        /** Shows an aircraft's plan whole: the briefing counts sorties, not damage. */
+        public void readAircraft(String dollPath) {
+            begin(dollPath);
+            for (DollLocation location : DollLocation.values()) set(location.ordinal(), true, false, 0f, 1f, false);
             crippled = false;
             sensorsLost = false;
             immobile = false;

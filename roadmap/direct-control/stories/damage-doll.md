@@ -62,6 +62,8 @@ as goofy). Each part of the outline is a location, coloured by its state.
   (`DamageDollCanvas.bare`), before launch: a mech from its frozen
   deployment, carrying the wear an unfinished repair leaves; a vehicle whole, since the bay keeps no damage on one
   (`air-nouns.md`, The briefing reads lift before launch).
+- Aircraft draw in the same hand as one plan view each (`air-<hull>.svg`, the six fighter
+  wings and the Mudskipper), whole, for the briefing's air cover; they carry no located damage.
 
 ## Remaining
 
