@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 
 import java.util.ArrayList;
@@ -8,7 +9,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Constant-budget command deck: selection math plus launch-boundary filtering. */
+/**
+ * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop is implied
+ * rather than chosen: having machines in the bay and lift for them is the call, so it is never shown on the
+ * deck, never costs a slot, and always launches when the mission resolved one.
+ */
 public final class CommandDeck {
 
     public static final int BUDGET = 5;
@@ -16,7 +21,12 @@ public final class CommandDeck {
     private CommandDeck() {}
 
     public static int weight(CommandPower power) {
-        return power == null ? 0 : power.slotWeight;
+        return power == null || implied(power) ? 0 : power.slotWeight;
+    }
+
+    /** Whether a power rides with the bay instead of sitting on the deck: the armor drop. */
+    public static boolean implied(CommandPower power) {
+        return power instanceof ArmorDropPower;
     }
 
     public static int used(List<CommandPower> available, Collection<String> selectedIds) {
@@ -31,7 +41,7 @@ public final class CommandDeck {
     public static boolean canAdd(List<CommandPower> available,
                                  Collection<String> selectedIds,
                                  CommandPower candidate) {
-        return candidate != null && selectedIds != null
+        return candidate != null && selectedIds != null && !implied(candidate)
                 && !selectedIds.contains(candidate.id)
                 && used(available, selectedIds) + weight(candidate) <= BUDGET;
     }
@@ -42,6 +52,7 @@ public final class CommandDeck {
         if (available == null) return selected;
         int used = 0;
         for (CommandPower power : available) {
+            if (implied(power)) continue;
             int weight = weight(power);
             if (used + weight > BUDGET) continue;
             selected.add(power.id);
@@ -52,7 +63,7 @@ public final class CommandDeck {
 
     /**
      * Filters in stable catalog order and enforces the budget again at launch.
-     * Unknown ids and an over-budget/tampered tail are ignored.
+     * Unknown ids and an over-budget/tampered tail are ignored; an implied power always passes.
      */
     public static List<CommandPower> filter(List<CommandPower> available,
                                             Collection<String> selectedIds) {
@@ -60,7 +71,7 @@ public final class CommandDeck {
         if (available == null || selectedIds == null) return out;
         int used = 0;
         for (CommandPower power : available) {
-            if (!selectedIds.contains(power.id)) continue;
+            if (!implied(power) && !selectedIds.contains(power.id)) continue;
             int weight = weight(power);
             if (used + weight > BUDGET) continue;
             out.add(power);

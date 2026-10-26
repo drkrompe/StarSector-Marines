@@ -497,8 +497,7 @@ public class BriefingScreen implements Screen {
             if (handoff != null) return handoff;
         }
         PreparationGuide.Lesson preparation = CampaignLessons.briefing(ctx.getSelectedMission(), roster,
-                ctx.getSelectedMarineSquadIds(), cachedAvailablePowers.stream().anyMatch(p -> MechSupport.ID.equals(p.id)),
-                selectedPowerIds.contains(MechSupport.ID));
+                ctx.getSelectedMarineSquadIds(), cachedAvailablePowers.stream().anyMatch(p -> MechSupport.ID.equals(p.id)));
         if (preparation != null) return preparation;
         return SecondSquadPreparation.lesson(ctx.getSelectedMission(), roster,
                 new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
@@ -581,7 +580,7 @@ public class BriefingScreen implements Screen {
         int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
         props.put("commandSummary", Strings.format("briefingUiCommandSlots", used, CommandDeck.BUDGET));
         props.put("powerRows", retainedPowerRows());
-        props.put("powerEmpty", cachedAvailablePowers.isEmpty()
+        props.put("powerEmpty", cachedAvailablePowers.stream().allMatch(CommandDeck::implied)
                 ? Strings.get("briefingUiNoPowers") : "");
         props.put("sourceRows", retainedSourceRows());
         props.put("sourceEmpty", cachedPowerSources.isEmpty()
@@ -1119,6 +1118,8 @@ public class BriefingScreen implements Screen {
         List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
         for (int i = 0; i < cachedAvailablePowers.size(); i++) {
             CommandPower power = cachedAvailablePowers.get(i);
+            // The armor drop rides with the bay; the lift row and the field inset show it.
+            if (CommandDeck.implied(power)) continue;
             boolean selected = selectedPowerIds.contains(power.id);
             boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
             int weight = CommandDeck.weight(power);
@@ -1779,6 +1780,7 @@ public class BriefingScreen implements Screen {
 
         for (CommandPower power : cachedAvailablePowers) {
             if (y < floor) return y;
+            if (CommandDeck.implied(power)) continue;
             boolean selected = selectedPowerIds.contains(power.id);
             boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
             Runnable toggle = selected || canAdd ? () -> {
@@ -1927,7 +1929,7 @@ public class BriefingScreen implements Screen {
             }
         }
         int berths = mission.source.isDebug() ? lift().size() : ShipsBoatsAboard.berths();
-        return BriefingLift.read(lift(), berths, cachedAvailablePowers, selectedPowerIds, mechs, vehicles, heldBack);
+        return BriefingLift.read(lift(), berths, cachedAvailablePowers, mechs, vehicles, heldBack);
     }
 
     private static MarineRoster liveRoster() {
