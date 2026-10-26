@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "width": 216,
+  "height": 112,
+  "seed": 7120,
+  "layers": [
+    {
+      "name": "Rover ruts and spill",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 1.6,
+          "points": [
+            [
+              128,
+              57
+            ],
+            [
+              134,
+              57
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.4,
+          "points": [
+            [
+              175,
+              62
+            ],
+            [
+              172,
+              70
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.4,
+          "points": [
+            [
+              176,
+              48
+            ],
+            [
+              175,
+              38
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.6,
+          "points": [
+            [
+              186,
+              44
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Micrometeorite pitting",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 2.4,
+          "points": [
+            [
+              70,
+              40
+            ],
+            [
+              73,
+              42
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 2.0,
+          "points": [
+            [
+              104,
+              72
+            ],
+            [
+              106,
+              70
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 2.2,
+          "points": [
+            [
+              88,
+              50
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.8,
+          "points": [
+            [
+              58,
+              46
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "First season's dump",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "BATTERED",
+          "radius": 1.4,
+          "points": [
+            [
+              202,
+              46
+            ]
+          ]
+        },
+        {
+          "mode": "BATTERED",
+          "radius": 1.2,
+          "points": [
+            [
+              118,
+              49
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

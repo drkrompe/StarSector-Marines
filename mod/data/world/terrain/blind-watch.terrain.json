@@ -1,0 +1,404 @@
+{
+  "version": 1,
+  "width": 216,
+  "height": 112,
+  "finish": "ROCK",
+  "faceDepth": 3.2,
+  "ruggedness": 0.6,
+  "seed": 7110,
+  "strokes": [
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          44,
+          111
+        ],
+        [
+          42,
+          103
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          42,
+          103
+        ],
+        [
+          44,
+          97
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 4,
+      "points": [
+        [
+          43,
+          81
+        ],
+        [
+          41,
+          73
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 4,
+      "points": [
+        [
+          41,
+          73
+        ],
+        [
+          43,
+          68
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 4,
+      "points": [
+        [
+          42,
+          48
+        ],
+        [
+          43,
+          39
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3,
+      "points": [
+        [
+          0,
+          22
+        ],
+        [
+          10,
+          24
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.4,
+      "points": [
+        [
+          10,
+          24
+        ],
+        [
+          22,
+          21
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 2.8,
+      "points": [
+        [
+          22,
+          21
+        ],
+        [
+          34,
+          23
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.2,
+      "points": [
+        [
+          34,
+          23
+        ],
+        [
+          46,
+          22
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.0,
+      "points": [
+        [
+          46,
+          22
+        ],
+        [
+          54,
+          20
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3,
+      "points": [
+        [
+          68,
+          19
+        ],
+        [
+          78,
+          22
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.4,
+      "points": [
+        [
+          78,
+          22
+        ],
+        [
+          88,
+          24
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.0,
+      "points": [
+        [
+          88,
+          24
+        ],
+        [
+          96,
+          21
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.2,
+      "points": [
+        [
+          110,
+          19
+        ],
+        [
+          118,
+          16
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.4,
+      "points": [
+        [
+          118,
+          16
+        ],
+        [
+          128,
+          15
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.0,
+      "points": [
+        [
+          128,
+          15
+        ],
+        [
+          134,
+          12
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 2.6,
+      "points": [
+        [
+          134,
+          12
+        ],
+        [
+          138,
+          11
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 2.4,
+      "points": [
+        [
+          80,
+          44
+        ],
+        [
+          81,
+          45
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 2.0,
+      "points": [
+        [
+          96,
+          68
+        ],
+        [
+          97,
+          69
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 2.6,
+      "points": [
+        [
+          116,
+          42
+        ],
+        [
+          117,
+          43
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 1.8,
+      "points": [
+        [
+          60,
+          70
+        ],
+        [
+          61,
+          71
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 1.8,
+      "points": [
+        [
+          106,
+          46
+        ],
+        [
+          107,
+          47
+        ]
+      ]
+    },
+    {
+      "mode": "EXCAVATE",
+      "radius": 3.0,
+      "points": [
+        [
+          200,
+          8
+        ],
+        [
+          201,
+          9
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 6,
+      "points": [
+        [
+          213,
+          40
+        ],
+        [
+          213,
+          60
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 6,
+      "points": [
+        [
+          213,
+          60
+        ],
+        [
+          212,
+          72
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          212,
+          72
+        ],
+        [
+          212,
+          76
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          213,
+          2
+        ],
+        [
+          213,
+          12
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 6,
+      "points": [
+        [
+          213,
+          12
+        ],
+        [
+          213,
+          18
+        ]
+      ]
+    }
+  ],
+  "previewRoad": "mod/data/world/roads/blind-watch.road.json"
+}

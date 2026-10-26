@@ -180,6 +180,24 @@ public enum BuildingStamp {
             "w.....e",
             "#.....#",
             "w.....e",
+            "###+###"),
+    /**
+     * A prefab pressurised module (`blind-watch-sounding.md`): one long room, its airlock door in the middle of a
+     * long side, ports along both long faces. The Sounding's bunks, signals racks and the riggers' quarters are each
+     * one; the recipe fits them out. Story map only.
+     */
+    PREFAB_MODULE("Prefab module", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
+            "###n###n###",
+            "#.........#",
+            "w.........e",
+            "#.........#",
+            "###s#+#s###"),
+    /** The dish field's control hut (`blind-watch-sounding.md`): one room, its console on the north wall. Story map only. */
+    CONTROL_HUT("Control hut", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
+            "##n#n##",
+            "#.....#",
+            "w.....e",
+            "#.....#",
             "###+###");
 
     /**
