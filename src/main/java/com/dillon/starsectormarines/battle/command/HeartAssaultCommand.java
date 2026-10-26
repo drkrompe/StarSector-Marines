@@ -238,15 +238,19 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
             waiting = false;
         }
         // Every satellite down, the company goes in on a mother with the lanes, not ahead of them.
+        boolean forMother = false;
         if (waitForSatellites && !waiting && target != null && target.mother()) {
             if (goesIn(target, frame.friendsNear(target), pushingOn)) pushingOn = target.key();
-            else waiting = true;
+            else waiting = forMother = true;
         }
         boolean held = target != null && screen != null && screen.beyond(screen.along(target.x(), target.y()), tick);
         if (!waiting) holdX = Integer.MIN_VALUE;
         else if (holdX == Integer.MIN_VALUE) {
-            holdX = fallBackX != Integer.MIN_VALUE ? fallBackX : Math.round(cx);
-            holdY = fallBackX != Integer.MIN_VALUE ? fallBackY : Math.round(cy);
+            // Waiting for the lanes at a mother, it holds where it stands, near her: the walk back to its landing was
+            // a hundred and fifty cells it then had to make again (frozen 5, 2026-10-25).
+            boolean back = fallBackX != Integer.MIN_VALUE && !forMother;
+            holdX = back ? fallBackX : Math.round(cx);
+            holdY = back ? fallBackY : Math.round(cy);
         }
         String phase = target == null ? "HEART_DOWN" : waiting ? "HOLD_FOR_LANES"
                 : (held ? "FOLLOW_" : "") + (target.mother() ? "MOTHER_" : "SATELLITE_") + target.key();

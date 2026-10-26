@@ -412,7 +412,8 @@ collapses a bore by fiat.
    any satellite still stands, breaking off from whatever it is fighting (a squad
 told only to defend a cell far behind it fought where it stood). When the last one falls it goes in on a mother
    only with the converging lanes round her (`HeartAssaultCommand.goesIn`, owner's pick
-   heart-mother-push, 2026-10-25: wait), and stays in once it has; going in
+   heart-mother-push, 2026-10-25: wait), waiting for them where it stands rather
+   than back at its landing, and stays in once it has; going in
    ahead of them, it was wiped short of her. Its satellite sits nearest the heart, so the
    heart's waking surge and the first Matriarchs come for it first. Holding
    the taken ground kept more of the company alive but still lost it there on
