@@ -231,8 +231,8 @@
               <div id="mission-debug-rack-header" class="console-header debug-rack-header">
                 <img id="mission-debug-service-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
                 <div id="mission-debug-heading" class="label heading tone-accent">{debugHeader} / SCALE &amp; FIXTURE</div>
+                <div id="mission-tier-summary" class="label tone-edge tier-summary console-readout">{tierSummary}</div>
               </div>
-              <div id="mission-tier-summary" class="label tone-edge tier-summary console-readout">{tierSummary}</div>
               <div id="mission-tier-track" class="mission-tier-track">
                 <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
                   <div id="{step.indicatorId}" class="console-tier-lamp" />
@@ -240,14 +240,32 @@
                   <div id="{step.labelId}" class="label tier-label">{step.label}</div>
                 </button>
               </div>
+              <!-- Three columns that each scroll: who commands and the fixture's dials; each squad's two
+                   cards; the bay and the air. Cards and bay slots are drawn as the game draws them, and
+                   pressing one opens the kit picker (DebugKitPicker) on every choice there is. -->
               <div id="mission-debug-controls" class="mission-debug-controls">
-                <!-- Each squad's two cards and each bay slot, drawn as the game draws them; pressing
-                     one opens the kit picker (DebugKitPicker) on every choice there is. -->
+                <div id="mission-debug-col-command" class="debug-column">
                 <div id="mission-debug-commander-heading" class="label heading tone-edge section-heading">COMMANDER  ·  THIS BATTLE ONLY</div>
                 <button id="mission-debug-commander" class="{debugCommander.classes}" onclick="{debugCommander.open}">
                   <img id="mission-debug-commander-portrait" class="debug-kit-commander-portrait" src="{debugCommander.portrait}" />
                   <div id="mission-debug-commander-summary" class="label debug-kit-commander-summary">{debugCommander.summary}</div>
                 </button>
+                <div id="mission-debug-fixture-heading" class="label heading tone-edge section-heading">FIXTURE</div>
+                <div id="mission-debug-control-list" class="debug-control-list">
+                <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
+                  <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
+                  <div id="{control.bankId}" class="debug-control-bank">
+                    <button id="{control.farMinusId}" class="{control.farMinusClasses}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
+                    <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
+                    <div id="{control.valueId}" class="label heading debug-control-value console-well">{control.value}</div>
+                    <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
+                    <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
+                    <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+                  </div>
+                </div>
+                </div>
+                </div>
+                <div id="mission-debug-col-kit" class="debug-column">
                 <div id="mission-debug-kit-heading" class="label heading tone-edge section-heading">SQUAD KIT  ·  EVERY CARD UNLOCKED</div>
                 <div id="mission-debug-kit" class="debug-kit-list">
                   <div each="row in debugKitRows" key="{row.id}" id="{row.id}" class="debug-kit-row console-readout">
@@ -264,6 +282,8 @@
                     </div>
                   </div>
                 </div>
+                </div>
+                <div id="mission-debug-col-machines" class="debug-column">
                 <div id="mission-debug-bay-heading" class="label heading tone-edge section-heading">MECH BAY</div>
                 <div id="mission-debug-bay" class="debug-kit-bay">
                   <button each="slot in debugBaySlots" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
@@ -271,34 +291,21 @@
                     <div id="{slot.nameId}" class="label debug-kit-slot-name">{slot.name}</div>
                   </button>
                 </div>
-                <div id="mission-debug-fixture-heading" class="label heading tone-edge section-heading">FIXTURE</div>
-                <div id="mission-debug-control-list" class="debug-control-list">
-                <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
-                  <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
-                  <div id="{control.bankId}" class="debug-control-bank">
-                    <button id="{control.farMinusId}" class="{control.farMinusClasses}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
-                    <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
-                    <div id="{control.valueId}" class="label heading debug-control-value console-well">{control.value}</div>
-                    <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
-                    <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
-                    <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+                <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
+                <div id="mission-debug-air" class="mission-debug-air">
+                  <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row console-readout">
+                    <img id="{air.imageId}" class="debug-air-image" src="{air.image}" />
+                    <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
+                    <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">
+                      <img id="{air.attackIndicatorId}" class="console-rocker" src="{air.attackIndicatorSource}" />
+                      <div id="{air.attackLegendId}" class="console-key-legend">{air.attackLabel}</div>
+                    </button>
+                    <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">
+                      <img id="{air.defendIndicatorId}" class="console-rocker" src="{air.defendIndicatorSource}" />
+                      <div id="{air.defendLegendId}" class="console-key-legend">{air.defendLabel}</div>
+                    </button>
                   </div>
                 </div>
-                </div>
-              </div>
-              <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
-              <div id="mission-debug-air" class="mission-debug-air">
-                <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row console-readout">
-                  <img id="{air.imageId}" class="debug-air-image" src="{air.image}" />
-                  <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
-                  <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">
-                    <img id="{air.attackIndicatorId}" class="console-rocker" src="{air.attackIndicatorSource}" />
-                    <div id="{air.attackLegendId}" class="console-key-legend">{air.attackLabel}</div>
-                  </button>
-                  <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">
-                    <img id="{air.defendIndicatorId}" class="console-rocker" src="{air.defendIndicatorSource}" />
-                    <div id="{air.defendLegendId}" class="console-key-legend">{air.defendLabel}</div>
-                  </button>
                 </div>
               </div>
             </div>
@@ -406,14 +413,16 @@
   .mission-plan-top { flex-direction: row; height: 336px; gap: 8px; overflow: hidden; }
   .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
   .debug-drawer-toggle { flex-direction: row; align-items: center; width: 112px; height: 24px; padding: 3px 5px; gap: 6px; border-width: 3px; font-family: heading; text-align: center; }
-  .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 2px; overflow: hidden; }
-  .tier-summary { min-height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
-  .mission-tier-track { flex-direction: row; height: 54px; gap: 3px; }
+  .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 6px; gap: 6px; border-width: 2px; overflow: hidden; }
+  .tier-summary { width: 0px; flex-grow: 1; height: 26px; padding: 5px 8px; border-width: 1px; overflow: hidden; }
+  .mission-tier-track { flex-direction: row; height: 50px; gap: 4px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 2px; text-align: center; }
   .tier-step.locked { opacity: 0.28; }
   .tier-numeral { height: 17px; text-align: center; }
-  .tier-label { min-height: 24px; font-family: compact; text-align: center; white-space: normal; }
-  .mission-debug-controls { flex-direction: column; height: 0px; flex-grow: 1; gap: 3px; padding: 1px; overflow: scroll; }
+  .tier-label { height: 14px; font-family: compact; text-align: center; overflow: hidden; }
+  /* The drawer covers the wide, short field-force band: three columns that each scroll on their own. */
+  .mission-debug-controls { flex-direction: row; height: 0px; flex-grow: 1; gap: 10px; padding: 1px; overflow: hidden; }
+  .debug-column { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .debug-control-list { flex-direction: column; gap: 3px; }
   .debug-kit-list { flex-direction: column; gap: 3px; }
   .debug-kit-row { flex-direction: row; align-items: center; height: 82px; padding: 3px; gap: 4px; border-width: 1px; }
@@ -467,12 +476,12 @@
   .debug-control-row { flex-direction: row; align-items: center; min-height: 28px; padding: 3px; gap: 4px; border-width: 1px; }
   .debug-control-bank { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 28px; gap: 2px; }
   .debug-control-label { width: 112px; height: auto; white-space: normal; }
-  .debug-control-row button { width: 22px; padding: 2px 1px; border-width: 2px; text-align: center; font-family: heading; }
+  .debug-control-row button { width: 30px; padding: 2px 1px; border-width: 2px; text-align: center; font-family: heading; }
   .debug-control-row .debug-cycle { width: 48px; font-family: compact; }
   .debug-control-row .debug-cycle-absent { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   .debug-control-row .debug-step-absent { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   .debug-control-value { width: 0px; flex-grow: 1; height: auto; padding: 3px 1px; border-width: 2px; text-align: center; }
-  .mission-debug-air { flex-direction: column; height: 196px; gap: 3px; overflow: scroll; }
+  .mission-debug-air { flex-direction: column; height: auto; gap: 3px; }
   .debug-air-row { flex-direction: row; align-items: center; height: 24px; gap: 4px; padding: 2px; border-width: 1px; }
   .debug-air-label { width: 0px; flex-grow: 1; height: auto; padding: 0px; }
   .debug-air-row button { flex-direction: row; align-items: center; width: 72px; height: 18px; padding: 1px 3px; gap: 5px; border-width: 2px; font-family: heading; text-align: center; }
@@ -491,9 +500,9 @@
   .deck-heading-row .label { width: 0px; flex-grow: 1; }
   #mission-command-summary { text-align: right; }
   .mission-briefing-actions .briefing-assign-hidden { width: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; }
-  .debug-rack-header { flex-direction: row; height: 38px; padding: 6px; gap: 8px; border-width: 1px; }
+  .debug-rack-header { flex-direction: row; align-items: center; height: 38px; padding: 3px 6px; gap: 10px; border-width: 1px; }
   .debug-service-plate { width: 64px; height: 32px; pointer-events: none; }
-  #mission-debug-heading { width: 0px; flex-grow: 1; min-height: 34px; white-space: normal; }
+  #mission-debug-heading { width: 300px; height: 20px; }
   .console-rocker { width: 16px; height: 26px; pointer-events: none; }
   .debug-air-row .console-rocker { width: 12px; height: 20px; }
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }

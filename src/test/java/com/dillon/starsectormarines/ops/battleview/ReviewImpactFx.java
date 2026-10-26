@@ -124,7 +124,7 @@ public final class ReviewImpactFx {
         }
         for (float[] point : sim.getShots().getInterceptPointsThisFrame()) {
             fx.spawnHeavyImpact(point[0], point[1], BattleScreen.INTERCEPT_BURST_CELLS);
-            lights.spawnImpact(null, point[0], point[1]);
+            lights.spawnHeavyImpact(point[0], point[1], BattleScreen.INTERCEPT_BURST_CELLS);
         }
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             Color tint = impact.length >= 6 ? new Color(impact[3], impact[4], impact[5]) : null;

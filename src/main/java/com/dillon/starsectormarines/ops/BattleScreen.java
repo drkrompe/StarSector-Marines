@@ -1534,7 +1534,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (int i = 0, n = interceptPoints.size(); i < n; i++) {
             float[] point = interceptPoints.get(i);
             renderer.getImpactFx().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
-            renderer.getGroundLights().spawnImpact(null, point[0], point[1]);
+            renderer.getGroundLights().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
         }
     }
 
