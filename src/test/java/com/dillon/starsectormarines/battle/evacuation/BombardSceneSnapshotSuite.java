@@ -26,8 +26,8 @@ public final class BombardSceneSnapshotSuite extends BehaviorSceneSnapshotSuite 
     static final int W = 60, H = 24, TICKS = 360;
     /** Recorded frames (every 2 ticks) kept as stills: planted, winding up, released, in flight, burst, standing. */
     static final int[] STILLS = {46, 70, 92, 110, 130, 144, 150, 170};
-    /** The fire shot: ticks, the squad's distance, and the Bombard's health, enough to last a few seconds of rifles. */
-    static final int FIRE_TICKS = 300;
+    /** The fire shot: ticks (long enough for its last haze to clear off the carcass), the squad's distance, and the Bombard's health, enough to last a few seconds of rifles. */
+    static final int FIRE_TICKS = 840;
     /** The walk shot: ticks, and how far east of its creep the Bombard starts, cells. */
     static final int WALK_TICKS = 600;
     static final float WALK_CELLS = 13f;

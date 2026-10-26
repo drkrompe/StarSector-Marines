@@ -86,9 +86,13 @@ temporary-source contribution, derives hostile unit visibility, and projects
 the same bitmap into roof targets. A reference count preserves a cell until its
 last source leaves it.
 
-The renderer places fog over terrain and below units. It suppresses hidden
-unit and drone draws, fades units that have just left sight, and renders roofs
-over interiors until their target alpha falls. Radio presentation consumes the
+The renderer places fog over terrain and the dead, and below living units. It
+suppresses hidden unit and drone draws, fades units that have just left sight,
+and renders roofs over interiors until their target alpha falls. Corpses are
+never culled by sight; they lie under the fog and are dimmed with the ground.
+Roofs draw above the fog, so each building carries a fog target of its own: a
+closed roof is darkened as unseen ground is unless a cell under it (an interior
+cell or a wall beside the floor) is in the bitmap. Radio presentation consumes the
 same visibility state for enemy-spotted callouts. Hosts advance those visual
 fades on real frame time, independently of simulation speed, while the
 simulation continues to own reveal and visibility transitions.
@@ -136,7 +140,9 @@ or breached wall exposes its new sightline on the next vision update.
    deliberately outside the fog presentation gate.
 4. A roof's visibility follows the bitmap's interior-cell rule. A roof may not
    stay opaque when that same player vision reaches an interior cell; temporary
-   overhead observation follows the same rule.
+   overhead observation follows the same rule. A closed roof with no cell
+   under it in sight is darkened as unseen ground is; it may not show
+   brighter than the fog beside it.
 5. Temporary sources must be replaced as a set, not accumulated across frames
    or cohort turns. Their expiry must remove only their own footprint.
 6. A change to any footprint input — position, vision range, air clearance,

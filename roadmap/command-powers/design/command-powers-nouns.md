@@ -4,7 +4,7 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — Mech Support is an armor drop: a pick from the frozen bay manifest per call, paced by cooldown, bounded by mission lift.
+Updated: 2026-10-26 — Mech Support orders one machine at a time, free, through the shared lift queue; the picker pauses the battle and a queued drop can be cancelled.
 Earlier 2026-10-14 — Air Strike: a side's regenerating bomber/fighter pool, directed by comms operators (a pool request, not a card with charges).
 Earlier 2026-10-14 — Close Air Support: a committed Mudskipper is the source of a called gunship that circles overhead of targeted ground (law 9 gives it no campaign bridge).
 Earlier 2026-10-13 — Ship on Station delivers its own writeback bridge (law 9); the compact battle tray identifies its campaign-backed sources.
@@ -77,20 +77,23 @@ commitment.
 - **Recon Ping** projects a temporary circular vision source through the
   existing fog seam. Sensor/survey fittings and the Apogee are player sources;
   an employer may offer the same capability.
-- **Mech Support** calls the company's armor down from its ship's bay: arming
-  the card opens a picker over the frozen bay manifest (mechs and vehicles), the
-  player picks which machines come down on this call, and shootable carriers
-  unload only those through the ordinary air-delivery and landed-roster paths.
-  A cooldown paces the calls instead of charges; the mission's lift budget bounds
-  what reaches the ground, and an entry it cannot lift is disabled with the
-  reason (`mechs-nouns.md`, armor drop). The pick travels with the activation
-  request, and the simulation revalidates it before anything is spent.
+- **Mech Support** calls the company's armor down from its ship's bay one
+  machine per order: arming the card pauses the battle and opens a picker over
+  the frozen bay manifest (mechs and vehicles), and each click on valid landing
+  ground orders the picked machine. Orders are free (no command points, no
+  cooldown); the mission's lift budget bounds what reaches the ground, an entry
+  it cannot lift is disabled with the reason, and the shared lift queue decides
+  when each machine flies (`mechs-nouns.md`, armor drop; `air-nouns.md`, the
+  lift queue). The pick travels with the activation request, and the simulation
+  revalidates it before anything is spent. A queued order is withdrawn through
+  the service's drop-cancel request, which the simulation honours only while no
+  craft has taken the job.
   Valkyries and ground-support fittings are production sources. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
-  iteration support. Sources decide who may call; lift decides who flies: a
-  committed cradled company boat that lifts the call flies it in place of the
-  synthetic Valkyrie when a fleet ship is the source, while employer and story
-  lift stay synthetic. Armour Support flies the same way (`air-nouns.md`, Lift). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
+  iteration support. Sources decide who may call; lift decides who flies: every
+  carrier behind the budget (a committed cradled boat, or employer, story or
+  ship heavy lift) flies as a ferry craft. Armour Support orders the same way
+  (`air-nouns.md`, the lift queue). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
   of command points: see `mechs-nouns.md` and `reinforcement-nouns.md`; it is not a command power and the player's
   power is unchanged.
 - **Emergency Resupply** calls a vulnerable utility shuttle that leaves a

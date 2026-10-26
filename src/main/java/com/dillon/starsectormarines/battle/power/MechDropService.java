@@ -29,11 +29,11 @@ import java.util.function.Supplier;
  * A commander's own call for a mech lance: the allowance a mission declared, the ledger that
  * spends it, and the delivery that follows.
  *
- * <p><b>This is not the player's power.</b> {@link MechSupport} is paid in command points and
- * charges and is claimed by the player's support claim. A call here is paid from the side's
- * {@link MechDropAllowance} and is claimed for the commander that asked, so the lance lands as an
- * ordinary claimed machine squad that commander plans. The delivery itself is the same one: the
- * same Valkyrie, the same {@link MechSupportPayload}, the same unloading. Nothing is forked.
+ * <p><b>This is not the player's power.</b> {@link MechSupport} orders one machine at a time
+ * onto the player's ferry, through the lift queue, under the player's support claim. A call here
+ * is paid from the side's {@link MechDropAllowance}, flies a whole lance in its own Valkyrie, and
+ * is claimed for the commander that asked, so the lance lands as an ordinary claimed machine squad
+ * that commander plans.
  *
  * <p><b>Delivery is transport, not ownership.</b> The caller names the claim. A Conquest marine
  * commander passes {@code SquadCommandClaim.mission(strategyId, ...)}; nothing about the claim is
@@ -55,9 +55,9 @@ public final class MechDropService {
     /** A service with no allowance for anybody: calls are refused and nothing is mutated. */
     public static final MechDropService NONE = new MechDropService(MechDropDeclaration.NONE);
 
-    /** The carrier of every call: the one the player's Mech Support flies. */
+    /** The carrier of every call. */
     public static final ShuttleType CARRIER = ShuttleType.VALKYRIE;
-    /** Open neighbours the lance's landing cell needs, as {@link MechSupport} asks. */
+    /** Open neighbours the lance's landing cell needs, as a player's armor drop asks. */
     static final int MINIMUM_CLEARANCE = 5;
     /** How far from the hint, in Manhattan cells, a landing zone is looked for. */
     public static final int LZ_SEARCH_RADIUS = 10;

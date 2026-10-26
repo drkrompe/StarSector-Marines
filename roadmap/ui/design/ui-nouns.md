@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — a box takes player vehicles too; a group click spreads round the click and a group
+Updated: 2026-10-26 — the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
 it and follows its orders.
 
@@ -619,11 +619,14 @@ The rings follow rendered positions under the characters, not navigation cells,
 and yield to visibility, HUD chrome and direct control. Hostile inspection adds
 no cell highlight. The selected-squad diagnostics do not paint contact cells,
 captain cells or tactical direction traces.
-Player-facing Conquest command intent occupies the top-left opposite the top-right
-time/objective rail. When organizational groups are published, this bounded
-readout shows named leaders, deployed squad strength, task and regrouping state;
-additional groups are explicitly summarized rather than extending over the
-battlefield. Story sequences, territorial capture, sabotage, Raid, Extraction, civilian rescue
+The **Lift Queue** panel occupies the top-left opposite the top-right
+time/objective rail, within the bound the old command readout held: ferry craft
+in the air with their cargo and time to touchdown, then what waits (the ferry's
+remaining squad loads, then each queued machine drop with its estimate). Each
+queued or just-placed drop carries an X that cancels it; a craft in the air has
+none, and rows past the bound fold into a count. A queued drop also shows a
+marker on its landing ground. The drop picker holds a **placement pause** while it
+is open and gives back the pause state it found when it closes. Story sequences, territorial capture, sabotage, Raid, Extraction, civilian rescue
 (including Last Lift), and Silent Colony use a shared public mission picture: named objective branches, current step,
 completion conditions, measured progress, and observed blockers. The briefing,
 world beacons, and per-objective Locate action refer to the same authored places;

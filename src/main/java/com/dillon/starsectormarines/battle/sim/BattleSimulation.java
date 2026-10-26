@@ -129,6 +129,7 @@ import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.AirToAirFire;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
@@ -275,6 +276,7 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.command.objective.WinCheckSystem;
+import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.SwarmMovement;
@@ -573,6 +575,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Per-tick win-condition evaluator; terminal results cross the shared completion boundary. */
     private final com.dillon.starsectormarines.battle.command.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
+    /** Whether the company has had forces or a reserve in play yet; the spent-company defeat waits for it. */
+    private boolean companyEverInPlay;
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     /** The dozer's blade: what it pushes, and the view of the map a bladed hull's route proof reads. */
@@ -2053,6 +2057,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BoatDamageLedger boatDamage() { return airSystem.boatDamage(); }
 
     public List<AirLoss> getAirLosses()    { return airSystem.airLosses(); }
+    @Override
+    public LiftQueue liftQueue()           { return airSystem.liftQueue(); }
     /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }
     /** Attaches a turret loadout to an air entity (presence component). Called at setup once the craft is spawned (id minted); no-op for an empty loadout. */
@@ -4103,8 +4109,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (navigationTopologyFlushed) navigation.rebuildDerivedNavigation();
         tickProfile.lap(TickProfile.Phase.NAV_FLUSH);
         if (missionCompletionEnabled) {
+            // A company that has never been in play is not yet spent: a scripted arrival may still bring it.
+            boolean companyInPlay = ObjectiveFactionPresence.companyInPlay(this);
+            companyEverInPlay |= companyInPlay;
             WinCheckSystem.WinResult result =
-                    winCheck.tick(objectivesService.getObjectives());
+                    winCheck.tick(objectivesService.getObjectives(), companyInPlay || !companyEverInPlay);
             // A crashing craft, or a hull whose part in the battle must conclude first, holds the battle open.
             if (result.complete() && !airSystem.hasCrashingCraft() && !warships.awaitingConclusion()) {
                 completion.finish(result.winner());

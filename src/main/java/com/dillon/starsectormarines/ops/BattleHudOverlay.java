@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
+import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -21,7 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/** Host bridge for the MLX-authored battle time, objective, and command overlay. */
+/**
+ * Host bridge for the MLX-authored battle overlay: time and objectives on the right rail, the
+ * lift queue on the left.
+ */
 final class BattleHudOverlay {
 
     static final String COMPONENT = "battle-hud-overlay";
@@ -30,8 +35,13 @@ final class BattleHudOverlay {
     static final float RAIL_WIDTH = 360f;
     static final float TIME_ONLY_HEIGHT = 54f;
     static final float OBJECTIVE_HEIGHT = BattleLayout.COMMAND_RAIL_H;
-    static final float COMMAND_ONLY_HEIGHT = 166f;
-    static final float CONQUEST_COMMAND_HEIGHT = BattleLayout.COMMAND_RAIL_H;
+    /** Document pixels of the lift queue's border and padding, outside its content box. */
+    private static final float LIFT_FRAME = 2f + 14f;
+    /** Document pixels of the lift queue's frame, header and the gap under it. */
+    private static final float LIFT_CHROME = LIFT_FRAME + 17f + 4f;
+    /** A row's outer height: 14 px of content, 2 px padding and a 1 px border above and below. */
+    private static final float LIFT_ROW = 20f;
+    private static final float LIFT_ROW_GAP = 3f;
     private static final float EDGE_INSET = 12f;
 
     private final Reactor reactor = new Reactor();
@@ -48,7 +58,9 @@ final class BattleHudOverlay {
     private boolean primaryPointerActive;
     private boolean secondaryPointerActive;
     private BattleHudOverlayModel.Presentation presentation =
-            new BattleHudOverlayModel.Presentation(false, false);
+            new BattleHudOverlayModel.Presentation(false);
+    /** The battle the lift queue's cancel buttons act on: the one last projected. */
+    private BattleSimulation liftSim;
 
     BattleHudOverlay(Consumer<Float> speedSetter, BattleCamera camera) {
         this.camera = camera;
@@ -96,14 +108,14 @@ final class BattleHudOverlay {
                 "battle-objectives", "battle-objective-chips",
                 "battle-objective-score", "battle-objective-tally",
                 "battle-objective-focus", "battle-objective-progress-fill",
-                "battle-conquest-command", "battle-conquest-lanes")) {
+                "battle-lift-queue", "battle-lift-queue-rows")) {
             instance.requireElement(id);
         }
     }
 
     /** CSS has no item-alignment property yet; keep the progress fill left-anchored. */
     static void wireLayout(MarkupInstance instance) {
-        instance.requireElement("battle-mission-squads").align(UiAlign.START, UiAlign.START);
+        instance.requireElement("battle-lift-queue").align(UiAlign.START, UiAlign.START);
         instance.requireElement("battle-objective-progress-fill")
                 .align(UiAlign.START, UiAlign.STRETCH);
     }
@@ -179,9 +191,8 @@ final class BattleHudOverlay {
     static boolean insideInteractiveSurface(MarkupInstance instance,
                                             float documentX, float documentY) {
         if (instance == null) return false;
-        return instance.requireElement("battle-conquest-command")
+        return instance.requireElement("battle-lift-queue")
                 .box().borderBox().contains(documentX, documentY)
-                || instance.requireElement("battle-mission-squads").box().borderBox().contains(documentX, documentY)
                 || instance.requireElement("battle-command-rail")
                 .box().borderBox().contains(documentX, documentY);
     }
@@ -207,20 +218,54 @@ final class BattleHudOverlay {
     }
 
     static float documentHeight(BattleHudOverlayModel.Presentation presentation) {
-        if (presentation.missionRows() > 0) return Math.max(300, 96 + presentation.missionRows() * 174);
-        if (presentation.objectivesVisible() && presentation.commandVisible()) {
-            return CONQUEST_COMMAND_HEIGHT;
-        }
-        if (presentation.objectivesVisible()) return OBJECTIVE_HEIGHT;
-        if (presentation.commandVisible()) return COMMAND_ONLY_HEIGHT;
-        return TIME_ONLY_HEIGHT;
+        float rail = presentation.missionRows() > 0 ? Math.max(300, 96 + presentation.missionRows() * 174)
+                : presentation.objectivesVisible() ? OBJECTIVE_HEIGHT : TIME_ONLY_HEIGHT;
+        return presentation.liftRows() > 0 ? Math.max(rail, liftHeight(presentation.liftRows())) : rail;
+    }
+
+    /** The lift queue's height in document pixels for {@code rows} rows. */
+    static float liftHeight(int rows) {
+        int shown = Math.max(1, rows);
+        return LIFT_CHROME + shown * LIFT_ROW + (shown - 1) * LIFT_ROW_GAP;
+    }
+
+    /** The lift queue's content-box height, which its style sets, for {@code rows} rows. */
+    static float liftContentHeight(int rows) {
+        return liftHeight(rows) - LIFT_FRAME;
     }
 
     private BattleHudOverlayModel.Presentation updateModel(
             BattleSimulation sim, float speedMultiplier) {
+        int liftRows = updateLiftQueue(sim);
+        return projectObjectives(sim, speedMultiplier).withLiftRows(liftRows);
+    }
+
+    private int updateLiftQueue(BattleSimulation sim) {
+        liftSim = sim;
+        LiftQueueReadout.Reading reading = sim == null ? LiftQueueReadout.Reading.EMPTY
+                : LiftQueueReadout.capture(sim);
+        List<BattleHudOverlayModel.Placed> placed = new ArrayList<>();
+        if (sim != null) {
+            CommandPowerService service = sim.getCommandPowerService();
+            for (CommandPowerService.PendingDrop drop : service.pendingDrops()) {
+                if (service.getPower(drop.powerId()) instanceof ArmorDropPower power) {
+                    placed.add(new BattleHudOverlayModel.Placed(drop.powerId(), drop.manifestIndex(),
+                            power.manifest().get(drop.manifestIndex()).load()));
+                }
+            }
+        }
+        return model.updateLiftQueue(reading, placed,
+                job -> { if (liftSim != null) liftSim.getCommandPowerService().requestDropCancel(job); },
+                drop -> {
+                    if (liftSim != null) {
+                        liftSim.getCommandPowerService().withdrawPendingDrop(drop.powerId(), drop.manifestIndex());
+                    }
+                });
+    }
+
+    private BattleHudOverlayModel.Presentation projectObjectives(BattleSimulation sim, float speedMultiplier) {
         var result = model.update(speedMultiplier,
-                sim == null ? List.of() : sim.getCompoundService().getRecords(),
-                sim == null ? null : sim.getCommanderSnapshot(Faction.MARINE));
+                sim == null ? List.of() : sim.getCompoundService().getRecords());
         var mission = MissionObjectiveProjection.capture(sim);
         if (!mission.objectives().isEmpty()) return model.updateMission(mission,
                 marker -> camera.centerOn(marker.x() + .5f, marker.y() + .5f));

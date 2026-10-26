@@ -22,8 +22,9 @@ import java.util.Set;
  * genuinely wants "kill the militia too" can say so.
  *
  * <p>A counted faction remains in play through live ground units, a current
- * inbound shuttle payload, a committed future shuttle sortie, or pending
- * authored ground arrivals. Otherwise
+ * inbound shuttle payload, a committed future shuttle sortie, pending
+ * authored ground arrivals, or (for the company) a delivery power that can
+ * still field its reserve. Otherwise
  * an objective targeting marines could complete before the first landing or
  * during the empty-ground rearm interval between authored cycles.
  */

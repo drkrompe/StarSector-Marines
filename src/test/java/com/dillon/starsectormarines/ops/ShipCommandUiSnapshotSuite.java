@@ -349,8 +349,7 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
             BufferedImage image = renderer.renderHostPass(pass, 1920, 1080);
             Graphics2D graphics = image.createGraphics();
             try {
-                var presentation = hudModel.update(1f, sim.getCompoundService().getRecords(),
-                        sim.getCommanderSnapshot(Faction.MARINE));
+                var presentation = hudModel.update(1f, sim.getCompoundService().getRecords());
                 var mission = MissionObjectiveProjection.capture(sim);
                 if (!mission.objectives().isEmpty()) presentation = hudModel.updateMission(mission, ignored -> {});
                 hud.flush();

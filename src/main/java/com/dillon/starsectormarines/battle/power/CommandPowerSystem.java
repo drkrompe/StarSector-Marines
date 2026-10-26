@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.power.CommandPowerService.PendingActivation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 
@@ -26,6 +27,17 @@ public final class CommandPowerSystem {
     }
 
     public void tick(float dt) {
+        for (CommandPower power : service.getAvailablePowers()) {
+            if (power instanceof ArmorDropPower drop) drop.prepare(battle);
+        }
+        // A cancel is judged before this tick's orders, against the queue as it stands.
+        for (long jobId : service.drainCancels()) {
+            LiftQueue queue = battle.liftQueue();
+            LiftQueue.MachineDrop job = queue == null ? null : queue.find(jobId);
+            if (job != null && service.getPower(job.powerId()) instanceof ArmorDropPower drop) {
+                drop.cancel(jobId, queue);
+            }
+        }
         // Commit queued activations first so a power fired this tick gets its
         // full cooldown before the age-down below trims dt off it.
         for (PendingActivation req : service.drainPending()) {

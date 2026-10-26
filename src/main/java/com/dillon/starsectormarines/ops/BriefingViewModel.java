@@ -429,7 +429,6 @@ final class BriefingViewModel {
                     : firstFerry ? "briefingVmNoteFirstFerry" : "briefingVmNoteNeedBoat");
         } else {
             ShuttleType type = boats.get(0).pattern();
-            List<FittedBoat> seated = DetachmentResolver.seatedBoats(boats);
             List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifestForPersonnel(
                     mission, boats, selectedPersonnel);
             List<ShuttleAssignment> player = manifest.subList(
@@ -438,14 +437,13 @@ final class BriefingViewModel {
             title = type.displayName();
             image = type.spritePath;
             capacity = Strings.join("separatorDot",
-                    Strings.format("briefingVmBoatsAvailable", seated.size()),
+                    Strings.format("briefingVmBoatsAvailable", boats.size()),
                     Strings.format("briefingVmSeatsPerTrip", mission.marineArrivalPolicy.seatsPerSortie(type)));
             schedule = Strings.format("briefingVmTripsPlanned", trips);
-            note = Strings.format("briefingVmBoatsAssigned", player.size(), seated.size());
+            note = Strings.format("briefingVmBoatsAssigned", player.size(), boats.size());
             String cradled = LiftReadout.cradledNote(boats);
             if (cradled != null) {
                 note = Strings.format("briefingVmNoteWithCradled", note, cradled);
-                if (seated.isEmpty()) tone = "tone-danger";
             }
         }
         String origin = local ? Strings.get("briefingVmOriginLocal") : debug ? Strings.get("briefingVmOriginDebug")

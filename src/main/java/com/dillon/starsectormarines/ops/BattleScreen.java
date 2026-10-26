@@ -42,6 +42,8 @@ import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
+import com.dillon.starsectormarines.battle.ui.panel.PlacementPause;
+import com.dillon.starsectormarines.battle.ui.panel.QueuedDropMarkerPanel;
 import com.dillon.starsectormarines.battle.ui.panel.ShipOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugHudSwitchPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
@@ -922,7 +924,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // The MLX power tray owns cards; this small world-layer partner owns
         // only its reticle and next-click targeting. Added after WorldPicker so
         // an armed power claims the map click before squad selection sees it.
-        commandPowerTargeting = new CommandPowerTargetingPanel(this);
+        hud.addPanel(new QueuedDropMarkerPanel(this));
+        commandPowerTargeting = new CommandPowerTargetingPanel(this, new PlacementPause.Clock() {
+            @Override public boolean paused() { return speedMultiplier == 0f; }
+            @Override public void setPaused(boolean paused) { setBattleSpeed(paused ? 0f : resumeSpeed); }
+        });
         hud.addPanel(commandPowerTargeting);
         shipOrderTargeting = new ShipOrderTargetingPanel(this, this::battleChromeBlocksWorldPointer);
         hud.addPanel(shipOrderTargeting);

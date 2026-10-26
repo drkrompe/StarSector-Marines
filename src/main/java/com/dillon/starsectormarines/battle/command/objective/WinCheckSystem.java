@@ -42,6 +42,16 @@ public final class WinCheckSystem {
      * current objective list; the simulation owns the terminal transition.
      */
     public WinResult tick(List<Objective> objectives) {
+        return tick(objectives, true);
+    }
+
+    /**
+     * As {@link #tick(List)}, with the default defeat every company battle carries: a
+     * company with no forces on the map and no reserve it can still land has lost,
+     * whatever its objectives say ({@link ObjectiveFactionPresence#companyInPlay}). A battle
+     * in which the company owns no objective is not the company's, and never ends this way.
+     */
+    public WinResult tick(List<Objective> objectives, boolean companyInPlay) {
         boolean marineFailed = false, marineAllComplete = true, marineHasObjective = false;
         boolean defenderFailed = false, defenderAllComplete = true, defenderHasObjective = false;
         for (int i = 0, n = objectives.size(); i < n; i++) {
@@ -56,6 +66,7 @@ public final class WinCheckSystem {
                 if (!o.isComplete()) defenderAllComplete = false;
             }
         }
+        if (marineHasObjective && !companyInPlay) marineFailed = true;
         boolean marineWin = marineHasObjective && marineAllComplete && !marineFailed;
         boolean defenderWin = defenderHasObjective && defenderAllComplete && !defenderFailed;
         if (!marineWin && !defenderWin && !marineFailed && !defenderFailed) return WinResult.ONGOING;

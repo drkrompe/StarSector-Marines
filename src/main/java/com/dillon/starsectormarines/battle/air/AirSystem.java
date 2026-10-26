@@ -289,6 +289,8 @@ public class AirSystem {
      * with the reinforcement layer, well after the air system exists.
      */
     private AirfieldService airfield;
+    /** The player's lift queue, which a ferry craft on standby takes machine drops from. */
+    private LiftQueue liftQueue = new LiftQueue();
 
     /**
      * The air entity ids this system drives — the stable per-tick iteration
@@ -370,6 +372,11 @@ public class AirSystem {
 
     public void setFieldPresencePolicy(FieldPresencePolicy policy) {
         fieldPresence.setPolicy(policy);
+    }
+
+    /** The player's lift queue; see {@link LiftQueue}. */
+    public LiftQueue liftQueue() {
+        return liftQueue;
     }
 
     /**
@@ -950,6 +957,20 @@ public class AirSystem {
 
                 case PENDING:
                     mission.pendingDelay -= dt;
+                    if (mission.standby) {
+                        // A ferry craft with its own loads flown waits here,
+                        // re-armed, for the oldest queued machine it can lift.
+                        LiftQueue.MachineDrop job = mission.pendingDelay <= 0f
+                                ? liftQueue.takeFor(frame) : null;
+                        if (job == null) break;
+                        LiftQueue.loadMachine(mission, job);
+                        body.teleport(mission.entryX, mission.entryY, AirBody.facingToward(
+                                mission.lzX - mission.entryX, mission.lzY - mission.entryY));
+                        world.setAltitudeT(id, 1f);
+                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                        mission.state = ShuttleState.INCOMING;
+                        break;
+                    }
                     if (mission.pendingDelay <= 0f && fieldPresence.admit(mission)) {
                         beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
                         mission.state = ShuttleState.INCOMING;
@@ -1464,16 +1485,10 @@ public class AirSystem {
                                             : mission.seatsPerSortie;
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
-                            // Structural overhaul remains in boatDamage; tactical servicing
-                            // makes repeated lifts viable without erasing campaign recovery.
-                            // The re-arm is a full refit at the carrier, so repair the hull too —
-                            // without this, damage taken on one run carries across sorties and a
-                            // cycling shuttle dies early on a later one despite "re-arming". The
-                            // skin is made good in the same breath, since a refit that left the
-                            // armour spent would be a repair that only half happened. Symmetric
-                            // with the magazine refill below.
-                            world.setHp(id, frame.maxHp());
-                            world.setArmor(id, world.maxArmor(id));
+                            // The re-arm is a full refit at the carrier: without it, damage
+                            // taken on one run carries across sorties and a cycling shuttle
+                            // dies early on a later one despite "re-arming".
+                            refit(id, frame);
                             // Clear the sortie-local squad cache. Untagged
                             // personnel mint a fresh squad next cycle; tagged
                             // campaign personnel resolve their existing
@@ -1482,17 +1497,16 @@ public class AirSystem {
                             body.teleport(mission.entryX, mission.entryY,
                                     AirBody.facingToward(mission.lzX - mission.entryX, mission.lzY - mission.entryY));
                             world.setAltitudeT(id, 1f);
-                            // Re-arm: refill every mount's magazine, drop any
-                            // stale target lock so the next hover starts clean.
-                            AirTurrets rearm = world.airTurrets(id);
-                            if (rearm != null) {
-                                for (MountedTurret mt : rearm.mounts) {
-                                    mt.ammo = mt.mount.mountDef().ammoCapacity;
-                                    mt.targetId = 0L;
-                                    mt.cooldownTimer = 0f;
-                                }
-                            }
                             mission.state = ShuttleState.PENDING;
+                        } else if (mission.ferry && liftQueue.active()
+                                && frame.liftRating() != LiftRating.NONE) {
+                            // A lift-rated ferry craft does not leave with its
+                            // own loads flown: it re-arms and stands by for the
+                            // machine drops the player queues.
+                            mission.pendingMissileExit = false;
+                            mission.missileEvasion.reset();
+                            refit(id, frame);
+                            LiftQueue.standBy(mission, mission.rearmDelay);
                         } else {
                             // Terminal — the craft is done; reapGoneCraft destroys
                             // it (and every component) at end of tick. A craft
@@ -2540,6 +2554,24 @@ public class AirSystem {
         if (dist < 1e-4f) return true;
         float alignment = (dx * noseX + dy * noseY) / dist;
         return alignment >= (float) Math.cos(Math.toRadians(RELEASE_CONE_DEG));
+    }
+
+    /**
+     * The re-arm between sorties is a full refit at the carrier: hull and skin made good,
+     * every mount's magazine refilled and any stale target lock dropped, so the next sortie
+     * starts clean. Structural overhaul stays in {@code boatDamage}.
+     */
+    private void refit(long id, Airframe frame) {
+        world.setHp(id, frame.maxHp());
+        world.setArmor(id, world.maxArmor(id));
+        AirTurrets rearm = world.airTurrets(id);
+        if (rearm != null) {
+            for (MountedTurret mt : rearm.mounts) {
+                mt.ammo = mt.mount.mountDef().ammoCapacity;
+                mt.targetId = 0L;
+                mt.cooldownTimer = 0f;
+            }
+        }
     }
 
     private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {

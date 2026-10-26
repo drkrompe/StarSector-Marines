@@ -27,6 +27,11 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
  * raycasts). Note: air vision sources ({@code airLosRadius} shuttles/fighters)
  * also populate the bitmap, so a craft overhead can briefly reveal a roof — an
  * intended consequence of "if the player can see in, the roof opens."
+ *
+ * <p><strong>Fog rule:</strong> a closed roof lies in fog ({@link Building#targetFog} 1) unless a cell
+ * under it is revealed: an interior cell, or one of the walls it is laid over, the cells beside the
+ * floor. A roof is drawn above the fog, so it carries its own darkening; without this a building
+ * nobody can see showed its roof at full brightness.
  */
 public final class BuildingVisibilityPass {
 
@@ -40,7 +45,9 @@ public final class BuildingVisibilityPass {
         if (buildings == null || buildings.isEmpty() || cellRevealed == null) return;
 
         for (Building b : buildings.all()) {
-            b.targetAlpha = anyInteriorCellRevealed(b, cellRevealed, gridWidth, gridHeight) ? 0f : 1f;
+            boolean seenInside = anyInteriorCellRevealed(b, cellRevealed, gridWidth, gridHeight);
+            b.targetAlpha = seenInside ? 0f : 1f;
+            b.targetFog = seenInside || anyWallCellRevealed(b, cellRevealed, gridWidth, gridHeight) ? 0f : 1f;
         }
     }
 
@@ -57,6 +64,7 @@ public final class BuildingVisibilityPass {
         float lerpAmount = Math.min(1f, dt * ALPHA_FADE_RATE);
         for (Building b : buildings.all()) {
             b.currentAlpha += (b.targetAlpha - b.currentAlpha) * lerpAmount;
+            b.currentFog += (b.targetFog - b.currentFog) * lerpAmount;
         }
     }
 
@@ -67,6 +75,25 @@ public final class BuildingVisibilityPass {
             int cy = b.cellsY[i];
             if (cx < 0 || cx >= gridWidth || cy < 0 || cy >= gridHeight) continue;
             if (cellRevealed[cy * gridWidth + cx]) return true;
+        }
+        return false;
+    }
+
+    /** Whether a cell beside the floor (a wall the roof is laid over) is revealed. */
+    private static boolean anyWallCellRevealed(Building b, boolean[] cellRevealed,
+                                               int gridWidth, int gridHeight) {
+        for (int i = 0, n = b.cellCount(); i < n; i++) {
+            int cx = b.cellsX[i];
+            int cy = b.cellsY[i];
+            for (int dy = -1; dy <= 1; dy++) {
+                int y = cy + dy;
+                if (y < 0 || y >= gridHeight) continue;
+                for (int dx = -1; dx <= 1; dx++) {
+                    int x = cx + dx;
+                    if (x < 0 || x >= gridWidth) continue;
+                    if (cellRevealed[y * gridWidth + x]) return true;
+                }
+            }
         }
         return false;
     }

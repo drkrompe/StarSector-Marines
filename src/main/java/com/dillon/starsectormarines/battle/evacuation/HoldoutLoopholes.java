@@ -23,7 +23,7 @@ import java.util.List;
  * and open ground before it takes one, and an existing window or door is left
  * as it is.
  */
-final class HoldoutLoopholes {
+public final class HoldoutLoopholes {
 
     /** Cells between loopholes along a wall. */
     static final int PITCH = 4;
@@ -82,6 +82,42 @@ final class HoldoutLoopholes {
             }
         }
         return cut;
+    }
+
+    /**
+     * Cuts loopholes along one row of wall facing {@code outward} (N or S), from {@code left} to {@code right}: the
+     * same openings, every {@link #PITCH} cells along each straight run of wall with walkable ground behind it and
+     * before it, a building's wall or a yard's. A Cordon school's courtyard block and yard wall are its redoubt's
+     * front face, and the troops holding it knock their firing slits through them ({@code cordon-nouns.md},
+     * Construction); returns how many.
+     */
+    public static int cutRow(BattleSimulation sim, int left, int right, int y, Direction outward) {
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
+        int cut = 0;
+        List<int[]> run = new ArrayList<>();
+        for (int x = left; x <= right + 1; x++) {
+            if (x <= right && slit(grid, topology, x, y, outward)) {
+                run.add(new int[]{x, y});
+                continue;
+            }
+            for (int i : positions(run.size())) {
+                int[] c = run.get(i);
+                if (open(grid, topology, c[0], c[1], outward)) cut++;
+            }
+            run.clear();
+        }
+        return cut;
+    }
+
+    /** A solid straight wall cell with walkable ground behind it and before it. */
+    private static boolean slit(NavigationGrid grid, CellTopology topology, int x, int y, Direction outward) {
+        int ix = x - outward.dx, iy = y - outward.dy, ox = x + outward.dx, oy = y + outward.dy;
+        if (!grid.inBounds(ix, iy) || !grid.inBounds(ox, oy) || !grid.inBounds(x, y)) return false;
+        if (grid.isWalkable(x, y) || grid.isDoorway(x, y) || !topology.isWall(x, y)) return false;
+        if (!grid.isWalkable(ix, iy) || !grid.isWalkable(ox, oy)) return false;
+        int ax = outward.dy, ay = outward.dx;
+        return topology.isWall(x + ax, y + ay) && topology.isWall(x - ax, y - ay);
     }
 
     /** A solid wall cell of the building with its floor behind it and open ground before it. */

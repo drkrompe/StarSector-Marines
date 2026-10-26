@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.Set;
+
 /**
  * The ordered world-render pass list, lifted verbatim from the call sequence in
  * {@link BattleRenderer#renderWorld}. <strong>Ordinal = paint order</strong> — the
@@ -30,6 +32,18 @@ public enum RenderLayer {
     VEHICLES,
     /** Props / overlays (rocks, plants, road markings). */
     DOODADS,
+    /**
+     * The dead: bodies, the pools and ichor they lie in, a carried corpse. They lie on the ground,
+     * so they draw <em>below</em> {@link #FOG} and are dimmed by the same fog as the ground under
+     * them; above, they showed through it at full brightness. They persist through fog rather than
+     * being culled by sight, as a decal does.
+     *
+     * <p>{@link UnitRenderService} collects them with the living and moves them here, so a host
+     * never names this layer: it is drawn wherever {@link #UNITS} is ({@link #drawnFor}). Below
+     * {@link #HIGHLIGHTS} and {@link #UNIT_SHADOWS}, so a selection ring or a living marine's
+     * shadow lies over a body rather than under it.
+     */
+    CORPSES,
     /** Debug cell highlights (plan-step cells, selected squad, captain). Above
      *  ground/doodads, below units so unit sprites stay legible over the tint. */
     HIGHLIGHTS,
@@ -87,5 +101,13 @@ public enum RenderLayer {
     /** Vanilla fighters flying overhead — above everything ground-side. */
     FLYBY,
     /** Readable mission locators above night, weather and world effects; never physical light. */
-    MISSION_MARKERS
+    MISSION_MARKERS;
+
+    /**
+     * Whether this layer is drawn for a host that asked for {@code layers}: when it is one of them,
+     * or when it is {@link #CORPSES} and {@link #UNITS} is, since the units pass collects both.
+     */
+    public boolean drawnFor(Set<RenderLayer> layers) {
+        return layers.contains(this) || (this == CORPSES && layers.contains(UNITS));
+    }
 }

@@ -82,7 +82,7 @@ def segments(keyframes):
     for kf, spec in keyframes.items():
         a, _, b = spec['shot'].partition('-')
         ids = order[order.index(a):order.index(b or a) + 1]
-        span[a] = (kf, ids)
+        span.setdefault(a, (kf, ids))     # the shot's own key frame, not a still copied from it (k6c)
     covered = {i for _, ids in span.values() for i in ids}
     segs = []
     for r in rows:
@@ -129,8 +129,8 @@ def traced_keyframes():
         return {k: (v if k in keep else Drift(v, t, lambda tt, k=k, st=tuple(ships[k]): motion.drift(k, st, tt, scale)))
                 for k, v in real_fleet(ships, t, scale, keep).items()}
 
-    def boarding_run(*a):
-        return Drift(real_run(*a), a[-1], lambda tt: real_run(*a[:-1], tt))
+    def boarding_run(*a, **kw):
+        return Drift(real_run(*a, **kw), a[-1], lambda tt: real_run(*a[:-1], tt, **kw))
     motion.fleet_at = fleet_at
     if real_run is not None:
         motion.boarding_run = boarding_run
@@ -532,6 +532,7 @@ def shot(L, kf):
 
     cam, ground = L['scene'].camera, L['ground']
     t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
+    t_still = spec.get('ground_t', t_still)     # a take carried over a cut turns the planet from its first shot's time
 
     def per_frame(f, t):
         """The camera's move (motion.camera) and the planet turning under the co-moving frame."""
