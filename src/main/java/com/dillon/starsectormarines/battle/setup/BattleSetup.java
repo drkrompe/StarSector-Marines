@@ -146,6 +146,7 @@ import com.dillon.starsectormarines.battle.command.SilentColonyCommandDisclosure
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -1620,6 +1621,33 @@ public final class BattleSetup {
      * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
      * for the alarm.
      */
+    /**
+     * Sable Wake's rocket truck lies in wait in the east yard, among its cargo and barriers, covering the ledger room's
+     * east door: the pump house hides it from the south yard, so a mech walking round to that door meets its rockets
+     * at a dozen cells rather than seeing it from beyond their reach. The aim is a cell; the hull takes the nearest its
+     * footprint clears. It does not drive: the yard's cover leaves a hull no way out of it.
+     */
+    private static final int[] DUST_LEDGER_TECHNICAL_AMBUSH = {206, 48};
+
+    private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger) {
+        VehicleType type = VehicleType.SRM_TECHNICAL;
+        VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
+        int[] at = nearestClear(mask, DUST_LEDGER_TECHNICAL_AMBUSH);
+        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at[0] + .5f, at[1] + .5f));
+        sim.convoy().body(technical).teleport(at[0] + .5f, at[1] + .5f, 180f);
+        ledger.technical(technical);
+    }
+
+    /** The cell nearest {@code aim} (ring by ring) where a hull of {@code mask}'s clearance fits. */
+    private static int[] nearestClear(VehicleClearance mask, int[] aim) {
+        for (int r = 0; r < 12; r++)
+            for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r; dx <= r; dx++)
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) == r && mask.isPassable(aim[0] + dx, aim[1] + dy))
+                        return new int[]{aim[0] + dx, aim[1] + dy};
+        throw new IllegalStateException("no cell clear for a hull near " + aim[0] + "," + aim[1]);
+    }
+
     /** How far a pillbox crew strays from its slits: they fight from inside. */
     private static final int PILLBOX_PATROL_RADIUS = 1;
 
@@ -1722,7 +1750,9 @@ public final class BattleSetup {
                 layout.warehouses()::contains);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
                 layout.shops()::contains);
-        sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam).defences(sim, nests, pillboxSquads);
+        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        ledger.defences(sim, nests, pillboxSquads);
+        spawnDustLedgerTechnical(sim, ledger);
         sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
                 RaidDefenderCommandDisclosure.INSTANCE);

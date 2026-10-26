@@ -388,9 +388,9 @@ public final class UnitSpatialIndex {
             float y = world.y(id);
             Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
             if (bucket == null) continue;
-            bucket.add(id, x, y,
-                    (byte) roster.identity().faction(id).ordinal(),
-                    roster.identity().type(id).combatant);
+            Faction faction = roster.identity().faction(id);
+            bucket.add(id, x, y, (byte) faction.ordinal(),
+                    roster.identity().type(id).combatant && !covers(id, faction, x, y));
         }
     }
 
@@ -466,6 +466,11 @@ public final class UnitSpatialIndex {
      */
     public boolean withheld(long id) {
         return restraint.restrains(id) || !covered.isEmpty() && covered.contains(id);
+    }
+
+    /** Whether the quiet-phase cover hid {@code id} at the last rebuild. */
+    public boolean covered(long id) {
+        return !covered.isEmpty() && covered.contains(id);
     }
 
     private boolean covers(long id, Faction faction, float x, float y) {
