@@ -99,6 +99,13 @@ public interface Airframe {
     float maxHp();
 
     /**
+     * Skin over the hull: the armour a round has to get through before it reaches the
+     * structure. Half the hull by default, the aircraft standard; a company boat's plating
+     * sets her own.
+     */
+    default float armor() { return maxHp() * BasedAircraft.ARMOR_CAPACITY_FRACTION; }
+
+    /**
      * The heaviest machine this aircraft can carry to the ground. Most lift
      * none; see {@link LiftAdmission}.
      */

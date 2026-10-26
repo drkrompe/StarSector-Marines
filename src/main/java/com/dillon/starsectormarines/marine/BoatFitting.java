@@ -51,14 +51,14 @@ public record BoatFitting(
      * @param fluxCapacityFactor scales the hull's flux capacity
      * @param fluxDissipationFactor scales the hull's flux dissipation
      */
-    public record Effect(float hullFactor, float speedFactor, float accelFactor, float deboardFactor,
+    public record Effect(float armorFactor, float speedFactor, float accelFactor, float deboardFactor,
                          LiftRating liftRating, int seats, float shieldArcDeg, float shieldEfficiency,
                          float fluxCapacityFactor, float fluxDissipationFactor) {
 
         public static final Effect NONE = new Effect(1f, 1f, 1f, 1f, LiftRating.NONE, 0, 0f, 1f, 1f, 1f);
 
         public Effect {
-            requirePositive(hullFactor, "hull");
+            requirePositive(armorFactor, "armor");
             requirePositive(speedFactor, "speed");
             requirePositive(accelFactor, "acceleration");
             requirePositive(deboardFactor, "deboard");
@@ -72,7 +72,7 @@ public record BoatFitting(
             }
         }
 
-        static Effect hull(float factor) {
+        static Effect armor(float factor) {
             return new Effect(factor, 1f, 1f, 1f, LiftRating.NONE, 0, 0f, 1f, 1f, 1f);
         }
 
@@ -110,11 +110,11 @@ public record BoatFitting(
 
     public static final BoatFitting REINFORCED_PLATING = new BoatFitting(
             "reinforced_plating", "@openingBoatFittingReinforcedBellyPlate", BoatFittingSlot.PLATING, 2,
-            Effect.hull(1.35f), 2, cost(10, 0, 20, 0), "@openingBoatFittingASecondSkinLaidOverTheBelly");
+            Effect.armor(1.35f), 2, cost(10, 0, 20, 0), "@openingBoatFittingASecondSkinLaidOverTheBelly");
 
     public static final BoatFitting ARMOURED_PLATING = new BoatFitting(
             "armoured_plating", "@openingBoatFittingArmouredLanderShell", BoatFittingSlot.PLATING, 3,
-            Effect.hull(1.75f), 3, cost(20, 5, 40, 0), "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
+            Effect.armor(1.75f), 3, cost(20, 5, 40, 0), "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
 
     public static final BoatFitting STANDARD_DRIVE = new BoatFitting(
             "standard_drive", "@openingBoatFittingYardStandardDrive", BoatFittingSlot.DRIVE, 1,
@@ -213,7 +213,7 @@ public record BoatFitting(
         }
     }
 
-    public float hullFactor() { return effect.hullFactor(); }
+    public float armorFactor() { return effect.armorFactor(); }
     public float speedFactor() { return effect.speedFactor(); }
     public float accelFactor() { return effect.accelFactor(); }
     public float deboardFactor() { return effect.deboardFactor(); }

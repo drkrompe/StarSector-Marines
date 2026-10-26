@@ -69,8 +69,6 @@ public final class FittedBoat implements Airframe, AirHandling {
     /** A hardpoint entry naming no gun at all, where null or a missing entry is the sortie kit's own. */
     public static final String BARE = "";
 
-    /** Her hull with no plating fitted, against the pattern's own: she flies, but weak. */
-    public static final float BARE_HULL_FACTOR = 0.6f;
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive) {
         this(pattern, plating, drive, null);
@@ -99,8 +97,8 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     /**
      * @param fit the fitting in each slot; a slot it leaves out holds its standard fitting,
-     *     and plating or an emitter mapped to null is none: a bare hull
-     *     ({@link #BARE_HULL_FACTOR}), or no shield
+     *     and plating or an emitter mapped to null is none: a bare hull with no
+     *     armour over it, or no shield
      * @param guns the door gun's turret structure on each hardpoint, or null
      *     (or a null entry) for the gun the sortie kit would mount there, or
      *     {@link #BARE} for no gun
@@ -192,7 +190,14 @@ public final class FittedBoat implements Airframe, AirHandling {
     public List<String> guns() { return Collections.unmodifiableList(Arrays.asList(guns.clone())); }
     @Override public AirHandling flight() { return this; }
 
-    @Override public float maxHp() { return pattern.maxHp() * (plating == null ? BARE_HULL_FACTOR : plating.hullFactor()); }
+    /** Her hull is the pattern's; plating is armour over it, not more of it. */
+    @Override public float maxHp() { return pattern.maxHp(); }
+
+    /** The pattern's skin scaled by her plating; none on a bare hull. */
+    @Override
+    public float armor() {
+        return plating == null ? 0f : pattern.armor() * plating.armorFactor();
+    }
 
     /** The cabin's seats, or the pattern's where the cabin seats fewer. */
     @Override
