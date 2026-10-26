@@ -129,8 +129,8 @@ def traced_keyframes():
         return {k: (v if k in keep else Drift(v, t, lambda tt, k=k, st=tuple(ships[k]): motion.drift(k, st, tt, scale)))
                 for k, v in real_fleet(ships, t, scale, keep).items()}
 
-    def boarding_run(*a):
-        return Drift(real_run(*a), a[-1], lambda tt: real_run(*a[:-1], tt))
+    def boarding_run(*a, **kw):
+        return Drift(real_run(*a, **kw), a[-1], lambda tt: real_run(*a[:-1], tt, **kw))
     motion.fleet_at = fleet_at
     if real_run is not None:
         motion.boarding_run = boarding_run
