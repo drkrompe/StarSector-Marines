@@ -214,17 +214,12 @@ increasing an encounter's total armored threat.
 - The **bay manifest** is the active squad's bay spaces frozen at launch: its
   mechs in gantry order, then its vehicles, each with chassis or hull, weight
   class and callsign. Vehicles carry their campaign id across the launch-fixture
-  seam as mechs carry theirs. Armour Support is sourced as before (a committed
-  Valkyrie, or a story battle whose employer arranges the heavy lift while the
-  bay holds a vehicle). Where Mech Support and Armour Support would both be in
-  the roster and the bay was read, Mech Support carries the whole manifest and
-  Armour Support leaves the roster: one bay, one picker. Armour Support alone (a
-  vehicle source with no mech source) opens the same picker over the bay's
-  vehicles; only a debug grant or a launch with no bay sets down its two unowned
-  fallback APCs.
-- An **armor drop** is one machine ordered down by Mech Support (or Armour
-  Support where it is the vehicle-only source). Arming the card pauses the battle
-  and opens the picker: every manifest entry with its state (aboard, queued,
+  seam as mechs carry theirs. Mech Support carries the whole manifest: one bay,
+  one picker. A story battle whose employer arranges the heavy lift grants Mech
+  Support for a bay that holds only vehicles. There is no separate vehicle
+  power (Armour Support was removed; a frozen one restores as Mech Support).
+- An **armor drop** is one machine ordered down by Mech Support. Arming the card
+  pauses the battle and opens the picker: every manifest entry with its state (aboard, queued,
   called) or the reason lift refuses it. The player picks one machine and clicks
   its landing ground, which is checked as any drop zone is; Shift-click places it
   and keeps the picker open on the next machine, and right-click or Escape closes

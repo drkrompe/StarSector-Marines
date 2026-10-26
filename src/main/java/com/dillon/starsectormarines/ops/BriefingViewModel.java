@@ -15,12 +15,10 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
-import com.dillon.starsectormarines.battle.power.MarineInsertion;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
-import com.dillon.starsectormarines.battle.power.ReconPing;
-import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -173,13 +171,11 @@ final class BriefingViewModel {
         props.put("commandSummary", "5 / 5 slots");
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
-                previewPower("power-drop", new MarineInsertion(), true, false, none),
-                previewPower("power-armour", new VehicleSupport(), false, true, none),
-                previewPower("power-recon", new ReconPing(), false, true, none),
-                previewPower("power-resupply", new EmergencyResupply(), false, true, none)));
+                previewPower("power-mech", new MechSupport(), true, false, none),
+                previewPower("power-air", new CloseAirSupport(), false, true, none)));
         props.put("powerEmpty", "");
         props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
-                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage · Marine Drop", false, none, "graphics/ships/onslaught/onslaught_base.png")));
+                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage", false, none, "graphics/ships/onslaught/onslaught_base.png")));
         props.put("sourceEmpty", "");
         putPreviewLandingCraft(props, conquest, true);
         props.put("carrierRows", List.of());

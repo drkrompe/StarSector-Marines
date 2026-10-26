@@ -701,7 +701,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
         BattlefieldMarkerPresentation.TargetMarker target =
                 BattlefieldMarkerPresentation.target(
-                        validTarget ? "Orbital Barrage" : "Marine Drop",
+                        validTarget ? "Orbital Barrage" : "Close Air Support",
                         validTarget, validTarget ? 4f : 1.5f);
         paintWorldTarget(graphics, 1180f, 655f, 24f, target);
         graphics.dispose();
@@ -1112,11 +1112,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BattlePowerOverlayModel model = new BattlePowerOverlayModel(
                 reactor, ignored -> { }, snapshotCommodities());
         List<BattlePowerOverlayModel.PowerState> powers = List.of(
-                power("recon_ping", "Recon Ping", 2f, 0, 7.4f, -1),
+                power("close_air_support", "Close Air Support", 3f, 0, 7.4f, 1),
                 power("mech_support", "Mech Support", 0f, 0, 0f, 3),
-                power("emergency_resupply", "Resupply", 3f, 0, 0f, 1),
-                power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1),
-                power("marine_insertion", "Marine Drop", 3f, 2, 0f, 0));
+                power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1));
         BattlePowerOverlayModel.Presentation presentation = model.withPicker(
                 model.updateProjected(4f, 10f, 22, powers, armed), pickerRows);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
