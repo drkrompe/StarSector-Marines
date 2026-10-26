@@ -15,3 +15,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Laser tank collision in forest biome (forest driving: tank lanes, undergrowth crush, dead-tree look) | https://claude.ai/artifact/Xt8Xy9WgDdG1rVfbd6CqvZ |
 | Boat refit (boat spares, Hermes six-axis refit, Secondhand Wings removal) | https://claude.ai/artifact/5D6B4wFKjXKPBT88NnnMJN |
 | Dust Ledger revamp (Saltwell Cross, side objectives, battle music) | https://claude.ai/artifact/HDbAK1rLgGBysKq84AyNhC (renders: https://claude.ai/artifact/P1MWkkcWVmwYS4kzb8RbVE) |
+| Blind Watch revamp (the Sounding on Warion, hook, side jobs) | https://claude.ai/artifact/5U17x6eWXMDM7P7wEWxN4z (renders: https://claude.ai/artifact/5wJEDtGrRj5B3YDxsasubF) |
