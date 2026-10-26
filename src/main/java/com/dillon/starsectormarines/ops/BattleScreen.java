@@ -781,6 +781,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             Squad squad = sim.getSquad(id);
             return squad != null && squad.aliveMembers > 0;
         });
+        selection.retainVehicles(id -> sim.convoy().mission(id) != null);
         Squad primarySquad = sim.getSquad(selection.getSelectedSquadId());
         long primaryMember = selection.getSelectedUnitEntityId();
         if (primarySquad != null && (primaryMember != 0L && sim.resolveUnit(primaryMember) == 0L
@@ -790,7 +791,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 replacement = sim.resolveUnit(sim.squadMemberAt(primarySquad.id, i));
                 if (replacement != 0L) break;
             }
-            selection.selectSquads(selection.getSelectedSquadIds(), primarySquad.id, replacement, false);
+            selection.selectGroup(selection.getSelectedSquadIds(), selection.getSelectedVehicleIds(),
+                    primarySquad.id, replacement, 0L, false);
         }
         if (worldPicker != null) {
             worldPicker.updateHover(directControlInput.pointerX(), directControlInput.pointerY(),

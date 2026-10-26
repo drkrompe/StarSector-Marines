@@ -491,6 +491,8 @@
     "battleOrderAssaultPlace": "ASSAULT",
     "battleOrderGuardPlace": "GUARD",
     "battleOrderGuardStatus": "HEAVY SUPPORT",
+    "battleOrderAttach": "ATTACH",
+    "battleOrderAttachStatus": "FOLLOWS BY DOCTRINE",
     "unitModifierDugIn": "Dug in",
     "unitModifierLegWound": "Leg wound",
     "unitModifierArmWound": "Arm wound",
