@@ -260,7 +260,7 @@ public final class MechAttachmentSystem {
 
         fire(mech, loadout, sim);
         MechAttachmentService.Post post = service.postOf(squad.id);
-        int[] slot = post != null ? postSlot(mech, post, sim) : slot(mech, loadout, anchor, sim);
+        int[] slot = post != null ? postSlot(mech, post, loadout, anchor, sim) : slot(mech, loadout, anchor, sim);
         if (slot == null) {
             if (!Paths.isEmpty(sim.world().path(mech))) sim.clearPath(mech);
             return true;
@@ -293,17 +293,25 @@ public final class MechAttachmentSystem {
     }
 
     /**
-     * The cell this chassis walks to while it holds a post on its squad's line: its cached slot while
-     * that is by the post, else the standable cell nearest it. The post outranks doctrine, in contact
-     * or not: the player put it there.
+     * The cell this chassis walks to while it holds a post on its squad's line. Out of contact, the
+     * post. In contact, the post moved along the line's front by its effective doctrine — a Brawler
+     * steps out ahead of the marines either side of it, Frontline Support a little less, Balanced
+     * holds the line and Long-Range Support steps back behind it ({@link MechAttachmentSlot#forward})
+     * — and back onto the post once the fight is over. Its cached slot stands while that is by the
+     * target, else the standable cell nearest it.
      */
-    private int[] postSlot(long mech, MechAttachmentService.Post post, BattleView sim) {
+    private int[] postSlot(long mech, MechAttachmentService.Post post, MechLoadoutComponent loadout,
+                           Squad anchor, BattleView sim) {
+        float step = inContact(anchor) ? MechAttachmentSlot.forward(loadout.effectiveRole()) : 0f;
+        FrontageLine line = post.anchorLine();
+        float tx = post.x() + .5f + line.frontX() * step;
+        float ty = post.y() + .5f + line.frontY() * step;
         int[] cached = service.slotOf(mech);
-        if (cached != null && Math.abs(cached[0] - post.x()) <= 1 && Math.abs(cached[1] - post.y()) <= 1
+        if (cached != null && Math.abs(cached[0] + .5f - tx) <= 1f && Math.abs(cached[1] + .5f - ty) <= 1f
                 && MechRouteIntent.candidate(mech, cached[0], cached[1], sim)) {
             return cached;
         }
-        int[] fresh = standableNear(mech, post.x() + .5f, post.y() + .5f, sim);
+        int[] fresh = standableNear(mech, tx, ty, sim);
         service.setSlot(mech, fresh);
         return fresh;
     }

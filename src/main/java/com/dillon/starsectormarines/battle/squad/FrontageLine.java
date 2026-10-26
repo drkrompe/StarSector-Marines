@@ -10,10 +10,53 @@ package com.dillon.starsectormarines.battle.squad;
  * the squad believes in, else away from where the squad stood — so the player can see which way
  * the line faces before letting go of the drag.
  *
+ * <p>Mechs attached to the squad may stand <b>within</b> its line ({@code mechs-nouns.md},
+ * attachment): each holds a band {@link #MACHINE_SHARES} marines wide, spaced evenly along it —
+ * one at the middle, two at a third and two thirds — and the marines share out what is left,
+ * so two give marine, mech, marine, mech, marine.
+ *
  * @param frontX unit vector pointing from the line toward the enemy
  * @param frontY unit vector pointing from the line toward the enemy
+ * @param machines how many attached mechs stand within the line
  */
-public record FrontageLine(int x0, int y0, int x1, int y1, float frontX, float frontY) {
+public record FrontageLine(int x0, int y0, int x1, int y1, float frontX, float frontY, int machines) {
+
+    /** A machine's band along a line, in marines' shares: a single unit with a broad footprint. */
+    public static final int MACHINE_SHARES = 2;
+
+    public FrontageLine(int x0, int y0, int x1, int y1, float frontX, float frontY) {
+        this(x0, y0, x1, y1, frontX, frontY, 0);
+    }
+
+    /** This line with {@code count} attached mechs standing within it. */
+    public FrontageLine withMachines(int count) {
+        return new FrontageLine(x0, y0, x1, y1, frontX, frontY, Math.max(0, count));
+    }
+
+    /** Where along the line, 0 to 1, the middle of machine {@code k}'s band falls. */
+    public float machineFraction(int k) {
+        return (k + 1f) / (machines + 1f);
+    }
+
+    /**
+     * Where along the line, 0 to 1, the middle of marine {@code ordinal} of {@code count}'s share
+     * falls: evenly along the line, skipping each machine's band.
+     */
+    public float marineFraction(int ordinal, int count) {
+        if (machines == 0) return (ordinal + 0.5f) / count;
+        float half = (float) MACHINE_SHARES / (count + MACHINE_SHARES * machines) * 0.5f;
+        float free = 1f - 2f * half * machines;
+        float along = (ordinal + 0.5f) / count * free;
+        float start = 0f;
+        for (int k = 0; k < machines; k++) {
+            float bandStart = machineFraction(k) - half;
+            float run = Math.max(0f, bandStart - start);
+            if (along < run) return start + along;
+            along -= run;
+            start = Math.max(start, machineFraction(k) + half);
+        }
+        return Math.min(1f, start + along);
+    }
 
     /** How far either side of the drawn segment, and past its ends, the order reaches. */
     public static final int BAND = 3;
@@ -48,7 +91,7 @@ public record FrontageLine(int x0, int y0, int x1, int y1, float frontX, float f
             nx = -nx;
             ny = -ny;
         }
-        return new FrontageLine(x0, y0, x1, y1, nx, ny);
+        return new FrontageLine(x0, y0, x1, y1, nx, ny, 0);
     }
 
     public float length() {

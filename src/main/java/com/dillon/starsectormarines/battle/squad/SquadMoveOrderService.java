@@ -29,6 +29,9 @@ public final class SquadMoveOrderService {
             this(squadId, cellX, cellY, kind, cellX, cellY);
         }
 
+        /** For a {@link Kind#LINE}: how many attached mechs stand within it. */
+        int machines;
+
         PendingOrder(int squadId, int cellX, int cellY, Kind kind, int endX, int endY) {
             this.squadId = squadId;
             this.cellX = cellX;
@@ -130,7 +133,14 @@ public final class SquadMoveOrderService {
 
     /** Queues a line for the squad to hold, drawn from ({@code x0},{@code y0}) to ({@code x1},{@code y1}). */
     public void requestLine(int squadId, int x0, int y0, int x1, int y1) {
-        pending.add(new PendingOrder(squadId, x0, y0, PendingOrder.Kind.LINE, x1, y1));
+        requestLine(squadId, x0, y0, x1, y1, 0);
+    }
+
+    /** As above, with {@code machines} attached mechs standing within the line among the marines. */
+    public void requestLine(int squadId, int x0, int y0, int x1, int y1, int machines) {
+        PendingOrder order = new PendingOrder(squadId, x0, y0, PendingOrder.Kind.LINE, x1, y1);
+        order.machines = machines;
+        pending.add(order);
     }
 
     /** Queues placement of a persistent 40-cell-diameter defense area. */

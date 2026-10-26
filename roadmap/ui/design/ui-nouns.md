@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
+Updated: 2026-10-26 — attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
 it and follows its orders.
 
@@ -694,8 +694,10 @@ is one unit however broad its chassis (`SelectionOrders.lineWidth`) — an infan
 squad as a frontage (see `ai-nouns.md`, occupy) and a Mech or vehicle at its
 stretch's middle, a marine's setback behind the line as the marines stand, facing
 the stretch's front. A squad with Mechs attached is given a stretch wide enough for
-them too: its marines hold the first of it and each attached Mech takes a post
-after them at the same setback (`mechs-nouns.md`, attachment); each stretch faces as an infantry
+them too, and the Mechs stand within it: each holds a band two marines wide,
+spaced evenly along the stretch, with the marines sharing out the rest either side
+(two give marine, Mech, marine, Mech, marine), at the same setback
+(`mechs-nouns.md`, attachment); each stretch faces as an infantry
 line does, toward the threat its squad believes in, else away from where the
 recipient stands. It is previewed while the button is held as a stroke per
 stretch with ticks toward its front and a dashed ring where each marine, Mech or
