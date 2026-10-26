@@ -61,6 +61,16 @@ class HeartAssaultCommandTest {
     }
 
     @Test
+    void theSatelliteTheCompanyHelpsIsTheNearestStandingWhicheverLaneItIsAndNeverAMother() {
+        KnownBore mother = new KnownBore("mother-2", true, 290, 60, true);
+        KnownBore far = new KnownBore("1", false, 65, 223, true);
+        KnownBore near = new KnownBore("5", false, 522, 192, true);
+        assertEquals(near, HeartAssaultCommand.stranded(List.of(mother, far, near), 400f, 150f));
+        assertEquals(far, HeartAssaultCommand.stranded(List.of(mother, far, new KnownBore("5", false, 522, 192, false)), 400f, 150f));
+        assertNull(HeartAssaultCommand.stranded(List.of(mother), 280f, 60f));
+    }
+
+    @Test
     void aSquadFarFromWhereTheCompanyHoldsWithdrawsAndOneThereHolds() {
         assertTrue(HeartAssaultCommand.stillFallingBack(273f, 194f, 265, 30), "170 cells forward, it breaks off");
         assertFalse(HeartAssaultCommand.stillFallingBack(270f, 36f, 265, 30));
