@@ -278,19 +278,21 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
     }
 
     /**
-     * A squad with a Hound attached, given a dragged line: while the drag is held, the marines' rings on
-     * the first of its stretch and the Hound's post after them; once released and walked, all of them
-     * standing there, the Hound still tethered to its squad.
+     * A squad with a Hound and a Warden attached, given a dragged line: while the drag is held, the
+     * marines' rings and the mechs' posts within the stretch, marine, mech, marine, mech, marine; once
+     * released and walked, all of them standing there, the mechs still tethered to their squad.
      */
     private SnapshotArtifact renderAttachedLine(SnapshotContext context, boolean held) throws Exception {
         SceneWorld world = SceneBuilder.openGround(64, 36)
                 .squad("alpha").size(6).inFile(14, 14, 1, 0).done()
                 .squad("hound").size(1).at(12, 20).mech(MechVariant.HOUND, MechRole.ASSAULT).done()
+                .squad("warden").size(1).at(12, 9).mech(MechVariant.WARDEN, MechRole.LR_SUPPORT).done()
                 .squad("enemy").faction(Faction.DEFENDER).size(2).inFile(62, 34, 1, 0).done()
                 .build();
         try (BattleSimulation sim = world.sim()) {
             int alpha = world.squadId("alpha");
             sim.getMechAttachmentService().requestAttach(world.squadId("hound"), alpha);
+            sim.getMechAttachmentService().requestAttach(world.squadId("warden"), alpha);
             sim.advance(1f / 30f);
             Selection selection = new Selection();
             selection.selectSquad(alpha);

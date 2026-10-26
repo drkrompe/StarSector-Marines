@@ -51,6 +51,41 @@ public final class BoatWorkshop {
     }
 
     /**
+     * What recycling one spare of {@code partId} would put back in the hold now: the machine
+     * shop's share of what building one costs. Null for a part with no bill, or a shop that
+     * cannot recycle. It does not ask whether a spare is in stores; {@link #recycle} does.
+     */
+    public FabricationCost recycleQuote(String partId) {
+        FabricationCost bill = billOf(partId);
+        return bill == null ? null : resources.reclamation().recover(resources.quote(bill));
+    }
+
+    /**
+     * Breaks one spare in stores back down into materials. The hold is credited before the
+     * spare leaves stores, so a fleet with no hold to take them keeps its spare.
+     */
+    public Result recycle(String partId) {
+        if (BoatFitting.findById(partId) == null && BoatGun.findById(partId) == null) {
+            return Result.of(Status.UNKNOWN_FITTING);
+        }
+        if (billOf(partId) == null) return Result.of(Status.NOT_FABRICABLE);
+        if (deck.spares(partId) <= 0) return Result.of(Status.NO_SPARE);
+        if (!resources.reclamation().works()) return Result.of(Status.WORKSHOP_IDLE);
+        FabricationCost back = recycleQuote(partId);
+        if (back == null) return Result.of(Status.NOTHING_TO_RECOVER);
+        if (!resources.credit(back)) return Result.of(Status.NO_HOLD);
+        deck.take(partId);
+        return Result.of(Status.RECYCLED);
+    }
+
+    private static FabricationCost billOf(String partId) {
+        BoatFitting fitting = BoatFitting.findById(partId);
+        if (fitting != null) return fitting.bill();
+        BoatGun gun = BoatGun.findById(partId);
+        return gun == null ? null : gun.bill();
+    }
+
+    /**
      * Fits one catalog fitting to one boat, from a spare unless it is the
      * yard-standard one, and puts what came off into stores.
      *
@@ -228,6 +263,12 @@ public final class BoatWorkshop {
         FITTED,
         STRIPPED,
         PART_FABRICATED,
+        RECYCLED,
+        /** The machine shop's machinery is not running, so nothing can be broken down. */
+        WORKSHOP_IDLE,
+        /** Too little of the bill would come back to be worth a line. */
+        NOTHING_TO_RECOVER,
+        NO_HOLD,
         NO_SUCH_BERTH,
         BERTH_OCCUPIED,
         FABRICATED
@@ -239,6 +280,7 @@ public final class BoatWorkshop {
         public boolean succeeded() {
             return status == Status.FITTED || status == Status.ALREADY_FITTED
                     || status == Status.STRIPPED || status == Status.PART_FABRICATED
+                    || status == Status.RECYCLED
                     || status == Status.FABRICATED || status == Status.REPAIRED;
         }
     }

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -236,6 +237,50 @@ public final class MechWorkshop {
         return new Result(Status.VEHICLE_FABRICATED, null, vehicle);
     }
 
+    /** What recycling one spare {@code component} would put back now; null for none. */
+    public FabricationCost weaponRecovery(MechWeaponComponent component) {
+        return component == null ? null : resources.reclamation().recover(weaponQuote(component));
+    }
+
+    public FabricationCost internalRecovery(MechInternal internal) {
+        MechFabricationCatalog.Recipe recipe = internal == null ? null : MechFabricationCatalog.internal(internal);
+        return recipe == null ? null : resources.reclamation().recover(resources.quote(recipe.cost()));
+    }
+
+    public FabricationCost kitRecovery(VehicleKit kit) {
+        MechFabricationCatalog.Recipe recipe = kit == null ? null : MechFabricationCatalog.kit(kit);
+        return recipe == null ? null : resources.reclamation().recover(resources.quote(recipe.cost()));
+    }
+
+    /**
+     * Breaks one spare weapon assembly in stores back down into materials, at the machine
+     * shop's share of what building one costs now. A fitted copy is never a spare.
+     */
+    public Result recycleWeapon(MechWeaponComponent component) {
+        if (component == null) return Result.of(Status.INVALID);
+        return recycle(bay.availableWeapon(component.id), weaponRecovery(component), () -> bay.takeWeapon(component.id));
+    }
+
+    public Result recycleInternal(MechInternal internal) {
+        if (internal == null) return Result.of(Status.INVALID);
+        return recycle(bay.availableInternal(internal.id), internalRecovery(internal), () -> bay.takeInternal(internal.id));
+    }
+
+    public Result recycleKit(VehicleKit kit) {
+        if (kit == null) return Result.of(Status.INVALID);
+        return recycle(bay.availableKit(kit.id), kitRecovery(kit), () -> bay.takeKit(kit.id));
+    }
+
+    /** The hold is credited before the spare leaves stores, so a fleet with no hold keeps it. */
+    private Result recycle(int spares, FabricationCost back, BooleanSupplier take) {
+        if (spares <= 0) return Result.of(Status.NO_SPARE);
+        if (!resources.reclamation().works()) return Result.of(Status.WORKSHOP_IDLE);
+        if (back == null) return Result.of(Status.NOTHING_TO_RECOVER);
+        if (!resources.credit(back)) return Result.of(Status.INVALID);
+        if (!take.getAsBoolean()) throw new IllegalStateException("counted spare could not leave stores");
+        return Result.of(Status.RECYCLED);
+    }
+
     /** Half of a pattern's base bill, rounded down: what breaking up one machine puts back in the hold. */
     public static FabricationCost salvage(FabricationCost bill) {
         if (bill == null) return null;
@@ -303,6 +348,13 @@ public final class MechWorkshop {
         VEHICLE_FABRICATED,
         /** A machine was broken up; its gantry is vacant and its salvage is in stores. */
         SCRAPPED,
+        /** One spare in stores was broken down into materials in the hold. */
+        RECYCLED,
+        NO_SPARE,
+        /** The machine shop's machinery is not running, so nothing can be broken down. */
+        WORKSHOP_IDLE,
+        /** Too little of the bill would come back to be worth a line. */
+        NOTHING_TO_RECOVER,
         INCOMPATIBLE,
         /** The fit would weigh more than the engine can carry. */
         OVER_BUDGET,
@@ -325,7 +377,8 @@ public final class MechWorkshop {
                     || status == Status.ALREADY_STRIPPED
                     || status == Status.CHASSIS_FABRICATED
                     || status == Status.VEHICLE_FABRICATED
-                    || status == Status.SCRAPPED;
+                    || status == Status.SCRAPPED
+                    || status == Status.RECYCLED;
         }
     }
 }

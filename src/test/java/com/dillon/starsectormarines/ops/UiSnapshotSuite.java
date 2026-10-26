@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -49,6 +50,8 @@ import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.Reclamation;
+import com.dillon.starsectormarines.marine.WorkshopTooling;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
@@ -458,6 +461,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("boat-deck-recycle-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, RECYCLING)),
+                new SnapshotArtifact("boat-deck-recycle-half-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, RECYCLING_HALF)),
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
@@ -2615,6 +2624,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-long-callsign-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, true, false, false, false, null, "long-name")),
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
+                new SnapshotArtifact("mech-lab-recycle-weapons-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "recycle-weapons")),
+                new SnapshotArtifact("mech-lab-recycle-kits-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits-recycle")),
                 new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
                 new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
@@ -2700,8 +2713,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             new MechWeaponComponent[MechMountSlot.values().length]), false)),
                     -0.5f, MechFieldRepair.NEUTRAL);
         }
+        // Recycling frames stand aboard a ship whose machine shop has its tooling in.
+        boolean recycling = materialHint != null && materialHint.contains("recycle");
         MechLabViewModel viewModel = new MechLabViewModel(
-                reactor, bay, snapshotMechResources("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 2_000));
+                reactor, bay, recycling ? snapshotMachineShop(Reclamation.TOOLED)
+                        : snapshotMechResources("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 2_000));
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             int step = Integer.parseInt(materialHint.substring(7));
             if (step >= 2) viewModel.guideLabLesson();
@@ -2771,7 +2787,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         // A tank on the fourth pad with two kits bolted on and a third spare in stores: the sealed doll
         // and the kit rack, with the stores listing the kits.
-        if ("vehicle-kits".equals(materialHint)) {
+        if ("vehicle-kits".equals(materialHint) || "vehicle-kits-recycle".equals(materialHint)) {
             CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
             for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
@@ -2781,6 +2797,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.fitKit(tank.id(), VehicleKit.APPLIQUE_PLATE);
             bay.fitKit(tank.id(), VehicleKit.SPACED_SKIRTS);
             viewModel.gantryRows().get().get(3).select().run();
+        }
+        // Spare assemblies in stores, each with its RECYCLE and green recovery; one card armed.
+        if ("recycle-weapons".equals(materialHint)) {
+            bay.addWeapon(MechWeaponComponent.SRM_5.id, 2);
+            bay.addWeapon(MechWeaponComponent.LRM_5.id, 1);
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.selectSlot(SocketId.RIGHT_SHOULDER);
+        }
+        if (recycling) {
+            String armed = "recycle-weapons".equals(materialHint)
+                    ? MechWeaponComponent.SRM_5.id : VehicleKit.READY_RACK.id;
+            viewModel.catalogRows().get().stream()
+                    .filter(row -> row.card().id().equals("mech-catalog:" + armed))
+                    .findFirst().orElseThrow().card().recycle().action().run();
         }
         // An up-armoured APC with a spall liner: the seats bay card beside the turret and hull.
         if ("vehicle-apc".equals(materialHint)) {
@@ -3094,8 +3124,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // The hold is the room's rather than the yard's: the refits above are
         // already paid for, and what this photographs is a bill the company
         // cannot meet.
-        FabricationResources resources = strikeABoat
-                ? snapshotHoldShortOfMetals() : snapshotMechResources();
+        FabricationResources resources = strikeABoat ? snapshotHoldShortOfMetals()
+                : departure == RECYCLING ? snapshotMachineShop(Reclamation.TOOLED)
+                : departure == RECYCLING_HALF ? snapshotMachineShop(Reclamation.MACHINERY) : snapshotMechResources();
+        if (departure == RECYCLING || departure == RECYCLING_HALF) {
+            // Spares in stores under a tooled machine shop: each card carries RECYCLE and its recovery.
+            workshop.fabricatePart(BoatFitting.TUNED_DRIVE.id());
+            workshop.fabricatePart(BoatFitting.REINFORCED_PLATING.id());
+            workshop.fabricatePart(BoatFitting.REINFORCED_PLATING.id());
+            workshop.fabricatePart(BoatGun.ARBALEST.id());
+        }
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 reactor, deck, resources, "Valkyrie");
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
@@ -3114,6 +3152,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
+        if (departure == RECYCLING || departure == RECYCLING_HALF) {
+            viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
+            // The first press arms the card, which is the review the owner sees before committing.
+            viewModel.catalogRows().get().stream()
+                    .filter(row -> BoatFitting.REINFORCED_PLATING.id().equals(row.itemId()))
+                    .findFirst().orElseThrow().card().recycle().action().run();
+        }
         if (departure == AT_OPENING) seekHangarDeparture(ship, bay);
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -3164,8 +3209,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    /** No boat leaving; a boat whose door is part open; a boat crossing the opening. */
-    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2;
+    /**
+     * No boat leaving; a boat whose door is part open; a boat crossing the opening; or none
+     * leaving, with spares in stores under a tooled machine shop and one RECYCLE armed; or
+     * the same under a shop whose machinery runs without tooling.
+     */
+    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
@@ -3258,6 +3307,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     private static FabricationResources snapshotMechResources() { return snapshotMechResources(2_000); }
+
+    /** The ordinary snapshot hold aboard a ship whose machine shop recycles at {@code rate}. */
+    private static FabricationResources snapshotMachineShop(Reclamation rate) {
+        FabricationResources hold = snapshotMechResources();
+        return new FabricationResources() {
+            @Override public int available(String commodityId) { return hold.available(commodityId); }
+            @Override public String commodityName(String commodityId) { return hold.commodityName(commodityId); }
+            @Override public String commodityIcon(String commodityId) { return hold.commodityIcon(commodityId); }
+            @Override public boolean spend(FabricationCost cost) { return hold.spend(cost); }
+            @Override public FabricationCost quote(FabricationCost base) {
+                return WorkshopTooling.quote(base, rate == Reclamation.TOOLED);
+            }
+            @Override public Reclamation reclamation() { return rate; }
+            @Override public boolean credit(FabricationCost salvage) { return true; }
+        };
+    }
 
     private static FabricationResources snapshotMechResources(int stock) {
         return new FabricationResources() {
