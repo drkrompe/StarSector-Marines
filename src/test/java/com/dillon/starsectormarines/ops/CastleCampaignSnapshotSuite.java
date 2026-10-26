@@ -55,19 +55,18 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
                 "data/ui/components/missions/mission-briefing.mlx"));
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
-            for (int step = 0; step < 3; step++) {
+            // The lance needs no call of its own: the lesson waits on the formations, then is ready.
+            props.put("commandSummary", "0 / 5 slots");
+            props.put("powerRows", List.of());
+            for (int step = 0; step < 2; step++) {
                 int stage = step;
-                var power = new MechSupport();
-                props.put("commandSummary", stage == 2 ? "3 / 5 slots" : "0 / 5 slots");
-                props.put("powerRows", List.of(new BriefingViewModel.ChoiceRow("power-mech", "choice-row" + (stage == 2 ? " selected" : ""),
-                        power.displayName, "3 slots", false, () -> {}, SpecSheets.commandPowerIcon(power), SpecSheets.commandPower(power))));
                 try (var markup = loader.reloadAndBuild(new Reactor(), "mission-briefing", props)) {
                     var doc = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
                     markup.styles().forEach(doc::addStyleSheet);
                     BriefingViewModel.applyVisibility(markup, props);
                     BriefingViewModel.installMusters(doc, markup, props);
                     var guide = new PreparationGuide(doc, () -> CampaignLessons.briefing(mission, roster,
-                            stage == 0 ? Set.of(second.id()) : both, true, stage == 2), () -> {},
+                            stage == 0 ? Set.of(second.id()) : both, true), () -> {},
                             new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
                                     List.of("data/ui/components/company/preparation-guide.mlx")));
                     doc.layout(1920, 1080); guide.update();

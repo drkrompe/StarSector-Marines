@@ -1901,9 +1901,10 @@ receipts. Missing Wayward does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
 workshop restoration is required by these lessons. Two-formations preparation
 uses the existing real founding bill, wounded billets and deployment minimum.
-Briefing confirmation records preparation only when two ready selected formations
-and available Mech Support are selected; absent heavy support does not gate an
-otherwise legal infantry departure. These receipts do not own launch permission.
+Briefing confirmation records preparation once two ready formations are
+selected; the lance rides with them whenever Mech Support is available, with no
+call to select, and absent heavy support does not gate an otherwise legal
+infantry departure. These receipts do not own launch permission.
 
 Campaign lessons end before deployment. Battle presentation leaves the mission's
 story dialogue unobstructed by preparation popovers or command-tray spotlights.

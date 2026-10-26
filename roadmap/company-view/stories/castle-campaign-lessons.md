@@ -10,7 +10,7 @@ curve in `campaign-learning-curve.md`.
 ## Scope
 
 Carry Castle's pragmatic, matriarchal guidance from Relief's free technology
-choice through Junction preparation and Mech Support selection before deployment.
+choice through Junction preparation before deployment.
 Use her existing portrait and live click-through highlights. Opening a screen,
 reading advice, or leaving must not impersonate fitting or field practice.
 
@@ -24,7 +24,7 @@ reading advice, or leaving must not impersonate fitting or field practice.
 - [x] Counterattack: explain free Hound recovery and the optional paid lift route.
 - [x] Mech Lab: fit the free SRM, remove and reuse it through ordinary controls.
 - [x] Junction: show the real founding bill, preserve wounded billets, prepare
-  two formations and select Mech Support without requiring optional yard work.
+  two formations (the lance rides with them) without requiring optional yard work.
 - [x] Reopening HQ, Barracks, Equipment, Mech Lab or briefing resumes unfinished
   work from saved facts; save/reload neither duplicates gifts nor resets progress.
 - [x] Player-facing lesson text uses the localization catalog, including labels,
