@@ -24,7 +24,8 @@ final class ShipSystemsTree {
             RefitTrack.POWER, List.of(RefitTrack.DRIVE, RefitTrack.FLUX, RefitTrack.MECH_COOLANT),
             RefitTrack.LIFE_SUPPORT, List.of(RefitTrack.MESS, RefitTrack.GYM, RefitTrack.SICK_BAY, RefitTrack.REC_LOUNGE,
                     RefitTrack.HYDROPONICS),
-            RefitTrack.STRUCTURE, List.of(RefitTrack.HULL, RefitTrack.BRIG, RefitTrack.RANGE, RefitTrack.HOLDS),
+            RefitTrack.STRUCTURE, List.of(RefitTrack.HULL, RefitTrack.BRIG, RefitTrack.RANGE, RefitTrack.HOLDS,
+                    RefitTrack.RESERVE_HANGAR),
             RefitTrack.COMPUTE, List.of(RefitTrack.SENSORS, RefitTrack.WARDROOM, RefitTrack.BRIEFING, RefitTrack.MECH_CALIBRATION),
             RefitTrack.FABRICATION, List.of(RefitTrack.MECH_ARMOR, RefitTrack.MECH_REPAIR, RefitTrack.VEHICLE_BAY)));
 

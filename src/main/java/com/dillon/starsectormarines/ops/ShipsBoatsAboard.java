@@ -121,6 +121,16 @@ public final class ShipsBoatsAboard {
         }
     }
 
+    /** Boat berths on the ship the company is aboard, flight-ready or not; 0 with no ship. */
+    public static int berths() {
+        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
+        if (aboard == null) return 0;
+        BoatDeck deck = deck();
+        if (deck == null) return ShipsBoats.aboard(CompanyShipResolver.read(aboard)).size();
+        reconcile(deck);
+        return deck.berths();
+    }
+
     /** The ship the lift comes off, for a screen that wants to name her. */
     public static String carrier() {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();

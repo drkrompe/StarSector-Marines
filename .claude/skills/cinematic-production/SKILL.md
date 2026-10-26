@@ -92,6 +92,12 @@ discs, projectiles included, and nothing lingering; nothing appears or vanishes 
 moving craft shows its drive; nothing passes through a hull; no pops; every effect in the right
 layer with correct occlusion. Finals start only after acceptance, at that exact commit.
 
+Before that, every shot's blockout (motion preview) is watched in the cut, in story order, with its
+neighbours (owner, 2026-10-26, after S6d to S7 and S1 to S4 only failed once seen in sequence). The
+render director sends each new preview to the render coordinator, who places it in the cut page in
+story order and puts it to the owner; a shot whose preview was judged alone, out of sequence, does
+not go to final. When a shot changes, preview it together with the shot before and after it.
+
 ## Plan render layers before the first final
 
 Decide a shot's layers when it is blocked, not after a final comes back wrong.
