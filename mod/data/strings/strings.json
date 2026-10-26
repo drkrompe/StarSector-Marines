@@ -3770,7 +3770,6 @@
     "openingBarracksCommandOpenTheHighlightedOfficerPortrait": "Open the highlighted officer portrait.",
     "openingBarracksCommandRaiseSquadJoins": "Joins {0}.",
     "openingBarracksCommandRaiseSquadNoSlot": "No officer has a free command slot.",
-    "openingBarracksCommandRaiseSquadNoPort": "A squad's stores are bought at a civilized port: dock at a market with a spaceport that will trade with us.",
     "openingBarracksCommandRaiseSquadCommandFull": "{0} has no free command slot.",
     "openingBarracksCommandRaisedSquadUnder": "{0} raised  ·  {1} marines under {2}.",
     "openingBarracksCommandStartWithRaiseSquadComeBackHere": "Start with the Raise Squad tile on the formation board.",

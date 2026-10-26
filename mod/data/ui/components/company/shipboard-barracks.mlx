@@ -315,7 +315,6 @@
   .raise-cost-icon { width: 22px; height: 22px; pointer-events: none; }
   .raise-cost-count { width: 0px; flex-grow: 1; height: 18px; color: #dfc588; }
   .raise-cost.short .raise-cost-count { color: #eea296; }
-  .raise-cost.port { flex-grow: 2; }
   .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
   .loadout-button { width: 84px; height: 28px; padding: 6px 4px; }
   .empty-message { height: auto; }
