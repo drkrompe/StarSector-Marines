@@ -58,8 +58,8 @@ public final class CordonLogistics implements AlliedDepot {
     static final int SLOTS = 3;
     /** Cells past the door a leaving hull must be before the next is let out. */
     static final int DOOR_CLEAR = 5;
-    /** Ticks a leaving hull has to get clear of the door before the next is let out anyway. */
-    static final int EXIT_PATIENCE_TICKS = 60 * 45;
+    /** Ticks (45 seconds) a leaving hull has to get clear of the door before the next is let out anyway. */
+    static final int EXIT_PATIENCE_TICKS = Math.round(45f / BattleSimulation.TICK_DT);
     /** Cells out of the door a car or technical drives to before it goes on to its home. */
     static final int THRESHOLD = 4;
     /** Cells from the threshold that count as through it. */
@@ -720,8 +720,8 @@ public final class CordonLogistics implements AlliedDepot {
 
     /** Speed, cells a second, below which a hull in the lane is standing. */
     static final float STANDING = 0.1f;
-    /** Ticks before the tug looks again at a threshold it could not tow a hull onto. */
-    static final int TOW_RETRY_TICKS = 60 * 5;
+    /** Ticks (five seconds) before the tug looks again at a threshold it could not tow a hull onto. */
+    static final int TOW_RETRY_TICKS = Math.round(5f / BattleSimulation.TICK_DT);
 
     /**
      * The tug's second pull: a hull let out that is still inside the door when its patience is up

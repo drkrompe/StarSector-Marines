@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.scene;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
@@ -309,6 +310,9 @@ public final class LookReview {
                 if (tick > 0) {
                     for (Consumer<BattleSimulation> step : placement.beforeTicks()) step.accept(sim);
                     sim.advance(BattleSimulation.TICK_DT);
+                    // The game screen fades roofs toward what the company can see every frame; without it every roof
+                    // stays opaque and fights indoors are hidden.
+                    BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), BattleSimulation.TICK_DT);
                     fx.feed(sim);
                     fired += sim.getShotsThisFrame().size();
                 }

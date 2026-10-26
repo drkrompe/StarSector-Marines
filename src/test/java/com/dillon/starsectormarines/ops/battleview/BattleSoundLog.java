@@ -14,13 +14,13 @@ import java.util.Locale;
 /**
  * A look shot's soundtrack as data, for a review to mix offline: every sound the battle screen would start, written
  * per tick as a JSON line ({@code frame, id, x, y, pitch, volume, listenerX, listenerY}). The creatures' sounds come
- * from {@link SwarmAudio.Mix#hear}, {@link HarrierAudio.Mix#hear} and {@link SpireAudio.Mix#hear}, the bores' cues and claw-ups from
+ * from {@link SwarmAudio.Mix#hear}, {@link HarrierAudio.Mix#hear} and {@link SpireAudio.Mix#hear} and {@link BombardAudio.Mix#hear}, the bores' cues and claw-ups from
  * {@link BoreAudio.Mix#hear}, the marines' barks
  * from {@link MarineBarks.Mix#hear}, the same rules and
  * levels the game plays them at; the fire from {@link BattleShotAudio#cue}; impacts, a flak round's air-burst among
  * them, from {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as
  * the screen plays them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
- * is logged on every tick it is held, with its slot as {@code loop}; held beam loops are not logged.
+ * and a Bombard haze's hiss are logged on every tick they are held, with the slot as {@code loop}; held beam loops are not logged.
  * {@link LookReview#record} attaches one to every look shot under {@code -Dsnapshot.lookSound=true} and mixes it into
  * the MP4 ({@link BattleSoundMix}).
  */
@@ -34,6 +34,7 @@ public final class BattleSoundLog {
     private final SwarmAudio.Mix swarm = new SwarmAudio.Mix().seeded(0L);
     private final HarrierAudio.Mix harrier = new HarrierAudio.Mix();
     private final SpireAudio.Mix spire = new SpireAudio.Mix();
+    private final BombardAudio.Mix bombards = new BombardAudio.Mix();
     private final BoreAudio.Mix bores = new BoreAudio.Mix();
     private final MarineBarks.Mix barks = new MarineBarks.Mix();
     private int frame;
@@ -57,13 +58,17 @@ public final class BattleSoundLog {
     private void tick(BattleSimulation sim, float[] at) {
         StringBuilder lines = new StringBuilder();
         for (SwarmAudio.Play p : swarm.hear(sim, at[0], at[1])) {
-            if (p.loop() >= 0) loop(lines, p, at);
+            if (p.loop() >= 0) loop(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), p.loop(), at);
             else line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         }
         for (HarrierAudio.Play p : harrier.hear(sim, at[0], at[1]))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (SpireAudio.Play p : spire.hear(sim, at[0], at[1]))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        for (BombardAudio.Play p : bombards.hear(sim, at[0], at[1])) {
+            if (p.loop() >= 0) loop(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), p.loop(), at);
+            else line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        }
         for (BoreAudio.Play p : bores.hear(sim))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (MarineBarks.Play p : barks.hear(sim))
@@ -90,11 +95,11 @@ public final class BattleSoundLog {
     }
 
     /** A placed loop held this tick: one line a tick while it sounds, its slot in {@code loop}. */
-    private void loop(StringBuilder out, SwarmAudio.Play p, float[] at) {
+    private void loop(StringBuilder out, String id, float x, float y, float pitch, float volume, int slot, float[] at) {
         out.append(String.format(Locale.ROOT,
                 "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": %.4f, \"volume\": %.3f,"
                         + " \"listenerX\": %.2f, \"listenerY\": %.2f, \"loop\": %d}%n",
-                frame, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at[0], at[1], p.loop()));
+                frame, id, x, y, pitch, volume, at[0], at[1], slot));
     }
 
     private void line(StringBuilder out, String id, float x, float y, float pitch, float volume, float[] at) {

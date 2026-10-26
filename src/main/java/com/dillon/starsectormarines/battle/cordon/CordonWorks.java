@@ -52,6 +52,8 @@ final class CordonWorks {
     private final int perimeterHp;
     private final GroundKind perimeterGround;
     private final List<int[]> protectedBoxes = new ArrayList<>();
+    /** The ground the last {@link #clear} laid, or {@code null} before one. */
+    private Ground cleared;
     private final int tier;
     private boolean[] stripped;
     private int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
@@ -134,6 +136,7 @@ final class CordonWorks {
      * cell gets {@code ground}, and the road surface's kerbs and sidewalks over it go too.
      */
     void clear(int x0, int y0, int x1, int y1, Ground ground, BiPredicate<Integer, Integer> keep) {
+        cleared = ground;
         int lx = Math.min(x0, x1), hx = Math.max(x0, x1), ly = Math.min(y0, y1), hy = Math.max(y0, y1);
         doodads.removeIf(d -> overlaps(d, lx, ly, hx, hy) && freeFootprint(d));
         for (int y = ly; y <= hy; y++) {
@@ -423,6 +426,22 @@ final class CordonWorks {
     private static boolean overlaps(Doodad d, int lx, int ly, int hx, int hy) {
         return d.cellX <= hx && d.cellX + d.footprintCellsX - 1 >= lx
                 && d.cellY <= hy && d.cellY + d.footprintCellsY - 1 >= ly;
+    }
+
+    /**
+     * Lays the ground the works were cleared to under a box they kept (a set piece the works stand round), leaving
+     * what stands on it: a dump kept through a yard's paving sits on the yard, not on the field it was first laid on.
+     */
+    void refloor(int[] box) {
+        if (cleared == null || box == null) return;
+        for (int y = box[1]; y <= box[3]; y++) {
+            for (int x = box[0]; x <= box[2]; x++) {
+                if (!topology.inBounds(x, y) || topology.isWall(x, y) || topology.getBuildingId(x, y) != 0) continue;
+                topology.setGroundKind(x, y, cleared.kind());
+                topology.setSurface(x, y, cleared.surface());
+                topology.setNatureOverlayIndex(x, y, cleared.nature());
+            }
+        }
     }
 
     private void strip(int x, int y) {

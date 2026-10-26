@@ -3,7 +3,12 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.cordon.CordonPosture;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
+import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
+import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -35,5 +40,16 @@ class CordonBattleFixtureTest {
                 CordonPlan.Density.URBAN, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)));
         CordonBattleFixture decoded = (CordonBattleFixture) BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
         assertEquals(CordonPlan.Density.URBAN, decoded.density());
+    }
+
+    @Test
+    void roundTripsTheMechLanceItsCompanyMayCall() throws Exception {
+        MechDropDeclaration drops = MechDropDeclaration.NONE.with(Faction.MARINE,
+                new MechDropAllowance(1, List.of(MechVariant.BULWARK, MechVariant.HOUND)).calledAtTick(300));
+        CordonBattleFixture fixture = new CordonBattleFixture(7L, CordonVariant.LINE, SurfacePalette.ARID,
+                CordonPlan.Density.TOWN, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)),
+                CordonPosture.HOLD, drops);
+        CordonBattleFixture decoded = (CordonBattleFixture) BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
+        assertEquals(drops.forSide(Faction.MARINE), decoded.mechDrops().forSide(Faction.MARINE));
     }
 }

@@ -348,6 +348,24 @@
       "volume": 1.0
     },
     {
+      "id": "bombard_whip",
+      "trimmedFrom": "matriarch_reap, runner_clatter, spitter_lob",
+      "prompt": "A Bombard's release (bombard.md): 0.48 s of a Matriarch reap's whoosh a little quicker as the tail whips over, one Runner clatter knock raised as the sling's hinge cracks, a Spitter lob's hawk lower as the glob's wet slap, mixed and levelled; trimmed, not generated. Receipts name the source takes and the filter.",
+      "durationSeconds": 0.48,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "bombard_haze",
+      "trimmedFrom": "spore_vent_burst, bore_ambience_fissure",
+      "prompt": "A Bombard's spore haze standing (bombard.md): a seamless 1.65 s loop of a spore vent burst's hissing cloud, lower and softened, mirrored so it wraps, with a fissure ambience's faint scratching as the crackle, levelled to -20 LUFS; trimmed, not generated. Receipts name the source takes and the filter.",
+      "durationSeconds": 1.65,
+      "variants": 2,
+      "loop": true,
+      "volume": 1.0
+    },
+    {
       "id": "body_drag",
       "prompt": "A heavy sack being dragged slowly across dirt and loose gravel: a soft continuous scrape of rough cloth on earth, grit crunching and shifting under its weight, an occasional dull bump as it rolls over a stone, no voices, no music, seamless loop",
       "durationSeconds": 2.0,

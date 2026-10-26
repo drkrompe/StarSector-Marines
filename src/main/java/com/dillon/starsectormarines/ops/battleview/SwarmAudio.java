@@ -61,7 +61,7 @@ import java.util.random.RandomGenerator;
  * Spitter's lob, slowed) and, a beat later, the thud of it landing down inside (the body thud, deeper), pitched by the
  * fed body's size like everything else.
  *
- * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
+ * <p>The Bombard's wind-up, whip, burst and haze are {@link BombardAudio}'s, played from here. The Spitter has no voice. The Matriarch has her own roar (out of the bore
  * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
  * death are the Brute's takes played deeper and slower through the pitch
  * argument, not baked copies. The Harrier, which flies with its pack rather than walking, is
@@ -298,6 +298,7 @@ public final class SwarmAudio {
     public static void play(BattleSimulation sim, float listenerX, float listenerY) {
         HarrierAudio.play(sim, listenerX, listenerY);
         SpireAudio.play(sim, listenerX, listenerY);
+        BombardAudio.play(sim, listenerX, listenerY);
         MarineBarks.play(sim);
         Mix mix = MIXES.computeIfAbsent(sim, ignored -> new Mix());
         for (Play p : mix.hear(sim, listenerX, listenerY)) {
