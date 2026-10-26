@@ -500,6 +500,7 @@ class BoatDeckViewModelTest {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,
