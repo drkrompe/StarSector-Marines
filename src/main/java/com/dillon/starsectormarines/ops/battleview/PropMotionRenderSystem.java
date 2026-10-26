@@ -140,9 +140,13 @@ final class PropMotionRenderSystem implements RenderSystem {
         return state[0];
     }
 
-    /** One step of a fade from {@code from} toward {@code to}, covering the full range in {@link #FADE_SECONDS}. */
+    /**
+     * One step of a fade from {@code from} toward {@code to}, covering the full range in {@link #FADE_SECONDS}. A frame
+     * with no time behind it (a still) shows the fade where it is heading, not wherever an earlier still left it.
+     */
     static float ease(float from, float to, float dt) {
-        float step = (1f - SEEN_UNDER_ALPHA) * Math.max(0f, dt) / FADE_SECONDS;
+        if (dt <= 0f) return to;
+        float step = (1f - SEEN_UNDER_ALPHA) * dt / FADE_SECONDS;
         return from < to ? Math.min(to, from + step) : Math.max(to, from - step);
     }
 
