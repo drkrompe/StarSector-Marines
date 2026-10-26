@@ -113,9 +113,10 @@ public final class BattleSoundLog {
         }
         if (!cue.play()) return;
         out.append(String.format(Locale.ROOT,
-                "{\"frame\": %d, \"music\": \"%s\", \"fadeOut\": %d, \"fadeIn\": %d, \"state\": \"%s\","
-                        + " \"reason\": \"%s\"}%n",
-                frame, cue.track() != null ? cue.track() : "", cue.fadeOut(), cue.fadeIn(), cue.to(), cue.reason()));
+                "{\"frame\": %d, \"music\": \"%s\", \"fadeOut\": %d, \"fadeIn\": %d, \"loop\": %b,"
+                        + " \"state\": \"%s\", \"reason\": \"%s\"}%n",
+                frame, cue.track() != null ? cue.track() : "", cue.fadeOut(), cue.fadeIn(), cue.loop(), cue.to(),
+                cue.reason()));
     }
 
     /** A placed loop held this tick: one line a tick while it sounds, its slot in {@code loop}. */
