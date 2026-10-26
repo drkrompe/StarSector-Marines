@@ -467,6 +467,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-recycle-half-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, RECYCLING_HALF)),
+                new SnapshotArtifact("boat-deck-scrap-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, SCRAP_ARMED)),
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
@@ -3130,7 +3133,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // cannot meet.
         FabricationResources resources = strikeABoat ? snapshotHoldShortOfMetals()
                 : departure == RECYCLING ? snapshotMachineShop(Reclamation.TOOLED)
-                : departure == RECYCLING_HALF ? snapshotMachineShop(Reclamation.MACHINERY) : snapshotMechResources();
+                : departure == RECYCLING_HALF ? snapshotMachineShop(Reclamation.MACHINERY)
+                : departure == SCRAP_ARMED ? snapshotMachineShop(Reclamation.FULL) : snapshotMechResources();
         if (departure == RECYCLING || departure == RECYCLING_HALF) {
             // Spares in stores under a tooled machine shop: each card carries RECYCLE and its recovery.
             workshop.fabricatePart(BoatFitting.TUNED_DRIVE.id());
@@ -3162,6 +3166,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
+        // The first press of SCRAP, under a shop with its reclamation line: what comes back is shown.
+        if (departure == SCRAP_ARMED) viewModel.scrapAction().run();
         if (departure == RECYCLING || departure == RECYCLING_HALF) {
             viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
             // The first press arms the card, which is the review the owner sees before committing.
@@ -3222,10 +3228,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     /**
      * No boat leaving; a boat whose door is part open; a boat crossing the opening; or none
      * leaving, with spares in stores under a tooled machine shop and one RECYCLE armed; or
-     * the same under a shop whose machinery runs without tooling.
+     * the same under a shop whose machinery runs without tooling; or the opened boat's SCRAP
+     * armed under a shop with its reclamation line.
      */
     private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4,
-            STRIPPED = 5;
+            STRIPPED = 5, SCRAP_ARMED = 6;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
@@ -3625,6 +3632,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("bayNoteClasses", "hidden");
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,

@@ -182,6 +182,21 @@ public final class BoatDeck implements Serializable {
         return struck;
     }
 
+    /**
+     * Strikes one boat the company broke up off its berth, which stands vacant. Package-private:
+     * {@link BoatWorkshop#scrap} strips her and credits the hold first.
+     */
+    boolean scrap(String boatId) {
+        for (int berth = 0; berth < berths.size(); berth++) {
+            CampaignBoat boat = berths.get(berth);
+            if (boat != null && boat.id().equals(boatId)) {
+                berths.set(berth, null);
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** The berths with nothing standing in them, in berth order. */
     public List<Integer> vacantBerths() {
         List<Integer> vacant = new ArrayList<>();
@@ -297,8 +312,12 @@ public final class BoatDeck implements Serializable {
     private CampaignBoat build(ShuttleType pattern) {
         int tail = nextTailNumber++;
         String number = String.format(Locale.ROOT, "%02d", tail);
-        return new CampaignBoat("boat_" + number, tailName(pattern) + " " + String.format(Strings.locale(), "%02d", tail),
-                pattern, BoatFitting.STANDARD_PLATING.id(), BoatFitting.STANDARD_DRIVE.id());
+        return stockBoat("boat_" + number, tailName(pattern) + " " + String.format(Strings.locale(), "%02d", tail), pattern);
+    }
+
+    /** A boat of {@code pattern} as the yard builds her, with the stock parts her bill pays for. */
+    static CampaignBoat stockBoat(String id, String name, ShuttleType pattern) {
+        return new CampaignBoat(id, name, pattern, BoatFitting.STANDARD_PLATING.id(), BoatFitting.STANDARD_DRIVE.id());
     }
 
     /** {@code AEROSHUTTLE} reads as {@code Aeroshuttle}, which is what a tail says. */

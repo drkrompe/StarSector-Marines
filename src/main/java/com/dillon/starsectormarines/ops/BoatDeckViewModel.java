@@ -93,6 +93,8 @@ public final class BoatDeckViewModel {
     private final MutableSignal<BoatDoll.Kind> storesFilter;
     /** The part whose RECYCLE was pressed once and waits for its confirming press; null for none. */
     private String armedRecycle;
+    /** The boat whose SCRAP was pressed once and waits for its confirming press; null for none. */
+    private String scrapArmed;
     private final ComputedSignal<List<FittingFilterPill>> filterPills;
     private final ComputedSignal<BoatDoll> doll;
     private final ComputedSignal<String> overviewClasses;
@@ -196,7 +198,7 @@ public final class BoatDeckViewModel {
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
             return recipe == null ? List.of()
-                    : materialRows("boat-fabrication", resources.quote(recipe.bill()));
+                    : materialRows("boat-fabrication", workshop.fabricationQuote(recipe.pattern()));
         });
         materialStock = reactor.computed(this::buildMaterialStock);
         fabricationActionClasses = reactor.computed(() -> affordableToBuild()
@@ -204,8 +206,8 @@ public final class BoatDeckViewModel {
         fabricationBlocked = reactor.computed(() -> !affordableToBuild());
         fabricationReason = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            if (recipe == null || resources.canAfford(resources.quote(recipe.bill()))) return "";
-            return Strings.format("openingBoatDeckShort", shortest(resources.quote(recipe.bill())));
+            if (recipe == null || resources.canAfford(workshop.fabricationQuote(recipe.pattern()))) return "";
+            return Strings.format("openingBoatDeckShort", shortest(workshop.fabricationQuote(recipe.pattern())));
         });
     }
 
@@ -306,6 +308,16 @@ public final class BoatDeckViewModel {
             : Strings.get("openingUiBoatDeckBoatBayBerths"); }); }
     public Signal<String> stageStatus() { return selectedBerth.map(berth -> { revision.get(); return fittingFocused()
             ? Strings.get("boatDeckSelectSlot") : Strings.get("openingUiBoatDeckDeckCrewOnWatch"); }); }
+    /** SCRAP beside the stage heading while the room is opened on a boat; CONFIRM once armed. */
+    public Signal<String> scrapLabel() { return selectedBerth.map(berth -> { revision.get();
+        CampaignBoat boat = selectedBoat();
+        return boat != null && boat.id().equals(scrapArmed) ? Strings.get("openingMechLabScrapConfirm")
+                : Strings.get("openingMechLabScrap"); }); }
+    public Signal<String> scrapClasses() { return selectedBerth.map(berth -> { revision.get();
+        CampaignBoat boat = selectedBoat();
+        if (!fittingFocused() || boat == null) return "hidden";
+        return boat.id().equals(scrapArmed) ? "boat-scrap console-action armed" : "boat-scrap console-action"; }); }
+    public Runnable scrapAction() { return this::scrapSelected; }
     public Signal<String> fittingClasses() { return fittingClasses; }
     public Signal<String> fabricationClasses() { return fabricationClasses; }
     public Signal<String> fabricationBerthLabel() { return fabricationBerthLabel; }
@@ -473,6 +485,7 @@ public final class BoatDeckViewModel {
 
     private void report(BoatWorkshop.Result result, String text) {
         armedRecycle = null;
+        scrapArmed = null;
         feedbackText.set(text);
         feedbackClasses.set(result.succeeded()
                 ? "boat-deck-feedback tone-good surface-dark"
@@ -1029,6 +1042,33 @@ public final class BoatDeckViewModel {
         if (result.succeeded()) deckChanged.run();
     }
 
+    /**
+     * SCRAP takes two presses, as the lab's does: the first arms it and says what comes back,
+     * the second breaks the boat up through the workshop and returns to the deck with her
+     * berth vacant.
+     */
+    private void scrapSelected() {
+        CampaignBoat boat = selectedBoat();
+        if (boat == null) return;
+        FabricationCost back = workshop.scrapQuote(boat.id());
+        String hull = back == null ? Strings.get("openingMechLabNoSalvage") : recoveryLine(back);
+        if (!boat.id().equals(scrapArmed)) {
+            scrapArmed = boat.id();
+            feedbackText.set(Strings.format("boatDeckScrapArmed", boat.displayName(), hull));
+            feedbackClasses.set("boat-deck-feedback tone-danger surface-dark");
+            revision.update(value -> value + 1);
+            return;
+        }
+        scrapArmed = null;
+        BoatWorkshop.Result result = workshop.scrap(boat.id());
+        if (!result.succeeded()) {
+            report(result, Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged"));
+            return;
+        }
+        selectedBerth.set(NO_BERTH);
+        report(result, Strings.format("boatDeckScrapped", boat.displayName(), hull));
+    }
+
     private void showDeckOverview() {
         selectedBerth.set(NO_BERTH);
         feedbackText.set(Strings.get("openingBoatDeckSelectABerthToInspectItsBoat"));
@@ -1096,7 +1136,7 @@ public final class BoatDeckViewModel {
 
     private boolean affordableToBuild() {
         BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-        return recipe != null && resources.canAfford(resources.quote(recipe.bill()));
+        return recipe != null && resources.canAfford(workshop.fabricationQuote(recipe.pattern()));
     }
 
     /** What a vacant berth would be built back up as, for its card. */
@@ -1113,7 +1153,7 @@ public final class BoatDeckViewModel {
                 BoatFabricationCatalog.recipe(deck.pattern());
         if (recipe == null) return "";
         StringBuilder bill = new StringBuilder();
-        for (FabricationCost.Line line : resources.quote(recipe.bill()).lines()) {
+        for (FabricationCost.Line line : workshop.fabricationQuote(recipe.pattern()).lines()) {
             if (bill.length() > 0) bill.append("  ·  ");
             bill.append(resources.commodityName(line.commodityId()))
                     .append(' ').append(line.quantity());
