@@ -286,7 +286,8 @@
   .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
   .overview-rail { flex-direction: row; align-items: center; width: 100%; height: 76px; gap: 5px; }
   .overview-gantry-list { flex-direction: row; width: 0px; height: 76px; flex-grow: 1; gap: 5px; }
-  .overview-gantry { flex-direction: column; width: 0px; height: 76px; flex-grow: 1; padding: 6px; gap: 1px; border-width: 1px; text-align: left; }
+  /* A card per pad at its own width: a lone pad must not stretch across the rail. */
+  .overview-gantry { flex-direction: column; width: 260px; height: 76px; padding: 6px; gap: 1px; border-width: 1px; text-align: left; }
   .overview-gantry.occupied { background-color: #252d2f; border-color: #737b6c; }
   .overview-gantry.occupied:hover { background-color: #383e32; border-color: #dfc588; }
   .overview-gantry.vacant { background-color: #121719; border-color: #464e42; opacity: 0.72; }

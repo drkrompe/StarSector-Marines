@@ -91,7 +91,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private IntSupplier occupiedGantries;
     private DoubleSupplier sideShift;
     private final Supplier<MechWeaponComponent> candidateWeapon;
-    private List<VacantGantryTarget> vacantGantryTargets = List.of();
+    /** Every pad a press selects: vacant pads always, occupied ones while the lance is in overview. */
+    private List<GantryTarget> gantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
     /** Each rack kit's box from the last frame, for lifting it off. */
     private List<KitBox> lastKitBoxes = List.of();
@@ -150,7 +151,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private record DragPreview(MechWeaponComponent component, SocketId source,
                                SocketId target, boolean valid) { }
 
-    private int hoveredVacantGantry = -1;
+    private int hoveredGantry = -1;
 
     public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
                              IntSupplier selectedGantry,
@@ -215,7 +216,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         ShipDeckBattleScene aboard = ship.get();
         ShipDeckBattleScene.RoomView bay = aboard != null ? shifted(aboard, roomView.get(), width, height) : null;
         if (bay == null) {
-            vacantGantryTargets = List.of();
+            gantryTargets = List.of();
             lastSocketTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
@@ -236,7 +237,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             }
         });
         if (!rendered || host[0] == null) {
-            vacantGantryTargets = List.of();
+            gantryTargets = List.of();
             lastSocketTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
@@ -343,10 +344,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return this;
     }
 
-    /** Records hover over the physical vacant-pad actions drawn during the last frame. */
+    /** Records hover over the physical pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
         hover.at(canvasX, canvasY);
-        hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
+        hoveredGantry = gantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
     }
 
@@ -377,10 +378,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return null;
     }
 
-    /** The vacant gantry action at this canvas-local point, or -1 outside every action. */
-    public int vacantGantryAt(float canvasX, float canvasY) {
+    /**
+     * The pad a press at this canvas-local point selects, or -1 outside every pad: a vacant pad
+     * opens the pattern catalog, and in overview an occupied one opens its machine for fitting.
+     */
+    public int gantryAt(float canvasX, float canvasY) {
         if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return -1;
-        for (VacantGantryTarget target : vacantGantryTargets) {
+        for (GantryTarget target : gantryTargets) {
             if (target.contains(canvasX, canvasY)) return target.index();
         }
         return -1;
@@ -390,7 +394,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                           CanvasHostViewport viewport,
                                           List<Gantry> standing, int occupied, boolean letters) {
         int count = Math.min(CampaignMechSquad.CAPACITY, standing.size());
-        List<VacantGantryTarget> targets = new ArrayList<>();
+        List<GantryTarget> targets = new ArrayList<>();
         for (int index = 0; index < count; index++) {
             if (index < Math.max(0, occupied) && !letters) continue;
             Gantry gantry = standing.get(index);
@@ -404,7 +408,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float width = Math.abs(right - left);
             float height = Math.abs(bottom - top);
             float inset = Math.max(4f, Math.min(width, height) * VACANT_PAD_INSET_RATIO);
-            VacantGantryTarget target = new VacantGantryTarget(index,
+            GantryTarget target = new GantryTarget(index,
                     Math.min(left, right) + inset, Math.min(top, bottom) + inset,
                     Math.max(1f, width - inset * 2f),
                     Math.max(1f, height - inset * 2f));
@@ -415,19 +419,27 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 if (preview != null) {
                     drawPadPreview(context, target, preview, camera.cellPxSize() / viewport.scaleX());
                 } else {
-                    drawBuildMark(context, target, index == hoveredVacantGantry);
+                    drawBuildMark(context, target, index == hoveredGantry);
+                }
+            } else {
+                // In overview an occupied pad is the way into its machine, bracketed under the pointer.
+                targets.add(target);
+                if (index == hoveredGantry) {
+                    float shortSide = Math.min(target.width(), target.height());
+                    drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(),
+                            BUILD_HOT, 3f, shortSide * 0.24f, Math.max(3f, shortSide * 0.06f));
                 }
             }
             if (letters) drawPadLetter(context, target, index);
         }
-        vacantGantryTargets = List.copyOf(targets);
+        gantryTargets = List.copyOf(targets);
     }
 
     /**
      * A vacant pad is marked as a build site in the BUY amber: a faint wash, corner brackets and
      * the fabrication cog with BUILD beneath it, all brighter under the pointer.
      */
-    private void drawBuildMark(CanvasContext context, VacantGantryTarget target, boolean hot) {
+    private void drawBuildMark(CanvasContext context, GantryTarget target, boolean hot) {
         float shortSide = Math.min(target.width(), target.height());
         context.fillRect(target.x(), target.y(), target.width(), target.height(), hot ? BUILD_WASH_HOT : BUILD_WASH);
         Color edge = hot ? BUILD_HOT : BUILD_EDGE;
@@ -450,7 +462,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * The selected pattern standing on the vacant pad at the scene's own scale, inside the build
      * brackets, so the player sees what BUILD will put there before anything is spent.
      */
-    private void drawPadPreview(CanvasContext context, VacantGantryTarget target, Object preview, float cellPx) {
+    private void drawPadPreview(CanvasContext context, GantryTarget target, Object preview, float cellPx) {
         float shortSide = Math.min(target.width(), target.height());
         context.fillRect(target.x(), target.y(), target.width(), target.height(), BUILD_WASH);
         drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(), BUILD_EDGE,
@@ -486,7 +498,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /** The pad's letter, stencilled on an amber plate in its corner; the cards and headings use the same letter. */
-    private static void drawPadLetter(CanvasContext context, VacantGantryTarget target, int index) {
+    private static void drawPadLetter(CanvasContext context, GantryTarget target, int index) {
         float shortSide = Math.min(target.width(), target.height());
         boolean large = shortSide >= 150f;
         BitmapFont font = large ? Fonts.ORBITRON_24_BOLD : Fonts.ORBITRON_12_BOLD;
@@ -926,7 +938,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
-    record VacantGantryTarget(int index, float x, float y, float width, float height) {
+    record GantryTarget(int index, float x, float y, float width, float height) {
         boolean contains(float pointX, float pointY) {
             return pointX >= x && pointX <= x + width
                     && pointY >= y && pointY <= y + height;
