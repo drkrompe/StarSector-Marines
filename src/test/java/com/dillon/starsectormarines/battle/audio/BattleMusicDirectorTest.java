@@ -117,6 +117,20 @@ class BattleMusicDirectorTest {
     }
 
     @Test
+    void aMissionsNamedBedPlaysInQuietAndAftermathAndOneNamingNoneGetsTheDefault() {
+        BattleMusicDirector beds = new BattleMusicDirector(
+                Map.of(MusicState.COMBAT, new BattleMusicPlaylist(List.of("battle_01"), new Random(1L))),
+                Map.of(QuietBed.NIGHT_OPS, new BattleMusicPlaylist(List.of("night"), new Random(1L)),
+                        QuietBed.DEFAULT, new BattleMusicPlaylist(List.of("default"), new Random(1L))));
+        assertEquals("night", beds.start(new Facts(null, QuietBed.NIGHT_OPS, false, false)).track());
+        beds.update(1f, 1f, CONTACT, null);
+        Cue end = beds.update(1f, BattleMusicDirector.MIN_TRACK_SECONDS, new Facts(null, false, true), null);
+        assertEquals("night", end.track());
+
+        assertEquals("default", beds.start(LULL).track());
+    }
+
+    @Test
     void withinAStateTheNextTrackFollowsTheEndOfTheCurrentOne() {
         String first = director.start(new Facts(MusicState.COMBAT, false, false)).track();
         Facts combat = new Facts(MusicState.COMBAT, false, false);

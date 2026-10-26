@@ -66,7 +66,9 @@ public final class BriefingLiftSnapshotSuite implements SnapshotSuite {
                         "briefing-info-tf-1-squad-0"),
                 hover(context, renderer, "hover-squad-stack.png", true, BriefingLift.read(hermes, 2,
                         List.of(heavy), lance, vehicles, List.of()),
-                        "briefing-field-squad-stack"));
+                        "briefing-field-squad-stack"),
+                hover(context, renderer, "hover-survey.png", BriefingLift.read(hermes, 2,
+                        List.of(heavy), lance, vehicles, List.of()), "mission-survey"));
     }
 
     private static SnapshotArtifact hover(SnapshotContext context, HeadlessUiRenderer renderer, String name,

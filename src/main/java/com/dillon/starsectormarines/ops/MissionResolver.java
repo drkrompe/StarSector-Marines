@@ -732,7 +732,7 @@ public final class MissionResolver {
 
     /**
      * Writes the campaign mark each side objective earned, from the settled outcome rather than the live battle
-     * ({@code side-objective-toolkit.md}). Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
+     * ({@code mission-command-nouns.md}). Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
      */
     static void writeCampaignMarks(CampaignMarks marks, MissionOutcome outcome) {
         if (marks == null || outcome == null) return;
@@ -741,7 +741,7 @@ public final class MissionResolver {
 
     /**
      * Pays what the side objectives earned, from the settled outcome rather than the live battle
-     * ({@code side-objective-toolkit.md}). Win or lose: a job done was done.
+     * ({@code mission-command-nouns.md}). Win or lose: a job done was done.
      */
     static void paySideObjectives(Consumer<Float> credits, MissionOutcome outcome) {
         int earned = outcome == null ? 0 : outcome.sideObjectiveCredits();

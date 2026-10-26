@@ -30,12 +30,6 @@ public final class BattleMusicDirector {
             "marines_battle_music_05", "marines_battle_music_06", "marines_battle_music_07",
             "marines_battle_music_08", "marines_battle_music_09", "marines_battle_music_10");
     /**
-     * The quiet state's bed, and aftermath's by fallback: the strings take of the arrival's score,
-     * looped. Never the Marine Ops theme, which is the menu's alone (owner). A raise fades it out
-     * over the raise crossfade.
-     */
-    public static final List<String> QUIET_TRACKS = List.of("marines_battle_quiet_strings");
-    /**
      * The alert state plays the combat files as {@code <id>_alert}, declared at reduced volume, until an
      * alert bed is sourced.
      */
@@ -54,10 +48,15 @@ public final class BattleMusicDirector {
     static final int OPEN_FADE_SECS = 2;
 
     /**
-     * One frame's facts: the mission's declared state ({@code null} for the heat rule), whether
+     * One frame's facts: the mission's declared state ({@code null} for the heat rule), the quiet
+     * bed it names ({@code null} for {@link QuietBed#DEFAULT}; read when the battle opens), whether
      * the company fired or was fired on this frame, and whether the battle is over.
      */
-    public record Facts(MusicState declared, boolean contact, boolean finished) { }
+    public record Facts(MusicState declared, QuietBed bed, boolean contact, boolean finished) {
+        public Facts(MusicState declared, boolean contact, boolean finished) {
+            this(declared, null, contact, finished);
+        }
+    }
 
     /**
      * A decision for the host. {@code from} is {@code null} when the battle opens and equals
@@ -71,6 +70,8 @@ public final class BattleMusicDirector {
     }
 
     private final Map<MusicState, BattleMusicPlaylist> playlists;
+    private final Map<QuietBed, BattleMusicPlaylist> beds;
+    private QuietBed bed = QuietBed.DEFAULT;
     private MusicState state = MusicState.QUIET;
     private BattleMusicPlaylist active;
     private boolean contacted;
@@ -80,15 +81,26 @@ public final class BattleMusicDirector {
 
     /** Playlists by state; a state left out uses its fallback. */
     public BattleMusicDirector(Map<MusicState, BattleMusicPlaylist> playlists) {
-        this.playlists = playlists.isEmpty() ? new EnumMap<>(MusicState.class) : new EnumMap<>(playlists);
+        this(playlists, Map.of());
     }
 
-    /** The music the mod ships: the quiet bed (aftermath too), reduced-volume alert, and combat. */
+    /**
+     * Playlists by state, and the quiet beds a mission may name. Quiet plays the battle's bed when
+     * there is one, otherwise the quiet playlist.
+     */
+    public BattleMusicDirector(Map<MusicState, BattleMusicPlaylist> playlists,
+                               Map<QuietBed, BattleMusicPlaylist> beds) {
+        this.playlists = playlists.isEmpty() ? new EnumMap<>(MusicState.class) : new EnumMap<>(playlists);
+        this.beds = beds.isEmpty() ? new EnumMap<>(QuietBed.class) : new EnumMap<>(beds);
+    }
+
+    /** The music the mod ships: every quiet bed (aftermath too), reduced-volume alert, and combat. */
     public static BattleMusicDirector shipped(Random random) {
+        Map<QuietBed, BattleMusicPlaylist> beds = new EnumMap<>(QuietBed.class);
+        for (QuietBed b : QuietBed.values()) beds.put(b, new BattleMusicPlaylist(List.of(b.soundId()), random));
         return new BattleMusicDirector(Map.of(
-                MusicState.QUIET, new BattleMusicPlaylist(QUIET_TRACKS, random),
                 MusicState.COMBAT, new BattleMusicPlaylist(COMBAT_TRACKS, random),
-                MusicState.ALERT, new BattleMusicPlaylist(COMBAT_TRACKS, ALERT_SUFFIX, random)));
+                MusicState.ALERT, new BattleMusicPlaylist(COMBAT_TRACKS, ALERT_SUFFIX, random)), beds);
     }
 
     public MusicState state() { return state; }
@@ -96,6 +108,7 @@ public final class BattleMusicDirector {
     /** Opens a battle: picks the opening state and its first track, or silence. */
     public Cue start(Facts facts) {
         stop();
+        bed = facts.bed() != null ? facts.bed() : QuietBed.DEFAULT;
         contacted = false;
         sinceContact = 0f;
         observe(0f, facts);
@@ -187,6 +200,7 @@ public final class BattleMusicDirector {
     }
 
     private BattleMusicPlaylist resolve(MusicState s) {
+        if (s == MusicState.QUIET && beds.containsKey(bed)) return beds.get(bed);
         BattleMusicPlaylist own = playlists.get(s);
         if (own != null || s == MusicState.QUIET) return own;
         return s == MusicState.COMBAT ? null : resolve(MusicState.QUIET);

@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * An optional, mission-owned job with no bearing on victory or defeat ({@code side-objective-toolkit.md}): who offers
+ * An optional, mission-owned job with no bearing on victory or defeat ({@code mission-command-nouns.md}): who offers
  * it ({@link Hook}), how it is done ({@link SideTrigger}), when it is open ({@link Window}), what completion changes in
  * the battle ({@link Effect}) and what the campaign keeps ({@link Return}). It holds its live {@link State} too, moved on
  * by the battle's {@link SideObjectiveService}. It never enters the win check.

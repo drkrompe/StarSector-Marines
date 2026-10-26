@@ -12,10 +12,11 @@ candidate is tense but not combat, retro analog synth, and sits in the combat po
 
 A take is one composition plan timed in bars at TEMPO, so its sections fall on bar lines. `loop`
 cuts a bar-aligned span out of a take and crossfades the bars after it into its head, so the
-file wraps without a seam; that loop is what the asset pipeline encodes.
+file wraps without a seam; that loop is what the asset pipeline encodes, so it is written straight
+into its music sources as quiet-bed-<take>.ogg (audio.json, QuietBed).
 
 Takes go to takes/<id>_tNN.mp3 with a JSON sidecar holding the request, hash and measured
-loudness; loops to loops/<id>_tNN_loop.ogg with their own sidecar. Requires ffmpeg/ffprobe on
+loudness; each loop's receipt to loops/<id>_tNN_loop.json. Requires ffmpeg/ffprobe on
 PATH and ELEVENLABS_API_KEY in the environment (never printed). Prompts describe the style in
 plain musical terms and never name a work or an artist.
 """
@@ -34,6 +35,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "takes"
 LOOPS = HERE / "loops"
+SHIPPED = HERE.parents[2] / "asset-pipeline" / "src" / "tool" / "resources" / "audio" / "music"
 MODEL = "music_v1"
 TEMPO = 130
 BAR_MS = 4 * 60000 / TEMPO
@@ -174,7 +176,7 @@ def loop(take, bars, start_bar):
     if probe(source) < start + length + fade:
         raise SystemExit("%s is too short for %d bars from bar %d plus the crossfade" % (take, bars, start_bar))
     LOOPS.mkdir(parents=True, exist_ok=True)
-    out = LOOPS / (take + "_loop.ogg")
+    out = SHIPPED / ("quiet-bed-" + take + ".ogg")
     # body: the span itself; tail: what follows it, faded out over the head while the head fades in.
     graph = ("[0:a]atrim=start=%.4f:end=%.4f,asetpts=PTS-STARTPTS[body];"
              "[0:a]atrim=start=%.4f:end=%.4f,asetpts=PTS-STARTPTS,afade=t=out:d=%.3f:curve=qsin[tail];"
@@ -189,7 +191,7 @@ def loop(take, bars, start_bar):
     peak, lufs = levels(out)
     meta = {"take": source.name, "tempo": TEMPO, "startBar": start_bar, "bars": bars,
             "crossfadeSeconds": fade, "durationSeconds": probe(out), "peakDb": peak, "integratedLufs": lufs}
-    out.with_suffix(".json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    (LOOPS / (take + "_loop.json")).write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     print("Looped %s: %d bars from bar %d, %.2fs" % (out.name, bars, start_bar, meta["durationSeconds"]))
 
 
