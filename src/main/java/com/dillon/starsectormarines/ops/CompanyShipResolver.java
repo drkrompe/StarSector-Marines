@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
@@ -87,7 +86,7 @@ public final class CompanyShipResolver {
                 hull.getDesignation(),
                 whole.getMinCrew(), whole.getMaxCrew(), whole.getCargoCapacity(),
                 outlineOf(hull.getBaseHullId()), hull.getSpriteName());
-        ship = ship.withAeroshuttleConversion(SecondhandWingsCampaign.converted(member.getId())).withBoatBay(CompanyBayRestoration.state(member)).withWorkshop(CompanyWorkshopRestoration.state(member)).withRestoration(CompanyShipRestoration.state(member));
+        ship = ship.withBoatBay(CompanyBayRestoration.state(member)).withWorkshop(CompanyWorkshopRestoration.state(member)).withRestoration(CompanyShipRestoration.state(member));
         return MercenaryCompanyConversion.installed(member) ? ship.converted() : ship;
     }
 

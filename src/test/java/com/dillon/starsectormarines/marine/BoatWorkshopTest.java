@@ -38,6 +38,33 @@ class BoatWorkshopTest {
         }
     }
 
+    /** Her three turret slots: a heavy MG from the yard and two bare ones, each taking any family of gun. */
+    @Test
+    void theHermesFillsHerBareTurretsWithAnyFamilyAndStripsThemBare() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("second-wind", ShuttleType.HERMES, 1);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+        assertSame(BoatGun.HEAVY_MG, boat.gunOn(0));
+        assertNull(boat.gunOn(1));
+        assertNull(boat.gunOn(2));
+        assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.stripGun(boat.id(), 1).status());
+
+        workshop.fabricatePart(BoatGun.SRM_POD.id());
+        workshop.fabricatePart(BoatGun.PULSE_LASER.id());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_POD.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 2, BoatGun.PULSE_LASER.id()).status());
+        assertEquals(BoatGun.SRM_POD.weight() + BoatGun.PULSE_LASER.weight(), BoatFrame.weight(boat));
+
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
+        assertNull(boat.gunOn(1), "a stripped turret goes back bare");
+        assertEquals(1, deck.spares(BoatGun.SRM_POD.id()));
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 2, 1).status());
+        assertSame(BoatGun.PULSE_LASER, boat.gunOn(1));
+        assertNull(boat.gunOn(2), "a gun moved off a bare slot leaves it bare");
+        assertEquals(BoatWorkshop.Status.UNKNOWN_HARDPOINT, workshop.stripGun(boat.id(), 3).status());
+    }
+
     /** A refit that takes her over the frame's rating is refused; one that lightens her never is. */
     @Test
     void aFitOverTheFrameRatingIsRefusedAndKeepsItsSpare() {

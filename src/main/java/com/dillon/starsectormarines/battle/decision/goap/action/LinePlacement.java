@@ -36,7 +36,7 @@ import java.util.Set;
 public final class LinePlacement {
 
     /** How far behind the drawn line a marine's share of it lies. */
-    static final float REARWARD_OFFSET = 1f;
+    public static final float REARWARD_OFFSET = 1f;
     /** How far ahead along the front a covered cell must see, so cover is a place to fight from. */
     static final float FRONT_PROBE = 10f;
     /** How far from his share a marine looks for cover: the band's own half-width. */

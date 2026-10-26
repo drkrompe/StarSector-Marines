@@ -382,11 +382,18 @@ public final class SelectionOrders {
             Recipient recipient = recipients.get(i);
             FrontageLine line = lines.get(i);
             if (recipient.kind() == RecipientKind.INFANTRY) {
+                FrontageLine frontage = frontage(sim, recipient, line);
                 sim.getSquadMoveOrderService().requestLine(recipient.squadId(),
-                        line.x0(), line.y0(), line.x1(), line.y1());
+                        frontage.x0(), frontage.y0(), frontage.x1(), frontage.y1());
+                List<Follower> followers = followers(sim, recipient.squadId());
+                for (int k = 0; k < followers.size(); k++) {
+                    int[] post = followerPost(sim, recipient, line, k);
+                    sim.getMechAttachmentService().requestPost(followers.get(k).mechSquadId(), post[0], post[1],
+                            facingOf(line.frontX(), line.frontY()), frontage);
+                }
             } else {
-                int[] middle = middle(line);
-                send(sim, recipient, middle[0], middle[1], facingOf(line.frontX(), line.frontY()));
+                int[] spot = machineSpot(line);
+                send(sim, recipient, spot[0], spot[1], facingOf(line.frontX(), line.frontY()));
             }
         }
     }
@@ -440,8 +447,58 @@ public final class SelectionOrders {
      */
     static float lineWidth(BattleSimulation sim, Recipient recipient) {
         if (recipient.kind() != RecipientKind.INFANTRY) return MACHINE_LINE_WIDTH;
+        return marines(sim, recipient) + MACHINE_LINE_WIDTH * followers(sim, recipient.squadId()).size();
+    }
+
+    private static float marines(BattleSimulation sim, Recipient recipient) {
         Squad squad = sim.getSquad(recipient.squadId());
         return squad == null ? 1f : Math.max(1, squad.aliveMembers);
+    }
+
+    /** A live mech attached to an infantry recipient, which takes a post on that squad's stretch of a line. */
+    record Follower(int mechSquadId, long mech) { }
+
+    /** The live mechs following {@code squadId}, in follower order. */
+    static List<Follower> followers(BattleSimulation sim, int squadId) {
+        List<Follower> out = new ArrayList<>();
+        for (int mechSquad : sim.getMechAttachmentService().followersOf(squadId)) {
+            for (int i = 0, n = sim.squadMemberCount(mechSquad); i < n; i++) {
+                long mech = sim.squadMemberAt(mechSquad, i);
+                if (sim.world().isAlive(mech) && sim.world().hasMechLoadout(mech)) out.add(new Follower(mechSquad, mech));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The part of an infantry recipient's stretch its marines hold as a frontage: all of it, or the first
+     * share when mechs attached to it take posts on the rest.
+     */
+    static FrontageLine frontage(BattleSimulation sim, Recipient recipient, FrontageLine stretch) {
+        float width = lineWidth(sim, recipient);
+        float marines = marines(sim, recipient);
+        if (marines >= width) return stretch;
+        float t = marines / width;
+        return new FrontageLine(stretch.x0(), stretch.y0(),
+                Math.round(stretch.x0() + (stretch.x1() - stretch.x0()) * t),
+                Math.round(stretch.y0() + (stretch.y1() - stretch.y0()) * t),
+                stretch.frontX(), stretch.frontY());
+    }
+
+    /** Where the {@code k}th mech attached to an infantry recipient stands on its stretch: after the marines, as far back. */
+    static int[] followerPost(BattleSimulation sim, Recipient recipient, FrontageLine stretch, int k) {
+        float t = (marines(sim, recipient) + MACHINE_LINE_WIDTH * (k + .5f)) / lineWidth(sim, recipient);
+        return round(stretch.pointAt(t, -LinePlacement.REARWARD_OFFSET));
+    }
+
+    /** Where a mech or a vehicle stands on its own stretch: the middle, as far back from the line as a marine. */
+    static int[] machineSpot(FrontageLine stretch) {
+        return round(stretch.pointAt(.5f, -LinePlacement.REARWARD_OFFSET));
+    }
+
+    /** A point on a line as the cell it names, rounded as a marine's share is ({@code LinePlacement}). */
+    private static int[] round(float[] point) {
+        return new int[]{Math.round(point[0]), Math.round(point[1])};
     }
 
     /**
@@ -458,19 +515,21 @@ public final class SelectionOrders {
             Recipient recipient = recipients.get(i);
             List<HighlightOverlay.PlaceMark> places = new ArrayList<>();
             if (recipient.kind() == RecipientKind.INFANTRY) {
-                for (LinePlacement.Place place : LinePlacement.preview(sim, sim.getSquad(recipient.squadId()), lines.get(i))) {
+                FrontageLine frontage = frontage(sim, recipient, lines.get(i));
+                for (LinePlacement.Place place : LinePlacement.preview(sim, sim.getSquad(recipient.squadId()), frontage)) {
                     places.add(new HighlightOverlay.PlaceMark(place.member(), place.x(), place.y(), place.position()));
                 }
+                List<Follower> followers = followers(sim, recipient.squadId());
+                for (int k = 0; k < followers.size(); k++) {
+                    int[] post = followerPost(sim, recipient, lines.get(i), k);
+                    places.add(new HighlightOverlay.PlaceMark(followers.get(k).mech(), post[0], post[1], false));
+                }
             } else {
-                int[] middle = middle(lines.get(i));
-                places.add(new HighlightOverlay.PlaceMark(recipient.id(), middle[0], middle[1], false));
+                int[] spot = machineSpot(lines.get(i));
+                places.add(new HighlightOverlay.PlaceMark(recipient.id(), spot[0], spot[1], false));
             }
             marks.add(new HighlightOverlay.LineMark(lines.get(i), places));
         }
         return marks;
-    }
-
-    private static int[] middle(FrontageLine line) {
-        return new int[]{Math.round((line.x0() + line.x1()) * .5f), Math.round((line.y0() + line.y1()) * .5f)};
     }
 }

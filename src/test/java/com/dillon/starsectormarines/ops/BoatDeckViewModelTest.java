@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
@@ -68,7 +69,7 @@ class BoatDeckViewModelTest {
         model.selectBoatAction(0).run();
         model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 0);
 
-        assertEquals("DOOR GUNS", model.selectedSlotTitle().get());
+        assertEquals(Strings.get("boatDeckStoresGuns"), model.selectedSlotTitle().get());
         assertEquals(BoatGun.catalog().size(), model.catalogRows().get().size());
         String mount = BoatDoll.HARDPOINT_KEY + 0;
         assertFalse(model.canDropOnSocket(BoatDoll.Kind.HARDPOINT, BoatGun.HEAVY_MG.id(), mount),
@@ -352,20 +353,6 @@ class BoatDeckViewModelTest {
     }
 
     @Test
-    void theSummarySaysWhatChangingShipCostTheCompany() {
-        BoatDeck deck = new BoatDeck();
-        deck.reconcile("transport", ShuttleType.AEROSHUTTLE, BERTHS);
-        deck.reconcile("gig-hull", ShuttleType.HERMES, 2);
-        BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deck, TestResources.stocked(2_000), "Wolf");
-
-        String summary = viewModel.deckSummary().get();
-        assertTrue(summary.startsWith("0 boats aboard"), summary);
-        assertTrue(summary.contains("2 berths empty"), summary);
-        assertTrue(summary.contains("6 boats left with her last ship"), summary);
-    }
-
-    @Test
     void shippedRoomBuildsWithinWideAndLowResolutionBoundsAndOwnsItsRoute() throws Exception {
         Reactor reactor = new Reactor();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
@@ -502,7 +489,6 @@ class BoatDeckViewModelTest {
         props.put("fabricationReason", viewModel.fabricationReason());
         props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("bayNoteClasses", "hidden");
-        props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());

@@ -692,7 +692,10 @@ holds its own consecutive stretch of the line in recipient order, as long as its
 width — a squad one marine's share per live marine, a Mech or vehicle two, since it
 is one unit however broad its chassis (`SelectionOrders.lineWidth`) — an infantry
 squad as a frontage (see `ai-nouns.md`, occupy) and a Mech or vehicle at its
-stretch's middle, facing the stretch's front; each stretch faces as an infantry
+stretch's middle, a marine's setback behind the line as the marines stand, facing
+the stretch's front. A squad with Mechs attached is given a stretch wide enough for
+them too: its marines hold the first of it and each attached Mech takes a post
+after them at the same setback (`mechs-nouns.md`, attachment); each stretch faces as an infantry
 line does, toward the threat its squad believes in, else away from where the
 recipient stands. It is previewed while the button is held as a stroke per
 stretch with ticks toward its front and a dashed ring where each marine, Mech or

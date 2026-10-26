@@ -10,10 +10,8 @@ import com.dillon.starsectormarines.ops.fitting.FittingBricks;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignBoat;
-import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -77,7 +75,6 @@ public final class BoatDeckScreen implements Screen {
     private MarineRoster roster;
     private CompanyDeck deck;
     private BoatDeckViewModel viewModel;
-    private SecondhandWingsModel wings;
     private UiViewport viewport;
     private UiDocument document;
     private PreparationGuide preparationGuide;
@@ -133,25 +130,12 @@ public final class BoatDeckScreen implements Screen {
         } else {
             viewModel.refresh();
         }
-        wings = new SecondhandWingsModel(reactor, roster.boatDeck(),
-                () -> SecondhandWingsCampaign.offer(roster),
-                review -> SecondhandWingsCampaign.purchase(roster, review),
-                () -> { viewModel.refresh(); deckChanged(); },
-                () -> viewModel.selectBoatAction(0).run(),
-                () -> CompanyNotices.Notice.SECONDHAND_WINGS.review(roster));
         // Rebinding uses a new model when the shell re-enters this screen.
         if (document != null) closeDocument();
         refreshBayPresentation();
         if (document == null) installDocument();
-        var news = CompanyNotices.current();
-        if (!CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending()) {
-            if (news.contains(CompanyNotices.Notice.SECONDHAND_WINGS)) wings.open();
-        }
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         if (preparationGuide != null) preparationGuide.update();
-        if (document != null && wings != null && !CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending())
-            TutorialModal.bind(document, markupInstance, wings::visible,
-                    "wings-modal", "boat-deck-root", wings::dismiss, this::close);
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -196,17 +180,21 @@ public final class BoatDeckScreen implements Screen {
         if (previousInstance != null) previousInstance.close();
     }
 
+    private static long fleetCredits() {
+        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return 0;
+        return (long) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
+    }
+
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", bayContextLabel);
         props.put("bayNoteClasses", bayNoteClasses);
-        props.put("wings", wings.row());
         props.put("activeBayLabel", activeBayLabel);
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), wings.row().get().credits())));
+        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), fleetCredits())));
         props.put("boatRows", viewModel.boatRows());
         props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
@@ -539,7 +527,7 @@ public final class BoatDeckScreen implements Screen {
         activeBayLabel.set(Strings.format("openingBoatDeckBayPosition", index + 1, bays.size(),
                 deck.rooms().damaged(bays.get(index).id()) ? Strings.get("openingBoatDeckSealed") : ""));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
-        // The bay is restored from Engineering or with Secondhand Wings; this room only says where.
+        // The bay is restored from Engineering; this room only says where.
         bayNoteClasses.set(bays.stream().anyMatch(bay -> deck.rooms().damaged(bay.id()))
                 ? "bay-sealed-note label tone-muted" : "hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
@@ -550,7 +538,6 @@ public final class BoatDeckScreen implements Screen {
         if (deckMayHaveChanged) adoptChangedDeck();
         if (Float.isFinite(dt)) elapsedSeconds = (elapsedSeconds + Math.max(0f, dt)) % 3600d;
         if (viewModel != null) viewModel.refreshTime();
-        if (wings != null) wings.refresh();
         if (deck != null && deck.ready()) {
             int selected = viewModel.selectedBerthIndex();
             int offset = 0;
@@ -575,9 +562,6 @@ public final class BoatDeckScreen implements Screen {
         // The doll's wires pulse and the camera eases, so the bay is redrawn every frame it is open on a boat.
         if (bayCanvas != null && (bayCanvas.advance(dt) || viewModel.fittingFocused())) invalidateBay();
         if (preparationGuide != null) preparationGuide.update();
-        if (document != null && wings != null && !CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending())
-            TutorialModal.bind(document, markupInstance, wings::visible,
-                    "wings-modal", "boat-deck-root", wings::dismiss, this::close);
     }
 
     @Override

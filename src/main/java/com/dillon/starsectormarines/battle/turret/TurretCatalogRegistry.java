@@ -47,6 +47,14 @@ public final class TurretCatalogRegistry {
     /** The fort anti-air aspect's close-in towers at the control room door: guided four-round salvos. */
     public static final String AA_SWARMER_STRUCTURE_ID = "structure.aa-swarmer";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
+    /** A boat's twin pulse laser: the hover scout's emitter on a door ring. Fires on flux, no magazine. */
+    public static final String BOAT_PULSE_STRUCTURE_ID = "structure.boat-pulse";
+    /** A boat's burst laser: the laser tank's emitter, small enough for a door ring; it tracks fliers. */
+    public static final String BOAT_BURST_LASER_STRUCTURE_ID = "structure.boat-burst-laser";
+    /** A boat's SRM pod: three salvos a sortie, a hard opening strike on the run in. */
+    public static final String BOAT_SRM_STRUCTURE_ID = "structure.boat-srm";
+    /** A boat's LRM rack: two long salvos a sortie, fired from well out. */
+    public static final String BOAT_LRM_STRUCTURE_ID = "structure.boat-lrm";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
     /** The laser tank's burst laser: a starship's point-defence emitter turned on the ground. */

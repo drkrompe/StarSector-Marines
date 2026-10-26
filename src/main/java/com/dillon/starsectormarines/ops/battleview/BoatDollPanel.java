@@ -220,7 +220,8 @@ final class BoatDollPanel {
         HardpointBricks.Layout bricks = bricks(slot.kind(), 0f, 0f);
         bricks = bricks(slot.kind(), x + (w - bricks.width()) * .5f, y + HEADER);
         HardpointBricks.drawEmpty(c, bricks, tone);
-        BoatHardware.draw(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 255);
+        // A bare hardpoint is its empty bricks and nothing on them.
+        if (slot.itemId() != null) BoatHardware.draw(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 255);
         if (slot.selected() || hot) {
             float pulse = (float) (.5 + .5 * Math.sin(seconds * 3.5));
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
