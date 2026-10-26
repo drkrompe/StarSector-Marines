@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.FiniteCommandPowerResources;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -29,6 +31,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
@@ -81,6 +84,12 @@ class CorvusCombatEvidenceTest {
         for (String mark : System.getProperty("battle.corvus.marks", "").split(","))
             if (!mark.isBlank()) campaignMarks.add(mark.trim());
         if (!selectedChapter.isEmpty()) CorvusChapter.valueOf(selectedChapter);
+        // The company's kit, so a run can play a better-equipped company than the first contract's: the squads' weapon
+        // doctrine (a SquadEquipmentDoctrines id, Field Security by default) and the Hound's left-shoulder pod (a
+        // MechWeaponComponent name, none by default, as recovered).
+        String squadWeapons = System.getProperty("battle.corvus.squadWeapons", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
+        String houndShoulder = System.getProperty("battle.corvus.houndShoulder", "");
+        MechWeaponComponent houndPod = houndShoulder.isBlank() ? null : MechWeaponComponent.valueOf(houndShoulder);
         Files.createDirectories(output);
         TileRegistryTestInstaller.install(Path.of("."));
         InstalledVanillaData.install();
@@ -104,10 +113,12 @@ class CorvusCombatEvidenceTest {
             Files.createDirectories(dir);
             var roster = new MarineRoster();
             roster.ensureActiveSoldiers(chapter.squads * 12);
-            assertTrue(roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment())));
+            assertTrue(roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, houndDeployment(houndPod))));
+            // A company buys its later cards; the evidence company is simply handed the named one.
+            roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, squadWeapons));
             var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
             for (String squad : selected) assertEquals(SquadEquipmentResult.APPLIED,
-                    roster.applySquadEquipment(squad, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                    roster.applySquadEquipment(squad, squadWeapons,
                             SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
             // Same campaign organization path; each squad has an acting NCO, with no officer buffs.
             var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
@@ -425,11 +436,11 @@ class CorvusCombatEvidenceTest {
                 Files.writeString(dir.resolve("frame-index.json"), frameTicks.toString());
                 var kits = new JSONArray();
                 for (var seat : deployment.commitments()) kits.put(new JSONObject().put("soldier", seat.campaignSoldierId())
-                        .put("weapon", seat.primaryWeaponId()).put("grade", seat.equipmentGrade().name())
+                        .put("weapon", seat.primaryWeaponId()).put("special", seat.specialEquipmentId() == null ? "" : seat.specialEquipmentId()).put("grade", seat.equipmentGrade().name())
                         .put("armorCapacity", seat.armorCapacity()).put("armorRating", seat.armorRating()));
                 var report = new JSONObject().put("chapter", chapter.title()).put("seed",mission.battleSeed)
                         .put("companyBoats",boatCount).put("captainBonuses",false)
-                        .put("weapons",SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)
+                        .put("weapons",squadWeapons).put("houndShoulder",houndPod == null ? "" : houndPod.name())
                         .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
                         .put("result", sim.isComplete() ? String.valueOf(sim.getWinner()) : "TIMEOUT")
                         .put("ticks",sim.getSimTickIndex()).put("namedSeats",deployment.size()).put("landed",landed.size())
@@ -515,6 +526,15 @@ class CorvusCombatEvidenceTest {
             assertTrue(progress.begin(mission.id, chapter.planetName));
             progress.settle(mission.id, chapter.planetName, true, chapter.payment);
         }
+    }
+
+    /** The recovered Hound, with {@code leftShoulderPod} fitted when one is named. */
+    private static MechDeploymentSpec houndDeployment(MechWeaponComponent leftShoulderPod) {
+        var spec = WaylineHound.deployment();
+        if (leftShoulderPod == null) return spec;
+        return new MechDeploymentSpec(spec.variant(), spec.role(), spec.missileReplenisher(), spec.arms(),
+                spec.leftArm(), spec.rightArm(), leftShoulderPod, spec.rightShoulder(), spec.displayName(),
+                spec.frame(), spec.campaignId(), spec.refit(), spec.wear());
     }
 
     private static JSONArray objectives(BattleSimulation sim) throws Exception {
