@@ -959,9 +959,13 @@ public class AirSystem {
                     mission.pendingDelay -= dt;
                     if (mission.standby) {
                         // A ferry craft with its own loads flown waits here,
-                        // re-armed, for the oldest queued machine it can lift.
-                        LiftQueue.MachineDrop job = mission.pendingDelay <= 0f
-                                ? liftQueue.takeFor(frame) : null;
+                        // re-armed. A squad sortie another craft still owes
+                        // comes first: it flies next tick through the ordinary
+                        // path below. Then the oldest machine it can lift.
+                        if (mission.pendingDelay > 0f) break;
+                        if (LiftQueue.takeSquadSortie(world, air, mission,
+                                carrier == null ? 0 : carrier.capacity)) break;
+                        LiftQueue.MachineDrop job = liftQueue.takeFor(frame);
                         if (job == null) break;
                         LiftQueue.loadMachine(mission, job);
                         body.teleport(mission.entryX, mission.entryY, AirBody.facingToward(

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,7 +18,10 @@ import java.util.List;
  *
  * <p>The opening squad loads stand at its head: each ferry craft's own sorties were queued
  * when the battle was set up, bound to that craft, so a craft flies every one of them
- * before anything ordered later. Behind them come the machine drops the player orders, one
+ * before anything ordered later. A craft standing by takes a squad sortie another ferry
+ * craft still owes before it takes a machine ({@link #takeSquadSortie}), so heavy lift that
+ * joined the ferry with no seats of its own booked lands squads too, and no machine comes
+ * down while a squad still waits. Behind them come the machine drops the player orders, one
  * machine each, first in first out. A craft that has flown its own loads takes the first
  * queued drop its lift rating admits ({@link LiftAdmission}); one that admits nothing
  * leaves when its loads are done, as before. A sortie carries its squad load or exactly one
@@ -131,6 +136,90 @@ public final class LiftQueue {
             ShuttleMission mission = world.mission(id);
             if (ferryCandidate(mission) && mission.state != ShuttleState.GONE) mission.ferry = true;
         }
+    }
+
+    /**
+     * Gives standby craft {@code mission} the last squad sortie another ferry craft still owes,
+     * so squad loads leave the queue before any machine. It takes from the craft with the most
+     * sorties owed (the first in {@code air} on a tie) and flies that sortie as the craft
+     * would have: same landing ground, route, landing area, arrival group and claim. A load
+     * larger than {@code seats} is split, the rest staying with its craft; a load of plain
+     * combatants (no loadouts to split) is taken only whole. False, with nothing changed,
+     * when no squad sortie is owed that this craft can seat.
+     */
+    public static boolean takeSquadSortie(World world, Iterable<Long> air, ShuttleMission mission, int seats) {
+        List<ShuttleMission> ferry = new ArrayList<>();
+        for (long id : air) {
+            ShuttleMission other = world.mission(id);
+            if (other != null && other != mission && world.airFaction(id) == Faction.MARINE) ferry.add(other);
+        }
+        ShuttleMission donor = squadDonor(ferry, seats);
+        if (donor == null) return false;
+        takeLastSortie(mission, donor, seats);
+        return true;
+    }
+
+    /**
+     * The ferry craft a standby craft with {@code seats} takes a squad sortie from: the one owing
+     * the most sorties beyond the one it is on, the first on a tie, or {@code null} when none
+     * owes one this craft can seat.
+     */
+    static ShuttleMission squadDonor(List<ShuttleMission> craft, int seats) {
+        if (seats < 1) return null;
+        ShuttleMission donor = null;
+        int owedMost = 0;
+        for (ShuttleMission other : craft) {
+            if (!other.ferry || other.standby || other.destroyed || other.state == ShuttleState.GONE
+                    || other.payload != null && other.payload != InfantryPayload.INSTANCE) continue;
+            int owed = other.totalCycles - other.currentCycle - 1;
+            if (owed <= owedMost) continue;
+            if (lastLoad(other) == null && other.seatsPerSortie > seats) continue;
+            donor = other;
+            owedMost = owed;
+        }
+        return donor;
+    }
+
+    /** Moves {@code donor}'s last owed sortie, or its first {@code seats} marines, onto standby {@code mission}. */
+    static void takeLastSortie(ShuttleMission mission, ShuttleMission donor, int seats) {
+        int last = donor.totalCycles - 1;
+        MarineLoadout[] load = lastLoad(donor);
+        MarineLoadout[] taken = load;
+        if (load != null && load.length > seats) {
+            taken = Arrays.copyOf(load, seats);
+            donor.cycleLoadouts = donor.cycleLoadouts.clone();
+            donor.cycleLoadouts[last] = Arrays.copyOfRange(load, seats, load.length);
+        } else {
+            donor.totalCycles = last;
+        }
+        mission.standby = false;
+        mission.payload = InfantryPayload.INSTANCE;
+        mission.marineLoadout = taken;
+        mission.marinesRemaining = taken != null ? taken.length : donor.seatsPerSortie;
+        mission.deboardedThisSortie = 0;
+        mission.squadId = Squad.NO_SQUAD;
+        mission.totalCycles = mission.currentCycle + 1;
+        mission.lzX = donor.lzX;
+        mission.lzY = donor.lzY;
+        mission.entryX = donor.entryX;
+        mission.entryY = donor.entryY;
+        mission.exitX = donor.exitX;
+        mission.exitY = donor.exitY;
+        mission.landingAreaId = donor.landingAreaId;
+        mission.arrivalGroupId = donor.arrivalGroupId;
+        mission.commandClaim = donor.commandClaim;
+        mission.commandOwnsObjective = donor.commandOwnsObjective;
+        mission.assignNode = donor.assignNode;
+        mission.assignZoneId = donor.assignZoneId;
+        mission.garrisonNode = donor.garrisonNode;
+        mission.deboardUnitType = donor.deboardUnitType;
+    }
+
+    /** The loadouts of the last sortie {@code mission} owes, or {@code null} for plain combatants. */
+    private static MarineLoadout[] lastLoad(ShuttleMission mission) {
+        int last = mission.totalCycles - 1;
+        return mission.cycleLoadouts != null && last >= 0 && last < mission.cycleLoadouts.length
+                ? mission.cycleLoadouts[last] : null;
     }
 
     /** Whether a live ferry craft among {@code air} has a lift rating that admits {@code payload}. */
