@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectivePressure;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRoll;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
 import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.objective.optional.PressuredObjective;
 import com.dillon.starsectormarines.battle.objective.optional.Reward;
@@ -67,6 +68,12 @@ public final class ColonyBreachObjectives {
     /** Bore numbers of each objective's pressure, above the loading's. */
     static final int STRIP_BORE = BorePressure.NUMBER + 1, MUSTER_BORE = BorePressure.NUMBER + 2,
             HALL_BORE = BorePressure.NUMBER + 3;
+    /**
+     * Cells the breach's bores keep from an objective's set piece, so what reaches it first is the pressure its
+     * beats pace. A first-wave bore's foraging pulse overran a yard from 48 cells (loading-pressure-look, seed 11)
+     * and passed it by from 83.
+     */
+    static final int BREACH_CLEARANCE = 80;
     /** Street steps from a set piece's way in its bore opens at, nearest and farthest. */
     static final int SITE_MIN = 24, SITE_MAX = 40;
     /**
@@ -99,7 +106,19 @@ public final class ColonyBreachObjectives {
                 ColonyBreachSequence.BEAT_PREFIX));
         sim.installOptionalObjectives(board);
         board.start(sim.getSimTickIndex());
+        // The objective's pressure is its own bore's: the breach's bores keep clear of its set piece.
+        for (OptionalObjective o : rolled) {
+            int[] centre = centre(board.runtime(o.key()));
+            if (centre != null) sim.clearColonyBreachOf(centre[0], centre[1], BREACH_CLEARANCE);
+        }
         return board;
+    }
+
+    /** The middle of the set piece a runtime's own bore presses, or null where it brought no bore. */
+    private static int[] centre(ObjectiveRuntime runtime) {
+        ObjectivePressure pressure = runtime instanceof LoadingObjective l ? l.pressure()
+                : runtime instanceof PressuredObjective p ? p.pressure() : null;
+        return pressure instanceof BorePressure bore ? bore.centre() : null;
     }
 
     /** The entries a forcing spec names, in pool order. */

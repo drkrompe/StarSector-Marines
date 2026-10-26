@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * The Bombard's parts, exported by {@code art-source/rav-redesign/artillery/export_bombard_rig.py}: each side's legs,
+ * The Bombard's parts, exported by {@code art-source/rav-redesign/artillery/export_bombard_rig.py}: each leg,
  * the shell over the sac, the tail in slices from the root, the sling and the glob, all head-up; and the shell cut in two
  * down its seam, which a dead Bombard cracks open into.
  */
@@ -15,8 +15,8 @@ public final class RavBombardAssets {
 
     public static final String ROOT = "graphics/battle/rav-bombard/";
 
-    final LayeredSpriteCache legsL;
-    final LayeredSpriteCache legsR;
+    /** Each leg, left then right, front to back, as {@link RavBombardRig#LEG_COL} lists them. */
+    final LayeredSpriteCache[] legs = new LayeredSpriteCache[RavBombardRig.LEGS];
     final LayeredSpriteCache body;
     final LayeredSpriteCache sling;
     final LayeredSpriteCache glob;
@@ -24,11 +24,8 @@ public final class RavBombardAssets {
     final LayeredSpriteCache shellR;
     final LayeredSpriteCache[] tail = new LayeredSpriteCache[RavBombardRig.TAIL_ART_SLICES];
 
-    private RavBombardAssets(LayeredSpriteCache legsL, LayeredSpriteCache legsR, LayeredSpriteCache body,
-                             LayeredSpriteCache sling, LayeredSpriteCache glob, LayeredSpriteCache shellL,
-                             LayeredSpriteCache shellR) {
-        this.legsL = legsL;
-        this.legsR = legsR;
+    private RavBombardAssets(LayeredSpriteCache body, LayeredSpriteCache sling, LayeredSpriteCache glob,
+                             LayeredSpriteCache shellL, LayeredSpriteCache shellR) {
         this.body = body;
         this.sling = sling;
         this.glob = glob;
@@ -38,13 +35,17 @@ public final class RavBombardAssets {
 
     /** Every sprite through loader, or null when any is missing, so the Bombard keeps its stand-in art. */
     public static RavBombardAssets load(Function<String, LayeredSpriteCache> loader) {
-        RavBombardAssets assets = new RavBombardAssets(loader.apply(ROOT + "legs-l.png"),
-                loader.apply(ROOT + "legs-r.png"), loader.apply(ROOT + "body.png"), loader.apply(ROOT + "sling.png"),
-                loader.apply(ROOT + "glob.png"), loader.apply(ROOT + "shell-l.png"),
+        RavBombardAssets assets = new RavBombardAssets(loader.apply(ROOT + "body.png"),
+                loader.apply(ROOT + "sling.png"), loader.apply(ROOT + "glob.png"), loader.apply(ROOT + "shell-l.png"),
                 loader.apply(ROOT + "shell-r.png"));
-        if (assets.legsL == null || assets.legsR == null || assets.body == null || assets.sling == null
-                || assets.glob == null || assets.shellL == null || assets.shellR == null) {
+        if (assets.body == null || assets.sling == null || assets.glob == null || assets.shellL == null
+                || assets.shellR == null) {
             return null;
+        }
+        for (int i = 0; i < assets.legs.length; i++) {
+            String side = i < RavBombardRig.LEGS_PER_SIDE ? "l" : "r";
+            assets.legs[i] = loader.apply(ROOT + "leg-" + side + (i % RavBombardRig.LEGS_PER_SIDE) + ".png");
+            if (assets.legs[i] == null) return null;
         }
         for (int i = 0; i < assets.tail.length; i++) {
             assets.tail[i] = loader.apply(ROOT + "tail-" + i + ".png");
@@ -56,8 +57,7 @@ public final class RavBombardAssets {
     /** Every image, for the unit atlas. */
     public List<LayeredSpriteCache> layers() {
         List<LayeredSpriteCache> all = new ArrayList<>();
-        all.add(legsL);
-        all.add(legsR);
+        for (LayeredSpriteCache leg : legs) all.add(leg);
         all.add(body);
         all.add(sling);
         all.add(glob);

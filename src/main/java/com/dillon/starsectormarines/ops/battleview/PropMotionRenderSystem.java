@@ -87,7 +87,8 @@ final class PropMotionRenderSystem implements RenderSystem {
                     || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
             float centreX = d.cellX + d.footprintCellsX * 0.5f;
             float centreY = d.cellY + d.footprintCellsY * 0.5f;
-            if (fogged && !fog.isCellRevealed((int) centreX, (int) centreY)) continue;
+            // Moving machinery waits for the fog; a prop that is its own fixed overhead art stands like a roof.
+            if (fogged && !motion.liftsItself() && !fog.isCellRevealed((int) centreX, (int) centreY)) continue;
             float phase = phases.advance(ctx, d, motion, damaged, now, centreX, centreY);
             float fade = layer == PropMotion.Layer.OVERHEAD
                     ? fade(d, seenUnder(seenFigures, width, d), ctx.realDt) : 1f;
@@ -139,9 +140,13 @@ final class PropMotionRenderSystem implements RenderSystem {
         return state[0];
     }
 
-    /** One step of a fade from {@code from} toward {@code to}, covering the full range in {@link #FADE_SECONDS}. */
+    /**
+     * One step of a fade from {@code from} toward {@code to}, covering the full range in {@link #FADE_SECONDS}. A frame
+     * with no time behind it (a still) shows the fade where it is heading, not wherever an earlier still left it.
+     */
     static float ease(float from, float to, float dt) {
-        float step = (1f - SEEN_UNDER_ALPHA) * Math.max(0f, dt) / FADE_SECONDS;
+        if (dt <= 0f) return to;
+        float step = (1f - SEEN_UNDER_ALPHA) * dt / FADE_SECONDS;
         return from < to ? Math.min(to, from + step) : Math.max(to, from - step);
     }
 

@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Cell;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Sites;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -27,7 +29,7 @@ class DustLedgerAlarmTest {
     private static final Sites SITES = new Sites(Area.rect(0, 10, 3, 13), new Cell(1, 11), Area.rect(21, 5, 23, 7),
             new Cell(22, 6), new Cell(23, 5), new Cell(30, 12), Sites.ring(GROUNDS), GROUNDS, List.of(new Cell(10, 6)),
             Area.rect(6, 0, 8, 2), List.of(new Cell(7, 1), new Cell(8, 1)), Area.rect(10, 0, 12, 2),
-            Area.rect(10, 10, 12, 12), List.of(new Cell(30, 2), new Cell(31, 2)), new Cell(25, 6));
+            Area.rect(10, 10, 12, 12), List.of(new Cell(30, 2), new Cell(31, 2)), new Cell(25, 6), Area.rect(5, 4, 6, 5));
 
     @Test void aSightingInsideTheRingRaisesTheAlarmAndReleasesWhatTheQuietPhaseEarned() {
         BattleSimulation sim = arena();
@@ -64,9 +66,33 @@ class DustLedgerAlarmTest {
         assertEquals(0, ledger.pendingMembers(Faction.DEFENDER));
         var rows = DustLedgerChecklist.items(ledger, sim);
         assertEquals(List.of("dust-ledger-1-clock", "dust-ledger-2-ledger", "dust-ledger-3-broker",
-                "dust-ledger-4-coupling", "dust-ledger-5-warden"), rows.stream().map(r -> r.id()).toList());
+                "dust-ledger-4-coupling", "dust-ledger-5-warden", "dust-ledger-6-feed"), rows.stream().map(r -> r.id()).toList());
         assertEquals(MissionObjectiveSnapshot.State.COMPLETE, rows.get(3).state(), "the coupling row reads paid");
         assertEquals(MissionObjectiveSnapshot.State.FAILED, rows.get(4).state(), "the nod was not taken in time");
+    }
+
+    @Test void aFeedCutBeforeTheAlarmLeavesTheNestsDeadWhenItComes() {
+        BattleSimulation sim = arena();
+        RaidObjective raid = new RaidObjective("ledger", "Ledger room", 22, 6, 0, 1, 11);
+        sim.addObjective(raid);
+        DustLedgerSequence ledger = sim.installDustLedger(SITES, raid, List.of(), List.of());
+        long nest = sim.spawn(MapTurret.create("nest", Faction.DEFENDER, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 26, 10));
+        long other = sim.spawn(MapTurret.create("other", Faction.DEFENDER, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 26, 2));
+        ledger.defences(sim, List.of(nest), List.of());
+        long linesman = sim.spawn(new EntitySpec("linesman", Faction.MARINE, UnitType.MARINE, 5, 4));
+        int ticks = (int) Math.ceil(DustLedgerProgress.FEED_SECONDS / BattleSimulation.TICK_DT) + 1;
+        for (int i = 0; i < ticks; i++) ledger.advance(sim);
+        assertEquals(DustLedgerProgress.Side.PAID, ledger.progress().feed());
+        assertTrue(sim.turretState().unpowered(nest));
+        assertFalse(sim.turretState().unpowered(other), "only the tap's nests lose power");
+
+        sim.spawn(new EntitySpec("sentry", Faction.DEFENDER, UnitType.MARINE, 22, 6));
+        sim.world().setPos(linesman, 17.5f, 6.5f);
+        ledger.advance(sim);
+        assertFalse(ledger.progress().quiet());
+        var beats = sim.getStoryBeats().stream().map(e -> e.id()).toList();
+        assertTrue(beats.containsAll(List.of("corvus.dust_ledger.feed_approach", "corvus.dust_ledger.feed_cut",
+                "corvus.dust_ledger.alarm_sighted", "corvus.dust_ledger.nests_dark")), beats.toString());
     }
 
     private static int count(BattleSimulation sim, Faction faction) {

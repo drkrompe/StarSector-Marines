@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 /**
  * Data owner for the {@code TURRET_STATE} component — typed by-id access to a
@@ -42,6 +43,8 @@ public final class TurretStateService {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+    /** Turrets whose power is cut: they hold fire for the rest of the battle. Written serially, read in the update. */
+    private final LongOpenHashSet unpowered = new LongOpenHashSet();
 
     public TurretStateService(EntityWorld entityWorld, BattleComponents components) {
         this.entityWorld = entityWorld;
@@ -49,6 +52,12 @@ public final class TurretStateService {
     }
 
     /** Presence check — true iff {@code id} is a live turret (carries TURRET_STATE). Gate the other reads on this. */
+    /** Cuts turret {@code id}'s power for good (the Dust Ledger's feed): it stands, can be wrecked, and never fires. */
+    public void cutPower(long id) { unpowered.add(id); }
+
+    /** Whether turret {@code id}'s power has been cut. */
+    public boolean unpowered(long id) { return !unpowered.isEmpty() && unpowered.contains(id); }
+
     public boolean isTurret(long id) { return entityWorld.has(id, components.TURRET_STATE); }
 
     /** Current barrel facing, degrees. 0° = +Y (north). */

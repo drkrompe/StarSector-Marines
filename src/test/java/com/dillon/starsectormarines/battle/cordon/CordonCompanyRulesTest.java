@@ -91,7 +91,34 @@ class CordonCompanyRulesTest {
         List<int[]> beats = List.of(new int[]{10, 10, 2}, new int[]{20, 20, 2});
         List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), beats, null);
         assertEquals("beat-0", duties.get(0).key());
+        // A call that names its beat keeps that beat's key whatever calls before it.
+        assertEquals("beat-2", CordonCompanyRules.duties(List.of(), List.of(), List.of(),
+                List.of(new int[]{10, 10, 1, 2}), null).get(0).key());
         assertEquals(3, CordonCompanyRules.assign(duties, company(6), 0).size());
+    }
+
+    @Test
+    void theGateIsHeldAfterTheEscortAndOverTheFloor() {
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(new int[]{50, 0}),
+                List.of(new int[]{300, 300}), List.of(), null);
+        assertEquals(List.of(Kind.CONVOY, Kind.GATE), duties.stream().map(Duty::kind).toList());
+        // Six squads with a floor of two: the escort's three and the gate's two all go, as the road's duties do.
+        Map<Integer, Duty> out = CordonCompanyRules.assign(duties, company(6), 2);
+        assertEquals(CordonCompanyRules.DETACHMENT, out.values().stream().filter(d -> d.kind() == Kind.GATE).count());
+        assertEquals(5, out.size());
+    }
+
+    @Test
+    void aSquadDrawnToACallGoesBackToItsDutyAndOutranksItsStandIn() {
+        assertEquals("gate-0", CordonCompanyRules.dutyOf("road-0", "gate-0", k -> !k.equals("road-0")));
+        assertEquals("road-0", CordonCompanyRules.dutyOf("road-0", "gate-0", k -> true));
+        assertEquals(null, CordonCompanyRules.dutyOf("road-0", "gate-0", k -> false));
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(new int[]{300, 300}),
+                List.of(), null);
+        // Squad 0 came back to the gate; 1 and 2 were sent from afar in its place: the nearest two keep it.
+        List<Squad> squads = List.of(new Squad(0, 300, 295, "gate-0"), new Squad(1, 300, 160, "gate-0"),
+                new Squad(2, 302, 290, "gate-0"));
+        assertEquals(Map.of(0, duties.get(0), 2, duties.get(0)), CordonCompanyRules.assign(duties, squads, 0));
     }
 
     @Test
@@ -111,20 +138,21 @@ class CordonCompanyRulesTest {
     }
 
     @Test
-    void aWalkingSquadStallsOnlyWhenItStopsClosingTheWay() {
+    void aWalkingSquadStallsOnlyWhenItStopsGoing() {
         CordonCompanyRules.Progress progress = new CordonCompanyRules.Progress();
         int stall = CordonCompanyRules.STALL_TICKS;
-        assertFalse(progress.stalled(1, "beat-0", 90, false, 0));
-        assertFalse(progress.stalled(1, "beat-0", 85, false, stall - 1));
-        assertTrue(progress.stalled(1, "beat-0", 85, false, stall));
-        // Closing the way, standing on the duty or riding to it each start the watch afresh.
-        assertFalse(progress.stalled(2, "beat-0", 90, false, 0));
-        assertFalse(progress.stalled(2, "beat-0", 70, false, stall - 1));
-        assertFalse(progress.stalled(2, "beat-0", 70, false, 2 * stall - 2));
-        assertFalse(progress.stalled(3, "relieve-1", 5, false, 0));
-        assertFalse(progress.stalled(3, "relieve-1", 5, false, 3 * stall));
-        assertFalse(progress.stalled(4, "beat-0", 90, true, 0));
-        assertFalse(progress.stalled(4, "beat-0", 90, true, 3 * stall));
+        assertFalse(progress.stalled(1, "beat-0", 0, 0, 90, false, 0));
+        assertFalse(progress.stalled(1, "beat-0", 0, 5, 85, false, stall - 1));
+        assertTrue(progress.stalled(1, "beat-0", 0, 5, 85, false, stall));
+        // Walking after an escort cell that runs ahead of it, never nearer, is going.
+        assertFalse(progress.stalled(2, "convoy-0", 0, 0, 40, false, 0));
+        assertFalse(progress.stalled(2, "convoy-0", 0, 12, 45, false, stall - 1));
+        assertFalse(progress.stalled(2, "convoy-0", 0, 24, 50, false, 2 * stall - 2));
+        // Standing on the duty or riding to it never stalls.
+        assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 0));
+        assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 3 * stall));
+        assertFalse(progress.stalled(4, "beat-0", 0, 0, 90, true, 0));
+        assertFalse(progress.stalled(4, "beat-0", 0, 0, 90, true, 3 * stall));
     }
 
     @Test
@@ -148,6 +176,9 @@ class CordonCompanyRulesTest {
         assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.URBAN, 0, 0, 150, 0, 10, 0));
         assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 80, 0, 10, 0));
         assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 150, 0, 200, 0));
+        // Fifty cells back to the base for a hundred and fifty out walks as far as the duty, for nothing.
+        assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 100, 0, -50, 0));
+        assertTrue(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 150, 0, -20, 0));
     }
 
     @Test

@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-24 — vehicles get a sealed doll and a kit rack (vehicle kits); the auxiliary compartment, two columns wide, holds banks, vents and loaders.
+Updated: 2026-10-25 — a click inside a rack's cycle fires its next group, as a hold does; vehicle kits gain the accelerated loader and the capacitor pack.
 
 ## Purpose
 
@@ -199,6 +199,10 @@ increasing an encounter's total armored threat.
   - **Appliqué plate** (Common): a quarter more armor capacity on every plate.
   - **Spall liner** (Common): a fifth more structure.
   - **Ready rack** (Common, armed hulls): half again the turret's magazine.
+  - **Accelerated loader** (Advanced, armed hulls): every mount's loader puts a
+    pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
+  - **Capacitor pack** (Advanced, hulls whose gun builds flux): half again the
+    flux the gun holds before it overloads.
   - **Spaced skirts** (Advanced, tracked hulls): +2 armor rating.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
@@ -1460,21 +1464,24 @@ nothing; cancelled packets retain spent flux and ammo. Dissipation runs once in 
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
 
-**A held rack chains its salvos** (`SalvoChain`). A rack's trigger is one
-salvo; once a hold has fired one, the next follows as soon as the last has gone, without the
-rack's cycle, until the button is released or the rack is empty, and the cycle then runs from the
-last salvo. So an LRM-15 is 5 on a click, 10 on a short hold and 15 on a long one, and a deeper rack
-is a bigger spike. A fresh press after release waits out the cycle like any trigger. A chained
+**A rack chains its salvos** (`SalvoChain`). A rack's trigger is one
+salvo; once a hold has fired one, or while the cycle of the last salvo still runs, the next loaded
+salvo follows as soon as the last has gone, until the button is released or the rack is empty, and
+the cycle then runs from the last salvo. So an LRM-15 is 5 on a click, 10 on two clicks or a short
+hold and 15 on three or a long one, and a deeper rack is a bigger spike (owner, 2026-10-25: a forced
+wait between a rack's own groups made an LRM-15 no better than an LRM-5). The cycle is no wait between
+groups; what bounds a rack is its load, its flux and its loader. Only a press after the cycle has run
+out is a fresh trigger. A chained
 salvo reserves half its trigger's flux (owner, 2026-10-23): at the full share an LRM-15's fifteen
 would cost 120 and could never leave inside the stock 100, while at half they cost 80, and flux still
 bounds the deepest racks (an SRM-15's six salvos would cost 147). The replenisher restores the
 spent salvos one pack at a time, as ever. An autonomous mech chooses its count on a fresh trigger:
 one salvo at a soft target, the whole load at a mech or at a target its own side's point defence
 covers, and half the load (rounded up) at other armor; a chained salvo goes only to the body its
-chain began on. A vehicle turret's missile launcher obeys the same hold and choice, except that its
-crew chains at most three salvos (owner, 2026-10-23): a vehicle magazine is its whole stock and is
-never replenished in battle, so it is not one rack's buffer to empty at the first machine it sees.
-The owner has since asked for vehicles to rearm (`vehicle-rearm.md`), which revisits this cap.
+chain began on. A vehicle turret's missile launcher obeys the same clicks, hold and choice, except
+that its crew chains at most three salvos (owner, 2026-10-23): its loader is slow beside its ready
+magazine (`convoy-nouns.md`, the loader), so a crew keeps something back for the next machine rather
+than emptying a deep rack at the first it sees.
 
 **Against a machine, the mount that best defeats its armor fires first.** The
 reservoir admits one packet at a time, so whichever mount an autonomous mech tries

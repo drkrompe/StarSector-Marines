@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — the right button lists throws from both special slots, so one Marine can carry smoke and a frag.
+Updated: 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -627,9 +627,11 @@ contract belongs to the left button with the direct-fire specials. Items with no
 manual contract (grenade launchers, satchels) stay autonomous
 and never join the list.
 
-A held rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a
-hold that has fired one keeps firing the next as soon as the last has gone, without the cycle, until
-release or an empty rack. A vehicle turret's launcher does the same under manual fire.
+A rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a hold
+that has fired one, or another click while the last salvo's cycle still runs, fires the next loaded
+salvo as soon as the last has gone, until release or an empty rack, so three clicks on an LRM-15 are
+its three groups. A vehicle turret's launcher does the same under manual fire, bounded by its own
+flux, which the HUD's flux bar shows for any hull whose gun builds it.
 
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground

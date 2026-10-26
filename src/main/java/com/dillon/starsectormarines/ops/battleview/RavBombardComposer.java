@@ -5,7 +5,8 @@ import com.dillon.starsectormarines.battle.appearance.RavBurst;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
- * Draws a Bombard from its parts, seen from above: each side's legs swung about its hip, the shell over them, and the
+ * Draws a Bombard from its parts, seen from above: each leg turned about its hip to its claw, stretched to reach it
+ * and drawn larger while lifted in a step, the shell over them, and the
  * tail's slices strung between the points its rig lays out, root under the shell's rear to the sling. A slice standing
  * up off the ground draws larger and shortened, so the tail arching over the back reads as rising toward the camera.
  * Laid out behind, the tail is drawn under the shell; arched over the back to throw, it is drawn over it, the glob
@@ -26,7 +27,7 @@ final class RavBombardComposer {
             - RavBombardRig.TAIL_ART_SLICES * RavBombardRig.SLICE_PX) / U;
     /** A slice seen end on still shows this much of its length: its cross-section. */
     private static final float MIN_STRETCH = 0.4f;
-    /** The legs follow this share of the body's rock: their feet are on the ground. */
+    /** The hips follow this share of the body's rock: their feet are on the ground. */
     private static final float LEG_ROCK = 0.4f;
     /** The glob in the sling, its long axis in cells. */
     private static final float GLOB_CELLS = 0.3f;
@@ -54,13 +55,16 @@ final class RavBombardComposer {
         float body = facing + rig.rock();
         float spritePx = ppc / (U * SCALE);
         float[] p = new float[2];
-        rotate(0f, rig.shift(), facing, p);
+        rotate(rig.sideShift(), rig.shift(), facing, p);
         float ax = cx + p[0] * ppc, ay = cy + p[1] * ppc;
 
-        legs(out, art.legsL, RavBombardRig.LEGS_L_COL, RavBombardRig.HIP_L_COL, true, rig, ax, ay, ppc, spritePx,
-                facing, alpha);
-        legs(out, art.legsR, RavBombardRig.LEGS_R_COL, RavBombardRig.HIP_R_COL, false, rig, ax, ay, ppc, spritePx,
-                facing, alpha);
+        // a lifted leg draws over its planted neighbours
+        for (int pass = 0; pass < 2; pass++) {
+            for (int i = 0; i < RavBombardRig.LEGS; i++) {
+                if ((rig.legLift(i) > 0f) != (pass == 1)) continue;
+                leg(out, art.legs[i], i, rig, ax, ay, ppc, spritePx, facing, alpha);
+            }
+        }
         // the root slice lies under the shell's rear either way; the rest crosses over it once arched
         boolean over = rig.curl() > OVER_BACK;
         tail(out, art, rig, ax, ay, ppc, spritePx, body, alpha, 0, over ? 1 : RavBombardRig.TAIL_SEGMENTS);
@@ -89,18 +93,20 @@ final class RavBombardComposer {
                 angle, 1f, 1f, 1f, alpha);
     }
 
-    /** One side's legs, swung about its hip and splayed out from it. */
-    private static void legs(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache s, float col, float hipCol,
-                             boolean left, RavBombardRig rig, float ax, float ay, float ppc, float spritePx,
-                             float facing, float alpha) {
-        float splay = rig.legSplay(left);
+    /** Leg {@code i}, turned about its hip, stretched to its claw and splayed, larger while lifted in a step. */
+    private static void leg(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache s, int i, RavBombardRig rig,
+                            float ax, float ay, float ppc, float spritePx, float facing, float alpha) {
+        // the splay was a side's stretch; a single leg takes half of it, as a longer reach
+        float splay = 1f + (rig.legSplay(i < RavBombardRig.LEGS_PER_SIDE) - 1f) * 0.5f;
+        float grow = rig.legReach(i) * splay * RavBombardRig.liftScale(rig.legLift(i));
         float turn = facing + rig.rock() * LEG_ROCK;
-        float swing = turn + rig.legSwing(left);
+        float swing = turn + rig.legAngle(i);
         float[] hip = new float[2];
-        point(hipCol, RavBombardRig.HIP_ROW, turn, ax, ay, ppc, hip);
+        point(RavBombardRig.HIP_COL[i], RavBombardRig.HIP_ROW[i], turn, ax, ay, ppc, hip);
         float[] o = new float[2];
-        rotate((col - hipCol) / U * splay, (RavBombardRig.HIP_ROW - RavBombardRig.LEGS_ROW) / U, swing, o);
-        out.add(s, hip[0] + o[0] * ppc, hip[1] + o[1] * ppc, s.pxWidth * spritePx * splay, s.pxHeight * spritePx,
+        rotate((RavBombardRig.LEG_COL[i] - RavBombardRig.HIP_COL[i]) / U * grow,
+                (RavBombardRig.HIP_ROW[i] - RavBombardRig.LEG_ROW[i]) / U * grow, swing, o);
+        out.add(s, hip[0] + o[0] * ppc, hip[1] + o[1] * ppc, s.pxWidth * spritePx * grow, s.pxHeight * spritePx * grow,
                 swing, 1f, 1f, 1f, alpha);
     }
 
@@ -140,7 +146,7 @@ final class RavBombardComposer {
     }
 
     /** The sac's glow: its halo's and core's widths, cells per cell of body, and alphas at full glow. */
-    private static final float GLOW_HALO = 1.3f, GLOW_CORE = 0.55f, GLOW_HALO_ALPHA = 0.55f, GLOW_CORE_ALPHA = 0.7f;
+    private static final float GLOW_HALO = 1.3f, GLOW_CORE = 0.55f, GLOW_HALO_ALPHA = 0.45f, GLOW_CORE_ALPHA = 0.28f;
     /** The glow's amber, halo then core. */
     private static final float[] GLOW_HALO_TINT = {1f, 0.55f, 0.12f}, GLOW_CORE_TINT = {1f, 0.8f, 0.4f};
 
@@ -152,7 +158,7 @@ final class RavBombardComposer {
         float g = rig.glow();
         if (glow == null || g <= 0f) return;
         float[] p = new float[2];
-        rotate(0f, rig.shift(), rig.facingDegrees(), p);
+        rotate(rig.sideShift(), rig.shift(), rig.facingDegrees(), p);
         float[] sac = new float[2];
         point(CENTRE, SAC_ROW, rig.facingDegrees() + rig.rock(), cx + p[0] * ppc, cy + p[1] * ppc, ppc, sac);
         out.addAdditiveSprite(RenderLayer.UNITS, glow, sac[0], sac[1], ppc * GLOW_HALO, ppc * GLOW_HALO * 1.5f,

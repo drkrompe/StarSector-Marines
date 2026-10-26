@@ -2081,7 +2081,14 @@ its own (numbered from 90, clear of the eruptions) opened on the street near
 the set piece, whose surges the objective calls on its own beats, before the
 tremor as after it, and whose broods it sends in down the set piece's lanes.
 Collapsing that bore ends the pressure, which a guard may gamble on. When the
-objective ends its survivors wander as the rest of the swarm.
+objective ends its survivors wander as the rest of the swarm. The breach keeps
+out of the set piece's way: once the objective is rolled, any eruption site
+within 80 cells of the set piece's middle (a first-wave bore's foraging pulse
+overruns a yard from closer) is
+re-seated at the nearest place outside that ring, keeping its number and time
+(a first-wave site still off the walk in from the field where any such place
+is left), and no bore buds inside it (`ColonyEruptionPlan.clearOf`), so what reaches the
+set piece first is the pressure its beats pace.
 
 ## Flow
 
@@ -2199,7 +2206,8 @@ sounding, so many bodies doing one thing are thicker and somewhat louder than
 one without drowning the fire around them; two voices of one sound never start
 on one tick (the second waits a tick or two), and one body does not repeat
 itself inside its own gap (`VoicePool`). Footfalls come from the bodies nearest
-the listener, so a pack reads as a pack, and the swarm is heard only on ground
+the listener, so a pack reads as a pack (the Bombard's from its tripod landing, as its rig steps it, rather than
+from ground covered), and the swarm is heard only on ground
 the player has seen. A body fed to a bore is swallowed as it
 reaches the mouth: a wet gulp (the Spitter's lob, slowed) near -29 LUFS and, a
 beat later, its landing down inside (the body thud, deeper) near -33, pitched by

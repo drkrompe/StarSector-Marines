@@ -51,6 +51,8 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<int[]> roadBlocks;
         /** On the Road, where each convoy on the road no allied armour is with wants its escort; empty otherwise. */
         final List<int[]> escorts;
+        /** On the Road, the compound's gate while a convoy is coming to it or loading at it; empty otherwise. */
+        final List<int[]> gates;
         /** Where the battle's optional objectives want squads, {x, y, squads}; empty without any. */
         final List<int[]> beats;
         /** The base's apron while the swarm is on it, else {@code null}. */
@@ -64,12 +66,13 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<KnownBore> bores;
 
         Frame(CommandFrame base, List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> escorts,
-              List<int[]> beats, int[] baseOverrun, boolean tide, List<CordonLogistics.Carrier> carriers,
+              List<int[]> gates, List<int[]> beats, int[] baseOverrun, boolean tide, List<CordonLogistics.Carrier> carriers,
               Map<Integer, float[]> lifting, List<KnownBore> bores) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.radio = radio;
             this.roadBlocks = roadBlocks;
             this.escorts = escorts;
+            this.gates = gates;
             this.beats = beats;
             this.baseOverrun = baseOverrun;
             this.tide = tide;
@@ -95,6 +98,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             }
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
             List<int[]> escorts = sequence.convoys() == null || sim == null ? List.of() : sequence.convoys().unguarded(sim);
+            List<int[]> gates = sequence.convoys() == null ? List.of() : sequence.convoys().gates();
             List<int[]> beats = sequence.beats() == null || sim == null ? List.of() : sequence.beats().calls(sim);
             CordonLogistics logistics = sequence.logistics();
             int[] overrun = logistics == null || sim == null || logistics.dispatchCell(sim) != null ? null
@@ -107,7 +111,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
                     bores.add(new KnownBore(bore.beatKey(), bore.mother(), bore.x(), bore.y(), !bore.collapsed()));
                 }
             }
-            return new Frame(base, List.copyOf(radio), blocks, escorts, beats, overrun, sequence.inTide(), carriers,
+            return new Frame(base, List.copyOf(radio), blocks, escorts, gates, beats, overrun, sequence.inTide(), carriers,
                     lifting, bores);
         };
     }
@@ -116,6 +120,8 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     private final CordonPlan.Density density;
     /** The duty each squad was last given, by key, so it keeps it while it stands. */
     private final Map<Integer, String> onDuty = new HashMap<>();
+    /** The duty a more urgent call drew each squad from, by key, so it goes back to it when the call ends. */
+    private final Map<Integer, String> drawnFrom = new HashMap<>();
     /** The base the company asks for lifts, or {@code null} where there is none. */
     private final CordonLogistics depot;
     /** The tick each squad's lift was last called off, by squad. */
@@ -155,18 +161,19 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         }
         // The base feeds the line where its carriers and shed do; a city's walking columns do not need it saved.
         int[] base = density == CordonPlan.Density.URBAN ? null : frame.baseOverrun;
-        List<Duty> duties = CordonCompanyRules.duties(frame.radio, frame.roadBlocks, frame.escorts, frame.beats, base);
+        List<Duty> duties = CordonCompanyRules.duties(frame.radio, frame.roadBlocks, frame.escorts, frame.gates,
+                frame.beats, base);
         List<Squad> squads = new ArrayList<>();
         Set<Integer> striking = strikes == null ? Set.of() : strikes.members();
         // A squad on strike is never drawn for a duty: the gate already counted what it leaves behind.
         for (CommandSquadState s : owned) {
             if (striking.contains(s.squadId())) continue;
             int id = s.squadId();
-            String key = onDuty.get(id);
-            Duty on = null;
-            for (Duty d : duties) if (d.key().equals(key)) on = d;
+            String key = CordonCompanyRules.dutyOf(onDuty.get(id), drawnFrom.get(id), k -> standing(duties, k) != null);
+            Duty on = standing(duties, key);
             if (on == null) progress.forget(id);
-            else if (progress.stalled(id, key, Math.hypot(on.x() - s.centroidX(), on.y() - s.centroidY()),
+            else if (progress.stalled(id, key, s.centroidX(), s.centroidY(),
+                    Math.hypot(on.x() - s.centroidX(), on.y() - s.centroidY()),
                     frame.lifting.containsKey(id), frame.tick())) {
                 // Rule 11: it is not getting there; the duty goes to the next nearest, and it stays off it a while.
                 barred.put(id, new Barred(key, frame.tick() + CordonCompanyRules.BARRED_TICKS));
@@ -180,6 +187,11 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         }
         Map<Integer, Duty> assigned = CordonCompanyRules.assign(duties, squads,
                 CordonCompanyRules.reserveFloor(owned.size(), frame.tide));
+        for (Squad s : squads) {
+            Duty now = assigned.get(s.id());
+            if (now != null && s.duty() != null && !now.key().equals(s.duty())) drawnFrom.put(s.id(), s.duty());
+            else if (now == null || now.key().equals(drawnFrom.get(s.id()))) drawnFrom.remove(s.id());
+        }
         onDuty.clear();
         for (Map.Entry<Integer, Duty> e : assigned.entrySet()) onDuty.put(e.getKey(), e.getValue().key());
         if (strikes != null) {
@@ -272,6 +284,13 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         return best;
     }
 
+    /** The standing duty with this key, or {@code null}. */
+    private static Duty standing(List<Duty> duties, String key) {
+        if (key == null) return null;
+        for (Duty d : duties) if (d.key().equals(key)) return d;
+        return null;
+    }
+
     /** The most urgent duty anyone is on names the phase. */
     static String phase(Map<Integer, Duty> assigned) {
         Kind top = null;
@@ -279,7 +298,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         if (top == null) return "RESERVE";
         return switch (top) {
             case ROAD_BLOCK -> "CLEARING_ROAD";
-            case CONVOY -> "ESCORTING";
+            case CONVOY, GATE -> "ESCORTING";
             case BREACHED, BLED -> "ANSWERING_CALLS";
             case UNCOVERED -> "COVERING";
             case BEAT -> "OBJECTIVES";

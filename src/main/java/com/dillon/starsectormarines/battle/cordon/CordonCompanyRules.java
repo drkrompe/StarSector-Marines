@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * The company commander's rules as pure decisions ({@code cordon-allied-command.md}, The company commander's rules):
@@ -28,13 +29,15 @@ public final class CordonCompanyRules {
     static final int ESCORT_SQUADS = 3;
     /** Cells of walk past which a duty is worth a lift. */
     static final int LIFT_WORTH = 100;
+    /** How many times a squad's walking pace a carrier covers the ground, counted cautiously. */
+    static final float RIDE_PACE = 3f;
     /** Cells across a town's hinge squads stand, and a hammer's. */
     static final int POST_SPACING = 8;
     /** Cells from a duty's cell inside which a squad is on it, and not still walking there. */
     static final int ON_DUTY = 12;
-    /** Cells a squad walking to its duty must close by each {@link #STALL_TICKS}, or it has stalled. */
+    /** Cells a squad walking to its duty must cover by each {@link #STALL_TICKS}, or it has stalled. */
     static final int PROGRESS = 10;
-    /** Ticks a walking squad may go without closing {@link #PROGRESS} cells: thirty seconds. */
+    /** Ticks a walking squad may go without covering {@link #PROGRESS} cells: thirty seconds. */
     static final int STALL_TICKS = Math.round(30f / BattleSimulation.TICK_DT);
     /** Ticks a squad that stalled on a duty is kept off that duty: a minute. */
     static final int BARRED_TICKS = Math.round(60f / BattleSimulation.TICK_DT);
@@ -46,7 +49,7 @@ public final class CordonCompanyRules {
      * infantry go before any machine, which keeps to the roads and cannot lead people out.
      */
     enum Kind {
-        ROAD_BLOCK(false, false), CONVOY(false, true), BREACHED(true, false), UNCOVERED(true, false),
+        ROAD_BLOCK(false, false), CONVOY(false, true), GATE(false, true), BREACHED(true, false), UNCOVERED(true, false),
         BLED(true, false), BEAT(true, true), BASE(true, false);
 
         final boolean floorBound;
@@ -76,20 +79,39 @@ public final class CordonCompanyRules {
     }
 
     /**
-     * Whether each squad walking to its duty is getting there (rule 11): one that has not closed {@link #PROGRESS}
-     * cells of the way for {@link #STALL_TICKS}, while still more than {@link #ON_DUTY} cells off, has stalled. A
-     * squad on its duty, or riding to it, is never stalled; a new duty starts its watch afresh.
+     * The duty a squad counts as on, which it keeps while it stands: {@code now}, its own, while it {@code stands}; else {@code left}, the
+     * one a more urgent call drew it from, while that stands; else none. A road's call drew the gate's squads to a
+     * truck the swarm reached, the gate was filled from the line a hundred cells back, and when the call ended a
+     * minute later the squads at the gate walked back to the reserve as the line's walked out to replace them.
+     */
+    static String dutyOf(String now, String left, Predicate<String> stands) {
+        if (now != null && stands.test(now)) return now;
+        return left != null && stands.test(left) ? left : null;
+    }
+
+    /**
+     * Whether each squad walking to its duty is getting anywhere (rule 11): one that has not moved {@link #PROGRESS}
+     * cells from where it stood {@link #STALL_TICKS} ago, while still more than {@link #ON_DUTY} cells off its duty, has
+     * stalled. Its own going, not the way left: a convoy's escort cell runs ahead of the trucks, so a squad walking
+     * after it never closes on it, and judged by that every escort was taken off as stalled and the next sent, none
+     * ever reaching the trucks (town Road, arid 8). A squad fighting on its way is not excused: one held in a fight
+     * ninety cells off the stragglers kept their call all battle (Line town arid 10). A squad on its duty, or riding to
+     * it, is never stalled; a new duty starts its watch afresh.
      */
     static final class Progress {
-        private record Watch(String key, double best, int since) { }
+        private record Watch(String key, float x, float y, int since) { }
 
         private final Map<Integer, Watch> watches = new HashMap<>();
 
-        /** One look at {@code squad}, {@code away} cells from its duty {@code key}; true once it has stalled. */
-        boolean stalled(int squad, String key, double away, boolean riding, int tick) {
+        /**
+         * One look at {@code squad}, standing at {@code x, y}, {@code away} cells from its duty {@code key}; true once
+         * it has stalled.
+         */
+        boolean stalled(int squad, String key, float x, float y, double away, boolean riding, int tick) {
             Watch w = watches.get(squad);
-            if (w == null || !w.key().equals(key) || riding || away <= ON_DUTY || away <= w.best() - PROGRESS) {
-                watches.put(squad, new Watch(key, away, tick));
+            if (w == null || !w.key().equals(key) || riding || away <= ON_DUTY
+                    || Math.hypot(x - w.x(), y - w.y()) >= PROGRESS) {
+                watches.put(squad, new Watch(key, x, y, tick));
                 return false;
             }
             if (tick - w.since() < STALL_TICKS) return false;
@@ -107,11 +129,22 @@ public final class CordonCompanyRules {
      * The ordered duties: the road's (unchanged), then each redoubt's (breached, uncovered, bled without help), the
      * beats, and the base when it is overrun.
      *
-     * @param beats each {x, y, squads}
+     * @param beats each {x, y, squads}, and the beat's own number where the call carries one
      * @param base  the apron's cell while the base is overrun, else {@code null}
      */
     static List<Duty> duties(List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> convoys,
                              List<int[]> beats, int[] base) {
+        return duties(radio, roadBlocks, convoys, List.of(), beats, base);
+    }
+
+    /**
+     * As {@link #duties(List, List, List, List, int[])}, with the compound's gate held after the convoys' escorts
+     * (rule 2): {@link #DETACHMENT} squads for each gate a convoy is coming to or loading at.
+     *
+     * @param gates each gate's cell
+     */
+    static List<Duty> duties(List<CordonRadio> radio, List<int[]> roadBlocks, List<int[]> convoys,
+                             List<int[]> gates, List<int[]> beats, int[] base) {
         List<Duty> out = new ArrayList<>();
         for (int i = 0; i < roadBlocks.size(); i++) {
             int[] b = roadBlocks.get(i);
@@ -120,6 +153,10 @@ public final class CordonCompanyRules {
         for (int i = 0; i < convoys.size(); i++) {
             int[] c = convoys.get(i);
             out.add(new Duty("convoy-" + i, Kind.CONVOY, c[0], c[1], ESCORT_SQUADS));
+        }
+        for (int i = 0; i < gates.size(); i++) {
+            int[] g = gates.get(i);
+            out.add(new Duty("gate-" + i, Kind.GATE, g[0], g[1], DETACHMENT));
         }
         for (CordonRadio r : radio) {
             if (r.manned() && r.unsettled()) out.add(new Duty("relieve-" + r.number(), Kind.BREACHED, r.x(), r.y(), DETACHMENT));
@@ -132,10 +169,10 @@ public final class CordonCompanyRules {
                 out.add(new Duty("relieve-" + r.number(), Kind.BLED, r.x(), r.y(), DETACHMENT));
             }
         }
-        // By its place in the list, not its cell: a beat's call moves with its truck.
+        // By the beat, not its cell: a beat's call moves with its truck.
         for (int i = 0; i < beats.size(); i++) {
             int[] b = beats.get(i);
-            out.add(new Duty("beat-" + i, Kind.BEAT, b[0], b[1], b[2]));
+            out.add(new Duty("beat-" + (b.length > 3 ? b[3] : i), Kind.BEAT, b[0], b[1], b[2]));
         }
         if (base != null) out.add(new Duty("base", Kind.BASE, base[0], base[1], DETACHMENT));
         return out;
@@ -147,8 +184,9 @@ public final class CordonCompanyRules {
     }
 
     /**
-     * Who goes where. In duty order, each duty keeps the squads already on it (up to its count), then takes the
-     * nearest free ones, infantry before machines for an {@link Kind#infantryFirst} duty. A squad never keeps or
+     * Who goes where. In duty order, each duty keeps the squads already on it (up to its count, the nearest first, so
+     * one that came back to it outranks the one sent in its place), then takes the nearest free ones, infantry before
+     * machines for an {@link Kind#infantryFirst} duty. A squad never keeps or
      * takes the duty it is barred from. A floor-bound duty never takes the last {@code floor} free squads; the beats
      * together never take more than half the company.
      *
@@ -166,17 +204,18 @@ public final class CordonCompanyRules {
             want = Math.min(want, allowed);
             if (want <= 0) continue;
             int taken = 0;
+            Comparator<Squad> near = Comparator.comparingDouble(s -> Math.hypot(s.x() - duty.x(), s.y() - duty.y()));
+            List<Squad> on = new ArrayList<>();
             for (Squad s : squads) {
-                if (taken >= want) break;
-                if (free.contains(s.id()) && duty.key().equals(s.duty()) && !s.barredFrom(duty)) {
-                    out.put(s.id(), duty);
-                    free.remove(s.id());
-                    taken++;
-                }
+                if (free.contains(s.id()) && duty.key().equals(s.duty()) && !s.barredFrom(duty)) on.add(s);
+            }
+            on.sort(near);
+            for (int k = 0; taken < want && k < on.size(); k++, taken++) {
+                out.put(on.get(k).id(), duty);
+                free.remove(on.get(k).id());
             }
             List<Squad> nearest = new ArrayList<>();
             for (Squad s : squads) if (free.contains(s.id()) && !s.barredFrom(duty)) nearest.add(s);
-            Comparator<Squad> near = Comparator.comparingDouble(s -> Math.hypot(s.x() - duty.x(), s.y() - duty.y()));
             nearest.sort(duty.kind().infantryFirst ? Comparator.comparing(Squad::machine).thenComparing(near) : near);
             for (int k = 0; taken < want && k < nearest.size(); k++, taken++) {
                 out.put(nearest.get(k).id(), duty);
@@ -228,12 +267,17 @@ public final class CordonCompanyRules {
 
     /**
      * Whether a squad should ask the base for a lift to a duty (rule 10): only outside a city, only for a duty more
-     * than {@link #LIFT_WORTH} cells off, and only with a free carrier nearer the squad than the duty is.
+     * than {@link #LIFT_WORTH} cells off, and only where walking to the carrier and riding from there to the duty at
+     * {@link #RIDE_PACE} times its pace beats walking. A carrier merely nearer the squad than the duty sent squads at
+     * the line fifty cells back to the base for a ride a hundred and fifty cells out, two minutes for what they
+     * could have walked (town Road, arid 8).
      */
     static boolean liftWorth(CordonPlan.Density density, float squadX, float squadY, int dutyX, int dutyY,
                              float carrierX, float carrierY) {
         if (density == CordonPlan.Density.URBAN) return false;
         double walk = Math.hypot(dutyX - squadX, dutyY - squadY);
-        return walk > LIFT_WORTH && Math.hypot(carrierX - squadX, carrierY - squadY) < walk;
+        double toCarrier = Math.hypot(carrierX - squadX, carrierY - squadY);
+        double ride = Math.hypot(dutyX - carrierX, dutyY - carrierY);
+        return walk > LIFT_WORTH && toCarrier + ride / RIDE_PACE < walk;
     }
 }

@@ -77,13 +77,19 @@ public final class CordonBeats {
         if (board != null) board.advance(tick);
     }
 
-    /** Where the running beats want the company, {x, y, squads}, in roll order. */
+    /**
+     * Where the running beats want the company, {x, y, squads, beat}, in roll order: {@code beat} the beat's place among
+     * every beat rolled, which names its duty while it calls. Named by its place among the beats calling now, a duty
+     * changed hands when another beat began calling (Line town arid 10: the stragglers' radio made their call
+     * {@code beat-0}, the squad fighting at the last hamlet under that key kept it, and nobody went to the family).
+     */
     public List<int[]> calls(BattleSimulation sim) {
         List<int[]> out = new ArrayList<>();
-        for (CordonBeat beat : running) {
+        for (int i = 0; i < running.size(); i++) {
+            CordonBeat beat = running.get(i);
             if (!beat.active()) continue;
             int[] call = beat.call(sim);
-            if (call != null) out.add(call);
+            if (call != null) out.add(new int[]{call[0], call[1], call[2], i});
         }
         return out;
     }

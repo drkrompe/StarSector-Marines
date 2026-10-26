@@ -158,7 +158,8 @@ final class BattleDirectControlHudModel {
                     + (gauge.tone() == Tone.READY ? FLUX_FILL : toneColor(gauge.tone())) + ";");
             return;
         }
-        if (!mech) {
+        // A mech always has a reservoir; a hull shows its gun's flux when the gun builds any.
+        if (!mech && snapshot.flux() == null) {
             set("fluxRowClasses", HIDDEN_ROW);
             set("fluxStateClasses", "state state-hidden");
             set("fluxValue", "");

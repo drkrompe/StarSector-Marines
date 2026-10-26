@@ -233,14 +233,18 @@ redoubts its streets reach, and lapses only where they reach none.
 
 Pure decisions over the frame (`CordonCommand.Frame`, grown by the radio
 items above), in priority order. A squad already on a duty keeps it while the
-duty stands, rather than being re-chosen each frame.
+duty stands, rather than being re-chosen each frame, and one a more urgent call
+drew off goes back to its duty when the call ends, ahead of any squad sent in
+its place (a duty keeps its nearest squads first).
 
 1. **Squads the player or a lease owns stay theirs** (today's rule).
 2. **The Road's convoys.** Clear the road ahead of a halted convoy, or where
    the swarm is on one of its trucks with the road ahead open, at the gate
    while it loads say (two squads); walk with a convoy that is not *Escorted*
    past the gap (three). It is already "allies first, the company where they
-   are not".
+   are not". Two squads hold the compound's gate from the moment a convoy
+   enters the road until it turns for home, so the town's end is held when the
+   trucks load there rather than walked to after the swarm reaches them.
 3. **A breached redoubt: a relief detachment.** The two nearest free squads
    go at once and fight in behind the rear wall. They **hold until the
    redoubt is settled**: holding, nothing inside its wall and nothing in their
@@ -272,9 +276,10 @@ duty stands, rather than being re-chosen each frame.
    halves of the company each behind a pair of redoubts (pending
    `cordon-urban-hammer`).
 10. **The lift.** A duty more than a hundred cells' walk from a squad asks the
-    base for a lift, in rural and town country only. The base grants it with a
-    carrier that rule 4 of the allied command leaves free and that stands
-    nearer the squad than the duty does. The squad walks to it, rides, and is
+    base for a lift, in rural and town country only, where walking to the
+    carrier and riding from it (counted at three times walking pace) beats
+    walking the whole way. The base grants it with a carrier that rule 4 of the
+    allied command leaves free. The squad walks to it, rides, and is
     set down behind the redoubt; no carrier, no lift, and the squad walks. The
     carrier must seat the whole squad (a squad rides together or walks), and an
     allied squad waiting at the base always comes first. The squad boards under
@@ -288,8 +293,9 @@ duty stands, rather than being re-chosen each frame.
     fetches them (a convoy's escort, a beat such as the stragglers) takes the
     nearest free infantry before any machine: a machine keeps to the roads and
     cannot lead anyone out, so it goes only where no infantry is free. A squad
-    walking to its duty that has not closed ten cells of the way in thirty
-    seconds, while still more than twelve cells off, has stalled: the duty goes
+    walking to its duty that has not moved ten cells in thirty seconds, while
+    still more than twelve cells off, has stalled (its own going, since a
+    convoy's escort cell runs ahead of it and is never closed on): the duty goes
     to the next nearest, and the stalled squad is kept off that duty for a
     minute. A squad on its duty, or riding to it, never stalls.
 

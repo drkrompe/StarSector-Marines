@@ -134,11 +134,12 @@ public final class MechWeaponMount {
     }
 
     /**
-     * A pilot holds the rack's button. Once this hold has fired a salvo, every salvo after it chains until release;
-     * a fresh press waits out the cycle like any trigger.
+     * A pilot holds the rack's button. Once this hold has fired a salvo, or while the cycle of the last salvo still
+     * runs, every loaded salvo chains as soon as the one before it has gone, until release: three clicks on an
+     * LRM-15 are its three groups, as a hold is. Only a press after the cycle has run out is a fresh trigger.
      */
     public void holdChain() {
-        if (chains() && holdSalvos > 0) chainSalvos = Integer.MAX_VALUE;
+        if (chains() && (holdSalvos > 0 || cycleRemaining > 0f)) chainSalvos = Integer.MAX_VALUE;
     }
 
     /** The button is up, or the autonomous chain is over: the rack's cycle runs from its last salvo. */

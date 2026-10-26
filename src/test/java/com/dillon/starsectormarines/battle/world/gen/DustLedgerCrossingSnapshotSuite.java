@@ -15,9 +15,10 @@ import java.util.Set;
 
 /**
  * Saltwell Cross, The Dust Ledger's authored map ({@code dust-ledger-crossing.md}), through the look preset: the
- * whole map, then the apron, the market, the Harrow yard, the ridge, the compound, its east yard and pump house, and both canal
- * crossings, at site and play zoom. Real ground, nothing drawn over it; every camera is placed from the recipe's own
- * sites, so a run before a change and one after frame the same ground. Opt-in. 1920x1080.
+ * whole map, then the apron, the market, the Harrow yard, the ridge, the compound, its east yard and pump house, and
+ * both canal crossings, at site and play zoom, then a gun nest (its gun spawned), a pillbox and the feed junction.
+ * Real ground, nothing drawn over it; every camera is placed from the recipe's own sites, so a run before a change and
+ * one after frame the same ground. Opt-in. 1920x1080.
  */
 public final class DustLedgerCrossingSnapshotSuite implements SnapshotSuite {
 
@@ -38,7 +39,7 @@ public final class DustLedgerCrossingSnapshotSuite implements SnapshotSuite {
         DustLedgerCrossing.Layout layout = DustLedgerCrossing.generate(SEED, asharu);
         BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H, 0f, 0f, 1f);
         List<SnapshotArtifact> out = new ArrayList<>();
-        try (BattleSimulation sim = BattleSetup.buildMap(layout.map(), List.of(), List.of(), SEED).sim()) {
+        try (BattleSimulation sim = BattleSetup.buildMap(layout.map(), List.of(), layout.map().defensePosts, SEED).sim()) {
             int w = DustLedgerCrossing.WIDTH, h = DustLedgerCrossing.HEIGHT;
             float play = BattleReviewFrameRenderer.PLAY_ZOOM_CELLS;
             frame(out, look, sim, "00-whole-map.png", w / 2f, h / 2f, Math.max(w, h * 16f / 9f));
@@ -64,6 +65,15 @@ public final class DustLedgerCrossingSnapshotSuite implements SnapshotSuite {
             DustLedgerCrossing.Cell west = layout.canalCrossings().get(0);
             frame(out, look, sim, "10-west-crossing-play.png", west.x(), west.y() + 4, play);
             frame(out, look, sim, "11-compound-east-yard-play.png", ledger.x() + 8, ledger.y() + 4, play);
+            DustLedgerCrossing.Cell gateNest = layout.nests().get(0).cell();
+            frame(out, look, sim, "12-gate-nest-close.png", gateNest.x() - 2, gateNest.y() + 2, CLOSE_CELLS);
+            var pillbox = layout.pillboxes().get(0).building();
+            look.withoutRoofs();
+            frame(out, look, sim, "13-gate-pillbox-close.png", (pillbox.left + pillbox.right) / 2f,
+                    (pillbox.top + pillbox.bottom) / 2f, CLOSE_CELLS);
+            look.withRoofs();
+            DustLedgerCrossing.Area feed = layout.feedJunctionArea();
+            frame(out, look, sim, "14-feed-junction-play.png", feed.centre().x() + 6, feed.centre().y() + 2, play);
         }
         return out;
     }
