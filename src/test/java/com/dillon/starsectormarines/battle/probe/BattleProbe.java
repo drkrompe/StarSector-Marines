@@ -78,7 +78,7 @@ import java.util.Set;
  *                                         recorded hits grouped by the other side's label: count, damage, kills
  *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment and its reason
  *   path ID [count=N]                     a unit's next N waypoints (default 6): cell, tags, step walkable
- *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left
+ *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left, special kit
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
  *                                         waypoint, velocity, and for a mech its hips, role and collision escape
  *   beats [since=T] [text=TEXT]           story beats
@@ -480,6 +480,7 @@ public final class BattleProbe {
                 WeaponDef weapon = sim.combat().primaryWeapon(id);
                 return weapon == null ? JSONObject.NULL : weapon.id;
             });
+            put(out, "special", () -> special(id));
             put(out, "range", () -> round(world.attackRange(id)));
             put(out, "target", () -> {
                 long target = world.targetId(id);
@@ -694,6 +695,14 @@ public final class BattleProbe {
                 .put("stepFromPrevious", grid.canTraverseCellStep(fromX, fromY, x, y));
     }
 
+    /** A unit's special kit: its id, ammunition and cooldown, or null for none. */
+    private Object special(long id) throws Exception {
+        World world = sim.world();
+        if (!world.hasSecondaryWeapon(id) || world.specialEquipment(id) == null) return JSONObject.NULL;
+        return new JSONObject().put("id", world.specialEquipment(id).id()).put("ammo", world.secondaryAmmo(id))
+                .put("cooldown", round(world.secondaryCooldownTimer(id)));
+    }
+
     private JSONObject members(int squadId) throws Exception {
         JSONArray rows = new JSONArray();
         for (int i = 0; i < sim.squadMemberCount(squadId); i++) {
@@ -702,6 +711,7 @@ public final class BattleProbe {
             put(row, "cell", () -> new JSONArray(List.of(sim.world().cellX(id), sim.world().cellY(id))));
             put(row, "velocity", () -> new JSONArray(List.of(round(sim.movement().velX(id)), round(sim.movement().velY(id)))));
             put(row, "waypointsLeft", () -> sim.movement().waypointCount(id) - sim.movement().nextWaypointIndex(id));
+            put(row, "special", () -> special(id));
             rows.put(row);
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("squad", squadId).put("members", rows);
