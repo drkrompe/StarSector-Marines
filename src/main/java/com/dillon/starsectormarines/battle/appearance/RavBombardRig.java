@@ -283,7 +283,7 @@ public final class RavBombardRig {
      * The walking legs: a planted claw stays where it is in the world while the body moves and turns over it; one
      * pulled more than {@link #STEP_REACH} from its rest lifts, if no leg of the other set is in the air, and lands
      * past its rest by {@link #STEP_LEAD} of the pull. Each leg is then turned about its hip and stretched to reach its
-     * claw. Feet hold still through a plant: a set Bombard's legs are dug in.
+     * claw. Feet hold still through the dig of a plant or an uproot; set, it steps round as it turns.
      */
     private void stepLegs(float dt) {
         double rad = Math.toRadians(facingDeg);
@@ -302,7 +302,8 @@ public final class RavBombardRig {
             if (LEG_SET[i] == 0) inAir0 = true;
             else inAir1 = true;
         }
-        boolean dug = plant > 0.5f;
+        // the claws hold still while they dig in or heave free; set, it turns on them as it walks on them
+        boolean dug = plantRaw > 0f && plantRaw < 1f;
         for (int i = 0; i < LEGS; i++) {
             if (LEG_SET[i] < 0) continue;
             if (stepping[i]) {

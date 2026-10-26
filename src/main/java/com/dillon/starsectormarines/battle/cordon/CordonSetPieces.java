@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * Where the Cordon's beats put their set pieces ({@code cordon-map-intent.md},
@@ -197,8 +198,11 @@ final class CordonSetPieces {
     }
 
     /**
-     * Across the corridor past the gap: in the suburb where the corridor runs through it, else halfway between the
-     * gap and the compound; from the corridor cell out to either side while the ground is walkable.
+     * Across the corridor past the gap, from the corridor cell out to either side while the ground is walkable: at the
+     * corridor cell nearest the suburb's first (else halfway between the gap and the compound) where the street is
+     * narrow enough for the wreck to close it kerb to kerb ({@link #wreckAt}). Laid at the suburb's first cell
+     * whatever stood there, it lay across a square on the town Road, nine cells of crates in open ground the trucks
+     * could have driven round.
      */
     static List<int[]> wreck(LayoutGround ground, List<int[]> corridor, int gap) {
         int from = gap + WRECK_PAST_GAP, to = corridor.size() - 1 - WRECK_SHORT;
@@ -214,6 +218,26 @@ final class CordonSetPieces {
                 }
             }
         }
+        at = wreckAt(at, from, to, i -> across(ground, corridor, i).closed());
+        return across(ground, corridor, at).cells();
+    }
+
+    /**
+     * The corridor cell the wreck lies at: the nearest to {@code preferred} within {@code from..to} where it
+     * {@code closes} the street, the earlier of two equally near; {@code preferred} where none does.
+     */
+    static int wreckAt(int preferred, int from, int to, IntPredicate closes) {
+        for (int d = 0; preferred - d >= from || preferred + d <= to; d++) {
+            if (preferred - d >= from && closes.test(preferred - d)) return preferred - d;
+            if (d > 0 && preferred + d <= to && closes.test(preferred + d)) return preferred + d;
+        }
+        return preferred;
+    }
+
+    /** A wreck's cells across the corridor at one of its cells, and whether unwalkable ground stops it both sides. */
+    record Across(List<int[]> cells, boolean closed) { }
+
+    static Across across(LayoutGround ground, List<int[]> corridor, int at) {
         int[] c = corridor.get(at);
         int[] before = corridor.get(Math.max(0, at - 2)), after = corridor.get(Math.min(corridor.size() - 1, at + 2));
         // Across the way the corridor runs here.
@@ -221,14 +245,20 @@ final class CordonSetPieces {
         int px = alongX ? 0 : 1, py = alongX ? 1 : 0;
         List<int[]> out = new ArrayList<>();
         out.add(c);
+        boolean closed = true;
         for (int side : new int[]{-1, 1}) {
-            for (int k = 1; k <= WRECK_HALF; k++) {
+            boolean stopped = false;
+            for (int k = 1; k <= WRECK_HALF + 1; k++) {
                 int x = c[0] + px * side * k, y = c[1] + py * side * k;
-                if (!ground.walkable(x, y)) break;
-                out.add(new int[]{x, y});
+                if (!ground.walkable(x, y)) {
+                    stopped = true;
+                    break;
+                }
+                if (k <= WRECK_HALF) out.add(new int[]{x, y});
             }
+            closed &= stopped;
         }
-        return out;
+        return new Across(out, closed);
     }
 
     private static long sq(long v) {
