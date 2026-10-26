@@ -105,8 +105,9 @@ shared mapping instead of assigning paths independently in each screen.
   which is seats; emitter, the shield's arc and flux per hit; and power, the flux
   pool's capacity and venting. Each slot has a standard fitting every boat is
   built with and up to three upgrade tiers; a lift tier goes only on a boat that
-  does not already lift as much. Planned battle effects of the cabin, emitter,
-  power and deboard figures: `boat-refit-axes.md`.
+  does not already lift as much. The battle reads the cabin's seats and the
+  drive's deboard figure (`air-nouns.md`); the emitter and power are planned
+  (`boat-refit-axes.md`).
 - **Frame** — what a boat can carry in upgrades: every non-standard fitting and
   door gun has a **weight**, and their sum may not pass the frame's rating (10).
   The workshop refuses a fit that would take her over it, unless the fit makes her

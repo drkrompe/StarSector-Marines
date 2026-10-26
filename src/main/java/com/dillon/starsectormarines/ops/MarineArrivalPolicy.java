@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 /** Mission-authored policy for turning committed lift into ground arrivals. */
@@ -16,11 +17,12 @@ public enum MarineArrivalPolicy {
                 ? PAIRED_HALF_SQUAD : INDEPENDENT_FULL_LOAD;
     }
 
-    public int seatsPerSortie(ShuttleType type) {
+    /** Seats one sortie of {@code craft} fills: its own seats, or a half-squad when paired. */
+    public int seatsPerSortie(Airframe craft) {
         if (this == PAIRED_HALF_SQUAD) {
-            return Math.min(6, type.capacity);
+            return Math.min(6, craft.seats());
         }
-        return type.capacity;
+        return craft.seats();
     }
 
     /** Resolves the ground-battle craft from the committed campaign lift. */

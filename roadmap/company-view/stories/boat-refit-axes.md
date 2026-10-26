@@ -1,6 +1,6 @@
 # Boat refit axes: the Hermes as the company's boat
 
-Status: IN PROGRESS — slice 2 shipped (catalog, six sockets, frame budget); slices 1 and 3–6 open
+Status: IN PROGRESS — slices 2 (catalog, six sockets, frame budget) and 3 (seats, deboard, load) shipped; slices 1 and 4–6 open
 Written: 2026-10-26
 Updated: 2026-10-26 — owner answered every picks question: cycle, lift, shield and flux, weapons, saves, patterns and ship changes.
 

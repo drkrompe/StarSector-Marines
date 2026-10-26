@@ -68,7 +68,8 @@ public final class LiftQueueReadout {
             Airframe frame = world.airframe(id);
             if (mission == null || body == null || frame == null) continue;
             if (!mission.ferry && !LiftQueue.ferryCandidate(mission)) continue;
-            craft.add(new Craft(id, mission, frame, body.x, body.y, frame.flight().maxSpeed()));
+            craft.add(new Craft(id, mission, frame, body.x, body.y,
+                    FittedBoat.handling(frame, mission).maxSpeed()));
         }
         LiftQueue queue = sim.liftQueue();
         return read(craft, queue == null ? List.of() : queue.queued());
