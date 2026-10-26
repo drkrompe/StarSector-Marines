@@ -2088,7 +2088,10 @@ overruns a yard from closer) is
 re-seated at the nearest place outside that ring, keeping its number and time
 (a first-wave site still off the walk in from the field where any such place
 is left), and no bore buds inside it (`ColonyEruptionPlan.clearOf`), so what reaches the
-set piece first is the pressure its beats pace.
+set piece first is the pressure its beats pace. No runner of the opening swarm
+starts nearer the set piece than its own bore can open (28 cells); one the
+roster scattered there moves to the roster's next cell outside
+(`SwarmDefenseRoster.clearOf`).
 
 ## Flow
 
