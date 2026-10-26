@@ -187,12 +187,24 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
     public static final String HELP_STRANDED_PROPERTY = "battle.heart.helpStranded";
     private static final boolean HELP_STRANDED = !"false".equalsIgnoreCase(System.getProperty(HELP_STRANDED_PROPERTY));
 
-    /** The living satellite nearest {@code (x, y)}, whichever lane's it is, or {@code null} when none stands. */
+    /**
+     * Cells from a living mother within which the company's way to a satellite crosses the heart: her guard stands
+     * about twenty cells round her (Broad Front frozen 5, 2026-10-26: ten to twenty bodies within twenty cells of
+     * mother-1 throughout), and the company halts on contact some twenty-six short of what it meets.
+     */
+    static final float HEART_CLEARANCE = 48f;
+
+    /**
+     * The living satellite nearest {@code (x, y)}, whichever lane's it is, whose way does not cross the heart
+     * ({@link #crossesHeart}), or {@code null} when none stands clear. Sent across the heart to a far flank's
+     * satellite, the company fought the mothers' guard on the way for six thousand ticks and never got there (Broad
+     * Front verdant 3, 2026-10-26).
+     */
     static KnownBore stranded(List<KnownBore> bores, float x, float y) {
         KnownBore best = null;
         double bestDistance = Double.MAX_VALUE;
         for (KnownBore bore : bores) {
-            if (!bore.living() || bore.mother()) continue;
+            if (!bore.living() || bore.mother() || crossesHeart(bores, x, y, bore)) continue;
             double distance = Math.hypot(bore.x() - x, bore.y() - y);
             if (distance < bestDistance) {
                 best = bore;
@@ -200,6 +212,18 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
             }
         }
         return best;
+    }
+
+    /** Whether the straight way from {@code (x, y)} to {@code satellite} passes within {@link #HEART_CLEARANCE} of a living mother. */
+    static boolean crossesHeart(List<KnownBore> bores, float x, float y, KnownBore satellite) {
+        float dx = satellite.x() - x, dy = satellite.y() - y;
+        float length2 = dx * dx + dy * dy;
+        for (KnownBore bore : bores) {
+            if (!bore.living() || !bore.mother()) continue;
+            float t = length2 <= 0f ? 0f : Math.max(0f, Math.min(1f, ((bore.x() - x) * dx + (bore.y() - y) * dy) / length2));
+            if (Math.hypot(bore.x() - (x + t * dx), bore.y() - (y + t * dy)) <= HEART_CLEARANCE) return true;
+        }
+        return false;
     }
 
     /** Whether any satellite still stands. */

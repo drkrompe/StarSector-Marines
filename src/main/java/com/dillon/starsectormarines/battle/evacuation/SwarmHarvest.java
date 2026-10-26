@@ -76,7 +76,7 @@ import java.util.function.LongPredicate;
  * <p><b>The swarm recycles its own dead.</b> A dead Runner lies loose like a
  * dropped body, and a Runner with nothing to fight goes to the nearest within
  * {@link #SCAVENGE_RADIUS} ({@link #nearestRecyclable}), takes it up and drags it to
- * the bore, where it is worth {@link #RAV_BODY_BIOMASS} of a colonist. A Runner
+ * the bore, where it pays {@link #RAV_BODY_BIOMASS}, less than prey. A Runner
  * still fighting leaves its dead where they fell, and a recycled body is counted
  * apart from the harvest ({@link #recycled}): it is not a harvest beat. Since
  * the dead lie where the fighting is, a bore also sends out scavenger packs
@@ -118,8 +118,16 @@ public final class SwarmHarvest {
     public static final float RECOVERY_SECONDS = 3f;
     /** Damage that takes a held body at the bore's mouth. */
     private static final float TAKING_DAMAGE = 1_000_000f;
-    /** A Runner's own body fed back into a bore, in colonists' worth of biomass. */
-    public static final float RAV_BODY_BIOMASS = 0.5f;
+    /**
+     * Biomass a harvested body (a colonist, a militia fighter or a Marine on foot) pays into a bore. Tunes how fast
+     * feeding grows, buds and swells the bores, so how steeply the battle ramps.
+     */
+    public static final float PREY_BODY_BIOMASS = 0.35f;
+    /**
+     * Biomass the swarm's own dead pay when recycled into a bore, well under {@link #PREY_BODY_BIOMASS}. Tunes the
+     * recycling loop: kept low enough that a dead Runner buys back less than one Runner in the next surge.
+     */
+    public static final float RAV_BODY_BIOMASS = 0.08f;
     /** How far a Runner with nothing to fight goes to fetch one of the swarm's dead, cells. */
     public static final float SCAVENGE_RADIUS = 8f;
     /** A bore sends a scavenger pack only while at least this many of the swarm's dead lie loose. */
@@ -375,6 +383,11 @@ public final class SwarmHarvest {
 
     /** The swarm's own dead dragged back into a bore. */
     public int recycled() { return recycled; }
+
+    /** What a body delivered into a bore pays, by kind: the swarm's own dead less than the prey it harvests. */
+    static float biomass(boolean ravBody) {
+        return ravBody ? RAV_BODY_BIOMASS : PREY_BODY_BIOMASS;
+    }
 
     /** Bodies, recycled or delivered, that a skitterer rather than a Runner brought into a bore. */
     public int hauledByWorkers() { return hauledByWorkers; }
@@ -686,7 +699,7 @@ public final class SwarmHarvest {
             float dx = bore.x() + 0.5f - cx, dy = bore.y() + 0.5f - cy;
             boolean rav = !alive && isRavBody(sim, body);
             if (dx * dx + dy * dy <= DELIVER_RADIUS * DELIVER_RADIUS
-                    && bores.feed(sim, bore, rav ? RAV_BODY_BIOMASS : 1f)) {
+                    && bores.feed(sim, bore, biomass(rav))) {
                 release(carrier, body);
                 if (alive) take(sim, carrier, body, tick);
                 feed(sim, body, bore, tick);

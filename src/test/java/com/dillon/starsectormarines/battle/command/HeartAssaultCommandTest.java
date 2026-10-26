@@ -71,6 +71,16 @@ class HeartAssaultCommandTest {
     }
 
     @Test
+    void theCompanyIsNotSentAcrossTheHeartToAFarSatellite() {
+        // Broad Front verdant 3 after satellite 3: the company at (271, 160), satellite 4 beyond the mothers.
+        KnownBore mother = new KnownBore("mother-2", true, 375, 243, true);
+        KnownBore across = new KnownBore("4", false, 425, 211, true);
+        KnownBore clear = new KnownBore("1", false, 101, 201, true);
+        assertEquals(clear, HeartAssaultCommand.stranded(List.of(mother, across, clear), 271f, 160f));
+        assertNull(HeartAssaultCommand.stranded(List.of(mother, across), 271f, 160f), "none clear, it holds");
+    }
+
+    @Test
     void aSquadFarFromWhereTheCompanyHoldsWithdrawsAndOneThereHolds() {
         assertTrue(HeartAssaultCommand.stillFallingBack(273f, 194f, 265, 30), "170 cells forward, it breaks off");
         assertFalse(HeartAssaultCommand.stillFallingBack(270f, 36f, 265, 30));

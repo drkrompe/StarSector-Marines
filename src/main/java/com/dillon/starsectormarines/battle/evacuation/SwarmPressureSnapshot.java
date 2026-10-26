@@ -58,7 +58,7 @@ public record SwarmPressureSnapshot(
      * @param key           {@code N} for a first-wave bore, {@code mother} for the mother
      * @param integrity     hit points and armour left as a share of full, 0 once collapsed
      * @param growth        growth points toward the next tier
-     * @param biomassFed    biomass delivered over the battle, in colonists' bodies
+     * @param biomassFed    biomass delivered over the battle
      * @param bodiesSpawned bodies its surges have put on the field
      * @param sporeColonies  its spore colonies still alive
      * @param collapsedTick the tick it collapsed, {@code -1} while it lives
