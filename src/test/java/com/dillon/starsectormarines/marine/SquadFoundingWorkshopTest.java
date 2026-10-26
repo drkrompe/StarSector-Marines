@@ -3,9 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,57 +10,49 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SquadFoundingWorkshopTest {
 
     @Test
-    void foundingConsumesOneCompleteBillAndMobilizesTwelveNamedMarines() {
+    void foundingTakesTwelveMarinesAndOnePriceAndMobilizesThem() {
         MarineRoster roster = new MarineRoster();
-        TestResources resources = TestResources.stocked(100);
-        resources.stock.put(Commodities.HAND_WEAPONS, 100);
+        TestStores stores = TestStores.forSquads(2);
+        stores.stock.put(Commodities.HAND_WEAPONS, 100);
 
-        SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(
-                roster, resources).foundSquad();
+        SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(roster, stores).foundSquad();
 
         assertTrue(result.succeeded());
         assertEquals(MarineSquad.CAPACITY, roster.manningCount(result.squad()));
-        assertEquals(88, resources.available(Commodities.MARINES));
-        assertEquals(64, resources.available(Commodities.SUPPLIES));
-        assertEquals(100, resources.available(Commodities.HAND_WEAPONS));
-        assertEquals(76, resources.available(Commodities.FOOD));
+        assertEquals(MarineSquad.CAPACITY, stores.available(Commodities.MARINES));
+        assertEquals(SquadFoundingCost.STANDARD.credits(), stores.credits);
+        assertEquals(100, stores.available(Commodities.HAND_WEAPONS));
     }
 
     @Test
-    void insufficientBillCreatesNoFormationAndConsumesNothing() {
+    void aShortPurseOrHoldCreatesNoFormationAndConsumesNothing() {
         MarineRoster roster = new MarineRoster();
-        TestResources resources = TestResources.stocked(11);
+        TestStores poor = TestStores.forSquads(1);
+        poor.credits--;
+        TestStores undermanned = TestStores.forSquads(1);
+        undermanned.stock.merge(Commodities.MARINES, -1, Integer::sum);
 
-        SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(
-                roster, resources).foundSquad();
-
-        assertFalse(result.succeeded());
+        for (TestStores stores : new TestStores[] {poor, undermanned}) {
+            long credits = stores.credits;
+            int marines = stores.available(Commodities.MARINES);
+            SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(roster, stores).foundSquad();
+            assertEquals(SquadFoundingWorkshop.Status.INSUFFICIENT_RESOURCES, result.status());
+            assertEquals(credits, stores.credits);
+            assertEquals(marines, stores.available(Commodities.MARINES));
+        }
         assertEquals(0, roster.squads().stream().filter(squad -> !squad.reserve()).count());
-        assertEquals(11, resources.available(Commodities.MARINES));
-        assertEquals(11, resources.available(Commodities.SUPPLIES));
     }
 
-    static final class TestResources implements SquadFoundingResources {
-        private final Map<String, Integer> stock = new HashMap<>();
+    @Test
+    void awayFromAPortNothingIsFoundedOrSpent() {
+        MarineRoster roster = new MarineRoster();
+        TestStores stores = TestStores.forSquads(1).away();
 
-        static TestResources stocked(int quantity) {
-            TestResources resources = new TestResources();
-            for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
-                resources.stock.put(line.commodityId(), quantity);
-            }
-            return resources;
-        }
+        SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(roster, stores).foundSquad();
 
-        @Override public int available(String commodityId) {
-            return stock.getOrDefault(commodityId, 0);
-        }
-
-        @Override public boolean spend(SquadFoundingCost cost) {
-            if (!canAfford(cost)) return false;
-            for (SquadFoundingCost.Line line : cost.lines()) {
-                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
-            }
-            return true;
-        }
+        assertEquals(SquadFoundingWorkshop.Status.NO_MARKET, result.status());
+        assertEquals(0, stores.spends);
+        assertFalse(stores.canBuy(SquadFoundingCost.STANDARD));
+        assertTrue(stores.canAfford(SquadFoundingCost.STANDARD));
     }
 }

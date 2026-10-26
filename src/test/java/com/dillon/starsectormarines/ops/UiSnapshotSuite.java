@@ -1859,7 +1859,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command",
-                "empty", "large", "guide", "guide-replenish"), true, true);
+                "empty", "empty-no-port", "large", "guide", "guide-replenish"), true, true);
     }
 
     /**
@@ -1883,7 +1883,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (String state : states) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
+            int count = state.startsWith("empty") ? 0 : state.equals("large") ? 120 : 12;
             roster.bootstrapInitialComplement(count * MarineSquad.CAPACITY);
             MarineCaptain captain = new MarineCaptain("Tamsin Vale", "graphics/portraits/portrait_hegemony06.png", Rank.MAJOR, 0f);
             roster.add(captain);
@@ -1905,7 +1905,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
             }
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
-                    snapshotEquipmentResources(), snapshotSquadFoundingResources(), () -> 0,
+                    // Away from a port, the raise tile's bill ends in NO PORT and the tile refuses.
+                    snapshotEquipmentResources(), snapshotSquadFoundingResources(!state.endsWith("no-port")), () -> 0,
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             if (state.equals("medic")) {
                 // Field Medicine marks each of the officer's squads' medic billet.
@@ -1946,7 +1947,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 viewModel.command().selectCommand(captain.id());
             }
-            if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
+            if (!state.startsWith("guide") && !state.startsWith("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
             if (state.startsWith("guide-")) {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
@@ -3493,8 +3494,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     private static SquadFoundingResources snapshotSquadFoundingResources() {
+        return snapshotSquadFoundingResources(true);
+    }
+
+    private static SquadFoundingResources snapshotSquadFoundingResources(boolean atMarket) {
         return new SquadFoundingResources() {
             @Override public int available(String commodityId) { return 2_000; }
+            @Override public long credits() { return 60_000; }
+            @Override public boolean atMarket() { return atMarket; }
             @Override public boolean spend(SquadFoundingCost cost) { return cost != null; }
             @Override public String commodityName(String commodityId) {
                 return snapshotCommodities().commodityName(commodityId);
