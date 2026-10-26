@@ -1213,10 +1213,9 @@ def _m5_point(d, up=0.0, side=0.0):
 M11_T = 122.0
 
 
-# S11's wind is on trial (2026-10-26): ASHARU_M11_WIND=up (the default, recommended from the light check
-# asharu-ab-s11-wind: the heat on her bow and belly, the wake rising soft behind her) or down (the air on
-# her deck, the side facing the camera burning). Remove the switch, keeping the winner, once the owner picks.
-M11_WIND_TILT = -.7 if os.environ.get('ASHARU_M11_WIND', 'up') == 'down' else .7
+# S11's air comes up off her nose (owner, 2026-10-26, from the light check asharu-ab-s11-wind: "Up"): the
+# heat on her bow and belly, the wake rising soft behind her. Tilted down, the air was on her deck.
+M11_WIND_TILT = .7
 
 
 def m11_wind(pose):
