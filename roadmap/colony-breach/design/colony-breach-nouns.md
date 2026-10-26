@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-26 — feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-26 — each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -663,6 +663,31 @@ has lost, to a floor: a battered bore still grows, slowly. An unfed fissure
 takes minutes to become a bore and longer again to become a maw. A tier once
 reached is never lost. The mother bore opens at bore tier.
 
+**Hold** (owner, 2026-10-26: "a cap per hole for units or unit types per bore
+… Each upgrade then becomes a new difficulty curve"). How many of each strain a
+bore keeps living on the field at its tier (`BoreTier.hold`): a fissure ten
+Runners; a bore fourteen Runners, three Brutes and three Spitters; a maw twenty
+Runners, six Brutes, five Spitters and its one Bombard. The hold summed is the
+tier's capacity, the bore's share of the director's population target. A body
+belongs to the bore that released it until it dies; a collapsed bore's living
+bodies are orphans, counted in the field but held by no bore, and the Matriarch
+is outside every hold. Laws:
+
+- A bore surges only into its own hold: a due pulse waits until half a pulse of
+  its own bodies has died, so killing what a hole has put out is what wakes it,
+  and a quiet hole is not woken by another's losses. A mother that owes her
+  Matriarch sends her whatever her hold.
+- A strain whose hold is full is out of the draw, and the roll falls on the
+  others; a surge ends early when every strain is full. Fresh biomass still
+  swells a pulse, only up to the free hold: feeding buys tier, buds and older
+  bodies, never more bodies than the tier holds.
+- Each tier-up is a step: the row the bore holds at is the difficulty a hole
+  can field, one row per tier to tune.
+- Because a hole waits for its own dead rather than filling headroom another
+  bore left, the field runs under the summed target: on Colony Breach 10–25%
+  fewer living Rav than without holds, and at most six Brutes alive from any one
+  bore where a bore once kept up to fifteen.
+
 **The feed seam.** Biomass reaches a bore through one call,
 `SwarmBores.feed(sim, bore, amount)`, with `amount` in biomass; the
 bore to deliver to is found with `nearestLiving`. A feed buys growth at once
@@ -804,8 +829,8 @@ Each bore keeps its own surge clock: the first pulse a few seconds after it
 opens, then one per tier interval (shorter at higher tiers) swung by a seeded
 jitter. A pulse is the tier's size plus a few bodies per unit of fresh biomass,
 which the pulse spends. A due pulse waits while less than half of it fits under
-the director's population target, so a bore whose bodies are still alive on
-the field stays quiet. A released pulse comes up out of the hole in clutches
+the director's population target, or less than half a pulse is free in its own
+*Hold*, so a bore whose bodies are still alive on the field stays quiet. A released pulse comes up out of the hole in clutches
 (*Emergence*), each body's strain drawn from the tier's table; a bore that
 collapses mid-pulse releases no more.
 
@@ -1099,7 +1124,7 @@ diagnostics. It never reads hidden Marine state the swarm could not sense.
 Until the tremor it restores a perimeter floor (a fraction of it while the
 colony seeps). From the tremor on it is **bore-sourced**: the perimeter is
 closed for good, the population target is the sum of the living bores'
-capacities by tier, and bodies enter only as surges from living bores. Between
+holds by tier (*Hold*), and bodies enter only as surges from living bores. Between
 the tremor and the first eruption nothing spawns; once every bore has
 collapsed, nothing spawns again. Every swarm strain counts toward the
 population but the skitterer, which a bore broods under its own cap (Swarm
@@ -2356,7 +2381,8 @@ argument.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed. A maw may draw a
   Bombard (`bombard.md`), at a small weight, at most one living per bore and
-  three across the battle, at the bores nearest the line (`BombardQuota`).
+  three across the battle, at the bores nearest the line (`BombardQuota`). A
+  strain whose *Hold* is full is out of the draw.
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
   the map: a seated gun that answers fliers (an anti-air position, or any gun

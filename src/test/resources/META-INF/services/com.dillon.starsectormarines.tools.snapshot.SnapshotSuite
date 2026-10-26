@@ -360,3 +360,4 @@ com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossingSnapshotSuite
 com.dillon.starsectormarines.ops.DustLedgerBattleLookSuite
 com.dillon.starsectormarines.ops.DustLedgerSideObjectivesLookSuite
 com.dillon.starsectormarines.ops.battleview.RavBombardLookSnapshotSuite
+com.dillon.starsectormarines.ops.BriefingLiftSnapshotSuite
