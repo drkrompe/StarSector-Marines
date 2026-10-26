@@ -241,7 +241,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
                                  BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
         if (turret == null) return;
         StructureDef structure = type.turretStructure();
-        if (structure == null || structure.mount.flux == null) return;
+        // Every hull gun builds flux; only a hull whose art authors vents shows it rising off them.
+        if (structure == null || structure.mount.flux == null || type.fluxVentAftCells() <= 0f) return;
         float level = Math.min(1f, turret.flux / turret.fluxCapacity(structure.mount));
         if (FluxHaze.strength(level, turret.overloaded) <= 0f) return;
         sprites.ensureEngineFxSprites();

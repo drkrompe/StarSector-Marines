@@ -1213,16 +1213,15 @@ def _m5_point(d, up=0.0, side=0.0):
 M11_T = 122.0
 
 
-# S11's wind is on trial (2026-10-26): ASHARU_M11_WIND=up or down (the default), one light check of both.
-# Remove the switch, keeping the winner, once the owner has picked from that check.
-M11_WIND_TILT = -.7 if os.environ.get('ASHARU_M11_WIND', 'down') == 'down' else .7
+# S11's air comes up off her nose (owner, 2026-10-26, from the light check asharu-ab-s11-wind: "Up"): the
+# heat on her bow and belly, the wake rising soft behind her. Tilted down, the air was on her deck.
+M11_WIND_TILT = .7
 
 
 def m11_wind(pose):
-    """S11's airflow over a hull: back along her nose, tilted off it (M11_WIND_TILT). Straight aft streams
-    every wake at the chase camera above and behind her, as S12's first span drew it (bow shocks as orbs,
-    wakes as dots): tilted down, the wake falls away under her toward the planet, about 55 degrees off
-    the lens; tilted up it leaves her back toward the camera (about 15 degrees off it)."""
+    """S11's airflow over a hull: back along her nose, tilted off it (M11_WIND_TILT). Tilted up, the air
+    meets her bow and belly as she dives and her wake rises behind her; the light check read it as a hot
+    rim under the hull and a soft plume, not the orbs and dots a wake straight at the lens drew in S12."""
     n = _nose(pose)
     w = (-n[0], -n[1], -n[2] + M11_WIND_TILT)
     k = math.sqrt(sum(c * c for c in w))
@@ -2475,11 +2474,25 @@ def blender_main(cfg):
                 c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
                 if c.z > 0:
                     engines.append((c.x * w_, (1.0 - c.y) * h_))
+        # the hulls burning into the air (fx 'plasma', 'entry_sheath'): each one's screen box, padded by half
+        # its size, from a sample of her hull's vertices
+        zones = []
+        for fx_ in spec_.get('fx', ()):
+            e_ = bpy.data.objects.get('Ship | ' + fx_[1]) if fx_[0] in ('plasma', 'entry_sheath') else None
+            if e_ is None:
+                continue
+            verts_, _f = entry_kit().hull_soup(e_)
+            pts_ = [world_to_camera_view(scene, scene.camera, Vector(v)) for v in verts_[::max(1, len(verts_) // 400)]]
+            pts_ = [(c.x * w_, (1.0 - c.y) * h_) for c in pts_ if c.z > 0]
+            if pts_:
+                xs_, ys_ = [p[0] for p in pts_], [p[1] for p in pts_]
+                px_, py_ = .5 * (max(xs_) - min(xs_)), .5 * (max(ys_) - min(ys_))
+                zones.append((min(xs_) - px_, min(ys_) - py_, max(xs_) + px_, max(ys_) + py_))
         span_ = spec_['span_of']
         st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
         n_ = int(kf.rsplit('_f', 1)[1])
         dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
-        kept_ = blob_lint.found(display, effects_owned, engines)
+        kept_ = blob_lint.found(display, effects_owned, engines, zones)
         # this frame's regions, for the shot's assembly to chain across chunk seams (assemble_shot --blobs)
         (raw / f'{span_}_blobs_f{n_:05d}.json').write_text(json.dumps(
             dict(frame=n_, dt=dt, width=w_, regions=[[a, list(b), cy, cx] for a, b, cy, cx in kept_])))

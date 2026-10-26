@@ -1152,8 +1152,8 @@ The split gives the player a real choice instead:
 
 - **A mech is flexible and demanding.** Sockets, flux, an engine budget, a build
   to plan and parts to lose.
-- **A vehicle is cheap, sturdy and good at one job.** No chassis reservoir (flux only
-  on a gun that builds its own, a laser or the LRM rack), no sockets, no
+- **A vehicle is cheap, sturdy and good at one job.** No chassis reservoir (each gun
+  builds its own flux, nominal on the plain guns), no sockets, no
   build beyond a kit or two. It costs less material and lift for the armor it brings, and it does
   things no mech does: an APC carries marines.
 

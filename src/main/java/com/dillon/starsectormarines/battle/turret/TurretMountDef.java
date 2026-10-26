@@ -44,7 +44,8 @@ public final class TurretMountDef {
 
     /**
      * The mount's flux, as a starship's energy weapon builds it, or null for a mount whose cadence is its cooldown
-     * alone. Every round fired adds {@link Flux#perRound}; flux dissipates at {@link Flux#dissipationPerSec}; a gun
+     * alone. Every mount a hull carries authors it (`convoy-nouns.md`, hull flux), most at a nominal rate its
+     * cadence never fills; an emplacement never reads it. Every round fired adds {@link Flux#perRound}; flux dissipates at {@link Flux#dissipationPerSec}; a gun
      * whose flux reaches {@link Flux#capacity} overloads, breaks off its burst and holds its trigger while it vents
      * at {@link Flux#ventPerSec}, until it is empty. Flux sets what the gun can sustain, not what it carries: an
      * overloaded gun leaves the magazine untouched, so the hull still reads as armed while it vents.

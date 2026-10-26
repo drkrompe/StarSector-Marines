@@ -33,7 +33,8 @@ class VehicleKitsTest {
         assertTrue(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.HEAVY_APC));
         assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.SUPPLY_TRUCK), "no gun to feed");
         assertTrue(VehicleKit.CAPACITOR_PACK.suits(VehicleType.LASER_TANK));
-        assertFalse(VehicleKit.CAPACITOR_PACK.suits(VehicleType.BREAKTHROUGH_TANK), "a cannon builds no flux");
+        assertTrue(VehicleKit.CAPACITOR_PACK.suits(VehicleType.BREAKTHROUGH_TANK), "every hull gun builds flux");
+        assertFalse(VehicleKit.CAPACITOR_PACK.suits(VehicleType.SUPPLY_TRUCK), "no gun, no flux");
     }
 
     @Test
