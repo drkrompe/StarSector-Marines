@@ -38,7 +38,7 @@ authority and the Warion listening post are named in every victory debrief.
 Mara (01, 03, 05, 07, 09, 11) and Castle (02, 04, 06, 08, 10, 12) alternate:
 the post and the broker; who might stop us; the Hegemony's indifference; the
 warden's price; the broker's lift-off; the burn rule; the two favours; the
-ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 13 (Mara: gun nests, pillboxes, the illegal tap seen in Wayline's generator-part manifests, the junction box outside the ring) and 14 (Castle: cut the feed first; rockets or the Hound answer live nests; pillboxes by hand) play after turn 08, so catalog order is 01–08, 13, 14, 09–12.
+ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 13 (Mara: gun nests, pillboxes, generator parts in Wayline's manifests but no word of where the current comes from) and 14 (Castle: find their power first; rockets or the Hound answer live nests; pillboxes by hand). The feed is a hidden side objective, so the briefing never names the tap or the box play after turn 08, so catalog order is 01–08, 13, 14, 09–12.
 
 ## Field calls (events `corvus.dust_ledger.*`)
 
@@ -60,6 +60,7 @@ ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 
 | `ledger_burned` | Mara | burn completes unseized |
 | `salvage_team` | Castle | alarm, coupling delivered |
 | `spotters` | Sabine | alarm, warden's nod earned (yard revealed before alarm) |
+| `feed_found` | Castle | a company combatant sights or reaches the junction box (first discovery) |
 | `feed_approach` | Castle | a squad starts working the junction box |
 | `feed_cut` | Mara | the tap is cut before the alarm |
 | `nests_dark` | Castle | alarm, feed was cut |

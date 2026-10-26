@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 /**
  * The Dust Ledger's four side objectives on the toolkit ({@code dust-ledger-crossing.md}, Side objectives;
- * {@code side-objective-toolkit.md}): the salvagers' coupling, the warden's nod and cutting the feed, open until the
+ * {@code mission-command-nouns.md}): the salvagers' coupling, the warden's nod and cutting the feed, open until the
  * alarm, and the broker, open until he is gone. Their payoffs (the salvage team, the cantina held and the spotters, the
  * dark nests) are the sequence's to carry out from each job's state. The feed is hidden until a squad finds the tap; the
  * coupling and the broker also pay credits.
@@ -43,9 +43,9 @@ final class DustLedgerSideObjectives {
     static final float FEED_SECONDS = 10f;
     /** How far a company combatant spots the tap's junction box from. UNTUNED first pass. */
     static final float FEED_SIGHT_CELLS = 12f;
-    /** Wayline's delivery fee for the coupling, beside a 22,000-credit Low contract. Owner pick pending. */
+    /** Wayline's delivery fee for the coupling, beside a 22,000-credit Low contract (owner, 2026-10-26). */
     static final int COUPLING_FEE = 1_500;
-    /** What Wayline pays for the broker delivered alive. Owner pick pending. */
+    /** What Wayline pays for the broker delivered alive (owner, 2026-10-26). */
     static final int BROKER_BOUNTY = 3_000;
     private static final String LINE = "corvus.dust_ledger.";
 

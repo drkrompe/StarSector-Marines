@@ -378,6 +378,14 @@ a story clears it. Nothing reads a mark yet; that is the next consumer's work. T
 rolled pool in `optional-objectives.md` is a sibling: a pool rolls against the
 laid map, a side objective is authored for one mission.
 
+The effect hook works through existing seams only (allies released, defences
+cut, a reveal, a hostile group standing down) and never grants victory or
+knowledge a perspective may not have. Owner decisions (2026-10-26): marks are
+permanent until a story clears them; a job may be hidden until found in the
+field; and what a job pays (text and mark, credits, or both) depends on what
+the mission means it to give. The Dust Ledger is the first user
+(`dust-ledger-crossing.md`, Side objectives).
+
 ## Mission catalog
 
 | Mission | Command shape | Current state | Design |

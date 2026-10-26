@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A battle's side objectives while they run ({@code side-objective-toolkit.md}). The battle ticks it once a tick, before
+ * A battle's side objectives while they run ({@code mission-command-nouns.md}). The battle ticks it once a tick, before
  * its story sequences react, so a job finished on the tick its window closes still counts. Each change of state is
  * kept for presentation ({@link #transitionsAfter}) and speaks the hook's field line, if it has one, through the
  * battle's beat log. Serial: one thread drives it. Nothing here reaches the win check.
