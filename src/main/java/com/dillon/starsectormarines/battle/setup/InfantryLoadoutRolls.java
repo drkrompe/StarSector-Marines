@@ -70,10 +70,11 @@ public final class InfantryLoadoutRolls {
     /**
      * A well-found company late in the campaign, as a mission that stands one up itself lands it: every marine a
      * veteran or elite in a heavy suit with Milspec or Masterwork issue, and a squad's six slots carrying its kit
-     * ({@link #LATE_CAMPAIGN_KIT}), the last always the launcher (owner, 2026-10-25: "We should assume they have fairly
-     * powerful equipment and weapon cards"). A launch overlay replaces these seats with the player's own company, so
-     * this is what debug launches and evidence fight with. A suit missing from the installed armour catalog is left
-     * off, the marine landing in the default protection.
+     * ({@link #LATE_CAMPAIGN_KIT}), the first a sapper's satchel for the bores such a company is sent to collapse, the
+     * last always the launcher (owner, 2026-10-25: "We should assume they have fairly powerful equipment and weapon
+     * cards"). A launch overlay replaces these seats with the player's own company, so this is what debug launches and
+     * evidence fight with. A suit missing from the installed armour catalog is left off, the marine landing in the
+     * default protection.
      */
     public static MarineLoadout[] lateCampaignSquad(int capacity, Random rng) {
         MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
@@ -98,7 +99,7 @@ public final class InfantryLoadoutRolls {
 
     /** A late-campaign squad's slots: primary, special, suit. The last is the launcher's, whatever the squad's size. */
     static final String[][] LATE_CAMPAIGN_KIT = {
-            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.FRAG_GRENADE_ID, "armor.bulwark-heavy"},
+            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.SATCHEL_CHARGE_ID, "armor.bulwark-heavy"},
             {WeaponRegistry.SQUAD_AUTOMATIC_ID, SpecialEquipmentRegistry.FRAG_GRENADE_ID, "armor.bulwark-heavy"},
             {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.FLAMER_ID, "armor.reliquary-heavy"},
             {WeaponRegistry.DMR_ID, SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, "armor.specter-heavy"},
