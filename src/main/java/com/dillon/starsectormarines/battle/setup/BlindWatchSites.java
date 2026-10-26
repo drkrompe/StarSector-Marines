@@ -40,7 +40,7 @@ public final class BlindWatchSites {
             bunkers.add(new Cell(pillbox.building().interiorAnchorX, pillbox.building().interiorAnchorY));
         return new Sites(area(layout.landing()), plant(layout, Installation.MAST), plant(layout, Installation.UPLINK),
                 plant(layout, Installation.DISH_FIELD), area(layout.riggersModule()), cells(layout.riggers()),
-                new Area(hut), bunkers, mortarTrack, area(layout.podRacks()), area(layout.drugCrates()));
+                new Area(hut), bunkers, mortarTrack, area(layout.podRacks()));
     }
 
     /**

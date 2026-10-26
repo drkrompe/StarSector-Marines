@@ -130,7 +130,7 @@ Pay is the owner's call per job (proposed below).
 |---|---|---|---|
 | **The riggers** (offered): reach the riggers' module and walk them to the landing ground | until the dish field blows | They give up the post's layout: the bunkers and the crawler's track are revealed | 1,500 from their outfit; mark `corvus.warion.riggers_freed` |
 | **The false schedule** (hidden, found at the dish field's control hut): a squad leader holds the console while the uplink stands and before Garnir is warned | uplink standing, warning unsent | Garnir receives a false Wayline sailing schedule instead of the warning | no credits; mark `corvus.garnir.false_schedule`, for A Cold Account |
-| **The cold store** (proposed, hidden, found by sighting the pod racks): a squad holds the racks to log the manifest | until the dish field blows | none in battle | no credits; mark `corvus.sable_wake.organ_manifest`, evidence Kord's navy can read in A Cold Account |
+| **The cold store** (owner, 2026-10-26: option a, scenery and this job, no temptation job; hidden, found by sighting the pod racks): a squad holds the racks to log the manifest | until the dish field blows | none in battle | no credits; mark `corvus.sable_wake.organ_manifest`, evidence Kord's navy can read in A Cold Account |
 
 The false schedule needs the uplink standing, which pulls against blowing it
 first: the trade the hook is built on.
@@ -275,9 +275,6 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 ## Open questions
 
 - Side-job pay (proposed: riggers 1,500, false schedule none).
-- How far the cold drop goes (picks page): scenery and the cold-store job
-  (recommended), plus a contraband temptation job that pays black-market
-  credits for a permanent mark Mara will not forget, or scenery only.
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague
   could have warned the post, starting its crew stood-to. It would be the first
   consumer of a side-objective mark.

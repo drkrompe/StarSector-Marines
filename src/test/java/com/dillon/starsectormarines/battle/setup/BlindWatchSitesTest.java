@@ -1,7 +1,13 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.BlindWatchSounding;
 import com.dillon.starsectormarines.battle.world.gen.BlindWatchSounding.Cell;
+import com.dillon.starsectormarines.battle.world.gen.BlindWatchSounding.Installation;
 import com.dillon.starsectormarines.battle.world.gen.BlindWatchSounding.PostRole;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
@@ -10,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BlindWatchSitesTest {
     private static final Cell SLIT = new Cell(0, 0), HAB = new Cell(1, 0), RIM_A = new Cell(2, 0), RIM_B = new Cell(3, 0),
@@ -33,5 +40,23 @@ class BlindWatchSitesTest {
 
     @Test void aWatchLargerThanThePostMansEveryPostOnce() {
         assertEquals(posts(), BlindWatchSites.watch(posts(), Set.of(SLIT), 40));
+    }
+
+    /** S1, S2 and S3 are the Sounding's mast, uplink and dish field, each planted at its installation's own ground. */
+    @Test void eachChargeSiteStandsAtItsInstallation() throws Exception {
+        DiskRegistries.install();
+        var layout = BlindWatchSounding.generate(7150, new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.ROCK,
+                SettlementLink.NONE));
+        var sites = BlindWatchSequence.siteLayout(BlindWatchSites.from(layout, List.of())).sites();
+        List<Installation> order = List.of(Installation.MAST, Installation.UPLINK, Installation.DISH_FIELD);
+        for (int i = 0; i < order.size(); i++) {
+            BlindWatchSounding.ChargeSite installation = layout.sites().get(order.get(i));
+            var site = sites.get(i);
+            assertEquals(installation.plant(), new Cell(site.cellX(), site.cellY()), site.id());
+            // The plant cell is on the installation's ground or at its edge, never somewhere else on the map.
+            var area = installation.area();
+            assertTrue(site.cellX() >= area.left() - 1 && site.cellX() <= area.right() + 1
+                    && site.cellY() >= area.bottom() - 1 && site.cellY() <= area.top() + 1, site.id() + " at " + area);
+        }
     }
 }
