@@ -726,21 +726,58 @@ def slung(run, mother, t0, launch_off=(-8.0, 0.0, -12.0)):
 # launch their shuttle intrusion ... instead of just magically being on either side"; why would the Hound
 # break off if her charge were already being boarded): from astern, past the fight S6d left, they overtake
 # the Tarsus, drop their boats on the pass and brake onto her beams.
-K3B_KITE_FLIGHT = {key: fly(key, st, K3B_T, [dict(t=79, hd=10, pt=-3, rl=-10, v=260), dict(t=82.5, hd=8, pt=-2, rl=0, v=180),
-                                             dict(t=85, hd=6, pt=-1, rl=8, v=40), dict(t=86.2, v=0)], v=0)
-                   for key, st in (('kite-p-a', K3B_KITE_A), ('kite-p-b', K3B_KITE_B))}
+# Their run threads S6d's frame (owner, 2026-10-26: "this hound attempting to do a holding action, and some of
+# them slipping through"; S6d's camera stays): out of the background behind the Hounds (P), past the convoy's
+# Hound close enough to read as slipping by her, then on to brake onto the Tarsus's beams by 86 s. Points
+# in the battle frame, found by placing them in S6d's frame.
+K3B_KITE_RUN = {'kite-p-a': [(72.0, (-2560, -1050, -260)), (74.0, (-2279, -741, -166)), (76.5, (-1804, -479, -30)),
+                             (78.3, (-1715, -129, 19)), (82.5, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
+                'kite-p-b': [(72.3, (-2770, -970, -350)), (74.3, (-2490, -664, -255)), (76.8, (-1932, -505, -93)),
+                             (78.6, (-1770, -155, -7)), (82.8, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
+
+
+def kite_run(key, station):
+    """A Kite (P) along her run's points (cubic, through each at speed, at rest on her station at the
+    end), nose on her track and banking into her turns; then held on the station."""
+    pts = K3B_KITE_RUN[key]
+    hold = held(key, station, K3B_T, wobble=1.5)
+
+    def vel(i):
+        if i == len(pts) - 1:
+            return (0.0, 0.0, 0.0)
+        j, k = max(i - 1, 0), i + 1
+        return tuple((pts[k][1][n] - pts[j][1][n]) / (pts[k][0] - pts[j][0]) for n in range(3))
+
+    def pos(t):
+        t = max(t, pts[0][0])
+        for i in range(len(pts) - 1):
+            (t0, p0), (t1, p1) = pts[i], pts[i + 1]
+            if t <= t1:
+                v0, v1 = vel(i), vel(i + 1)
+                return tuple(_hermite(t, ((t0, p0[n], v0[n]), (t1, p1[n], v1[n]))) for n in range(3))
+        return pts[-1][1]
+
+    def at(t):
+        if t >= pts[-1][0]:
+            return hold.at(t)
+        p, q, r = pos(t - .05), pos(t + .05), pos(t + .15)
+        d = [q[n] - p[n] for n in range(3)]
+        hd = math.degrees(math.atan2(d[1], d[0]))
+        pt = math.degrees(math.atan2(d[2], math.hypot(d[0], d[1])))
+        turn = (math.degrees(math.atan2(r[1] - q[1], r[0] - q[0])) - hd + 180) % 360 - 180
+        rl = max(-45.0, min(45.0, -turn * 6.0))
+        w = min(1.0, max(0.0, (t - (pts[-1][0] - 1.6)) / 1.6))     # settling onto her station's attitude
+        x, y, z = pos(t)
+        hd = hd + w * ((station[3] - hd + 180) % 360 - 180)
+        return (x, y, z, hd, pt + w * (station[4] - pt), rl + w * (station[5] - rl), 1.0 if t < 84.0 else .2)
+    return Pose(at(K3B_T - 1.0), K3B_T - 1.0, at)
+
+
+K3B_KITE_FLIGHT = {'kite-p-a': kite_run('kite-p-a', K3B_KITE_A), 'kite-p-b': kite_run('kite-p-b', K3B_KITE_B)}
 K3B_KITE_A_FLOWN, K3B_KITE_B_FLOWN = K3B_KITE_FLIGHT['kite-p-a'], K3B_KITE_FLIGHT['kite-p-b']
 # S6d sees them coming (owner, 2026-10-26: "we couldn't see the Kites in S6d coming in with the pirate Hounds"):
-# the same two runs, behind the Hounds (P) that draw the convoy's Hound off; after her drive hit the camera
-# leaves her and swings onto them as they rush past it toward the Tarsus
+# the same two runs, behind the Hounds (P) that draw the convoy's Hound off
 K3E_SHIPS.update(K3B_KITE_FLIGHT)
-_k3e_chase = track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05)
-
-
-def k3e_aim(t):
-    w = _hermite(t, ((77.5, 0.0, 0.0), (79.0, 1.0, 0.0)))
-    a, k, c = K3B_KITE_FLIGHT['kite-p-a'].at(t), K3B_KITE_FLIGHT['kite-p-b'].at(t), _k3e_chase(t)
-    return tuple(c[i] + w * ((a[i] + k[i]) / 2 - c[i]) for i in range(3))
 K3B_TARSUS_FLOWN = fly('tarsus', K3B_TARSUS, K3B_T, [
     dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0, thrust=None)
 K3B_SHIPS = {
@@ -1123,10 +1160,9 @@ KEYFRAMES = {
         shot='S6d', title='The rear guard',
         caption='The convoy\'s Hound, rolled over onto two Hounds (P) climbing at her, fires down on the first and kills her at close range '
                 'and takes the second\'s fire full on as she falls back on the column.',
-        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit; then,
-        # as she falls back hit, the camera swings onto the two Kites (P) rushing past on their run (k3e_aim)
+        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
-                                   target=k3e_aim, lens=lens)
+                                   target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
                               for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(76.83, .7), (77.25, 1.0)]),
         ships=K3E_SHIPS,
         # the hero shot (owner): her turret on the first Hound (P) through the shot, already trained on her
