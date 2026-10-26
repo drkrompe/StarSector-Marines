@@ -153,6 +153,18 @@ public final class PropMotion {
 
     public List<Part> parts() { return parts; }
 
+    /**
+     * Whether the prop's own art is a fixed overhead part (an awning, a pipe rack): it then draws only in the roof
+     * pass, above the people under it, and never as a ground doodad below them. Like a roof it is part of the street,
+     * so it draws whether or not the fog has reached it.
+     */
+    public boolean liftsItself() {
+        for (Part part : parts) {
+            if (part.layer == Layer.OVERHEAD && part.kind == Kind.FIXED && part.doodadId.equals(baseId)) return true;
+        }
+        return false;
+    }
+
     /** Whether any part draws in {@code layer}. */
     public boolean draws(Layer layer) {
         for (Part part : parts) if (part.layer == layer) return true;

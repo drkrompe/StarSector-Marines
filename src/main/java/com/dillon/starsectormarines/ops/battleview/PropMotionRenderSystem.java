@@ -87,7 +87,8 @@ final class PropMotionRenderSystem implements RenderSystem {
                     || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
             float centreX = d.cellX + d.footprintCellsX * 0.5f;
             float centreY = d.cellY + d.footprintCellsY * 0.5f;
-            if (fogged && !fog.isCellRevealed((int) centreX, (int) centreY)) continue;
+            // Moving machinery waits for the fog; a prop that is its own fixed overhead art stands like a roof.
+            if (fogged && !motion.liftsItself() && !fog.isCellRevealed((int) centreX, (int) centreY)) continue;
             float phase = phases.advance(ctx, d, motion, damaged, now, centreX, centreY);
             float fade = layer == PropMotion.Layer.OVERHEAD
                     ? fade(d, seenUnder(seenFigures, width, d), ctx.realDt) : 1f;
