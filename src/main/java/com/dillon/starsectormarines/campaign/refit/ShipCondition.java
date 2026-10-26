@@ -41,11 +41,12 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         return new ShipCondition(true, copy);
     }
 
-    /** The workshop chain is the fabrication core: repaired machinery is restored, tooling improves it. */
+    /** The workshop chain is the fabrication core: repaired machinery is restored, tooling improves it, the reclamation line further. */
     public static RefitBand fabrication(WorkshopState workshop) {
         return switch (workshop) {
             case REPAIRED -> RefitBand.RESTORED;
             case EQUIPPED -> RefitBand.IMPROVED_I;
+            case RECLAIMING -> RefitBand.IMPROVED_II;
             case NONE -> RefitBand.RESTORED;
             default -> RefitBand.DEFICIT;
         };

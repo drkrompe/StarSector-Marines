@@ -54,6 +54,9 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.ops.battleview.DebugBayPreviewAssets;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
@@ -412,6 +415,7 @@ public class BriefingScreen implements Screen {
             candidateHints = BriefingHints.install(built, candidate, props);
             wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
+            BriefingLift.install(built, candidate, props, Strings::get);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
@@ -588,6 +592,7 @@ public class BriefingScreen implements Screen {
             props.put("landingCraftHint", new SpecSheet(grounded, grounded, null, "command", List.of(),
                     List.of(repairingLift, Strings.get("boatRepairCopy"))));
         }
+        BriefingLift.put(props, liftReadout(mission));
         props.put("carrierRows", retainedCarrierRows());
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
@@ -1876,6 +1881,27 @@ public class BriefingScreen implements Screen {
                         ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m))
                 : PersonnelReadiness.assess(roster,
                         ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m));
+    }
+
+    /**
+     * The bay against this mission's lift: the drop calls as resolved, the active lance as it
+     * would launch, and the mechs held back from it. A debug briefing's bay is its drop call's own.
+     */
+    private BriefingLift.Readout liftReadout(Mission mission) {
+        if (mission.source == MissionSource.STATIONING) return null;
+        MarineRoster roster = mission.source.isDebug() ? null : liveRoster();
+        List<MechDeploymentSpec> mechs = List.of();
+        List<VehicleDeploymentSpec> vehicles = List.of();
+        List<MechDeploymentSpec> heldBack = new ArrayList<>();
+        if (roster != null) {
+            float day = CampaignClock.dayFloat();
+            mechs = roster.mechBay().activeDeployment(day);
+            vehicles = roster.mechBay().activeVehicleDeployment();
+            for (MechBay.HeldBack held : roster.mechBay().heldBack(day)) {
+                heldBack.add(held.mech().freezeForDeployment(day));
+            }
+        }
+        return BriefingLift.read(lift(), cachedAvailablePowers, selectedPowerIds, mechs, vehicles, heldBack);
     }
 
     private static MarineRoster liveRoster() {

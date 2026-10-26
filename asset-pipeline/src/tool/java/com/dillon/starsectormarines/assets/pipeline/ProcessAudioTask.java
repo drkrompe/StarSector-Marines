@@ -5,6 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Transcodes manifest clips to game-ready Ogg Vorbis, reusing content-addressed encodes.
@@ -37,12 +40,16 @@ public final class ProcessAudioTask {
             Path source = inputDir.resolve(clip.source());
             Path output = outputDir.resolve(clip.out() == null ? "" : clip.out()).resolve(clip.id() + ".ogg");
             List<String> options = outputArguments(clip.kind(), clip.processing());
-            String recipe = ffmpeg.version() + "\n" + String.join("\n", options);
+            Double target = loudnessTarget(clip);
+            // The gain is measured inside the encode, so the key names the target rather than the gain.
+            String recipe = ffmpeg.version() + "\n" + String.join("\n", options)
+                    + (target == null ? "" : "\nlevel " + target + " LUFS");
             try {
                 AudioEncodeCache.Result result = cache.materialize(source, output, recipe, (input, temporary) -> {
                     List<String> command = new ArrayList<>(List.of(ffmpeg.path(), "-y", "-loglevel", "error",
                             "-i", input.toString()));
-                    command.addAll(options);
+                    command.addAll(target == null ? options
+                            : levelled(options, target - measureLoudness(ffmpeg, input, options)));
                     command.add(temporary.toString());
                     System.out.printf("  [%s] encoding %s%n", clip.id(), clip.source());
                     Process process = new ProcessBuilder(command).inheritIO().start();
@@ -125,6 +132,70 @@ public final class ProcessAudioTask {
             options.addAll(List.of("-af", "loudnorm=I=-20:TP=-2:LRA=7"));
         }
         return List.copyOf(options);
+    }
+
+    /** Story dialogue, every speaker and treatment, played at full volume. */
+    static final double STORY_VOICE_LUFS = -19;
+    /** Operation net and officer, played at 0.8 in sounds.json, so heard at about -21: under the story. */
+    static final double MISSION_VOICE_LUFS = -19;
+    /** Music, played at 0.525 in sounds.json, so heard at about -23.6: a bed under every voice. */
+    static final double MUSIC_LUFS = -18;
+    /** Ceiling after the leveling gain, about -1 dBFS. */
+    private static final String LEVEL_LIMITER = "alimiter=limit=0.891:level=false:latency=true";
+
+    /**
+     * The integrated loudness a clip is encoded to, after its treatment, or null to keep the
+     * source's level. Barks are leveled in sounds.json by their own tool; effects keep their
+     * authored levels, which the code playing them is tuned against.
+     */
+    static Double loudnessTarget(AudioManifest.AudioClip clip) {
+        if (clip.mix() != null) return switch (clip.mix()) {
+            case STORY_VOICE -> STORY_VOICE_LUFS;
+            case MISSION_VOICE -> MISSION_VOICE_LUFS;
+        };
+        return clip.kind() == AudioManifest.Kind.MUSIC ? MUSIC_LUFS : null;
+    }
+
+    /** {@code options} with a gain of {@code gainDb} and a peak ceiling after any treatment. */
+    static List<String> levelled(List<String> options, double gainDb) {
+        String level = String.format(Locale.ROOT, "volume=%.2fdB,%s", gainDb, LEVEL_LIMITER);
+        List<String> result = new ArrayList<>(options);
+        int filter = result.indexOf("-af");
+        if (filter < 0) {
+            result.addAll(List.of("-af", level));
+        } else {
+            result.set(filter + 1, result.get(filter + 1) + "," + level);
+        }
+        return List.copyOf(result);
+    }
+
+    /** The integrated loudness from an ebur128 log: the last {@code I:} line, which is the summary. */
+    static double integratedLoudness(String log) throws IOException {
+        Matcher matcher = INTEGRATED.matcher(log);
+        Double found = null;
+        while (matcher.find()) found = Double.parseDouble(matcher.group(1));
+        // ebur128 reports silence as -70, the gate; leveling it would only amplify noise.
+        if (found == null || found <= -70) throw new IOException("No integrated loudness in ffmpeg output");
+        return found;
+    }
+
+    private static final Pattern INTEGRATED = Pattern.compile("I:\\s+(-?[0-9.]+) LUFS");
+
+    /** Measures the clip as it would be encoded: same channels, rate and treatment. */
+    private static double measureLoudness(Ffmpeg ffmpeg, Path input, List<String> options)
+            throws IOException, InterruptedException {
+        List<String> command = new ArrayList<>(List.of(ffmpeg.path(), "-nostats", "-i", input.toString()));
+        String chain = "ebur128";
+        for (int i = 0; i < options.size(); i++) {
+            String option = options.get(i);
+            if (option.equals("-ac") || option.equals("-ar")) command.addAll(options.subList(i, i + 2));
+            if (option.equals("-af")) chain = options.get(i + 1) + ",ebur128";
+        }
+        command.addAll(List.of("-af", chain, "-f", "null", "-"));
+        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+        String log = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        if (process.waitFor() != 0) throw new IOException("ffmpeg loudness measurement failed");
+        return integratedLoudness(log);
     }
 
     private static Ffmpeg resolveFfmpeg() throws InterruptedException {

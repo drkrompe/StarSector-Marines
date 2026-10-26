@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A 1990s computer CRT monitor powering on: a crisp power switch click, a short low degauss hum that swells and settles, a faint electrostatic crackle on the glass, close up, no music",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "2d5048509b21455cb146a7d0364a3f4ed666e928130ab5bdcea6bf76acc9fa56",
+  "durationSeconds": 3.0,
+  "peakDb": -0.2,
+  "integratedLufs": -23.2
+}

@@ -1,0 +1,215 @@
+{
+  "model": "eleven_text_to_sound_v2",
+  "cues": {
+    "crt_on": {
+      "chosen": null,
+      "takes": {
+        "crt_on_t01": {
+          "durationSeconds": 4.0,
+          "peakDb": -19.7,
+          "integratedLufs": -44.4,
+          "characterCost": "44"
+        },
+        "crt_on_t02": {
+          "durationSeconds": 4.0,
+          "peakDb": -5.3,
+          "integratedLufs": -28.4,
+          "characterCost": "44"
+        }
+      },
+      "prompt": "An old CRT television switched on in a quiet room: a sharp relay click, a deep degauss thunk with a wobbling electrical hum, then a faint high-pitched tube whine settling in, no music",
+      "seconds": 4.0,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "crt_off": {
+      "chosen": null,
+      "takes": {
+        "crt_off_t01": {
+          "durationSeconds": 2.48,
+          "peakDb": -6.3,
+          "integratedLufs": -38.8,
+          "characterCost": "28"
+        },
+        "crt_off_t02": {
+          "durationSeconds": 2.48,
+          "peakDb": -13.6,
+          "integratedLufs": -40.9,
+          "characterCost": "28"
+        }
+      },
+      "prompt": "An old CRT television switched off: a soft electrical pop, a short static crackle and a quick descending whine fading to silence, no music",
+      "seconds": 2.5,
+      "loop": false,
+      "promptInfluence": 0.5
+    },
+    "crt_hum": {
+      "chosen": null,
+      "takes": {
+        "crt_hum_t01": {
+          "durationSeconds": 10.0,
+          "peakDb": -42.3,
+          "integratedLufs": -52.1,
+          "characterCost": "110"
+        },
+        "crt_hum_t02": {
+          "durationSeconds": 10.0,
+          "peakDb": -36.9,
+          "integratedLufs": -45.0,
+          "characterCost": "110"
+        }
+      },
+      "prompt": "Steady hum of an old CRT monitor up close: low mains buzz with a very faint high-pitched flyback whine and soft electrical crackle, constant, no music",
+      "seconds": 10.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "room_bed": {
+      "chosen": null,
+      "takes": {
+        "room_bed_t01": {
+          "durationSeconds": 15.0,
+          "peakDb": -27.5,
+          "integratedLufs": -45.5,
+          "characterCost": "165"
+        },
+        "room_bed_t02": {
+          "durationSeconds": 15.0,
+          "peakDb": -26.5,
+          "integratedLufs": -46.9,
+          "characterCost": "165"
+        }
+      },
+      "prompt": "Quiet military operations room at night: low air handling hum, distant computer fans and electronics, very faint, no voices, no music",
+      "seconds": 15.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "relay_static": {
+      "chosen": null,
+      "takes": {
+        "relay_static_t01": {
+          "durationSeconds": 10.0,
+          "peakDb": -8.0,
+          "integratedLufs": -19.8,
+          "characterCost": "110"
+        },
+        "relay_static_t02": {
+          "durationSeconds": 10.0,
+          "peakDb": -1.1,
+          "integratedLufs": -19.3,
+          "characterCost": "110"
+        }
+      },
+      "prompt": "Radio receiver static: steady soft hiss with faint crackle and slow interference warble, narrow band like an old radio, no voices, no music",
+      "seconds": 10.0,
+      "loop": true,
+      "promptInfluence": 0.4
+    },
+    "crt_on_monitor": {
+      "chosen": null,
+      "takes": {
+        "crt_on_monitor_t01": {
+          "durationSeconds": 3.0,
+          "peakDb": -0.2,
+          "integratedLufs": -23.2,
+          "characterCost": "33"
+        },
+        "crt_on_monitor_t02": {
+          "durationSeconds": 3.0,
+          "peakDb": -1.6,
+          "integratedLufs": -21.8,
+          "characterCost": "33"
+        }
+      },
+      "prompt": "A 1990s computer CRT monitor powering on: a crisp power switch click, a short low degauss hum that swells and settles, a faint electrostatic crackle on the glass, close up, no music",
+      "seconds": 3.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "crt_on_heavy": {
+      "chosen": null,
+      "takes": {
+        "crt_on_heavy_t01": {
+          "durationSeconds": 3.48,
+          "peakDb": -0.1,
+          "integratedLufs": -17.5,
+          "characterCost": "38"
+        },
+        "crt_on_heavy_t02": {
+          "durationSeconds": 3.48,
+          "peakDb": -1.5,
+          "integratedLufs": -23.4,
+          "characterCost": "38"
+        }
+      },
+      "prompt": "A heavy old industrial CRT display switching on: a deep relay clunk, a resonant degauss boing that wobbles and decays, then a quiet steady electrical hum, no music",
+      "seconds": 3.5,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "crt_off_monitor": {
+      "chosen": null,
+      "takes": {
+        "crt_off_monitor_t01": {
+          "durationSeconds": 2.0,
+          "peakDb": 0.0,
+          "integratedLufs": -13.1,
+          "characterCost": "22"
+        },
+        "crt_off_monitor_t02": {
+          "durationSeconds": 2.0,
+          "peakDb": 0.0,
+          "integratedLufs": -21.4,
+          "characterCost": "22"
+        }
+      },
+      "prompt": "A 1990s computer CRT monitor powering off: a crisp switch click and a quick electrostatic snap as the picture collapses, then a very faint fading whine, close up, no music",
+      "seconds": 2.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "crt_off_heavy": {
+      "chosen": null,
+      "takes": {
+        "crt_off_heavy_t01": {
+          "durationSeconds": 2.48,
+          "peakDb": -0.4,
+          "integratedLufs": -5.2,
+          "characterCost": "28"
+        },
+        "crt_off_heavy_t02": {
+          "durationSeconds": 2.48,
+          "peakDb": -0.4,
+          "integratedLufs": -10.4,
+          "characterCost": "28"
+        }
+      },
+      "prompt": "A heavy old CRT display switching off: a relay clunk, a low electrical thump and a short descending tone dying away, no music",
+      "seconds": 2.5,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "ui_transition": {
+      "chosen": null,
+      "takes": {
+        "ui_transition_t01": {
+          "durationSeconds": 1.48,
+          "peakDb": -0.0,
+          "integratedLufs": -11.7,
+          "characterCost": "17"
+        },
+        "ui_transition_t02": {
+          "durationSeconds": 1.48,
+          "peakDb": -4.0,
+          "integratedLufs": -12.1,
+          "characterCost": "17"
+        }
+      },
+      "prompt": "Short digital computer interface transition: a quick clean electronic sweep with soft data blips, 1990s science fiction terminal, no whoosh, no music",
+      "seconds": 1.5,
+      "loop": false,
+      "promptInfluence": 0.6
+    }
+  }
+}
