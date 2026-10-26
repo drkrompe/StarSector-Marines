@@ -110,18 +110,47 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
-        dragPreview = component != null ? new DragPreview(component, source, target, valid) : null;
+        dragPreview = component != null ? new DragPreview(component, null, source, target, valid) : null;
     }
 
     /**
-     * An internal or loader carried over the doll: only the target socket answers, lit as a
-     * fit or a refusal. The piece itself rides on the drag ghost.
+     * An internal or rack kit carried over the doll: the target socket is lit as a fit or a
+     * refusal, and an internal it takes is drawn snapped into it as a weapon is. A kit only
+     * ever goes back to its own rack, where it is still drawn.
      */
-    public void previewPartDrag(SocketId target, boolean valid) {
-        dragPreview = new DragPreview(null, null, target, valid);
+    public void previewPartDrag(MechInternal internal, SocketId source, SocketId target, boolean valid) {
+        dragPreview = new DragPreview(null, internal, source, target, valid);
     }
 
     public void clearWeaponDragPreview() { dragPreview = null; }
+
+    /**
+     * Whether the doll draws the carried part in the socket under the pointer, so the room
+     * draws no ghost on the pointer; otherwise the ghost carries it.
+     */
+    public boolean carriedSnapped() {
+        return dragPreview != null && snaps(dragPreview.target(), dragPreview.source(), dragPreview.valid());
+    }
+
+    /**
+     * The one rule for where a carried part is drawn: snapped into the socket under the pointer
+     * when it would go there on the drop, or back where it came from; anywhere else, on the
+     * pointer. A part is never drawn nowhere.
+     */
+    static boolean snaps(SocketId target, SocketId source, boolean fits) {
+        return target != null && (fits || target == source);
+    }
+
+    /**
+     * The compartment as it would pack with {@code part} added, its placement last; null when it
+     * would not fit.
+     */
+    static List<MechCompartment.Placement> packedWith(List<SocketDef> grids, List<MechInternal> installed,
+                                                      MechInternal part) {
+        List<MechInternal> parts = new ArrayList<>(installed);
+        parts.add(part);
+        return MechCompartment.pack(grids, parts);
+    }
 
     /**
      * What each internal socket of the selected machine holds. The frozen deployment
@@ -147,7 +176,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         installedKits = source != null ? source : List::of;
     }
 
-    private record DragPreview(MechWeaponComponent component, SocketId source,
+    private record DragPreview(MechWeaponComponent component, MechInternal internal, SocketId source,
                                SocketId target, boolean valid) { }
 
     private int hoveredVacantGantry = -1;
@@ -294,7 +323,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
-                    null, socket.id().compartment() ? List.of() : null, assets.get(),
+                    null, false, socket.id().compartment() ? List.of() : null, null, assets.get(),
                     false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
@@ -540,6 +569,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, canvasHeight);
         SocketDropTarget core = null;
         for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
+        // A part in hand that would go where the pointer is is drawn there; @see #snaps
+        boolean snapped = carriedSnapped();
+        SocketId snapTarget = snapped ? dragPreview.target() : null;
+        // Lifted off the doll, an internal is still drawn where it sits; only a stores part is added.
+        MechInternal snapInternal = snapped && dragPreview.source() == null ? dragPreview.internal() : null;
+        List<MechCompartment.Placement> compartmentParts = packed(layout);
+        MechCompartment.Placement previewPart = null;
+        if (snapInternal != null && snapTarget.compartment()) {
+            List<MechCompartment.Placement> with = packedWith(grids(layout), installedCompartment.get(), snapInternal);
+            if (with != null) {
+                compartmentParts = with;
+                previewPart = with.get(with.size() - 1);
+            }
+        }
         for (SocketDropTarget target : targets) {
             if (core == null || target == core) continue;
             SocketDef socket = layout.socket(target.id());
@@ -547,8 +590,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean compatible = active != null && isSocketCompatible(socket, active);
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
-            boolean rejected = draggingHere && !dragPreview.valid();
-            if (draggingHere) compatible = dragPreview.valid();
+            boolean rejected = draggingHere && !snapped;
+            if (draggingHere) compatible = snapped;
             Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0xc8eef4)
                     : selected ? new Color(0xedc273) : HardpointBricks.tone(socket.type());
             List<float[]> path = wireToCore(target, core);
@@ -571,14 +614,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechWeaponComponent component = weaponAt(deployment, socket.id());
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
-            boolean rejected = draggingHere && !dragPreview.valid();
-            boolean compatible = draggingHere ? dragPreview.valid()
+            boolean rejected = draggingHere && !snapped;
+            boolean compatible = draggingHere ? snapped
                     : active != null && isSocketCompatible(socket, active);
             boolean compartment = socket.id().compartment();
+            boolean snapsHere = snapTarget == socket.id();
+            boolean internalPreview = !compartment && snapsHere && snapInternal != null;
             MechSocketConsole.draw(c, target, socket, component,
-                    draggingHere ? active : null,
-                    compartment ? null : installedInternals.apply(socket.id()),
-                    compartment ? packed(layout) : null, assets.get(), selected,
+                    snapsHere ? dragPreview.component() : null,
+                    compartment ? null : internalPreview ? snapInternal : installedInternals.apply(socket.id()),
+                    internalPreview,
+                    compartment ? compartmentParts : null, previewPart, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }
@@ -687,10 +733,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** The selected machine's compartment at its packed places, every bay; empty if it somehow does not pack. */
     private List<MechCompartment.Placement> packed(MechFittingLayout layout) {
+        List<MechCompartment.Placement> placed = MechCompartment.pack(grids(layout), installedCompartment.get());
+        return placed != null ? placed : List.of();
+    }
+
+    private static List<SocketDef> grids(MechFittingLayout layout) {
         List<SocketDef> grids = new ArrayList<>();
         for (SocketId id : MechCompartment.GRIDS) if (layout.hasSocket(id)) grids.add(layout.socket(id));
-        List<MechCompartment.Placement> placed = MechCompartment.pack(grids, installedCompartment.get());
-        return placed != null ? placed : List.of();
+        return grids;
     }
 
     /** Whether a card is the selected one: either compartment bay lights for the compartment. */
