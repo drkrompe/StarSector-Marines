@@ -95,6 +95,30 @@ class CordonCompanyRulesTest {
     }
 
     @Test
+    void theGateIsHeldAfterTheEscortAndOverTheFloor() {
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(new int[]{50, 0}),
+                List.of(new int[]{300, 300}), List.of(), null);
+        assertEquals(List.of(Kind.CONVOY, Kind.GATE), duties.stream().map(Duty::kind).toList());
+        // Six squads with a floor of two: the escort's three and the gate's two all go, as the road's duties do.
+        Map<Integer, Duty> out = CordonCompanyRules.assign(duties, company(6), 2);
+        assertEquals(CordonCompanyRules.DETACHMENT, out.values().stream().filter(d -> d.kind() == Kind.GATE).count());
+        assertEquals(5, out.size());
+    }
+
+    @Test
+    void aSquadDrawnToACallGoesBackToItsDutyAndOutranksItsStandIn() {
+        assertEquals("gate-0", CordonCompanyRules.dutyOf("road-0", "gate-0", k -> !k.equals("road-0")));
+        assertEquals("road-0", CordonCompanyRules.dutyOf("road-0", "gate-0", k -> true));
+        assertEquals(null, CordonCompanyRules.dutyOf("road-0", "gate-0", k -> false));
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(new int[]{300, 300}),
+                List.of(), null);
+        // Squad 0 came back to the gate; 1 and 2 were sent from afar in its place: the nearest two keep it.
+        List<Squad> squads = List.of(new Squad(0, 300, 295, "gate-0"), new Squad(1, 300, 160, "gate-0"),
+                new Squad(2, 302, 290, "gate-0"));
+        assertEquals(Map.of(0, duties.get(0), 2, duties.get(0)), CordonCompanyRules.assign(duties, squads, 0));
+    }
+
+    @Test
     void aBeatSendsInfantryBeforeANearerMachine() {
         List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(new int[]{200, 300, 1}), null);
         List<Squad> squads = List.of(new Squad(0, 200, 160, null, true, null), new Squad(1, 260, 130, null, false, null));
@@ -121,7 +145,7 @@ class CordonCompanyRulesTest {
         assertFalse(progress.stalled(2, "convoy-0", 0, 0, 40, false, 0));
         assertFalse(progress.stalled(2, "convoy-0", 0, 12, 45, false, stall - 1));
         assertFalse(progress.stalled(2, "convoy-0", 0, 24, 50, false, 2 * stall - 2));
-        // Standing on the duty or riding to it never stalls.
+        // Standing on the duty, or riding to it or fighting on the way, never stalls.
         assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 0));
         assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 3 * stall));
         assertFalse(progress.stalled(4, "beat-0", 0, 0, 90, true, 0));

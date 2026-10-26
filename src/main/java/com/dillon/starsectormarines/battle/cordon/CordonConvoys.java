@@ -573,6 +573,19 @@ public final class CordonConvoys {
     }
 
     /**
+     * The compound's gate while a convoy is on its way to it or loading at it, else nothing: where the company holds
+     * for it ahead of time (rule 2). Walked out only once the trucks loaded, the escort came from the line a hundred
+     * cells off and the swarm's brutes beat both trucks at the gate first (town Road, arid 8).
+     */
+    public List<int[]> gates() {
+        if (corridor.size() < 2) return List.of();
+        for (Convoy c : convoys) {
+            if (c.phase == Phase.INBOUND || c.phase == Phase.LOADING) return List.of(corridor.get(corridor.size() - 1));
+        }
+        return List.of();
+    }
+
+    /**
      * Where each convoy on the road the armour does not escort wants its escort: a few cells ahead
      * of its lead truck along the road in the way it is going, or at the gate while it loads. What
      * the company is asked to walk.
