@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretShieldService;
@@ -107,7 +110,8 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
     /**
      * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}), by the dome
      * shader, or where it is off by the same flat drawing a dome falls back to, cut to the shield's arc. The
-     * hardware's heat on the plinth is drawn with the structure ({@link TurretFluxHeat}).
+     * hardware's heat on the plinth is drawn with the structure ({@link TurretFluxHeat}). A company boat's shield is
+     * one of them, drawn where her hull is drawn (raised by her altitude) and only while she is over the battle.
      */
     private void collectTurretShields(RenderContext ctx, BattleCamera camera, float cellPx, boolean shaded) {
         long tick = ctx.sim.getSimTickIndex();
@@ -119,6 +123,13 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             if (!world.isAlive(id)) continue;
             float x = world.renderX(id);
             float y = world.renderY(id);
+            ShuttleMission boat = world.mission(id);
+            if (boat != null) {
+                if (!boat.isOverTheBattle()) continue;
+                AirBody body = world.kinematics(id);
+                x = body.x;
+                y = body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
+            }
             if (!isKnown(ctx, ctx.sim.identity().faction(id), x, y)) continue;
             int slot = pass.draws().size();
             while (drawPool.size() <= slot) drawPool.add(new ShieldDomeDraw());

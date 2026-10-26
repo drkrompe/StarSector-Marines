@@ -449,6 +449,21 @@ stationing incidents retain their own local lift. Briefing and launch enforce
 the same rule before map construction; neither fills missing player trips with
 anonymous Aeroshuttles.
 
+**A company boat flies with a shield and one flux pool, on a hardpoint's rules.**
+`FittedBoat.shieldSpec` builds her shield from her emitter (arc, flux per blocked
+point of damage) and her power fitting (pool and venting), and `AirSystem` fits it
+into the battle's flux shields (`TurretShieldService`, the hardpoint shields'
+service, `FluxShield`'s rules) when she spawns. It rises toward what her guns are
+on or what last hit her and turns to it; a round credited to a shooter inside its
+arc is stopped whole and becomes flux, and so is each anti-air post's share of the
+area drain. **Her guns charge the same pool**: every round but a missile's, an
+energy round most (`BoatGun.Family`). Past 85% of the pool her flux guns rest
+until it vents to 55% while missile pods keep firing; a full pool overloads, the
+shield drops and every gun falls silent until it has vented. She is drawn with
+the dome shader cut to her arc (`TurretShieldField`), where her hull is drawn and
+only while she is over the battle, in her emitter tier's tint. The shield goes
+when she falls or leaves. Other aircraft carry none.
+
 **The fit owns seats, ramp and loaded speed; the deck owns the turnaround.**
 The frame's seats are the cabin's (never fewer than the pattern's), and its
 deboard cadence is the pattern's quickened by the drive. A boat flies slower

@@ -20,3 +20,4 @@ Updated: 2026-09-01 — folded the late-arrival rejoin state into the company-vi
 | `hq-news-desk.md` | 2026-10-09 | this change | `company-view-nouns.md` — source windows, view-local report selection and focused briefings |
 | `hq-intel-motion.md` | 2026-10-09 | this change | `company-view-nouns.md`, `ui-nouns.md` — animated receiver network, real arrival distinction and persistent dossier motion |
 | `company-resource-bills.md` | 2026-10-13 | this change | `company-view-nouns.md` — Company resource bills: separate Available stock, Cost/Short by orders, uncharged action naming and transaction authority |
+| `boat-refit-axes.md` | 2026-10-26 | `8a278d374`, `504776b63`, `f703cc121`, `882b8c811`, this change | `company-view-nouns.md` — six slots, frame budget, boat guns and families, shield tiers, boats travel with the company; `air-nouns.md` — seats, ramp, loaded speed, firing arcs, the boat's shield and flux pool |
