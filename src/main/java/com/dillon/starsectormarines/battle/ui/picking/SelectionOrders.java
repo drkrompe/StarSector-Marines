@@ -40,6 +40,8 @@ public final class SelectionOrders {
     public static final float MIN_FACING_DRAG_CELLS = 1f;
     /** Cells between neighbouring destinations when a group click spreads round the clicked cell. */
     public static final float GROUP_SPACING_CELLS = 4f;
+    /** A mech's or a vehicle's share of a group line, in marines: a single unit with a broad footprint. */
+    static final float MACHINE_LINE_WIDTH = 2f;
     /** How near the clicked cell's centre a friendly marine must stand for a mech's click to mean "attach". */
     static final float ATTACH_PICK_CELLS = 1.2f;
 
@@ -361,7 +363,8 @@ public final class SelectionOrders {
 
     /**
      * A right drag from ({@code x0},{@code y0}) to ({@code x1},{@code y1}). Every recipient holds its
-     * own consecutive stretch of the line in recipient order, each facing as an infantry line does —
+     * own consecutive stretch of the line in recipient order, as long as its width
+     * ({@link #lineWidth}), each facing as an infantry line does —
      * toward the threat its squad believes in, else away from where it stands. An infantry squad
      * holds its stretch as a frontage; a mech or a vehicle goes to its stretch's middle and finishes
      * facing that front. A drag too short to be a line is the click it nearly was.
@@ -398,21 +401,47 @@ public final class SelectionOrders {
                                                   int x0, int y0, int x1, int y1) {
         List<Recipient> recipients = recipients(sim, selection);
         List<FrontageLine> lines = new ArrayList<>(recipients.size());
-        int n = recipients.size();
-        for (int i = 0; i < n; i++) {
+        float[] widths = new float[recipients.size()];
+        float total = 0f;
+        for (int i = 0; i < widths.length; i++) {
+            widths[i] = lineWidth(sim, recipients.get(i));
+            total += widths[i];
+        }
+        float before = 0f;
+        for (int i = 0; i < widths.length; i++) {
             Recipient recipient = recipients.get(i);
-            int ax = Math.round(x0 + (x1 - x0) * (float) i / n);
-            int ay = Math.round(y0 + (y1 - y0) * (float) i / n);
-            int bx = Math.round(x0 + (x1 - x0) * (float) (i + 1) / n);
-            int by = Math.round(y0 + (y1 - y0) * (float) (i + 1) / n);
+            float from = before / total;
+            before += widths[i];
+            float to = before / total;
+            int ax = Math.round(x0 + (x1 - x0) * from);
+            int ay = Math.round(y0 + (y1 - y0) * from);
+            int bx = Math.round(x0 + (x1 - x0) * to);
+            int by = Math.round(y0 + (y1 - y0) * to);
             Squad squad = recipient.kind() == RecipientKind.VEHICLE ? null : sim.getSquad(recipient.squadId());
             SquadContactPicture picture = squad == null ? null : squad.contactPicture;
             boolean threat = picture != null && picture.hasContacts()
                     && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
-            lines.add(FrontageLine.facing(ax, ay, bx, by, recipient.x(), recipient.y(),
-                    threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1));
+            int threatX = threat ? picture.primaryCellX() : -1;
+            int threatY = threat ? picture.primaryCellY() : -1;
+            FrontageLine stretch = FrontageLine.facing(ax, ay, bx, by, recipient.x(), recipient.y(), threatX, threatY);
+            if (stretch.length() < 1f) {
+                // A single machine's stretch can round to a point; it faces as the whole drag does.
+                FrontageLine whole = FrontageLine.facing(x0, y0, x1, y1, recipient.x(), recipient.y(), threatX, threatY);
+                stretch = new FrontageLine(ax, ay, bx, by, whole.frontX(), whole.frontY());
+            }
+            lines.add(stretch);
         }
         return lines;
+    }
+
+    /**
+     * How much of a group line a recipient takes, in marines: a squad one per live marine, a mech or
+     * a vehicle {@link #MACHINE_LINE_WIDTH} — it is one unit, however wide its chassis.
+     */
+    static float lineWidth(BattleSimulation sim, Recipient recipient) {
+        if (recipient.kind() != RecipientKind.INFANTRY) return MACHINE_LINE_WIDTH;
+        Squad squad = sim.getSquad(recipient.squadId());
+        return squad == null ? 1f : Math.max(1, squad.aliveMembers);
     }
 
     /**

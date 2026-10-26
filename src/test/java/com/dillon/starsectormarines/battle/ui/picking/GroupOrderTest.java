@@ -152,6 +152,9 @@ class GroupOrderTest {
         assertEquals(1, marks.get(1).places().size(), "the mech's slot");
         assertEquals(1, marks.get(2).places().size(), "the vehicle's slot");
         FrontageLine mechLine = marks.get(1).line();
+        assertTrue(mechLine.length() < marks.get(0).line().length(),
+                "a mech is one unit: its stretch is shorter than a squad's");
+        assertEquals(mechLine.length(), marks.get(2).line().length(), 1.01f, "and as long as a vehicle's");
 
         SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
         sim.getSquadMoveOrderSystem().tick(sim);
@@ -160,11 +163,11 @@ class GroupOrderTest {
         FrontageLine held = assertInstanceOf(ActiveDefendAreaOrder.class,
                 sim.getSquadMoveOrderService().activeOrder(infantry)).line();
         assertEquals(25, held.y0(), "the infantry hold the first stretch");
-        assertEquals(35, held.y1());
+        assertEquals(38, held.y1(), "three marines' worth of a line shared with two machines");
         MechMoveOrderService.ActiveOrder order = sim.getMechMoveOrderService().activeOrder(mech);
         assertNotNull(order);
         assertEquals(40, order.requestedX(), "the mech goes to its stretch's middle");
-        assertEquals(40, order.requestedY());
+        assertEquals(42, order.requestedY());
         assertEquals(SelectionOrders.facingOf(mechLine.frontX(), mechLine.frontY()), order.facingDegrees(), 1e-4f,
                 "facing its stretch's front");
         assertTrue(mechLine.frontX() > 0.9f, "away from where it stood, as an infantry line faces");

@@ -688,7 +688,9 @@ resolved reachable destination remains simulation-owned without a persistent
 destination-cell overlay. For a lone Mech or vehicle, crossing the pointer threshold
 gives the move a held heading instead: it goes where the drag began and faces the
 way the drag went. For anything more it draws a **group line**: every recipient
-holds its own consecutive stretch of the line in recipient order, an infantry
+holds its own consecutive stretch of the line in recipient order, as long as its
+width — a squad one marine's share per live marine, a Mech or vehicle two, since it
+is one unit however broad its chassis (`SelectionOrders.lineWidth`) — an infantry
 squad as a frontage (see `ai-nouns.md`, occupy) and a Mech or vehicle at its
 stretch's middle, facing the stretch's front; each stretch faces as an infantry
 line does, toward the threat its squad believes in, else away from where the
