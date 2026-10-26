@@ -21,7 +21,8 @@ import java.util.List;
  * ({@code company-march}: the squad's files) and once where the march meets the swarm ({@code company-contact}: whom it
  * shoots and how it stands under acid), and once on a Broad Front town battle (arid, seed 3) after its own satellites
  * are down, going to one the lanes left standing ({@code company-helps}). Each stands the battle up and plays it to the
- * shot unrecorded; opt-in.
+ * shot unrecorded; opt-in. {@code lance-standoff} follows the company's mech lance on Broad Front verdant 3 as the
+ * Brutes reach it, stepping back from their charges.
  */
 public final class HeartCompanyLookSuite implements SnapshotSuite {
 
@@ -43,6 +44,9 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6}]}";
     static final int HELP_SQUAD = 28;
+    /** The open-country battle whose lance the Brutes caught before the stand-off (2026-10-25), and the lance's squad. */
+    static final String LANCE_FIXTURE = HELP_FIXTURE.replace("\"ARID\"", "\"VERDANT\"").replace(",\"density\":\"TOWN\"", "");
+    static final int LANCE_SQUAD = 30;
 
     @Override public String id() { return "heart-company-look"; }
 
@@ -62,6 +66,9 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
             if (only.isEmpty() || only.contains("helps"))
                 out.addAll(LookReview.record(context.modRoot(), shot("company-helps", HELP_FIXTURE, HELP_SQUAD,
                         LookGround.of(SurfacePalette.ARID, 3), 14000, 900, 60f)));
+            if (only.isEmpty() || only.contains("lance"))
+                out.addAll(LookReview.record(context.modRoot(), shot("lance-standoff", LANCE_FIXTURE, LANCE_SQUAD,
+                        LookGround.verdant(), 6500, 900, 50f)));
             return out;
         }
     }
