@@ -5093,6 +5093,7 @@
 		"battleCommsSideManyBody": "{0}. None of them pays now.",
 		"sideObjectiveLapsed": "Not done in time",
 		"sideObjectiveFailed": "Failed",
+		"sideObjectiveOfferedBy": "For {0}",
 		"battleCommsHostileShipBody": "An enemy warship is dropping through the cloud deck over the marked ground. Get clear of it.",
 		"battleSpeedPause":       "Pause",
 		"battleSpeed1x":          "1x",
