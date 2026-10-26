@@ -336,17 +336,9 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
 # Colossus's port bow on the same side, each aimed at her and holding still (a point on her that moves
 # with her, so her weave on station stays framed).
 S1_AIM_AT = (-12.0, -40.0, -10.0)
-S1_RANGE = 3000.0
+S1_RANGE = 2500.0
 S1_LIFT = 650.0     # how far above the Colossus S1's pan opens: the limb up top, the column low in frame
-S2_AIM_AT = (-60.0, -60.0, -10.0)
-S1_LOOK = (-.55, .69, .41)     # from the Colossus back to S1's eye
-S1_EYE = tuple(S1_AIM_AT[i] + S1_RANGE * c for i, c in enumerate(S1_LOOK))
-# S2 is S1's camera (owner, 2026-10-26: "the same camera"), cut in along S1's line of sight: 'far' holds
-# S1's eye on a long lens, 'in' has moved in to 800 m on S1's 45 mm. TEMPORARY A/B: remove ASHARU_S2_CAM
-# and the losing branch once the owner picks.
-S2_CAM = os.environ.get('ASHARU_S2_CAM', 'far')
-S2_RANGE, S2_LENS = (S1_RANGE, 170) if S2_CAM == 'far' else (800.0, 45)
-S2_EYE = S1_EYE if S2_CAM == 'far' else tuple(S2_AIM_AT[i] + S2_RANGE * c for i, c in enumerate(S1_LOOK))
+S1_LOOK = tuple(c / math.sqrt(.55 ** 2 + .69 ** 2 + .41 ** 2) for c in (-.55, .69, .41))   # Colossus to S1's eye
 
 
 def convoy_at(t):
@@ -361,6 +353,30 @@ def track(pose, point, share=1.0, lag=0.0):
 
 
 S1_AIM = track(convoy_at(16)['colossus'], S1_AIM_AT)
+
+
+def _hermite(t, keys):
+    """A value through (t, value, slope) keys, cubic between them and held outside: a move that
+    starts, carries its speed through a cut and settles."""
+    if t <= keys[0][0]:
+        return keys[0][1]
+    for (t0, v0, m0), (t1, v1, m1) in zip(keys, keys[1:]):
+        if t <= t1:
+            h, u = t1 - t0, (t - t0) / (t1 - t0)
+            return ((2 * u ** 3 - 3 * u * u + 1) * v0 + (u ** 3 - 2 * u * u + u) * h * m0
+                    + (-2 * u ** 3 + 3 * u * u) * v1 + (u ** 3 - u * u) * h * m1)
+    return keys[-1][1]
+
+
+# S1 and S2 are one take (owner, 2026-10-26: "the same camera", "move the camera in the scene, not
+# jump"): the still observer's pan settles, then the camera travels in along its own line of sight to
+# her port bow, carrying its speed through the cut and settling alongside by the end of S2. One lens.
+S12_RANGE = ((18.0, S1_RANGE, 0.0), (24.0, 800.0, -110.0), (30.0, 520.0, 0.0))
+
+
+def s12_eye(t):
+    a, d = S1_AIM(t), _hermite(t, S12_RANGE)
+    return tuple(a[i] + d * S1_LOOK[i] for i in range(3))
 
 
 def s1_pan(t):
@@ -531,6 +547,30 @@ K1B_SHIPS = PIRATE_FLIGHT
 K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
 K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
 K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_FLIGHT.items()}
+S3_EYE = ((-1560.0, -150.0, 85.0), (-1630.0, -95.0, 96.0))     # S3's eye at the convoy's tail, 30 s and 38 s
+S34_TRAVEL = ((34.5, 0.0, 0.0), (41.0, 1.0, 0.0))                # the camera's way down to the flank (0 to 1)
+S34_LENS = ((30, 32), (34, 48), (36, 48), (38, 42), (40, 30), (42, 32), (44, 36))
+S34_TURN = ((34.5, 0.0, 0.0), (37.5, .5, .2), (40.5, .55, 0.0), (42.5, 1.0, 0.0))   # the aim: platform to Falcon
+
+
+def _falcon(t):
+    return PIRATE_FLIGHT['falcon-p'].at(t)[:3]
+
+
+_s34_flank = track(K2_PIRATES['falcon-p'], K2_CAM, .3)
+
+
+def s34_eye(t):
+    """S3 and S4's one take: the tail of the convoy, then down to the pack's south flank."""
+    u = min(1.0, max(0.0, (t - 30.0) / 8.0))
+    tail = tuple(S3_EYE[0][i] + u * (S3_EYE[1][i] - S3_EYE[0][i]) for i in range(3))
+    w, f = _hermite(t, S34_TRAVEL), _s34_flank(t)
+    return tuple(tail[i] + w * (f[i] - tail[i]) for i in range(3))
+
+
+def s34_aim(t):
+    w, f = _hermite(t, S34_TURN), _falcon(t)
+    return tuple(PLATFORM[i] + w * (f[i] - PLATFORM[i]) for i in range(3))
 
 
 def _field():
@@ -887,11 +927,11 @@ KEYFRAMES = {
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
-        # THE STEADY REGROUNDING (owner, 2026-10-26): after S1a's satellite zoom, no zoom here. A still
-        # observer off the north flank, 3 km out on one lens, pans: it opens up on the limb with the column
-        # low in frame and tilts down to settle on the Colossus and Morrow. No dolly, no zoom, no shake.
-        camera=camera('k1', [dict(t=16, loc=S1_EYE, target=s1_pan, lens=45, focus=S1_RANGE),
-                             dict(t=24, loc=S1_EYE, target=s1_pan, lens=45, focus=S1_RANGE)], 16),
+        # THE STEADY REGROUNDING, THEN IN (owner, 2026-10-26: no zoom after S1a's; S1 and S2 one take): a
+        # still observer 2.5 km off the north flank on one 45 mm lens opens up on the limb, the column low in
+        # frame, and tilts down onto the Colossus and Morrow; from 18 s it travels in toward her (s12_eye).
+        camera=camera('k1', [dict(t=16, loc=s12_eye, target=s1_pan, lens=45),
+                             dict(t=24, loc=s12_eye, target=s1_pan, lens=45)], 16),
         ships=convoy_at(16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
@@ -900,15 +940,12 @@ KEYFRAMES = {
         caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
                 'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
                 'up. Eleven more lie cold beside her.',
-        # ZOOM, then CRASH ZOOM: finding the platform, holding until it reads as junk, then snapping in
-        # on the Falcon (P) as her drives light; handheld at the long end. The lenses were refitted when
-        # the platform came in to 4.5 km (90, 135, 165, 300 mm at 10 km): the same framings, closer.
-        camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=32),
-                              dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=48),
-                              dict(t=36.4, loc=(-1610, -110, 92), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
-                                   lens=68),
-                              dict(t=38, loc=(-1630, -95, 96), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
-                                   lens=122)], K1B_T, shake=.05),
+        # S3 and S4 are one take (owner, 2026-10-26: "move the camera in the scene, not jump"): from the
+        # convoy's tail a long lens finds the platform and holds until it reads as junk; as the Falcon (P)'s
+        # drives light, the camera travels back down to the pack's south flank (s34_eye), widening as the
+        # spread opens, and pans with the Falcon (P) as she climbs (S4).
+        camera=camera('k1b', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
+                              if t <= K2_T - 2.0], K1B_T),
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
         # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
@@ -919,13 +956,11 @@ KEYFRAMES = {
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
-        # off the pack's flank as it climbs out of the platform, wide while the spread opens up, then a
-        # CRASH ZOOM onto the Falcon (P) and panning with her
-        camera=camera('k2', [dict(t=t, loc=track(K2_PIRATES['falcon-p'], K2_CAM, .3),
-                                  target=track(K2_PIRATES['falcon-p'], aim, share), lens=lens)
-                             for t, lens, aim, share in ((38, 24, K2_AIM, .5), (40, 28, K2_AIM, .5), (41.4, 32, K2_AIM, .6),
-                                                         (42.4, 95, K2_PIRATES['falcon-p'][:3], 1.0),
-                                                         (44, 110, K2_PIRATES['falcon-p'][:3], 1.0))], K2_T, shake=.1),
+        # S3'S TAKE, CONTINUED: the camera arriving off the pack's south flank, wide while the spread opens,
+        # then panning with the Falcon (P) as she climbs. No cut from S3, no crash zoom.
+        camera=camera('k2', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
+                             if t >= K2_T - 2.0], K2_T),
+        ground_t=K1B_T,     # the planet turns from S3's time: one take over the cut
         ships={**fleet_at({k: CONVOY[k] for k in ('hound-m', 'tarsus')}, K2_T), **K2_PIRATES},
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
@@ -1165,7 +1200,6 @@ M2_LASHER = fly('lasher-a', (-110, 185, 60, 3, 1, -28, .9), M2_T, [
     dict(t=24, hd=-3, pt=0, rl=-12), dict(t=30, hd=8, pt=2, rl=-35)], v=110)
 M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'morrow', 'buffalo-a')},
             'lasher-a': M2_LASHER}
-S2_AIM = track(M2_SHIPS['colossus'], S2_AIM_AT)
 
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
@@ -1416,10 +1450,11 @@ BLOCKED = {
         shot='S2', title='Alongside the Colossus',
         caption='Tracking alongside the Colossus at 300 m. Morrow rides off her starboard quarter, drones stowed; '
                 'Lasher A slides through the foreground.',
-        # S1'S CAMERA, CUT IN (owner, 2026-10-26: S1 to S2 "the same camera"): on S1's line of sight, still,
-        # one lens, no zoom: long on the Colossus as Lasher A crosses in front of her, Morrow beyond her quarter.
-        camera=camera('m2', [dict(t=24, loc=S2_EYE, target=S2_AIM, lens=S2_LENS, focus=S2_RANGE),
-                             dict(t=30, loc=S2_EYE, target=S2_AIM, lens=S2_LENS, focus=S2_RANGE)], M2_T),
+        # S1'S TAKE, CONTINUED (owner, 2026-10-26: S1 to S2 "the same camera"): the camera arriving off her port
+        # bow settles alongside as Lasher A crosses in front of her, Morrow beyond her quarter. One lens.
+        camera=camera('m2', [dict(t=24, loc=s12_eye, target=s1_pan, lens=45),
+                             dict(t=30, loc=s12_eye, target=s1_pan, lens=45)], M2_T),
+        ground_t=16,        # the planet turns from S1's time: one take over the cut
         ships=M2_SHIPS,
         labels=['colossus', 'morrow', 'lasher-a']),
     'm5': dict(
