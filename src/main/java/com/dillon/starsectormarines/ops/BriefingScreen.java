@@ -73,6 +73,7 @@ import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.SpriteThumbWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -240,6 +241,10 @@ public class BriefingScreen implements Screen {
     private UiDocument document;
     private SpecSheetBinder hints;
     private MarkupInstance markupInstance;
+    /** The lit lift warnings, breathing on {@link #warnClock}. */
+    private List<UiElement> litWarnings = List.of();
+    /** Wall-clock seconds for the warning pulse; wraps hourly so it never loses float precision. */
+    private float warnClock;
     private StarsectorUiInputAdapter input;
 
     private String lastSelectedMissionId;
@@ -430,6 +435,7 @@ public class BriefingScreen implements Screen {
         document = built;
         secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
+        litWarnings = BriefingLift.litWarnings(candidate, props);
         narration.update(candidate);
         hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
@@ -2728,6 +2734,8 @@ public class BriefingScreen implements Screen {
             installDocument();
         }
         if (markupInstance != null) markupInstance.flush();
+        if (Float.isFinite(dt) && dt > 0f) warnClock = (warnClock + dt) % 3600f;
+        BriefingLift.pulse(litWarnings, warnClock);
         if (document != null) document.advance(dt);
         if (hints != null) hints.update();
         if (secondSquadGuide != null) secondSquadGuide.update();
