@@ -6,10 +6,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
- * How a missile rack spends its load in one trigger (`mechs-nouns.md`, Flux): a click is one salvo, and a held
- * trigger chains the next salvo as soon as the last one has gone, without the rack's full cycle, until the
- * button is released or the rack is empty. The rack's cycle then runs from its last salvo. A mech's rack and a
- * vehicle's launcher obey the same rule; each salvo a mech spends is replenished on its own afterwards.
+ * How a missile rack spends its load (`mechs-nouns.md`, Flux): a click is one salvo, and a held trigger, or another
+ * click while the rack's cycle still runs from the last salvo, chains the next loaded salvo as soon as the last one
+ * has gone, until the rack is empty. The cycle is no wait between a rack's own groups: what bounds a deep rack is its
+ * load, its flux and its loader. A mech's rack and a vehicle's launcher obey the same rule, and each salvo either
+ * spends is replenished on its own afterwards.
  *
  * <p>An autonomous carrier chooses how many salvos to chain instead of holding a button
  * ({@link #autonomousSalvos}): one at a soft target, more against armor or point defence.
@@ -24,8 +25,8 @@ public final class SalvoChain {
     public static final float CHAINED_FLUX_SHARE = 0.5f;
 
     /**
-     * The most salvos a vehicle's crew chains on one target. A vehicle's magazine is its whole stock, never
-     * replenished in battle, so it is not one rack's buffer to empty at the first machine it sees.
+     * The most salvos a vehicle's crew chains on one target. A hull's loader is slow beside its ready magazine, so a
+     * crew keeps something back for the next machine rather than emptying a deep rack at the first it sees.
      */
     public static final int VEHICLE_AUTONOMOUS_SALVOS = 3;
 

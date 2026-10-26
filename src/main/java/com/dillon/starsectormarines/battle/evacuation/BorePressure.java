@@ -60,6 +60,7 @@ public final class BorePressure implements ObjectivePressure {
 
     private final int number;
     private final int[] site;
+    private final int[] centre;
     private final List<List<int[]>> lanes;
     private final Pacing pacing;
     private final Map<Long, Integer> lane = new HashMap<>();
@@ -74,9 +75,10 @@ public final class BorePressure implements ObjectivePressure {
     private int[] ambush;
     private int assigned;
 
-    private BorePressure(int number, int[] site, List<List<int[]>> lanes, Pacing pacing) {
+    private BorePressure(int number, int[] site, int[] centre, List<List<int[]>> lanes, Pacing pacing) {
         this.number = number;
         this.site = site;
+        this.centre = centre;
         this.lanes = List.copyOf(lanes);
         this.pacing = pacing;
         this.bodyPrefix = "Bore " + number + " ";
@@ -109,7 +111,7 @@ public final class BorePressure implements ObjectivePressure {
                                        List<List<int[]>> lanes, Pacing pacing) {
         if (lanes.isEmpty()) return NONE;
         int[] site = site(sim.getGrid(), sim.getTopology(), from[0], from[1], min, max, away[0], away[1]);
-        return site == null ? NONE : new BorePressure(number, site, lanes, pacing);
+        return site == null ? NONE : new BorePressure(number, site, away, lanes, pacing);
     }
 
     /** A lane in at a way {@code (x, y)}: a point {@link #APPROACH} out along {@code (dx, dy)}, the way, the goal. */
@@ -156,6 +158,9 @@ public final class BorePressure implements ObjectivePressure {
 
     /** Where the bore opens. */
     public int[] site() { return site; }
+
+    /** The middle of the set piece it presses: what the breach's own bores keep clear of. */
+    public int[] centre() { return centre; }
 
     /** Whether the bore has been opened. */
     public boolean opened() { return opened; }

@@ -86,7 +86,7 @@ public final class ColonyBreachSequence {
     public record Harvest(int firstTick, int seized, int delivered, int dropped, int carrying,
                           int impaled, int freed, int taken, int recycled) { }
 
-    private final ColonyEruptionPlan plan;
+    private ColonyEruptionPlan plan;
     private final List<Long> colonists;
     private final StoryBeatLog log;
     private final boolean[] erupted;
@@ -116,6 +116,13 @@ public final class ColonyBreachSequence {
 
     /** The sites this battle breaks open at, and when relative to the tremor. */
     public ColonyEruptionPlan plan() { return plan; }
+
+    /** Swaps in a plan seating the same sites elsewhere ({@link ColonyEruptionPlan#clearOf}), before the tremor. */
+    public void replanAtSetup(ColonyEruptionPlan plan) {
+        if (tremorTick >= 0 || plan.sites().size() != this.plan.sites().size())
+            throw new IllegalStateException("Replan the breach before the tremor, with the same sites");
+        this.plan = plan;
+    }
 
     /** Installs what eruption does on the field. One handler; the last one installed wins. */
     public void setEruptionHandler(EruptionHandler handler) {

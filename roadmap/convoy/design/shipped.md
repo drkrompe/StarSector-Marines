@@ -6,6 +6,7 @@ Written: 2026-08-23
 
 | Story | Shipped | Commit(s) | Folded into |
 | --- | --- | --- | --- |
+| `vehicle-rearm.md` | 2026-10-25 | this change; `GroundTurretTest`, `GroundVehicleTurretSystemTest` | `convoy-nouns.md` — the loader, the LRM carrier's groups and flux; `mechs-nouns.md` — salvo chains, vehicle kits |
 | `convoy-proof-admission.md` | 2026-09-27 | `5eb32140b`, `ceb2267c0`; burst/FIFO/invalidation/deadline tests and production-paced evidence | `convoy-nouns.md` admission and lifetime limits; `reinforcement-nouns.md` retryable latency; diagnostic semantics in `conquest-tail-profile.md` |
 | `v1-foundation.md` | 2026-05-20 | `76fe54da` | `convoy-nouns.md` — delivery role and initial ground-vehicle seam |
 | `v1-polish.md` | 2026-05-27 | `b5227e19`, `8eedc630`, `5f9dd432`, `2703184c`, `7f958fd3`, `a6e4fc2c`, `3e7dfa97`, `b1c405a4`, `7202a08b` | `convoy-nouns.md` — body-driven motion, docking, safety, and APC behavior |

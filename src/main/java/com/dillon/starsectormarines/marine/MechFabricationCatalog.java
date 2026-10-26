@@ -73,7 +73,9 @@ public final class MechFabricationCatalog {
             kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
             kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
             kit(VehicleKit.SPACED_SKIRTS, "@gearFabricationMilitaryPattern"),
-            kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"));
+            kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
+            kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
+            kit(VehicleKit.CAPACITOR_PACK, "@gearFabricationMilitaryPattern"));
 
     /**
      * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
@@ -230,6 +232,9 @@ public final class MechFabricationCatalog {
             case READY_RACK -> split(value, .40f, .45f, .15f);
             // Two airframes, their sensors and the tether link.
             case SENSOR_PAIR -> split(value, .25f, .30f, .45f);
+            // Priced as the mech parts they stand in for: a loader's feed, a capacitor bank's cells.
+            case ACCELERATED_LOADER -> split(value, .30f, .40f, .30f);
+            case CAPACITOR_PACK -> split(value, .20f, .25f, .55f);
         };
     }
 
