@@ -55,7 +55,9 @@ It is a place in the map's plan, as the civil-defence compound is in the
 colony's (`colony-breach-nouns.md`, Redoubt), so roads run up to it and its
 gates are where they cross its wall (a road that only runs past a square
 place's side opens it only where a street leaves, and a square place no road
-grew into is given arms off the road past it); the garrison makes the rest of it at
+grew into is given arms off the road past it). Its open yard is paved in the
+concrete of its aprons (`CordonConstructions`), so it reads as built ground
+inside a wall rather than the bare earth outside it. The garrison makes the rest of it at
 setup: a gun tower beside each gate, firing slits and wall posts along its
 runs, floodlights at its corners, and a flak position in its yard
 (`CordonGarrisons`; on the redoubt's ammunition with its guns). The flak is what
@@ -71,7 +73,8 @@ A town's line mixes it with a **fortified farm** (a farmhouse and a barn making
 the front face, a second barn the flank, a stone yard wall round a worked
 farmyard) and a **fortified school** (its courtyard block the front face, its
 hall the flank, a ceramic yard wall round the paved playground with a sandbag
-firing step along its open front); a city's line mixes it with a **walled-up
+firing step along its open front, the ground cleared round it the world's own bare
+ground); a city's line mixes it with a **walled-up
 block** (a building on each corner of the crossroads, a double blast wall
 across each street arm with a gate on the road, a gun in the wall's line beside
 each gate and hedgehogs outside) and a **fortified tenement** (four courtyard

@@ -134,6 +134,7 @@ public final class PrecinctWardStage implements GenStage {
                         paved[x][y] = ownRoad[x][y] != GrownTrunkPlan.UNOWNED;
                     }
                 }
+                roadAcross(ctx, claim, i, strip, paved);
                 InstallationGround.glacis(ctx, strip, paved);
             }
             if (result != null) {
@@ -620,6 +621,43 @@ public final class PrecinctWardStage implements GenStage {
             if (claim[nx][ny] != who) return -1;
         }
         return -1;
+    }
+
+    /**
+     * Lays the road across the glacis as the street it continues: the town paves its streets outside the claim and the
+     * place paves its own circulation inside the wall, and the strip between is left bare for road, so unpaved the
+     * crossing kept the skeleton's grass on any world and the road finish, which only draws over paving, stopped
+     * either side of it.
+     */
+    static void roadAcross(GenContext ctx, int[][] claim, int who, boolean[][] strip, boolean[][] paved) {
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!strip[x][y] || !paved[x][y] || ctx.topology.getSurface(x, y) != 0 || ctx.topology.isWall(x, y)
+                        || ctx.topology.isFixture(x, y) || !ctx.grid.isWalkable(x, y)) continue;
+                int[] street = streetOutside(ctx, claim, who, x, y);
+                if (street == null) continue;
+                ctx.topology.setGroundKind(x, y, ctx.topology.getGroundKind(street[0], street[1]));
+                ctx.topology.setSurface(x, y, ctx.topology.getSurface(street[0], street[1]));
+                ctx.topology.setNatureOverlayIndex(x, y, -1);
+            }
+        }
+    }
+
+    /**
+     * The nearest paved street cell outside the claim straight out from {@code (x, y)} across the glacis, or
+     * {@code null}.
+     */
+    private static int[] streetOutside(GenContext ctx, int[][] claim, int who, int x, int y) {
+        for (int d = 1; d <= Fortification.GLACIS + 2; d++) {
+            for (int[] step : STEPS) {
+                int nx = x + step[0] * d, ny = y + step[1] * d;
+                if (nx < 0 || ny < 0 || nx >= ctx.width || ny >= ctx.height || claim[nx][ny] == who) continue;
+                if (ctx.topology.getGroundKind(nx, ny) == GroundKind.STREET && ctx.topology.getSurface(nx, ny) != 0) {
+                    return new int[]{nx, ny};
+                }
+            }
+        }
+        return null;
     }
 
     /** Road ownership with each gate of the whole claim run inward across the glacis. */

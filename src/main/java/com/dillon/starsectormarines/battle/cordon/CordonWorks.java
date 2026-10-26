@@ -106,6 +106,12 @@ final class CordonWorks {
 
     /** The open, unbuilt cell nearest {@code (x, y)} that {@code wanted} accepts, as a floor to copy. */
     Ground sample(int x, int y, BiPredicate<Integer, Integer> wanted) {
+        Ground found = find(x, y, wanted);
+        return found != null ? found : new Ground(GroundKind.GRASS, 0, -1);
+    }
+
+    /** As {@link #sample(int, int, BiPredicate)}, or {@code null} where no cell in reach is accepted. */
+    private Ground find(int x, int y, BiPredicate<Integer, Integer> wanted) {
         for (int r = 0; r < 80; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
@@ -117,17 +123,19 @@ final class CordonWorks {
                 }
             }
         }
-        return new Ground(GroundKind.GRASS, 0, -1);
+        return null;
     }
 
     /**
      * A sampled floor of this kind near {@code (x, y)}: the kind's own plain ground where there is some (no surface
-     * block over it, as the country's grass is), else the nearest cell of the kind whatever it is paved with.
+     * block over it, as the country's grass is), else the nearest cell of the kind whatever it is paved with, else the
+     * kind's own ground with nothing over it.
      */
     Ground sample(int x, int y, GroundKind kind) {
-        Ground plain = sample(x, y, (cx, cy) -> topology.getGroundKind(cx, cy) == kind && topology.getSurface(cx, cy) == 0);
-        if (plain.kind() == kind) return plain;
-        return sample(x, y, (cx, cy) -> topology.getGroundKind(cx, cy) == kind);
+        Ground plain = find(x, y, (cx, cy) -> topology.getGroundKind(cx, cy) == kind && topology.getSurface(cx, cy) == 0);
+        if (plain != null) return plain;
+        Ground any = find(x, y, (cx, cy) -> topology.getGroundKind(cx, cy) == kind);
+        return any != null ? any : new Ground(kind, 0, -1);
     }
 
     /**
