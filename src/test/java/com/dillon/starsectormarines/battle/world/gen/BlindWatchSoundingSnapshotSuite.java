@@ -17,7 +17,7 @@ import java.util.Set;
 
 /**
  * The Sounding, Blind Watch's authored map ({@code blind-watch-sounding.md}), through the look preset: the whole post,
- * the landing ground behind its ridge, each installation at play zoom (the mast and the rim guns, the dish field and
+ * the landing ground behind its ridge, each installation at play zoom (the mast and the rim guns beside it, the dish field and
  * its control hut, the uplink on its knoll), the hab cluster, the boulder field, the rille's crossings and the cold
  * drop by the lander pad. Real
  * ground, nothing drawn over it, except the last frame: the whole map marked with the three sites, the approaches,
@@ -52,8 +52,8 @@ public final class BlindWatchSoundingSnapshotSuite implements SnapshotSuite {
             BlindWatchSounding.Cell mast = layout.sites().get(BlindWatchSounding.Installation.MAST).plant();
             frame(out, look, sim, "02-rim-site.png", mast.x() - 2, mast.y() - 6, SITE_CELLS);
             frame(out, look, sim, "03-mast-play.png", mast.x() - 4, mast.y() - 2, play);
-            BlindWatchSounding.Cell spurGun = layout.nests().get(0).cell();
-            frame(out, look, sim, "04-spur-gun-close.png", spurGun.x(), spurGun.y(), CLOSE_CELLS);
+            BlindWatchSounding.Cell westGun = layout.nests().get(0).cell();
+            frame(out, look, sim, "04-west-gun-close.png", westGun.x(), westGun.y(), CLOSE_CELLS);
             BlindWatchSounding.Cell dishes = layout.sites().get(BlindWatchSounding.Installation.DISH_FIELD).plant();
             frame(out, look, sim, "05-dish-field-play.png", dishes.x() - 4, dishes.y(), play);
             var hut = layout.controlHut();

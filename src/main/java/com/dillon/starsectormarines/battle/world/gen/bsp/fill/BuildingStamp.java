@@ -192,6 +192,43 @@ public enum BuildingStamp {
             "w.........e",
             "#.........#",
             "###s#+#s###"),
+    /** A long prefab bunkhouse in white ceramic panels, its door mid-side (`blind-watch-sounding.md`). Story map only. */
+    PREFAB_BUNKHOUSE("Prefab bunkhouse", BuildingKind.CIVIC, BuildingStyle.CIVIC,
+            "###n###n###n###",
+            "#.............#",
+            "w.............e",
+            "#.............#",
+            "#####s#+#s#####"),
+    /**
+     * A prefab module entered only through an airlock at one end (`blind-watch-sounding.md`): the outer hatch, a
+     * one-cell lock, the inner hatch into the long room. Story map only.
+     */
+    PREFAB_LOCK_MODULE("Prefab lock module", BuildingKind.CIVIC, BuildingStyle.CIVIC,
+            "###n###n#####",
+            "#.........#.#",
+            "w.........+.#",
+            "#.........#.#",
+            "###s###s###+#"),
+    /** A short prefab module (`blind-watch-sounding.md`). Story map only. */
+    PREFAB_SHORT_MODULE("Prefab short module", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
+            "###n#n###",
+            "#.......#",
+            "w.......e",
+            "#.......#",
+            "####+####"),
+    /**
+     * A pressurised tube between two prefab modules (`blind-watch-sounding.md`), its hatch on the street side; its
+     * ends stand against the modules' walls. Story map only.
+     */
+    PREFAB_TUBE("Prefab tube", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
+            "#n#n#",
+            "#...#",
+            "##+##"),
+    /** The narrow tube, for modules three cells apart. Story map only. */
+    PREFAB_NARROW_TUBE("Prefab narrow tube", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
+            "#n#",
+            "w.e",
+            "#+#"),
     /** The dish field's control hut (`blind-watch-sounding.md`): one room, its console on the north wall. Story map only. */
     CONTROL_HUT("Control hut", BuildingKind.CIVIC, BuildingStyle.WORKSHOP,
             "##n#n##",

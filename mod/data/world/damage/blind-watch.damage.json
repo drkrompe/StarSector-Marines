@@ -5,6 +5,272 @@
   "seed": 7120,
   "layers": [
     {
+      "name": "Rover track wear",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              36,
+              55.4
+            ],
+            [
+              42,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              45,
+              58.6
+            ],
+            [
+              51,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              54,
+              55.4
+            ],
+            [
+              60,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              63,
+              58.6
+            ],
+            [
+              69,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              72,
+              55.4
+            ],
+            [
+              78,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              81,
+              58.6
+            ],
+            [
+              87,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              90,
+              55.4
+            ],
+            [
+              96,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              99,
+              58.6
+            ],
+            [
+              105,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              108,
+              55.4
+            ],
+            [
+              114,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              117,
+              58.6
+            ],
+            [
+              123,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              126,
+              55.4
+            ],
+            [
+              132,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              135,
+              58.6
+            ],
+            [
+              141,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              144,
+              55.4
+            ],
+            [
+              150,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              153,
+              58.6
+            ],
+            [
+              159,
+              58.4
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              162,
+              55.4
+            ],
+            [
+              168,
+              55.6
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              171,
+              58.6
+            ],
+            [
+              177,
+              58.4
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wrecks",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 2.4,
+          "points": [
+            [
+              67,
+              62
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 2.0,
+          "points": [
+            [
+              114,
+              61
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 2.2,
+          "points": [
+            [
+              72,
+              33
+            ]
+          ]
+        }
+      ]
+    },
+    {
       "name": "Rover ruts and spill",
       "enabled": true,
       "strokes": [
@@ -110,6 +376,162 @@
           "points": [
             [
               58,
+              46
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Crater bowls",
+      "enabled": true,
+      "strokes": [
+        {
+          "mode": "SCAR",
+          "radius": 7.4,
+          "points": [
+            [
+              82,
+              74
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 3.9,
+          "points": [
+            [
+              104,
+              70
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.9,
+          "points": [
+            [
+              60,
+              70
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 6.4,
+          "points": [
+            [
+              86,
+              42
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 3.4,
+          "points": [
+            [
+              62,
+              42
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.9,
+          "points": [
+            [
+              110,
+              36
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              101,
+              49
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              31,
+              51
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 2.4,
+          "points": [
+            [
+              8,
+              86
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.4,
+          "points": [
+            [
+              24,
+              93
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 3.4,
+          "points": [
+            [
+              10,
+              9
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.0,
+          "points": [
+            [
+              27,
+              33
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.4,
+          "points": [
+            [
+              101,
+              85
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.9,
+          "points": [
+            [
+              46,
+              8
+            ]
+          ]
+        },
+        {
+          "mode": "SCAR",
+          "radius": 1.4,
+          "points": [
+            [
+              134,
               46
             ]
           ]

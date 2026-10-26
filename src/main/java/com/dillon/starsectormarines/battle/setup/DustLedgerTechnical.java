@@ -21,7 +21,8 @@ import java.util.List;
  * rack and a Hound's chaingun reaches farther, so in the open it dies first; behind a wall it waits for armor to come
  * round to it. Every so often it looks at the nearest enemy armor and drives, down the yard's lane, to the stand that
  * armor cannot see that lies nearest it ({@link #choose}); with armor in reach and in sight it holds and fires. Men it
- * leaves to the crews: with no armor on the field it stays where it is.
+ * leaves to the crews: with no armor on the field it stays where it is. The Dust Ledger fields it in Saltwell Cross's
+ * east yard and Blind Watch on the Sounding's uplink knoll; it reads only its stands and the grid.
  */
 final class DustLedgerTechnical {
     /** Ticks between looks at the field: two seconds. */

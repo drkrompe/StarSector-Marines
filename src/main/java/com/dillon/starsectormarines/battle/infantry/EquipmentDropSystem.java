@@ -104,10 +104,13 @@ public final class EquipmentDropSystem {
      * Only marine infantry handle demolition kits; a mech can neither be recruited
      * to fetch one nor pick one up by standing on it. "Mech" is {@code MECH_LOADOUT}
      * membership, the live-mech capability, so a future chassis inherits the
-     * exclusion without this sweep knowing its unit type.
+     * exclusion without this sweep knowing its unit type. Nor can anything that does not move: a marine-faction
+     * turret (a sited point-defence emplacement) has no {@code MOVEMENT} or {@code AI_STATE}, so it can neither walk
+     * to a kit nor run a retriever's behaviour.
      */
     private boolean canCarryKit(long u) {
         return rosterService.identity().faction(u) == Faction.MARINE
+                && rosterService.world().hasMovement(u)
                 && !rosterService.world().hasMechLoadout(u);
     }
 

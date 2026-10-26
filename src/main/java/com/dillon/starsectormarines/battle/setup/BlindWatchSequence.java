@@ -22,6 +22,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -56,6 +59,11 @@ public final class BlindWatchSequence implements Objective {
     static final float DEFAULT_SIGHT_CELLS = 18f;
     /** Radius, in cells, each revealed bunker and stretch of the carrier's track is held open. */
     static final int REVEAL_RADIUS_CELLS = 3;
+    /**
+     * The most track cells the mortar carrier is sent along at once. Its track is a loop, and a hull arrives on a route
+     * whose last point is beside it, so it drives the loop a leg at a time, each ending as far along as this reaches.
+     */
+    static final int MORTAR_LEG_CELLS = 48;
     /** How often, in ticks, a walking rigger re-plans. */
     private static final int RIGGER_REPLAN_TICKS = 30;
     /** Beat ids are the narration catalog's events ({@code corvus.blind_watch.*}). */
@@ -80,15 +88,12 @@ public final class BlindWatchSequence implements Objective {
      * @param bunkers       the post's bunkers, revealed when the riggers are out
      * @param mortarTrack   the mortar carrier's driven track, revealed with the bunkers
      * @param podRacks      the cold drop's cryo pod racks by the lander pad, and the ground a squad holds them from
-     * @param drugCrates    the chem module's crates on pallets by the pad; read by nothing until the owner picks the
-     *                      temptation job (blind-watch-sounding.md, Open questions)
      */
     public record Sites(Area landingArea, Cell mast, Cell uplink, Cell dishField, Area riggersModule,
-                        List<Cell> riggerCells, Area controlHut, List<Cell> bunkers, List<Cell> mortarTrack, Area podRacks,
-                        Area drugCrates) {
+                        List<Cell> riggerCells, Area controlHut, List<Cell> bunkers, List<Cell> mortarTrack, Area podRacks) {
         public Sites {
             for (Object site : new Object[]{landingArea, mast, uplink, dishField, riggersModule, riggerCells, controlHut,
-                    bunkers, mortarTrack, podRacks, drugCrates})
+                    bunkers, mortarTrack, podRacks})
                 if (site == null) throw new IllegalArgumentException("every Blind Watch site is required");
             riggerCells = List.copyOf(riggerCells);
             bunkers = List.copyOf(bunkers);
@@ -124,6 +129,9 @@ public final class BlindWatchSequence implements Objective {
     private boolean begun, riggersFreed, riggersEscorted, revealed;
     private boolean mastDown, uplinkDown, dishesDown;
     private long mortar;
+    /** Where on its track the mortar carrier's current leg ends, as an index into the track. */
+    private int mortarAt;
+    private DustLedgerTechnical technical;
     private BattleView field;
 
     public BlindWatchSequence(Sites sites, List<ChargeSiteObjective> charges, boolean stoodTo, StoryBeatLog log) {
@@ -197,11 +205,26 @@ public final class BlindWatchSequence implements Objective {
         return out;
     }
 
-    /** Sable Wake's mortar carrier, recorded at setup so its loss is called. */
+    /**
+     * Sable Wake's mortar carrier, recorded at setup so its loss is called. While it stands it drives
+     * {@link Sites#mortarTrack()} round, start to end and again, firing on what its side observes as it goes.
+     */
     public void mortar(long id) {
         if (mortar != 0L) throw new IllegalStateException("record the mortar carrier once");
         mortar = id;
     }
+
+    /**
+     * Sable Wake's rocket truck on the uplink knoll, recorded at setup with its stands, its park first: from the alarm
+     * it works the knoll's corners against the company's armor ({@link DustLedgerTechnical}).
+     */
+    public void technical(BattleSimulation sim, long id, List<Cell> stands) {
+        if (technical != null) throw new IllegalStateException("record the technical once");
+        technical = new DustLedgerTechnical(sim, id, stands);
+    }
+
+    /** The truck's hull id, or 0 when the mission fields none. */
+    public long technical() { return technical == null ? 0L : technical.id(); }
 
     /**
      * What the outcome carries: whether the warning reached Garnir (the campaign keeps
@@ -273,7 +296,43 @@ public final class BlindWatchSequence implements Objective {
             else if (warning == Warning.STOPPED && warningBefore == Warning.SENDING) beat(sim, "warning_stopped");
         }
         if (mortar != 0L && !mortarPresent(sim)) beat(sim, "mortar_destroyed");
+        else if (mortar != 0L) driveMortar(sim);
+        if (technical != null && !progress.quiet()) technical.tick(sim);
         tendRiggers(sim);
+    }
+
+    /** Sends the carrier on along its track, a leg at a time, round again from the start once it is home. */
+    private void driveMortar(BattleSimulation sim) {
+        List<Cell> track = sites.mortarTrack();
+        VehicleMission mission = sim.convoy().mission(mortar);
+        if (track.size() < 2 || mission == null || mission.state != VehicleState.DEPLOYED
+                || mission.authoredRouteX != null) return;
+        int from = mortarAt, to = mortarLegEnd(track, from);
+        mortarAt = to == track.size() - 1 ? 0 : to;
+        if (to == from) return;
+        float[] routeX = new float[to - from + 1], routeY = new float[to - from + 1];
+        for (int i = from; i <= to; i++) {
+            routeX[i - from] = track.get(i).x() + .5f;
+            routeY[i - from] = track.get(i).y() + .5f;
+        }
+        mission.authoredRouteX = routeX;
+        mission.authoredRouteY = routeY;
+        mission.authoredLeg = VehicleLeg.MOVE_ORDER;
+        mission.authoredRoutePaused = false;
+    }
+
+    /**
+     * Where a leg from {@code from} ends: of the next {@link #MORTAR_LEG_CELLS} track cells, the one farthest from where
+     * it starts, so the leg never ends where it began. Pure.
+     */
+    static int mortarLegEnd(List<Cell> track, int from) {
+        int best = from;
+        long farthest = 0;
+        for (int i = from + 1; i < track.size() && i <= from + MORTAR_LEG_CELLS; i++) {
+            long dx = track.get(i).x() - track.get(from).x(), dy = track.get(i).y() - track.get(from).y();
+            if (dx * dx + dy * dy > farthest) { farthest = dx * dx + dy * dy; best = i; }
+        }
+        return best;
     }
 
     private static boolean shotFired(BattleSimulation sim) {

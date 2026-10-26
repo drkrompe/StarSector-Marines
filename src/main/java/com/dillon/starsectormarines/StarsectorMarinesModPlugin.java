@@ -48,6 +48,7 @@ import com.dillon.starsectormarines.intel.LastTestamentIntel;
 import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.MenuTheme;
+import com.dillon.starsectormarines.render.FullscreenWindowRepair;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -191,6 +192,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCaptainDiscoverySalvageListener();
         ensureCompanyShipLossListener();
         SecondWindKeeper.install(Global.getSector());
+        FullscreenWindowRepair.CampaignHook.install(Global.getSector());
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();

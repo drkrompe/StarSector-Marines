@@ -102,7 +102,7 @@ fire together; play `warning_stopped` only when a warning was in progress.
 - **`blindWatchSideColdStore`** (hidden, offerer `blindWatchSideOffererCompany`):
   Name, Steps, Offered, Working, Done, Lapsed, Timer, Target (pod racks),
   DebriefDone, DebriefLapsed, DebriefMissed, Reward. No credits, no destination.
-  The contraband temptation job waits on the owner's pick and is not written.
+  The owner chose scenery plus this job; there is no contraband temptation job.
 
 ## Debrief (victory only)
 

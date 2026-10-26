@@ -163,6 +163,16 @@ class WaylineNarrationTest {
         assertTrue(line.speaker().contains("KORD"));
     }
 
+    @Test void blindWatchRetriesHearTheSoundingsCalls() throws Exception {
+        for (int attempt : new int[]{1, 12}) {
+            String id = "wayline_corvus_v1_1_" + attempt;
+            assertEquals("story_corvus_blind_watch", WaylineNarration.storyMissionId(
+                    Mission.builder().id(id).source(MissionSource.STORY).build()));
+            assertNull(WaylineNarration.storyMissionId(Mission.builder().id(id).source(MissionSource.RECURRING).build()));
+        }
+        assertNotNull(catalog().find("story_corvus_blind_watch", "corvus.blind_watch.uplink_down"));
+    }
+
     @Test void patrolExchangeKeepsTurnOrderAndCaptureRetiresUnspokenApproach() throws Exception {
         var catalog = catalog();
         String chapter = "story_corvus_cold_account";

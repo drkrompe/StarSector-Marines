@@ -89,6 +89,18 @@ public class SabotageKitContinuityTest {
     }
 
     @Test
+    public void aSiteOnOpenGroundIsSecuredAtItsOwnCellNotByClearingTheWholeMap() {
+        BattleSimulation sim = openSim();
+        ChargeSiteObjective site = site();
+        sim.addObjective(site);
+        Squad security = addSquad(sim, 16, SITE_Y);
+        tick(new SabotageCommand(), sim);
+        assertEquals(AssignmentKind.DEFEND_SITE, security.assignedObjective.kind());
+        assertEquals(SITE_X, security.assignedObjective.targetCellX());
+        assertEquals(SITE_Y, security.assignedObjective.targetCellY());
+    }
+
+    @Test
     public void retrieverDeathLeavesSingleKitAndRecruitsReplacement() {
         BattleSimulation sim = openSim();
         ChargeSiteObjective site = site();

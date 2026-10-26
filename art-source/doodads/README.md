@@ -86,6 +86,14 @@ loading its texture; the atlas coordinates themselves require no hand editing.
 Layouts may use `preferredWallSide` to select a matching cardinal variant; it
 does not force generic scatterers to wall-mount the prop.
 
+## Listening-post sheet
+
+`build_listening_post.py` packs two masters from `sources/` at an installation's
+scale into their own sheet, `mod/graphics/doodads/listening-post.png` at 128 px a
+cell: the radar dish as the four-cell `doodad.listening-dish` and the fluid tank
+as the two-cell `doodad.oxygen-sphere`. Its metadata is
+`listening-post/_atlas.json`; the masters are staged, not copied into the repo.
+
 ## Geometry-authored sandbags
 
 `SandbagReskinTemplate` draws two staggered courses of rounded bags: a north

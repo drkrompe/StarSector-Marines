@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
-import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamageCatalog;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
@@ -191,9 +190,13 @@ public final class BlindWatchSounding {
     static final Area UPLINK_PAD = new Area(190, 22, 196, 28);
     static final Cell UPLINK_PLANT = new Cell(193, 21);
 
-    /** The dish field's fence, the six dishes on their pads, and its gates on the north and south fences. */
+    /**
+     * The dish field's fence, the six dishes on their pads, and its gates on the north and south fences. Each dish is
+     * four cells across, its corner one cell south-west of its listed cell, on a six-cell footing.
+     */
     static final Area DISH_FIELD = new Area(130, 16, 166, 38);
     private static final int[] DISH_X = {144, 152, 160}, DISH_Y = {22, 31};
+    private static final int DISH_CELLS = 4;
     static final Cell DISH_PLANT = new Cell(152, 27);
     static final Cell DISH_NORTH_GATE = new Cell(150, 39), DISH_SOUTH_GATE = new Cell(150, 15);
     private static final int HUT_LEFT = 132, HUT_BOTTOM = 26;
@@ -215,15 +218,38 @@ public final class BlindWatchSounding {
     static final Area DRUG_CRATES = new Area(201, 60, 203, 66);
     static final Cell CARGO_CRAWLER = new Cell(194, 61);
 
+    /**
+     * The impact craters on the flat and the landing ground: centre and rim radius. Their rims are raised in the
+     * terrain document ({@code blind-watch.terrain.json}), which these mirror; here they place the clean bowls, the
+     * ejecta thrown round them and the boulders it left.
+     */
+    private record Crater(int x, int y, double radius) {}
+    private static final List<Crater> CRATERS = List.of(new Crater(82, 74, 9), new Crater(104, 70, 5.5),
+            new Crater(60, 70, 3.5), new Crater(86, 42, 8), new Crater(62, 42, 5), new Crater(110, 36, 3.5),
+            new Crater(101, 49, 2.5), new Crater(31, 51, 2.2), new Crater(8, 86, 4), new Crater(24, 93, 3),
+            new Crater(10, 9, 5), new Crater(27, 33, 2.2), new Crater(101, 85, 3), new Crater(46, 8, 3.5),
+            new Crater(134, 46, 3));
+
+    /**
+     * Dead rovers and debris on the flat and the landing ground, each a prop id and its corner: a survey rover
+     * stripped where it died, a stack of hull plate, an armoured crawler run off the track, an intake torn from a
+     * wreck and a rib section on the landing ground's north.
+     */
+    private record Wreck(String id, int x, int y, int turns) {}
+    private static final List<Wreck> WRECKS = List.of(new Wreck("parked-utility-truck", 66, 62, 0),
+            new Wreck("basin-scrap-plate-stack", 70, 31, 0), new Wreck("parked-armored-apc", 113, 61, 0),
+            new Wreck("basin-scrap-intake-section", 48, 50, 0), new Wreck("basin-scrap-rib-section", 10, 98, 1));
+
     /** The rille's two crossings, west then middle. */
     static final Cell WEST_CROSSING = new Cell(61, 20), MIDDLE_CROSSING = new Cell(103, 20);
 
     /**
-     * The rim guns: one on the rim's south-west spur over the rover track and the flat's east half, one beside the
-     * mast over the crater floor. Machine guns, since what crosses the flat is infantry.
+     * The rim guns, both beside the mast: one west of it over the rim's west ramp and the boulder approach, one east
+     * of it over the crater floor. Neither has a line over the flat or the rover track; the flat is the mortar's,
+     * firing on what the mast sees. Machine guns, since what comes up the boulders is infantry.
      */
-    private static final List<Cell> NEST_CELLS = List.of(new Cell(121, 76), new Cell(143, 93));
-    private static final List<Direction> NEST_FACING = List.of(Direction.SW, Direction.S);
+    static final List<Cell> NEST_CELLS = List.of(new Cell(127, 90), new Cell(143, 93));
+    private static final List<Direction> NEST_FACING = List.of(Direction.W, Direction.S);
     private static final List<String> NEST_GUNS = List.of(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID);
     /** Cells of pad round a nest's mount, kept clear of dressing so its field of fire stays open. */
@@ -333,7 +359,7 @@ public final class BlindWatchSounding {
         // Made ground, paved in padSurfaces: the lander pad, the mast's and the uplink's pads, the motor pool.
         slab(c, LANDER_PAD);
         slab(c, MOTOR_POOL);
-        for (int x : DISH_X) for (int y : DISH_Y) slab(c, new Area(x - 1, y - 1, x + 1, y + 1));
+        for (int x : DISH_X) for (int y : DISH_Y) slab(c, new Area(x - 2, y - 2, x + DISH_CELLS - 1, y + DISH_CELLS - 1));
     }
 
     private static void slab(GenContext c, Area area) {
@@ -372,13 +398,16 @@ public final class BlindWatchSounding {
     }
 
     /**
-     * The post: the hab cluster's four prefab modules (two bunks, the riggers', the signals racks) either side of the
-     * hab street, the dish field's control hut, and the two bermed pillboxes.
+     * The post: the hab cluster's prefab modules either side of the hab street (north the long bunkhouse and the short
+     * bunk module joined by a tube; south the signals racks' module behind its airlock and the riggers' module, a
+     * narrow tube between them), the dish field's control hut, and the two bermed pillboxes.
      */
     private static void post(GenContext c, Sites s) {
-        s.bunks.add(stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_WEST, ROW_NORTH, 0));
-        s.bunks.add(stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_EAST, ROW_NORTH, 0));
-        s.signals = stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_WEST, ROW_SOUTH, 2);
+        s.bunks.add(stamp(c, BuildingStamp.PREFAB_BUNKHOUSE, COLUMN_WEST - 1, ROW_NORTH, 0));
+        stamp(c, BuildingStamp.PREFAB_TUBE, COLUMN_EAST - 2, ROW_NORTH + 1, 0);
+        s.bunks.add(stamp(c, BuildingStamp.PREFAB_SHORT_MODULE, COLUMN_EAST + 3, ROW_NORTH, 0));
+        s.signals = stamp(c, BuildingStamp.PREFAB_LOCK_MODULE, COLUMN_WEST, ROW_SOUTH, 2);
+        stamp(c, BuildingStamp.PREFAB_NARROW_TUBE, COLUMN_EAST - 3, ROW_SOUTH + 1, 2);
         s.riggers = stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_EAST, ROW_SOUTH, 2);
         s.chem = stamp(c, BuildingStamp.CONTROL_HUT, CHEM_LEFT, CHEM_BOTTOM, 2);
         s.controlHut = stamp(c, BuildingStamp.CONTROL_HUT, HUT_LEFT, HUT_BOTTOM, 0);
@@ -446,12 +475,14 @@ public final class BlindWatchSounding {
         yard.prop(132, 92, "industrial-generator", 0);
         yard.prop(134, 92, "industrial-switchboard", 0);
         yard.prop(131, 89, "industrial-cable-reel", 0);
-        // The dish field: six listening dishes, each on its concrete footing with its feed drum.
+        // The dish field: six listening dishes, each on its concrete footing with its feed drum, their cables laid
+        // on the ground along the field's middle to the control hut, a spur to each dish of the south row.
         for (int x : DISH_X) for (int y : DISH_Y) {
-            yard.prop(x, y, "military-radar-dish", 0);
-            yard.prop(x + 1, y - 1, "industrial-cable-reel", 0);
+            yard.prop(x - 1, y - 1, "listening-dish", 0);
+            yard.prop(x + DISH_CELLS - 1, y + DISH_CELLS - 1, "industrial-cable-reel", 0);
         }
-        StreetDressing.pipeRun(c.grid, c.topology, c.doodads, 141, 27, 141, 29, 3);
+        for (int x = HUT_LEFT + 8; x < DISH_X[2] + 2; x += 2) lay(c, x, 28, "ship-dressing.cable-run", 0);
+        for (int x : DISH_X) lay(c, x, 26, "ship-dressing.cable-run", 1);
         yard.perimeter(new int[]{DISH_NORTH_GATE.x(), DISH_FIELD.top(), DISH_SOUTH_GATE.x(), DISH_FIELD.bottom()},
                 DISH_FIELD.left(), DISH_FIELD.bottom(), DISH_FIELD.right(), DISH_FIELD.bottom(),
                 DISH_FIELD.right(), DISH_FIELD.top(), DISH_FIELD.left(), DISH_FIELD.top());
@@ -466,7 +497,8 @@ public final class BlindWatchSounding {
         // Inside: bunks in the bunk modules, the signals racks, the riggers' kit.
         for (PointOfInterest bunk : s.bunks)
             for (int x = bunk.left + 1; x <= bunk.right - 1; x += 2) inside(c, x, north(bunk) - 1, "military-bunk");
-        for (int x = s.signals.left + 1; x <= s.signals.right - 2; x += 2) inside(c, x, south(s.signals) + 1, "civic-server-rack");
+        // The signals racks along the long room's south wall, clear of the airlock at its west end.
+        for (int x = s.signals.left + 4; x <= s.signals.right - 2; x += 2) inside(c, x, south(s.signals) + 1, "civic-server-rack");
         inside(c, s.riggers.left + 1, south(s.riggers) + 1, "military-bunk");
         inside(c, s.riggers.left + 3, south(s.riggers) + 1, "military-bunk");
         inside(c, s.riggers.right - 2, south(s.riggers) + 1, "industrial-cable-reel");
@@ -474,6 +506,7 @@ public final class BlindWatchSounding {
         for (int x : new int[]{151, 165}) place(c, x, 60, "industrial-crate-stack", 0);
         for (int x : new int[]{151, 166}) place(c, x, 54, "industrial-pallet-stack", 0);
         coldDrop(c, s);
+        stores(c);
         place(c, 145, 50, "industrial-generator", 0);
         // The lander pad: its bay marks; the motor pool: drums and a loader.
         yard.bay(LANDER_PAD.left() + 2, LANDER_PAD.bottom() + 2, LANDER_PAD.right() - 2, LANDER_PAD.top() - 2);
@@ -483,9 +516,54 @@ public final class BlindWatchSounding {
         place(c, 196, 39, "industrial-crate-stack", 0);
         // Old rover parts and spent stores along the track, and the post's first-season dump on the flat's edge.
         place(c, 120, 62, "field-salvage-supplies", 0);
-        place(c, 118, 49, "industrial-scrap-pile", 0);
+        place(c, 116, 51, "industrial-scrap-pile", 0);
         place(c, 92, 62, "industrial-drum-cluster", 0);
         place(c, 76, 51, "field-salvage-metals", 0);
+        // The dead: rovers and wreckage where they stopped, salvage picked off them beside each.
+        for (Wreck wreck : WRECKS) place(c, wreck.x(), wreck.y(), wreck.id(), wreck.turns());
+        place(c, 69, 61, "field-salvage-metals", 0);
+        place(c, 117, 60, "industrial-scrap-pile", 0);
+        place(c, 53, 52, "field-salvage-supplies", 0);
+    }
+
+    /**
+     * What an airless post lives on, kept outside where a leak vents to nothing: oxygen spheres and gas bottle racks
+     * behind the bunks, fuel skids on the lander pad, the tanker in the motor pool, shipping containers and crates;
+     * antenna masts over the habs and the pad, and the power laid along the hab street.
+     */
+    private static void stores(GenContext c) {
+        for (int x = 152; x <= 160; x += 3) place(c, x, 67, "oxygen-sphere", 0);
+        place(c, 163, 67, "origin-lab.tank-rack-clean", 0);
+        place(c, 163, 69, "origin-lab.tank-rack-clean", 0);
+        place(c, 172, 67, "origin-freight.container-blue-clean", 0);
+        place(c, 172, 70, "origin-freight.container-rust", 0);
+        place(c, 176, 67, "industrial-crate-stack", 0);
+        place(c, 196, 67, "shuttle-bay.fluid-skid", 0);
+        place(c, 189, 36, "parked-tanker-truck", 0);
+        place(c, 131, 33, "origin-freight.container-rust", 0);
+        place(c, 131, 31, "industrial-crate-stack", 0);
+        // Antenna masts: a column and its ranging head over each place the post talks from.
+        for (int[] at : new int[][]{{149, 64}, {180, 62}, {187, 66}, {167, 60}}) {
+            place(c, at[0], at[1], "gantry-column", 0);
+            place(c, at[0], at[1] + 1, "military-radar-dish", 0);
+        }
+        // Power laid along the hab street's south side, a run to each module's door.
+        for (int x = 153; x <= 177; x += 2) lay(c, x, 54, "ship-dressing.cable-run", 0);
+        for (int x = 152; x <= 178; x += 2) lay(c, x, 60, "ship-dressing.cable-run", 0);
+    }
+
+    /**
+     * A floor-level prop laid where a walker still passes (a cable on the ground): drawn, never cover or obstacle.
+     * Skipped where anything else stands or a door opens.
+     */
+    private static void lay(GenContext c, int x, int y, String id, int turns) {
+        DoodadDef def = TileRegistry.installed().doodad(id.contains(".") ? id : "doodad." + id);
+        if (def == null) return;
+        Doodad prop = new Doodad(x, y, def, turns);
+        for (int yy = y; yy < y + prop.footprintCellsY; yy++) for (int xx = x; xx < x + prop.footprintCellsX; xx++)
+            if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.grid.isDoorway(xx, yy)
+                    || c.topology.isFixture(xx, yy) || c.topology.hasBuildingKindHint(xx, yy)) return;
+        c.doodads.add(prop);
     }
 
     /**
@@ -529,7 +607,7 @@ public final class BlindWatchSounding {
      * stood. Dressing yields to circulation rather than refusing the map.
      */
     private static boolean place(GenContext c, int x, int y, String id, int turns) {
-        DoodadDef def = TileRegistry.installed().doodad("doodad." + id);
+        DoodadDef def = TileRegistry.installed().doodad(id.contains(".") ? id : "doodad." + id);
         if (def == null) return false;
         Doodad prop = new Doodad(x, y, def, turns);
         if (!open(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
@@ -611,7 +689,37 @@ public final class BlindWatchSounding {
         Map<Approach, List<Cell>> lines = approachLines();
         field(c, placements, closed, new Area(50, 80, 116, 108), 6, lines.get(Approach.BOULDERS), 7151);
         field(c, placements, closed, new Area(64, 2, 140, 15), 9, lines.get(Approach.RILLE), 7152);
+        ejecta(c, placements, closed, lines);
         FormationBrush.stamp(placements, c.grid, c.topology, c.doodads, null);
+    }
+
+    /**
+     * The blocks an impact threw out: round every crater five or more cells across, a few boulders on the apron just
+     * outside its rim, kept off every approach's line. Cover for a squad working across the flat.
+     */
+    private static void ejecta(GenContext c, List<FormationBrush.Placement> out, boolean[] closed,
+                               Map<Approach, List<Cell>> lines) {
+        List<Cell> keepOpen = new ArrayList<>();
+        for (List<Cell> line : lines.values()) {
+            keepOpen.addAll(line);
+            keepOpen.add(null);
+        }
+        for (int i = 0; i < CRATERS.size(); i++) {
+            Crater crater = CRATERS.get(i);
+            if (crater.radius() < 5) continue;
+            for (int k = 0; k < 6; k++) {
+                double angle = (k + hash(i, k, 7153)) * Math.PI / 3, reach = crater.radius() + 4.5 + hash(k, i, 7154) * 2;
+                int x = (int) Math.round(crater.x() + Math.cos(angle) * reach) - 2;
+                int y = (int) Math.round(crater.y() + Math.sin(angle) * reach) - 1;
+                FormationBrush.Placement p = new FormationBrush.Placement(x, y, MineralFormation.BOULDERS,
+                        (int) (hash(x, y, 7155) * 4));
+                if (fits(c, p, closed, keepOpen)) {
+                    out.add(p);
+                    for (int yy = p.y(); yy < p.y() + p.height(); yy++) for (int xx = p.x(); xx < p.x() + p.width(); xx++)
+                        if (p.blocks(xx, yy)) closed[yy * WIDTH + xx] = true;
+                }
+            }
+        }
     }
 
     private static void field(GenContext c, List<FormationBrush.Placement> out, boolean[] closed, Area area,
@@ -638,8 +746,10 @@ public final class BlindWatchSounding {
             if (closed[y * WIDTH + x]) return false;
             if (!p.blocks(x, y)) continue;
             if (!natural(c, x, y)) return false;
+            // A null between two lines' cells ends one line; no leg runs across it.
             for (int i = 1; i < keepOpen.size(); i++)
-                if (distanceToLeg(x, y, keepOpen.get(i - 1), keepOpen.get(i)) < 3) return false;
+                if (keepOpen.get(i - 1) != null && keepOpen.get(i) != null
+                        && distanceToLeg(x, y, keepOpen.get(i - 1), keepOpen.get(i)) < 3) return false;
         }
         return true;
     }
@@ -697,6 +807,7 @@ public final class BlindWatchSounding {
         PatchField drifts = new PatchField(c.seed ^ 0x4452494654L, 11);
         for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++)
             if (open[y * WIDTH + x] && drifts.sample(x, y) < .62f) c.topology.setNatureOverlayIndex(x, y, -1);
+        craterGround(c, open, surface);
         int reach = 6;
         while (!frontier.isEmpty()) {
             int[] at = frontier.poll();
@@ -726,6 +837,42 @@ public final class BlindWatchSounding {
         }
     }
 
+    /**
+     * Each impact's ground: its bowl swept bare (and kept out of the scree that follows), and outside its rim the
+     * ejecta, stones thrown out in rays, thick and coarse against the rim and thinning over about a radius more.
+     * Paint only; the rim itself is the terrain document's.
+     */
+    private static void craterGround(GenContext c, boolean[] open, SurfacePalette surface) {
+        TileRegistry tiles = TileRegistry.installed();
+        int[] fine = Stream.of("small-1", "small-2").mapToInt(id -> tiles.tile(surface.stones().stone(id)).index).toArray();
+        int[] coarse = Stream.of("medium-1", "medium-2", "large-1").map(surface.stones()::stone).filter(tiles::has)
+                .mapToInt(id -> tiles.tile(id).index).toArray();
+        for (int i = 0; i < CRATERS.size(); i++) {
+            Crater crater = CRATERS.get(i);
+            double r = crater.radius(), apron = r * 1.1 + 2, inner = r + 1.5;
+            int rays = 5 + i % 3;
+            double phase = hash(i, 0, 7156) * Math.PI * 2;
+            int span = (int) Math.ceil(inner + apron);
+            for (int y = crater.y() - span; y <= crater.y() + span; y++)
+                for (int x = crater.x() - span; x <= crater.x() + span; x++) {
+                    if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT || !open[y * WIDTH + x]) continue;
+                    double d = Math.hypot(x - crater.x(), y - crater.y());
+                    if (d < r - .8) {
+                        c.topology.setNatureOverlayIndex(x, y, -1);
+                        open[y * WIDTH + x] = false;
+                        continue;
+                    }
+                    if (d < inner || d > inner + apron) continue;
+                    double t = (d - inner) / apron;
+                    double ray = .5 + .5 * Math.cos(Math.atan2(y - crater.y(), x - crater.x()) * rays + phase);
+                    double chance = Math.pow(1 - t, 1.2) * (.25 + .75 * ray * ray);
+                    if (hash(x, y, 7157 + i) >= chance) continue;
+                    int[] pool = t < .35 && coarse.length > 0 ? coarse : fine;
+                    c.topology.setNatureOverlayIndex(x, y, pool[(int) (hash(y, x, 7158) * pool.length)]);
+                }
+        }
+    }
+
     /** A stable value in [0, 1) for a cell, independent of every random stream. */
     private static double hash(int x, int y, int salt) {
         long h = x * 73856093L ^ y * 19349663L ^ salt * 83492791L;
@@ -737,7 +884,7 @@ public final class BlindWatchSounding {
 
     private static Layout layout(MapResult map, Sites s) {
         Map<PostRole, List<Cell>> posts = new EnumMap<>(PostRole.class);
-        posts.put(PostRole.RIM, List.of(new Cell(124, 78), new Cell(119, 74), new Cell(146, 94), new Cell(140, 92)));
+        posts.put(PostRole.RIM, List.of(new Cell(126, 87), new Cell(130, 88), new Cell(146, 94), new Cell(140, 92)));
         posts.put(PostRole.MAST, List.of(new Cell(130, 91), new Cell(137, 90)));
         List<Cell> hab = new ArrayList<>(slitCells(AIRLOCK_PILLBOX));
         hab.addAll(List.of(new Cell(160, 58), new Cell(176, 56)));
@@ -753,7 +900,7 @@ public final class BlindWatchSounding {
         sites.put(Installation.MAST, new ChargeSite(Installation.MAST.id, MAST_PLANT, MAST_PAD));
         sites.put(Installation.UPLINK, new ChargeSite(Installation.UPLINK.id, UPLINK_PLANT, UPLINK_PAD));
         sites.put(Installation.DISH_FIELD, new ChargeSite(Installation.DISH_FIELD.id, DISH_PLANT,
-                new Area(DISH_X[0] - 2, DISH_Y[0] - 2, DISH_X[2] + 2, DISH_Y[1] + 2)));
+                new Area(DISH_X[0] - 2, DISH_Y[0] - 2, DISH_X[2] + DISH_CELLS - 1, DISH_Y[1] + DISH_CELLS - 1)));
         return new Layout(map, LANDING, COMPANY_START, sites, RIM, List.of(RIM_WEST_FOOT, RIM_FLOOR_FOOT), KNOLL,
                 KNOLL_FOOT, DISH_FIELD, s.controlHut, console(), HAB, List.copyOf(s.bunks), s.signals,
                 interiorCells(map, s.signals, 5), s.riggers, interiorCells(map, s.riggers, 4), riggersWalkOut(s.riggers),

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.command.trace.MechTimeToKillProbe;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -11,11 +10,8 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
-import com.dillon.starsectormarines.battle.fixture.FiniteCommandPowerResources;
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -28,14 +24,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
-import com.dillon.starsectormarines.marine.CampaignMech;
-import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
-import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
-import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
-import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
-import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.json.JSONArray;
@@ -55,17 +45,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Full production chapter playback; outcome is a finding, not a required victory. */
 @Tag("corvus-command-evidence")
 class CorvusCombatEvidenceTest {
-    /** The armor-drop pick that names the recovered Hound, the one machine in the evidence company's bay. */
-    private static final List<Integer> HOUND_PICK = List.of(0);
-
     private StoryNarrationPlayer narration;
     @Test void recommendedCompanyAndRecoveredHound() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
@@ -74,7 +60,12 @@ class CorvusCombatEvidenceTest {
         if (boatCount < 1 || boatCount > 4) throw new IllegalArgumentException("Use one to four company boats");
         if (boatCount != 2) output = output.resolve("boats-" + boatCount);
         String selectedChapter = System.getProperty("battle.corvus.chapter", "");
+        // The campaign's marks the chapters read at their fixture boundary; none by default (so Blind Watch's post is
+        // stood-to: Teague was not delivered). corvus.teague.delivered plays the quiet post.
+        Set<String> campaignMarks = CorvusEvidenceCompany.marksFromSystemProperties();
         if (!selectedChapter.isEmpty()) CorvusChapter.valueOf(selectedChapter);
+        // The company's kit, so a run can play a better-equipped company than the first contract's.
+        var kit = CorvusEvidenceCompany.Kit.fromSystemProperties();
         Files.createDirectories(output);
         TileRegistryTestInstaller.install(Path.of("."));
         InstalledVanillaData.install();
@@ -96,23 +87,11 @@ class CorvusCombatEvidenceTest {
             }
             Path dir = output.resolve(chapter.name().toLowerCase(Locale.ROOT));
             Files.createDirectories(dir);
-            var roster = new MarineRoster();
-            roster.ensureActiveSoldiers(chapter.squads * 12);
-            assertTrue(roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment())));
-            var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
-            for (String squad : selected) assertEquals(SquadEquipmentResult.APPLIED,
-                    roster.applySquadEquipment(squad, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                            SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
-            // Same campaign organization path; each squad has an acting NCO, with no officer buffs.
-            var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
-            var boats = IntStream.range(0, boatCount).mapToObj(i -> FittedBoat.standard(ShuttleType.AEROSHUTTLE)).toList();
-            var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
-            var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface));
-            var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
-            assertEquals(1, powers.size());
-            var resources = new FiniteCommandPowerResources(30);
-            fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
-            try (var sim = fixture.build();
+            var muster = CorvusEvidenceCompany.muster(chapter, mission, boatCount, campaignMarks::contains, kit);
+            var fixture = muster.fixture();
+            var deployment = muster.deployment();
+            var resources = muster.resources();
+            try (var sim = muster.build();
                  var damageReview = Boolean.getBoolean("battle.corvus.damageReview") && sim.getColdAccount() != null
                          ? new CompoundDamageReview(sim, dir) : null) {
                 var dialogue = new JSONArray();
@@ -125,21 +104,34 @@ class CorvusCombatEvidenceTest {
                                     .put("event", line.event()).put("speaker", line.speaker()).put("text", line.text())); }
                             catch (Exception e) { throw new IllegalStateException(e); }
                         });
-                var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,
-                        resources.availableSupplies(), mission.fieldPresencePolicy);
-                overlay.applyTo(sim, resources);
+                var overlay = muster.overlay();
                 Files.writeString(dir.resolve("fixture.json"), BattleFixtureJson.toJson(new BattleLaunchFixture(fixture, overlay)).toString(2));
                 sim.setCommandTraceEnabled(true, fixture.kind());
                 Set<Long> landed = new HashSet<>(), fallen = new HashSet<>(), enemyFallen = new HashSet<>();
                 var marineDeaths = new JSONArray();
+                // Who killed each marine: the latest Sable Wake hit landing within a cell and a half of where they fell
+                // in the last three seconds (a death carries no killer). {tick, shooter, x, y}.
+                var recentHits = new ArrayList<float[]>();
+                var killers = new TreeMap<String, Integer>();
                 sim.subscribeDeath(event -> {
                     long id = event.unitId();
                     if (sim.identity().faction(id) == Faction.DEFENDER) enemyFallen.add(id);
                     else if (sim.identity().faction(id) == Faction.MARINE && sim.identity().campaignSquadId(id) != null) fallen.add(id);
                     if (sim.identity().faction(id) == Faction.MARINE) try {
+                        for (var shot : sim.getShotsThisFrame()) if (shot.hit && shot.shooterFaction == Faction.DEFENDER)
+                            recentHits.add(new float[] {sim.getSimTickIndex(), shot.shooterId, shot.toX, shot.toY});
+                        String killer = "unattributed";
+                        for (int h = recentHits.size() - 1; h >= 0; h--) {
+                            float[] hit = recentHits.get(h);
+                            if (sim.getSimTickIndex() - hit[0] > 90) break;
+                            if (Math.hypot(hit[2] - event.x(), hit[3] - event.y()) > 1.5) continue;
+                            killer = shooterClass(sim, (long) hit[1]);
+                            break;
+                        }
+                        killers.merge(killer, 1, Integer::sum);
                         marineDeaths.put(new JSONObject().put("tick", sim.getSimTickIndex()).put("id", id)
                                 .put("type", sim.identity().type(id)).put("x", event.x()).put("y", event.y())
-                                .put("heavyImpacts", sim.getHeavyImpactsThisFrame()));
+                                .put("killer", killer).put("heavyImpacts", sim.getHeavyImpactsThisFrame()));
                         Files.writeString(dir.resolve("marine-deaths.json"), marineDeaths.toString(2));
                     } catch (Exception e) { throw new IllegalStateException(e); }
                 });
@@ -166,6 +158,13 @@ class CorvusCombatEvidenceTest {
                 var technicalTrack = new JSONArray();
                 var technicalFiredFrom = new JSONArray();
                 int[] technicalCell = {-1, -1};
+                // Blind Watch: when each charge blew, when the alarm sounded and how the warning went.
+                var chargesBlown = new JSONArray();
+                var blown = new HashSet<String>();
+                int alarmTick = -1;
+                var warningCourse = new JSONArray();
+                String warningState = "";
+                int mortarShots = 0;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
                 int peakInfantryPickups = 0, peakLandedPickups = 0;
@@ -182,16 +181,8 @@ class CorvusCombatEvidenceTest {
                 var mechs = new MechTimeToKillProbe();
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
-                    var service = sim.getCommandPowerService();
-                    var support = service.getPower(MechSupport.ID);
-                    if (requestedAt < 0 && service.canActivate(support)) {
-                        // An armor drop names its machine: the recovered Hound is the only one aboard.
-                        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, HOUND_PICK)) {
-                            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, HOUND_PICK);
-                            requestedAt = sim.getSimTickIndex() + 1;
-                            break;
-                        }
-                    }
+                    // An armor drop names its machine: the recovered Hound is the only one aboard.
+                    if (requestedAt < 0 && CorvusEvidenceCompany.callHound(sim)) requestedAt = sim.getSimTickIndex() + 1;
                     var beforePhase = sim.getColdAccount() == null ? null : sim.getColdAccount().phase();
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
@@ -264,6 +255,9 @@ class CorvusCombatEvidenceTest {
                         }
                     }
                     int tick = sim.getSimTickIndex();
+                    for (var shot : sim.getShotsThisFrame()) if (shot.hit && shot.shooterFaction == Faction.DEFENDER)
+                        recentHits.add(new float[] {tick, shot.shooterId, shot.toX, shot.toY});
+                    recentHits.removeIf(hit -> tick - hit[0] > 90);
                     int infantryPickups = 0, landedPickups = 0;
                     var flyingBoats = new ArrayList<FittedBoat>();
                     for (long air : sim.getAirEntityIds()) {
@@ -331,7 +325,22 @@ class CorvusCombatEvidenceTest {
                         houndHp = sim.world().hp(hound); houndArmor = sim.world().armor(hound);
                         houndKills = sim.telemetry().kills(hound); houndDamage = sim.telemetry().damageDealt(hound);
                     }
-                    long technical = sim.getDustLedger() == null ? 0L : sim.getDustLedger().technical();
+                    var watch = sim.getBlindWatch();
+                    if (watch != null) {
+                        for (var charge : List.of(watch.mastCharge(), watch.uplinkCharge(), watch.dishCharge()))
+                            if (charge.isComplete() && blown.add(charge.siteId()))
+                                chargesBlown.put(new JSONObject().put("site", charge.siteId()).put("name", charge.displayName()).put("tick", tick));
+                        if (alarmTick < 0 && !watch.progress().quiet()) alarmTick = tick;
+                        for (var shot : sim.getShotsThisFrame()) if (watch.mortar() != 0L && shot.shooterId == watch.mortar()) mortarShots++;
+                        String state = watch.progress().warning().name();
+                        if (!state.equals(warningState)) {
+                            warningState = state;
+                            warningCourse.put(new JSONObject().put("tick", tick).put("warning", state)
+                                    .put("sent", watch.progress().sentShare()));
+                        }
+                    }
+                    long technical = sim.getDustLedger() != null ? sim.getDustLedger().technical()
+                            : watch != null ? watch.technical() : 0L;
                     if (technical != 0L && technicalLostAt < 0) {
                         var truck = sim.convoy().mission(technical);
                         if (truck == null || truck.state == VehicleState.WRECKED || truck.state == VehicleState.GONE) technicalLostAt = tick;
@@ -379,11 +388,11 @@ class CorvusCombatEvidenceTest {
                 Files.writeString(dir.resolve("frame-index.json"), frameTicks.toString());
                 var kits = new JSONArray();
                 for (var seat : deployment.commitments()) kits.put(new JSONObject().put("soldier", seat.campaignSoldierId())
-                        .put("weapon", seat.primaryWeaponId()).put("grade", seat.equipmentGrade().name())
+                        .put("weapon", seat.primaryWeaponId()).put("special", seat.specialEquipmentId() == null ? "" : seat.specialEquipmentId()).put("grade", seat.equipmentGrade().name())
                         .put("armorCapacity", seat.armorCapacity()).put("armorRating", seat.armorRating()));
                 var report = new JSONObject().put("chapter", chapter.title()).put("seed",mission.battleSeed)
                         .put("companyBoats",boatCount).put("captainBonuses",false)
-                        .put("weapons",SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)
+                        .put("weapons",kit.squadWeapons()).put("houndShoulder",kit.houndPod() == null ? "" : kit.houndPod().name())
                         .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
                         .put("result", sim.isComplete() ? String.valueOf(sim.getWinner()) : "TIMEOUT")
                         .put("ticks",sim.getSimTickIndex()).put("namedSeats",deployment.size()).put("landed",landed.size())
@@ -391,13 +400,26 @@ class CorvusCombatEvidenceTest {
                         .put("remainingDefenders", count(sim,Faction.DEFENDER)).put("firstLandedAt",firstLandedAt)
                         .put("allLandedAt",allLandedAt).put("firstShotAt",firstShotAt).put("supportRequestedAt",requestedAt)
                         .put("supportChargesRemaining",sim.getCommandPowerService().getChargesRemaining(MechSupport.ID))
-                        .put("suppliesSpent",30-resources.availableSupplies()).put("houndLandedAt",houndLandedAt)
+                        .put("suppliesSpent",CorvusEvidenceCompany.SUPPLIES-resources.availableSupplies()).put("houndLandedAt",houndLandedAt)
                         .put("houndAlive",houndAlive).put("houndLostAt",houndLostAt).put("houndHp",houndAlive?houndHp:0).put("houndArmor",houndAlive?houndArmor:0)
                         .put("houndShots",houndShots).put("houndKills",houndKills).put("houndDamage",houndDamage)
                         .put("technicalShots",technicalShots).put("technicalFirstShotAt",technicalFirstShotAt).put("technicalLostAt",technicalLostAt)
                         .put("technicalTrack",technicalTrack).put("technicalFiredFrom",technicalFiredFrom)
                         .put("objectives",objectives(sim)).put("kits",kits);
                 report.put("dialogue", dialogue);
+                report.put("marineKillers", new JSONObject(killers));
+                var watch = sim.getBlindWatch();
+                if (watch != null) {
+                    var watchReport = watch.report();
+                    var mortar = sim.convoy().mission(watch.mortar());
+                    report.put("blindWatch", new JSONObject().put("stoodTo", watchReport.stoodTo())
+                            .put("alarm", watch.progress().alarm().name()).put("alarmTick", alarmTick)
+                            .put("warning", watchReport.warning().name()).put("warningSent", watchReport.warningSent())
+                            .put("garnirWarned", watchReport.garnirWarned()).put("warningCourse", warningCourse)
+                            .put("chargesBlown", chargesBlown).put("riggers", watchReport.riggers().name())
+                            .put("schedule", watchReport.schedule().name()).put("coldStore", watchReport.coldStore().name())
+                            .put("mortarShots", mortarShots).put("mortarAlive", mortar != null && mortar.state != VehicleState.WRECKED && mortar.state != VehicleState.GONE));
+                }
                 var intervention = sim.getColdAccount();
                 if (intervention != null) {
                     report.put("intervention", new JSONObject()
@@ -497,6 +519,18 @@ class CorvusCombatEvidenceTest {
     private static float replaySpeed(BattleSimulation sim) {
         // Cold Account has mission speech throughout the approach as well as the intervention.
         return sim.getColdAccount() == null ? 8f : 1f;
+    }
+
+    /** What a Sable Wake shooter is, for the killer tally: a structure, a hull by type, or a crewman by duty. */
+    private static String shooterClass(BattleSimulation sim, long shooter) {
+        if (shooter == 0L) return "anonymous";
+        if (sim.convoy().isVehicle(shooter)) return "hull:" + sim.convoy().vehicleType(shooter);
+        var type = sim.identity().type(shooter);
+        if (type.isStatic()) return "structure:" + sim.identity().name(shooter);
+        var squad = sim.squadOf(shooter);
+        String name = sim.identity().name(shooter);
+        String duty = name.startsWith("sable-wake-") ? name.substring("sable-wake-".length()).replaceAll("-\\d+-\\d+$", "") : name;
+        return (squad != null && squad.holdsFireUntilKillZone ? "pillbox:" : "crew:") + duty;
     }
 
     private void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {

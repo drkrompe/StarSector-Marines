@@ -403,7 +403,8 @@ class SquadStateDumperTest {
         assertEquals(0, site.getInt("unclaimedKitDrops"));
         assertEquals(0, directive.getInt("siteIndex"));
         assertEquals("SECURITY", directive.getString("groupRole"));
-        assertEquals("CLEAR_ZONE", directive.getString("assignmentKind"));
+        // The open grid is one exterior zone, so the site is secured at its own cell.
+        assertEquals("DEFEND_SITE", directive.getString("assignmentKind"));
         assertEquals("sabotage-attacker",
                 dump.getJSONObject("commander").getString("strategy"));
     }

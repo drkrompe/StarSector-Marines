@@ -22,7 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** One {@link EquipmentDropSystem} sweep over a bare roster: kit retrieval is infantry work, and a mech is {@code MECH_LOADOUT} membership. */
+/**
+ * One {@link EquipmentDropSystem} sweep over a bare roster: kit retrieval is infantry work, a mech is
+ * {@code MECH_LOADOUT} membership, and a turret does not move.
+ */
 class KitRetrieverExcludesMechsTest {
 
     @Test
@@ -83,6 +86,20 @@ class KitRetrieverExcludesMechsTest {
         assertNotEquals(UnitRole.PLANTER, f.roster.role().role(mech));
     }
 
+    @Test
+    void aMarineTurretNearerTheDropIsNeverRecruited() {
+        Fixture f = new Fixture();
+        long turret = f.spawn(new EntitySpec("Emplacement", Faction.MARINE, UnitType.TURRET, 11, 10), UnitType.TURRET);
+        long marine = f.spawnMarine(18, 10);
+        EquipmentDrop drop = f.drop(10, 10);
+
+        f.system.tick();
+
+        assertNotEquals(UnitRole.KIT_RETRIEVER, f.roster.role().role(turret));
+        assertEquals(UnitRole.KIT_RETRIEVER, f.roster.role().role(marine));
+        assertEquals(drop, f.roster.task().equipmentDropTarget(marine));
+    }
+
     private static final class Fixture {
         final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(24, 24), null);
         final EquipmentDropService drops = new EquipmentDropService(roster);
@@ -108,7 +125,7 @@ class KitRetrieverExcludesMechsTest {
             return id;
         }
 
-        private long spawn(EntitySpec spec, UnitType type) {
+        long spawn(EntitySpec spec, UnitType type) {
             int squadId = roster.mintSquad(Faction.MARINE, type);
             long id = roster.spawn(spec.squad(squadId));
             var squad = roster.getSquad(squadId);

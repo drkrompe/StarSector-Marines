@@ -677,9 +677,25 @@ watch holding the cantina. The rules and their tuning live in
 `DustLedgerProgress`; open work is in `dust-ledger-crossing.md`. The records
 remain an abstract recovered package under the Raid objective's survivor-egress
 law, with the same numbered **1 / Seize** and **2 / Return** checklist.
-Blind
-Watch uses an explicitly remote installation map and a finite light garrison:
-there is no off-map replacement force or continuing vehicle/air production.
+
+Blind Watch is played on **the Sounding**, Sable Wake's authored listening post
+in a crater on Warion (`BlindWatchSounding`). The company lands behind a ridge
+out of the post's sight. Three named charge sites are the Sabotage plant, and
+they are not interchangeable: the ranging mast spots for Sable Wake while it
+stands, the uplink sends the **warning** to Garnir from the alarm until it is
+blown, and the dish field is the contract's target. Victory is all three
+charges; a warning that reaches Garnir changes only the campaign mark
+`corvus.sable_wake.garnir_warned` and the debrief. The alarm is a shot, or a
+sentry or the standing mast seeing the company. Sable Wake's finite Low crew,
+about two dozen, holds the post's posts by duty: its pillboxes are crewed from
+their slit posts, its rim guns are the map's nests, and whoever is off watch
+sleeps in the bunks. A post **stood-to**, because the Dust Ledger did not
+deliver Teague, mans every post and sees farther. A mortar carrier drives its
+lane and fires on what its side observes; the Dust Ledger's rocket truck works
+the uplink knoll. There are no reinforcements, aircraft or grown settlement.
+Three side objectives (the riggers, the false schedule, the cold store) change
+the debrief and the marks. The rules live in `BlindWatchProgress` and
+`BlindWatchSequence`; open work is in `blind-watch-sounding.md`.
 Map density and reinforcement eligibility are independent authored choices;
 being on a barren moon alone does not imply that other missions lack reserves.
 
