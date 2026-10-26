@@ -219,6 +219,49 @@ class GroupOrderTest {
         assertTrue(attachments.isAttached(mechSquad));
     }
 
+    @Test
+    void stretchesGoToRecipientsInTheOrderTheyStandAlongTheDragNotSelectionOrder() {
+        BattleSimulation sim = arena();
+        int south = infantry(sim, 20, 50);
+        int north = infantry(sim, 20, 28);
+        Selection selection = new Selection();
+        selection.selectGroup(List.of(south, north), List.of(), south, 0L, 0L, false);
+
+        SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        FrontageLine northLine = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(north)).line();
+        FrontageLine southLine = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(south)).line();
+        assertEquals(25, northLine.y0(), "the squad nearer the drag's start takes the first stretch");
+        assertEquals(55, southLine.y1(), "though it was selected second");
+    }
+
+    @Test
+    void attachedMechsTakeTheBandsInTheOrderTheyStandAlongTheStretch() {
+        BattleSimulation sim = arena();
+        int infantry = infantry(sim, 20, 40);
+        long southMech = mech(sim, 20, 52);
+        long northMech = mech(sim, 20, 28);
+        MechAttachmentService attachments = sim.getMechAttachmentService();
+        attachments.requestAttach(squadOf(sim, southMech), infantry);
+        attachments.requestAttach(squadOf(sim, northMech), infantry);
+        sim.getMechAttachmentSystem().tick(sim);
+        Selection selection = new Selection();
+        selection.selectSquad(infantry);
+
+        SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        sim.getMechAttachmentSystem().tick(sim);
+
+        MechAttachmentService.Post north = attachments.postOf(squadOf(sim, northMech));
+        MechAttachmentService.Post south = attachments.postOf(squadOf(sim, southMech));
+        assertNotNull(north);
+        assertNotNull(south);
+        assertTrue(north.y() < south.y(), "the northern mech takes the northern band, though attached second");
+    }
+
     // ---- fixtures ----
 
     private static BattleSimulation arena() {
