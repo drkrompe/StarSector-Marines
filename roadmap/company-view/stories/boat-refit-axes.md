@@ -1,6 +1,6 @@
 # Boat refit axes: the Hermes as the company's boat
 
-Status: IN PROGRESS — slices 1 (campaign simplification), 2 (catalog, six sockets, frame budget) and 3 (seats, deboard, load) shipped; slices 4–6 open
+Status: IN PROGRESS — slices 1–4 and slice 6's arc mask shipped; slice 5 (boat flux and shield) and wiring boats to the mask open
 Written: 2026-10-26
 Updated: 2026-10-26 — owner answered every picks question: cycle, lift, shield and flux, weapons, saves, patterns and ship changes.
 
@@ -158,8 +158,10 @@ migration.
 - Tuning the part list (`BoatFitting`, `BoatGun` weights, `BoatFrame`): first
   numbers are in the catalog; they want a matchup evidence run once slices 3
   and 5 make them bite in battle.
-- The energy guns and missile pods themselves: names, turret structures and
-  art, against the turret catalog.
+- Boat-gun art: the energy guns and missile pods draw base-game turret
+  sprites on the boat and the vehicle doll's laser and missile icons on the
+  board; their own art is still to make. Energy guns still spend the
+  vehicle mount's magazine until slice 5 moves them onto the flux pool.
 
 ## Slices
 

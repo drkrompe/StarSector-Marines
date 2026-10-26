@@ -70,7 +70,7 @@ public enum ShuttleType implements AirHandling, Airframe {
     HERMES(
             "graphics/ships/hermes/hermes_base.png",
             1, 11f, 0.5f,
-            Profiles.NIMBLE, 1, 55f,
+            Profiles.NIMBLE, 3, 55f,
             "hermes"),
 
     MUDSKIPPER(
@@ -212,6 +212,19 @@ public enum ShuttleType implements AirHandling, Airframe {
     /** Transports shoot from mounts if at all; none of them makes attack runs. */
     @Override public AirOrdnance ordnance()           { return null; }
     @Override public AirHandling flight()             { return this; }
+
+    /**
+     * The Hermes leaves the yard with one heavy MG on her first turret and the
+     * other two bare: her three slots are the player's to fill, not a free
+     * gunship. Every other pattern arms by its role's kit.
+     */
+    @Override
+    public String[] kitFor(TurretRole role) {
+        if (this == HERMES && role == TurretRole.A2G) {
+            return new String[]{TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, null, null};
+        }
+        return kitFor(role, hardpoints);
+    }
     @Override public int seats()                      { return capacity; }
     @Override public float deboardInterval()          { return deboardInterval; }
     @Override public float maxHp()                    { return maxHp; }

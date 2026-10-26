@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         this.drive = this.fit.get(BoatFittingSlot.DRIVE);
         this.lift = this.fit.get(BoatFittingSlot.LIFT);
         this.boatId = boatId;
-        String[] kit = ShuttleType.kitFor(TurretRole.A2G, pattern.hardpoints());
+        String[] kit = pattern.kitFor(TurretRole.A2G);
         this.guns = new String[kit.length];
         for (int index = 0; index < kit.length; index++) {
             String fitted = guns != null && index < guns.length ? guns[index] : null;
@@ -163,8 +164,8 @@ public final class FittedBoat implements Airframe, AirHandling {
         return role == TurretRole.A2G ? guns.clone() : pattern.kitFor(role);
     }
 
-    /** The turret structure on each hardpoint, in hardpoint order. */
-    public List<String> guns() { return List.of(guns); }
+    /** The turret structure on each hardpoint, in hardpoint order; null for a bare one. */
+    public List<String> guns() { return Collections.unmodifiableList(Arrays.asList(guns.clone())); }
     @Override public AirHandling flight() { return this; }
 
     @Override public float maxHp() { return pattern.maxHp() * plating.hullFactor(); }

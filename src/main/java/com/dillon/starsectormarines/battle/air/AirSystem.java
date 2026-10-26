@@ -1674,6 +1674,10 @@ public class AirSystem {
                 aim.target = roster.isAliveById(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
+                if (mt.mount.arced()) {
+                    aim.arcCenterDeg = body.facingDegrees + mt.mount.arcCenterDeg;
+                    aim.arcHalfDeg = mt.mount.arcDeg * 0.5f;
+                }
 
                 TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 

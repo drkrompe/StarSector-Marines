@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.air.engine.WeaponSlot;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
@@ -67,7 +68,8 @@ public final class AirArmament {
      */
     public static MountedTurret[] mounts(Airframe airframe, TurretRole role, float noseFacing) {
         if (airframe == null || airframe.hardpoints() <= 0) return new MountedTurret[0];
-        return mounts(airframe.kitFor(role), airframe.renderHullId(), noseFacing);
+        // A company boat's guns keep their hull slot's arc, so her stern gun covers only the stern.
+        return mounts(airframe.kitFor(role), airframe.renderHullId(), noseFacing, airframe instanceof FittedBoat);
     }
 
     /**
@@ -75,15 +77,23 @@ public final class AirArmament {
      * aligned to {@code noseFacing}; a mount left empty in the kit stays empty.
      */
     public static MountedTurret[] mounts(String[] kit, String hullId, float noseFacing) {
+        return mounts(kit, hullId, noseFacing, false);
+    }
+
+    /** As {@link #mounts(String[], String, float)}, each mount held to its slot's arc when {@code arced}. */
+    public static MountedTurret[] mounts(String[] kit, String hullId, float noseFacing, boolean arced) {
         if (kit == null) return new MountedTurret[0];
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        float[][] slots = TurretSlotResolver.resolve(hullId);
-        int fitted = Math.min(kit.length, slots.length);
+        List<WeaponSlot> slots = TurretSlotResolver.mounts(hullId);
+        int fitted = Math.min(kit.length, slots.size());
         List<MountedTurret> turrets = new ArrayList<>(Math.max(0, fitted));
         for (int i = 0; i < fitted; i++) {
             if (kit[i] == null) continue;
-            MountedTurret turret = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
-            turret.facingDegrees = noseFacing;
+            WeaponSlot slot = slots.get(i);
+            float arc = arced && slot.arcDeg() > 0f ? slot.arcDeg() : TurretMount.ALL_ROUND;
+            MountedTurret turret = new MountedTurret(new TurretMount(kit[i], slot.localX(), slot.localY(),
+                    slot.angleDeg(), arc));
+            turret.facingDegrees = arced ? noseFacing + slot.angleDeg() : noseFacing;
             turrets.add(turret);
         }
         return turrets.toArray(new MountedTurret[0]);

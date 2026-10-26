@@ -906,8 +906,9 @@ public final class BattleFixtureJson {
      * still reads, and still writes, the way it did.
      */
     private static void putRefittedGuns(JSONObject encoded, FittedBoat boat) throws Exception {
-        if (boat.guns().equals(List.of(FittedBoat.standard(boat.pattern()).kitFor(TurretRole.A2G)))) return;
-        encoded.put("guns", new JSONArray(boat.guns()));
+        if (boat.guns().equals(FittedBoat.standard(boat.pattern()).guns())) return;
+        // A bare hardpoint is written blank: the codec reads blank as the yard's own, which is bare.
+        encoded.put("guns", new JSONArray(boat.guns().stream().map(gun -> gun == null ? "" : gun).toList()));
     }
 
     private static String[] gunsFromJson(JSONObject encoded) throws Exception {
