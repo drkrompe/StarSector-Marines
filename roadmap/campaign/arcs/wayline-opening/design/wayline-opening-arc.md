@@ -46,11 +46,6 @@ ordinary deliberate issue. It does not block Counterattack.
 Counterattack's recovery and refitting lesson teaches the owned Hound and its
 physical components. `castle-campaign-lessons.md` owns that tutorial work.
 
-Secondhand Wings is an optional interlude after story Counterattack victory.
-The separate second-bay repair precedes a 5,000-credit exchange for two surplus
-six-seat Aeroshuttles. This is a purchase, not another mandatory chapter.
-`company-view-nouns.md` owns the boats and restoration transaction.
-
 ## Resolution and next lead
 
 Counterattack closes the historical arc and preserves its completed dossier.

@@ -18,8 +18,9 @@ import java.util.List;
  * through the look preset with the camera held on the redoubt, as the swarm comes over its face and in.
  *
  * <p>{@code -Dsnapshot.cordonBreach.battle=cordon:variant=line,density=town,biome=rock,seed=8}, {@code .redoubt=4}
- * and {@code .ticks=1800} choose the battle, the redoubt and the length; the shot opens {@link #LEAD} ticks before the
- * redoubt calls. Opt-in: it plays a battle twice before it draws.
+ * and {@code .ticks=1800} choose the battle, the redoubt and the length; {@code .centre=x,y} holds the camera on a cell
+ * other than the redoubt's middle. The shot opens {@link #LEAD} ticks before the redoubt calls. Opt-in: it plays a
+ * battle twice before it draws.
  */
 public final class CordonSchoolBreachLookSuite implements SnapshotSuite {
 
@@ -50,7 +51,9 @@ public final class CordonSchoolBreachLookSuite implements SnapshotSuite {
         }
         int from = Math.max(1, probe.getSimTickIndex() - LEAD);
         CordonRedoubt r = redoubt(probe, number);
-        float cx = r.centreX() + 0.5f, cy = r.centreY() + 0.5f;
+        String at = System.getProperty("snapshot.cordonBreach.centre", "").trim();
+        float cx = at.isEmpty() ? r.centreX() + 0.5f : Float.parseFloat(at.split(",")[0].trim()) + 0.5f;
+        float cy = at.isEmpty() ? r.centreY() + 0.5f : Float.parseFloat(at.split(",")[1].trim()) + 0.5f;
         // Stills are counted in recorded frames, one every EVERY ticks.
         int frames = ticks / EVERY;
         return LookReview.record(context.modRoot(), new LookReview.Shot("breach", LookGround.of(palette(source), seed(source)),

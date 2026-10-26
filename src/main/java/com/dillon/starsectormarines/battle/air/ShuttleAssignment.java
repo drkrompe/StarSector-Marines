@@ -58,9 +58,9 @@ public final class ShuttleAssignment {
         this.type = Objects.requireNonNull(type, "type");
         this.airframe = airframe != null ? airframe : type;
         this.cycles = Math.max(1, cycles);
-        if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
+        if (seatsPerSortie < 1 || seatsPerSortie > this.airframe.seats()) {
             throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
-                    + type.capacity + " for " + type + ": " + seatsPerSortie);
+                    + this.airframe.seats() + " for " + this.airframe + ": " + seatsPerSortie);
         }
         this.seatsPerSortie = seatsPerSortie;
         int fullBeforeFinal = (this.cycles - 1) * seatsPerSortie;

@@ -932,8 +932,11 @@ retains the same existing cross-domain behavior as an autonomous hull.
   arrived through the plain distance gate keeps whatever heading it came in on;
   the same Reeds-Shepp maneuver, aimed a short way down the outbound corridor,
   is what turns it round. Short deliberately — a nearer goal buys a tighter
-  swing, and lateral room is the scarce thing. The attempt is bounded, because
-  a pose no maneuver can rescue must cost a couple of tries rather than loop.
+  swing, and lateral room is the scarce thing. Every candidate path is tried,
+  shortest first, not only the shortest, and where none fits where the hull
+  stands it may first back straight up a few cells, toward where a blind end's
+  road usually widens. The attempt is bounded, because a pose no maneuver can
+  rescue must cost a couple of tries rather than loop.
 - An order's route is proved from where the hull stands. The proof samples the
   corridor with a margin for tracking error, and a hull already standing at the
   start has made none, so within a hull's length of the start its footprint

@@ -39,6 +39,12 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * {@link ShieldDomeDraw#MAX_IMPACTS} impacts, is a function of the uniforms
  * below; {@link ShieldDomeShading} is the same function on the CPU.
  *
+ * <p><b>Arc.</b> A directional shield is the same bubble cut to an arc
+ * ({@code arcDir}, the facing, and {@code arcCos}, the cosine of half the
+ * width): nothing is drawn outside it, and its two ends carry a clean edge a
+ * little under the rim's strength, fading in from the apex. Below {@code -1}
+ * the arc is the whole circle and the dome is drawn exactly as it always was.
+ *
  * <p><b>Fail-soft.</b> Built lazily on the first draw. If it does not compile,
  * {@link #isBroken()} turns true for good and {@link ShieldDomeRenderSystem}
  * collects the flat placeholder drawing from the next frame on. Switch it off
@@ -80,7 +86,9 @@ final class ShieldDomeShader {
             + "const float HEX_CELLS = " + literal(ShieldDomeShading.HEX_CELLS) + ";\n"
             + "const float RING_SPEED = " + literal(ShieldDomeShading.RING_SPEED) + ";\n"
             + "const float RIM_PX = " + literal(ShieldDomeShading.RIM_PX) + ";\n"
-            + "const float ARC_SOFT = " + literal(ShieldDomeShading.ARC_SOFT) + ";\n"
+            + "const float END_ALPHA = " + literal(ShieldDomeShading.END_ALPHA) + ";\n"
+            + "const float END_FROM = " + literal(ShieldDomeShading.END_FROM) + ";\n"
+            + "const float END_FULL = " + literal(ShieldDomeShading.END_FULL) + ";\n"
             + "const float IMPACT_LIFE = " + literal(ShieldDomeService.IMPACT_SECONDS) + ";\n"
             + "const float TWO_PI = 6.2831853;\n"
             + "float hash2(vec2 c) {\n"
@@ -190,12 +198,23 @@ final class ShieldDomeShader {
             + "        float lb = lineBoost * hexEdge * 0.5 * within;\n"
             + "        col += vec3(lb); ca += lb * 0.4;\n"
             + "    }\n"
-            + "    float sector = 1.0;\n"
             + "    if (arcCos > -1.0) {\n"
-            + "        float c = r > 1e-4 ? dot(q / r, arcDir) : 1.0;\n"
-            + "        sector = smoothstep(arcCos - ARC_SOFT, arcCos + ARC_SOFT, c);\n"
+            + "        float sinH = sqrt(max(0.0, 1.0 - arcCos * arcCos));\n"
+            + "        vec2 n = vec2(-arcDir.y, arcDir.x);\n"
+            + "        vec2 e = arcDir * arcCos + n * ((dot(q, n) >= 0.0 ? 1.0 : -1.0) * sinH);\n"
+            + "        float c = r > 1e-4 ? dot(q, arcDir) / r : 1.0;\n"
+            + "        float dEnd = (dot(q, e) > 0.0 ? abs(e.x * q.y - e.y * q.x) : r) * radiusPx;\n"
+            + "        float sd = c >= arcCos ? dEnd : -dEnd;\n"
+            + "        float sector = clamp(sd + 0.5, 0.0, 1.0);\n"
+            + "        float endIn = (1.0 - smoothstep(0.0, RIM_PX, sd)) * sector;\n"
+            + "        float endOut = (1.0 - smoothstep(0.0, RIM_PX * 2.2, -sd)) * (1.0 - sector);\n"
+            + "        float reach = smoothstep(END_FROM, END_FULL, r) * (1.0 - smoothstep(1.0, 1.0 + rimW * 2.2, r));\n"
+            + "        float endA = (endIn * (END_ALPHA + 0.28 * hitFlash) + endOut * 0.25) * reach * u;\n"
+            + "        float endDown = endIn * 0.10 * reach * down;\n"
+            + "        col = col * sector + rimCol * endA + strainCol * endDown;\n"
+            + "        ca = ca * sector + (endA + endDown) * 0.5;\n"
             + "    }\n"
-            + "    gl_FragColor = vec4(clamp(col, 0.0, 1.0), clamp(ca, 0.0, 1.0)) * alpha * sector;\n"
+            + "    gl_FragColor = vec4(clamp(col, 0.0, 1.0), clamp(ca, 0.0, 1.0)) * alpha;\n"
             + "}\n";
 
     private final ShaderProgram program = new ShaderProgram("ShieldDome", VERTEX_SRC, FRAGMENT_SRC);

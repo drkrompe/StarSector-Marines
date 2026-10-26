@@ -449,10 +449,13 @@ stationing incidents retain their own local lift. Briefing and launch enforce
 the same rule before map construction; neither fills missing player trips with
 anonymous Aeroshuttles.
 
-**The rotation is unchanged by the fit.** The deboard cadence and the deck
-turnaround are deliberately not on the fitted frame: a turnaround is paid for in
-hand-seconds and a fitting does not buy more hands. Fitting a boat makes her
-harder to shoot down on the way in and no quicker to send out again.
+**The fit owns seats, ramp and loaded speed; the deck owns the turnaround.**
+The frame's seats are the cabin's (never fewer than the pattern's), and its
+deboard cadence is the pattern's quickened by the drive. A boat flies slower
+with weight aboard: a machine drags her by its lift class and each marine a
+little (`FittedBoat.carrying`), so she runs back faster than she ran in, and a
+better drive wins the loaded speed back. The deck turnaround stays off the
+frame: it is paid for in hand-seconds and a fitting does not buy more hands.
 
 **A fixture carries the fitting ids, not the frame.** A replay that rebuilt a
 plain pattern would fly different aircraft than the run it is replaying, so the
@@ -1551,7 +1554,8 @@ entering ordinary flight; leaving it ends that exemption. This narrow mount
 contract grants no ground sight, walkability, height bonus or generic hill
 traversal. The summit stays blocked after the emplacement is destroyed.
 
-`ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
+An airframe's `seats()` is its maximum: the pattern's `capacity`, or a fitted
+boat's cabin. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared
 arrival area, squad grouping, and departure behavior belong to the mission's
 arrival policy rather than to the hull type.

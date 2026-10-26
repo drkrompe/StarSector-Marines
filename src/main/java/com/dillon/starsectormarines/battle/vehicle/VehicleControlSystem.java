@@ -1090,26 +1090,19 @@ public final class VehicleControlSystem {
 
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
         Pose start = new Pose(body.x, body.y, body.facingDegrees);
-        for (float factor : VehicleController.TURNAROUND_LEAD_FACTORS) {
-            Pose goal = s.corridor.targetAhead(body.x, body.y,
-                    VehicleController.turnaroundLead(turnRadius, factor));
-            ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
-            if (path == null) continue;
-            if (path.lengthCells(turnRadius) < VehicleController.MIN_TURNAROUND_CELLS) return false;
-            if (!VehicleController.isPathFeasible(start, path, turnRadius, type,
-                    motionGrid(type))) continue;
+        VehicleController.Turnaround turn = VehicleController.turnaround(start, s.corridor, turnRadius, type,
+                motionGrid(type));
+        if (turn == null || turn.aligned(turnRadius)) return false;
 
-            s.dockingPath = path;
-            s.dockingStartPose = start;
-            s.dockingTurnRadius = turnRadius;
-            s.dockingProgressCells = 0f;
-            s.dockingGoalFacingDeg = goal.facingDeg;
-            s.dockingIsDeparture = true;
-            s.turnaroundsUsed++;
-            s.trajectory = null;   // the maneuver owns the pose now
-            return true;
-        }
-        return false;
+        s.dockingPath = turn.path();
+        s.dockingStartPose = start;
+        s.dockingTurnRadius = turnRadius;
+        s.dockingProgressCells = 0f;
+        s.dockingGoalFacingDeg = turn.goal().facingDeg;
+        s.dockingIsDeparture = true;
+        s.turnaroundsUsed++;
+        s.trajectory = null;   // the maneuver owns the pose now
+        return true;
     }
 
     /**

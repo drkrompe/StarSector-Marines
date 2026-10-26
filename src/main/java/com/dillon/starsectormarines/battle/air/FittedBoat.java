@@ -5,7 +5,10 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -27,17 +30,23 @@ import java.util.Objects;
  * in — the equipment, integral-system and deployable specs all arrive that way.
  *
  * <p><b>Only the numbers a fitting is about are touched.</b> Plating scales
- * the hull; the drive scales forward speed and both accelerations; a lift
- * cradle raises the {@link #liftRating} and leaves the seats where they are. Turn rate,
- * damping, seats, hardpoints, sprite and hull id are the pattern's and are
+ * the hull; the drive scales forward speed and both accelerations and shortens
+ * the deboard cadence, a quicker ramp; a lift cradle raises the {@link #liftRating}
+ * and leaves the seats where they are; the cabin sets the {@link #seats}. Turn
+ * rate, damping, hardpoints, sprite and hull id are the pattern's and are
  * delegated untouched — a better boat is faster and tougher, not a different
- * aircraft. The deboard cadence and the deck turnaround are deliberately not
- * here either: the rotation is a fact about hands, and a fitting does not buy
- * more of them.
+ * aircraft. The deck turnaround is deliberately not here: it is paid in
+ * hand-seconds, and a fitting does not buy more hands.
+ *
+ * <p><b>Weight aboard slows her.</b> {@link #carrying} is her handling with a
+ * load: a machine drags by its lift class and each marine a little, so the run
+ * in is slower than the run back. A better drive wins the loaded speed back.
  */
 public final class FittedBoat implements Airframe, AirHandling {
 
     private final ShuttleType pattern;
+    /** The fitting in every slot; a slot nobody named holds its standard fitting. */
+    private final Map<BoatFittingSlot, BoatFitting> fit;
     private final BoatFitting plating;
     private final BoatFitting drive;
     private final BoatFitting lift;
@@ -65,12 +74,28 @@ public final class FittedBoat implements Airframe, AirHandling {
      */
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
                       BoatFitting lift, String boatId, String[] guns) {
+        this(pattern, Map.of(BoatFittingSlot.PLATING, requireSlot(plating, BoatFittingSlot.PLATING),
+                BoatFittingSlot.DRIVE, requireSlot(drive, BoatFittingSlot.DRIVE),
+                BoatFittingSlot.LIFT, requireSlot(lift, BoatFittingSlot.LIFT)), boatId, guns);
+    }
+
+    /**
+     * @param fit the fitting in each slot; a slot it leaves out holds its standard fitting
+     * @param guns the door gun's turret structure on each hardpoint, or null
+     *     (or a null entry) for the gun the sortie kit would mount there
+     */
+    public FittedBoat(ShuttleType pattern, Map<BoatFittingSlot, BoatFitting> fit, String boatId, String[] guns) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
-        this.plating = requireSlot(plating, BoatFittingSlot.PLATING);
-        this.drive = requireSlot(drive, BoatFittingSlot.DRIVE);
-        this.lift = requireSlot(lift, BoatFittingSlot.LIFT);
+        this.fit = new EnumMap<>(BoatFittingSlot.class);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitted = fit == null ? null : fit.get(slot);
+            this.fit.put(slot, fitted == null ? BoatFitting.standard(slot) : requireSlot(fitted, slot));
+        }
+        this.plating = this.fit.get(BoatFittingSlot.PLATING);
+        this.drive = this.fit.get(BoatFittingSlot.DRIVE);
+        this.lift = this.fit.get(BoatFittingSlot.LIFT);
         this.boatId = boatId;
-        String[] kit = ShuttleType.kitFor(TurretRole.A2G, pattern.hardpoints());
+        String[] kit = pattern.kitFor(TurretRole.A2G);
         this.guns = new String[kit.length];
         for (int index = 0; index < kit.length; index++) {
             String fitted = guns != null && index < guns.length ? guns[index] : null;
@@ -80,10 +105,7 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     /** The pattern as it leaves the yard, which is every boat a hull comes with. */
     public static FittedBoat standard(ShuttleType pattern) {
-        return new FittedBoat(pattern,
-                BoatFitting.standard(BoatFittingSlot.PLATING),
-                BoatFitting.standard(BoatFittingSlot.DRIVE),
-                BoatFitting.standard(BoatFittingSlot.LIFT), null);
+        return new FittedBoat(pattern, Map.of(), null, null);
     }
 
     /** The airframe underneath the fit — what kind of boat this is. */
@@ -94,6 +116,9 @@ public final class FittedBoat implements Airframe, AirHandling {
     public BoatFitting drive() { return drive; }
 
     public BoatFitting lift() { return lift; }
+
+    /** The fitting in any slot; never null. */
+    public BoatFitting fitting(BoatFittingSlot slot) { return fit.get(slot); }
 
     /**
      * The heavier of the pattern's own lift and the cradle's: a cradled Buffalo
@@ -139,11 +164,61 @@ public final class FittedBoat implements Airframe, AirHandling {
         return role == TurretRole.A2G ? guns.clone() : pattern.kitFor(role);
     }
 
-    /** The turret structure on each hardpoint, in hardpoint order. */
-    public List<String> guns() { return List.of(guns); }
+    /** The turret structure on each hardpoint, in hardpoint order; null for a bare one. */
+    public List<String> guns() { return Collections.unmodifiableList(Arrays.asList(guns.clone())); }
     @Override public AirHandling flight() { return this; }
 
     @Override public float maxHp() { return pattern.maxHp() * plating.hullFactor(); }
+
+    /** The cabin's seats, or the pattern's where the cabin seats fewer. */
+    @Override
+    public int seats() {
+        return Math.max(pattern.capacity, fit.get(BoatFittingSlot.CABIN).seats());
+    }
+
+    /** The pattern's ramp, quickened by the drive. */
+    @Override
+    public float deboardInterval() {
+        return pattern.deboardInterval * drive.deboardFactor();
+    }
+
+    /** Top-speed loss a machine of each lift class costs her, by {@link LiftClass} ordinal. */
+    private static final float[] MACHINE_DRAG = {0.12f, 0.20f, 0.30f};
+    /** Top-speed loss each marine aboard costs her. */
+    static final float MARINE_DRAG = 0.01f;
+
+    /**
+     * Her top speed with {@code machine} (or null) and {@code marines} aboard, as
+     * a share of her empty top speed: never below half.
+     */
+    public static float loadFactor(LiftClass machine, int marines) {
+        float drag = (machine == null ? 0f : MACHINE_DRAG[machine.ordinal()])
+                + MARINE_DRAG * Math.max(0, marines);
+        return Math.max(0.5f, 1f - drag);
+    }
+
+    /**
+     * The handling {@code frame} flies {@code mission} with: a boat's with what
+     * is aboard her now, any other aircraft's own.
+     */
+    public static AirHandling handling(Airframe frame, ShuttleMission mission) {
+        return frame instanceof FittedBoat boat && mission != null
+                ? boat.carrying(mission.machineAboard(), mission.marinesAboard()) : frame.flight();
+    }
+
+    /** Her handling with this load aboard; herself when the load costs nothing. */
+    public AirHandling carrying(LiftClass machine, int marines) {
+        float factor = loadFactor(machine, marines);
+        return factor >= 1f ? this : new Loaded(this, maxSpeed() * factor);
+    }
+
+    private record Loaded(AirHandling base, float maxSpeed) implements AirHandling {
+        @Override public float accel() { return base.accel(); }
+        @Override public float brakingAccel() { return base.brakingAccel(); }
+        @Override public float maxTurnRateDegPerSec() { return base.maxTurnRateDegPerSec(); }
+        @Override public float lateralDriftDamping() { return base.lateralDriftDamping(); }
+        @Override public float stationDamping() { return base.stationDamping(); }
+    }
 
     @Override public float targetRadiusCells() { return pattern.targetRadiusCells(); }
 
@@ -166,28 +241,32 @@ public final class FittedBoat implements Airframe, AirHandling {
     public boolean equals(Object other) {
         if (this == other) return true;
         if (!(other instanceof FittedBoat boat)) return false;
-        return pattern == boat.pattern
-                && plating.id().equals(boat.plating.id())
-                && drive.id().equals(boat.drive.id())
-                && lift.id().equals(boat.lift.id())
-                && Objects.equals(boatId, boat.boatId)
+        if (pattern != boat.pattern) return false;
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            if (!fit.get(slot).id().equals(boat.fit.get(slot).id())) return false;
+        }
+        return Objects.equals(boatId, boat.boatId)
                 && Arrays.equals(guns, boat.guns);
     }
 
     @Override
     public int hashCode() {
-        int result = 31 * pattern.hashCode() + plating.id().hashCode();
-        result = 31 * result + drive.id().hashCode();
-        result = 31 * result + lift.id().hashCode();
+        int result = pattern.hashCode();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) result = 31 * result + fit.get(slot).id().hashCode();
         result = 31 * result + Arrays.hashCode(guns);
         return 31 * result + Objects.hashCode(boatId);
     }
 
     @Override
     public String toString() {
-        return pattern + "[" + plating.id() + "," + drive.id()
-                + (lift.standard() ? "" : "," + lift.id())
-                + (boatId != null ? "," + boatId : "") + "]";
+        StringBuilder text = new StringBuilder(pattern + "[" + plating.id() + "," + drive.id());
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitted = fit.get(slot);
+            if (slot != BoatFittingSlot.PLATING && slot != BoatFittingSlot.DRIVE && !fitted.standard()) {
+                text.append(',').append(fitted.id());
+            }
+        }
+        return text.append(boatId != null ? "," + boatId : "").append(']').toString();
     }
 
     private static BoatFitting requireSlot(BoatFitting fitting, BoatFittingSlot slot) {

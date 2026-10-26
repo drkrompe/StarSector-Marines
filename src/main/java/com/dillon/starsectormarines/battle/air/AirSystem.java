@@ -513,25 +513,26 @@ public class AirSystem {
      * anti-air has to get through. Passing the type as its own frame is the
      * unfitted case and is what every other caller does.
      *
-     * <p>Deliberately <em>not</em> the deboard cadence: the rotation is a fact
-     * about hands, and a better boat is not unloaded faster.
+     * <p>The frame also owns the seats a sortie may fill and the deboard
+     * cadence: a cabin adds seats and a better drive's ramp lets marines off
+     * faster. The deck turnaround stays a fact about hands.
      */
     public long spawn(ShuttleType type, Airframe frame, Faction faction,
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay,
                       int seatsPerSortie) {
-        if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
-            throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
-                    + type.capacity + " for " + type + ": " + seatsPerSortie);
-        }
         Airframe flying = frame != null ? frame : type;
+        if (seatsPerSortie < 1 || seatsPerSortie > flying.seats()) {
+            throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
+                    + flying.seats() + " for " + flying + ": " + seatsPerSortie);
+        }
         AirBody body = new AirBody();
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
                 pendingDelay, seatsPerSortie);
         // Taken off the hull once, here, rather than read off it every tick:
         // the hull says what it can do and the sortie says what it is doing.
-        mission.deboardInterval = type.deboardInterval;
+        mission.deboardInterval = flying.deboardInterval();
         long id = roster.allocateAir(shuttleArchetype);
         world.setAirIdentity(id, flying, faction);
         world.setKinematics(id, body);
@@ -893,7 +894,8 @@ public class AirSystem {
             AirBody body = world.kinematics(id);
             Airframe frame = world.airframe(id);
             boatDamage.observe(frame, world.hp(id));
-            AirHandling flight = frame.flight();
+            // A boat flies slower with weight aboard, so she runs back faster than she ran in.
+            AirHandling flight = FittedBoat.handling(frame, mission);
             ShuttleType carrier = ShuttleType.fromAirframe(frame);
             if (mission.poolSortie && !mission.aborted) driveOffIfBadlyHit(id, mission, body, frame);
             advanceCoverDuty(id, mission, body, dt);
@@ -964,7 +966,7 @@ public class AirSystem {
                         // path below. Then the oldest machine it can lift.
                         if (mission.pendingDelay > 0f) break;
                         if (LiftQueue.takeSquadSortie(world, air, mission,
-                                carrier == null ? 0 : carrier.capacity)) break;
+                                frame.seats())) break;
                         LiftQueue.MachineDrop job = liftQueue.takeFor(frame);
                         if (job == null) break;
                         LiftQueue.loadMachine(mission, job);
@@ -1672,6 +1674,10 @@ public class AirSystem {
                 aim.target = roster.isAliveById(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
+                if (mt.mount.arced()) {
+                    aim.arcCenterDeg = body.facingDegrees + mt.mount.arcCenterDeg;
+                    aim.arcHalfDeg = mt.mount.arcDeg * 0.5f;
+                }
 
                 TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -109,20 +110,32 @@ public final class ReedsShepp {
         return best(start, goal, turnRadius, /*forwardOnly*/ true);
     }
 
-    private static Path best(Pose start, Pose goal, float turnRadius, boolean forwardOnly) {
-        double sTheta = Math.toRadians(start.facingDeg + 90.0);
-        double gTheta = Math.toRadians(goal.facingDeg + 90.0);
-        double dx = goal.x - start.x;
-        double dy = goal.y - start.y;
-        double cs = Math.cos(sTheta);
-        double sn = Math.sin(sTheta);
-        double x = (dx * cs + dy * sn) / turnRadius;
-        double y = (-dx * sn + dy * cs) / turnRadius;
-        double phi = mod2pi(gTheta - sTheta);
+    /**
+     * Every candidate the subset has from {@code start} to {@code goal}, shortest first: what a planner tries in
+     * turn when the shortest sweeps over ground the vehicle cannot take.
+     */
+    public static List<Path> candidates(Pose start, Pose goal, float turnRadius) {
+        List<Path> out = new ArrayList<>();
+        for (Path p : enumerateCandidates(start, goal, turnRadius)) if (p != null) out.add(p);
+        out.sort(Comparator.comparingDouble(p -> p.lengthUnits));
+        return out;
+    }
 
+    /**
+     * {@code path} driven after first backing straight up {@code cells} cells: a straight segment in reverse ahead
+     * of it, so {@code path} starts where the backing up ends.
+     */
+    public static Path afterReversing(Path path, float cells, float turnRadius) {
+        List<Element> list = new ArrayList<>(path.elements.size() + 1);
+        list.add(elem(Type.STRAIGHT, false, cells / turnRadius));
+        list.addAll(path.elements);
+        return new Path(list);
+    }
+
+    private static Path best(Pose start, Pose goal, float turnRadius, boolean forwardOnly) {
         Path best = null;
         float bestLen = Float.MAX_VALUE;
-        for (Path p : enumerateCandidates(x, y, phi)) {
+        for (Path p : enumerateCandidates(start, goal, turnRadius)) {
             if (p == null) continue;
             if (forwardOnly && !isForwardOnly(p)) continue;
             if (p.lengthUnits < bestLen) {
@@ -290,6 +303,19 @@ public final class ReedsShepp {
      * transformed inputs (identity, μ reflect, τ timeflip, τμ both) and
      * the resulting path is un-transformed.
      */
+    /** The candidates in the start pose's own unit-radius frame. */
+    private static Path[] enumerateCandidates(Pose start, Pose goal, float turnRadius) {
+        double sTheta = Math.toRadians(start.facingDeg + 90.0);
+        double gTheta = Math.toRadians(goal.facingDeg + 90.0);
+        double dx = goal.x - start.x;
+        double dy = goal.y - start.y;
+        double cs = Math.cos(sTheta);
+        double sn = Math.sin(sTheta);
+        double x = (dx * cs + dy * sn) / turnRadius;
+        double y = (-dx * sn + dy * cs) / turnRadius;
+        return enumerateCandidates(x, y, mod2pi(gTheta - sTheta));
+    }
+
     private static Path[] enumerateCandidates(double x, double y, double phi) {
         return new Path[] {
                 // --- CSC families ---

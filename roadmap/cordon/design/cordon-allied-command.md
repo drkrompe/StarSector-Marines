@@ -142,6 +142,9 @@ convoys and beat hulls on the road; the density), returning tasks the
    mouth when the escort ends.
    Only an armed hull escorts, and one that does not close on its truck (boxed
    in at the base's door, say) is stood down for two minutes and the next taken.
+   The escort keeps beside its truck, to its right, else its left, and behind it
+   where neither side has ground off the truck's way: an escort is never sent
+   onto the road ahead of the truck it escorts.
    **Escorted means alongside, not assigned.** A truck or dozer with an escort
    coming waits where it was set down until the escort is beside it, then the
    two drive at the slower one's pace, and it holds whenever the escort falls

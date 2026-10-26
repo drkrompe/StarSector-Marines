@@ -55,12 +55,26 @@ class LzDepartureFeasibilityTest {
     }
 
     @Test
-    void theQuestionWithNoRunUpSaysNo() {
+    void theQuestionWithNoRoomInReachSaysNo() {
+        NavigationGrid narrow = new NavigationGrid(160, 130);
+        for (int y = 100; y <= 104; y++) {
+            for (int x = 10; x <= 150; x++) narrow.setWalkableFloor(x, y);
+        }
         float[][] exit = eastboundExit();
-        assertFalse(VehicleController.canTurnOntoRouteAt(narrowAtTheDropPointWiderBack(),
-                        VehicleType.HEAVY_APC, LZ_X, LZ_Y, WEST, exit[0], exit[1]),
-                "standing on the drop point itself there is no room to come round,"
+        assertFalse(VehicleController.canTurnOntoRouteAt(narrow, VehicleType.HEAVY_APC, LZ_X, LZ_Y, WEST,
+                        exit[0], exit[1]),
+                "a five-cell road with no wider ground in reach has no room to come round,"
                         + " and that is the situation a truck that never docked is in");
+    }
+
+    @Test
+    void theRecordedDropPointIsLeftByBackingUpToWhereTheRoadWidens() {
+        // The turnaround backs straight up before it turns, as the runtime maneuver does; the strict question
+        // asks what the runtime will attempt, so the wider road four cells back is in its reach too.
+        float[][] exit = eastboundExit();
+        assertTrue(VehicleController.canTurnOntoRouteAt(narrowAtTheDropPointWiderBack(),
+                        VehicleType.HEAVY_APC, LZ_X, LZ_Y, WEST, exit[0], exit[1]),
+                "the hull backs into the wide part and comes round there");
     }
 
     @Test

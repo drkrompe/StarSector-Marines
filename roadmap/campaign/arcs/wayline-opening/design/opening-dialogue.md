@@ -12,7 +12,7 @@ This is the chronological dialogue register for a new Second Wind company, from
 the new-game choice to Mara Venn's first payment after **Hold Until Relieved**. It
 covers the prologue, Nessa's yard, Castle's preparation lessons, Sabine's
 induction, Castle's hand-off, Mara's introduction, the Relief briefing and the
-first-payment exchange. Counterattack, Secondhand Wings and the recurring jobs are
+first-payment exchange. Counterattack and the recurring jobs are
 out of scope; Sabine's combat callouts are a proposal at the end.
 
 Each line names the string key (or the code that builds it) that it would replace.

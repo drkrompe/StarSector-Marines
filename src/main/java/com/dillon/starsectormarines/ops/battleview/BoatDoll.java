@@ -44,7 +44,7 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
     }
 
     /** What kind of card a slot is drawn as. */
-    public enum Kind { PLATING, DRIVE, LIFT, HARDPOINT }
+    public enum Kind { PLATING, DRIVE, LIFT, CABIN, EMITTER, POWER, HARDPOINT }
 
     /**
      * @param key what selecting the card hands back
@@ -64,6 +64,9 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
                 case PLATING -> Kind.PLATING;
                 case DRIVE -> Kind.DRIVE;
                 case LIFT -> Kind.LIFT;
+                case CABIN -> Kind.CABIN;
+                case EMITTER -> Kind.EMITTER;
+                case POWER -> Kind.POWER;
             };
             return new Slot(slotKey(slot), kind, itemId, title, fitted, tier, selected, 0f, 0f, 0f, 0f, false);
         }

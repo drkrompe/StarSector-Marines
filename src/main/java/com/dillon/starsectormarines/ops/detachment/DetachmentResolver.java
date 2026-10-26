@@ -196,11 +196,10 @@ public final class DetachmentResolver {
         int extraCycles = playerDrops % transportsUsed;
         for (int i = 0; i < transportsUsed; i++) {
             int cycles = baseCycles + (i < extraCycles ? 1 : 0);
-            // The company's own boat, fit and all. Seats and cycles are still
-            // facts about the pattern — a yard's plating does not add a seat.
+            // The company's own boat, fit and all: her cabin sets the seats.
             FittedBoat boat = playerShuttles.get(i);
             out.add(new ShuttleAssignment(boat, cycles,
-                    m.marineArrivalPolicy.seatsPerSortie(boat.pattern())));
+                    m.marineArrivalPolicy.seatsPerSortie(boat)));
         }
         return out;
     }
@@ -240,7 +239,7 @@ public final class DetachmentResolver {
         for (int i = 0; i < playerShuttles.size(); i++) {
             if (passengers[i] == 0) continue;
             FittedBoat boat = playerShuttles.get(i);
-            int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(boat.pattern());
+            int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(boat);
             int cycles = (passengers[i] + seatsPerSortie - 1) / seatsPerSortie;
             out.add(new ShuttleAssignment(boat.pattern(), boat, cycles,
                     seatsPerSortie, passengers[i]));
@@ -268,7 +267,7 @@ public final class DetachmentResolver {
         while (remaining > 0) {
             for (int i = 0; i < boats.size() && remaining > 0; i++) {
                 int load = Math.min(remaining,
-                        m.marineArrivalPolicy.seatsPerSortie(boats.get(i).pattern()));
+                        m.marineArrivalPolicy.seatsPerSortie(boats.get(i)));
                 passengers[i] += load;
                 remaining -= load;
             }

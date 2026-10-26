@@ -13,6 +13,10 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
  * part is never stored and never runs out: every socket has its own, so
  * putting it back is free and taking it off makes no spare.
  *
+ * <p>A fit is weighed against the boat's frame ({@link BoatFrame}): one that
+ * would take her over the rating is refused, unless it leaves her no heavier
+ * than she is.
+ *
  * <p><b>A failed commit changes nothing.</b> Every check runs before anything
  * moves, and a build spends its whole bill before the spare is stowed, so a
  * refusal or a short hold leaves the boat, the stores and the hold exactly as
@@ -61,6 +65,9 @@ public final class BoatWorkshop {
         BoatFitting outgoing = boat.fittingIn(fitting.slot());
         if (fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
         if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
+        if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWith(boat, fitting))) {
+            return new Result(Status.OVER_FRAME, boat);
+        }
         if (!fitting.standard() && !deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
         boat.install(fitting);
         if (!outgoing.standard()) deck.stow(outgoing.id());
@@ -89,27 +96,30 @@ public final class BoatWorkshop {
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         BoatGun gun = BoatGun.findById(gunId);
         if (gun == null) return Result.of(Status.UNKNOWN_FITTING);
+        if (!boat.hasHardpoint(hardpoint)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun current = boat.gunOn(hardpoint);
-        if (current == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         if (current == gun) return new Result(Status.ALREADY_FITTED, boat);
         if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
+        if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWithGun(boat, hardpoint, gun))) {
+            return new Result(Status.OVER_FRAME, boat);
+        }
         if (!gun.standardOn(boat.pattern(), hardpoint) && !deck.take(gun.id())) {
             return new Result(Status.NO_SPARE, boat);
         }
         boat.installGun(hardpoint, gun);
-        if (!current.standardOn(boat.pattern(), hardpoint)) deck.stow(current.id());
+        if (current != null && !current.standardOn(boat.pattern(), hardpoint)) deck.stow(current.id());
         return new Result(Status.FITTED, boat);
     }
 
-    /** Takes a door gun off into stores; the hardpoint goes back to its yard gun. */
+    /** Takes a gun off into stores; the hardpoint goes back to its yard gun, or bare. */
     public Result stripGun(String boatId, int hardpoint) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        if (!boat.hasHardpoint(hardpoint)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun current = boat.gunOn(hardpoint);
-        if (current == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun yard = BoatGun.standardFor(boat.pattern(), hardpoint);
-        if (yard == null || current == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
-        boat.installGun(hardpoint, yard);
+        if (current == null || current == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
+        boat.installGun(hardpoint, null);
         deck.stow(current.id());
         return new Result(Status.STRIPPED, boat);
     }
@@ -118,20 +128,25 @@ public final class BoatWorkshop {
      * Moves a door gun from one hardpoint to another on the same boat, with no
      * trip through stores: the source goes back to its yard gun, and whatever
      * the target held goes into stores unless it was the target's yard gun. A
-     * yard gun is not moved; it is every hardpoint's for nothing already.
+     * yard gun is not moved; it is every hardpoint's for nothing already. A
+     * bare target simply takes the gun.
      */
     public Result moveGun(String boatId, int from, int to) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        if (!boat.hasHardpoint(from) || !boat.hasHardpoint(to)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun gun = boat.gunOn(from);
         BoatGun displaced = boat.gunOn(to);
-        if (gun == null || displaced == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun yard = BoatGun.standardFor(boat.pattern(), from);
-        if (yard == null || gun == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
+        if (gun == null || gun == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
         if (from == to || gun == displaced) return new Result(Status.ALREADY_FITTED, boat);
-        boat.installGun(from, yard);
+        int before = BoatFrame.weight(boat);
+        // The source goes back to its yard gun and the target takes this one: both changes at once.
+        int after = BoatFrame.weightWithGun(boat, from, yard) + BoatFrame.weightWithGun(boat, to, gun) - before;
+        if (!BoatFrame.admits(boat, before, after)) return new Result(Status.OVER_FRAME, boat);
+        boat.installGun(from, null);
         boat.installGun(to, gun);
-        if (!displaced.standardOn(boat.pattern(), to)) deck.stow(displaced.id());
+        if (displaced != null && !displaced.standardOn(boat.pattern(), to)) deck.stow(displaced.id());
         return new Result(Status.FITTED, boat);
     }
 
@@ -204,6 +219,7 @@ public final class BoatWorkshop {
         UNKNOWN_FITTING,
         UNKNOWN_HARDPOINT,
         INCOMPATIBLE_FITTING,
+        OVER_FRAME,
         ALREADY_FITTED,
         CANNOT_AFFORD,
         NO_SPARE,

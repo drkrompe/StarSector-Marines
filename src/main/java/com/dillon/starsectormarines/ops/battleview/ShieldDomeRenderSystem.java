@@ -24,7 +24,9 @@ import java.util.List;
  * recovers. Each absorbed round is an impact on it: a flash where it landed, a
  * ripple crossing the dome and the hex cells it passes lighting, scaled by what
  * the round cost. Where the shader is switched off or fails to build, the flat
- * fill-and-rim drawing below is used instead, unchanged.
+ * fill-and-rim drawing below is used instead. A directional shield is the same
+ * bubble cut to an arc ({@link ShieldDomeDraw#arcCos}), in the shader and in the
+ * flat drawing alike.
  *
  * <p>What the dome has left is drawn, not printed: an inner gauge ring fills as
  * the pool does and goes amber as the dome nears overload, so a dome about to
@@ -103,12 +105,11 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
     }
 
     /**
-     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}). Drawn by the dome
-     * shader only; where it is off the shields still work and go undrawn. The hardware's heat on the plinth is drawn
-     * with the structure ({@link TurretFluxHeat}).
+     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}), by the dome
+     * shader, or where it is off by the same flat drawing a dome falls back to, cut to the shield's arc. The
+     * hardware's heat on the plinth is drawn with the structure ({@link TurretFluxHeat}).
      */
     private void collectTurretShields(RenderContext ctx, BattleCamera camera, float cellPx, boolean shaded) {
-        if (!shaded) return;
         long tick = ctx.sim.getSimTickIndex();
         World world = ctx.sim.world();
         TurretShieldService shields = ctx.sim.turretShields();
@@ -121,10 +122,11 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             if (!isKnown(ctx, ctx.sim.identity().faction(id), x, y)) continue;
             int slot = pass.draws().size();
             while (drawPool.size() <= slot) drawPool.add(new ShieldDomeDraw());
-            if (TurretShieldField.describe(drawPool.get(slot), id, x, y, fitted.shield, fitted.tint,
-                    camera, cellPx, tick, ctx.alphaMult)) {
-                pass.add(drawPool.get(slot));
-            }
+            ShieldDomeDraw draw = drawPool.get(slot);
+            if (!TurretShieldField.describe(draw, id, x, y, fitted.shield, fitted.tint,
+                    camera, cellPx, tick, ctx.alphaMult)) continue;
+            if (shaded) pass.add(draw);
+            else appendFlat(mesh, draw);
         }
     }
 
@@ -157,38 +159,71 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
     /** The flat placeholder drawing: used where the shader is off or failed to build. */
     private void drawDome(RenderContext ctx, ShieldDomeService.DomeView dome,
                           BattleCamera camera, float cellPx) {
-        float sx = camera.cellToScreenX(dome.x());
-        float sy = camera.cellToScreenY(dome.y());
-        float radius = dome.radius() * cellPx;
-        float alpha = ctx.alphaMult;
-        float[] tint = tintFor(dome.holder());
-
-        if (dome.overloaded()) {
-            // Down: no fill, only the rim climbing back round the circle as it recovers.
-            float recovered = 1f - dome.recovery();
-            PolyTess.appendAnnulus(mesh, sx, sy, radius - 1.5f, radius, RING_SEGMENTS,
-                    COLLAPSE[0], COLLAPSE[1], COLLAPSE[2], 0.10f * alpha);
-            PolyTess.appendArc(mesh, sx, sy, radius - 3.5f, radius, recovered, RING_SEGMENTS,
-                    COLLAPSE[0], COLLAPSE[1], COLLAPSE[2], 0.55f * alpha);
-        } else {
-            float level = dome.level();
-            float flash = dome.hitFlash();
-            // Soft fill, a little denser as the pool fills and for a moment when struck.
-            PolyTess.appendAnnulus(mesh, sx, sy, 0f, radius, RING_SEGMENTS,
-                    tint[0], tint[1], tint[2], (0.045f + 0.05f * level + 0.06f * flash) * alpha);
-            PolyTess.appendAnnulus(mesh, sx, sy, radius - 2.5f, radius, RING_SEGMENTS,
-                    lerp(tint[0], HIT[0], flash), lerp(tint[1], HIT[1], flash),
-                    lerp(tint[2], HIT[2], flash), (0.40f + 0.45f * flash) * alpha);
-        }
+        appendFlat(mesh, describe(ctx, dome, List.of(), camera, cellPx, 0));
         drawGauge(ctx, dome, camera, cellPx);
-        if (dome.dropFlash() > 0.01f) {
-            // The collapse: the rim thrown outward and gone.
-            float spent = 1f - dome.dropFlash();
-            float r = radius * (1f + 0.12f * spent);
-            PolyTess.appendAnnulus(mesh, sx, sy, r - 4f, r, RING_SEGMENTS,
-                    COLLAPSE[0], COLLAPSE[1], COLLAPSE[2], 0.8f * dome.dropFlash() * alpha);
-        }
         drawGenerator(ctx, dome, camera, cellPx);
+    }
+
+    /**
+     * The flat placeholder for one shield, read off the numbers the shader takes, so a directional shield keeps its
+     * arc: a soft fill and a rim while it is up, the arc's two ends marked as the rim is, only the rim climbing back
+     * while it is down (round the circle for a dome, out from the facing for an arc), and on overload the rim thrown
+     * outward and gone.
+     */
+    static void appendFlat(PolyMesh mesh, ShieldDomeDraw d) {
+        float radius = d.radiusPx;
+        float alpha = d.alpha;
+        float[] tint = d.tint;
+        float[] strain = d.collapse;
+        boolean full = !(d.arcCos > -1f);
+        float facing = full ? 90f : (float) Math.toDegrees(Math.atan2(d.arcDirY, d.arcDirX));
+        float sweep = full ? 360f : 2f * (float) Math.toDegrees(Math.acos(d.arcCos));
+
+        if (d.overloaded) {
+            float recovered = 1f - d.recovery;
+            band(mesh, d, facing, sweep, radius - 1.5f, radius, strain[0], strain[1], strain[2], 0.10f * alpha);
+            if (full) {
+                PolyTess.appendArc(mesh, d.sx, d.sy, radius - 3.5f, radius, recovered, RING_SEGMENTS,
+                        strain[0], strain[1], strain[2], 0.55f * alpha);
+            } else {
+                band(mesh, d, facing, sweep * recovered, radius - 3.5f, radius,
+                        strain[0], strain[1], strain[2], 0.55f * alpha);
+            }
+        } else {
+            float flash = d.hitFlash;
+            float rimR = lerp(tint[0], HIT[0], flash);
+            float rimG = lerp(tint[1], HIT[1], flash);
+            float rimB = lerp(tint[2], HIT[2], flash);
+            // Soft fill, a little denser as the pool fills and for a moment when struck.
+            band(mesh, d, facing, sweep, 0f, radius, tint[0], tint[1], tint[2],
+                    (0.045f + 0.05f * d.level + 0.06f * flash) * alpha);
+            float rimA = (0.40f + 0.45f * flash) * alpha;
+            band(mesh, d, facing, sweep, radius - 2.5f, radius, rimR, rimG, rimB, rimA);
+            if (!full) {
+                float from = radius * ShieldDomeShading.END_FROM;
+                float endA = rimA * ShieldDomeShading.END_ALPHA / 0.62f;
+                PolyTess.appendRadialSpoke(mesh, d.sx, d.sy, from, radius, facing - sweep * 0.5f, 2.5f,
+                        rimR, rimG, rimB, endA);
+                PolyTess.appendRadialSpoke(mesh, d.sx, d.sy, from, radius, facing + sweep * 0.5f, 2.5f,
+                        rimR, rimG, rimB, endA);
+            }
+        }
+        if (d.dropFlash > 0.01f) {
+            float spent = 1f - d.dropFlash;
+            float r = radius * (1f + 0.12f * spent);
+            band(mesh, d, facing, sweep, r - 4f, r, strain[0], strain[1], strain[2], 0.8f * d.dropFlash * alpha);
+        }
+    }
+
+    /** A ring band round the whole circle, or, for a directional shield, only across its arc. */
+    private static void band(PolyMesh mesh, ShieldDomeDraw d, float facing, float sweep,
+                             float innerR, float outerR, float r, float g, float b, float a) {
+        if (sweep >= 360f) {
+            PolyTess.appendAnnulus(mesh, d.sx, d.sy, innerR, outerR, RING_SEGMENTS, r, g, b, a);
+        } else {
+            int segments = Math.max(4, (int) Math.ceil(RING_SEGMENTS * sweep / 360f));
+            PolyTess.appendSector(mesh, d.sx, d.sy, innerR, outerR, facing, sweep, segments, r, g, b, a);
+        }
     }
 
     /** The pool, as an inner gauge: cyan when empty, amber as it nears overload. */

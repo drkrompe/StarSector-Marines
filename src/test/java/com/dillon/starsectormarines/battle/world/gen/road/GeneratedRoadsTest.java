@@ -37,6 +37,39 @@ class GeneratedRoadsTest {
         assertTrue(raster.road(12, 13), "curved turn fills the inside corner");
     }
 
+    @Test void aPavedRoadThatJogsACellSidewaysIsSweptAlongEveryStretch() {
+        boolean[][] road = jogged();
+        var raster = RoadRasterizer.rasterize(new RoadPlan(12, 64, GeneratedRoads.routes(road, road, 12)));
+        for (int y = 2; y <= 58; y++) assertTrue(raster.road(3, y), "the road is swept at y " + y);
+    }
+
+    @Test void anUnpavedStretchBetweenJogsKeepsItsGround() {
+        boolean[][] paved = jogged();
+        fill(paved, 2, 21, 4, 40, false);
+        var raster = RoadRasterizer.rasterize(new RoadPlan(12, 64, GeneratedRoads.routes(jogged(), paved, 12)));
+        assertFalse(raster.road(3, 30), "a stretch the town never paved is not swept");
+    }
+
+    @Test void aJoggedStretchTouchingARoadAtOneEndOnlyIsNotSwept() {
+        boolean[][] road = jogged();
+        // The far stretch is two cells wide, no road of its own, so the middle one would be a stub.
+        fill(road, 5, 41, 5, 60, false);
+        var raster = RoadRasterizer.rasterize(new RoadPlan(12, 64, GeneratedRoads.routes(road, road, 12)));
+        assertFalse(raster.road(3, 32), "a stub of asphalt floated off the road");
+    }
+
+    /**
+     * Three cells wide, stepping a cell east at y 21 and again at y 41: each line shared by two
+     * stretches runs on past the one between, so none of its runs widens whole to three cells.
+     */
+    private static boolean[][] jogged() {
+        boolean[][] road = new boolean[12][64];
+        fill(road, 1, 0, 3, 20);
+        fill(road, 2, 21, 4, 40);
+        fill(road, 3, 41, 5, 60);
+        return road;
+    }
+
     @Test void prunedGapRemainsUnpavedAndRoundEndsExposeTheirUnderlay() {
         boolean[][] road = new boolean[32][32];
         fill(road, 2, 8, 12, 12);
@@ -71,7 +104,11 @@ class GeneratedRoadsTest {
     }
 
     private static void fill(boolean[][] road, int x0, int y0, int x1, int y1) {
-        for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++) road[x][y] = true;
+        fill(road, x0, y0, x1, y1, true);
+    }
+
+    private static void fill(boolean[][] road, int x0, int y0, int x1, int y1, boolean value) {
+        for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++) road[x][y] = value;
     }
 
     private static double area(float[] p) {
