@@ -39,6 +39,11 @@ import java.util.Map;
  *   <li>{@code mech-friendly-file}, {@code mech-runners}: a Hound walked through the same file and pack.</li>
  *   <li>{@code mech-into-hull}: a Hound walked down the road through a parked APC, which outweighs it.</li>
  *   <li>{@code mech-meet}: a Hound and a Bulwark walked into each other head-on.</li>
+ *   <li>{@code runners-parked}: a Runner pack beside a gun tank parked in the road; the tank is wider than a
+ *       Runner's reach, so its centre is out of reach from every side ({@code colony-breach-nouns.md}, A standing
+ *       vehicle).</li>
+ *   <li>{@code parked-barricade}: the same tank parked in the only gap through a wall, a rifleman behind it and
+ *       the pack in front.</li>
  * </ul>
  *
  * <p>Mechs are weighed in the same tonnes as hulls, so these loops ask the same questions of a walking machine:
@@ -91,7 +96,78 @@ public final class VehicleRamScene implements BehaviorScene {
         reports.add(march(frames, "mech-runners", Walk.RUNNERS));
         reports.add(march(frames, "mech-into-hull", Walk.HULL));
         reports.add(march(frames, "mech-meet", Walk.MECH));
+        reports.add(parked(frames, "runners-parked", false));
+        reports.add(parked(frames, "parked-barricade", true));
         return reports;
+    }
+
+    // ---- Runners at a parked hull ----
+
+    private static final int PARKED_TICKS = 900, WALL_X = 32;
+
+    /**
+     * Verdicts: the Runners strike the parked hull (from its side: they cannot reach its centre), and none of them
+     * walks into it over and over (no Runner route stall); behind a hull barring the only gap, none gets past while it
+     * stands. Hull damage, stalls and blows are readings.
+     */
+    private SceneReport parked(FrameSink frames, String loop, boolean barricade) {
+        SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(7L);
+        builder.wall(WIDTH - 6, 0, WIDTH - 6, 5).wall(WIDTH - 6, 5, WIDTH - 1, 5);
+        builder.unit("far", Faction.DEFENDER, UnitType.MARINE_RED, WIDTH - 3, 2, spec -> spec.health(DEEP));
+        if (barricade) {
+            builder.wall(WALL_X, 0, WALL_X, ROAD - 2).wall(WALL_X, ROAD + 2, WALL_X, HEIGHT - 1);
+            builder.squad("held").faction(Faction.MARINE).type(UnitType.MARINE).size(1)
+                    .inFile(16, ROAD, 0, 1).stationary().done();
+        }
+        SceneWorld world = builder.build();
+        try (BattleSimulation sim = world.sim()) {
+            long hull = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.MARINE,
+                    VehicleMission.deployed(WALL_X + .5f, ROAD + .5f));
+            sim.convoy().body(hull).teleport(WALL_X + .5f, ROAD + .5f, barricade ? 0f : -90f);
+            sim.world().setMaxHp(hull, DEEP);
+            sim.world().setHp(hull, DEEP);
+            long[] runners = new long[6];
+            for (int i = 0; i < runners.length; i++) {
+                runners[i] = sim.spawn(new EntitySpec("Runner " + i, Faction.DEFENDER, UnitType.SWARM_RUNNER,
+                        WALL_X + 8 + (i % 3) * 2, ROAD - 2 + (i / 3) * 4).role(UnitRole.SWARM_PRESSURE).health(DEEP));
+            }
+            float plateBefore = sim.world().hasArmor(hull) ? sim.world().armor(hull) : 0f;
+            int stallsBefore = sim.movement().routeStalls();
+            int past = 0;
+            SceneRun run = SceneRun.of(world).frames(frames, loop, FRAME_EVERY, tick -> String.format(Locale.ROOT,
+                    "%s  t=%.1fs  tank %.0f  stalls %d", loop, tick / 30f, sim.world().hp(hull),
+                    sim.movement().routeStalls() - stallsBefore));
+            int seen = stallsBefore, stalls = 0;
+            StringBuilder stalled = new StringBuilder();
+            while (run.tick() < PARKED_TICKS) {
+                run.step();
+                if (sim.movement().routeStalls() != seen) {
+                    seen = sim.movement().routeStalls();
+                    long who = sim.movement().lastStalled();
+                    // Only the Runners' count: the rifleman holding his post behind the wall is not the question.
+                    if (who != 0L && sim.identity().type(who) == UnitType.SWARM_RUNNER) stalls++;
+                    if (who != 0L && sim.identity().type(who) == UnitType.SWARM_RUNNER) stalled.append(stalled.length() == 0 ? "" : ", ").append(sim.identity().type(who))
+                            .append(String.format(Locale.ROOT, " %.1f,%.1f t%d", sim.world().x(who), sim.world().y(who), run.tick()));
+                }
+                for (long r : runners) if (sim.getRoster().isAliveById(r) && sim.world().x(r) < WALL_X - 3) past++;
+            }
+            // Plate first: a Runner's blow is mostly turned by a tank's armour, and what it takes off is struck all the same.
+            float struck = DEEP - sim.world().hp(hull)
+                    + plateBefore - (sim.world().hasArmor(hull) ? sim.world().armor(hull) : 0f);
+            List<Verdict> verdicts = new ArrayList<>();
+            verdicts.add(Verdict.of("parked-hull-struck", struck > 0f,
+                    String.format(Locale.ROOT, "%.1f health and plate off the tank", struck)));
+            verdicts.add(Verdict.of("no-runner-route-stalls", stalls == 0, stalls + " Runner route stalls" + (stalled.length() == 0 ? "" : ": " + stalled)));
+            if (barricade) {
+                verdicts.add(Verdict.of("held-while-it-stands", past == 0 || sim.world().hp(hull) <= 0f,
+                        past + " Runner-ticks past the wall with the tank standing"));
+            }
+            Map<String, Number> m = new LinkedHashMap<>();
+            m.put("hullDamage", struck);
+            m.put("routeStalls", stalls);
+            m.put("runnerTicksPast", past);
+            return new SceneReport(id(), loop, PARKED_TICKS, verdicts, m);
+        }
     }
 
     private enum Target { FRIENDS, RUNNERS, BRUTES }
