@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.story;
 
 import com.dillon.starsectormarines.battle.audio.MusicState;
+import com.dillon.starsectormarines.battle.audio.QuietBed;
 
 /**
  * The Dust Ledger's rules, free of the simulation ({@code dust-ledger-crossing.md}, Mission flow): the quiet phase and
@@ -102,6 +103,8 @@ public final class DustLedgerProgress {
     public boolean quiet() { return alarm == Alarm.QUIET; }
     /** The mission's music: quiet while the company walks in as freight, combat from the alarm on. */
     public MusicState musicState() { return quiet() ? MusicState.QUIET : MusicState.COMBAT; }
+    /** The walk-in's bed: a purposeful groove for a company that came in with a plan (owner's pick). */
+    public QuietBed quietBed() { return QuietBed.BRIEFING_DRIVE; }
     public Alarm alarm() { return alarm; }
     /** Seconds into the battle when the alarm sounded, or -1 while quiet. */
     public float alarmAt() { return alarmAt; }

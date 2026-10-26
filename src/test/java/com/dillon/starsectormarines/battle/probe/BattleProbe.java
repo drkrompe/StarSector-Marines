@@ -225,6 +225,7 @@ public final class BattleProbe {
         }
         if (cordon.beats() != null) out.put("beats", new JSONArray(cordon.beats().describe(sim)));
         if (cordon.convoys() != null) out.put("convoys", cordon.convoys().describe(sim));
+        if (cordon.columns() != null) out.put("columns", new JSONArray(cordon.columns().describe(sim)));
         if (cordon.logistics() != null) out.put("baseBuilt", cordon.logistics().built());
         return out;
     }
