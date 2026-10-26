@@ -65,6 +65,37 @@ public final class GeneratedRoads {
             }
             return false;
         }
+        /** Whether an end of this band runs on into another band, or stops where a crossing band meets it. */
+        boolean joined(boolean first, List<Band> others) {
+            return carriedOn(first, others) || crossedAt(first, others);
+        }
+        /**
+         * This band less each stretch of its length, longer than it is broad, that a band of
+         * {@code others} running the same way overlaps: the pieces between, each longer than it is
+         * broad. A shorter overlap is where a jog steps off the stretch before, and stays.
+         */
+        List<Band> clearOf(Set<Band> others) {
+            boolean horizontal = horizontal();
+            int lo = horizontal ? left : bottom, hi = horizontal ? right : top;
+            boolean[] cut = new boolean[hi - lo + 1];
+            for (Band o : others) {
+                if (o.horizontal() != horizontal || o.left > right || o.right < left
+                        || o.bottom > top || o.top < bottom) continue;
+                int from = Math.max(lo, horizontal ? o.left : o.bottom), to = Math.min(hi, horizontal ? o.right : o.top);
+                if (to - from + 1 <= breadth()) continue;
+                for (int i = from; i <= to; i++) cut[i - lo] = true;
+            }
+            List<Band> pieces = new ArrayList<>();
+            for (int a = lo; a <= hi;) {
+                if (cut[a - lo]) { a++; continue; }
+                int b = a;
+                while (b + 1 <= hi && !cut[b + 1 - lo]) b++;
+                if (b - a + 1 > breadth())
+                    pieces.add(horizontal ? new Band(a, bottom, b, top) : new Band(left, a, right, b));
+                a = b + 1;
+            }
+            return pieces;
+        }
         private Band end(boolean first) {
             return horizontal()
                     ? (first ? new Band(left, bottom, left, top) : new Band(right, bottom, right, top))
@@ -175,7 +206,8 @@ public final class GeneratedRoads {
      * sweeping a stretch of road that jogs a cell sideways off the next. Each cell line the two
      * stretches share runs on past the jog into the other, so no run of the road widens whole to a
      * band there; the stretch is swept only where every cell of it is {@code paved}, as a street the
-     * town laid, and a strip of road across bare ground keeps its ground.
+     * town laid, and a strip of road across bare ground keeps its ground. A paved street linking two
+     * swept ones is swept the same way where its lines run on along one of them past it.
      */
     public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway, boolean[][] paved,
                                   long seed, int maxBreadth, StreetStyle style) {
@@ -194,23 +226,26 @@ public final class GeneratedRoads {
         Set<Band> spurs = kept.spurs();
         if (paved != null) {
             // A jogged stretch fills a gap between roads that are swept: past each of its ends the road
-            // carries on, as a crossing street or the next stretch of the jog. It never displaces a band
-            // that was found, by holding it or by running narrower along it and so making it a bulge; it
-            // is held to the same rules as any band, and is swept only if they keep it and leave every
+            // carries on, as a crossing street or the next stretch of the jog. So does a link, a street
+            // whose lines run on along a swept band past it: it is the part's length off that band, and
+            // ends where the band begins or where a crossing street meets it. Neither displaces a swept
+            // band, by holding it or by running narrower along it and so making it a bulge; each is
+            // held to the same rules as any band, and is swept only if they keep it and leave every
             // other band as it was. One the road did not carry on past would float a stub of asphalt.
             Set<Band> parts = new LinkedHashSet<>();
             bands(road, paved, false, cap, parts);
             bands(road, paved, true, cap, parts);
             Set<Band> jogged = new LinkedHashSet<>();
-            for (Band b : parts) {
-                if (candidates.stream().noneMatch(c -> c.equals(b) || b.contains(c) || b.alongside(c))) jogged.add(b);
+            Set<Band> drawn = new LinkedHashSet<>(bands);
+            for (Band part : parts) for (Band b : part.clearOf(drawn)) {
+                if (!candidates.contains(b) && drawn.stream().noneMatch(c -> b.contains(c) || b.alongside(c))) jogged.add(b);
             }
             if (!jogged.isEmpty()) {
                 Set<Band> all = new LinkedHashSet<>(candidates);
                 all.addAll(jogged);
                 List<Band> swept = bands, joined = new ArrayList<>(bands);
                 for (Band b : keep(all, road, city, maxBreadth).bands()) {
-                    if (jogged.contains(b) && b.carriedOn(true, swept) && b.carriedOn(false, swept)) joined.add(b);
+                    if (jogged.contains(b) && b.joined(true, swept) && b.joined(false, swept)) joined.add(b);
                 }
                 bands = joined;
             }

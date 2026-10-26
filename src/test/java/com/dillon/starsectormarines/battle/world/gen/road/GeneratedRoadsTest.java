@@ -58,6 +58,34 @@ class GeneratedRoadsTest {
         assertFalse(raster.road(3, 32), "a stub of asphalt floated off the road");
     }
 
+    @Test void aStreetLinkingACrossingRoadToABroaderStreetItRunsInto() {
+        var raster = RoadRasterizer.rasterize(new RoadPlan(100, 44, GeneratedRoads.streets(linked(true), linked(true),
+                null, linked(true), 12, 9, GeneratedRoads.StreetStyle.ROUND_BARE).routes()));
+        for (int x = 14; x <= 58; x++) assertTrue(raster.road(x, 21), "the link is swept at x " + x);
+    }
+
+    @Test void aStreetRunningIntoABroaderOneFromADeadEndKeepsItsPaving() {
+        var raster = RoadRasterizer.rasterize(new RoadPlan(100, 44, GeneratedRoads.streets(linked(false),
+                linked(false), null, linked(false), 12, 9, GeneratedRoads.StreetStyle.ROUND_BARE).routes()));
+        assertFalse(raster.road(35, 21), "a stub of asphalt floated off the broad street");
+    }
+
+    /**
+     * A street three wide at y 20-22 from a road crossing at x 10-12 (if {@code crossed}) into a
+     * street four wide at x 60-90, its north lines running on west past the road and its south line
+     * east past the broad street: no run widens whole to three cells, and the three lines as one run
+     * on along the broad street past the link.
+     */
+    private static boolean[][] linked(boolean crossed) {
+        boolean[][] road = new boolean[100][44];
+        if (crossed) fill(road, 10, 0, 12, 40);
+        fill(road, 6, 21, 12, 22);
+        fill(road, 13, 20, 59, 22);
+        fill(road, 60, 19, 90, 22);
+        fill(road, 91, 20, 95, 20);
+        return road;
+    }
+
     /**
      * Three cells wide, stepping a cell east at y 21 and again at y 41: each line shared by two
      * stretches runs on past the one between, so none of its runs widens whole to three cells.
