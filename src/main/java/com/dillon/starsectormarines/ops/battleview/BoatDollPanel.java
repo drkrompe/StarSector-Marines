@@ -79,13 +79,18 @@ final class BoatDollPanel {
         board(c, width, canvasHeight);
 
         List<BoatDoll.Slot> guns = new ArrayList<>();
-        BoatDoll.Slot plating = null, drive = null, lift = null;
+        BoatDoll.Slot plating = null, drive = null, cabin = null;
+        // The bottom row, left to right: the power that feeds the shield, the hold, the emitter.
+        BoatDoll.Slot[] lower = new BoatDoll.Slot[3];
         for (BoatDoll.Slot slot : doll.slots()) {
             switch (slot.kind()) {
                 case HARDPOINT -> guns.add(slot);
                 case PLATING -> plating = slot;
                 case DRIVE -> drive = slot;
-                case LIFT -> lift = slot;
+                case CABIN -> cabin = slot;
+                case POWER -> lower[0] = slot;
+                case LIFT -> lower[1] = slot;
+                case EMITTER -> lower[2] = slot;
             }
         }
         // Port guns to the left of starboard ones, so the board reads the way the boat is built.
@@ -94,7 +99,8 @@ final class BoatDollPanel {
         float gunHeight = guns.isEmpty() ? 0f : height(BoatDoll.Kind.HARDPOINT);
         float flankHeight = Math.max(drive == null ? CORE_HEIGHT : 0f,
                 Math.max(plating != null ? height(plating.kind()) : 0f, drive != null ? height(drive.kind()) : 0f));
-        float liftHeight = lift != null ? height(lift.kind()) : 0f;
+        float liftHeight = 0f;
+        for (BoatDoll.Slot slot : lower) if (slot != null) liftHeight = Math.max(liftHeight, height(slot.kind()));
         float total = gunHeight + (gunHeight > 0f ? GAP_Y : 0f) + flankHeight
                 + (liftHeight > 0f ? GAP_Y + liftHeight : 0f);
         float top = Math.max(MARGIN + 26f, (canvasHeight - total) * 0.5f);
@@ -124,10 +130,25 @@ final class BoatDollPanel {
             placed.add(new Placed(plating, new CardTarget(plating.key(), core.left() - GAP_X - w,
                     flankY - h * 0.5f, w, h)));
         }
-        if (lift != null) {
-            float w = width(lift), h = height(lift.kind());
-            placed.add(new Placed(lift, new CardTarget(lift.key(), centerX - w * 0.5f,
-                    core.bottom() + GAP_Y, w, h)));
+        if (cabin != null) {
+            float w = width(cabin), h = height(cabin.kind());
+            placed.add(new Placed(cabin, new CardTarget(cabin.key(), core.right() + GAP_X,
+                    flankY - h * 0.5f, w, h)));
+        }
+        float lowerWidth = 0f;
+        int lowerCount = 0;
+        for (BoatDoll.Slot slot : lower) {
+            if (slot == null) continue;
+            lowerWidth = Math.max(lowerWidth, width(slot));
+            lowerCount++;
+        }
+        float lowerSpan = lowerWidth * lowerCount + GAP_X * Math.max(0, lowerCount - 1);
+        float lowerLeft = centerX - lowerSpan * 0.5f;
+        for (BoatDoll.Slot slot : lower) {
+            if (slot == null) continue;
+            placed.add(new Placed(slot, new CardTarget(slot.key(), lowerLeft, core.bottom() + GAP_Y,
+                    lowerWidth, height(slot.kind()))));
+            lowerLeft += lowerWidth + GAP_X;
         }
 
         for (int i = 0; i < placed.size(); i++) {

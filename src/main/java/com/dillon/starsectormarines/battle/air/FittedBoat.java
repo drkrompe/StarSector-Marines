@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -38,6 +40,8 @@ import java.util.Objects;
 public final class FittedBoat implements Airframe, AirHandling {
 
     private final ShuttleType pattern;
+    /** The fitting in every slot; a slot nobody named holds its standard fitting. */
+    private final Map<BoatFittingSlot, BoatFitting> fit;
     private final BoatFitting plating;
     private final BoatFitting drive;
     private final BoatFitting lift;
@@ -65,10 +69,26 @@ public final class FittedBoat implements Airframe, AirHandling {
      */
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
                       BoatFitting lift, String boatId, String[] guns) {
+        this(pattern, Map.of(BoatFittingSlot.PLATING, requireSlot(plating, BoatFittingSlot.PLATING),
+                BoatFittingSlot.DRIVE, requireSlot(drive, BoatFittingSlot.DRIVE),
+                BoatFittingSlot.LIFT, requireSlot(lift, BoatFittingSlot.LIFT)), boatId, guns);
+    }
+
+    /**
+     * @param fit the fitting in each slot; a slot it leaves out holds its standard fitting
+     * @param guns the door gun's turret structure on each hardpoint, or null
+     *     (or a null entry) for the gun the sortie kit would mount there
+     */
+    public FittedBoat(ShuttleType pattern, Map<BoatFittingSlot, BoatFitting> fit, String boatId, String[] guns) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
-        this.plating = requireSlot(plating, BoatFittingSlot.PLATING);
-        this.drive = requireSlot(drive, BoatFittingSlot.DRIVE);
-        this.lift = requireSlot(lift, BoatFittingSlot.LIFT);
+        this.fit = new EnumMap<>(BoatFittingSlot.class);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitted = fit == null ? null : fit.get(slot);
+            this.fit.put(slot, fitted == null ? BoatFitting.standard(slot) : requireSlot(fitted, slot));
+        }
+        this.plating = this.fit.get(BoatFittingSlot.PLATING);
+        this.drive = this.fit.get(BoatFittingSlot.DRIVE);
+        this.lift = this.fit.get(BoatFittingSlot.LIFT);
         this.boatId = boatId;
         String[] kit = ShuttleType.kitFor(TurretRole.A2G, pattern.hardpoints());
         this.guns = new String[kit.length];
@@ -80,10 +100,7 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     /** The pattern as it leaves the yard, which is every boat a hull comes with. */
     public static FittedBoat standard(ShuttleType pattern) {
-        return new FittedBoat(pattern,
-                BoatFitting.standard(BoatFittingSlot.PLATING),
-                BoatFitting.standard(BoatFittingSlot.DRIVE),
-                BoatFitting.standard(BoatFittingSlot.LIFT), null);
+        return new FittedBoat(pattern, Map.of(), null, null);
     }
 
     /** The airframe underneath the fit — what kind of boat this is. */
@@ -94,6 +111,9 @@ public final class FittedBoat implements Airframe, AirHandling {
     public BoatFitting drive() { return drive; }
 
     public BoatFitting lift() { return lift; }
+
+    /** The fitting in any slot; never null. */
+    public BoatFitting fitting(BoatFittingSlot slot) { return fit.get(slot); }
 
     /**
      * The heavier of the pattern's own lift and the cradle's: a cradled Buffalo
@@ -166,28 +186,32 @@ public final class FittedBoat implements Airframe, AirHandling {
     public boolean equals(Object other) {
         if (this == other) return true;
         if (!(other instanceof FittedBoat boat)) return false;
-        return pattern == boat.pattern
-                && plating.id().equals(boat.plating.id())
-                && drive.id().equals(boat.drive.id())
-                && lift.id().equals(boat.lift.id())
-                && Objects.equals(boatId, boat.boatId)
+        if (pattern != boat.pattern) return false;
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            if (!fit.get(slot).id().equals(boat.fit.get(slot).id())) return false;
+        }
+        return Objects.equals(boatId, boat.boatId)
                 && Arrays.equals(guns, boat.guns);
     }
 
     @Override
     public int hashCode() {
-        int result = 31 * pattern.hashCode() + plating.id().hashCode();
-        result = 31 * result + drive.id().hashCode();
-        result = 31 * result + lift.id().hashCode();
+        int result = pattern.hashCode();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) result = 31 * result + fit.get(slot).id().hashCode();
         result = 31 * result + Arrays.hashCode(guns);
         return 31 * result + Objects.hashCode(boatId);
     }
 
     @Override
     public String toString() {
-        return pattern + "[" + plating.id() + "," + drive.id()
-                + (lift.standard() ? "" : "," + lift.id())
-                + (boatId != null ? "," + boatId : "") + "]";
+        StringBuilder text = new StringBuilder(pattern + "[" + plating.id() + "," + drive.id());
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitted = fit.get(slot);
+            if (slot != BoatFittingSlot.PLATING && slot != BoatFittingSlot.DRIVE && !fitted.standard()) {
+                text.append(',').append(fitted.id());
+            }
+        }
+        return text.append(boatId != null ? "," + boatId : "").append(']').toString();
     }
 
     private static BoatFitting requireSlot(BoatFitting fitting, BoatFittingSlot slot) {

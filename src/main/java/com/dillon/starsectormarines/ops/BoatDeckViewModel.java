@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
+import com.dillon.starsectormarines.marine.BoatFrame;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
@@ -162,13 +163,8 @@ public final class BoatDeckViewModel {
                 ? Strings.get("openingMechLabAllPartsButton") : kindLabel(storesFilter.get()));
         selectedSlotCopy = reactor.computed(() -> {
             revision.get();
-            CampaignBoat boat = selectedBoat();
-            boolean hermes = boat != null && boat.pattern() == ShuttleType.HERMES;
             BoatDoll.Kind filter = storesFilter.get();
-            if (filter == BoatDoll.Kind.HARDPOINT) {
-                return Strings.get(hermes ? "boatDeckHardpointHermes" : "boatDeckHardpointCopy");
-            }
-            if (hermes) return Strings.get("openingBoatDeckTheHermesIsAPatchedCourierWith");
+            if (filter == BoatDoll.Kind.HARDPOINT) return Strings.get("boatDeckHardpointCopy");
             return filter == null ? Strings.get("boatDeckStoresCopy") : slotCopy(fittingSlot(filter));
         });
         catalogRows = reactor.computed(this::buildStores);
@@ -321,11 +317,16 @@ public final class BoatDeckViewModel {
     public boolean canDropOnSocket(BoatDoll.Kind kind, String itemId, String key) {
         if (!socketTakes(kind, itemId, key)) return false;
         CampaignBoat boat = selectedBoat();
+        int before = BoatFrame.weight(boat);
         if (kind == BoatDoll.Kind.HARDPOINT) {
-            return BoatGun.findById(itemId).standardOn(boat.pattern(), BoatDoll.hardpointOf(key))
-                    || deck.spares(itemId) > 0;
+            int hardpoint = BoatDoll.hardpointOf(key);
+            BoatGun gun = BoatGun.findById(itemId);
+            return (gun.standardOn(boat.pattern(), hardpoint) || deck.spares(itemId) > 0)
+                    && BoatFrame.admits(boat, before, BoatFrame.weightWithGun(boat, hardpoint, gun));
         }
-        return BoatFitting.findById(itemId).standard() || deck.spares(itemId) > 0;
+        BoatFitting fitting = BoatFitting.findById(itemId);
+        return (fitting.standard() || deck.spares(itemId) > 0)
+                && BoatFrame.admits(boat, before, BoatFrame.weightWith(boat, fitting));
     }
 
     /**
@@ -611,6 +612,12 @@ public final class BoatDeckViewModel {
         if (boat == null) return List.of();
         ShuttleType pattern = boat.pattern();
         FittedBoat fitted = boat.freezeForDeployment();
+        int cabin = boat.fittingIn(BoatFittingSlot.CABIN).seats();
+        int seats = cabin > 0 ? cabin : pattern.capacity;
+        int maxSeats = pattern.capacity;
+        for (BoatFitting part : BoatFitting.catalog(BoatFittingSlot.CABIN)) maxSeats = Math.max(maxSeats, part.seats());
+        int weight = BoatFrame.weight(boat);
+        int rating = BoatFrame.rating(pattern);
         // A damaged hull reads as a deficit under her pattern's own figure, a refit as gain past it.
         return List.of(
                 FittingMeter.of("boat-meter:hull", Strings.get("openingBoatDeckHull"),
@@ -624,12 +631,14 @@ public final class BoatDeckViewModel {
                         fitted.maxSpeed(), pattern.maxSpeed(), FittingMeter.ENGINE_TONE),
                 fitted.cradled()
                         ? FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("boatDeckSeatsAndLift", pattern.capacity,
+                                Strings.format("boatDeckSeatsAndLift", seats,
                                         LiftReadout.ratingName(fitted.liftRating())),
-                                pattern.capacity, pattern.capacity)
+                                seats, maxSeats)
                         : FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("openingBoatDeckSeats2", pattern.capacity),
-                                pattern.capacity, pattern.capacity),
+                                Strings.format("openingBoatDeckSeats2", seats), seats, maxSeats),
+                FittingMeter.of("boat-meter:frame", Strings.get("boatDeckFrame"),
+                        Strings.format("boatDeckFrameValue", weight, rating), weight, rating,
+                        weight, weight, FittingMeter.FLUX_TONE),
                 FittingMeter.of("boat-meter:hardpoints", Strings.get("openingBoatDeckHardpoints"),
                         Strings.format("openingBoatMounts", pattern.hardpoints()),
                         pattern.hardpoints(), pattern.hardpoints(), pattern.hardpoints(), pattern.hardpoints(),
@@ -646,7 +655,7 @@ public final class BoatDeckViewModel {
         if (boat == null) return List.of();
         BoatDoll.Kind current = storesFilter.get();
         List<FittingFilterPill> pills = new ArrayList<>();
-        pills.add(new FittingFilterPill("boat-filter:all", Strings.get("openingMechLabAllPartsButton"), null, null,
+        pills.add(new FittingFilterPill("boat-filter:all", Strings.get("boatDeckFilterAll"), null, null,
                 FittingFilterPill.classes(current == null), () -> storesFilter.set(null)));
         for (BoatDoll.Kind kind : offeredKinds(boat.pattern())) {
             pills.add(new FittingFilterPill("boat-filter:" + kind.name().toLowerCase(Locale.ROOT), kindLabel(kind),
@@ -684,7 +693,7 @@ public final class BoatDeckViewModel {
             BoatFittingSlot slot = fittingSlot(kind);
             for (BoatFitting fitting : BoatFitting.catalog(slot)) {
                 boolean installed = fitting.id().equals(boat.fittingIn(slot).id());
-                if (!installed && (boat.pattern() == ShuttleType.HERMES || !fitting.supports(boat.pattern()))) continue;
+                if (!installed && !fitting.supports(boat.pattern())) continue;
                 rows.add(fittingCard(boat, fitting, installed));
             }
         }
@@ -718,11 +727,13 @@ public final class BoatDeckViewModel {
                             String effect, String delta, boolean fitted, boolean held, boolean free,
                             FabricationCost bill) {
         int spares = deck.spares(itemId);
-        boolean build = !free && spares == 0 && bill != null && selectedBoat().pattern() != ShuttleType.HERMES;
+        boolean build = !free && spares == 0 && bill != null;
         boolean affordable = build && resources.canAfford(bill);
         String classes = "catalog-row" + (held ? " selected" : "") + (build ? " requires-fabrication" : "");
         int[] footprint = BoatHardware.footprint(kind, itemId);
-        String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1]);
+        int weight = partWeight(kind, itemId, free);
+        String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1])
+                + (weight > 0 ? "  ·  " + Strings.format("boatDeckWeight", weight) : "");
         List<Row> materials = build ? materialRows(id, bill) : List.of();
         String stock = free ? kindLine(tier, kind)
                 : Strings.format("openingMechLabOwnFree", kindLine(tier, kind), MechLabViewModel.spareCount(spares));
@@ -751,6 +762,7 @@ public final class BoatDeckViewModel {
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
             case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+            case CABIN, EMITTER, POWER -> effect(fitting);
         };
     }
 
@@ -789,14 +801,28 @@ public final class BoatDeckViewModel {
         return List.of();
     }
 
-    /** The kinds of socket a pattern has, in the board's order: guns, plating, drive, hold. */
+    /** The kinds of socket a pattern has, in the board's order: guns, plating, drive, cabin, then power, hold, emitter. */
     private static List<BoatDoll.Kind> offeredKinds(ShuttleType pattern) {
         List<BoatDoll.Kind> kinds = new ArrayList<>();
         if (pattern.hardpoints() > 0) kinds.add(BoatDoll.Kind.HARDPOINT);
         kinds.add(BoatDoll.Kind.PLATING);
         kinds.add(BoatDoll.Kind.DRIVE);
+        kinds.add(BoatDoll.Kind.CABIN);
+        kinds.add(BoatDoll.Kind.POWER);
         if (liftable(pattern)) kinds.add(BoatDoll.Kind.LIFT);
+        kinds.add(BoatDoll.Kind.EMITTER);
         return kinds;
+    }
+
+    /** What a stores part weighs on this boat: nothing for a free yard part. */
+    private static int partWeight(BoatDoll.Kind kind, String itemId, boolean free) {
+        if (free) return 0;
+        if (kind == BoatDoll.Kind.HARDPOINT) {
+            BoatGun gun = BoatGun.findById(itemId);
+            return gun == null ? 0 : gun.weight();
+        }
+        BoatFitting fitting = BoatFitting.findById(itemId);
+        return fitting == null ? 0 : fitting.weight();
     }
 
     /** The part a filter pill draws: what the yard puts in that kind of socket. */
@@ -816,6 +842,9 @@ public final class BoatDeckViewModel {
             case PLATING -> BoatFittingSlot.PLATING;
             case DRIVE -> BoatFittingSlot.DRIVE;
             case LIFT -> BoatFittingSlot.LIFT;
+            case CABIN -> BoatFittingSlot.CABIN;
+            case EMITTER -> BoatFittingSlot.EMITTER;
+            case POWER -> BoatFittingSlot.POWER;
             case HARDPOINT -> throw new IllegalArgumentException("a hardpoint holds a gun, not a fitting");
         };
     }
@@ -827,6 +856,9 @@ public final class BoatDeckViewModel {
             case PLATING -> Strings.get("openingBoatDeckPlating");
             case DRIVE -> Strings.get("openingBoatDeckDrive");
             case LIFT -> Strings.get("boatDeckLift");
+            case CABIN -> Strings.get("boatDeckCabin");
+            case EMITTER -> Strings.get("boatDeckEmitter");
+            case POWER -> Strings.get("boatDeckPower");
         };
     }
 
@@ -842,6 +874,9 @@ public final class BoatDeckViewModel {
             case PLATING -> Strings.get("openingBoatDeckPlating");
             case DRIVE -> Strings.get("openingBoatDeckDrive");
             case LIFT -> Strings.get("boatDeckLift");
+            case CABIN -> Strings.get("boatDeckCabin");
+            case EMITTER -> Strings.get("boatDeckEmitter");
+            case POWER -> Strings.get("boatDeckPower");
         };
     }
 
@@ -916,9 +951,7 @@ public final class BoatDeckViewModel {
         selectedSlot.set(slot);
         selectedHardpoint.set(NO_HARDPOINT);
         storesFilter.set(dollKind(slot));
-        feedbackText.set(selectedBoat().pattern() == ShuttleType.HERMES
-                ? Strings.get("openingBoatDeckHermesFittingsAreInspectionOnlyReplaceThe")
-                : Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", slotLabel(slot)));
+        feedbackText.set(Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", slotLabel(slot)));
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
     }
 
@@ -927,9 +960,7 @@ public final class BoatDeckViewModel {
         if (boat == null || boat.gunOn(hardpoint) == null) return;
         selectedHardpoint.set(hardpoint);
         storesFilter.set(BoatDoll.Kind.HARDPOINT);
-        feedbackText.set(boat.pattern() == ShuttleType.HERMES
-                ? Strings.get("boatDeckHardpointHermes")
-                : Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", hardpointLabel(hardpoint)));
+        feedbackText.set(Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", hardpointLabel(hardpoint)));
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
     }
 
@@ -942,6 +973,8 @@ public final class BoatDeckViewModel {
             case FITTED -> Strings.format("boatDeckGunFitted", gun.displayName(), hardpointLabel(hardpoint), boat.displayName());
             case ALREADY_FITTED -> Strings.format("openingBoatDeckIsAlreadyFittedTo", gun.displayName(), boat.displayName());
             case NO_SPARE -> Strings.format("boatDeckNoSpare", gun.displayName());
+            case OVER_FRAME -> Strings.format("boatDeckOverFrame", gun.displayName(),
+                    BoatFrame.weightWithGun(boat, hardpoint, gun), BoatFrame.rating(boat.pattern()));
             case INCOMPATIBLE_FITTING -> Strings.get("boatDeckHardpointHermes");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });
@@ -969,6 +1002,8 @@ public final class BoatDeckViewModel {
             case FITTED -> Strings.format("openingBoatDeckFittedToOutOfFleetStores", fitting.displayName(), boat.displayName());
             case ALREADY_FITTED -> Strings.format("openingBoatDeckIsAlreadyFittedTo", fitting.displayName(), boat.displayName());
             case NO_SPARE -> Strings.format("boatDeckNoSpare", fitting.displayName());
+            case OVER_FRAME -> Strings.format("boatDeckOverFrame", fitting.displayName(),
+                    BoatFrame.weightWith(boat, fitting), BoatFrame.rating(boat.pattern()));
             case INCOMPATIBLE_FITTING -> Strings.get("openingBoatDeckTheHermesHasNoUpgradePathReplace");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });
@@ -1069,14 +1104,21 @@ public final class BoatDeckViewModel {
         return best;
     }
 
-    private static String effect(BoatFitting fitting) {
-        if (fitting.slot() == BoatFittingSlot.PLATING) {
-            return Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
-        }
-        if (fitting.slot() == BoatFittingSlot.LIFT) {
-            return Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
-        }
-        return Strings.format("openingBoatDeckSpeedAccel", factor(fitting.speedFactor()), factor(fitting.accelFactor()));
+    private String effect(BoatFitting fitting) {
+        CampaignBoat boat = selectedBoat();
+        return switch (fitting.slot()) {
+            case PLATING -> Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
+            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+            case DRIVE -> Strings.format("boatDeckDriveEffect", factor(fitting.speedFactor()),
+                    factor(fitting.deboardFactor()));
+            case CABIN -> Strings.format("boatDeckCabinEffect",
+                    fitting.seats() > 0 ? fitting.seats() : boat == null ? 0 : boat.pattern().capacity);
+            case EMITTER -> fitting.standard() ? Strings.get("boatDeckEmitterStandard")
+                    : Strings.format("boatDeckEmitterEffect", Math.round(fitting.shieldArcDeg()),
+                            factor(fitting.shieldEfficiency()));
+            case POWER -> Strings.format("boatDeckPowerEffect", factor(fitting.fluxCapacityFactor()),
+                    factor(fitting.fluxDissipationFactor()));
+        };
     }
 
     static String factor(float value) {
@@ -1092,6 +1134,9 @@ public final class BoatDeckViewModel {
             case DRIVE -> Strings.get("openingBoatDeckDrive");
             case LIFT -> Strings.get("boatDeckLift");
             case PLATING -> Strings.get("openingBoatDeckPlating");
+            case CABIN -> Strings.get("boatDeckCabin");
+            case EMITTER -> Strings.get("boatDeckEmitter");
+            case POWER -> Strings.get("boatDeckPower");
         };
     }
 
@@ -1100,6 +1145,9 @@ public final class BoatDeckViewModel {
             case PLATING -> BoatDoll.Kind.PLATING;
             case DRIVE -> BoatDoll.Kind.DRIVE;
             case LIFT -> BoatDoll.Kind.LIFT;
+            case CABIN -> BoatDoll.Kind.CABIN;
+            case EMITTER -> BoatDoll.Kind.EMITTER;
+            case POWER -> BoatDoll.Kind.POWER;
         };
     }
 
@@ -1119,6 +1167,9 @@ public final class BoatDeckViewModel {
             case DRIVE -> Strings.get("openingBoatDeckWhatGetsHerOffTheDeckAnd");
             case LIFT -> Strings.get("boatDeckLiftCopy");
             case PLATING -> Strings.get("openingBoatDeckWhatAnAntiAirGunHasTo");
+            case CABIN -> Strings.get("boatDeckCabinCopy");
+            case EMITTER -> Strings.get("boatDeckEmitterCopy");
+            case POWER -> Strings.get("boatDeckPowerCopy");
         };
     }
 

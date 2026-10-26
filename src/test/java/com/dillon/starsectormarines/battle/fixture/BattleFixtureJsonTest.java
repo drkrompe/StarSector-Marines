@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -66,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -217,8 +219,12 @@ class BattleFixtureJsonTest {
      */
     @Test
     void roundTripsTheFittingsOnTheCompanysOwnBoats() throws Exception {
-        FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE,
-                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, BoatFitting.STANDARD_LIFT, "boat_04",
+        FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE, Map.of(
+                BoatFittingSlot.PLATING, BoatFitting.ARMOURED_PLATING,
+                BoatFittingSlot.DRIVE, BoatFitting.TUNED_DRIVE,
+                BoatFittingSlot.CABIN, BoatFitting.TWO_TEAM_CABIN,
+                BoatFittingSlot.EMITTER, BoatFitting.WIDE_EMITTER,
+                BoatFittingSlot.POWER, BoatFitting.CAPACITOR_BANK), "boat_04",
                 new String[]{BoatGun.ARBALEST.structureId()});
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 17L,

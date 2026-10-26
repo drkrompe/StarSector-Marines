@@ -1,6 +1,6 @@
 # Boat refit axes: the Hermes as the company's boat
 
-Status: IN PROGRESS — slices below; tier numbers authored in slice 2
+Status: IN PROGRESS — slice 2 shipped (catalog, six sockets, frame budget); slices 1 and 3–6 open
 Written: 2026-10-26
 Updated: 2026-10-26 — owner answered every picks question: cycle, lift, shield and flux, weapons, saves, patterns and ship changes.
 
@@ -155,9 +155,9 @@ migration.
 
 ## Still to author
 
-- The part list: tiers per axis, each with its numbers, weight and bill, and
-  the frame rating. These are tuned numbers and belong in the catalog with a
-  card-sheet or matchup evidence run, not in this doc.
+- Tuning the part list (`BoatFitting`, `BoatGun` weights, `BoatFrame`): first
+  numbers are in the catalog; they want a matchup evidence run once slices 3
+  and 5 make them bite in battle.
 - The energy guns and missile pods themselves: names, turret structures and
   art, against the turret catalog.
 

@@ -29,6 +29,8 @@ import java.util.List;
  * @param bill what the yard consumes when this is not the hardpoint's own
  *     yard-standard gun
  * @param effect one line on what the gun does in play, for its catalog row
+ * @param weight what it takes out of the boat's frame rating ({@link BoatFrame})
+ *     on a hardpoint whose yard gun it is not
  */
 public record BoatGun(
         String id,
@@ -37,24 +39,25 @@ public record BoatGun(
         int tier,
         FabricationCost bill,
         String effect,
-        String provenance) {
+        String provenance,
+        int weight) {
 
     public static final BoatGun HEAVY_MG = new BoatGun(
             "door_heavy_mg", "@boatGunHeavyMg", TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1,
-            cost(5, 0, 10, 0), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance");
+            cost(5, 0, 10, 0), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", 1);
 
     public static final BoatGun ARBALEST = new BoatGun(
             "door_arbalest", "@boatGunArbalest", TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 2,
-            cost(10, 5, 20, 0), "@boatGunArbalestEffect", "@boatGunArbalestProvenance");
+            cost(10, 5, 20, 0), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", 2);
 
     public static final BoatGun GRENADE_LAUNCHER = new BoatGun(
             "door_grenade_launcher", "@boatGunGrenadeLauncher",
             TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID, 2,
-            cost(15, 5, 15, 0), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance");
+            cost(15, 5, 15, 0), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance", 1);
 
     public static final BoatGun HEPHAESTUS = new BoatGun(
             "door_hephaestus", "@boatGunHephaestus", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 3,
-            cost(20, 10, 30, 5), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance");
+            cost(20, 10, 30, 5), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", 3);
 
     private static final List<BoatGun> CATALOG = List.of(HEAVY_MG, ARBALEST, GRENADE_LAUNCHER, HEPHAESTUS);
 
@@ -68,6 +71,7 @@ public record BoatGun(
         }
         if (tier < 1 || tier > 3) throw new IllegalArgumentException("Boat gun tier must be 1..3: " + tier);
         if (bill == null) throw new IllegalArgumentException("Boat gun bill is required");
+        if (weight < 0) throw new IllegalArgumentException("Boat gun weight cannot be negative: " + weight);
     }
 
     public String displayName() { return Strings.resolve(displayName); }
@@ -96,12 +100,9 @@ public record BoatGun(
         return this == standardFor(pattern, index);
     }
 
-    /**
-     * Whether a {@code pattern} boat can take this gun on a refit. The Hermes is
-     * a patched courier with no upgrade path, so it keeps the gun it has.
-     */
+    /** Whether a {@code pattern} boat can take this gun on a refit: any boat with a hardpoint. */
     public boolean supports(ShuttleType pattern) {
-        return pattern != null && pattern.hardpoints() > 0 && pattern != ShuttleType.HERMES;
+        return pattern != null && pattern.hardpoints() > 0;
     }
 
     /** Returns null for an unknown persisted gun id. */

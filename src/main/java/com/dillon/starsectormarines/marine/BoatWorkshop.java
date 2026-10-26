@@ -13,6 +13,10 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
  * part is never stored and never runs out: every socket has its own, so
  * putting it back is free and taking it off makes no spare.
  *
+ * <p>A fit is weighed against the boat's frame ({@link BoatFrame}): one that
+ * would take her over the rating is refused, unless it leaves her no heavier
+ * than she is.
+ *
  * <p><b>A failed commit changes nothing.</b> Every check runs before anything
  * moves, and a build spends its whole bill before the spare is stowed, so a
  * refusal or a short hold leaves the boat, the stores and the hold exactly as
@@ -61,6 +65,9 @@ public final class BoatWorkshop {
         BoatFitting outgoing = boat.fittingIn(fitting.slot());
         if (fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
         if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
+        if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWith(boat, fitting))) {
+            return new Result(Status.OVER_FRAME, boat);
+        }
         if (!fitting.standard() && !deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
         boat.install(fitting);
         if (!outgoing.standard()) deck.stow(outgoing.id());
@@ -93,6 +100,9 @@ public final class BoatWorkshop {
         if (current == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         if (current == gun) return new Result(Status.ALREADY_FITTED, boat);
         if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
+        if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWithGun(boat, hardpoint, gun))) {
+            return new Result(Status.OVER_FRAME, boat);
+        }
         if (!gun.standardOn(boat.pattern(), hardpoint) && !deck.take(gun.id())) {
             return new Result(Status.NO_SPARE, boat);
         }
@@ -129,6 +139,10 @@ public final class BoatWorkshop {
         BoatGun yard = BoatGun.standardFor(boat.pattern(), from);
         if (yard == null || gun == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
         if (from == to || gun == displaced) return new Result(Status.ALREADY_FITTED, boat);
+        int before = BoatFrame.weight(boat);
+        // The source goes back to its yard gun and the target takes this one: both changes at once.
+        int after = BoatFrame.weightWithGun(boat, from, yard) + BoatFrame.weightWithGun(boat, to, gun) - before;
+        if (!BoatFrame.admits(boat, before, after)) return new Result(Status.OVER_FRAME, boat);
         boat.installGun(from, yard);
         boat.installGun(to, gun);
         if (!displaced.standardOn(boat.pattern(), to)) deck.stow(displaced.id());
@@ -204,6 +218,7 @@ public final class BoatWorkshop {
         UNKNOWN_FITTING,
         UNKNOWN_HARDPOINT,
         INCOMPATIBLE_FITTING,
+        OVER_FRAME,
         ALREADY_FITTED,
         CANNOT_AFFORD,
         NO_SPARE,

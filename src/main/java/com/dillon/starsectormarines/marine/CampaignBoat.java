@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.io.Serializable;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * One persistent, company-owned ship's boat: a stable id, a tail name, the
@@ -25,10 +27,8 @@ public final class CampaignBoat implements Serializable {
     private final String id;
     private String displayName;
     private final ShuttleType pattern;
-    private String platingId;
-    private String driveId;
-    /** Null on saves from before the lift slot: reads as the standard hold. */
-    private String liftId;
+    /** The fitting in each slot, by id; a slot with none reads as its standard fitting. */
+    private Map<BoatFittingSlot, String> fittingIds = new EnumMap<>(BoatFittingSlot.class);
     /**
      * The door gun on each hardpoint, by {@link BoatGun} id. Null, or a null or
      * unknown entry, reads as the hardpoint's yard-standard gun — which is what
@@ -61,16 +61,15 @@ public final class CampaignBoat implements Serializable {
         this.id = id;
         this.displayName = displayName;
         this.pattern = pattern;
-        this.platingId = BoatFitting.resolve(platingId, BoatFittingSlot.PLATING).id();
-        this.driveId = BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE).id();
-        this.liftId = BoatFitting.STANDARD_LIFT.id();
+        fittingIds.put(BoatFittingSlot.PLATING, BoatFitting.resolve(platingId, BoatFittingSlot.PLATING).id());
+        fittingIds.put(BoatFittingSlot.DRIVE, BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE).id());
     }
 
     public CampaignBoat(String id, String displayName, ShuttleType pattern,
                         String platingId, String driveId, String liftId) {
         this(id, displayName, pattern, platingId, driveId);
         BoatFitting lift = BoatFitting.resolve(liftId, BoatFittingSlot.LIFT);
-        this.liftId = lift.supports(pattern) ? lift.id() : BoatFitting.STANDARD_LIFT.id();
+        if (lift.supports(pattern)) fittingIds.put(BoatFittingSlot.LIFT, lift.id());
     }
 
     public String id() { return id; }
@@ -79,29 +78,15 @@ public final class CampaignBoat implements Serializable {
 
     public ShuttleType pattern() { return pattern; }
 
-    public BoatFitting plating() {
-        return BoatFitting.resolve(platingId, BoatFittingSlot.PLATING);
-    }
+    public BoatFitting plating() { return fittingIn(BoatFittingSlot.PLATING); }
 
-    public BoatFitting drive() {
-        return BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE);
-    }
+    public BoatFitting drive() { return fittingIn(BoatFittingSlot.DRIVE); }
 
-    /**
-     * The hold. A boat saved before the lift slot existed has no id here and
-     * reads as the standard hold, which is what it was built with.
-     */
-    public BoatFitting lift() {
-        return BoatFitting.resolve(liftId, BoatFittingSlot.LIFT);
-    }
+    public BoatFitting lift() { return fittingIn(BoatFittingSlot.LIFT); }
 
-    /** What is installed in one slot. Never null — an empty slot is the standard fit. */
+    /** What is installed in one slot. Never null: an empty slot is the standard fit. */
     public BoatFitting fittingIn(BoatFittingSlot slot) {
-        return switch (slot) {
-            case DRIVE -> drive();
-            case LIFT -> lift();
-            case PLATING -> plating();
-        };
+        return BoatFitting.resolve(fittingIds.get(slot), slot);
     }
 
     /**
@@ -117,7 +102,9 @@ public final class CampaignBoat implements Serializable {
             BoatGun gun = gunOn(index);
             guns[index] = gun != null ? gun.structureId() : null;
         }
-        return new FittedBoat(pattern, plating(), drive(), lift(), id, guns);
+        Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) fit.put(slot, fittingIn(slot));
+        return new FittedBoat(pattern, fit, id, guns);
     }
 
     /**
@@ -149,10 +136,6 @@ public final class CampaignBoat implements Serializable {
      */
     void install(BoatFitting fitting) {
         if (fitting == null) return;
-        switch (fitting.slot()) {
-            case DRIVE -> driveId = fitting.id();
-            case LIFT -> liftId = fitting.id();
-            case PLATING -> platingId = fitting.id();
-        }
+        fittingIds.put(fitting.slot(), fitting.id());
     }
 }

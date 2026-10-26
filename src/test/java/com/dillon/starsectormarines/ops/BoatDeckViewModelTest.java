@@ -34,17 +34,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BoatDeckViewModelTest {
 
     @Test
-    void hermesShowsOnlyInstalledFittingsAndExplainsReplacement() {
+    void theHermesOffersEverySocketAndAFrameMeter() {
         BoatDeck boats = new BoatDeck();
         boats.reconcile("courier", ShuttleType.HERMES, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
                 new Reactor(), boats, TestResources.stocked(200), "Second Wind");
         model.selectBoatAction(0).run();
-        for (BoatFittingSlot slot : List.of(BoatFittingSlot.PLATING, BoatFittingSlot.DRIVE)) {
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             model.selectSlotAction(slot).run();
-            assertEquals(1, model.catalogRows().get().size());
-            assertTrue(model.selectedSlotCopy().get().contains("no plating or drive upgrade path"));
+            assertEquals(BoatFitting.catalog(slot).size(), model.catalogRows().get().size(), slot.name());
         }
+        assertEquals("0 / 10", meter(model, "FRAME").value());
     }
 
     @Test
@@ -57,7 +57,7 @@ class BoatDeckViewModelTest {
 
         assertTrue(model.filterPills().get().stream().anyMatch(pill -> pill.id().equals("boat-filter:lift")));
         model.selectSlotAction(BoatFittingSlot.LIFT).run();
-        assertEquals(3, model.catalogRows().get().size());
+        assertEquals(4, model.catalogRows().get().size());
         assertEquals(BoatFitting.STANDARD_LIFT.displayName(), model.slotRows().get().get(0).fitting());
     }
 
@@ -116,7 +116,8 @@ class BoatDeckViewModelTest {
 
         List<BoatDoll.Kind> kinds = model.catalogRows().get().stream()
                 .map(BoatDeckViewModel.CatalogRow::kind).distinct().toList();
-        assertEquals(List.of(BoatDoll.Kind.HARDPOINT, BoatDoll.Kind.PLATING, BoatDoll.Kind.DRIVE), kinds);
+        assertEquals(List.of(BoatDoll.Kind.HARDPOINT, BoatDoll.Kind.PLATING, BoatDoll.Kind.DRIVE,
+                BoatDoll.Kind.CABIN, BoatDoll.Kind.POWER, BoatDoll.Kind.LIFT, BoatDoll.Kind.EMITTER), kinds);
         model.selectSlotAction(BoatFittingSlot.DRIVE).run();
         assertTrue(model.catalogRows().get().stream().allMatch(row -> row.kind() == BoatDoll.Kind.DRIVE));
         model.filterPills().get().get(0).select().run();
@@ -169,7 +170,8 @@ class BoatDeckViewModelTest {
         assertEquals(1, mount.size(), "the selected mount is the one socket the board has selected");
         assertEquals("PLATING", mount.get(0).name());
         assertEquals(BoatFitting.STANDARD_PLATING.displayName(), mount.get(0).fitting());
-        assertEquals(List.of("boat-filter:all", "boat-filter:hardpoint", "boat-filter:plating", "boat-filter:drive"),
+        assertEquals(List.of("boat-filter:all", "boat-filter:hardpoint", "boat-filter:plating", "boat-filter:drive",
+                        "boat-filter:cabin", "boat-filter:power", "boat-filter:lift", "boat-filter:emitter"),
                 viewModel.filterPills().get().stream().map(FittingFilterPill::id).toList());
     }
 

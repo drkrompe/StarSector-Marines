@@ -99,13 +99,18 @@ shared mapping instead of assigning paths independently in each screen.
   It is the campaign authority that freezes a battle airframe; the sortie flying
   that frame never reaches back into it. `air-nouns.md` owns the pattern and the
   frozen frame.
-- **Fitting** — installed work in one of a boat's **slots**: plating, which is
-  hull; drive, which is speed and acceleration; and lift, the hold, where a
-  cradle adds a machine lift rating and keeps the seats (`air-nouns.md`, Lift).
-  Each slot has a standard fitting every boat is built with and upgrade tiers
-  for compatible airframes; a boat saved before a slot existed reads as standard
-  there. Only bus-class boats offer the lift slot at all. Planned: six refit
-  axes built around the Hermes, replacing Secondhand Wings (`boat-refit-axes.md`).
+- **Fitting** — installed work in one of a boat's six **slots**: plating, which
+  is hull; drive, which is speed, acceleration and deboard time; lift, the hold,
+  whose tiers climb to Heavy and never cost a seat (`air-nouns.md`, Lift); cabin,
+  which is seats; emitter, the shield's arc and flux per hit; and power, the flux
+  pool's capacity and venting. Each slot has a standard fitting every boat is
+  built with and up to three upgrade tiers; a lift tier goes only on a boat that
+  does not already lift as much. Planned battle effects of the cabin, emitter,
+  power and deboard figures: `boat-refit-axes.md`.
+- **Frame** — what a boat can carry in upgrades: every non-standard fitting and
+  door gun has a **weight**, and their sum may not pass the frame's rating (10).
+  The workshop refuses a fit that would take her over it, unless the fit makes her
+  lighter, so heavy lift and a fast drive compete with plating and guns.
 - **Boat spare** — a fitting or door gun in the boat deck's **stores**, counted per
   part. A spare is built from its bill, or comes off a boat; fitting one takes it
   out of stores. Stores are the company's, not a boat's, so a part moves between
@@ -601,8 +606,8 @@ a drafting board, the **boat doll**, while the stores take the left of the room
 and her specifications, condition and selected mount the right. The doll is the
 lab's socket schematic, not a picture of the boat: each slot is a socket of
 bricks with the fitted piece drawn over them in its socket's colour, wired to an
-airframe core — door guns across the top, port to starboard, plating and drive on
-its flanks and the hold beneath — and the stores show each part on its own
+airframe core — door guns across the top, port to starboard, plating, drive and cabin
+beneath them, and flux, hold and shield along the bottom — and the stores show each part on its own
 bricks. Where a gun sits is shown on the boat herself: each hardpoint is ringed on
 the berthed boat where her hull's weapon slot puts it, with its traverse as a
 wedge, and the gun fitted there stands on it as its turret, the same sprite at the
@@ -737,11 +742,10 @@ on the hull's turret slots before its fixed hardpoints, so the place the doll ri
 is the place the battle mounts and fires it from. The fitted guns replace the kit
 only for an air-to-ground sortie; other roles still arm by role.
 
-**The Hermes is a dead-end courier design.** Repair and replacement retain its
-standard fit, but the workshop refuses plating, drive and door-gun upgrades before charging.
-Its slots are inspection-only in Boat Deck; better lift comes from replacing the
-airframe. Aeroshuttles retain their fitting progression. Already-installed fittings
-in older saves remain intact, without allowing further Hermes upgrades.
+**The Hermes is the company's boat, and every refit is built around her.** She
+takes every slot's upgrades and door guns from stores, within her frame. The
+Boat Deck shows the frame as a meter (weight / rating) and every part's weight on
+its card and sheet.
 
 A failed fit changes nothing but the room's feedback line — neither the boat nor
 the hold — because the workshop rechecks affordability at the commit and spends

@@ -22,24 +22,40 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class BoatWorkshopTest {
 
+    /** The Hermes is the company's boat: every upgrade goes on her, from a spare. */
     @Test
-    void hermesRejectsEveryUpgradeBeforeChargingAndStillRepairsAtStandardFit() {
+    void theHermesTakesEveryUpgradeFromASpare() {
         BoatDeck deck = new BoatDeck();
-        deck.registerFoundingWrecks("second-wind");
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
-        TestResources hold = TestResources.stocked(200);
-        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
-        CampaignBoat boat = workshop.fabricate(0).boat();
-        for (BoatFitting fitting : BoatFitting.catalog()) {
-            if (fitting.standard()) continue;
-            workshop.fabricatePart(fitting.id());
-            Map<String, Integer> afterRepair = Map.copyOf(hold.stock);
-            assertEquals(BoatWorkshop.Status.INCOMPATIBLE_FITTING,
-                    workshop.fit(boat.id(), fitting.id()).status());
-            assertEquals(afterRepair, hold.stock);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting top = BoatFitting.catalog(slot).get(BoatFitting.catalog(slot).size() - 1);
+            workshop.fabricatePart(top.id());
+            assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), top.id()).status(), top.id());
+            workshop.strip(boat.id(), slot);
         }
+    }
+
+    /** A refit that takes her over the frame's rating is refused; one that lightens her never is. */
+    @Test
+    void aFitOverTheFrameRatingIsRefusedAndKeepsItsSpare() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("second-wind", ShuttleType.HERMES, 1);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+        for (String part : List.of("heavy_lift_frame", "uprated_drive", "armoured_plating")) workshop.fabricatePart(part);
+        workshop.fit(boat.id(), "heavy_lift_frame");
+        workshop.fit(boat.id(), "uprated_drive");
+        assertEquals(9, BoatFrame.weight(boat));
+
+        assertEquals(BoatWorkshop.Status.OVER_FRAME, workshop.fit(boat.id(), "armoured_plating").status());
+        assertEquals(1, deck.spares("armoured_plating"));
         assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
-        assertSame(BoatFitting.STANDARD_DRIVE, boat.drive());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "standard_drive").status(),
+                "taking weight off is always allowed");
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "armoured_plating").status());
     }
 
     @Test
