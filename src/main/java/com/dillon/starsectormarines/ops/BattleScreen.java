@@ -548,7 +548,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (!cue.play()) return;
         if (cue.track() == null) Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), null);
-        else Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), cue.track(), false);
+        else Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), cue.track(), cue.loop());
     }
 
     /**
