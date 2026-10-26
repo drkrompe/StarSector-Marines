@@ -81,9 +81,11 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolView;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
-import com.dillon.starsectormarines.battle.command.AssignmentKind;
-import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
-import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.air.ArmorLoad;
+import com.dillon.starsectormarines.battle.air.LiftQueue;
+import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -964,8 +966,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 capture(TacticalNode.Kind.BARRACKS,
                         CompoundService.CompoundState.DEFENDER_HELD, 0f),
                 capture(TacticalNode.Kind.ARMORY,
-                        CompoundService.CompoundState.MARINE_HELD, 0f)),
-                previewConquestCommander(groups));
+                        CompoundService.CompoundState.MARINE_HELD, 0f)));
+        presentation = presentation.withLiftRows(model.updateLiftQueue(previewLiftQueue(groups),
+                List.of(), ignored -> { }, ignored -> { }));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
         loader.reload();
@@ -991,65 +994,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return new BattleHudOverlayModel.CaptureObjective(kind, state, progress);
     }
 
-    private static CommanderSnapshot<ConquestFrontSnapshot> previewConquestCommander(boolean groups) {
-        List<ConquestFrontSnapshot.TrackState> tracks = List.of(
-                conquestTrack(0, 4, 43, 2, 101),
-                conquestTrack(1, 3, 32, 0, 102),
-                conquestTrack(2, 4, 41, 1, 103));
-        List<ConquestFrontSnapshot.SquadDirective> directives = List.of(
-                conquestDirective(1, 0, AssignmentKind.SECURE_COMPOUND, 101),
-                conquestDirective(2, 0, AssignmentKind.SECURE_COMPOUND, 101),
-                conquestDirective(3, 0, AssignmentKind.ATTACK_MOVE, -1),
-                conquestDirective(4, 0, AssignmentKind.ATTACK_MOVE, -1),
-                conquestDirective(5, 1, AssignmentKind.ADVANCE_TRACK, -1),
-                conquestDirective(6, 1, AssignmentKind.ADVANCE_TRACK, -1),
-                conquestDirective(7, 1, AssignmentKind.SECURE_COMPOUND, 102),
-                conquestDirective(8, 2, AssignmentKind.SUPPORT, 103),
-                conquestDirective(9, 2, AssignmentKind.SUPPORT, 103),
-                conquestDirective(10, 2, AssignmentKind.ATTACK_MOVE, -1),
-                conquestDirective(11, 2, AssignmentKind.ATTACK_MOVE, -1));
-        List<ConquestFrontSnapshot.SquadState> squadStates = new ArrayList<>();
-        if (groups) for (int id = 1; id <= 11; id++) {
-            squadStates.add(new ConquestFrontSnapshot.SquadState(id, 12, 40, 80,
-                    0, null, false));
+    /** A ferry mid-landing: craft in the air, squad loads to come, and queued machine drops behind them. */
+    private static LiftQueueReadout.Reading previewLiftQueue(boolean busy) {
+        float[] route = {-8f, 40f, -12f, 40f};
+        ArmorLoad hound = ArmorLoad.of(MechDeploymentSpec.standard(MechVariant.HOUND));
+        ArmorLoad apc = ArmorLoad.of(VehicleDeploymentSpec.standard(VehicleType.HEAVY_APC));
+        List<LiftQueueReadout.Flight> flights = new ArrayList<>(List.of(
+                new LiftQueueReadout.Flight(1L, ShuttleType.AEROSHUTTLE, LiftQueueReadout.Cargo.SQUAD, 6, null, 0f, true),
+                new LiftQueueReadout.Flight(2L, ShuttleType.AEROSHUTTLE, LiftQueueReadout.Cargo.SQUAD, 6, null, 7.4f, false)));
+        List<LiftQueueReadout.Waiting> waiting = new ArrayList<>(List.of(
+                new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.SQUAD, 4, null, 19f),
+                new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.MACHINE, 1,
+                        new LiftQueue.MachineDrop(1L, "mech_support", 0, hound, 40f, 40f, route, null), 62f)));
+        if (busy) {
+            waiting.add(new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.MACHINE, 1,
+                    new LiftQueue.MachineDrop(2L, "mech_support", 2, apc, 44f, 40f, route, null), 88f));
+            waiting.add(new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.MACHINE, 1,
+                    new LiftQueue.MachineDrop(3L, "mech_support", 1, apc, 46f, 40f, route, null), Float.NaN));
         }
-        ConquestFrontSnapshot front = new ConquestFrontSnapshot(
-                420, 390, Faction.MARINE, TraversalAxis.SOUTH_TO_NORTH,
-                ConquestFrontSnapshot.Phase.FRONT_ADJUST, 4, 140,
-                CompoundService.CompoundState.DEFENDER_HELD,
-                tracks, squadStates, directives);
-        if (groups) front = front.withGroups(List.of(
-                new ConquestFrontSnapshot.GroupState(
-                        new CommandGroupIdentity("officer:vale", "vale", "Captain Vale", true),
-                        List.of(1, 2, 3, 4, 5, 6), "ASSAULT", AssignmentKind.SECURE_COMPOUND,
-                        101, -1, -1, "GROUP_TASK_PRESERVED", false),
-                new ConquestFrontSnapshot.GroupState(
-                        new CommandGroupIdentity("officer:hale", "hale", "Major Hale", true),
-                        List.of(7, 8, 9, 10), "MIXED", AssignmentKind.ADVANCE_TRACK,
-                        -1, 40, 80, "GROUP_BOUNDED_RALLY", true),
-                new ConquestFrontSnapshot.GroupState(
-                        CommandGroupIdentity.actingNco("11", "Squad 11"),
-                        List.of(11), "HOLD", AssignmentKind.DEFEND_AREA,
-                        -1, 40, 80, "ACTING_NCO_AUTONOMY", false)));
-        return new CommanderSnapshot<>(Faction.MARINE, "conquest-command",
-                "FRONT_ADJUST", 420, 390, 11, 0,
-                List.of("remaining compounds=4"), List.of(), front);
-    }
-
-    private static ConquestFrontSnapshot.TrackState conquestTrack(
-            int index, int squads, int members, int contacts, int targetZone) {
-        return new ConquestFrontSnapshot.TrackState(index, index * 80,
-                index * 80 + 79, squads, squads, members,
-                0.43f + index * 0.05f, 0.55f + index * 0.04f,
-                contacts > 0 ? 0.65f + index * 0.03f : -1f,
-                contacts, 18f + index * 3f, contacts * 8f, targetZone);
-    }
-
-    private static ConquestFrontSnapshot.SquadDirective conquestDirective(
-            int squadId, int track, AssignmentKind kind, int targetZone) {
-        return new ConquestFrontSnapshot.SquadDirective(squadId, track, track,
-                ConquestFrontSnapshot.AssignmentReason.TRACK_ADVANCE,
-                kind, targetZone);
+        return new LiftQueueReadout.Reading(flights, waiting);
     }
 
     private static AirPoolView airView(int bAvail, int bOut, int bCap, int bLost, float bNext,
@@ -1081,7 +1044,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             BufferedImage overlay = renderer.render(document,
                     Math.round(BattleAirOverlay.DOCUMENT_WIDTH),
                     Math.round(BattleAirOverlay.documentHeight(presentation.kindCount(), presentation.lineCount())));
-            int railBottom = 12 + Math.round(BattleHudOverlay.CONQUEST_COMMAND_HEIGHT);
+            int railBottom = 12 + Math.round(BattleHudOverlay.OBJECTIVE_HEIGHT);
             Graphics2D graphics = image.createGraphics();
             graphics.drawImage(overlay, width - 12 - overlay.getWidth(), railBottom + 8, null);
             graphics.dispose();

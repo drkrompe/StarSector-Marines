@@ -8,9 +8,7 @@ import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -18,14 +16,19 @@ import java.util.List;
  *
  * <p>Each carrier brings a number of machine lifts at its {@link LiftRating}: a cradled
  * company boat {@link #liftsPerCompanyBoat} (two on a light cradle, three on a heavy one),
- * the synthetic heavy carrier a hull, ship or employer supplies enough for the whole bay.
- * A machine spends one lift from a carrier whose rating admits it ({@link LiftAdmission}), so a Heavy machine spends Heavy lift and
- * a budget with none refuses it. Spent lift stays spent for the mission whether or not
- * the carrier came home: better boats mean more armor on the ground, not faster calls.
+ * the heavy lift a hull, ship or employer supplies enough for the whole bay. A machine
+ * spends one lift from a carrier whose rating admits it ({@link LiftAdmission}), so a Heavy
+ * machine spends Heavy lift and a budget with none refuses it. Spent lift stays spent for
+ * the mission whether or not the craft came home: better boats mean more armor on the
+ * ground, not faster drops. Only a drop cancelled while it still waits on the lift queue
+ * gives its lift back.
  *
- * <p>Allocation is heaviest first, each machine to the lowest-rated carrier that still
- * admits it. Ratings are nested (a Heavy carrier takes anything a Light one does), so that
- * order fits every load that can be fitted at all, and keeps heavy lift for heavy machines.
+ * <p>The budget says how much may come down; the ferry craft on the lift queue say when.
+ * Which craft flies a machine is the queue's business, not the budget's.
+ *
+ * <p>Each machine goes to the lowest-rated carrier that still admits it. Ratings are
+ * nested (a Heavy carrier takes anything a Light one does), so that keeps heavy lift for
+ * heavy machines.
  */
 public final class LiftBudget {
 
@@ -45,14 +48,14 @@ public final class LiftBudget {
         return rating == LiftRating.LIGHT ? LIGHT_CRADLE_LIFTS : MEDIUM_CRADLE_LIFTS;
     }
 
-    /** Why a machine cannot be added to a call. */
+    /** Why a machine cannot be ordered down. */
     public enum Refusal {
         /** No carrier this mission lifts a machine of its class. */
         NO_LIFT,
         /** Carriers that could lift it have spent their lift this mission. */
         LIFT_SPENT,
-        /** Its only carrier is in the air or lost. */
-        CARRIER_AWAY
+        /** Lift is left, but every ferry craft that could fly it is lost. */
+        NO_CRAFT
     }
 
     /** One carrier's share of the budget. */
@@ -83,24 +86,23 @@ public final class LiftBudget {
 
     /**
      * The mission's budget: the committed company boat, if it carries a cradle, and the
-     * synthetic carrier when one is supplied, which lifts as many machines as the bay holds.
+     * supplied heavy lift when there is one, which lifts as many machines as the bay holds.
      */
-    public static LiftBudget forMission(FittedBoat companyBoat, boolean syntheticLift,
-                                        ShuttleType synthetic, int manifestSize) {
+    public static LiftBudget forMission(FittedBoat companyBoat, boolean heavyLift,
+                                        ShuttleType heavy, int manifestSize) {
         List<Carrier> carriers = new ArrayList<>(2);
         if (companyBoat != null && companyBoat.liftRating() != LiftRating.NONE) {
             carriers.add(new Carrier(companyBoat, true, liftsPerCompanyBoat(companyBoat.liftRating())));
         }
-        if (syntheticLift && synthetic != null) {
-            carriers.add(new Carrier(synthetic, false,
-                    Math.max(MechSupport.LANCE_SIZE, manifestSize)));
+        if (heavyLift && heavy != null) {
+            carriers.add(new Carrier(heavy, false, Math.max(MechSupport.LANCE_SIZE, manifestSize)));
         }
         return new LiftBudget(carriers);
     }
 
     public List<Carrier> carriers() { return carriers; }
 
-    /** Machine lifts left across every carrier, home or not. */
+    /** Machine lifts left across every carrier. */
     public int remaining() {
         int total = 0;
         for (Carrier carrier : carriers) total += carrier.remaining();
@@ -108,62 +110,36 @@ public final class LiftBudget {
     }
 
     /**
-     * Which carrier lifts each of {@code load}, in {@code load}'s order, or {@code null} when
-     * the remaining budget cannot lift all of it. {@code companyAvailable} false withholds
-     * the company boat (in the air, or lost).
+     * The carrier whose lift one machine of {@code payload}'s class would spend: the
+     * lowest-rated one with lift left that admits it, or {@code null} when none does.
      */
-    public List<Carrier> allocate(List<LiftClass> load, boolean companyAvailable) {
-        if (load == null || load.isEmpty()) return List.of();
-        Integer[] order = new Integer[load.size()];
-        for (int i = 0; i < order.length; i++) order[i] = i;
-        Arrays.sort(order, Comparator.comparingInt((Integer i) -> load.get(i).ordinal()).reversed());
-        int[] used = new int[carriers.size()];
-        Carrier[] chosen = new Carrier[load.size()];
-        for (int index : order) {
-            int best = -1;
-            for (int c = 0; c < carriers.size(); c++) {
-                Carrier carrier = carriers.get(c);
-                if (carrier.company && !companyAvailable) continue;
-                if (carrier.remaining() - used[c] <= 0) continue;
-                if (!LiftAdmission.check(load.get(index), carrier.frame).admitted()) continue;
-                if (best < 0 || carrier.rating().ordinal() < carriers.get(best).rating().ordinal()) {
-                    best = c;
-                }
-            }
-            if (best < 0) return null;
-            used[best]++;
-            chosen[index] = carriers.get(best);
+    public Carrier allocate(LiftClass payload) {
+        if (payload == null) return null;
+        Carrier best = null;
+        for (Carrier carrier : carriers) {
+            if (carrier.remaining() <= 0) continue;
+            if (!LiftAdmission.check(payload, carrier.frame).admitted()) continue;
+            if (best == null || carrier.rating().ordinal() < best.rating().ordinal()) best = carrier;
         }
-        return List.of(chosen);
+        return best;
     }
 
-    /**
-     * Why {@code candidate} cannot join a call already holding {@code picked}, or
-     * {@code null} when it can.
-     */
-    public Refusal refusal(LiftClass candidate, List<LiftClass> picked, boolean companyAvailable) {
-        List<LiftClass> load = new ArrayList<>(picked == null ? List.of() : picked);
-        load.add(candidate);
-        if (allocate(load, companyAvailable) != null) return null;
-        boolean anyAdmits = false;
-        boolean anyHome = false;
+    /** Why one machine of {@code payload}'s class cannot be lifted, or {@code null} when it can. */
+    public Refusal refusal(LiftClass payload) {
+        if (allocate(payload) != null) return null;
         for (Carrier carrier : carriers) {
-            if (!LiftAdmission.check(candidate, carrier.frame).admitted()) continue;
-            anyAdmits = true;
-            if (carrier.remaining() > 0 && (!carrier.company || companyAvailable)) anyHome = true;
+            if (LiftAdmission.check(payload, carrier.frame).admitted()) return Refusal.LIFT_SPENT;
         }
-        if (!anyAdmits) return Refusal.NO_LIFT;
-        boolean anyLiftLeft = false;
-        for (Carrier carrier : carriers) {
-            if (carrier.remaining() > 0
-                    && LiftAdmission.check(candidate, carrier.frame).admitted()) anyLiftLeft = true;
-        }
-        if (anyLiftLeft && !anyHome) return Refusal.CARRIER_AWAY;
-        return Refusal.LIFT_SPENT;
+        return Refusal.NO_LIFT;
     }
 
-    /** Spends one lift from each carrier in {@code allocation}. */
-    void spend(List<Carrier> allocation) {
-        for (Carrier carrier : allocation) carrier.spent++;
+    /** Spends one lift from {@code carrier}. */
+    public void spend(Carrier carrier) {
+        carrier.spent++;
+    }
+
+    /** Gives back one lift a cancelled drop had spent from {@code carrier}. */
+    void refund(Carrier carrier) {
+        if (carrier.spent > 0) carrier.spent--;
     }
 }

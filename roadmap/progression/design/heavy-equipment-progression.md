@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
+Updated: 2026-10-26 — drops are free, one machine each, paced by the ferry's lift queue. Earlier 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -1112,7 +1112,7 @@ machine. The progression is that a company reaches Light drops through its own
 boats early, and Heavy only through a Valkyrie or a ship refit — the expensive,
 late step.
 
-**Lift per mission and the call cooldown.** A light-cradled company boat flies
+**Lift per mission and the lift queue.** A light-cradled company boat flies
 two machine lifts a mission, a heavy-cradled one three, and the synthetic heavy
 carrier lifts the whole bay. The heavy cradle used to fly two as well, which made
 it a worse buy than the light one: it costs about 2.3 times the bill, and a
@@ -1126,17 +1126,13 @@ armor capacity:
 | Mid, heavy cradle | 3 | 3120 (three escort APCs); 2175 mechs only |
 | Late, Valkyrie | 4 | 9600 (four dozers); 5040 (four Bulwarks) |
 
-The late tier is capped by the four gantries, not by lift. Calls are spaced
-30 s apart (`-Dbattle.power.armorDropCooldownSeconds=N` is the control). The
-pace is set by `sceneEvidence -Pscene=armor-drop-pace`, which calls as soon as the
-picker allows. A carrier's round trip is about 10.7 s plus 0.27 s per cell of
-landing depth: 18 s at 30 cells, 35 s at 80, 58 s at 150. Decided zero-input
-missions run 55-193 s. At 45 s, a second split call landed mid-fight and a third
-only at the end, and a Valkyrie fed one machine at a time had three of four down
-by 120 s. At 30 s, all four are down by 98-116 s. A cradled boat landing deeper
-than about 80 cells is paced by its own round trip at either setting, so the
-cooldown matters only for shallow drops and a heavy carrier fed piecemeal.
-Better boats still mean more armor on the ground, never faster calls.
+The late tier is capped by the four gantries, not by lift. Drops are free and
+one machine each: what paces them is the ferry. Every drop waits on the lift queue
+(`air-nouns.md`, Lift) behind the opening squad loads and earlier drops, and flies
+only when a ferry craft whose rating admits it is free, so a machine ordered at the
+start comes down after the company has landed. The 30 s call cooldown that paced the
+old lance calls is gone with them. Better boats still mean more armor on
+the ground, never faster drops.
 
 ## Vehicles: variants and kits
 

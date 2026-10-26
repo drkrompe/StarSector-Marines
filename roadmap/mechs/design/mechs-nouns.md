@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — a click inside a rack's cycle fires its next group, as a hold does; vehicle kits gain the accelerated loader and the capacitor pack.
+Updated: 2026-10-26 — an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded.
 
 ## Purpose
 
@@ -219,25 +219,35 @@ increasing an encounter's total armored threat.
   bay holds a vehicle). Where Mech Support and Armour Support would both be in
   the roster and the bay was read, Mech Support carries the whole manifest and
   Armour Support leaves the roster: one bay, one picker. Armour Support alone (a
-  vehicle source with no mech source) still brings vehicles one per charge; only
-  a debug grant or a launch with no bay sets down its unowned fallback APC.
-- An **armor drop** is one call of Mech Support. The player arms the card, picks
-  which manifest entries come down this time (the picker starts on every machine
-  aboard that lift allows, up to a lance), then clicks the landing ground. Only
-  the picked machines fly; the rest stay aboard for a later call. A cooldown
-  (30 s) spaces the calls in place of one charge per lance, and the card counts the
-  machines still aboard, reading spent when none are.
+  vehicle source with no mech source) opens the same picker over the bay's
+  vehicles; only a debug grant or a launch with no bay sets down its two unowned
+  fallback APCs.
+- An **armor drop** is one machine ordered down by Mech Support (or Armour
+  Support where it is the vehicle-only source). Arming the card pauses the battle
+  and opens the picker: every manifest entry with its state (aboard, queued,
+  called) or the reason lift refuses it. The player picks one machine and clicks
+  its landing ground, which is checked as any drop zone is; Shift-click places it
+  and keeps the picker open on the next machine, and right-click or Escape closes
+  it. Closing the picker gives back the pause state it found. Drops are free: no
+  command points and no cooldown. The order joins the **lift queue**
+  (`air-nouns.md`, Lift) and the machine lands as its own squad. The card counts
+  the machines still aboard, reading spent when none are.
+- A **queued drop** is an order no craft has taken yet. It shows a marker on its
+  landing ground and a row with an X in the Lift Queue panel (`ui-nouns.md`);
+  cancelling it puts the machine back aboard and refunds its lift. Once a craft
+  has taken it the drop is in the air and cannot be called back.
 - The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
   company boat flies two machine lifts at its rating on a light cradle and three
   on a heavy one, and the synthetic heavy
   carrier a hull, ship, employer or story arranges lifts the whole bay. Each
-  picked machine spends one lift from the lowest-rated carrier that admits it
+  ordered machine spends one lift from the lowest-rated carrier that admits it
   (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
   spent for the mission whether or not the carrier came home: better boats mean
   more armor on the ground, not faster calls. An entry the budget cannot lift is
-  shown disabled with its reason (no lift of its class, lift spent, or its only
-  carrier away), and a call the budget refuses stays armed and spends nothing.
-  A call split between the company boat and the synthetic carrier flies both.
+  shown disabled with its reason (no lift of its class, lift spent, or no live
+  ferry craft left that can carry it), and an order the budget refuses stays
+  armed and spends nothing. The budget says how many machines may come down; the
+  lift queue decides which craft flies each one.
 - **A vehicle wrecked on the field is lost to the company**: settlement takes it
   off its gantry, which stands empty for a new one. Only a vehicle that landed
   and was wrecked writes back — one still aboard a carrier is not tracked as
@@ -1083,8 +1093,8 @@ support sortie, subject only to practical runtime resources.
 
 - **The picker chooses; it never edits.** An armor drop selects from the frozen
   manifest. It cannot change a fit, add a machine, or bring a machine twice: one
-  already called (landed, lost, or still in the air) is not aboard again this
-  mission. The AI commander's mech-drop allowance is a separate ledger and is
+  already ordered (queued, in the air, landed or lost) is not aboard again this
+  mission unless its queued order is cancelled. The AI commander's mech-drop allowance is a separate ledger and is
   untouched by the player's picks.
 
 - **A field works produces from work done, never from elapsed time.** Its

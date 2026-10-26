@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — a planted Bombard an operator sees is designated ahead of a lone nest. Earlier the same day: forward observers posted with formations and the Rav Bloom allied air wing; danger close covers every friendly side; strikes count ground bodies, not fliers.
+Updated: 2026-10-26 — machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -397,25 +397,31 @@ breakthrough tank Heavy). It is not the machine's inertia, which manual driving
 reads separately. Every airframe has a **lift rating**, the heaviest class it
 takes: a Valkyrie lifts Heavy as built and every other pattern nothing. A
 bus-class boat (Buffalo, Tarsus, Mule, Nebula) earns Light or Medium lift
-through the third fitting slot, the hold: a **cradle** gives up every seat for
-the rating, so a cradled boat flies **machine-only sorties**, one machine a
-trip, and is never part of the infantry manifest. Deboarding stays one kind per
-sortie. Small boats never lift a machine. Whether one carrier takes one machine
+through the third fitting slot, the hold: a **cradle** adds the rating and keeps
+the seats, so a cradled boat flies its squad loads like any other boat and then
+machines. Deboarding stays one kind per sortie: a squad load or exactly one
+machine. Small boats never lift a machine. Whether one carrier takes one machine
 is a single pure check (`LiftAdmission`) that every consumer asks — the drop
 powers, the briefing and a per-mission lift budget — rather than comparing
 classes itself; a refusal is either *no lift* or *under-rated*.
 
-**Who flies a drop.** Lift changes who flies, never who may call: the powers'
-sources stay where `command-powers-nouns.md` puts them. Where the employer or a
-story mission supplies the lift, the drop flies the synthetic Valkyrie. Where a
-fleet ship grants the power, the company's lightest committed cradle that lifts
-the lance is handed to it (one boat per power, Mech Support first), and a call
-it can lift is flown by that boat itself — so a boat shot down with a machine
-aboard settles as that boat's loss like any other. A call the boat cannot lift,
-or made while the boat is lost or still in the air, falls back to the source's
-heavy lift. A drop power with no heavy lift behind its boat refuses a target it
-cannot fly before a charge is spent. The carrier crosses launch in the power's
-commitment like the rest of its payload.
+**The lift queue.** Lift changes who flies, never who may call: the powers'
+sources stay where `command-powers-nouns.md` puts them. The player's machines
+ride the **ferry**, the marine transports that bring the company in, through one
+first-in-first-out **lift queue**. The opening squad loads go first: each craft
+flies its own sorties, then a lift-rated craft waits off-map on **standby**. Each
+player order is a **machine drop** job; a standby craft takes the oldest job it
+can carry (`LiftAdmission`) and flies exactly that machine to its landing ground,
+so a boat shot down with a machine aboard settles as that boat's loss like any
+other. A budget carrier no ferry craft matches (the employer's or a ship's heavy
+lift, or a committed cradle with no seat in the arrival) joins the ferry as an
+ordinary standby craft of its pattern, so heavy lift is one more ferry craft and
+not a separate delivery. An Aeroshuttle standing in for a cradled hull (Conquest
+paired arrivals) inherits its lift rating; one standing in for a Valkyrie does
+not, and that heavy lift joins as above. A job waits until a craft that can
+carry it is free, and reads as having no craft when none is left alive. The
+carrier crosses launch in the power's commitment like the rest of its payload.
+The commander AI's mech drop and enemy lances keep their own deliveries.
 
 **Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
 worst missing-hull fraction observed across its trips, including a final partial tick.

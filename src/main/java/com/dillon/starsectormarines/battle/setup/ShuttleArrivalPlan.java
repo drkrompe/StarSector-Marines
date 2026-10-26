@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 
@@ -145,15 +147,22 @@ public record ShuttleArrivalPlan(
      *
      * <p>Only an Aeroshuttle-pattern boat carries through, because the pair the
      * collapse builds is an Aeroshuttle. A Valkyrie's plating has nothing to do
-     * with the craft that replaces her.
+     * with the craft that replaces her. A cradle does carry through: the
+     * Aeroshuttle standing in for a cradled boat inherits its lift rating, so
+     * the boat's machine sorties still fly ({@code air-nouns.md}, Lift).
      */
-    private static Airframe frameFor(List<ShuttleAssignment> source,
-                                     int from, int to, int index) {
+    static Airframe frameFor(List<ShuttleAssignment> source,
+                             int from, int to, int index) {
         int at = from + index;
         if (at < from || at >= to || at >= source.size()) return ShuttleType.AEROSHUTTLE;
         ShuttleAssignment origin = source.get(at);
-        return origin != null && origin.type == ShuttleType.AEROSHUTTLE
-                ? origin.airframe : ShuttleType.AEROSHUTTLE;
+        if (origin == null) return ShuttleType.AEROSHUTTLE;
+        if (origin.type == ShuttleType.AEROSHUTTLE) return origin.airframe;
+        if (origin.airframe instanceof FittedBoat boat && boat.cradled()) {
+            return new FittedBoat(ShuttleType.AEROSHUTTLE, BoatFitting.STANDARD_PLATING,
+                    BoatFitting.STANDARD_DRIVE, boat.lift(), null);
+        }
+        return ShuttleType.AEROSHUTTLE;
     }
 
     private static int seatCapacity(List<ShuttleAssignment> manifest,

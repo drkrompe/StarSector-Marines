@@ -18,9 +18,9 @@ public enum BoatFittingSlot {
     DRIVE,
 
     /**
-     * The hold. Standard seats people; a cradle trades every seat for a lift
-     * rating, so a cradled boat flies machine-only sorties. Bus-class hulls
-     * only.
+     * The hold. Standard seats people; a cradle keeps the seats and adds a
+     * lift rating, so a cradled boat flies squad loads and then one machine a
+     * sortie. Bus-class hulls only.
      */
     LIFT
 }

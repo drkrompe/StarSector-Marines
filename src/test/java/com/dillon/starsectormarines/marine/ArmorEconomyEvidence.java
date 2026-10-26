@@ -142,7 +142,11 @@ class ArmorEconomyEvidence {
                 armor += m.durability();
             }
             LiftBudget budget = LiftBudget.forMission(boat, synthetic, ShuttleType.VALKYRIE, BAY_GANTRIES);
-            if (budget.allocate(load, true) == null) return;
+            for (LiftClass lift : load) {
+                LiftBudget.Carrier carrier = budget.allocate(lift);
+                if (carrier == null) return;
+                budget.spend(carrier);
+            }
             if (armor > best.armor) {
                 best.armor = armor;
                 best.names = new ArrayList<>();
