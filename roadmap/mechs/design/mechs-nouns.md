@@ -1304,8 +1304,11 @@ support sortie, subject only to practical runtime resources.
   Motion follows the presentation clock without mutating campaign hardware.
   The complete well is the pointer target. Catalog art can be dragged onto a
   compatible mount, installed weapons can move to a compatible vacant mount, and
-  dropping them over stores returns them to finite inventory. The carried weapon
-  stays visible above the document; Escape or an outside drop cancels the gesture.
+  dropping them over stores returns them to finite inventory. A carried part
+  (weapon, internal or kit) is never drawn nowhere: over a socket that takes it,
+  or the one it came off, it is drawn snapped into that socket a little
+  translucent; anywhere else, a refusing socket included, it rides the pointer
+  above the document. Escape or an outside drop cancels the gesture.
   All commits use the atomic campaign refit commands. An explicit empty weapon
   mount remains empty in the frozen deployment and fixture serialization. An
   authored empty socket stays visible while an absent socket produces no well.
@@ -1351,7 +1354,9 @@ support sortie, subject only to practical runtime resources.
   never by a number. A vacant pad is marked as a build site in the BUY amber (a faint
   wash, corner brackets, the fabrication cog and BUILD), never a bare plus. The status
   line on the right of the heading says what the current view asks for: select a pad,
-  choose a chassis or vehicle, or select a mount. Selecting
+  choose a chassis or vehicle, or select a mount. Any pad is selected by pressing it in
+  the view (an occupied pad is bracketed in amber under the pointer) or by its card in the
+  rail below, a card per pad at its own width that never stretches across the rail. Selecting
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
   chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
@@ -1391,12 +1396,11 @@ support sortie, subject only to practical runtime resources.
 - **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
   presses: the first arms it and says what comes back, the second breaks the machine
   up. Nothing fitted is lost (weapons, internals and the loader stay owned and are
-  spares in stores again) and half the chassis or vehicle bill, rounded down, returns
-  to the ship's hold, never to a depot it may leave behind. This is the opposite of a
+  spares in stores again) and the machine shop's recycling share of its hull returns
+  to the ship's hold, never to a depot it may leave behind (`company-view-nouns.md`,
+  Recycling). This is the opposite of a
   battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
-  A single spare in stores breaks down the same two-press way from its card's
-  RECYCLE, at the machine shop's rate rather than a flat half
-  (`company-view-nouns.md`, Recycling).
+  A single spare in stores breaks down the same two-press way from its card's RECYCLE.
   The lance returns to its overview with that pad vacant. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,

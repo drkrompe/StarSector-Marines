@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Alarm;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Broker;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Facts;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Grade;
-import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Side;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,7 +87,7 @@ class DustLedgerProgressTest {
         assertEquals(0f, p.burnedShare(), "nothing left to burn once the room is taken");
     }
 
-    @Test void theBrokerFleesSurrendersFollowsAndIsDelivered() {
+    @Test void theBrokerFleesAndSurrendersAndHisDeliveryIsTheSideObjectives() {
         var p = new DustLedgerProgress(100f, 4f);
         p.advance(1f, QUIET.withShot());
         assertEquals(Broker.FLEEING, p.broker());
@@ -96,10 +95,8 @@ class DustLedgerProgressTest {
         assertEquals(Broker.HELD, p.broker());
         p.advance(1f, QUIET.withAtPad());
         assertEquals(Broker.HELD, p.broker(), "a captive walked past the pad does not board");
-        p.advance(1f, QUIET.withAtApron());
-        assertEquals(Broker.DELIVERED, p.broker());
-        p.advance(1f, QUIET.withBrokerDead());
-        assertEquals(Broker.DELIVERED, p.broker());
+        p.advance(1f, QUIET.withContact());
+        assertEquals(Broker.HELD, p.broker(), "held until the broker side objective sees him to the apron");
     }
 
     @Test void theBrokerEscapesAtThePadOrDiesOnTheWay() {
@@ -114,72 +111,5 @@ class DustLedgerProgressTest {
         killed.advance(1f, QUIET.withContact());
         killed.advance(1f, QUIET.withBrokerDead());
         assertEquals(Broker.DEAD, killed.broker());
-    }
-
-    @Test void theCouplingPaysOnlyIfDeliveredBeforeTheAlarm() {
-        var early = new DustLedgerProgress(100f, 4f);
-        early.advance(1f, QUIET.withCrateInYard());
-        assertEquals(Side.PAID, early.coupling());
-        early.advance(1f, QUIET.withShot());
-        assertTrue(early.salvageTeamJoins());
-
-        var sameTick = new DustLedgerProgress(100f, 4f);
-        sameTick.advance(1f, QUIET.withCrateInYard().withShot());
-        assertTrue(sameTick.salvageTeamJoins());
-
-        var late = new DustLedgerProgress(100f, 4f);
-        late.advance(1f, QUIET.withShot());
-        assertEquals(Side.LAPSED, late.coupling());
-        late.advance(1f, QUIET.withCrateInYard());
-        assertEquals(Side.LAPSED, late.coupling());
-        assertFalse(late.salvageTeamJoins());
-    }
-
-    @Test void theWardensNodNeedsAnUnbrokenStayBeforeTheAlarm() {
-        float half = DustLedgerProgress.NOD_SECONDS / 2;
-        var p = new DustLedgerProgress(100f, 4f);
-        p.advance(half, QUIET.withLeaderAtWell());
-        p.advance(.1f, QUIET);
-        assertEquals(0f, p.nodProgress(), "walking off restarts the wait");
-        p.advance(half, QUIET.withLeaderAtWell());
-        assertEquals(Side.OPEN, p.warden());
-        assertTrue(p.drinkersJoin());
-        p.advance(half, QUIET.withLeaderAtWell());
-        assertEquals(Side.PAID, p.warden());
-        assertTrue(p.spottersUp());
-        assertFalse(p.drinkersJoin());
-        p.advance(1f, QUIET.withShot());
-        assertFalse(p.spottersUp(), "the spotters stand down at the alarm");
-        assertFalse(p.drinkersJoin(), "the watch still holds the cantina");
-
-        var interrupted = new DustLedgerProgress(100f, 4f);
-        interrupted.advance(half, QUIET.withLeaderAtWell());
-        interrupted.advance(.1f, QUIET.withLeaderAtWell().withShot());
-        assertEquals(Side.LAPSED, interrupted.warden(), "a nod still under way at the alarm pays nothing");
-        assertTrue(interrupted.drinkersJoin());
-    }
-
-    @Test void cuttingTheFeedNeedsAnUnbrokenStintBeforeTheAlarmAndDarkensTheNests() {
-        float half = DustLedgerProgress.FEED_SECONDS / 2;
-        var cut = new DustLedgerProgress(100f, 4f);
-        cut.advance(half, QUIET.withAtFeed());
-        cut.advance(.1f, QUIET);
-        assertEquals(0f, cut.feedProgress(), "leaving the junction restarts the work");
-        cut.advance(half, QUIET.withAtFeed());
-        assertEquals(Side.OPEN, cut.feed());
-        assertTrue(cut.nestsPowered());
-        cut.advance(half, QUIET.withAtFeed());
-        assertEquals(Side.PAID, cut.feed());
-        assertFalse(cut.nestsPowered());
-        cut.advance(1f, QUIET.withShot());
-        assertFalse(cut.nestsPowered(), "a cut feed stays cut through the alarm");
-
-        var late = new DustLedgerProgress(100f, 4f);
-        late.advance(half, QUIET.withAtFeed());
-        late.advance(.1f, QUIET.withAtFeed().withShot());
-        assertEquals(Side.LAPSED, late.feed(), "work under way at the alarm pays nothing");
-        late.advance(DustLedgerProgress.FEED_SECONDS, QUIET.withAtFeed());
-        assertEquals(Side.LAPSED, late.feed());
-        assertTrue(late.nestsPowered());
     }
 }

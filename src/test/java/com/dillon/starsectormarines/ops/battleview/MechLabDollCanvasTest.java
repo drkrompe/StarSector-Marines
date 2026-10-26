@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.marine.MechCompartment;
+import com.dillon.starsectormarines.marine.MechInternal;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -95,6 +97,25 @@ class MechLabDollCanvasTest {
                 assertTrue(a[0] == b[0] || a[1] == b[1], part.id() + " wire has a diagonal leg");
             }
         }
+    }
+
+    @Test
+    void aCarriedPartSnapsWhereItWouldGoAndOtherwiseRidesThePointer() {
+        // A socket that takes the part shows it snapped in; so does the socket it came off.
+        assertTrue(MechLabDollCanvas.snaps(SocketId.AUXILIARY, null, true));
+        assertTrue(MechLabDollCanvas.snaps(SocketId.ARMS, SocketId.ARMS, false));
+        // A refusing socket and open floor leave it on the pointer, never drawn nowhere.
+        assertFalse(MechLabDollCanvas.snaps(SocketId.CORE, null, false));
+        assertFalse(MechLabDollCanvas.snaps(null, SocketId.ARMS, false));
+    }
+
+    @Test
+    void aStoresPartSnappedIntoTheCompartmentIsPackedLastBesideWhatIsFitted() {
+        List<MechInternal> fitted = List.of(MechInternal.FACTORY_CAPACITOR_BANK);
+        List<MechCompartment.Placement> packed = MechLabDollCanvas.packedWith(
+                MechCompartment.of(MechVariant.BULWARK), fitted, MechInternal.ACCELERATED_LOADER);
+        assertEquals(2, packed.size());
+        assertEquals(MechInternal.ACCELERATED_LOADER, packed.get(1).part());
     }
 
     private static MechLabDollCanvas.SocketDropTarget find(List<MechLabDollCanvas.SocketDropTarget> targets,

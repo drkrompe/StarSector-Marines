@@ -35,6 +35,8 @@ final class MechSocketConsole {
     private static final float CUT = 6f;
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
     private static final Color MISSING_PLATE = new Color(0x1c, 0x08, 0x08, 214);
+    /** A part in hand snapped into a socket: a little translucent, as it is not fitted yet. */
+    private static final int PREVIEW_ALPHA = 195;
 
     private MechSocketConsole() { }
 
@@ -82,13 +84,16 @@ final class MechSocketConsole {
      *
      * @param internal the engine fitted in the core, drawn as its footprint on the socket grid and
      *                 named in the caption; null otherwise
+     * @param internalPreview whether {@code internal} is one in hand, snapped in but not yet fitted
      * @param parts    the whole auxiliary compartment's parts at their packed places, across every
      *                 bay (the card draws those in its own bay); null for any other socket
+     * @param previewPart the one of {@code parts} that is in hand, snapped in but not yet fitted; or null
      */
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
                      SocketDef socket, MechWeaponComponent installed,
-                     MechWeaponComponent preview, MechInternal internal,
-                     List<MechCompartment.Placement> parts, LayeredMechAssets assets,
+                     MechWeaponComponent preview, MechInternal internal, boolean internalPreview,
+                     List<MechCompartment.Placement> parts, MechCompartment.Placement previewPart,
+                     LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
                      boolean rejected, boolean draggingHere, double time) {
         boolean fixed = socket.factoryLocked();
@@ -132,26 +137,26 @@ final class MechSocketConsole {
                         HardpointBricks.tone(internal.role));
                 HardwareArt.draw(c, internal, bricks.brickX(block[0]), bricks.brickY(block[1]),
                         bricks.span(block[2], bricks.brickWidth()),
-                        bricks.span(block[3], bricks.brickHeight()), 255);
+                        bricks.span(block[3], bricks.brickHeight()), internalPreview ? PREVIEW_ALPHA : 255);
             } else if (here != null) {
                 for (MechCompartment.Placement part : here) {
                     HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
                             HardpointBricks.tone(part.part().role));
                     HardwareArt.draw(c, part.part(), bricks.brickX(part.column()), bricks.brickY(part.row()),
                             bricks.span(part.columns(), bricks.brickWidth()),
-                            bricks.span(part.rows(), bricks.brickHeight()), 255);
+                            bricks.span(part.rows(), bricks.brickHeight()), part == previewPart ? PREVIEW_ALPHA : 255);
                 }
             }
             if (shown != null && !HardwareArt.draw(c, shown,
                     bricks.brickX(shownBlock[0]), bricks.brickY(shownBlock[1]),
                     bricks.span(shownBlock[2], bricks.brickWidth()), bricks.span(shownBlock[3], bricks.brickHeight()),
-                    preview != null ? 195 : 255) && assets != null) {
+                    preview != null ? PREVIEW_ALPHA : 255) && assets != null) {
                 LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets, shown);
                 if (sprite != null) {
                     float scale = Math.min(bricks.width() * .9f / sprite.pxWidth, bricks.height() * .9f / sprite.pxHeight);
                     c.sprite(sprite.sourcePath, sprite.sprite, bricks.centerX(), bricks.centerY(),
                             sprite.pxWidth * scale, sprite.pxHeight * scale, 0,
-                            new Color(255, 255, 255, preview != null ? 195 : 255));
+                            new Color(255, 255, 255, preview != null ? PREVIEW_ALPHA : 255));
                 }
             }
         }

@@ -1,4 +1,4 @@
-<template props="filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,scrapLabel,scrapClasses,scrapAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="boat-deck-room-bar" class="panel room-bar">
@@ -42,6 +42,7 @@
           <button id="boat-back-to-deck" class="{backClasses}" onclick="{backToDeck}">{i18n.openingUiMechLabBackToLance}</button>
           <div id="boat-deck-stage-title" class="label heading tone-edge">{stageTitle}</div>
           <div id="boat-deck-stage-status" class="label heading tone-muted stage-status">{stageStatus}</div>
+          <button id="boat-scrap" class="{scrapClasses}" onclick="{scrapAction}">{scrapLabel}</button>
         </div>
         <canvas id="boat-deck-canvas" class="bay-canvas" width="900" height="520" />
       </div>
@@ -146,6 +147,8 @@
   .stage-heading { flex-direction: row; align-items: center; width: 100%; height: 19px; padding: 0px 3px; gap: 8px; }
   #boat-deck-stage-title { width: 420px; }
   .stage-status { width: 0px; flex-grow: 1; text-align: right; }
+  .boat-scrap { width: 112px; height: 19px; padding: 0px 6px; font-family: heading; text-align: center; color: #d88a76; }
+  .boat-scrap.armed { background-color: #4a1c18; border-color: #e0604c; color: #ffd2c4; }
   .bay-canvas { width: 100%; height: 0px; flex-grow: 1; }
 
   .bay-sealed-note { width: 100%; min-height: 64px; padding: 8px; border-width: 1px; border-color: #b99f65; background-color: #202c28; white-space: normal; }

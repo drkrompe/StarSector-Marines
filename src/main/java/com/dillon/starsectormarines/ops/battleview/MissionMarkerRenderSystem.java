@@ -37,7 +37,8 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
             float rawY = camera.cellToScreenY(marker.y() + .5f);
             boolean onScreen = rawX >= camera.vpX() && rawX <= camera.vpX() + camera.vpW()
                     && rawY >= camera.vpY() && rawY <= camera.vpY() + camera.vpH();
-            if (!onScreen && (!focus || !active)) continue;
+            // Off camera, only the mission's own open steps keep an edge indicator; a side objective is a Locate away.
+            if (!onScreen && (!focus || !active || item.optional())) continue;
             boolean blocked = focus && active && !item.blocker().isBlank();
             Color tone = marker.state() == MissionObjectiveSnapshot.State.COMPLETE ? BattlefieldMarkerPresentation.VALID
                     : marker.state() == MissionObjectiveSnapshot.State.FAILED ? BattlefieldMarkerPresentation.INVALID
@@ -86,7 +87,8 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
             List<String> details = new ArrayList<>();
             String status = focus && active && !item.progressText().isBlank() ? item.progressText() : marker.status();
             details.add((onScreen ? "" : "OFF SCREEN / ") + status);
-            boolean expanded = focus && active && (!item.id().startsWith("territory-") || camera.cellPxSize() >= 12);
+            boolean expanded = focus && active && (!item.id().startsWith("territory-") || camera.cellPxSize() >= 12)
+                    && (blocked || !item.instruction().equals(status));
             if (expanded) details.addAll(Fonts.INSIGNIA_15_AA.wrapLines(
                     blocked ? item.blocker() : item.instruction(), WIDTH - 20));
             var title = Fonts.ORBITRON_12_BOLD.wrapLines(marker.name(), WIDTH - 20);
