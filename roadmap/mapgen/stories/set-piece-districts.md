@@ -252,7 +252,11 @@ the cross street between them given to the row's ground. Where it holds neither 
 seed claims its neighbour as it always has (a smaller seed is ineligible for the same reason). Where the
 street has no yard or no row, the zone takes one on the largest member that holds it alone, else on the
 neighbouring pair whose joined ground does. The yard takes its ground first, unless the row taking the
-largest ground first leaves the yard ground of its own and so hosts both. A set piece is given its role only where the layout says it
+largest ground first leaves the yard ground of its own and so hosts both. Where no row stands on the zone's
+ground at all, the zone lays it along its own street, the **works street**: the best run of neighbouring
+free members on one side, each at least seven deep (its pavement and a six-deep hall) and six along, fronting
+a lane from 14 to 32 cells (`IndustrialZoneProgram.worksStreet`), with every member that deep across the
+street and wholly inside the lane. Each is a `WORKSHOP`; the most workshops win, then the longest lane. A set piece is given its role only where the layout says it
 stands, asked over the streets as the plan would leave them and the road reservation they draw; a joined
 pair whose closed cross street would cut a mouth falls back to single members. Once committed, the zone
 stands down the yard or the row planned elsewhere on the map (the parcel becomes an industrial yard, the
@@ -277,8 +281,13 @@ its end walls on one narrower than six), blocks of four fluid tanks on
 earth beside a striped drive and a tanker parked at its end; a vehicle depot is striped hardstanding with
 haulers parked either side of the drive and drums on the back wall. Freight gantries
 (`origin-freight.gantry-span-clean` and its legs) span the street every 14 cells where both legs land on
-open apron. A hosted yard or row stands on its member or joined pair, the joined cross street its own
-ground; a row's gate may cross up to six cells of that ground to the street (`FactoryRow.Approach`), since
+open apron. A workshop is a hall straight behind its pavement, its loading doors on the street with
+a striped apron and a canopy before each and every other wall blank, a stock yard behind it where deep
+enough. The works street's lane is the street from the first workshop to the last: a boom gate across it at
+each end (an arm from each side where the street is wider than one arm) and across the mouth of each cross
+street that meets it between. The gates block nothing, so the plan closes no street and keeps every way in;
+the lane is published as the zone's `ServiceLane`, as wide as the street. A hosted yard or row stands on
+its member or joined pair, the joined cross street its own ground; a row's gate may cross up to six cells of that ground to the street (`FactoryRow.Approach`), since
 its lane must otherwise end exactly on a street at both gates. The service street and its cross-street
 stubs are painted city street. It publishes
 `IndustrialZone` on `MapResult.industrialZones`: the street's centre line and width, the hosted yards'
@@ -287,16 +296,15 @@ from it.
 
 Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`, which also counts the maps
 with a freight yard and a factory row anywhere): 22 of 24 medium city maps and 24 of 24 colonies, hosting a
-freight yard on 10 city maps and 5 colonies and a factory row on 6 and 6 (2 and 4 before the shallow row).
-A freight yard stands on 22 cities and 19 colonies, and a factory row on 17 and 16. The row is still the
-limit: on about half the zones every member is five to nine cells deep, too shallow for even the shallow
-row, and on most of the zones that host only the yard, the freight-yard parcel is the one ground deep
-enough. `storyMapPools` passes 144 of 144, with `cordon-line-town` ROCK seed 14 swapped for 22.
+freight yard on 10 city maps and 5 colonies and a factory row on 15 and 17 (6 and 6 with the shallow row
+alone, 2 and 4 before it). A freight yard stands on 22 cities and 19 colonies, and a factory row on 21 and
+23. The zones still without a row have belts five or six deep, too shallow for a workshop behind its
+pavement. `storyMapPools` passes 144 of 144, with `cordon-line-town` ROCK seed 14 swapped for 22 and
+`cordon-road` ARID seed 14 for 18.
 Look: `createSnapshots -Psnapshot=industrial-zone-look`.
 
-Open on the industrial zone: the row on the shallow belts, either taking the zone's street as its lane
-(workshops on members six deep, gates where the street meets its cross streets) or sharing an oversized
-freight-yard parcel with the yard; no large storage tank (the 1x1
+Open on the industrial zone: the row on belts five or six deep; the yard and the row sharing an oversized
+freight-yard parcel, a fallback if the works street leaves gaps worth closing; no large storage tank (the 1x1
 fluid tank stands in blocks of four), no dock shutter or leveller (the loading door is a plain doorway) and
 no moving traffic (haulers are parked); gantries rarely find both legs on open apron, since docks, haulers
 and the walled yards take the kerb first; no mission reads the mark yet.

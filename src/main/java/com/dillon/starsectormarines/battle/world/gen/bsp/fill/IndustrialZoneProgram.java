@@ -46,6 +46,12 @@ public final class IndustrialZoneProgram implements DistrictProgram {
      * deep in the pocket, so a street that hosts one beats a longer one that hosts neither.
      */
     static final int SET_PIECE = 6;
+    /** The least depth of a works-street workshop: its pavement and a hall. */
+    static final int WORKSHOP_MIN_DEPTH = IndustrialZoneLayout.PAVEMENT + IndustrialZoneLayout.HALL_MIN;
+    /** The least frontage of one: a hall that holds a room. */
+    static final int WORKSHOP_MIN_FRONT = IndustrialZoneLayout.HALL_MIN;
+    /** The longest works-street lane, gate to gate. */
+    static final int WORKS_MAX = 32;
 
     /** The fewest members a zone takes: a yard, a row or a warehouse, and two more along the street. */
     static final int MIN_MEMBERS = 3;
@@ -187,6 +193,9 @@ public final class IndustrialZoneProgram implements DistrictProgram {
             host(spine, rowFirst, District.Role.FREIGHT_YARD, FreightYard.Size.STANDARD::fits, join, stands);
             if (hosted(rowFirst) > hosted(roles)) roles = rowFirst;
         }
+        if (!roles.containsValue(District.Role.FACTORY_ROW)) {
+            for (BlockLeaf leaf : worksStreet(spine, roles)) roles.put(leaf, District.Role.WORKSHOP);
+        }
         List<BlockLeaf> warehouses = new ArrayList<>(), depots = new ArrayList<>();
         for (BlockLeaf leaf : spine.members()) {
             if (roles.containsKey(leaf)) continue;
@@ -209,6 +218,46 @@ public final class IndustrialZoneProgram implements DistrictProgram {
             roles.put(leaf, depot++ % 2 == 0 ? District.Role.TANK_FARM : District.Role.VEHICLE_DEPOT);
         }
         return roles;
+    }
+
+    /**
+     * The works street's workshops, or none: where no row stands on the zone's ground, the row is laid along the
+     * zone's own street. The best run of neighbouring free members on one side, each deep enough for a hall
+     * behind its pavement and long enough for a room, fronting a lane from {@link FactoryRow#LENGTHS its
+     * shortest} to {@link #WORKS_MAX} long; with them, every free member that deep across the street and wholly
+     * inside the lane. The most workshops win, then the longest lane.
+     */
+    static List<BlockLeaf> worksStreet(SpineClaim.Spine spine, Map<BlockLeaf, District.Role> roles) {
+        int shortest = FactoryRow.LENGTHS[FactoryRow.LENGTHS.length - 1];
+        List<BlockLeaf> best = List.of();
+        int bestScore = 0;
+        for (List<BlockLeaf> side : List.of(spine.near, spine.far)) {
+            List<BlockLeaf> across = side == spine.near ? spine.far : spine.near;
+            for (int i = 0; i < side.size(); i++) {
+                for (int j = i; j < side.size() && workshop(spine, roles, side.get(j)); j++) {
+                    int lo = Math.max(spine.from, spine.alongLo(side.get(i)));
+                    int hi = Math.min(spine.to, spine.alongHi(side.get(j)));
+                    if (hi - lo + 1 > WORKS_MAX) break;
+                    if (hi - lo + 1 < shortest) continue;
+                    List<BlockLeaf> run = new ArrayList<>(side.subList(i, j + 1));
+                    for (BlockLeaf o : across) {
+                        if (spine.alongLo(o) >= lo && spine.alongHi(o) <= hi && workshop(spine, roles, o)) run.add(o);
+                    }
+                    int score = run.size() * 100 + hi - lo + 1;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = run;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    private static boolean workshop(SpineClaim.Spine spine, Map<BlockLeaf, District.Role> roles, BlockLeaf leaf) {
+        return !roles.containsKey(leaf)
+                && spine.acrossHi(leaf) - spine.acrossLo(leaf) + 1 >= WORKSHOP_MIN_DEPTH
+                && spine.alongHi(leaf) - spine.alongLo(leaf) + 1 >= WORKSHOP_MIN_FRONT;
     }
 
     /** How many of the freight yard and the factory row {@code roles} hosts. */
@@ -340,7 +389,8 @@ public final class IndustrialZoneProgram implements DistrictProgram {
     @Override
     public void committed(DistrictClaim claim, Plan plan, List<BlockLeaf> leaves) {
         boolean yard = plan.roles().containsValue(District.Role.FREIGHT_YARD);
-        boolean row = plan.roles().containsValue(District.Role.FACTORY_ROW);
+        boolean row = plan.roles().containsValue(District.Role.FACTORY_ROW)
+                || plan.roles().containsValue(District.Role.WORKSHOP);
         for (BlockLeaf leaf : leaves) {
             if (claim.members().contains(leaf)) continue;
             if (yard && leaf.kind == BlockKind.FREIGHT_YARD) leaf.kind = BlockKind.INDUSTRIAL_YARD;

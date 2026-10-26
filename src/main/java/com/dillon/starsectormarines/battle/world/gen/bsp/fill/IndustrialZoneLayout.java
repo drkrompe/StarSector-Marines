@@ -36,6 +36,9 @@ import java.util.function.BiPredicate;
  *   <li>A <b>tank farm</b> or <b>vehicle depot</b> is a walled yard with one vehicle gate on the street: blocks
  *       of fluid tanks beside a clear drive, or haulers parked either side of it.</li>
  *   <li>A <b>guard post</b> keeps its hardpoint inside a wall with a narrow gate on the street.</li>
+ *   <li>A <b>workshop</b> of the works street, where the factory row is laid along the street itself, stands
+ *       behind its pavement with its loading doors on the street; boom gates across the street at the lane's
+ *       ends and across each cross street's mouth inside it close the lane, which is published as the row's.</li>
  * </ul>
  *
  * Every member but a yard or a row gives its row on the street to the street's sidewalk, so the carriageway
@@ -129,6 +132,9 @@ final class IndustrialZoneLayout {
             } else if (role == District.Role.SECURITY_POST) {
                 securityPost(c, s, leaf);
                 continue;
+            } else if (role == District.Role.WORKSHOP) {
+                workshop(c, s, leaf, registry);
+                continue;
             }
             // A warehouse, or a set piece's member whose ground held no pose: a warehouse where one stands.
             if (s.acrossHi(leaf) - s.acrossLo(leaf) + 1 >= WAREHOUSE_MIN_DEPTH
@@ -140,6 +146,8 @@ final class IndustrialZoneLayout {
         }
         pavedCrossStreets(c, s, road);
         carriageway(c, s, road);
+        ServiceLane works = worksStreet(c, s, district);
+        if (works != null) lanes.add(works);
         gantries(c, s, road, registry);
 
         int mid = (s.lo + s.hi + 1) / 2;
@@ -344,6 +352,78 @@ final class IndustrialZoneLayout {
             if (!c.grid.isWalkable(x, y) || c.topology.getSurface(x, y) == keepClear) continue;
             solid(c, x, y, registry.doodad(CRATES));
         }
+    }
+
+    /**
+     * A works-street workshop: a hall straight behind its pavement, its loading doors on the street with a striped
+     * apron on the pavement before each and a canopy over it, every other wall blank; a stock yard behind where
+     * the member is deep enough.
+     */
+    private static void workshop(GenContext c, SpineClaim.Spine s, BlockLeaf leaf, TileRegistry registry) {
+        Frontage f = frontage(c, s, leaf);
+        int hall = f.depth >= HALL_MAX + STOCK_MIN ? HALL_MAX : f.depth;
+        int backRow = f.kerb + f.step * (hall - 1);
+        int bLo = Math.min(f.kerb, backRow), bHi = Math.max(f.kerb, backRow);
+        BlockLeaf shell = s.horizontal ? new BlockLeaf(f.aLo, bLo, f.aHi, bHi, false)
+                : new BlockLeaf(bLo, f.aLo, bHi, f.aHi, false);
+        PointOfInterest poi = BuildingShellCore.carve(shell, c.grid, c.topology, c.doodads, c.rng,
+                BuildingIndustrialFiller.CONFIG, BuildingPlacement.frontOnly(side(s, leaf)));
+        if (poi != null) c.pois.add(poi);
+        loadingDoors(c, s, f.aLo, f.aHi, f.kerb, f.step);
+        int pavement = f.kerb - f.step;
+        for (int a = f.aLo; a <= f.aHi; a++) {
+            if (c.grid.isDoorway(s.x(a, f.kerb), s.y(a, f.kerb))) ground(c, s.x(a, pavement), s.y(a, pavement), GroundKind.STRIPED);
+        }
+        StreetDressing.doorCanopies(c.grid, c.doodads, f.aLo, f.aHi, a -> new int[]{s.x(a, f.kerb), s.y(a, f.kerb)},
+                s.x(f.aLo, f.kerb) - s.x(f.aLo, pavement), s.y(f.aLo, f.kerb) - s.y(f.aLo, pavement));
+        if (f.depth - hall >= STOCK_MIN) stockYard(c, s, f, hall, registry);
+    }
+
+    /**
+     * The works street's lane, or null where the zone has no workshops: the street from the first workshop's
+     * start to the last one's end, a boom gate across it at each end (an arm from each side where it is wider
+     * than one arm) and across the mouth of every cross street that meets it between. The gates block nothing,
+     * so every way in stays open.
+     */
+    private static ServiceLane worksStreet(GenContext c, SpineClaim.Spine s, District district) {
+        int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+        for (BlockLeaf leaf : s.members()) {
+            if (district.roles.get(leaf) != District.Role.WORKSHOP) continue;
+            lo = Math.min(lo, s.alongLo(leaf));
+            hi = Math.max(hi, s.alongHi(leaf));
+        }
+        if (lo > hi) return null;
+        lo = Math.max(lo, s.from);
+        hi = Math.min(hi, s.to);
+        for (int a : new int[]{lo, hi}) {
+            for (int post : new int[]{s.lo - 1, s.hi + 1}) {
+                if (!freeGround(c, s.x(a, post), s.y(a, post))) continue;
+                int in = post < s.lo ? s.lo : s.hi;
+                StreetDressing.boomGate(c.grid, c.topology, c.doodads, s.x(a, post), s.y(a, post),
+                        s.x(a, in) - s.x(a, post), s.y(a, in) - s.y(a, post));
+                // A street wider than one arm takes an arm from each side.
+                if (s.streetWidth() <= StreetDressing.BOOM_REACH) break;
+            }
+        }
+        for (SpineClaim.Gap gap : s.gaps) {
+            if (gap.from() <= lo || gap.to() >= hi) continue;
+            int mouth = gap.hi() < s.lo ? gap.hi() : gap.lo();
+            if (!freeGround(c, s.x(gap.from(), mouth), s.y(gap.from(), mouth))) continue;
+            StreetDressing.boomGate(c.grid, c.topology, c.doodads, s.x(gap.from(), mouth), s.y(gap.from(), mouth),
+                    s.x(gap.from() + 1, mouth) - s.x(gap.from(), mouth), s.y(gap.from() + 1, mouth) - s.y(gap.from(), mouth));
+        }
+        int mid = (s.lo + s.hi) / 2;
+        float centre = (s.lo + s.hi + 1) / 2f;
+        ServiceLane lane = new ServiceLane(s.x(lo, mid), s.y(lo, mid), s.x(hi, mid), s.y(hi, mid),
+                s.horizontal ? lo : centre, s.horizontal ? centre : lo,
+                s.horizontal ? hi + 1 : centre, s.horizontal ? centre : hi + 1, s.streetWidth());
+        c.serviceLanes.add(lane);
+        return lane;
+    }
+
+    /** Whether {@code (x, y)} is open ground a post may stand on: walkable, no doorway, nothing standing there. */
+    private static boolean freeGround(GenContext c, int x, int y) {
+        return c.grid.inBounds(x, y) && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y) && !c.topology.isFixture(x, y);
     }
 
     /**
