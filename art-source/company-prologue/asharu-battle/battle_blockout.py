@@ -730,6 +730,9 @@ K3B_KITE_FLIGHT = {key: fly(key, st, K3B_T, [dict(t=79, hd=10, pt=-3, rl=-10, v=
                                              dict(t=85, hd=6, pt=-1, rl=8, v=40), dict(t=86.2, v=0)], v=0)
                    for key, st in (('kite-p-a', K3B_KITE_A), ('kite-p-b', K3B_KITE_B))}
 K3B_KITE_A_FLOWN, K3B_KITE_B_FLOWN = K3B_KITE_FLIGHT['kite-p-a'], K3B_KITE_FLIGHT['kite-p-b']
+# S6d sees them coming (owner, 2026-10-26: "we couldn't see the Kites in S6d coming in with the pirate Hounds"):
+# the same two runs, behind the Hounds (P) that draw the convoy's Hound off
+K3E_SHIPS.update(K3B_KITE_FLIGHT)
 K3B_TARSUS_FLOWN = fly('tarsus', K3B_TARSUS, K3B_T, [
     dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0, thrust=None)
 K3B_SHIPS = {
@@ -746,9 +749,10 @@ K3B_SHIPS = {
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
+    # where S6c left them, drawing ahead at 45 m/s (the overhead plan showed them a kilometre on at the cut)
     **{k: station(k, v, K3B_T, vel=(45.0, 0.0, 0.0)) for k, v in (
-        ('colossus', (1200, -80, 40, 0, 0, 2, .9)), ('morrow', (1150, -250, 0, 0, 1, -3, .9)),
-        ('mule', (1900, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (1600, -350, 80, 0, 1, 4, .9)))},
+        ('colossus', (560, -80, 40, 0, 0, 2, .9)), ('morrow', (510, -250, 0, 0, 1, -3, .9)),
+        ('mule', (1260, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (960, -350, 80, 0, 1, 4, .9)))},
     # the rear guard S6d left, still fighting a kilometre astern: what S7 opens on
     'hound-m': K3E_SHIPS['hound-m'], 'hound-p-b': K3E_SHIPS['hound-p-b'],
 }
@@ -1125,7 +1129,7 @@ KEYFRAMES = {
             # burns where the second Hound (P)'s rounds land (the damage ledger keys that fire)
             ],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
-        labels=['hound-m', 'hound-p-a', 'hound-p-b']),
+        labels=['hound-m', 'hound-p-a', 'hound-p-b', 'kite-p-a', 'kite-p-b']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
