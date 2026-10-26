@@ -355,6 +355,17 @@ not restart it every tick.
 The same compatible replan preserves queue seniority before a construction
 slot is acquired; replanning alone cannot repeatedly push a waiting squad
 behind fresh arrivals.
+
+Changed terrain retires a proof but not the wait. A squad keeps its waiting age
+and seniority through a topology change while it keeps its action and
+destination. A wait the terrain has changed under is bounded
+(`NavigationService.ROUTE_WAIT_LIMIT_TICKS`, three seconds): past it, the
+squad's members route themselves by exact A* while the field is still built.
+On The Burn the barrage changes the topology every few ticks, so no field could
+finish and the company stood at its landing for twelve thousand ticks. A slow
+build on unchanged terrain is still waited out. A wait that reaches the limit is
+counted as a stall (`NavigationService.squadRouteWaitStalls`), once per wait,
+apart from the movement watch over members stepping without progress.
 Before publication, new starting positions must be covered or request bounded
 additional preparation. Partial construction is not a usable field and cannot
 silently turn uncovered members into independent synchronous searches.

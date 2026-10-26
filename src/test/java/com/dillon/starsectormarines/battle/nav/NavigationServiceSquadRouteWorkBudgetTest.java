@@ -358,6 +358,31 @@ class NavigationServiceSquadRouteWorkBudgetTest {
     }
 
     @Test
+    void aRouteTheTopologyNeverLetsFinishStopsHoldingItsMembersAtTheWaitLimit() {
+        try (NavigationService navigation = navigation()) {
+            SquadRouteRequest request = request(1, 1, new Object(), 28, cell(1, 2), null);
+            int limit = NavigationService.ROUTE_WAIT_LIMIT_TICKS;
+            for (int tick = 1; tick <= limit + 1; tick++) {
+                // The Burn's barrage: the topology changes every tick, retiring the build in progress and the fields.
+                navigation.getGrid().setWalkable(31, 4, tick % 2 == 0);
+                navigation.rebuildDerivedNavigation();
+                navigation.prepareSquadRoutes(List.of(request), tick, 4);
+                if (tick <= limit) assertTrue(pending(navigation, request), "still waiting at tick " + tick);
+            }
+            assertFalse(pending(navigation, request), "past the limit its members route themselves");
+            assertEquals(1, navigation.squadRouteWaitStalls(), "the wait is counted as a stall, once");
+            assertEquals("STARVED", inspect(navigation, request).status());
+            int[] path = navigation.findSquadPathToGoal(request.squadId(), request.routingEpoch(),
+                    request.routeToken(), 1, 2, request.goalX(), request.goalY(), null);
+            assertEquals(28, Paths.destX(path), "by exact A*");
+            SquadRouteRequest moved = request(1, 2, new Object(), 20, cell(1, 2), null);
+            navigation.getGrid().setWalkable(31, 4, true);
+            navigation.prepareSquadRoutes(List.of(moved), limit + 2, 4);
+            assertTrue(pending(navigation, moved), "a new goal waits for its own field again");
+        }
+    }
+
+    @Test
     void publishingNewSoftCostSnapshotsDoesNotRestartEverySlice() {
         try (NavigationService navigation = navigation()) {
             Object token = new Object();

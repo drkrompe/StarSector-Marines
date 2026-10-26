@@ -4354,6 +4354,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public int lastSquadRouteOldestWaitTicks() { return navigation.lastSquadRouteOldestWaitTicks(); }
 
+    /** Delegates to {@link NavigationService#squadRouteWaitStalls()}. */
+    public int squadRouteWaitStalls() { return navigation.squadRouteWaitStalls(); }
+
     public int lastSquadRouteAdmittedWaitTicks() { return navigation.lastSquadRouteAdmittedWaitTicks(); }
 
     public int lastSquadRouteDeferred() { return navigation.lastSquadRouteDeferred(); }

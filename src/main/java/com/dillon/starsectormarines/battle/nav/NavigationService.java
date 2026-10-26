@@ -49,6 +49,14 @@ public final class NavigationService implements AutoCloseable {
 
     /** A small fixed pool bounds retained map-sized scratch independently of squad count. */
     private static final int MAX_ROUTE_JOB_SLOTS = 4;
+    /**
+     * Ticks a squad's members wait for its route field, once the grid has changed under the wait, before they route
+     * themselves by exact A*; counted while the squad keeps one goal and action. A slow build on a still grid is
+     * waited out, however long. One the grid keeps changing under may never finish: on The Burn the barrage changes
+     * the topology every few ticks, which retires every build in progress, and the company's squads stood at their
+     * landing waiting on fields that were never built, from tick 3000 to 15000 (Burn ta3, 2026-10-26). Three seconds.
+     */
+    static final int ROUTE_WAIT_LIMIT_TICKS = 90;
     private final List<RouteJobSlot> routeJobSlots = new ArrayList<>();
     private final Map<Integer, RouteBackoff> routeBackoffs = new HashMap<>();
     private int lastSquadRouteWorkUnits;
@@ -72,6 +80,8 @@ public final class NavigationService implements AutoCloseable {
     private int lastSquadRouteCorridorCells;
     private int lastSquadRouteSettledCells;
     private int lastSquadRoutePending;
+    private int lastSquadRouteStarved;
+    private int squadRouteWaitStalls;
     private int lastSquadRouteAdmissions;
     private int lastSquadRouteResumed;
     private int lastSquadRouteOldestWaitTicks;
@@ -306,7 +316,9 @@ public final class NavigationService implements AutoCloseable {
         grid.preparePathComponents(GridPathfinder.USE_CARDINAL_NAVIGATION);
         vantagePointsByTargetCell.clear();
         sharedGoalPathfinder.invalidateAll();
-        squadRouteBatch = SquadRouteBatch.empty();
+        // Fields built on the old topology go; the waits stay, so the next preparation knows how long each squad has
+        // stood waiting through the change (ROUTE_WAIT_LIMIT_TICKS). A wait no longer reads as pending until then.
+        squadRouteBatch = new SquadRouteBatch(Map.of(), squadRouteBatch.deferred());
         cancelRouteJobs();
         routeBackoffs.clear();
     }
@@ -496,7 +508,7 @@ public final class NavigationService implements AutoCloseable {
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         lastSquadRouteBuilds = lastSquadRouteReuses = lastSquadRouteDeferred = 0;
         lastSquadRouteCorridorCells = lastSquadRouteSettledCells = 0;
-        lastSquadRoutePending = lastSquadRouteAdmissions = lastSquadRouteResumed = 0;
+        lastSquadRoutePending = lastSquadRouteAdmissions = lastSquadRouteResumed = lastSquadRouteStarved = 0;
         lastSquadRouteOldestWaitTicks = lastSquadRouteAdmittedWaitTicks = 0;
         lastSquadRouteWorkUnits = 0;
         Map<Integer, SquadRouteRequest> live = new HashMap<>();
@@ -535,16 +547,18 @@ public final class NavigationService implements AutoCloseable {
                 if (obsolete != null) cancelRouteJob(obsolete);
                 continue;
             }
+            // The wait is the squad's, kept while it keeps its goal and action: a new mesh or topology retires the
+            // build, not the time its members have stood waiting for one.
             DeferredSquadRoute waiting = squadRouteBatch.deferred.get(request.squadId());
-            if (waiting != null && !waiting.matches(request.squadId(), request.routingEpoch(),
-                    request.routeToken(), request.goalX(), request.goalY(), mesh.revision(), topologyRevision)
-                    && !waiting.canAdopt(request, mesh.revision(), topologyRevision)) waiting = null;
+            if (waiting != null && !waiting.sameGoal(request)) waiting = null;
+            boolean churned = waiting != null && (waiting.churned() || waiting.meshRevision() != mesh.revision()
+                    || waiting.topologyRevision() != topologyRevision);
             RouteJobSlot running = routeJobFor(request.squadId());
             int firstTick = running != null ? running.firstTick
                     : waiting == null ? tick : waiting.firstDeferredTick;
             boolean wasPending = waiting != null || running != null
                     && squadRouteBatch.deferred.containsKey(request.squadId());
-            candidates.add(new RouteCandidate(request, retained, compatible, firstTick, wasPending));
+            candidates.add(new RouteCandidate(request, retained, compatible, firstTick, wasPending, churned));
         }
         // Within each priority class, rotate working slots so one hard route
         // cannot win every quantum. Older unstarted intents get a freed slot first.
@@ -635,12 +649,21 @@ public final class NavigationService implements AutoCloseable {
                     next.put(request.squadId(), PreparedSquadRoute.failure(request,
                             mesh.revision(), grid.getWidth(), tick));
                 } else {
+                    int waited = tick - candidate.firstDeferredTick;
+                    boolean starved = candidate.churned && waited >= ROUTE_WAIT_LIMIT_TICKS;
+                    // A squad held this long with a route to walk is a stall, whether or not it now goes on.
+                    if (waited == ROUTE_WAIT_LIMIT_TICKS) squadRouteWaitStalls++;
                     deferred.put(request.squadId(), new DeferredSquadRoute(request.squadId(),
                             request.routingEpoch(), request.routeToken(), request.goalX(), request.goalY(),
-                            mesh.revision(), topologyRevision, candidate.firstDeferredTick, request.actionName()));
-                    lastSquadRoutePending++;
-                    lastSquadRouteOldestWaitTicks = Math.max(lastSquadRouteOldestWaitTicks,
-                            tick - candidate.firstDeferredTick);
+                            mesh.revision(), topologyRevision, candidate.firstDeferredTick, request.actionName(),
+                            candidate.churned, starved));
+                    if (starved) {
+                        lastSquadRouteStarved++;
+                    } else {
+                        lastSquadRoutePending++;
+                        lastSquadRouteOldestWaitTicks = Math.max(lastSquadRouteOldestWaitTicks,
+                                tick - candidate.firstDeferredTick);
+                    }
                 }
             }
         }
@@ -780,12 +803,13 @@ public final class NavigationService implements AutoCloseable {
      * missing-field test. Call before any repath throttle or old-path travel.
      * This pure preflight never searches or mutates movement state; execution
      * may keep firing while postponing travel. Intentionally unprepared,
-     * failed, uncovered, mismatched, and compatible reused fields return false.
+     * failed, uncovered, mismatched, and compatible reused fields return false,
+     * and so does an intent that has waited {@link #ROUTE_WAIT_LIMIT_TICKS}.
      */
     public boolean isSquadRoutePending(int squadId, long routingEpoch,
                                        Object routeToken, int goalX, int goalY) {
         DeferredSquadRoute deferred = squadRouteBatch.deferred.get(squadId);
-        return deferred != null && deferred.matches(squadId, routingEpoch, routeToken,
+        return deferred != null && !deferred.starved() && deferred.matches(squadId, routingEpoch, routeToken,
                 goalX, goalY, navigationMesh.snapshot().revision(), grid.topologyRevision());
     }
 
@@ -848,8 +872,10 @@ public final class NavigationService implements AutoCloseable {
         long topology = grid.topologyRevision();
         PreparedSquadRoute prepared = squadRouteBatch.prepared.get(squadId);
         DeferredSquadRoute deferred = squadRouteBatch.deferred.get(squadId);
-        boolean pending = deferred != null
+        boolean waited = deferred != null
                 && deferred.matches(squadId, epoch, token, goalX, goalY, mesh, topology);
+        boolean starved = waited && deferred.starved();
+        boolean pending = waited && !starved;
         boolean matchingField = prepared != null && prepared.routingEpoch == epoch
                 && prepared.routeToken == token && grid.inBounds(goalX, goalY)
                 && prepared.goal == grid.index(goalX, goalY) && prepared.meshRevision == mesh;
@@ -860,11 +886,11 @@ public final class NavigationService implements AutoCloseable {
             for (int start : starts) if (prepared.field.covers(start)) covered++;
         }
         String status = pending ? backoff != null ? "BACKOFF" : slot != null ? "BUILDING" : "QUEUED"
-                : matchingField ? prepared.field == null ? "BUILD_FAILED"
+                : starved ? "STARVED" : matchingField ? prepared.field == null ? "BUILD_FAILED"
                 : covered == starts.length ? "READY" : "UNCOVERED_START"
                 : prepared != null || deferred != null ? "INTENT_MISMATCH" : "MISSING_FIELD";
         return new SquadRouteDiagnostic(status, squadRoutePreparationTick, mesh, topology,
-                pending ? Math.max(0, squadRoutePreparationTick - deferred.firstDeferredTick) : 0,
+                waited ? Math.max(0, squadRoutePreparationTick - deferred.firstDeferredTick) : 0,
                 slot == null ? 0 : Math.max(0, squadRoutePreparationTick - slot.firstTick),
                 slot == null ? null : slot.job.stage(), slot == null ? 0 : slot.lifetimeWork,
                 slot == null ? 0 : slot.job.seedExpanded(),
@@ -891,6 +917,13 @@ public final class NavigationService implements AutoCloseable {
     public int lastSquadRouteSettledCells() { return lastSquadRouteSettledCells; }
     /** Exact intents still deferred without a compatible field after preparation. */
     public int lastSquadRoutePending() { return lastSquadRoutePending; }
+    /** Intents past {@link #ROUTE_WAIT_LIMIT_TICKS} whose members route themselves while their field is built. */
+    public int lastSquadRouteStarved() { return lastSquadRouteStarved; }
+    /**
+     * Squads held {@link #ROUTE_WAIT_LIMIT_TICKS} waiting for a route so far this battle, one per wait: the stall watch
+     * for members standing still with a route to walk, which the movement service's never sees.
+     */
+    public int squadRouteWaitStalls() { return squadRouteWaitStalls; }
     /** Work slices granted this preparation; includes failures. */
     public int lastSquadRouteAdmissions() { return lastSquadRouteAdmissions; }
     /** Previously pending exact intents that now have a successfully built field. */
@@ -907,16 +940,17 @@ public final class NavigationService implements AutoCloseable {
 
     private record DeferredSquadRoute(int squadId, long routingEpoch, Object routeToken,
                                       int goalX, int goalY, long meshRevision,
-                                      long topologyRevision, int firstDeferredTick, String actionName) {
+                                      long topologyRevision, int firstDeferredTick, String actionName,
+                                      boolean churned, boolean starved) {
         private boolean matches(int requestedSquad, long epoch, Object token,
                                 int x, int y, long mesh, long topology) {
             return squadId == requestedSquad && routingEpoch == epoch && routeToken == token
                     && goalX == x && goalY == y && meshRevision == mesh && topologyRevision == topology;
         }
 
-        private boolean canAdopt(SquadRouteRequest request, long mesh, long topology) {
+        private boolean sameGoal(SquadRouteRequest request) {
             return squadId == request.squadId() && goalX == request.goalX() && goalY == request.goalY()
-                    && actionName.equals(request.actionName()) && meshRevision == mesh && topologyRevision == topology;
+                    && actionName.equals(request.actionName());
         }
     }
 
@@ -1035,7 +1069,7 @@ public final class NavigationService implements AutoCloseable {
     private record RouteCandidate(SquadRouteRequest request,
                                   PreparedSquadRoute retained,
                                   boolean compatible, int firstDeferredTick,
-                                  boolean wasPending) { }
+                                  boolean wasPending, boolean churned) { }
 
     public void beginSharedGoalPathSnapshot() {
         sharedGoalPathfinder.beginSnapshot();

@@ -201,7 +201,8 @@ public final class MovementService {
      * replanned. Called once per follower step; a gap between steps (an order
      * holding the mover, a reflex, waiting at a fire's edge) starts the watch
      * over, so only continuous trying counts. True once per stall, after
-     * which the watch restarts; {@link #routeStalls} counts them.
+     * which the watch restarts; {@link #routeStalls} counts them. A squad held
+     * waiting for its route is counted apart, by the navigation service.
      */
     public boolean stalledOnRoute(long id) {
         float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
