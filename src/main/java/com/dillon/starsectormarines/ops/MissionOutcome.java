@@ -73,7 +73,7 @@ public final class MissionOutcome {
      */
     public final List<ObjectiveResult> objectives;
     /**
-     * The battle's side objectives as they came out ({@code side-objective-toolkit.md}), in offer order: done, lapsed
+     * The battle's side objectives as they came out ({@code mission-command-nouns.md}), in offer order: done, lapsed
      * or failed, each with its debrief line and the campaign mark settlement writes. Empty when none was offered.
      */
     public final List<SideObjectiveResult> sideObjectives;
@@ -208,6 +208,13 @@ public final class MissionOutcome {
     public int objectiveCredits() {
         long total = 0L;
         for (ObjectiveResult result : objectives) total += result.earned().credits();
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
+    /** Credits the side objectives earned, paid at settlement: each job done that pays. */
+    public int sideObjectiveCredits() {
+        long total = 0L;
+        for (SideObjectiveResult side : sideObjectives) total += side.credits();
         return (int) Math.min(Integer.MAX_VALUE, total);
     }
 

@@ -156,11 +156,14 @@ An element's body is the leading two thirds of its squads and machines along the
 route. So the slowest element walks on without stopping, and the fastest waits
 in its slot for it. A tank never leaves its infantry in the open, and a screen
 never stands out in front of armour that has fallen behind. Only members that
-**keep up** are the body. A member that has stood ten seconds off its slot
-without moving a cell is a **straggler**: a hull that cannot find its way, a squad
+**keep up** are the body. A member that has gone ten seconds off its slot
+without **gaining** (a cell further along the route than it has been, or a cell
+nearer its slot) is a **straggler**: a hull that cannot find its way, a squad
 pinned down. So is a member that joined after step-off and has not yet walked up
-to its slot. A straggler is left to catch up and rejoins the body when it moves
-again (or, for a late joiner, once it has stood on its slot). A member that has
+to its slot. A straggler is left to catch up and rejoins the body when it gains
+again (or, for a late joiner, once it has stood on its slot). Moving alone is not
+gaining: halted hulls rocking a cell or two where they stood held two of Broad
+Front frozen 5's lanes at their start for the rest of the battle (2026-10-26). A member that has
 stood ten seconds **in place** (within reach of its slot) without moving a cell
 is counted at its slot, not where it halted: otherwise a hull that stopped five
 cells short of a slot six ahead held the anchor where its slot stayed in reach,

@@ -435,7 +435,7 @@ beside the squads, as a small damage doll under its chassis or vehicle type,
 carrying the wear its repair still leaves, and two stacked bricks: its weight,
 lit red when lift falls short of its class, and a warning, lit and slowly
 breathing whenever it will not drop. Its words are its hover, which gives
-one verdict: drops, needs its drop call selected, no lift of its class,
+one verdict: drops, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
 decides nothing itself (`BriefingLift`). Past nine squads, every full-strength

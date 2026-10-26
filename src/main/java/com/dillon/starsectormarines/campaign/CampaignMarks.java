@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * Durable, namespaced campaign facts a finished side objective leaves behind ({@code side-objective-toolkit.md}),
+ * Durable, namespaced campaign facts a finished side objective leaves behind ({@code mission-command-nouns.md}),
  * such as {@code corvus.harrow.coupling_delivered}, for later missions, dialogue and offers to read. Settlement writes
  * them from the mission outcome, never from a live battle. A mark is permanent until a story clears it.
  */

@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Settlement writes each side objective's mark from the outcome, and the save keeps it. */
+/** Settlement writes each side objective's mark and pays its credits from the outcome, and the save keeps the mark. */
 class CampaignMarkSettlementTest {
     @Test void settlementWritesTheMarksTheOutcomeEarnedAndTheSaveKeepsThem() throws Exception {
         var outcome = MissionOutcome.builder().sideObjectives(List.of(
@@ -30,6 +31,20 @@ class CampaignMarkSettlementTest {
         assertTrue(loaded.marks().has("corvus.harrow.coupling_delivered"));
         assertEquals(List.of("corvus.harrow.coupling_delivered"), loaded.marks().under("corvus.harrow"));
         assertEquals(1, loaded.marks().all().size(), "a lapsed job keeps no mark, and a mark is written once");
+    }
+
+    @Test void settlementPaysTheCreditsTheOutcomeEarnedOnce() {
+        var outcome = MissionOutcome.builder().sideObjectives(List.of(
+                new SideObjectiveResult("coupling", "Coupling", State.DONE, "", "corvus.harrow.coupling_delivered", 1_500),
+                new SideObjectiveResult("broker", "Broker", State.DONE, "", "corvus.teague.delivered", 3_000),
+                new SideObjectiveResult("feed", "Feed", State.MISSED, "", ""))).build();
+        assertEquals(4_500, outcome.sideObjectiveCredits());
+        List<Float> paid = new ArrayList<>();
+        MissionResolver.paySideObjectives(paid::add, outcome);
+        assertEquals(List.of(4_500f), paid);
+        paid.clear();
+        MissionResolver.paySideObjectives(paid::add, MissionOutcome.builder().build());
+        assertTrue(paid.isEmpty(), "nothing earned, nothing paid");
     }
 
     @Test void aMarkIsNamespacedAndPermanentUntilCleared() {

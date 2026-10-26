@@ -145,8 +145,8 @@ public final class ScreenedAdvance {
     /** Share of the screen's strength at step-off below which it is broken. */
     public static final float SCREEN_FLOOR = 1f / 3f;
     /**
-     * Seconds a member off its slot may stand without moving a cell before it is a <b>straggler</b>: out of its
-     * element's body until it moves again, so a hull that cannot find its way or a squad pinned down cannot hold
+     * Seconds a member off its slot may go without gaining a cell before it is a <b>straggler</b>: out of its
+     * element's body until it gains again, so a hull that cannot find its way or a squad pinned down cannot hold
      * the formation where it stands.
      */
     public static final float STRAGGLE_SECONDS = 10f;
@@ -155,15 +155,19 @@ public final class ScreenedAdvance {
     /**
      * Whether one member keeps up with the formation. A member is <b>on the line</b> once it has stood on its slot:
      * the members it stepped off with are, and one that joins later is not until it has walked up to its slot.
-     * It keeps up while it is on the line and either on its slot or still moving; one that has stood
-     * {@link #STRAGGLE_SECONDS} off its slot without moving a cell has fallen out until it moves again. Only
+     * It keeps up while it is on the line and either on its slot or still <b>gaining</b>: a cell further along the
+     * route than it has been, or a cell nearer its slot. One that has gone {@link #STRAGGLE_SECONDS} off its slot
+     * without gaining has fallen out until it gains again. Moving alone is not gaining: halted hulls rocking a cell
+     * or two where they stood held Broad Front frozen 5's lanes 1 and 2 at their start from tick 20000 to the cap,
+     * forty and thirteen cells off their slots (2026-10-26). Only
      * members that keep up are the body the anchor waits for: the anchor never runs further ahead of the body
      * than {@link #KEEP_UP}, and a member on its slot cannot go further forward, so one that cannot reach its own
      * slot would otherwise hold the formation for good.
      */
     static final class Pace {
         private boolean onLine;
-        private float x = Float.NaN, y = Float.NaN;
+        /** The furthest along the route and the nearest its slot it has been since it was last on its slot. */
+        private float bestAlong = Float.NaN, bestGap = Float.NaN;
         private int movedSince;
         /** Whether it stood in place at its last observation, and its slot's distance along the route then. */
         private boolean inPlace;
@@ -178,8 +182,11 @@ public final class ScreenedAdvance {
             stillSince = tick;
         }
 
-        /** The member stands at {@code (x, y)} at {@code tick}, on its slot or not. */
-        void observe(int tick, float x, float y, boolean inPlace) {
+        /**
+         * The member stands at {@code (x, y)} at {@code tick}, {@code along} the route and {@code gap} cells from its
+         * slot, on its slot or not.
+         */
+        void observe(int tick, float x, float y, float along, float gap, boolean inPlace) {
             this.inPlace = inPlace;
             if (Float.isNaN(stillX) || Math.hypot(x - stillX, y - stillY) >= 1f) {
                 stillX = x;
@@ -187,9 +194,9 @@ public final class ScreenedAdvance {
                 stillSince = tick;
             }
             if (inPlace) onLine = true;
-            if (inPlace || Float.isNaN(this.x) || Math.hypot(x - this.x, y - this.y) >= 1f) {
-                this.x = x;
-                this.y = y;
+            if (inPlace || Float.isNaN(bestAlong) || along >= bestAlong + 1f || gap <= bestGap - 1f) {
+                bestAlong = Float.isNaN(bestAlong) || inPlace ? along : Math.max(bestAlong, along);
+                bestGap = Float.isNaN(bestGap) || inPlace ? gap : Math.min(bestGap, gap);
                 movedSince = tick;
             }
         }
@@ -415,7 +422,8 @@ public final class ScreenedAdvance {
             if (p == null) continue;
             int[] at = slot.cell();
             Pace pace = paces.computeIfAbsent(slot.kind + ":" + slot.id, k -> new Pace(true, tick));
-            pace.observe(tick, p[0], p[1], Math.hypot(p[0] - at[0] - .5f, p[1] - at[1] - .5f) <= ARRIVE_REACH);
+            float gap = (float) Math.hypot(p[0] - at[0] - .5f, p[1] - at[1] - .5f);
+            pace.observe(tick, p[0], p[1], route.along(p[0], p[1]), gap, gap <= ARRIVE_REACH);
             pace.slotAt(route.along(at[0] + .5f, at[1] + .5f));
         }
     }

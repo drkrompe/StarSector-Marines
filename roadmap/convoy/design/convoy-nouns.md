@@ -1203,21 +1203,25 @@ have left they fall at once and it drives on at the speed the rest gives: one
 crate barricade checks it to about nine tenths of its way, a row of housing
 wall across its blade to about half. Where it does not, they share it and the
 dozer is brought up, for the blade to finish at its rate: a row of city wall
-stops it just short. Bearing on pushable ground is progress, so
-the wall-contact and stall recovery leave a pushing hull alone; bearing on a
-fortified wall is not, and recovery treats it as any other wall.
+stops it just short. Where its hull rather than its blade is held by
+pushable cells, its tail or flank swung into a house wall as it turns, and
+nothing else holds it, it grinds them down at the same rate: its route counts
+that ground open, so its turns may sweep there. Bearing on pushable ground is
+progress, so the wall-contact and stall recovery leave a pushing hull alone;
+bearing on a fortified wall is not, and recovery treats it as any other wall.
 
 Route proof for a bladed hull reads a **breach view**: a routing copy of the
 grid with every pushable cell open. Its move-order proof and rolling local
 planner both use it, so ground the dozer can open is reachable for the dozer and
 for nobody else, while its physical sweep still reads the live grid — which is
 what holds the hull against a wall until the blade has pushed it down. A troop
-carrier ordered across an intact wall is refused; ordered again after the dozer
-is through, its ordinary proof finds the gap. Wall cells cost a route dearly, so
+carrier ordered across an intact wall goes no farther than its near side;
+ordered again after the dozer is through, its ordinary proof finds the gap. Wall cells cost a route dearly, so
 the dozer breaches only where going round is dearer. The convoy's dispatched
 delivery proof is unchanged; the blade reaches player-ordered and directly
 driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
-troop APC drives through, against a control where the APC alone is refused.
+troop APC drives through, against a control where the APC alone is held at the
+wall.
 
 A medium or heavy hull's **tracks** flatten undergrowth (`HeavyTracks`). A cell is
 *crushable* while it is closed and tagged so: a young tree (the pine and the

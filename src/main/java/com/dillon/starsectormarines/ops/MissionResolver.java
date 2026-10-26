@@ -82,6 +82,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.function.Consumer;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 
 /**
@@ -575,6 +576,7 @@ public final class MissionResolver {
             if (objectiveCredits > 0) {
                 cargo.getCredits().add(objectiveCredits);
             }
+            paySideObjectives(cargo.getCredits()::add, outcome);
             // Named persistent marines left the generic cargo pool when enlisted;
             // their battlefield fate is written to the roster below, not charged
             // a second time against unassigned cargo personnel.
@@ -730,11 +732,20 @@ public final class MissionResolver {
 
     /**
      * Writes the campaign mark each side objective earned, from the settled outcome rather than the live battle
-     * ({@code side-objective-toolkit.md}). Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
+     * ({@code mission-command-nouns.md}). Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
      */
     static void writeCampaignMarks(CampaignMarks marks, MissionOutcome outcome) {
         if (marks == null || outcome == null) return;
         for (SideObjectiveResult side : outcome.sideObjectives) if (side.marked()) marks.write(side.mark());
+    }
+
+    /**
+     * Pays what the side objectives earned, from the settled outcome rather than the live battle
+     * ({@code mission-command-nouns.md}). Win or lose: a job done was done.
+     */
+    static void paySideObjectives(Consumer<Float> credits, MissionOutcome outcome) {
+        int earned = outcome == null ? 0 : outcome.sideObjectiveCredits();
+        if (earned > 0) credits.accept((float) earned);
     }
 
     static void recordStoryCompletion(MarineRoster roster, MissionOutcome outcome) {

@@ -111,40 +111,11 @@
       </div>
 
       <div id="mission-planning" class="mission-planning">
+        <!-- Top band: what carries the company and what it can call, beside the survey. -->
+        <div id="mission-plan-top" class="mission-plan-top">
         <div id="mission-commitment" class="mission-commitment">
           <div id="mission-plan-sections" class="mission-plan-sections">
-          <!-- 01 Field force: one inset of pictures, squads as their fire teams and machines as their dolls; every word is in a hover. -->
-          <div id="mission-force-summary" class="briefing-section field-force">
-            <div id="mission-force-heading-row" class="force-heading-row">
-              <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
-              <div id="mission-force-comparison" class="force-comparison" tabindex="0">
-                <img id="mission-force-symbol" src="graphics/ui/briefing/infantry.svg" />
-                <div id="mission-force-selected" class="{forceSelectedClasses}">{forceSelected}</div>
-                <div id="mission-force-recommended" class="{forceAssessmentClasses}">{forceRecommended}</div>
-              </div>
-              <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">
-                <div id="mission-assign-signal" class="console-command-signal" />
-                <div id="mission-assign-legend" class="console-key-legend">{assignLabel}</div>
-                <img id="mission-assign-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
-              </button>
-            </div>
-            <div id="mission-field-inset" class="field-inset console-well">
-              <div each="tile in fieldTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" tabindex="0">
-                <canvas id="{tile.musterId}" class="{tile.musterClasses}" width="152" height="66" />
-                <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="124" height="66" />
-                <div id="{tile.bricksId}" class="{tile.bricksClasses}">
-                  <div id="{tile.liftId}" class="{tile.liftClasses}">
-                    <img id="{tile.weightId}" class="brick-symbol" src="{tile.weight}" />
-                  </div>
-                  <div id="{tile.warnId}" class="{tile.warnClasses}">
-                    <img id="{tile.warnImageId}" class="brick-symbol" src="graphics/ui/briefing/warning.svg" />
-                  </div>
-                </div>
-                <div id="{tile.countId}" class="{tile.countClasses}">{tile.count}</div>
-              </div>
-            </div>
-          </div>
-          <!-- 02 Lift: the boats in the ship's berths and the mission's heavy lift. -->
+          <!-- 01 Lift: the boats in the ship's berths and the mission's heavy lift. -->
           <div id="mission-lift-block" class="{liftClasses}">
             <div id="mission-lift-heading" class="deck-heading-row">
               <div id="mission-lift-title" class="label heading tone-edge">{liftHeader}</div>
@@ -163,7 +134,7 @@
               </div>
             </div>
           </div>
-          <!-- 03 Command deck: the calls as compact keys, slots and detail in the hovers. -->
+          <!-- 02 Command deck: the calls as compact keys, slots and detail in the hovers. -->
           <div id="mission-loadout-grid" class="mission-loadout-grid">
             <div id="mission-command-deck" class="briefing-section command-deck">
               <div id="mission-command-heading" class="deck-heading-row">
@@ -215,98 +186,125 @@
             </div>
           </div>
           </div>
-
         </div>
 
+        <!-- The survey shrinks to the top right; its legend, lanes, objectives and caveat are its hover. -->
         <div id="mission-survey-slot" class="mission-survey-slot">
-          <div id="mission-survey" class="mission-survey console-well">
+          <div id="mission-survey" class="mission-survey console-well" tabindex="0">
             <div id="mission-survey-heading" class="label heading tone-accent">{i18n.briefingSurveyHeading}</div>
             <div id="mission-survey-status" class="label tone-edge">{surveyStatus}</div>
-            <canvas id="mission-survey-canvas" width="560" height="410" />
-            <div id="mission-survey-legend" class="label tone-muted">{i18n.briefingSurveyLegend}</div>
-            <div id="mission-survey-details" class="label tone-muted">{surveyDetails}</div>
-            <div id="mission-survey-objectives" class="survey-objectives">
-              <div each="row in surveyObjectives" key="{row.id}" id="{row.id}" class="label survey-objective">{row.value}</div>
-            </div>
-            <div id="mission-survey-footer" class="label tone-muted">{i18n.briefingSurveyFooter}</div>
-          </div>
-        <div id="mission-debug-drawer" class="debug-drawer expanded">
-          <div id="mission-debug-workspace" class="panel debug-workspace">
-            <div id="mission-debug-rack-header" class="console-header debug-rack-header">
-              <img id="mission-debug-service-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
-              <div id="mission-debug-heading" class="label heading tone-accent">{debugHeader} / SCALE &amp; FIXTURE</div>
-            </div>
-            <div id="mission-tier-summary" class="label tone-edge tier-summary console-readout">{tierSummary}</div>
-            <div id="mission-tier-track" class="mission-tier-track">
-              <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
-                <div id="{step.indicatorId}" class="console-tier-lamp" />
-                <div id="{step.numeralId}" class="label heading tier-numeral">{step.numeral}</div>
-                <div id="{step.labelId}" class="label tier-label">{step.label}</div>
-              </button>
-            </div>
-            <div id="mission-debug-controls" class="mission-debug-controls">
-              <!-- Each squad's two cards and each bay slot, drawn as the game draws them; pressing
-                   one opens the kit picker (DebugKitPicker) on every choice there is. -->
-              <div id="mission-debug-commander-heading" class="label heading tone-edge section-heading">COMMANDER  ·  THIS BATTLE ONLY</div>
-              <button id="mission-debug-commander" class="{debugCommander.classes}" onclick="{debugCommander.open}">
-                <img id="mission-debug-commander-portrait" class="debug-kit-commander-portrait" src="{debugCommander.portrait}" />
-                <div id="mission-debug-commander-summary" class="label debug-kit-commander-summary">{debugCommander.summary}</div>
-              </button>
-              <div id="mission-debug-kit-heading" class="label heading tone-edge section-heading">SQUAD KIT  ·  EVERY CARD UNLOCKED</div>
-              <div id="mission-debug-kit" class="debug-kit-list">
-                <div each="row in debugKitRows" key="{row.id}" id="{row.id}" class="debug-kit-row console-readout">
-                  <div id="{row.labelId}" class="label heading tone-muted debug-kit-label">{row.label}</div>
-                  <div id="{row.cardsId}" class="debug-kit-cards">
-                    <button id="{row.weaponId}" class="debug-kit-card" onclick="{row.openWeapons}">
-                      <armory-card-chip chip="{row.weaponChip}" />
-                      <div id="{row.weaponNoteId}" class="{row.weaponNoteClasses}">{row.weaponNote}</div>
-                    </button>
-                    <button id="{row.armorId}" class="debug-kit-card" onclick="{row.openArmor}">
-                      <armory-card-chip chip="{row.armorChip}" />
-                      <div id="{row.armorNoteId}" class="{row.armorNoteClasses}">{row.armorNote}</div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div id="mission-debug-bay-heading" class="label heading tone-edge section-heading">MECH BAY</div>
-              <div id="mission-debug-bay" class="debug-kit-bay">
-                <button each="slot in debugBaySlots" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
-                  <canvas id="{slot.pictureId}" class="debug-kit-slot-picture" width="96" height="64" />
-                  <div id="{slot.nameId}" class="label debug-kit-slot-name">{slot.name}</div>
-                </button>
-              </div>
-              <div id="mission-debug-fixture-heading" class="label heading tone-edge section-heading">FIXTURE</div>
-              <div id="mission-debug-control-list" class="debug-control-list">
-              <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
-                <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
-                <div id="{control.bankId}" class="debug-control-bank">
-                  <button id="{control.farMinusId}" class="{control.farMinusClasses}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
-                  <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
-                  <div id="{control.valueId}" class="label heading debug-control-value console-well">{control.value}</div>
-                  <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
-                  <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
-                  <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
-                </div>
-              </div>
-              </div>
-            </div>
-            <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
-            <div id="mission-debug-air" class="mission-debug-air">
-              <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row console-readout">
-                <img id="{air.imageId}" class="debug-air-image" src="{air.image}" />
-                <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
-                <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">
-                  <img id="{air.attackIndicatorId}" class="console-rocker" src="{air.attackIndicatorSource}" />
-                  <div id="{air.attackLegendId}" class="console-key-legend">{air.attackLabel}</div>
-                </button>
-                <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">
-                  <img id="{air.defendIndicatorId}" class="console-rocker" src="{air.defendIndicatorSource}" />
-                  <div id="{air.defendLegendId}" class="console-key-legend">{air.defendLabel}</div>
-                </button>
-              </div>
-            </div>
+            <canvas id="mission-survey-canvas" width="404" height="270" />
           </div>
         </div>
+        </div>
+
+        <!-- 03 Field force: one inset of pictures, squads as their fire teams and machines as their dolls; every word is in a hover. -->
+        <div id="mission-force-summary" class="briefing-section field-force">
+          <div id="mission-force-heading-row" class="force-heading-row">
+            <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
+            <div id="mission-force-comparison" class="force-comparison" tabindex="0">
+              <img id="mission-force-symbol" src="graphics/ui/briefing/infantry.svg" />
+              <div id="mission-force-selected" class="{forceSelectedClasses}">{forceSelected}</div>
+              <div id="mission-force-recommended" class="{forceAssessmentClasses}">{forceRecommended}</div>
+            </div>
+            <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">
+              <div id="mission-assign-signal" class="console-command-signal" />
+              <div id="mission-assign-legend" class="console-key-legend">{assignLabel}</div>
+              <img id="mission-assign-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+            </button>
+          </div>
+          <div id="mission-field-inset" class="field-inset console-well">
+            <div each="tile in fieldTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" tabindex="0">
+              <canvas id="{tile.musterId}" class="{tile.musterClasses}" width="152" height="66" />
+              <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="124" height="66" />
+              <div id="{tile.bricksId}" class="{tile.bricksClasses}">
+                <div id="{tile.liftId}" class="{tile.liftClasses}">
+                  <img id="{tile.weightId}" class="brick-symbol" src="{tile.weight}" />
+                </div>
+                <div id="{tile.warnId}" class="{tile.warnClasses}">
+                  <img id="{tile.warnImageId}" class="brick-symbol" src="graphics/ui/briefing/warning.svg" />
+                </div>
+              </div>
+              <div id="{tile.countId}" class="{tile.countClasses}">{tile.count}</div>
+            </div>
+          </div>
+          <div id="mission-debug-drawer" class="debug-drawer expanded">
+            <div id="mission-debug-workspace" class="panel debug-workspace">
+              <div id="mission-debug-rack-header" class="console-header debug-rack-header">
+                <img id="mission-debug-service-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
+                <div id="mission-debug-heading" class="label heading tone-accent">{debugHeader} / SCALE &amp; FIXTURE</div>
+              </div>
+              <div id="mission-tier-summary" class="label tone-edge tier-summary console-readout">{tierSummary}</div>
+              <div id="mission-tier-track" class="mission-tier-track">
+                <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
+                  <div id="{step.indicatorId}" class="console-tier-lamp" />
+                  <div id="{step.numeralId}" class="label heading tier-numeral">{step.numeral}</div>
+                  <div id="{step.labelId}" class="label tier-label">{step.label}</div>
+                </button>
+              </div>
+              <div id="mission-debug-controls" class="mission-debug-controls">
+                <!-- Each squad's two cards and each bay slot, drawn as the game draws them; pressing
+                     one opens the kit picker (DebugKitPicker) on every choice there is. -->
+                <div id="mission-debug-commander-heading" class="label heading tone-edge section-heading">COMMANDER  ·  THIS BATTLE ONLY</div>
+                <button id="mission-debug-commander" class="{debugCommander.classes}" onclick="{debugCommander.open}">
+                  <img id="mission-debug-commander-portrait" class="debug-kit-commander-portrait" src="{debugCommander.portrait}" />
+                  <div id="mission-debug-commander-summary" class="label debug-kit-commander-summary">{debugCommander.summary}</div>
+                </button>
+                <div id="mission-debug-kit-heading" class="label heading tone-edge section-heading">SQUAD KIT  ·  EVERY CARD UNLOCKED</div>
+                <div id="mission-debug-kit" class="debug-kit-list">
+                  <div each="row in debugKitRows" key="{row.id}" id="{row.id}" class="debug-kit-row console-readout">
+                    <div id="{row.labelId}" class="label heading tone-muted debug-kit-label">{row.label}</div>
+                    <div id="{row.cardsId}" class="debug-kit-cards">
+                      <button id="{row.weaponId}" class="debug-kit-card" onclick="{row.openWeapons}">
+                        <armory-card-chip chip="{row.weaponChip}" />
+                        <div id="{row.weaponNoteId}" class="{row.weaponNoteClasses}">{row.weaponNote}</div>
+                      </button>
+                      <button id="{row.armorId}" class="debug-kit-card" onclick="{row.openArmor}">
+                        <armory-card-chip chip="{row.armorChip}" />
+                        <div id="{row.armorNoteId}" class="{row.armorNoteClasses}">{row.armorNote}</div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div id="mission-debug-bay-heading" class="label heading tone-edge section-heading">MECH BAY</div>
+                <div id="mission-debug-bay" class="debug-kit-bay">
+                  <button each="slot in debugBaySlots" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
+                    <canvas id="{slot.pictureId}" class="debug-kit-slot-picture" width="96" height="64" />
+                    <div id="{slot.nameId}" class="label debug-kit-slot-name">{slot.name}</div>
+                  </button>
+                </div>
+                <div id="mission-debug-fixture-heading" class="label heading tone-edge section-heading">FIXTURE</div>
+                <div id="mission-debug-control-list" class="debug-control-list">
+                <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
+                  <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
+                  <div id="{control.bankId}" class="debug-control-bank">
+                    <button id="{control.farMinusId}" class="{control.farMinusClasses}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
+                    <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
+                    <div id="{control.valueId}" class="label heading debug-control-value console-well">{control.value}</div>
+                    <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
+                    <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
+                    <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+                  </div>
+                </div>
+                </div>
+              </div>
+              <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
+              <div id="mission-debug-air" class="mission-debug-air">
+                <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row console-readout">
+                  <img id="{air.imageId}" class="debug-air-image" src="{air.image}" />
+                  <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
+                  <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">
+                    <img id="{air.attackIndicatorId}" class="console-rocker" src="{air.attackIndicatorSource}" />
+                    <div id="{air.attackLegendId}" class="console-key-legend">{air.attackLabel}</div>
+                  </button>
+                  <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">
+                    <img id="{air.defendIndicatorId}" class="console-rocker" src="{air.defendIndicatorSource}" />
+                    <div id="{air.defendLegendId}" class="console-key-legend">{air.defendLabel}</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -405,7 +403,9 @@
   .choice-title { height: 14px; white-space: nowrap; }
   .choice-detail { height: 14px; white-space: nowrap; }
   .empty-copy { height: 18px; padding: 3px; }
-  .mission-planning { flex-direction: row; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  /* Planning: a top band (lift and deck beside the survey) over the field force, which takes the full width. */
+  .mission-planning { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .mission-plan-top { flex-direction: row; height: 336px; gap: 8px; overflow: hidden; }
   .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
   .debug-drawer-toggle { flex-direction: row; align-items: center; width: 112px; height: 24px; padding: 3px 5px; gap: 6px; border-width: 3px; font-family: heading; text-align: center; }
   .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 2px; overflow: hidden; }
@@ -564,16 +564,11 @@
   #mission-reward-header { height: 18px; }
   #mission-reward-value { height: 26px; }
   #mission-reward-terms { min-height: 34px; white-space: normal; }
-  .mission-survey-slot { flex-direction: column; width: 594px; }
-  .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 2px; }
-  #mission-survey-heading { height: 24px; }
-  #mission-survey-status { min-height: 30px; white-space: normal; }
-  #mission-survey-canvas { height: 410px; }
-  #mission-survey-legend { min-height: 32px; white-space: normal; }
-  #mission-survey-details { height: 24px; }
-  .survey-objectives { flex-direction: column; height: 190px; gap: 4px; overflow: scroll; }
-  .survey-objective { min-height: 24px; white-space: normal; }
-  #mission-survey-footer { min-height: 34px; white-space: normal; }
+  .mission-survey-slot { flex-direction: column; width: 428px; }
+  .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 10px; gap: 4px; border-width: 2px; }
+  #mission-survey-heading { height: 20px; }
+  #mission-survey-status { height: 20px; overflow: hidden; }
+  #mission-survey-canvas { width: 404px; height: 270px; }
   #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
   #mission-source-list { height: 0px; flex-grow: 1; }
   .source-list .choice-row { height: 40px; width: 100%; }
@@ -584,7 +579,7 @@
   .faction-identity-copy { flex-direction: column; height: 50px; width: 0px; flex-grow: 1; gap: 4px; }
   .faction-name { height: auto; white-space: normal; }
   /* 01 Field force: one inset of same-sized picture tiles, squads then machines; words live in hovers. */
-  .field-inset { display: grid; width: 100%; height: 470px; padding: 8px; gap: 6px; border-width: 2px; overflow: scroll; }
+  .field-inset { display: grid; width: 100%; height: 0px; flex-grow: 1; padding: 8px; gap: 6px; border-width: 2px; overflow: scroll; }
   .field-tile { flex-direction: row; align-items: center; width: 158px; height: 72px; padding: 2px; gap: 2px; border-width: 1px; }
   .field-tile.field-tile-refused { border-color: #a8473c; }
   /* A stack is every full-strength squad under one muster, its multiplier a badge over the corner. */
@@ -600,7 +595,7 @@
   .brick-warn { opacity: 0.25; }
   .brick-warn.brick-lit { background-color: #4a2410; border-color: #f2b33d; opacity: 1; }
   .brick-symbol { width: 22px; height: 20px; pointer-events: none; }
-  .field-force { height: auto; gap: 6px; }
+  .field-force { height: 0px; flex-grow: 1; padding: 0px 12px 12px 12px; gap: 6px; }
   .force-comparison { flex-direction: row; align-items: center; width: auto; height: 26px; gap: 6px; }
   #mission-force-symbol { width: 16px; height: 22px; pointer-events: none; }
   #mission-force-selected, #mission-force-recommended { height: 18px; pointer-events: none; }

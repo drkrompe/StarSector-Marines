@@ -27,7 +27,7 @@ public class CommandDeckTest {
         List<CommandPower> available = roster();
         Set<String> selected = CommandDeck.defaultSelection(available);
 
-        assertEquals(Set.of(MechSupport.ID, CloseAirSupport.ID), selected);
+        assertEquals(Set.of(CloseAirSupport.ID, OrbitalBarrage.ID), selected);
         assertEquals(CommandDeck.BUDGET, CommandDeck.used(available, selected));
         assertFalse(CommandDeck.canAdd(available, selected, new SpawnInOnslaught()));
     }
@@ -36,16 +36,24 @@ public class CommandDeckTest {
     public void launchFilterPreservesCatalogOrderAndRejectsOverBudgetTail() {
         Detachment available = new Detachment(List.of(), FlybyRoster.EMPTY, roster());
         Detachment filtered = CommandDeck.apply(available,
-                List.of(OrbitalBarrage.ID, SpawnInOnslaught.ID, MechSupport.ID, CloseAirSupport.ID));
+                List.of(OrbitalBarrage.ID, SpawnInOnslaught.ID, CloseAirSupport.ID));
 
-        assertEquals(List.of(MechSupport.ID, CloseAirSupport.ID),
+        assertEquals(List.of(MechSupport.ID, CloseAirSupport.ID, OrbitalBarrage.ID),
                 filtered.powers.stream().map(p -> p.id).toList());
         assertEquals(5, CommandDeck.used(filtered.powers,
                 filtered.powers.stream().map(p -> p.id).toList()));
     }
 
     @Test
-    public void explicitEmptyDeckRemainsEmpty() {
-        assertTrue(CommandDeck.filter(roster(), Set.of()).isEmpty());
+    public void theArmorDropRidesWithTheBayOffTheDeck() {
+        MechSupport drop = new MechSupport();
+        assertEquals(0, CommandDeck.weight(drop));
+        assertFalse(CommandDeck.canAdd(roster(), Set.of(), drop));
+        assertEquals(List.of(MechSupport.ID), CommandDeck.filter(roster(), Set.of()).stream().map(p -> p.id).toList());
+    }
+
+    @Test
+    public void explicitEmptyDeckKeepsOnlyTheImpliedDrop() {
+        assertTrue(CommandDeck.filter(roster(), Set.of()).stream().allMatch(CommandDeck::implied));
     }
 }
