@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.staffed;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.BorePressure;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyObjectiveForce;
@@ -43,6 +44,8 @@ public final class LoadingPressureLookSuite implements SnapshotSuite {
     static final long[] SEEDS = seeds();
     static final int GUARDS = 6;
     static final float GUARD_RING = 5f;
+    /** The yard a player's defend-area order covers round the truck, in cells. */
+    static final int YARD_RADIUS = 8;
     static final float LIMIT_SECONDS = 300f;
     static final float AFTER_DEPART_SECONDS = 30f;
     static final float LOG_SECONDS = 5f;
@@ -182,7 +185,9 @@ public final class LoadingPressureLookSuite implements SnapshotSuite {
             sim.spawn(spec);
         }
         sim.getSquad(squad).originalSize = cells.size();
-        sim.claimSquadCommand(squad, CommandAuthority.GARRISON, ISSUER, "guarding the loading");
+        // What a player does with a squad sent to hold the yard: defend the area round the truck.
+        sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, Math.round(tx), Math.round(ty), YARD_RADIUS),
+                CommandAuthority.PLAYER_INTERVENTION, ISSUER, "holding the yard");
         return cells.size();
     }
 
