@@ -203,6 +203,21 @@ public final class BattleReviewFrameRenderer {
     }
 
     /**
+     * A look frame with {@code marks} painted over it and nothing else: no unit markers, no caption band. For a map
+     * read at a glance (where the mission's places are), never for judging how the ground looks.
+     */
+    public BufferedImage renderMarked(BattleSimulation simulation, ReviewAnnotations marks) throws IOException {
+        BufferedImage image = render(simulation, "", ReviewAnnotations.NONE, null);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        ReviewAnnotationPainter.paint(graphics, cameraFor(image.getWidth(), image.getHeight(), simulation),
+                image.getWidth(), image.getHeight(), marks);
+        graphics.dispose();
+        return image;
+    }
+
+    /**
      * The same frame with the game's impact particles painted over the world,
      * under the unit markers and annotations. {@code impacts} is the recorder
      * the caller has been feeding every tick; null draws none.
