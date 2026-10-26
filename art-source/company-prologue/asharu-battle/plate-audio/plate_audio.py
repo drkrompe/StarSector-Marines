@@ -87,10 +87,24 @@ OPTIONS.update({
               "D": ("Record lock, take 2", "take:ui_stamp_t02"),
               "E": ("Soft thump only", "soft")},
 })
-# the owner's picks (sound review, round one), and round two's best guesses
+# round three (owner: answer A "is the closest, but it's a very bright sound effect instead of neutral";
+# every stamp denied, no note): A's shape made neutral, and stamps tried in the approved sounds' voices
+OPTIONS["answer"] = {
+    "A": ("Readout, dark: A an octave down, rounded and filtered", "dark"),
+    "B": ("Readout, muted: three soft blips and a soft tone", "muted"),
+    "C": ("A neutral pair: two low round tones", "pair"),
+    "D": ("Readout as before, filtered and quieter", "filtered"),
+    "E": ("Silent: no answer tones", "none")}
+OPTIONS["stamp"] = {
+    "A": ("Silent: the stamp is seen, not heard", "none"),
+    "B": ("In the flag's voice: two square tones, falling", "flagvoice"),
+    "C": ("Printed: a fast run of the text ticks and a low tone", "print"),
+    "D": ("A neutral low double beep", "lowbeep"),
+    "E": ("The route's data patter, short", "patter")}
+# the owner's picks (sound review, rounds one and two), and round three's best guesses
 CHOICE = {"crt_on": "C", "crt_off": "A", "text": "C", "transition": "A",
-          "answer": "A", "ping": "B", "radio": "C", "stamp": "B"}
-REVIEW = ("answer", "ping", "radio", "stamp")      # the families the review page asks about this round
+          "answer": "B", "ping": "C", "radio": "D", "stamp": "B"}
+REVIEW = ("answer", "stamp")                       # the families the review page asks about this round
 
 # every level, in dB, in one place: the mix is judged and turned here
 # (beds and synthesised sounds by RMS; the set's switching sounds, all transient, by peak)
@@ -345,10 +359,35 @@ def fm(fc, dur, ratio=1.5, index=3.0):
 ANSWER_TONES = {"ok": (1568, 2093), "note": (1397,), "flag": (880, 698), "down": (784, 659, 523)}
 
 
+def round_tone(freq, dur, decay=None):
+    """A rounded tone: a sine with a little of its third harmonic, soft edges, no buzz."""
+    n = int(dur * SR)
+    i = np.arange(n)
+    ph = 2 * math.pi * freq * i / SR
+    e = np.minimum(1, i / (.006 * SR)) * np.minimum(1, (n - i) / (.02 * SR))
+    if decay:
+        e = e * np.exp(-i / SR / decay)
+    return (np.sin(ph) + .15 * np.sin(3 * ph)) * e
+
+
 def answer_sound(style, kind, seed):
     """An answer landing, by the answer's kind (ok, note, flag, down), in a style."""
     r = random.Random(seed)
     tones = ANSWER_TONES[kind]
+    if style == "dark":
+        burst = [round_tone(r.choice((523, 587, 698, 784, 880)), .028) for _ in range(5)]
+        return onepole(seq(*burst, *[round_tone(f / 2, .1) for f in tones], gap=.014), 1800)
+    if style == "muted":
+        burst = [round_tone(r.choice((523, 587, 698, 784)), .022) * .6 for _ in range(3)]
+        return onepole(seq(*burst, *[round_tone(f / 2, .09, decay=.08) for f in tones], gap=.02), 1300)
+    if style == "pair":
+        lo = {"ok": (440, 523), "note": (440,), "flag": (440, 370), "down": (440, 370, 330)}[kind]
+        return seq(*[round_tone(f, .08, decay=.07) for f in lo], gap=.03)
+    if style == "filtered":
+        burst = [tone(r.choice((1046, 1175, 1397, 1568, 1760, 2093)), .028) for _ in range(5)]
+        return onepole(seq(*burst, *[tone(f, .09) for f in tones], gap=.012), 1400) * .7
+    if style == "none":
+        return np.zeros(1)
     if style == "readout":
         burst = [tone(r.choice((1046, 1175, 1397, 1568, 1760, 2093)), .028) for _ in range(5)]
         return seq(*burst, *[tone(f, .09) for f in tones], gap=.012)
@@ -398,6 +437,18 @@ def stamp_sound(style, which):
     """A stamp in a style; which is NOT ESCALATED (lighter) or ARCHIVED (heavier, lower)."""
     low = which == "archived"
     k = .75 if low else 1.0
+    if style == "none":
+        return np.zeros(1)
+    if style == "flagvoice":
+        return seq(tone(520 * k, .1), tone(390 * k, .16, decay=.12), gap=.06)
+    if style == "print":
+        run =np.concatenate([np.pad(text_sound("ticks", 7000 + i), (0, int(.018 * SR))) for i in range(14)])
+        return seq(run * 1.4, round_tone(330 * k, .22, decay=.15), gap=.02)
+    if style == "lowbeep":
+        return seq(round_tone(440 * k, .1, decay=.09), round_tone(330 * k, .14, decay=.1), gap=.05)
+    if style == "patter":
+        x = chatter(.45, 88 if low else 87)
+        return x * np.linspace(1, .4, len(x))
     if style == "digital":
         a = tone(660 * k, .12) + tone(990 * k, .12)
         b = tone(440 * k, .22, decay=.15) + tone(660 * k, .22, decay=.15)

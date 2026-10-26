@@ -43,13 +43,11 @@ FAMILIES = {
     "beds": ("The room and the set", "The operations room's air and the CRT's hum, under everything."),
 }
 ORDER = list(FAMILIES)
-ROUND = 2
+ROUND = 3
 # the owner's notes from the round before, shown on the card they were left on
 PRIOR = {
-    "answer": "more 90s sci-fi movie terminal, a la Starship Troopers",
-    "ping": "too happy sounding",
-    "radio": "strange warp on the radio comes across as bangs",
-    "stamp": "denied",
+    "answer": "A is the closest, but it's a very bright sound effect instead of neutral",
+    "stamp": "every option denied, no note",
 }
 
 
